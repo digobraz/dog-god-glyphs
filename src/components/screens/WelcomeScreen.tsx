@@ -12,9 +12,9 @@ export function WelcomeScreen() {
 
       <motion.div
         className="flex flex-col items-center gap-6 text-center max-w-2xl"
-        initial={{ opacity: 0, y: 30 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.2, ease: 'easeOut' }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
       >
         <p className="text-sm tracking-[0.3em] uppercase text-muted-foreground" style={{ fontFamily: 'Cinzel, serif' }}>
           The place where DOG is GOD
