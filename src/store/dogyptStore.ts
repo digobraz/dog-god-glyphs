@@ -18,11 +18,13 @@ export interface DogyptState {
 
 export const useDogyptStore = create<DogyptState>((set) => ({
   dogName: '',
+  ownerName: '',
   currentStep: 0,
   selections: {},
   selectedTier: 'silver',
   email: '',
   setDogName: (name) => set({ dogName: name }),
+  setOwnerName: (name) => set({ ownerName: name }),
   setStep: (step) => set({ currentStep: step }),
   setSelection: (key, value) => set((state) => ({ selections: { ...state.selections, [key]: value } })),
   setSelectedTier: (tier) => set({ selectedTier: tier }),
