@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo.png';
-import hekthorImg from '@/assets/hekthor.png';
+import hekthorImg from '@/assets/hekthor-nobg.png';
 
 interface Message {
   id: string;
@@ -66,7 +66,7 @@ export function ChatScreen() {
             <img
               src={hekthorImg}
               alt="HEKTHOR"
-              className="w-48 h-48 md:w-56 md:h-56 object-contain mix-blend-multiply"
+              className="w-48 h-48 md:w-56 md:h-56 object-contain"
             />
 
             <AnimatePresence mode="popLayout">
