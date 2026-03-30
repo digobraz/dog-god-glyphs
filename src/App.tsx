@@ -8,6 +8,7 @@ import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedScreen } from "@/components/screens/BreedScreen";
 import { BirthdayDogScreen } from "@/components/screens/BirthdayDogScreen";
 import { RankingScreen } from "@/components/screens/RankingScreen";
+import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
