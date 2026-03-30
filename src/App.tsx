@@ -10,6 +10,7 @@ import { BirthdayDogScreen } from "@/components/screens/BirthdayDogScreen";
 import { RankingScreen } from "@/components/screens/RankingScreen";
 import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
 import { OwnerGenderScreen } from "@/components/screens/OwnerGenderScreen";
+import { OwnerZodiacScreen } from "@/components/screens/OwnerZodiacScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/ranking" element={<RankingScreen />} />
           <Route path="/owner-name" element={<OwnerInfoScreen />} />
           <Route path="/owner-gender" element={<OwnerGenderScreen />} />
+          <Route path="/owner-zodiac" element={<OwnerZodiacScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

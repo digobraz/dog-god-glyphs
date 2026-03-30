@@ -17,7 +17,7 @@ export function OwnerGenderScreen() {
   const handleSelect = (gender: string) => {
     setSelected(gender);
     setSelection('ownerGender', gender);
-    // TODO: navigate to next step when ready
+    setTimeout(() => navigate('/owner-zodiac'), 500);
   };
 
   return (
