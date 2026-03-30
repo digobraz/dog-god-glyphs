@@ -2,11 +2,13 @@ import { create } from 'zustand';
 
 export interface DogyptState {
   dogName: string;
+  ownerName: string;
   currentStep: number;
   selections: Record<string, string>;
   selectedTier: string;
   email: string;
   setDogName: (name: string) => void;
+  setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
   setSelection: (key: string, value: string) => void;
   setSelectedTier: (tier: string) => void;
