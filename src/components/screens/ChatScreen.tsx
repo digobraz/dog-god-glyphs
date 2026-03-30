@@ -54,7 +54,7 @@ export function ChatScreen() {
 
       {/* Main content — centered vertically */}
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md flex flex-col items-center gap-6">
+        <div className="w-full max-w-xl flex flex-col items-center gap-6">
 
           {/* BLOCK 1: HEKTHOR + question */}
           <motion.div
@@ -66,7 +66,7 @@ export function ChatScreen() {
             <img
               src={hekthorImg}
               alt="HEKTHOR"
-              className="w-48 h-48 md:w-56 md:h-56 object-contain"
+              className="w-56 h-56 md:w-64 md:h-64 object-contain"
             />
 
             <AnimatePresence mode="popLayout">
@@ -77,7 +77,7 @@ export function ChatScreen() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-foreground text-center text-lg md:text-xl leading-relaxed whitespace-pre-line"
+                  className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   {msg.text}
