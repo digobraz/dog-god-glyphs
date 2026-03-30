@@ -73,9 +73,9 @@ export function BirthdayDogScreen() {
             transition={{ duration: 0.5, delay: 0.15 }}
             style={{ background: 'hsl(var(--card) / 0.6)', backdropFilter: 'blur(8px)' }}
           >
-            <div className="flex gap-3 items-end justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 items-stretch justify-center">
               {/* Day */}
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-2 flex-1">
                 <label className="text-xs uppercase tracking-widest text-muted-foreground" style={{ fontFamily: "'Cinzel', serif" }}>
                   Day
                 </label>
@@ -86,23 +86,23 @@ export function BirthdayDogScreen() {
                   value={day}
                   onChange={e => setDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
                   placeholder="DD"
-                  className="w-20 h-14 bg-transparent border-2 border-border/60 rounded-xl text-center text-xl font-bold outline-none focus:border-primary transition-colors"
+                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-2xl font-bold outline-none focus:border-primary transition-colors"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 />
               </div>
 
               {/* Month */}
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-2 flex-[2]">
                 <label className="text-xs uppercase tracking-widest text-muted-foreground" style={{ fontFamily: "'Cinzel', serif" }}>
                   Month
                 </label>
                 <select
                   value={month}
                   onChange={e => setMonth(e.target.value)}
-                  className="w-36 h-14 bg-transparent border-2 border-border/60 rounded-xl text-center text-base font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer px-2"
+                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-lg font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer px-4"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  <option value="" disabled>MM</option>
+                  <option value="" disabled>Month</option>
                   {months.map((m, i) => (
                     <option key={m} value={String(i + 1)}>{m}</option>
                   ))}
@@ -110,7 +110,7 @@ export function BirthdayDogScreen() {
               </div>
 
               {/* Year */}
-              <div className="flex flex-col items-center gap-1.5">
+              <div className="flex flex-col items-center gap-2 flex-1">
                 <label className="text-xs uppercase tracking-widest text-muted-foreground" style={{ fontFamily: "'Cinzel', serif" }}>
                   Year
                 </label>
@@ -121,7 +121,7 @@ export function BirthdayDogScreen() {
                   value={year}
                   onChange={e => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="YYYY"
-                  className="w-24 h-14 bg-transparent border-2 border-border/60 rounded-xl text-center text-xl font-bold outline-none focus:border-primary transition-colors"
+                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-2xl font-bold outline-none focus:border-primary transition-colors"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 />
               </div>
