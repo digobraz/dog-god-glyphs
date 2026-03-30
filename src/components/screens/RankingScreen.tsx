@@ -132,7 +132,9 @@ export function RankingScreen() {
                           : 'border-border/60 hover:border-primary/50'
                       }`}
                     >
-                      <img src={opt.img} alt={opt.label} className="h-10 md:h-12 object-contain" />
+                      <div className="h-12 md:h-14 flex items-center justify-center">
+                        <img src={opt.img} alt={opt.label} className="h-full w-auto object-contain" />
+                      </div>
                       <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
                         {opt.label}
                       </span>
