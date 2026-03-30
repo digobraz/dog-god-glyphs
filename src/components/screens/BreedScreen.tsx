@@ -139,17 +139,19 @@ export function BreedScreen() {
                       )}
                     </div>
                     {showDropdown && filtered.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/40 rounded-xl max-h-48 overflow-y-auto z-10 shadow-lg">
-                        {filtered.slice(0, 20).map((breed) => (
-                          <button
-                            key={breed}
-                            onClick={() => handleSelectPurebred(breed)}
-                            className="w-full text-left px-4 py-2.5 text-foreground hover:bg-primary/20 transition-colors text-sm first:rounded-t-xl last:rounded-b-xl"
-                            style={{ fontFamily: "'Inter', sans-serif" }}
-                          >
-                            {breed}
-                          </button>
-                        ))}
+                      <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/40 rounded-xl max-h-48 overflow-y-auto z-10 shadow-lg p-2">
+                        <div className="flex flex-wrap gap-1.5">
+                          {filtered.slice(0, 30).map((breed) => (
+                            <button
+                              key={breed}
+                              onClick={() => handleSelectPurebred(breed)}
+                              className="px-3 py-1.5 rounded-full border border-border/40 text-foreground hover:bg-primary/20 transition-colors text-xs"
+                              style={{ fontFamily: "'Inter', sans-serif" }}
+                            >
+                              {breed}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
