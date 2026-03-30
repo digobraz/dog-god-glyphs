@@ -66,7 +66,7 @@ export function ChatScreen() {
             <img
               src={hekthorImg}
               alt="HEKTHOR"
-              className="w-48 h-48 md:w-56 md:h-56 object-contain mix-blend-multiply"
+              className="w-48 h-48 md:w-56 md:h-56 object-contain"
             />
 
             <AnimatePresence mode="popLayout">
