@@ -98,7 +98,7 @@ export function PhotoScreen() {
               </Button>
               {photos.length > 0 && (
                 <Button
-                  onClick={() => { /* next step */ }}
+                  onClick={() => navigate('/breed')}
                   className="flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
