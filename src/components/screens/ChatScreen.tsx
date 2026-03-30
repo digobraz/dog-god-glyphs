@@ -54,7 +54,7 @@ export function ChatScreen() {
 
       {/* Main content — centered vertically */}
       <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-md flex flex-col items-center gap-6">
+        <div className="w-full max-w-xl flex flex-col items-center gap-6">
 
           {/* BLOCK 1: HEKTHOR + question */}
           <motion.div
