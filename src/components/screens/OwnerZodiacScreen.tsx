@@ -29,6 +29,10 @@ import chineseDragonSvg from '@/assets/chinese/CHINESE_SIGN-DRAGON.svg';
 import chineseRoasterSvg from '@/assets/chinese/CHINESE_SIGN-ROASTER.svg';
 import chinesePigSvg from '@/assets/chinese/CHINESE_SIGN-PIG.svg';
 import chineseHorseSvg from '@/assets/chinese/CHINESE_SIGN-HORSE.svg';
+import chineseRatSvg from '@/assets/chinese/CHINESE_SIGN-RAT.svg';
+import chineseRabbitSvg from '@/assets/chinese/CHINESE_SIGN-RABBIT.svg';
+import chineseApeSvg from '@/assets/chinese/CHINESE_SIGN-APE.svg';
+import chineseGoatSvg from '@/assets/chinese/CHINESE_SIGN-GOAT.svg';
 
 const westernSigns = [
   { name: 'Aries', dates: 'Mar 21 – Apr 19', img: ariesSvg },
@@ -46,14 +50,18 @@ const westernSigns = [
 ];
 
 const chineseAnimalImages: Record<string, string> = {
-  Snake: chineseSnakeSvg,
-  Dog: chineseDogSvg,
-  Tiger: chineseTigerSvg,
-  Goat: chineseHornSvg,
-  Dragon: chineseDragonSvg,
+  Monkey: chineseApeSvg,
   Rooster: chineseRoasterSvg,
+  Dog: chineseDogSvg,
   Pig: chinesePigSvg,
+  Rat: chineseRatSvg,
+  Ox: chineseHornSvg,
+  Tiger: chineseTigerSvg,
+  Rabbit: chineseRabbitSvg,
+  Dragon: chineseDragonSvg,
+  Snake: chineseSnakeSvg,
   Horse: chineseHorseSvg,
+  Goat: chineseGoatSvg,
 };
 
 export function OwnerZodiacScreen() {
