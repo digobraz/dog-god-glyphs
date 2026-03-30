@@ -41,7 +41,7 @@ export function RankingScreen() {
 
   const handleYes = () => {
     setSelection('ranking', '1');
-    // navigate to next step
+    navigate('/owner-name');
   };
 
   const handleNo = () => {
