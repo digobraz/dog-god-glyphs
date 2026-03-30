@@ -54,7 +54,7 @@ export function OwnerInfoScreen() {
   const handleSend = () => {
     if (!input.trim()) return;
     setOwnerName(input.trim().toUpperCase());
-    // navigate to next step
+    navigate('/owner-gender');
   };
 
   return (

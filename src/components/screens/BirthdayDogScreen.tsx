@@ -39,7 +39,7 @@ export function BirthdayDogScreen() {
     setSelection('birthdayDay', day);
     setSelection('birthdayMonth', month);
     setSelection('birthdayYear', year);
-    // navigate to next step
+    navigate('/ranking');
   };
 
   return (
