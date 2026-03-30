@@ -17,7 +17,7 @@ export function ChatScreen() {
     {
       id: '1',
       sender: 'bot',
-      text: "Hi, I'm HEKTHOR. What's your dog's name?",
+      text: "Hi, I'm HEKTHOR.\nWhat's your dog's name?",
     },
   ]);
   const [input, setInput] = useState('');
@@ -52,57 +52,50 @@ export function ChatScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
       </div>
 
-      {/* Chat area */}
-      <div className="flex-1 flex flex-col items-center overflow-hidden px-4">
-        <div className="w-full max-w-lg flex flex-col flex-1 overflow-hidden">
-          {/* Centered content */}
-          <div className="flex-1 flex flex-col items-center justify-center space-y-4">
-            {/* HEKTHOR image */}
-            <motion.div
-              className="flex flex-col items-center gap-4"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <img
-                src={hekthorImg}
-                alt="HEKTHOR"
-                className="w-36 h-36 md:w-44 md:h-44 object-contain"
-              />
-            </motion.div>
+      {/* Main content — centered vertically */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-md flex flex-col items-center gap-6">
+
+          {/* BLOCK 1: HEKTHOR + question */}
+          <motion.div
+            className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <img
+              src={hekthorImg}
+              alt="HEKTHOR"
+              className="w-48 h-48 md:w-56 md:h-56 object-contain mix-blend-multiply"
+            />
 
             <AnimatePresence mode="popLayout">
-              {messages.map((msg) => (
-                <motion.div
+              {messages.filter(m => m.sender === 'bot').slice(-1).map((msg) => (
+                <motion.p
                   key={msg.id}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-center'} w-full`}
+                  className="text-foreground text-center text-lg md:text-xl leading-relaxed whitespace-pre-line"
+                  style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm md:text-base text-center ${
-                      msg.sender === 'bot'
-                        ? 'text-foreground'
-                        : 'bg-primary text-primary-foreground'
-                    }`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    {msg.text}
-                  </div>
-                </motion.div>
+                  {msg.text}
+                </motion.p>
               ))}
             </AnimatePresence>
+          </motion.div>
 
+          {/* BLOCK 2: Answer area */}
+          <motion.div
+            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             {/* Option buttons when present */}
             {messages.length > 0 && messages[messages.length - 1].options && (
-              <motion.div
-                className="flex flex-wrap gap-2 justify-center pt-2"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+              <div className="flex flex-wrap gap-2 justify-center">
                 {messages[messages.length - 1].options!.map((option) => (
                   <Button
                     key={option}
@@ -121,21 +114,17 @@ export function ChatScreen() {
                     {option}
                   </Button>
                 ))}
-              </motion.div>
+              </div>
             )}
 
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input area */}
-          <div className="flex-shrink-0 pb-4 pt-2">
-            <div className="flex items-center gap-2 bg-card border border-primary/30 rounded-full px-4 py-2 shadow-sm">
+            {/* Text input */}
+            <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your answer..."
-                className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm md:text-base"
+                className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
                 style={{ fontFamily: "'Inter', sans-serif" }}
                 autoFocus
               />
@@ -148,7 +137,9 @@ export function ChatScreen() {
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-          </div>
+          </motion.div>
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
     </div>
