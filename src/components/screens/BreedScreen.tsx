@@ -52,7 +52,7 @@ export function BreedScreen() {
       setSelection('breed', mixBreeds.join(', '));
       setSelection('breedType', 'mix');
     }
-    // navigate to next step
+    navigate('/birthday-dog');
   };
 
   const canContinue = mode === 'purebred' ? !!selectedBreed : mode === 'mix' ? mixBreeds.length >= 2 : false;
