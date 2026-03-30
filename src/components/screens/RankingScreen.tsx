@@ -136,7 +136,7 @@ export function RankingScreen() {
                       }`}
                     >
                       <div className="h-12 md:h-14 flex items-center justify-center">
-                        <img src={opt.img} alt={opt.label} className="h-full w-auto object-contain" />
+                        <img src={opt.img} alt={opt.label} className="object-contain" style={{ height: `${opt.scale * 100}%` }} />
                       </div>
                       <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
                         {opt.label}
