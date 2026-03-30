@@ -53,25 +53,21 @@ export function BirthdayDogScreen() {
           {/* Question block */}
           <motion.div
             className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{ background: 'hsl(var(--card) / 0.6)', backdropFilter: 'blur(8px)' }}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="Hekthor" className="h-16 w-16 rounded-full border-2 border-primary object-cover" />
-            <p className="text-center text-base md:text-lg" style={{ fontFamily: "'Cinzel', serif" }}>
-              <span className="text-primary font-bold">{dogName || 'BUDDY'}</span>
-              {' '}When do you celebrate your birthday?
+            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
+              {dogName || 'BUDDY'}, When do you celebrate your birthday?
             </p>
           </motion.div>
 
-          {/* Date input block */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-6"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            style={{ background: 'hsl(var(--card) / 0.6)', backdropFilter: 'blur(8px)' }}
+            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col sm:flex-row gap-4 items-stretch justify-center">
               {/* Day */}
