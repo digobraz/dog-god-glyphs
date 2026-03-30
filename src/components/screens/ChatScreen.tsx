@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo.png';
-import hekthorImg from '@/assets/hekthor.png';
+import hekthorImg from '@/assets/hekthor-nobg.png';
 
 interface Message {
   id: string;
