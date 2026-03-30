@@ -55,11 +55,11 @@ export function ChatScreen() {
       {/* Chat area */}
       <div className="flex-1 flex flex-col items-center overflow-hidden px-4">
         <div className="w-full max-w-lg flex flex-col flex-1 overflow-hidden">
-          {/* Messages scroll area */}
-          <div className="flex-1 overflow-y-auto space-y-3 py-3 scrollbar-hide">
-            {/* HEKTHOR avatar + first message block */}
+          {/* Centered content */}
+          <div className="flex-1 flex flex-col items-center justify-center space-y-4">
+            {/* HEKTHOR image */}
             <motion.div
-              className="flex flex-col items-center gap-3"
+              className="flex flex-col items-center gap-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
@@ -67,7 +67,7 @@ export function ChatScreen() {
               <img
                 src={hekthorImg}
                 alt="HEKTHOR"
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover border-4 border-primary shadow-lg"
+                className="w-36 h-36 md:w-44 md:h-44 object-contain"
               />
             </motion.div>
 
@@ -79,15 +79,15 @@ export function ChatScreen() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-center'} w-full`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm md:text-base ${
+                    className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm md:text-base text-center ${
                       msg.sender === 'bot'
-                        ? 'bg-card text-card-foreground border border-primary/30'
+                        ? 'text-foreground'
                         : 'bg-primary text-primary-foreground'
                     }`}
-                    style={{ fontFamily: msg.sender === 'bot' ? "'Cinzel', serif" : "'Inter', sans-serif" }}
+                    style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     {msg.text}
                   </div>
