@@ -29,5 +29,5 @@ export const useDogyptStore = create<DogyptState>((set) => ({
   setSelection: (key, value) => set((state) => ({ selections: { ...state.selections, [key]: value } })),
   setSelectedTier: (tier) => set({ selectedTier: tier }),
   setEmail: (email) => set({ email }),
-  reset: () => set({ dogName: '', currentStep: 0, selections: {}, selectedTier: 'silver', email: '' }),
+  reset: () => set({ dogName: '', ownerName: '', currentStep: 0, selections: {}, selectedTier: 'silver', email: '' }),
 }));

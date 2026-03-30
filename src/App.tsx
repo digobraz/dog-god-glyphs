@@ -26,6 +26,7 @@ const App = () => (
           <Route path="/breed" element={<BreedScreen />} />
           <Route path="/birthday-dog" element={<BirthdayDogScreen />} />
           <Route path="/ranking" element={<RankingScreen />} />
+          <Route path="/owner-info" element={<OwnerInfoScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
