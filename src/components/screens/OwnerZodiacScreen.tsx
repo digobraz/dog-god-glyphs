@@ -120,7 +120,7 @@ export function OwnerZodiacScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-6 py-4">
+        <div className="w-full max-w-3xl flex flex-col items-center gap-6 py-4">
           {/* Question block */}
           <motion.div
             className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
@@ -128,135 +128,131 @@ export function OwnerZodiacScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <img src={hekthorImg} alt="HEKTHOR" className="w-40 h-40 md:w-48 md:h-48 object-contain" />
             <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
               What do the stars say about your master?
             </p>
           </motion.div>
 
-          {/* 1. Western Zodiac */}
-          <motion.div
-            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, delay: 0.1 }}
-          >
-            <p className="text-xs uppercase tracking-widest text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-              Zodiac Sign
-            </p>
+          {/* Two columns side by side */}
+          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 1. Western Zodiac */}
+            <motion.div
+              className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.35, delay: 0.1 }}
+            >
+              <p className="text-xs uppercase tracking-widest text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
+                Zodiac Sign
+              </p>
 
-            <div className="flex items-center gap-3">
-              {/* Search input */}
-              <div className="flex-1 relative">
-                <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
-                  <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <input
-                    ref={searchRef}
-                    value={zodiacSearch}
-                    onChange={(e) => { setZodiacSearch(e.target.value); setSelectedZodiac(null); }}
-                    placeholder="Search zodiac sign..."
-                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                  />
-                  {zodiacSearch && (
-                    <button onClick={() => { setZodiacSearch(''); setSelectedZodiac(null); }} className="text-muted-foreground hover:text-foreground">
-                      <X className="h-4 w-4" />
-                    </button>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 relative">
+                  <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+                    <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <input
+                      ref={searchRef}
+                      value={zodiacSearch}
+                      onChange={(e) => { setZodiacSearch(e.target.value); setSelectedZodiac(null); }}
+                      placeholder="Search sign..."
+                      className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    />
+                    {zodiacSearch && (
+                      <button onClick={() => { setZodiacSearch(''); setSelectedZodiac(null); }} className="text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  {showDropdown && filteredSigns.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/40 rounded-xl max-h-48 overflow-y-auto z-10 shadow-lg p-2">
+                      <div className="flex flex-col gap-1">
+                        {filteredSigns.map((sign) => (
+                          <button
+                            key={sign.name}
+                            onClick={() => handleSelectZodiac(sign)}
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/20 transition-colors text-left"
+                            style={{ fontFamily: "'Inter', sans-serif" }}
+                          >
+                            <img src={sign.img} alt={sign.name} className="h-6 w-6 object-contain" />
+                            <span className="text-sm font-medium">{sign.name}</span>
+                            <span className="text-xs text-muted-foreground ml-auto">{sign.dates}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-                {showDropdown && filteredSigns.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border/40 rounded-xl max-h-48 overflow-y-auto z-10 shadow-lg p-2">
-                    <div className="flex flex-col gap-1">
-                      {filteredSigns.map((sign) => (
-                        <button
-                          key={sign.name}
-                          onClick={() => handleSelectZodiac(sign)}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/20 transition-colors text-left"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
-                        >
-                          <img src={sign.img} alt={sign.name} className="h-6 w-6 object-contain" />
-                          <span className="text-sm font-medium">{sign.name}</span>
-                          <span className="text-xs text-muted-foreground ml-auto">{sign.dates}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+
+                <div className="w-14 h-14 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {selectedZodiac ? (
+                    <motion.div
+                      key={selectedZodiac.name}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <img src={selectedZodiac.img} alt={selectedZodiac.name} className="h-10 object-contain" />
+                    </motion.div>
+                  ) : (
+                    <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>?</span>
+                  )}
+                </div>
               </div>
+            </motion.div>
 
-              {/* Symbol preview box */}
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {selectedZodiac ? (
-                  <motion.div
-                    key={selectedZodiac.name}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <img src={selectedZodiac.img} alt={selectedZodiac.name} className="h-10 md:h-12 object-contain" />
-                  </motion.div>
-                ) : (
-                  <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
-                    ?
-                  </span>
-                )}
-              </div>
-            </div>
-          </motion.div>
-
-          {/* 2. Chinese Zodiac */}
-          <motion.div
-            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, delay: 0.2 }}
-          >
-            <p className="text-xs uppercase tracking-widest text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-              Chinese Zodiac
-            </p>
-
-            <div className="flex items-center gap-3">
-              <div className="flex-1 flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
-                <input
-                  value={yearInput}
-                  onChange={(e) => handleYearChange(e.target.value)}
-                  placeholder="Year of birth (e.g. 1990)"
-                  className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                  inputMode="numeric"
-                />
-              </div>
-
-              {/* Symbol preview box */}
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {chineseResult ? (
-                  <motion.div
-                    key={chineseResult.name}
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex flex-col items-center"
-                  >
-                    {chineseAnimalImages[chineseResult.name] ? (
-                      <img src={chineseAnimalImages[chineseResult.name]} alt={chineseResult.name} className="h-10 md:h-12 object-contain" />
-                    ) : (
-                      <span className="text-2xl">{chineseResult.emoji}</span>
-                    )}
-                  </motion.div>
-                ) : (
-                  <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
-                    ?
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {chineseResult && (
-              <p className="text-xs text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                Year of the {chineseResult.name} {chineseResult.emoji}
+            {/* 2. Chinese Zodiac */}
+            <motion.div
+              className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.35, delay: 0.2 }}
+            >
+              <p className="text-xs uppercase tracking-widest text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
+                Chinese Zodiac
               </p>
-            )}
-          </motion.div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+                  <input
+                    value={yearInput}
+                    onChange={(e) => handleYearChange(e.target.value)}
+                    placeholder="Year of birth"
+                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    inputMode="numeric"
+                  />
+                </div>
+
+                <div className="w-14 h-14 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {chineseResult ? (
+                    <motion.div
+                      key={chineseResult.name}
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex flex-col items-center"
+                    >
+                      {chineseAnimalImages[chineseResult.name] ? (
+                        <img src={chineseAnimalImages[chineseResult.name]} alt={chineseResult.name} className="h-10 object-contain" />
+                      ) : (
+                        <span className="text-2xl">{chineseResult.emoji}</span>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>?</span>
+                  )}
+                </div>
+              </div>
+
+              {chineseResult && (
+                <p className="text-xs text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
+                  Year of the {chineseResult.name}
+                </p>
+              )}
+            </motion.div>
+          </div>
 
           {/* Continue button */}
           {canContinue && (
