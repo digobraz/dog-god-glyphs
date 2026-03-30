@@ -1,5 +1,5 @@
-// Comprehensive FCI breed list grouped by group number
-export const fciBreeds: string[] = [
+// Comprehensive FCI breed list - deduplicated and sorted
+export const fciBreeds: string[] = [...new Set([
   // Group 1 - Sheepdogs and Cattledogs
   'Australian Cattle Dog', 'Australian Shepherd', 'Bearded Collie', 'Beauceron', 'Belgian Malinois',
   'Belgian Tervuren', 'Belgian Groenendael', 'Belgian Laekenois', 'Bergamasco Shepherd', 'Border Collie',
@@ -63,4 +63,4 @@ export const fciBreeds: string[] = [
   // Group 10 - Sighthounds
   'Afghan Hound', 'Azawakh', 'Borzoi', 'Greyhound', 'Ibizan Hound',
   'Irish Wolfhound', 'Italian Greyhound', 'Saluki', 'Scottish Deerhound', 'Sloughi', 'Whippet',
-].sort();
+])].sort();
