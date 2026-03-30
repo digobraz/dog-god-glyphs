@@ -18,6 +18,17 @@ import libraSvg from '@/assets/zodiac/ZODIAC-LIBRA.svg';
 import sagittariusSvg from '@/assets/zodiac/ZODIAC-SAGITTARIUS.svg';
 import capricornSvg from '@/assets/zodiac/ZODIAC-CAPRICORN.svg';
 import aquariusSvg from '@/assets/zodiac/ZODIAC-AQUARIUS.svg';
+import scorpioSvg from '@/assets/zodiac/ZODIAC-SCORPIO.svg';
+import piscesSvg from '@/assets/zodiac/ZODIAC-PISCES.svg';
+
+import chineseSnakeSvg from '@/assets/chinese/CHINESE_SIGN-SNAKE.svg';
+import chineseDogSvg from '@/assets/chinese/CHINESE_SIGN-DOG.svg';
+import chineseTigerSvg from '@/assets/chinese/CHINESE_SIGN-TIGER.svg';
+import chineseHornSvg from '@/assets/chinese/CHINESE_SIGN-HORN.svg';
+import chineseDragonSvg from '@/assets/chinese/CHINESE_SIGN-DRAGON.svg';
+import chineseRoasterSvg from '@/assets/chinese/CHINESE_SIGN-ROASTER.svg';
+import chinesePigSvg from '@/assets/chinese/CHINESE_SIGN-PIG.svg';
+import chineseHorseSvg from '@/assets/chinese/CHINESE_SIGN-HORSE.svg';
 
 const westernSigns = [
   { name: 'Aries', dates: 'Mar 21 – Apr 19', img: ariesSvg },
@@ -27,26 +38,22 @@ const westernSigns = [
   { name: 'Leo', dates: 'Jul 23 – Aug 22', img: leoSvg },
   { name: 'Virgo', dates: 'Aug 23 – Sep 22', img: virgoSvg },
   { name: 'Libra', dates: 'Sep 23 – Oct 22', img: libraSvg },
-  { name: 'Scorpio', dates: 'Oct 23 – Nov 21', img: null },
+  { name: 'Scorpio', dates: 'Oct 23 – Nov 21', img: scorpioSvg },
   { name: 'Sagittarius', dates: 'Nov 22 – Dec 21', img: sagittariusSvg },
   { name: 'Capricorn', dates: 'Dec 22 – Jan 19', img: capricornSvg },
   { name: 'Aquarius', dates: 'Jan 20 – Feb 18', img: aquariusSvg },
-  { name: 'Pisces', dates: 'Feb 19 – Mar 20', img: null },
+  { name: 'Pisces', dates: 'Feb 19 – Mar 20', img: piscesSvg },
 ];
 
-const chineseAnimals: Record<number, { name: string; emoji: string }> = {
-  0: { name: 'Monkey', emoji: '🐒' },
-  1: { name: 'Rooster', emoji: '🐓' },
-  2: { name: 'Dog', emoji: '🐕' },
-  3: { name: 'Pig', emoji: '🐖' },
-  4: { name: 'Rat', emoji: '🐀' },
-  5: { name: 'Ox', emoji: '🐂' },
-  6: { name: 'Tiger', emoji: '🐅' },
-  7: { name: 'Rabbit', emoji: '🐇' },
-  8: { name: 'Dragon', emoji: '🐉' },
-  9: { name: 'Snake', emoji: '🐍' },
-  10: { name: 'Horse', emoji: '🐎' },
-  11: { name: 'Goat', emoji: '🐐' },
+const chineseAnimalImages: Record<string, string> = {
+  Snake: chineseSnakeSvg,
+  Dog: chineseDogSvg,
+  Tiger: chineseTigerSvg,
+  Goat: chineseHornSvg,
+  Dragon: chineseDragonSvg,
+  Rooster: chineseRoasterSvg,
+  Pig: chinesePigSvg,
+  Horse: chineseHorseSvg,
 };
 
 export function OwnerZodiacScreen() {
