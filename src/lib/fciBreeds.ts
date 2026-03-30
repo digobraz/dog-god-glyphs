@@ -63,4 +63,4 @@ export const fciBreeds: string[] = [...new Set([
   // Group 10 - Sighthounds
   'Afghan Hound', 'Azawakh', 'Borzoi', 'Greyhound', 'Ibizan Hound',
   'Irish Wolfhound', 'Italian Greyhound', 'Saluki', 'Scottish Deerhound', 'Sloughi', 'Whippet',
-].sort();
+])].sort();
