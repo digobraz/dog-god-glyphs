@@ -63,13 +63,11 @@ export function BirthdayDogScreen() {
             </p>
           </motion.div>
 
-          {/* Date input block */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-6"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            style={{ background: 'hsl(var(--card) / 0.6)', backdropFilter: 'blur(8px)' }}
+            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col sm:flex-row gap-4 items-stretch justify-center">
               {/* Day */}
