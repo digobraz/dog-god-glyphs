@@ -105,7 +105,7 @@ export function RankingScreen() {
                     className="flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-border/60 hover:border-primary transition-all"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
-                    <span className="text-4xl md:text-5xl" style={{ lineHeight: 1 }}>🐾</span>
+                    <img src={num2} alt="II" className="h-16 md:h-20 object-contain" />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
                       No, I'm not first
                     </span>
