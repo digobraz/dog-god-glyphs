@@ -10,25 +10,29 @@ import hekthorImg from '@/assets/hekthor.png';
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
 import letterC from '@/assets/letters/NAME_-C.svg';
+import letterD from '@/assets/letters/NAME_-D.svg';
+import letterE from '@/assets/letters/NAME_-E.svg';
+import letterF from '@/assets/letters/NAME_-F.svg';
+import letterG from '@/assets/letters/NAME_-G.svg';
 import letterK from '@/assets/letters/NAME_-K.svg';
 import letterL from '@/assets/letters/NAME_-L.svg';
+import letterM from '@/assets/letters/NAME_-M.svg';
+import letterN from '@/assets/letters/NAME_-N.svg';
 import letterO from '@/assets/letters/NAME_-O.svg';
 import letterP from '@/assets/letters/NAME_-P.svg';
 import letterR from '@/assets/letters/NAME_-R.svg';
+import letterQ from '@/assets/letters/NAME-Q.svg';
+import letterS from '@/assets/letters/NAME-S.svg';
+import letterT from '@/assets/letters/NAME-T.svg';
+import letterU from '@/assets/letters/NAME-U.svg';
 import letterY from '@/assets/letters/NAME-Y.svg';
 import letterZ from '@/assets/letters/NAME-Z.svg';
 
 const letterMap: Record<string, string> = {
-  A: letterA,
-  B: letterB,
-  C: letterC,
-  K: letterK,
-  L: letterL,
-  O: letterO,
-  P: letterP,
-  R: letterR,
-  Y: letterY,
-  Z: letterZ,
+  A: letterA, B: letterB, C: letterC, D: letterD, E: letterE,
+  F: letterF, G: letterG, K: letterK, L: letterL, M: letterM,
+  N: letterN, O: letterO, P: letterP, Q: letterQ, R: letterR,
+  S: letterS, T: letterT, U: letterU, Y: letterY, Z: letterZ,
 };
 
 export function OwnerInfoScreen() {
