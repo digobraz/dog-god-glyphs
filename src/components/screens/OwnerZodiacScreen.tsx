@@ -185,11 +185,7 @@ export function OwnerZodiacScreen() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
                   >
-                    {selectedZodiac.img ? (
-                      <img src={selectedZodiac.img} alt={selectedZodiac.name} className="h-10 md:h-12 object-contain" />
-                    ) : (
-                      <span className="text-2xl">♏</span>
-                    )}
+                    <img src={selectedZodiac.img} alt={selectedZodiac.name} className="h-10 md:h-12 object-contain" />
                   </motion.div>
                 ) : (
                   <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
