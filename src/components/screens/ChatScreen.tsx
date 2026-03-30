@@ -77,7 +77,7 @@ export function ChatScreen() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="text-foreground text-center text-lg md:text-xl leading-relaxed whitespace-pre-line"
+                  className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   {msg.text}
