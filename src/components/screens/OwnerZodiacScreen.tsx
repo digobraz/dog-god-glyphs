@@ -166,11 +166,7 @@ export function OwnerZodiacScreen() {
                           className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-primary/20 transition-colors text-left"
                           style={{ fontFamily: "'Inter', sans-serif" }}
                         >
-                          {sign.img ? (
-                            <img src={sign.img} alt={sign.name} className="h-6 w-6 object-contain" />
-                          ) : (
-                            <span className="h-6 w-6 flex items-center justify-center text-sm">♏</span>
-                          )}
+                          <img src={sign.img} alt={sign.name} className="h-6 w-6 object-contain" />
                           <span className="text-sm font-medium">{sign.name}</span>
                           <span className="text-xs text-muted-foreground ml-auto">{sign.dates}</span>
                         </button>
