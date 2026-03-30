@@ -103,7 +103,7 @@ export function BreedScreen() {
                     className="w-full rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-base"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
-                    Purebred
+                    One Breed
                   </Button>
                   <Button
                     onClick={() => setMode('mix')}
