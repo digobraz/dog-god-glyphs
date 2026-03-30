@@ -108,21 +108,21 @@ export function OwnerZodiacScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
-          {/* Question block - compact */}
+        <div className="w-full max-w-xl flex flex-col items-center gap-6 py-4">
+          {/* Question block */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-4 flex items-center gap-4"
+            className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <p className="text-foreground text-lg md:text-xl leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
+            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
               What do the stars say about your master?
             </p>
           </motion.div>
 
-          {/* 1. Western Zodiac - icon grid */}
+          {/* 1. Western Zodiac - horizontal scroll */}
           <motion.div
             className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
             initial={{ opacity: 0, x: 40 }}
@@ -133,27 +133,29 @@ export function OwnerZodiacScreen() {
               Zodiac Sign
             </p>
 
-            <div className="grid grid-cols-6 gap-2">
-              {westernSigns.map((sign) => (
-                <button
-                  key={sign.name}
-                  onClick={() => handleSelectZodiac(sign)}
-                  className={`relative flex flex-col items-center gap-1 p-2 rounded-xl transition-all ${
-                    selectedZodiac === sign.name
-                      ? 'bg-primary/20 border-2 border-primary ring-1 ring-primary/30 scale-105'
-                      : 'border border-border/30 hover:bg-card/80 hover:border-border/60'
-                  }`}
-                >
-                  <img src={sign.img} alt={sign.name} className="h-8 w-8 md:h-10 md:w-10 object-contain" />
-                  <span className="text-[9px] md:text-[10px] text-muted-foreground leading-none truncate w-full text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                    {sign.name}
-                  </span>
-                </button>
-              ))}
+            <div className="relative">
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}>
+                {westernSigns.map((sign) => (
+                  <button
+                    key={sign.name}
+                    onClick={() => handleSelectZodiac(sign)}
+                    className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all w-16 ${
+                      selectedZodiac === sign.name
+                        ? 'bg-primary/20 border-2 border-primary ring-1 ring-primary/30 scale-105'
+                        : 'border border-border/30 hover:bg-card/80 hover:border-border/60'
+                    }`}
+                  >
+                    <img src={sign.img} alt={sign.name} className="h-9 w-9 object-contain" />
+                    <span className="text-[9px] text-muted-foreground leading-none truncate w-full text-center" style={{ fontFamily: "'Cinzel', serif" }}>
+                      {sign.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </motion.div>
 
-          {/* 2. Chinese Zodiac - year input + result */}
+          {/* 2. Chinese Zodiac */}
           <motion.div
             className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
             initial={{ opacity: 0, x: 40 }}
