@@ -229,7 +229,11 @@ export function OwnerZodiacScreen() {
                     transition={{ duration: 0.2 }}
                     className="flex flex-col items-center"
                   >
-                    <span className="text-2xl">{chineseResult.emoji}</span>
+                    {chineseAnimalImages[chineseResult.name] ? (
+                      <img src={chineseAnimalImages[chineseResult.name]} alt={chineseResult.name} className="h-10 md:h-12 object-contain" />
+                    ) : (
+                      <span className="text-2xl">{chineseResult.emoji}</span>
+                    )}
                   </motion.div>
                 ) : (
                   <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
