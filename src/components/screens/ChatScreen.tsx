@@ -1,48 +1,57 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Send } from 'lucide-react';
+import { Send, Camera, X, Plus } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-interface Message {
-  id: string;
-  sender: 'bot' | 'user';
-  text: string;
-  options?: string[];
-}
+type Step = 'name' | 'photos';
 
 export function ChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      sender: 'bot',
-      text: "Hi, I'm HEKTHOR.\nWhat's your dog's name?",
-    },
-  ]);
+  const [step, setStep] = useState<Step>('name');
+  const [dogName, setDogName] = useState('');
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const botText = step === 'name'
+    ? "Hi, I'm HEKTHOR.\nWhat's your dog's name?"
+    : `HELLO, ${dogName}!\nSHOW ME YOUR MAJESTY`;
 
-  const handleSend = () => {
+  const handleSendName = () => {
     if (!input.trim()) return;
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      sender: 'user',
-      text: input.trim(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
+    setDogName(input.trim().toUpperCase());
+    setStep('photos');
     setInput('');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSendName();
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const remaining = 5 - photos.length;
+    const selected = Array.from(files).slice(0, remaining);
+    selected.forEach((file) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPhotos((prev) => {
+          if (prev.length >= 5) return prev;
+          return [...prev, ev.target?.result as string];
+        });
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -69,77 +78,138 @@ export function ChatScreen() {
               className="w-56 h-56 md:w-64 md:h-64 object-contain"
             />
 
-            <AnimatePresence mode="popLayout">
-              {messages.filter(m => m.sender === 'bot').slice(-1).map((msg) => (
-                <motion.p
-                  key={msg.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {msg.text}
-                </motion.p>
-              ))}
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={step}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+                className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {botText}
+              </motion.p>
             </AnimatePresence>
+
+            {step === 'photos' && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-muted-foreground text-sm text-center"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Upload up to 5 photos
+              </motion.p>
+            )}
           </motion.div>
 
           {/* BLOCK 2: Answer area */}
-          <motion.div
-            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            {/* Option buttons when present */}
-            {messages.length > 0 && messages[messages.length - 1].options && (
-              <div className="flex flex-wrap gap-2 justify-center">
-                {messages[messages.length - 1].options!.map((option) => (
-                  <Button
-                    key={option}
-                    variant="outline"
-                    className="border-primary text-foreground hover:bg-primary hover:text-primary-foreground rounded-full px-5 py-2 text-sm font-medium"
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                    onClick={() => {
-                      const userMsg: Message = {
-                        id: Date.now().toString(),
-                        sender: 'user',
-                        text: option,
-                      };
-                      setMessages((prev) => [...prev, userMsg]);
-                    }}
-                  >
-                    {option}
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            {/* Text input */}
-            <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type your answer..."
-                className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-                autoFocus
-              />
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim()}
-                size="icon"
-                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/80 h-9 w-9 flex-shrink-0 disabled:opacity-30"
+          <AnimatePresence mode="wait">
+            {step === 'name' ? (
+              <motion.div
+                key="name-input"
+                className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
               >
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
-          </motion.div>
+                <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Type your dog's name..."
+                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
+                    style={{ fontFamily: "'Inter', sans-serif" }}
+                    autoFocus
+                  />
+                  <Button
+                    onClick={handleSendName}
+                    disabled={!input.trim()}
+                    size="icon"
+                    className="rounded-full bg-primary text-primary-foreground hover:bg-primary/80 h-9 w-9 flex-shrink-0 disabled:opacity-30"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="photo-upload"
+                className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
+              >
+                {/* Photo grid */}
+                <div className="grid grid-cols-5 gap-3">
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const photo = photos[i];
+                    return (
+                      <div
+                        key={i}
+                        className="relative aspect-square rounded-xl border-2 border-dashed border-border/50 overflow-hidden flex items-center justify-center bg-card/50 cursor-pointer hover:border-primary/50 transition-colors"
+                        onClick={() => {
+                          if (!photo && photos.length < 5) fileInputRef.current?.click();
+                        }}
+                      >
+                        {photo ? (
+                          <>
+                            <img src={photo} alt={`Dog photo ${i + 1}`} className="w-full h-full object-cover" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); removePhoto(i); }}
+                              className="absolute top-1 right-1 bg-foreground/70 text-background rounded-full p-0.5 hover:bg-foreground transition-colors"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </>
+                        ) : (
+                          <Plus className="h-5 w-5 text-muted-foreground/50" />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
 
-          <div ref={messagesEndRef} />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                {/* Upload / Continue button */}
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={photos.length >= 5}
+                    variant="outline"
+                    className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground gap-2 disabled:opacity-30"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    <Camera className="h-4 w-4" />
+                    Add Photos
+                  </Button>
+                  {photos.length > 0 && (
+                    <Button
+                      className="flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      <Send className="h-4 w-4" />
+                      Continue
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
         </div>
       </div>
     </div>
