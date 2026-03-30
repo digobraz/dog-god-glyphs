@@ -15,18 +15,21 @@ import num6 from '@/assets/numbers/NUMBER-6.svg';
 import num7 from '@/assets/numbers/NUMBER-7.svg';
 import num8 from '@/assets/numbers/NUMBER-8.svg';
 import num9 from '@/assets/numbers/NUMBER-9.svg';
+import num10 from '@/assets/numbers/NUMBER-10.svg';
 import num11 from '@/assets/numbers/NUMBER-11.svg';
 
+// scale factors relative to num8 (smallest visual size = 1.0)
 const rankOptions = [
-  { value: '2', label: '2nd', img: num2 },
-  { value: '3', label: '3rd', img: num3 },
-  { value: '4', label: '4th', img: num4 },
-  { value: '5', label: '5th', img: num5 },
-  { value: '6', label: '6th', img: num6 },
-  { value: '7', label: '7th', img: num7 },
-  { value: '8', label: '8th', img: num8 },
-  { value: '9', label: '9th', img: num9 },
-  { value: '11', label: '11th+', img: num11 },
+  { value: '2', label: '2nd', img: num2, scale: 0.85 },
+  { value: '3', label: '3rd', img: num3, scale: 0.85 },
+  { value: '4', label: '4th', img: num4, scale: 0.7 },
+  { value: '5', label: '5th', img: num5, scale: 0.65 },
+  { value: '6', label: '6th', img: num6, scale: 0.7 },
+  { value: '7', label: '7th', img: num7, scale: 0.7 },
+  { value: '8', label: '8th', img: num8, scale: 1.0 },
+  { value: '9', label: '9th', img: num9, scale: 0.85 },
+  { value: '10', label: '10th', img: num10, scale: 0.65 },
+  { value: '11', label: '11th+', img: num11, scale: 0.65 },
 ];
 
 export function RankingScreen() {
