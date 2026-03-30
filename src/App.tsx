@@ -10,6 +10,7 @@ import { BirthdayDogScreen } from "@/components/screens/BirthdayDogScreen";
 import { RankingScreen } from "@/components/screens/RankingScreen";
 import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
 import { OwnerGenderScreen } from "@/components/screens/OwnerGenderScreen";
+import { OwnerZodiacScreen } from "@/components/screens/OwnerZodiacScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
