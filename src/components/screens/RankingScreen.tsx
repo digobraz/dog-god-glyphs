@@ -51,7 +51,7 @@ export function RankingScreen() {
   const handlePickRank = (value: string) => {
     setSelected(value);
     setSelection('ranking', value);
-    // navigate to next step after short delay
+    setTimeout(() => navigate('/owner-name'), 500);
   };
 
   return (
