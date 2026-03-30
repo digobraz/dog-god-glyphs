@@ -14,25 +14,33 @@ import letterD from '@/assets/letters/NAME_-D.svg';
 import letterE from '@/assets/letters/NAME_-E.svg';
 import letterF from '@/assets/letters/NAME_-F.svg';
 import letterG from '@/assets/letters/NAME_-G.svg';
+import letterH from '@/assets/letters/NAME_-H.svg';
+import letterI from '@/assets/letters/NAME_-I.svg';
+import letterJ from '@/assets/letters/NAME_-J.svg';
 import letterK from '@/assets/letters/NAME_-K.svg';
 import letterL from '@/assets/letters/NAME_-L.svg';
 import letterM from '@/assets/letters/NAME_-M.svg';
 import letterN from '@/assets/letters/NAME_-N.svg';
 import letterO from '@/assets/letters/NAME_-O.svg';
 import letterP from '@/assets/letters/NAME_-P.svg';
-import letterR from '@/assets/letters/NAME_-R.svg';
 import letterQ from '@/assets/letters/NAME-Q.svg';
+import letterR from '@/assets/letters/NAME_-R.svg';
 import letterS from '@/assets/letters/NAME-S.svg';
 import letterT from '@/assets/letters/NAME-T.svg';
 import letterU from '@/assets/letters/NAME-U.svg';
+import letterV from '@/assets/letters/NAME-V.svg';
+import letterW from '@/assets/letters/NAME-W.svg';
+import letterX from '@/assets/letters/NAME-X.svg';
 import letterY from '@/assets/letters/NAME-Y.svg';
 import letterZ from '@/assets/letters/NAME-Z.svg';
 
 const letterMap: Record<string, string> = {
   A: letterA, B: letterB, C: letterC, D: letterD, E: letterE,
-  F: letterF, G: letterG, K: letterK, L: letterL, M: letterM,
-  N: letterN, O: letterO, P: letterP, Q: letterQ, R: letterR,
-  S: letterS, T: letterT, U: letterU, Y: letterY, Z: letterZ,
+  F: letterF, G: letterG, H: letterH, I: letterI, J: letterJ,
+  K: letterK, L: letterL, M: letterM, N: letterN, O: letterO,
+  P: letterP, Q: letterQ, R: letterR, S: letterS, T: letterT,
+  U: letterU, V: letterV, W: letterW, X: letterX, Y: letterY,
+  Z: letterZ,
 };
 
 export function OwnerInfoScreen() {
