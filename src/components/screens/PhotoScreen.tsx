@@ -48,7 +48,8 @@ export function PhotoScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line" style={{ fontFamily: "'Cinzel', serif" }}>
-              {`HELLO, ${dogName || 'FRIEND'}!\nSHOW ME YOUR MAJESTY`}
+              SAY HELLO TO <span className="font-bold text-primary">{dogName || 'FRIEND'}</span>
+              {'\n'}AND SHOW ME THEIR MAJESTY
             </p>
             <p className="text-muted-foreground text-sm text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
               Upload up to 5 photos
