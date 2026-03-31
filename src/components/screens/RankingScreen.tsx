@@ -95,7 +95,7 @@ export function RankingScreen() {
                   >
                     <img src={num1} alt="I" className="h-16 md:h-20 object-contain" />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
-                      Yes, I'm first!
+                      YES, my first love
                     </span>
                   </button>
 
