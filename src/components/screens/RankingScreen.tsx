@@ -71,7 +71,7 @@ export function RankingScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
-              Are you your owner's first dog?
+              Is this the first dog you've ever had?
             </p>
           </motion.div>
 
@@ -95,7 +95,7 @@ export function RankingScreen() {
                   >
                     <img src={num1} alt="I" className="h-16 md:h-20 object-contain" />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
-                      Yes, I'm first!
+                      YES, my first love
                     </span>
                   </button>
 
@@ -107,7 +107,7 @@ export function RankingScreen() {
                   >
                     <img src={num2} alt="II" className="h-16 md:h-20 object-contain" />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
-                      No, I'm not first
+                      NO, dog lover forever!
                     </span>
                   </button>
                 </div>
