@@ -107,7 +107,7 @@ export function RankingScreen() {
                   >
                     <img src={num2} alt="II" className="h-16 md:h-20 object-contain" />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
-                      No, I'm not first
+                      NO, dog lover forever!
                     </span>
                   </button>
                 </div>

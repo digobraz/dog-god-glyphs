@@ -59,7 +59,7 @@ export function BirthdayDogScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
-              {dogName || 'BUDDY'}, When do you celebrate your birthday?
+              When does your pup celebrate their birthday?
             </p>
           </motion.div>
 
