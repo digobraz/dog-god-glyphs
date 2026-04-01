@@ -8,6 +8,11 @@ import dogQueenSvg from '@/assets/gender/GENDER-FEMALE.svg';
 import fateRaisedSvg from '@/assets/fate/FATE-RAISED.svg';
 import fateRescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 
+// Dog colour assets
+import colourBrightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
+import colourDarkSvg from '@/assets/colour/COLOUR-DARK.svg';
+import colourMixSvg from '@/assets/colour/COLOUR-MIX.svg';
+
 // Owner gender assets
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
@@ -84,6 +89,7 @@ import num11 from '@/assets/numbers/NUMBER-11.svg';
 const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
 const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
 const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fateRescuedSvg };
+const dogColourMap: Record<string, string> = { bright: colourBrightSvg, dark: colourDarkSvg, mix: colourMixSvg };
 
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
@@ -167,6 +173,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
 
   const dogGenderSrc = dogGenderMap[selections.dogGender];
   const dogFateSrc = dogFateMap[selections.dogFate];
+  const dogColourSrc = dogColourMap[selections.dogColour];
 
   return (
     <svg
@@ -192,8 +199,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Top-left slot - Dog Gender */}
       <SlotImage x={1282} y={1620} w={1348} h={935} src={dogGenderSrc} />
       {!dogGenderSrc && <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Top-middle slot */}
-      <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Top-middle slot - Dog Colour */}
+      <SlotImage x={3034} y={1620} w={933} h={935} src={dogColourSrc} />
+      {!dogColourSrc && <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Big center slot (patron/dog) */}
       <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
       {/* Bottom-left - Dog Fate */}
@@ -255,6 +263,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           <text
             x={1282 + 1348 / 2}
             y={2764 + 1309 / 2 + 120}
+            textAnchor="middle"
+            fontSize="500"
+            fontFamily="'Cinzel', serif"
+            fontWeight="bold"
+            fill="hsl(var(--primary))"
+          >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogColour' && !dogColourSrc && (
+        <g>
+          <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text
+            x={3034 + 933 / 2}
+            y={1620 + 935 / 2 + 120}
             textAnchor="middle"
             fontSize="500"
             fontFamily="'Cinzel', serif"

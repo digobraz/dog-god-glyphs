@@ -6,19 +6,20 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
-import raisedSvg from '@/assets/fate/FATE-RAISED.svg';
-import rescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
+import brightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
+import darkSvg from '@/assets/colour/COLOUR-DARK.svg';
+import mixSvg from '@/assets/colour/COLOUR-MIX.svg';
 
-export function DogFateScreen() {
+export function DogColourScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
 
-  const handleSelect = (fate: string) => {
-    setSelected(fate);
-    setSelection('dogFate', fate);
-    setTimeout(() => navigate('/dog-colour'), 500);
+  const handleSelect = (colour: string) => {
+    setSelected(colour);
+    setSelection('dogColour', colour);
+    setTimeout(() => navigate('/breed'), 500);
   };
 
   return (
@@ -42,7 +43,7 @@ export function DogFateScreen() {
               </span>
             </div>
             <div className="rounded-2xl border border-border p-4">
-              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogFate" />
+              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogColour" />
             </div>
           </motion.div>
 
@@ -56,7 +57,7 @@ export function DogFateScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
             <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              What is the <span className="font-bold text-amber-300">fate</span> of your dog?
+              What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
             </p>
           </motion.div>
 
@@ -68,37 +69,54 @@ export function DogFateScreen() {
             transition={{ duration: 0.4, delay: 0.35 }}
           >
             <div className="flex gap-4 w-full">
-              {/* RAISED */}
+              {/* BRIGHT */}
               <button
-                onClick={() => handleSelect('raised')}
-                className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
-                  selected === 'raised'
+                onClick={() => handleSelect('bright')}
+                className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                  selected === 'bright'
                     ? 'border-primary bg-primary/10'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={raisedSvg} alt="Raised" className="h-24 md:h-32 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Raised</span>
+                <img src={brightSvg} alt="Bright" className="h-20 md:h-28 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Bright</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Baby pacifier<br />A dog born into the family
+                  ☀️ Sun
                 </span>
               </button>
 
-              {/* RESCUED */}
+              {/* DARK */}
               <button
-                onClick={() => handleSelect('rescued')}
-                className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
-                  selected === 'rescued'
+                onClick={() => handleSelect('dark')}
+                className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                  selected === 'dark'
                     ? 'border-primary bg-primary/10'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={rescuedSvg} alt="Rescued" className="h-24 md:h-32 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Rescued</span>
+                <img src={darkSvg} alt="Dark" className="h-20 md:h-28 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Dark</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Lifebuoy<br />Rescued or found dog
+                  🌙 Moon
+                </span>
+              </button>
+
+              {/* MIX */}
+              <button
+                onClick={() => handleSelect('mix')}
+                className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
+                  selected === 'mix'
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border/60 hover:border-primary/50'
+                }`}
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                <img src={mixSvg} alt="Mix" className="h-20 md:h-28 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mix</span>
+                <span className="text-xs text-muted-foreground text-center leading-snug">
+                  🌈 Rainbow
                 </span>
               </button>
             </div>
@@ -106,7 +124,7 @@ export function DogFateScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/dog-gender')}
+            onClick={() => navigate('/dog-fate')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
