@@ -41,20 +41,8 @@ export function DogGenderScreen() {
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
               </span>
             </div>
-            <div className="rounded-2xl border border-border p-4 relative">
-              <HeroglyphFrame showOwner className="text-foreground" />
-              {/* Pulsing overlay on top-left dog slot */}
-              <motion.div
-                className="absolute border-2 border-primary rounded-sm pointer-events-none"
-                style={{
-                  left: `${(1282 / 14692) * 100}%`,
-                  top: `calc(1rem + ${(1620 / 5696) * 100}%)`,
-                  width: `${(1348 / 14692) * 100}%`,
-                  height: `${(935 / 5696) * 100}%`,
-                }}
-                animate={{ opacity: [0.3, 1, 0.3] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              />
+            <div className="rounded-2xl border border-border p-4">
+              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogGender" />
             </div>
           </motion.div>
 
