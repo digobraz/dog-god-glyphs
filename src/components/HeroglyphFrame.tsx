@@ -300,6 +300,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
+      {pulseSlot === 'dogBloodline' && !dogBloodlineSrc && (
+        <g>
+          <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text
+            x={2849 + 1307 / 2}
+            y={2764 + 1309 / 2 + 120}
+            textAnchor="middle"
+            fontSize="500"
+            fontFamily="'Cinzel', serif"
+            fontWeight="bold"
+            fill="hsl(var(--primary))"
+          >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
