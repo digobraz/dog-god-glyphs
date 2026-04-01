@@ -83,7 +83,7 @@ export function DogShapeScreen() {
   const handleSelect = (shape: string) => {
     setSelected(shape);
     setSelection('dogShape', shape);
-    setTimeout(() => navigate('/breed'), 500);
+    setTimeout(() => navigate('/dog-character'), 500);
   };
 
   const scroll = (dir: 'left' | 'right') => {
