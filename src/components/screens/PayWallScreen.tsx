@@ -13,8 +13,7 @@ export function PayWallScreen() {
   const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState<number>(11);
 
-  const activeAmount = isCustom ? Number(customAmount) : selectedAmount;
-  const isValid = activeAmount >= 11;
+  const isValid = selectedAmount >= 11;
 
   const handleContinue = () => {
     if (!isValid) return;
