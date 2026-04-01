@@ -41,13 +41,13 @@ export function PhotoScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col items-center gap-6">
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-4"
+            className="w-full rounded-2xl p-6 flex flex-col items-center gap-4" style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-            <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line" style={{ fontFamily: "'Cinzel', serif" }}>
+            <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               SAY HELLO TO <span className="font-bold text-primary">{dogName || 'FRIEND'}</span>
               {'\n'}AND SHOW ME THEIR MAJESTY
             </p>

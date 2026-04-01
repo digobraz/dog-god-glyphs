@@ -39,16 +39,17 @@ export function OwnerFinalScreen() {
 
           {/* Hekthor message block */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-5 flex items-center gap-5"
+            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
             <div className="flex flex-col gap-3">
-              <p className="text-foreground text-sm md:text-base leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
+              <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                 HEY MAN, that little frame — that is you! Now let's fill{' '}
-                <span className="font-bold text-primary">{dogName || 'YOUR DOG'}</span>'s story together.
+                <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s story together.
               </p>
               <Button
                 onClick={() => navigate('/dog-gender')}
