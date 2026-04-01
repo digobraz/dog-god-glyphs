@@ -188,7 +188,7 @@ export function HeroglyphRevealScreen() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="flex justify-center mb-[-1px]">
+            <div className="flex justify-center">
               <div
                 className="w-0 h-0"
                 style={{
@@ -199,7 +199,7 @@ export function HeroglyphRevealScreen() {
               />
             </div>
             <div
-              className="w-full rounded-xl px-4 py-3 flex items-center gap-3"
+              className="w-full rounded-xl px-4 py-3 flex items-center gap-3 -mt-[1px]"
               style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             >
               <img src={hekthorImg} alt="HEKTHOR" className="w-10 h-10 object-contain flex-shrink-0" />
