@@ -153,19 +153,33 @@ export function HeroglyphRevealScreen() {
               />
             </div>
             <div
-              className="w-full rounded-2xl p-5 flex items-start gap-4"
+              className="w-full rounded-2xl p-5 flex flex-col gap-4"
               style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             >
-              <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
-              <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
-                <p className="font-semibold text-sm md:text-base mt-1">
-                  This Heroglyph is your eternal bond. 🐾
-                </p>
-                <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
-                  My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
-                </p>
+              <div className="flex items-start gap-4">
+                <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
+                <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
+                  <p className="font-semibold text-sm md:text-base mt-1">
+                    This Heroglyph is your eternal bond. 🐾
+                  </p>
+                  <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
+                    My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
+                  </p>
+                </div>
               </div>
+              <Button
+                onClick={() => navigate('/pricing')}
+                className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                }}
+              >
+                🐾 GRAB MY HEROGLYPH
+              </Button>
             </div>
           </motion.div>
         ) : (
