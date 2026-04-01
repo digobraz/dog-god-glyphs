@@ -193,6 +193,22 @@ export function HeroglyphRevealScreen() {
           </Button>
         </motion.div>
       </motion.div>
+      {/* Vertical Design Dialog */}
+      <Dialog open={showVertical} onOpenChange={setShowVertical}>
+        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto papyrus-bg border-2 p-4"
+          style={{ borderColor: 'hsl(var(--gold))' }}
+        >
+          <DialogTitle
+            className="text-center text-lg font-bold tracking-[0.2em] uppercase text-primary"
+            style={{ fontFamily: "'Cinzel', serif" }}
+          >
+            {dogName}'s Vertical Heroglyph
+          </DialogTitle>
+          <div className="mt-2">
+            <VerticalHeroglyphFrame className="text-foreground" />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
