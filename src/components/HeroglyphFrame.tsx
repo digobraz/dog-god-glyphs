@@ -274,6 +274,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
+      {pulseSlot === 'dogColour' && !dogColourSrc && (
+        <g>
+          <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text
+            x={3034 + 933 / 2}
+            y={1620 + 935 / 2 + 120}
+            textAnchor="middle"
+            fontSize="500"
+            fontFamily="'Cinzel', serif"
+            fontWeight="bold"
+            fill="hsl(var(--primary))"
+          >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
