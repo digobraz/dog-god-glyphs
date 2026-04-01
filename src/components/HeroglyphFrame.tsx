@@ -1,5 +1,13 @@
 import { useDogyptStore } from '@/store/dogyptStore';
 
+// Dog gender assets
+import dogKingSvg from '@/assets/gender/GENDER-MALE.svg';
+import dogQueenSvg from '@/assets/gender/GENDER-FEMALE.svg';
+
+// Dog fate assets
+import fateRaisedSvg from '@/assets/fate/FATE-RAISED.svg';
+import fateRescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
+
 // Owner gender assets
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
