@@ -137,7 +137,7 @@ export function OwnerZodiacScreen() {
 
   const handleContinue = () => {
     if (!canContinue) return;
-    // navigate to next step
+    navigate('/transition');
   };
 
   return (
