@@ -85,7 +85,7 @@ export function HeroglyphRevealScreen() {
               boxShadow: '0 0 40px hsl(var(--gold) / 0.4), inset 0 0 20px hsl(var(--gold) / 0.2)',
             }}
           >
-            <div className="rounded-[1.25rem] bg-black p-4 md:p-6">
+            <div className="rounded-[1.25rem] bg-background p-4 md:p-6">
               {/* Dog name */}
               <motion.h1
                 className="text-center text-xl md:text-2xl font-bold tracking-[0.25em] uppercase mb-4"
