@@ -121,7 +121,7 @@ export function RankingScreen() {
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.35 }}
               >
-                <p className="text-muted-foreground text-center text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+                <p className="text-white text-center text-sm tracking-wider uppercase drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                   Which dog are you?
                 </p>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 w-full">
