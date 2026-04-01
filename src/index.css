@@ -80,24 +80,22 @@
 .dark-bg {
   position: relative;
   background-color: #050505;
-  background-image: url('/images/bg-dark.png');
-  background-size: 140%;
-  background-position: center 40%;
-  background-repeat: no-repeat;
-  color: hsl(var(--gold));
 }
 .dark-bg::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: inherit;
-  background-color: transparent;
-  filter: blur(2px);
+  background-image: url('/images/bg-dark.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(3px);
   z-index: 0;
 }
 .dark-bg > * {
   position: relative;
   z-index: 1;
+  color: hsl(var(--gold));
 }
 
 /* Papyrus noise texture overlay */
