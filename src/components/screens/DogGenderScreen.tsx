@@ -18,7 +18,7 @@ export function DogGenderScreen() {
   const handleSelect = (gender: string) => {
     setSelected(gender);
     setSelection('dogGender', gender);
-    setTimeout(() => navigate('/birthday-dog'), 500);
+    setTimeout(() => navigate('/dog-fate'), 500);
   };
 
   return (
