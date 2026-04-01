@@ -213,8 +213,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Bottom-left - Dog Fate */}
       <SlotImage x={1282} y={2764} w={1348} h={1309} src={dogFateSrc} />
       {!dogFateSrc && <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Bottom-middle */}
-      <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Bottom-middle - Dog Bloodline */}
+      <SlotImage x={2849} y={2764} w={1307} h={1309} src={dogBloodlineSrc} />
+      {!dogBloodlineSrc && <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Far right top */}
       <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
       {/* Far right bottom */}
