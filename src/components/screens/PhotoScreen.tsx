@@ -51,7 +51,7 @@ export function PhotoScreen() {
               SAY HELLO TO <span className="font-bold text-amber-300">{dogName || 'FRIEND'}</span>
               {'\n'}AND SHOW ME THEIR MAJESTY
             </p>
-            <p className="text-muted-foreground text-sm text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <p className="text-white/70 text-sm text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
               Upload up to 5 photos
             </p>
           </motion.div>
