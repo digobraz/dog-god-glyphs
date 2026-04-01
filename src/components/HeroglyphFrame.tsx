@@ -8,6 +8,10 @@ import dogQueenSvg from '@/assets/gender/GENDER-FEMALE.svg';
 import fateRaisedSvg from '@/assets/fate/FATE-RAISED.svg';
 import fateRescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 
+// Dog bloodline assets
+import bloodlineAristocratImg from '@/assets/bloodline/BLOODLINE-ARISTOCRAT.png';
+import bloodlineMuttImg from '@/assets/bloodline/BLOODLINE-MUTT.png';
+
 // Dog colour assets
 import colourBrightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
 import colourDarkSvg from '@/assets/colour/COLOUR-DARK.svg';
