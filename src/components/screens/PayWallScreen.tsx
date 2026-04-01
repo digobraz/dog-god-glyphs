@@ -105,7 +105,7 @@ export function PayWallScreen() {
             {/* Next button - styled like heroglyph reveal */}
             <Button
               onClick={handleContinue}
-              disabled={!activeAmount || activeAmount < 1}
+              disabled={!isValid}
               className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30 mt-2"
               style={{
                 fontFamily: "'Cinzel', serif",
