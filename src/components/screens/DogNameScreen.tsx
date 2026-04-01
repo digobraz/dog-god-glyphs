@@ -15,7 +15,7 @@ export function DogNameScreen() {
   };
 
   return (
-    <div className="papyrus-bg min-h-screen flex items-center justify-center px-4">
+    <div className="dark-bg min-h-screen flex items-center justify-center px-4">
       <motion.div
         className="flex flex-col items-center gap-8 max-w-lg w-full"
         initial={{ opacity: 0, y: 20 }}

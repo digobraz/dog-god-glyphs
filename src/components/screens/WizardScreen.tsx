@@ -137,7 +137,7 @@ export function WizardScreen() {
   );
 
   return (
-    <div className="papyrus-bg min-h-screen flex flex-col">
+    <div className="dark-bg min-h-screen flex flex-col">
       {/* Progress bar */}
       <div className="p-4">
         <div className="max-w-xl mx-auto">

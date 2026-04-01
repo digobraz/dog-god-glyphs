@@ -52,7 +52,7 @@ export function ConfirmationScreen() {
   };
 
   return (
-    <div className="papyrus-bg min-h-screen flex items-center justify-center px-4 py-12 relative">
+    <div className="dark-bg min-h-screen flex items-center justify-center px-4 py-12 relative">
       {showConfetti && <Confetti />}
 
       <motion.div

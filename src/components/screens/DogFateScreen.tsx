@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import dogyptLogo from '@/assets/dogypt-logo.png';
+import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 import raisedSvg from '@/assets/fate/FATE-RAISED.svg';
 import rescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
@@ -22,9 +22,9 @@ export function DogFateScreen() {
   };
 
   return (
-    <div className="papyrus-bg flex flex-col h-[100dvh] overflow-hidden">
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
@@ -41,7 +41,7 @@ export function DogFateScreen() {
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
               </span>
             </div>
-            <div className="rounded-2xl border border-border p-4">
+            <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
               <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogFate" />
             </div>
           </motion.div>
@@ -62,7 +62,7 @@ export function DogFateScreen() {
 
           {/* 3. BLOCK - Options */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-5"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.35 }}

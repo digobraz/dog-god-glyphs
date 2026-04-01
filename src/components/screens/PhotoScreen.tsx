@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, X, Plus, Send, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import dogyptLogo from '@/assets/dogypt-logo.png';
+import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 export function PhotoScreen() {
@@ -30,18 +30,18 @@ export function PhotoScreen() {
   const removePhoto = (index: number) => setPhotos((prev) => prev.filter((_, i) => i !== index));
 
   return (
-    <div className="papyrus-bg flex flex-col h-[100dvh] overflow-hidden">
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
         <button onClick={() => navigate('/name')} className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col items-center gap-6">
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-4"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
@@ -57,7 +57,7 @@ export function PhotoScreen() {
           </motion.div>
 
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-4"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}

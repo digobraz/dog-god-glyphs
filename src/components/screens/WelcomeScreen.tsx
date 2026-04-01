@@ -7,7 +7,7 @@ export function WelcomeScreen() {
   const setStep = useDogyptStore(s => s.setStep);
 
   return (
-    <div className="papyrus-bg min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
+    <div className="dark-bg min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
       <GoldParticles count={25} />
 
       <motion.div
