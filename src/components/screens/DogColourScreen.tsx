@@ -82,7 +82,7 @@ export function DogColourScreen() {
                 <img src={brightSvg} alt="Bright" className="h-20 md:h-28 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Bright</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  ☀️ Sun
+                  Sun
                 </span>
               </button>
 
@@ -99,7 +99,7 @@ export function DogColourScreen() {
                 <img src={darkSvg} alt="Dark" className="h-20 md:h-28 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Dark</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  🌙 Moon
+                  Moon
                 </span>
               </button>
 
@@ -116,7 +116,7 @@ export function DogColourScreen() {
                 <img src={mixSvg} alt="Mix" className="h-20 md:h-28 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mix</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  🌈 Rainbow
+                  Rainbow
                 </span>
               </button>
             </div>
