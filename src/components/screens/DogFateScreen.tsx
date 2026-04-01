@@ -31,17 +31,18 @@ export function DogFateScreen() {
         <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
           {/* 1. BLOCK - Heroglyph preview with pulsing slot */}
           <motion.div
-            className="w-full relative mt-4"
+            className="w-full relative"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 px-3" style={{ backgroundColor: 'hsl(36 33% 91%)' }}>
-              <span className="text-xs md:text-sm font-bold tracking-widest text-primary whitespace-nowrap" style={{ fontFamily: "'Cinzel', serif" }}>
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
-              </span>
-            </div>
             <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
+              <h2
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {dogName || 'YOUR DOG'}'S HEROGLYPH
+              </h2>
               <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogFate" />
             </div>
           </motion.div>
