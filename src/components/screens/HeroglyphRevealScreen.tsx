@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 
