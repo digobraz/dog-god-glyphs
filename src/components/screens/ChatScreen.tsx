@@ -136,7 +136,7 @@ export function ChatScreen() {
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
       </div>
 
       {/* Main content — centered */}

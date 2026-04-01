@@ -13,26 +13,26 @@ export function OwnerFinalScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
+      <div className="flex-shrink-0 flex justify-center pt-6 pb-3">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
-          {/* Heroglyph frame with border-breaking label */}
+          {/* Heroglyph frame with title inside */}
           <motion.div
-            className="w-full relative mt-4"
+            className="w-full relative"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Border-breaking label */}
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 px-3" style={{ backgroundColor: 'hsl(36 33% 91%)' }}>
-              <span className="text-xs md:text-sm font-bold tracking-widest text-primary whitespace-nowrap" style={{ fontFamily: "'Cinzel', serif" }}>
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
-              </span>
-            </div>
             <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
+              <h2
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {dogName || 'YOUR DOG'}'S HEROGLYPH
+              </h2>
               <HeroglyphFrame showOwner className="text-foreground" />
             </div>
           </motion.div>
@@ -52,10 +52,15 @@ export function OwnerFinalScreen() {
               </p>
               <Button
                 onClick={() => navigate('/dog-gender')}
-                className="w-fit rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-10 px-5 text-sm"
-                style={{ fontFamily: "'Cinzel', serif" }}
+                className="w-full rounded-full gap-2 h-12 px-6 text-base font-bold tracking-wider hover:scale-105 transition-transform"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: '0 0 30px hsl(var(--gold) / 0.4), 0 4px 15px rgba(0,0,0,0.3)',
+                }}
               >
-                LET'S GO <ArrowRight className="h-4 w-4" />
+                LET'S GO <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
           </motion.div>

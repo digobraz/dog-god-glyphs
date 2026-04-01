@@ -35,7 +35,7 @@ export function PhotoScreen() {
         <button onClick={() => navigate('/name')} className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
