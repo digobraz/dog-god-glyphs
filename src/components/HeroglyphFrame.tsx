@@ -141,8 +141,8 @@ const numberMap: Record<string, string> = {
   '6': num6, '7': num7, '8': num8, '9': num9, '10': num10, '11': num11,
 };
 
-// Padding inside each slot (percentage of slot size)
-const PAD = 0.08;
+// No padding - symbols fill exact slot boundaries
+const PAD = 0;
 
 function SlotImage({ x, y, w, h, src, rotate }: { x: number; y: number; w: number; h: number; src?: string; rotate?: boolean }) {
   if (!src) return null;
@@ -259,7 +259,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {!westernZodiacSrc && <rect x="10049" y="1866" width="723" height="931" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Owner initial (bottom middle in inner frame) - rotated 90° */}
-      <SlotImage x={8977} y={2895} w={975} h={936} src={ownerInitialSrc} rotate />
+      <SlotImage x={8977} y={2895} w={975} h={936} src={ownerInitialSrc} />
       {!ownerInitialSrc && <rect x="8977" y="2895" width="975" height="936" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Ranking (bottom right in inner frame) */}
