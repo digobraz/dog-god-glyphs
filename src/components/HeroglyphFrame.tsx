@@ -105,6 +105,15 @@ for (const [path, src] of Object.entries(shapeModules)) {
   dogShapeMap[key] = src as string;
 }
 
+// Character assets - dynamic import map
+const characterModules = import.meta.glob('@/assets/character/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const dogCharacterMap: Record<string, string> = {};
+for (const [path, src] of Object.entries(characterModules)) {
+  const filename = path.split('/').pop()?.replace('.svg', '') || '';
+  const key = filename.toLowerCase().replace('character-', '');
+  dogCharacterMap[key] = src as string;
+}
+
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
   Leo: leoSvg, Virgo: virgoSvg, Libra: libraSvg, Scorpio: scorpioSvg,
