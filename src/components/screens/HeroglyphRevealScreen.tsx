@@ -6,7 +6,6 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 
@@ -65,7 +64,7 @@ export function HeroglyphRevealScreen() {
 
       {/* Main content */}
       <motion.div
-        className="flex flex-col items-center w-full max-w-xl px-4 py-8 gap-8 z-10"
+        className="flex flex-col items-center w-full max-w-xl px-4 py-8 gap-6 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: phase !== 'intro' ? 1 : 0 }}
         transition={{ duration: 1 }}
@@ -73,14 +72,14 @@ export function HeroglyphRevealScreen() {
         {/* Logo */}
         <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
 
-        {/* 1. BLOCK - Ornamental frame with complete heroglyph */}
+        {/* 1. BLOCK - Ornamental frame with heroglyph (horizontal or vertical) */}
         <motion.div
           className="w-full relative"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={phase !== 'intro' ? { scale: 1, opacity: 1 } : {}}
           transition={{ duration: 1, type: 'spring', bounce: 0.3 }}
+          layout
         >
-          {/* Ornamental border */}
           <div
             className="rounded-3xl p-1"
             style={{
@@ -89,30 +88,40 @@ export function HeroglyphRevealScreen() {
             }}
           >
             <div className="rounded-[1.25rem] bg-background p-4 md:p-6">
-              {/* Dog name */}
               <motion.h1
                 className="text-center text-xl md:text-2xl font-bold tracking-[0.25em] uppercase mb-4 text-primary"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   textShadow: '0 0 30px hsl(var(--gold) / 0.5)',
                 }}
-                initial={{ opacity: 0, y: -10 }}
-                animate={phase !== 'intro' ? { opacity: 1, y: 0 } : {}}
-                transition={{ delay: 0.3, duration: 0.6 }}
+                layout
               >
                 {dogName}'s Heroglyph
               </motion.h1>
 
-              {/* Heroglyph */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={phase !== 'intro' ? { opacity: 1 } : {}}
-                transition={{ delay: 0.6, duration: 1 }}
-              >
-                <HeroglyphFrame showOwner className="text-foreground" />
-              </motion.div>
+              <AnimatePresence mode="wait">
+                {!showVertical ? (
+                  <motion.div
+                    key="horizontal"
+                    initial={{ opacity: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <HeroglyphFrame showOwner className="text-foreground" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="vertical"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                    className="flex justify-center"
+                  >
+                    <VerticalHeroglyphFrame className="text-foreground" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Vertical design button */}
               <motion.div
                 className="flex justify-center mt-4"
                 initial={{ opacity: 0, y: 10 }}
@@ -128,51 +137,71 @@ export function HeroglyphRevealScreen() {
                     color: 'hsl(var(--gold))',
                     backgroundColor: 'transparent',
                   }}
-                  onClick={() => setShowVertical(true)}
+                  onClick={() => setShowVertical(!showVertical)}
                 >
-                  ↕ VERTICAL DESIGN
+                  {showVertical ? '↔ HORIZONTAL DESIGN' : '↕ VERTICAL DESIGN'}
                 </Button>
               </motion.div>
             </div>
           </div>
         </motion.div>
 
-        {/* 2. BLOCK - Hekthor message bubble with speech triangle */}
-        <motion.div
-          className="w-full relative"
-          initial={{ opacity: 0, y: 30 }}
-          animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          {/* Speech triangle pointing up */}
-          <div className="flex justify-center">
-            <div
-              className="w-0 h-0"
-              style={{
-                borderLeft: '16px solid transparent',
-                borderRight: '16px solid transparent',
-                borderBottom: '16px solid hsl(270 40% 25%)',
-              }}
-            />
-          </div>
-          <div
-            className="w-full rounded-2xl p-5 flex items-start gap-4"
-            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
-          >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
-            <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
-              <p className="font-semibold text-sm md:text-base mt-1">
+        {/* 2. BLOCK - Hekthor message (collapsed when vertical) */}
+        <AnimatePresence>
+          {!showVertical ? (
+            <motion.div
+              key="hekthor-full"
+              className="w-full relative"
+              initial={{ opacity: 0, y: 30 }}
+              animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ delay: 0.4, duration: 0.4 }}
+            >
+              <div className="flex justify-center">
+                <div
+                  className="w-0 h-0"
+                  style={{
+                    borderLeft: '16px solid transparent',
+                    borderRight: '16px solid transparent',
+                    borderBottom: '16px solid hsl(270 40% 25%)',
+                  }}
+                />
+              </div>
+              <div
+                className="w-full rounded-2xl p-5 flex items-start gap-4"
+                style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+              >
+                <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
+                <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
+                  <p className="font-semibold text-sm md:text-base mt-1">
+                    This Heroglyph is your eternal bond. 🐾
+                  </p>
+                  <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
+                    My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="hekthor-compact"
+              className="w-full text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              <p className="font-bold text-primary text-sm tracking-wider">WELCOME DOGYPTIANS!</p>
+              <p className="text-xs text-muted-foreground mt-1">
                 This Heroglyph is your eternal bond. 🐾
               </p>
-              <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
-                My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
-              </p>
-            </div>
-          </div>
-        </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-        {/* 3. BLOCK - Join mission button - full width */}
+        {/* 3. BLOCK - Join mission button */}
         <motion.div
           className="w-full"
           initial={{ opacity: 0, y: 20 }}
@@ -193,22 +222,6 @@ export function HeroglyphRevealScreen() {
           </Button>
         </motion.div>
       </motion.div>
-      {/* Vertical Design Dialog */}
-      <Dialog open={showVertical} onOpenChange={setShowVertical}>
-        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto papyrus-bg border-2 p-4"
-          style={{ borderColor: 'hsl(var(--gold))' }}
-        >
-          <DialogTitle
-            className="text-center text-lg font-bold tracking-[0.2em] uppercase text-primary"
-            style={{ fontFamily: "'Cinzel', serif" }}
-          >
-            {dogName}'s Vertical Heroglyph
-          </DialogTitle>
-          <div className="mt-2">
-            <VerticalHeroglyphFrame className="text-foreground" />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
