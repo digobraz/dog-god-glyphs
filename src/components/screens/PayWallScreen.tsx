@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-const presetAmounts = [11, 22, 33, 50, 100];
+const presetAmounts = [11, 22, 33];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
