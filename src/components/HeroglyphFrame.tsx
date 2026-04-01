@@ -165,6 +165,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
   const ownerInitialSrc = showOwner && ownerInitial ? letterMap[ownerInitial] : undefined;
   const rankingSrc = showOwner ? numberMap[selections.ranking] : undefined;
 
+  const dogGenderSrc = dogGenderMap[selections.dogGender];
+  const dogFateSrc = dogFateMap[selections.dogFate];
+
   return (
     <svg
       viewBox="0 0 14692 5696"
