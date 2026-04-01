@@ -12,11 +12,8 @@ const presetAmounts = [11, 22, 33];
 export function PayWallScreen() {
   const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState<number>(11);
-  const [customAmount, setCustomAmount] = useState('');
-  const [isCustom, setIsCustom] = useState(false);
 
-  const activeAmount = isCustom ? Number(customAmount) : selectedAmount;
-  const isValid = activeAmount >= 11;
+  const isValid = selectedAmount >= 11;
 
   const handleContinue = () => {
     if (!isValid) return;
@@ -59,9 +56,9 @@ export function PayWallScreen() {
               {presetAmounts.map((amount) => (
                 <button
                   key={amount}
-                  onClick={() => { setSelectedAmount(amount); setIsCustom(false); }}
+                  onClick={() => setSelectedAmount(amount)}
                   className={`flex-1 rounded-xl border-2 py-3 text-sm md:text-base font-bold tracking-wider transition-all ${
-                    !isCustom && selectedAmount === amount
+                    selectedAmount === amount
                       ? 'border-primary bg-primary/10 text-primary'
                       : 'border-border/60 text-muted-foreground hover:border-primary/50'
                   }`}
@@ -71,36 +68,6 @@ export function PayWallScreen() {
                 </button>
               ))}
             </div>
-
-            {/* Custom amount */}
-            <button
-              onClick={() => setIsCustom(true)}
-              className={`w-full rounded-xl border-2 py-3 transition-all flex items-center justify-center gap-2 ${
-                isCustom
-                  ? 'border-primary bg-primary/10'
-                  : 'border-border/60 hover:border-primary/50'
-              }`}
-            >
-              {isCustom ? (
-                <div className="flex items-center gap-1">
-                  <span className="text-primary text-base font-bold" style={{ fontFamily: "'Cinzel', serif" }}>$</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={customAmount}
-                    onChange={(e) => setCustomAmount(e.target.value)}
-                    placeholder="Min $11"
-                    className="bg-transparent outline-none text-base font-bold text-primary text-center w-28 placeholder:text-muted-foreground/40"
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                    autoFocus
-                  />
-                </div>
-              ) : (
-                <span className="text-muted-foreground text-xs tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>
-                  CHOOSE YOUR OWN PRICE
-                </span>
-              )}
-            </button>
 
             {/* Certificate info */}
             <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
