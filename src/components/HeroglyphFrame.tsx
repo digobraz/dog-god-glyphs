@@ -82,6 +82,8 @@ import num10 from '@/assets/numbers/NUMBER-10.svg';
 import num11 from '@/assets/numbers/NUMBER-11.svg';
 
 const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
+const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
+const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fateRescuedSvg };
 
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
