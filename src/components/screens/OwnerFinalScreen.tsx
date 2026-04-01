@@ -7,7 +7,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-export function TransitionScreen() {
+export function OwnerFinalScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
 
@@ -18,7 +18,7 @@ export function TransitionScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-3xl flex flex-col items-center gap-5 py-4">
+        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
           {/* Heroglyph frame with owner filled */}
           <motion.div
             className="w-full"
@@ -36,15 +36,15 @@ export function TransitionScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-32 md:h-32 object-contain flex-shrink-0" />
+            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
             <div className="flex flex-col gap-3">
-              <p className="text-foreground text-base md:text-lg leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
+              <p className="text-foreground text-sm md:text-base leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
                 HEY MAN, that little frame — that is you! Now let's fill{' '}
                 <span className="font-bold text-primary">{dogName || 'your dog'}</span>'s story together.
               </p>
               <Button
                 onClick={() => navigate('/breed')}
-                className="w-fit rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-11 px-6"
+                className="w-fit rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-10 px-5 text-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 LET'S GO <ArrowRight className="h-4 w-4" />

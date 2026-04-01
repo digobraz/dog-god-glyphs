@@ -11,7 +11,7 @@ import { RankingScreen } from "@/components/screens/RankingScreen";
 import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
 import { OwnerGenderScreen } from "@/components/screens/OwnerGenderScreen";
 import { OwnerZodiacScreen } from "@/components/screens/OwnerZodiacScreen";
-import { TransitionScreen } from "@/components/screens/TransitionScreen";
+import { OwnerFinalScreen } from "@/components/screens/OwnerFinalScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -32,7 +32,7 @@ const App = () => (
           <Route path="/owner-name" element={<OwnerInfoScreen />} />
           <Route path="/owner-gender" element={<OwnerGenderScreen />} />
           <Route path="/owner-zodiac" element={<OwnerZodiacScreen />} />
-          <Route path="/transition" element={<TransitionScreen />} />
+          <Route path="/owner-final" element={<OwnerFinalScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
