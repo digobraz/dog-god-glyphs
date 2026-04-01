@@ -128,7 +128,7 @@ export function HeroglyphRevealScreen() {
                     color: 'hsl(var(--gold))',
                     backgroundColor: 'transparent',
                   }}
-                  onClick={() => {/* TODO: vertical design route */}}
+                  onClick={() => setShowVertical(true)}
                 >
                   ↕ VERTICAL DESIGN
                 </Button>
