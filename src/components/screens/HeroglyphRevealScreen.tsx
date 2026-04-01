@@ -200,13 +200,27 @@ export function HeroglyphRevealScreen() {
               />
             </div>
             <div
-              className="w-full rounded-xl px-4 py-3 flex items-center gap-3 -mt-[1px]"
+              className="w-full rounded-xl px-4 py-3 flex flex-col gap-3 -mt-[1px]"
               style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             >
-              <img src={hekthorImg} alt="HEKTHOR" className="w-10 h-10 object-contain flex-shrink-0" />
-              <p className="font-bold text-amber-300 text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                WELCOME DOGYPTIANS!
-              </p>
+              <div className="flex items-center gap-3">
+                <img src={hekthorImg} alt="HEKTHOR" className="w-10 h-10 object-contain flex-shrink-0" />
+                <p className="font-bold text-amber-300 text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  WELCOME DOGYPTIANS!
+                </p>
+              </div>
+              <Button
+                onClick={() => navigate('/pricing')}
+                className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                }}
+              >
+                🐾 GRAB MY HEROGLYPH
+              </Button>
             </div>
           </motion.div>
         )}
