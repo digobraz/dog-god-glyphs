@@ -20,14 +20,14 @@ export function HeroglyphRevealScreen() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] bg-black flex flex-col items-center relative overflow-hidden">
+    <div className="papyrus-bg min-h-[100dvh] flex flex-col items-center relative overflow-hidden">
       <GoldParticles count={30} />
 
       {/* Intro flash */}
       <AnimatePresence>
         {phase === 'intro' && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center papyrus-bg"
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
           >
@@ -85,13 +85,12 @@ export function HeroglyphRevealScreen() {
               boxShadow: '0 0 40px hsl(var(--gold) / 0.4), inset 0 0 20px hsl(var(--gold) / 0.2)',
             }}
           >
-            <div className="rounded-[1.25rem] bg-black p-4 md:p-6">
+            <div className="rounded-[1.25rem] bg-background p-4 md:p-6">
               {/* Dog name */}
               <motion.h1
-                className="text-center text-xl md:text-2xl font-bold tracking-[0.25em] uppercase mb-4"
+                className="text-center text-xl md:text-2xl font-bold tracking-[0.25em] uppercase mb-4 text-primary"
                 style={{
                   fontFamily: "'Cinzel', serif",
-                  color: 'hsl(var(--gold))',
                   textShadow: '0 0 30px hsl(var(--gold) / 0.5)',
                 }}
                 initial={{ opacity: 0, y: -10 }}
@@ -107,7 +106,7 @@ export function HeroglyphRevealScreen() {
                 animate={phase !== 'intro' ? { opacity: 1 } : {}}
                 transition={{ delay: 0.6, duration: 1 }}
               >
-                <HeroglyphFrame showOwner className="text-[hsl(var(--gold))]" />
+                <HeroglyphFrame showOwner className="text-foreground" />
               </motion.div>
 
               {/* Vertical design button */}
