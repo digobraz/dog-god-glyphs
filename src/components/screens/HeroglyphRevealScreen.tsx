@@ -225,26 +225,6 @@ export function HeroglyphRevealScreen() {
           </motion.div>
         )}
 
-        {/* 3. BLOCK - Join mission button */}
-        <motion.div
-          className="w-full"
-          initial={{ opacity: 0, y: 20 }}
-          animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.7, duration: 0.5 }}
-        >
-          <Button
-            onClick={() => navigate('/pricing')}
-            className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-              color: '#000',
-              boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-            }}
-          >
-            🐾 GRAB MY HEROGLYPH
-          </Button>
-        </motion.div>
       </motion.div>
     </div>
   );
