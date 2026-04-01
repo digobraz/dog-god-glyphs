@@ -87,20 +87,6 @@ export function PayWallScreen() {
               📜 After payment, we will send you a <span className="text-foreground font-semibold">DOGYPT Certificate</span> along with your heroglyphs in PDF.
             </p>
 
-            {/* Next button - styled like heroglyph reveal */}
-            <Button
-              onClick={handleContinue}
-              disabled={!isValid}
-              className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30 mt-2"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: '#000',
-                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-              }}
-            >
-              NEXT →
-            </Button>
           </motion.div>
 
           {/* Back button */}
