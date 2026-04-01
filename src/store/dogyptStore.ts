@@ -17,7 +17,7 @@ export interface DogyptState {
 }
 
 export const useDogyptStore = create<DogyptState>((set) => ({
-  dogName: '',
+  dogName: 'DAISY',
   ownerName: '',
   currentStep: 0,
   selections: {},
