@@ -48,14 +48,15 @@ export function DogGenderScreen() {
 
           {/* 2. BLOCK - Hekthor question */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-5 flex items-center gap-5"
+            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <p className="text-foreground text-base md:text-lg leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
-              Do you have a <span className="font-bold text-primary">king</span> or a <span className="font-bold text-primary">queen</span> at home?
+            <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              Do you have a <span className="font-bold text-amber-300">king</span> or a <span className="font-bold text-amber-300">queen</span> at home?
             </p>
           </motion.div>
 
