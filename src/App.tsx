@@ -34,6 +34,7 @@ const App = () => (
           <Route path="/owner-gender" element={<OwnerGenderScreen />} />
           <Route path="/owner-zodiac" element={<OwnerZodiacScreen />} />
           <Route path="/owner-final" element={<OwnerFinalScreen />} />
+          <Route path="/dog-gender" element={<DogGenderScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
