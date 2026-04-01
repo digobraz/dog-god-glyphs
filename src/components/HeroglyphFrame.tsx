@@ -142,9 +142,10 @@ function SlotImage({ x, y, w, h, src, rotate }: { x: number; y: number; w: numbe
 interface HeroglyphFrameProps {
   showOwner?: boolean;
   className?: string;
+  pulseSlot?: string;
 }
 
-export function HeroglyphFrame({ showOwner = false, className = '' }: HeroglyphFrameProps) {
+export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }: HeroglyphFrameProps) {
   const { selections, ownerName } = useDogyptStore();
 
   const ownerGenderSrc = showOwner ? genderMap[selections.ownerGender] : undefined;
