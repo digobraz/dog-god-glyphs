@@ -20,7 +20,7 @@ export function HeroglyphRevealScreen() {
   }, []);
 
   return (
-    <div className="min-h-[100dvh] bg-black flex flex-col items-center relative overflow-hidden">
+    <div className="papyrus-bg min-h-[100dvh] flex flex-col items-center relative overflow-hidden">
       <GoldParticles count={30} />
 
       {/* Intro flash */}
