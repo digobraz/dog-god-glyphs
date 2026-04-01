@@ -27,7 +27,7 @@ export function HeroglyphRevealScreen() {
       <AnimatePresence>
         {phase === 'intro' && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center papyrus-bg"
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
           >
