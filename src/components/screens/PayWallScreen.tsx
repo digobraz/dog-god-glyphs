@@ -44,7 +44,7 @@ export function PayWallScreen() {
               Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
             </p>
             <p className="text-white/70 text-xs md:text-sm leading-relaxed text-center drop-shadow-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-              However you can choose your own price and help us more. Every cent goes to a good cause. 🐾
+              However you can pay more and help our vision. Every cent goes to a good cause. 🐾
             </p>
           </motion.div>
 
