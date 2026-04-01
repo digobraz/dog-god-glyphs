@@ -199,8 +199,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Top-left slot - Dog Gender */}
       <SlotImage x={1282} y={1620} w={1348} h={935} src={dogGenderSrc} />
       {!dogGenderSrc && <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Top-middle slot */}
-      <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Top-middle slot - Dog Colour */}
+      <SlotImage x={3034} y={1620} w={933} h={935} src={dogColourSrc} />
+      {!dogColourSrc && <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Big center slot (patron/dog) */}
       <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
       {/* Bottom-left - Dog Fate */}
