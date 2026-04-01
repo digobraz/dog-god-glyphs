@@ -6,8 +6,8 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
-import aristocratImg from '@/assets/bloodline/BLOODLINE-ARISTOCRAT.png';
-import muttImg from '@/assets/bloodline/BLOODLINE-MUTT.png';
+import aristocratImg from '@/assets/bloodline/BLOODLINE-ARISTOCRAT.svg';
+import muttImg from '@/assets/bloodline/BLOODLINE-MUTT.svg';
 
 export function DogBloodlineScreen() {
   const navigate = useNavigate();
