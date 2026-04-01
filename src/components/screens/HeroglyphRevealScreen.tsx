@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 
@@ -12,6 +14,7 @@ export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
+  const [showVertical, setShowVertical] = useState(false);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('reveal'), 1800);
@@ -125,7 +128,7 @@ export function HeroglyphRevealScreen() {
                     color: 'hsl(var(--gold))',
                     backgroundColor: 'transparent',
                   }}
-                  onClick={() => {/* TODO: vertical design route */}}
+                  onClick={() => setShowVertical(true)}
                 >
                   ↕ VERTICAL DESIGN
                 </Button>
@@ -190,6 +193,22 @@ export function HeroglyphRevealScreen() {
           </Button>
         </motion.div>
       </motion.div>
+      {/* Vertical Design Dialog */}
+      <Dialog open={showVertical} onOpenChange={setShowVertical}>
+        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto papyrus-bg border-2 p-4"
+          style={{ borderColor: 'hsl(var(--gold))' }}
+        >
+          <DialogTitle
+            className="text-center text-lg font-bold tracking-[0.2em] uppercase text-primary"
+            style={{ fontFamily: "'Cinzel', serif" }}
+          >
+            {dogName}'s Vertical Heroglyph
+          </DialogTitle>
+          <div className="mt-2">
+            <VerticalHeroglyphFrame className="text-foreground" />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
