@@ -30,35 +30,21 @@ export function HeroglyphRevealScreen() {
       <AnimatePresence>
         {phase === 'intro' && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center papyrus-bg"
+            className="fixed inset-0 z-50 flex items-center justify-center papyrus-bg"
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
+            <motion.img
+              src={dogyptLogoRound}
+              alt="DOGYPT"
+              className="w-36 h-36 md:w-48 md:h-48"
+              initial={{ scale: 0, rotate: -360 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 1, type: 'spring', bounce: 0.4 }}
-              className="relative"
-            >
-              <div
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center"
-                style={{
-                  background: 'radial-gradient(circle, hsl(var(--gold)) 0%, hsl(var(--gold-dark)) 70%, transparent 100%)',
-                  boxShadow: '0 0 80px hsl(var(--gold) / 0.6), 0 0 160px hsl(var(--gold) / 0.3)',
-                }}
-              >
-                <span className="text-5xl md:text-6xl">🐾</span>
-              </div>
-            </motion.div>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="mt-6 text-lg md:text-xl tracking-[0.3em] uppercase"
-              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold))' }}
-            >
-              Forging {dogName}'s Heroglyph…
-            </motion.p>
+              transition={{ duration: 1.4, type: 'spring', bounce: 0.3 }}
+              style={{
+                filter: 'drop-shadow(0 0 40px hsl(var(--gold) / 0.6))',
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>
