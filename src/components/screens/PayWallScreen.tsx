@@ -11,7 +11,6 @@ const presetAmounts = [20, 30, 50, 100];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
-  const dogName = useDogyptStore((s) => s.dogName);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState('');
   const [isCustom, setIsCustom] = useState(false);
@@ -31,31 +30,29 @@ export function PayWallScreen() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
-          {/* Hekthor bubble */}
+          {/* Large Hekthor bubble like /name */}
           <motion.div
-            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            className="w-full rounded-2xl p-6 flex flex-col items-center gap-4"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <div className="flex flex-col gap-1">
-              <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
-              </p>
-              <p className="text-white/70 text-xs md:text-sm leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                However you can choose your own price and help us more. Every cent goes to a good cause. 🐾
-              </p>
-            </div>
+            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
+            </p>
+            <p className="text-white/70 text-xs md:text-sm leading-relaxed text-center drop-shadow-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+              However you can choose your own price and help us more. Every cent goes to a good cause. 🐾
+            </p>
           </motion.div>
 
           {/* Price options */}
           <motion.div
             className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.15 }}
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex gap-2 w-full">
               {presetAmounts.map((amount) => (
@@ -104,12 +101,17 @@ export function PayWallScreen() {
               )}
             </button>
 
-            {/* Next button */}
+            {/* Next button - styled like heroglyph reveal */}
             <Button
               onClick={handleContinue}
               disabled={!activeAmount || activeAmount < 1}
-              className="w-full py-6 text-lg font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-full disabled:opacity-30 mt-2"
-              style={{ fontFamily: "'Cinzel', serif", boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}
+              className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30 mt-2"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                color: '#000',
+                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+              }}
             >
               NEXT →
             </Button>
