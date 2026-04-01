@@ -32,7 +32,7 @@ const App = () => (
           <Route path="/owner-name" element={<OwnerInfoScreen />} />
           <Route path="/owner-gender" element={<OwnerGenderScreen />} />
           <Route path="/owner-zodiac" element={<OwnerZodiacScreen />} />
-          <Route path="/transition" element={<TransitionScreen />} />
+          <Route path="/owner-final" element={<OwnerFinalScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
