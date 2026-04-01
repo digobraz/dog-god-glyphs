@@ -103,7 +103,7 @@ const numberMap: Record<string, string> = {
 };
 
 // Padding inside each slot (percentage of slot size)
-const PAD = 0.15;
+const PAD = 0.08;
 
 function SlotImage({ x, y, w, h, src, rotate }: { x: number; y: number; w: number; h: number; src?: string; rotate?: boolean }) {
   if (!src) return null;
