@@ -199,6 +199,8 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
   const dogColourSrc = dogColourMap[selections.dogColour];
   const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
   const dogShapeSrc = dogShapeMap[selections.dogShape];
+  const dogChar1Src = dogCharacterMap[selections.dogCharacter1];
+  const dogChar2Src = dogCharacterMap[selections.dogCharacter2];
 
   return (
     <svg
