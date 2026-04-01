@@ -102,6 +102,11 @@ export function PayWallScreen() {
               )}
             </button>
 
+            {/* Certificate info */}
+            <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+              📜 After payment, we will send you a <span className="text-foreground font-semibold">DOGYPT Certificate</span> along with your heroglyphs in PDF.
+            </p>
+
             {/* Next button - styled like heroglyph reveal */}
             <Button
               onClick={handleContinue}
