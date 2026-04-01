@@ -134,34 +134,51 @@ export function HeroglyphRevealScreen() {
           </div>
         </motion.div>
 
-        {/* 2. BLOCK - Hekthor message */}
+        {/* 2. BLOCK - Hekthor message bubble with speech triangle */}
         <motion.div
-          className="w-full rounded-2xl p-5 flex items-start gap-4"
-          style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+          className="w-full relative"
           initial={{ opacity: 0, y: 30 }}
           animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
-          <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-            <p className="text-sm md:text-base leading-relaxed">
-              <span className="font-bold text-amber-300">WELCOME DOGYPTIANS!</span> This Heroglyph is your eternal bond. 🐾
-            </p>
-            <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
-              My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
-            </p>
+          {/* Speech triangle pointing up */}
+          <div className="flex justify-center">
+            <div
+              className="w-0 h-0"
+              style={{
+                borderLeft: '16px solid transparent',
+                borderRight: '16px solid transparent',
+                borderBottom: '16px solid hsl(270 40% 25%)',
+              }}
+            />
+          </div>
+          <div
+            className="w-full rounded-2xl p-5 flex items-start gap-4"
+            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+          >
+            <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
+            <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
+              <p className="font-semibold text-sm md:text-base mt-1">
+                This Heroglyph is your eternal bond. 🐾
+              </p>
+              <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
+                My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
+              </p>
+            </div>
           </div>
         </motion.div>
 
-        {/* 3. BLOCK - Join mission button */}
+        {/* 3. BLOCK - Join mission button - full width */}
         <motion.div
+          className="w-full"
           initial={{ opacity: 0, y: 20 }}
           animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
           transition={{ delay: 0.7, duration: 0.5 }}
         >
           <Button
             onClick={() => navigate('/pricing')}
-            className="rounded-full px-10 py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform"
+            className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform"
             style={{
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
