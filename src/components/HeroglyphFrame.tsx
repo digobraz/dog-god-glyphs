@@ -105,6 +105,15 @@ for (const [path, src] of Object.entries(shapeModules)) {
   dogShapeMap[key] = src as string;
 }
 
+// Character assets - dynamic import map
+const characterModules = import.meta.glob('@/assets/character/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const dogCharacterMap: Record<string, string> = {};
+for (const [path, src] of Object.entries(characterModules)) {
+  const filename = path.split('/').pop()?.replace('.svg', '') || '';
+  const key = filename.toLowerCase().replace('character-', '');
+  dogCharacterMap[key] = src as string;
+}
+
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
   Leo: leoSvg, Virgo: virgoSvg, Libra: libraSvg, Scorpio: scorpioSvg,
@@ -190,6 +199,8 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
   const dogColourSrc = dogColourMap[selections.dogColour];
   const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
   const dogShapeSrc = dogShapeMap[selections.dogShape];
+  const dogChar1Src = dogCharacterMap[selections.dogCharacter1];
+  const dogChar2Src = dogCharacterMap[selections.dogCharacter2];
 
   return (
     <svg
@@ -227,10 +238,12 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Bottom-middle - Dog Bloodline */}
       <SlotImage x={2849} y={2764} w={1307} h={1309} src={dogBloodlineSrc} />
       {!dogBloodlineSrc && <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Far right top */}
-      <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
-      {/* Far right bottom */}
-      <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Far right top - Character 1 */}
+      <SlotImage x={11236} y={1620} w={2172} h={1117} src={dogChar1Src} />
+      {!dogChar1Src && <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {/* Far right bottom - Character 2 */}
+      <SlotImage x={11236} y={2957} w={2172} h={1116} src={dogChar2Src} />
+      {!dogChar2Src && <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Owner slots - filled when showOwner is true */}
       {/* Owner gender (tall left in inner frame) */}
@@ -344,6 +357,28 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
             fontWeight="bold"
             fill="hsl(var(--primary))"
           >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogCharacter' && !dogChar1Src && (
+        <g>
+          <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text x={11236 + 2172 / 2} y={1620 + 1117 / 2 + 120} textAnchor="middle" fontSize="500" fontFamily="'Cinzel', serif" fontWeight="bold" fill="hsl(var(--primary))">
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogCharacter' && !dogChar2Src && (
+        <g>
+          <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text x={11236 + 2172 / 2} y={2957 + 1116 / 2 + 120} textAnchor="middle" fontSize="500" fontFamily="'Cinzel', serif" fontWeight="bold" fill="hsl(var(--primary))">
             <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
             ?
           </text>
