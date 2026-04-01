@@ -76,6 +76,20 @@
   }
 }
 
+/* Dark hieroglyph background */
+.dark-bg {
+  position: relative;
+  background-color: #0a0a0a;
+  background-image: url('@/assets/bg-dark.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.dark-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
 /* Papyrus noise texture overlay */
 .papyrus-bg {
   position: relative;
