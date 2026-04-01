@@ -7,18 +7,19 @@ import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-const presetAmounts = [20, 30, 50, 100];
+const presetAmounts = [11, 22, 33, 50, 100];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState<number>(11);
   const [customAmount, setCustomAmount] = useState('');
   const [isCustom, setIsCustom] = useState(false);
 
   const activeAmount = isCustom ? Number(customAmount) : selectedAmount;
+  const isValid = activeAmount >= 11;
 
   const handleContinue = () => {
-    if (!activeAmount || activeAmount < 1) return;
+    if (!isValid) return;
     // TODO: navigate to next step
   };
 
@@ -88,7 +89,7 @@ export function PayWallScreen() {
                     min="1"
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
-                    placeholder="Enter amount"
+                    placeholder="Min $11"
                     className="bg-transparent outline-none text-base font-bold text-primary text-center w-28 placeholder:text-muted-foreground/40"
                     style={{ fontFamily: "'Cinzel', serif" }}
                     autoFocus
@@ -104,7 +105,7 @@ export function PayWallScreen() {
             {/* Next button - styled like heroglyph reveal */}
             <Button
               onClick={handleContinue}
-              disabled={!activeAmount || activeAmount < 1}
+              disabled={!isValid}
               className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30 mt-2"
               style={{
                 fontFamily: "'Cinzel', serif",
