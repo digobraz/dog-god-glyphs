@@ -18,6 +18,7 @@ import { DogColourScreen } from "@/components/screens/DogColourScreen";
 import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
 import { DogShapeScreen } from "@/components/screens/DogShapeScreen";
 import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
+import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
