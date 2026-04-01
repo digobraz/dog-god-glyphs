@@ -96,6 +96,15 @@ const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fat
 const dogColourMap: Record<string, string> = { bright: colourBrightSvg, dark: colourDarkSvg, mix: colourMixSvg };
 const dogBloodlineMap: Record<string, string> = { aristocrat: bloodlineAristocratImg, mutt: bloodlineMuttImg };
 
+// Dog shape assets - dynamic import map
+const shapeModules = import.meta.glob('@/assets/shapes/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const dogShapeMap: Record<string, string> = {};
+for (const [path, src] of Object.entries(shapeModules)) {
+  const filename = path.split('/').pop()?.replace('.svg', '') || '';
+  const key = filename.toLowerCase().replace(/^size[-_]/, '').replace(/[-_]\d+$/, '').replace(/^\d+[-_]/, '');
+  dogShapeMap[key] = src as string;
+}
+
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
   Leo: leoSvg, Virgo: virgoSvg, Libra: libraSvg, Scorpio: scorpioSvg,
