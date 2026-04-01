@@ -18,7 +18,7 @@ export function OwnerFinalScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4 relative">
+        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
           {/* Heroglyph frame with border-breaking label */}
           <motion.div
             className="w-full relative mt-4"
@@ -59,43 +59,6 @@ export function OwnerFinalScreen() {
               </Button>
             </div>
           </motion.div>
-
-          {/* Hand-drawn curved arrow from bubble to owner cartouche */}
-          <motion.svg
-            className="absolute pointer-events-none z-20"
-            style={{
-              right: '8%',
-              top: '0',
-              width: '30%',
-              height: '100%',
-            }}
-            viewBox="0 0 200 300"
-            preserveAspectRatio="none"
-            fill="none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-          >
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                <polygon points="0 0, 10 3.5, 0 7" fill="hsl(var(--primary))" />
-              </marker>
-            </defs>
-            {/* Curved hand-drawn path from bubble area up into owner cartouche */}
-            <motion.path
-              d="M60,230 C30,200 10,170 20,140 C30,110 70,100 90,80 C110,60 120,45 110,30"
-              stroke="hsl(var(--primary))"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="6 4"
-              markerEnd="url(#arrowhead)"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1.2, delay: 0.6, ease: 'easeOut' }}
-            />
-          </motion.svg>
-
           {/* Back button */}
           <button
             onClick={() => navigate('/owner-zodiac')}
