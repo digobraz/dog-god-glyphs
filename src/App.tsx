@@ -12,6 +12,7 @@ import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
 import { OwnerGenderScreen } from "@/components/screens/OwnerGenderScreen";
 import { OwnerZodiacScreen } from "@/components/screens/OwnerZodiacScreen";
 import { OwnerFinalScreen } from "@/components/screens/OwnerFinalScreen";
+import { DogGenderScreen } from "@/components/screens/DogGenderScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
