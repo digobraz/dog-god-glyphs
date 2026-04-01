@@ -147,60 +147,33 @@ export function HeroglyphRevealScreen() {
           </div>
         </motion.div>
 
-        {/* 2. BLOCK - Hekthor message (collapsed when vertical) */}
-        <AnimatePresence>
-          {!showVertical ? (
-            <motion.div
-              key="hekthor-full"
-              className="w-full relative"
-              initial={{ opacity: 0, y: 30 }}
-              animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ delay: 0.4, duration: 0.4 }}
-            >
-              <div className="flex justify-center">
-                <div
-                  className="w-0 h-0"
-                  style={{
-                    borderLeft: '16px solid transparent',
-                    borderRight: '16px solid transparent',
-                    borderBottom: '16px solid hsl(270 40% 25%)',
-                  }}
-                />
-              </div>
-              <div
-                className="w-full rounded-2xl p-5 flex items-start gap-4"
-                style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
-              >
-                <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
-                <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
-                  <p className="font-semibold text-sm md:text-base mt-1">
-                    This Heroglyph is your eternal bond. 🐾
-                  </p>
-                  <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
-                    My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="hekthor-compact"
-              className="w-full text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              <p className="font-bold text-primary text-sm tracking-wider">WELCOME DOGYPTIANS!</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                This Heroglyph is your eternal bond. 🐾
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* 2. BLOCK - Hekthor compact message */}
+        <motion.div
+          className="w-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 0.4, duration: 0.4 }}
+        >
+          <div className="flex justify-center mb-[-1px]">
+            <div
+              className="w-0 h-0"
+              style={{
+                borderLeft: '12px solid transparent',
+                borderRight: '12px solid transparent',
+                borderBottom: '12px solid hsl(270 40% 25%)',
+              }}
+            />
+          </div>
+          <div
+            className="w-full rounded-xl px-4 py-3 flex items-center gap-3"
+            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+          >
+            <img src={hekthorImg} alt="HEKTHOR" className="w-10 h-10 object-contain flex-shrink-0" />
+            <p className="font-bold text-amber-300 text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              WELCOME DOGYPTIANS!
+            </p>
+          </div>
+        </motion.div>
 
         {/* 3. BLOCK - Join mission button */}
         <motion.div
