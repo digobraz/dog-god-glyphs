@@ -49,6 +49,7 @@ const shapes = [
   { value: 'frenchie', label: 'Frenchie', img: frenchieSvg },
   { value: 'j_rusell', label: 'J. Rusell', img: jRusellSvg },
   { value: 'beagle', label: 'Beagle', img: beagleSvg },
+  { value: 'bull', label: 'Bull', img: bullSvg },
   { value: 'coker', label: 'Coker', img: cokerSvg },
   { value: 'schnauzer', label: 'Schnauzer', img: schnauzerSvg },
   { value: 'border', label: 'Border', img: borderSvg },
@@ -70,7 +71,6 @@ const shapes = [
   { value: 'great_dane', label: 'Great Dane', img: greatDaneSvg },
   { value: 'chuvach', label: 'Chuvach', img: chuvachSvg },
   { value: 'assian', label: 'Assian', img: assianSvg },
-  { value: 'bull', label: 'Bull', img: bullSvg },
 ];
 
 export function DogShapeScreen() {
