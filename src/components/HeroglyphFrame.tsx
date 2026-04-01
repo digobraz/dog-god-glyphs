@@ -8,6 +8,11 @@ import dogQueenSvg from '@/assets/gender/GENDER-FEMALE.svg';
 import fateRaisedSvg from '@/assets/fate/FATE-RAISED.svg';
 import fateRescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 
+// Dog colour assets
+import colourBrightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
+import colourDarkSvg from '@/assets/colour/COLOUR-DARK.svg';
+import colourMixSvg from '@/assets/colour/COLOUR-MIX.svg';
+
 // Owner gender assets
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
