@@ -89,7 +89,7 @@ export function PayWallScreen() {
                     min="1"
                     value={customAmount}
                     onChange={(e) => setCustomAmount(e.target.value)}
-                    placeholder="Enter amount"
+                    placeholder="Min $11"
                     className="bg-transparent outline-none text-base font-bold text-primary text-center w-28 placeholder:text-muted-foreground/40"
                     style={{ fontFamily: "'Cinzel', serif" }}
                     autoFocus
