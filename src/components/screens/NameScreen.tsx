@@ -63,9 +63,6 @@ export function NameScreen() {
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-xs text-muted-foreground text-center mt-2 tracking-wide" style={{ fontFamily: "'Cinzel', serif" }}>
-              Thanks, man. Your dog will answer any further questions.
-            </p>
           </motion.div>
         </div>
       </div>
