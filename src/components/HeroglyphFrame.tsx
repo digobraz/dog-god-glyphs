@@ -8,6 +8,10 @@ import dogQueenSvg from '@/assets/gender/GENDER-FEMALE.svg';
 import fateRaisedSvg from '@/assets/fate/FATE-RAISED.svg';
 import fateRescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 
+// Dog bloodline assets
+import bloodlineAristocratImg from '@/assets/bloodline/BLOODLINE-ARISTOCRAT.png';
+import bloodlineMuttImg from '@/assets/bloodline/BLOODLINE-MUTT.png';
+
 // Dog colour assets
 import colourBrightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
 import colourDarkSvg from '@/assets/colour/COLOUR-DARK.svg';
@@ -90,6 +94,7 @@ const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
 const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
 const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fateRescuedSvg };
 const dogColourMap: Record<string, string> = { bright: colourBrightSvg, dark: colourDarkSvg, mix: colourMixSvg };
+const dogBloodlineMap: Record<string, string> = { aristocrat: bloodlineAristocratImg, mutt: bloodlineMuttImg };
 
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
@@ -174,6 +179,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
   const dogGenderSrc = dogGenderMap[selections.dogGender];
   const dogFateSrc = dogFateMap[selections.dogFate];
   const dogColourSrc = dogColourMap[selections.dogColour];
+  const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
 
   return (
     <svg
@@ -207,8 +213,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Bottom-left - Dog Fate */}
       <SlotImage x={1282} y={2764} w={1348} h={1309} src={dogFateSrc} />
       {!dogFateSrc && <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Bottom-middle */}
-      <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Bottom-middle - Dog Bloodline */}
+      <SlotImage x={2849} y={2764} w={1307} h={1309} src={dogBloodlineSrc} />
+      {!dogBloodlineSrc && <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Far right top */}
       <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
       {/* Far right bottom */}
@@ -282,6 +289,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           <text
             x={3034 + 933 / 2}
             y={1620 + 935 / 2 + 120}
+            textAnchor="middle"
+            fontSize="500"
+            fontFamily="'Cinzel', serif"
+            fontWeight="bold"
+            fill="hsl(var(--primary))"
+          >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogBloodline' && !dogBloodlineSrc && (
+        <g>
+          <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text
+            x={2849 + 1307 / 2}
+            y={2764 + 1309 / 2 + 120}
             textAnchor="middle"
             fontSize="500"
             fontFamily="'Cinzel', serif"

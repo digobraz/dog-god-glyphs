@@ -6,20 +6,19 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
-import brightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
-import darkSvg from '@/assets/colour/COLOUR-DARK.svg';
-import mixSvg from '@/assets/colour/COLOUR-MIX.svg';
+import aristocratImg from '@/assets/bloodline/BLOODLINE-ARISTOCRAT.png';
+import muttImg from '@/assets/bloodline/BLOODLINE-MUTT.png';
 
-export function DogColourScreen() {
+export function DogBloodlineScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
 
-  const handleSelect = (colour: string) => {
-    setSelected(colour);
-    setSelection('dogColour', colour);
-    setTimeout(() => navigate('/dog-bloodline'), 500);
+  const handleSelect = (bloodline: string) => {
+    setSelected(bloodline);
+    setSelection('dogBloodline', bloodline);
+    setTimeout(() => navigate('/breed'), 500);
   };
 
   return (
@@ -43,7 +42,7 @@ export function DogColourScreen() {
               </span>
             </div>
             <div className="rounded-2xl border border-border p-4">
-              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogColour" />
+              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogBloodline" />
             </div>
           </motion.div>
 
@@ -57,7 +56,7 @@ export function DogColourScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
             <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
+              Is your dog <span className="font-bold text-amber-300">pure</span> or <span className="font-bold text-amber-300">wild</span>?
             </p>
           </motion.div>
 
@@ -69,54 +68,37 @@ export function DogColourScreen() {
             transition={{ duration: 0.4, delay: 0.35 }}
           >
             <div className="flex gap-4 w-full">
-              {/* BRIGHT */}
+              {/* ARISTOCRAT */}
               <button
-                onClick={() => handleSelect('bright')}
-                className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                  selected === 'bright'
+                onClick={() => handleSelect('aristocrat')}
+                className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
+                  selected === 'aristocrat'
                     ? 'border-primary bg-primary/10'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={brightSvg} alt="Bright" className="h-20 md:h-28 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Bright</span>
+                <img src={aristocratImg} alt="Aristocrat" className="h-24 md:h-32 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Aristocrat</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Sun
+                  Signed papyrus<br />Original with pure bloodline
                 </span>
               </button>
 
-              {/* DARK */}
+              {/* MUTT */}
               <button
-                onClick={() => handleSelect('dark')}
-                className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                  selected === 'dark'
+                onClick={() => handleSelect('mutt')}
+                className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
+                  selected === 'mutt'
                     ? 'border-primary bg-primary/10'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={darkSvg} alt="Dark" className="h-20 md:h-28 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Dark</span>
+                <img src={muttImg} alt="Mutt" className="h-24 md:h-32 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mutt</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Moon
-                </span>
-              </button>
-
-              {/* MIX */}
-              <button
-                onClick={() => handleSelect('mix')}
-                className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
-                  selected === 'mix'
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border/60 hover:border-primary/50'
-                }`}
-                style={{ fontFamily: "'Cinzel', serif" }}
-              >
-                <img src={mixSvg} alt="Mix" className="h-20 md:h-28 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mix</span>
-                <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Rainbow
+                  Empty papyrus<br />Original without pure bloodline
                 </span>
               </button>
             </div>
@@ -124,7 +106,7 @@ export function DogColourScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/dog-fate')}
+            onClick={() => navigate('/dog-colour')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

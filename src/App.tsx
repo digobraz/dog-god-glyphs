@@ -15,6 +15,7 @@ import { OwnerFinalScreen } from "@/components/screens/OwnerFinalScreen";
 import { DogGenderScreen } from "@/components/screens/DogGenderScreen";
 import { DogFateScreen } from "@/components/screens/DogFateScreen";
 import { DogColourScreen } from "@/components/screens/DogColourScreen";
+import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/dog-gender" element={<DogGenderScreen />} />
           <Route path="/dog-fate" element={<DogFateScreen />} />
           <Route path="/dog-colour" element={<DogColourScreen />} />
+          <Route path="/dog-bloodline" element={<DogBloodlineScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
