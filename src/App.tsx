@@ -46,6 +46,7 @@ const App = () => (
           <Route path="/dog-bloodline" element={<DogBloodlineScreen />} />
           <Route path="/dog-shape" element={<DogShapeScreen />} />
           <Route path="/dog-character" element={<DogCharacterScreen />} />
+          <Route path="/heroglyph-reveal" element={<HeroglyphRevealScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
