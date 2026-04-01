@@ -18,7 +18,7 @@ export function DogFateScreen() {
   const handleSelect = (fate: string) => {
     setSelected(fate);
     setSelection('dogFate', fate);
-    setTimeout(() => navigate('/breed'), 500);
+    setTimeout(() => navigate('/dog-colour'), 500);
   };
 
   return (
