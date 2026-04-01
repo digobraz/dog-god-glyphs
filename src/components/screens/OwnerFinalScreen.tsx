@@ -32,14 +32,14 @@ export function OwnerFinalScreen() {
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
               </span>
             </div>
-            <div className="rounded-2xl border border-border p-4">
+            <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
               <HeroglyphFrame showOwner className="text-foreground" />
             </div>
           </motion.div>
 
           {/* Hekthor message block */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-5 flex items-center gap-5"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-5 flex items-center gap-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}

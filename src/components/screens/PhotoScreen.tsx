@@ -41,7 +41,7 @@ export function PhotoScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col items-center gap-6">
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-4"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
@@ -57,7 +57,7 @@ export function PhotoScreen() {
           </motion.div>
 
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-4 flex flex-col gap-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-4"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}

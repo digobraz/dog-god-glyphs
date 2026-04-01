@@ -64,7 +64,7 @@ export function RankingScreen() {
         <div className="w-full max-w-xl flex flex-col items-center gap-6">
           {/* Question block */}
           <motion.div
-            className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-4"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
@@ -80,7 +80,7 @@ export function RankingScreen() {
             {phase === 'question' ? (
               <motion.div
                 key="yesno"
-                className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-5"
+                className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-5"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
@@ -115,7 +115,7 @@ export function RankingScreen() {
             ) : (
               <motion.div
                 key="pickrank"
-                className="w-full rounded-2xl border border-border/40 p-6 flex flex-col items-center gap-4"
+                className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col items-center gap-4"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
