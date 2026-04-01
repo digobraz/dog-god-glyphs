@@ -211,6 +211,13 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Ranking (bottom right in inner frame) */}
       <SlotImage x={10049} y={2898} w={723} h={933} src={rankingSrc} />
       {!rankingSrc && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+
+      {/* Pulsing slot indicator */}
+      {pulseSlot === 'dogGender' && (
+        <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="20" rx="20">
+          <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+        </rect>
+      )}
     </svg>
   );
 }
