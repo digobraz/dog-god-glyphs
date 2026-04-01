@@ -19,7 +19,7 @@ export function DogColourScreen() {
   const handleSelect = (colour: string) => {
     setSelected(colour);
     setSelection('dogColour', colour);
-    setTimeout(() => navigate('/breed'), 500);
+    setTimeout(() => navigate('/dog-bloodline'), 500);
   };
 
   return (
