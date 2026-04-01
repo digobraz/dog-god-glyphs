@@ -6,8 +6,8 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
-import raisedSvg from '@/assets/fate/FATE-RAISED.png';
-import rescuedSvg from '@/assets/fate/FATE-RESCUED.png';
+import raisedSvg from '@/assets/fate/FATE-RAISED.svg';
+import rescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 
 export function DogFateScreen() {
   const navigate = useNavigate();
