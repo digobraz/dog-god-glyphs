@@ -141,8 +141,8 @@ const numberMap: Record<string, string> = {
   '6': num6, '7': num7, '8': num8, '9': num9, '10': num10, '11': num11,
 };
 
-// Padding inside each slot (percentage of slot size)
-const PAD = 0.08;
+// No padding - symbols fill exact slot boundaries
+const PAD = 0;
 
 function SlotImage({ x, y, w, h, src, rotate }: { x: number; y: number; w: number; h: number; src?: string; rotate?: boolean }) {
   if (!src) return null;
