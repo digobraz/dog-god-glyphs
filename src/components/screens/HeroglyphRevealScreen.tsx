@@ -124,7 +124,7 @@ export function HeroglyphRevealScreen() {
               </AnimatePresence>
 
               <motion.div
-                className="flex justify-center mt-4"
+                className="flex justify-center mt-2"
                 initial={{ opacity: 0, y: 10 }}
                 animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.2, duration: 0.5 }}
