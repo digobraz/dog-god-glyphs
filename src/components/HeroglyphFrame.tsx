@@ -238,10 +238,12 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Bottom-middle - Dog Bloodline */}
       <SlotImage x={2849} y={2764} w={1307} h={1309} src={dogBloodlineSrc} />
       {!dogBloodlineSrc && <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Far right top */}
-      <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
-      {/* Far right bottom */}
-      <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Far right top - Character 1 */}
+      <SlotImage x={11236} y={1620} w={2172} h={1117} src={dogChar1Src} />
+      {!dogChar1Src && <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      {/* Far right bottom - Character 2 */}
+      <SlotImage x={11236} y={2957} w={2172} h={1116} src={dogChar2Src} />
+      {!dogChar2Src && <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Owner slots - filled when showOwner is true */}
       {/* Owner gender (tall left in inner frame) */}
