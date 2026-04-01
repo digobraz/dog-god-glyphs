@@ -37,47 +37,43 @@ export function OwnerFinalScreen() {
             </div>
           </motion.div>
 
-          {/* Hekthor message block with arrow pointing up to the owner frame */}
+          {/* Pulsing arrow pointing to the small owner cartouche */}
           <motion.div
-            className="w-full relative"
+            className="w-full flex justify-end pr-[18%]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <svg width="24" height="32" viewBox="0 0 24 32" fill="none" className="text-primary">
+                <path d="M12 0 L12 24 M4 16 L12 24 L20 16" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" transform="rotate(180 12 16)" />
+              </svg>
+            </motion.div>
+          </motion.div>
+
+          {/* Hekthor message block */}
+          <motion.div
+            className="w-full rounded-2xl border border-border/40 p-5 flex items-center gap-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            {/* Arrow pointing up-right toward the small owner cartouche */}
-            <div
-              className="absolute -top-4 right-[18%] w-0 h-0"
-              style={{
-                borderLeft: '10px solid transparent',
-                borderRight: '10px solid transparent',
-                borderBottom: '16px solid hsl(var(--border))',
-              }}
-            />
-            <div
-              className="absolute right-[18%] w-0 h-0"
-              style={{
-                borderLeft: '9px solid transparent',
-                borderRight: '9px solid transparent',
-                borderBottom: '14px solid hsl(36 33% 91%)',
-                top: '-13px',
-                marginLeft: '1px',
-              }}
-            />
-            <div className="rounded-2xl border border-border p-5 flex items-center gap-5">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-3">
-                <p className="text-foreground text-sm md:text-base leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
-                  HEY MAN, that little frame — that is you! Now let's fill{' '}
-                  <span className="font-bold text-primary">{dogName || 'YOUR DOG'}</span>'s story together.
-                </p>
-                <Button
-                  onClick={() => navigate('/breed')}
-                  className="w-fit rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-10 px-5 text-sm"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  LET'S GO <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
+            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
+            <div className="flex flex-col gap-3">
+              <p className="text-foreground text-sm md:text-base leading-relaxed" style={{ fontFamily: "'Cinzel', serif" }}>
+                HEY MAN, that little frame — that is you! Now let's fill{' '}
+                <span className="font-bold text-primary">{dogName || 'YOUR DOG'}</span>'s story together.
+              </p>
+              <Button
+                onClick={() => navigate('/breed')}
+                className="w-fit rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-10 px-5 text-sm"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                LET'S GO <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </motion.div>
 
