@@ -11,10 +11,20 @@ import yorkSvg from '@/assets/shapes/SIZE-YORK_2.svg';
 import bichonSvg from '@/assets/shapes/SIZE-BICHON_3.svg';
 import dachshundSvg from '@/assets/shapes/SIZE-DACHSHUND_4.svg';
 import frenchieSvg from '@/assets/shapes/SIZE-FRENCHIE_5.svg';
+import beagleSvg from '@/assets/shapes/SIZE-BEAGLE_7.svg';
+import cokerSvg from '@/assets/shapes/SIZE-COKER_8.svg';
+import borderSvg from '@/assets/shapes/SIZE-BORDER_9.svg';
+import stafordSvg from '@/assets/shapes/SIZE-STAFORD_10.svg';
+import otterhoundSvg from '@/assets/shapes/SIZE-OTTERHOUND_12.svg';
+import schnauzerSvg from '@/assets/shapes/SIZE-SCHNAUZER_13.svg';
 import bloodhoundSvg from '@/assets/shapes/SIZE-BLOODHOUND_14.svg';
 import setterSvg from '@/assets/shapes/SIZE-SETTER_15.svg';
+import labradorSvg from '@/assets/shapes/SIZE_17-LABRADOR.svg';
+import germanSvg from '@/assets/shapes/SIZE_18-GERMAN.svg';
 import poodleSvg from '@/assets/shapes/SIZE_19-POODLE.svg';
 import boxerSvg from '@/assets/shapes/SIZE_20-BOXER.svg';
+import malamuteSvg from '@/assets/shapes/SIZE_22-MALAMUTE.svg';
+import greatDaneSvg from '@/assets/shapes/SIZE_23-GREAT_DANE.svg';
 import chuvachSvg from '@/assets/shapes/SIZE_24-CHUVACH.svg';
 import assianSvg from '@/assets/shapes/SIZE_25-ASSIAN.svg';
 
@@ -23,10 +33,20 @@ const shapes = [
   { value: 'bichon', label: 'Bichon', img: bichonSvg },
   { value: 'dachshund', label: 'Dachshund', img: dachshundSvg },
   { value: 'frenchie', label: 'Frenchie', img: frenchieSvg },
+  { value: 'beagle', label: 'Beagle', img: beagleSvg },
+  { value: 'coker', label: 'Coker', img: cokerSvg },
+  { value: 'border', label: 'Border', img: borderSvg },
+  { value: 'staford', label: 'Staford', img: stafordSvg },
+  { value: 'otterhound', label: 'Otterhound', img: otterhoundSvg },
+  { value: 'schnauzer', label: 'Schnauzer', img: schnauzerSvg },
   { value: 'bloodhound', label: 'Bloodhound', img: bloodhoundSvg },
   { value: 'setter', label: 'Setter', img: setterSvg },
+  { value: 'labrador', label: 'Labrador', img: labradorSvg },
+  { value: 'german', label: 'German', img: germanSvg },
   { value: 'poodle', label: 'Poodle', img: poodleSvg },
   { value: 'boxer', label: 'Boxer', img: boxerSvg },
+  { value: 'malamute', label: 'Malamute', img: malamuteSvg },
+  { value: 'great_dane', label: 'Great Dane', img: greatDaneSvg },
   { value: 'chuvach', label: 'Chuvach', img: chuvachSvg },
   { value: 'assian', label: 'Assian', img: assianSvg },
 ];
