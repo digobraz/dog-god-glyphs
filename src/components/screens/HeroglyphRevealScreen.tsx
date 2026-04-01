@@ -214,7 +214,7 @@ export function HeroglyphRevealScreen() {
               boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
             }}
           >
-            🐾 JOIN OUR MISSION
+            🐾 GRAB MY HEROGLYPH
           </Button>
         </motion.div>
       </motion.div>
