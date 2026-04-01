@@ -1,5 +1,13 @@
 import { useDogyptStore } from '@/store/dogyptStore';
 
+// Dog gender assets
+import dogKingSvg from '@/assets/gender/GENDER-MALE.svg';
+import dogQueenSvg from '@/assets/gender/GENDER-FEMALE.svg';
+
+// Dog fate assets
+import fateRaisedSvg from '@/assets/fate/FATE-RAISED.svg';
+import fateRescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
+
 // Owner gender assets
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
@@ -74,6 +82,8 @@ import num10 from '@/assets/numbers/NUMBER-10.svg';
 import num11 from '@/assets/numbers/NUMBER-11.svg';
 
 const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
+const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
+const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fateRescuedSvg };
 
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
@@ -155,6 +165,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
   const ownerInitialSrc = showOwner && ownerInitial ? letterMap[ownerInitial] : undefined;
   const rankingSrc = showOwner ? numberMap[selections.ranking] : undefined;
 
+  const dogGenderSrc = dogGenderMap[selections.dogGender];
+  const dogFateSrc = dogFateMap[selections.dogFate];
+
   return (
     <svg
       viewBox="0 0 14692 5696"
@@ -176,14 +189,16 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       />
 
       {/* Empty slot indicators (dashed borders for unfilled dog slots) */}
-      {/* Top-left slot */}
-      <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Top-left slot - Dog Gender */}
+      <SlotImage x={1282} y={1620} w={1348} h={935} src={dogGenderSrc} />
+      {!dogGenderSrc && <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Top-middle slot */}
       <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
       {/* Big center slot (patron/dog) */}
       <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
-      {/* Bottom-left */}
-      <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Bottom-left - Dog Fate */}
+      <SlotImage x={1282} y={2764} w={1348} h={1309} src={dogFateSrc} />
+      {!dogFateSrc && <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Bottom-middle */}
       <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
       {/* Far right top */}
@@ -212,9 +227,8 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       <SlotImage x={10049} y={2898} w={723} h={933} src={rankingSrc} />
       {!rankingSrc && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
-      {/* Pulsing slot indicator */}
-      {/* Pulsing slot indicators */}
-      {pulseSlot === 'dogGender' && (
+      {/* Pulsing slot indicators - only show when slot not filled */}
+      {pulseSlot === 'dogGender' && !dogGenderSrc && (
         <g>
           <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -233,7 +247,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogFate' && (
+      {pulseSlot === 'dogFate' && !dogFateSrc && (
         <g>
           <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
