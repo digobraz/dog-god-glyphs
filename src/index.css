@@ -84,6 +84,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  color: hsl(var(--gold));
 }
 .dark-bg > * {
   position: relative;
