@@ -51,7 +51,7 @@ export function OwnerFinalScreen() {
                 <span className="font-bold text-primary">{dogName || 'YOUR DOG'}</span>'s story together.
               </p>
               <Button
-                onClick={() => navigate('/breed')}
+                onClick={() => navigate('/dog-gender')}
                 className="w-fit rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-10 px-5 text-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
