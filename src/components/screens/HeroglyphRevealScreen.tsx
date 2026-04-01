@@ -116,7 +116,7 @@ export function HeroglyphRevealScreen() {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.5 }}
                     className="flex justify-center"
-                    style={{ maxHeight: 'calc(100dvh - 280px)' }}
+                    style={{ maxHeight: 'calc(100dvh - 420px)' }}
                   >
                     <VerticalHeroglyphFrame className="text-foreground h-full w-auto" />
                   </motion.div>
