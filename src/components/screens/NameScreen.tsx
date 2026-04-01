@@ -33,7 +33,7 @@ export function NameScreen() {
             transition={{ duration: 0.35 }}
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-            <p className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line" style={{ fontFamily: "'Cinzel', serif" }}>
+            <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               {"Hi, I'm HEKTHOR.\nWhat's your dog's name?"}
             </p>
           </motion.div>
