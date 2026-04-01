@@ -37,7 +37,7 @@ export function OwnerFinalScreen() {
             transition={{ duration: 0.4, delay: 0.3 }}
           >
             {/* Border-breaking label */}
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 px-3 bg-[hsl(var(--papyrus-bg,40_30%_88%))]">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10 px-3" style={{ backgroundColor: 'hsl(36 33% 91%)' }}>
               <span className="text-xs md:text-sm font-bold tracking-widest text-primary whitespace-nowrap" style={{ fontFamily: "'Cinzel', serif" }}>
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
               </span>
