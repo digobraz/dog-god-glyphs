@@ -96,6 +96,15 @@ const dogFateMap: Record<string, string> = { raised: fateRaisedSvg, rescued: fat
 const dogColourMap: Record<string, string> = { bright: colourBrightSvg, dark: colourDarkSvg, mix: colourMixSvg };
 const dogBloodlineMap: Record<string, string> = { aristocrat: bloodlineAristocratImg, mutt: bloodlineMuttImg };
 
+// Dog shape assets - dynamic import map
+const shapeModules = import.meta.glob('@/assets/shapes/*.svg', { eager: true, import: 'default' }) as Record<string, string>;
+const dogShapeMap: Record<string, string> = {};
+for (const [path, src] of Object.entries(shapeModules)) {
+  const filename = path.split('/').pop()?.replace('.svg', '') || '';
+  const key = filename.toLowerCase().replace(/^size[-_]/, '').replace(/[-_]\d+$/, '').replace(/^\d+[-_]/, '');
+  dogShapeMap[key] = src as string;
+}
+
 const zodiacMap: Record<string, string> = {
   Aries: ariesSvg, Taurus: taurusSvg, Gemini: geminiSvg, Cancer: cancerSvg,
   Leo: leoSvg, Virgo: virgoSvg, Libra: libraSvg, Scorpio: scorpioSvg,
@@ -180,6 +189,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
   const dogFateSrc = dogFateMap[selections.dogFate];
   const dogColourSrc = dogColourMap[selections.dogColour];
   const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
+  const dogShapeSrc = dogShapeMap[selections.dogShape];
 
   return (
     <svg
@@ -208,8 +218,9 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {/* Top-middle slot - Dog Colour */}
       <SlotImage x={3034} y={1620} w={933} h={935} src={dogColourSrc} />
       {!dogColourSrc && <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
-      {/* Big center slot (patron/dog) */}
-      <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />
+      {/* Big center slot (patron/dog shape) */}
+      <SlotImage x={4375} y={1621} w={3134} h={2453} src={dogShapeSrc} />
+      {!dogShapeSrc && <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
       {/* Bottom-left - Dog Fate */}
       <SlotImage x={1282} y={2764} w={1348} h={1309} src={dogFateSrc} />
       {!dogFateSrc && <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
@@ -310,6 +321,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
             y={2764 + 1309 / 2 + 120}
             textAnchor="middle"
             fontSize="500"
+            fontFamily="'Cinzel', serif"
+            fontWeight="bold"
+            fill="hsl(var(--primary))"
+          >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogShape' && !dogShapeSrc && (
+        <g>
+          <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text
+            x={4375 + 3134 / 2}
+            y={1621 + 2453 / 2 + 180}
+            textAnchor="middle"
+            fontSize="800"
             fontFamily="'Cinzel', serif"
             fontWeight="bold"
             fill="hsl(var(--primary))"
