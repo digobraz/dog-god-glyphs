@@ -213,6 +213,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {!rankingSrc && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Pulsing slot indicator */}
+      {/* Pulsing slot indicators */}
       {pulseSlot === 'dogGender' && (
         <g>
           <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
@@ -221,6 +222,25 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           <text
             x={1282 + 1348 / 2}
             y={1620 + 935 / 2 + 120}
+            textAnchor="middle"
+            fontSize="500"
+            fontFamily="'Cinzel', serif"
+            fontWeight="bold"
+            fill="hsl(var(--primary))"
+          >
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogFate' && (
+        <g>
+          <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text
+            x={1282 + 1348 / 2}
+            y={2764 + 1309 / 2 + 120}
             textAnchor="middle"
             fontSize="500"
             fontFamily="'Cinzel', serif"

@@ -6,19 +6,19 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo.png';
 import hekthorImg from '@/assets/hekthor.png';
-import kingSvg from '@/assets/gender/GENDER-MALE.svg';
-import queenSvg from '@/assets/gender/GENDER-FEMALE.svg';
+import raisedSvg from '@/assets/fate/FATE-RAISED.png';
+import rescuedSvg from '@/assets/fate/FATE-RESCUED.png';
 
-export function DogGenderScreen() {
+export function DogFateScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
 
-  const handleSelect = (gender: string) => {
-    setSelected(gender);
-    setSelection('dogGender', gender);
-    setTimeout(() => navigate('/dog-fate'), 500);
+  const handleSelect = (fate: string) => {
+    setSelected(fate);
+    setSelection('dogFate', fate);
+    setTimeout(() => navigate('/breed'), 500);
   };
 
   return (
@@ -42,7 +42,7 @@ export function DogGenderScreen() {
               </span>
             </div>
             <div className="rounded-2xl border border-border p-4">
-              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogGender" />
+              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogFate" />
             </div>
           </motion.div>
 
@@ -56,7 +56,7 @@ export function DogGenderScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
             <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Do you have a <span className="font-bold text-amber-300">king</span> or a <span className="font-bold text-amber-300">queen</span> at home?
+              What is the <span className="font-bold text-amber-300">fate</span> of your dog?
             </p>
           </motion.div>
 
@@ -68,37 +68,37 @@ export function DogGenderScreen() {
             transition={{ duration: 0.4, delay: 0.35 }}
           >
             <div className="flex gap-4 w-full">
-              {/* KING */}
+              {/* RAISED */}
               <button
-                onClick={() => handleSelect('king')}
+                onClick={() => handleSelect('raised')}
                 className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
-                  selected === 'king'
+                  selected === 'raised'
                     ? 'border-primary bg-primary/10'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={kingSvg} alt="King" className="h-24 md:h-32 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">King</span>
+                <img src={raisedSvg} alt="Raised" className="h-24 md:h-32 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Raised</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Three-peak crown<br />Who is peeing on three legs?
+                  Baby pacifier<br />A dog born into the family
                 </span>
               </button>
 
-              {/* QUEEN */}
+              {/* RESCUED */}
               <button
-                onClick={() => handleSelect('queen')}
+                onClick={() => handleSelect('rescued')}
                 className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
-                  selected === 'queen'
+                  selected === 'rescued'
                     ? 'border-primary bg-primary/10'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={queenSvg} alt="Queen" className="h-24 md:h-32 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Queen</span>
+                <img src={rescuedSvg} alt="Rescued" className="h-24 md:h-32 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Rescued</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Four-peak crown<br />Can you guess why?
+                  Lifebuoy<br />Rescued or found dog
                 </span>
               </button>
             </div>
@@ -106,7 +106,7 @@ export function DogGenderScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/owner-final')}
+            onClick={() => navigate('/dog-gender')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
