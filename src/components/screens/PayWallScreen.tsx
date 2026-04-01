@@ -16,9 +16,10 @@ export function PayWallScreen() {
   const [isCustom, setIsCustom] = useState(false);
 
   const activeAmount = isCustom ? Number(customAmount) : selectedAmount;
+  const isValid = activeAmount >= 11;
 
   const handleContinue = () => {
-    if (!activeAmount || activeAmount < 1) return;
+    if (!isValid) return;
     // TODO: navigate to next step
   };
 
