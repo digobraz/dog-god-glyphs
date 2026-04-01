@@ -7,7 +7,7 @@ import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-const presetAmounts = [11, 22, 33, 50, 100];
+const presetAmounts = [11, 22, 33];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ export function PayWallScreen() {
               Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
             </p>
             <p className="text-white/70 text-xs md:text-sm leading-relaxed text-center drop-shadow-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-              However you can choose your own price and help us more. Every cent goes to a good cause. 🐾
+              However you can pay more and help our vision. Every cent goes to a good cause. 🐾
             </p>
           </motion.div>
 
@@ -101,6 +101,11 @@ export function PayWallScreen() {
                 </span>
               )}
             </button>
+
+            {/* Certificate info */}
+            <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+              📜 After payment, we will send you a <span className="text-foreground font-semibold">DOGYPT Certificate</span> along with your heroglyphs in PDF.
+            </p>
 
             {/* Next button - styled like heroglyph reveal */}
             <Button
