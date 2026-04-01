@@ -14,6 +14,7 @@ export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
+  const [showVertical, setShowVertical] = useState(false);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('reveal'), 1800);
