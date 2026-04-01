@@ -362,6 +362,28 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
+      {pulseSlot === 'dogCharacter' && !dogChar1Src && (
+        <g>
+          <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text x={11236 + 2172 / 2} y={1620 + 1117 / 2 + 120} textAnchor="middle" fontSize="500" fontFamily="'Cinzel', serif" fontWeight="bold" fill="hsl(var(--primary))">
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
+      {pulseSlot === 'dogCharacter' && !dogChar2Src && (
+        <g>
+          <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
+            <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
+          </rect>
+          <text x={11236 + 2172 / 2} y={2957 + 1116 / 2 + 120} textAnchor="middle" fontSize="500" fontFamily="'Cinzel', serif" fontWeight="bold" fill="hsl(var(--primary))">
+            <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite" />
+            ?
+          </text>
+        </g>
+      )}
     </svg>
   );
 }
