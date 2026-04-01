@@ -6,7 +6,7 @@ export function VisionScreen() {
   const setStep = useDogyptStore(s => s.setStep);
 
   return (
-    <div className="papyrus-bg min-h-screen flex items-center justify-center px-4 py-12">
+    <div className="dark-bg min-h-screen flex items-center justify-center px-4 py-12">
       <motion.div
         className="flex flex-col items-center gap-8 max-w-2xl text-center"
         initial={{ opacity: 0, y: 20 }}

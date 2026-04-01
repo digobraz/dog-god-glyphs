@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Send, Camera, X, Plus, ArrowLeft } from 'lucide-react';
-import dogyptLogo from '@/assets/dogypt-logo.png';
+import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 export function ChatScreen() {
@@ -125,7 +125,7 @@ export function ChatScreen() {
   const currentStep = steps[Math.min(step, steps.length - 1)];
 
   return (
-    <div className="papyrus-bg flex flex-col h-[100dvh] overflow-hidden">
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Header: back + logo */}
       <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
         {step > 0 && (
@@ -136,7 +136,7 @@ export function ChatScreen() {
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
       </div>
 
       {/* Main content — centered */}

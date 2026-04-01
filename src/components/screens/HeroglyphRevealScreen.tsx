@@ -7,7 +7,7 @@ import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
-import dogyptLogo from '@/assets/dogypt-logo.png';
+import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 
 export function HeroglyphRevealScreen() {
@@ -23,7 +23,7 @@ export function HeroglyphRevealScreen() {
   }, []);
 
   return (
-    <div className="papyrus-bg min-h-[100dvh] flex flex-col items-center relative overflow-hidden">
+    <div className="dark-bg min-h-[100dvh] flex flex-col items-center relative overflow-hidden">
       <GoldParticles count={30} />
 
       {/* Intro flash */}
@@ -57,7 +57,7 @@ export function HeroglyphRevealScreen() {
         transition={{ duration: 1 }}
       >
         {/* Logo */}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
 
         {/* 1. BLOCK - Ornamental frame with heroglyph (horizontal or vertical) */}
         <motion.div

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import dogyptLogo from '@/assets/dogypt-logo.png';
+import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 export function OwnerFinalScreen() {
@@ -12,9 +12,9 @@ export function OwnerFinalScreen() {
   const dogName = useDogyptStore((s) => s.dogName);
 
   return (
-    <div className="papyrus-bg flex flex-col h-[100dvh] overflow-hidden">
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-14 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
