@@ -18,7 +18,7 @@ export function OwnerFinalScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4 relative">
+        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
           {/* Heroglyph frame with border-breaking label */}
           <motion.div
             className="w-full relative mt-4"
