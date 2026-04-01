@@ -12,8 +12,6 @@ const presetAmounts = [11, 22, 33];
 export function PayWallScreen() {
   const navigate = useNavigate();
   const [selectedAmount, setSelectedAmount] = useState<number>(11);
-  const [customAmount, setCustomAmount] = useState('');
-  const [isCustom, setIsCustom] = useState(false);
 
   const activeAmount = isCustom ? Number(customAmount) : selectedAmount;
   const isValid = activeAmount >= 11;
