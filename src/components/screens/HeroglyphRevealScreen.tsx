@@ -106,7 +106,7 @@ export function HeroglyphRevealScreen() {
                 animate={phase !== 'intro' ? { opacity: 1 } : {}}
                 transition={{ delay: 0.6, duration: 1 }}
               >
-                <HeroglyphFrame showOwner className="text-[hsl(var(--gold))]" />
+                <HeroglyphFrame showOwner className="text-foreground" />
               </motion.div>
 
               {/* Vertical design button */}
