@@ -16,6 +16,7 @@ import { DogGenderScreen } from "@/components/screens/DogGenderScreen";
 import { DogFateScreen } from "@/components/screens/DogFateScreen";
 import { DogColourScreen } from "@/components/screens/DogColourScreen";
 import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
+import { DogShapeScreen } from "@/components/screens/DogShapeScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
