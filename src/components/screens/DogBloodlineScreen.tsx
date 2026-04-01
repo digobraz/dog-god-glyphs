@@ -18,7 +18,7 @@ export function DogBloodlineScreen() {
   const handleSelect = (bloodline: string) => {
     setSelected(bloodline);
     setSelection('dogBloodline', bloodline);
-    setTimeout(() => navigate('/breed'), 500);
+    setTimeout(() => navigate('/dog-shape'), 500);
   };
 
   return (
