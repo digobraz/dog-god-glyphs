@@ -7,11 +7,11 @@ import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-const presetAmounts = [20, 30, 50, 100];
+const presetAmounts = [11, 22, 33, 50, 100];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [selectedAmount, setSelectedAmount] = useState<number>(11);
   const [customAmount, setCustomAmount] = useState('');
   const [isCustom, setIsCustom] = useState(false);
 
