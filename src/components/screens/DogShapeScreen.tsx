@@ -78,6 +78,7 @@ export function DogShapeScreen() {
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleSelect = (shape: string) => {
