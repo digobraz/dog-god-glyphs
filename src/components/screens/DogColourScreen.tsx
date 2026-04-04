@@ -59,9 +59,17 @@ export function DogColourScreen() {
             transition={{ duration: 0.4, delay: 0.2 }}
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
-            </p>
+            <div className="flex flex-col gap-2 pr-8">
+              <h3
+                className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                Dog Colour
+              </h3>
+              <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
+              </p>
+            </div>
           </motion.div>
 
           {/* 3. BLOCK - Options */}
