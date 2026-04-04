@@ -151,7 +151,7 @@ export function DogCharacterScreen() {
                   What's your dog's <span className="font-bold text-amber-300">personality</span> like?
                 </p>
                 <p className="text-xs md:text-sm text-amber-200/80" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Choose {customCharacter ? 'three' : 'two'} options.
+                  Choose two options.
                 </p>
               </div>
             </div>
