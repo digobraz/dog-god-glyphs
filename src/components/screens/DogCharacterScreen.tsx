@@ -159,16 +159,22 @@ export function DogCharacterScreen() {
                 >
                   <div className="p-6 pt-12 md:pt-6 text-center max-w-sm">
                     <h4
-                      className="text-sm md:text-base font-bold uppercase tracking-[0.15em] text-foreground mb-3"
+                      className="text-sm md:text-base font-bold uppercase tracking-[0.15em] text-amber-500 mb-3"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       Want something truly unique?
                     </h4>
                     <p
-                      className="text-foreground/70 text-sm md:text-base leading-relaxed"
+                      className="text-foreground/70 text-xs md:text-sm leading-relaxed"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature (66€). For now, just pick the best fitting one!
+                    </p>
+                    <p
+                      className="text-foreground/60 text-xs md:text-sm leading-relaxed italic mt-2"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      This money goes directly to helping dogs in need!
                     </p>
                   </div>
                 </motion.div>
