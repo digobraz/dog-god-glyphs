@@ -34,12 +34,13 @@ export function ThankYouScreen() {
             transition={{ duration: 0.6 }}
           >
             <div className="p-5 flex flex-col items-center gap-3 text-center">
-              <img
-                src={thankYouHero}
-                alt="Thank you"
-                className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-primary/40"
-                style={{ boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}
-              />
+              <div className="w-44 h-44 md:w-52 md:h-52 rounded-full overflow-hidden" style={{ boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}>
+                <img
+                  src={thankYouHero}
+                  alt="Thank you"
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
               <p
                 className="text-white text-sm md:text-base leading-relaxed"
@@ -120,12 +121,12 @@ export function ThankYouScreen() {
 
             <button
               onClick={handleReturn}
-              className="mt-4 w-full py-3 rounded-full text-sm font-bold tracking-widest uppercase transition-all"
+              className="mt-4 w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 border-2 border-white/30"
               style={{
                 fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: 'hsl(var(--heading-on-light))',
-                boxShadow: '0 0 20px hsl(var(--gold) / 0.3)',
+                background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                color: '#000',
+                boxShadow: '0 0 40px hsl(var(--gold) / 0.4)',
               }}
             >
               FINISH
