@@ -24,12 +24,12 @@ export function DogColourScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-6 pb-3">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
+      <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-14 md:h-18 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2">
           {/* 1. BLOCK - Heroglyph preview with pulsing slot */}
           <motion.div
             className="w-full relative"
@@ -37,9 +37,9 @@ export function DogColourScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
+            <div className="rounded-2xl border-2 border-border papyrus-bg p-2">
               <h2
-                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-1"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
@@ -80,7 +80,7 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={brightSvg} alt="Bright" className="h-20 md:h-28 object-contain" />
+                <img src={brightSvg} alt="Bright" className="h-10 md:h-14 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Bright</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Sun
@@ -97,7 +97,7 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={darkSvg} alt="Dark" className="h-20 md:h-28 object-contain" />
+                <img src={darkSvg} alt="Dark" className="h-10 md:h-14 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Dark</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Moon
@@ -114,7 +114,7 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={mixSvg} alt="Mix" className="h-20 md:h-28 object-contain" />
+                <img src={mixSvg} alt="Mix" className="h-10 md:h-14 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mix</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Rainbow
