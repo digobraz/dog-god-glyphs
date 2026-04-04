@@ -83,10 +83,7 @@ export function DogCharacterScreen() {
   };
 
   const handleCustomToggle = () => {
-    const newVal = !customCharacter;
-    setCustomCharacter(newVal);
-    // Reset selections when toggling custom since max changes
-    setSelected([]);
+    setCustomCharacter(!customCharacter);
   };
 
   return (
