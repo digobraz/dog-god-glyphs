@@ -238,7 +238,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
 
   return (
     <svg
-      viewBox="0 0 14692 5696"
+      viewBox="800 1100 13100 3500"
       className={className}
       xmlns="http://www.w3.org/2000/svg"
       style={{ width: '100%', height: 'auto' }}
