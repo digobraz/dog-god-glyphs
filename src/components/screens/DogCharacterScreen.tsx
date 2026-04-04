@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
@@ -27,11 +27,34 @@ const characters = [
   { value: 'chillman', label: 'Chillman', img: chillmanSvg },
 ];
 
+// Triple the array for infinite scroll illusion
+const tripleCharacters = [...characters, ...characters, ...characters];
+
 export function DogCharacterScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string[]>([]);
+  const [showInfo, setShowInfo] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Reset scroll to center third when reaching edges
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const oneThird = el.scrollWidth / 3;
+    if (el.scrollLeft <= 10) {
+      el.scrollLeft += oneThird;
+    } else if (el.scrollLeft >= oneThird * 2 - 10) {
+      el.scrollLeft -= oneThird;
+    }
+  }, []);
+
+  const scroll = (dir: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const amount = 240;
+    scrollRef.current.scrollBy({ left: dir === 'left' ? -amount : amount, behavior: 'smooth' });
+  };
 
   const handleSelect = (value: string) => {
     setSelected((prev) => {
@@ -41,7 +64,6 @@ export function DogCharacterScreen() {
       } else if (prev.length < 2) {
         next = [...prev, value];
       } else {
-        // Replace the second selection
         next = [prev[0], value];
       }
 
@@ -61,9 +83,9 @@ export function DogCharacterScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
-          {/* 1. BLOCK - Heroglyph preview with pulsing right slots */}
+          {/* 1. BLOCK - Heroglyph preview */}
           <motion.div
             className="w-full relative"
             initial={{ opacity: 0, y: -20 }}
@@ -83,58 +105,134 @@ export function DogCharacterScreen() {
             </div>
           </motion.div>
 
-          {/* 2. BLOCK - Hekthor question */}
+          {/* 2. BLOCK - Hekthor question with heading + info */}
           <motion.div
-            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            className="w-full rounded-2xl relative overflow-hidden min-h-[180px]"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              <p className="text-base md:text-lg leading-relaxed">
-                What's your dog's <span className="font-bold text-amber-300">personality</span> like?
-              </p>
-              <p className="text-xs md:text-sm text-amber-200/80 mt-1">Choose two options.</p>
+            {/* Info toggle */}
+            <button
+              className="absolute top-3 right-3 z-20 flex items-center justify-center"
+              style={{ width: 44, height: 44 }}
+              aria-label="Info about Character"
+              onClick={() => setShowInfo((p) => !p)}
+            >
+              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
+                {showInfo
+                  ? <X className="h-4 w-4 text-foreground/70" />
+                  : <Info className="h-4 w-4 text-white/80" />}
+              </span>
+            </button>
+
+            {/* Default content */}
+            <div className="p-6 md:p-8 flex items-center gap-5 min-h-[180px]">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
+              <div className="flex flex-col gap-2 pr-8">
+                <h3
+                  className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  The Character
+                </h3>
+                <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  What's your dog's <span className="font-bold text-amber-300">personality</span> like?
+                </p>
+                <p className="text-xs md:text-sm text-amber-200/80" style={{ fontFamily: "'Cinzel', serif" }}>
+                  Choose two options.
+                </p>
+              </div>
             </div>
+
+            {/* Info overlay */}
+            <AnimatePresence>
+              {showInfo && (
+                <motion.div
+                  className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                >
+                  <div className="p-6 pt-12 md:pt-6 text-center max-w-sm">
+                    <h4
+                      className="text-sm md:text-base font-bold uppercase tracking-[0.15em] text-foreground mb-3"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      Want something truly unique?
+                    </h4>
+                    <p
+                      className="text-foreground/70 text-sm md:text-base leading-relaxed"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature (66€). For now, just pick the best fitting one!
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
-          {/* 3. BLOCK - 8 character options, pick 2 */}
+          {/* 3. BLOCK - Horizontal slider with infinity loop */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 md:p-6"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.35 }}
           >
-            <div className="grid grid-cols-4 gap-3">
-              {characters.map((char) => {
-                const isSelected = selected.includes(char.value);
-                const selectionIndex = selected.indexOf(char.value);
-                return (
-                  <button
-                    key={char.value}
-                    onClick={() => handleSelect(char.value)}
-                    className={`relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                      isSelected
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border/60 hover:border-primary/50'
-                    }`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    {isSelected && (
-                      <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
-                        {selectionIndex + 1}
-                      </div>
-                    )}
-                    <img src={char.img} alt={char.label} className="h-12 md:h-16 object-contain" />
-                    <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase text-foreground">
-                      {char.label}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="relative">
+              <button
+                onClick={() => scroll('left')}
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 w-8 h-8 rounded-full bg-background/90 border border-border shadow-md flex items-center justify-center hover:bg-primary/10 transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex gap-3 overflow-x-auto scrollbar-hide px-6 py-2 snap-x snap-mandatory"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              >
+                {tripleCharacters.map((char, idx) => {
+                  const isSelected = selected.includes(char.value);
+                  const selectionIndex = selected.indexOf(char.value);
+                  return (
+                    <button
+                      key={`${char.value}-${idx}`}
+                      onClick={() => handleSelect(char.value)}
+                      className={`flex-shrink-0 relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all snap-start ${
+                        isSelected
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border/60 hover:border-primary/50'
+                      }`}
+                      style={{ fontFamily: "'Cinzel', serif", width: '100px' }}
+                    >
+                      {isSelected && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">
+                          {selectionIndex + 1}
+                        </div>
+                      )}
+                      <img src={char.img} alt={char.label} className="h-14 md:h-16 object-contain" />
+                      <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
+                        {char.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => scroll('right')}
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 w-8 h-8 rounded-full bg-background/90 border border-border shadow-md flex items-center justify-center hover:bg-primary/10 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
             </div>
+
             <p className="text-center text-xs text-muted-foreground mt-3" style={{ fontFamily: "'Cinzel', serif" }}>
               {selected.length}/2 selected
             </p>
@@ -143,7 +241,7 @@ export function DogCharacterScreen() {
           {/* Back button */}
           <button
             onClick={() => navigate('/dog-shape')}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pb-6"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
             <ArrowLeft className="h-4 w-4" /> Back
