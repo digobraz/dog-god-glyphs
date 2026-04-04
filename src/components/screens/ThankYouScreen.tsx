@@ -34,11 +34,13 @@ export function ThankYouScreen() {
             transition={{ duration: 0.6 }}
           >
             <div className="p-5 flex flex-col items-center gap-3 text-center">
-              <img
-                src={thankYouHero}
-                alt="Thank you"
-                className="w-44 h-44 md:w-52 md:h-52 object-contain drop-shadow-lg"
-              />
+              <div className="w-44 h-44 md:w-52 md:h-52 rounded-full overflow-hidden" style={{ boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}>
+                <img
+                  src={thankYouHero}
+                  alt="Thank you"
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
               <p
                 className="text-white text-sm md:text-base leading-relaxed"
