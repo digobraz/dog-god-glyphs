@@ -7,12 +7,14 @@ export interface DogyptState {
   selections: Record<string, string>;
   selectedTier: string;
   email: string;
+  customCharacter: boolean;
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
   setSelection: (key: string, value: string) => void;
   setSelectedTier: (tier: string) => void;
   setEmail: (email: string) => void;
+  setCustomCharacter: (val: boolean) => void;
   reset: () => void;
 }
 
