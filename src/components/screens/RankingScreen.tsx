@@ -164,7 +164,7 @@ export function RankingScreen() {
 
   const customValid = (() => {
     const n = parseInt(customNum);
-    return n >= 12 && n <= 50;
+    return n >= 11 && n <= 50;
   })();
 
   // Shared rank button renderer
