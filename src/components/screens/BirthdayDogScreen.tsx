@@ -95,7 +95,7 @@ export function BirthdayDogScreen() {
                 <select
                   value={month}
                   onChange={e => setMonth(e.target.value)}
-                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-lg font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer px-4"
+                  className="w-full h-12 md:h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-base md:text-lg font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer px-4"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   <option value="" disabled>Month</option>
