@@ -27,6 +27,7 @@ const COUNTRIES = [
 
 export function PaymentSummaryScreen() {
   const navigate = useNavigate();
+  const dogName = useDogyptStore((s) => s.dogName);
   const selectedAmount = useDogyptStore((s) => s.selectedAmount);
   const customCharacter = useDogyptStore((s) => s.customCharacter);
 
