@@ -22,6 +22,7 @@ import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScree
 import { PayWallScreen } from "@/components/screens/PayWallScreen";
 import { PaymentSummaryScreen } from "@/components/screens/PaymentSummaryScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
+import { ThankYouScreen } from "@/components/screens/ThankYouScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/pay-wall" element={<PayWallScreen />} />
           <Route path="/payment-summary" element={<PaymentSummaryScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
+          <Route path="/thank-you" element={<ThankYouScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

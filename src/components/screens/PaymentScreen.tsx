@@ -19,7 +19,7 @@ export function PaymentScreen() {
     setProcessing(true);
     setTimeout(() => {
       setProcessing(false);
-      alert('Payment simulation complete! Stripe will be connected later.');
+      navigate('/thank-you');
     }, 2000);
   };
 
