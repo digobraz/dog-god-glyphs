@@ -57,17 +57,19 @@ export function DogGenderScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <h3
-              className="text-sm md:text-base font-bold tracking-[0.2em] uppercase text-white/70"
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              Dog Gender
-            </h3>
             <div className="flex items-center gap-5">
               <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-              <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Do you have a <span className="font-bold text-amber-300">king</span> or a <span className="font-bold text-amber-300">queen</span> at home?
-              </p>
+              <div className="flex flex-col gap-1">
+                <h3
+                  className="text-sm md:text-base font-bold tracking-[0.2em] uppercase text-white/70"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  Dog Gender
+                </h3>
+                <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  Do you have a <span className="font-bold text-amber-300">king</span> or a <span className="font-bold text-amber-300">queen</span> at home?
+                </p>
+              </div>
             </div>
           </motion.div>
 
