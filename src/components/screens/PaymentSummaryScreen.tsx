@@ -141,7 +141,7 @@ export function PaymentSummaryScreen() {
 
                 {/* Total */}
                 <div
-                  className="mt-1 rounded-xl px-4 py-3 flex justify-between items-center"
+                  className="mt-1 rounded-xl px-3 py-2 flex justify-between items-center"
                   style={{
                     background: 'linear-gradient(135deg, hsl(var(--gold) / 0.15), hsl(var(--gold) / 0.25))',
                     borderTop: '2px solid hsl(var(--gold) / 0.3)',
