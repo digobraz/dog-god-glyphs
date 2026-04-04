@@ -194,9 +194,9 @@ export function HeroglyphRevealScreen() {
               </AnimatePresence>
 
               <div className="flex items-start gap-4">
-                <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
+                <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-28 md:h-28 object-contain flex-shrink-0" />
                 <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME TO DOGYPT!</p>
+                  <p className="font-bold text-amber-300 text-lg md:text-xl">WELCOME TO DOGYPT!</p>
                   <p className="font-semibold text-sm md:text-base mt-1">
                     This Heroglyph is your eternal bond.
                   </p>
