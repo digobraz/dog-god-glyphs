@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
@@ -18,7 +18,6 @@ import num9 from '@/assets/numbers/NUMBER-9.svg';
 import num10 from '@/assets/numbers/NUMBER-10.svg';
 import num11 from '@/assets/numbers/NUMBER-11.svg';
 
-// scale factors relative to num8 (smallest visual size = 1.0)
 const rankOptions = [
   { value: '2', label: '2nd', img: num2, scale: 0.85 },
   { value: '3', label: '3rd', img: num3, scale: 0.85 },
@@ -38,6 +37,7 @@ export function RankingScreen() {
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [phase, setPhase] = useState<'question' | 'pickRank'>('question');
   const [selected, setSelected] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const handleYes = () => {
     setSelection('ranking', '1');
@@ -52,6 +52,10 @@ export function RankingScreen() {
     setSelected(value);
     setSelection('ranking', value);
     setTimeout(() => navigate('/owner-name'), 500);
+  };
+
+  const scroll = (dir: 'left' | 'right') => {
+    scrollRef.current?.scrollBy({ left: dir === 'left' ? -160 : 160, behavior: 'smooth' });
   };
 
   return (
@@ -71,7 +75,7 @@ export function RankingScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Is this the first dog you've ever had?
+              Is <span className="font-bold text-amber-300">{dogName || 'your pup'}</span> the first dog you've ever had?
             </p>
           </motion.div>
 
@@ -115,16 +119,58 @@ export function RankingScreen() {
             ) : (
               <motion.div
                 key="pickrank"
-                className="w-full rounded-2xl p-6 flex flex-col items-center gap-4" style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+                className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 md:p-6 flex flex-col items-center gap-4"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -40 }}
                 transition={{ duration: 0.35 }}
               >
-                <p className="text-white text-center text-sm tracking-wider uppercase drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Which dog are you?
+                <p className="text-foreground text-center text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+                  Which dog is <span className="font-bold">{dogName || 'your pup'}</span>?
                 </p>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 w-full">
+
+                {/* Mobile: horizontal slider */}
+                <div className="relative w-full md:hidden">
+                  <button
+                    onClick={() => scroll('left')}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/80 border border-border/40 flex items-center justify-center shadow-md"
+                  >
+                    <ChevronLeft className="h-4 w-4 text-foreground" />
+                  </button>
+                  <div
+                    ref={scrollRef}
+                    className="flex gap-3 overflow-x-auto scrollbar-hide px-8 snap-x snap-mandatory"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {rankOptions.map((opt) => (
+                      <button
+                        key={opt.value}
+                        onClick={() => handlePickRank(opt.value)}
+                        className={`flex-shrink-0 snap-center flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all w-20 ${
+                          selected === opt.value
+                            ? 'border-primary bg-primary/10'
+                            : 'border-border/60 hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="h-10 flex items-center justify-center">
+                          <img src={opt.img} alt={opt.label} className="object-contain" style={{ height: `${opt.scale * 100}%` }} />
+                        </div>
+                        <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+                          {opt.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => scroll('right')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-background/80 border border-border/40 flex items-center justify-center shadow-md"
+                  >
+                    <ChevronRight className="h-4 w-4 text-foreground" />
+                  </button>
+                </div>
+
+                {/* Desktop: grid */}
+                <div className="hidden md:grid grid-cols-5 gap-3 w-full">
                   {rankOptions.map((opt) => (
                     <button
                       key={opt.value}
@@ -135,7 +181,7 @@ export function RankingScreen() {
                           : 'border-border/60 hover:border-primary/50'
                       }`}
                     >
-                      <div className="h-12 md:h-14 flex items-center justify-center">
+                      <div className="h-14 flex items-center justify-center">
                         <img src={opt.img} alt={opt.label} className="object-contain" style={{ height: `${opt.scale * 100}%` }} />
                       </div>
                       <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
