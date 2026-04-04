@@ -31,7 +31,7 @@ export function OwnerFinalScreen() {
           >
             <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
               <h2
-                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-heading-on-light mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
