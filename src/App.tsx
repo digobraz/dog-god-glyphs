@@ -22,6 +22,7 @@ import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScree
 import { PayWallScreen } from "@/components/screens/PayWallScreen";
 import { PaymentSummaryScreen } from "@/components/screens/PaymentSummaryScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
+import { ThankYouScreen } from "@/components/screens/ThankYouScreen";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
