@@ -59,10 +59,10 @@ export function DogGenderScreen() {
           >
             <div className="flex items-center gap-5">
               <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 <h3
-                  className="text-sm md:text-base font-bold tracking-[0.2em] uppercase text-white/70"
-                  style={{ fontFamily: "'Cinzel', serif" }}
+                  className="text-xs md:text-sm font-bold tracking-[0.25em] uppercase pb-1.5 border-b border-white/20"
+                  style={{ fontFamily: "'Cinzel', serif", color: 'hsl(45 80% 65%)' }}
                 >
                   Dog Gender
                 </h3>
