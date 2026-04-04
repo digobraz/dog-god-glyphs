@@ -397,7 +397,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
           </text>
         </g>
       )}
-      {pulseSlot === 'dogCharacter' && !dogChar1Src && (
+      {(pulseSlot === 'dogCharacter' || pulseAllEmpty) && !dogChar1Src && (
         <g>
           <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
