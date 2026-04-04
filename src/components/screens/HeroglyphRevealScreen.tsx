@@ -259,8 +259,7 @@ export function HeroglyphRevealScreen() {
                         OUR VISION
                       </h3>
                       <p
-                        className="text-[10px] md:text-xs leading-relaxed text-center"
-                        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--papyrus-foreground))' }}
+                        className="text-[10px] md:text-xs leading-relaxed text-center text-black"
                       >
                         To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
                       </p>
