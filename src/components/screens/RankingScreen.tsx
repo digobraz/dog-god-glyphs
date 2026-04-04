@@ -119,7 +119,6 @@ const rankOptions = [
   { value: '8', label: '8th', num: 8 },
   { value: '9', label: '9th', num: 9 },
   { value: '10', label: '10th', num: 10 },
-  { value: '11', label: '11th', num: 11 },
 ];
 
 function ordinalSuffix(n: number): string {
@@ -154,7 +153,7 @@ export function RankingScreen() {
 
   const handleCustomConfirm = () => {
     const n = parseInt(customNum);
-    if (n >= 12 && n <= 50) {
+    if (n >= 11 && n <= 50) {
       handlePickRank(String(n));
     }
   };
@@ -165,7 +164,7 @@ export function RankingScreen() {
 
   const customValid = (() => {
     const n = parseInt(customNum);
-    return n >= 12 && n <= 50;
+    return n >= 11 && n <= 50;
   })();
 
   // Shared rank button renderer
@@ -278,7 +277,7 @@ export function RankingScreen() {
                         <Hash className="h-6 w-6 text-foreground/60" />
                       </div>
                       <span className="text-[10px] font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                        12–50
+                        11–50
                       </span>
                     </button>
                   </div>
@@ -304,7 +303,7 @@ export function RankingScreen() {
                       <Hash className="h-7 w-7 text-foreground/60" />
                     </div>
                     <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                      12–50
+                      11–50
                     </span>
                   </button>
                 </div>
@@ -321,7 +320,7 @@ export function RankingScreen() {
                 transition={{ duration: 0.35 }}
               >
                 <p className="text-foreground text-center text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Enter dog number (12–50)
+                  Enter dog number (11–50)
                 </p>
 
                 <div className="flex items-center gap-4">
