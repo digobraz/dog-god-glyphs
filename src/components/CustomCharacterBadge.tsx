@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 
-export function CustomCharacterBadge() {
+export function CustomCharacterBadge({ showPrice = false }: { showPrice?: boolean }) {
   const customCharacter = useDogyptStore((s) => s.customCharacter);
   const setCustomCharacter = useDogyptStore((s) => s.setCustomCharacter);
 
@@ -16,6 +16,11 @@ export function CustomCharacterBadge() {
         <span className="text-[10px] font-bold tracking-wider uppercase text-purple-400">
           Custom Character
         </span>
+        {showPrice && (
+          <span className="text-[10px] font-bold text-purple-300">
+            +$66
+          </span>
+        )}
         <button
           onClick={() => setCustomCharacter(false)}
           className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-purple-400/20 transition-colors"
