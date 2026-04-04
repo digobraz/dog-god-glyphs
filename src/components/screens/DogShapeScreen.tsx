@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -73,6 +73,9 @@ const shapes = [
   { value: 'assian', label: 'Assian', img: assianSvg },
 ];
 
+// Triple the array for infinite scroll illusion
+const tripleShapes = [...shapes, ...shapes, ...shapes];
+
 export function DogShapeScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
@@ -86,6 +89,18 @@ export function DogShapeScreen() {
     setSelection('dogShape', shape);
     setTimeout(() => navigate('/dog-character'), 500);
   };
+
+  // Reset scroll to center third when reaching edges
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const oneThird = el.scrollWidth / 3;
+    if (el.scrollLeft <= 10) {
+      el.scrollLeft += oneThird;
+    } else if (el.scrollLeft >= oneThird * 2 - 10) {
+      el.scrollLeft -= oneThird;
+    }
+  }, []);
 
   const scroll = (dir: 'left' | 'right') => {
     if (!scrollRef.current) return;
@@ -183,7 +198,7 @@ export function DogShapeScreen() {
             </AnimatePresence>
           </motion.div>
 
-          {/* 3. BLOCK - Horizontal slider */}
+          {/* 3. BLOCK - Horizontal slider with infinity loop */}
           <motion.div
             className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4"
             initial={{ opacity: 0, y: 20 }}
@@ -212,12 +227,13 @@ export function DogShapeScreen() {
 
               <div
                 ref={scrollRef}
+                onScroll={handleScroll}
                 className="flex gap-3 overflow-x-auto scrollbar-hide px-6 py-2 snap-x snap-mandatory"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
-                {shapes.map((shape) => (
+                {tripleShapes.map((shape, idx) => (
                   <button
-                    key={shape.value}
+                    key={`${shape.value}-${idx}`}
                     onClick={() => handleSelect(shape.value)}
                     className={`flex-shrink-0 flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all snap-start ${
                       selected === shape.value
