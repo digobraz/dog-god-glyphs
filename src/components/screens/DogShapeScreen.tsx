@@ -175,7 +175,7 @@ export function DogShapeScreen() {
                       className="text-foreground/70 text-sm md:text-base leading-relaxed"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
-                      Choose according to the most similar body shape instead of according to the exact breed
+                      With 500+ breeds out there, we can't do labels—we do silhouettes. Pick the visual archetype that best captures your hero's unique shape and size.
                     </p>
                   </div>
                 </motion.div>
