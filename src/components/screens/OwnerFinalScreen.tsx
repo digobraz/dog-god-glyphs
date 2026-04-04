@@ -37,7 +37,7 @@ export function OwnerFinalScreen() {
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
               </h2>
               <div className="px-2">
-                <HeroglyphFrame showOwner className="text-foreground" />
+                <HeroglyphFrame showOwner className="text-foreground" pulseAllEmpty />
               </div>
             </div>
           </motion.div>

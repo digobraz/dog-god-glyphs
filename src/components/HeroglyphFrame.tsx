@@ -216,9 +216,10 @@ interface HeroglyphFrameProps {
   showOwner?: boolean;
   className?: string;
   pulseSlot?: string;
+  pulseAllEmpty?: boolean;
 }
 
-export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }: HeroglyphFrameProps) {
+export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false }: HeroglyphFrameProps) {
   const { selections, ownerName } = useDogyptStore();
 
   const ownerGenderSrc = showOwner ? genderMap[selections.ownerGender] : undefined;
@@ -301,7 +302,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
       {!rankingSrc && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Pulsing slot indicators - only show when slot not filled */}
-      {pulseSlot === 'dogGender' && !dogGenderSrc && (
+      {(pulseSlot === 'dogGender' || pulseAllEmpty) && !dogGenderSrc && (
         <g>
           <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -320,7 +321,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogFate' && !dogFateSrc && (
+      {(pulseSlot === 'dogFate' || pulseAllEmpty) && !dogFateSrc && (
         <g>
           <rect x="1282" y="2764" width="1348" height="1309" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -339,7 +340,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogColour' && !dogColourSrc && (
+      {(pulseSlot === 'dogColour' || pulseAllEmpty) && !dogColourSrc && (
         <g>
           <rect x="3034" y="1620" width="933" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -358,7 +359,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogBloodline' && !dogBloodlineSrc && (
+      {(pulseSlot === 'dogBloodline' || pulseAllEmpty) && !dogBloodlineSrc && (
         <g>
           <rect x="2849" y="2764" width="1307" height="1309" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -377,7 +378,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogShape' && !dogShapeSrc && (
+      {(pulseSlot === 'dogShape' || pulseAllEmpty) && !dogShapeSrc && (
         <g>
           <rect x="4375" y="1621" width="3134" height="2453" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -396,7 +397,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogCharacter' && !dogChar1Src && (
+      {(pulseSlot === 'dogCharacter' || pulseAllEmpty) && !dogChar1Src && (
         <g>
           <rect x="11236" y="1620" width="2172" height="1117" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
@@ -407,7 +408,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot }:
           </text>
         </g>
       )}
-      {pulseSlot === 'dogCharacter' && !dogChar2Src && (
+      {(pulseSlot === 'dogCharacter' || pulseAllEmpty) && !dogChar2Src && (
         <g>
           <rect x="11236" y="2957" width="2172" height="1116" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
