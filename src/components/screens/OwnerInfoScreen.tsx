@@ -89,7 +89,7 @@ export function OwnerInfoScreen() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-                  placeholder="Owner's name..."
+                  placeholder="Owner's first name..."
                   className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                   autoFocus
