@@ -85,7 +85,7 @@ export function NameScreen() {
                       </div>
 
                       {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0">
+                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0 min-h-0 overflow-hidden">
                         <h3
                           className="text-base md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
@@ -94,27 +94,27 @@ export function NameScreen() {
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed flex-1"
+                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed"
                           style={{ fontFamily: "'Inter', sans-serif" }}
                         >
                           Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
                         </p>
+                      </div>
+                    </div>
 
-                        {/* Stats – stacked on mobile, row on desktop */}
-                        <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2">
-                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
-                            <p className="text-foreground text-sm font-semibold">2016</p>
-                          </div>
-                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted:</p>
-                            <p className="text-foreground text-sm font-semibold">2017</p>
-                          </div>
-                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location:</p>
-                            <p className="text-foreground text-sm font-semibold">SK, EU</p>
-                          </div>
-                        </div>
+                    {/* Stats – below the two-column layout */}
+                    <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2 flex-shrink-0">
+                      <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
+                        <p className="text-foreground text-sm font-semibold">2016</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted:</p>
+                        <p className="text-foreground text-sm font-semibold">2017</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                        <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location:</p>
+                        <p className="text-foreground text-sm font-semibold">SK, EU</p>
                       </div>
                     </div>
                   </div>
