@@ -157,7 +157,7 @@ export function OwnerZodiacScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              What do the stars say about your master?
+              What do the stars say about you?
             </p>
           </motion.div>
 
