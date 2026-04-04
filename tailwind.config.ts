@@ -51,6 +51,7 @@ export default {
           DEFAULT: "hsl(var(--gold))",
           dark: "hsl(var(--gold-dark))",
         },
+        "heading-on-light": "hsl(var(--heading-on-light))",
         papyrus: {
           DEFAULT: "hsl(var(--papyrus))",
           light: "hsl(var(--papyrus-light))",
