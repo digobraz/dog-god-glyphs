@@ -215,6 +215,28 @@ export function DogCharacterScreen() {
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
               >
                 {tripleCharacters.map((char, idx) => {
+                  if (char.isCustom) {
+                    return (
+                      <button
+                        key={`${char.value}-${idx}`}
+                        onClick={handleCustomToggle}
+                        className={`flex-shrink-0 relative flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 transition-all snap-start ${
+                          customCharacter
+                            ? 'border-purple-400 bg-purple-400/15 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                            : 'border-purple-400/50 hover:border-purple-400 hover:bg-purple-400/5'
+                        }`}
+                        style={{ fontFamily: "'Cinzel', serif", width: '100px' }}
+                      >
+                        <Sparkles className="h-10 w-10 text-purple-400" />
+                        <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase text-purple-400">
+                          Custom
+                        </span>
+                        <span className="text-[8px] text-purple-400/70 font-medium">
+                          (+ 66$)
+                        </span>
+                      </button>
+                    );
+                  }
                   const isSelected = selected.includes(char.value);
                   const selectionIndex = selected.indexOf(char.value);
                   return (
@@ -233,32 +255,13 @@ export function DogCharacterScreen() {
                           {selectionIndex + 1}
                         </div>
                       )}
-                      <img src={char.img} alt={char.label} className="h-14 md:h-16 object-contain" />
+                      <img src={char.img!} alt={char.label} className="h-14 md:h-16 object-contain" />
                       <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
                         {char.label}
                       </span>
                     </button>
                   );
                 })}
-
-                {/* CUSTOM option inside slider */}
-                <button
-                  onClick={handleCustomToggle}
-                  className={`flex-shrink-0 relative flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 transition-all snap-start ${
-                    customCharacter
-                      ? 'border-purple-400 bg-purple-400/15 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                      : 'border-purple-400/50 hover:border-purple-400 hover:bg-purple-400/5'
-                  }`}
-                  style={{ fontFamily: "'Cinzel', serif", width: '100px' }}
-                >
-                  <Sparkles className="h-10 w-10 text-purple-400" />
-                  <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase text-purple-400">
-                    Custom
-                  </span>
-                  <span className="text-[8px] text-purple-400/70 font-medium">
-                    (+ 66$)
-                  </span>
-                </button>
               </div>
 
               <button
