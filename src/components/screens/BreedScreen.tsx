@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search, X, Plus, Send, Info } from 'lucide-react';
+import { ArrowLeft, Search, X, Plus, Info, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
-import pawIcon from '@/assets/paw-icon.png';
+
 import { fciBreeds } from '@/lib/fciBreeds';
 
 type Mode = 'choose' | 'purebred' | 'mix' | 'unknown';
@@ -181,7 +181,11 @@ export function BreedScreen() {
                       Mix
                     </Button>
                     <Button
-                      onClick={() => setMode('unknown')}
+                      onClick={() => {
+                        setSelection('breed', 'Unknown');
+                        setSelection('breedType', 'unknown');
+                        navigate('/birthday-dog');
+                      }}
                       variant="outline"
                       className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-[11px] md:text-base px-1 md:px-2 leading-tight"
                       style={{ fontFamily: "'Cinzel', serif" }}
@@ -325,7 +329,7 @@ export function BreedScreen() {
                     boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <img src={pawIcon} alt="" className="h-4 w-4" style={{ filter: 'brightness(0)' }} />
+                  <PawPrint className="h-4 w-4" />
                   Continue
                 </Button>
               </motion.div>
