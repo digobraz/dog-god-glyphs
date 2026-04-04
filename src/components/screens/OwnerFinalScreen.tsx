@@ -96,7 +96,7 @@ export function OwnerFinalScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  <div className="relative z-10 p-5 pt-5 md:pt-5 flex-1 flex flex-col items-center text-center">
+                  <div className="relative z-10 p-5 pt-12 md:pt-5 flex-1 flex flex-col items-center text-center">
                     <h3
                       className="text-sm md:text-base font-bold leading-tight uppercase tracking-wider mt-0"
                       style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
