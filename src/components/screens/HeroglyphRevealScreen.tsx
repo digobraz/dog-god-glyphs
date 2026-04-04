@@ -170,12 +170,12 @@ export function HeroglyphRevealScreen() {
               </div>
               <Button
                 onClick={() => navigate('/pricing')}
-                className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform"
+                className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform border-2 border-white/30"
                 style={{
                   fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
                   color: '#000',
-                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                  boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
                 }}
               >
                 🐾 GRAB MY HEROGLYPH
@@ -211,12 +211,12 @@ export function HeroglyphRevealScreen() {
               </div>
               <Button
                 onClick={() => navigate('/pricing')}
-                className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform"
+                className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform border-2 border-white/30"
                 style={{
                   fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
                   color: '#000',
-                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                  boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
                 }}
               >
                 🐾 GRAB MY HEROGLYPH

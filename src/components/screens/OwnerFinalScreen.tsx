@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Info, X } from 'lucide-react';
+import { ArrowLeft, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
@@ -80,7 +80,7 @@ export function OwnerFinalScreen() {
                     boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
                   }}
                 >
-                  LET'S GO <ArrowRight className="h-5 w-5" />
+                  LET'S GO
                 </Button>
               </div>
             </div>
