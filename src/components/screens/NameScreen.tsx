@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Send, Info } from 'lucide-react';
+import { Send, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
@@ -11,15 +11,13 @@ export function NameScreen() {
   const navigate = useNavigate();
   const setDogName = useDogyptStore((s) => s.setDogName);
   const [input, setInput] = useState('');
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   const handleSend = () => {
     if (!input.trim()) return;
     setDogName(input.trim().toUpperCase());
     navigate('/photo');
   };
-
-  const toggleFlip = () => setIsFlipped((prev) => !prev);
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
@@ -30,79 +28,96 @@ export function NameScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col items-center gap-6">
 
-          {/* Flip card container */}
+          {/* Speech bubble */}
           <div
-            className="w-full"
-            style={{ perspective: '1200px' }}
-            onMouseEnter={() => setIsFlipped(true)}
-            onMouseLeave={() => setIsFlipped(false)}
-            onClick={toggleFlip}
+            className="w-full rounded-2xl relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+            }}
           >
-            <motion.div
-              className="relative w-full"
-              style={{ transformStyle: 'preserve-3d' }}
-              animate={{ rotateY: isFlipped ? 180 : 0 }}
-              transition={{ duration: 0.6, ease: 'easeInOut' }}
+            {/* Info toggle button */}
+            <button
+              className="absolute top-3 right-3 z-20 flex items-center justify-center"
+              style={{ width: 44, height: 44 }}
+              aria-label="Info about Hekthor"
+              onClick={() => setShowInfo((p) => !p)}
             >
-              {/* FRONT */}
-              <div
-                className="w-full rounded-2xl p-6 flex flex-col items-center gap-4 relative"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
-                  backfaceVisibility: 'hidden',
-                }}
-              >
-                {/* Info icon */}
-                <button
-                  className="absolute top-3 right-3 flex items-center justify-center"
-                  style={{ width: 44, height: 44 }}
-                  aria-label="Info about Hekthor"
-                  onClick={(e) => { e.stopPropagation(); toggleFlip(); }}
+              <span className="w-7 h-7 rounded-full border-2 border-white/60 flex items-center justify-center transition-colors hover:border-white">
+                {showInfo
+                  ? <X className="h-4 w-4 text-white/80" />
+                  : <Info className="h-4 w-4 text-white/80" />}
+              </span>
+            </button>
+
+            {/* Default front content */}
+            <div className="p-6 flex flex-col items-center gap-4">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+              <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>.{'\n'}What's your dog's name?
+              </p>
+            </div>
+
+            {/* Info overlay */}
+            <AnimatePresence>
+              {showInfo && (
+                <motion.div
+                  className="absolute inset-0 z-10 flex flex-col"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
                 >
-                  <span className="w-7 h-7 rounded-full border-2 border-white/60 flex items-center justify-center">
-                    <Info className="h-4 w-4 text-white/80" />
-                  </span>
-                </button>
+                  {/* Dark overlay */}
+                  <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
 
-                <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-                <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Hi, I'm <span className="font-bold" style={{ color: '#C49B42' }}>HEKTHOR</span>.{'\n'}What's your dog's name?
-                </p>
-              </div>
+                  {/* Content */}
+                  <div className="relative z-10 p-5 flex-1 flex flex-col">
+                    {/* Two-column layout */}
+                    <div className="flex gap-4 flex-1 min-h-0">
+                      {/* Left column – video/gif placeholder */}
+                      <div className="w-[35%] flex-shrink-0 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden">
+                        <span className="text-white/40 text-xs text-center px-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          GIF / VIDEO
+                        </span>
+                      </div>
 
-              {/* BACK */}
-              <div
-                className="w-full rounded-2xl p-6 absolute top-0 left-0 overflow-y-auto"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
-                  backfaceVisibility: 'hidden',
-                  transform: 'rotateY(180deg)',
-                }}
-              >
-                {/* Image/GIF placeholder */}
-                <div className="w-full h-40 rounded-xl bg-white/10 border-2 border-dashed border-white/30 flex items-center justify-center mb-5">
-                  <span className="text-white/50 text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>Image / GIF</span>
-                </div>
+                      {/* Right column */}
+                      <div className="flex-1 flex flex-col gap-3 min-w-0">
+                        <h3
+                          className="text-amber-300 text-lg md:text-xl font-bold leading-tight"
+                          style={{ fontFamily: "'Cinzel', serif" }}
+                        >
+                          WHO IS HEKTHOR?
+                        </h3>
 
-                <h3 className="text-white text-center text-xl md:text-2xl font-bold mb-4" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
-                  WHO IS HEKTHOR?
-                </h3>
+                        <p
+                          className="text-white/85 text-xs md:text-sm leading-relaxed flex-1"
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
+                        </p>
 
-                <div className="text-white/90 text-sm md:text-base leading-relaxed space-y-3" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  <p><b className="text-white">STATS:</b></p>
-                  <ul className="list-disc list-inside space-y-1 ml-2">
-                    <li>Born: 2016</li>
-                    <li>Adopted: 2017</li>
-                    <li>Location: Slovakia, EU</li>
-                  </ul>
-
-                  <p>
-                    <b className="text-white">STORY:</b><br />
-                    Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
-                  </p>
-                </div>
-              </div>
-            </motion.div>
+                        {/* 3 stat columns */}
+                        <div className="grid grid-cols-3 gap-2 pt-1">
+                          <div className="text-center">
+                            <p className="text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Born</p>
+                            <p className="text-white text-sm md:text-base font-semibold mt-0.5">2016</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Adopted</p>
+                            <p className="text-white text-sm md:text-base font-semibold mt-0.5">2017</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Location</p>
+                            <p className="text-white text-sm md:text-base font-semibold mt-0.5">SK, EU</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Input */}
