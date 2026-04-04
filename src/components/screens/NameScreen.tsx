@@ -73,7 +73,7 @@ export function NameScreen() {
                     {/* Two-column layout */}
                     <div className="flex gap-3 md:gap-4 flex-1 min-h-0 overflow-hidden">
                       {/* Left column – video */}
-                      <div className="w-[38%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden">
+                      <div className="w-[38%] md:w-[35%] flex-shrink-0 min-h-0 rounded-2xl overflow-hidden">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
