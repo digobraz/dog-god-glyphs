@@ -113,14 +113,13 @@ export function HeroglyphRevealScreen() {
                 )}
               </AnimatePresence>
 
-              <CustomCharacterBadge />
-
               <motion.div
-                className={`flex justify-center ${showVertical ? 'mt-2' : 'mt-4'}`}
+                className={`flex items-center justify-center gap-3 flex-wrap ${showVertical ? 'mt-2' : 'mt-4'}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
+                <CustomCharacterBadge />
                 <Button
                   variant="outline"
                   className="rounded-full px-6 py-3 text-sm font-bold tracking-wider border-2 hover:scale-105 transition-transform"
