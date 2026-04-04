@@ -23,8 +23,8 @@ export function DogGenderScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-14 md:h-18 object-contain rounded-full" />
+      <div className="flex-shrink-0 flex justify-center pt-2 pb-1">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
