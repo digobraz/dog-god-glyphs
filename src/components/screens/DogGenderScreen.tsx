@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
@@ -14,6 +14,7 @@ export function DogGenderScreen() {
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   const handleSelect = (gender: string) => {
     setSelected(gender);
@@ -51,15 +52,30 @@ export function DogGenderScreen() {
 
           {/* 2. BLOCK - Hekthor question */}
           <motion.div
-            className="w-full rounded-2xl p-6 md:p-8 flex flex-col gap-4"
+            className="w-full rounded-2xl relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <div className="flex items-center gap-5">
+            {/* Info toggle button */}
+            <button
+              className="absolute top-3 right-3 z-20 flex items-center justify-center"
+              style={{ width: 44, height: 44 }}
+              aria-label="Info about Dog Gender"
+              onClick={() => setShowInfo((p) => !p)}
+            >
+              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
+                {showInfo
+                  ? <X className="h-4 w-4 text-foreground/70" />
+                  : <Info className="h-4 w-4 text-white/80" />}
+              </span>
+            </button>
+
+            {/* Default content */}
+            <div className="p-6 md:p-8 flex items-center gap-5">
               <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 pr-8">
                 <h3
                   className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
                   style={{ fontFamily: "'Cinzel', serif" }}
@@ -71,6 +87,71 @@ export function DogGenderScreen() {
                 </p>
               </div>
             </div>
+
+            {/* Info overlay */}
+            <AnimatePresence>
+              {showInfo && (
+                <motion.div
+                  className="absolute inset-0 z-10 flex rounded-2xl overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                >
+                  <div className="relative z-10 flex-1 grid grid-cols-2 gap-0">
+                    {/* 3-Point Crown column */}
+                    <div className="relative flex flex-col items-center justify-center p-5 text-center overflow-hidden">
+                      <img
+                        src={kingSvg}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-contain opacity-[0.07] blur-[2px] scale-110 pointer-events-none"
+                      />
+                      <div className="relative z-10">
+                        <h4
+                          className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
+                          style={{ fontFamily: "'Cinzel', serif" }}
+                        >
+                          3-Point Crown
+                        </h4>
+                        <p
+                          className="text-foreground/70 text-[11px] md:text-xs leading-snug"
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          For boys who've mastered the 3-paw balance. One leg up, maximum aim, absolute legend.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="absolute left-1/2 top-4 bottom-4 w-px bg-foreground/10" />
+
+                    {/* 4-Point Crown column */}
+                    <div className="relative flex flex-col items-center justify-center p-5 text-center overflow-hidden">
+                      <img
+                        src={queenSvg}
+                        alt=""
+                        className="absolute inset-0 w-full h-full object-contain opacity-[0.07] blur-[2px] scale-110 pointer-events-none"
+                      />
+                      <div className="relative z-10">
+                        <h4
+                          className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
+                          style={{ fontFamily: "'Cinzel', serif" }}
+                        >
+                          4-Point Crown
+                        </h4>
+                        <p
+                          className="text-foreground/70 text-[11px] md:text-xs leading-snug"
+                          style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                          For girls who prefer the 4-paw stability. Maximum comfort, zero mess, total elegance.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* 3. BLOCK - Options */}
