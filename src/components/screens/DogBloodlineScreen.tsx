@@ -106,7 +106,7 @@ export function DogBloodlineScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Aristocrat
+                        Signed Papyrus
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
@@ -125,7 +125,7 @@ export function DogBloodlineScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Mutt
+                        Empty Papyrus
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
