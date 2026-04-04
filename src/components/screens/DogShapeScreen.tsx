@@ -121,22 +121,66 @@ export function DogShapeScreen() {
             </div>
           </motion.div>
 
-          {/* 2. BLOCK - Hekthor question */}
+          {/* 2. BLOCK */}
           <motion.div
-            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            className="w-full rounded-2xl relative overflow-hidden min-h-[180px]"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              <p className="text-base md:text-lg font-bold text-amber-300 mb-1">CHOOSE A PATRON</p>
-              <p className="text-sm md:text-base leading-relaxed">
-                What does that dog look like?
-                <span className="block text-xs text-white/70 mt-1">(Choose according to the most similar body shape instead of according to the exact breed)</span>
-              </p>
+            {/* Info toggle */}
+            <button
+              className="absolute top-3 right-3 z-20 flex items-center justify-center"
+              style={{ width: 44, height: 44 }}
+              aria-label="Info about Patron"
+              onClick={() => setShowInfo((p) => !p)}
+            >
+              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
+                {showInfo
+                  ? <X className="h-4 w-4 text-foreground/70" />
+                  : <Info className="h-4 w-4 text-white/80" />}
+              </span>
+            </button>
+
+            {/* Default content */}
+            <div className="p-6 md:p-8 flex items-center gap-5 min-h-[180px]">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
+              <div className="flex flex-col gap-2 pr-8">
+                <h3
+                  className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  The Patron
+                </h3>
+                <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  What does that <span className="font-bold text-amber-300">dog</span> look like?
+                </p>
+              </div>
             </div>
+
+            {/* Info overlay */}
+            <AnimatePresence>
+              {showInfo && (
+                <motion.div
+                  className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                >
+                  <div className="p-6 pt-12 md:pt-6 text-center max-w-sm">
+                    <p
+                      className="text-foreground/70 text-sm md:text-base leading-relaxed"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Choose according to the most similar body shape instead of according to the exact breed
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
 
           {/* 3. BLOCK - Horizontal slider */}
