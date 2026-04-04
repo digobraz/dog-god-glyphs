@@ -96,21 +96,21 @@ export function OwnerFinalScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  <div className="relative z-10 p-5 pt-12 md:pt-10 flex-1 flex flex-col items-center text-center gap-1.5">
+                  <div className="relative z-10 p-5 pt-5 md:pt-5 flex-1 flex flex-col items-center text-center">
                     <h3
-                      className="text-sm md:text-base font-bold leading-tight uppercase tracking-wider"
+                      className="text-sm md:text-base font-bold leading-tight uppercase tracking-wider mt-0"
                       style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                     >
                       NAMES IN ANCIENT EGYPT
                     </h3>
                     <p
-                      className="text-foreground/80 text-[11px] md:text-xs leading-snug max-w-md"
+                      className="text-foreground/80 text-[11px] md:text-xs leading-snug max-w-md mt-1.5"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       The HEROGLYPH consists of two frames that together form your dog's true identity. In Ancient Egypt, the names of gods and pharaohs were written inside similar protective oval frames, called cartouches, to preserve their legacy for eternity.
                     </p>
 
-                    <div className="w-full max-w-[260px] flex flex-col items-center gap-1 mt-auto">
+                    <div className="w-full max-w-[260px] flex flex-col items-center gap-1 mt-auto mb-5">
                       <img src={cleopatraImg} alt="Cleopatra's cartouche" className="w-full" />
                       <p
                         className="text-foreground/50 text-[10px] md:text-xs italic"
