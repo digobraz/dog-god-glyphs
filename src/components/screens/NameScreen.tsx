@@ -69,52 +69,47 @@ export function NameScreen() {
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col">
-                    {/* Two-column layout */}
-                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 flex-1 min-h-0">
-                      {/* Video column – wider on mobile, shorter height */}
-                      <div className="w-full h-28 md:w-[35%] md:h-auto flex-shrink-0 rounded-2xl overflow-hidden">
-                        <video
-                          src="/videos/WHO_IS_HEKTHOR.mp4"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-cover object-top rounded-2xl"
-                        />
+                  <div className="relative z-10 p-5 pt-12 pb-5 md:p-6 md:pt-14 md:pb-6 flex-1 flex flex-col overflow-y-auto">
+                    {/* Video */}
+                    <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 flex-shrink-0">
+                      <video
+                        src="/videos/WHO_IS_HEKTHOR.mp4"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover object-center rounded-xl"
+                      />
+                    </div>
+
+                    {/* Text content */}
+                    <h3
+                      className="text-base md:text-xl font-bold leading-tight mb-2"
+                      style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                    >
+                      WHO IS HEKTHOR?
+                    </h3>
+
+                    <p
+                      className="text-foreground/80 text-xs md:text-sm leading-relaxed mb-3"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
+                    </p>
+
+                    {/* Stats */}
+                    <div className="flex gap-4 md:gap-6 pt-1">
+                      <div className="flex flex-col items-start md:items-center">
+                        <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born</p>
+                        <p className="text-foreground text-sm font-semibold">2016</p>
                       </div>
-
-                      {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0">
-                        <h3
-                          className="text-base md:text-xl font-bold leading-tight"
-                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-                        >
-                          WHO IS<br className="md:hidden" /> HEKTHOR?
-                        </h3>
-
-                        <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed flex-1"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
-                        >
-                          Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
-                        </p>
-
-                        {/* Stats – stacked on mobile, row on desktop */}
-                        <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2">
-                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
-                            <p className="text-foreground text-sm font-semibold">2016</p>
-                          </div>
-                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted:</p>
-                            <p className="text-foreground text-sm font-semibold">2017</p>
-                          </div>
-                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location:</p>
-                            <p className="text-foreground text-sm font-semibold">SK, EU</p>
-                          </div>
-                        </div>
+                      <div className="flex flex-col items-start md:items-center">
+                        <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted</p>
+                        <p className="text-foreground text-sm font-semibold">2017</p>
+                      </div>
+                      <div className="flex flex-col items-start md:items-center">
+                        <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location</p>
+                        <p className="text-foreground text-sm font-semibold">SK, EU</p>
                       </div>
                     </div>
                   </div>
