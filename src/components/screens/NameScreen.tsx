@@ -68,12 +68,12 @@ export function NameScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  {/* Content */}
-                  <div className="p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 h-full flex flex-col box-border">
+                  {/* Content – equal padding all around, pt accounts for X button */}
+                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col" style={{ height: 'calc(100% - 0px)' }}>
                     {/* Two-column layout */}
-                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0">
+                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0 overflow-hidden">
                       {/* Left column – video */}
-                      <div className="w-[38%] md:w-[35%] min-h-0 rounded-2xl overflow-hidden">
+                      <div className="w-[38%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
@@ -94,27 +94,27 @@ export function NameScreen() {
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed"
+                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed flex-1"
                           style={{ fontFamily: "'Inter', sans-serif" }}
                         >
                           Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
                         </p>
-                      </div>
-                    </div>
 
-                    {/* Stats – below the two-column layout */}
-                    <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2 flex-shrink-0">
-                      <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                        <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
-                        <p className="text-foreground text-sm font-semibold">2016</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                        <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted:</p>
-                        <p className="text-foreground text-sm font-semibold">2017</p>
-                      </div>
-                      <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                        <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location:</p>
-                        <p className="text-foreground text-sm font-semibold">SK, EU</p>
+                        {/* Stats – stacked on mobile, row on desktop */}
+                        <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2 flex-shrink-0">
+                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
+                            <p className="text-foreground text-sm font-semibold">2016</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted:</p>
+                            <p className="text-foreground text-sm font-semibold">2017</p>
+                          </div>
+                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location:</p>
+                            <p className="text-foreground text-sm font-semibold">SK, EU</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
