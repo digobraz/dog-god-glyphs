@@ -64,7 +64,7 @@ export function PaymentSummaryScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-start px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-4 py-3">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2">
           {/* 1. BLOCK - Order Summary */}
           <motion.div
             className="w-full rounded-2xl overflow-hidden"
@@ -76,18 +76,18 @@ export function PaymentSummaryScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="rounded-[0.875rem] papyrus-bg p-5 md:p-6">
+            <div className="rounded-[0.875rem] papyrus-bg p-4 md:p-5">
               <h2
-                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-5"
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 Order Summary
               </h2>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 {/* Heroglyph row */}
                 <div
-                  className="flex justify-between items-center rounded-xl px-4 py-3"
+                  className="flex justify-between items-center rounded-xl px-3 py-2"
                   style={{ background: 'linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))' }}
                 >
                   <div className="flex flex-col">
@@ -114,7 +114,7 @@ export function PaymentSummaryScreen() {
 
                 {/* Custom Character row */}
                 <div
-                  className={`flex justify-between items-center rounded-xl px-4 py-3 transition-colors ${
+                  className={`flex justify-between items-center rounded-xl px-3 py-2 transition-colors ${
                     customPrice > 0
                       ? 'border border-purple-400/30 bg-purple-400/5'
                       : 'bg-foreground/[0.03]'
@@ -141,7 +141,7 @@ export function PaymentSummaryScreen() {
 
                 {/* Total */}
                 <div
-                  className="mt-1 rounded-xl px-4 py-3 flex justify-between items-center"
+                  className="mt-1 rounded-xl px-3 py-2 flex justify-between items-center"
                   style={{
                     background: 'linear-gradient(135deg, hsl(var(--gold) / 0.15), hsl(var(--gold) / 0.25))',
                     borderTop: '2px solid hsl(var(--gold) / 0.3)',
@@ -169,13 +169,13 @@ export function PaymentSummaryScreen() {
 
           {/* 2. BLOCK - Contact & Delivery Details */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-5"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <h2
-              className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-4"
+              className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
               style={{ fontFamily: "'Cinzel', serif" }}
             >
               Your Details
