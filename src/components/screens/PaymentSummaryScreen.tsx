@@ -169,13 +169,13 @@ export function PaymentSummaryScreen() {
 
           {/* 2. BLOCK - Contact & Delivery Details */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-5"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <h2
-              className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-4"
+              className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
               style={{ fontFamily: "'Cinzel', serif" }}
             >
               Your Details
