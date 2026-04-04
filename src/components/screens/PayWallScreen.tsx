@@ -60,7 +60,7 @@ export function PayWallScreen() {
               {presetAmounts.map((amount) => (
                 <button
                   key={amount}
-                  onClick={() => setSelectedAmount(amount)}
+                  onClick={() => setLocalAmount(amount)}
                   className={`w-16 rounded-xl border-2 py-3 text-sm font-bold tracking-wider transition-all ${
                     selectedAmount === amount
                       ? 'border-primary bg-primary/10 text-primary'
