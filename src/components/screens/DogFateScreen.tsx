@@ -27,8 +27,8 @@ export function DogFateScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain rounded-full" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2">
+      <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2 my-auto">
           {/* 1. BLOCK - Heroglyph preview with pulsing slot */}
           <motion.div
             className="w-full relative"
@@ -36,9 +36,9 @@ export function DogFateScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg p-1.5">
+            <div className="rounded-2xl border-2 border-border papyrus-bg px-1.5 pt-3 pb-1.5">
               <h2
-                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-0.5"
+                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-2"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
