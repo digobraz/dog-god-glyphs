@@ -66,18 +66,15 @@ export function DogCharacterScreen() {
       let next: string[];
       if (prev.includes(value)) {
         next = prev.filter((v) => v !== value);
-      } else if (prev.length < maxSelections) {
+      } else if (prev.length < 2) {
         next = [...prev, value];
       } else {
         next = [...prev.slice(1), value];
       }
 
-      if (next.length === maxSelections) {
+      if (next.length === 2) {
         setSelection('dogCharacter1', next[0]);
         setSelection('dogCharacter2', next[1]);
-        if (maxSelections === 3 && next[2]) {
-          setSelection('dogCharacter3', next[2]);
-        }
         setTimeout(() => navigate('/heroglyph-reveal'), 600);
       }
 
