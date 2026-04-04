@@ -41,7 +41,7 @@ export function OwnerFinalScreen() {
 
           {/* Hekthor message block */}
           <motion.div
-            className="w-full rounded-2xl relative overflow-hidden"
+            className="w-full rounded-2xl relative overflow-hidden flex-1 min-h-0"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -62,16 +62,16 @@ export function OwnerFinalScreen() {
             </button>
 
             {/* Default content */}
-            <div className="p-5 flex items-center gap-5">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-3 pr-8">
-                <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+            <div className="p-6 md:p-8 flex items-center gap-6 h-full">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-32 md:h-32 object-contain flex-shrink-0" />
+              <div className="flex flex-col gap-4 pr-8 flex-1">
+                <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                   HEY MAN, your part is done. That little frame — that is you! Now let's finish HEROGLYPH with{' '}
                   <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s part.
                 </p>
                 <Button
                   onClick={() => navigate('/dog-gender')}
-                  className="w-full rounded-full gap-2 h-12 px-6 text-base font-bold tracking-wider hover:scale-105 transition-transform"
+                  className="w-full rounded-full gap-2 h-14 px-8 text-lg font-bold tracking-wider hover:scale-105 transition-transform"
                   style={{
                     fontFamily: "'Cinzel', serif",
                     background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
@@ -95,27 +95,27 @@ export function OwnerFinalScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  <div className="relative z-10 p-5 pt-14 flex-1 flex flex-col items-center text-center gap-3 overflow-y-auto">
+                  <div className="relative z-10 p-6 pt-14 flex-1 flex flex-col items-center text-center gap-3 overflow-y-auto">
                     <h3
-                      className="text-base md:text-lg font-bold leading-tight uppercase tracking-wider"
+                      className="text-lg md:text-xl font-bold leading-tight uppercase tracking-wider"
                       style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                     >
                       NAMES IN ANCIENT EGYPT
                     </h3>
                     <p
-                      className="text-foreground/80 text-xs md:text-sm leading-relaxed max-w-md"
+                      className="text-foreground/80 text-sm md:text-base leading-relaxed max-w-md"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       The HEROGLYPH consists of two frames that together form your dog's true identity. In Ancient Egypt, the names of gods and pharaohs were written inside similar protective oval frames, called cartouches, to preserve their legacy for eternity.
                     </p>
 
                     {/* Image placeholder */}
-                    <div className="w-full max-w-[200px] flex flex-col items-center gap-1.5 mt-1">
+                    <div className="w-full max-w-[220px] flex flex-col items-center gap-1.5 mt-1">
                       <div
                         className="w-full aspect-square rounded-xl border-2 flex items-center justify-center overflow-hidden"
                         style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)', backgroundColor: 'hsl(var(--gold-dark) / 0.08)' }}
                       >
-                        <span className="text-3xl">𓂀</span>
+                        <span className="text-4xl">𓂀</span>
                       </div>
                       <p
                         className="text-foreground/50 text-[10px] md:text-xs italic"
