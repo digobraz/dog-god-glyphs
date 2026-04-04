@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, X, Sparkles } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Info, X, Sparkles, Upload, Image } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
@@ -29,7 +29,6 @@ const characters = [
   { value: 'chillman', label: 'Chillman', img: chillmanSvg, isCustom: false },
 ];
 
-// Triple the array for infinite scroll illusion
 const tripleCharacters = [...characters, ...characters, ...characters];
 
 export function DogCharacterScreen() {
@@ -42,9 +41,13 @@ export function DogCharacterScreen() {
   const [showInfo, setShowInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  
+  // Custom modal state
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customDescription, setCustomDescription] = useState('');
+  const [customPhoto, setCustomPhoto] = useState<File | null>(null);
+  const [customPhotoPreview, setCustomPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset scroll to center third when reaching edges
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -83,8 +86,38 @@ export function DogCharacterScreen() {
     });
   };
 
-  const handleCustomToggle = () => {
-    setCustomCharacter(!customCharacter);
+  const handleCustomClick = () => {
+    if (customCharacter) {
+      // If already active, just deactivate
+      setCustomCharacter(false);
+      setCustomDescription('');
+      setCustomPhoto(null);
+      setCustomPhotoPreview(null);
+    } else {
+      // Open confirmation modal
+      setShowCustomModal(true);
+    }
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCustomPhoto(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setCustomPhotoPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleConfirmCustom = () => {
+    setCustomCharacter(true);
+    setShowCustomModal(false);
+  };
+
+  const handleCancelCustom = () => {
+    setShowCustomModal(false);
+    setCustomDescription('');
+    setCustomPhoto(null);
+    setCustomPhotoPreview(null);
   };
 
   return (
@@ -124,7 +157,6 @@ export function DogCharacterScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            {/* Info toggle */}
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
@@ -138,7 +170,6 @@ export function DogCharacterScreen() {
               </span>
             </button>
 
-            {/* Default content */}
             <div className="p-6 md:p-8 flex items-center gap-5 min-h-[180px]">
               <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
               <div className="flex flex-col gap-2 pr-8">
@@ -157,7 +188,6 @@ export function DogCharacterScreen() {
               </div>
             </div>
 
-            {/* Info overlay */}
             <AnimatePresence>
               {showInfo && (
                 <motion.div
@@ -219,7 +249,7 @@ export function DogCharacterScreen() {
                     return (
                       <button
                         key={`${char.value}-${idx}`}
-                        onClick={handleCustomToggle}
+                        onClick={handleCustomClick}
                         className={`flex-shrink-0 relative flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 transition-all snap-start ${
                           customCharacter
                             ? 'border-purple-400 bg-purple-400/15 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
@@ -287,6 +317,123 @@ export function DogCharacterScreen() {
           </button>
         </div>
       </div>
+
+      {/* Custom Character Confirmation Modal */}
+      <AnimatePresence>
+        {showCustomModal && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCancelCustom} />
+
+            {/* Modal */}
+            <motion.div
+              className="relative z-10 w-full max-w-md rounded-2xl border-2 border-purple-400/50 papyrus-bg p-6 flex flex-col gap-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              {/* Close */}
+              <button
+                onClick={handleCancelCustom}
+                className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center hover:bg-foreground/10 transition-colors"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+
+              {/* Header */}
+              <div className="flex items-center gap-2 justify-center">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                <h3
+                  className="text-base font-bold tracking-[0.15em] uppercase text-purple-400"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  Custom Character
+                </h3>
+              </div>
+
+              <p
+                className="text-foreground/70 text-xs text-center leading-relaxed"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Describe your dog's unique trait, quirk, or favorite toy. We'll hand-draw a custom symbol just for them.
+              </p>
+
+              {/* Text area */}
+              <textarea
+                value={customDescription}
+                onChange={(e) => setCustomDescription(e.target.value)}
+                placeholder="e.g. She always carries a tiny teddy bear everywhere..."
+                className="w-full rounded-xl border-2 border-border/60 bg-background/50 px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-purple-400 focus:outline-none resize-none transition-colors"
+                rows={3}
+                maxLength={300}
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
+
+              {/* Photo upload */}
+              <div className="flex flex-col items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoSelect}
+                  className="hidden"
+                />
+
+                {customPhotoPreview ? (
+                  <div className="relative w-full">
+                    <img
+                      src={customPhotoPreview}
+                      alt="Custom character reference"
+                      className="w-full h-32 object-cover rounded-xl border-2 border-purple-400/30"
+                    />
+                    <button
+                      onClick={() => { setCustomPhoto(null); setCustomPhotoPreview(null); }}
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center"
+                    >
+                      <X className="h-3 w-3 text-white" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full rounded-xl border-2 border-dashed border-purple-400/40 py-4 flex flex-col items-center gap-1.5 hover:border-purple-400 hover:bg-purple-400/5 transition-colors"
+                  >
+                    <Image className="h-5 w-5 text-purple-400/60" />
+                    <span className="text-[10px] font-bold tracking-wider uppercase text-purple-400/60" style={{ fontFamily: "'Cinzel', serif" }}>
+                      Add Photo (optional)
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Price reminder */}
+              <p className="text-center text-purple-300 text-xs font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
+                + $66 premium feature
+              </p>
+
+              {/* Confirm button */}
+              <button
+                onClick={handleConfirmCustom}
+                className="w-full rounded-full py-3 text-sm font-bold tracking-wider uppercase transition-all hover:scale-105"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(270 60% 50%), hsl(270 40% 35%))',
+                  color: '#fff',
+                  boxShadow: '0 0 20px rgba(168,85,247,0.3)',
+                }}
+              >
+                Confirm Custom Character
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
