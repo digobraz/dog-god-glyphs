@@ -50,8 +50,8 @@ export function NameScreen() {
             </button>
 
             {/* Default front content */}
-            <div className="p-6 flex flex-col items-center gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <div className="p-6 pb-8 flex flex-col items-center gap-4">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-72 object-contain" />
               <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                 Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>.{'\n'}What's your dog's name?
               </p>
