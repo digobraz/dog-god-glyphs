@@ -113,14 +113,13 @@ export function HeroglyphRevealScreen() {
                 )}
               </AnimatePresence>
 
-              <CustomCharacterBadge />
-
               <motion.div
-                className={`flex justify-center ${showVertical ? 'mt-2' : 'mt-4'}`}
+                className={`flex items-center justify-center gap-3 flex-wrap ${showVertical ? 'mt-2' : 'mt-4'}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
+                <CustomCharacterBadge />
                 <Button
                   variant="outline"
                   className="rounded-full px-6 py-3 text-sm font-bold tracking-wider border-2 hover:scale-105 transition-transform"
@@ -184,8 +183,7 @@ export function HeroglyphRevealScreen() {
                         OUR VISION
                       </h3>
                       <p
-                        className="text-xs md:text-sm leading-relaxed text-center"
-                        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--papyrus-foreground))' }}
+                        className="text-xs md:text-sm leading-relaxed text-center text-black"
                       >
                         To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
                       </p>
@@ -195,9 +193,9 @@ export function HeroglyphRevealScreen() {
               </AnimatePresence>
 
               <div className="flex items-start gap-4">
-                <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
+                <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-28 md:h-28 object-contain flex-shrink-0" />
                 <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME TO DOGYPT!</p>
+                  <p className="font-bold text-amber-300 text-lg md:text-xl">WELCOME TO DOGYPT!</p>
                   <p className="font-semibold text-sm md:text-base mt-1">
                     This Heroglyph is your eternal bond.
                   </p>
@@ -261,8 +259,7 @@ export function HeroglyphRevealScreen() {
                         OUR VISION
                       </h3>
                       <p
-                        className="text-[10px] md:text-xs leading-relaxed text-center"
-                        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--papyrus-foreground))' }}
+                        className="text-[10px] md:text-xs leading-relaxed text-center text-black"
                       >
                         To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
                       </p>
