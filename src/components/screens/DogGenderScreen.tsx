@@ -73,7 +73,7 @@ export function DogGenderScreen() {
             </button>
 
             {/* Default content */}
-            <div className="p-6 md:p-8 flex items-center gap-5">
+            <div className="p-6 md:p-8 flex items-center gap-5 min-h-[180px]">
               <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
               <div className="flex flex-col gap-2 pr-8">
                 <h3
