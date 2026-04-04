@@ -320,7 +320,7 @@ export function RankingScreen() {
                 transition={{ duration: 0.35 }}
               >
                 <p className="text-foreground text-center text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Enter dog number (12–50)
+                  Enter dog number (11–50)
                 </p>
 
                 <div className="flex items-center gap-4">
