@@ -29,7 +29,7 @@ export function OwnerFinalScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg px-6 pt-6 pb-4">
+            <div className="rounded-2xl border-2 border-border papyrus-bg px-6 pt-6 pb-6">
               <h2
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
