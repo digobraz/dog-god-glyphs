@@ -36,7 +36,7 @@ export function DogGenderScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg px-1.5 pt-5 pb-0.5">
+            <div className="rounded-2xl border-2 border-border <div className="rounded-2xl border-2 border-border papyrus-bg px-1.5 pt-8 pb-0">">
               <h2
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-2"
                 style={{ fontFamily: "'Cinzel', serif" }}
