@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
-import thankYouHero from '@/assets/thank-you-hero.jpg';
+import thankYouHero from '@/assets/thank-you-hero.png';
 
 export function ThankYouScreen() {
   const navigate = useNavigate();
