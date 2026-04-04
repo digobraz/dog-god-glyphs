@@ -100,8 +100,13 @@ export function PhotoScreen() {
               {photos.length > 0 && (
                 <Button
                   onClick={() => navigate('/breed')}
-                  className="flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2"
-                  style={{ fontFamily: "'Cinzel', serif" }}
+                  className="flex-1 rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                    color: '#000',
+                    boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                  }}
                 >
                   <Send className="h-4 w-4" />
                   Continue
