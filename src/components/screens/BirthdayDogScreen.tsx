@@ -117,7 +117,7 @@ export function BirthdayDogScreen() {
                   value={year}
                   onChange={e => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="YYYY"
-                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-2xl font-bold outline-none focus:border-primary transition-colors"
+                  className="w-full h-12 md:h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-xl md:text-2xl font-bold outline-none focus:border-primary transition-colors"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 />
               </div>
