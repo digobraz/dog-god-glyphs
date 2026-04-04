@@ -302,7 +302,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
       {!rankingSrc && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Pulsing slot indicators - only show when slot not filled */}
-      {pulseSlot === 'dogGender' && !dogGenderSrc && (
+      {(pulseSlot === 'dogGender' || pulseAllEmpty) && !dogGenderSrc && (
         <g>
           <rect x="1282" y="1620" width="1348" height="935" fill="none" stroke="hsl(var(--primary))" strokeWidth="40" rx="30">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite" />
