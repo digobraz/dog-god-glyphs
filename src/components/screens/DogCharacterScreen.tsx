@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 import watcherSvg from '@/assets/character/CHARACTER-WATCHER.svg';

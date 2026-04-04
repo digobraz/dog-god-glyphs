@@ -5,7 +5,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 const presetAmounts = [11, 22, 33];

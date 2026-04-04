@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import cleopatraImg from '@/assets/cleopatra-cartouche.png';
 

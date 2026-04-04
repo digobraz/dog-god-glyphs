@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { getChineseZodiac } from '@/lib/zodiac';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 import ariesSvg from '@/assets/zodiac/ZODIAC-ARIES.svg';
