@@ -231,8 +231,8 @@ export function DogCharacterScreen() {
                         <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase text-purple-400">
                           Custom
                         </span>
-                        <span className="text-[8px] text-purple-400/70 font-medium">
-                          (+ 66$)
+                        <span className="text-[11px] md:text-xs font-bold text-purple-300">
+                          + 66$
                         </span>
                       </button>
                     );
