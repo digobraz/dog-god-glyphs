@@ -171,7 +171,7 @@ export function DogCharacterScreen() {
                       You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature (66€). For now, just pick the best fitting one!
                     </p>
                     <p
-                      className="text-foreground/60 text-xs md:text-sm leading-relaxed italic mt-2"
+                      className="text-purple-400 text-xs md:text-sm leading-relaxed italic mt-2"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       This money goes directly to helping dogs in need!
