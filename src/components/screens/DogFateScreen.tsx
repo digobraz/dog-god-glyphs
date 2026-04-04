@@ -80,10 +80,10 @@ export function DogFateScreen() {
                   className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  Dog Fate
+                  The Origin
                 </h3>
                 <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  What is the <span className="font-bold text-amber-300">fate</span> of your dog?
+                  Was your dog born into a <span className="font-bold text-amber-300">safe home</span> or given a <span className="font-bold text-amber-300">second chance</span> at life?
                 </p>
               </div>
             </div>
