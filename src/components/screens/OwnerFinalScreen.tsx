@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import hekthorImg from '@/assets/hekthor.png';
 export function OwnerFinalScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
+  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
@@ -39,32 +41,95 @@ export function OwnerFinalScreen() {
 
           {/* Hekthor message block */}
           <motion.div
-            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            className="w-full rounded-2xl relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <div className="flex flex-col gap-3">
-              <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                HEY MAN, that little frame — that is you! Now let's fill{' '}
-                <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s story together.
-              </p>
-              <Button
-                onClick={() => navigate('/dog-gender')}
-                className="w-full rounded-full gap-2 h-12 px-6 text-base font-bold tracking-wider hover:scale-105 transition-transform"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                  color: '#000',
-                  boxShadow: '0 0 30px hsl(var(--gold) / 0.4), 0 4px 15px rgba(0,0,0,0.3)',
-                }}
-              >
-                LET'S GO <ArrowRight className="h-5 w-5" />
-              </Button>
+            {/* Info toggle button */}
+            <button
+              className="absolute top-3 right-3 z-20 flex items-center justify-center"
+              style={{ width: 44, height: 44 }}
+              aria-label="Info about Heroglyph"
+              onClick={() => setShowInfo((p) => !p)}
+            >
+              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
+                {showInfo
+                  ? <X className="h-4 w-4 text-foreground/70" />
+                  : <Info className="h-4 w-4 text-white/80" />}
+              </span>
+            </button>
+
+            {/* Default content */}
+            <div className="p-5 flex items-center gap-5">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
+              <div className="flex flex-col gap-3 pr-8">
+                <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                  HEY MAN, your part is done. That little frame — that is you! Now let's finish HEROGLYPH with{' '}
+                  <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s part.
+                </p>
+                <Button
+                  onClick={() => navigate('/dog-gender')}
+                  className="w-full rounded-full gap-2 h-12 px-6 text-base font-bold tracking-wider hover:scale-105 transition-transform"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                    color: '#000',
+                    boxShadow: '0 0 30px hsl(var(--gold) / 0.4), 0 4px 15px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  LET'S GO <ArrowRight className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
+
+            {/* Info overlay */}
+            <AnimatePresence>
+              {showInfo && (
+                <motion.div
+                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.35 }}
+                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                >
+                  <div className="relative z-10 p-5 pt-14 flex-1 flex flex-col items-center text-center gap-3 overflow-y-auto">
+                    <h3
+                      className="text-base md:text-lg font-bold leading-tight uppercase tracking-wider"
+                      style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                    >
+                      NAMES IN ANCIENT EGYPT
+                    </h3>
+                    <p
+                      className="text-foreground/80 text-xs md:text-sm leading-relaxed max-w-md"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      The HEROGLYPH consists of two frames that together form your dog's true identity. In Ancient Egypt, the names of gods and pharaohs were written inside similar protective oval frames, called cartouches, to preserve their legacy for eternity.
+                    </p>
+
+                    {/* Image placeholder */}
+                    <div className="w-full max-w-[200px] flex flex-col items-center gap-1.5 mt-1">
+                      <div
+                        className="w-full aspect-square rounded-xl border-2 flex items-center justify-center overflow-hidden"
+                        style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)', backgroundColor: 'hsl(var(--gold-dark) / 0.08)' }}
+                      >
+                        <span className="text-3xl">𓂀</span>
+                      </div>
+                      <p
+                        className="text-foreground/50 text-[10px] md:text-xs italic"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
+                      >
+                        This hieroglyph belongs to Cleopatra.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
+
           {/* Back button */}
           <button
             onClick={() => navigate('/owner-zodiac')}
