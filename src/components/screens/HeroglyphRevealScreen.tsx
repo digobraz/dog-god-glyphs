@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { Info, X } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
+import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
@@ -15,6 +17,7 @@ export function HeroglyphRevealScreen() {
   const dogName = useDogyptStore((s) => s.dogName);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
   const [showVertical, setShowVertical] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     const t1 = setTimeout(() => setPhase('reveal'), 1800);
@@ -59,7 +62,7 @@ export function HeroglyphRevealScreen() {
         {/* Logo */}
         <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
 
-        {/* 1. BLOCK - Ornamental frame with heroglyph (horizontal or vertical) */}
+        {/* 1. BLOCK - Ornamental frame with heroglyph */}
         <motion.div
           className="w-full relative"
           initial={{ scale: 0.8, opacity: 0 }}
@@ -110,6 +113,8 @@ export function HeroglyphRevealScreen() {
                 )}
               </AnimatePresence>
 
+              <CustomCharacterBadge />
+
               <motion.div
                 className={`flex justify-center ${showVertical ? 'mt-2' : 'mt-4'}`}
                 initial={{ opacity: 0, y: 10 }}
@@ -142,29 +147,59 @@ export function HeroglyphRevealScreen() {
             animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            <div className="flex justify-center">
-              <div
-                className="w-0 h-0"
-                style={{
-                  borderLeft: '16px solid transparent',
-                  borderRight: '16px solid transparent',
-                  borderBottom: '16px solid hsl(270 40% 25%)',
-                }}
-              />
-            </div>
             <div
-              className="w-full rounded-2xl p-5 flex flex-col gap-4"
+              className="w-full rounded-2xl p-5 flex flex-col gap-4 relative"
               style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             >
+              {/* Info button */}
+              <button
+                className="absolute top-3 right-3 z-20 flex items-center justify-center"
+                style={{ width: 44, height: 44 }}
+                aria-label="Info"
+                onClick={() => setShowInfo((p) => !p)}
+              >
+                <span className="w-7 h-7 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
+                  {showInfo
+                    ? <X className="h-4 w-4 text-white/70" />
+                    : <Info className="h-4 w-4 text-white/80" />}
+                </span>
+              </button>
+
+              {/* Info overlay */}
+              <AnimatePresence>
+                {showInfo && (
+                  <motion.div
+                    className="absolute inset-0 z-10 flex rounded-2xl overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35 }}
+                    style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                  >
+                    <div className="relative z-10 flex-1 p-5 pt-12 md:pt-5 flex flex-col justify-center">
+                      <h3
+                        className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        OUR VISION
+                      </h3>
+                      <p
+                        className="text-xs md:text-sm leading-relaxed text-center"
+                        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--papyrus-foreground))' }}
+                      >
+                        To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex items-start gap-4">
                 <img src={hekthorImg} alt="HEKTHOR" className="w-16 h-16 md:w-20 md:h-20 object-contain flex-shrink-0" />
                 <div className="text-white drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME DOGYPTIANS!</p>
+                  <p className="font-bold text-amber-300 text-base md:text-lg">WELCOME TO DOGYPT!</p>
                   <p className="font-semibold text-sm md:text-base mt-1">
-                    This Heroglyph is your eternal bond. 🐾
-                  </p>
-                  <p className="text-xs md:text-sm text-amber-100/80 mt-2 leading-relaxed">
-                    My dream is for every dog and human to have one. The bigger our pack, the more dogs we can save. Thank you!
+                    This Heroglyph is your eternal bond.
                   </p>
                 </div>
               </div>
@@ -178,7 +213,7 @@ export function HeroglyphRevealScreen() {
                   boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
                 }}
               >
-                🐾 GRAB MY HEROGLYPH
+                GRAB MY HEROGLYPH
               </Button>
             </div>
           </motion.div>
@@ -189,24 +224,57 @@ export function HeroglyphRevealScreen() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="flex justify-center">
-              <div
-                className="w-0 h-0"
-                style={{
-                  borderLeft: '12px solid transparent',
-                  borderRight: '12px solid transparent',
-                  borderBottom: '12px solid hsl(270 40% 25%)',
-                }}
-              />
-            </div>
             <div
-              className="w-full rounded-xl px-4 py-3 flex flex-col gap-3 -mt-[1px]"
+              className="w-full rounded-xl px-4 py-3 flex flex-col gap-3 relative"
               style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             >
+              {/* Info button compact */}
+              <button
+                className="absolute top-2 right-2 z-20 flex items-center justify-center"
+                style={{ width: 36, height: 36 }}
+                aria-label="Info"
+                onClick={() => setShowInfo((p) => !p)}
+              >
+                <span className="w-6 h-6 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
+                  {showInfo
+                    ? <X className="h-3 w-3 text-white/70" />
+                    : <Info className="h-3 w-3 text-white/80" />}
+                </span>
+              </button>
+
+              {/* Info overlay compact */}
+              <AnimatePresence>
+                {showInfo && (
+                  <motion.div
+                    className="absolute inset-0 z-10 flex rounded-xl overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.35 }}
+                    style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                  >
+                    <div className="relative z-10 flex-1 p-4 pt-10 md:pt-4 flex flex-col justify-center">
+                      <h3
+                        className="text-center text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        OUR VISION
+                      </h3>
+                      <p
+                        className="text-[10px] md:text-xs leading-relaxed text-center"
+                        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--papyrus-foreground))' }}
+                      >
+                        To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="flex items-center gap-3">
                 <img src={hekthorImg} alt="HEKTHOR" className="w-10 h-10 object-contain flex-shrink-0" />
                 <p className="font-bold text-amber-300 text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  WELCOME DOGYPTIANS!
+                  WELCOME TO DOGYPT!
                 </p>
               </div>
               <Button
@@ -219,7 +287,7 @@ export function HeroglyphRevealScreen() {
                   boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
                 }}
               >
-                🐾 GRAB MY HEROGLYPH
+                GRAB MY HEROGLYPH
               </Button>
             </div>
           </motion.div>
