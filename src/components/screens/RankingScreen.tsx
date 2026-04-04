@@ -119,7 +119,6 @@ const rankOptions = [
   { value: '8', label: '8th', num: 8 },
   { value: '9', label: '9th', num: 9 },
   { value: '10', label: '10th', num: 10 },
-  { value: '11', label: '11th', num: 11 },
 ];
 
 function ordinalSuffix(n: number): string {
