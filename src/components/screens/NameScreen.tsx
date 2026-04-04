@@ -69,11 +69,11 @@ export function NameScreen() {
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col">
+                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col min-h-0">
                     {/* Two-column layout */}
-                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0">
-                      {/* Left column – video/gif placeholder */}
-                      <div className="w-[30%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden">
+                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0 items-stretch overflow-hidden">
+                      {/* Left column – video */}
+                      <div className="w-[38%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
@@ -85,7 +85,7 @@ export function NameScreen() {
                       </div>
 
                       {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0">
+                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0 min-h-0 overflow-hidden">
                         <h3
                           className="text-base md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
@@ -94,14 +94,14 @@ export function NameScreen() {
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed flex-1"
+                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed"
                           style={{ fontFamily: "'Inter', sans-serif" }}
                         >
                           Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
                         </p>
 
                         {/* Stats – stacked on mobile, row on desktop */}
-                        <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2">
+                        <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2 flex-shrink-0">
                           <div className="flex items-center gap-1.5 md:flex-col md:text-center">
                             <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
                             <p className="text-foreground text-sm font-semibold">2016</p>
