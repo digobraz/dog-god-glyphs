@@ -18,14 +18,15 @@ import loverSvg from '@/assets/character/CHARACTER-LOVER.svg';
 import chillmanSvg from '@/assets/character/CHARACTER-CHILLMAN.svg';
 
 const characters = [
-  { value: 'watcher', label: 'Watcher', img: watcherSvg },
-  { value: 'playful', label: 'Playful', img: playfulSvg },
-  { value: 'hyperactive', label: 'Hyperactive', img: hyperactiveSvg },
-  { value: 'pirate', label: 'Pirate', img: pirateSvg },
-  { value: 'waterlover', label: 'Water Lover', img: waterloverSvg },
-  { value: 'gourmet', label: 'Gourmet', img: gourmetSvg },
-  { value: 'lover', label: 'Lover', img: loverSvg },
-  { value: 'chillman', label: 'Chillman', img: chillmanSvg },
+  { value: 'watcher', label: 'Watcher', img: watcherSvg, isCustom: false },
+  { value: 'playful', label: 'Playful', img: playfulSvg, isCustom: false },
+  { value: 'hyperactive', label: 'Hyperactive', img: hyperactiveSvg, isCustom: false },
+  { value: 'pirate', label: 'Pirate', img: pirateSvg, isCustom: false },
+  { value: 'custom', label: 'Custom', img: null, isCustom: true },
+  { value: 'waterlover', label: 'Water Lover', img: waterloverSvg, isCustom: false },
+  { value: 'gourmet', label: 'Gourmet', img: gourmetSvg, isCustom: false },
+  { value: 'lover', label: 'Lover', img: loverSvg, isCustom: false },
+  { value: 'chillman', label: 'Chillman', img: chillmanSvg, isCustom: false },
 ];
 
 // Triple the array for infinite scroll illusion
