@@ -119,12 +119,12 @@ export function ThankYouScreen() {
 
             <button
               onClick={handleReturn}
-              className="mt-4 w-full py-3 rounded-full text-sm font-bold tracking-widest uppercase transition-all"
+              className="mt-4 w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 border-2 border-white/30"
               style={{
                 fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: 'hsl(var(--heading-on-light))',
-                boxShadow: '0 0 20px hsl(var(--gold) / 0.3)',
+                background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                color: '#000',
+                boxShadow: '0 0 40px hsl(var(--gold) / 0.4)',
               }}
             >
               FINISH
