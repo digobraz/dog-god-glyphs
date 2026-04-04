@@ -20,6 +20,7 @@ import { DogShapeScreen } from "@/components/screens/DogShapeScreen";
 import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
 import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
 import { PayWallScreen } from "@/components/screens/PayWallScreen";
+import { PaymentSummaryScreen } from "@/components/screens/PaymentSummaryScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
 import NotFound from "./pages/NotFound.tsx";
 
