@@ -37,8 +37,7 @@ export function ThankYouScreen() {
               <img
                 src={thankYouHero}
                 alt="Thank you"
-                className="w-36 h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-primary/40"
-                style={{ boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}
+                className="w-44 h-44 md:w-52 md:h-52 object-contain drop-shadow-lg"
               />
 
               <p
