@@ -37,7 +37,7 @@ export function PayWallScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <img src={hekthorImg} alt="HEKTHOR" className="w-32 h-32 md:w-40 md:h-40 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
             </p>
@@ -53,25 +53,23 @@ export function PayWallScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <div className="flex items-center gap-2 w-full">
-              <div className="flex gap-2 flex-shrink-0">
-                {presetAmounts.map((amount) => (
-                  <button
-                    key={amount}
-                    onClick={() => setSelectedAmount(amount)}
-                    className={`w-16 rounded-xl border-2 py-3 text-sm font-bold tracking-wider transition-all ${
-                      selectedAmount === amount
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border/60 text-muted-foreground hover:border-primary/50'
-                    }`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    ${amount}
-                  </button>
-                ))}
-              </div>
-              <CustomCharacterBadge />
+            <div className="flex gap-2 justify-center">
+              {presetAmounts.map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setSelectedAmount(amount)}
+                  className={`w-16 rounded-xl border-2 py-3 text-sm font-bold tracking-wider transition-all ${
+                    selectedAmount === amount
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-border/60 text-muted-foreground hover:border-primary/50'
+                  }`}
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  ${amount}
+                </button>
+              ))}
             </div>
+            <CustomCharacterBadge />
 
             {/* Certificate info */}
             <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
