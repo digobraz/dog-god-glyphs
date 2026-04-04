@@ -68,12 +68,12 @@ export function NameScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  {/* Content */}
-                  <div className="relative z-10 p-5 pt-14 flex-1 flex flex-col">
+                  {/* Content – equal padding all around, pt accounts for X button */}
+                  <div className="relative z-10 p-5 pt-14 pb-5 flex-1 flex flex-col">
                     {/* Two-column layout */}
                     <div className="flex gap-4 flex-1 min-h-0">
                       {/* Left column – video/gif placeholder */}
-                      <div className="w-[35%] flex-shrink-0 rounded-xl border border-border/30 flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'hsl(var(--muted))' }}>
+                      <div className="w-[35%] flex-shrink-0 rounded-xl border border-border/30 flex items-center justify-center overflow-hidden my-0" style={{ backgroundColor: 'hsl(var(--muted))' }}>
                         <span className="text-muted-foreground text-xs text-center px-2" style={{ fontFamily: "'Inter', sans-serif" }}>
                           GIF / VIDEO
                         </span>
@@ -82,8 +82,8 @@ export function NameScreen() {
                       {/* Right column */}
                       <div className="flex-1 flex flex-col gap-2 min-w-0">
                         <h3
-                          className="text-foreground text-lg md:text-xl font-bold leading-tight"
-                          style={{ fontFamily: "'Cinzel', serif" }}
+                          className="text-lg md:text-xl font-bold leading-tight"
+                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                         >
                           WHO IS HEKTHOR?
                         </h3>
@@ -96,17 +96,17 @@ export function NameScreen() {
                         </p>
 
                         {/* Stats – stacked on mobile, row on desktop */}
-                        <div className="flex flex-col md:flex-row md:gap-4 gap-1 pt-1">
+                        <div className="flex flex-col md:flex-row md:gap-4 gap-1.5 pt-2">
                           <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-foreground text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Born:</p>
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born:</p>
                             <p className="text-foreground text-sm font-semibold">2016</p>
                           </div>
                           <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-foreground text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Adopted:</p>
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted:</p>
                             <p className="text-foreground text-sm font-semibold">2017</p>
                           </div>
                           <div className="flex items-center gap-1.5 md:flex-col md:text-center">
-                            <p className="text-foreground text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Location:</p>
+                            <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location:</p>
                             <p className="text-foreground text-sm font-semibold">SK, EU</p>
                           </div>
                         </div>
