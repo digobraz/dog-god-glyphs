@@ -76,9 +76,9 @@ export function PaymentSummaryScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="rounded-[0.875rem] papyrus-bg p-5 md:p-6">
+            <div className="rounded-[0.875rem] papyrus-bg p-4 md:p-5">
               <h2
-                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-5"
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 Order Summary
