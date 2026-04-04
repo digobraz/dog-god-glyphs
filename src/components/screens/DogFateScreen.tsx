@@ -79,7 +79,7 @@ export function DogFateScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={raisedSvg} alt="Raised" className="h-24 md:h-32 object-contain" />
+                <img src={raisedSvg} alt="Raised" className="h-12 md:h-16 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Raised</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Baby pacifier<br />A dog born into the family
