@@ -37,14 +37,16 @@ export function DogColourScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg px-4 pt-5 pb-3">
+            <div className="rounded-2xl border-2 border-border papyrus-bg px-6 pt-6 pb-4">
               <h2
-                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-2"
+                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
               </h2>
-              <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogColour" />
+              <div className="px-2">
+                <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogColour" />
+              </div>
             </div>
           </motion.div>
 
