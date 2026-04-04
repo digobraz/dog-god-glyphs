@@ -99,51 +99,38 @@ export function DogGenderScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  <div className="relative z-10 flex-1 grid grid-cols-2 gap-0">
+                  <div className="relative z-10 flex-1 grid grid-cols-2 gap-0 p-4 pt-12 md:pt-4">
                     {/* 3-Point Crown column */}
-                    <div className="relative flex flex-col items-center justify-center p-5 text-center overflow-hidden">
-                      <img
-                        src={kingSvg}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-contain opacity-[0.07] blur-[2px] scale-110 pointer-events-none"
-                      />
-                      <div className="relative z-10">
-                        <h4
-                          className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
-                          style={{ fontFamily: "'Cinzel', serif" }}
-                        >
-                          3-Point Crown
-                        </h4>
-                        <p
-                          className="text-foreground/70 text-[11px] md:text-xs leading-snug"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
-                        >
-                          For boys who've mastered the 3-paw balance. One leg up, maximum aim, absolute legend.
-                        </p>
-                      </div>
+                    <div className="flex flex-col items-center justify-center p-3 md:p-5 text-center">
+                      <h4
+                        className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        3-Point Crown
+                      </h4>
+                      <p
+                        className="text-foreground/70 text-[11px] md:text-xs leading-snug"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
+                      >
+                        For boys who've mastered the 3-paw balance. One leg up, maximum aim, absolute legend.
+                      </p>
                     </div>
 
                     {/* Divider */}
                     <div className="absolute left-1/2 top-4 bottom-4 w-px bg-foreground/10" />
 
                     {/* 4-Point Crown column */}
-                    <div className="relative flex flex-col items-center justify-center p-5 text-center overflow-hidden">
-                      <img
-                        src={queenSvg}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-contain opacity-[0.07] blur-[2px] scale-110 pointer-events-none"
-                      />
-                      <div className="relative z-10">
-                        <h4
-                          className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
-                          style={{ fontFamily: "'Cinzel', serif" }}
-                        >
-                          4-Point Crown
-                        </h4>
-                        <p
-                          className="text-foreground/70 text-[11px] md:text-xs leading-snug"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
-                        >
+                    <div className="flex flex-col items-center justify-center p-3 md:p-5 text-center">
+                      <h4
+                        className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
+                        style={{ fontFamily: "'Cinzel', serif" }}
+                      >
+                        4-Point Crown
+                      </h4>
+                      <p
+                        className="text-foreground/70 text-[11px] md:text-xs leading-snug"
+                        style={{ fontFamily: "'Inter', sans-serif" }}
+                      >
                           For girls who prefer the 4-paw stability. Maximum comfort, zero mess, total elegance.
                         </p>
                       </div>
