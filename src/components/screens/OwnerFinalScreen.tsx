@@ -65,9 +65,9 @@ export function OwnerFinalScreen() {
             {/* Default content */}
             <div className="p-6 md:p-8 flex items-center gap-6 h-full">
               <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-32 md:h-32 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-4 pr-8 flex-1">
+              <div className="flex flex-col gap-4 pr-10 flex-1">
                 <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  HEY MAN, your part is done. That little frame — that is you! Now let's finish HEROGLYPH with{' '}
+                  HEY MAN,<br />your part is done. That little frame — that is you! Now let's finish HEROGLYPH with{' '}
                   <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s part.
                 </p>
                 <Button
