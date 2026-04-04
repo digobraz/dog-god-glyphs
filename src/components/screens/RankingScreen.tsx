@@ -303,7 +303,7 @@ export function RankingScreen() {
                       <Hash className="h-7 w-7 text-foreground/60" />
                     </div>
                     <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                      12–50
+                      11–50
                     </span>
                   </button>
                 </div>
