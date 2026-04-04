@@ -30,7 +30,7 @@ export function DogGenderScreen() {
 
       <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2 my-auto">
-          {/* 1. BLOCK - Heroglyph preview with pulsing slot */}
+          {/* 1. BLOCK */}
           <motion.div
             className="w-full relative"
             initial={{ opacity: 0, y: -20 }}
@@ -50,7 +50,7 @@ export function DogGenderScreen() {
             </div>
           </motion.div>
 
-          {/* 2. BLOCK - Hekthor question */}
+          {/* 2. BLOCK */}
           <motion.div
             className="w-full rounded-2xl relative overflow-hidden min-h-[180px]"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
@@ -58,7 +58,7 @@ export function DogGenderScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            {/* Info toggle button */}
+            {/* Info toggle */}
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
@@ -100,7 +100,7 @@ export function DogGenderScreen() {
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   <div className="relative z-10 flex-1 grid grid-cols-2 gap-0 p-4 pt-12 md:pt-4">
-                    {/* 3-Point Crown column */}
+                    {/* 3-Point Crown */}
                     <div className="flex flex-col items-center justify-center p-3 md:p-5 text-center">
                       <h4
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
@@ -119,7 +119,7 @@ export function DogGenderScreen() {
                     {/* Divider */}
                     <div className="absolute left-1/2 top-4 bottom-4 w-px bg-foreground/10" />
 
-                    {/* 4-Point Crown column */}
+                    {/* 4-Point Crown */}
                     <div className="flex flex-col items-center justify-center p-3 md:p-5 text-center">
                       <h4
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
@@ -131,9 +131,8 @@ export function DogGenderScreen() {
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Inter', sans-serif" }}
                       >
-                          For girls who prefer the 4-paw stability. Maximum comfort, zero mess, total elegance.
-                        </p>
-                      </div>
+                        For girls who prefer the 4-paw stability. Maximum comfort, zero mess, total elegance.
+                      </p>
                     </div>
                   </div>
                 </motion.div>
@@ -149,7 +148,6 @@ export function DogGenderScreen() {
             transition={{ duration: 0.4, delay: 0.35 }}
           >
             <div className="flex gap-4 w-full">
-              {/* KING */}
               <button
                 onClick={() => handleSelect('king')}
                 className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
@@ -163,7 +161,6 @@ export function DogGenderScreen() {
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">King</span>
               </button>
 
-              {/* QUEEN */}
               <button
                 onClick={() => handleSelect('queen')}
                 className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
