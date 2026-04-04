@@ -128,7 +128,7 @@ export function ThankYouScreen() {
                 boxShadow: '0 0 20px hsl(var(--gold) / 0.3)',
               }}
             >
-              RETURN TO DOGYPT
+              FINISH
             </button>
           </motion.div>
         </div>
