@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useDogyptStore } from '@/store/dogyptStore';
+
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check, Shield } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
