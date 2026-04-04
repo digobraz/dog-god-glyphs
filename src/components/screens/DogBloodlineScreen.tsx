@@ -36,9 +36,9 @@ export function DogBloodlineScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg p-1.5">
+            <div className="rounded-2xl border-2 border-border papyrus-bg px-1.5 pt-3 pb-1.5">
               <h2
-                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-0.5"
+                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-2"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
