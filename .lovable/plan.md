@@ -1,16 +1,16 @@
 
 
-## Plan: Posunúť nadpis v 1. bloku nižšie o veľkosť písma
+## Plan: Posunúť nadpis výraznejšie nižšie v 1. bloku
 
-**Problém:** Nadpis "{dogName}'S HEROGLYPH" je príliš blízko horného okraja bloku. Treba ho posunúť nižšie, pričom celková veľkosť bloku zostane rovnaká.
+**Problém:** Nadpis "DAISY'S HEROGLYPH" je stále prilepený k hornému okraju bloku — medzi horným okrajom a nadpisom je príliš málo priestoru.
 
-**Riešenie:** Zvýšiť `pt` (padding-top) a proporcionálne znížiť `pb` (padding-bottom), aby sa blok nezväčšil. Konkrétne zmeniť `pt-3 pb-1.5` na `pt-5 pb-0.5` na všetkých 4 obrazovkách.
+**Riešenie:** Zmeniť `pt-5 pb-0.5` na `pt-8 pb-0` na všetkých 4 obrazovkách. Tým sa nadpis posunie výrazne nižšie a vizuálne sa vycentruje medzi horný okraj bloku a HeroglyphFrame pod ním.
 
-**Súbory:**
+**Súbory (rovnaká zmena v každom):**
 - `src/components/screens/DogGenderScreen.tsx`
 - `src/components/screens/DogFateScreen.tsx`
 - `src/components/screens/DogColourScreen.tsx`
 - `src/components/screens/DogBloodlineScreen.tsx`
 
-Zmena v každom súbore: na div s `papyrus-bg` zmeniť `pt-3 pb-1.5` → `pt-5 pb-0.5`.
+**Zmena:** Na div s `papyrus-bg` zmeniť `pt-5 pb-0.5` → `pt-8 pb-0`.
 
