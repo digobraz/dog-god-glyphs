@@ -12,13 +12,15 @@ const presetAmounts = [11, 22, 33];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
-  const [selectedAmount, setSelectedAmount] = useState<number>(11);
+  const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
+  const [selectedAmount, setLocalAmount] = useState<number>(11);
 
   const isValid = selectedAmount >= 11;
 
   const handleContinue = () => {
     if (!isValid) return;
-    // TODO: navigate to next step
+    setSelectedAmount(selectedAmount);
+    navigate('/payment-summary');
   };
 
   return (
