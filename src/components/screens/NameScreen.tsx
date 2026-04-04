@@ -73,10 +73,15 @@ export function NameScreen() {
                     {/* Two-column layout */}
                     <div className="flex gap-3 md:gap-4 flex-1 min-h-0">
                       {/* Left column – video/gif placeholder */}
-                      <div className="w-[30%] md:w-[35%] flex-shrink-0 rounded-xl border border-border/30 flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'hsl(var(--muted))' }}>
-                        <span className="text-muted-foreground text-[10px] md:text-xs text-center px-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                          GIF / VIDEO
-                        </span>
+                      <div className="w-[30%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden">
+                        <video
+                          src="/videos/WHO_IS_HEKTHOR.mp4"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover rounded-2xl"
+                        />
                       </div>
 
                       {/* Right column */}
