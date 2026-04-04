@@ -166,7 +166,7 @@ export function NameScreen() {
                 size="icon"
                 className="rounded-full bg-primary text-primary-foreground hover:bg-primary/80 h-9 w-9 flex-shrink-0 disabled:opacity-30"
               >
-                <Send className="h-4 w-4" />
+                <img src={pawIcon} alt="Send" className="h-4 w-4 invert" />
               </Button>
             </div>
           </motion.div>
