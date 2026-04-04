@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Info, X, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
 
@@ -34,9 +35,13 @@ export function DogCharacterScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
+  const customCharacter = useDogyptStore((s) => s.customCharacter);
+  const setCustomCharacter = useDogyptStore((s) => s.setCustomCharacter);
   const [selected, setSelected] = useState<string[]>([]);
   const [showInfo, setShowInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const maxSelections = customCharacter ? 3 : 2;
 
   // Reset scroll to center third when reaching edges
   const handleScroll = useCallback(() => {
@@ -61,20 +66,30 @@ export function DogCharacterScreen() {
       let next: string[];
       if (prev.includes(value)) {
         next = prev.filter((v) => v !== value);
-      } else if (prev.length < 2) {
+      } else if (prev.length < maxSelections) {
         next = [...prev, value];
       } else {
-        next = [prev[0], value];
+        next = [...prev.slice(1), value];
       }
 
-      if (next.length === 2) {
+      if (next.length === maxSelections) {
         setSelection('dogCharacter1', next[0]);
         setSelection('dogCharacter2', next[1]);
+        if (maxSelections === 3 && next[2]) {
+          setSelection('dogCharacter3', next[2]);
+        }
         setTimeout(() => navigate('/heroglyph-reveal'), 600);
       }
 
       return next;
     });
+  };
+
+  const handleCustomToggle = () => {
+    const newVal = !customCharacter;
+    setCustomCharacter(newVal);
+    // Reset selections when toggling custom since max changes
+    setSelected([]);
   };
 
   return (
@@ -102,6 +117,7 @@ export function DogCharacterScreen() {
               <div className="px-2">
                 <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogCharacter" />
               </div>
+              <CustomCharacterBadge />
             </div>
           </motion.div>
 
@@ -141,7 +157,7 @@ export function DogCharacterScreen() {
                   What's your dog's <span className="font-bold text-amber-300">personality</span> like?
                 </p>
                 <p className="text-xs md:text-sm text-amber-200/80" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Choose two options.
+                  Choose {customCharacter ? 'three' : 'two'} options.
                 </p>
               </div>
             </div>
@@ -168,7 +184,7 @@ export function DogCharacterScreen() {
                       className="text-foreground/70 text-xs md:text-sm leading-relaxed"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
-                      You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature (66€). For now, just pick the best fitting one!
+                      You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature. For now, just pick the best fitting one!
                     </p>
                     <p
                       className="text-purple-400 text-xs md:text-sm leading-relaxed italic mt-2"
@@ -239,8 +255,29 @@ export function DogCharacterScreen() {
               </button>
             </div>
 
-            <p className="text-center text-xs text-muted-foreground mt-3" style={{ fontFamily: "'Cinzel', serif" }}>
-              {selected.length}/2 selected
+            {/* CUSTOM option */}
+            <div className="flex flex-col items-center mt-3 gap-1">
+              <button
+                onClick={handleCustomToggle}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 transition-all ${
+                  customCharacter
+                    ? 'border-purple-400 bg-purple-400/15 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                    : 'border-purple-400/50 hover:border-purple-400 hover:bg-purple-400/5'
+                }`}
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                <Sparkles className="h-4 w-4 text-purple-400" />
+                <span className="text-xs font-bold tracking-[0.15em] uppercase text-purple-400">
+                  Custom
+                </span>
+              </button>
+              <span className="text-[10px] text-purple-400/70 font-medium" style={{ fontFamily: "'Cinzel', serif" }}>
+                (+ 66$)
+              </span>
+            </div>
+
+            <p className="text-center text-xs text-muted-foreground mt-2" style={{ fontFamily: "'Cinzel', serif" }}>
+              {selected.length}/{maxSelections} selected
             </p>
           </motion.div>
 
