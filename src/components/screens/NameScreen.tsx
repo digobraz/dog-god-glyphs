@@ -42,9 +42,9 @@ export function NameScreen() {
               aria-label="Info about Hekthor"
               onClick={() => setShowInfo((p) => !p)}
             >
-              <span className="w-7 h-7 rounded-full border-2 border-white/60 flex items-center justify-center transition-colors hover:border-white">
+              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
                 {showInfo
-                  ? <X className="h-4 w-4 text-white/80" />
+                  ? <X className="h-4 w-4 text-foreground/70" />
                   : <Info className="h-4 w-4 text-white/80" />}
               </span>
             </button>
@@ -57,59 +57,57 @@ export function NameScreen() {
               </p>
             </div>
 
-            {/* Info overlay */}
+            {/* Info overlay – papyrus light bg */}
             <AnimatePresence>
               {showInfo && (
                 <motion.div
-                  className="absolute inset-0 z-10 flex flex-col"
+                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.35 }}
+                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  {/* Dark overlay */}
-                  <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-
                   {/* Content */}
-                  <div className="relative z-10 p-5 flex-1 flex flex-col">
+                  <div className="relative z-10 p-5 pt-14 flex-1 flex flex-col">
                     {/* Two-column layout */}
                     <div className="flex gap-4 flex-1 min-h-0">
                       {/* Left column – video/gif placeholder */}
-                      <div className="w-[35%] flex-shrink-0 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center overflow-hidden">
-                        <span className="text-white/40 text-xs text-center px-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      <div className="w-[35%] flex-shrink-0 rounded-xl border border-border/30 flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'hsl(var(--muted))' }}>
+                        <span className="text-muted-foreground text-xs text-center px-2" style={{ fontFamily: "'Inter', sans-serif" }}>
                           GIF / VIDEO
                         </span>
                       </div>
 
                       {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-3 min-w-0">
+                      <div className="flex-1 flex flex-col gap-2 min-w-0">
                         <h3
-                          className="text-amber-300 text-lg md:text-xl font-bold leading-tight"
+                          className="text-foreground text-lg md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif" }}
                         >
                           WHO IS HEKTHOR?
                         </h3>
 
                         <p
-                          className="text-white/85 text-xs md:text-sm leading-relaxed flex-1"
+                          className="text-foreground/80 text-xs md:text-sm leading-relaxed flex-1"
                           style={{ fontFamily: "'Inter', sans-serif" }}
                         >
                           Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
                         </p>
 
-                        {/* 3 stat columns */}
-                        <div className="grid grid-cols-3 gap-2 pt-1">
-                          <div className="text-center">
-                            <p className="text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Born</p>
-                            <p className="text-white text-sm md:text-base font-semibold mt-0.5">2016</p>
+                        {/* Stats – stacked on mobile, row on desktop */}
+                        <div className="flex flex-col md:flex-row md:gap-4 gap-1 pt-1">
+                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                            <p className="text-foreground text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Born:</p>
+                            <p className="text-foreground text-sm font-semibold">2016</p>
                           </div>
-                          <div className="text-center">
-                            <p className="text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Adopted</p>
-                            <p className="text-white text-sm md:text-base font-semibold mt-0.5">2017</p>
+                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                            <p className="text-foreground text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Adopted:</p>
+                            <p className="text-foreground text-sm font-semibold">2017</p>
                           </div>
-                          <div className="text-center">
-                            <p className="text-amber-300 text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Location</p>
-                            <p className="text-white text-sm md:text-base font-semibold mt-0.5">SK, EU</p>
+                          <div className="flex items-center gap-1.5 md:flex-col md:text-center">
+                            <p className="text-foreground text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif" }}>Location:</p>
+                            <p className="text-foreground text-sm font-semibold">SK, EU</p>
                           </div>
                         </div>
                       </div>
