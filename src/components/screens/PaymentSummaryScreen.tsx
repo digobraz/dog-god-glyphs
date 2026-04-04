@@ -84,10 +84,10 @@ export function PaymentSummaryScreen() {
                 Order Summary
               </h2>
 
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-2">
                 {/* Heroglyph row */}
                 <div
-                  className="flex justify-between items-center rounded-xl px-4 py-3"
+                  className="flex justify-between items-center rounded-xl px-3 py-2"
                   style={{ background: 'linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))' }}
                 >
                   <div className="flex flex-col">
