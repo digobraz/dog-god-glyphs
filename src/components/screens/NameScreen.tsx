@@ -61,17 +61,17 @@ export function NameScreen() {
             <AnimatePresence>
               {showInfo && (
                 <motion.div
-                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden"
+                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden min-h-[450px]"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  {/* Content – equal padding all around, pt accounts for X button */}
+                  {/* Content */}
                   <div className="relative z-10 p-5 pt-12 pb-5 md:p-6 md:pt-14 md:pb-6 flex-1 flex flex-col overflow-y-auto">
                     {/* Video */}
-                    <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 flex-shrink-0">
+                    <div className="w-full aspect-[4/5] rounded-xl overflow-hidden mb-4 flex-shrink-0">
                       <video
                         src="/videos/WHO_IS_HEKTHOR.mp4"
                         autoPlay
