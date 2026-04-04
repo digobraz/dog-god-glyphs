@@ -12,13 +12,16 @@ const presetAmounts = [11, 22, 33];
 
 export function PayWallScreen() {
   const navigate = useNavigate();
-  const [selectedAmount, setSelectedAmount] = useState<number>(11);
+  const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
+  const [selectedAmount, setLocalAmount] = useState<number>(11);
+  
 
   const isValid = selectedAmount >= 11;
 
   const handleContinue = () => {
     if (!isValid) return;
-    // TODO: navigate to next step
+    setSelectedAmount(selectedAmount);
+    navigate('/payment-summary');
   };
 
   return (
@@ -57,7 +60,7 @@ export function PayWallScreen() {
               {presetAmounts.map((amount) => (
                 <button
                   key={amount}
-                  onClick={() => setSelectedAmount(amount)}
+                  onClick={() => setLocalAmount(amount)}
                   className={`w-16 rounded-xl border-2 py-3 text-sm font-bold tracking-wider transition-all ${
                     selectedAmount === amount
                       ? 'border-primary bg-primary/10 text-primary'

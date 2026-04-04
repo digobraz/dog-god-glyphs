@@ -20,6 +20,7 @@ import { DogShapeScreen } from "@/components/screens/DogShapeScreen";
 import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
 import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
 import { PayWallScreen } from "@/components/screens/PayWallScreen";
+import { PaymentSummaryScreen } from "@/components/screens/PaymentSummaryScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -50,6 +51,7 @@ const App = () => (
           <Route path="/dog-character" element={<DogCharacterScreen />} />
           <Route path="/heroglyph-reveal" element={<HeroglyphRevealScreen />} />
           <Route path="/pay-wall" element={<PayWallScreen />} />
+          <Route path="/payment-summary" element={<PaymentSummaryScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
