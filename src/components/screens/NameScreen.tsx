@@ -61,7 +61,7 @@ export function NameScreen() {
             <AnimatePresence>
               {showInfo && (
                 <motion.div
-                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden"
+                  className="absolute inset-0 z-10 rounded-2xl overflow-hidden"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -69,7 +69,7 @@ export function NameScreen() {
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col">
+                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 h-full flex flex-col box-border overflow-hidden">
                     {/* Two-column layout */}
                     <div className="flex gap-3 md:gap-4 flex-1 min-h-0 overflow-hidden">
                       {/* Left column – video */}
