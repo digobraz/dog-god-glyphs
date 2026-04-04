@@ -94,7 +94,7 @@ export function NameScreen() {
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed flex-1"
+                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed"
                           style={{ fontFamily: "'Inter', sans-serif" }}
                         >
                           Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
