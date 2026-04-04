@@ -27,8 +27,8 @@ export function DogFateScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain rounded-full" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2">
+      <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2 my-auto">
           {/* 1. BLOCK - Heroglyph preview with pulsing slot */}
           <motion.div
             className="w-full relative"
