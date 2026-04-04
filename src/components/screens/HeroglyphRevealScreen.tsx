@@ -203,7 +203,7 @@ export function HeroglyphRevealScreen() {
                 </div>
               </div>
               <Button
-                onClick={() => navigate('/pricing')}
+                onClick={() => navigate('/pay-wall')}
                 className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform border-2 border-white/30"
                 style={{
                   fontFamily: "'Cinzel', serif",
