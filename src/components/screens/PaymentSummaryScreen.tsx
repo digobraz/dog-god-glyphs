@@ -114,7 +114,7 @@ export function PaymentSummaryScreen() {
 
                 {/* Custom Character row */}
                 <div
-                  className={`flex justify-between items-center rounded-xl px-4 py-3 transition-colors ${
+                  className={`flex justify-between items-center rounded-xl px-3 py-2 transition-colors ${
                     customPrice > 0
                       ? 'border border-purple-400/30 bg-purple-400/5'
                       : 'bg-foreground/[0.03]'
