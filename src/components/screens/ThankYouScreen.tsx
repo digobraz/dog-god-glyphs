@@ -6,7 +6,7 @@ import thankYouHero from '@/assets/thank-you-hero.png';
 
 export function ThankYouScreen() {
   const navigate = useNavigate();
-  const { dogName, ownerName, reset } = useDogyptStore();
+  const { reset } = useDogyptStore();
 
   const handleReturn = () => {
     reset();
