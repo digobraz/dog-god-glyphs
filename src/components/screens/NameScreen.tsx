@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Info, X } from 'lucide-react';
-import pawIcon from '@/assets/paw-icon.png';
+import { Info, X, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
