@@ -97,9 +97,6 @@ export function DogGenderScreen() {
               >
                 <img src={queenSvg} alt="Queen" className="h-12 md:h-16 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Queen</span>
-                <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Four-peak crown<br />Can you guess why?
-                </span>
               </button>
             </div>
           </motion.div>
