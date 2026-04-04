@@ -98,10 +98,10 @@ export function OwnerFinalScreen() {
                 >
                   <div className="relative z-10 p-5 pt-12 md:pt-5 flex-1 flex flex-col items-center text-center">
                     <h3
-                      className="text-sm md:text-base font-bold leading-tight uppercase tracking-wider mt-0"
-                      style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                      className="text-sm md:text-base font-bold leading-tight uppercase tracking-wider mt-0 text-heading-on-light"
+                      style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      NAMES IN ANCIENT EGYPT
+                      INSPIRED BY ANCIENT EGYPT
                     </h3>
                     <p
                       className="text-foreground/80 text-[11px] md:text-xs leading-snug max-w-md mt-1.5"
