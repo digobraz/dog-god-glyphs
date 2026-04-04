@@ -96,7 +96,7 @@ export function DogFateScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={rescuedSvg} alt="Rescued" className="h-24 md:h-32 object-contain" />
+                <img src={rescuedSvg} alt="Rescued" className="h-12 md:h-16 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Rescued</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Lifebuoy<br />Rescued or found dog

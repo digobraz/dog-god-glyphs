@@ -96,7 +96,7 @@ export function DogGenderScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={queenSvg} alt="Queen" className="h-24 md:h-32 object-contain" />
+                <img src={queenSvg} alt="Queen" className="h-12 md:h-16 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Queen</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Four-peak crown<br />Can you guess why?

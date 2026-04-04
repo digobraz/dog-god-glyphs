@@ -114,7 +114,7 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={mixSvg} alt="Mix" className="h-20 md:h-28 object-contain" />
+                <img src={mixSvg} alt="Mix" className="h-10 md:h-14 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mix</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Rainbow

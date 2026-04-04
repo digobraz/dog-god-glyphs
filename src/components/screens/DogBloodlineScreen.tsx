@@ -96,7 +96,7 @@ export function DogBloodlineScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={muttImg} alt="Mutt" className="h-24 md:h-32 object-contain" />
+                <img src={muttImg} alt="Mutt" className="h-12 md:h-16 object-contain" />
                 <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mutt</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
                   Empty papyrus<br />Original without pure bloodline
