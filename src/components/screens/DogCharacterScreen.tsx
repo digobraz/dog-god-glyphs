@@ -41,7 +41,7 @@ export function DogCharacterScreen() {
   const [showInfo, setShowInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const maxSelections = 2;
+  
 
   // Reset scroll to center third when reaching edges
   const handleScroll = useCallback(() => {
