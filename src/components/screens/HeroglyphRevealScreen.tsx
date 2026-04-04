@@ -9,8 +9,8 @@ import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
-import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import dogyptLogoRound from '@/assets/dogypt-logo-gold.png';
 
 export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ export function HeroglyphRevealScreen() {
         transition={{ duration: 1 }}
       >
         {/* Logo */}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
 
         {/* 1. BLOCK - Ornamental frame with heroglyph */}
         <motion.div

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Send, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 import letterA from '@/assets/letters/NAME_-A.svg';
@@ -60,7 +60,7 @@ export function OwnerInfoScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex justify-center pt-6 pb-3">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
@@ -111,7 +111,7 @@ export function OwnerInfoScreen() {
                     key={firstLetter}
                     src={letterSvg}
                     alt={firstLetter}
-                    className="h-16 md:h-20 object-contain rounded-full"
+                    className="h-10 md:h-14 object-contain"
                     initial={{ opacity: 0, scale: 0.5 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}

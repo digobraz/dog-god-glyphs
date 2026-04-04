@@ -5,7 +5,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 const presetAmounts = [11, 22, 33];
@@ -27,7 +27,7 @@ export function PayWallScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex justify-center pt-6 pb-3">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">

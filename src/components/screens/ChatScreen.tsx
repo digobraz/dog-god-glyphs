@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Send, Camera, X, Plus, ArrowLeft } from 'lucide-react';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
 export function ChatScreen() {
@@ -136,7 +136,7 @@ export function ChatScreen() {
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-16 md:h-20 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
       </div>
 
       {/* Main content — centered */}

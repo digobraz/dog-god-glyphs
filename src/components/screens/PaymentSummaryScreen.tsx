@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
-import dogyptLogo from '@/assets/dogypt-logo-round.png';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 const COUNTRIES = [
   'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
@@ -60,7 +60,7 @@ export function PaymentSummaryScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain rounded-full" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-start px-4 overflow-y-auto">
