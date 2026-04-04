@@ -54,7 +54,7 @@ export function ThankYouScreen() {
                 className="text-lg md:text-xl font-bold tracking-widest text-amber-300 mt-1"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {ownerName || 'MATEJ'} & {dogName || 'HEKTHOR'}
+                MATEJ & HEKTHOR
               </p>
             </div>
           </motion.div>
