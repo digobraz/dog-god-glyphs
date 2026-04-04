@@ -23,8 +23,8 @@ export function DogBloodlineScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-4 pb-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-14 md:h-18 object-contain rounded-full" />
+      <div className="flex-shrink-0 flex justify-center pt-2 pb-1">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain rounded-full" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
@@ -36,9 +36,9 @@ export function DogBloodlineScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg p-2">
+            <div className="rounded-2xl border-2 border-border papyrus-bg p-1.5">
               <h2
-                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-1"
+                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-0.5"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
@@ -49,7 +49,7 @@ export function DogBloodlineScreen() {
 
           {/* 2. BLOCK - Hekthor question */}
           <motion.div
-            className="w-full rounded-2xl p-5 flex items-center gap-5"
+            className="w-full rounded-2xl p-6 md:p-8 flex items-center gap-5"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
