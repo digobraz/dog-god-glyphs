@@ -113,7 +113,6 @@ export function NameScreen() {
                       </div>
                     </div>
                   </div>
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
