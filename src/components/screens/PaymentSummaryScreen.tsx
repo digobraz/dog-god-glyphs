@@ -27,6 +27,7 @@ const COUNTRIES = [
 
 export function PaymentSummaryScreen() {
   const navigate = useNavigate();
+  const dogName = useDogyptStore((s) => s.dogName);
   const selectedAmount = useDogyptStore((s) => s.selectedAmount);
   const customCharacter = useDogyptStore((s) => s.customCharacter);
 
@@ -66,42 +67,102 @@ export function PaymentSummaryScreen() {
         <div className="w-full max-w-xl flex flex-col items-center gap-4 py-3">
           {/* 1. BLOCK - Order Summary */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-5"
+            className="w-full rounded-2xl overflow-hidden"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)), hsl(var(--gold)))',
+              padding: '2px',
+            }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
+            transition={{ duration: 0.4 }}
           >
-            <h2
-              className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-4"
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              Order Summary
-            </h2>
+            <div className="rounded-[0.875rem] papyrus-bg p-5 md:p-6">
+              <h2
+                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-5"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                Order Summary
+              </h2>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between items-center text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                <span className="text-foreground/70">Heroglyph</span>
-                <span className="text-foreground font-medium">${selectedAmount}</span>
-              </div>
-              <div className="flex justify-between items-center text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                <span className="text-foreground/70">Custom Character</span>
-                <span className={`font-medium ${customPrice > 0 ? 'text-purple-400' : 'text-foreground/40'}`}>
-                  ${customPrice}
-                </span>
-              </div>
-              <div className="border-t border-border/40 mt-1 pt-2 flex justify-between items-center">
-                <span
-                  className="text-base font-bold tracking-wider uppercase text-primary"
-                  style={{ fontFamily: "'Cinzel', serif" }}
+              <div className="flex flex-col gap-3">
+                {/* Heroglyph row */}
+                <div
+                  className="flex justify-between items-center rounded-xl px-4 py-3"
+                  style={{ background: 'linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))' }}
                 >
-                  Total
-                </span>
-                <span
-                  className="text-lg font-bold text-primary"
-                  style={{ fontFamily: "'Cinzel', serif" }}
+                  <div className="flex flex-col">
+                    <span
+                      className="text-xs tracking-widest uppercase text-foreground/50"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      {dogName}'s
+                    </span>
+                    <span
+                      className="text-lg md:text-xl font-bold tracking-[0.15em] uppercase text-primary"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      HEROGLYPH
+                    </span>
+                  </div>
+                  <span
+                    className="text-xl md:text-2xl font-bold text-primary"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    ${selectedAmount}
+                  </span>
+                </div>
+
+                {/* Custom Character row */}
+                <div
+                  className={`flex justify-between items-center rounded-xl px-4 py-3 transition-colors ${
+                    customPrice > 0
+                      ? 'border border-purple-400/30 bg-purple-400/5'
+                      : 'bg-foreground/[0.03]'
+                  }`}
                 >
-                  ${total}
-                </span>
+                  <div className="flex items-center gap-2">
+                    {customPrice > 0 && (
+                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                    )}
+                    <span
+                      className={`text-sm ${customPrice > 0 ? 'text-purple-400 font-semibold' : 'text-foreground/40'}`}
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Custom Character
+                    </span>
+                  </div>
+                  <span
+                    className={`text-base font-bold ${customPrice > 0 ? 'text-purple-400' : 'text-foreground/30'}`}
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    ${customPrice}
+                  </span>
+                </div>
+
+                {/* Total */}
+                <div
+                  className="mt-1 rounded-xl px-4 py-3 flex justify-between items-center"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(var(--gold) / 0.15), hsl(var(--gold) / 0.25))',
+                    borderTop: '2px solid hsl(var(--gold) / 0.3)',
+                  }}
+                >
+                  <span
+                    className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    Total
+                  </span>
+                  <span
+                    className="text-2xl md:text-3xl font-bold text-primary"
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      textShadow: '0 0 20px hsl(var(--gold) / 0.3)',
+                    }}
+                  >
+                    ${total}
+                  </span>
+                </div>
               </div>
             </div>
           </motion.div>
