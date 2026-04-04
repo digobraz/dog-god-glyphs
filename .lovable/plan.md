@@ -1,16 +1,18 @@
 
 
-## Plan: Posunúť nadpis v 1. bloku nižšie o veľkosť písma
+## Plan: Orezať viewBox v HeroglyphFrame
 
-**Problém:** Nadpis "{dogName}'S HEROGLYPH" je príliš blízko horného okraja bloku. Treba ho posunúť nižšie, pričom celková veľkosť bloku zostane rovnaká.
+**Problém:** SVG rámik má viewBox `0 0 14692 5696`, ale viditeľný obsah (vonkajší čierny rámik) zaberá len oblasť cca od `(850, 1190)` do `(13840, 4500)`. To vytvára veľké prázdne medzery nad a pod rámikom, ktoré zbytočne zaberajú miesto v 1. bloku.
 
-**Riešenie:** Zvýšiť `pt` (padding-top) a proporcionálne znížiť `pb` (padding-bottom), aby sa blok nezväčšil. Konkrétne zmeniť `pt-3 pb-1.5` na `pt-5 pb-0.5` na všetkých 4 obrazovkách.
+**Riešenie:** Zmeniť `viewBox` v `HeroglyphFrame.tsx` tak, aby tesne obklopoval viditeľný obsah. Stačí upraviť jeden riadok:
 
-**Súbory:**
-- `src/components/screens/DogGenderScreen.tsx`
-- `src/components/screens/DogFateScreen.tsx`
-- `src/components/screens/DogColourScreen.tsx`
-- `src/components/screens/DogBloodlineScreen.tsx`
+```
+viewBox="0 0 14692 5696"  →  viewBox="800 1100 13100 3500"
+```
 
-Zmena v každom súbore: na div s `papyrus-bg` zmeniť `pt-3 pb-1.5` → `pt-5 pb-0.5`.
+Tým sa odrežú prázdne okraje a rámik vyplní dostupný priestor oveľa efektívnejšie. Všetky sloty a symboly zostanú na svojich pozíciách — mení sa len "kamera", nie obsah.
+
+**Súbor:** `src/components/HeroglyphFrame.tsx` (riadok 241)
+
+**Dopad:** Rámik bude vizuálne väčší a kompaktnejší v 1. bloku. Žiadne iné súbory nie je treba meniť.
 
