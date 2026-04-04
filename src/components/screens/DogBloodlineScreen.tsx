@@ -112,7 +112,7 @@ export function DogBloodlineScreen() {
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Inter', sans-serif" }}
                       >
-                        Signed papyrus. Original with pure bloodline.
+                        Original with pure bloodline.
                       </p>
                     </div>
 
@@ -131,7 +131,7 @@ export function DogBloodlineScreen() {
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Inter', sans-serif" }}
                       >
-                        Empty papyrus. Original without pure bloodline.
+                        Original without pure bloodline.
                       </p>
                     </div>
                   </div>
