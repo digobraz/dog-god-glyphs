@@ -179,7 +179,7 @@ export function DogCharacterScreen() {
                       className="text-foreground/70 text-xs md:text-sm leading-relaxed"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
-                      You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature. For now, just pick the best fitting one!
+                      You can order a custom hand-drawn symbol made exclusively for your dog's specific quirk or toy as a premium paid feature. For now, pick the two that work for you!
                     </p>
                     <p
                       className="text-purple-400 text-xs md:text-sm leading-relaxed italic mt-2"
@@ -231,8 +231,8 @@ export function DogCharacterScreen() {
                         <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase text-purple-400">
                           Custom
                         </span>
-                        <span className="text-[8px] text-purple-400/70 font-medium">
-                          (+ 66$)
+                        <span className="text-[11px] md:text-xs font-bold text-purple-300">
+                          + 66$
                         </span>
                       </button>
                     );
