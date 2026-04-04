@@ -39,6 +39,9 @@ export function OwnerGenderScreen() {
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               {dogName}, who is your boss?
             </p>
+            <p className="text-white/60 text-center text-xs md:text-sm mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Even a family dog has one primary boss. Choose wisely!
+            </p>
           </motion.div>
 
           {/* Options block */}
