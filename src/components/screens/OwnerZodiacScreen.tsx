@@ -72,8 +72,18 @@ function ScrollableStrip({
   scrollRef: React.RefObject<HTMLDivElement>;
 }) {
   const scroll = (dir: 'left' | 'right') => {
-    if (!scrollRef.current) return;
-    scrollRef.current.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+    const el = scrollRef.current;
+    if (!el) return;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+    const atStart = el.scrollLeft <= 4;
+
+    if (dir === 'right' && atEnd) {
+      el.scrollTo({ left: 0, behavior: 'smooth' });
+    } else if (dir === 'left' && atStart) {
+      el.scrollTo({ left: el.scrollWidth, behavior: 'smooth' });
+    } else {
+      el.scrollBy({ left: dir === 'left' ? -200 : 200, behavior: 'smooth' });
+    }
   };
 
   return (
