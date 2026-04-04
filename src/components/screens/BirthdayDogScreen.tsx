@@ -59,7 +59,7 @@ export function BirthdayDogScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              When does your pup celebrate their birthday?
+              When does <span className="font-bold text-amber-300">{dogName || 'your pup'}</span> celebrate birthday?
             </p>
           </motion.div>
 
@@ -82,7 +82,7 @@ export function BirthdayDogScreen() {
                   value={day}
                   onChange={e => setDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
                   placeholder="DD"
-                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-2xl font-bold outline-none focus:border-primary transition-colors"
+                  className="w-full h-12 md:h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-xl md:text-2xl font-bold outline-none focus:border-primary transition-colors"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 />
               </div>
@@ -95,7 +95,7 @@ export function BirthdayDogScreen() {
                 <select
                   value={month}
                   onChange={e => setMonth(e.target.value)}
-                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-lg font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer px-4"
+                  className="w-full h-12 md:h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-base md:text-lg font-bold outline-none focus:border-primary transition-colors appearance-none cursor-pointer px-4"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
                   <option value="" disabled>Month</option>
@@ -117,7 +117,7 @@ export function BirthdayDogScreen() {
                   value={year}
                   onChange={e => setYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
                   placeholder="YYYY"
-                  className="w-full h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-2xl font-bold outline-none focus:border-primary transition-colors"
+                  className="w-full h-12 md:h-16 bg-transparent border-2 border-border/60 rounded-xl text-center text-xl md:text-2xl font-bold outline-none focus:border-primary transition-colors"
                   style={{ fontFamily: "'Cinzel', serif" }}
                 />
               </div>
