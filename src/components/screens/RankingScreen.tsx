@@ -153,7 +153,7 @@ export function RankingScreen() {
 
   const handleCustomConfirm = () => {
     const n = parseInt(customNum);
-    if (n >= 12 && n <= 50) {
+    if (n >= 11 && n <= 50) {
       handlePickRank(String(n));
     }
   };
