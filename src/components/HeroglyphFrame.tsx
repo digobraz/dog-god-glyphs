@@ -216,6 +216,7 @@ interface HeroglyphFrameProps {
   showOwner?: boolean;
   className?: string;
   pulseSlot?: string;
+  pulseAllEmpty?: boolean;
 }
 
 export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false }: HeroglyphFrameProps) {
