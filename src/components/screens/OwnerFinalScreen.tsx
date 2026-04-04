@@ -96,28 +96,22 @@ export function OwnerFinalScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  <div className="relative z-10 p-6 pt-14 flex-1 flex flex-col items-center text-center gap-3 overflow-y-auto">
+                  <div className="relative z-10 p-5 pt-12 flex-1 flex flex-col items-center text-center gap-2">
                     <h3
-                      className="text-lg md:text-xl font-bold leading-tight uppercase tracking-wider"
+                      className="text-sm md:text-base font-bold leading-tight uppercase tracking-wider"
                       style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                     >
                       NAMES IN ANCIENT EGYPT
                     </h3>
                     <p
-                      className="text-foreground/80 text-sm md:text-base leading-relaxed max-w-md"
+                      className="text-foreground/80 text-[11px] md:text-xs leading-snug max-w-md"
                       style={{ fontFamily: "'Inter', sans-serif" }}
                     >
                       The HEROGLYPH consists of two frames that together form your dog's true identity. In Ancient Egypt, the names of gods and pharaohs were written inside similar protective oval frames, called cartouches, to preserve their legacy for eternity.
                     </p>
 
-                    {/* Image placeholder */}
-                    <div className="w-full max-w-[220px] flex flex-col items-center gap-1.5 mt-1">
-                      <div
-                        className="w-full aspect-square rounded-xl border-2 flex items-center justify-center overflow-hidden"
-                        style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)', backgroundColor: 'hsl(var(--gold-dark) / 0.08)' }}
-                      >
-                        <span className="text-4xl">𓂀</span>
-                      </div>
+                    <div className="w-full max-w-[240px] flex flex-col items-center gap-1 mt-1">
+                      <img src={cleopatraImg} alt="Cleopatra's cartouche" className="w-full rounded-lg" />
                       <p
                         className="text-foreground/50 text-[10px] md:text-xs italic"
                         style={{ fontFamily: "'Inter', sans-serif" }}
