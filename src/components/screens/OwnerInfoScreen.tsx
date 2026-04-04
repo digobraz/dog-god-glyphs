@@ -73,7 +73,7 @@ export function OwnerInfoScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Okay, let's talk about your owner first!
+              Okay, let's talk about you, man!
             </p>
           </motion.div>
 
@@ -89,7 +89,7 @@ export function OwnerInfoScreen() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
-                  placeholder="Owner's name..."
+                  placeholder="Owner's first name..."
                   className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                   autoFocus
