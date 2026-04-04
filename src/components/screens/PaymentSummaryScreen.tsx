@@ -64,7 +64,7 @@ export function PaymentSummaryScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-start px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-4 py-3">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2">
           {/* 1. BLOCK - Order Summary */}
           <motion.div
             className="w-full rounded-2xl overflow-hidden"
