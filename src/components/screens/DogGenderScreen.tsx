@@ -36,15 +36,13 @@ export function DogGenderScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg px-1.5 pt-2 pb-1.5">
-              <div className="flex min-h-[64px] items-center justify-center md:min-h-[72px]">
-                <h2
-                  className="text-center text-base md:text-lg font-bold leading-none tracking-[0.2em] uppercase text-primary"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {dogName || 'YOUR DOG'}'S HEROGLYPH
-                </h2>
-              </div>
+            <div className="rounded-2xl border-2 border-border papyrus-bg px-1.5 pt-3 pb-1.5">
+              <h2
+                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-2"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {dogName || 'YOUR DOG'}'S HEROGLYPH
+              </h2>
               <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogGender" />
             </div>
           </motion.div>
