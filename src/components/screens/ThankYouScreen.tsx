@@ -2,11 +2,11 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
-import thankYouHero from '@/assets/thank-you-hero.jpg';
+import thankYouHero from '@/assets/thank-you-hero.png';
 
 export function ThankYouScreen() {
   const navigate = useNavigate();
-  const { dogName, ownerName, reset } = useDogyptStore();
+  const { reset } = useDogyptStore();
 
   const handleReturn = () => {
     reset();
@@ -54,7 +54,7 @@ export function ThankYouScreen() {
                 className="text-lg md:text-xl font-bold tracking-widest text-amber-300 mt-1"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {ownerName || 'MATEJ'} & {dogName || 'HEKTHOR'}
+                MATEJ & HEKTHOR
               </p>
             </div>
           </motion.div>
@@ -128,7 +128,7 @@ export function ThankYouScreen() {
                 boxShadow: '0 0 20px hsl(var(--gold) / 0.3)',
               }}
             >
-              RETURN TO DOGYPT
+              FINISH
             </button>
           </motion.div>
         </div>
