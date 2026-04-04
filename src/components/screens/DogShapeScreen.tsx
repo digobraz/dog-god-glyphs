@@ -107,9 +107,9 @@ export function DogShapeScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="rounded-2xl border-2 border-border papyrus-bg p-4">
+            <div className="rounded-2xl border-2 border-border papyrus-bg px-4 pt-5 pb-3">
               <h2
-                className="text-center text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-2"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {dogName || 'YOUR DOG'}'S HEROGLYPH
