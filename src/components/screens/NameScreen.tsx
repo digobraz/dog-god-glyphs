@@ -69,23 +69,23 @@ export function NameScreen() {
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="relative z-10 p-5 pt-14 pb-5 flex-1 flex flex-col">
+                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col">
                     {/* Two-column layout */}
-                    <div className="flex gap-4 flex-1 min-h-0">
+                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0">
                       {/* Left column – video/gif placeholder */}
-                      <div className="w-[35%] flex-shrink-0 rounded-xl border border-border/30 flex items-center justify-center overflow-hidden my-0" style={{ backgroundColor: 'hsl(var(--muted))' }}>
-                        <span className="text-muted-foreground text-xs text-center px-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+                      <div className="w-[30%] md:w-[35%] flex-shrink-0 rounded-xl border border-border/30 flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'hsl(var(--muted))' }}>
+                        <span className="text-muted-foreground text-[10px] md:text-xs text-center px-1" style={{ fontFamily: "'Inter', sans-serif" }}>
                           GIF / VIDEO
                         </span>
                       </div>
 
                       {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-2 min-w-0">
+                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0">
                         <h3
-                          className="text-lg md:text-xl font-bold leading-tight"
+                          className="text-base md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                         >
-                          WHO IS HEKTHOR?
+                          WHO IS<br className="md:hidden" /> HEKTHOR?
                         </h3>
 
                         <p
