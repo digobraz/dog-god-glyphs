@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Send, Info, X } from 'lucide-react';
+import { Info, X } from 'lucide-react';
+import pawIcon from '@/assets/paw-icon.png';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
@@ -119,16 +120,16 @@ export function NameScreen() {
                           </div>
 
                           {/* Desktop: decorative open-table style */}
-                          <div className="hidden md:flex md:gap-0 w-full">
-                            <div className="flex-1 flex flex-col items-center py-2 border-l-2 border-t-2 rounded-tl-lg" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
+                          <div className="hidden md:flex md:gap-0 w-full rounded-lg border-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
+                            <div className="flex-1 flex flex-col items-center py-2.5">
                               <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Born</p>
                               <p className="text-foreground text-sm font-semibold">2016</p>
                             </div>
-                            <div className="flex-1 flex flex-col items-center py-2 border-l-2 border-t-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
+                            <div className="flex-1 flex flex-col items-center py-2.5 border-l-2 border-r-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
                               <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Adopted</p>
                               <p className="text-foreground text-sm font-semibold">2017</p>
                             </div>
-                            <div className="flex-1 flex flex-col items-center py-2 border-l-2 border-t-2 border-r-2 rounded-tr-lg" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
+                            <div className="flex-1 flex flex-col items-center py-2.5">
                               <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>Location</p>
                               <p className="text-foreground text-sm font-semibold">Slovakia, EU</p>
                             </div>
@@ -165,7 +166,7 @@ export function NameScreen() {
                 size="icon"
                 className="rounded-full bg-primary text-primary-foreground hover:bg-primary/80 h-9 w-9 flex-shrink-0 disabled:opacity-30"
               >
-                <Send className="h-4 w-4" />
+                <img src={pawIcon} alt="Send" className="h-4 w-4 invert" />
               </Button>
             </div>
           </motion.div>
