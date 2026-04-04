@@ -68,12 +68,12 @@ export function NameScreen() {
                   transition={{ duration: 0.35 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="absolute inset-4 md:inset-5 top-12 md:top-14 z-10 flex flex-col overflow-hidden">
+                  {/* Content */}
+                  <div className="p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 h-full flex flex-col box-border">
                     {/* Two-column layout */}
                     <div className="flex gap-3 md:gap-4 flex-1 min-h-0">
                       {/* Left column – video */}
-                      <div className="w-[38%] md:w-[35%] rounded-2xl overflow-hidden">
+                      <div className="w-[38%] md:w-[35%] min-h-0 rounded-2xl overflow-hidden">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
