@@ -86,21 +86,11 @@ export function PhotoScreen() {
               })}
             </div>
             <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
-            <div className="flex gap-2">
-              <Button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={photos.length >= 5}
-                variant="outline"
-                className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground gap-2 disabled:opacity-30"
-                style={{ fontFamily: "'Cinzel', serif" }}
-              >
-                <Camera className="h-4 w-4" />
-                Add Photos
-              </Button>
-              {photos.length > 0 && (
+            <div className="flex flex-col gap-2">
+              {photos.length === 0 ? (
                 <Button
-                  onClick={() => navigate('/breed')}
-                  className="flex-1 rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
                   style={{
                     fontFamily: "'Cinzel', serif",
                     background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
@@ -108,9 +98,34 @@ export function PhotoScreen() {
                     boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <Send className="h-4 w-4" />
-                  Continue
+                  <Camera className="h-4 w-4" />
+                  ADD PHOTOS
                 </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={photos.length >= 5}
+                    variant="outline"
+                    className="flex-1 rounded-full py-5 font-bold tracking-wider border-primary text-foreground hover:bg-primary hover:text-primary-foreground gap-2 disabled:opacity-30"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    <Camera className="h-4 w-4" />
+                    ADD MORE
+                  </Button>
+                  <Button
+                    onClick={() => navigate('/breed')}
+                    className="flex-1 rounded-full py-5 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                      color: '#000',
+                      boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                    }}
+                  >
+                    NEXT →
+                  </Button>
+                </div>
               )}
             </div>
           </motion.div>
