@@ -14,6 +14,7 @@ export function PayWallScreen() {
   const navigate = useNavigate();
   const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
   const [selectedAmount, setLocalAmount] = useState<number>(11);
+  const handleAmountChange = (amount: number) => setLocalAmount(amount);
 
   const isValid = selectedAmount >= 11;
 
