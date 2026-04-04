@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-round.png';
 import hekthorImg from '@/assets/hekthor.png';
-import pawIcon from '@/assets/paw-icon.png';
+import { PawPrint } from 'lucide-react';
 import { fciBreeds } from '@/lib/fciBreeds';
 
 type Mode = 'choose' | 'purebred' | 'mix' | 'unknown';
