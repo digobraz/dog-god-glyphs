@@ -41,7 +41,7 @@ export function HeroglyphRevealScreen() {
             <motion.img
               src={dogyptLogoRound}
               alt="DOGYPT"
-              className="w-36 h-36 md:w-48 md:h-48"
+              className="w-36 h-36 md:w-48 md:h-48 rounded-full"
               initial={{ scale: 0, rotate: -360 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ duration: 1.4, type: 'spring', bounce: 0.3 }}
