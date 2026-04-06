@@ -10,7 +10,7 @@ import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import dogyptLogoRound from '@/assets/dogypt-logo-gold.png';
+import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 
 export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
