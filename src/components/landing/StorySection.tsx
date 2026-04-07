@@ -56,6 +56,9 @@ const slides = [
     tag: 'THROUGH THE AGES',
     title: 'Pushed beyond physical limits',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4',
+    videoPosition: '50% calc(50% + 100px)',
+    videoPositionTablet: '50% calc(50% + 100px)',
+    videoPositionMobile: '50% calc(50% + 100px)',
     full: 'Throughout every crisis in human history, dogs have remained our steadfast companions. During the Great Plague, when humans fled from each other in terror, dogs stayed loyal. In natural disasters, they\'ve been found guarding their families for days without food or water. This unwavering devotion spans millennia and transcends every culture, every border, every conflict.',
   },
   {
