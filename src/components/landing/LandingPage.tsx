@@ -83,6 +83,8 @@ export function LandingPage() {
       if (isAnimating.current) return;
       const deltaY = touchStartY.current - e.changedTouches[0].clientY;
       if (Math.abs(deltaY) < TOUCH_THRESHOLD) return;
+      // Close story modal on swipe, then continue with navigation
+      (window as any).__storyModalClose?.();
       navigate(deltaY > 0 ? 1 : -1);
     };
 
