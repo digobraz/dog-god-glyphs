@@ -45,10 +45,12 @@ export function LandingPage() {
     let next: number;
 
     if (direction === -1) {
-      // FAST-TRACK UP
+      // FAST-TRACK UP — go to first item of current section first
       if (prev === 15) next = 10;
-      else if (prev >= 10 && prev <= 14) next = 1;
-      else if (prev >= 1 && prev <= 9) next = 0;
+      else if (prev > 10 && prev <= 14) next = 10;  // VISION 2-5 → VISION 1
+      else if (prev === 10) next = 1;                // VISION 1 → STORY 1
+      else if (prev > 1 && prev <= 9) next = 1;      // STORY 2-9 → STORY 1
+      else if (prev === 1) next = 0;                  // STORY 1 → HERO
       else next = 0;
     } else {
       // STEP-BY-STEP DOWN
