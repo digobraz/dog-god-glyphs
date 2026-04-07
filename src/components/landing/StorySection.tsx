@@ -136,7 +136,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black md:hidden" />
       </div>
 
-      <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
+      <div className={`${slide.videoStyle?.mobileFullHeight ? 'absolute bottom-0 left-0 right-0 md:relative md:bottom-auto' : 'relative'} w-full md:w-[40%] ${slide.videoStyle?.mobileFullHeight ? '' : 'h-[60vh]'} md:h-full bg-black/90 md:bg-black flex items-center z-10`}>
         <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
           <span
             className="text-xs md:text-sm tracking-[0.2em] uppercase mb-6 block"
