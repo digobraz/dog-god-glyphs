@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LandingPage } from "@/components/landing/LandingPage";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedScreen } from "@/components/screens/BreedScreen";
@@ -34,7 +35,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<NameScreen />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/name" element={<NameScreen />} />
           <Route path="/photo" element={<PhotoScreen />} />
           <Route path="/breed" element={<BreedScreen />} />
