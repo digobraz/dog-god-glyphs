@@ -24,7 +24,8 @@ export function LandingPage() {
 
     const target = targets[clamped] as HTMLElement;
     if (target) {
-      window.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+      const absoluteTop = target.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
     }
 
     setTimeout(() => {
