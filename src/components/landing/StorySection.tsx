@@ -16,6 +16,9 @@ const slides = [
     tag: '3000 BC | ANCIENT EGYPT',
     title: 'That forged a mythical loyalty',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4',
+    videoPosition: 'calc(50% - 150px) calc(50% + 50px)',
+    videoPositionTablet: 'calc(50% - 150px) calc(50% + 50px)',
+    videoPositionMobile: 'calc(50% - 150px) calc(50% + 50px)',
     full: 'In ancient Egypt, dogs held a sacred status unlike anywhere else in the ancient world. The god Anubis, depicted with a jackal head, was the guardian of the dead and the guide of souls. When a family dog died, the entire household would shave their eyebrows in mourning. Dogs were mummified with the same care as pharaohs, ensuring their journey to the afterlife alongside their beloved humans.',
   },
   {
