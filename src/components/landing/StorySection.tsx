@@ -9,7 +9,7 @@ const slides = [
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPosition: '-150px 100px',
     videoPositionTablet: '-300px 100px',
-    videoPositionMobile: '-150px 70px',
+    videoPositionMobile: '-150px 100px',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
@@ -136,7 +136,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
           className="absolute inset-0"
           style={{
             background: isMobile
-              ? 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.97) 100%)'
+              ? 'linear-gradient(to bottom, transparent 72%, rgba(0,0,0,0.95) 85%, rgba(0,0,0,0.97) 100%)'
               : 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)',
           }}
         />
