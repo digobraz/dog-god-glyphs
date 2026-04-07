@@ -9,6 +9,7 @@ const slides = [
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPosition: '-150px 100px',
     videoPositionTablet: '-300px 100px',
+    videoPositionMobile: '0% 50%',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
@@ -96,24 +97,30 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
 function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; index: number; onReadStory: () => void }) {
   const isLast = index === slides.length - 1;
   const [isTablet, setIsTablet] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const check = () => {
       const w = window.innerWidth;
       setIsTablet(w >= 768 && w < 1024);
+      setIsMobile(w < 768);
     };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const videoPos = isTablet && slide.videoPositionTablet
-    ? slide.videoPositionTablet
-    : slide.videoPosition;
+  const videoPos = isMobile && slide.videoPositionMobile
+    ? slide.videoPositionMobile
+    : isTablet && slide.videoPositionTablet
+      ? slide.videoPositionTablet
+      : slide.videoPosition;
+
+  const mobileFullHeight = isMobile && slide.videoPositionMobile;
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
+      <div className={`relative w-full md:w-[60%] ${mobileFullHeight ? 'h-screen' : 'h-[40vh]'} md:h-full`}>
         {slide.video && (
           <video
             src={slide.video}
