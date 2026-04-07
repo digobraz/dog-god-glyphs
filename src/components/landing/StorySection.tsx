@@ -181,10 +181,18 @@ export function StorySection({ scrollingUp }: { scrollingUp: boolean }) {
       <section
         id="story"
         ref={containerRef}
-        className="relative bg-black snap-start transition-[height] duration-300"
+        className="relative bg-black"
         style={{ height: containerHeight }}
       >
-        <div className="sticky top-0 h-screen w-full overflow-hidden">
+        {/* Invisible snap anchors in normal flow */}
+        {slides.map((_, i) => (
+          <div key={`snap-${i}`} className="h-screen snap-start" />
+        ))}
+        {/* Sticky visual layer pulled back to top via negative margin */}
+        <div
+          className="sticky top-0 h-screen w-full overflow-hidden"
+          style={{ marginTop: `-${slides.length * 100}vh` }}
+        >
           <motion.div className="flex h-full" style={{ x: scrollingUp ? undefined : x }}>
             {slides.map((slide, i) => (
               <StoryCard key={i} slide={slide} index={i} onReadStory={() => setModalIdx(i)} />
