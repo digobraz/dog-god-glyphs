@@ -7,7 +7,7 @@ const slides = [
     tag: '12 000 BC | AIN MALLAHA',
     title: 'It all started with a gentle touch...',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
-    videoPosition: '0% 100px',
+    videoPosition: '-150px 100px',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
