@@ -39,7 +39,7 @@ export function HeroSection() {
           >
             <span
               className="font-black text-3xl md:text-5xl lg:text-6xl"
-              style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+              style={{ fontFamily: "'Cinzel', serif", color: '#FFFFFF' }}
             >
               <AnimatedCounter target={29} duration={2500} />
             </span>
@@ -89,7 +89,7 @@ export function HeroSection() {
           {/* Row 4: Secondary Action */}
           <motion.p
             className="mt-4 text-xs md:text-sm tracking-widest uppercase"
-            style={{ fontFamily: "'Cinzel', serif", color: 'rgba(196, 155, 66, 0.6)' }}
+            style={{ fontFamily: "'Cinzel', serif", color: 'rgba(255, 255, 255, 0.6)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1.2, duration: 0.5 }}
