@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -6,55 +6,46 @@ const slides = [
   {
     tag: '12 000 BC | AIN MALLAHA',
     title: 'It all started with a gentle touch...',
-    body: 'In the ancient ruins of Ain Mallaha, archaeologists found a 12,000-year-old skeleton — a human hand resting on a puppy. The first proof of unconditional love.',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
     tag: '3000 BC | ANCIENT EGYPT',
-    title: 'When dogs became gods.',
-    body: 'The Egyptians didn\'t just love dogs — they worshipped them. Anubis, the jackal-headed god, guarded the gates of the afterlife.',
+    title: '...that forged a mythical loyalty...',
     full: 'In ancient Egypt, dogs held a sacred status unlike anywhere else in the ancient world. The god Anubis, depicted with a jackal head, was the guardian of the dead and the guide of souls. When a family dog died, the entire household would shave their eyebrows in mourning. Dogs were mummified with the same care as pharaohs, ensuring their journey to the afterlife alongside their beloved humans.',
   },
   {
     tag: '500 AD | MEDIEVAL EUROPE',
-    title: 'Loyal knights on four legs.',
-    body: 'Medieval lords engraved their dogs into family crests. Loyalty wasn\'t just a human virtue — it was learned from dogs.',
+    title: '...endured the gravest injustice...',
     full: 'Throughout medieval Europe, dogs became symbols of fidelity and noble character. Knights included greyhounds and other breeds in their heraldic coats of arms as symbols of loyalty and courage. The famous story of Gelert, the faithful hound of Welsh prince Llewelyn, became a legend that echoed through centuries — a tale of ultimate loyalty and tragic misunderstanding that still moves hearts today.',
   },
   {
     tag: '1500 AD | RENAISSANCE',
-    title: 'Immortalized in masterpieces.',
-    body: 'From Velázquez to Titian, the greatest artists painted dogs not as accessories, but as souls with stories.',
+    title: '...brought hope into the darkness...',
     full: 'The Renaissance brought a revolution in how dogs were depicted in art. No longer mere background elements, dogs became central figures in masterpieces. Velázquez painted them with the same dignity as royals. Titian gave them expressive eyes that seemed to hold ancient wisdom. These artists understood what science would later confirm — dogs possess emotional depth that rivals our own.',
   },
   {
     tag: '1800s | THE AGE OF EXPLORATION',
-    title: 'Companions to the unknown.',
-    body: 'Every great explorer had a dog by their side. From Arctic expeditions to uncharted territories, dogs led the way.',
+    title: '...melted the ice through selfless sacrifice...',
     full: 'The 19th century saw dogs become indispensable partners in humanity\'s greatest adventures. Sled dogs carried explorers across the frozen Arctic. Hounds accompanied settlers into the American frontier. In every expedition journal, you\'ll find entries about faithful dogs who provided warmth, warning, and unwavering companionship in the most hostile environments on Earth.',
   },
   {
     tag: '1900s | WORLD AT WAR',
-    title: 'Heroes without medals.',
-    body: 'In the darkest hours of humanity, dogs served as medics, messengers, and morale. They saved thousands of lives.',
+    title: '...became our very senses...',
     full: 'During both World Wars, dogs performed extraordinary acts of bravery. Sergeant Stubby, a stray Boston Terrier, became the most decorated war dog in American history, saving his regiment from mustard gas attacks and capturing a German spy. Thousands of dogs served as Red Cross medics, locating wounded soldiers on battlefields. They asked for nothing in return — only the chance to help.',
   },
   {
     tag: 'THROUGH THE AGES',
-    title: 'They never gave up on us.',
-    body: 'Through plagues, wars, and disasters — dogs stayed. When the world fell apart, they held it together.',
+    title: '...pushed beyond physical limits...',
     full: 'Throughout every crisis in human history, dogs have remained our steadfast companions. During the Great Plague, when humans fled from each other in terror, dogs stayed loyal. In natural disasters, they\'ve been found guarding their families for days without food or water. This unwavering devotion spans millennia and transcends every culture, every border, every conflict.',
   },
   {
     tag: '1957 | BEYOND THE SKY',
-    title: 'The first earthling in space was a dog.',
-    body: 'Laika, a stray from Moscow\'s streets, became the first living being to orbit Earth. A small dog took one giant leap for all of us.',
+    title: '...and propelled humanity to the stars...',
     full: 'On November 3, 1957, a small mixed-breed dog named Laika was launched into orbit aboard Sputnik 2, becoming the first earthling to journey into space. Found as a stray on the streets of Moscow, she was chosen for her calm temperament and resilience. Though she never returned, her sacrifice paved the way for human spaceflight and stands as a testament to the extraordinary role dogs have played in advancing human civilization.',
   },
   {
     tag: '2026 | THE PRESENT',
-    title: 'Now it\'s our turn.',
-    body: '500 million dogs need help. The bond that started 12,000 years ago demands action. DOGYPT is the answer.',
+    title: '...so we could build a world where dog is god.',
     full: 'Today, over 500 million dogs live as strays worldwide. Millions are abandoned, abused, or forgotten. Yet the bond between humans and dogs has never been stronger — dog adoption rates are rising, veterinary science is advancing, and a global community of dog lovers is forming. DOGYPT was born from this moment — a movement to honor every dog with a unique HEROGLYPH and to channel the power of the world\'s largest dog-loving community into real change.',
   },
 ];
@@ -114,20 +105,17 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
       <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
         <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
           <span
-            className="text-xs md:text-sm tracking-[0.2em] uppercase mb-4 block"
+            className="text-xs md:text-sm tracking-[0.2em] uppercase mb-6 block"
             style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
           >
             {slide.tag}
           </span>
           <h2
-            className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-10 leading-tight"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
             {slide.title}
           </h2>
-          <p className="text-white/60 text-sm md:text-base mb-8 leading-relaxed">
-            {slide.body}
-          </p>
           <div className="flex flex-wrap gap-4">
             <button
               onClick={onReadStory}
@@ -165,6 +153,18 @@ export function StorySection() {
   const [modalIdx, setModalIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Expose modal state globally so LandingPage scroll handler can close it
+  useEffect(() => {
+    (window as any).__storyModalClose = () => {
+      if (modalIdx !== null) {
+        setModalIdx(null);
+        return true; // was open
+      }
+      return false;
+    };
+    return () => { delete (window as any).__storyModalClose; };
+  }, [modalIdx]);
+
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start start', 'end end'],
@@ -180,11 +180,9 @@ export function StorySection() {
         className="relative bg-black"
         style={{ height: `${slides.length * 100}vh` }}
       >
-        {/* Snap page targets for scroll hijacking */}
         {slides.map((_, i) => (
           <div key={`snap-${i}`} className="h-screen" data-snap-page />
         ))}
-        {/* Sticky visual layer pulled back to top via negative margin */}
         <div
           className="sticky top-0 h-screen w-full overflow-hidden"
           style={{ marginTop: `-${slides.length * 100}vh` }}
