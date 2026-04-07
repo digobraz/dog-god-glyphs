@@ -62,12 +62,20 @@ export function Header() {
       className="fixed top-0 left-0 w-full z-50 flex flex-col items-center pt-6 pb-12 transition-all duration-500"
       style={bgStyle}
     >
-      <img
-        src={dogyptLogo}
-        alt="DOGYPT"
-        className="h-12 md:h-16 object-contain transition-all duration-500"
-        style={{ filter: isLight ? 'brightness(0)' : 'none' }}
-      />
+      <a
+        href="#hero"
+        onClick={(e) => {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      >
+        <img
+          src={dogyptLogo}
+          alt="DOGYPT"
+          className="h-12 md:h-16 object-contain transition-all duration-500 cursor-pointer"
+          style={{ filter: isLight ? 'brightness(0)' : 'none' }}
+        />
+      </a>
       <nav className="flex items-center gap-0 mt-4">
         {['STORY', 'VISION', 'ABOUT'].map((item, i) => {
           const isActive = activeSection === item.toLowerCase();
