@@ -1,57 +1,24 @@
 
 
-## Problém
+## Problem
 
-`html { overflow: hidden; }` v `index.css` blokuje **všetok** scroll — vrátane programatického `scrollIntoView()`. Takže keď JS hijacker nastaví `currentIndex` a zavolá `scrollIntoView`, stránka sa nikam nepohne. Vizuálne sa nič nezmení, aj keď sa stav aktualizuje.
+When user clicks VISION (index 10) in the menu and then scrolls up, they land on **Hero (0)** instead of **Story 1/9 (1)**. Same issue from ABOUT.
 
-Zároveň `StorySection` používa `useScroll` z framer-motion na sledovanie scroll progress pre horizontálny posun slajdov — ale keďže scroll neexistuje, `scrollYProgress` je stále 0 a slajdy sa nehýbu.
+**Root cause**: The `scrollToIndex` function uses a **100ms cooldown** for instant/section jumps (line 36). When the user scrolls up from VISION, the fast-track logic correctly computes `next = 1` and performs an instant scroll. But the 100ms lock expires almost immediately, and the **next wheel/touch event** from trackpad inertia fires another `navigate(-1)`, which now reads `prev = 1` and jumps to `next = 0` (Hero). The user sees VISION → Hero in what appears to be a single action, skipping Story entirely.
 
-## Riešenie
+## Fix
 
-Zmeniť prístup: namiesto blokovania overflow a pokúšania sa o programatický scroll, ponechať natívny scroll povolený ale kontrolovať ho cez JS.
+**File: `src/components/landing/LandingPage.tsx`**
 
-### Zmeny
-
-**1. `src/index.css`** — Odstrániť `overflow: hidden` z `html`, pridať `overscroll-behavior: none`
-
-```css
-html {
-  overscroll-behavior: none;
-}
-```
-
-**2. `src/components/landing/LandingPage.tsx`** — Vylepšiť scroll hijacker
-
-- Wheel handler: ponechať `e.preventDefault()` — toto blokuje natívny scroll kolieskom/trackpadom
-- Pridať `touchmove` handler s `e.preventDefault()` — blokuje natívny touch scroll
-- Zmeniť `scrollIntoView` na `window.scrollTo({ top: target.offsetTop, behavior: 'smooth' })` pre spoľahlivejšie programatické scrollovanie
-- Použiť `ref` namiesto `state` pre `currentIndex`, aby sa predišlo stale closures v event handleroch (event listenery sa nebudú musieť re-registrovať pri každej zmene indexu)
+Change the cooldown for instant/section jumps from 100ms to the full `TRANSITION_DURATION` (1000ms). This absorbs all remaining inertia events and prevents the double-jump.
 
 ```tsx
-const currentIndexRef = useRef(0);
+// Line 36 — BEFORE:
+const delay = (instant || isSectionJump) ? 100 : TRANSITION_DURATION;
 
-const scrollToIndex = (index: number) => {
-  const targets = document.querySelectorAll('[data-snap-page]');
-  const clamped = Math.max(0, Math.min(index, targets.length - 1));
-  if (isAnimating.current) return;
-  
-  isAnimating.current = true;
-  currentIndexRef.current = clamped;
-  
-  const target = targets[clamped] as HTMLElement;
-  window.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
-  
-  setTimeout(() => { isAnimating.current = false; }, TRANSITION_DURATION);
-};
+// AFTER:
+const delay = TRANSITION_DURATION;
 ```
 
-- Zmeniť `useEffect` dependencies na `[]` (prázdne) keďže všetky hodnoty sú v refs
-
-**3. Bez zmien v `StorySection.tsx`**
-
-`useScroll` z framer-motion bude teraz fungovať, keďže natívny scroll je povolený. Programatický `window.scrollTo` posunie stránku, `scrollYProgress` sa aktualizuje, a horizontálny posun slajdov bude fungovať.
-
-### Súbory
-- `src/index.css` — zmena html overflow
-- `src/components/landing/LandingPage.tsx` — oprava scroll hijackera (refs, scrollTo, touchmove)
+One line change. The full 1000ms lock applies to all transitions — both smooth scrolls and instant section jumps. This ensures one scroll action = one section change, even with trackpad inertia.
 
