@@ -28,9 +28,8 @@ export function HeroSection() {
     <section id="hero" className="h-screen w-full relative bg-black overflow-hidden">
       <MatrixRain />
 
-      {/* Equal spacing: top padding matches bottom padding to clear header */}
-      {/* Main content - true center of viewport */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+      {/* Main content - centered in the space below the floating header */}
+      <div className="absolute inset-x-0 top-[152px] bottom-0 flex flex-col items-center justify-center text-center px-4 md:top-[176px]">
           {/* Row 1: Social Proof */}
           <motion.div
             className="flex flex-row items-baseline justify-center gap-3 mb-2"
