@@ -31,7 +31,7 @@ export function HeroSection() {
       {/* Equal spacing: top padding matches bottom padding to clear header */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         {/* Spacer top - matches header height */}
-        <div className="flex-none h-[120px]" />
+        <div className="flex-none h-[200px]" />
 
         {/* Main content group - centered in remaining space */}
         <div className="flex-1 flex flex-col items-center justify-center">
@@ -104,7 +104,7 @@ export function HeroSection() {
         </div>
 
         {/* Row 5: Pulsing Down Arrow - pinned at bottom with same spacing as top */}
-        <div className="flex-none h-[120px] flex items-end pb-4">
+        <div className="flex-none h-[200px] flex items-end pb-4">
           <motion.button
             onClick={scrollToStory}
             className="animate-pulse"
