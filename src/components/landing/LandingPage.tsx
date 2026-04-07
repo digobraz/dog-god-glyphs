@@ -33,7 +33,7 @@ export function LandingPage() {
       window.scrollTo({ top: absoluteTop, behavior });
     }
 
-    const delay = (instant || isSectionJump) ? 100 : TRANSITION_DURATION;
+    const delay = TRANSITION_DURATION;
     setTimeout(() => {
       isAnimating.current = false;
     }, delay);
