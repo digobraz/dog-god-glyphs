@@ -8,12 +8,12 @@ export function AboutSection() {
   return (
     <section
       id="about"
-      className="relative min-h-screen flex flex-col justify-center py-24 md:py-32 snap-center"
+      className="relative h-screen flex flex-col justify-center"
       style={{ backgroundColor: '#FAF4EC' }}
     >
       <div className="max-w-4xl mx-auto px-6 md:px-8 flex-1 flex flex-col justify-center">
         <motion.h2
-          className="text-4xl md:text-5xl font-black text-center mb-8"
+          className="text-4xl md:text-5xl font-black text-center mb-6"
           style={{ fontFamily: "'Cinzel', serif", color: '#A3782B' }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -23,7 +23,7 @@ export function AboutSection() {
         </motion.h2>
 
         <motion.p
-          className="text-center text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-12"
+          className="text-center text-base md:text-lg leading-relaxed max-w-2xl mx-auto mb-8"
           style={{ color: 'rgba(0,0,0,0.6)' }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -35,9 +35,9 @@ export function AboutSection() {
           and dogs, building the world's largest community of dog lovers united to help millions of dogs in need.
         </motion.p>
 
-        {/* Video thumbnail */}
+        {/* Video thumbnail - LARGE and prominent */}
         <motion.div
-          className="relative max-w-2xl mx-auto rounded-2xl overflow-hidden cursor-pointer group mb-16"
+          className="relative max-w-3xl mx-auto w-full rounded-2xl overflow-hidden cursor-pointer group mb-8"
           style={{ aspectRatio: '16/9', backgroundColor: '#000' }}
           onClick={() => setShowVideo(true)}
           initial={{ opacity: 0, scale: 0.95 }}
@@ -47,13 +47,13 @@ export function AboutSection() {
         >
           <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors z-10">
             <div
-              className="w-20 h-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
+              className="w-24 h-24 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
               style={{
                 background: 'linear-gradient(135deg, #A3782B, #C49B42)',
-                boxShadow: '0 0 30px rgba(196,155,66,0.5)',
+                boxShadow: '0 0 40px rgba(196,155,66,0.6)',
               }}
             >
-              <Play className="w-8 h-8 text-black ml-1" fill="black" />
+              <Play className="w-10 h-10 text-black ml-1" fill="black" />
             </div>
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
@@ -64,8 +64,8 @@ export function AboutSection() {
         </motion.div>
 
         {/* Footer */}
-        <footer className="border-t pt-8 mt-auto" style={{ borderColor: 'rgba(163,120,43,0.2)' }}>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+        <footer className="border-t pt-6 mt-auto mb-4" style={{ borderColor: 'rgba(163,120,43,0.2)' }}>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm" style={{ color: 'rgba(0,0,0,0.4)' }}>© DOGYPT 2026. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <a href="mailto:hello@dogypt.com" className="text-sm transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
