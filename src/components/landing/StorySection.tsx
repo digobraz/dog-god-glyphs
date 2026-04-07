@@ -6,46 +6,55 @@ const slides = [
   {
     tag: '12 000 BC | AIN MALLAHA',
     title: 'It all started with a gentle touch...',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
     tag: '3000 BC | ANCIENT EGYPT',
     title: 'That forged a mythical loyalty',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4',
     full: 'In ancient Egypt, dogs held a sacred status unlike anywhere else in the ancient world. The god Anubis, depicted with a jackal head, was the guardian of the dead and the guide of souls. When a family dog died, the entire household would shave their eyebrows in mourning. Dogs were mummified with the same care as pharaohs, ensuring their journey to the afterlife alongside their beloved humans.',
   },
   {
     tag: '500 AD | MEDIEVAL EUROPE',
     title: 'Endured the gravest injustice',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4',
     full: 'Throughout medieval Europe, dogs became symbols of fidelity and noble character. Knights included greyhounds and other breeds in their heraldic coats of arms as symbols of loyalty and courage. The famous story of Gelert, the faithful hound of Welsh prince Llewelyn, became a legend that echoed through centuries — a tale of ultimate loyalty and tragic misunderstanding that still moves hearts today.',
   },
   {
     tag: '1500 AD | RENAISSANCE',
     title: 'Brought hope into the darkness',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4',
     full: 'The Renaissance brought a revolution in how dogs were depicted in art. No longer mere background elements, dogs became central figures in masterpieces. Velázquez painted them with the same dignity as royals. Titian gave them expressive eyes that seemed to hold ancient wisdom. These artists understood what science would later confirm — dogs possess emotional depth that rivals our own.',
   },
   {
     tag: '1800s | THE AGE OF EXPLORATION',
     title: 'Melted the ice through selfless sacrifice',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4',
     full: 'The 19th century saw dogs become indispensable partners in humanity\'s greatest adventures. Sled dogs carried explorers across the frozen Arctic. Hounds accompanied settlers into the American frontier. In every expedition journal, you\'ll find entries about faithful dogs who provided warmth, warning, and unwavering companionship in the most hostile environments on Earth.',
   },
   {
     tag: '1900s | WORLD AT WAR',
     title: 'Became our very senses',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4',
     full: 'During both World Wars, dogs performed extraordinary acts of bravery. Sergeant Stubby, a stray Boston Terrier, became the most decorated war dog in American history, saving his regiment from mustard gas attacks and capturing a German spy. Thousands of dogs served as Red Cross medics, locating wounded soldiers on battlefields. They asked for nothing in return — only the chance to help.',
   },
   {
     tag: 'THROUGH THE AGES',
     title: 'Pushed beyond physical limits',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4',
     full: 'Throughout every crisis in human history, dogs have remained our steadfast companions. During the Great Plague, when humans fled from each other in terror, dogs stayed loyal. In natural disasters, they\'ve been found guarding their families for days without food or water. This unwavering devotion spans millennia and transcends every culture, every border, every conflict.',
   },
   {
     tag: '1957 | BEYOND THE SKY',
     title: 'And propelled humanity to the stars',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4',
     full: 'On November 3, 1957, a small mixed-breed dog named Laika was launched into orbit aboard Sputnik 2, becoming the first earthling to journey into space. Found as a stray on the streets of Moscow, she was chosen for her calm temperament and resilience. Though she never returned, her sacrifice paved the way for human spaceflight and stands as a testament to the extraordinary role dogs have played in advancing human civilization.',
   },
   {
     tag: '2026 | THE PRESENT',
     title: '...so we could build a world where dog is god.',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4',
     full: 'Today, over 500 million dogs live as strays worldwide. Millions are abandoned, abused, or forgotten. Yet the bond between humans and dogs has never been stronger — dog adoption rates are rising, veterinary science is advancing, and a global community of dog lovers is forming. DOGYPT was born from this moment — a movement to honor every dog with a unique HEROGLYPH and to channel the power of the world\'s largest dog-loving community into real change.',
   },
 ];
@@ -88,6 +97,16 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
       <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
+        {slide.video && (
+          <video
+            src={slide.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
         <div
           className="absolute inset-0"
           style={{
