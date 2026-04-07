@@ -7,11 +7,6 @@ const slides = [
     tag: '12 000 BC | AIN MALLAHA',
     title: 'It all started with a gentle touch...',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
-    videoStyle: {
-      desktop: '70% 55%',
-      mobile: '80% 50%',
-      mobileFullHeight: true,
-    },
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
@@ -98,29 +93,19 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
 
 function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; index: number; onReadStory: () => void }) {
   const isLast = index === slides.length - 1;
-  const videoId = `story-video-${index}`;
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className={`relative w-full md:w-[60%] ${slide.videoStyle?.mobileFullHeight ? 'h-screen' : 'h-[40vh]'} md:h-full overflow-hidden`}>
+      <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
         {slide.video && (
-          <>
-            {slide.videoStyle && (
-              <style>{`
-                #${videoId} { object-position: ${slide.videoStyle.mobile}; }
-                @media (min-width: 768px) { #${videoId} { object-position: ${slide.videoStyle.desktop}; } }
-              `}</style>
-            )}
-            <video
-              id={videoId}
-              src={slide.video}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          </>
+          <video
+            src={slide.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         )}
         <div
           className="absolute inset-0"
@@ -136,7 +121,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black md:hidden" />
       </div>
 
-      <div className={`${slide.videoStyle?.mobileFullHeight ? 'absolute bottom-0 left-0 right-0 md:relative md:bottom-auto' : 'relative'} w-full md:w-[40%] ${slide.videoStyle?.mobileFullHeight ? '' : 'h-[60vh]'} md:h-full bg-black/90 md:bg-black flex items-center z-10`}>
+      <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
         <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
           <span
             className="text-xs md:text-sm tracking-[0.2em] uppercase mb-6 block"
