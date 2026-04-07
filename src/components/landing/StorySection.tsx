@@ -101,7 +101,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
+      <div className={`relative w-full md:w-[60%] ${slide.videoStyle?.mobileFullHeight ? 'h-screen' : 'h-[40vh]'} md:h-full`}>
         {slide.video && (
           <video
             src={slide.video}
@@ -110,6 +110,11 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              objectPosition: slide.videoStyle
+                ? undefined
+                : 'center center',
+            }}
           />
         )}
         <div
