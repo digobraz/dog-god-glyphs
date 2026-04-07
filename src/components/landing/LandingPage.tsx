@@ -31,7 +31,7 @@ export function LandingPage() {
   }, []);
 
   return (
-    <div className="w-full snap-y snap-mandatory">
+    <div className="w-full">
       <div className="snap-start">
         <Header />
         <HeroSection />
