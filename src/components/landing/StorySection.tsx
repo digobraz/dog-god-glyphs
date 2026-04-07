@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -59,9 +59,139 @@ const slides = [
   },
 ];
 
+function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
+  const slide = slides[idx];
+  return (
+    <motion.div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <div className="absolute inset-0 bg-black/80" onClick={onClose} />
+      <motion.div
+        className="relative z-10 max-w-xl w-full rounded-2xl p-8 max-h-[80vh] overflow-y-auto"
+        style={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(196,155,66,0.3)' }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+      >
+        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+          <X className="h-5 w-5" />
+        </button>
+        <span className="text-xs tracking-[0.2em] uppercase mb-3 block" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
+          {slide.tag}
+        </span>
+        <h3 className="text-2xl md:text-3xl font-bold text-white mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
+          {slide.title}
+        </h3>
+        <p className="text-white/70 text-base leading-relaxed">{slide.full}</p>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; index: number; onReadStory: () => void }) {
+  const isLast = index === slides.length - 1;
+
+  return (
+    <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
+      {/* Left: Image placeholder (60%) */}
+      <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)`,
+          }}
+        />
+        {/* Subtle decorative element */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
+          <span className="text-[20vw] font-black" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
+            {index + 1}
+          </span>
+        </div>
+        {/* Mobile: gradient overlay for readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black md:hidden" />
+      </div>
+
+      {/* Right: Text content (40%) */}
+      <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
+        <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
+          <span
+            className="text-xs md:text-sm tracking-[0.2em] uppercase mb-4 block"
+            style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+          >
+            {slide.tag}
+          </span>
+          <h2
+            className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 leading-tight"
+            style={{ fontFamily: "'Cinzel', serif" }}
+          >
+            {slide.title}
+          </h2>
+          <p className="text-white/60 text-sm md:text-base mb-8 leading-relaxed">
+            {slide.body}
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={onReadStory}
+              className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-white/10"
+              style={{ fontFamily: "'Cinzel', serif", color: '#C49B42', borderColor: '#C49B42' }}
+            >
+              Read Story
+            </button>
+            {isLast && (
+              <a
+                href="#vision"
+                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                  color: '#000',
+                  boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
+                }}
+              >
+                Vision
+              </a>
+            )}
+          </div>
+
+          {/* Slide indicator */}
+          <div className="absolute bottom-6 right-8 text-white/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
+            {index + 1} / {slides.length}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function StorySection() {
   const [modalIdx, setModalIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollingUp, setScrollingUp] = useState(false);
+  const lastScrollY = useRef(0);
+
+  // Track scroll direction to disable scrolljack when going up
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y < lastScrollY.current - 5) {
+          setScrollingUp(true);
+        } else if (y > lastScrollY.current + 5) {
+          setScrollingUp(false);
+        }
+        lastScrollY.current = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -70,132 +200,28 @@ export function StorySection() {
 
   const x = useTransform(scrollYProgress, [0, 1], ['0vw', `-${(slides.length - 1) * 100}vw`]);
 
+  // When scrolling up: collapse the tall container so user scrolls through fast
+  const containerHeight = scrollingUp ? '100vh' : `${slides.length * 100}vh`;
+
   return (
     <>
-      {/* Tall parent drives vertical scroll */}
       <section
         id="story"
         ref={containerRef}
-        className="relative bg-black"
-        style={{ height: `${slides.length * 100}vh` }}
+        className="relative bg-black transition-[height] duration-300"
+        style={{ height: containerHeight }}
       >
-        {/* Sticky viewport */}
         <div className="sticky top-0 h-screen w-full overflow-hidden">
-          <motion.div className="flex h-full" style={{ x }}>
+          <motion.div className="flex h-full" style={{ x: scrollingUp ? undefined : x }}>
             {slides.map((slide, i) => (
-              <div
-                key={i}
-                className="flex-shrink-0 w-screen h-screen relative flex items-end"
-              >
-                {/* Cinemagraph bg placeholder */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: `radial-gradient(ellipse at center, rgba(163,120,43,0.08) 0%, rgba(0,0,0,0.95) 70%)`,
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-
-                {/* Content */}
-                <div className="relative z-10 p-8 md:p-16 max-w-2xl mb-16 md:mb-24">
-                  <span
-                    className="text-xs md:text-sm tracking-[0.2em] uppercase mb-3 block"
-                    style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
-                  >
-                    {slide.tag}
-                  </span>
-                  <h2
-                    className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight"
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    {slide.title}
-                  </h2>
-                  <p className="text-white/70 text-base md:text-lg mb-6 leading-relaxed">
-                    {slide.body}
-                  </p>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => setModalIdx(i)}
-                      className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-white/10"
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        color: '#C49B42',
-                        borderColor: '#C49B42',
-                      }}
-                    >
-                      Read Story
-                    </button>
-                    {i === slides.length - 1 && (
-                      <a
-                        href="#vision"
-                        className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
-                        style={{
-                          fontFamily: "'Cinzel', serif",
-                          background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                          color: '#000',
-                          boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
-                        }}
-                      >
-                        Vision
-                      </a>
-                    )}
-                  </div>
-                </div>
-
-                {/* Slide indicator */}
-                <div
-                  className="absolute bottom-6 right-8 text-white/30 text-sm"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {i + 1} / {slides.length}
-                </div>
-              </div>
+              <StoryCard key={i} slide={slide} index={i} onReadStory={() => setModalIdx(i)} />
             ))}
           </motion.div>
         </div>
       </section>
 
-      {/* Story Modal */}
       <AnimatePresence>
-        {modalIdx !== null && (
-          <motion.div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="absolute inset-0 bg-black/80" onClick={() => setModalIdx(null)} />
-            <motion.div
-              className="relative z-10 max-w-xl w-full rounded-2xl p-8 max-h-[80vh] overflow-y-auto"
-              style={{ backgroundColor: '#0a0a0a', border: '1px solid rgba(196,155,66,0.3)' }}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-            >
-              <button
-                onClick={() => setModalIdx(null)}
-                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <span
-                className="text-xs tracking-[0.2em] uppercase mb-3 block"
-                style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
-              >
-                {slides[modalIdx].tag}
-              </span>
-              <h3
-                className="text-2xl md:text-3xl font-bold text-white mb-4"
-                style={{ fontFamily: "'Cinzel', serif" }}
-              >
-                {slides[modalIdx].title}
-              </h3>
-              <p className="text-white/70 text-base leading-relaxed">
-                {slides[modalIdx].full}
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
+        {modalIdx !== null && <StoryModal idx={modalIdx} onClose={() => setModalIdx(null)} />}
       </AnimatePresence>
     </>
   );

@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { PawPrint } from 'lucide-react';
 
@@ -27,7 +28,7 @@ const steps = [
 
 function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
   return (
-    <div className="h-screen w-full snap-center flex items-center justify-center px-6 md:px-8">
+    <div className="h-screen w-full flex items-center justify-center px-6 md:px-8 snap-center">
       <motion.div
         className="max-w-2xl w-full flex flex-col items-center text-center gap-6"
         initial={{ opacity: 0, y: 40 }}
@@ -35,7 +36,6 @@ function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
         viewport={{ once: true, amount: 0.5 }}
         transition={{ duration: 0.7 }}
       >
-        {/* Paw icon */}
         <motion.div
           className="w-14 h-14 rounded-full flex items-center justify-center"
           style={{
@@ -50,11 +50,7 @@ function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
           <PawPrint className="w-6 h-6 text-black" />
         </motion.div>
 
-        {/* Step number */}
-        <span
-          className="text-xs tracking-[0.3em] uppercase"
-          style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
-        >
+        <span className="text-xs tracking-[0.3em] uppercase" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
           Step {index + 1} of {steps.length}
         </span>
 
@@ -91,10 +87,35 @@ function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
 }
 
 export function VisionSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [scrollingUp, setScrollingUp] = useState(false);
+  const lastY = useRef(0);
+
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y < lastY.current - 5) {
+          setScrollingUp(true);
+        } else if (y > lastY.current + 5) {
+          setScrollingUp(false);
+        }
+        lastY.current = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <section
       id="vision"
-      className="snap-y snap-mandatory overflow-y-auto"
+      ref={sectionRef}
+      className={scrollingUp ? 'overflow-visible' : 'snap-y snap-mandatory overflow-y-auto'}
       style={{ backgroundColor: '#F3EBDD', height: `${steps.length * 100}vh` }}
     >
       {steps.map((step, i) => (
