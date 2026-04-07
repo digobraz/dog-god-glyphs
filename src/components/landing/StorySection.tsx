@@ -9,7 +9,7 @@ const slides = [
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPosition: '-150px 100px',
     videoPositionTablet: '-300px 100px',
-    videoPositionMobile: '-150px 70px',
+    videoPositionMobile: '-200px 50px',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
@@ -143,7 +143,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             {index + 1}
           </span>
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-[40%] bg-gradient-to-b from-transparent to-black md:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-[8%] bg-gradient-to-b from-transparent to-black md:hidden" />
       </div>
 
       <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
