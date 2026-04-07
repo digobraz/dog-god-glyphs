@@ -71,6 +71,9 @@ const slides = [
     tag: '2026 | THE PRESENT',
     title: '...so we could build a world where dog is god.',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4',
+    videoPosition: '50% calc(50% + 50px)',
+    videoPositionTablet: '50% calc(50% + 50px)',
+    videoPositionMobile: '50% calc(50% + 50px)',
     full: 'Today, over 500 million dogs live as strays worldwide. Millions are abandoned, abused, or forgotten. Yet the bond between humans and dogs has never been stronger — dog adoption rates are rising, veterinary science is advancing, and a global community of dog lovers is forming. DOGYPT was born from this moment — a movement to honor every dog with a unique HEROGLYPH and to channel the power of the world\'s largest dog-loving community into real change.',
   },
 ];
