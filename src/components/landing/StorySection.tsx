@@ -137,7 +137,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             style={{
             background: isMobile
               ? 'linear-gradient(to bottom, transparent 78%, rgba(0,0,0,0.58) 88%)'
-              : 'none',
+              : 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)',
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
@@ -149,7 +149,6 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
       </div>
 
       <div className={`absolute bottom-0 left-0 right-0 z-[2] md:relative md:w-[40%] md:h-full md:bg-black flex ${isMobile ? 'items-start' : 'items-center'} bg-transparent`} style={isMobile ? { bottom: '100px' } : undefined}>
-        <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-transparent to-black z-0 hidden md:block" />
         <div className={`relative z-10 ${isMobile ? 'px-6 py-3' : 'p-8'} md:p-12 lg:p-16 w-full`}>
           <span
             className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
