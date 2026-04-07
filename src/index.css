@@ -64,6 +64,10 @@
   }
 }
 
+html {
+  scroll-snap-type: y mandatory;
+}
+
 @layer base {
   * {
     @apply border-border;
