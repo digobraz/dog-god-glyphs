@@ -1,30 +1,24 @@
 
 
 ## Problem
-On mobile, the layout splits into 75vh video + 25vh text with a black gap between them. The user wants the video to fill the entire screen and the text to overlay the bottom of the video — like a caption on a photo.
+
+Two gradient issues on mobile:
+1. The **radial-gradient overlay** (line 135-140) covers the entire video area with a circular gradient — this is the "kruhový" gradient the user sees. On mobile, this should be a simple bottom-to-top linear gradient instead.
+2. The **bottom fade gradient** (line 146) at `h-[20%]` should be reduced by ~40px — changing to `h-[15%]`.
 
 ## Plan
 
-**File: `src/components/landing/StorySection.tsx` — StoryCard component**
+**File: `src/components/landing/StorySection.tsx`**
 
-Restructure the mobile layout from a stacked split (video 75vh + text 25vh) to a full-screen overlay:
+1. **Replace the radial-gradient overlay with responsive logic**: On mobile, use a linear gradient that only fades from transparent at top to black at bottom. Keep the radial-gradient for desktop (md+). This can be done by adding a conditional style based on `isMobile` state (already available in the component).
 
-1. **Video fills entire screen on mobile**: Change the video container from `h-[75vh]` to `h-full` on mobile, making it fill the full `h-screen` parent.
-
-2. **Text overlays the bottom of the video on mobile**: Instead of rendering the text panel as a separate `div` below the video, position it absolutely at the bottom of the card, overlapping the video. Hide the separate black text panel on mobile entirely.
-
-3. **Gradient only behind text area**: Replace the current full-overlay gradient with one that only covers the bottom ~25% where the text sits — starting transparent at the top of the text area and fading to dark behind it.
+2. **Reduce bottom fade height**: Change `h-[20%]` to `h-[15%]` on line 146 to show more of the image.
 
 ### Technical detail
 
-In `StoryCard` (lines 121-195):
+Line 135-140 — the overlay div:
+- Mobile: `background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.97) 100%)`
+- Desktop: keep existing `radial-gradient(ellipse at 40% 50%, ...)`
 
-- Line 122: Keep `h-screen` on the parent container
-- Line 123: Change mobile video container to fill parent: `h-full` instead of `h-[75vh]`
-- Lines 135-142: Adjust mobile gradient to `linear-gradient(to bottom, transparent 75%, rgba(0,0,0,0.85) 90%, rgba(0,0,0,0.95) 100%)`
-- Line 148: Remove the extra bottom fade div on mobile (redundant now)
-- Line 151: On mobile, change the text panel from a separate block to `absolute bottom-0 left-0 right-0` with transparent background, removing `h-[25vh]` and `bg-black`
-- Text padding/spacing stays compact as currently configured
-
-This creates a full-bleed image with text floating at the bottom, gradient only behind the text for readability.
+Line 146 — bottom fade: `h-[20%]` → `h-[15%]`
 
