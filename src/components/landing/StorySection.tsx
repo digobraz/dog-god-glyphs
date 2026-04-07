@@ -9,7 +9,7 @@ const slides = [
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPosition: '-150px 100px',
     videoPositionTablet: '-300px 100px',
-    videoPositionMobile: '-200px 50px',
+    videoPositionMobile: '-150px 90px',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
@@ -120,7 +120,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className={`relative w-full md:w-[60%] ${mobileFullHeight ? 'h-screen' : 'h-[40vh]'} md:h-full`}>
+      <div className={`relative w-full md:w-[60%] ${isMobile ? 'h-[75vh]' : ''} md:h-full`}>
         {slide.video && (
           <video
             src={slide.video}
@@ -134,8 +134,10 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         )}
         <div
           className="absolute inset-0"
-          style={{
-            background: `radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)`,
+            style={{
+            background: isMobile
+              ? 'linear-gradient(to bottom, transparent 78%, rgba(0,0,0,0.58) 88%)'
+              : 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)',
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
@@ -143,19 +145,19 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             {index + 1}
           </span>
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-[8%] bg-gradient-to-b from-transparent to-black md:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-[8%] bg-gradient-to-b from-transparent to-black/60 md:hidden" />
       </div>
 
-      <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
-        <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
+      <div className={`relative w-full md:w-[40%] ${isMobile ? 'h-[25vh]' : 'h-[60vh]'} md:h-full bg-black flex ${isMobile ? 'items-start' : 'items-center'}`}>
+        <div className={`relative z-10 ${isMobile ? 'px-6 py-3' : 'p-8'} md:p-12 lg:p-16 w-full`}>
           <span
-            className="text-xs md:text-sm tracking-[0.2em] uppercase mb-6 block"
+            className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
             style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
           >
             {slide.tag}
           </span>
           <h2
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#C49B42] mb-10 leading-tight"
+            className={`${isMobile ? 'text-2xl mb-4' : 'text-3xl mb-10'} md:text-4xl lg:text-5xl font-bold text-[#C49B42] leading-tight`}
             style={{ fontFamily: "'Cinzel', serif" }}
           >
             {slide.title}

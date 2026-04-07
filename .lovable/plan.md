@@ -1,34 +1,24 @@
 
 
-## Add 9 Cloudinary Videos to STORY Cards
+## Problem
 
-### What
-Add looping background videos to the left panel of all 9 STORY cards using Cloudinary URLs with `q_auto,f_auto,w_1280` transformations. Videos play behind the existing dark gradient overlay.
+Two gradient issues on mobile:
+1. The **radial-gradient overlay** (line 135-140) covers the entire video area with a circular gradient — this is the "kruhový" gradient the user sees. On mobile, this should be a simple bottom-to-top linear gradient instead.
+2. The **bottom fade gradient** (line 146) at `h-[20%]` should be reduced by ~40px — changing to `h-[15%]`.
 
-### Changes — `src/components/landing/StorySection.tsx`
+## Plan
 
-1. **Add `video` field to each slide** with optimized Cloudinary URLs:
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4`
+**File: `src/components/landing/StorySection.tsx`**
 
-2. **In `StoryCard` left panel** (line 90), add a `<video>` element before the gradient overlay:
-   ```tsx
-   <video
-     src={slide.video}
-     autoPlay muted loop playsInline
-     className="absolute inset-0 w-full h-full object-cover"
-   />
-   ```
+1. **Replace the radial-gradient overlay with responsive logic**: On mobile, use a linear gradient that only fades from transparent at top to black at bottom. Keep the radial-gradient for desktop (md+). This can be done by adding a conditional style based on `isMobile` state (already available in the component).
 
-3. **Existing radial gradient overlay stays on top** of the video — preserves the dark cinematic look and text readability. Number watermark also stays.
+2. **Reduce bottom fade height**: Change `h-[20%]` to `h-[15%]` on line 146 to show more of the image.
 
-### Files
-- `src/components/landing/StorySection.tsx`
+### Technical detail
+
+Line 135-140 — the overlay div:
+- Mobile: `background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.97) 100%)`
+- Desktop: keep existing `radial-gradient(ellipse at 40% 50%, ...)`
+
+Line 146 — bottom fade: `h-[20%]` → `h-[15%]`
 
