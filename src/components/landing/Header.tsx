@@ -2,7 +2,7 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 export function Header() {
   return (
-    <header className="w-full bg-black py-6 md:py-8">
+    <header className="absolute top-0 left-0 w-full z-20 bg-gradient-to-b from-black to-transparent py-6 md:py-8">
       <div className="flex flex-col items-center gap-4">
         <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-16 object-contain" />
         <nav className="flex items-center gap-0">
