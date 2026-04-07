@@ -25,23 +25,31 @@ export function HeroSection() {
   };
 
   return (
-    <section id="hero" className="relative h-screen flex items-center justify-center bg-black overflow-hidden">
+    <section id="hero" className="h-screen w-full relative bg-black overflow-hidden">
       <MatrixRain />
-      <div className="relative z-10 flex flex-col items-center gap-4 px-4 text-center -mt-8">
+
+      {/* Perfectly centered content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
         {/* Row 1: Social Proof */}
-        <motion.p
-          className="text-2xl md:text-4xl lg:text-5xl tracking-widest uppercase"
-          style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+        <motion.div
+          className="flex flex-row items-baseline justify-center gap-3 mb-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <span className="font-black text-3xl md:text-5xl lg:text-6xl">
+          <span
+            className="font-black text-3xl md:text-5xl lg:text-6xl"
+            style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+          >
             <AnimatedCounter target={29} duration={2500} />
           </span>
-          {' '}
-          <span className="font-normal text-xl md:text-2xl">PEOPLE SAY:</span>
-        </motion.p>
+          <span
+            className="font-normal text-xl md:text-2xl tracking-widest uppercase"
+            style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+          >
+            PEOPLE SAY:
+          </span>
+        </motion.div>
 
         {/* Row 2: Main Heading */}
         <motion.h1
@@ -64,7 +72,7 @@ export function HeroSection() {
         {/* Row 3: CTA Button */}
         <motion.a
           href="/generator-process"
-          className="mt-6 inline-block px-12 py-5 rounded-full text-xl md:text-2xl font-bold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
+          className="mt-8 inline-block px-12 py-5 rounded-full text-xl md:text-2xl font-bold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
           style={{
             fontFamily: "'Cinzel', serif",
             background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
@@ -80,7 +88,7 @@ export function HeroSection() {
 
         {/* Row 4: Secondary Action */}
         <motion.p
-          className="text-xs md:text-sm tracking-widest uppercase"
+          className="mt-4 text-xs md:text-sm tracking-widest uppercase"
           style={{ fontFamily: "'Cinzel', serif", color: 'rgba(196, 155, 66, 0.6)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -92,7 +100,7 @@ export function HeroSection() {
         {/* Row 5: Pulsing Down Arrow */}
         <motion.button
           onClick={scrollToStory}
-          className="mt-4 pulse"
+          className="mt-6 animate-pulse"
           style={{ color: '#C49B42' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
