@@ -1,34 +1,40 @@
 
 
-## Add 9 Cloudinary Videos to STORY Cards
+## Úprava pozície videa STORY-1 — žena v centre
 
-### What
-Add looping background videos to the left panel of all 9 STORY cards using Cloudinary URLs with `q_auto,f_auto,w_1280` transformations. Videos play behind the existing dark gradient overlay.
+### Problém
+Na STORY-1 je postava ženy orezaná — na desktope a tablete treba video posunúť doprava a mierne dole. Na mobile treba video natiahnuť na celú výšku (100vh) a posunúť doprava tak, aby žena bola v strede obrazovky.
 
-### Changes — `src/components/landing/StorySection.tsx`
+### Riešenie
 
-1. **Add `video` field to each slide** with optimized Cloudinary URLs:
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4`
+**Súbor: `src/components/landing/StorySection.tsx`**
 
-2. **In `StoryCard` left panel** (line 90), add a `<video>` element before the gradient overlay:
-   ```tsx
-   <video
-     src={slide.video}
-     autoPlay muted loop playsInline
-     className="absolute inset-0 w-full h-full object-cover"
-   />
+1. **Pridať per-slide `videoStyle` objekt** do slides array — len slide 0 (STORY-1) dostane vlastné pozičné nastavenia:
+   ```ts
+   videoStyle: {
+     desktop: 'object-[70%_55%]',   // posun doprava a mierne dole
+     mobile: 'object-[80%_center]',  // posun výrazne doprava, žena v strede
+   }
    ```
 
-3. **Existing radial gradient overlay stays on top** of the video — preserves the dark cinematic look and text readability. Number watermark also stays.
+2. **Mobile panel zvýšiť na h-[100vh]** pre STORY-1 — video sa natiahne na celú výšku obrazovky. Text panel sa presunie ako overlay dole.
 
-### Files
+3. **Implementácia v `StoryCard`:**
+   - Video element dostane conditionálne triedy na základe `slide.videoStyle`:
+     - Mobile: `h-screen w-auto min-w-full object-cover` + `object-position: 80% center` (žena v strede, video posunuté doprava)
+     - Desktop/tablet: `object-position: 70% 55%` (mierne doprava a dole)
+   - Ak `videoStyle` neexistuje, použije sa default `object-cover object-center`
+
+4. **Konkrétne CSS pre STORY-1 video element:**
+   - Desktop: `object-cover` + `style={{ objectPosition: '70% 55%' }}`
+   - Tablet: `style={{ objectPosition: '70% 55%' }}`
+   - Mobile: panel `h-screen`, video `object-cover` + `style={{ objectPosition: '80% 50%' }}`
+
+### Výsledok
+- Desktop/tablet: žena viditeľná celá, video posunuté doprava a mierne dole
+- Mobile: video cez celú výšku, žena vycentrovaná na stred obrazovky
+- Ostatné karty (2-9) bez zmeny
+
+### Súbory
 - `src/components/landing/StorySection.tsx`
 
