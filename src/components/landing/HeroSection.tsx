@@ -35,7 +35,7 @@ export function HeroSection() {
       <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
       {/* Main content - perfectly centered */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20">
+      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-20 pt-[120px] md:pt-[140px]">
         {/* Row 1: Social Proof */}
         <motion.div
           className="flex flex-row items-baseline justify-center gap-3 mb-2"
