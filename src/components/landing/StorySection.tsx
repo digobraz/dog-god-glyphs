@@ -121,7 +121,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black md:hidden" />
       </div>
 
-      <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
+      <div className="relative w-full md:w-[40%] h-[40vh] md:h-full bg-black flex items-center">
         <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
           <span
             className="text-xs md:text-sm tracking-[0.2em] uppercase mb-6 block"
