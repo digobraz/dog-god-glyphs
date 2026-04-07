@@ -57,7 +57,7 @@ export function AboutSection() {
             </div>
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-white/20 text-lg" style={{ fontFamily: "'Cinzel', serif" }}>
+            <p className="text-[#FAF4EC]/20 text-lg" style={{ fontFamily: "'Cinzel', serif" }}>
               VIDEO COMING SOON
             </p>
           </div>
@@ -101,12 +101,12 @@ export function AboutSection() {
             >
               <button
                 onClick={() => setShowVideo(false)}
-                className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors"
+                className="absolute -top-12 right-0 text-[#FAF4EC]/70 hover:text-[#FAF4EC] transition-colors"
               >
                 <X className="w-8 h-8" />
               </button>
               <div className="w-full h-full bg-black rounded-lg flex items-center justify-center">
-                <p className="text-white/30 text-xl" style={{ fontFamily: "'Cinzel', serif" }}>
+                <p className="text-[#FAF4EC]/30 text-xl" style={{ fontFamily: "'Cinzel', serif" }}>
                   YouTube Video Placeholder
                 </p>
               </div>

@@ -10,37 +10,37 @@ const slides = [
   },
   {
     tag: '3000 BC | ANCIENT EGYPT',
-    title: '...that forged a mythical loyalty...',
+    title: 'That forged a mythical loyalty',
     full: 'In ancient Egypt, dogs held a sacred status unlike anywhere else in the ancient world. The god Anubis, depicted with a jackal head, was the guardian of the dead and the guide of souls. When a family dog died, the entire household would shave their eyebrows in mourning. Dogs were mummified with the same care as pharaohs, ensuring their journey to the afterlife alongside their beloved humans.',
   },
   {
     tag: '500 AD | MEDIEVAL EUROPE',
-    title: '...endured the gravest injustice...',
+    title: 'Endured the gravest injustice',
     full: 'Throughout medieval Europe, dogs became symbols of fidelity and noble character. Knights included greyhounds and other breeds in their heraldic coats of arms as symbols of loyalty and courage. The famous story of Gelert, the faithful hound of Welsh prince Llewelyn, became a legend that echoed through centuries — a tale of ultimate loyalty and tragic misunderstanding that still moves hearts today.',
   },
   {
     tag: '1500 AD | RENAISSANCE',
-    title: '...brought hope into the darkness...',
+    title: 'Brought hope into the darkness',
     full: 'The Renaissance brought a revolution in how dogs were depicted in art. No longer mere background elements, dogs became central figures in masterpieces. Velázquez painted them with the same dignity as royals. Titian gave them expressive eyes that seemed to hold ancient wisdom. These artists understood what science would later confirm — dogs possess emotional depth that rivals our own.',
   },
   {
     tag: '1800s | THE AGE OF EXPLORATION',
-    title: '...melted the ice through selfless sacrifice...',
+    title: 'Melted the ice through selfless sacrifice',
     full: 'The 19th century saw dogs become indispensable partners in humanity\'s greatest adventures. Sled dogs carried explorers across the frozen Arctic. Hounds accompanied settlers into the American frontier. In every expedition journal, you\'ll find entries about faithful dogs who provided warmth, warning, and unwavering companionship in the most hostile environments on Earth.',
   },
   {
     tag: '1900s | WORLD AT WAR',
-    title: '...became our very senses...',
+    title: 'Became our very senses',
     full: 'During both World Wars, dogs performed extraordinary acts of bravery. Sergeant Stubby, a stray Boston Terrier, became the most decorated war dog in American history, saving his regiment from mustard gas attacks and capturing a German spy. Thousands of dogs served as Red Cross medics, locating wounded soldiers on battlefields. They asked for nothing in return — only the chance to help.',
   },
   {
     tag: 'THROUGH THE AGES',
-    title: '...pushed beyond physical limits...',
+    title: 'Pushed beyond physical limits',
     full: 'Throughout every crisis in human history, dogs have remained our steadfast companions. During the Great Plague, when humans fled from each other in terror, dogs stayed loyal. In natural disasters, they\'ve been found guarding their families for days without food or water. This unwavering devotion spans millennia and transcends every culture, every border, every conflict.',
   },
   {
     tag: '1957 | BEYOND THE SKY',
-    title: '...and propelled humanity to the stars...',
+    title: 'And propelled humanity to the stars',
     full: 'On November 3, 1957, a small mixed-breed dog named Laika was launched into orbit aboard Sputnik 2, becoming the first earthling to journey into space. Found as a stray on the streets of Moscow, she was chosen for her calm temperament and resilience. Though she never returned, her sacrifice paved the way for human spaceflight and stands as a testament to the extraordinary role dogs have played in advancing human civilization.',
   },
   {
@@ -67,16 +67,16 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors">
+        <button onClick={onClose} className="absolute top-4 right-4 text-[#FAF4EC]/50 hover:text-[#FAF4EC] transition-colors">
           <X className="h-5 w-5" />
         </button>
-        <span className="text-xs tracking-[0.2em] uppercase mb-3 block" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
+        <span className="text-xs tracking-[0.2em] uppercase mb-3 block" style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}>
           {slide.tag}
         </span>
-        <h3 className="text-2xl md:text-3xl font-bold text-white mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
+        <h3 className="text-2xl md:text-3xl font-bold text-[#C49B42] mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
           {slide.title}
         </h3>
-        <p className="text-white/70 text-base leading-relaxed">{slide.full}</p>
+        <p className="text-[#FAF4EC]/70 text-base leading-relaxed">{slide.full}</p>
       </motion.div>
     </motion.div>
   );
@@ -106,12 +106,12 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
           <span
             className="text-xs md:text-sm tracking-[0.2em] uppercase mb-6 block"
-            style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+            style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
           >
             {slide.tag}
           </span>
           <h2
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-10 leading-tight"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#C49B42] mb-10 leading-tight"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
             {slide.title}
@@ -119,15 +119,15 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
           <div className="flex flex-wrap gap-4">
             <button
               onClick={onReadStory}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-white/10"
-              style={{ fontFamily: "'Cinzel', serif", color: '#C49B42', borderColor: '#C49B42' }}
+              className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
+              style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
             >
               Read Story
             </button>
             {isLast && (
               <a
                 href="#vision"
-                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
+                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
@@ -140,7 +140,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             )}
           </div>
 
-          <div className="absolute bottom-6 right-8 text-white/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
+          <div className="absolute bottom-6 right-8 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
             {index + 1} / {slides.length}
           </div>
         </div>
