@@ -48,13 +48,14 @@ export function Header() {
 
   const textColor = isLight ? '#000000' : '#C49B42';
   const dividerColor = isLight ? 'rgba(0,0,0,0.3)' : 'rgba(196,155,66,0.4)';
-  const bgClass = isLight
-    ? 'bg-gradient-to-b from-[#F3EBDD]/90 to-transparent'
-    : 'bg-gradient-to-b from-black/90 to-transparent';
+  const bgStyle = isLight
+    ? { background: 'linear-gradient(to bottom, #F3EBDD 70%, transparent 100%)' }
+    : { background: 'linear-gradient(to bottom, #000000 70%, transparent 100%)' };
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 flex flex-col items-center pt-6 pb-12 transition-all duration-500 ${bgClass}`}
+      className="fixed top-0 left-0 w-full z-50 flex flex-col items-center pt-6 pb-12 transition-all duration-500"
+      style={bgStyle}
     >
       <img
         src={dogyptLogo}
