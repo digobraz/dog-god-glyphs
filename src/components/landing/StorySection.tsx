@@ -47,6 +47,9 @@ const slides = [
     tag: '1900s | WORLD AT WAR',
     title: 'Became our very senses',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4',
+    videoPosition: '50% calc(50% + 100px)',
+    videoPositionTablet: '50% calc(50% + 100px)',
+    videoPositionMobile: '50% calc(50% + 100px)',
     full: 'During both World Wars, dogs performed extraordinary acts of bravery. Sergeant Stubby, a stray Boston Terrier, became the most decorated war dog in American history, saving his regiment from mustard gas attacks and capturing a German spy. Thousands of dogs served as Red Cross medics, locating wounded soldiers on battlefields. They asked for nothing in return — only the chance to help.',
   },
   {
