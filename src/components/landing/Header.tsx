@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 export function Header() {
   const [isLight, setIsLight] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const ratioMap = useRef<Record<string, number>>({});
 
   useEffect(() => {
     const lightSections = ['vision', 'about'];
@@ -11,15 +12,19 @@ export function Header() {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        // Find the most visible section
+        entries.forEach((entry) => {
+          ratioMap.current[entry.target.id] = entry.intersectionRatio;
+        });
+
         let maxRatio = 0;
         let topSection = '';
-        entries.forEach((entry) => {
-          if (entry.intersectionRatio > maxRatio) {
-            maxRatio = entry.intersectionRatio;
-            topSection = entry.target.id;
+        for (const [id, ratio] of Object.entries(ratioMap.current)) {
+          if (ratio > maxRatio) {
+            maxRatio = ratio;
+            topSection = id;
           }
-        });
+        }
+
         if (topSection) {
           setIsLight(lightSections.includes(topSection));
           if (topSection !== 'hero') {
