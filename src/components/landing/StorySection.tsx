@@ -120,7 +120,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className={`relative w-full md:w-[60%] ${isMobile ? 'h-[75vh]' : ''} md:h-full`}>
+      <div className={`relative w-full md:w-[60%] ${isMobile && index === 0 ? 'h-full' : isMobile ? 'h-[75vh]' : ''} md:h-full`}>
         {slide.video && (
           <video
             src={slide.video}
@@ -145,52 +145,92 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             {index + 1}
           </span>
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-[8%] bg-gradient-to-b from-transparent to-black/60 md:hidden" />
+        {!(isMobile && index === 0) && (
+          <div className="absolute inset-x-0 bottom-0 h-[8%] bg-gradient-to-b from-transparent to-black/60 md:hidden" />
+        )}
       </div>
 
-      <div className={`relative w-full md:w-[40%] ${isMobile ? 'h-[25vh]' : 'h-[60vh]'} md:h-full bg-black flex ${isMobile ? 'items-start' : 'items-center'}`}>
-        <div className={`relative z-10 ${isMobile ? 'px-6 py-3' : 'p-8'} md:p-12 lg:p-16 w-full`}>
-          <span
-            className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
-            style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
-          >
-            {slide.tag}
-          </span>
-          <h2
-            className={`${isMobile ? 'text-2xl mb-4' : 'text-3xl mb-10'} md:text-4xl lg:text-5xl font-bold text-[#C49B42] leading-tight`}
-            style={{ fontFamily: "'Cinzel', serif" }}
-          >
-            {slide.title}
-          </h2>
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={onReadStory}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
-              style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
-            >
-              Read Story
-            </button>
-            {isLast && (
-              <a
-                href="#vision"
-                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                  color: '#000',
-                  boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
-                }}
+      {/* Mobile card 0: overlay text at bottom */}
+      {isMobile && index === 0 && (
+        <>
+          <div className="absolute bottom-0 left-0 right-0 h-[35%] z-[1]" style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.9))' }} />
+          <div className="absolute bottom-0 left-0 right-0 z-[2] flex items-end">
+            <div className="relative z-10 px-6 py-6 w-full">
+              <span
+                className="text-xs tracking-[0.2em] uppercase mb-2 block"
+                style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
               >
-                Vision
-              </a>
-            )}
+                {slide.tag}
+              </span>
+              <h2
+                className="text-2xl mb-4 font-bold text-[#C49B42] leading-tight"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {slide.title}
+              </h2>
+              <div className="flex flex-wrap gap-4">
+                <button
+                  onClick={onReadStory}
+                  className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
+                  style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
+                >
+                  Read Story
+                </button>
+              </div>
+              <div className="absolute bottom-6 right-8 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
+                {index + 1} / {slides.length}
+              </div>
+            </div>
           </div>
+        </>
+      )}
 
-          <div className="absolute bottom-6 right-8 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
-            {index + 1} / {slides.length}
+      {/* Default text panel (all other cards + desktop card 0) */}
+      {!(isMobile && index === 0) && (
+        <div className={`relative w-full md:w-[40%] ${isMobile ? 'h-[25vh]' : 'h-[60vh]'} md:h-full bg-black flex ${isMobile ? 'items-start' : 'items-center'}`}>
+          <div className={`relative z-10 ${isMobile ? 'px-6 py-3' : 'p-8'} md:p-12 lg:p-16 w-full`}>
+            <span
+              className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
+              style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
+            >
+              {slide.tag}
+            </span>
+            <h2
+              className={`${isMobile ? 'text-2xl mb-4' : 'text-3xl mb-10'} md:text-4xl lg:text-5xl font-bold text-[#C49B42] leading-tight`}
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              {slide.title}
+            </h2>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={onReadStory}
+                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
+                style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
+              >
+                Read Story
+              </button>
+              {isLast && (
+                <a
+                  href="#vision"
+                  className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                    color: '#000',
+                    boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
+                  }}
+                >
+                  Vision
+                </a>
+              )}
+            </div>
+
+            <div className="absolute bottom-6 right-8 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
+              {index + 1} / {slides.length}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
