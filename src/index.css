@@ -65,7 +65,7 @@
 }
 
 html {
-  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 @layer base {
