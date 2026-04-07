@@ -1,64 +1,32 @@
 
 
-## Prísne snappovanie na každý slide (100vh)
+## Problem
 
-### Problém
-Aktuálne má CSS `snap-start` len na úrovni celých sekcií (HERO, STORY, VISION, ABOUT). V sekcii STORY je jeden veľký kontajner (9 × 100vh) s horizontálnym scrolljackingom, ale bez vnútorných snap bodov — používateľ sa môže zastaviť medzi slideami. Podobne VISION sekcia má `snap-start` na jednotlivých krokoch, ale len pri scrolle nadol.
+CSS `snap-y snap-mandatory` is on the wrapper `<div>` in `LandingPage.tsx`, but that div is **not** the scroll container. The browser scrolls `<html>`, not this div. CSS scroll snap only works on the **actual scroll container**, so snapping does nothing currently.
 
-### Riešenie
+Making the wrapper div a scroll container (`h-screen overflow-y-auto`) would break `window.scrollY`, `useScroll` from framer-motion, and all IntersectionObservers that rely on the window as root.
 
-**1. StorySection — pridať snap anchory pre každý slide**
+## Solution
 
-Vnútri story kontajnera (výška `N × 100vh`) pridať N `div` elementov, každý s `h-screen snap-start`, umiestnené pod sticky vrstvou. Tieto slúžia ako neviditeľné snap body pre prehliadač:
+Apply `scroll-snap-type: y mandatory` directly to the `<html>` element via CSS, and keep all snap-start children as they are.
 
-```text
-<section height="N×100vh" class="relative">
-  <!-- Snap targets (behind sticky layer) -->
-  <div class="h-screen snap-start" />  ← slide 1
-  <div class="h-screen snap-start" />  ← slide 2
-  ...
-  <div class="h-screen snap-start" />  ← slide 9
+### Changes
 
-  <!-- Sticky visual layer (unchanged) -->
-  <div class="sticky top-0 h-screen overflow-hidden">
-    <motion.div> horizontal slides </motion.div>
-  </div>
-</section>
+**1. `src/index.css`** — Add scroll-snap to html
+
+```css
+html {
+  scroll-snap-type: y mandatory;
+}
 ```
 
-Problém: sticky element musí byť súrodenec snap targetov. Riešenie — snap targety budú `absolute` s `top: i*100vh` a `pointer-events-none`, alebo lepšie: ponechať aktuálnu štruktúru a pridať snap targety ako prvé deti kontajnera s `absolute` pozíciou.
+**2. `src/components/landing/LandingPage.tsx`** — Remove `snap-y snap-mandatory` from wrapper div
 
-Vlastne jednoduchšie: zmeniť štruktúru tak, že snap targety sú normálne flow elementy a sticky vrstva je posledné dieťa s `absolute inset-0` + `sticky`:
+The wrapper div keeps its layout role but no longer pretends to be a snap container. The snap classes are removed since `<html>` handles it via CSS.
 
-```tsx
-<section style={{ height: containerHeight }}>
-  {/* Invisible snap anchors in normal flow */}
-  {slides.map((_, i) => (
-    <div key={i} className="h-screen snap-start" />
-  ))}
-  {/* Sticky overlay */}
-  <div className="sticky top-0 h-screen w-full overflow-hidden" style={{ marginTop: `-${slides.length * 100}vh` }}>
-    <motion.div>...</motion.div>
-  </div>
-</section>
-```
+**3. `src/components/landing/StorySection.tsx`** — Keep snap anchors as-is
 
-Negatívny margin-top posunie sticky vrstvu späť na vrch.
+The invisible `h-screen snap-start` divs inside the story section are already correct — they just need the html-level snap container to actually work.
 
-**2. LandingPage — snap-y snap-mandatory vždy aktívne pri scrolle nadol**
-
-Už je nastavené, len overiť že `snap-mandatory` je prítomné.
-
-**3. VisionSection — snap-start na krokoch aj pri scrolle nahor**
-
-Zmeniť `className={scrollingUp ? '' : 'snap-start'}` na vždy `snap-start`, keďže používateľ chce prísne snappovanie všade.
-
-**4. AboutSection — pridať snap-start**
-
-Overiť že About sekcia má tiež `snap-start`.
-
-### Súbory na úpravu
-- `src/components/landing/StorySection.tsx` — pridať snap anchor divy + negatívny margin na sticky
-- `src/components/landing/VisionSection.tsx` — snap-start vždy
-- `src/components/landing/LandingPage.tsx` — snap-mandatory vždy (odstrániť podmienku `scrollingUp`)
+No other files need changes. This is the minimal fix that makes snapping work across all sections and story slides without breaking framer-motion scroll tracking or IntersectionObserver.
 
