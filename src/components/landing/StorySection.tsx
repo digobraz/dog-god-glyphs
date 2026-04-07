@@ -8,6 +8,7 @@ const slides = [
     title: 'It all started with a gentle touch...',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPosition: '-150px 100px',
+    videoPositionTablet: '-300px 100px',
     full: 'This discovery in modern-day Israel remains one of the most significant archaeological findings about the human-canine bond. A young person was buried with their hand carefully placed on a small puppy, suggesting a deep emotional connection that transcended mere utility. This wasn\'t a working animal — this was a beloved companion, marking the dawn of an eternal partnership.',
   },
   {
@@ -94,6 +95,21 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
 
 function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; index: number; onReadStory: () => void }) {
   const isLast = index === slides.length - 1;
+  const [isTablet, setIsTablet] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const w = window.innerWidth;
+      setIsTablet(w >= 768 && w < 1024);
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const videoPos = isTablet && slide.videoPositionTablet
+    ? slide.videoPositionTablet
+    : slide.videoPosition;
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
@@ -106,7 +122,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
-            style={slide.videoPosition ? { objectPosition: slide.videoPosition } : undefined}
+            style={videoPos ? { objectPosition: videoPos } : undefined}
           />
         )}
         <div
