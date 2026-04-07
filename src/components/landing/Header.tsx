@@ -66,7 +66,7 @@ export function Header() {
         href="#hero"
         onClick={(e) => {
           e.preventDefault();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          window.dispatchEvent(new CustomEvent('nav-jump', { detail: 0 }));
         }}
       >
         <img

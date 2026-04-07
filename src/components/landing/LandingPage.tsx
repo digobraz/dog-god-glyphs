@@ -93,11 +93,17 @@ export function LandingPage() {
       }
     };
 
+    const onNavJump = (e: Event) => {
+      const targetIndex = (e as CustomEvent).detail as number;
+      scrollToIndex(targetIndex);
+    };
+
     window.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd, { passive: true });
     window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('nav-jump', onNavJump);
 
     return () => {
       window.removeEventListener('wheel', onWheel);
@@ -105,6 +111,7 @@ export function LandingPage() {
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('nav-jump', onNavJump);
     };
   }, []);
 
