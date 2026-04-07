@@ -98,24 +98,29 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
 
 function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; index: number; onReadStory: () => void }) {
   const isLast = index === slides.length - 1;
+  const videoId = `story-video-${index}`;
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className={`relative w-full md:w-[60%] ${slide.videoStyle?.mobileFullHeight ? 'h-screen' : 'h-[40vh]'} md:h-full`}>
+      <div className={`relative w-full md:w-[60%] ${slide.videoStyle?.mobileFullHeight ? 'h-screen' : 'h-[40vh]'} md:h-full overflow-hidden`}>
         {slide.video && (
-          <video
-            src={slide.video}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{
-              objectPosition: slide.videoStyle
-                ? undefined
-                : 'center center',
-            }}
-          />
+          <>
+            {slide.videoStyle && (
+              <style>{`
+                #${videoId} { object-position: ${slide.videoStyle.mobile}; }
+                @media (min-width: 768px) { #${videoId} { object-position: ${slide.videoStyle.desktop}; } }
+              `}</style>
+            )}
+            <video
+              id={videoId}
+              src={slide.video}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          </>
         )}
         <div
           className="absolute inset-0"
