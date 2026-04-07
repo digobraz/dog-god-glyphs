@@ -31,7 +31,7 @@ const slides = [
     tag: '1500 AD | RENAISSANCE',
     title: 'Brought hope into the darkness',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4',
-    full: 'The Renaissance brought a revolution in how dogs were depicted in art. No longer mere background elements, dogs became central figures in masterpieces. Velázquez painted them with the same dignity as royals. Titian gave them expressive eyes that seemed to hold ancient wisdom. These artists understood what science would later confirm — dogs possess emotional depth that rivals our own.',
+    videoPositionMobile: '50% calc(50% + 20px)',
   },
   {
     tag: '1800s | THE AGE OF EXPLORATION',
