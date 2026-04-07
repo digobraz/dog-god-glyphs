@@ -45,7 +45,7 @@ export function HeroSection() {
         >
           <span
             className="font-black text-3xl md:text-5xl lg:text-6xl"
-            style={{ fontFamily: "'Cinzel', serif", color: '#FFFFFF' }}
+            style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
           >
             <AnimatedCounter target={29} duration={2500} />
           </span>
@@ -78,7 +78,7 @@ export function HeroSection() {
         {/* Row 3: CTA Button */}
         <motion.a
           href="/generator-process"
-          className="mt-8 inline-block px-12 py-5 rounded-full text-xl md:text-2xl font-bold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
+          className="mt-8 inline-block px-12 py-5 rounded-full text-xl md:text-2xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
           style={{
             fontFamily: "'Cinzel', serif",
             background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
@@ -95,7 +95,7 @@ export function HeroSection() {
         {/* Row 4: Secondary Action */}
         <motion.p
           className="mt-4 text-xs md:text-sm tracking-widest uppercase"
-          style={{ fontFamily: "'Cinzel', serif", color: 'rgba(255, 255, 255, 0.6)' }}
+          style={{ fontFamily: "'Cinzel', serif", color: 'rgba(250, 244, 236, 0.6)' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.5 }}
