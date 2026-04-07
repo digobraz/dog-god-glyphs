@@ -35,9 +35,21 @@ export function LandingPage() {
 
   const navigate = (direction: 1 | -1) => {
     if (isAnimating.current) return;
-    const targets = document.querySelectorAll('[data-snap-page]');
-    const next = Math.max(0, Math.min(currentIndexRef.current + direction, targets.length - 1));
-    if (next === currentIndexRef.current) return;
+    const prev = currentIndexRef.current;
+    let next: number;
+
+    if (direction === -1) {
+      // FAST-TRACK UP
+      if (prev === 15) next = 10;
+      else if (prev >= 10 && prev <= 14) next = 1;
+      else if (prev >= 1 && prev <= 9) next = 0;
+      else next = 0;
+    } else {
+      // STEP-BY-STEP DOWN
+      next = Math.min(prev + 1, 15);
+    }
+
+    if (next === prev) return;
     scrollToIndex(next);
   };
 
