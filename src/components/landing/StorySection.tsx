@@ -129,7 +129,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
-            style={videoPos ? { objectPosition: videoPos } : undefined}
+            style={videoPos ? { objectPosition: videoPos } : { objectPosition: 'center calc(50% - 20px)' }}
           />
         )}
         <div
