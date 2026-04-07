@@ -1,34 +1,29 @@
 
 
-## Add 9 Cloudinary Videos to STORY Cards
+## Úprava pozície STORY-1 videa — ľavá hrana + prilepenie k headeru
 
-### What
-Add looping background videos to the left panel of all 9 STORY cards using Cloudinary URLs with `q_auto,f_auto,w_1280` transformations. Videos play behind the existing dark gradient overlay.
+### Problém
+Video STORY-1 používa `objectPosition: '30% 60%'` čo posúva obsah smerom doľava a dole, ale žena je stále orezaná. Používateľ chce:
+- Ľavá strana videa zarovnaná presne na ľavý okraj webu (= `object-position: 0%` horizontálne)
+- Video posunuté dole tak, aby vrchná hrana videa bola prilepená na dolný okraj headru (= `object-position: left top` s paddingom zhora)
 
-### Changes — `src/components/landing/StorySection.tsx`
+### Riešenie — `src/components/landing/StorySection.tsx`
 
-1. **Add `video` field to each slide** with optimized Cloudinary URLs:
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4`
+1. **Zmeniť `videoPosition` pre slide 0** z `'30% 60%'` na `'0% 0%'` (alebo `'left top'`):
+   - `0%` horizontálne = ľavá hrana videa je na ľavom okraji kontajnera
+   - `0%` vertikálne = vrchná hrana videa je nalepená na vrch kontajnera (čo je efektívne pod headerom, keďže sticky kontajner začína pod ním)
 
-2. **In `StoryCard` left panel** (line 90), add a `<video>` element before the gradient overlay:
-   ```tsx
-   <video
-     src={slide.video}
-     autoPlay muted loop playsInline
-     className="absolute inset-0 w-full h-full object-cover"
-   />
-   ```
+2. Ak header má fixnú výšku (napr. 80px), môžeme pridať `padding-top` na video kontajner alebo použiť `object-position: 0% 80px` aby sa video posunulo presne pod header.
 
-3. **Existing radial gradient overlay stays on top** of the video — preserves the dark cinematic look and text readability. Number watermark also stays.
+### Konkrétna zmena
 
-### Files
+```ts
+// slide 0
+videoPosition: '0% 0%',  // ľavá hrana + vrch (pod headerom)
+```
+
+Ak bude treba jemnejšie doladenie pod header, upravíme na niečo ako `'0% 5%'`.
+
+### Súbory
 - `src/components/landing/StorySection.tsx`
 
