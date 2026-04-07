@@ -89,6 +89,14 @@ export function Header() {
               )}
               <a
                 href={`#${item.toLowerCase()}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const indexMap: Record<string, number> = { story: 1, vision: 10, about: 15 };
+                  const targetIndex = indexMap[item.toLowerCase()];
+                  if (targetIndex !== undefined) {
+                    window.dispatchEvent(new CustomEvent('nav-jump', { detail: targetIndex }));
+                  }
+                }}
                 className="text-xs md:text-sm tracking-[0.25em] uppercase transition-all duration-500 relative"
                 style={{
                   fontFamily: "'Cinzel', serif",

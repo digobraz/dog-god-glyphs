@@ -13,11 +13,14 @@ export function LandingPage() {
   const isAnimating = useRef(false);
   const touchStartY = useRef(0);
 
-  const scrollToIndex = (index: number) => {
+  const scrollToIndex = (index: number, instant = false) => {
     const targets = document.querySelectorAll('[data-snap-page]');
     const clamped = Math.max(0, Math.min(index, targets.length - 1));
     if (clamped === currentIndexRef.current && isAnimating.current) return;
     if (isAnimating.current) return;
+
+    const prevIndex = currentIndexRef.current;
+    const isSectionJump = Math.abs(clamped - prevIndex) > 1;
 
     isAnimating.current = true;
     currentIndexRef.current = clamped;
@@ -25,12 +28,15 @@ export function LandingPage() {
     const target = targets[clamped] as HTMLElement;
     if (target) {
       const absoluteTop = target.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({ top: absoluteTop, behavior: 'smooth' });
+      // Use instant scroll for section jumps to avoid rewind glitch
+      const behavior = (instant || isSectionJump) ? 'instant' as ScrollBehavior : 'smooth';
+      window.scrollTo({ top: absoluteTop, behavior });
     }
 
+    const delay = (instant || isSectionJump) ? 100 : TRANSITION_DURATION;
     setTimeout(() => {
       isAnimating.current = false;
-    }, TRANSITION_DURATION);
+    }, delay);
   };
 
   const navigate = (direction: 1 | -1) => {
