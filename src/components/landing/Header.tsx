@@ -54,7 +54,8 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 w-full z-50 flex flex-col items-center pt-6 pb-12 transition-all duration-500 ${bgClass}`}
+      className="fixed top-0 left-0 w-full z-50 flex flex-col items-center pt-6 pb-12 transition-all duration-500"
+      style={bgStyle}
     >
       <img
         src={dogyptLogo}
