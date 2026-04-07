@@ -31,7 +31,7 @@ export function LandingPage() {
   }, []);
 
   return (
-    <div className={scrollingUp ? 'w-full' : 'w-full snap-y snap-mandatory'} style={{ overflowY: scrollingUp ? 'auto' : undefined }}>
+    <div className="w-full snap-y snap-mandatory">
       <div className="snap-start">
         <Header />
         <HeroSection />

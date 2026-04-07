@@ -92,7 +92,7 @@ export function VisionSection({ scrollingUp }: { scrollingUp: boolean }) {
       style={{ backgroundColor: '#F3EBDD' }}
     >
       {steps.map((step, i) => (
-        <div key={i} className={scrollingUp ? '' : 'snap-start'}>
+        <div key={i} className="snap-start">
           <VisionStep step={step} index={i} />
         </div>
       ))}
