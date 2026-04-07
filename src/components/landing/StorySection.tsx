@@ -136,7 +136,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
           className="absolute inset-0"
           style={{
             background: isMobile
-              ? 'linear-gradient(to bottom, transparent 75%, rgba(0,0,0,0.85) 85%, rgba(0,0,0,0.97) 90%)'
+              ? 'linear-gradient(to bottom, transparent 78%, rgba(0,0,0,0.97) 88%)'
               : 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)',
           }}
         />
