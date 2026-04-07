@@ -35,9 +35,9 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          THE PLACE WHERE
+          IN DOG
           <br />
-          DOG IS GOD
+          WE TRUST
         </motion.h1>
 
         <motion.p
