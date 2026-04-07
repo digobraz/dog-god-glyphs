@@ -1,34 +1,31 @@
 
 
-## Add 9 Cloudinary Videos to STORY Cards
+## Úprava videí v STORY sekcii — viditeľnosť postáv a psov
 
-### What
-Add looping background videos to the left panel of all 9 STORY cards using Cloudinary URLs with `q_auto,f_auto,w_1280` transformations. Videos play behind the existing dark gradient overlay.
+### Problém
+Aktuálne `object-cover` oreže videá tak, že postavy a psy nie sú celé viditeľné. Na mobile (40vh výška) je to ešte horšie — 16:9 videá sa zobrazia len ako úzky pás.
 
-### Changes — `src/components/landing/StorySection.tsx`
+### Riešenie
 
-1. **Add `video` field to each slide** with optimized Cloudinary URLs:
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4`
-   - `https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4`
+**Súbor: `src/components/landing/StorySection.tsx`**
 
-2. **In `StoryCard` left panel** (line 90), add a `<video>` element before the gradient overlay:
+1. **Desktop (ľavý panel):** Zmeniť `object-cover` na `object-contain` — video sa zobrazí celé vrátane postáv, vycentrované v rámci panelu, s čiernym pozadím po stranách.
+
+2. **Mobile:** Zmeniť výšku ľavého panelu z `h-[40vh]` na `h-[60vh]` (alebo viac), aby bolo viac priestoru pre celé postavy. Pravý textový panel sa zmenší na `h-[40vh]`.
+
+3. **Video element:** Použiť responsívnu triedu:
    ```tsx
-   <video
-     src={slide.video}
-     autoPlay muted loop playsInline
-     className="absolute inset-0 w-full h-full object-cover"
-   />
+   className="absolute inset-0 w-full h-full object-contain md:object-contain"
    ```
+   Tým sa video vycentruje a priblíži na maximálnu výšku bez orezania.
 
-3. **Existing radial gradient overlay stays on top** of the video — preserves the dark cinematic look and text readability. Number watermark also stays.
+4. **Pozadie za videom:** Pridať `bg-black` na rodičovský div, aby medzery okolo videa boli čierne (nie priehľadné).
 
-### Files
+### Výsledok
+- Celé postavy aj psy budú viditeľné na desktop aj mobile
+- Video bude vycentrované a čo najväčšie v rámci dostupného priestoru
+- Čierne pozadie zachová cinematický vzhľad
+
+### Súbory
 - `src/components/landing/StorySection.tsx`
 
