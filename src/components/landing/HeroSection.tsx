@@ -25,9 +25,9 @@ export function HeroSection() {
   };
 
   return (
-    <section id="hero" className="relative h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
+    <section id="hero" className="relative h-screen flex items-center justify-center bg-black overflow-hidden">
       <MatrixRain />
-      <div className="relative z-10 flex flex-col items-center gap-4 px-4 text-center">
+      <div className="relative z-10 flex flex-col items-center gap-4 px-4 text-center -mt-8">
         {/* Row 1: Social Proof */}
         <motion.p
           className="text-2xl md:text-4xl lg:text-5xl tracking-widest uppercase"
