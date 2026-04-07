@@ -6,7 +6,7 @@ import { AboutSection } from './AboutSection';
 
 export function LandingPage() {
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="w-full">
       <Header />
       <HeroSection />
       <StorySection />
