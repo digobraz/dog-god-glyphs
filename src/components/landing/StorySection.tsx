@@ -135,7 +135,9 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div
           className="absolute inset-0"
           style={{
-            background: `radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)`,
+            background: isMobile
+              ? 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.97) 100%)'
+              : 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)',
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
@@ -143,7 +145,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             {index + 1}
           </span>
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-[20%] bg-gradient-to-b from-transparent to-black md:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-[15%] bg-gradient-to-b from-transparent to-black md:hidden" />
       </div>
 
       <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
