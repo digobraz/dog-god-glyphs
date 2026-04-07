@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 export function Header() {
