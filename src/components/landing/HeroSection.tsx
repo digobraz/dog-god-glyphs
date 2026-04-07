@@ -29,12 +29,8 @@ export function HeroSection() {
       <MatrixRain />
 
       {/* Equal spacing: top padding matches bottom padding to clear header */}
+      {/* Main content - true center of viewport */}
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-        {/* Spacer top - matches header height */}
-        <div className="flex-none h-[200px]" />
-
-        {/* Main content group - centered in remaining space */}
-        <div className="flex-1 flex flex-col items-center justify-center">
           {/* Row 1: Social Proof */}
           <motion.div
             className="flex flex-row items-baseline justify-center gap-3 mb-2"
@@ -101,23 +97,20 @@ export function HeroSection() {
           >
             or see story first
           </motion.p>
-        </div>
-
-        {/* Row 5: Pulsing Down Arrow - pinned at bottom with same spacing as top */}
-        <div className="flex-none h-[200px] flex items-end pb-4">
-          <motion.button
-            onClick={scrollToStory}
-            className="animate-pulse"
-            style={{ color: '#C49B42' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1.5, duration: 0.5 }}
-            aria-label="Scroll to story"
-          >
-            <ChevronDown className="w-8 h-8 md:w-10 md:h-10" />
-          </motion.button>
-        </div>
       </div>
+
+      {/* Row 5: Pulsing Down Arrow - independent from centering */}
+      <motion.button
+        onClick={scrollToStory}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-pulse z-10"
+        style={{ color: '#C49B42' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.5 }}
+        aria-label="Scroll to story"
+      >
+        <ChevronDown className="w-8 h-8 md:w-10 md:h-10" />
+      </motion.button>
     </section>
   );
 }
