@@ -66,6 +66,8 @@ export function LandingPage() {
       e.preventDefault();
       if (isAnimating.current) return;
       if (Math.abs(e.deltaY) < 5) return;
+      // Close story modal on scroll, then continue with navigation
+      (window as any).__storyModalClose?.();
       navigate(e.deltaY > 0 ? 1 : -1);
     };
 
