@@ -118,80 +118,9 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   const mobileFullHeight = isMobile && slide.videoPositionMobile;
 
-  if (isMobile) {
-    return (
-      <div className="flex-shrink-0 w-screen h-screen relative">
-        {/* Video fills entire section */}
-        {slide.video && (
-          <video
-            src={slide.video}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            style={videoPos ? { objectPosition: videoPos } : undefined}
-          />
-        )}
-        {/* Faint slide number */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
-          <span className="text-[20vw] font-black" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
-            {index + 1}
-          </span>
-        </div>
-        {/* Gradient overlay – only bottom 40% */}
-        <div
-          className="absolute bottom-0 left-0 w-full h-[40%] z-[1]"
-          style={{ background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.9))' }}
-        />
-        {/* Text content floating at bottom */}
-        <div className="absolute bottom-0 left-0 w-full z-[2] px-5 pb-5">
-          <span
-            className="text-xs tracking-[0.2em] uppercase mb-2 block"
-            style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
-          >
-            {slide.tag}
-          </span>
-          <h2
-            className="text-2xl font-bold text-[#C49B42] leading-tight mb-4"
-            style={{ fontFamily: "'Cinzel', serif" }}
-          >
-            {slide.title}
-          </h2>
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={onReadStory}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
-              style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
-            >
-              Read Story
-            </button>
-            {isLast && (
-              <a
-                href="#vision"
-                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                  color: '#000',
-                  boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
-                }}
-              >
-                Vision
-              </a>
-            )}
-          </div>
-          <div className="absolute bottom-5 right-5 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
-            {index + 1} / {slides.length}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-shrink-0 w-screen h-screen relative flex flex-row">
-      <div className="relative w-[60%] h-full">
+    <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
+      <div className={`relative w-full md:w-[60%] ${isMobile ? 'h-[75vh]' : ''} md:h-full`}>
         {slide.video && (
           <video
             src={slide.video}
@@ -205,25 +134,30 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         )}
         <div
           className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)' }}
+            style={{
+            background: isMobile
+              ? 'linear-gradient(to bottom, transparent 78%, rgba(0,0,0,0.58) 88%)'
+              : 'radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)',
+          }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
           <span className="text-[20vw] font-black" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
             {index + 1}
           </span>
         </div>
+        <div className="absolute inset-x-0 bottom-0 h-[8%] bg-gradient-to-b from-transparent to-black/60 md:hidden" />
       </div>
 
-      <div className="relative w-[40%] h-full bg-black flex items-center">
-        <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
+      <div className={`relative w-full md:w-[40%] ${isMobile ? 'h-[25vh]' : 'h-[60vh]'} md:h-full bg-black flex ${isMobile ? 'items-start' : 'items-center'}`}>
+        <div className={`relative z-10 ${isMobile ? 'px-6 py-3' : 'p-8'} md:p-12 lg:p-16 w-full`}>
           <span
-            className="text-sm tracking-[0.2em] uppercase mb-6 block"
+            className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
             style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
           >
             {slide.tag}
           </span>
           <h2
-            className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#C49B42] leading-tight mb-10"
+            className={`${isMobile ? 'text-2xl mb-4' : 'text-3xl mb-10'} md:text-4xl lg:text-5xl font-bold text-[#C49B42] leading-tight`}
             style={{ fontFamily: "'Cinzel', serif" }}
           >
             {slide.title}
@@ -251,6 +185,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
               </a>
             )}
           </div>
+
           <div className="absolute bottom-6 right-8 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
             {index + 1} / {slides.length}
           </div>
