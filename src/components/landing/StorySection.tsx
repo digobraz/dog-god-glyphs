@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
@@ -104,13 +104,11 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             background: `radial-gradient(ellipse at 40% 50%, rgba(163,120,43,0.12) 0%, rgba(0,0,0,0.97) 70%)`,
           }}
         />
-        {/* Subtle decorative element */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
           <span className="text-[20vw] font-black" style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}>
             {index + 1}
           </span>
         </div>
-        {/* Mobile: gradient overlay for readability */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black md:hidden" />
       </div>
 
@@ -156,7 +154,6 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             )}
           </div>
 
-          {/* Slide indicator */}
           <div className="absolute bottom-6 right-8 text-white/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
             {index + 1} / {slides.length}
           </div>
@@ -166,32 +163,9 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
   );
 }
 
-export function StorySection() {
+export function StorySection({ scrollingUp }: { scrollingUp: boolean }) {
   const [modalIdx, setModalIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scrollingUp, setScrollingUp] = useState(false);
-  const lastScrollY = useRef(0);
-
-  // Track scroll direction to disable scrolljack when going up
-  useEffect(() => {
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (y < lastScrollY.current - 5) {
-          setScrollingUp(true);
-        } else if (y > lastScrollY.current + 5) {
-          setScrollingUp(false);
-        }
-        lastScrollY.current = y;
-        ticking = false;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -200,7 +174,6 @@ export function StorySection() {
 
   const x = useTransform(scrollYProgress, [0, 1], ['0vw', `-${(slides.length - 1) * 100}vw`]);
 
-  // When scrolling up: collapse the tall container so user scrolls through fast
   const containerHeight = scrollingUp ? '100vh' : `${slides.length * 100}vh`;
 
   return (
@@ -208,7 +181,7 @@ export function StorySection() {
       <section
         id="story"
         ref={containerRef}
-        className="relative bg-black transition-[height] duration-300"
+        className="relative bg-black snap-start transition-[height] duration-300"
         style={{ height: containerHeight }}
       >
         <div className="sticky top-0 h-screen w-full overflow-hidden">
