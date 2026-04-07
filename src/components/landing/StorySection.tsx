@@ -38,6 +38,9 @@ const slides = [
     tag: '1800s | THE AGE OF EXPLORATION',
     title: 'Melted the ice through selfless sacrifice',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4',
+    videoPosition: '50% calc(50% + 50px)',
+    videoPositionTablet: '50% calc(50% + 50px)',
+    videoPositionMobile: '50% calc(50% + 50px)',
     full: 'The 19th century saw dogs become indispensable partners in humanity\'s greatest adventures. Sled dogs carried explorers across the frozen Arctic. Hounds accompanied settlers into the American frontier. In every expedition journal, you\'ll find entries about faithful dogs who provided warmth, warning, and unwavering companionship in the most hostile environments on Earth.',
   },
   {
