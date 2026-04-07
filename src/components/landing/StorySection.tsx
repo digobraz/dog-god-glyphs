@@ -96,7 +96,6 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      {/* Left: Image placeholder (60%) */}
       <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
         <div
           className="absolute inset-0"
@@ -112,7 +111,6 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black md:hidden" />
       </div>
 
-      {/* Right: Text content (40%) */}
       <div className="relative w-full md:w-[40%] h-[60vh] md:h-full bg-black flex items-center">
         <div className="relative z-10 p-8 md:p-12 lg:p-16 w-full">
           <span
@@ -163,7 +161,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
   );
 }
 
-export function StorySection({ scrollingUp }: { scrollingUp: boolean }) {
+export function StorySection() {
   const [modalIdx, setModalIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -174,26 +172,24 @@ export function StorySection({ scrollingUp }: { scrollingUp: boolean }) {
 
   const x = useTransform(scrollYProgress, [0, 1], ['0vw', `-${(slides.length - 1) * 100}vw`]);
 
-  const containerHeight = scrollingUp ? '100vh' : `${slides.length * 100}vh`;
-
   return (
     <>
       <section
         id="story"
         ref={containerRef}
         className="relative bg-black"
-        style={{ height: containerHeight }}
+        style={{ height: `${slides.length * 100}vh` }}
       >
-        {/* Invisible snap anchors in normal flow */}
+        {/* Snap page targets for scroll hijacking */}
         {slides.map((_, i) => (
-          <div key={`snap-${i}`} className="h-screen snap-start" />
+          <div key={`snap-${i}`} className="h-screen" data-snap-page />
         ))}
         {/* Sticky visual layer pulled back to top via negative margin */}
         <div
           className="sticky top-0 h-screen w-full overflow-hidden"
           style={{ marginTop: `-${slides.length * 100}vh` }}
         >
-          <motion.div className="flex h-full" style={{ x: scrollingUp ? undefined : x }}>
+          <motion.div className="flex h-full" style={{ x }}>
             {slides.map((slide, i) => (
               <StoryCard key={i} slide={slide} index={i} onReadStory={() => setModalIdx(i)} />
             ))}

@@ -27,7 +27,7 @@ const steps = [
 
 function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
   return (
-    <div className="h-screen w-full flex items-center justify-center px-6 md:px-8 snap-start">
+    <div className="h-screen w-full flex items-center justify-center px-6 md:px-8" data-snap-page>
       <motion.div
         className="max-w-2xl w-full flex flex-col items-center text-center gap-6"
         initial={{ opacity: 0, y: 40 }}
@@ -85,16 +85,14 @@ function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
   );
 }
 
-export function VisionSection({ scrollingUp }: { scrollingUp: boolean }) {
+export function VisionSection() {
   return (
     <section
       id="vision"
       style={{ backgroundColor: '#F3EBDD' }}
     >
       {steps.map((step, i) => (
-        <div key={i} className="snap-start">
-          <VisionStep step={step} index={i} />
-        </div>
+        <VisionStep key={i} step={step} index={i} />
       ))}
     </section>
   );
