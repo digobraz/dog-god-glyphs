@@ -46,7 +46,7 @@ const slides = [
   {
     tag: '1900s | WORLD AT WAR',
     title: 'Became our very senses',
-    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-6_q53uew.mp4',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-6_q53uew.mp4',
     videoPosition: '50% calc(50% + 100px)',
     videoPositionTablet: '50% calc(50% + 100px)',
     videoPositionMobile: '50% calc(50% + 100px)',
