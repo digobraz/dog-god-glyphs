@@ -96,7 +96,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className="relative w-full md:w-[60%] h-[40vh] md:h-full">
+      <div className="relative w-full md:w-[60%] h-[60vh] md:h-full bg-black">
         {slide.video && (
           <video
             src={slide.video}
@@ -104,7 +104,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             muted
             loop
             playsInline
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
           />
         )}
         <div
