@@ -1,32 +1,57 @@
 
 
-## Problem
+## Problém
 
-CSS `snap-y snap-mandatory` is on the wrapper `<div>` in `LandingPage.tsx`, but that div is **not** the scroll container. The browser scrolls `<html>`, not this div. CSS scroll snap only works on the **actual scroll container**, so snapping does nothing currently.
+`html { overflow: hidden; }` v `index.css` blokuje **všetok** scroll — vrátane programatického `scrollIntoView()`. Takže keď JS hijacker nastaví `currentIndex` a zavolá `scrollIntoView`, stránka sa nikam nepohne. Vizuálne sa nič nezmení, aj keď sa stav aktualizuje.
 
-Making the wrapper div a scroll container (`h-screen overflow-y-auto`) would break `window.scrollY`, `useScroll` from framer-motion, and all IntersectionObservers that rely on the window as root.
+Zároveň `StorySection` používa `useScroll` z framer-motion na sledovanie scroll progress pre horizontálny posun slajdov — ale keďže scroll neexistuje, `scrollYProgress` je stále 0 a slajdy sa nehýbu.
 
-## Solution
+## Riešenie
 
-Apply `scroll-snap-type: y mandatory` directly to the `<html>` element via CSS, and keep all snap-start children as they are.
+Zmeniť prístup: namiesto blokovania overflow a pokúšania sa o programatický scroll, ponechať natívny scroll povolený ale kontrolovať ho cez JS.
 
-### Changes
+### Zmeny
 
-**1. `src/index.css`** — Add scroll-snap to html
+**1. `src/index.css`** — Odstrániť `overflow: hidden` z `html`, pridať `overscroll-behavior: none`
 
 ```css
 html {
-  scroll-snap-type: y mandatory;
+  overscroll-behavior: none;
 }
 ```
 
-**2. `src/components/landing/LandingPage.tsx`** — Remove `snap-y snap-mandatory` from wrapper div
+**2. `src/components/landing/LandingPage.tsx`** — Vylepšiť scroll hijacker
 
-The wrapper div keeps its layout role but no longer pretends to be a snap container. The snap classes are removed since `<html>` handles it via CSS.
+- Wheel handler: ponechať `e.preventDefault()` — toto blokuje natívny scroll kolieskom/trackpadom
+- Pridať `touchmove` handler s `e.preventDefault()` — blokuje natívny touch scroll
+- Zmeniť `scrollIntoView` na `window.scrollTo({ top: target.offsetTop, behavior: 'smooth' })` pre spoľahlivejšie programatické scrollovanie
+- Použiť `ref` namiesto `state` pre `currentIndex`, aby sa predišlo stale closures v event handleroch (event listenery sa nebudú musieť re-registrovať pri každej zmene indexu)
 
-**3. `src/components/landing/StorySection.tsx`** — Keep snap anchors as-is
+```tsx
+const currentIndexRef = useRef(0);
 
-The invisible `h-screen snap-start` divs inside the story section are already correct — they just need the html-level snap container to actually work.
+const scrollToIndex = (index: number) => {
+  const targets = document.querySelectorAll('[data-snap-page]');
+  const clamped = Math.max(0, Math.min(index, targets.length - 1));
+  if (isAnimating.current) return;
+  
+  isAnimating.current = true;
+  currentIndexRef.current = clamped;
+  
+  const target = targets[clamped] as HTMLElement;
+  window.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+  
+  setTimeout(() => { isAnimating.current = false; }, TRANSITION_DURATION);
+};
+```
 
-No other files need changes. This is the minimal fix that makes snapping work across all sections and story slides without breaking framer-motion scroll tracking or IntersectionObserver.
+- Zmeniť `useEffect` dependencies na `[]` (prázdne) keďže všetky hodnoty sú v refs
+
+**3. Bez zmien v `StorySection.tsx`**
+
+`useScroll` z framer-motion bude teraz fungovať, keďže natívny scroll je povolený. Programatický `window.scrollTo` posunie stránku, `scrollYProgress` sa aktualizuje, a horizontálny posun slajdov bude fungovať.
+
+### Súbory
+- `src/index.css` — zmena html overflow
+- `src/components/landing/LandingPage.tsx` — oprava scroll hijackera (refs, scrollTo, touchmove)
 
