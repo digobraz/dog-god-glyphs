@@ -40,7 +40,7 @@ export function HeroSection() {
             <AnimatedCounter target={29} duration={2500} />
           </span>
           {' '}
-          <span className="font-normal">PEOPLE</span>
+          <span className="font-normal text-xl md:text-2xl">PEOPLE SAY:</span>
         </motion.p>
 
         {/* Row 2: Main Heading */}
