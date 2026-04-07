@@ -106,6 +106,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
+            style={slide.videoPosition ? { objectPosition: slide.videoPosition } : undefined}
           />
         )}
         <div
