@@ -28,8 +28,8 @@ export function HeroSection() {
     <section id="hero" className="h-screen w-full relative bg-black overflow-hidden">
       <MatrixRain />
 
-      {/* Perfectly centered content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+      {/* Content distributed with equal spacing: header-to-content = content-to-bottom */}
+      <div className="absolute inset-0 flex flex-col items-center justify-between text-center px-4 pt-[140px] pb-[60px]">
         {/* Row 1: Social Proof */}
         <motion.div
           className="flex flex-row items-baseline justify-center gap-3 mb-2"
