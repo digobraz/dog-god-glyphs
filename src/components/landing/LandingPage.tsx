@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { Header } from './Header';
 import { HeroSection } from './HeroSection';
 import { StorySection } from './StorySection';
@@ -9,45 +9,36 @@ const TRANSITION_DURATION = 1000;
 const TOUCH_THRESHOLD = 50;
 
 export function LandingPage() {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentIndexRef = useRef(0);
   const isAnimating = useRef(false);
   const touchStartY = useRef(0);
-  const totalPages = useRef(0);
 
-  // Calculate total pages: 1 (hero) + 9 (story) + 5 (vision) + 1 (about) = 16
-  // We read this from DOM snap targets instead of hardcoding
-  const getSnapTargets = useCallback(() => {
+  const scrollToIndex = (index: number) => {
     const targets = document.querySelectorAll('[data-snap-page]');
-    return targets;
-  }, []);
-
-  const scrollToIndex = useCallback((index: number) => {
-    const targets = getSnapTargets();
-    totalPages.current = targets.length;
     const clamped = Math.max(0, Math.min(index, targets.length - 1));
-    if (clamped === currentIndex && isAnimating.current) return;
+    if (clamped === currentIndexRef.current && isAnimating.current) return;
+    if (isAnimating.current) return;
 
     isAnimating.current = true;
-    setCurrentIndex(clamped);
+    currentIndexRef.current = clamped;
 
     const target = targets[clamped] as HTMLElement;
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
+      window.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
     }
 
     setTimeout(() => {
       isAnimating.current = false;
     }, TRANSITION_DURATION);
-  }, [currentIndex, getSnapTargets]);
+  };
 
-  const navigate = useCallback((direction: 1 | -1) => {
+  const navigate = (direction: 1 | -1) => {
     if (isAnimating.current) return;
-    const targets = getSnapTargets();
-    totalPages.current = targets.length;
-    const next = Math.max(0, Math.min(currentIndex + direction, targets.length - 1));
-    if (next === currentIndex) return;
+    const targets = document.querySelectorAll('[data-snap-page]');
+    const next = Math.max(0, Math.min(currentIndexRef.current + direction, targets.length - 1));
+    if (next === currentIndexRef.current) return;
     scrollToIndex(next);
-  }, [currentIndex, scrollToIndex, getSnapTargets]);
+  };
 
   useEffect(() => {
     const onWheel = (e: WheelEvent) => {
@@ -59,6 +50,10 @@ export function LandingPage() {
 
     const onTouchStart = (e: TouchEvent) => {
       touchStartY.current = e.touches[0].clientY;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
     };
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -81,29 +76,31 @@ export function LandingPage() {
 
     window.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: false });
     window.addEventListener('touchend', onTouchEnd, { passive: true });
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [navigate]);
+  }, []);
 
   // Handle hash navigation
   useEffect(() => {
     const hash = window.location.hash;
     if (hash) {
       setTimeout(() => {
-        const targets = getSnapTargets();
+        const targets = document.querySelectorAll('[data-snap-page]');
         const arr = Array.from(targets);
         const idx = arr.findIndex(el => `#${el.closest('[id]')?.id}` === hash || el.id === hash.slice(1));
         if (idx >= 0) scrollToIndex(idx);
       }, 200);
     }
-  }, [getSnapTargets, scrollToIndex]);
+  }, []);
 
   return (
     <div className="w-full">
