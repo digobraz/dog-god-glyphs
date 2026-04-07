@@ -1,31 +1,50 @@
 
 
-## Fix: Scroll Up Should Go to First Item of Current Section First
+## STRICT BRAND COLORS & MANIFESTO TYPOGRAPHY
 
-### Problem
-Current "Fast-Track Up" logic always jumps to the first item of the **previous** section. User expects: first scroll up → first item of **current** section, then next scroll up → previous section.
+### Scope
 
-### Updated Logic
+The user wants three changes: (1) replace all pure white text with papyrus `#FAF4EC` across landing pages, (2) reverse the color hierarchy on STORY cards, and (3) update the 9 manifesto headings to remove ellipses.
 
-**File: `src/components/landing/LandingPage.tsx`** — lines 47-52
+### Changes
 
-```tsx
-if (direction === -1) {
-  if (prev === 15) next = 10;
-  else if (prev > 10 && prev <= 14) next = 10;  // VISION 2-5 → VISION 1
-  else if (prev === 10) next = 1;                // VISION 1 → STORY 1
-  else if (prev > 1 && prev <= 9) next = 1;      // STORY 2-9 → STORY 1
-  else if (prev === 1) next = 0;                  // STORY 1 → HERO
-  else next = 0;
-}
-```
+**1. `src/components/landing/StorySection.tsx`**
 
-### Behavior
-- VISION 3/5 (index 12) → scroll up → VISION 1/5 (index 10)
-- VISION 1/5 (index 10) → scroll up → STORY 1/9 (index 1)
-- STORY 3/9 (index 3) → scroll up → STORY 1/9 (index 1)
-- STORY 1/9 (index 1) → scroll up → HERO (index 0)
-- ABOUT (index 15) → scroll up → VISION 1/5 (index 10)
+- **Slides data** — update all 9 `title` values to the exact new strings:
+  1. `"It all started with a gentle touch..."`
+  2. `"That forged a mythical loyalty"`
+  3. `"Endured the gravest injustice"`
+  4. `"Brought hope into the darkness"`
+  5. `"Melted the ice through selfless sacrifice"`
+  6. `"Became our very senses"`
+  7. `"Pushed beyond physical limits"`
+  8. `"And propelled humanity to the stars"`
+  9. `"...so we could build a world where dog is god."`
 
-One file, one block change.
+- **StoryCard** — color reversal:
+  - Gold tag: change `color: '#C49B42'` → `color: '#FAF4EC'`
+  - Heading (h2): change `text-white` → `text-[#C49B42]`
+  - "Read Story" button: change `color: '#C49B42', borderColor: '#C49B42'` → `color: '#FAF4EC', borderColor: '#FAF4EC'`
+  - Page counter (`text-white/20`): → `text-[#FAF4EC]/20`
+  - `hover:bg-white/10` on button → `hover:bg-[#FAF4EC]/10`
+
+- **StoryModal** — replace white with papyrus:
+  - Close button: `text-white/50 hover:text-white` → `text-[#FAF4EC]/50 hover:text-[#FAF4EC]`
+  - Modal heading (h3): `text-white` → `text-[#C49B42]` (gold, matching cards)
+  - Modal body text: `text-white/70` → `text-[#FAF4EC]/70`
+
+**2. `src/components/landing/HeroSection.tsx`**
+
+- Counter number (line 48): `color: '#FFFFFF'` → `color: '#FAF4EC'`
+- Secondary text "or see story first" (line 98): `rgba(255, 255, 255, 0.6)` → `rgba(250, 244, 236, 0.6)`
+- CTA border: `border-white/30` → `border-[#FAF4EC]/30`
+
+**3. `src/components/landing/AboutSection.tsx`**
+
+- `text-white/20`, `text-white/70`, `text-white/30` → replace `white` with `[#FAF4EC]` in all instances
+
+### Files
+- `src/components/landing/StorySection.tsx`
+- `src/components/landing/HeroSection.tsx`
+- `src/components/landing/AboutSection.tsx`
 
