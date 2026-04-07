@@ -148,7 +148,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
         <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-b from-transparent to-black md:hidden z-[1]" />
       </div>
 
-      <div className={`absolute bottom-0 left-0 right-0 z-[2] md:relative md:w-[40%] md:h-full md:bg-black flex ${isMobile ? 'items-start' : 'items-center'} bg-transparent`}>
+      <div className={`absolute bottom-0 left-0 right-0 z-[2] md:relative md:w-[40%] md:h-full md:bg-black flex ${isMobile ? 'items-start' : 'items-center'} bg-transparent`} style={isMobile ? { bottom: '100px' } : undefined}>
         <div className={`relative z-10 ${isMobile ? 'px-6 py-3' : 'p-8'} md:p-12 lg:p-16 w-full`}>
           <span
             className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
