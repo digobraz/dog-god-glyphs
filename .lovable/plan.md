@@ -1,24 +1,31 @@
 
 
-## Problem
+## Fix: Scroll Up Should Go to First Item of Current Section First
 
-When user clicks VISION (index 10) in the menu and then scrolls up, they land on **Hero (0)** instead of **Story 1/9 (1)**. Same issue from ABOUT.
+### Problem
+Current "Fast-Track Up" logic always jumps to the first item of the **previous** section. User expects: first scroll up → first item of **current** section, then next scroll up → previous section.
 
-**Root cause**: The `scrollToIndex` function uses a **100ms cooldown** for instant/section jumps (line 36). When the user scrolls up from VISION, the fast-track logic correctly computes `next = 1` and performs an instant scroll. But the 100ms lock expires almost immediately, and the **next wheel/touch event** from trackpad inertia fires another `navigate(-1)`, which now reads `prev = 1` and jumps to `next = 0` (Hero). The user sees VISION → Hero in what appears to be a single action, skipping Story entirely.
+### Updated Logic
 
-## Fix
-
-**File: `src/components/landing/LandingPage.tsx`**
-
-Change the cooldown for instant/section jumps from 100ms to the full `TRANSITION_DURATION` (1000ms). This absorbs all remaining inertia events and prevents the double-jump.
+**File: `src/components/landing/LandingPage.tsx`** — lines 47-52
 
 ```tsx
-// Line 36 — BEFORE:
-const delay = (instant || isSectionJump) ? 100 : TRANSITION_DURATION;
-
-// AFTER:
-const delay = TRANSITION_DURATION;
+if (direction === -1) {
+  if (prev === 15) next = 10;
+  else if (prev > 10 && prev <= 14) next = 10;  // VISION 2-5 → VISION 1
+  else if (prev === 10) next = 1;                // VISION 1 → STORY 1
+  else if (prev > 1 && prev <= 9) next = 1;      // STORY 2-9 → STORY 1
+  else if (prev === 1) next = 0;                  // STORY 1 → HERO
+  else next = 0;
+}
 ```
 
-One line change. The full 1000ms lock applies to all transitions — both smooth scrolls and instant section jumps. This ensures one scroll action = one section change, even with trackpad inertia.
+### Behavior
+- VISION 3/5 (index 12) → scroll up → VISION 1/5 (index 10)
+- VISION 1/5 (index 10) → scroll up → STORY 1/9 (index 1)
+- STORY 3/9 (index 3) → scroll up → STORY 1/9 (index 1)
+- STORY 1/9 (index 1) → scroll up → HERO (index 0)
+- ABOUT (index 15) → scroll up → VISION 1/5 (index 10)
+
+One file, one block change.
 
