@@ -9,7 +9,6 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
     const tick = () => {
       const elapsed = Date.now() - start;
       const progress = Math.min(elapsed / duration, 1);
-      // ease out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setCount(Math.floor(eased * target));
       if (progress < 1) requestAnimationFrame(tick);
@@ -21,7 +20,7 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
 
 export function HeroSection() {
   return (
-    <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
+    <section id="hero" className="relative h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
       <MatrixRain />
       <div className="relative z-10 flex flex-col items-center gap-8 px-4 text-center">
         <motion.h1
@@ -36,7 +35,9 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          IN DOG WE TRUST
+          THE PLACE WHERE
+          <br />
+          DOG IS GOD
         </motion.h1>
 
         <motion.p

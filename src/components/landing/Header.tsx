@@ -5,16 +5,23 @@ export function Header() {
     <header className="w-full bg-black py-6 md:py-8">
       <div className="flex flex-col items-center gap-4">
         <img src={dogyptLogo} alt="DOGYPT" className="h-12 md:h-16 object-contain" />
-        <nav className="flex gap-8">
-          {['STORY', 'VISION', 'ABOUT'].map((item) => (
-            <a
-              key={item}
-              href={`#${item.toLowerCase()}`}
-              className="text-xs md:text-sm tracking-[0.25em] uppercase transition-colors hover:text-primary"
-              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(39 55% 51%)' }}
-            >
-              {item}
-            </a>
+        <nav className="flex items-center gap-0">
+          {['STORY', 'VISION', 'ABOUT'].map((item, i) => (
+            <div key={item} className="flex items-center">
+              {i > 0 && (
+                <span
+                  className="mx-4 md:mx-6 h-4 w-px"
+                  style={{ backgroundColor: 'rgba(196,155,66,0.4)' }}
+                />
+              )}
+              <a
+                href={`#${item.toLowerCase()}`}
+                className="text-xs md:text-sm tracking-[0.25em] uppercase transition-colors hover:opacity-70"
+                style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+              >
+                {item}
+              </a>
+            </div>
           ))}
         </nav>
       </div>

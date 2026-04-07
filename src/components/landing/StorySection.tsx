@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useRef, useState } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
 const slides = [
@@ -61,88 +61,105 @@ const slides = [
 
 export function StorySection() {
   const [modalIdx, setModalIdx] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end'],
+  });
+
+  const x = useTransform(scrollYProgress, [0, 1], ['0vw', `-${(slides.length - 1) * 100}vw`]);
 
   return (
-    <section id="story" className="relative bg-black">
-      {/* Horizontal scroll container */}
-      <div
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-        style={{ WebkitOverflowScrolling: 'touch' }}
+    <>
+      {/* Tall parent drives vertical scroll */}
+      <section
+        id="story"
+        ref={containerRef}
+        className="relative bg-black"
+        style={{ height: `${slides.length * 100}vh` }}
       >
-        {slides.map((slide, i) => (
-          <div
-            key={i}
-            className="flex-shrink-0 w-screen h-screen snap-center relative flex items-end"
-          >
-            {/* Simulated cinemagraph bg */}
-            <div
-              className="absolute inset-0"
-              style={{
-                background: `radial-gradient(ellipse at center, rgba(163,120,43,0.08) 0%, rgba(0,0,0,0.95) 70%)`,
-              }}
-            />
-            {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-
-            {/* Content */}
-            <div className="relative z-10 p-8 md:p-16 max-w-2xl mb-16 md:mb-24">
-              <span
-                className="text-xs md:text-sm tracking-[0.2em] uppercase mb-3 block"
-                style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+        {/* Sticky viewport */}
+        <div className="sticky top-0 h-screen w-full overflow-hidden">
+          <motion.div className="flex h-full" style={{ x }}>
+            {slides.map((slide, i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-screen h-screen relative flex items-end"
               >
-                {slide.tag}
-              </span>
-              <h2
-                className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight"
-                style={{ fontFamily: "'Cinzel', serif" }}
-              >
-                {slide.title}
-              </h2>
-              <p className="text-white/70 text-base md:text-lg mb-6 leading-relaxed">
-                {slide.body}
-              </p>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setModalIdx(i)}
-                  className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-white/10"
+                {/* Cinemagraph bg placeholder */}
+                <div
+                  className="absolute inset-0"
                   style={{
-                    fontFamily: "'Cinzel', serif",
-                    color: '#C49B42',
-                    borderColor: '#C49B42',
+                    background: `radial-gradient(ellipse at center, rgba(163,120,43,0.08) 0%, rgba(0,0,0,0.95) 70%)`,
                   }}
-                >
-                  Read Story
-                </button>
-                {i === slides.length - 1 && (
-                  <a
-                    href="#vision"
-                    className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                      color: '#000',
-                      boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
-                    }}
-                  >
-                    Vision
-                  </a>
-                )}
-              </div>
-            </div>
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
 
-            {/* Slide indicator */}
-            <div className="absolute bottom-6 right-8 text-white/30 text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              {i + 1} / {slides.length}
-            </div>
-          </div>
-        ))}
-      </div>
+                {/* Content */}
+                <div className="relative z-10 p-8 md:p-16 max-w-2xl mb-16 md:mb-24">
+                  <span
+                    className="text-xs md:text-sm tracking-[0.2em] uppercase mb-3 block"
+                    style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+                  >
+                    {slide.tag}
+                  </span>
+                  <h2
+                    className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    {slide.title}
+                  </h2>
+                  <p className="text-white/70 text-base md:text-lg mb-6 leading-relaxed">
+                    {slide.body}
+                  </p>
+                  <div className="flex gap-4">
+                    <button
+                      onClick={() => setModalIdx(i)}
+                      className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-white/10"
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        color: '#C49B42',
+                        borderColor: '#C49B42',
+                      }}
+                    >
+                      Read Story
+                    </button>
+                    {i === slides.length - 1 && (
+                      <a
+                        href="#vision"
+                        className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-white/30 transition-transform hover:scale-105"
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                          color: '#000',
+                          boxShadow: '0 0 30px hsl(39 80% 50% / 0.3)',
+                        }}
+                      >
+                        Vision
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Slide indicator */}
+                <div
+                  className="absolute bottom-6 right-8 text-white/30 text-sm"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  {i + 1} / {slides.length}
+                </div>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
 
       {/* Story Modal */}
       <AnimatePresence>
         {modalIdx !== null && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -180,6 +197,6 @@ export function StorySection() {
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </>
   );
 }

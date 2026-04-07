@@ -6,11 +6,15 @@ export function AboutSection() {
   const [showVideo, setShowVideo] = useState(false);
 
   return (
-    <section id="about" className="relative py-24 md:py-32" style={{ backgroundColor: '#FAF4EC' }}>
-      <div className="max-w-4xl mx-auto px-6 md:px-8">
+    <section
+      id="about"
+      className="relative min-h-screen flex flex-col justify-center py-24 md:py-32 snap-center"
+      style={{ backgroundColor: '#FAF4EC' }}
+    >
+      <div className="max-w-4xl mx-auto px-6 md:px-8 flex-1 flex flex-col justify-center">
         <motion.h2
           className="text-4xl md:text-5xl font-black text-center mb-8"
-          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(36 58% 40%)' }}
+          style={{ fontFamily: "'Cinzel', serif", color: '#A3782B' }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -19,7 +23,8 @@ export function AboutSection() {
         </motion.h2>
 
         <motion.p
-          className="text-center text-foreground/70 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-12"
+          className="text-center text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-12"
+          style={{ color: 'rgba(0,0,0,0.6)' }}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -40,7 +45,7 @@ export function AboutSection() {
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
         >
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors z-10">
             <div
               className="w-20 h-20 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
               style={{
@@ -59,17 +64,17 @@ export function AboutSection() {
         </motion.div>
 
         {/* Footer */}
-        <footer className="border-t pt-8" style={{ borderColor: 'rgba(163,120,43,0.2)' }}>
+        <footer className="border-t pt-8 mt-auto" style={{ borderColor: 'rgba(163,120,43,0.2)' }}>
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-foreground/50 text-sm">© DOGYPT 2026. All rights reserved.</p>
+            <p className="text-sm" style={{ color: 'rgba(0,0,0,0.4)' }}>© DOGYPT 2026. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <a href="mailto:hello@dogypt.com" className="text-foreground/50 text-sm hover:text-foreground transition-colors">
+              <a href="mailto:hello@dogypt.com" className="text-sm transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
                 hello@dogypt.com
               </a>
-              <a href="https://instagram.com/dogypt" target="_blank" rel="noopener noreferrer" className="text-foreground/50 hover:text-foreground transition-colors">
+              <a href="https://instagram.com/dogypt" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="https://x.com/dogypt" target="_blank" rel="noopener noreferrer" className="text-foreground/50 hover:text-foreground transition-colors">
+              <a href="https://x.com/dogypt" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </a>
             </div>
@@ -81,7 +86,7 @@ export function AboutSection() {
       <AnimatePresence>
         {showVideo && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
