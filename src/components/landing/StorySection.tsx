@@ -8,7 +8,7 @@ const slides = [
     title: 'It all started with a gentle touch...',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPositionMobile: '25% calc(50% + 20px)',
-    videoPositionTablet: '25% 15%',
+    videoPositionTablet: '25% calc(15% + 30px)',
     videoPositionDesktop: 'center 80px',
     full: 'In 1978, archaeologists in northern Israel opened a 12,000-year-old grave. Inside lay a woman on her side, one hand resting gently on a puppy. No tools. No weapons. Just two souls, side by side. This is the oldest known evidence of the human-dog bond — proof that long before we built cities or invented writing, we already knew who our best friend was.',
   },
