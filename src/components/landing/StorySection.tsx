@@ -62,7 +62,7 @@ const slides = [
     tag: '2017 → TODAY',
     title: '...so we could build a world where dog is god.',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4',
-    videoPositionMobile: 'center calc(50% + 20px)',
+    videoPositionMobile: 'center 30%',
     full: 'In 2017, a shelter dog named Hektor found his way to a new home — and sparked a question that wouldn\'t go away: after 12,000 years of loyalty, sacrifice, and love, what have we truly given back? DOGYPT was born from the answer. Your dog isn\'t just a pet. They carry the same spirit as every hero in this timeline. It\'s time we honored that. Welcome to the place where DOG is GOD.',
   },
 ];
@@ -120,7 +120,14 @@ function KenBurnsStyles() {
       100% { transform: ${v.to}; }
     }
   `).join('\n');
-  return <style>{keyframes}</style>;
+  // Card 9 (index 8) mobile: reduced scale so all subjects are visible
+  const mobileCard9 = `
+    @keyframes kenburns-8-mobile {
+      0% { transform: scale(1.0) translate(0,0); }
+      100% { transform: scale(1.03) translate(1%,-1%); }
+    }
+  `;
+  return <style>{keyframes + mobileCard9}</style>;
 }
 
 function getVideoPos(slide: typeof slides[0], isMobile: boolean, isTablet: boolean) {
@@ -235,7 +242,7 @@ export function StorySection() {
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{
                       objectPosition: videoPos || '50% 50%',
-                      animation: `kenburns-${i} 10s ease-in-out infinite alternate`,
+                      animation: `${i === 8 && isMobile ? 'kenburns-8-mobile' : `kenburns-${i}`} 10s ease-in-out infinite alternate`,
                     }}
                   />
                 )}
