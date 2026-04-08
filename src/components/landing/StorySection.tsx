@@ -136,7 +136,15 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
 
   return (
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
-      <div className={`relative w-full md:w-[60%] ${isMobile ? 'h-[75vh]' : ''} md:h-full`}>
+      <div
+        className={`relative w-full md:w-[60%] ${isMobile ? 'h-[75vh]' : ''} md:h-full`}
+        style={!isMobile ? {
+          maskImage: 'linear-gradient(to right, black 40%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 25%)',
+          maskComposite: 'intersect',
+          WebkitMaskImage: 'linear-gradient(to right, black 40%, transparent 100%), linear-gradient(to bottom, transparent 0%, black 25%)',
+          WebkitMaskComposite: 'source-in',
+        } : undefined}
+      >
         {slide.video && (
           <>
             <video
