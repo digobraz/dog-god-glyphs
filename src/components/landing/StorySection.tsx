@@ -66,15 +66,15 @@ const slides = [
 
 // Ken Burns keyframe styles — alternating directions per card
 const kenBurnsVariants = [
-  { from: 'scale(1) translate(0,0)', to: 'scale(1.05) translate(-1%,-1%)' },        // zoom in + drift NW
-  { from: 'scale(1.05) translate(0,0)', to: 'scale(1) translate(2%,0)' },            // zoom out + pan right
-  { from: 'scale(1) translate(0,0)', to: 'scale(1.04) translate(1%,1%)' },            // zoom in + drift SE
-  { from: 'scale(1.04) translate(0,0)', to: 'scale(1) translate(-2%,0)' },            // zoom out + pan left
-  { from: 'scale(1) translate(0,0)', to: 'scale(1.05) translate(0,-1.5%)' },          // zoom in + drift up
-  { from: 'scale(1.05) translate(0,0)', to: 'scale(1) translate(1.5%,1%)' },          // zoom out + drift SE
-  { from: 'scale(1) translate(0,0)', to: 'scale(1.04) translate(-1.5%,0)' },          // zoom in + pan left
-  { from: 'scale(1.04) translate(0,0)', to: 'scale(1) translate(0,1.5%)' },           // zoom out + drift down
-  { from: 'scale(1) translate(0,0)', to: 'scale(1.05) translate(1%,-1%)' },           // zoom in + drift NE
+  { from: 'scale(1.05) translate(0,0)', to: 'scale(1.12) translate(-1%,-1%)' },      // zoom in + drift NW
+  { from: 'scale(1.12) translate(0,0)', to: 'scale(1.05) translate(2%,0)' },          // zoom out + pan right
+  { from: 'scale(1.05) translate(0,0)', to: 'scale(1.11) translate(1%,1%)' },         // zoom in + drift SE
+  { from: 'scale(1.11) translate(0,0)', to: 'scale(1.05) translate(-2%,0)' },         // zoom out + pan left
+  { from: 'scale(1.05) translate(0,0)', to: 'scale(1.12) translate(0,-1.5%)' },       // zoom in + drift up
+  { from: 'scale(1.12) translate(0,0)', to: 'scale(1.05) translate(1.5%,1%)' },       // zoom out + drift SE
+  { from: 'scale(1.05) translate(0,0)', to: 'scale(1.11) translate(-1.5%,0)' },       // zoom in + pan left
+  { from: 'scale(1.11) translate(0,0)', to: 'scale(1.05) translate(0,1.5%)' },        // zoom out + drift down
+  { from: 'scale(1.05) translate(0,0)', to: 'scale(1.12) translate(1%,-1%)' },        // zoom in + drift NE
 ];
 
 function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
@@ -214,7 +214,7 @@ export function StorySection() {
             return (
               <div
                 key={i}
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full overflow-hidden"
                 style={{
                   opacity: isActive ? 1 : 0,
                   transition: 'opacity 1s ease-in-out',
