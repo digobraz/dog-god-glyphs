@@ -261,6 +261,16 @@ export function StorySection() {
             );
           })}
 
+          {/* === VIGNETTE for text readability === */}
+          <div
+            className="absolute inset-0 z-[2] pointer-events-none"
+            style={{
+              background: isMobile
+                ? 'radial-gradient(ellipse 120% 80% at 30% 100%, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)'
+                : 'radial-gradient(ellipse 80% 90% at 85% 55%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)',
+            }}
+          />
+
           {/* === GRADIENT OVERLAYS === */}
           <div
             className="absolute inset-0 z-[2] pointer-events-none"
