@@ -148,15 +148,15 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
               className="absolute inset-0 w-full h-full object-cover"
               style={videoPos ? { objectPosition: videoPos } : undefined}
             />
-            <div className="absolute inset-0 bg-black/35" />
+            <div className="absolute inset-0 bg-black/25" />
           </>
         )}
         <div
           className="absolute inset-0"
             style={{
             background: isMobile
-              ? 'linear-gradient(to bottom, transparent 78%, rgba(0,0,0,0.58) 88%)'
-              : 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, transparent 18%, transparent 82%, rgba(0,0,0,0.97) 100%), linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 25%)',
+              ? 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.58) 100%)'
+              : 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 12%, transparent 30%, transparent 70%, rgba(0,0,0,0.4) 88%, rgba(0,0,0,0.97) 100%), linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 15%, transparent 40%)',
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
