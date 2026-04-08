@@ -49,6 +49,7 @@ const slides = [
     tag: '1925 · NOME, ALASKA',
     title: 'Pushed beyond physical limits',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4',
+    videoPositionMobile: 'center calc(0% + 30px)',
     videoPositionDesktop: 'center 80px',
     full: 'Children in Nome, Alaska were dying of diphtheria. The only antitoxin was 1,000 km away. Twenty dog sled teams ran a desperate relay through –40°C blizzards. Balto became famous for finishing the last leg. But Togo — a 12-year-old husky — covered the longest and deadliest stretch: 264 miles across cracking sea ice in whiteout conditions. He was the real hero. Most people just never learned his name.',
   },
