@@ -250,9 +250,7 @@ export function StorySection() {
           <div
             className="absolute inset-0 z-[2] pointer-events-none"
             style={{
-              background: activeIndex === 0 && !isMobile
-                ? 'radial-gradient(ellipse 70% 80% at 85% 50%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)'
-                : 'radial-gradient(ellipse 100% 70% at 50% 100%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)',
+              background: 'radial-gradient(ellipse 100% 70% at 50% 100%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)',
             }}
           />
 
