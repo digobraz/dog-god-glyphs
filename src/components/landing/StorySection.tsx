@@ -118,7 +118,7 @@ function KenBurnsStyles() {
 
 function getVideoPos(slide: typeof slides[0], isMobile: boolean, _isTablet: boolean) {
   if (isMobile && slide.videoPositionMobile) return slide.videoPositionMobile;
-  return 'center center';
+  return 'center top';
 }
 
 // Text animation variants
