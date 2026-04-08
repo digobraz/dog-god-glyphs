@@ -120,7 +120,14 @@ function KenBurnsStyles() {
       100% { transform: ${v.to}; }
     }
   `).join('\n');
-  return <style>{keyframes}</style>;
+  // Card 9 (index 8) mobile: reduced scale so all subjects are visible
+  const mobileCard9 = `
+    @keyframes kenburns-8-mobile {
+      0% { transform: scale(1.0) translate(0,0); }
+      100% { transform: scale(1.03) translate(1%,-1%); }
+    }
+  `;
+  return <style>{keyframes + mobileCard9}</style>;
 }
 
 function getVideoPos(slide: typeof slides[0], isMobile: boolean, isTablet: boolean) {
