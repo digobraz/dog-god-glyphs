@@ -114,6 +114,8 @@ function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof s
   const isLast = index === slides.length - 1;
   const [isTablet, setIsTablet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [btnWidth, setBtnWidth] = useState(0);
 
   useEffect(() => {
     const check = () => {
@@ -124,6 +126,12 @@ function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof s
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  useEffect(() => {
+    if (buttonRef.current) {
+      setBtnWidth(buttonRef.current.offsetWidth);
+    }
   }, []);
 
   const videoPos = isMobile && slide.videoPositionMobile
