@@ -205,7 +205,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             )}
           </div>
 
-          <div className="absolute bottom-6 right-8 text-[#FAF4EC]/20 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
+          <div className="absolute bottom-6 right-8 text-[#C49B42]/40 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
             {index + 1} / {slides.length}
           </div>
         </div>
