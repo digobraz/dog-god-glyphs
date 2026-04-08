@@ -302,13 +302,13 @@ export function StorySection() {
                 >
                   <span
                     className={`text-xs md:text-sm tracking-[0.2em] uppercase ${isMobile ? 'mb-2' : 'mb-6'} block`}
-                    style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
+                    style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.5)' }}
                   >
                     {activeSlide.tag}
                   </span>
                   <h2
                     className={`${isMobile ? 'text-2xl mb-4' : 'text-3xl mb-10'} md:text-4xl lg:text-5xl font-bold text-[#C49B42] leading-tight`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
+                    style={{ fontFamily: "'Cinzel', serif", textShadow: '0 0 20px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.5)' }}
                   >
                     {activeSlide.title}
                   </h2>
