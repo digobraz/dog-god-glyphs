@@ -184,7 +184,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
           <div className="flex flex-wrap gap-4">
             <button
               onClick={onReadStory}
-              className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
+              className="px-6 py-2.5 rounded-sm text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
               style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
             >
               Read Story
@@ -192,7 +192,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             {isLast && (
               <a
                 href="#vision"
-                className="px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
+                className="px-6 py-2.5 rounded-sm text-sm font-semibold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
