@@ -149,7 +149,6 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
               style={videoPos ? { objectPosition: videoPos } : undefined}
             />
             <div className="absolute inset-0 bg-black/25" />
-            <div className="absolute inset-x-0 top-0 h-[25%] z-[1]" style={{ background: 'linear-gradient(to bottom, rgb(0,0,0) 0%, transparent 100%)' }} />
           </>
         )}
         <div
