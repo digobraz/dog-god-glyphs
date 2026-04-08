@@ -156,7 +156,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             style={{
             background: isMobile
               ? 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.58) 100%)'
-              : 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 12%, transparent 30%, transparent 70%, rgba(0,0,0,0.4) 88%, rgba(0,0,0,0.97) 100%), linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 15%, transparent 40%)',
+              : 'linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 12%, transparent 30%, transparent 50%, rgba(0,0,0,0.15) 65%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0.7) 85%, rgba(0,0,0,0.9) 93%, rgb(0,0,0) 100%), linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 15%, transparent 40%)',
           }}
         />
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.03]">
