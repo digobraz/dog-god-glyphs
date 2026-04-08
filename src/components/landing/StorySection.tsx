@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 const slides = [
   {
     tag: '~12,000 YEARS AGO · NORTHERN ISRAEL',
-    title: 'THE FIRST TOUCH',
+    title: 'It all started with a gentle touch...',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPosition: '-150px 100px',
     videoPositionTablet: '-300px 100px',
@@ -14,7 +14,7 @@ const slides = [
   },
   {
     tag: 'ANCIENT GREECE · HOMER\'S ODYSSEY',
-    title: 'THE TWENTY-YEAR WAIT',
+    title: 'That forged a mythical loyalty',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4',
     videoPosition: 'calc(50% - 150px) calc(50% + 50px)',
     videoPositionTablet: 'calc(50% - 150px) calc(50% + 50px)',
@@ -23,20 +23,20 @@ const slides = [
   },
   {
     tag: '13TH CENTURY · FRANCE',
-    title: 'THE WRONG SWORD',
+    title: 'Endured the gravest injustice',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4',
     full: 'A greyhound named Guinefort killed a venomous snake to protect his master\'s baby. The knight came home, saw blood everywhere, and killed the dog without looking twice. Then he found his child — alive, unharmed, the snake dead beside the crib. Local villagers were so heartbroken they declared Guinefort a saint. The Catholic Church tried to shut it down for centuries. They never could.',
   },
   {
     tag: '1793 · PARIS, FRANCE',
-    title: 'THE SMALLEST SPY',
+    title: 'Brought hope into the darkness',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4',
     videoPositionMobile: '50% calc(50% + 20px)',
     full: 'During the French Revolution, future empress Joséphine sat in a prison cell awaiting the guillotine. The only visitor the guards allowed was her pug, Fortuné. What they didn\'t know: hidden under his collar were secret messages between Joséphine and the outside world. A tiny pug outsmarted the Reign of Terror. Joséphine survived — and never forgot who saved her.',
   },
   {
     tag: '19TH CENTURY · SWISS ALPS',
-    title: 'FORTY LIVES',
+    title: 'Melted the ice through selfless sacrifice',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4',
     videoPosition: '50% calc(50% + 50px)',
     videoPositionTablet: '50% calc(50% + 50px)',
@@ -45,7 +45,7 @@ const slides = [
   },
   {
     tag: '1928 · NEW YORK CITY',
-    title: 'THE GIFT OF FREEDOM',
+    title: 'Became our very senses',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-6_q53uew.mp4',
     videoPosition: '50% calc(50% + 100px)',
     videoPositionTablet: '50% calc(50% + 100px)',
@@ -54,7 +54,7 @@ const slides = [
   },
   {
     tag: '1925 · NOME, ALASKA',
-    title: 'THE REAL HERO',
+    title: 'Pushed beyond physical limits',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4',
     videoPosition: '50% calc(50% + 100px)',
     videoPositionTablet: '50% calc(50% + 100px)',
@@ -63,13 +63,13 @@ const slides = [
   },
   {
     tag: '1957 · EARTH ORBIT',
-    title: 'ONE-WAY TICKET',
+    title: 'And propelled humanity to the stars',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4',
     full: 'Laika was a stray from the streets of Moscow. In 1957, Soviet scientists strapped her into a tiny capsule and launched her into orbit. She became the first living creature in space. There was no plan to bring her back. Her heartbeat, transmitted from above the Earth, proved life could survive the journey — and opened the door to human spaceflight. We owe the stars to a homeless dog.',
   },
   {
     tag: '2017 → TODAY',
-    title: 'IT\'S TIME',
+    title: '...so we could build a world where dog is god.',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4',
     videoPosition: '50% calc(50% + 50px)',
     videoPositionTablet: '50% calc(50% + 50px)',
