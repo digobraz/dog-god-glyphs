@@ -116,10 +116,9 @@ function KenBurnsStyles() {
   return <style>{keyframes}</style>;
 }
 
-function getVideoPos(slide: typeof slides[0], isMobile: boolean, isTablet: boolean) {
+function getVideoPos(slide: typeof slides[0], isMobile: boolean, _isTablet: boolean) {
   if (isMobile && slide.videoPositionMobile) return slide.videoPositionMobile;
-  if (isTablet && slide.videoPositionTablet) return slide.videoPositionTablet;
-  return slide.videoPosition;
+  return 'center center';
 }
 
 // Text animation variants
