@@ -1,24 +1,25 @@
 
 
-## Problem
+## Revert Story Card Titles to Previous Manifesto Headings
 
-Two gradient issues on mobile:
-1. The **radial-gradient overlay** (line 135-140) covers the entire video area with a circular gradient — this is the "kruhový" gradient the user sees. On mobile, this should be a simple bottom-to-top linear gradient instead.
-2. The **bottom fade gradient** (line 146) at `h-[20%]` should be reduced by ~40px — changing to `h-[15%]`.
+### What changes
+Only the `title` field in each of the 9 slides in `src/components/landing/StorySection.tsx`. No other text (tag, body/full) changes.
 
-## Plan
+### File: `src/components/landing/StorySection.tsx`
 
-**File: `src/components/landing/StorySection.tsx`**
+Replace current titles with the previous ones:
 
-1. **Replace the radial-gradient overlay with responsive logic**: On mobile, use a linear gradient that only fades from transparent at top to black at bottom. Keep the radial-gradient for desktop (md+). This can be done by adding a conditional style based on `isMobile` state (already available in the component).
+| Card | Current Title | Reverted Title |
+|------|--------------|----------------|
+| 1 | THE FIRST TOUCH | It all started with a gentle touch... |
+| 2 | THE TWENTY-YEAR WAIT | That forged a mythical loyalty |
+| 3 | THE WRONG SWORD | Endured the gravest injustice |
+| 4 | THE SMALLEST SPY | Brought hope into the darkness |
+| 5 | FORTY LIVES | Melted the ice through selfless sacrifice |
+| 6 | THE GIFT OF FREEDOM | Became our very senses |
+| 7 | THE REAL HERO | Pushed beyond physical limits |
+| 8 | ONE-WAY TICKET | And propelled humanity to the stars |
+| 9 | IT'S TIME | ...so we could build a world where dog is god. |
 
-2. **Reduce bottom fade height**: Change `h-[20%]` to `h-[15%]` on line 146 to show more of the image.
-
-### Technical detail
-
-Line 135-140 — the overlay div:
-- Mobile: `background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.97) 100%)`
-- Desktop: keep existing `radial-gradient(ellipse at 40% 50%, ...)`
-
-Line 146 — bottom fade: `h-[20%]` → `h-[15%]`
+All `tag`, `full`, `video`, and position properties remain untouched.
 
