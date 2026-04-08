@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { motion, useScroll, useTransform, useMotionValueEvent, AnimatePresence } from 'framer-motion';
+import { X, ChevronRight } from 'lucide-react';
 
 const slides = [
   {
@@ -110,7 +110,7 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
   );
 }
 
-function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; index: number; onReadStory: () => void }) {
+function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof slides[0]; index: number; onReadStory: () => void; activeIndex: number }) {
   const isLast = index === slides.length - 1;
   const [isTablet, setIsTablet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -205,17 +205,38 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
             )}
           </div>
 
-          <div className="absolute bottom-6 right-8 text-[#C49B42]/40 text-xs" style={{ fontFamily: "'Cinzel', serif" }}>
-            {index + 1} / {slides.length}
+          {/* Dot indicators */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 flex gap-1.5">
+            {slides.map((_, i) => (
+              <span
+                key={i}
+                className="block rounded-full transition-all duration-300"
+                style={{
+                  width: i === activeIndex ? 16 : 6,
+                  height: 6,
+                  backgroundColor: '#C49B42',
+                  opacity: i === activeIndex ? 0.8 : 0.3,
+                  borderRadius: i === activeIndex ? 3 : '50%',
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
+
+      {/* Right chevron indicator */}
+      {!isLast && (
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[3] hidden md:flex items-center justify-center">
+          <ChevronRight className="h-8 w-8" style={{ color: '#C49B42', opacity: 0.4 }} />
+        </div>
+      )}
     </div>
   );
 }
 
 export function StorySection() {
   const [modalIdx, setModalIdx] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Expose modal state globally so LandingPage scroll handler can close it
@@ -237,6 +258,11 @@ export function StorySection() {
 
   const x = useTransform(scrollYProgress, [0, 1], ['0vw', `-${(slides.length - 1) * 100}vw`]);
 
+  useMotionValueEvent(scrollYProgress, 'change', (v) => {
+    const idx = Math.round(v * (slides.length - 1));
+    setActiveIndex(Math.min(idx, slides.length - 1));
+  });
+
   return (
     <>
       <section
@@ -254,7 +280,7 @@ export function StorySection() {
         >
           <motion.div className="flex h-full" style={{ x }}>
             {slides.map((slide, i) => (
-              <StoryCard key={i} slide={slide} index={i} onReadStory={() => setModalIdx(i)} />
+              <StoryCard key={i} slide={slide} index={i} activeIndex={activeIndex} onReadStory={() => setModalIdx(i)} />
             ))}
           </motion.div>
         </div>
