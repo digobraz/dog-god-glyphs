@@ -206,7 +206,7 @@ function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof s
           </div>
 
           {/* Dot indicators - below buttons */}
-          <div className="mt-5 md:mt-8 flex gap-1.5 md:justify-end">
+          <div className="mt-5 md:mt-8 flex gap-1.5">
             {slides.map((_, i) => (
               <span
                 key={i}
