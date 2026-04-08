@@ -205,8 +205,8 @@ function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof s
             )}
           </div>
 
-          {/* Dot indicators */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 md:left-auto md:right-8 md:translate-x-0 flex gap-1.5">
+          {/* Dot indicators - below buttons */}
+          <div className="mt-5 md:mt-8 flex gap-1.5 md:justify-end">
             {slides.map((_, i) => (
               <span
                 key={i}
