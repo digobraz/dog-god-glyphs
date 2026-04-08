@@ -214,7 +214,7 @@ export function StorySection() {
             return (
               <div
                 key={i}
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full overflow-hidden"
                 style={{
                   opacity: isActive ? 1 : 0,
                   transition: 'opacity 1s ease-in-out',
