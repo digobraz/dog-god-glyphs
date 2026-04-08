@@ -242,7 +242,7 @@ export function StorySection() {
                     className="absolute inset-0 w-full h-full object-cover"
                     style={{
                       objectPosition: videoPos || '50% 50%',
-                      animation: `kenburns-${i} 10s ease-in-out infinite alternate`,
+                      animation: `${i === 8 && isMobile ? 'kenburns-8-mobile' : `kenburns-${i}`} 10s ease-in-out infinite alternate`,
                     }}
                   />
                 )}
