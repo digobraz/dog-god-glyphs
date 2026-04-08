@@ -138,15 +138,18 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
     <div className="flex-shrink-0 w-screen h-screen relative flex flex-col md:flex-row">
       <div className={`relative w-full md:w-[60%] ${isMobile ? 'h-[75vh]' : ''} md:h-full`}>
         {slide.video && (
-          <video
-            src={slide.video}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            style={videoPos ? { objectPosition: videoPos } : undefined}
-          />
+          <>
+            <video
+              src={slide.video}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
+              style={videoPos ? { objectPosition: videoPos } : undefined}
+            />
+            <div className="absolute inset-0 bg-black/15" />
+          </>
         )}
         <div
           className="absolute inset-0"
