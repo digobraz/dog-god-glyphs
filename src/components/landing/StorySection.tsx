@@ -192,6 +192,7 @@ function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof s
           <div className="flex flex-wrap gap-4">
             <button
               onClick={onReadStory}
+              ref={buttonRef}
               className="px-6 py-2.5 rounded-sm text-sm font-semibold tracking-wider border transition-colors hover:bg-[#FAF4EC]/10"
               style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC', borderColor: '#FAF4EC' }}
             >
@@ -214,17 +215,19 @@ function StoryCard({ slide, index, onReadStory, activeIndex }: { slide: typeof s
           </div>
 
           {/* Dot indicators - below buttons */}
-          <div className="mt-5 md:mt-8 flex gap-1.5">
+          <div
+            className="mt-3 md:mt-5 flex items-center"
+            style={{ width: btnWidth > 0 ? btnWidth : undefined, gap: btnWidth > 0 ? `${Math.max(1, (btnWidth - slides.length * 6) / (slides.length - 1))}px` : '1.5px' }}
+          >
             {slides.map((_, i) => (
               <span
                 key={i}
-                className="block rounded-full transition-all duration-300"
+                className="block transition-all duration-300 flex-1"
                 style={{
-                  width: i === activeIndex ? 16 : 6,
-                  height: 6,
+                  height: 4,
                   backgroundColor: '#C49B42',
-                  opacity: i === activeIndex ? 0.8 : 0.3,
-                  borderRadius: i === activeIndex ? 3 : '50%',
+                  opacity: i <= activeIndex ? 0.8 : 0.25,
+                  borderRadius: 2,
                 }}
               />
             ))}
