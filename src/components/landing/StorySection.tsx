@@ -332,7 +332,7 @@ export function StorySection() {
 
                   {/* Progress bar indicators */}
                   <div
-                    className="mt-3 md:mt-5 flex items-center mx-auto"
+                    className={`mt-3 md:mt-5 flex items-center ${activeIndex === 0 && !isMobile ? '' : 'mx-auto'}`}
                     style={{
                       width: btnWidth > 0 ? btnWidth : undefined,
                       gap: btnWidth > 0
