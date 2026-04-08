@@ -305,7 +305,7 @@ export function StorySection() {
                   >
                     {activeSlide.title}
                   </h2>
-                  <div className="flex flex-wrap gap-4 justify-center">
+                  <div className={`flex flex-wrap gap-4 ${activeIndex === 0 && !isMobile ? 'justify-start' : 'justify-center'}`}>
                     <button
                       ref={buttonRef}
                       onClick={handleReadStory}
