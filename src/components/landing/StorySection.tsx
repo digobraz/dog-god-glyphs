@@ -148,7 +148,7 @@ function StoryCard({ slide, index, onReadStory }: { slide: typeof slides[0]; ind
               className="absolute inset-0 w-full h-full object-cover"
               style={videoPos ? { objectPosition: videoPos } : undefined}
             />
-            <div className="absolute inset-0 bg-black/15" />
+            <div className="absolute inset-0 bg-black/35" />
           </>
         )}
         <div
