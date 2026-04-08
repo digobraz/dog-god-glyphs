@@ -119,6 +119,7 @@ function KenBurnsStyles() {
 
 function getVideoPos(slide: typeof slides[0], isMobile: boolean, _isTablet: boolean) {
   if (isMobile && slide.videoPositionMobile) return slide.videoPositionMobile;
+  if (!isMobile && slide.videoPositionDesktop) return slide.videoPositionDesktop;
   return 'center top';
 }
 
