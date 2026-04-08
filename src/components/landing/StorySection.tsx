@@ -62,6 +62,7 @@ const slides = [
     tag: '2017 → TODAY',
     title: '...so we could build a world where dog is god.',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4',
+    videoPositionMobile: 'center calc(50% + 20px)',
     full: 'In 2017, a shelter dog named Hektor found his way to a new home — and sparked a question that wouldn\'t go away: after 12,000 years of loyalty, sacrifice, and love, what have we truly given back? DOGYPT was born from the answer. Your dog isn\'t just a pet. They carry the same spirit as every hero in this timeline. It\'s time we honored that. Welcome to the place where DOG is GOD.',
   },
 ];
