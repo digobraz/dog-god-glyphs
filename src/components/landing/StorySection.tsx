@@ -272,7 +272,7 @@ export function StorySection() {
                 : 'left-0 right-0 bottom-[5%]'
             }`}
           >
-            <div className={`max-w-3xl ${activeIndex === 0 && !isMobile ? 'text-center' : 'mx-auto text-center'}`}>
+            <div className={`max-w-3xl ${activeIndex === 0 && !isMobile ? 'text-left' : 'mx-auto text-center'}`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeIndex}
