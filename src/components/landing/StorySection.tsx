@@ -15,6 +15,7 @@ const slides = [
     tag: 'ANCIENT GREECE · HOMER\'S ODYSSEY',
     title: 'That forged a mythical loyalty',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4',
+    videoPositionDesktop: 'calc(50% - 30px) top',
     full: 'In Homer\'s Odyssey, the hero Odysseus returns home after twenty years of war, disguised as a beggar. His own wife doesn\'t recognize him. But his old dog Argos — neglected, lying on a dung heap — lifts his ears, wags his tail one last time, and dies. Twenty years of waiting for a single moment. It\'s fiction. But 2,800 years later, it still makes people cry. That tells you everything about dogs.',
   },
   {
