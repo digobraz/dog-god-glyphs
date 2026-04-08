@@ -276,7 +276,7 @@ export function StorySection() {
 
           {/* === TEXT OVERLAY === */}
           <div
-            className="absolute z-[3] left-0 right-0 bottom-[calc(5%+30px)] md:bottom-[5%] px-6 md:px-12 lg:px-20"
+            className="absolute z-[3] left-0 right-0 bottom-[calc(5%+45px)] md:bottom-[5%] px-6 md:px-12 lg:px-20"
           >
             <div className="max-w-3xl mx-auto text-center">
               <AnimatePresence mode="wait">
