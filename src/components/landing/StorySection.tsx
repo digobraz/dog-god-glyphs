@@ -246,11 +246,13 @@ export function StorySection() {
             );
           })}
 
-          {/* === VIGNETTE for text readability (centered bottom) === */}
+          {/* === VIGNETTE for text readability === */}
           <div
             className="absolute inset-0 z-[2] pointer-events-none"
             style={{
-              background: 'radial-gradient(ellipse 100% 70% at 50% 100%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)',
+              background: activeIndex === 0 && !isMobile
+                ? 'radial-gradient(ellipse 70% 80% at 85% 50%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)'
+                : 'radial-gradient(ellipse 100% 70% at 50% 100%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 40%, transparent 70%)',
             }}
           />
 
@@ -262,11 +264,15 @@ export function StorySection() {
             }}
           />
 
-          {/* === TEXT OVERLAY (centered, bottom) === */}
+          {/* === TEXT OVERLAY === */}
           <div
-            className="absolute z-[3] left-0 right-0 bottom-[5%] px-6 md:px-12 lg:px-20"
+            className={`absolute z-[3] px-6 md:px-12 lg:px-20 ${
+              activeIndex === 0 && !isMobile
+                ? 'right-0 top-0 bottom-0 flex items-center justify-end left-auto w-1/2'
+                : 'left-0 right-0 bottom-[5%]'
+            }`}
           >
-            <div className="max-w-3xl mx-auto text-center">
+            <div className={`max-w-3xl ${activeIndex === 0 && !isMobile ? 'text-center' : 'mx-auto text-center'}`}>
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeIndex}
