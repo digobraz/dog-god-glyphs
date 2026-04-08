@@ -7,7 +7,6 @@ const slides = [
     tag: '~12,000 YEARS AGO · NORTHERN ISRAEL',
     title: 'It all started with a gentle touch...',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
-    videoPositionDesktop: 'center 20%',
     videoPositionMobile: 'left center',
     full: 'In 1978, archaeologists in northern Israel opened a 12,000-year-old grave. Inside lay a woman on her side, one hand resting gently on a puppy. No tools. No weapons. Just two souls, side by side. This is the oldest known evidence of the human-dog bond — proof that long before we built cities or invented writing, we already knew who our best friend was.',
   },
@@ -38,13 +37,13 @@ const slides = [
   {
     tag: '1928 · NEW YORK CITY',
     title: 'Became our very senses',
-    videoPositionDesktop: 'center 20%',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-6_q53uew.mp4',
     full: 'Morris Frank lost both eyes in two separate accidents before he turned seventeen. In 1928, he traveled to Switzerland and came back with Buddy — a German Shepherd and America\'s first guide dog. When reporters doubted a dog could lead a blind man, Morris had Buddy walk him across one of the busiest streets in Manhattan. His telegram to the trainer read just one word: "Success." That crossing launched the guide dog movement worldwide.',
   },
   {
     tag: '1925 · NOME, ALASKA',
     title: 'Pushed beyond physical limits',
-    videoPositionDesktop: 'center 20%',
+    video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4',
     full: 'Children in Nome, Alaska were dying of diphtheria. The only antitoxin was 1,000 km away. Twenty dog sled teams ran a desperate relay through –40°C blizzards. Balto became famous for finishing the last leg. But Togo — a 12-year-old husky — covered the longest and deadliest stretch: 264 miles across cracking sea ice in whiteout conditions. He was the real hero. Most people just never learned his name.',
   },
   {
@@ -119,7 +118,6 @@ function KenBurnsStyles() {
 
 function getVideoPos(slide: typeof slides[0], isMobile: boolean, _isTablet: boolean) {
   if (isMobile && slide.videoPositionMobile) return slide.videoPositionMobile;
-  if (!isMobile && slide.videoPositionDesktop) return slide.videoPositionDesktop;
   return 'center top';
 }
 
