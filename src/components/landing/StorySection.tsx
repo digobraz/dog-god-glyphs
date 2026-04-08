@@ -266,13 +266,9 @@ export function StorySection() {
 
           {/* === TEXT OVERLAY === */}
           <div
-            className={`absolute z-[3] px-6 md:px-12 lg:px-20 ${
-              activeIndex === 0 && !isMobile
-                ? 'right-0 top-0 bottom-0 flex items-center justify-end left-auto w-1/2'
-                : 'left-0 right-0 bottom-[5%]'
-            }`}
+            className="absolute z-[3] left-0 right-0 bottom-[5%] px-6 md:px-12 lg:px-20"
           >
-            <div className={`max-w-3xl ${activeIndex === 0 && !isMobile ? 'text-left' : 'mx-auto text-center'}`}>
+            <div className="max-w-3xl mx-auto text-center">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeIndex}
@@ -305,7 +301,7 @@ export function StorySection() {
                   >
                     {activeSlide.title}
                   </h2>
-                  <div className={`flex flex-wrap gap-4 ${activeIndex === 0 && !isMobile ? 'justify-start' : 'justify-center'}`}>
+                  <div className="flex flex-wrap gap-4 justify-center">
                     <button
                       ref={buttonRef}
                       onClick={handleReadStory}
@@ -332,7 +328,7 @@ export function StorySection() {
 
                   {/* Progress bar indicators */}
                   <div
-                    className={`mt-3 md:mt-5 flex items-center ${activeIndex === 0 && !isMobile ? '' : 'mx-auto'}`}
+                    className="mt-3 md:mt-5 flex items-center mx-auto"
                     style={{
                       width: btnWidth > 0 ? btnWidth : undefined,
                       gap: btnWidth > 0
