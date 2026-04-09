@@ -6,6 +6,11 @@ const slides = [
   {
     tag: '~12,000 YEARS AGO · NORTHERN ISRAEL',
     title: 'It all started with a gentle touch...',
+    popupTitle: 'THE FIRST TOUCH',
+    popupSubtitle: '~12,000 years ago · Northern Israel',
+    imageCaption: 'Burial site at Ain Mallaha, discovered in 1978',
+    humanName: 'A Natufian Woman',
+    dogName: 'An unnamed puppy',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-1_quhcaj.mp4',
     videoPositionMobile: '25% calc(50% + 20px)',
     videoPositionTablet: '25% calc(15% + 30px)',
@@ -15,6 +20,11 @@ const slides = [
   {
     tag: 'ANCIENT GREECE · HOMER\'S ODYSSEY',
     title: 'That forged a mythical loyalty',
+    popupTitle: 'THE TWENTY-YEAR WAIT',
+    popupSubtitle: 'Ancient Greece · Homer\'s Odyssey',
+    imageCaption: 'Odysseus returns to Ithaca, reunited with Argos',
+    humanName: 'Odysseus',
+    dogName: 'Argos',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-2_hwu17c.mp4',
     videoPositionMobile: 'calc(50% - 60px) center',
     videoPositionDesktop: 'calc(50% - 50px) top',
@@ -23,24 +33,44 @@ const slides = [
   {
     tag: '13TH CENTURY · FRANCE',
     title: 'Endured the gravest injustice',
+    popupTitle: 'THE WRONG SWORD',
+    popupSubtitle: '13th century · France',
+    imageCaption: 'Guinefort defending the infant from the serpent',
+    humanName: 'A French Knight',
+    dogName: 'Guinefort',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-3_jtaog8.mp4',
     full: 'A greyhound named Guinefort killed a venomous snake to protect his master\'s baby. The knight came home, saw blood everywhere, and killed the dog without looking twice. Then he found his child — alive, unharmed, the snake dead beside the crib. Local villagers were so heartbroken they declared Guinefort a saint. The Catholic Church tried to shut it down for centuries. They never could.',
   },
   {
     tag: '1793 · PARIS, FRANCE',
     title: 'Brought hope into the darkness',
+    popupTitle: 'THE SMALLEST SPY',
+    popupSubtitle: '1793 · Paris, France',
+    imageCaption: 'Joséphine and Fortuné in Les Carmes prison',
+    humanName: 'Joséphine de Beauharnais',
+    dogName: 'Fortuné',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-4_rlxoko.mp4',
     full: 'During the French Revolution, future empress Joséphine sat in a prison cell awaiting the guillotine. The only visitor the guards allowed was her pug, Fortuné. What they didn\'t know: hidden under his collar were secret messages between Joséphine and the outside world. A tiny pug outsmarted the Reign of Terror. Joséphine survived — and never forgot who saved her.',
   },
   {
     tag: '19TH CENTURY · SWISS ALPS',
     title: 'Melted the ice through selfless sacrifice',
+    popupTitle: 'FORTY LIVES',
+    popupSubtitle: '19th century · Swiss Alps',
+    imageCaption: 'Barry at the Great St Bernard Hospice',
+    humanName: 'The Monks of Great St Bernard',
+    dogName: 'Barry',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-5_cwmuoh.mp4',
     full: 'Barry, a Saint Bernard at a monastery high in the Alps, saved over 40 people buried in avalanches during his lifetime. He\'d find them under the snow, lie on their bodies for warmth, and lick their frozen faces until they woke up. When he died in 1814, they preserved his body. You can still visit him today at the Natural History Museum in Bern.',
   },
   {
     tag: '1928 · NEW YORK CITY',
     title: 'Became our very senses',
+    popupTitle: 'THE GIFT OF FREEDOM',
+    popupSubtitle: '1928 · New York City',
+    imageCaption: 'Morris Frank and Buddy crossing West Street, Manhattan',
+    humanName: 'Morris Frank',
+    dogName: 'Buddy',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-6_q53uew.mp4',
     videoPositionDesktop: 'center 80px',
     full: 'Morris Frank lost both eyes in two separate accidents before he turned seventeen. In 1928, he traveled to Switzerland and came back with Buddy — a German Shepherd and America\'s first guide dog. When reporters doubted a dog could lead a blind man, Morris had Buddy walk him across one of the busiest streets in Manhattan. His telegram to the trainer read just one word: "Success." That crossing launched the guide dog movement worldwide.',
@@ -48,6 +78,11 @@ const slides = [
   {
     tag: '1925 · NOME, ALASKA',
     title: 'Pushed beyond physical limits',
+    popupTitle: 'THE REAL HERO',
+    popupSubtitle: '1925 · Nome, Alaska',
+    imageCaption: 'Togo and Leonhard Seppala on the serum run trail',
+    humanName: 'Leonhard Seppala',
+    dogName: 'Togo',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590315/STORY-7_k4tdjs.mp4',
     videoPositionMobile: 'center calc(0% + 30px)',
     videoPositionDesktop: 'center 80px',
@@ -56,12 +91,22 @@ const slides = [
   {
     tag: '1957 · EARTH ORBIT',
     title: 'And propelled humanity to the stars',
+    popupTitle: 'ONE-WAY TICKET',
+    popupSubtitle: '1957 · Earth orbit',
+    imageCaption: 'Laika before the Sputnik 2 launch',
+    humanName: 'Oleg Gazenko',
+    dogName: 'Laika',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590314/STORY-8_b2vhcn.mp4',
     full: 'Laika was a stray from the streets of Moscow. In 1957, Soviet scientists strapped her into a tiny capsule and launched her into orbit. She became the first living creature in space. There was no plan to bring her back. Her heartbeat, transmitted from above the Earth, proved life could survive the journey — and opened the door to human spaceflight. We owe the stars to a homeless dog.',
   },
   {
     tag: '2017 → TODAY',
     title: '...so we could build a world where dog is god.',
+    popupTitle: 'IT\'S TIME',
+    popupSubtitle: '2017 → Today',
+    imageCaption: 'Matej and Hektor — the beginning of DOGYPT',
+    humanName: 'Matej Stacho',
+    dogName: 'Hektor',
     video: 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto,f_auto,w_1280/v1775590313/STORY-9_ajc1mz.mp4',
     videoPositionMobile: 'center 30%',
     full: 'In 2017, a shelter dog named Hektor found his way to a new home — and sparked a question that wouldn\'t go away: after 12,000 years of loyalty, sacrifice, and love, what have we truly given back? DOGYPT was born from the answer. Your dog isn\'t just a pet. They carry the same spirit as every hero in this timeline. It\'s time we honored that. Welcome to the place where DOG is GOD.',
@@ -98,15 +143,49 @@ function StoryModal({ idx, onClose }: { idx: number; onClose: () => void }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-[#FAF4EC]/50 hover:text-[#FAF4EC] transition-colors">
+        {/* Close button */}
+        <button onClick={onClose} className="absolute top-4 right-4 text-[#FAF4EC]/50 hover:text-[#FAF4EC] transition-colors z-10">
           <X className="h-5 w-5" />
         </button>
-        <span className="text-xs tracking-[0.2em] uppercase mb-3 block" style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}>
-          {slide.tag}
-        </span>
-        <h3 className="text-2xl md:text-3xl font-bold text-[#C49B42] mb-4" style={{ fontFamily: "'Cinzel', serif" }}>
-          {slide.title}
+
+        {/* 1. Title */}
+        <h3 className="text-2xl md:text-3xl font-bold text-[#C49B42] mb-2 uppercase tracking-wide pr-8" style={{ fontFamily: "'Cinzel', serif" }}>
+          {slide.popupTitle}
         </h3>
+
+        {/* 2. Subtitle */}
+        <span className="text-xs md:text-sm tracking-[0.15em] uppercase mb-5 block text-[#FAF4EC]/70" style={{ fontFamily: "'Cinzel', serif" }}>
+          {slide.popupSubtitle}
+        </span>
+
+        {/* 3. Image placeholder */}
+        <div
+          className="w-full mb-1 rounded-lg flex items-center justify-center"
+          style={{
+            aspectRatio: '16/9',
+            border: '1px solid rgba(196,155,66,0.4)',
+            backgroundColor: 'rgba(196,155,66,0.05)',
+          }}
+        >
+          <span className="text-[#C49B42]/30 text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
+            Image
+          </span>
+        </div>
+
+        {/* 4. Image caption */}
+        <p className="text-xs italic text-[#FAF4EC]/40 mb-5">{slide.imageCaption}</p>
+
+        {/* 5. Human + Dog names */}
+        <div className="flex flex-wrap gap-x-6 gap-y-1 mb-4">
+          <span className="text-sm font-bold text-[#FAF4EC]">
+            <span className="text-[#FAF4EC]/50 font-normal mr-1.5">H:</span>{slide.humanName}
+          </span>
+          <span className="text-sm font-bold text-[#FAF4EC]">
+            <span className="text-[#FAF4EC]/50 font-normal mr-1.5">Dog:</span>{slide.dogName}
+          </span>
+        </div>
+
+        {/* 6. Body text */}
         <p className="text-[#FAF4EC]/70 text-base leading-relaxed">{slide.full}</p>
       </motion.div>
     </motion.div>
