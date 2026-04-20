@@ -30,15 +30,13 @@ export function PaymentSummaryScreen() {
   const dogName = useDogyptStore((s) => s.dogName);
   const selectedAmount = useDogyptStore((s) => s.selectedAmount);
   const customCharacter = useDogyptStore((s) => s.customCharacter);
+  const setEmail = useDogyptStore((s) => s.setEmail);
 
   const customPrice = customCharacter ? 66 : 0;
   const total = selectedAmount + customPrice;
 
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [street, setStreet] = useState('');
-  const [city, setCity] = useState('');
+  const [email, setLocalEmail] = useState('');
   const [country, setCountry] = useState('');
   const [showCountries, setShowCountries] = useState(false);
 
@@ -47,10 +45,11 @@ export function PaymentSummaryScreen() {
     return COUNTRIES.filter((c) => c.toLowerCase().includes(country.toLowerCase())).slice(0, 6);
   }, [country]);
 
-  const isValid = firstName.trim() && lastName.trim() && email.trim() && street.trim() && city.trim() && country.trim();
+  const isValid = firstName.trim() && email.trim() && country.trim();
 
   const handleContinue = () => {
     if (!isValid) return;
+    setEmail(email);
     navigate('/payment');
   };
 
@@ -182,48 +181,20 @@ export function PaymentSummaryScreen() {
             </h2>
 
             <div className="flex flex-col gap-3">
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className={inputClass}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                />
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className={inputClass}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className={inputClass}
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              />
 
               <input
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={inputClass}
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
-
-              <input
-                type="text"
-                placeholder="Street Address"
-                value={street}
-                onChange={(e) => setStreet(e.target.value)}
-                className={inputClass}
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
-
-              <input
-                type="text"
-                placeholder="City"
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
+                onChange={(e) => setLocalEmail(e.target.value)}
                 className={inputClass}
                 style={{ fontFamily: "'Inter', sans-serif" }}
               />
