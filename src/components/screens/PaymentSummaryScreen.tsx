@@ -36,6 +36,7 @@ export function PaymentSummaryScreen() {
   const total = selectedAmount + customPrice;
 
   const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setLocalEmail] = useState('');
   const [country, setCountry] = useState('');
   const [showCountries, setShowCountries] = useState(false);
@@ -45,7 +46,7 @@ export function PaymentSummaryScreen() {
     return COUNTRIES.filter((c) => c.toLowerCase().includes(country.toLowerCase())).slice(0, 6);
   }, [country]);
 
-  const isValid = firstName.trim() && email.trim() && country.trim();
+  const isValid = firstName.trim() && lastName.trim() && email.trim() && country.trim();
 
   const handleContinue = () => {
     if (!isValid) return;
@@ -181,14 +182,24 @@ export function PaymentSummaryScreen() {
             </h2>
 
             <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="First Name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                className={inputClass}
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              />
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="First Name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className={inputClass}
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                />
+                <input
+                  type="text"
+                  placeholder="Last Name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className={inputClass}
+                  style={{ fontFamily: "'Inter', sans-serif" }}
+                />
+              </div>
 
               <input
                 type="email"
