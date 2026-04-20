@@ -3,15 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { supabase } from '@/lib/supabase';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_aFa28rd5T2M4fUTbzdeZ200';
 
 export function PaymentScreen() {
   const navigate = useNavigate();
-  const { email, dogName, ownerName, selectedAmount } = useDogyptStore();
+  const { email, dogName, ownerName, selectedAmount, selections } = useDogyptStore();
 
-  const handlePay = () => {
+  const handlePay = async () => {
+    await supabase.from('dogs').insert({
+      dog_name: dogName,
+      owner_name: ownerName,
+      email,
+      amount: selectedAmount,
+      selections,
+      payment_status: 'pending',
+    });
+
     const params = new URLSearchParams({
       prefilled_email: email,
       client_reference_id: `${dogName}-${ownerName}-${Date.now()}`,
