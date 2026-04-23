@@ -13,6 +13,8 @@ export function PaymentScreen() {
   const { email, dogName, ownerName, selectedAmount, selections } = useDogyptStore();
 
   const handlePay = async () => {
+    const clientRefId = `${dogName}-${Date.now()}`.replace(/\s+/g, '-').toLowerCase();
+
     await supabase.from('dogs').insert({
       dog_name: dogName,
       owner_name: ownerName,
@@ -20,11 +22,12 @@ export function PaymentScreen() {
       amount: selectedAmount,
       selections,
       payment_status: 'pending',
+      stripe_session_id: clientRefId,
     });
 
     const params = new URLSearchParams({
       prefilled_email: email,
-      client_reference_id: `${dogName}-${ownerName}-${Date.now()}`,
+      client_reference_id: clientRefId,
     });
     window.location.href = `${STRIPE_PAYMENT_LINK}?${params.toString()}`;
   };

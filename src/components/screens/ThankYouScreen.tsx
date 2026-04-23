@@ -1,27 +1,70 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toPng } from 'html-to-image';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { CertificateCard, buildHeroglyphCode } from '@/components/CertificateCard';
+import { supabase } from '@/lib/supabase';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 function formatDate(d: Date) {
   return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function makeCertNumber() {
-  return `#DOG-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+interface DogRecord {
+  dog_name: string;
+  owner_name: string;
+  selections: Record<string, string>;
+  stripe_session_id: string;
+  payment_status: string;
 }
 
 export function ThankYouScreen() {
   const navigate = useNavigate();
-  const { dogName, ownerName, dogPhotoUrl, selections, reset } = useDogyptStore();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
+
+  const store = useDogyptStore();
   const certRef = useRef<HTMLDivElement>(null);
   const [downloading, setDownloading] = useState(false);
+  const [dogData, setDogData] = useState<DogRecord | null>(null);
+  const [loading, setLoading] = useState(!!sessionId);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    let attempts = 0;
+    const maxAttempts = 8;
+
+    async function fetchWithRetry() {
+      const { data } = await supabase
+        .from('dogs')
+        .select('dog_name, owner_name, selections, stripe_session_id, payment_status')
+        .eq('stripe_session_id', sessionId)
+        .single();
+
+      if (data) {
+        setDogData(data as DogRecord);
+        setLoading(false);
+      } else if (attempts < maxAttempts) {
+        attempts++;
+        setTimeout(fetchWithRetry, 1500);
+      } else {
+        setLoading(false);
+      }
+    }
+
+    fetchWithRetry();
+  }, [sessionId]);
+
+  const dogName = dogData?.dog_name ?? store.dogName ?? 'HEKTHOR';
+  const ownerName = dogData?.owner_name ?? store.ownerName ?? 'Unknown';
+  const selections = dogData?.selections ?? store.selections ?? {};
+  const photoUrl = store.dogPhotoUrl ?? undefined;
 
   const heroglyphCode = buildHeroglyphCode(selections);
-  const certNumber = makeCertNumber();
+  const certNumber = sessionId
+    ? `#DOG-${sessionId.slice(-6).toUpperCase()}`
+    : `#DOG-${Date.now().toString(36).toUpperCase().slice(-4)}`;
   const issuedDate = formatDate(new Date());
 
   const handleDownload = async () => {
@@ -42,9 +85,19 @@ export function ThankYouScreen() {
   };
 
   const handleReturn = () => {
-    reset();
+    store.reset();
     navigate('/');
   };
+
+  if (loading) {
+    return (
+      <div className="dark-bg flex flex-col h-[100dvh] items-center justify-center">
+        <p style={{ fontFamily: "'Cinzel', serif", color: '#c9922a', letterSpacing: '3px', fontSize: 13 }}>
+          Loading your certificate...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

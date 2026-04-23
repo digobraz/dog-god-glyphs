@@ -1,5 +1,21 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
 
+@font-face {
+  font-family: 'Dogyptian';
+  src: url('/fonts/Dogyptian.woff2') format('woff2'),
+       url('/fonts/Dogyptian.woff') format('woff');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Dogyptian';
+  src: url('/fonts/Dogyptian Bold.woff2') format('woff2'),
+       url('/fonts/Dogyptian Bold.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
