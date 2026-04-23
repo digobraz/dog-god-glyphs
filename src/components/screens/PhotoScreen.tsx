@@ -7,9 +7,25 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
+function compressImage(dataUrl: string, maxSize = 600): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', 0.78));
+    };
+    img.src = dataUrl;
+  });
+}
+
 export function PhotoScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
+  const setDogPhotoUrl = useDogyptStore((s) => s.setDogPhotoUrl);
   const [photos, setPhotos] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,7 +130,13 @@ export function PhotoScreen() {
                     ADD MORE
                   </Button>
                   <Button
-                    onClick={() => navigate('/breed')}
+                    onClick={async () => {
+                      if (photos[0]) {
+                        const compressed = await compressImage(photos[0]);
+                        setDogPhotoUrl(compressed);
+                      }
+                      navigate('/breed');
+                    }}
                     className="flex-1 rounded-full py-5 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
                     style={{
                       fontFamily: "'Cinzel', serif",

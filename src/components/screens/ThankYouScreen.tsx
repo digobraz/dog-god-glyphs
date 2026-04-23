@@ -1,12 +1,45 @@
+import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { toPng } from 'html-to-image';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { CertificateCard, buildHeroglyphCode } from '@/components/CertificateCard';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import thankYouHero from '@/assets/thank-you-hero.png';
+
+function formatDate(d: Date) {
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function makeCertNumber() {
+  return `#DOG-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+}
 
 export function ThankYouScreen() {
   const navigate = useNavigate();
-  const { reset } = useDogyptStore();
+  const { dogName, ownerName, dogPhotoUrl, selections, reset } = useDogyptStore();
+  const certRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const heroglyphCode = buildHeroglyphCode(selections);
+  const certNumber = makeCertNumber();
+  const issuedDate = formatDate(new Date());
+
+  const handleDownload = async () => {
+    if (!certRef.current) return;
+    setDownloading(true);
+    try {
+      const dataUrl = await toPng(certRef.current, {
+        cacheBust: true,
+        pixelRatio: 1,
+      });
+      const link = document.createElement('a');
+      link.download = `DOGYPT-${(dogName || 'certificate').toUpperCase()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleReturn = () => {
     reset();
@@ -26,20 +59,12 @@ export function ThankYouScreen() {
           {/* BLOCK 1 – Gradient hero */}
           <motion.div
             className="w-full rounded-2xl relative overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
-            }}
+            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <div className="p-5 flex flex-col items-center gap-3 text-center">
-              <img
-                src={thankYouHero}
-                alt="Thank you"
-                className="w-44 h-44 md:w-52 md:h-52 object-contain"
-              />
-
               <p
                 className="text-white text-sm md:text-base leading-relaxed"
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -53,45 +78,68 @@ export function ThankYouScreen() {
                 className="text-lg md:text-xl font-bold tracking-widest text-amber-300 mt-1"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                MATEJ & HEKTHOR
+                {ownerName ? `${ownerName.split(' ')[0].toUpperCase()} & ${dogName.toUpperCase()}` : `HEKTHOR & YOU`}
               </p>
             </div>
           </motion.div>
 
-          {/* BLOCK 2 – Next Steps */}
+          {/* BLOCK 2 – Certificate preview */}
           <motion.div
-            className="w-full rounded-2xl papyrus-bg p-5"
+            className="w-full rounded-2xl overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.15 }}
           >
-            <h3
-              className="text-center text-lg font-bold tracking-[0.15em] uppercase mb-4"
+            {/* Scaled preview */}
+            <div style={{ width: '100%', aspectRatio: '1080/1350', overflow: 'hidden', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: 0, left: 0, transformOrigin: 'top left', transform: 'scale(var(--cert-scale))' }}
+                className="[--cert-scale:calc(var(--cert-w,320)/1080)]"
+                ref={(el) => {
+                  if (el) {
+                    const scale = el.parentElement!.getBoundingClientRect().width / 1080;
+                    el.style.transform = `scale(${scale})`;
+                  }
+                }}
+              >
+                <CertificateCard
+                  ref={certRef}
+                  dogName={dogName || 'HEKTHOR'}
+                  ownerName={ownerName || 'Unknown'}
+                  photoUrl={dogPhotoUrl || undefined}
+                  heroglyphCode={heroglyphCode}
+                  certNumber={certNumber}
+                  issuedDate={issuedDate}
+                />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* BLOCK 3 – Actions */}
+          <motion.div
+            className="w-full rounded-2xl papyrus-bg p-5 flex flex-col gap-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="w-full py-4 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 border-2 border-white/30 disabled:opacity-60 disabled:scale-100"
               style={{
                 fontFamily: "'Cinzel', serif",
-                color: 'hsl(var(--heading-on-light))',
+                background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                color: '#000',
+                boxShadow: '0 0 40px hsl(var(--gold) / 0.4)',
               }}
             >
-              NEXT STEPS
-            </h3>
+              {downloading ? 'Generating...' : '⬇ Download Certificate'}
+            </button>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {[
-                {
-                  emoji: '🗣️',
-                  title: 'Tell your pack',
-                  desc: 'Share our mission with friends.',
-                },
-                {
-                  emoji: '📲',
-                  title: 'Share your Heroglyph',
-                  desc: 'Show the world your unique bond!',
-                },
-                {
-                  emoji: '🌍',
-                  title: 'Follow us',
-                  desc: 'See exactly how you help dogs in need.',
-                },
+                { emoji: '🗣️', title: 'Tell your pack', desc: 'Share our mission with friends.' },
+                { emoji: '📲', title: 'Share your Heroglyph', desc: 'Show the world your unique bond!' },
+                { emoji: '🌍', title: 'Follow us', desc: 'See exactly how you help dogs in need.' },
               ].map((step, i) => (
                 <div
                   key={i}
@@ -100,16 +148,10 @@ export function ThankYouScreen() {
                 >
                   <span className="text-2xl flex-shrink-0 mt-0.5">{step.emoji}</span>
                   <div>
-                    <p
-                      className="font-bold text-sm tracking-wide"
-                      style={{ color: 'hsl(var(--heading-on-light))' }}
-                    >
+                    <p className="font-bold text-sm tracking-wide" style={{ color: 'hsl(var(--heading-on-light))' }}>
                       {i + 1}. {step.title}
                     </p>
-                    <p
-                      className="text-xs mt-0.5"
-                      style={{ color: 'hsl(var(--heading-on-light) / 0.7)' }}
-                    >
+                    <p className="text-xs mt-0.5" style={{ color: 'hsl(var(--heading-on-light) / 0.7)' }}>
                       {step.desc}
                     </p>
                   </div>
@@ -119,17 +161,13 @@ export function ThankYouScreen() {
 
             <button
               onClick={handleReturn}
-              className="mt-4 w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-105 border-2 border-white/30"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                color: '#000',
-                boxShadow: '0 0 40px hsl(var(--gold) / 0.4)',
-              }}
+              className="w-full py-3 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:opacity-80 border border-current/20"
+              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--heading-on-light) / 0.5)' }}
             >
-              FINISH
+              Finish
             </button>
           </motion.div>
+
         </div>
       </div>
     </div>
