@@ -217,9 +217,10 @@ interface HeroglyphFrameProps {
   className?: string;
   pulseSlot?: string;
   pulseAllEmpty?: boolean;
+  style?: React.CSSProperties;
 }
 
-export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false }: HeroglyphFrameProps) {
+export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false, style }: HeroglyphFrameProps) {
   const { selections, ownerName } = useDogyptStore();
 
   const ownerGenderSrc = showOwner ? genderMap[selections.ownerGender] : undefined;
