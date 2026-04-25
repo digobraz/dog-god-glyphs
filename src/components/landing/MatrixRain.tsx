@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { patroniImages } from '@/assets/patroni';
 
+// Matrix-style golden glow color
+const GLOW_COLOR = '#E8B547'; // bright orange-gold
+
 type Drop = {
   x: number;
   y: number;
@@ -22,6 +25,7 @@ export function MatrixRain() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let animId: number;
+    let cancelled = false;
     let drops: Drop[] = [];
     let cssWidth = 0;
     let cssHeight = 0;
@@ -30,27 +34,29 @@ export function MatrixRain() {
     const cellSize = isMobile ? 44 : 64;
     const baseImageSize = isMobile ? 36 : 52;
 
-    // Pre-load all patron images
-    const images: HTMLImageElement[] = [];
-    let loadedCount = 0;
-    let started = false;
+    // Pre-load all patron SVGs and recolor them to gold so they glow on black bg.
+    // Browsers won't let canvas read styled SVG inline, so we fetch each SVG,
+    // inject a gold fill, and convert to a blob URL that <Image> can render.
+    const images: HTMLImageElement[] = new Array(patroniImages.length);
 
-    patroniImages.forEach((src, i) => {
-      const img = new Image();
-      img.onload = () => {
-        loadedCount++;
-        if (!started && loadedCount >= Math.min(8, patroniImages.length)) {
-          // Start animating once at least a few images are ready (faster perceived start)
-          started = true;
-          start();
-        }
-      };
-      img.onerror = () => {
-        loadedCount++;
-      };
-      img.src = src;
-      images[i] = img;
-    });
+    const loadGoldenSvg = async (src: string): Promise<HTMLImageElement> => {
+      const res = await fetch(src);
+      let svgText = await res.text();
+      // Inject a global gold fill on the root <svg> and remove existing fills
+      svgText = svgText.replace(/fill="[^"]*"/g, '');
+      svgText = svgText.replace(
+        /<svg([^>]*)>/,
+        `<svg$1 fill="${GLOW_COLOR}" style="color:${GLOW_COLOR}">`,
+      );
+      const blob = new Blob([svgText], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      return new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+      });
+    };
 
     const buildDrops = () => {
       const columns = Math.max(1, Math.floor(cssWidth / cellSize));
@@ -78,42 +84,53 @@ export function MatrixRain() {
     };
 
     const draw = () => {
-      ctx.clearRect(0, 0, cssWidth, cssHeight);
+      // Slight trail (matrix-style) instead of full clear
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+      ctx.fillRect(0, 0, cssWidth, cssHeight);
+
+      // Glow effect for matrix-like luminescence
+      ctx.shadowColor = GLOW_COLOR;
+      ctx.shadowBlur = 12;
 
       for (const drop of drops) {
         const img = images[drop.imageIndex];
         if (!img || !img.complete || img.naturalWidth === 0) continue;
 
         ctx.globalAlpha = drop.opacity;
-        // Tint via filter (golden hue) — keeps SVG glyphs in the warm DOGYPT palette.
         ctx.drawImage(img, drop.x, drop.y, drop.size, drop.size);
-        ctx.globalAlpha = 1;
 
         drop.y += drop.speed;
 
         if (drop.y > cssHeight && Math.random() > 0.985) {
           drop.y = -drop.size;
           drop.imageIndex = Math.floor(Math.random() * patroniImages.length);
-          drop.opacity = 0.25 + Math.random() * 0.3;
+          drop.opacity = 0.45 + Math.random() * 0.4;
           drop.size = baseImageSize * (0.85 + Math.random() * 0.5);
         }
       }
+
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
 
       animId = requestAnimationFrame(draw);
     };
 
     const drawStatic = () => {
       ctx.clearRect(0, 0, cssWidth, cssHeight);
+      ctx.shadowColor = GLOW_COLOR;
+      ctx.shadowBlur = 12;
       for (const drop of drops) {
         const img = images[drop.imageIndex];
         if (!img || !img.complete || img.naturalWidth === 0) continue;
         ctx.globalAlpha = drop.opacity;
         ctx.drawImage(img, drop.x, Math.abs(drop.y) % cssHeight, drop.size, drop.size);
-        ctx.globalAlpha = 1;
       }
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
     };
 
     const start = () => {
+      if (cancelled) return;
       resize();
       window.addEventListener('resize', resize);
       if (prefersReducedMotion) {
@@ -123,7 +140,27 @@ export function MatrixRain() {
       }
     };
 
+    // Kick off async loading; start as soon as a few images are ready.
+    let readyCount = 0;
+    let started = false;
+    patroniImages.forEach((src, i) => {
+      loadGoldenSvg(src)
+        .then((img) => {
+          if (cancelled) return;
+          images[i] = img;
+          readyCount++;
+          if (!started && readyCount >= Math.min(6, patroniImages.length)) {
+            started = true;
+            start();
+          }
+        })
+        .catch(() => {
+          readyCount++;
+        });
+    });
+
     return () => {
+      cancelled = true;
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', resize);
     };
@@ -133,7 +170,7 @@ export function MatrixRain() {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none"
-      style={{ opacity: 0.85 }}
+      style={{ opacity: 0.95 }}
     />
   );
 }
