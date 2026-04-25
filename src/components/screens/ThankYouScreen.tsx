@@ -158,7 +158,7 @@ export function ThankYouScreen() {
                   ref={certRef}
                   dogName={dogName || 'HEKTHOR'}
                   ownerName={ownerName || 'Unknown'}
-                  photoUrl={dogPhotoUrl || undefined}
+                  photoUrl={photoUrl}
                   heroglyphCode={heroglyphCode}
                   certNumber={certNumber}
                   issuedDate={issuedDate}
