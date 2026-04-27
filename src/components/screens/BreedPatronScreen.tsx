@@ -292,25 +292,14 @@ export function BreedPatronScreen() {
             </p>
           </div>
 
-          {/* Mix toggle pill (Block 2 helper) */}
-          <div className="flex justify-end flex-shrink-0">
-            <button
-              onClick={() => setIsMix((p) => !p)}
-              className={`rounded-full px-4 py-1.5 text-xs tracking-wider border-2 transition-colors ${
-                isMix
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'border-primary text-foreground hover:bg-primary/20'
-              }`}
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              {isMix ? '✕ Mix' : '+ Mix'}
-            </button>
-          </div>
-
-          {/* Block 2/3/4 — Picker(s) */}
+          {/* Block 2/3/4 — Gradient card with picker(s) */}
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
             <motion.div
-              className="rounded-2xl border-2 border-border/40 papyrus-bg p-3"
+              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5"
+              style={{
+                background: 'linear-gradient(135deg, hsl(270 40% 25%) 0%, hsl(45 80% 45%) 100%)',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+              }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -326,6 +315,20 @@ export function BreedPatronScreen() {
                 selectedSvg={svg1}
                 onSelectSvg={setSvg1}
                 placeholder="Search breed..."
+                trailing={
+                  <button
+                    onClick={() => setIsMix((p) => !p)}
+                    className="rounded-full px-4 h-11 text-xs tracking-wider transition-colors flex-shrink-0"
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      background: isMix ? '#c9922a' : 'rgba(0,0,0,0.4)',
+                      color: isMix ? '#000' : '#FAF4EC',
+                      border: '1px solid #c9922a',
+                    }}
+                  >
+                    {isMix ? '✕ Mix' : '+ Mix'}
+                  </button>
+                }
               />
             </motion.div>
 
@@ -333,7 +336,11 @@ export function BreedPatronScreen() {
               {isMix && (
                 <motion.div
                   key="mix2"
-                  className="rounded-2xl border-2 border-border/40 papyrus-bg p-3"
+                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(270 40% 25%) 0%, hsl(45 80% 45%) 100%)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+                  }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
