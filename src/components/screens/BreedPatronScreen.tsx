@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, X, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -55,12 +55,14 @@ interface BreedPickerProps {
   selectedSvg: string;
   onSelectSvg: (svg: string) => void;
   placeholder?: string;
+  trailing?: React.ReactNode;
 }
 
 function BreedPicker({
   search, setSearch, selectedBreed, onSelectBreed, onClearBreed,
   activeCategory, setActiveCategory, selectedSvg, onSelectSvg,
   placeholder = 'Search breed...',
+  trailing,
 }: BreedPickerProps) {
   const matches = useMemo(() => {
     if (search.trim().length < 2 || selectedBreed) return [];
@@ -73,17 +75,28 @@ function BreedPicker({
   return (
     <div className="flex flex-col gap-3">
       {/* Search row */}
-      <div className="relative">
-        <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
-          <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <div
+            className="flex items-center gap-2 rounded-full px-4 h-11"
+            style={{
+              background: 'rgba(0,0,0,0.4)',
+              border: '1px solid #c9922a',
+            }}
+          >
+            <Search className="h-4 w-4 flex-shrink-0" style={{ color: '#c9922a' }} />
           {selectedBreed ? (
             <div className="flex-1 flex items-center">
               <span
-                className="bg-primary/20 text-foreground rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
-                style={{ fontFamily: "'Cinzel', serif" }}
+                  className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: 'rgba(201,146,42,0.25)',
+                    color: '#FAF4EC',
+                  }}
               >
                 {selectedBreed}
-                <button onClick={onClearBreed} className="text-foreground/60 hover:text-foreground">
+                  <button onClick={onClearBreed} style={{ color: '#FAF4EC' }} className="opacity-70 hover:opacity-100">
                   <X className="h-3 w-3" />
                 </button>
               </span>
@@ -93,36 +106,45 @@ function BreedPicker({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={placeholder}
-              className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-              style={{ fontFamily: "'Inter', sans-serif" }}
+                className="flex-1 bg-transparent outline-none text-sm"
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  color: '#FAF4EC',
+                }}
             />
           )}
           {!selectedBreed && search && (
-            <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground">
+              <button onClick={() => setSearch('')} style={{ color: '#c9922a' }} className="opacity-80 hover:opacity-100">
               <X className="h-4 w-4" />
             </button>
           )}
-        </div>
-        {matches.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/40 rounded-xl overflow-hidden z-50 shadow-xl">
-            {matches.map((m) => (
-              <button
-                key={`${m.category}-${m.name}`}
-                onClick={() => onSelectBreed(m.name, m.category)}
-                className="w-full flex items-center justify-between px-3 py-2 hover:bg-primary/10 transition-colors border-b border-border/20 last:border-0"
-              >
-                <span className="text-sm text-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  {m.name}
-                </span>
-                <img
-                  src={patronUrl(`${m.category}-01.svg`)}
-                  alt=""
-                  className="h-6 w-6 object-contain opacity-80"
-                />
-              </button>
-            ))}
           </div>
-        )}
+          {matches.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-1 border rounded-xl overflow-hidden z-50 shadow-xl"
+              style={{ background: 'rgba(15,10,5,0.95)', borderColor: '#c9922a' }}
+            >
+              {matches.map((m) => (
+                <button
+                  key={`${m.category}-${m.name}`}
+                  onClick={() => onSelectBreed(m.name, m.category)}
+                  className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b last:border-0"
+                  style={{ borderColor: 'rgba(201,146,42,0.2)', color: '#FAF4EC' }}
+                >
+                  <span className="text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+                    {m.name}
+                  </span>
+                  <img
+                    src={patronUrl(`${m.category}-01.svg`)}
+                    alt=""
+                    className="h-6 w-6 object-contain opacity-90"
+                    style={{ filter: 'invert(1)' }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {trailing}
       </div>
 
       {/* Tabs */}
@@ -133,13 +155,13 @@ function BreedPicker({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex-shrink-0 pb-1.5 text-[11px] tracking-wider whitespace-nowrap transition-colors ${
-                active ? 'font-bold' : 'text-muted-foreground hover:text-foreground'
+              className={`flex-shrink-0 pb-1.5 text-[13px] tracking-wider whitespace-nowrap transition-colors ${
+                active ? 'font-bold' : ''
               }`}
               style={{
                 fontFamily: "'Cinzel', serif",
-                color: active ? 'hsl(var(--gold-dark))' : undefined,
-                borderBottom: active ? '2px solid hsl(var(--gold))' : '2px solid transparent',
+                color: active ? '#c9922a' : 'rgba(201,146,42,0.5)',
+                borderBottom: active ? '2px solid #c9922a' : '2px solid transparent',
               }}
             >
               {cat.id} {cat.name}
@@ -158,9 +180,9 @@ function BreedPicker({
               onClick={() => onSelectSvg(svg)}
               className="flex-shrink-0 w-20 h-20 rounded-lg flex items-center justify-center transition-all"
               style={{
-                backgroundColor: '#0a0a0a',
-                border: isSel ? '2px solid hsl(var(--gold))' : '2px solid hsl(var(--border) / 0.4)',
-                boxShadow: isSel ? '0 0 12px hsl(var(--gold) / 0.4)' : 'none',
+                backgroundColor: 'rgba(0,0,0,0.45)',
+                border: isSel ? '2px solid #c9922a' : '2px solid rgba(201,146,42,0.3)',
+                boxShadow: isSel ? '0 0 12px rgba(201,146,42,0.5)' : 'none',
               }}
             >
               <img src={patronUrl(svg)} alt="" className="w-14 h-14 object-contain" style={{ filter: 'invert(1)' }} />
@@ -270,25 +292,14 @@ export function BreedPatronScreen() {
             </p>
           </div>
 
-          {/* Mix toggle pill (Block 2 helper) */}
-          <div className="flex justify-end flex-shrink-0">
-            <button
-              onClick={() => setIsMix((p) => !p)}
-              className={`rounded-full px-4 py-1.5 text-xs tracking-wider border-2 transition-colors ${
-                isMix
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'border-primary text-foreground hover:bg-primary/20'
-              }`}
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              {isMix ? '✕ Mix' : '+ Mix'}
-            </button>
-          </div>
-
-          {/* Block 2/3/4 — Picker(s) */}
+          {/* Block 2/3/4 — Gradient card with picker(s) */}
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
             <motion.div
-              className="rounded-2xl border-2 border-border/40 papyrus-bg p-3"
+              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5"
+              style={{
+                background: 'linear-gradient(135deg, hsl(270 40% 25%) 0%, hsl(45 80% 45%) 100%)',
+                boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+              }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -304,6 +315,20 @@ export function BreedPatronScreen() {
                 selectedSvg={svg1}
                 onSelectSvg={setSvg1}
                 placeholder="Search breed..."
+                trailing={
+                  <button
+                    onClick={() => setIsMix((p) => !p)}
+                    className="rounded-full px-4 h-11 text-xs tracking-wider transition-colors flex-shrink-0"
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      background: isMix ? '#c9922a' : 'rgba(0,0,0,0.4)',
+                      color: isMix ? '#000' : '#FAF4EC',
+                      border: '1px solid #c9922a',
+                    }}
+                  >
+                    {isMix ? '✕ Mix' : '+ Mix'}
+                  </button>
+                }
               />
             </motion.div>
 
@@ -311,7 +336,11 @@ export function BreedPatronScreen() {
               {isMix && (
                 <motion.div
                   key="mix2"
-                  className="rounded-2xl border-2 border-border/40 papyrus-bg p-3"
+                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5"
+                  style={{
+                    background: 'linear-gradient(135deg, hsl(270 40% 25%) 0%, hsl(45 80% 45%) 100%)',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+                  }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
