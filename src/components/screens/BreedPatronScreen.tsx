@@ -273,8 +273,7 @@ export function BreedPatronScreen() {
           {/* Block 2/3/4 — Gradient card with picker(s) */}
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
             <motion.div
-              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40"
-              style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}
+              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -293,13 +292,12 @@ export function BreedPatronScreen() {
                 trailing={
                   <button
                     onClick={() => setIsMix((p) => !p)}
-                    className="rounded-full px-4 h-11 text-xs tracking-wider transition-colors flex-shrink-0"
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      background: isMix ? '#000' : 'transparent',
-                      color: isMix ? '#FAF4EC' : '#000',
-                      border: '1px solid #000',
-                    }}
+                    className={`rounded-full px-4 h-11 text-xs tracking-wider transition-colors flex-shrink-0 border ${
+                      isMix
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-card text-foreground border-border/40 hover:bg-primary/10'
+                    }`}
+                    style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     {isMix ? '✕ Mix' : '+ Mix'}
                   </button>
@@ -311,8 +309,7 @@ export function BreedPatronScreen() {
               {isMix && (
                 <motion.div
                   key="mix2"
-                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40"
-                  style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}
+                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
