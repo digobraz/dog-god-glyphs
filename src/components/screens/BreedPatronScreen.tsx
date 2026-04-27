@@ -78,25 +78,17 @@ function BreedPicker({
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <div
-            className="flex items-center gap-2 rounded-full px-4 h-11"
-            style={{
-              background: 'rgba(0,0,0,0.06)',
-              border: '1px solid rgba(0,0,0,0.4)',
-            }}
+            className="flex items-center gap-2 rounded-full px-4 h-11 bg-card border border-border/40"
           >
-            <Search className="h-4 w-4 flex-shrink-0" style={{ color: '#000' }} />
+            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
           {selectedBreed ? (
             <div className="flex-1 flex items-center">
               <span
-                  className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: 'rgba(0,0,0,0.85)',
-                    color: '#FAF4EC',
-                  }}
+                  className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
+                  style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {selectedBreed}
-                  <button onClick={onClearBreed} style={{ color: '#FAF4EC' }} className="opacity-80 hover:opacity-100">
+                  <button onClick={onClearBreed} className="text-foreground/60 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </span>
@@ -106,29 +98,23 @@ function BreedPicker({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={placeholder}
-                className="flex-1 bg-transparent outline-none text-sm"
-                style={{
-                  fontFamily: "'Inter', sans-serif",
-                  color: '#1a1a1a',
-                }}
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                style={{ fontFamily: "'Inter', sans-serif" }}
             />
           )}
           {!selectedBreed && search && (
-              <button onClick={() => setSearch('')} style={{ color: '#000' }} className="opacity-70 hover:opacity-100">
+              <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           )}
           </div>
           {matches.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 border rounded-xl overflow-hidden z-50 shadow-xl"
-              style={{ background: 'hsl(var(--papyrus-light))', borderColor: 'rgba(0,0,0,0.3)' }}
-            >
+            <div className="absolute top-full left-0 right-0 mt-1 border border-border/40 rounded-xl overflow-hidden z-50 shadow-xl bg-card">
               {matches.map((m) => (
                 <button
                   key={`${m.category}-${m.name}`}
                   onClick={() => onSelectBreed(m.name, m.category)}
-                  className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b last:border-0 hover:bg-black/5"
-                  style={{ borderColor: 'rgba(0,0,0,0.15)', color: '#1a1a1a' }}
+                  className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b border-border/20 last:border-0 hover:bg-primary/10 text-foreground"
                 >
                   <span className="text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {m.name}
@@ -154,14 +140,12 @@ function BreedPicker({
             <button
               key={cat.id}
               onClick={() => setActiveCategory(cat.id)}
-              className={`flex-shrink-0 pb-1.5 text-[13px] tracking-wider whitespace-nowrap transition-colors ${
-                active ? 'font-bold' : ''
+              className={`flex-shrink-0 pb-1.5 text-[13px] tracking-wider whitespace-nowrap transition-colors border-b-2 ${
+                active
+                  ? 'font-bold text-foreground border-primary'
+                  : 'text-muted-foreground hover:text-foreground border-transparent'
               }`}
-              style={{
-                fontFamily: "'Cinzel', serif",
-                color: active ? '#000' : 'rgba(0,0,0,0.45)',
-                borderBottom: active ? '2px solid #000' : '2px solid transparent',
-              }}
+              style={{ fontFamily: "'Cinzel', serif" }}
             >
               {cat.id} {cat.name}
             </button>
@@ -177,12 +161,11 @@ function BreedPicker({
             <button
               key={svg}
               onClick={() => onSelectSvg(svg)}
-              className="flex-shrink-0 w-20 h-20 rounded-lg flex items-center justify-center transition-all"
-              style={{
-                backgroundColor: 'hsl(var(--papyrus-light))',
-                border: isSel ? '2px solid #000' : '2px solid rgba(0,0,0,0.2)',
-                boxShadow: isSel ? '0 0 0 2px rgba(0,0,0,0.08)' : 'none',
-              }}
+              className={`flex-shrink-0 w-20 h-20 rounded-xl flex items-center justify-center transition-all border-2 ${
+                isSel
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border/60 hover:border-primary/50 bg-card/50'
+              }`}
             >
               <img src={patronUrl(svg)} alt="" className="w-14 h-14 object-contain" />
             </button>
