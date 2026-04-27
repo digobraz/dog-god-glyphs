@@ -187,7 +187,7 @@ export function BreedPatronScreen() {
   const setPatronSvg2 = useDogyptStore((s) => s.setPatronSvg2);
   const setSelection = useDogyptStore((s) => s.setSelection);
 
-  const [isMix, setIsMix] = useState(false);
+  const isMix = false;
 
   // First picker
   const [search1, setSearch1] = useState('');
@@ -273,7 +273,7 @@ export function BreedPatronScreen() {
           {/* Block 2/3/4 — Gradient card with picker(s) */}
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
             <motion.div
-              className="w-full rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
+              className="w-full rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm flex flex-col gap-4"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -289,69 +289,27 @@ export function BreedPatronScreen() {
                 selectedSvg={svg1}
                 onSelectSvg={setSvg1}
                 placeholder="Search breed..."
-                trailing={
-                  <button
-                    onClick={() => setIsMix((p) => !p)}
-                    className={`rounded-full px-4 h-11 text-xs tracking-wider transition-colors flex-shrink-0 border ${
-                      isMix
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-card text-foreground border-border/40 hover:bg-primary/10'
-                    }`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    {isMix ? '✕ Mix' : '+ Mix'}
-                  </button>
-                }
               />
-            </motion.div>
 
-            <AnimatePresence>
-              {isMix && (
-                <motion.div
-                  key="mix2"
-                  className="w-full rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <BreedPicker
-                    search={search2}
-                    setSearch={setSearch2}
-                    selectedBreed={breed2}
-                    onSelectBreed={handleSelectBreed2}
-                    onClearBreed={handleClearBreed2}
-                    activeCategory={cat2}
-                    setActiveCategory={setCat2}
-                    selectedSvg={svg2}
-                    onSelectSvg={setSvg2}
-                    placeholder="Search second breed..."
-                  />
+              {/* Continue button — appears after a silhouette is chosen */}
+              {canContinue && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <Button
+                    onClick={handleContinue}
+                    className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform"
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                      color: '#000',
+                      boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                    }}
+                  >
+                    <PawPrint className="h-4 w-4" />
+                    Continue
+                  </Button>
                 </motion.div>
               )}
-            </AnimatePresence>
-          </div>
-
-          {/* Continue */}
-          <div className="flex-shrink-0 pb-3 pt-1">
-            <Button
-              onClick={handleContinue}
-              disabled={!canContinue}
-              className="w-full rounded-full gap-2 h-12 font-bold tracking-wider transition-transform disabled:opacity-40"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: canContinue
-                  ? 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))'
-                  : 'hsl(var(--muted))',
-                color: canContinue ? '#000' : undefined,
-                boxShadow: canContinue
-                  ? '0 0 30px hsl(var(--gold) / 0.4), 0 4px 16px rgba(0,0,0,0.3)'
-                  : 'none',
-              }}
-            >
-              <PawPrint className="h-4 w-4" />
-              Continue
-            </Button>
+            </motion.div>
           </div>
         </div>
       </div>
