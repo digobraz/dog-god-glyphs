@@ -1,49 +1,38 @@
-## Cieľ
-Premeniť aktuálny "matrix rain" v `src/components/landing/MatrixRain.tsx` (Hero sekcia) tak, aby namiesto egyptských znakov / DOGYPT písmen padali obrázky patrónov z uploadnutého `PATRONI.zip`. Animácia má byť **výrazne pomalšia** než aktuálna.
+## Goal
 
-## Kroky
+Make the 2nd block on `/breed` (search input, category tabs, silhouette tiles, dropdown, Mix pill) use exactly the same semantic colors as `/ranking` and `/owner-zodiac`. Today it uses hardcoded blacks/beiges that don't match.
 
-### 1) Rozbaliť a uložiť obrázky do projektu
-- Skopírujem `user-uploads://PATRONI.zip` do `/tmp/PATRONI.zip` a rozbalím ho.
-- Vytvorím priečinok **`src/assets/patroni/`**.
-- Všetky obrázky (PNG/SVG/WEBP — podľa toho, čo bude v ZIPe) presuniem sem so sanitizovanými názvami (lowercase, bez medzier a diakritiky).
-- Ak by niektoré obrázky boli veľmi veľké rastre (>300 KB), spomeniem to a navrhnem zmenšenie, ale defaultne ich nechám tak, aby si nestratil kvalitu.
+## Single source of truth (already in `index.css`)
 
-### 2) Vytvoriť centrálny index obrázkov
-Nový súbor **`src/assets/patroni/index.ts`** s `import.meta.glob('./*.{png,svg,webp,jpg}', { eager: true })`, ktorý vyexportuje pole URL — žiadne hardkódovanie 63 importov.
+- Beige card background: `papyrus-bg` (= `hsl(var(--papyrus))`, `36 33% 91%`)
+- Card border: `border-2 border-border/40` (gold, `--border = --gold = 39 55% 51%`)
+- Inner control surface: `bg-card`
+- Inner border: `border-border/30..60`
+- Text: `text-foreground` / `text-muted-foreground`
+- Active/selected: `border-primary` + `bg-primary/10`
+- Dog name highlighting: bold + `text-primary`
 
-### 3) Prepísať `MatrixRain.tsx` na image-rain
-Namiesto `<canvas>` `fillText` použijem **canvas + `drawImage`**:
-- Pri mounte si pre-loadnem všetky obrázky cez `new Image()` a `await Promise.all(...)`.
-- Stĺpce: `columns = Math.floor(width / cellSize)`, `cellSize = 56px` (desktop) / `40px` mobil — väčšie kvôli tomu, že kreslíme obrázky, nie znaky.
-- Každý "drop" má: `y` pozíciu, `speed`, náhodný `imageIndex`, mierne náhodný scale a opacity (0.25–0.55) aby pôsobil ako pozadie a nerušil text "IN DOG WE TRUST".
-- Keď drop dopadne pod spodok → reset na vrch s novým náhodným obrázkom (Math.random() > 0.985 podmienka, podobne ako teraz).
+No hex colors, no `rgba(0,0,0,…)`, no `#000`, no `#FAF4EC`.
 
-### 4) Spomalenie animácie
-Aktuálne `drops[i] += 0.5` pri 60fps → ~30 px/s.
-Nové hodnoty:
-- `speed = 0.08 + Math.random() * 0.12` (px na frame) → cca **5–12 px/s**, t. j. približne **3–6× pomalšie** než teraz a každý obrázok padá vlastným tempom (prirodzenejšie).
-- Opačne, ak budeš chcieť ešte pomalšie/rýchlejšie, zmena je 1 konštanta.
+## Changes in `src/components/screens/BreedPatronScreen.tsx`
 
-### 5) Vizuálne ladenie
-- Kreslím s `ctx.globalAlpha = drop.opacity`, potom reset na 1.
-- Žiadny zlatý trail / fade overlay z aktuálnej verzie (`rgba(0,0,0,0.06)` fillRect) — pri obrázkoch by to vytváralo škaredé "duchy". Namiesto toho vyčistím canvas cez `ctx.clearRect` každý frame, pozadie ostáva čierne z parent `<section>`.
-- Existujúce gradientové overlaye v `HeroSection` (top + bottom black gradient) ostávajú nezmenené — zaistia, že text v strede zostane čitateľný.
+1. **Search input pill** — replace `bg: rgba(0,0,0,0.06) / border rgba(0,0,0,0.4)` with `bg-card border border-border/40`. Icon → `text-muted-foreground`. Input text → `text-foreground placeholder:text-muted-foreground`. Clear button → `text-muted-foreground hover:text-foreground`.
 
-### 6) Performance poistky
-- `requestAnimationFrame` + cleanup (už máme).
-- Ak je `prefers-reduced-motion: reduce`, animácia sa nespustí (statické pozadie s pár obrázkami).
-- Pre mobil: menej stĺpcov + menší `cellSize`, aby to nezaťažovalo slabšie zariadenia.
+2. **Selected breed chip** — `bg-primary/20 text-foreground` (matching original BreedScreen chip).
 
-## Súbory, ktorých sa zmena dotkne
-- **NEW** `src/assets/patroni/*` — rozbalené obrázky zo ZIPu
-- **NEW** `src/assets/patroni/index.ts` — glob export všetkých obrázkov
-- **EDIT** `src/components/landing/MatrixRain.tsx` — kompletný prepis na image rain s pomalšou rýchlosťou
+3. **Search dropdown** — `bg-card border border-border/40`, item rows `border-b border-border/20 hover:bg-primary/10 text-foreground`. Patron icon: drop the `invert(1)` (icon stays as-is).
 
-## Nedotknuté
-- `HeroSection.tsx`, gradient overlaye, text "IN DOG WE TRUST", CTA button, scroll indicator — všetko ostáva.
-- Žiadne iné sekcie (Story, Vision, About) sa nemenia.
+4. **Category tabs** — inactive: `text-muted-foreground border-b-2 border-transparent`; active: `font-bold text-foreground border-b-2 border-primary`. Cinzel.
 
-## Otvorené otázky (vyriešim pri implementácii)
-1. Presný formát obrázkov v ZIPe uvidím až po rozbalení — kód s `import.meta.glob` to zvládne univerzálne.
-2. Existujúce TypeScript build errors v `CertificateCard.tsx` a `ThankYouScreen.tsx` (z predchádzajúcich zmien) **nesúvisia** s touto úlohou — neopravujem ich tu, aby som ti nezamiešaval scope. Môžem ich opraviť v ďalšom kroku, ak chceš.
+5. **Silhouette tiles** — `border-2`; selected: `border-primary bg-primary/10`; idle: `border-border/60 hover:border-primary/50 bg-card/50`. Drop `invert(1)` on the SVG.
+
+6. **Mix pill (trailing)** — outline: `border border-border/40 bg-card text-foreground hover:bg-primary/10`; active: `bg-primary text-primary-foreground border-primary`. Same height `h-11`, Cinzel.
+
+7. **Picker card wrapper** — keep `papyrus-bg border-2 border-border/40 rounded-2xl`, remove the heavy custom `boxShadow` (or reduce to match other cards: `shadow-sm`).
+
+No functional / structural changes. No prop changes. Block 1 (Hektor gradient hero) stays as-is. Continue button stays as-is.
+
+## Acceptance
+
+- Side-by-side `/breed` and `/ranking`: same beige tone, same gold borders, same active gold highlight, same muted gold text — visually identical theme.
+- No literal `#000`, `#FAF4EC`, or `rgba(0,…)` left in `BreedPatronScreen.tsx`.
