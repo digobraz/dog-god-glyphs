@@ -149,6 +149,7 @@ export function NameScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
+            <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
               <input
                 value={input}
@@ -159,14 +160,24 @@ export function NameScreen() {
                 style={{ fontFamily: "'Inter', sans-serif" }}
                 autoFocus
               />
-              <Button
-                onClick={handleSend}
-                disabled={!input.trim()}
-                size="icon"
-                className="rounded-full bg-primary text-primary-foreground hover:bg-primary/80 h-9 w-9 flex-shrink-0 disabled:opacity-30"
-              >
-                <PawPrint className="h-4 w-4" />
-              </Button>
+            </div>
+            {input.trim() && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Button
+                  onClick={handleSend}
+                  className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                    color: '#000',
+                    boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <PawPrint className="h-4 w-4" />
+                  Continue
+                </Button>
+              </motion.div>
+            )}
             </div>
           </motion.div>
         </div>
