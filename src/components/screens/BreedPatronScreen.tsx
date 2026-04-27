@@ -80,23 +80,23 @@ function BreedPicker({
           <div
             className="flex items-center gap-2 rounded-full px-4 h-11"
             style={{
-              background: 'rgba(0,0,0,0.4)',
-              border: '1px solid #c9922a',
+              background: 'rgba(0,0,0,0.06)',
+              border: '1px solid rgba(0,0,0,0.4)',
             }}
           >
-            <Search className="h-4 w-4 flex-shrink-0" style={{ color: '#c9922a' }} />
+            <Search className="h-4 w-4 flex-shrink-0" style={{ color: '#000' }} />
           {selectedBreed ? (
             <div className="flex-1 flex items-center">
               <span
                   className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    background: 'rgba(201,146,42,0.25)',
+                    background: 'rgba(0,0,0,0.85)',
                     color: '#FAF4EC',
                   }}
               >
                 {selectedBreed}
-                  <button onClick={onClearBreed} style={{ color: '#FAF4EC' }} className="opacity-70 hover:opacity-100">
+                  <button onClick={onClearBreed} style={{ color: '#FAF4EC' }} className="opacity-80 hover:opacity-100">
                   <X className="h-3 w-3" />
                 </button>
               </span>
@@ -109,26 +109,26 @@ function BreedPicker({
                 className="flex-1 bg-transparent outline-none text-sm"
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  color: '#FAF4EC',
+                  color: '#1a1a1a',
                 }}
             />
           )}
           {!selectedBreed && search && (
-              <button onClick={() => setSearch('')} style={{ color: '#c9922a' }} className="opacity-80 hover:opacity-100">
+              <button onClick={() => setSearch('')} style={{ color: '#000' }} className="opacity-70 hover:opacity-100">
               <X className="h-4 w-4" />
             </button>
           )}
           </div>
           {matches.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 border rounded-xl overflow-hidden z-50 shadow-xl"
-              style={{ background: 'rgba(15,10,5,0.95)', borderColor: '#c9922a' }}
+              style={{ background: 'hsl(var(--papyrus-light))', borderColor: 'rgba(0,0,0,0.3)' }}
             >
               {matches.map((m) => (
                 <button
                   key={`${m.category}-${m.name}`}
                   onClick={() => onSelectBreed(m.name, m.category)}
-                  className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b last:border-0"
-                  style={{ borderColor: 'rgba(201,146,42,0.2)', color: '#FAF4EC' }}
+                  className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b last:border-0 hover:bg-black/5"
+                  style={{ borderColor: 'rgba(0,0,0,0.15)', color: '#1a1a1a' }}
                 >
                   <span className="text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
                     {m.name}
@@ -137,7 +137,6 @@ function BreedPicker({
                     src={patronUrl(`${m.category}-01.svg`)}
                     alt=""
                     className="h-6 w-6 object-contain opacity-90"
-                    style={{ filter: 'invert(1)' }}
                   />
                 </button>
               ))}
@@ -160,8 +159,8 @@ function BreedPicker({
               }`}
               style={{
                 fontFamily: "'Cinzel', serif",
-                color: active ? '#c9922a' : 'rgba(201,146,42,0.5)',
-                borderBottom: active ? '2px solid #c9922a' : '2px solid transparent',
+                color: active ? '#000' : 'rgba(0,0,0,0.45)',
+                borderBottom: active ? '2px solid #000' : '2px solid transparent',
               }}
             >
               {cat.id} {cat.name}
@@ -180,12 +179,12 @@ function BreedPicker({
               onClick={() => onSelectSvg(svg)}
               className="flex-shrink-0 w-20 h-20 rounded-lg flex items-center justify-center transition-all"
               style={{
-                backgroundColor: 'rgba(0,0,0,0.45)',
-                border: isSel ? '2px solid #c9922a' : '2px solid rgba(201,146,42,0.3)',
-                boxShadow: isSel ? '0 0 12px rgba(201,146,42,0.5)' : 'none',
+                backgroundColor: 'hsl(var(--papyrus-light))',
+                border: isSel ? '2px solid #000' : '2px solid rgba(0,0,0,0.2)',
+                boxShadow: isSel ? '0 0 0 2px rgba(0,0,0,0.08)' : 'none',
               }}
             >
-              <img src={patronUrl(svg)} alt="" className="w-14 h-14 object-contain" style={{ filter: 'invert(1)' }} />
+              <img src={patronUrl(svg)} alt="" className="w-14 h-14 object-contain" />
             </button>
           );
         })}
@@ -291,11 +290,8 @@ export function BreedPatronScreen() {
           {/* Block 2/3/4 — Gradient card with picker(s) */}
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
             <motion.div
-              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5"
-              style={{
-                background: 'linear-gradient(135deg, hsl(270 40% 25%) 0%, hsl(45 80% 45%) 100%)',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
-              }}
+              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40"
+              style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -317,9 +313,9 @@ export function BreedPatronScreen() {
                     className="rounded-full px-4 h-11 text-xs tracking-wider transition-colors flex-shrink-0"
                     style={{
                       fontFamily: "'Cinzel', serif",
-                      background: isMix ? '#c9922a' : 'rgba(0,0,0,0.4)',
-                      color: isMix ? '#000' : '#FAF4EC',
-                      border: '1px solid #c9922a',
+                      background: isMix ? '#000' : 'transparent',
+                      color: isMix ? '#FAF4EC' : '#000',
+                      border: '1px solid #000',
                     }}
                   >
                     {isMix ? '✕ Mix' : '+ Mix'}
@@ -332,11 +328,8 @@ export function BreedPatronScreen() {
               {isMix && (
                 <motion.div
                   key="mix2"
-                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5"
-                  style={{
-                    background: 'linear-gradient(135deg, hsl(270 40% 25%) 0%, hsl(45 80% 45%) 100%)',
-                    boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
-                  }}
+                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40"
+                  style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.3)' }}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
