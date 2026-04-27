@@ -1,0 +1,1542 @@
+{
+  "10": [
+    {
+      "n": 124,
+      "en": "Appenzeller Sennenhund"
+    },
+    {
+      "n": 160,
+      "en": "Cesky Fousek"
+    },
+    {
+      "n": 177,
+      "en": "Entlebucher Mountain Dog"
+    },
+    {
+      "n": 277,
+      "en": "Anatolian Shepherd"
+    },
+    {
+      "n": 281,
+      "en": "Bernese Mountain Dog"
+    },
+    {
+      "n": 290,
+      "en": "Cane Corso"
+    },
+    {
+      "n": 291,
+      "en": "Cao de Castro Laboreiro"
+    },
+    {
+      "n": 292,
+      "en": "Caucasian Shepherd"
+    },
+    {
+      "n": 293,
+      "en": "Central Asian Shepherd"
+    },
+    {
+      "n": 297,
+      "en": "Dogo Argentino"
+    },
+    {
+      "n": 300,
+      "en": "Estrela Mountain Dog"
+    },
+    {
+      "n": 309,
+      "en": "Greater Swiss Mountain Dog"
+    },
+    {
+      "n": 316,
+      "en": "Irish Wolfhound"
+    },
+    {
+      "n": 317,
+      "en": "Kangal"
+    },
+    {
+      "n": 319,
+      "en": "Kuvasz"
+    },
+    {
+      "n": 324,
+      "en": "Leonberger"
+    },
+    {
+      "n": 325,
+      "en": "Maremma Sheepdog"
+    },
+    {
+      "n": 326,
+      "en": "Newfoundland"
+    },
+    {
+      "n": 331,
+      "en": "Polish Tatra Sheepdog"
+    },
+    {
+      "n": 332,
+      "en": "Pyrenean Mountain Dog"
+    },
+    {
+      "n": 333,
+      "en": "Rafeiro do Alentejo"
+    },
+    {
+      "n": 336,
+      "en": "Saint Bernard"
+    },
+    {
+      "n": 338,
+      "en": "Sarplaninac"
+    },
+    {
+      "n": 342,
+      "en": "Slovensky Cuvac"
+    },
+    {
+      "n": 346,
+      "en": "Spanish Mastiff"
+    },
+    {
+      "n": 348,
+      "en": "Tibetan Mastiff"
+    },
+    {
+      "n": 349,
+      "en": "Tornjak"
+    },
+    {
+      "n": 352,
+      "en": "Wirehaired Pointing Griffon"
+    },
+    {
+      "n": 354,
+      "en": "English Mastiff"
+    },
+    {
+      "n": 355,
+      "en": "Great Dane"
+    },
+    {
+      "n": 356,
+      "en": "Moscow Watchdog"
+    },
+    {
+      "n": 357,
+      "en": "Neapolitan Mastiff"
+    },
+    {
+      "n": 358,
+      "en": "Pyrenean Mastiff"
+    },
+    {
+      "n": 1001,
+      "en": "American Bandogge"
+    },
+    {
+      "n": 1005,
+      "en": "Bucovina Shepherd"
+    },
+    {
+      "n": 1007,
+      "en": "Karakachan"
+    },
+    {
+      "n": 1020,
+      "en": "Tornjak"
+    },
+    {
+      "n": 1021,
+      "en": "Šarplaninac"
+    },
+    {
+      "n": 1022,
+      "en": "Cão de Gado Transmontano"
+    }
+  ],
+  "01": [
+    {
+      "n": 7,
+      "en": "Coton de Tulear"
+    },
+    {
+      "n": 9,
+      "en": "Havanese"
+    },
+    {
+      "n": 11,
+      "en": "Japanese Chin"
+    },
+    {
+      "n": 17,
+      "en": "Norrbottenspets"
+    },
+    {
+      "n": 19,
+      "en": "Pekingese"
+    },
+    {
+      "n": 22,
+      "en": "Pomeranian"
+    },
+    {
+      "n": 29,
+      "en": "Volpino Italiano"
+    },
+    {
+      "n": 44,
+      "en": "Cao da Serra de Aires"
+    },
+    {
+      "n": 59,
+      "en": "German Spitz (Klein)"
+    },
+    {
+      "n": 60,
+      "en": "German Spitz (Mittel)"
+    },
+    {
+      "n": 64,
+      "en": "Japanese Spitz"
+    },
+    {
+      "n": 71,
+      "en": "Lhasa Apso"
+    },
+    {
+      "n": 79,
+      "en": "Norwegian Lundehund"
+    },
+    {
+      "n": 84,
+      "en": "Pomsky"
+    },
+    {
+      "n": 91,
+      "en": "Schapendoes"
+    },
+    {
+      "n": 92,
+      "en": "Schipperke"
+    },
+    {
+      "n": 98,
+      "en": "Shih Tzu"
+    },
+    {
+      "n": 103,
+      "en": "Spanish Water Dog"
+    },
+    {
+      "n": 105,
+      "en": "Swedish Vallhund"
+    },
+    {
+      "n": 107,
+      "en": "Tibetan Spaniel"
+    },
+    {
+      "n": 108,
+      "en": "Tibetan Terrier"
+    },
+    {
+      "n": 131,
+      "en": "Barbet"
+    },
+    {
+      "n": 136,
+      "en": "Bearded Collie"
+    },
+    {
+      "n": 142,
+      "en": "Bergamasco Sheepdog"
+    },
+    {
+      "n": 144,
+      "en": "Berger des Pyrénées"
+    },
+    {
+      "n": 159,
+      "en": "Catalan Sheepdog"
+    },
+    {
+      "n": 172,
+      "en": "East Siberian Laika"
+    },
+    {
+      "n": 181,
+      "en": "Finnish Lapphund"
+    },
+    {
+      "n": 182,
+      "en": "Finnish Spitz"
+    },
+    {
+      "n": 192,
+      "en": "Greenland Dog"
+    },
+    {
+      "n": 198,
+      "en": "Hokkaido"
+    },
+    {
+      "n": 201,
+      "en": "Icelandic Sheepdog"
+    },
+    {
+      "n": 210,
+      "en": "Keeshond"
+    },
+    {
+      "n": 212,
+      "en": "Kishu Ken"
+    },
+    {
+      "n": 217,
+      "en": "Norwegian Buhund"
+    },
+    {
+      "n": 219,
+      "en": "Norwegian Hound"
+    },
+    {
+      "n": 228,
+      "en": "Polish Lowland Sheepdog"
+    },
+    {
+      "n": 236,
+      "en": "Puli"
+    },
+    {
+      "n": 246,
+      "en": "Shiba Inu"
+    },
+    {
+      "n": 247,
+      "en": "Shikoku"
+    },
+    {
+      "n": 260,
+      "en": "Swedish Lapphund"
+    },
+    {
+      "n": 273,
+      "en": "Akita Inu"
+    },
+    {
+      "n": 275,
+      "en": "American Akita"
+    },
+    {
+      "n": 308,
+      "en": "Grand Griffon Vendéen"
+    },
+    {
+      "n": 311,
+      "en": "Griffon Fauve de Bretagne"
+    },
+    {
+      "n": 312,
+      "en": "Griffon Nivernais"
+    },
+    {
+      "n": 318,
+      "en": "Komondor"
+    },
+    {
+      "n": 327,
+      "en": "Old English Sheepdog"
+    },
+    {
+      "n": 337,
+      "en": "Samoyed"
+    },
+    {
+      "n": 340,
+      "en": "Sheepadoodle"
+    },
+    {
+      "n": 345,
+      "en": "South Russian Ovcharka"
+    },
+    {
+      "n": 1003,
+      "en": "American Eskimo Dog"
+    },
+    {
+      "n": 1006,
+      "en": "Mioritic Shepherd"
+    }
+  ],
+  "02": [
+    {
+      "n": 1,
+      "en": "Affenpinscher"
+    },
+    {
+      "n": 2,
+      "en": "Biewer Terrier"
+    },
+    {
+      "n": 3,
+      "en": "Bolognese"
+    },
+    {
+      "n": 4,
+      "en": "Brussels Griffon"
+    },
+    {
+      "n": 13,
+      "en": "Löwchen"
+    },
+    {
+      "n": 14,
+      "en": "Maltese"
+    },
+    {
+      "n": 15,
+      "en": "Maltipoo"
+    },
+    {
+      "n": 16,
+      "en": "Morkie"
+    },
+    {
+      "n": 20,
+      "en": "Petit Brabançon"
+    },
+    {
+      "n": 26,
+      "en": "Shorkie"
+    },
+    {
+      "n": 30,
+      "en": "Yorkipoo"
+    },
+    {
+      "n": 31,
+      "en": "Yorkshire Terrier"
+    },
+    {
+      "n": 34,
+      "en": "Australian Terrier"
+    },
+    {
+      "n": 40,
+      "en": "Bichon Frise"
+    },
+    {
+      "n": 41,
+      "en": "Border Terrier"
+    },
+    {
+      "n": 43,
+      "en": "Cairn Terrier"
+    },
+    {
+      "n": 46,
+      "en": "Cavachon"
+    },
+    {
+      "n": 48,
+      "en": "Cavapoo"
+    },
+    {
+      "n": 49,
+      "en": "Cesky Terrier"
+    },
+    {
+      "n": 50,
+      "en": "Cockapoo"
+    },
+    {
+      "n": 53,
+      "en": "Dandie Dinmont Terrier"
+    },
+    {
+      "n": 55,
+      "en": "Dutch Smoushond"
+    },
+    {
+      "n": 61,
+      "en": "Glen of Imaal Terrier"
+    },
+    {
+      "n": 68,
+      "en": "Lagotto Romagnolo"
+    },
+    {
+      "n": 76,
+      "en": "Miniature Schnauzer"
+    },
+    {
+      "n": 78,
+      "en": "Norfolk Terrier"
+    },
+    {
+      "n": 80,
+      "en": "Norwich Terrier"
+    },
+    {
+      "n": 81,
+      "en": "Parson Russell Terrier"
+    },
+    {
+      "n": 85,
+      "en": "Poochon"
+    },
+    {
+      "n": 88,
+      "en": "Pumi"
+    },
+    {
+      "n": 90,
+      "en": "Russian Tsvetnaya Bolonka"
+    },
+    {
+      "n": 93,
+      "en": "Schnoodle"
+    },
+    {
+      "n": 94,
+      "en": "Scottish Terrier"
+    },
+    {
+      "n": 95,
+      "en": "Sealyham Terrier"
+    },
+    {
+      "n": 97,
+      "en": "Shichon"
+    },
+    {
+      "n": 99,
+      "en": "Silky Terrier"
+    },
+    {
+      "n": 100,
+      "en": "Skye Terrier"
+    },
+    {
+      "n": 109,
+      "en": "Welsh Terrier"
+    },
+    {
+      "n": 110,
+      "en": "West Highland White Terrier"
+    },
+    {
+      "n": 113,
+      "en": "Wire Fox Terrier"
+    },
+    {
+      "n": 116,
+      "en": "Airedale Terrier"
+    },
+    {
+      "n": 126,
+      "en": "Aussiedoodle"
+    },
+    {
+      "n": 137,
+      "en": "Bedlington Terrier"
+    },
+    {
+      "n": 143,
+      "en": "Berger Picard"
+    },
+    {
+      "n": 190,
+      "en": "Goldendoodle"
+    },
+    {
+      "n": 202,
+      "en": "Irish Terrier"
+    },
+    {
+      "n": 211,
+      "en": "Kerry Blue Terrier"
+    },
+    {
+      "n": 253,
+      "en": "Soft Coated Wheaten Terrier"
+    },
+    {
+      "n": 256,
+      "en": "Standard Schnauzer"
+    },
+    {
+      "n": 282,
+      "en": "Black Russian Terrier"
+    },
+    {
+      "n": 284,
+      "en": "Bouvier des Ardennes"
+    },
+    {
+      "n": 285,
+      "en": "Bouvier des Flandres"
+    },
+    {
+      "n": 287,
+      "en": "Briard"
+    },
+    {
+      "n": 303,
+      "en": "Giant Schnauzer"
+    },
+    {
+      "n": 328,
+      "en": "Otterhound"
+    }
+  ],
+  "03": [
+    {
+      "n": 5,
+      "en": "Chihuahua"
+    },
+    {
+      "n": 6,
+      "en": "Chinese Crested"
+    },
+    {
+      "n": 8,
+      "en": "English Toy Terrier"
+    },
+    {
+      "n": 12,
+      "en": "Japanese Terrier"
+    },
+    {
+      "n": 18,
+      "en": "Papillon"
+    },
+    {
+      "n": 21,
+      "en": "Phalène"
+    },
+    {
+      "n": 23,
+      "en": "Prague Ratter"
+    },
+    {
+      "n": 24,
+      "en": "Russian Toy"
+    },
+    {
+      "n": 25,
+      "en": "Russkiy Toy (long-haired)"
+    },
+    {
+      "n": 27,
+      "en": "Toy Fox Terrier"
+    },
+    {
+      "n": 35,
+      "en": "Austrian Pinscher"
+    },
+    {
+      "n": 36,
+      "en": "Basenji"
+    },
+    {
+      "n": 58,
+      "en": "German Pinscher"
+    },
+    {
+      "n": 72,
+      "en": "Manchester Terrier"
+    },
+    {
+      "n": 74,
+      "en": "Miniature Pinscher"
+    },
+    {
+      "n": 89,
+      "en": "Rat Terrier"
+    },
+    {
+      "n": 223,
+      "en": "Peruvian Inca Orchid"
+    },
+    {
+      "n": 231,
+      "en": "Portuguese Podengo"
+    },
+    {
+      "n": 232,
+      "en": "Portuguese Pointing Dog"
+    },
+    {
+      "n": 262,
+      "en": "Thai Ridgeback"
+    },
+    {
+      "n": 272,
+      "en": "Xoloitzcuintli"
+    },
+    {
+      "n": 296,
+      "en": "Dobermann"
+    }
+  ],
+  "04": [
+    {
+      "n": 10,
+      "en": "Italian Greyhound"
+    },
+    {
+      "n": 63,
+      "en": "Jack Russell Terrier"
+    },
+    {
+      "n": 67,
+      "en": "Kromfohrländer"
+    },
+    {
+      "n": 69,
+      "en": "Lakeland Terrier"
+    },
+    {
+      "n": 102,
+      "en": "Smooth Fox Terrier"
+    },
+    {
+      "n": 106,
+      "en": "Teddy Roosevelt Terrier"
+    },
+    {
+      "n": 114,
+      "en": "Afghan Hound"
+    },
+    {
+      "n": 130,
+      "en": "Azawakh"
+    },
+    {
+      "n": 151,
+      "en": "Borzoi"
+    },
+    {
+      "n": 161,
+      "en": "Chart Polski"
+    },
+    {
+      "n": 186,
+      "en": "Galgo Español"
+    },
+    {
+      "n": 200,
+      "en": "Ibizan Hound"
+    },
+    {
+      "n": 215,
+      "en": "Magyar Agar"
+    },
+    {
+      "n": 224,
+      "en": "Pharaoh Hound"
+    },
+    {
+      "n": 241,
+      "en": "Saluki"
+    },
+    {
+      "n": 248,
+      "en": "Sloughi"
+    },
+    {
+      "n": 270,
+      "en": "Whippet"
+    },
+    {
+      "n": 310,
+      "en": "Greyhound"
+    },
+    {
+      "n": 339,
+      "en": "Scottish Deerhound"
+    },
+    {
+      "n": 1012,
+      "en": "Plummer Terrier"
+    },
+    {
+      "n": 1013,
+      "en": "Toy Manchester Terrier"
+    },
+    {
+      "n": 1017,
+      "en": "Poitevin"
+    }
+  ],
+  "05": [
+    {
+      "n": 33,
+      "en": "Alpine Dachsbracke"
+    },
+    {
+      "n": 37,
+      "en": "Basset Artésien Normand"
+    },
+    {
+      "n": 38,
+      "en": "Basset Bleu de Gascogne"
+    },
+    {
+      "n": 39,
+      "en": "Basset Fauve de Bretagne"
+    },
+    {
+      "n": 45,
+      "en": "Cardigan Welsh Corgi"
+    },
+    {
+      "n": 52,
+      "en": "Dachshund"
+    },
+    {
+      "n": 54,
+      "en": "Drever"
+    },
+    {
+      "n": 62,
+      "en": "Grand Basset Griffon Vendéen"
+    },
+    {
+      "n": 70,
+      "en": "Lancashire Heeler"
+    },
+    {
+      "n": 82,
+      "en": "Pembroke Welsh Corgi"
+    },
+    {
+      "n": 83,
+      "en": "Petit Basset Griffon Vendéen"
+    },
+    {
+      "n": 101,
+      "en": "Small Swiss Hound"
+    },
+    {
+      "n": 111,
+      "en": "Westphalian Dachsbracke"
+    },
+    {
+      "n": 112,
+      "en": "Wetterhoun"
+    },
+    {
+      "n": 129,
+      "en": "Austrian Black and Tan Hound"
+    },
+    {
+      "n": 132,
+      "en": "Basset Hound"
+    },
+    {
+      "n": 133,
+      "en": "Bavarian Mountain Scent Hound"
+    },
+    {
+      "n": 134,
+      "en": "Beagle"
+    },
+    {
+      "n": 135,
+      "en": "Beagle Harrier"
+    },
+    {
+      "n": 149,
+      "en": "Bluetick Coonhound"
+    },
+    {
+      "n": 162,
+      "en": "Chien d'Artois"
+    },
+    {
+      "n": 191,
+      "en": "Gonczy Polski"
+    },
+    {
+      "n": 195,
+      "en": "Hanoverian Scenthound"
+    },
+    {
+      "n": 197,
+      "en": "Hellinikos Ichnilatis"
+    },
+    {
+      "n": 199,
+      "en": "Hygenhund"
+    },
+    {
+      "n": 205,
+      "en": "Italian Hound"
+    },
+    {
+      "n": 206,
+      "en": "Italian Spinone"
+    },
+    {
+      "n": 227,
+      "en": "Polish Hound"
+    },
+    {
+      "n": 244,
+      "en": "Serbian Tricolour Hound"
+    },
+    {
+      "n": 250,
+      "en": "Slovensky Kopov"
+    },
+    {
+      "n": 257,
+      "en": "Styrian Coarse-haired Hound"
+    },
+    {
+      "n": 261,
+      "en": "Swiss Hound"
+    },
+    {
+      "n": 283,
+      "en": "Bloodhound"
+    },
+    {
+      "n": 307,
+      "en": "Grand Bleu de Gascogne"
+    },
+    {
+      "n": 1015,
+      "en": "Dunker"
+    }
+  ],
+  "06": [
+    {
+      "n": 57,
+      "en": "German Hunting Terrier"
+    },
+    {
+      "n": 118,
+      "en": "American English Coonhound"
+    },
+    {
+      "n": 119,
+      "en": "American Foxhound"
+    },
+    {
+      "n": 123,
+      "en": "Anglo-Français de Petite Vénerie"
+    },
+    {
+      "n": 125,
+      "en": "Ariegeois"
+    },
+    {
+      "n": 145,
+      "en": "Billy"
+    },
+    {
+      "n": 147,
+      "en": "Black and Tan Coonhound"
+    },
+    {
+      "n": 148,
+      "en": "Blue Picardy Spaniel"
+    },
+    {
+      "n": 153,
+      "en": "Bracco Italiano"
+    },
+    {
+      "n": 154,
+      "en": "Braque du Bourbonnais"
+    },
+    {
+      "n": 158,
+      "en": "Canarian Warren Hound"
+    },
+    {
+      "n": 164,
+      "en": "Cirneco dell'Etna"
+    },
+    {
+      "n": 168,
+      "en": "Dalmatian"
+    },
+    {
+      "n": 175,
+      "en": "English Foxhound"
+    },
+    {
+      "n": 180,
+      "en": "Finnish Hound"
+    },
+    {
+      "n": 184,
+      "en": "French Pointing Dog"
+    },
+    {
+      "n": 187,
+      "en": "German Longhaired Pointer"
+    },
+    {
+      "n": 188,
+      "en": "German Shorthaired Pointer"
+    },
+    {
+      "n": 189,
+      "en": "German Wirehaired Pointer"
+    },
+    {
+      "n": 193,
+      "en": "Halden Hound"
+    },
+    {
+      "n": 194,
+      "en": "Hamilton Hound"
+    },
+    {
+      "n": 196,
+      "en": "Harrier"
+    },
+    {
+      "n": 204,
+      "en": "Istrian Shorthaired Hound"
+    },
+    {
+      "n": 221,
+      "en": "Old Danish Pointing Dog"
+    },
+    {
+      "n": 222,
+      "en": "Perdiguero de Burgos"
+    },
+    {
+      "n": 225,
+      "en": "Picardy Spaniel"
+    },
+    {
+      "n": 226,
+      "en": "Plott Hound"
+    },
+    {
+      "n": 230,
+      "en": "Porcelaine"
+    },
+    {
+      "n": 234,
+      "en": "Posavaz Hound"
+    },
+    {
+      "n": 235,
+      "en": "Pudelpointer"
+    },
+    {
+      "n": 237,
+      "en": "Redbone Coonhound"
+    },
+    {
+      "n": 242,
+      "en": "Schiller Hound"
+    },
+    {
+      "n": 243,
+      "en": "Serbian Hound"
+    },
+    {
+      "n": 249,
+      "en": "Slovakian Wirehaired Pointer"
+    },
+    {
+      "n": 252,
+      "en": "Smålandsstövare"
+    },
+    {
+      "n": 263,
+      "en": "Transylvanian Hound"
+    },
+    {
+      "n": 264,
+      "en": "Treeing Walker Coonhound"
+    },
+    {
+      "n": 265,
+      "en": "Tyrolean Hound"
+    },
+    {
+      "n": 266,
+      "en": "Vizsla"
+    },
+    {
+      "n": 267,
+      "en": "Weimaraner"
+    },
+    {
+      "n": 271,
+      "en": "Wirehaired Vizsla"
+    },
+    {
+      "n": 295,
+      "en": "Cimarrón Uruguayo"
+    },
+    {
+      "n": 299,
+      "en": "English Setter"
+    },
+    {
+      "n": 301,
+      "en": "Fila Brasileiro"
+    },
+    {
+      "n": 306,
+      "en": "Grand Anglo-Français"
+    },
+    {
+      "n": 314,
+      "en": "Irish Red and White Setter"
+    },
+    {
+      "n": 321,
+      "en": "Landseer"
+    },
+    {
+      "n": 323,
+      "en": "Large Münsterländer"
+    },
+    {
+      "n": 330,
+      "en": "Pointer (English)"
+    },
+    {
+      "n": 334,
+      "en": "Rhodesian Ridgeback"
+    },
+    {
+      "n": 343,
+      "en": "Small Münsterländer"
+    },
+    {
+      "n": 347,
+      "en": "St. Germain Pointing Dog"
+    },
+    {
+      "n": 350,
+      "en": "Tosa Inu"
+    },
+    {
+      "n": 353,
+      "en": "Broholmer"
+    },
+    {
+      "n": 1008,
+      "en": "Catahoula Leopard Dog"
+    },
+    {
+      "n": 1009,
+      "en": "Mountain Cur"
+    },
+    {
+      "n": 1010,
+      "en": "Black Mouth Cur"
+    },
+    {
+      "n": 1018,
+      "en": "Danish-Swedish Farmdog"
+    }
+  ],
+  "07": [
+    {
+      "n": 42,
+      "en": "Boston Terrier"
+    },
+    {
+      "n": 56,
+      "en": "French Bulldog"
+    },
+    {
+      "n": 73,
+      "en": "Miniature Bull Terrier"
+    },
+    {
+      "n": 86,
+      "en": "Pug"
+    },
+    {
+      "n": 87,
+      "en": "Puggle"
+    },
+    {
+      "n": 120,
+      "en": "American Pit Bull Terrier"
+    },
+    {
+      "n": 121,
+      "en": "American Staffordshire Terrier"
+    },
+    {
+      "n": 156,
+      "en": "Bull Terrier"
+    },
+    {
+      "n": 163,
+      "en": "Chow Chow"
+    },
+    {
+      "n": 173,
+      "en": "English Bulldog"
+    },
+    {
+      "n": 245,
+      "en": "Shar Pei"
+    },
+    {
+      "n": 254,
+      "en": "Staffordshire Bull Terrier"
+    },
+    {
+      "n": 276,
+      "en": "American Bulldog"
+    },
+    {
+      "n": 286,
+      "en": "Boxer"
+    },
+    {
+      "n": 288,
+      "en": "Bullmastiff"
+    },
+    {
+      "n": 289,
+      "en": "Ca de Bou"
+    },
+    {
+      "n": 298,
+      "en": "Dogue de Bordeaux"
+    },
+    {
+      "n": 329,
+      "en": "Perro de Presa Canario"
+    },
+    {
+      "n": 335,
+      "en": "Rottweiler"
+    },
+    {
+      "n": 344,
+      "en": "South African Boerboel"
+    },
+    {
+      "n": 1002,
+      "en": "American Bully"
+    },
+    {
+      "n": 1011,
+      "en": "Patterdale Terrier"
+    },
+    {
+      "n": 1014,
+      "en": "Olde English Bulldogge"
+    },
+    {
+      "n": 1019,
+      "en": "Boerboel"
+    }
+  ],
+  "08": [
+    {
+      "n": 28,
+      "en": "Toy Poodle"
+    },
+    {
+      "n": 47,
+      "en": "Cavalier King Charles Spaniel"
+    },
+    {
+      "n": 65,
+      "en": "King Charles Spaniel"
+    },
+    {
+      "n": 66,
+      "en": "Kooikerhondje"
+    },
+    {
+      "n": 75,
+      "en": "Miniature Poodle"
+    },
+    {
+      "n": 104,
+      "en": "Stabyhoun"
+    },
+    {
+      "n": 115,
+      "en": "Aidi"
+    },
+    {
+      "n": 117,
+      "en": "American Cocker Spaniel"
+    },
+    {
+      "n": 122,
+      "en": "American Water Spaniel"
+    },
+    {
+      "n": 152,
+      "en": "Boykin Spaniel"
+    },
+    {
+      "n": 155,
+      "en": "Brittany"
+    },
+    {
+      "n": 165,
+      "en": "Clumber Spaniel"
+    },
+    {
+      "n": 166,
+      "en": "Curly-Coated Retriever"
+    },
+    {
+      "n": 169,
+      "en": "Deutscher Wachtelhund"
+    },
+    {
+      "n": 170,
+      "en": "Drentse Patrijshond"
+    },
+    {
+      "n": 174,
+      "en": "English Cocker Spaniel"
+    },
+    {
+      "n": 176,
+      "en": "English Springer Spaniel"
+    },
+    {
+      "n": 179,
+      "en": "Field Spaniel"
+    },
+    {
+      "n": 183,
+      "en": "Flat-Coated Retriever"
+    },
+    {
+      "n": 185,
+      "en": "French Spaniel"
+    },
+    {
+      "n": 203,
+      "en": "Irish Water Spaniel"
+    },
+    {
+      "n": 214,
+      "en": "Labradoodle"
+    },
+    {
+      "n": 216,
+      "en": "Majorca Shepherd Dog"
+    },
+    {
+      "n": 220,
+      "en": "Nova Scotia Duck Tolling Retriever"
+    },
+    {
+      "n": 229,
+      "en": "Pont-Audemer Spaniel"
+    },
+    {
+      "n": 233,
+      "en": "Portuguese Water Dog"
+    },
+    {
+      "n": 255,
+      "en": "Standard Poodle"
+    },
+    {
+      "n": 258,
+      "en": "Sussex Spaniel"
+    },
+    {
+      "n": 268,
+      "en": "Welsh Springer Spaniel"
+    },
+    {
+      "n": 279,
+      "en": "Beauceron"
+    },
+    {
+      "n": 280,
+      "en": "Bernedoodle"
+    },
+    {
+      "n": 294,
+      "en": "Chesapeake Bay Retriever"
+    },
+    {
+      "n": 304,
+      "en": "Golden Retriever"
+    },
+    {
+      "n": 305,
+      "en": "Gordon Setter"
+    },
+    {
+      "n": 313,
+      "en": "Hovawart"
+    },
+    {
+      "n": 315,
+      "en": "Irish Setter"
+    },
+    {
+      "n": 320,
+      "en": "Labrador Retriever"
+    },
+    {
+      "n": 1004,
+      "en": "Akbash"
+    },
+    {
+      "n": 1016,
+      "en": "Smålandsstövare"
+    }
+  ],
+  "09": [
+    {
+      "n": 32,
+      "en": "Alaskan Klee Kai"
+    },
+    {
+      "n": 51,
+      "en": "Croatian Sheepdog"
+    },
+    {
+      "n": 77,
+      "en": "Mudi"
+    },
+    {
+      "n": 96,
+      "en": "Shetland Sheepdog"
+    },
+    {
+      "n": 127,
+      "en": "Australian Cattle Dog"
+    },
+    {
+      "n": 128,
+      "en": "Australian Shepherd"
+    },
+    {
+      "n": 138,
+      "en": "Belgian Groenendael"
+    },
+    {
+      "n": 139,
+      "en": "Belgian Laekenois"
+    },
+    {
+      "n": 140,
+      "en": "Belgian Malinois"
+    },
+    {
+      "n": 141,
+      "en": "Belgian Tervuren"
+    },
+    {
+      "n": 146,
+      "en": "Black Norwegian Elkhound"
+    },
+    {
+      "n": 150,
+      "en": "Border Collie"
+    },
+    {
+      "n": 157,
+      "en": "Canaan Dog"
+    },
+    {
+      "n": 167,
+      "en": "Czechoslovakian Wolfdog"
+    },
+    {
+      "n": 171,
+      "en": "Dutch Shepherd"
+    },
+    {
+      "n": 178,
+      "en": "Eurasier"
+    },
+    {
+      "n": 207,
+      "en": "Jindo"
+    },
+    {
+      "n": 208,
+      "en": "Kai Ken"
+    },
+    {
+      "n": 209,
+      "en": "Karelian Bear Dog"
+    },
+    {
+      "n": 213,
+      "en": "Krasky Ovcar"
+    },
+    {
+      "n": 218,
+      "en": "Norwegian Elkhound"
+    },
+    {
+      "n": 238,
+      "en": "Rough Collie"
+    },
+    {
+      "n": 239,
+      "en": "Russian-European Laika"
+    },
+    {
+      "n": 240,
+      "en": "Saarloos Wolfdog"
+    },
+    {
+      "n": 251,
+      "en": "Smooth Collie"
+    },
+    {
+      "n": 259,
+      "en": "Swedish Elkhound"
+    },
+    {
+      "n": 269,
+      "en": "West Siberian Laika"
+    },
+    {
+      "n": 274,
+      "en": "Alaskan Malamute"
+    },
+    {
+      "n": 278,
+      "en": "Australian Kelpie"
+    },
+    {
+      "n": 302,
+      "en": "German Shepherd"
+    },
+    {
+      "n": 322,
+      "en": "Lapinporokoira"
+    },
+    {
+      "n": 341,
+      "en": "Siberian Husky"
+    },
+    {
+      "n": 351,
+      "en": "White Swiss Shepherd"
+    }
+  ]
+}
