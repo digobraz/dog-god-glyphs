@@ -172,7 +172,7 @@ function BreedPicker({
       </div>
 
       {/* Silhouette row */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide py-3 px-1" style={{ scrollbarWidth: 'none' }}>
         {svgs.map((svg) => {
           const isSel = svg === selectedSvg;
           return (
