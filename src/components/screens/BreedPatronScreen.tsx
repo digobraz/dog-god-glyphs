@@ -172,23 +172,23 @@ function BreedPicker({
       </div>
 
       {/* Silhouette row */}
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide py-3 px-1" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-3 overflow-x-auto overflow-y-visible scrollbar-hide py-5 -mx-2 px-2" style={{ scrollbarWidth: 'none' }}>
         {svgs.map((svg) => {
           const isSel = svg === selectedSvg;
           return (
             <button
               key={svg}
               onClick={() => onSelectSvg(svg)}
-              className={`flex-shrink-0 w-20 h-20 rounded-xl flex items-center justify-center transition-all border-2 ${
+              className={`relative flex-shrink-0 w-20 h-20 rounded-xl flex items-center justify-center transition-all border-2 ${
                 isSel
-                  ? 'border-[hsl(270_60%_45%)] bg-[hsl(270_60%_45%/0.18)] scale-105'
+                  ? 'border-[hsl(270_60%_45%)] bg-[hsl(270_60%_45%/0.18)] scale-105 z-10'
                   : 'border-border/60 hover:border-primary/50 bg-card/50'
               }`}
               style={
                 isSel
                   ? {
                       boxShadow:
-                        '0 0 0 3px hsl(270 60% 45% / 0.35), 0 0 24px hsl(270 70% 50% / 0.65), 0 0 48px hsl(270 70% 50% / 0.45), inset 0 0 12px hsl(270 70% 50% / 0.25)',
+                        '0 0 0 2px hsl(270 60% 45% / 0.25), 0 0 18px 4px hsl(270 70% 50% / 0.35), 0 0 40px 12px hsl(270 70% 55% / 0.18), 0 0 70px 24px hsl(270 70% 55% / 0.08), inset 0 0 10px hsl(270 70% 50% / 0.18)',
                     }
                   : undefined
               }
