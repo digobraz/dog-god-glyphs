@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, X, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +72,19 @@ function BreedPicker({
 
   const svgs = svgsFor(activeCategory);
 
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  // Center the active category tab whenever it changes
+  useEffect(() => {
+    const container = tabsContainerRef.current;
+    const btn = tabRefs.current[activeCategory];
+    if (!container || !btn) return;
+    const target =
+      btn.offsetLeft - container.clientWidth / 2 + btn.clientWidth / 2;
+    container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }, [activeCategory]);
+
   return (
     <div className="flex flex-col gap-3">
       {/* Search row */}
@@ -133,12 +146,17 @@ function BreedPicker({
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1" style={{ scrollbarWidth: 'none' }}>
+      <div
+        ref={tabsContainerRef}
+        className="flex gap-3 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1"
+        style={{ scrollbarWidth: 'none' }}
+      >
         {CATEGORIES.map((cat) => {
           const active = cat.id === activeCategory;
           return (
             <button
               key={cat.id}
+              ref={(el) => { tabRefs.current[cat.id] = el; }}
               onClick={() => setActiveCategory(cat.id)}
               className={`flex-shrink-0 pb-1.5 text-[13px] tracking-wider whitespace-nowrap transition-colors border-b-2 ${
                 active
