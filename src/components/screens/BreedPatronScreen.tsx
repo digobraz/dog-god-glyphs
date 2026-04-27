@@ -1,0 +1,362 @@
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Search, X, PawPrint } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useDogyptStore } from '@/store/dogyptStore';
+import { Button } from '@/components/ui/button';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import hekthorImg from '@/assets/hekthor.png';
+import patronBreeds from '@/data/patronBreeds.json';
+
+type BreedEntry = { n: number; en: string };
+type BreedsByCategory = Record<string, BreedEntry[]>;
+const data = patronBreeds as BreedsByCategory;
+
+const CATEGORIES: { id: string; name: string }[] = [
+  { id: '01', name: 'Furballs' },
+  { id: '02', name: 'Wooligans' },
+  { id: '03', name: 'Antennas' },
+  { id: '04', name: 'Speedsters' },
+  { id: '05', name: 'Schnozzers' },
+  { id: '06', name: 'Aristocrats' },
+  { id: '07', name: 'Smushfaces' },
+  { id: '08', name: 'Splashers' },
+  { id: '09', name: 'Wolflikes' },
+  { id: '10', name: 'Giants' },
+];
+
+const SVG_COUNTS: Record<string, number> = {
+  '01': 9, '02': 11, '03': 7, '04': 8, '05': 7,
+  '06': 8, '07': 10, '08': 6, '09': 6, '10': 9,
+};
+
+// Build flat searchable list with category info
+const ALL_BREEDS: { name: string; category: string }[] = [];
+for (const cat of Object.keys(data)) {
+  for (const b of data[cat]) ALL_BREEDS.push({ name: b.en, category: cat });
+}
+ALL_BREEDS.sort((a, b) => a.name.localeCompare(b.name));
+
+const svgsFor = (cat: string): string[] => {
+  const n = SVG_COUNTS[cat] ?? 0;
+  return Array.from({ length: n }, (_, i) => `${cat}-${String(i + 1).padStart(2, '0')}.svg`);
+};
+
+const patronUrl = (svg: string) => `/patrons/${svg}`;
+
+interface BreedPickerProps {
+  search: string;
+  setSearch: (v: string) => void;
+  selectedBreed: string;
+  onSelectBreed: (name: string, cat: string) => void;
+  onClearBreed: () => void;
+  activeCategory: string;
+  setActiveCategory: (c: string) => void;
+  selectedSvg: string;
+  onSelectSvg: (svg: string) => void;
+  placeholder?: string;
+}
+
+function BreedPicker({
+  search, setSearch, selectedBreed, onSelectBreed, onClearBreed,
+  activeCategory, setActiveCategory, selectedSvg, onSelectSvg,
+  placeholder = 'Search breed...',
+}: BreedPickerProps) {
+  const matches = useMemo(() => {
+    if (search.trim().length < 2 || selectedBreed) return [];
+    const q = search.toLowerCase();
+    return ALL_BREEDS.filter((b) => b.name.toLowerCase().includes(q)).slice(0, 6);
+  }, [search, selectedBreed]);
+
+  const svgs = svgsFor(activeCategory);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Search row */}
+      <div className="relative">
+        <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+          <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          {selectedBreed ? (
+            <div className="flex-1 flex items-center">
+              <span
+                className="bg-primary/20 text-foreground rounded-full px-3 py-1 text-sm flex items-center gap-1.5"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {selectedBreed}
+                <button onClick={onClearBreed} className="text-foreground/60 hover:text-foreground">
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            </div>
+          ) : (
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={placeholder}
+              className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            />
+          )}
+          {!selectedBreed && search && (
+            <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {matches.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/40 rounded-xl overflow-hidden z-50 shadow-xl">
+            {matches.map((m) => (
+              <button
+                key={`${m.category}-${m.name}`}
+                onClick={() => onSelectBreed(m.name, m.category)}
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-primary/10 transition-colors border-b border-border/20 last:border-0"
+              >
+                <span className="text-sm text-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  {m.name}
+                </span>
+                <img
+                  src={patronUrl(`${m.category}-01.svg`)}
+                  alt=""
+                  className="h-6 w-6 object-contain opacity-80"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1" style={{ scrollbarWidth: 'none' }}>
+        {CATEGORIES.map((cat) => {
+          const active = cat.id === activeCategory;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`flex-shrink-0 pb-1.5 text-[11px] tracking-wider whitespace-nowrap transition-colors ${
+                active ? 'font-bold' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              style={{
+                fontFamily: "'Cinzel', serif",
+                color: active ? 'hsl(var(--gold-dark))' : undefined,
+                borderBottom: active ? '2px solid hsl(var(--gold))' : '2px solid transparent',
+              }}
+            >
+              {cat.id} {cat.name}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Silhouette row */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1" style={{ scrollbarWidth: 'none' }}>
+        {svgs.map((svg) => {
+          const isSel = svg === selectedSvg;
+          return (
+            <button
+              key={svg}
+              onClick={() => onSelectSvg(svg)}
+              className="flex-shrink-0 w-20 h-20 rounded-lg flex items-center justify-center transition-all"
+              style={{
+                backgroundColor: '#0a0a0a',
+                border: isSel ? '2px solid hsl(var(--gold))' : '2px solid hsl(var(--border) / 0.4)',
+                boxShadow: isSel ? '0 0 12px hsl(var(--gold) / 0.4)' : 'none',
+              }}
+            >
+              <img src={patronUrl(svg)} alt="" className="w-14 h-14 object-contain" style={{ filter: 'invert(1)' }} />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function BreedPatronScreen() {
+  const navigate = useNavigate();
+  const dogName = useDogyptStore((s) => s.dogName);
+  const setBreed = useDogyptStore((s) => s.setBreed);
+  const setIsMixStore = useDogyptStore((s) => s.setIsMix);
+  const setPatronCategory = useDogyptStore((s) => s.setPatronCategory);
+  const setPatronSvg = useDogyptStore((s) => s.setPatronSvg);
+  const setPatronCategory2 = useDogyptStore((s) => s.setPatronCategory2);
+  const setPatronSvg2 = useDogyptStore((s) => s.setPatronSvg2);
+  const setSelection = useDogyptStore((s) => s.setSelection);
+
+  const [isMix, setIsMix] = useState(false);
+
+  // First picker
+  const [search1, setSearch1] = useState('');
+  const [breed1, setBreed1] = useState('');
+  const [cat1, setCat1] = useState('01');
+  const [svg1, setSvg1] = useState('');
+
+  // Second picker (mix)
+  const [search2, setSearch2] = useState('');
+  const [breed2, setBreed2] = useState('');
+  const [cat2, setCat2] = useState('01');
+  const [svg2, setSvg2] = useState('');
+
+  const handleSelectBreed1 = (name: string, cat: string) => {
+    setBreed1(name);
+    setSearch1(name);
+    setCat1(cat);
+    setSvg1(`${cat}-01.svg`);
+  };
+  const handleClearBreed1 = () => { setBreed1(''); setSearch1(''); setSvg1(''); };
+
+  const handleSelectBreed2 = (name: string, cat: string) => {
+    setBreed2(name);
+    setSearch2(name);
+    setCat2(cat);
+    setSvg2(`${cat}-01.svg`);
+  };
+  const handleClearBreed2 = () => { setBreed2(''); setSearch2(''); setSvg2(''); };
+
+  const canContinue = isMix ? (!!svg1 && !!svg2) : !!svg1;
+
+  const handleContinue = () => {
+    if (!canContinue) return;
+    setIsMixStore(isMix);
+    setPatronCategory(cat1);
+    setPatronSvg(svg1);
+    setBreed(breed1 || (isMix ? 'Mix' : ''));
+    setSelection('breed', breed1 || (isMix ? 'Mix' : ''));
+    setSelection('breedType', isMix ? 'mix' : 'purebred');
+    if (isMix) {
+      setPatronCategory2(cat2);
+      setPatronSvg2(svg2);
+    } else {
+      setPatronCategory2('');
+      setPatronSvg2('');
+    }
+    navigate('/birthday-dog');
+  };
+
+  return (
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
+        <button
+          onClick={() => navigate('/photo')}
+          className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
+      </div>
+
+      <div className="flex-1 flex flex-col items-center px-4 overflow-hidden">
+        <div className="w-full max-w-xl flex-1 flex flex-col gap-3 py-2 overflow-hidden">
+          {/* Block 1 — Hektor question */}
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <div
+              className="rounded-full overflow-hidden flex items-center justify-center"
+              style={{
+                width: 84,
+                height: 84,
+                background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+                border: '2px solid #c9922a',
+                boxShadow: '0 0 20px hsl(var(--gold) / 0.4)',
+              }}
+            >
+              <img src={hekthorImg} alt="HEKTHOR" className="w-full h-full object-contain" />
+            </div>
+            <p
+              className="text-center text-base md:text-lg leading-tight"
+              style={{ fontFamily: "'Cinzel', serif", color: '#c9922a' }}
+            >
+              Tell me, what breed is {dogName ? <span className="font-bold">{dogName}</span> : 'your hero'}?
+            </p>
+          </div>
+
+          {/* Mix toggle pill (Block 2 helper) */}
+          <div className="flex justify-end flex-shrink-0">
+            <button
+              onClick={() => setIsMix((p) => !p)}
+              className={`rounded-full px-4 py-1.5 text-xs tracking-wider border-2 transition-colors ${
+                isMix
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-primary text-foreground hover:bg-primary/20'
+              }`}
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              {isMix ? '✕ Mix' : '+ Mix'}
+            </button>
+          </div>
+
+          {/* Block 2/3/4 — Picker(s) */}
+          <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
+            <motion.div
+              className="rounded-2xl border-2 border-border/40 papyrus-bg p-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <BreedPicker
+                search={search1}
+                setSearch={setSearch1}
+                selectedBreed={breed1}
+                onSelectBreed={handleSelectBreed1}
+                onClearBreed={handleClearBreed1}
+                activeCategory={cat1}
+                setActiveCategory={setCat1}
+                selectedSvg={svg1}
+                onSelectSvg={setSvg1}
+                placeholder="Search breed..."
+              />
+            </motion.div>
+
+            <AnimatePresence>
+              {isMix && (
+                <motion.div
+                  key="mix2"
+                  className="rounded-2xl border-2 border-border/40 papyrus-bg p-3"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <BreedPicker
+                    search={search2}
+                    setSearch={setSearch2}
+                    selectedBreed={breed2}
+                    onSelectBreed={handleSelectBreed2}
+                    onClearBreed={handleClearBreed2}
+                    activeCategory={cat2}
+                    setActiveCategory={setCat2}
+                    selectedSvg={svg2}
+                    onSelectSvg={setSvg2}
+                    placeholder="Search second breed..."
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Continue */}
+          <div className="flex-shrink-0 pb-3 pt-1">
+            <Button
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className="w-full rounded-full gap-2 h-12 font-bold tracking-wider transition-transform disabled:opacity-40"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: canContinue
+                  ? 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))'
+                  : 'hsl(var(--muted))',
+                color: canContinue ? '#000' : undefined,
+                boxShadow: canContinue
+                  ? '0 0 30px hsl(var(--gold) / 0.4), 0 4px 16px rgba(0,0,0,0.3)'
+                  : 'none',
+              }}
+            >
+              <PawPrint className="h-4 w-4" />
+              Continue
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
