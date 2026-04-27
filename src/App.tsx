@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
-import { BreedScreen } from "@/components/screens/BreedScreen";
+import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
 import { BirthdayDogScreen } from "@/components/screens/BirthdayDogScreen";
 import { RankingScreen } from "@/components/screens/RankingScreen";
 import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
@@ -17,7 +17,6 @@ import { DogGenderScreen } from "@/components/screens/DogGenderScreen";
 import { DogFateScreen } from "@/components/screens/DogFateScreen";
 import { DogColourScreen } from "@/components/screens/DogColourScreen";
 import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
-import { DogShapeScreen } from "@/components/screens/DogShapeScreen";
 import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
 import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
 import { PayWallScreen } from "@/components/screens/PayWallScreen";
@@ -38,7 +37,7 @@ const App = () => (
           <Route path="/" element={<LandingPage />} />
           <Route path="/name" element={<NameScreen />} />
           <Route path="/photo" element={<PhotoScreen />} />
-          <Route path="/breed" element={<BreedScreen />} />
+          <Route path="/breed" element={<BreedPatronScreen />} />
           <Route path="/birthday-dog" element={<BirthdayDogScreen />} />
           <Route path="/ranking" element={<RankingScreen />} />
           <Route path="/owner-name" element={<OwnerInfoScreen />} />
@@ -49,7 +48,6 @@ const App = () => (
           <Route path="/dog-fate" element={<DogFateScreen />} />
           <Route path="/dog-colour" element={<DogColourScreen />} />
           <Route path="/dog-bloodline" element={<DogBloodlineScreen />} />
-          <Route path="/dog-shape" element={<DogShapeScreen />} />
           <Route path="/dog-character" element={<DogCharacterScreen />} />
           <Route path="/heroglyph-reveal" element={<HeroglyphRevealScreen />} />
           <Route path="/pay-wall" element={<PayWallScreen />} />
