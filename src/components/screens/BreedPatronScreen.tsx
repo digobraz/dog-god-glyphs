@@ -273,7 +273,7 @@ export function BreedPatronScreen() {
           {/* Block 2/3/4 — Gradient card with picker(s) */}
           <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
             <motion.div
-              className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
+              className="w-full rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
@@ -309,7 +309,7 @@ export function BreedPatronScreen() {
               {isMix && (
                 <motion.div
                   key="mix2"
-                  className="mx-auto w-[92%] rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
+                  className="w-full rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
