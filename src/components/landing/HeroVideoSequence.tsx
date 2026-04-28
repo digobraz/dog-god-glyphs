@@ -94,12 +94,10 @@ export function HeroVideoSequence() {
             faster while the frame stays still. */}
         <motion.div
           className="absolute inset-0 z-0"
-          style={
-            {
-              opacity: spiralOpacity,
-              ['--speed' as string]: spiralSpeed,
-            } as React.CSSProperties
-          }
+          style={{
+            opacity: spiralOpacity,
+            ['--speed' as never]: spiralSpeed,
+          }}
         >
           <DogCircleCarousel />
         </motion.div>
