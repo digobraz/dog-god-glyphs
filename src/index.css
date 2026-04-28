@@ -188,3 +188,31 @@ html {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Shimmer / shine sweep across hero headline */
+@keyframes hero-shimmer {
+  0% { background-position: -150% 0; }
+  60% { background-position: 250% 0; }
+  100% { background-position: 250% 0; }
+}
+.hero-shine {
+  background-image: linear-gradient(
+    100deg,
+    #A3782B 0%,
+    #C49B42 25%,
+    #FFF4C2 48%,
+    #FFFFFF 50%,
+    #FFF4C2 52%,
+    #C49B42 75%,
+    #A3782B 100%
+  );
+  background-size: 250% 100%;
+  background-position: -150% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: hero-shimmer 4.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 18px rgba(196, 155, 66, 0.45))
+          drop-shadow(0 0 40px rgba(255, 220, 130, 0.25));
+}
