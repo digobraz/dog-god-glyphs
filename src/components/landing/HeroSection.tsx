@@ -30,12 +30,13 @@ export function HeroSection() {
         <DogCircleCarousel />
       </div>
 
-      {/* Central radial vignette behind the headline so the text stays legible. */}
+      {/* Central radial vignette behind the headline. Solid black core fully hides motion
+          behind the text, then fades smoothly outward so the spiral is still visible at the edges. */}
       <div
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 36% 26% at 50% 48%, #000 0%, rgba(0,0,0,0.96) 38%, rgba(0,0,0,0.72) 58%, rgba(0,0,0,0.32) 78%, rgba(0,0,0,0) 100%)',
+            'radial-gradient(ellipse 46% 34% at 50% 46%, #000 0%, #000 32%, rgba(0,0,0,0.98) 50%, rgba(0,0,0,0.85) 66%, rgba(0,0,0,0.5) 82%, rgba(0,0,0,0) 100%)',
         }}
       />
       {/* Bottom fade zone: from BE NEXT button down to the edge — images vanish into black here. */}
