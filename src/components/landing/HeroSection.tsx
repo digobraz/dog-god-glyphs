@@ -22,32 +22,35 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="hero-spiral-host relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-hidden bg-background"
+      className="hero-spiral-host relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-visible bg-background"
       style={{ height: '100dvh', backgroundColor: '#000' }}
     >
-      {/* z-0: rotating dog circle */}
-      <div className="absolute inset-0 z-0">
-        <DogCircleCarousel />
-      </div>
+      {/* Inner clipping wrapper: keeps spiral + gradients inside Hero,
+          while letting StorySection's video poke up past the bottom edge. */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* z-0: rotating dog circle */}
+        <div className="absolute inset-0 z-0">
+          <DogCircleCarousel />
+        </div>
 
-      {/* Central radial vignette behind the headline. Solid black core fully hides motion
-          behind the text, then fades smoothly outward so the spiral is still visible at the edges. */}
-      <div
-        className="absolute inset-0 z-10 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 46% 34% at 50% 46%, #000 0%, #000 32%, rgba(0,0,0,0.98) 50%, rgba(0,0,0,0.85) 66%, rgba(0,0,0,0.5) 82%, rgba(0,0,0,0) 100%)',
-        }}
-      />
-      {/* Bottom fade zone: from BE NEXT button down to the edge — images vanish into black here. */}
-      <div
-        className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
-        style={{
-          height: '32%',
-          background:
-            'linear-gradient(to top, #000 0%, #000 20%, rgba(0,0,0,0.9) 48%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0) 100%)',
-        }}
-      />
+        {/* Central radial vignette behind the headline. */}
+        <div
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 46% 34% at 50% 46%, #000 0%, #000 32%, rgba(0,0,0,0.98) 50%, rgba(0,0,0,0.85) 66%, rgba(0,0,0,0.5) 82%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+        {/* Bottom fade zone */}
+        <div
+          className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
+          style={{
+            height: '32%',
+            background:
+              'linear-gradient(to top, #000 0%, #000 20%, rgba(0,0,0,0.9) 48%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0) 100%)',
+          }}
+        />
+      </div>
 
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
@@ -100,6 +103,17 @@ export function HeroSection() {
         transition={{ delay: 0.8, duration: 0.5 }}
       >
         BE NEXT!
+      </motion.a>
+
+      <motion.a
+        href="#story"
+        className="mt-4 text-xs md:text-sm tracking-[0.25em] uppercase relative z-20 hover:opacity-80 transition-opacity"
+        style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.1, duration: 0.6 }}
+      >
+        Watch INTRO MOVIE
       </motion.a>
     </section>
   );

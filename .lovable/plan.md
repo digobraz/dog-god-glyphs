@@ -1,43 +1,48 @@
-# Plan: prerobiť hero na skutočnú rotujúcu špirálu ako na Cosmos
+# Plán: video blok trčí do Hero + popis "Watch INTRO MOVIE"
 
-## Čo sa zmení
-- Nahradím aktuálny jednoduchý kruh za skutočný viac-závitový špirálový layout za textom „IN DOG WE TRUST“.
-- Prestanem používať externé Unsplash URL a namiesto toho použijem tvoju nahranú fotku psa ako lokálny asset v projekte.
-- Tú istú fotku zduplikujem do viacerých pozícií v špirále ako placeholder, aby boli obrázky vždy viditeľné a nespadli na externom načítaní.
-- Hero overlay upravím tak, aby text ostal čitateľný, ale už neprekrýval samotné fotky.
+## Cieľ
+Hero ostáva vizuálne bez zásahu (rovnaké rozmery, gradienty, špirála, text, BE NEXT! tlačidlo). **Iba video blok** zo `StorySection` sa posunie nahor tak, že jeho horná tretina prečnieva cez spodok Hero — presne ako na červenom rámiku v screene. Pod tlačidlo BE NEXT! v Hero pribudne malý popisok **„Watch INTRO MOVIE"** v zlatej farbe.
 
-## Prečo to teraz nie je vidno
-- Súčasná implementácia je iba jeden rotujúci prstenec, nie špirála.
-- Obrázky sa načítavajú z externých Unsplash URL, ktoré sa v preview vôbec neukazujú v network snímke, takže sa na ne nedá spoľahnúť.
-- Nad carouselom je ešte pomerne silná centrálna tmavá vrstva, ktorá vie znížiť viditeľnosť pozadia.
+## Zmeny
 
-## Implementácia
-1. Skopírujem nahraný obrázok psa do `src/assets/` a budem ho importovať priamo v Reacte.
-2. Prepíšem `DogCircleCarousel.tsx` na špirálovú kompozíciu:
-   - viac položiek rozložených podľa uhla aj rastúceho radiusu
-   - 2 až 3 vizuálne vrstvy, aby efekt pôsobil hlbšie a bližšie k Cosmos referencii
-   - pomalá hypnotická rotácia okolo stredu
-   - protirotácia samotných fotiek, aby zostali čitateľne orientované
-   - jemné škálovanie/opacita podľa vzdialenosti od stredu, aby to nepôsobilo ako obyčajný kruh
-3. Upravil by som hero vrstvy v `HeroSection.tsx`:
-   - slabší stredový gradient
-   - lepšie z-index rozdelenie medzi pozadie, špirálu, overlay a text
-   - zachovanie čistoty titulku a CTA
-4. Zachovám hover pause a `prefers-reduced-motion` správanie.
-5. Po implementácii vizuálne overím, že špirála je skutočne viditeľná na desktop šírke, ktorú práve používaš.
+### 1) `src/components/landing/StorySection.tsx`
+- Sekcia `<section id="story">` zostáva s `height: 100dvh` a rovnakým gradient pozadím — **neposúva sa**.
+- Iba `motion.div` s videom (wrapper `max-w-[760px] aspect-video`) dostane:
+  - `style.marginTop: 'clamp(-340px, -32vh, -220px)'` — vytiahne ho nahor tak, aby cca horná 1/3 videa prečnievala nad začiatok StorySection (čiže do spodnej časti Hero).
+  - `position: 'relative'` + `zIndex: 30` — aby bol nad Hero gradientmi/maskou.
+- Nadpisový blok („29 PEOPLE SAY…" + „BE NEXT!") nad videom v StorySection **odstránim** — duplikuje to, čo už je v Hero, a po zdvihnutí videa by visel divne. (Ak ho chceš zachovať, povedz a nechám ho.)
+- Vertikálne centrovanie sekcie nahradím `justify-start pt-[8vh]` aby video po zdvihnutí sedelo vizuálne pekne v rámci StorySection.
 
-## Technické detaily
-- Súbory:
-  - `src/components/landing/DogCircleCarousel.tsx`
-  - `src/components/landing/HeroSection.tsx`
-  - nový asset v `src/assets/`
-- Namiesto `360 / count` kruhového rozloženia použijem špirálový výpočet typu:
-  - `angle = index * step`
-  - `radius = baseRadius + index * radiusStep`
-- Výsledné pozície budú cez kombináciu `rotate(...) translateY(...)` alebo explicitný `x/y` výpočet zo sínus/kosínus, podľa toho čo dá čistejší výsledok.
-- Počet duplikátov nastavím tak, aby špirála pôsobila bohato, ale nebola vizuálne preplnená za headline.
+### 2) `src/components/landing/HeroSection.tsx`
+- Pod `<motion.a>` BE NEXT! pridám malý text:
+  ```tsx
+  <motion.span
+    className="mt-4 text-xs md:text-sm tracking-[0.25em] uppercase relative z-20"
+    style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
+    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+    transition={{ delay: 1.1, duration: 0.6 }}
+  >
+    Watch INTRO MOVIE
+  </motion.span>
+  ```
+- Nič iné v Hero sa nemení (gradienty, špirála, výška, ostatný text).
+
+### 3) Stacking
+- Hero `overflow-hidden` zostáva — to znamená, že video, ktoré vyčnieva z StorySection, bude viditeľné iba mimo Hero (Hero ho oreže). Aby video skutočne **prekrývalo** spodný okraj Hero (ako na screene), Hero potrebuje `overflow-visible` na `<section>`. Zmením teda `overflow-hidden` → `overflow-visible` v Hero `<section>` className. Vnútorné absolútne vrstvy (špirála, gradienty) sú v `inset-0 z-0/z-10` divoch, ktoré **dostanú vlastné `overflow-hidden`** na obalovom kontajneri, aby špirála neunikla mimo Hero.
+
+```text
+HeroSection (overflow-visible)
+ ├── inner wrapper (absolute inset-0, overflow-hidden) ← drží špirálu+gradienty
+ │    ├── DogCircleCarousel
+ │    └── radial + bottom gradient masks
+ └── headline + BE NEXT! + "Watch INTRO MOVIE"
+StorySection (overflow-visible, 100dvh)
+ └── video motion.div (marginTop negatívny, z-30) ← prečnieva nahor do Hero
+```
+
+## Dotknuté súbory
+- `src/components/landing/HeroSection.tsx`
+- `src/components/landing/StorySection.tsx`
 
 ## Výsledok
-Hero bude pôsobiť oveľa bližšie k tomu, čo chceš z Cosmos: nie jeden orbit, ale rotujúca špirála z opakovaných psích portrétov, pričom všetky obrázky budú lokálne a spoľahlivo viditeľné.
-
-Ak tento plán schváliš, rovno to prerobím.
+Presne ako na screene: Hero vyzerá identicky ako teraz, pod tlačidlom BE NEXT! je zlatý popisok „Watch INTRO MOVIE", a video z druhej sekcie hornou tretinou nakukuje do spodku Hero.
