@@ -1,119 +1,157 @@
 import type { CSSProperties } from 'react';
 import dogPhoto from '@/assets/hero-dog-placeholder.jpeg';
 
-// cosmos.so-like spiral: small near center, larger at edges, fading into the
-// background gradient. No frames/borders — just rounded photo tiles.
-const TOTAL_ITEMS = 36;
-const TOTAL_TURNS = 4.25;
-const START_RADIUS_RATIO = 0.06;
-const END_RADIUS_RATIO = 0.52;
+const TOTAL_ITEMS = 26;
+const LOOP_DURATION = 22;
+
+const spiralItems = Array.from({ length: TOTAL_ITEMS }, (_, i) => {
+  const slot = i / TOTAL_ITEMS;
+  const wave = (Math.sin(slot * Math.PI * 2) + 1) / 2;
+
+  return {
+    id: i,
+    fromAngle: -150 + slot * 150,
+    toAngle: 390 + slot * 150 + wave * 22,
+    delay: -(slot * LOOP_DURATION),
+    size: 84 + wave * 54,
+    aspect: [0.82, 1.08, 0.92, 1.2][i % 4],
+    tilt: [-19, -12, -7, 9, 14, 18][i % 6],
+    peakOpacity: 0.42 + wave * 0.34,
+    objectPosition: `${50 + ((i % 5) - 2) * 4}% ${34 + (i % 4) * 3}%`,
+    zIndex: i + 1,
+  };
+});
 
 export function DogCircleCarousel() {
-  const items = Array.from({ length: TOTAL_ITEMS }, (_, i) => {
-    const t = i / (TOTAL_ITEMS - 1);
-    // ease-out so density is higher near the center
-    const eased = Math.pow(t, 0.78);
-    const angle = -110 + eased * 360 * TOTAL_TURNS;
-    const radiusRatio = START_RADIUS_RATIO + eased * (END_RADIUS_RATIO - START_RADIUS_RATIO);
-    // small in the middle, big on the outside (like cosmos.so)
-    const sizePx = 44 + eased * 168; // 44 → 212
-    // fade out as photos approach the center so they vanish behind the text
-    const opacity = 0.18 + eased * 0.78; // 0.18 (center) → 0.96 (edge)
-    const blurPx = (1 - eased) * 1.8;
-    const delay = i * -0.18;
-    const zIndex = i; // bigger (outer) on top
-
-    return { angle, radiusRatio, sizePx, opacity, blurPx, delay, zIndex };
-  });
-
   return (
     <div
       className="dog-spiral-root pointer-events-none absolute inset-0 overflow-hidden"
       aria-hidden="true"
     >
       <style>{`
-        @keyframes dog-spiral-orbit {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to   { transform: translate(-50%, -50%) rotate(360deg); }
+        @keyframes dog-spiral-flow {
+          0% {
+            transform: translate(-50%, -50%) rotate(var(--from-angle)) translateY(calc(var(--scene-size) * -0.055));
+          opacity: 0;
+          }
+          10% {
+            opacity: 0;
+          }
+          22% {
+            opacity: calc(var(--peak-opacity) * 0.45);
+          }
+          62% {
+            opacity: var(--peak-opacity);
+          }
+          86% {
+            opacity: calc(var(--peak-opacity) * 0.78);
+          }
+          100% {
+            transform: translate(-50%, -50%) rotate(var(--to-angle)) translateY(calc(var(--scene-size) * -0.72));
+            opacity: 0;
+          }
         }
 
-        @keyframes dog-spiral-counter {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to   { transform: translate(-50%, -50%) rotate(-360deg); }
+        @keyframes dog-spiral-card-life {
+          0% {
+            transform: translate(-50%, -50%) rotate(var(--tilt)) scale(0.16);
+            opacity: 0;
+            filter: blur(3px) saturate(0.9);
+          }
+          20% {
+            transform: translate(-50%, -50%) rotate(var(--tilt)) scale(0.24);
+            opacity: 0.24;
+            filter: blur(1.8px) saturate(0.94);
+          }
+          58% {
+            transform: translate(-50%, -50%) rotate(var(--tilt)) scale(0.68);
+            opacity: 0.88;
+            filter: blur(0.6px) saturate(1);
+          }
+          100% {
+            transform: translate(-50%, -50%) rotate(var(--tilt)) scale(1.08);
+            opacity: 0;
+            filter: blur(0px) saturate(1.02);
+          }
         }
 
         .dog-spiral-root {
           contain: layout paint style;
         }
 
-        /* Soft radial mask so the spiral fades into the background gradient
-           and disappears behind the central text — no hard edge. */
         .dog-spiral-mask {
           position: absolute;
           inset: -8%;
           -webkit-mask-image: radial-gradient(
-            ellipse 62% 58% at 50% 54%,
-            #000 18%,
-            rgba(0,0,0,0.85) 38%,
-            rgba(0,0,0,0.45) 62%,
-            rgba(0,0,0,0) 86%
+            ellipse 74% 68% at 50% 54%,
+            rgba(0,0,0,0) 0%,
+            rgba(0,0,0,0) 16%,
+            rgba(0,0,0,0.92) 29%,
+            #000 72%,
+            rgba(0,0,0,0.15) 92%,
+            rgba(0,0,0,0) 100%
           );
-                  mask-image: radial-gradient(
-            ellipse 62% 58% at 50% 54%,
-            #000 18%,
-            rgba(0,0,0,0.85) 38%,
-            rgba(0,0,0,0.45) 62%,
-            rgba(0,0,0,0) 86%
+          mask-image: radial-gradient(
+            ellipse 74% 68% at 50% 54%,
+            rgba(0,0,0,0) 0%,
+            rgba(0,0,0,0) 16%,
+            rgba(0,0,0,0.92) 29%,
+            #000 72%,
+            rgba(0,0,0,0.15) 92%,
+            rgba(0,0,0,0) 100%
           );
         }
 
         .dog-spiral-scene {
-          --scene-size: clamp(1100px, 130vw, 1800px);
+          --scene-size: clamp(1120px, 136vw, 1760px);
           position: absolute;
           top: 52%;
           left: 50%;
           width: var(--scene-size);
           height: var(--scene-size);
-          animation: dog-spiral-orbit 38s linear infinite;
-          will-change: transform;
         }
 
-        .dog-spiral-node {
+        .dog-spiral-track {
           position: absolute;
           top: 50%;
           left: 50%;
           width: 0;
           height: 0;
-          transform-origin: center center;
+          animation: dog-spiral-flow ${LOOP_DURATION}s linear infinite;
+          will-change: transform, opacity;
         }
 
-        /* Counter-rotate so each photo stays upright while the ring spins. */
-        .dog-spiral-thumb {
+        .dog-spiral-card {
           position: absolute;
           top: 0;
           left: 0;
           border-radius: 22px;
           overflow: hidden;
-          background-size: cover;
-          background-position: center 34%;
-          background-repeat: no-repeat;
-          box-shadow: 0 18px 46px hsl(0 0% 0% / 0.45);
-          animation: dog-spiral-counter 38s linear infinite;
-          will-change: transform, opacity;
+          box-shadow: 0 10px 30px hsl(var(--foreground) / 0.08);
+          animation: dog-spiral-card-life ${LOOP_DURATION}s linear infinite;
+          will-change: transform, opacity, filter;
           backface-visibility: hidden;
+          transform-origin: center center;
+        }
+
+        .dog-spiral-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
         }
 
         @media (max-width: 768px) {
           .dog-spiral-scene {
-            --scene-size: clamp(900px, 180vw, 1300px);
+            --scene-size: clamp(880px, 176vw, 1240px);
             top: 54%;
           }
-          .dog-spiral-thumb { border-radius: 16px; }
+          .dog-spiral-card { border-radius: 18px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .dog-spiral-scene,
-          .dog-spiral-thumb {
+          .dog-spiral-track,
+          .dog-spiral-card {
             animation: none !important;
           }
         }
@@ -121,25 +159,36 @@ export function DogCircleCarousel() {
 
       <div className="dog-spiral-mask">
         <div className="dog-spiral-scene">
-          {items.map((item, i) => {
-            const nodeStyle: CSSProperties = {
-              transform: `rotate(${item.angle}deg) translateY(calc(var(--scene-size) * -${item.radiusRatio}))`,
-              zIndex: item.zIndex,
-            };
-
-            const thumbStyle: CSSProperties = {
-              width: `${item.sizePx}px`,
-              height: `${item.sizePx}px`,
-              opacity: item.opacity,
-              filter: `saturate(1.05) contrast(1.05) blur(${item.blurPx}px)`,
-              backgroundImage: `url(${dogPhoto})`,
+          {spiralItems.map((item) => {
+            const trackStyle = {
+              '--from-angle': `${item.fromAngle}deg`,
+              '--to-angle': `${item.toAngle}deg`,
+              '--peak-opacity': `${item.peakOpacity}`,
               animationDelay: `${item.delay}s`,
-              transform: 'translate(-50%, -50%)',
-            };
+              zIndex: item.zIndex,
+            } as CSSProperties;
+
+            const cardStyle = {
+              '--tilt': `${item.tilt}deg`,
+              width: `${item.size * item.aspect}px`,
+              height: `${item.size}px`,
+              animationDelay: `${item.delay}s`,
+            } as CSSProperties;
 
             return (
-              <div key={i} className="dog-spiral-node" style={nodeStyle}>
-                <div className="dog-spiral-thumb" style={thumbStyle} />
+              <div key={item.id} className="dog-spiral-track" style={trackStyle}>
+                <div className="dog-spiral-card" style={cardStyle}>
+                  <img
+                    src={dogPhoto}
+                    alt=""
+                    aria-hidden="true"
+                    className="dog-spiral-image"
+                    draggable={false}
+                    loading="eager"
+                    decoding="async"
+                    style={{ objectPosition: item.objectPosition }}
+                  />
+                </div>
               </div>
             );
           })}
