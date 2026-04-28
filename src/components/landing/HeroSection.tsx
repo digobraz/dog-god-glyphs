@@ -120,8 +120,7 @@ export function HeroSection() {
         <iframe
           src={peekEmbedUrl}
           title="DOGYPT story preview"
-          className="absolute left-0 top-0 w-full pointer-events-none"
-          style={{ height: 'calc(45vh / 9 * 16 * 9 / 16)', minHeight: '100%' }}
+          className="absolute inset-0 w-full h-full pointer-events-none"
           frameBorder={0}
           allow="autoplay; encrypted-media; picture-in-picture"
         />
