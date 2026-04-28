@@ -66,7 +66,7 @@ export function Header() {
         href="#hero"
         onClick={(e) => {
           e.preventDefault();
-          window.dispatchEvent(new CustomEvent('nav-jump', { detail: 0 }));
+          document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }}
       >
         <img
@@ -91,11 +91,9 @@ export function Header() {
                 href={`#${item.toLowerCase()}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  const indexMap: Record<string, number> = { story: 0, vision: 1, about: 6 };
-                  const targetIndex = indexMap[item.toLowerCase()];
-                  if (targetIndex !== undefined) {
-                    window.dispatchEvent(new CustomEvent('nav-jump', { detail: targetIndex }));
-                  }
+                  document
+                    .getElementById(item.toLowerCase())
+                    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }}
                 className="text-xs md:text-sm tracking-[0.25em] uppercase transition-all duration-500 relative"
                 style={{
