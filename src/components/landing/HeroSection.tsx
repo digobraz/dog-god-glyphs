@@ -36,7 +36,7 @@ export function HeroSection() {
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 42% 34% at 50% 52%, #000 0%, rgba(0,0,0,0.95) 28%, rgba(0,0,0,0.75) 48%, rgba(0,0,0,0.25) 68%, rgba(0,0,0,0) 86%)',
+            'radial-gradient(ellipse 40% 32% at 50% 52%, #000 0%, rgba(0,0,0,0.995) 34%, rgba(0,0,0,0.92) 48%, rgba(0,0,0,0.62) 62%, rgba(0,0,0,0.22) 76%, rgba(0,0,0,0) 88%)',
         }}
       />
       <div className="absolute inset-y-0 left-0 w-[8%] pointer-events-none z-10" style={{ background: 'linear-gradient(to right, #000, rgba(0,0,0,0))' }} />
