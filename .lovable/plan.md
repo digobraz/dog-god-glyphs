@@ -1,52 +1,43 @@
-Pridám rotujúci kruh fotiek psov ako hypnotické pozadie hero sekcie (cosmos.so štýl).
+# Plan: prerobiť hero na skutočnú rotujúcu špirálu ako na Cosmos
 
-### Čo postavím
+## Čo sa zmení
+- Nahradím aktuálny jednoduchý kruh za skutočný viac-závitový špirálový layout za textom „IN DOG WE TRUST“.
+- Prestanem používať externé Unsplash URL a namiesto toho použijem tvoju nahranú fotku psa ako lokálny asset v projekte.
+- Tú istú fotku zduplikujem do viacerých pozícií v špirále ako placeholder, aby boli obrázky vždy viditeľné a nespadli na externom načítaní.
+- Hero overlay upravím tak, aby text ostal čitateľný, ale už neprekrýval samotné fotky.
 
-**Nový komponent:** `src/components/landing/DogCircleCarousel.tsx`
-- 12 kruhových fotiek psov rozmiestnených po obvode kruhu
-- Vonkajší wrapper rotuje 360° / 40s, infinite, linear
-- Každá fotka counter-rotuje (-360° / 40s), aby zostala vždy správne natočená
-- `animation-play-state: paused` na hover (pauza pri prejdení myšou)
-- `prefers-reduced-motion` → animácia vypnutá
-- Responzívny polomer cez `clamp(180px, 32vw, 340px)`
-- Veľkosť fotiek: `clamp(64px, 9vw, 110px)`
-- Štýl fotiek: `rounded-full`, `object-cover`, jemný gold border `#C49B42/40`, `shadow-2xl`, jemná opacity (~70%) aby nekonkurovali textu
+## Prečo to teraz nie je vidno
+- Súčasná implementácia je iba jeden rotujúci prstenec, nie špirála.
+- Obrázky sa načítavajú z externých Unsplash URL, ktoré sa v preview vôbec neukazujú v network snímke, takže sa na ne nedá spoľahnúť.
+- Nad carouselom je ešte pomerne silná centrálna tmavá vrstva, ktorá vie znížiť viditeľnosť pozadia.
 
-**Fotky (Unsplash placeholder):**
-12 priamych Unsplash URL fotiek psov s `?w=200&h=200&fit=crop&auto=format` parametrami pre optimalizáciu. Žiadne API key — len verejné CDN URL.
+## Implementácia
+1. Skopírujem nahraný obrázok psa do `src/assets/` a budem ho importovať priamo v Reacte.
+2. Prepíšem `DogCircleCarousel.tsx` na špirálovú kompozíciu:
+   - viac položiek rozložených podľa uhla aj rastúceho radiusu
+   - 2 až 3 vizuálne vrstvy, aby efekt pôsobil hlbšie a bližšie k Cosmos referencii
+   - pomalá hypnotická rotácia okolo stredu
+   - protirotácia samotných fotiek, aby zostali čitateľne orientované
+   - jemné škálovanie/opacita podľa vzdialenosti od stredu, aby to nepôsobilo ako obyčajný kruh
+3. Upravil by som hero vrstvy v `HeroSection.tsx`:
+   - slabší stredový gradient
+   - lepšie z-index rozdelenie medzi pozadie, špirálu, overlay a text
+   - zachovanie čistoty titulku a CTA
+4. Zachovám hover pause a `prefers-reduced-motion` správanie.
+5. Po implementácii vizuálne overím, že špirála je skutočne viditeľná na desktop šírke, ktorú práve používaš.
 
-### Integrácia do HeroSection
+## Technické detaily
+- Súbory:
+  - `src/components/landing/DogCircleCarousel.tsx`
+  - `src/components/landing/HeroSection.tsx`
+  - nový asset v `src/assets/`
+- Namiesto `360 / count` kruhového rozloženia použijem špirálový výpočet typu:
+  - `angle = index * step`
+  - `radius = baseRadius + index * radiusStep`
+- Výsledné pozície budú cez kombináciu `rotate(...) translateY(...)` alebo explicitný `x/y` výpočet zo sínus/kosínus, podľa toho čo dá čistejší výsledok.
+- Počet duplikátov nastavím tak, aby špirála pôsobila bohato, ale nebola vizuálne preplnená za headline.
 
-V `src/components/landing/HeroSection.tsx`:
-- Vložím `<DogCircleCarousel />` ako absolútne pozicionovaný layer **pod** existujúce gradient overlaye, ale **nad** čierne pozadie
-- `pointer-events-none` aby neblokoval CTA klik
-- Existujúce top/bottom gradient overlaye (`from-black to-transparent`) sa rozšíria → posilním ich, aby text "29 PEOPLE SAY" a "IN DOG WE TRUST" zostal výborne čitateľný (radiálny gradient v strede + silnejšie vertical fade)
-- Pridám stredový radiálny overlay: `radial-gradient(ellipse at center, black 0%, transparent 70%)` aby kruh bol viditeľný len po stranách / okolo, nie cez text
+## Výsledok
+Hero bude pôsobiť oveľa bližšie k tomu, čo chceš z Cosmos: nie jeden orbit, ale rotujúca špirála z opakovaných psích portrétov, pričom všetky obrázky budú lokálne a spoľahlivo viditeľné.
 
-### Z-index vrstvy v hero (zhora)
-```text
-z-30  text + CTA
-z-20  radial + vertical gradient overlays
-z-10  DogCircleCarousel (rotujúci kruh)
-z-0   čierne pozadie
-```
-
-### Technické detaily
-
-```tsx
-// Štruktúra
-<div className="circle-spin">                      // rotuje 360° v 40s
-  {dogs.map((url, i) => (
-    <div style={{ transform: `rotate(${i*30}deg) translateY(-${RADIUS}px)` }}>
-      <img className="circle-spin-reverse" src={url} />  // -360° v 40s
-    </div>
-  ))}
-</div>
-```
-
-Keyframes pridám priamo v komponente cez `<style>` tag (lokálne, nemusíme zasahovať do `tailwind.config.ts`).
-
-### Súbory
-- **Nový:** `src/components/landing/DogCircleCarousel.tsx`
-- **Upravím:** `src/components/landing/HeroSection.tsx` (vloženie + posilnenie overlayov)
-- **Update memory:** `mem://index.md` + nový `mem://features/hero-dog-circle.md`
+Ak tento plán schváliš, rovno to prerobím.
