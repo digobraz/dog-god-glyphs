@@ -9,7 +9,7 @@ export function AboutSection() {
     <section
       id="about"
       className="relative h-screen flex flex-col justify-center py-32 md:py-40"
-      style={{ backgroundColor: '#FAF4EC' }}
+      style={{ backgroundColor: '#000000' }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8 flex-1 flex flex-col justify-center w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center mb-8">
@@ -27,7 +27,7 @@ export function AboutSection() {
 
             <motion.p
               className="text-base md:text-lg leading-relaxed text-center md:text-left"
-              style={{ color: 'rgba(0,0,0,0.6)' }}
+              style={{ color: 'rgba(250,244,236,0.7)' }}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
@@ -69,17 +69,17 @@ export function AboutSection() {
         </div>
 
         {/* Footer */}
-        <footer className="border-t pt-6 mt-auto mb-4" style={{ borderColor: 'rgba(163,120,43,0.2)' }}>
+        <footer className="border-t pt-6 mt-auto mb-4" style={{ borderColor: 'rgba(196,155,66,0.25)' }}>
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm" style={{ color: 'rgba(0,0,0,0.4)' }}>© DOGYPT 2026. All rights reserved.</p>
+            <p className="text-sm" style={{ color: 'rgba(250,244,236,0.45)' }}>© DOGYPT 2026. All rights reserved.</p>
             <div className="flex items-center gap-4">
-              <a href="mailto:hello@dogypt.com" className="text-sm transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
+              <a href="mailto:hello@dogypt.com" className="text-sm transition-opacity hover:opacity-70" style={{ color: 'rgba(250,244,236,0.45)' }}>
                 hello@dogypt.com
               </a>
-              <a href="https://instagram.com/dogypt" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
+              <a href="https://instagram.com/dogypt" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70" style={{ color: 'rgba(250,244,236,0.45)' }}>
                 <Instagram className="w-5 h-5" />
               </a>
-              <a href="https://x.com/dogypt" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70" style={{ color: 'rgba(0,0,0,0.4)' }}>
+              <a href="https://x.com/dogypt" target="_blank" rel="noopener noreferrer" className="transition-opacity hover:opacity-70" style={{ color: 'rgba(250,244,236,0.45)' }}>
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </a>
             </div>

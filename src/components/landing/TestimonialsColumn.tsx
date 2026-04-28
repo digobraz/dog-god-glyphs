@@ -32,14 +32,14 @@ export const TestimonialsColumn = (props: {
                 className="p-8 rounded-3xl max-w-xs w-full"
                 key={i}
                 style={{
-                  backgroundColor: '#F3EBDD',
-                  border: '1px solid rgba(163,120,43,0.25)',
-                  boxShadow: '0 10px 30px -12px rgba(163,120,43,0.25)',
+                  backgroundColor: '#0a0a0a',
+                  border: '1px solid rgba(196,155,66,0.3)',
+                  boxShadow: '0 10px 30px -12px rgba(196,155,66,0.2)',
                 }}
               >
                 <div
                   className="text-sm leading-relaxed"
-                  style={{ color: 'rgba(0,0,0,0.75)', fontFamily: "'Cormorant Garamond', serif" }}
+                  style={{ color: 'rgba(250,244,236,0.85)', fontFamily: "'Cormorant Garamond', serif" }}
                 >
                   "{text}"
                 </div>
@@ -60,8 +60,8 @@ export const TestimonialsColumn = (props: {
                       {name}
                     </div>
                     <div
-                      className="leading-5 opacity-60 tracking-tight text-xs"
-                      style={{ color: '#000' }}
+                      className="leading-5 opacity-70 tracking-tight text-xs"
+                      style={{ color: '#FAF4EC' }}
                     >
                       {role}
                     </div>
