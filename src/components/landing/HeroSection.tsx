@@ -22,8 +22,8 @@ export function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-hidden"
-      style={{ height: '100dvh', backgroundColor: '#000' }}
+      className="hero-spiral-host relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-hidden bg-background"
+      style={{ height: '100dvh', backgroundColor: 'hsl(var(--background))' }}
     >
       {/* z-0: rotating dog circle */}
       <div className="absolute inset-0 z-0">
@@ -35,11 +35,11 @@ export function HeroSection() {
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 32% 26% at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0) 80%)',
+            'radial-gradient(ellipse 28% 24% at center, hsl(0 0% 0% / 0.68) 0%, hsl(0 0% 0% / 0.34) 52%, hsl(0 0% 0% / 0) 80%)',
         }}
       />
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 w-full h-44 bg-gradient-to-t from-black/85 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/55 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 w-full h-44 bg-gradient-to-t from-black/65 to-transparent pointer-events-none z-10" />
 
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
