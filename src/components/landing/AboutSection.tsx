@@ -16,7 +16,7 @@ export function AboutSection() {
           {/* Left column — text */}
           <div className="flex flex-col">
             <motion.h2
-              className="text-4xl md:text-5xl font-black mb-6 text-center md:text-left"
+              className="text-4xl md:text-5xl font-black mb-6 text-center"
               style={{ fontFamily: "'Cinzel', serif", color: '#A3782B' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -26,7 +26,7 @@ export function AboutSection() {
             </motion.h2>
 
             <motion.p
-              className="text-base md:text-lg leading-relaxed text-center md:text-left"
+              className="text-base md:text-lg leading-relaxed text-center"
               style={{ color: 'rgba(0,0,0,0.6)' }}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
