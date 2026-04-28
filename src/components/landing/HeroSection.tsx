@@ -36,11 +36,13 @@ export function HeroSection() {
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 34% 26% at 50% 52%, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.18) 55%, hsl(0 0% 0% / 0) 78%)',
+            'radial-gradient(ellipse 36% 28% at 50% 52%, hsl(var(--background) / 0.98) 0%, hsl(var(--background) / 0.93) 22%, hsl(var(--background) / 0.78) 38%, hsl(var(--background) / 0.22) 58%, hsl(var(--background) / 0) 76%)',
         }}
       />
-      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute inset-y-0 left-0 w-[12%] bg-gradient-to-r from-background via-background/70 to-transparent pointer-events-none z-10" />
+      <div className="absolute inset-y-0 right-0 w-[12%] bg-gradient-to-l from-background via-background/70 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-background via-background/65 to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background via-background/75 to-transparent pointer-events-none z-10" />
 
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
