@@ -19,7 +19,7 @@ export function StorySection() {
       <div
         className="flex flex-col items-center w-full"
         style={{
-          transform: 'translateY(-22vh)',
+          transform: 'translateY(-10vh)',
           position: 'relative',
           zIndex: 30,
         }}
