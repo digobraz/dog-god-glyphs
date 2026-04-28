@@ -21,7 +21,7 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
 /**
  * Pinned scroll-driven Hero → Video sequence (cosmos.so style stage):
  *
- * Outer wrapper has tall height (≈220 vh) — that's the "scroll budget".
+ * Outer wrapper has tall height (≈165 vh) — that's the "scroll budget".
  * Inner stage is `position: sticky; height: 100dvh`, so it stays glued to the
  * viewport top while the user scrolls through the budget.
  *
@@ -38,24 +38,26 @@ export function HeroVideoSequence() {
     offset: ['start start', 'end end'],
   });
 
-  // --- Hero text/CTA fade+scale (gone by ~45% progress) ---
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.35, 0.5], [1, 0.6, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.5], [1, 0.82]);
+  // --- Hero text/CTA fade+scale (fade almost immediately into black) ---
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.08, 0.2], [1, 0.3, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.9]);
 
-  // --- Spiral fade (gone by ~70%) and rotation boost ---
-  const spiralOpacity = useTransform(scrollYProgress, [0.05, 0.65], [1, 0]);
-  const spiralBoost = useTransform(scrollYProgress, [0, 1], [0, 540]); // extra deg on top of CSS spin
+  // --- Spiral fade (fast) + stronger spin acceleration ---
+  const spiralOpacity = useTransform(scrollYProgress, [0, 0.12, 0.28], [1, 0.4, 0]);
+  const spiralBoost = useTransform(scrollYProgress, [0, 0.55, 1], [0, 760, 880]);
 
   // --- Video position ---
-  // At progress 0: y = 50vh (it sits well below center, only top strip visible above hero bottom).
-  // At progress 1: y = 0 (centered in viewport).
-  const videoY = useTransform(scrollYProgress, [0, 1], ['50vh', '0vh']);
-  const videoScale = useTransform(scrollYProgress, [0, 1], [0.92, 1]);
-  const labelOpacity = useTransform(scrollYProgress, [0, 0.25, 0.6], [1, 0.4, 0]);
+  // At progress 0: y = 66vh so the starting frame matches the previous lower placement.
+  // By ~58% progress the video is already centered.
+  const videoY = useTransform(scrollYProgress, [0, 0.58, 1], ['66vh', '0vh', '0vh']);
+  const videoScale = useTransform(scrollYProgress, [0, 0.58, 1], [0.92, 1, 1]);
+  const labelOpacity = useTransform(scrollYProgress, [0, 0.06, 0.16], [1, 0.25, 0]);
 
-  // --- Bottom gradient mask intensity (it blocks the spiral around the video at start;
-  //     once the spiral is gone we don't need it). ---
-  const maskOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
+  // --- Blackout layer: text + spiral should disappear into black, not just fade away. ---
+  const blackoutOpacity = useTransform(scrollYProgress, [0, 0.06, 0.18, 0.3], [0, 0.45, 0.92, 1]);
+
+  // --- Bottom gradient mask intensity (used only at the start). ---
+  const maskOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0]);
 
   // Reduced-motion: pin the values at the start state.
   const reduceMotion = useMotionValue(0);
@@ -80,7 +82,7 @@ export function HeroVideoSequence() {
       ref={wrapperRef}
       id="hero"
       className="relative w-full"
-      style={{ height: '220vh', backgroundColor: '#000' }}
+      style={{ height: '165vh', backgroundColor: '#000' }}
     >
       <div
         className="sticky top-0 w-full overflow-hidden"
@@ -172,6 +174,14 @@ export function HeroVideoSequence() {
             BE NEXT!
           </motion.a>
         </motion.div>
+
+        <motion.div
+          className="absolute inset-0 z-[25] pointer-events-none"
+          style={{
+            opacity: blackoutOpacity,
+            backgroundColor: '#000',
+          }}
+        />
 
         {/* ---------- VIDEO LAYER ---------- */}
         <motion.div
