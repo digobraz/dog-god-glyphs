@@ -1,98 +1,107 @@
-const DOG_PHOTOS = [
-  'https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=240&h=240&fit=crop&auto=format&q=70', // golden
-  'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=240&h=240&fit=crop&auto=format&q=70', // shiba
-  'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=240&h=240&fit=crop&auto=format&q=70', // husky
-  'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=240&h=240&fit=crop&auto=format&q=70', // golden pup
-  'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=240&h=240&fit=crop&auto=format&q=70', // labrador
-  'https://images.unsplash.com/photo-1517849845537-4d257902454a?w=240&h=240&fit=crop&auto=format&q=70', // pug
-  'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=240&h=240&fit=crop&auto=format&q=70', // border collie
-  'https://images.unsplash.com/photo-1552053831-71594a27632d?w=240&h=240&fit=crop&auto=format&q=70', // corgi
-  'https://images.unsplash.com/photo-1477884213360-7e9d7dcc1e48?w=240&h=240&fit=crop&auto=format&q=70', // beagle
-  'https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=240&h=240&fit=crop&auto=format&q=70', // doberman
-  'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=240&h=240&fit=crop&auto=format&q=70', // dachshund
-  'https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=240&h=240&fit=crop&auto=format&q=70', // poodle
-];
+import dogPhoto from '@/assets/hero-dog-placeholder.jpeg';
+
+/**
+ * Rotating SPIRAL of dog photos behind the hero text — cosmos.so style.
+ * Multiple full turns of items where the radius grows with index, so the
+ * composition reads as a hypnotic spiral, not a single ring.
+ *
+ * All slots share the same local placeholder image (duplicated) so nothing
+ * depends on external URLs.
+ */
+
+const TOTAL_ITEMS = 64;          // density of the spiral
+const ITEMS_PER_TURN = 11;       // how many slots per full rotation
+const BASE_RADIUS_PCT = 14;      // % of ring size, innermost slot
+const RADIUS_STEP_PCT = 1.55;    // % growth per slot — controls spiral tightness
 
 export function DogCircleCarousel() {
-  const count = DOG_PHOTOS.length;
-  const step = 360 / count;
+  const items = Array.from({ length: TOTAL_ITEMS });
 
   return (
     <div
-      className="dog-circle-wrapper pointer-events-none absolute inset-0 flex items-center justify-center"
+      className="dog-spiral-wrapper pointer-events-none absolute inset-0 flex items-center justify-center"
       aria-hidden="true"
     >
       <style>{`
-        @keyframes dog-circle-spin {
+        @keyframes dog-spiral-spin {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
-        @keyframes dog-circle-spin-reverse {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(-360deg); }
+        @keyframes dog-spiral-counter {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to   { transform: translate(-50%, -50%) rotate(-360deg); }
         }
-        .dog-circle-ring {
-          --ring-size: clamp(420px, 78vw, 880px);
+        .dog-spiral-ring {
+          --ring-size: clamp(520px, 92vw, 1100px);
           width: var(--ring-size);
           height: var(--ring-size);
           position: relative;
-          animation: dog-circle-spin 40s linear infinite;
+          animation: dog-spiral-spin 60s linear infinite;
           will-change: transform;
         }
-        .dog-circle-wrapper:hover .dog-circle-ring,
-        .dog-circle-wrapper:hover .dog-circle-photo {
+        .dog-spiral-wrapper:hover .dog-spiral-ring,
+        .dog-spiral-wrapper:hover .dog-spiral-photo {
           animation-play-state: paused;
         }
-        .dog-circle-slot {
+        .dog-spiral-slot {
           position: absolute;
           top: 50%;
           left: 50%;
           width: 0;
           height: 0;
         }
-        .dog-circle-photo {
-          width: clamp(72px, 10vw, 124px);
-          height: clamp(72px, 10vw, 124px);
+        .dog-spiral-photo {
+          position: absolute;
+          top: 0;
+          left: 0;
           border-radius: 9999px;
           object-fit: cover;
-          background: linear-gradient(135deg, #1a1208, #C49B42);
+          background: #1a1208;
           border: 2px solid rgba(196, 155, 66, 0.55);
-          box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55),
-                      0 0 24px rgba(196, 155, 66, 0.18);
-          opacity: 0.95;
+          box-shadow:
+            0 10px 32px rgba(0, 0, 0, 0.55),
+            0 0 22px rgba(196, 155, 66, 0.20);
           transform: translate(-50%, -50%);
-          animation: dog-circle-spin-reverse 40s linear infinite;
+          animation: dog-spiral-counter 60s linear infinite;
           will-change: transform;
         }
         @media (prefers-reduced-motion: reduce) {
-          .dog-circle-ring,
-          .dog-circle-photo {
+          .dog-spiral-ring,
+          .dog-spiral-photo {
             animation: none !important;
           }
         }
       `}</style>
 
-      <div className="dog-circle-ring">
-        {DOG_PHOTOS.map((src, i) => {
-          const angle = i * step;
+      <div className="dog-spiral-ring">
+        {items.map((_, i) => {
+          // Spiral math: angle accumulates, radius grows linearly with index.
+          const angle = (i * 360) / ITEMS_PER_TURN;
+          const radiusPct = BASE_RADIUS_PCT + i * RADIUS_STEP_PCT;
+
+          // Size shrinks slightly toward the outside for depth.
+          const t = i / TOTAL_ITEMS; // 0 -> 1
+          const sizePx = 116 - t * 56; // 116px innermost -> ~60px outermost
+          const opacity = 0.95 - t * 0.5; // fade outer edges
+
           return (
             <div
               key={i}
-              className="dog-circle-slot"
+              className="dog-spiral-slot"
               style={{
-                transform: `rotate(${angle}deg) translateY(calc(var(--ring-size, 600px) / -2))`,
+                transform: `rotate(${angle}deg) translateY(-${radiusPct}%)`,
               }}
             >
               <img
-                className="dog-circle-photo"
-                src={src}
+                className="dog-spiral-photo"
+                src={dogPhoto}
                 alt=""
                 loading="eager"
                 decoding="async"
-                referrerPolicy="no-referrer"
-                onError={(e) => {
-                  // Hide broken img tag, keep gold gradient circle as fallback
-                  (e.currentTarget as HTMLImageElement).style.visibility = 'hidden';
+                style={{
+                  width: `${sizePx}px`,
+                  height: `${sizePx}px`,
+                  opacity,
                 }}
               />
             </div>
