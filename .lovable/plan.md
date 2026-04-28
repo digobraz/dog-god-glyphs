@@ -1,54 +1,91 @@
+# Cosmos.so plynulý scroll — kompletná prestavba
+
+## Čo je problém dnes
+Aktuálna landing page mieša dva nekompatibilné modely scrollu:
+- **Hero+Story stack** používa natívny scroll s Framer Motion `useScroll` scrubbingom
+- **Vision a About** používajú JS scroll-hijacking s 1000ms snap animáciami
+
+Prechod medzi nimi je trhaný, scrubbing efekt na videu nepôsobí plynulo a celkový pocit nezodpovedá cosmos.so. Cosmos.so v skutočnosti vôbec nepoužíva scrubbing ani hijacking — má iba čistý natívny scroll s lazy fade-in obsahu.
+
 ## Cieľ
+Plynulý natívny scroll po celej stránke. Žiadny hijacking, žiadne snapping, žiadny dual-layer scrubbing. Hero a video sú dve normálne sekcie pod sebou. Vision steps sa scrollujú prirodzene. Obsah sa fade-in objavuje, keď príde do viewportu.
 
-Vymazať celú Story sekciu (texty, timeline, cross-fade, Ken Burns, scroll mechaniku pre 9 slidov) a nahradiť ju jednoduchou čiernou sekciou s YouTube videom v strede, inšpirovanou cosmos.so. Zároveň úplne odstrániť MatrixRain.
+## Štruktúra stránky (zhora nadol)
 
-## Zmeny
-
-### 1. Nový komponent `StorySection.tsx` (prepísaný)
-- Plná výška sekcie `100dvh`, čisto čierne pozadie (`bg-black`).
-- V strede malý zlatý nadpis `Cinzel`: **"29 PEOPLE SAY: IN DOG WE TRUST"**, pod ním tenký podnadpis: **"BE NEXT!"**.
-- Pod textom YouTube embed (`https://www.youtube.com/embed/WDZQP7LuOBc?autoplay=1&mute=1&loop=1&playlist=WDZQP7LuOBc&controls=0&modestbranding=1&rel=0&playsinline=1`).
-- Video kontajner: max šírka ~1100px, `aspect-video`, `rounded-2xl`, jemný zlatý glow `box-shadow` (cosmos.so feel — soft halo okolo videa).
-- Žiadne ďalšie elementy, žiadny MatrixRain, žiadny timeline, žiadne slidy.
-- Iba 1 `data-snap-page` wrapper.
-
-### 2. `LandingPage.tsx` — recalibrácia scrollu
-- StorySection teraz tvorí **1 stránku** namiesto 9 → celkový počet stránok klesne zo **16 na 8**.
-- Nové indexy: `0` Hero, `1` Story, `2`–`6` Vision (5 stránok), `7` About.
-- Upraviť `navigate()` fast-track up logiku:
-  - `prev === 7` (About) → `2` (Vision 1)
-  - `prev > 2 && prev <= 6` (Vision 2–5) → `2`
-  - `prev === 2` → `1` (Story)
-  - `prev === 1` → `0` (Hero)
-- Down navigation: max index `7`.
-- Wrap StorySection do `<div data-snap-page>` priamo v LandingPage (nie interne ako 9 stránok).
-- Odstrániť `__storyModalClose` volania (modal už neexistuje).
-
-### 3. `Header.tsx` — aktualizovať `indexMap`
-- `{ story: 1, vision: 2, about: 7 }` (pôvodne `1, 10, 15`).
-- Ratio tracking sekcií ostáva rovnaký (`hero`, `story`, `vision`, `about`).
-
-### 4. Mazanie súborov
-- `src/components/landing/MatrixRain.tsx` — zmazať.
-- Skontrolovať a odstrániť importy `MatrixRain` (pravdepodobne v `HeroSection.tsx` alebo starom `StorySection.tsx`).
-
-### 5. Memory cleanup
-- Zmazať `mem://features/landing-page-story` (už neaktuálne — žiadny timeline/Ken Burns).
-- Aktualizovať `mem://index.md`: odstrániť odkaz na story memory, aktualizovať scroll architektúru (8 stránok namiesto 16).
-- Aktualizovať `mem://ux/landing-page-scroll-architecture` s novými indexmi.
-
-## Technické detaily
-
-YouTube embed parametre pre tichý autoplay loop:
-```
-autoplay=1&mute=1&loop=1&playlist=VIDEO_ID&controls=0&modestbranding=1&rel=0&playsinline=1
-```
-(parameter `playlist=VIDEO_ID` je nutný, aby `loop=1` fungoval pri jednom videu).
-
-Vizuál videa (cosmos.so inšpirácia):
-```
-border-radius: 16px;
-box-shadow: 0 0 80px rgba(196,155,66,0.15), 0 0 200px rgba(196,155,66,0.08);
+```text
+┌─────────────────────────┐
+│  Header (sticky top)    │
+├─────────────────────────┤
+│  HeroSection 100dvh     │ ← statický, nadpis + CTA
+├─────────────────────────┤
+│  StorySection 100dvh    │ ← video, fade-in pri vstupe do viewportu
+├─────────────────────────┤
+│  VisionStep 1  100dvh   │
+│  VisionStep 2  100dvh   │  ← prirodzený scroll, každý krok
+│  VisionStep 3  100dvh   │     fade-in cez whileInView
+│  VisionStep 4  100dvh   │
+│  VisionStep 5  100dvh   │
+├─────────────────────────┤
+│  AboutSection 100dvh    │
+└─────────────────────────┘
 ```
 
-Po schválení implementujem v default móde.
+## Zmeny v kóde
+
+### 1. `LandingPage.tsx` — odstrániť celý hijacking
+- Vymazať všetky wheel/touch/keydown listenery
+- Vymazať `currentIndexRef`, `isAnimating`, `scrollToIndex`, `navigate`, `isInsideStack`
+- Ponechať iba: `<Header />`, `<HeroSection />`, `<StorySection />`, `<VisionSection />`, `<AboutSection />`
+- Hash navigácia → jednoduché `element.scrollIntoView({ behavior: 'smooth' })`
+- `nav-jump` event → tiež scrollIntoView na element s daným id
+
+### 2. Rozdeliť `HeroStoryStack.tsx` späť na dva komponenty
+- **`HeroSection.tsx`** (znovu vytvoriť): statický 100dvh, nadpis "29 PEOPLE SAY: IN DOG WE TRUST", CTA "BE NEXT!", pulzujúca šípka dole. Žiadny scrubbing, žiadny sticky.
+- **`StorySection.tsx`** (znovu vytvoriť): 100dvh sekcia s YouTube videom. Caption + video s `whileInView` fade-in (Framer Motion `initial` + `whileInView`, `viewport={{ once: true, amount: 0.3 }}`).
+- Vymazať `HeroStoryStack.tsx`.
+
+### 3. `VisionSection.tsx` — odstrániť `data-snap-page`
+- Žiadne ďalšie zmeny obsahu, iba odstrániť atribút (už netreba)
+- Existujúce `whileInView` animácie zostávajú, fungujú perfektne pri natívnom scrolle
+
+### 4. `AboutSection.tsx`
+- Žiadne zmeny obsahu, iba zaobaliť ako bežnú sekciu (atribút `data-snap-page` už netreba)
+
+### 5. `Header.tsx` — opraviť navigáciu
+- Namiesto `nav-jump` event s indexom → použiť IDčka:
+  - `#hero` → HeroSection
+  - `#story` → StorySection  
+  - `#vision` → VisionSection (prvý krok)
+  - `#about` → AboutSection
+- Klik v menu → `document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })`
+- Active section tracking (existujúci ratioMap z IntersectionObserver) zostáva, len priradiť nové IDčka
+
+### 6. Plynulý scroll
+- Pridať `html { scroll-behavior: smooth }` do globálneho CSS
+- (Voliteľné neskôr) Lenis pre extra-buttery scroll, ale najprv skúsime bez neho — natívny smooth býva dnes dosť dobrý
+
+## Čo ZOSTÁVA zachované
+- Vizuálny dizajn, fonty, farby, gradienty — bezo zmeny
+- Obsah (nadpisy, CTA texty, video URL, vision steps, about section)
+- Header s color inversion logikou
+- Fade-in animácie cez `whileInView`
+- AnimatedCounter v hero sekcii
+- Pulzujúca šípka v hero
+
+## Čo SA ODSTRÁNI
+- Celý 1000ms hijacking model
+- `data-snap-page` atribúty
+- Scrubbing animácia "video rises from below" (cosmos to nerobí)
+- `nav-jump` custom event systém
+- Komplikovaný `HeroStoryStack` dual-layer sticky setup
+
+## Memory update
+- Update `mem://ux/landing-page-scroll-architecture` → odstrániť hijacking, popisuje natívny scroll
+- Update `mem://index.md` Core: zmeniť "Landing page uses custom 1000ms JS scroll hijacking" → "Landing page uses native smooth scroll, cosmos.so style"
+
+## Riziká
+- Stratíme deterministické "snap-to-section" správanie pri Vision krokoch. Užívateľ môže skončiť uprostred medzi dvoma krokmi. To je presne ako cosmos.so — akceptovateľné.
+- CSS `scroll-snap-type: y mandatory` by sme mohli pridať ako kompromis, ale to obvykle pôsobí trhanejšie než žiadny snap. Začneme bez snap.
+
+## Po implementácii
+Otestujem v prehliadači plynulosť scrollu od top po bottom a hlásim výsledok.
