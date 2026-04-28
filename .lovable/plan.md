@@ -1,61 +1,38 @@
-## Cieľ
-1. YouTube video sa nesmie spustiť automaticky.
-2. Štítok „Watch INTRO MOVIE" je biely, klikateľný a má pred sebou ikonku PLAY v krúžku.
-3. Po kliknutí na štítok sa stránka sama auto-scrolluje do bodu, kde je video v strede obrazovky (bez toho, aby používateľ musel rolovať), a video sa spustí.
+## Diagnóza
+Otestoval som live preview na mobile (390×844). Aktuálne vidno: DOGYPT logo, špirálu fotiek, „29 PEOPLE SAY: IN DOG WE TRUST" a „BE NEXT" tlačidlo. **Chýba úplne náhľad videa aj „▶ Watch INTRO MOVIE" tlačidlo** — sú zatlačené pod fold, lebo `videoY = 66vh` posunie video príliš dolu (na 100dvh viewporte mobilu prečnieva celé pod hranu).
 
-## Čo upraviť
-**Súbor:** `src/components/landing/HeroVideoSequence.tsx`
+Po scrolli (v strednom stave) je video v strede OK, ale na vstupe na stránku užívateľ vôbec netuší, že tam nejaké je.
 
-### 1. YouTube embed bez autoplay
-- V `embedUrl` zmeniť `autoplay=1` → `autoplay=0` a odstrániť `mute=1` / `loop` / `playlist` parametre, ktoré dávali zmysel len pri autoplay slučke.
-- Pridať `enablejsapi=1` do URL, aby sme cez `postMessage` API mohli iframe spustiť programovo.
-- Držať `iframe` v `useRef`, aby sme naň mohli poslať `{event:'command', func:'playVideo', args:[]}` cez `contentWindow.postMessage`.
+## Riešenie
+Súbor: `src/components/landing/HeroVideoSequence.tsx`
 
-### 2. Klikateľný „Watch INTRO MOVIE" s PLAY ikonkou
-- Štítok prerobiť z `<motion.span>` na `<motion.button>` (alebo `<a>` s `onClick`).
-- Farba textu: biela (`#FAF4EC` — projektová papyrus-biela, podľa memory pravidla „no pure white").
-- Pred text vložiť `Play` ikonu z `lucide-react` zabalenú v kruhu (`rounded-full`, border + jemný gold/biely glow), velkosť ~28 px, ikona ~14 px, vyplnená bielou.
-- Layout: `flex items-center gap-3`, hover scale 1.05.
-- `pointer-events-auto` na štítku (rodič má `pointer-events-none`).
+### 1. Detekcia mobilu
+Pridať `useState`/`useEffect` s `matchMedia('(max-width: 767px)')` → `isMobile` flag.
 
-### 3. Auto-scroll do stredu po kliknutí
-- Pridať `onPlayClick` handler:
-  1. Vypočítať cieľový scroll Y tak, aby `videoY` bolo `0vh` (video v strede). To zodpovedá `scrollYProgress ≈ 0.58` v rámci wrapper sekcie.
-  2. Cieľ = `wrapperRef.current.offsetTop + wrapperRef.current.offsetHeight * 0.58`.
-  3. `window.scrollTo({ top: target, behavior: 'smooth' })`.
-  4. Po cca 900 ms (čas na smooth scroll) zavolať postMessage play na iframe.
-- Použiť `useRef` na `iframeRef` a `wrapperRef` (wrapperRef už existuje).
+### 2. Posunúť video vyššie na mobile (úvodný stav)
+- Nahradiť pevné `'66vh'` v `videoY` za breakpoint hodnotu:
+  - desktop ostáva `66vh` (PC sme zafixovali, nemeniť),
+  - mobil: `42vh` — video tak vykukne pekne pod nadpis a tlačidlo „Watch INTRO MOVIE" bude nad foldom.
 
-### 4. Drobnosti
-- `labelOpacity` ostáva — štítok aj naďalej mizne pri scrollovaní (aby sa neprekrýval s videom v strede), ale klik funguje pred zmiznutím.
-- Tlačidlo treba mať dostatočne nad blackout vrstvou — `z-30` rodič stačí, ale `pointer-events-auto` výslovne na ňom.
-- Skontrolovať, že video po manuálnom scrollnutí späť hore neostane prehrávané v pozadí — necháme tak (užívateľ ho môže pauznúť cez YT controls; voliteľne pridáme pause keď scrollYProgress klesne pod 0.3).
+### 3. Kompaktnejší hero text na mobile
+Aby sa zmestil hero blok + video peek do 100dvh:
+- `pt-[120px] md:pt-[140px]` → `pt-[80px] md:pt-[140px]`
+- H1 `text-4xl` → `text-[2.25rem]` (mierne menej) na mobile
+- Tlačidlo BE NEXT `mt-8 px-10 py-4` → `mt-5 md:mt-8 px-7 py-3 md:px-10 md:py-4`
 
-## Pseudokód kľúčových zmien
-```text
-embedUrl = `.../embed/${id}?autoplay=0&controls=1&rel=0&playsinline=1&enablejsapi=1`
+### 4. Cieľ pre auto-scroll po kliku
+`handlePlayClick` ostáva — formula už správne počíta cieľ z `scrollable * 0.58`, funguje rovnako na mobile aj desktop.
 
-iframeRef = useRef<HTMLIFrameElement>(null)
+### 5. Padding videa
+`px-6 md:px-10` → `px-4 md:px-10` na mobile (viac priestoru pre 16:9 rámček).
 
-handlePlayClick():
-  target = wrapperTop + wrapperHeight * 0.58
-  window.scrollTo({ top: target, behavior: 'smooth' })
-  setTimeout(() => {
-    iframeRef.current.contentWindow.postMessage(
-      JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
-      '*'
-    )
-  }, 900)
+### 6. Spirála
+Bez zmeny — už používa mobile clamp (`clamp(820px, 180vw, 1200px)`).
 
-<motion.button onClick={handlePlayClick} className="pointer-events-auto flex items-center gap-3">
-  <span className="rounded-full border border-white/60 w-7 h-7 grid place-items-center">
-    <Play size={14} fill="white" className="text-white ml-0.5" />
-  </span>
-  <span style={{ color: '#FAF4EC', fontFamily: "'Cinzel', serif" }}>
-    Watch INTRO MOVIE
-  </span>
-</motion.button>
-```
+## Neopravujem
+- Desktop layout (užívateľ explicitne povedal „zafixujme PC").
+- Centered stav videa po scrolli (na mobile už funguje).
+- Auto-scroll cieľ (matematicky správny pre obe veľkosti).
 
 ## Súbory
-- `src/components/landing/HeroVideoSequence.tsx` — všetky zmeny vyššie.
+- `src/components/landing/HeroVideoSequence.tsx`
