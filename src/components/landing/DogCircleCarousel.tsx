@@ -39,50 +39,13 @@ export function DogCircleCarousel() {
           from { transform: translate(-50%, -50%) rotate(0deg); }
           to   { transform: translate(-50%, -50%) rotate(-360deg); }
         }
-        @keyframes dog-card-counter-cw {
-          from { transform: translate(-50%, -50%) rotate(0deg) translateX(var(--r)) rotate(var(--tilt)); }
-          to   { transform: translate(-50%, -50%) rotate(-360deg) translateX(var(--r)) rotate(var(--tilt)); }
+        @keyframes dog-card-upright-cw {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(-360deg); }
         }
-        @keyframes dog-card-counter-ccw {
-          from { transform: translate(-50%, -50%) rotate(0deg) translateX(var(--r)) rotate(var(--tilt)); }
-          to   { transform: translate(-50%, -50%) rotate(360deg) translateX(var(--r)) rotate(var(--tilt)); }
-        }
-        @keyframes dog-card-life {
-          0% {
-            opacity: calc(var(--opacity) * 0.92);
-            transform: scale(1);
-            filter: blur(0px) saturate(0.96);
-          }
-          18% {
-            opacity: var(--opacity);
-            transform: scale(1.04);
-            filter: blur(0px) saturate(1);
-          }
-          42% {
-            opacity: calc(var(--opacity) * 0.58);
-            transform: scale(0.9);
-            filter: blur(0.6px) saturate(0.9);
-          }
-          50% {
-            opacity: calc(var(--opacity) * 0.14);
-            transform: scale(0.72);
-            filter: blur(2.4px) saturate(0.72);
-          }
-          58% {
-            opacity: calc(var(--opacity) * 0.22);
-            transform: scale(0.78);
-            filter: blur(1.8px) saturate(0.78);
-          }
-          78% {
-            opacity: calc(var(--opacity) * 0.8);
-            transform: scale(0.96);
-            filter: blur(0px) saturate(0.96);
-          }
-          100% {
-            opacity: calc(var(--opacity) * 0.92);
-            transform: scale(1);
-            filter: blur(0px) saturate(0.96);
-          }
+        @keyframes dog-card-upright-ccw {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
         }
 
         .dog-scene {
@@ -114,20 +77,23 @@ export function DogCircleCarousel() {
           height: 0;
           transform-origin: 0 0;
         }
-        /* Each card sits on the ring; its inner element counter-rotates so
-           the photo stays upright while the ring spins. */
         .dog-card {
           position: absolute;
           top: 0;
           left: 0;
           width: var(--w);
           height: var(--h);
-          margin-left: calc(var(--w) / -2);
-          margin-top: calc(var(--h) / -2);
+          transform: translate(-50%, -50%) rotate(var(--tilt));
           will-change: transform;
         }
-        .dog-card.cw  { animation: dog-card-counter-cw  var(--dur) linear infinite; }
-        .dog-card.ccw { animation: dog-card-counter-ccw var(--dur) linear infinite; }
+
+        .dog-card-upright {
+          width: 100%;
+          height: 100%;
+          will-change: transform;
+        }
+        .dog-card-upright.cw  { animation: dog-card-upright-cw  var(--dur) linear infinite; }
+        .dog-card-upright.ccw { animation: dog-card-upright-ccw var(--dur) linear infinite; }
 
         .dog-card-visual {
           width: 100%;
@@ -138,10 +104,8 @@ export function DogCircleCarousel() {
             0 18px 40px rgba(0,0,0,0.44),
             0 4px 12px rgba(0,0,0,0.3);
           opacity: var(--opacity);
-          will-change: transform, opacity, filter;
+          will-change: opacity;
           backface-visibility: hidden;
-          animation: dog-card-life var(--dur) linear infinite;
-          animation-delay: var(--phase);
         }
 
         .dog-card-visual img {
@@ -180,32 +144,32 @@ export function DogCircleCarousel() {
                 const objPos = OBJECT_POSITIONS[i % OBJECT_POSITIONS.length];
 
                 const wrapStyle = {
-                  transform: `rotate(${angle}deg)`,
+                  transform: `rotate(${angle}deg) translateX(calc(var(--scene) * ${ring.radius / 100}))`,
                 } as CSSProperties;
 
                 const cardStyle = {
-                  '--r': `calc(var(--scene) * ${ring.radius / 100})`,
                   '--tilt': `${tilt}deg`,
                   '--opacity': `${ring.opacity}`,
                   '--dur': `${ring.duration}s`,
                   '--w': `${w}px`,
                   '--h': `${h}px`,
-                  '--phase': `${-((angle + 90) / 360) * ring.duration}s`,
                 } as CSSProperties;
 
                 return (
                   <div key={i} className="dog-card-wrap" style={wrapStyle}>
-                    <div className={`dog-card ${cardClass}`} style={cardStyle}>
-                      <div className="dog-card-visual">
-                        <img
-                          src={dogPhoto}
-                          alt=""
-                          aria-hidden="true"
-                          draggable={false}
-                          loading="eager"
-                          decoding="async"
-                          style={{ objectPosition: objPos }}
-                        />
+                    <div className="dog-card" style={cardStyle}>
+                      <div className={`dog-card-upright ${cardClass}`} style={{ '--dur': `${ring.duration}s` } as CSSProperties}>
+                        <div className="dog-card-visual">
+                          <img
+                            src={dogPhoto}
+                            alt=""
+                            aria-hidden="true"
+                            draggable={false}
+                            loading="eager"
+                            decoding="async"
+                            style={{ objectPosition: objPos }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
