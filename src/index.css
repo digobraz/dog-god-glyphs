@@ -213,6 +213,7 @@ html {
   -webkit-text-fill-color: transparent;
   color: transparent;
   animation: hero-shimmer 4.5s ease-in-out infinite;
+  text-shadow: 0 0 18px rgba(255, 244, 194, 0.35);
   filter: drop-shadow(0 0 18px rgba(196, 155, 66, 0.45))
           drop-shadow(0 0 40px rgba(255, 220, 130, 0.25));
 }
