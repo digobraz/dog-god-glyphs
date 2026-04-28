@@ -73,13 +73,8 @@ export function HeroSection() {
       </motion.div>
 
       <motion.h1
-        className="text-4xl md:text-7xl lg:text-8xl font-black tracking-wider leading-none relative z-20"
-        style={{
-          fontFamily: "'Cinzel', serif",
-          background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}
+        className="hero-shine text-4xl md:text-7xl lg:text-8xl font-black tracking-wider leading-none relative z-20"
+        style={{ fontFamily: "'Cinzel', serif" }}
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3, duration: 0.8 }}
