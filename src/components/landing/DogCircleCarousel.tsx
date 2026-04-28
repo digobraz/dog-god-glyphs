@@ -163,18 +163,16 @@ export function DogCircleCarousel() {
                 return (
                   <div key={i} className="dog-card-wrap" style={wrapStyle}>
                     <div className="dog-card" style={cardStyle}>
-                      <div className={`dog-card-upright ${cardClass}`} style={{ '--dur': `${ring.duration}s` } as CSSProperties}>
-                        <div className="dog-card-visual">
-                          <img
-                            src={dogPhoto}
-                            alt=""
-                            aria-hidden="true"
-                            draggable={false}
-                            loading="eager"
-                            decoding="async"
-                            style={{ objectPosition: objPos }}
-                          />
-                        </div>
+                      <div className="dog-card-visual">
+                        <img
+                          src={dogPhoto}
+                          alt=""
+                          aria-hidden="true"
+                          draggable={false}
+                          loading="eager"
+                          decoding="async"
+                          style={{ objectPosition: objPos }}
+                        />
                       </div>
                     </div>
                   </div>
