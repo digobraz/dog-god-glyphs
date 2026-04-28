@@ -155,7 +155,7 @@ export function HeroVideoSequence() {
 
         {/* ---------- HERO TEXT + CTA ---------- */}
         <motion.div
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 pt-[50px] md:pt-[140px]"
+          className="absolute inset-0 z-20 flex flex-col items-center justify-start pt-[80px] md:justify-center md:pt-[140px] text-center px-4"
           style={{ opacity: heroOpacity, scale: heroScale }}
         >
           <motion.div
@@ -179,7 +179,7 @@ export function HeroVideoSequence() {
           </motion.div>
 
           <motion.h1
-            className="text-[2.4rem] md:text-7xl lg:text-8xl font-black tracking-wider leading-none"
+            className="text-[2.88rem] md:text-7xl lg:text-8xl font-black tracking-wider leading-none"
             style={{
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',

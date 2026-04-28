@@ -1,38 +1,21 @@
-## Diagnóza
-Otestoval som live preview na mobile (390×844). Aktuálne vidno: DOGYPT logo, špirálu fotiek, „29 PEOPLE SAY: IN DOG WE TRUST" a „BE NEXT" tlačidlo. **Chýba úplne náhľad videa aj „▶ Watch INTRO MOVIE" tlačidlo** — sú zatlačené pod fold, lebo `videoY = 66vh` posunie video príliš dolu (na 100dvh viewporte mobilu prečnieva celé pod hranu).
+## Zmeny (iba mobil, iba HeroVideoSequence.tsx)
 
-Po scrolli (v strednom stave) je video v strede OK, ale na vstupe na stránku užívateľ vôbec netuší, že tam nejaké je.
+Cieľ: posunúť celý stredný blok ("29 PEOPLE SAY:", "IN DOG WE TRUST", "BE NEXT!") vyššie a zväčšiť hlavné motto o 20%. Nič iné sa nemení (desktop, video, špirála, fotky všetko ostáva).
 
-## Riešenie
-Súbor: `src/components/landing/HeroVideoSequence.tsx`
+### 1. Posun obsahu vyššie (mobil)
+V `motion.div` containeri hero textu (riadok 158) zmeniť `justify-center` flex layout na vertikálne posunutý vyššie pomocou paddingu:
+- aktuálne: `pt-[50px] md:pt-[140px]` + `justify-center`
+- nové: `justify-start pt-[80px] md:justify-center md:pt-[140px]`
 
-### 1. Detekcia mobilu
-Pridať `useState`/`useEffect` s `matchMedia('(max-width: 767px)')` → `isMobile` flag.
+Týmto sa na mobile obsah ukotví od vrchu s menším paddingom (~80px namiesto centrovania v 100dvh viewporte), čo ho efektívne posunie výrazne vyššie. Desktop (`md:`) zostáva nezmenený — `justify-center` + `pt-[140px]`.
 
-### 2. Posunúť video vyššie na mobile (úvodný stav)
-- Nahradiť pevné `'66vh'` v `videoY` za breakpoint hodnotu:
-  - desktop ostáva `66vh` (PC sme zafixovali, nemeniť),
-  - mobil: `42vh` — video tak vykukne pekne pod nadpis a tlačidlo „Watch INTRO MOVIE" bude nad foldom.
+### 2. Zväčšenie motta "IN DOG WE TRUST" o 20% (mobil)
+V `motion.h1` (riadok 182):
+- aktuálne mobil: `text-[2.4rem]`
+- nové mobil: `text-[2.88rem]` (2.4 × 1.2)
+- desktop nezmenený: `md:text-7xl lg:text-8xl`
 
-### 3. Kompaktnejší hero text na mobile
-Aby sa zmestil hero blok + video peek do 100dvh:
-- `pt-[120px] md:pt-[140px]` → `pt-[80px] md:pt-[140px]`
-- H1 `text-4xl` → `text-[2.25rem]` (mierne menej) na mobile
-- Tlačidlo BE NEXT `mt-8 px-10 py-4` → `mt-5 md:mt-8 px-7 py-3 md:px-10 md:py-4`
+### Súbory
+- `src/components/landing/HeroVideoSequence.tsx` — 2 drobné zmeny tried (riadky 158 a 182)
 
-### 4. Cieľ pre auto-scroll po kliku
-`handlePlayClick` ostáva — formula už správne počíta cieľ z `scrollable * 0.58`, funguje rovnako na mobile aj desktop.
-
-### 5. Padding videa
-`px-6 md:px-10` → `px-4 md:px-10` na mobile (viac priestoru pre 16:9 rámček).
-
-### 6. Spirála
-Bez zmeny — už používa mobile clamp (`clamp(820px, 180vw, 1200px)`).
-
-## Neopravujem
-- Desktop layout (užívateľ explicitne povedal „zafixujme PC").
-- Centered stav videa po scrolli (na mobile už funguje).
-- Auto-scroll cieľ (matematicky správny pre obe veľkosti).
-
-## Súbory
-- `src/components/landing/HeroVideoSequence.tsx`
+Žiadne iné zmeny — counter, "PEOPLE SAY:", BE NEXT! tlačidlo, video, špirála, vignette, blackout — všetko ostáva.
