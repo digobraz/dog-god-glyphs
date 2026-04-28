@@ -77,7 +77,11 @@ export function HeroVideoSequence() {
   const handlePlayClick = () => {
     const wrapper = wrapperRef.current;
     if (wrapper) {
-      const target = wrapper.offsetTop + wrapper.offsetHeight * 0.58;
+      // scrollYProgress = (scrollY - wrapperTop) / (wrapperHeight - viewportHeight).
+      // Video is centered when progress = 0.58, so:
+      const vh = window.innerHeight;
+      const scrollable = wrapper.offsetHeight - vh;
+      const target = wrapper.offsetTop + scrollable * 0.58;
       window.scrollTo({ top: target, behavior: 'smooth' });
     }
     window.setTimeout(() => {
