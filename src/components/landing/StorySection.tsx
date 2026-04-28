@@ -19,7 +19,7 @@ export function StorySection() {
         style={{
           fontFamily: "'Cinzel', serif",
           color: '#C49B42',
-          marginTop: 'clamp(-50px, -3vh, -20px)',
+          marginTop: 'clamp(-65px, calc(-3vh - 15px), -35px)',
           zIndex: 30,
         }}
         initial={{ opacity: 0, y: 10 }}
