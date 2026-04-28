@@ -14,9 +14,10 @@ type Ring = {
 };
 
 const RINGS: Ring[] = [
-  { count: 8, radius: 18, width: 84, height: 108, duration: 64, direction: 1, startAngle: -8, opacity: 1, zIndex: 3 },
+  // Inner & outer rings spin ~15% faster than the middle one (shorter duration = faster).
+  { count: 8, radius: 18, width: 84, height: 108, duration: 74, direction: 1, startAngle: -8, opacity: 1, zIndex: 3 },
   { count: 12, radius: 33, width: 112, height: 142, duration: 88, direction: 1, startAngle: 6, opacity: 1, zIndex: 4 },
-  { count: 16, radius: 49, width: 146, height: 186, duration: 114, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
+  { count: 16, radius: 49, width: 146, height: 186, duration: 74, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
 ];
 
 const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
@@ -147,8 +148,12 @@ export function DogCircleCarousel() {
                   transform: `rotate(${angle}deg) translateX(calc(var(--scene) * ${ring.radius / 100}))`,
                 } as CSSProperties;
 
+                // Orient card edge toward center: rotate -90° relative to the radial direction.
+                // The wrap is rotated by `angle`; counter-rotate the upright by the same angle so
+                // each card faces the center regardless of its orbital position. We bake that
+                // orientation into the card tilt instead of using the spin-counter animation.
                 const cardStyle = {
-                  '--tilt': `${tilt}deg`,
+                  '--tilt': `${tilt - 90}deg`,
                   '--opacity': `${ring.opacity}`,
                   '--dur': `${ring.duration}s`,
                   '--w': `${w}px`,
@@ -158,18 +163,16 @@ export function DogCircleCarousel() {
                 return (
                   <div key={i} className="dog-card-wrap" style={wrapStyle}>
                     <div className="dog-card" style={cardStyle}>
-                      <div className={`dog-card-upright ${cardClass}`} style={{ '--dur': `${ring.duration}s` } as CSSProperties}>
-                        <div className="dog-card-visual">
-                          <img
-                            src={dogPhoto}
-                            alt=""
-                            aria-hidden="true"
-                            draggable={false}
-                            loading="eager"
-                            decoding="async"
-                            style={{ objectPosition: objPos }}
-                          />
-                        </div>
+                      <div className="dog-card-visual">
+                        <img
+                          src={dogPhoto}
+                          alt=""
+                          aria-hidden="true"
+                          draggable={false}
+                          loading="eager"
+                          decoding="async"
+                          style={{ objectPosition: objPos }}
+                        />
                       </div>
                     </div>
                   </div>
