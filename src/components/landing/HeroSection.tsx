@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
 
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -80,26 +79,6 @@ export function HeroSection() {
       >
         BE NEXT!
       </motion.a>
-
-      <motion.p
-        className="mt-4 text-xs md:text-sm tracking-widest uppercase relative"
-        style={{ fontFamily: "'Cinzel', serif", color: 'rgba(250, 244, 236, 0.6)' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.5 }}
-      >
-        or see story first
-      </motion.p>
-
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-pulse"
-        style={{ color: '#C49B42' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 0.6 }}
-      >
-        <ChevronDown className="w-8 h-8 md:w-10 md:h-10" />
-      </motion.div>
     </section>
   );
 }
