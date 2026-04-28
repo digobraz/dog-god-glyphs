@@ -1,49 +1,62 @@
+import type { CSSProperties } from 'react';
 import dogPhoto from '@/assets/hero-dog-placeholder.jpeg';
 
-/**
- * Rotating SPIRAL of dog photos behind the hero text — cosmos.so style.
- * Multiple full turns of items where the radius grows with index, so the
- * composition reads as a hypnotic spiral, not a single ring.
- *
- * All slots share the same local placeholder image (duplicated) so nothing
- * depends on external URLs.
- */
-
-const TOTAL_ITEMS = 64;          // density of the spiral
-const ITEMS_PER_TURN = 11;       // how many slots per full rotation
-const BASE_RADIUS_RATIO = 0.12;  // ratio of ring size, innermost slot
-const RADIUS_STEP_RATIO = 0.014; // growth per slot — controls spiral tightness
+const TOTAL_ITEMS = 28;
+const TOTAL_TURNS = 3.75;
+const START_RADIUS_RATIO = 0.14;
+const END_RADIUS_RATIO = 0.78;
 
 export function DogCircleCarousel() {
-  const items = Array.from({ length: TOTAL_ITEMS });
+  const items = Array.from({ length: TOTAL_ITEMS }, (_, i) => {
+    const t = i / (TOTAL_ITEMS - 1);
+    const eased = Math.pow(t, 0.92);
+    const angle = -110 + eased * 360 * TOTAL_TURNS;
+    const radiusRatio = START_RADIUS_RATIO + eased * (END_RADIUS_RATIO - START_RADIUS_RATIO);
+    const sizePx = 138 - eased * 78;
+    const opacity = 1 - eased * 0.42;
+    const brightness = 1.18 - eased * 0.12;
+    const scale = 1 - eased * 0.18;
+
+    return { angle, radiusRatio, sizePx, opacity, brightness, scale, delay: i * -0.22, zIndex: TOTAL_ITEMS - i };
+  });
 
   return (
     <div
-      className="dog-spiral-wrapper pointer-events-none absolute inset-0 flex items-center justify-center"
+      className="dog-spiral-root pointer-events-none absolute inset-0 overflow-hidden"
       aria-hidden="true"
     >
       <style>{`
-        @keyframes dog-spiral-spin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
+        @keyframes dog-spiral-orbit {
+          from { transform: translate(-50%, -50%) rotate(0deg) scale(1.04); }
+          to { transform: translate(-50%, -50%) rotate(360deg) scale(1.04); }
         }
-        @keyframes dog-spiral-counter {
-          from { transform: translate(-50%, -50%) rotate(0deg); }
-          to   { transform: translate(-50%, -50%) rotate(-360deg); }
+
+        @keyframes dog-spiral-breathe {
+          0%, 100% { transform: translate(-50%, -50%) scale(var(--thumb-scale, 1)); }
+          50% { transform: translate(-50%, -50%) scale(calc(var(--thumb-scale, 1) + 0.035)); }
         }
-        .dog-spiral-ring {
-          --ring-size: clamp(520px, 92vw, 1100px);
-          width: var(--ring-size);
-          height: var(--ring-size);
-          position: relative;
-          animation: dog-spiral-spin 60s linear infinite;
+
+        .dog-spiral-root {
+          contain: layout paint style;
+        }
+
+        .dog-spiral-scene {
+          --scene-size: clamp(920px, 112vw, 1500px);
+          position: absolute;
+          top: 54%;
+          left: 50%;
+          width: var(--scene-size);
+          height: var(--scene-size);
+          animation: dog-spiral-orbit 22s linear infinite;
           will-change: transform;
         }
-        .dog-spiral-wrapper:hover .dog-spiral-ring,
-        .dog-spiral-wrapper:hover .dog-spiral-photo {
+
+        .hero-spiral-host:hover .dog-spiral-scene,
+        .hero-spiral-host:hover .dog-spiral-thumb {
           animation-play-state: paused;
         }
-        .dog-spiral-slot {
+
+        .dog-spiral-node {
           position: absolute;
           top: 50%;
           left: 50%;
@@ -51,60 +64,72 @@ export function DogCircleCarousel() {
           height: 0;
           transform-origin: center center;
         }
-        .dog-spiral-photo {
+
+        .dog-spiral-thumb {
           position: absolute;
           top: 0;
           left: 0;
           border-radius: 9999px;
-          object-fit: cover;
-          background: #1a1208;
-          border: 2px solid rgba(196, 155, 66, 0.55);
+          overflow: hidden;
+          background-size: cover;
+          background-position: center 34%;
+          background-repeat: no-repeat;
+          border: 2px solid hsl(var(--primary) / 0.62);
           box-shadow:
-            0 10px 32px rgba(0, 0, 0, 0.55),
-            0 0 22px rgba(196, 155, 66, 0.20);
-          transform: translate(-50%, -50%);
-          animation: dog-spiral-counter 60s linear infinite;
-          will-change: transform;
+            0 0 0 1px hsl(var(--papyrus) / 0.18),
+            0 14px 36px hsl(0 0% 0% / 0.5),
+            0 0 26px hsl(var(--primary) / 0.24);
+          animation: dog-spiral-breathe 5.5s ease-in-out infinite;
+          will-change: transform, opacity;
+          backface-visibility: hidden;
         }
+
+        .dog-spiral-thumb::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(circle at 40% 30%, hsl(var(--papyrus) / 0.18), transparent 38%),
+            linear-gradient(180deg, transparent 35%, hsl(0 0% 0% / 0.16) 100%);
+          pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+          .dog-spiral-scene {
+            --scene-size: clamp(760px, 160vw, 1100px);
+            top: 56%;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
-          .dog-spiral-ring,
-          .dog-spiral-photo {
+          .dog-spiral-scene,
+          .dog-spiral-thumb {
             animation: none !important;
           }
         }
       `}</style>
 
-      <div className="dog-spiral-ring">
-        {items.map((_, i) => {
-          // Spiral math: angle accumulates, radius grows linearly with index.
-          const angle = (i * 360) / ITEMS_PER_TURN;
-          const radiusRatio = BASE_RADIUS_RATIO + i * RADIUS_STEP_RATIO;
+      <div className="dog-spiral-scene">
+        {items.map((item, i) => {
+          const nodeStyle: CSSProperties = {
+            transform: `rotate(${item.angle}deg) translateY(calc(var(--scene-size) * -${item.radiusRatio}))`,
+            zIndex: item.zIndex,
+          };
 
-          // Size shrinks slightly toward the outside for depth.
-          const t = i / TOTAL_ITEMS; // 0 -> 1
-          const sizePx = 116 - t * 56; // 116px innermost -> ~60px outermost
-          const opacity = 0.95 - t * 0.5; // fade outer edges
+          const thumbStyle: CSSProperties = {
+            width: `${item.sizePx}px`,
+            height: `${item.sizePx}px`,
+            opacity: item.opacity,
+            filter: `saturate(1.1) contrast(1.08) brightness(${item.brightness})`,
+            backgroundImage: `linear-gradient(135deg, hsl(var(--papyrus) / 0.08), transparent 65%), url(${dogPhoto})`,
+            animationDelay: `${item.delay}s`,
+            ['--thumb-scale' as string]: String(item.scale),
+            transform: 'translate(-50%, -50%)',
+          };
 
           return (
-            <div
-              key={i}
-              className="dog-spiral-slot"
-              style={{
-                transform: `rotate(${angle}deg) translateY(calc(var(--ring-size) * -${radiusRatio}))`,
-              }}
-            >
-              <img
-                className="dog-spiral-photo"
-                src={dogPhoto}
-                alt=""
-                loading="eager"
-                decoding="async"
-                style={{
-                  width: `${sizePx}px`,
-                  height: `${sizePx}px`,
-                  opacity,
-                }}
-              />
+            <div key={i} className="dog-spiral-node" style={nodeStyle}>
+              <div className="dog-spiral-thumb" style={thumbStyle} />
             </div>
           );
         })}
