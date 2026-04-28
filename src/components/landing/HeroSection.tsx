@@ -30,19 +30,16 @@ export function HeroSection() {
         <DogCircleCarousel />
       </div>
 
-      {/* z-10: dark vignette behind the headline so cards visually vanish
-          into black around the central text — like cosmos.so but on black. */}
+      {/* Bottom fade zone: from BE NEXT button down to the edge — images vanish into black here.
+          BE NEXT sits roughly at ~70% vertical; gradient covers bottom ~38% of viewport. */}
       <div
-        className="absolute inset-0 z-10 pointer-events-none"
+        className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
         style={{
+          height: '42%',
           background:
-            'radial-gradient(ellipse 40% 32% at 50% 52%, #000 0%, rgba(0,0,0,0.995) 34%, rgba(0,0,0,0.92) 48%, rgba(0,0,0,0.62) 62%, rgba(0,0,0,0.22) 76%, rgba(0,0,0,0) 88%)',
+            'linear-gradient(to top, #000 0%, #000 28%, rgba(0,0,0,0.92) 50%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0) 100%)',
         }}
       />
-      <div className="absolute inset-y-0 left-0 w-[8%] pointer-events-none z-10" style={{ background: 'linear-gradient(to right, #000, rgba(0,0,0,0))' }} />
-      <div className="absolute inset-y-0 right-0 w-[8%] pointer-events-none z-10" style={{ background: 'linear-gradient(to left, #000, rgba(0,0,0,0))' }} />
-      <div className="absolute top-0 left-0 w-full h-20 pointer-events-none z-10" style={{ background: 'linear-gradient(to bottom, #000, rgba(0,0,0,0))' }} />
-      <div className="absolute bottom-0 left-0 w-full h-24 pointer-events-none z-10" style={{ background: 'linear-gradient(to top, #000, rgba(0,0,0,0))' }} />
 
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
