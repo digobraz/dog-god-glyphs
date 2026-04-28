@@ -21,6 +21,12 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer base {
   :root {
     --background: 36 33% 91%;
     --foreground: 0 0% 0%;
