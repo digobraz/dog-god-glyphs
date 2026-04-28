@@ -8,7 +8,7 @@ export function AboutSection() {
   return (
     <section
       id="about"
-      className="relative h-screen flex flex-col justify-center pt-32 md:pt-40"
+      className="relative h-screen flex flex-col justify-center py-32 md:py-40"
       style={{ backgroundColor: '#FAF4EC' }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8 flex-1 flex flex-col justify-center w-full">
@@ -16,7 +16,7 @@ export function AboutSection() {
           {/* Left column — text */}
           <div className="flex flex-col">
             <motion.h2
-              className="text-4xl md:text-5xl font-black mb-6 text-center"
+              className="text-4xl md:text-5xl font-black mb-6 text-center md:text-left"
               style={{ fontFamily: "'Cinzel', serif", color: '#A3782B' }}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -26,7 +26,7 @@ export function AboutSection() {
             </motion.h2>
 
             <motion.p
-              className="text-base md:text-lg leading-relaxed text-center"
+              className="text-base md:text-lg leading-relaxed text-center md:text-left"
               style={{ color: 'rgba(0,0,0,0.6)' }}
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
