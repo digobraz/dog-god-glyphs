@@ -8,7 +8,7 @@ export function AboutSection() {
   return (
     <section
       id="about"
-      className="relative h-screen flex flex-col justify-center"
+      className="relative h-screen flex flex-col justify-center pt-32 md:pt-40"
       style={{ backgroundColor: '#FAF4EC' }}
     >
       <div className="max-w-4xl mx-auto px-6 md:px-8 flex-1 flex flex-col justify-center">
