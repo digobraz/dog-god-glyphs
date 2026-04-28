@@ -8,7 +8,11 @@ export function StorySection() {
     <section
       id="story"
       className="relative w-full flex flex-col items-center justify-center px-6 md:px-10"
-      style={{ height: '100dvh', backgroundColor: '#000' }}
+      style={{
+        height: '100dvh',
+        background:
+          'linear-gradient(to bottom, #000000 0%, #0a0806 30%, #1a1410 45%, #4a3a2a 58%, #a89376 70%, #d8c8ad 80%, #ecdfc8 88%, #F3EBDD 100%)',
+      }}
     >
       <motion.div
         className="flex flex-col items-center text-center mb-6 md:mb-8"
@@ -32,7 +36,7 @@ export function StorySection() {
       </motion.div>
 
       <motion.div
-        className="w-full max-w-[1100px] aspect-video rounded-2xl overflow-hidden relative"
+        className="w-full max-w-[760px] aspect-video rounded-2xl overflow-hidden relative"
         style={{
           boxShadow:
             '0 0 80px rgba(196,155,66,0.18), 0 0 200px rgba(196,155,66,0.08), 0 20px 60px rgba(0,0,0,0.6)',
