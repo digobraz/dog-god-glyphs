@@ -155,7 +155,7 @@ export function HeroVideoSequence() {
 
         {/* ---------- HERO TEXT + CTA ---------- */}
         <motion.div
-          className="absolute inset-0 z-20 flex flex-col items-center justify-start pt-[80px] md:justify-center md:pt-[140px] text-center px-4"
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 pt-0 md:pt-[140px]"
           style={{ opacity: heroOpacity, scale: heroScale }}
         >
           <motion.div
