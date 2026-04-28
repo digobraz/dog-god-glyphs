@@ -39,11 +39,11 @@ export function HeroVideoSequence() {
   });
 
   // --- Hero text/CTA fade+scale (fade almost immediately into black) ---
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.08, 0.2], [1, 0.3, 0]);
-  const heroScale = useTransform(scrollYProgress, [0, 0.2], [1, 0.9]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.04, 0.1], [1, 0.2, 0]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.12], [1, 0.9]);
 
-  // --- Spiral fade (fast) + stronger spin acceleration ---
-  const spiralOpacity = useTransform(scrollYProgress, [0, 0.12, 0.28], [1, 0.4, 0]);
+  // --- Spiral fade (very fast) + stronger spin acceleration ---
+  const spiralOpacity = useTransform(scrollYProgress, [0, 0.05, 0.12], [1, 0.3, 0]);
   const spiralBoost = useTransform(scrollYProgress, [0, 0.55, 1], [0, 760, 880]);
 
   // --- Video position ---
@@ -51,13 +51,13 @@ export function HeroVideoSequence() {
   // By ~58% progress the video is already centered.
   const videoY = useTransform(scrollYProgress, [0, 0.58, 1], ['66vh', '0vh', '0vh']);
   const videoScale = useTransform(scrollYProgress, [0, 0.58, 1], [0.92, 1, 1]);
-  const labelOpacity = useTransform(scrollYProgress, [0, 0.06, 0.16], [1, 0.25, 0]);
+  const labelOpacity = useTransform(scrollYProgress, [0, 0.03, 0.1], [1, 0.2, 0]);
 
   // --- Blackout layer: text + spiral should disappear into black, not just fade away. ---
-  const blackoutOpacity = useTransform(scrollYProgress, [0, 0.06, 0.18, 0.3], [0, 0.45, 0.92, 1]);
+  const blackoutOpacity = useTransform(scrollYProgress, [0, 0.03, 0.09, 0.14], [0, 0.7, 1, 1]);
 
   // --- Bottom gradient mask intensity (used only at the start). ---
-  const maskOpacity = useTransform(scrollYProgress, [0, 0.22], [1, 0]);
+  const maskOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
   // Reduced-motion: pin the values at the start state.
   const reduceMotion = useMotionValue(0);
