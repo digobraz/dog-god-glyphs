@@ -30,16 +30,17 @@ export function HeroSection() {
         <DogCircleCarousel />
       </div>
 
-      {/* z-10: overlays for text legibility — soft so the spiral stays visible */}
+      {/* z-10: text-legibility overlay. The carousel itself fades via mask,
+          so we only need a soft central darkening behind the headline. */}
       <div
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 28% 24% at center, hsl(0 0% 0% / 0.68) 0%, hsl(0 0% 0% / 0.34) 52%, hsl(0 0% 0% / 0) 80%)',
+            'radial-gradient(ellipse 34% 26% at 50% 52%, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.18) 55%, hsl(0 0% 0% / 0) 78%)',
         }}
       />
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black/55 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 w-full h-44 bg-gradient-to-t from-black/65 to-transparent pointer-events-none z-10" />
+      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-background to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none z-10" />
 
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
