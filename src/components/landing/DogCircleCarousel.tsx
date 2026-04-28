@@ -14,9 +14,9 @@ type Ring = {
 };
 
 const RINGS: Ring[] = [
-  { count: 8, radius: 18, width: 84, height: 108, duration: 64, direction: 1, startAngle: -8, opacity: 0.34, zIndex: 3 },
-  { count: 12, radius: 33, width: 112, height: 142, duration: 88, direction: 1, startAngle: 6, opacity: 0.56, zIndex: 4 },
-  { count: 16, radius: 49, width: 146, height: 186, duration: 114, direction: 1, startAngle: 18, opacity: 0.82, zIndex: 5 },
+  { count: 8, radius: 18, width: 84, height: 108, duration: 64, direction: 1, startAngle: -8, opacity: 1, zIndex: 3 },
+  { count: 12, radius: 33, width: 112, height: 142, duration: 88, direction: 1, startAngle: 6, opacity: 1, zIndex: 4 },
+  { count: 16, radius: 49, width: 146, height: 186, duration: 114, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
 ];
 
 const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
