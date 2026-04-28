@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Header } from './Header';
-import { HeroSection } from './HeroSection';
+import { HeroVideoSequence } from './HeroVideoSequence';
 import { StorySection } from './StorySection';
 import { VisionSection } from './VisionSection';
 import { AboutSection } from './AboutSection';
@@ -25,7 +25,7 @@ export function LandingPage() {
   return (
     <div className="w-full">
       <Header />
-      <HeroSection />
+      <HeroVideoSequence />
       <StorySection />
       <VisionSection />
       <AboutSection />
