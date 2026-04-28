@@ -4,6 +4,7 @@ import { HeroVideoSequence } from './HeroVideoSequence';
 import { StorySection } from './StorySection';
 import { VisionSection } from './VisionSection';
 import { AboutSection } from './AboutSection';
+import { TestimonialsSection } from './TestimonialsSection';
 
 /**
  * Cosmos.so-style landing page.
@@ -29,6 +30,7 @@ export function LandingPage() {
       <StorySection />
       <VisionSection />
       <AboutSection />
+      <TestimonialsSection />
     </div>
   );
 }
