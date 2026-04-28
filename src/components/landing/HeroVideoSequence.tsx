@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useMotionValue, useMotionValueEvent } from 'framer-motion';
+import { Play } from 'lucide-react';
 import { DogCircleCarousel } from './DogCircleCarousel';
 
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
@@ -33,6 +34,7 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
  */
 export function HeroVideoSequence() {
   const wrapperRef = useRef<HTMLElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const { scrollYProgress } = useScroll({
     target: wrapperRef,
     offset: ['start start', 'end end'],
@@ -70,7 +72,21 @@ export function HeroVideoSequence() {
   }, [reduceMotion]);
 
   const videoId = 'WDZQP7LuOBc';
-  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&playsinline=1&showinfo=0&iv_load_policy=3`;
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=0&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`;
+
+  const handlePlayClick = () => {
+    const wrapper = wrapperRef.current;
+    if (wrapper) {
+      const target = wrapper.offsetTop + wrapper.offsetHeight * 0.58;
+      window.scrollTo({ top: target, behavior: 'smooth' });
+    }
+    window.setTimeout(() => {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify({ event: 'command', func: 'playVideo', args: [] }),
+        '*'
+      );
+    }, 900);
+  };
 
   // Optional: log progress in dev so we can verify the pin works.
   useMotionValueEvent(scrollYProgress, 'change', () => {
@@ -194,16 +210,33 @@ export function HeroVideoSequence() {
           className="absolute inset-0 z-30 flex flex-col items-center justify-center px-6 md:px-10 pointer-events-none"
           style={{ y: videoY }}
         >
-          <motion.span
-            className="block text-xs md:text-sm tracking-[0.25em] uppercase mb-3"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              color: '#C49B42',
-              opacity: labelOpacity,
-            }}
+          <motion.button
+            type="button"
+            onClick={handlePlayClick}
+            className="pointer-events-auto flex items-center gap-3 mb-3 transition-transform hover:scale-105 cursor-pointer bg-transparent border-0 p-0"
+            style={{ opacity: labelOpacity }}
           >
-            Watch INTRO MOVIE
-          </motion.span>
+            <span
+              className="rounded-full grid place-items-center w-7 h-7 md:w-8 md:h-8"
+              style={{
+                border: '1.5px solid #FAF4EC',
+                boxShadow: '0 0 14px rgba(250,244,236,0.25)',
+              }}
+            >
+              <Play
+                size={12}
+                fill="#FAF4EC"
+                strokeWidth={0}
+                style={{ marginLeft: '1px' }}
+              />
+            </span>
+            <span
+              className="text-xs md:text-sm tracking-[0.25em] uppercase"
+              style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
+            >
+              Watch INTRO MOVIE
+            </span>
+          </motion.button>
 
           <motion.div
             className="w-full max-w-[760px] aspect-video rounded-2xl overflow-hidden relative pointer-events-auto"
@@ -215,6 +248,7 @@ export function HeroVideoSequence() {
             }}
           >
             <iframe
+              ref={iframeRef}
               src={embedUrl}
               title="DOGYPT story"
               className="absolute inset-0 w-full h-full"
