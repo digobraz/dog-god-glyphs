@@ -1,35 +1,26 @@
 import type { CSSProperties } from 'react';
 import dogPhoto from '@/assets/hero-dog-placeholder.jpeg';
 
-// Three concentric symmetric rings of dog photos, à la cosmos.so.
-// Each ring rotates as a whole; cards counter-rotate to stay upright,
-// with a slight per-card tilt for organic feel.
 type Ring = {
   count: number;
-  radius: number;        // % of scene size
-  cardSize: number;      // px (desktop) — base width
-  duration: number;      // s — full rotation
-  direction: 1 | -1;     // rotation direction
-  startAngle: number;    // deg — initial offset
-  tiltVariance: number;  // deg — random tilt range
-  peakOpacity: number;
+  radius: number;
+  width: number;
+  height: number;
+  duration: number;
+  direction: 1 | -1;
+  startAngle: number;
+  opacity: number;
   zIndex: number;
 };
 
 const RINGS: Ring[] = [
-  { count: 8,  radius: 16, cardSize: 90,  duration: 70,  direction:  1, startAngle: 0,  tiltVariance: 10, peakOpacity: 0.55, zIndex: 3 }, // inner — small, faint
-  { count: 12, radius: 30, cardSize: 120, duration: 95,  direction: -1, startAngle: 15, tiltVariance: 12, peakOpacity: 0.78, zIndex: 4 }, // middle
-  { count: 16, radius: 46, cardSize: 150, duration: 120, direction:  1, startAngle: 8,  tiltVariance: 14, peakOpacity: 0.95, zIndex: 5 }, // outer — large, vivid
+  { count: 8, radius: 18, width: 84, height: 108, duration: 64, direction: 1, startAngle: 0, opacity: 0.34, zIndex: 3 },
+  { count: 12, radius: 33, width: 112, height: 142, duration: 88, direction: 1, startAngle: 15, opacity: 0.56, zIndex: 4 },
+  { count: 16, radius: 49, width: 146, height: 186, duration: 114, direction: 1, startAngle: 8, opacity: 0.82, zIndex: 5 },
 ];
 
-// Deterministic pseudo-random for stable per-card variance.
-const rand = (seed: number) => {
-  const x = Math.sin(seed * 9301 + 49297) * 233280;
-  return x - Math.floor(x);
-};
-
-const ASPECTS = [0.92, 1.08, 1.0, 1.18, 0.88, 1.12];
-const OBJECT_POSITIONS = ['50% 35%', '45% 40%', '55% 38%', '48% 42%', '52% 36%'];
+const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
+const OBJECT_POSITIONS = ['50% 34%', '48% 40%', '54% 37%', '46% 42%'];
 
 export function DogCircleCarousel() {
   return (
@@ -92,14 +83,15 @@ export function DogCircleCarousel() {
           position: absolute;
           top: 0;
           left: 0;
-          border-radius: 18px;
+          border-radius: 20px;
           overflow: hidden;
-          opacity: var(--peak);
+          opacity: var(--opacity);
           box-shadow:
-            0 14px 34px rgba(0,0,0,0.55),
-            0 3px 8px rgba(0,0,0,0.35);
+            0 18px 40px rgba(0,0,0,0.44),
+            0 4px 12px rgba(0,0,0,0.3);
           will-change: transform;
           backface-visibility: hidden;
+          filter: saturate(0.9);
         }
         .dog-card.cw  { animation: dog-card-counter-cw  var(--dur) linear infinite; }
         .dog-card.ccw { animation: dog-card-counter-ccw var(--dur) linear infinite; }
@@ -113,7 +105,7 @@ export function DogCircleCarousel() {
 
         @media (max-width: 768px) {
           .dog-scene { --scene: clamp(820px, 180vw, 1200px); }
-          .dog-card { border-radius: 14px; }
+          .dog-card { border-radius: 16px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -134,17 +126,11 @@ export function DogCircleCarousel() {
             <div key={ringIdx} className={`dog-ring ${ringClass}`} style={ringStyle}>
               {Array.from({ length: ring.count }, (_, i) => {
                 const angle = ring.startAngle + (360 / ring.count) * i;
-                const seed = ringIdx * 100 + i;
-                const r = rand(seed);
-                const aspect = ASPECTS[i % ASPECTS.length];
-                const tilt = (rand(seed + 1) * 2 - 1) * ring.tiltVariance;
-                const sizeJitter = 0.85 + rand(seed + 2) * 0.3; // 0.85–1.15
-                const w = ring.cardSize * sizeJitter;
-                const h = w * aspect;
+                const tilt = TILT_PATTERN[(ringIdx * 3 + i) % TILT_PATTERN.length];
+                const w = ring.width;
+                const h = ring.height;
                 const objPos = OBJECT_POSITIONS[i % OBJECT_POSITIONS.length];
 
-                // Wrap places the card at the correct angle around the ring;
-                // .dog-card then translates outward by --r and counter-rotates.
                 const wrapStyle = {
                   transform: `rotate(${angle}deg)`,
                 } as CSSProperties;
@@ -152,7 +138,7 @@ export function DogCircleCarousel() {
                 const cardStyle = {
                   '--r': `calc(var(--scene) * ${ring.radius / 100})`,
                   '--tilt': `${tilt}deg`,
-                  '--peak': `${ring.peakOpacity}`,
+                  '--opacity': `${ring.opacity}`,
                   '--dur': `${ring.duration}s`,
                   width: `${w}px`,
                   height: `${h}px`,
