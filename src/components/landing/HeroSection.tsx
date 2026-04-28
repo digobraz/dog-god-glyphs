@@ -35,13 +35,13 @@ export function HeroSection() {
         transition={{ duration: 0.6 }}
       >
         <span
-          className="font-black text-3xl md:text-5xl lg:text-6xl"
+          className="font-black text-2xl md:text-4xl lg:text-5xl"
           style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
         >
           <AnimatedCounter target={29} duration={2500} />
         </span>
         <span
-          className="font-normal text-xl md:text-2xl tracking-widest uppercase"
+          className="font-normal text-base md:text-xl tracking-widest uppercase"
           style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
         >
           PEOPLE SAY:
@@ -49,7 +49,7 @@ export function HeroSection() {
       </motion.div>
 
       <motion.h1
-        className="text-5xl md:text-8xl lg:text-9xl font-black tracking-wider leading-none relative"
+        className="text-4xl md:text-7xl lg:text-8xl font-black tracking-wider leading-none relative"
         style={{
           fontFamily: "'Cinzel', serif",
           background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',
@@ -67,7 +67,7 @@ export function HeroSection() {
 
       <motion.a
         href="/generator-process"
-        className="mt-8 inline-block px-12 py-5 rounded-full text-xl md:text-2xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105 relative"
+        className="mt-8 inline-block px-10 py-4 rounded-full text-lg md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105 relative"
         style={{
           fontFamily: "'Cinzel', serif",
           background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
