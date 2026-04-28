@@ -1,21 +1,47 @@
-## Zmeny (iba mobil, iba HeroVideoSequence.tsx)
+# Plan: restore the broken preview and stop the blank screen loop
 
-Cieľ: posunúť celý stredný blok ("29 PEOPLE SAY:", "IN DOG WE TRUST", "BE NEXT!") vyššie a zväčšiť hlavné motto o 20%. Nič iné sa nemení (desktop, video, špirála, fotky všetko ostáva).
+## What I found
+The preview is not blank because of the new Testimonials JSX itself. The app is mounting, but the main stylesheet is failing to load in preview.
 
-### 1. Posun obsahu vyššie (mobil)
-V `motion.div` containeri hero textu (riadok 158) zmeniť `justify-center` flex layout na vertikálne posunutý vyššie pomocou paddingu:
-- aktuálne: `pt-[50px] md:pt-[140px]` + `justify-center`
-- nové: `justify-start pt-[80px] md:justify-center md:pt-[140px]`
+Confirmed symptoms:
+- The browser loads `src/main.tsx` and `src/App.tsx` successfully.
+- The request for `src/index.css?t=...` fails in preview.
+- With CSS missing, the page ends up rendering as an effectively blank white screen.
+- There are no runtime React errors from `TestimonialsSection` or `TestimonialsColumn` in the snapshots I checked.
 
-Týmto sa na mobile obsah ukotví od vrchu s menším paddingom (~80px namiesto centrovania v 100dvh viewporte), čo ho efektívne posunie výrazne vyššie. Desktop (`md:`) zostáva nezmenený — `justify-center` + `pt-[140px]`.
+I also confirmed the CSS file exists in the repo, so this looks like a preview/dev-server asset serving issue triggered by the current state, not a missing file on disk.
 
-### 2. Zväčšenie motta "IN DOG WE TRUST" o 20% (mobil)
-V `motion.h1` (riadok 182):
-- aktuálne mobil: `text-[2.4rem]`
-- nové mobil: `text-[2.88rem]` (2.4 × 1.2)
-- desktop nezmenený: `md:text-7xl lg:text-8xl`
+## Implementation plan
+1. Isolate the stylesheet issue by simplifying the CSS entry path.
+   - Replace the direct `import "./index.css"` dependency with a clean stylesheet path the preview serves reliably.
+   - Check whether the problem is caused by the current `src/index.css` pipeline rather than the Testimonials components.
 
-### Súbory
-- `src/components/landing/HeroVideoSequence.tsx` — 2 drobné zmeny tried (riadky 158 a 182)
+2. Reduce the blast radius of recent changes.
+   - Temporarily remove the new `TestimonialsSection` from `LandingPage` if needed to confirm the preview restores.
+   - Once the preview is visible again, reintroduce the section incrementally.
 
-Žiadne iné zmeny — counter, "PEOPLE SAY:", BE NEXT! tlačidlo, video, špirála, vignette, blackout — všetko ostáva.
+3. Rebuild the testimonials block in the safest form.
+   - Keep the section under About Us.
+   - Preserve the 3-column vertically scrolling concept.
+   - Avoid any styling patterns that might destabilize preview rendering if one of the current CSS features is contributing.
+
+4. Verify preview rendering first, then content.
+   - Confirm the homepage renders again.
+   - Confirm the new section is visible below About Us.
+   - Confirm your earlier mobile hero adjustments still remain unchanged.
+
+## Technical details
+Likely failure point to test first:
+- `src/index.css` request is returning a failed response in preview even though the file exists.
+
+Files likely involved:
+- `src/main.tsx`
+- `src/index.css`
+- `src/components/landing/LandingPage.tsx`
+- `src/components/landing/TestimonialsSection.tsx`
+- `src/components/landing/TestimonialsColumn.tsx`
+
+## Expected result
+- The preview stops showing a blank white canvas.
+- You can review the landing page again without wasting more credits on repeated blind fixes.
+- The testimonials section is either restored safely or temporarily removed until the preview is stable.
