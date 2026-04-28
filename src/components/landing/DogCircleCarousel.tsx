@@ -11,8 +11,8 @@ import dogPhoto from '@/assets/hero-dog-placeholder.jpeg';
 
 const TOTAL_ITEMS = 64;          // density of the spiral
 const ITEMS_PER_TURN = 11;       // how many slots per full rotation
-const BASE_RADIUS_PCT = 14;      // % of ring size, innermost slot
-const RADIUS_STEP_PCT = 1.55;    // % growth per slot — controls spiral tightness
+const BASE_RADIUS_RATIO = 0.12;  // ratio of ring size, innermost slot
+const RADIUS_STEP_RATIO = 0.014; // growth per slot — controls spiral tightness
 
 export function DogCircleCarousel() {
   const items = Array.from({ length: TOTAL_ITEMS });
@@ -49,6 +49,7 @@ export function DogCircleCarousel() {
           left: 50%;
           width: 0;
           height: 0;
+          transform-origin: center center;
         }
         .dog-spiral-photo {
           position: absolute;
@@ -77,7 +78,7 @@ export function DogCircleCarousel() {
         {items.map((_, i) => {
           // Spiral math: angle accumulates, radius grows linearly with index.
           const angle = (i * 360) / ITEMS_PER_TURN;
-          const radiusPct = BASE_RADIUS_PCT + i * RADIUS_STEP_PCT;
+          const radiusRatio = BASE_RADIUS_RATIO + i * RADIUS_STEP_RATIO;
 
           // Size shrinks slightly toward the outside for depth.
           const t = i / TOTAL_ITEMS; // 0 -> 1
@@ -89,7 +90,7 @@ export function DogCircleCarousel() {
               key={i}
               className="dog-spiral-slot"
               style={{
-                transform: `rotate(${angle}deg) translateY(-${radiusPct}%)`,
+                transform: `rotate(${angle}deg) translateY(calc(var(--ring-size) * -${radiusRatio}))`,
               }}
             >
               <img
