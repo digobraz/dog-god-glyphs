@@ -14,10 +14,14 @@ type Ring = {
 };
 
 const RINGS: Ring[] = [
-  // Inner & outer rings spin ~15% faster than the middle one (shorter duration = faster).
-  { count: 8, radius: 18, width: 84, height: 108, duration: 74, direction: 1, startAngle: -8, opacity: 1, zIndex: 3 },
-  { count: 12, radius: 33, width: 112, height: 142, duration: 88, direction: 1, startAngle: 6, opacity: 1, zIndex: 4 },
-  { count: 16, radius: 49, width: 146, height: 186, duration: 74, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
+  // Spiral "snail": 4 concentric rings with progressively growing radius, card size, and count.
+  // All rings rotate the same direction at slightly different speeds so the pattern reads as
+  // one continuous spiral rather than independent orbits. Outer & inner spin ~15% faster
+  // than the middle pair. Sizes/radii are tuned so neighbouring rings *touch* (no visible gap).
+  { count: 6,  radius: 8,  width: 56,  height: 72,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
+  { count: 10, radius: 19, width: 80,  height: 102, duration: 82, direction: 1, startAngle: 12, opacity: 1, zIndex: 5 },
+  { count: 14, radius: 32, width: 104, height: 132, duration: 82, direction: 1, startAngle: 24, opacity: 1, zIndex: 4 },
+  { count: 18, radius: 47, width: 132, height: 168, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
 ];
 
 const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
