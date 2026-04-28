@@ -123,8 +123,8 @@ export function DogCircleCarousel() {
           height: 0;
           will-change: transform;
         }
-        .dog-ring.cw  { animation: dog-ring-spin-cw  var(--dur) linear infinite; }
-        .dog-ring.ccw { animation: dog-ring-spin-ccw var(--dur) linear infinite; }
+        .dog-ring.cw  { animation: dog-ring-spin-cw  calc(var(--dur) / var(--speed, 1)) linear infinite; }
+        .dog-ring.ccw { animation: dog-ring-spin-ccw calc(var(--dur) / var(--speed, 1)) linear infinite; }
 
         .dog-card-wrap {
           position: absolute;
@@ -149,8 +149,8 @@ export function DogCircleCarousel() {
           height: 100%;
           will-change: transform;
         }
-        .dog-card-upright.cw  { animation: dog-card-upright-cw  var(--dur) linear infinite; }
-        .dog-card-upright.ccw { animation: dog-card-upright-ccw var(--dur) linear infinite; }
+        .dog-card-upright.cw  { animation: dog-card-upright-cw  calc(var(--dur) / var(--speed, 1)) linear infinite; }
+        .dog-card-upright.ccw { animation: dog-card-upright-ccw calc(var(--dur) / var(--speed, 1)) linear infinite; }
 
         .dog-card-visual {
           width: 100%;
