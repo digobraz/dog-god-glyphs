@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { DogCircleCarousel } from './DogCircleCarousel';
 
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -24,11 +25,24 @@ export function HeroSection() {
       className="relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-hidden"
       style={{ height: '100dvh', backgroundColor: '#000' }}
     >
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-black to-transparent pointer-events-none" />
+      {/* z-0: rotating dog circle */}
+      <div className="absolute inset-0 z-0">
+        <DogCircleCarousel />
+      </div>
+
+      {/* z-10: overlays for text legibility */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse 55% 45% at center, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0) 75%)',
+        }}
+      />
+      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+      <div className="absolute bottom-0 left-0 w-full h-56 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
 
       <motion.div
-        className="flex flex-row items-baseline justify-center gap-3 mb-2 relative"
+        className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.6 }}
@@ -48,7 +62,7 @@ export function HeroSection() {
       </motion.div>
 
       <motion.h1
-        className="text-4xl md:text-7xl lg:text-8xl font-black tracking-wider leading-none relative"
+        className="text-4xl md:text-7xl lg:text-8xl font-black tracking-wider leading-none relative z-20"
         style={{
           fontFamily: "'Cinzel', serif",
           background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',
@@ -66,7 +80,7 @@ export function HeroSection() {
 
       <motion.a
         href="/generator-process"
-        className="mt-8 inline-block px-10 py-4 rounded-full text-lg md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105 relative"
+        className="mt-8 inline-block px-10 py-4 rounded-full text-lg md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105 relative z-20"
         style={{
           fontFamily: "'Cinzel', serif",
           background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
