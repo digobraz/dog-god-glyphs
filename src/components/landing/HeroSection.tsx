@@ -104,17 +104,6 @@ export function HeroSection() {
       >
         BE NEXT!
       </motion.a>
-
-      <motion.a
-        href="#story"
-        className="mt-4 text-xs md:text-sm tracking-[0.25em] uppercase relative z-20 hover:opacity-80 transition-opacity"
-        style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.1, duration: 0.6 }}
-      >
-        Watch INTRO MOVIE
-      </motion.a>
     </section>
   );
 }
