@@ -199,6 +199,10 @@ export function DogCircleCarousel() {
                 const w = ring.width;
                 const h = ring.height;
                 const objPos = OBJECT_POSITIONS[i % OBJECT_POSITIONS.length];
+                // Spread photos across rings so neighbours never repeat.
+                const photoIdx =
+                  (ringIdx * 7 + i * 3) % DOG_PHOTOS.length;
+                const photo = DOG_PHOTOS[photoIdx];
 
                 const wrapStyle = {
                   transform: `rotate(${angle}deg) translateX(calc(var(--scene) * ${ring.radius / 100}))`,
@@ -221,11 +225,11 @@ export function DogCircleCarousel() {
                     <div className="dog-card" style={cardStyle}>
                       <div className="dog-card-visual">
                         <img
-                          src={dogPhoto}
+                          src={photo}
                           alt=""
                           aria-hidden="true"
                           draggable={false}
-                          loading="eager"
+                          loading="lazy"
                           decoding="async"
                           style={{ objectPosition: objPos }}
                         />
