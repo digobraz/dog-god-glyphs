@@ -43,9 +43,9 @@ export function HeroSection() {
       <div
         className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
         style={{
-          height: '42%',
+          height: '32%',
           background:
-            'linear-gradient(to top, #000 0%, #000 28%, rgba(0,0,0,0.92) 50%, rgba(0,0,0,0.6) 72%, rgba(0,0,0,0) 100%)',
+            'linear-gradient(to top, #000 0%, #000 20%, rgba(0,0,0,0.9) 48%, rgba(0,0,0,0.55) 72%, rgba(0,0,0,0) 100%)',
         }}
       />
 
