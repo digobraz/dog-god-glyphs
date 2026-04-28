@@ -42,9 +42,9 @@ export function HeroVideoSequence() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.04, 0.1], [1, 0.2, 0]);
   const heroScale = useTransform(scrollYProgress, [0, 0.12], [1, 0.9]);
 
-  // --- Spiral fade (very fast) + stronger spin acceleration ---
-  const spiralOpacity = useTransform(scrollYProgress, [0, 0.05, 0.12], [1, 0.3, 0]);
-  const spiralBoost = useTransform(scrollYProgress, [0, 0.55, 1], [0, 760, 880]);
+  // --- Spiral fade (very fast) + spin SPEED multiplier (rings spin faster, frame stays still) ---
+  const spiralOpacity = useTransform(scrollYProgress, [0, 0.04, 0.1], [1, 0.25, 0]);
+  const spiralSpeed = useTransform(scrollYProgress, [0, 0.3, 1], [1, 6, 12]);
 
   // --- Video position ---
   // At progress 0: y = 66vh so the starting frame matches the previous lower placement.
@@ -54,7 +54,7 @@ export function HeroVideoSequence() {
   const labelOpacity = useTransform(scrollYProgress, [0, 0.03, 0.1], [1, 0.2, 0]);
 
   // --- Blackout layer: text + spiral should disappear into black, not just fade away. ---
-  const blackoutOpacity = useTransform(scrollYProgress, [0, 0.03, 0.09, 0.14], [0, 0.7, 1, 1]);
+  const blackoutOpacity = useTransform(scrollYProgress, [0, 0.02, 0.06, 0.1], [0, 0.85, 1, 1]);
 
   // --- Bottom gradient mask intensity (used only at the start). ---
   const maskOpacity = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
@@ -89,9 +89,17 @@ export function HeroVideoSequence() {
         style={{ height: '100dvh', backgroundColor: '#000' }}
       >
         {/* ---------- SPIRAL LAYER ---------- */}
+        {/* Note: we DO NOT rotate the wrapper. Instead we pass a `--speed` CSS var
+            that divides each ring's animation-duration, so individual photos spin
+            faster while the frame stays still. */}
         <motion.div
           className="absolute inset-0 z-0"
-          style={{ opacity: spiralOpacity, rotate: spiralBoost }}
+          style={
+            {
+              opacity: spiralOpacity,
+              ['--speed' as string]: spiralSpeed,
+            } as React.CSSProperties
+          }
         >
           <DogCircleCarousel />
         </motion.div>
