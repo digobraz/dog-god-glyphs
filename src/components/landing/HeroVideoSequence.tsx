@@ -179,12 +179,9 @@ export function HeroVideoSequence() {
           </motion.div>
 
           <motion.h1
-            className="text-[2.88rem] md:text-7xl lg:text-8xl font-black tracking-wider leading-none"
+            className="hero-shine text-[2.88rem] md:text-7xl lg:text-8xl font-black tracking-wider leading-none"
             style={{
               fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
             }}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
