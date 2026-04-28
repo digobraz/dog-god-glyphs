@@ -7,7 +7,7 @@ export function Header() {
   const ratioMap = useRef<Record<string, number>>({});
 
   useEffect(() => {
-    const lightSections = ['vision', 'about'];
+    const lightSections: string[] = [];
     const allSections = ['hero', 'story', 'vision', 'about'];
 
     const observer = new IntersectionObserver(
