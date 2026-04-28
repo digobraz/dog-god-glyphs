@@ -27,7 +27,7 @@ const steps = [
 
 function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
   return (
-    <div className="h-screen w-full flex items-center justify-center px-6 md:px-8" data-snap-page>
+    <div className="h-screen w-full flex items-center justify-center px-6 md:px-8">
       <motion.div
         className="max-w-2xl w-full flex flex-col items-center text-center gap-6"
         initial={{ opacity: 0, y: 40 }}
