@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { useEffect, useState } from 'react';
 
 // Pool of varied dog portraits from Unsplash. Each card picks a different one so
 // no two visible photos repeat side-by-side. Sized to ~400px to keep payload light.
@@ -76,10 +77,29 @@ const RINGS: Ring[] = [
   { count: 18, radius: 47, width: 132, height: 168, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
 ];
 
+// Mobile: fewer cards per ring → bigger gaps between photos so the spiral can breathe.
+// Sizes are slightly smaller so the layout still reads as a tight snail, just airier.
+const RINGS_MOBILE: Ring[] = [
+  { count: 4,  radius: 8,  width: 50,  height: 64,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
+  { count: 6,  radius: 19, width: 70,  height: 90,  duration: 82, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
+  { count: 8,  radius: 32, width: 92,  height: 118, duration: 82, direction: 1, startAngle: 28, opacity: 1, zIndex: 4 },
+  { count: 11, radius: 47, width: 116, height: 148, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
+];
+
 const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
 const OBJECT_POSITIONS = ['50% 34%', '48% 40%', '54% 37%', '46% 42%'];
 
 export function DogCircleCarousel() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  const rings = isMobile ? RINGS_MOBILE : RINGS;
+
   return (
     <div
       className="dog-rings-root pointer-events-none absolute inset-0 overflow-hidden"
@@ -183,7 +203,7 @@ export function DogCircleCarousel() {
       `}</style>
 
       <div className="dog-scene">
-        {RINGS.map((ring, ringIdx) => {
+        {rings.map((ring, ringIdx) => {
           const ringClass = ring.direction === 1 ? 'cw' : 'ccw';
           const cardClass = ring.direction === 1 ? 'cw' : 'ccw';
           const ringStyle = {
