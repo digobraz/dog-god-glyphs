@@ -67,7 +67,7 @@ export function TestimonialsSection() {
     <section
       id="testimonials"
       className="relative py-24 md:py-32 overflow-hidden"
-      style={{ backgroundColor: '#FAF4EC' }}
+      style={{ backgroundColor: '#000000' }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         <motion.div
@@ -96,7 +96,7 @@ export function TestimonialsSection() {
           </h2>
           <p
             className="mt-4 max-w-xl text-base md:text-lg"
-            style={{ color: 'rgba(0,0,0,0.6)', fontFamily: "'Cormorant Garamond', serif" }}
+            style={{ color: 'rgba(250,244,236,0.7)', fontFamily: "'Cormorant Garamond', serif" }}
           >
             Stories from the dog parents who turned their companions into legends.
           </p>
