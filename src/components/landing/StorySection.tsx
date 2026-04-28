@@ -20,7 +20,7 @@ export function StorySection() {
           boxShadow:
             '0 0 80px rgba(196,155,66,0.18), 0 0 200px rgba(196,155,66,0.08), 0 20px 60px rgba(0,0,0,0.6)',
           border: '1px solid rgba(196,155,66,0.15)',
-          marginTop: 'clamp(-140px, -10vh, -70px)',
+          marginTop: 'clamp(-70px, -5vh, -40px)',
           zIndex: 30,
         }}
         initial={{ opacity: 0, y: 60, scale: 0.95 }}
