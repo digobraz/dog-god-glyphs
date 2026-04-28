@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -19,23 +19,15 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
 }
 
 export function HeroSection() {
-  const videoId = 'WDZQP7LuOBc';
-  const peekEmbedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&playsinline=1&showinfo=0&iv_load_policy=3`;
-
-  const scrollToStory = () => {
-    document.getElementById('story')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
     <section
       id="hero"
-      className="relative w-full flex flex-col items-center text-center px-4 pt-[140px] md:pt-[160px] overflow-hidden"
+      className="relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-hidden"
       style={{ height: '100dvh', backgroundColor: '#000' }}
     >
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-black to-transparent pointer-events-none" />
 
-      {/* Centered text block */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full">
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative"
         initial={{ opacity: 0 }}
@@ -88,42 +80,25 @@ export function HeroSection() {
       >
         BE NEXT!
       </motion.a>
-      </div>
 
-      {/* Video peek at bottom — cosmos.so style */}
-      <motion.button
-        onClick={scrollToStory}
-        className="relative z-10 flex items-center gap-2 mb-4 text-xs md:text-sm tracking-[0.2em] uppercase cursor-pointer hover:opacity-100 transition-opacity"
-        style={{ fontFamily: "'Cinzel', serif", color: 'rgba(250, 244, 236, 0.7)' }}
+      <motion.p
+        className="mt-4 text-xs md:text-sm tracking-widest uppercase relative"
+        style={{ fontFamily: "'Cinzel', serif", color: 'rgba(250, 244, 236, 0.6)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.6 }}
+        transition={{ delay: 1.2, duration: 0.5 }}
       >
-        <Play className="w-3 h-3 md:w-4 md:h-4 fill-current" />
-        Watch our story
-      </motion.button>
+        or see story first
+      </motion.p>
 
       <motion.div
-        onClick={scrollToStory}
-        className="relative w-[88%] max-w-[1100px] rounded-t-2xl overflow-hidden cursor-pointer"
-        style={{
-          height: '45vh',
-          boxShadow:
-            '0 0 60px rgba(196,155,66,0.15), 0 -10px 40px rgba(196,155,66,0.08)',
-          border: '1px solid rgba(196,155,66,0.15)',
-          borderBottom: 'none',
-        }}
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.4, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-pulse"
+        style={{ color: '#C49B42' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.6 }}
       >
-        <iframe
-          src={peekEmbedUrl}
-          title="DOGYPT story preview"
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          frameBorder={0}
-          allow="autoplay; encrypted-media; picture-in-picture"
-        />
+        <ChevronDown className="w-8 h-8 md:w-10 md:h-10" />
       </motion.div>
     </section>
   );
