@@ -23,26 +23,26 @@ export function HeroSection() {
     <section
       id="hero"
       className="hero-spiral-host relative w-full flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px] overflow-hidden bg-background"
-      style={{ height: '100dvh', backgroundColor: 'hsl(var(--background))' }}
+      style={{ height: '100dvh', backgroundColor: '#000' }}
     >
       {/* z-0: rotating dog circle */}
       <div className="absolute inset-0 z-0">
         <DogCircleCarousel />
       </div>
 
-      {/* z-10: text-legibility overlay. The carousel itself fades via mask,
-          so we only need a soft central darkening behind the headline. */}
+      {/* z-10: dark vignette behind the headline so cards visually vanish
+          into black around the central text — like cosmos.so but on black. */}
       <div
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 36% 28% at 50% 52%, hsl(var(--background) / 0.98) 0%, hsl(var(--background) / 0.93) 22%, hsl(var(--background) / 0.78) 38%, hsl(var(--background) / 0.22) 58%, hsl(var(--background) / 0) 76%)',
+            'radial-gradient(ellipse 42% 34% at 50% 52%, #000 0%, rgba(0,0,0,0.95) 28%, rgba(0,0,0,0.75) 48%, rgba(0,0,0,0.25) 68%, rgba(0,0,0,0) 86%)',
         }}
       />
-      <div className="absolute inset-y-0 left-0 w-[12%] bg-gradient-to-r from-background via-background/70 to-transparent pointer-events-none z-10" />
-      <div className="absolute inset-y-0 right-0 w-[12%] bg-gradient-to-l from-background via-background/70 to-transparent pointer-events-none z-10" />
-      <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-background via-background/65 to-transparent pointer-events-none z-10" />
-      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background via-background/75 to-transparent pointer-events-none z-10" />
+      <div className="absolute inset-y-0 left-0 w-[8%] pointer-events-none z-10" style={{ background: 'linear-gradient(to right, #000, rgba(0,0,0,0))' }} />
+      <div className="absolute inset-y-0 right-0 w-[8%] pointer-events-none z-10" style={{ background: 'linear-gradient(to left, #000, rgba(0,0,0,0))' }} />
+      <div className="absolute top-0 left-0 w-full h-20 pointer-events-none z-10" style={{ background: 'linear-gradient(to bottom, #000, rgba(0,0,0,0))' }} />
+      <div className="absolute bottom-0 left-0 w-full h-24 pointer-events-none z-10" style={{ background: 'linear-gradient(to top, #000, rgba(0,0,0,0))' }} />
 
       <motion.div
         className="flex flex-row items-baseline justify-center gap-3 mb-2 relative z-20"
