@@ -1,38 +1,54 @@
-## Goal
+## Cieľ
 
-Make the 2nd block on `/breed` (search input, category tabs, silhouette tiles, dropdown, Mix pill) use exactly the same semantic colors as `/ranking` and `/owner-zodiac`. Today it uses hardcoded blacks/beiges that don't match.
+Vymazať celú Story sekciu (texty, timeline, cross-fade, Ken Burns, scroll mechaniku pre 9 slidov) a nahradiť ju jednoduchou čiernou sekciou s YouTube videom v strede, inšpirovanou cosmos.so. Zároveň úplne odstrániť MatrixRain.
 
-## Single source of truth (already in `index.css`)
+## Zmeny
 
-- Beige card background: `papyrus-bg` (= `hsl(var(--papyrus))`, `36 33% 91%`)
-- Card border: `border-2 border-border/40` (gold, `--border = --gold = 39 55% 51%`)
-- Inner control surface: `bg-card`
-- Inner border: `border-border/30..60`
-- Text: `text-foreground` / `text-muted-foreground`
-- Active/selected: `border-primary` + `bg-primary/10`
-- Dog name highlighting: bold + `text-primary`
+### 1. Nový komponent `StorySection.tsx` (prepísaný)
+- Plná výška sekcie `100dvh`, čisto čierne pozadie (`bg-black`).
+- V strede malý zlatý nadpis `Cinzel`: **"29 PEOPLE SAY: IN DOG WE TRUST"**, pod ním tenký podnadpis: **"BE NEXT!"**.
+- Pod textom YouTube embed (`https://www.youtube.com/embed/WDZQP7LuOBc?autoplay=1&mute=1&loop=1&playlist=WDZQP7LuOBc&controls=0&modestbranding=1&rel=0&playsinline=1`).
+- Video kontajner: max šírka ~1100px, `aspect-video`, `rounded-2xl`, jemný zlatý glow `box-shadow` (cosmos.so feel — soft halo okolo videa).
+- Žiadne ďalšie elementy, žiadny MatrixRain, žiadny timeline, žiadne slidy.
+- Iba 1 `data-snap-page` wrapper.
 
-No hex colors, no `rgba(0,0,0,…)`, no `#000`, no `#FAF4EC`.
+### 2. `LandingPage.tsx` — recalibrácia scrollu
+- StorySection teraz tvorí **1 stránku** namiesto 9 → celkový počet stránok klesne zo **16 na 8**.
+- Nové indexy: `0` Hero, `1` Story, `2`–`6` Vision (5 stránok), `7` About.
+- Upraviť `navigate()` fast-track up logiku:
+  - `prev === 7` (About) → `2` (Vision 1)
+  - `prev > 2 && prev <= 6` (Vision 2–5) → `2`
+  - `prev === 2` → `1` (Story)
+  - `prev === 1` → `0` (Hero)
+- Down navigation: max index `7`.
+- Wrap StorySection do `<div data-snap-page>` priamo v LandingPage (nie interne ako 9 stránok).
+- Odstrániť `__storyModalClose` volania (modal už neexistuje).
 
-## Changes in `src/components/screens/BreedPatronScreen.tsx`
+### 3. `Header.tsx` — aktualizovať `indexMap`
+- `{ story: 1, vision: 2, about: 7 }` (pôvodne `1, 10, 15`).
+- Ratio tracking sekcií ostáva rovnaký (`hero`, `story`, `vision`, `about`).
 
-1. **Search input pill** — replace `bg: rgba(0,0,0,0.06) / border rgba(0,0,0,0.4)` with `bg-card border border-border/40`. Icon → `text-muted-foreground`. Input text → `text-foreground placeholder:text-muted-foreground`. Clear button → `text-muted-foreground hover:text-foreground`.
+### 4. Mazanie súborov
+- `src/components/landing/MatrixRain.tsx` — zmazať.
+- Skontrolovať a odstrániť importy `MatrixRain` (pravdepodobne v `HeroSection.tsx` alebo starom `StorySection.tsx`).
 
-2. **Selected breed chip** — `bg-primary/20 text-foreground` (matching original BreedScreen chip).
+### 5. Memory cleanup
+- Zmazať `mem://features/landing-page-story` (už neaktuálne — žiadny timeline/Ken Burns).
+- Aktualizovať `mem://index.md`: odstrániť odkaz na story memory, aktualizovať scroll architektúru (8 stránok namiesto 16).
+- Aktualizovať `mem://ux/landing-page-scroll-architecture` s novými indexmi.
 
-3. **Search dropdown** — `bg-card border border-border/40`, item rows `border-b border-border/20 hover:bg-primary/10 text-foreground`. Patron icon: drop the `invert(1)` (icon stays as-is).
+## Technické detaily
 
-4. **Category tabs** — inactive: `text-muted-foreground border-b-2 border-transparent`; active: `font-bold text-foreground border-b-2 border-primary`. Cinzel.
+YouTube embed parametre pre tichý autoplay loop:
+```
+autoplay=1&mute=1&loop=1&playlist=VIDEO_ID&controls=0&modestbranding=1&rel=0&playsinline=1
+```
+(parameter `playlist=VIDEO_ID` je nutný, aby `loop=1` fungoval pri jednom videu).
 
-5. **Silhouette tiles** — `border-2`; selected: `border-primary bg-primary/10`; idle: `border-border/60 hover:border-primary/50 bg-card/50`. Drop `invert(1)` on the SVG.
+Vizuál videa (cosmos.so inšpirácia):
+```
+border-radius: 16px;
+box-shadow: 0 0 80px rgba(196,155,66,0.15), 0 0 200px rgba(196,155,66,0.08);
+```
 
-6. **Mix pill (trailing)** — outline: `border border-border/40 bg-card text-foreground hover:bg-primary/10`; active: `bg-primary text-primary-foreground border-primary`. Same height `h-11`, Cinzel.
-
-7. **Picker card wrapper** — keep `papyrus-bg border-2 border-border/40 rounded-2xl`, remove the heavy custom `boxShadow` (or reduce to match other cards: `shadow-sm`).
-
-No functional / structural changes. No prop changes. Block 1 (Hektor gradient hero) stays as-is. Continue button stays as-is.
-
-## Acceptance
-
-- Side-by-side `/breed` and `/ranking`: same beige tone, same gold borders, same active gold highlight, same muted gold text — visually identical theme.
-- No literal `#000`, `#FAF4EC`, or `rgba(0,…)` left in `BreedPatronScreen.tsx`.
+Po schválení implementujem v default móde.
