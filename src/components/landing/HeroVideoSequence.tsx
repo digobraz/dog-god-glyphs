@@ -35,6 +35,16 @@ function AnimatedCounter({ target, duration = 2000 }: { target: number; duration
 export function HeroVideoSequence() {
   const wrapperRef = useRef<HTMLElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: wrapperRef,
     offset: ['start start', 'end end'],
@@ -49,9 +59,10 @@ export function HeroVideoSequence() {
   const spiralSpeed = useTransform(scrollYProgress, [0, 0.3, 1], [1, 6, 12]);
 
   // --- Video position ---
-  // At progress 0: y = 66vh so the starting frame matches the previous lower placement.
-  // By ~58% progress the video is already centered.
-  const videoY = useTransform(scrollYProgress, [0, 0.58, 1], ['66vh', '0vh', '0vh']);
+  // Desktop: peek at 66vh (kept fixed per user). Mobile: 42vh — viewport is too
+  // short for 66vh, video would fall completely under the fold.
+  const videoStartY = isMobile ? '42vh' : '66vh';
+  const videoY = useTransform(scrollYProgress, [0, 0.58, 1], [videoStartY, '0vh', '0vh']);
   const videoScale = useTransform(scrollYProgress, [0, 0.58, 1], [0.92, 1, 1]);
   const labelOpacity = useTransform(scrollYProgress, [0, 0.03, 0.1], [1, 0.2, 0]);
 
@@ -144,7 +155,7 @@ export function HeroVideoSequence() {
 
         {/* ---------- HERO TEXT + CTA ---------- */}
         <motion.div
-          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 pt-[120px] md:pt-[140px]"
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 pt-[80px] md:pt-[140px]"
           style={{ opacity: heroOpacity, scale: heroScale }}
         >
           <motion.div
@@ -168,7 +179,7 @@ export function HeroVideoSequence() {
           </motion.div>
 
           <motion.h1
-            className="text-4xl md:text-7xl lg:text-8xl font-black tracking-wider leading-none"
+            className="text-[2rem] md:text-7xl lg:text-8xl font-black tracking-wider leading-none"
             style={{
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',
@@ -186,7 +197,7 @@ export function HeroVideoSequence() {
 
           <motion.a
             href="/generator-process"
-            className="mt-8 inline-block px-10 py-4 rounded-full text-lg md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
+            className="mt-5 md:mt-8 inline-block px-7 py-3 md:px-10 md:py-4 rounded-full text-base md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
             style={{
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
@@ -211,7 +222,7 @@ export function HeroVideoSequence() {
 
         {/* ---------- VIDEO LAYER ---------- */}
         <motion.div
-          className="absolute inset-0 z-30 flex flex-col items-center justify-center px-6 md:px-10 pointer-events-none"
+          className="absolute inset-0 z-30 flex flex-col items-center justify-center px-4 md:px-10 pointer-events-none"
           style={{ y: videoY }}
         >
           <motion.button
