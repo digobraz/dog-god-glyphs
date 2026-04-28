@@ -91,7 +91,7 @@ export function Header() {
                 href={`#${item.toLowerCase()}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  const indexMap: Record<string, number> = { story: 1, vision: 10, about: 15 };
+                  const indexMap: Record<string, number> = { story: 1, vision: 2, about: 7 };
                   const targetIndex = indexMap[item.toLowerCase()];
                   if (targetIndex !== undefined) {
                     window.dispatchEvent(new CustomEvent('nav-jump', { detail: targetIndex }));

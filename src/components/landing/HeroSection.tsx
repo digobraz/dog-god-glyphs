@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import { MatrixRain } from './MatrixRain';
 
 function AnimatedCounter({ target, duration = 2000 }: { target: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -26,8 +25,6 @@ export function HeroSection() {
 
   return (
     <section id="hero" className="h-screen w-full relative bg-black overflow-hidden">
-      <MatrixRain />
-
       {/* Top gradient overlay */}
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
 

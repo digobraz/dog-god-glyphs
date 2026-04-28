@@ -46,15 +46,14 @@ export function LandingPage() {
 
     if (direction === -1) {
       // FAST-TRACK UP — go to first item of current section first
-      if (prev === 15) next = 10;
-      else if (prev > 10 && prev <= 14) next = 10;  // VISION 2-5 → VISION 1
-      else if (prev === 10) next = 1;                // VISION 1 → STORY 1
-      else if (prev > 1 && prev <= 9) next = 1;      // STORY 2-9 → STORY 1
-      else if (prev === 1) next = 0;                  // STORY 1 → HERO
+      if (prev === 7) next = 2;                       // ABOUT → VISION 1
+      else if (prev > 2 && prev <= 6) next = 2;       // VISION 2-5 → VISION 1
+      else if (prev === 2) next = 1;                  // VISION 1 → STORY
+      else if (prev === 1) next = 0;                  // STORY → HERO
       else next = 0;
     } else {
       // STEP-BY-STEP DOWN
-      next = Math.min(prev + 1, 15);
+      next = Math.min(prev + 1, 7);
     }
 
     if (next === prev) return;
@@ -66,8 +65,6 @@ export function LandingPage() {
       e.preventDefault();
       if (isAnimating.current) return;
       if (Math.abs(e.deltaY) < 5) return;
-      // Close story modal on scroll, then continue with navigation
-      (window as any).__storyModalClose?.();
       navigate(e.deltaY > 0 ? 1 : -1);
     };
 
@@ -83,8 +80,6 @@ export function LandingPage() {
       if (isAnimating.current) return;
       const deltaY = touchStartY.current - e.changedTouches[0].clientY;
       if (Math.abs(deltaY) < TOUCH_THRESHOLD) return;
-      // Close story modal on swipe, then continue with navigation
-      (window as any).__storyModalClose?.();
       navigate(deltaY > 0 ? 1 : -1);
     };
 
@@ -140,7 +135,9 @@ export function LandingPage() {
       <div data-snap-page>
         <HeroSection />
       </div>
-      <StorySection />
+      <div data-snap-page>
+        <StorySection />
+      </div>
       <VisionSection />
       <div data-snap-page>
         <AboutSection />
