@@ -30,8 +30,15 @@ export function HeroSection() {
         <DogCircleCarousel />
       </div>
 
-      {/* Bottom fade zone: from BE NEXT button down to the edge — images vanish into black here.
-          BE NEXT sits roughly at ~70% vertical; gradient covers bottom ~38% of viewport. */}
+      {/* Central radial vignette behind the headline so the text stays legible. */}
+      <div
+        className="absolute inset-0 z-10 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse 36% 26% at 50% 48%, #000 0%, rgba(0,0,0,0.96) 38%, rgba(0,0,0,0.72) 58%, rgba(0,0,0,0.32) 78%, rgba(0,0,0,0) 100%)',
+        }}
+      />
+      {/* Bottom fade zone: from BE NEXT button down to the edge — images vanish into black here. */}
       <div
         className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
         style={{
