@@ -55,12 +55,12 @@ function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
 
         <h3
           className="text-3xl md:text-5xl lg:text-6xl font-black leading-tight"
-          style={{ fontFamily: "'Cinzel', serif", color: '#1a1a1a' }}
+          style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
         >
           {step.title}
         </h3>
 
-        <p className="text-lg md:text-xl leading-relaxed max-w-lg" style={{ color: 'rgba(0,0,0,0.6)' }}>
+        <p className="text-lg md:text-xl leading-relaxed max-w-lg" style={{ color: 'rgba(250,244,236,0.7)' }}>
           {step.detail}
         </p>
 
@@ -89,7 +89,7 @@ export function VisionSection() {
   return (
     <section
       id="vision"
-      style={{ backgroundColor: '#F3EBDD' }}
+      style={{ backgroundColor: '#000000' }}
     >
       {steps.map((step, i) => (
         <VisionStep key={i} step={step} index={i} />
