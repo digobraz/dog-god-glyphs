@@ -93,7 +93,7 @@ export function HeroSection() {
       {/* Video peek at bottom — cosmos.so style */}
       <motion.button
         onClick={scrollToStory}
-        className="relative z-10 flex items-center gap-2 mb-3 text-xs md:text-sm tracking-[0.2em] uppercase cursor-pointer hover:opacity-100 transition-opacity"
+        className="relative z-10 flex items-center gap-2 mb-4 text-xs md:text-sm tracking-[0.2em] uppercase cursor-pointer hover:opacity-100 transition-opacity"
         style={{ fontFamily: "'Cinzel', serif", color: 'rgba(250, 244, 236, 0.7)' }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -105,8 +105,9 @@ export function HeroSection() {
 
       <motion.div
         onClick={scrollToStory}
-        className="relative w-[88%] max-w-[900px] aspect-video rounded-t-2xl overflow-hidden cursor-pointer"
+        className="relative w-[88%] max-w-[1100px] rounded-t-2xl overflow-hidden cursor-pointer"
         style={{
+          height: '45vh',
           boxShadow:
             '0 0 60px rgba(196,155,66,0.15), 0 -10px 40px rgba(196,155,66,0.08)',
           border: '1px solid rgba(196,155,66,0.15)',
