@@ -80,10 +80,11 @@ const RINGS: Ring[] = [
 // Mobile: fewer cards per ring → bigger gaps between photos so the spiral can breathe.
 // Sizes are slightly smaller so the layout still reads as a tight snail, just airier.
 const RINGS_MOBILE: Ring[] = [
-  { count: 4,  radius: 8,  width: 36,  height: 46,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
-  { count: 6,  radius: 19, width: 50,  height: 64,  duration: 82, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
-  { count: 8,  radius: 32, width: 64,  height: 82,  duration: 82, direction: 1, startAngle: 28, opacity: 1, zIndex: 4 },
-  { count: 11, radius: 47, width: 80,  height: 102, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
+  // Smaller cards but more of them per ring → fills dark gaps without crowding.
+  { count: 6,  radius: 8,  width: 36,  height: 46,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
+  { count: 9,  radius: 19, width: 50,  height: 64,  duration: 82, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
+  { count: 12, radius: 32, width: 64,  height: 82,  duration: 82, direction: 1, startAngle: 28, opacity: 1, zIndex: 4 },
+  { count: 16, radius: 47, width: 80,  height: 102, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
 ];
 
 const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
