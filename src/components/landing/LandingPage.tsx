@@ -32,8 +32,8 @@ export function LandingPage() {
       <Header />
       <HeroVideoSequence />
       <TextRevealSection />
-      <ScrollFeatureSection />
       <GlobeSection />
+      <ScrollFeatureSection />
       <StorySection />
       <WhySection />
       <VisionSection />
