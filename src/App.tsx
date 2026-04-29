@@ -1,9 +1,16 @@
+// MAINTENANCE MODE — swap back when ready
+import { MaintenanceScreen } from "@/components/MaintenanceScreen";
+
+const App = () => <MaintenanceScreen />;
+
+/* ORIGINAL APP — uncomment to restore
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LandingPage } from "@/components/landing/LandingPage";
+import { EmailLanding } from "@/components/landing/EmailLanding";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
@@ -34,7 +41,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<EmailLanding />} />
+          <Route path="/full" element={<LandingPage />} />
           <Route path="/name" element={<NameScreen />} />
           <Route path="/photo" element={<PhotoScreen />} />
           <Route path="/breed" element={<BreedPatronScreen />} />
@@ -54,12 +62,12 @@ const App = () => (
           <Route path="/payment-summary" element={<PaymentSummaryScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
           <Route path="/thank-you" element={<ThankYouScreen />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
+*/
 
 export default App;
