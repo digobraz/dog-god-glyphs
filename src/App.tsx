@@ -1,9 +1,3 @@
-// MAINTENANCE MODE — swap back when ready
-import { MaintenanceScreen } from "@/components/MaintenanceScreen";
-
-const App = () => <MaintenanceScreen />;
-
-/* ORIGINAL APP — uncomment to restore
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -68,6 +62,5 @@ const App = () => (
     </TooltipProvider>
   </QueryClientProvider>
 );
-*/
 
 export default App;
