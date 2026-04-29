@@ -5,7 +5,6 @@ import { TextRevealSection } from './TextRevealSection';
 import { ScrollFeatureSection } from './ScrollFeatureSection';
 import { GlobeSection } from './GlobeSection';
 import { StorySection } from './StorySection';
-import { WhySection } from './WhySection';
 import { VisionSection } from './VisionSection';
 import { AboutSection } from './AboutSection';
 import { TestimonialsSection } from './TestimonialsSection';
@@ -35,7 +34,6 @@ export function LandingPage() {
       <GlobeSection />
       <ScrollFeatureSection />
       <StorySection />
-      <WhySection />
       <VisionSection />
       <AboutSection />
       <TestimonialsSection />
