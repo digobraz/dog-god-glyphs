@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 const VIDEO_URL = 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto/f_auto/v1775590313/STORY-9_ajc1mz.mp4';
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxjEkkMDaEfPnPQJfz-g-KtyEQSto3gCb1JdINGNBmwhCSWctfYyzsleGdRYIl5lqwE/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIrlyBAjsD7zU9OSbJfE9EuvsQLmSKFn5suJddOuOgZFCWh8qJ51UsfOj7qxVirIDR/exec';
 
 const shineStyle: React.CSSProperties = {
   fontFamily: 'Cinzel, serif',
