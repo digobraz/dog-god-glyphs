@@ -1,37 +1,20 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 
-// Container = 75vw (100vw - 12.5vw padding × 2).
-// Font sizes calculated so each line fills ~75vw:
-//   Regular (400) char width ≈ 0.58 × fs, Bold (700) ≈ 0.62, Black (900) ≈ 0.66
-//   Gap between words = 0.28em (flex gap)
+// DOGS (17.2vw / 900) defines the container width → ~48vw natural fill.
+// Lines 1, 2, 4 use text-align: justify to stretch to that same 48vw.
+// Font sizes chosen so natural text width < 48vw (gives room for justify to expand).
 //
-// THERE ARE:    (5+3 chars + 1 gap) × 0.58 × fs = 75vw → fs ≈ 15vw
-// ONE BILLION:  (3+7 chars + 1 gap) × 0.62 × fs = 75vw → fs ≈ 11.5vw
-// DOGS:         (4 chars)           × 0.66 × fs = 75vw → fs ≈ 28.5vw
-// IN THE WORLD: (2+3+5 chars + 2 gaps) × 0.58 × fs = 75vw → fs ≈ 11.8vw
+// THERE ARE    8.5vw / 400 — natural ~44.7vw, justify adds ~3.3vw between words
+// ONE BILLION  6.5vw / 700 — natural ~44.9vw, justify adds ~3.1vw between words
+// DOGS        17.2vw / 900 — natural ~48vw, no justify needed
+// IN THE WORLD 6.6vw / 400 — natural ~44.9vw, justify adds ~1.6vw per gap
 
 const LINES_DATA = [
-  {
-    words: [{ word: 'THERE', idx: 0 }, { word: 'ARE', idx: 1 }],
-    fontSize: '15vw',
-    fontWeight: 400,
-  },
-  {
-    words: [{ word: 'ONE', idx: 2 }, { word: 'BILLION', idx: 3 }],
-    fontSize: '11.5vw',
-    fontWeight: 700,
-  },
-  {
-    words: [{ word: 'DOGS', idx: 4 }],
-    fontSize: '28.5vw',
-    fontWeight: 900,
-  },
-  {
-    words: [{ word: 'IN', idx: 5 }, { word: 'THE', idx: 6 }, { word: 'WORLD', idx: 7 }],
-    fontSize: '11.8vw',
-    fontWeight: 400,
-  },
+  { words: [{ word: 'THERE', idx: 0 }, { word: 'ARE', idx: 1 }], fontSize: '8.5vw', fontWeight: 400, justify: true },
+  { words: [{ word: 'ONE', idx: 2 }, { word: 'BILLION', idx: 3 }], fontSize: '6.5vw', fontWeight: 700, justify: true },
+  { words: [{ word: 'DOGS', idx: 4 }], fontSize: '17.2vw', fontWeight: 900, justify: false },
+  { words: [{ word: 'IN', idx: 5 }, { word: 'THE', idx: 6 }, { word: 'WORLD', idx: 7 }], fontSize: '6.6vw', fontWeight: 400, justify: true },
 ];
 
 const N = 8;
@@ -45,7 +28,6 @@ function WordReveal({
   idx: number;
   scrollYProgress: MotionValue<number>;
 }) {
-  // Reveal starts at 0.05 — word 0 brightens as section enters viewport from below.
   const start = 0.05 + (idx / N) * 0.60;
   const mid   = start + 0.08;
   const end   = start + 0.16;
@@ -56,8 +38,9 @@ function WordReveal({
     ['rgba(196,155,66,0.07)', 'rgba(250,244,236,1)', 'rgba(196,155,66,1)'],
   );
 
+  // display:inline (not inline-block) so CSS text-align:justify can work
   return (
-    <motion.span className="inline-block" style={{ color }}>
+    <motion.span style={{ color, display: 'inline' }}>
       {word}
     </motion.span>
   );
@@ -81,30 +64,41 @@ export function TextRevealSection() {
         className="sticky top-0 flex items-center justify-center"
         style={{ height: '100dvh' }}
       >
+        {/* Container width = DOGS natural width (~48vw) */}
         <div
-          className="w-full flex flex-col"
           style={{
+            width: '48vw',
             fontFamily: "'Cinzel', serif",
-            lineHeight: 0.88,
-            letterSpacing: '-0.02em',
-            gap: '1vw',
-            paddingLeft: '12.5vw',
-            paddingRight: '12.5vw',
+            letterSpacing: '-0.01em',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.4vw',
           }}
         >
           {LINES_DATA.map((line, li) => (
             <div
               key={li}
-              className="flex gap-[0.28em]"
-              style={{ fontSize: line.fontSize, fontWeight: line.fontWeight }}
+              style={{
+                fontSize: line.fontSize,
+                fontWeight: line.fontWeight,
+                lineHeight: 0.88,
+                // justify stretches words to fill container width
+                textAlign: line.justify ? 'justify' : 'left',
+                textAlignLast: line.justify ? 'justify' : 'left',
+                display: 'block',
+                width: '100%',
+              }}
             >
-              {line.words.map(({ word, idx }) => (
-                <WordReveal
-                  key={idx}
-                  word={word}
-                  idx={idx}
-                  scrollYProgress={scrollYProgress}
-                />
+              {line.words.map(({ word, idx }, wi) => (
+                <span key={idx}>
+                  <WordReveal
+                    word={word}
+                    idx={idx}
+                    scrollYProgress={scrollYProgress}
+                  />
+                  {/* space between words for justify to distribute */}
+                  {wi < line.words.length - 1 ? ' ' : ''}
+                </span>
               ))}
             </div>
           ))}
