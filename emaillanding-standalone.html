@@ -165,7 +165,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIrlyBAjsD7zU9OSbJfE9EuvsQLmSKFn5suJddOuOgZFCWh8qJ51UsfOj7qxVirIDR/exec';
+    const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd0TkuULnE1R-dbYO0_yfnOhxMQBjOmPZmuRaA-9cjDIMMYnA/formResponse';
+    const ENTRY_ID = 'entry.2054138710';
 
     document.getElementById('emailForm').addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -175,10 +176,11 @@
       errorMsg.style.display = 'none';
 
       try {
-        await fetch(SCRIPT_URL, {
+        await fetch(FORM_URL, {
           method: 'POST',
           mode: 'no-cors',
-          body: new URLSearchParams({ email })
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ [ENTRY_ID]: email })
         });
         document.getElementById('emailForm').style.display = 'none';
         successMsg.style.display = 'block';

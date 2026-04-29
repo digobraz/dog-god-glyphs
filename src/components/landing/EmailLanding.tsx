@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 const VIDEO_URL = 'https://res.cloudinary.com/dz8lolmod/video/upload/q_auto/f_auto/v1775590313/STORY-9_ajc1mz.mp4';
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIrlyBAjsD7zU9OSbJfE9EuvsQLmSKFn5suJddOuOgZFCWh8qJ51UsfOj7qxVirIDR/exec';
+const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd0TkuULnE1R-dbYO0_yfnOhxMQBjOmPZmuRaA-9cjDIMMYnA/formResponse';
+const ENTRY_ID = 'entry.2054138710';
 
 const shineStyle: React.CSSProperties = {
   fontFamily: 'Cinzel, serif',
@@ -27,10 +28,11 @@ export function EmailLanding() {
     e.preventDefault();
     setError(false);
     try {
-      await fetch(SCRIPT_URL, {
+      await fetch(FORM_URL, {
         method: 'POST',
         mode: 'no-cors',
-        body: new URLSearchParams({ email }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ [ENTRY_ID]: email }),
       });
       setSubmitted(true);
     } catch {
