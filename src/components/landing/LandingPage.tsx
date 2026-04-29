@@ -1,7 +1,11 @@
 import { useEffect } from 'react';
 import { Header } from './Header';
 import { HeroVideoSequence } from './HeroVideoSequence';
+import { TextRevealSection } from './TextRevealSection';
+import { ScrollFeatureSection } from './ScrollFeatureSection';
+import { GlobeSection } from './GlobeSection';
 import { StorySection } from './StorySection';
+import { WhySection } from './WhySection';
 import { VisionSection } from './VisionSection';
 import { AboutSection } from './AboutSection';
 import { TestimonialsSection } from './TestimonialsSection';
@@ -27,7 +31,11 @@ export function LandingPage() {
     <div className="w-full">
       <Header />
       <HeroVideoSequence />
+      <TextRevealSection />
+      <ScrollFeatureSection />
+      <GlobeSection />
       <StorySection />
+      <WhySection />
       <VisionSection />
       <AboutSection />
       <TestimonialsSection />
