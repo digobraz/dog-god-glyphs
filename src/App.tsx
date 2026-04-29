@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { EmailLanding } from "@/components/landing/EmailLanding";
+import { GodsGrid } from "@/components/gods/GodsGrid";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
@@ -35,8 +36,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<EmailLanding />} />
-          <Route path="/full" element={<LandingPage />} />
+          <Route path="/" element={<GodsGrid />} />
+          <Route path="/devhome" element={<LandingPage />} />
+          <Route path="/waitlist" element={<EmailLanding />} />
           <Route path="/name" element={<NameScreen />} />
           <Route path="/photo" element={<PhotoScreen />} />
           <Route path="/breed" element={<BreedPatronScreen />} />
