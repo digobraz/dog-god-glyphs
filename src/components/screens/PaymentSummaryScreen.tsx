@@ -110,33 +110,6 @@ export function PaymentSummaryScreen() {
                   </span>
                 </div>
 
-                {/* Custom Character row */}
-                <div
-                  className={`flex justify-between items-center rounded-xl px-3 py-2 transition-colors ${
-                    customPrice > 0
-                      ? 'border border-purple-400/30 bg-purple-400/5'
-                      : 'bg-foreground/[0.03]'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {customPrice > 0 && (
-                      <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                    )}
-                    <span
-                      className={`text-sm ${customPrice > 0 ? 'text-purple-400 font-semibold' : 'text-foreground/40'}`}
-                      style={{ fontFamily: "'Inter', sans-serif" }}
-                    >
-                      Custom Character
-                    </span>
-                  </div>
-                  <span
-                    className={`text-base font-bold ${customPrice > 0 ? 'text-purple-400' : 'text-foreground/30'}`}
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    ${customPrice}
-                  </span>
-                </div>
-
                 {/* Total */}
                 <div
                   className="mt-1 rounded-xl px-3 py-2 flex justify-between items-center"
