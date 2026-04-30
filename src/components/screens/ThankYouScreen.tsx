@@ -139,7 +139,7 @@ export function ThankYouScreen() {
 
         {/* Block #1 — Cream/papyrus card, empty */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex-1 min-h-0 flex-shrink"
+          className="w-full rounded-2xl papyrus-bg flex-[0.5] min-h-0 flex-shrink"
           style={{ border: '1px solid hsl(var(--gold) / 0.3)' }}
           initial={reduced ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
