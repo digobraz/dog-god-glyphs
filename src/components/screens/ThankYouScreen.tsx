@@ -44,8 +44,41 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
   return packNumber;
 }
 
+/** Animated count-up from 0 to target */
+function AnimatedCounter({ target, reduced }: { target: number; reduced: boolean | null }) {
+  const [display, setDisplay] = useState(reduced ? target : 0);
+
+  useEffect(() => {
+    if (reduced || target <= 0) {
+      setDisplay(target);
+      return;
+    }
+    const duration = 800;
+    const start = performance.now();
+    let raf: number;
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(eased * target));
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, reduced]);
+
+  return <>{`#${display.toLocaleString()}`}</>;
+}
+
+// TODO: replace placeholder with user's dog photo from photo step state.
+// We're using a placeholder so we can iterate on the design without going through the full flow each time.
+const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&crop=face';
+
 // TODO: replace with actual Hektor founder photo
 const HEKTOR_PHOTO_URL = 'https://placedog.net/100/100?random';
+
+const CARD_STYLE: React.CSSProperties = {
+  border: '1px solid hsl(var(--gold) / 0.3)',
+};
 
 export function ThankYouScreen() {
   const navigate = useNavigate();
@@ -58,165 +91,134 @@ export function ThankYouScreen() {
   const ownerName = store.ownerName || '';
   const ownerFirstName = ownerName.split(' ')[0] || 'friend';
   const email = store.email || '';
-  const dogPhotoUrl = store.dogPhotoUrl || '';
 
   const packNumber = usePackNumber(dogName, email, sessionId);
-
-  const handleDownload = useCallback(() => {
-    alert('Certificate download will be available via the email link.');
-  }, []);
-
-  const handleShare = useCallback(async () => {
-    const shareData = {
-      title: `${dogName}'s Heroglyph`,
-      text: `${dogName} is now part of the DOGYPT pack! 🐾`,
-      url: window.location.origin,
-    };
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(`${shareData.text} ${shareData.url}`);
-        alert('Link copied to clipboard!');
-      }
-    } catch {}
-  }, [dogName]);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
   }, [navigate]);
 
-  const counterText = packNumber !== null
-    ? `#${packNumber.toLocaleString()} OF 1,000,000`
-    : '#… OF 1,000,000';
-
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      {/* 1. Logo */}
-      <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
+      {/* 1. Logo — on dark bg */}
+      <div className="flex-shrink-0 flex justify-center pt-3 pb-2">
         <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-10 object-contain" />
       </div>
 
-      {/* 2. Hero dog photo */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-2 gap-2.5 max-w-lg mx-auto w-full min-h-0">
+      {/* Cards container */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-2.5 max-w-lg mx-auto w-full min-h-0">
+
+        {/* Card #1 — Dog photo (compact) */}
         <motion.div
-          layoutId={`dog-photo-${dogName}`}
-          className="relative w-full overflow-hidden rounded-[18px]"
-          style={{ aspectRatio: '1 / 1', maxHeight: '62dvh', maxWidth: '62dvh' }}
-          initial={reduced ? false : { scale: 0.96, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 24, duration: 0.6 }}
+          className="w-full rounded-2xl papyrus-bg flex items-center justify-center p-3 flex-shrink-0"
+          style={CARD_STYLE}
+          initial={reduced ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
         >
-          {dogPhotoUrl ? (
+          <motion.div
+            layoutId={`dog-photo-${dogName}`}
+            className="overflow-hidden rounded-xl"
+            style={{ width: 148, height: 148 }}
+          >
             <img
-              src={dogPhotoUrl}
+              src={DOG_PLACEHOLDER_URL}
               alt={dogName}
               className="w-full h-full object-cover"
             />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground text-lg">🐾</span>
-            </div>
-          )}
-
-          {/* Gold overlay strip at bottom */}
-          <div
-            className="absolute bottom-0 left-0 right-0 flex flex-col items-center justify-center"
-            style={{
-              height: 48,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0.25))',
-            }}
-          >
-            <span
-              className="text-[14px] md:text-[16px] font-bold tracking-[0.2em] leading-tight"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                color: 'hsl(var(--gold))',
-              }}
-            >
-              {counterText}
-            </span>
-            <span
-              className="text-[10px] md:text-[11px] tracking-[0.15em]"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                color: 'hsl(var(--gold) / 0.55)',
-              }}
-            >
-              dogs welcomed worldwide
-            </span>
-          </div>
+          </motion.div>
         </motion.div>
 
-        {/* 3. Cream card — founders note */}
+        {/* Card #2 — Million counter (HERO) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg px-4 py-2.5 flex items-center gap-3"
-          style={{ border: '1px solid hsl(var(--gold) / 0.3)' }}
+          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center py-6 md:py-8 px-4 flex-shrink-0"
+          style={CARD_STYLE}
+          initial={reduced ? false : { opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 24 }}
+        >
+          <span
+            className="leading-none font-bold"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(110px, 18vw, 180px)',
+              background: 'linear-gradient(180deg, hsl(45 90% 65%), hsl(39 80% 45%))',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {packNumber !== null ? (
+              <AnimatedCounter target={packNumber} reduced={reduced} />
+            ) : (
+              '#…'
+            )}
+          </span>
+          <span
+            className="mt-1 font-bold tracking-wide"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(28px, 4.5vw, 36px)',
+              color: 'hsl(var(--gold) / 0.55)',
+            }}
+          >
+            of 1,000,000
+          </span>
+          <span
+            className="mt-1 uppercase tracking-[0.2em]"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(11px, 1.8vw, 14px)',
+              color: 'hsl(var(--gold) / 0.35)',
+            }}
+          >
+            dogs welcomed worldwide
+          </span>
+        </motion.div>
+
+        {/* Card #3 — Thank you + CTA (compact) */}
+        <motion.div
+          className="w-full rounded-2xl papyrus-bg px-4 py-3 flex flex-col gap-3 flex-shrink-0"
+          style={CARD_STYLE}
           initial={reduced ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
         >
-          {/* Hektor's portrait */}
-          <img
-            src={HEKTOR_PHOTO_URL}
-            alt="Hektor"
-            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-            style={{ border: '2px solid hsl(var(--gold) / 0.4)' }}
-          />
-          <div className="flex flex-col">
-            <span
-              className="text-[15px] md:text-[16px] font-bold tracking-wide"
-              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold))' }}
-            >
-              Thank you, {ownerFirstName}.
-            </span>
-            <span
-              className="text-[11px] md:text-[12px] italic"
-              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold) / 0.45)' }}
-            >
-              With love, Hektor & Matej
-            </span>
+          {/* Founder row */}
+          <div className="flex items-center gap-3">
+            <img
+              src={HEKTOR_PHOTO_URL}
+              alt="Hektor"
+              className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+              style={{ border: '2px solid hsl(var(--gold) / 0.4)' }}
+            />
+            <div className="flex flex-col">
+              <span
+                className="text-[16px] md:text-[18px] font-bold tracking-wide"
+                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold))' }}
+              >
+                Thank you, {ownerFirstName}.
+              </span>
+              <span
+                className="text-[13px] md:text-[14px] italic"
+                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold) / 0.45)' }}
+              >
+                With love, Hektor &amp; Matej
+              </span>
+            </div>
           </div>
-        </motion.div>
 
-        {/* 4. Primary CTA */}
-        <motion.button
-          onClick={handleEnterPack}
-          className="w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
-          style={{
-            fontFamily: "'Cinzel', serif",
-            background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-            color: '#1a1200',
-            boxShadow: '0 0 30px hsl(var(--gold) / 0.35)',
-          }}
-          initial={reduced ? false : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7, duration: 0.4 }}
-        >
-          ENTER THE PACK →
-        </motion.button>
-
-        {/* 5. Secondary links */}
-        <motion.div
-          className="flex items-center gap-4 text-xs tracking-wide"
-          initial={reduced ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9, duration: 0.4 }}
-        >
+          {/* Primary CTA */}
           <button
-            onClick={handleDownload}
-            className="underline underline-offset-2 transition-opacity hover:opacity-70"
-            style={{ color: 'hsl(var(--gold) / 0.45)', fontFamily: "'Cinzel', serif" }}
+            onClick={handleEnterPack}
+            className="w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+              color: '#1a1200',
+              boxShadow: '0 0 30px hsl(var(--gold) / 0.35)',
+            }}
           >
-            ↓ Download certificate
-          </button>
-          <span style={{ color: 'hsl(var(--gold) / 0.2)' }}>·</span>
-          <button
-            onClick={handleShare}
-            className="underline underline-offset-2 transition-opacity hover:opacity-70"
-            style={{ color: 'hsl(var(--gold) / 0.45)', fontFamily: "'Cinzel', serif" }}
-          >
-            Share with the pack
+            ENTER THE PACK →
           </button>
         </motion.div>
       </div>
