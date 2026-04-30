@@ -142,8 +142,8 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
         }}
       />
       {/* fade overlays — papyrus */}
-      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: ITEM_H * 2, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 40%, transparent)' }} />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: ITEM_H * 2, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 40%, transparent)' }} />
+      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: ITEM_H, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, transparent)' }} />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: ITEM_H, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, transparent)' }} />
 
       <div className="grid grid-cols-3 gap-0 relative">
         <Wheel
