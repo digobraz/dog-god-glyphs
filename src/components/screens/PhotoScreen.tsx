@@ -439,6 +439,9 @@ export function PhotoScreen() {
                   </div>
                 </div>
 
+                {/* Dots nav */}
+                <Dots total={3} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div
                   className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
