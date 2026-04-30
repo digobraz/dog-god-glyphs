@@ -197,32 +197,52 @@ function Dots({ total, current, onDot }: { total: number; current: number; onDot
   );
 }
 
-/* ───── Gold CTA button ───── */
-function GoldButton({
-  children,
-  onClick,
-  disabled,
-  className = '',
+/* ───── Back / Next button pair ───── */
+function BackNextButtons({
+  onBack,
+  onNext,
+  backDisabled,
+  nextDisabled,
+  backLabel = '← BACK',
+  nextLabel = 'NEXT →',
 }: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  className?: string;
+  onBack: () => void;
+  onNext: () => void;
+  backDisabled?: boolean;
+  nextDisabled?: boolean;
+  backLabel?: string;
+  nextLabel?: string;
 }) {
+  const common = "flex-1 rounded-full h-10 font-bold tracking-wider transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs";
   return (
-    <Button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full rounded-full h-10 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 ${className}`}
-      style={{
-        fontFamily: "'Cinzel', serif",
-        background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-        color: '#000',
-        boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-      }}
-    >
-      {children}
-    </Button>
+    <div className="flex gap-2 w-full">
+      <Button
+        onClick={onBack}
+        disabled={backDisabled}
+        className={`${common} hover:scale-105 border-2`}
+        style={{
+          fontFamily: "'Cinzel', serif",
+          background: 'transparent',
+          borderColor: 'hsl(var(--gold) / 0.5)',
+          color: 'hsl(var(--gold))',
+        }}
+      >
+        {backLabel}
+      </Button>
+      <Button
+        onClick={onNext}
+        disabled={nextDisabled}
+        className={`${common} hover:scale-105`}
+        style={{
+          fontFamily: "'Cinzel', serif",
+          background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+          color: '#000',
+          boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+        }}
+      >
+        {nextLabel}
+      </Button>
+    </div>
   );
 }
 
