@@ -1,156 +1,533 @@
-import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Camera, X, Plus, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus, X, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { Checkbox } from '@/components/ui/checkbox';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import hekthorImg from '@/assets/hekthor.png';
+import imageCompression from 'browser-image-compression';
 
-function compressImage(dataUrl: string, maxSize = 600): Promise<string> {
-  return new Promise((resolve) => {
+/* ───── helpers ───── */
+
+async function compressFile(file: File): Promise<string> {
+  const compressed = await imageCompression(file, {
+    maxWidthOrHeight: 1600,
+    fileType: 'image/webp',
+    initialQuality: 0.85,
+    useWebWorker: true,
+    exifOrientation: 1, // strip EXIF by forcing orientation
+  });
+  return URL.createObjectURL(compressed);
+}
+
+function getImageDimensions(url: string): Promise<{ w: number; h: number }> {
+  return new Promise((res) => {
     const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.78));
-    };
-    img.src = dataUrl;
+    img.onload = () => res({ w: img.naturalWidth, h: img.naturalHeight });
+    img.onerror = () => res({ w: 0, h: 0 });
+    img.src = url;
   });
 }
 
+/* ───── slide variants ───── */
+const slideVariants = {
+  enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
+  center: { x: 0, opacity: 1 },
+  exit: (dir: number) => ({ x: dir > 0 ? '-100%' : '100%', opacity: 0 }),
+};
+
+/* ───── Crop component ───── */
+function CropArea({
+  src,
+  shape,
+  value,
+  onChange,
+}: {
+  src: string;
+  shape: 'circle' | 'square';
+  value: { x: number; y: number; zoom: number };
+  onChange: (v: { x: number; y: number; zoom: number }) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dragStart = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+
+  const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragStart.current = { x: e.clientX, y: e.clientY, ox: value.x, oy: value.y };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragStart.current || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const size = Math.min(rect.width, rect.height);
+    const dx = ((e.clientX - dragStart.current.x) / size) * 100;
+    const dy = ((e.clientY - dragStart.current.y) / size) * 100;
+    const maxOffset = ((value.zoom - 1) / value.zoom) * 50;
+    onChange({
+      ...value,
+      x: clamp(dragStart.current.ox + dx, -maxOffset, maxOffset),
+      y: clamp(dragStart.current.oy + dy, -maxOffset, maxOffset),
+    });
+  };
+
+  const handlePointerUp = () => {
+    dragStart.current = null;
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    const newZoom = clamp(value.zoom - e.deltaY * 0.002, 1, 4);
+    const maxOffset = ((newZoom - 1) / newZoom) * 50;
+    onChange({
+      x: clamp(value.x, -maxOffset, maxOffset),
+      y: clamp(value.y, -maxOffset, maxOffset),
+      zoom: newZoom,
+    });
+  };
+
+  const maskStyle =
+    shape === 'circle'
+      ? { clipPath: 'circle(50% at 50% 50%)' }
+      : {};
+
+  return (
+    <div className="flex flex-col items-center gap-2 flex-1 min-h-0">
+      <div
+        ref={containerRef}
+        className="relative overflow-hidden touch-none cursor-grab active:cursor-grabbing flex-1 w-full max-w-[280px] aspect-square"
+        style={{
+          ...maskStyle,
+          border: '2px dashed hsl(var(--gold) / 0.5)',
+          borderRadius: shape === 'square' ? '0.75rem' : '50%',
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onWheel={handleWheel}
+      >
+        <img
+          src={src}
+          alt="crop"
+          draggable={false}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style={{
+            transform: `translate(${value.x}%, ${value.y}%) scale(${value.zoom})`,
+          }}
+        />
+      </div>
+      {/* zoom slider */}
+      <input
+        type="range"
+        min={100}
+        max={400}
+        value={value.zoom * 100}
+        onChange={(e) => {
+          const z = Number(e.target.value) / 100;
+          const maxOffset = ((z - 1) / z) * 50;
+          const cl = (v: number) => clamp(v, -maxOffset, maxOffset);
+          onChange({ x: cl(value.x), y: cl(value.y), zoom: z });
+        }}
+        className="w-full max-w-[200px] accent-[hsl(var(--gold))]"
+      />
+    </div>
+  );
+}
+
+/* ───── Preview thumbnail ───── */
+function CropPreview({
+  src,
+  crop,
+  shape,
+  label,
+}: {
+  src: string;
+  crop: { x: number; y: number; zoom: number };
+  shape: 'circle' | 'square';
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+      <div
+        className="w-14 h-14 overflow-hidden"
+        style={{
+          borderRadius: shape === 'circle' ? '50%' : '0.375rem',
+          border: '1px solid hsl(var(--gold) / 0.3)',
+        }}
+      >
+        <img
+          src={src}
+          alt={label}
+          className="w-full h-full object-cover"
+          style={{
+            transform: `translate(${crop.x}%, ${crop.y}%) scale(${crop.zoom})`,
+          }}
+        />
+      </div>
+      <span
+        className="text-[10px] text-muted-foreground"
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
+/* ───── Dots ───── */
+function Dots({ total, current }: { total: number; current: number }) {
+  return (
+    <div className="flex gap-1.5 justify-center">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className="w-1.5 h-1.5 rounded-full transition-colors"
+          style={{
+            backgroundColor:
+              i === current ? 'hsl(var(--gold))' : 'hsl(var(--gold) / 0.25)',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/* ───── Gold CTA button ───── */
+function GoldButton({
+  children,
+  onClick,
+  disabled,
+  className = '',
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <Button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full rounded-full h-10 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 ${className}`}
+      style={{
+        fontFamily: "'Cinzel', serif",
+        background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+        color: '#000',
+        boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+      }}
+    >
+      {children}
+    </Button>
+  );
+}
+
+/* ───── MAIN COMPONENT ───── */
 export function PhotoScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setDogPhotoUrl = useDogyptStore((s) => s.setDogPhotoUrl);
-  const [photos, setPhotos] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const setCertCropData = useDogyptStore((s) => s.setCertCropData);
+  const setGridCropData = useDogyptStore((s) => s.setGridCropData);
+  const setExtraPhotos = useDogyptStore((s) => s.setExtraPhotos);
+  const setGdprConsent = useDogyptStore((s) => s.setGdprConsent);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    const remaining = 5 - photos.length;
-    Array.from(files).slice(0, remaining).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setPhotos((prev) => prev.length >= 5 ? prev : [...prev, ev.target?.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+  const [sub, setSub] = useState(0);
+  const [dir, setDir] = useState(1);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [fileName, setFileName] = useState('');
+  const [lowRes, setLowRes] = useState(false);
+  const [certCrop, setCertCrop] = useState({ x: 0, y: 0, zoom: 1 });
+  const [gridCrop, setGridCrop] = useState({ x: 0, y: 0, zoom: 1 });
+  const [extras, setExtras] = useState<string[]>([]);
+  const [gdpr, setGdpr] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const extraRef = useRef<HTMLInputElement>(null);
+
+  const goTo = (next: number) => {
+    setDir(next > sub ? 1 : -1);
+    setSub(next);
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);
+    const url = await compressFile(file);
+    const dims = await getImageDimensions(url);
+    setLowRes(dims.w < 1500 && dims.h < 1500);
+    setPhotoUrl(url);
     e.target.value = '';
   };
 
-  const removePhoto = (index: number) => setPhotos((prev) => prev.filter((_, i) => i !== index));
+  const handleExtraUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await compressFile(file);
+    setExtras((p) => (p.length < 3 ? [...p, url] : p));
+    e.target.value = '';
+  };
+
+  const finish = () => {
+    if (photoUrl) setDogPhotoUrl(photoUrl);
+    setCertCropData(certCrop);
+    setGridCropData(gridCrop);
+    setExtraPhotos(extras);
+    setGdprConsent(gdpr);
+    navigate('/breed');
+  };
+
+  /* ───── Sub-screen renderers ───── */
+
+  const renderUpload = () => (
+    <div className="flex flex-col items-center gap-3 flex-1 min-h-0 justify-center">
+      <h2
+        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center"
+        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+      >
+        A FACE OF A GOD
+      </h2>
+      <p
+        className="text-xs md:text-sm text-center text-muted-foreground leading-relaxed px-2"
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        Upload a clear photo of your dog — it will be sealed into their Heroglyph forever.
+      </p>
+
+      {!photoUrl ? (
+        <div
+          className="w-full max-w-[260px] aspect-square rounded-2xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary/60 transition-colors"
+          style={{
+            border: '2px dashed hsl(var(--gold) / 0.4)',
+          }}
+          onClick={() => fileRef.current?.click()}
+        >
+          {/* Paw icon in gold */}
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="hsl(39 55% 51%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 17c-2.5 2-6 2-6-1 0-2 2-4 6-6 4 2 6 4 6 6 0 3-3.5 3-6 1z" />
+            <circle cx="6" cy="8" r="2" />
+            <circle cx="18" cy="8" r="2" />
+            <circle cx="9" cy="4" r="1.5" />
+            <circle cx="15" cy="4" r="1.5" />
+          </svg>
+          <span
+            className="text-xs text-muted-foreground"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            Tap to upload
+          </span>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <div
+            className="w-20 h-20 rounded-full overflow-hidden"
+            style={{ border: '2px solid hsl(var(--gold))' }}
+          >
+            <img src={photoUrl} alt="Dog" className="w-full h-full object-cover" />
+          </div>
+          <span
+            className="text-xs text-muted-foreground truncate max-w-[200px]"
+            style={{ fontFamily: "'Inter', sans-serif" }}
+          >
+            {fileName}
+          </span>
+          <button
+            className="text-[10px] underline text-muted-foreground"
+            onClick={() => fileRef.current?.click()}
+          >
+            Change photo
+          </button>
+        </div>
+      )}
+
+      {lowRes && photoUrl && (
+        <div
+          className="w-full rounded-lg px-3 py-2 text-[11px] leading-snug text-center"
+          style={{
+            background: 'hsl(210 80% 55% / 0.12)',
+            color: 'hsl(210 80% 40%)',
+            fontFamily: "'Inter', sans-serif",
+          }}
+        >
+          <Info className="inline h-3 w-3 mr-1 -mt-0.5" />
+          Your god deserves a sharper portrait. Continue or upload a better photo.
+        </div>
+      )}
+
+      <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+      <GoldButton onClick={() => goTo(1)} disabled={!photoUrl}>
+        CONTINUE
+      </GoldButton>
+    </div>
+  );
+
+  const renderCertCrop = () => (
+    <div className="flex flex-col gap-2 flex-1 min-h-0">
+      <h2
+        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center flex-shrink-0"
+        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+      >
+        SEAL THE PORTRAIT
+      </h2>
+      <p
+        className="text-[11px] md:text-sm text-center text-muted-foreground flex-shrink-0"
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        This will appear in your official Heroglyph certificate.
+      </p>
+      {photoUrl && (
+        <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />
+      )}
+      {photoUrl && (
+        <CropPreview src={photoUrl} crop={certCrop} shape="circle" label="Certificate preview" />
+      )}
+      <GoldButton onClick={() => goTo(2)} className="flex-shrink-0">
+        LOOKS GOOD
+      </GoldButton>
+    </div>
+  );
+
+  const renderGridCrop = () => (
+    <div className="flex flex-col gap-2 flex-1 min-h-0">
+      <h2
+        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center flex-shrink-0"
+        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+      >
+        THE HALL OF GODS
+      </h2>
+      <p
+        className="text-[11px] md:text-sm text-center text-muted-foreground flex-shrink-0"
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        Square crop for the gods' hall of fame.
+      </p>
+      {photoUrl && (
+        <CropArea src={photoUrl} shape="square" value={gridCrop} onChange={setGridCrop} />
+      )}
+      {photoUrl && (
+        <CropPreview src={photoUrl} crop={gridCrop} shape="square" label="Grid preview" />
+      )}
+      <GoldButton onClick={() => goTo(3)} className="flex-shrink-0">
+        DONE
+      </GoldButton>
+    </div>
+  );
+
+  const renderExtras = () => (
+    <div className="flex flex-col items-center gap-3 flex-1 min-h-0 justify-center">
+      <h2
+        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center"
+        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+      >
+        MORE FACES OF THE GOD
+      </h2>
+      <p
+        className="text-xs md:text-sm text-center text-muted-foreground px-2"
+        style={{ fontFamily: "'Inter', sans-serif" }}
+      >
+        Add 1–3 more photos for surprises later.
+      </p>
+
+      <div className="flex gap-3 justify-center">
+        {Array.from({ length: 3 }).map((_, i) => {
+          const url = extras[i];
+          return (
+            <div
+              key={i}
+              className="w-20 h-20 rounded-xl overflow-hidden flex items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+              style={{
+                border: '2px dashed hsl(var(--gold) / 0.35)',
+                background: url ? 'transparent' : 'hsl(var(--gold) / 0.05)',
+              }}
+              onClick={() => {
+                if (!url && extras.length <= i) extraRef.current?.click();
+              }}
+            >
+              {url ? (
+                <div className="relative w-full h-full">
+                  <img src={url} alt={`Extra ${i + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExtras((p) => p.filter((_, j) => j !== i));
+                    }}
+                  >
+                    <X className="h-3 w-3 text-white" />
+                  </button>
+                </div>
+              ) : (
+                <Plus className="h-5 w-5" style={{ color: 'hsl(var(--gold) / 0.5)' }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <input ref={extraRef} type="file" accept="image/*" onChange={handleExtraUpload} className="hidden" />
+
+      <label className="flex items-start gap-2 text-[11px] text-muted-foreground px-4 cursor-pointer" style={{ fontFamily: "'Inter', sans-serif" }}>
+        <Checkbox
+          checked={gdpr}
+          onCheckedChange={(v) => setGdpr(!!v)}
+          className="mt-0.5 border-muted-foreground/40"
+        />
+        <span>I consent to use these for personalized content.</span>
+      </label>
+
+      <div className="w-full flex flex-col items-center gap-1">
+        <GoldButton onClick={finish}>CONTINUE</GoldButton>
+        <button
+          className="text-[11px] text-muted-foreground underline"
+          style={{ fontFamily: "'Inter', sans-serif" }}
+          onClick={finish}
+        >
+          SKIP
+        </button>
+      </div>
+    </div>
+  );
+
+  const screens = [renderUpload, renderCertCrop, renderGridCrop, renderExtras];
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
-        <button onClick={() => navigate('/name')} className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors">
+      {/* Header */}
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
+        <button
+          onClick={() => (sub > 0 ? goTo(sub - 1) : navigate('/name'))}
+          className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl flex flex-col items-center gap-6">
-          <motion.div
-            className="w-full rounded-2xl p-6 flex flex-col items-center gap-4" style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35 }}
+      {/* Content */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
+        <div className="w-full max-w-xl flex flex-col min-h-0 flex-1">
+          <div
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col flex-1 min-h-0 overflow-hidden relative"
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-            <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              SAY HELLO TO <span className="font-bold text-amber-300">{dogName || 'FRIEND'}</span>
-              {'\n'}AND SHOW ME THEIR <span className="font-bold">MAJESTY!</span>
-            </p>
-            <p className="text-white/70 text-sm text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
-              Upload up to 5 photos
-            </p>
-          </motion.div>
+            <Dots total={4} current={sub} />
 
-          <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-4"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.35, delay: 0.1 }}
-          >
-            <div className="grid grid-cols-5 gap-3">
-              {Array.from({ length: 5 }).map((_, i) => {
-                const photo = photos[i];
-                return (
-                  <div
-                    key={i}
-                    className="relative aspect-square rounded-xl border-2 border-dashed border-border/50 overflow-hidden flex items-center justify-center bg-card/50 cursor-pointer hover:border-primary/50 transition-colors"
-                    onClick={() => { if (!photo && photos.length < 5) fileInputRef.current?.click(); }}
-                  >
-                    {photo ? (
-                      <>
-                        <img src={photo} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
-                        <button onClick={(e) => { e.stopPropagation(); removePhoto(i); }} className="absolute top-1 right-1 bg-foreground/70 text-background rounded-full p-0.5 hover:bg-foreground transition-colors">
-                          <X className="h-3 w-3" />
-                        </button>
-                      </>
-                    ) : (
-                      <Plus className="h-5 w-5 text-muted-foreground/50" />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
-            <div className="flex flex-col gap-2">
-              {photos.length === 0 ? (
-                <Button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                    color: '#000',
-                    boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                  ADD PHOTOS
-                </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={photos.length >= 5}
-                    variant="outline"
-                    className="flex-1 rounded-full py-5 font-bold tracking-wider border-primary text-foreground hover:bg-primary hover:text-primary-foreground gap-2 disabled:opacity-30"
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    <Camera className="h-4 w-4" />
-                    ADD MORE
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      if (photos[0]) {
-                        const compressed = await compressImage(photos[0]);
-                        setDogPhotoUrl(compressed);
-                      }
-                      navigate('/breed');
-                    }}
-                    className="flex-1 rounded-full py-5 text-lg font-bold tracking-wider hover:scale-105 transition-transform gap-2"
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                      color: '#000',
-                      boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-                    }}
-                  >
-                    NEXT →
-                  </Button>
-                </div>
-              )}
-            </div>
-          </motion.div>
+            <AnimatePresence mode="wait" custom={dir}>
+              <motion.div
+                key={sub}
+                custom={dir}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="flex flex-col flex-1 min-h-0 mt-2"
+              >
+                {screens[sub]()}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     </div>

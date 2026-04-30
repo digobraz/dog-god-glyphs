@@ -16,6 +16,10 @@ export interface DogyptState {
   isMix: boolean;
   patronCategory2: string;
   patronSvg2: string;
+  certCropData: { x: number; y: number; zoom: number } | null;
+  gridCropData: { x: number; y: number; zoom: number } | null;
+  extraPhotos: string[];
+  gdprConsent: boolean;
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
@@ -30,6 +34,10 @@ export interface DogyptState {
   setIsMix: (v: boolean) => void;
   setPatronCategory2: (v: string) => void;
   setPatronSvg2: (v: string) => void;
+  setCertCropData: (v: { x: number; y: number; zoom: number } | null) => void;
+  setGridCropData: (v: { x: number; y: number; zoom: number } | null) => void;
+  setExtraPhotos: (v: string[]) => void;
+  setGdprConsent: (v: boolean) => void;
   reset: () => void;
 }
 
@@ -50,6 +58,10 @@ export const useDogyptStore = create<DogyptState>()(
       isMix: false,
       patronCategory2: '',
       patronSvg2: '',
+      certCropData: null,
+      gridCropData: null,
+      extraPhotos: [],
+      gdprConsent: false,
       setDogName: (name) => set({ dogName: name }),
       setOwnerName: (name) => set({ ownerName: name }),
       setStep: (step) => set({ currentStep: step }),
@@ -64,6 +76,10 @@ export const useDogyptStore = create<DogyptState>()(
       setIsMix: (v) => set({ isMix: v }),
       setPatronCategory2: (v) => set({ patronCategory2: v }),
       setPatronSvg2: (v) => set({ patronSvg2: v }),
+      setCertCropData: (v) => set({ certCropData: v }),
+      setGridCropData: (v) => set({ gridCropData: v }),
+      setExtraPhotos: (v) => set({ extraPhotos: v }),
+      setGdprConsent: (v) => set({ gdprConsent: v }),
       reset: () => set({
         dogName: '',
         ownerName: '',
@@ -79,6 +95,10 @@ export const useDogyptStore = create<DogyptState>()(
         isMix: false,
         patronCategory2: '',
         patronSvg2: '',
+        certCropData: null,
+        gridCropData: null,
+        extraPhotos: [],
+        gdprConsent: false,
       }),
     }),
     {
@@ -100,6 +120,10 @@ export const useDogyptStore = create<DogyptState>()(
         isMix: false,
         patronCategory2: '',
         patronSvg2: '',
+        certCropData: null,
+        gridCropData: null,
+        extraPhotos: [],
+        gdprConsent: false,
       }),
     }
   )
