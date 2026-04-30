@@ -1,10 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, X, Sparkles, Image } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
@@ -22,7 +21,6 @@ const characters = [
   { value: 'playful', label: 'Playful', img: playfulSvg, isCustom: false },
   { value: 'hyperactive', label: 'Hyperactive', img: hyperactiveSvg, isCustom: false },
   { value: 'pirate', label: 'Pirate', img: pirateSvg, isCustom: false },
-  { value: 'custom', label: 'Custom', img: null, isCustom: true },
   { value: 'waterlover', label: 'Water Lover', img: waterloverSvg, isCustom: false },
   { value: 'gourmet', label: 'Gourmet', img: gourmetSvg, isCustom: false },
   { value: 'lover', label: 'Lover', img: loverSvg, isCustom: false },
@@ -35,17 +33,9 @@ export function DogCharacterScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
-  const customCharacter = useDogyptStore((s) => s.customCharacter);
-  const setCustomCharacter = useDogyptStore((s) => s.setCustomCharacter);
   const [selected, setSelected] = useState<string[]>([]);
   const [showInfo, setShowInfo] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  const [showCustomModal, setShowCustomModal] = useState(false);
-  const [customDescription, setCustomDescription] = useState('');
-  const [customPhoto, setCustomPhoto] = useState<File | null>(null);
-  const [customPhotoPreview, setCustomPhotoPreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -83,38 +73,6 @@ export function DogCharacterScreen() {
 
       return next;
     });
-  };
-
-  const handleCustomClick = () => {
-    if (customCharacter) {
-      setCustomCharacter(false);
-      setCustomDescription('');
-      setCustomPhoto(null);
-      setCustomPhotoPreview(null);
-    } else {
-      setShowCustomModal(true);
-    }
-  };
-
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setCustomPhoto(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setCustomPhotoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleConfirmCustom = () => {
-    setCustomCharacter(true);
-    setShowCustomModal(false);
-  };
-
-  const handleCancelCustom = () => {
-    setShowCustomModal(false);
-    setCustomDescription('');
-    setCustomPhoto(null);
-    setCustomPhotoPreview(null);
   };
 
   return (
