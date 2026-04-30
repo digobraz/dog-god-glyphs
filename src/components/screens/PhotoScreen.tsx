@@ -495,7 +495,7 @@ export function PhotoScreen() {
                 {/* file input */}
                 {renderUpload()}
               </motion.div>
-            ) : sub === 1 || sub === 2 ? (
+            ) : sub >= 1 && sub <= 3 ? (
               <motion.div
                 key={sub}
                 custom={dir}
