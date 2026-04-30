@@ -20,7 +20,7 @@ const characters = [
   { value: 'watcher', label: 'Watcher', img: watcherSvg, isCustom: false },
   { value: 'playful', label: 'Playful', img: playfulSvg, isCustom: false },
   { value: 'hyperactive', label: 'Hyperactive', img: hyperactiveSvg, isCustom: false },
-  { value: 'pirate', label: 'Pirate', img: pirateSvg, isCustom: false },
+  { value: 'pirate', label: 'Maverick', img: pirateSvg, isCustom: false },
   { value: 'waterlover', label: 'Water Lover', img: waterloverSvg, isCustom: false },
   { value: 'gourmet', label: 'Gourmet', img: gourmetSvg, isCustom: false },
   { value: 'lover', label: 'Lover', img: loverSvg, isCustom: false },
