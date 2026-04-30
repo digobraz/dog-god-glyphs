@@ -90,7 +90,8 @@ export function NameScreen() {
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
               <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
               <p className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>. What's your dog's name?
+                Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>.<br />
+                What's your dog's name?
               </p>
             </div>
 
