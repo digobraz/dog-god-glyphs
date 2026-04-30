@@ -153,7 +153,7 @@ export function ThankYouScreen() {
         >
           {/* Radial gold glow behind the number */}
           <div
-            className="absolute pointer-events-none"
+            className="!absolute pointer-events-none"
             style={{
               width: 320,
               height: 320,
