@@ -178,17 +178,18 @@ function CropPreview({
   );
 }
 
-/* ───── Dots ───── */
-function Dots({ total, current }: { total: number; current: number }) {
+/* ───── Dots (tappable) ───── */
+function Dots({ total, current, onDot }: { total: number; current: number; onDot?: (i: number) => void }) {
   return (
     <div className="flex gap-1.5 justify-center">
       {Array.from({ length: total }).map((_, i) => (
         <div
           key={i}
-          className="w-1.5 h-1.5 rounded-full transition-colors"
+          className="w-2 h-2 rounded-full transition-colors cursor-pointer"
+          onClick={() => onDot?.(i)}
           style={{
-            backgroundColor:
-              i === current ? 'hsl(var(--gold))' : 'hsl(var(--gold) / 0.25)',
+            backgroundColor: i === current ? 'hsl(var(--gold))' : 'transparent',
+            border: '1.5px solid hsl(var(--gold))',
           }}
         />
       ))}
@@ -290,55 +291,25 @@ export function PhotoScreen() {
   );
 
   const renderCertCrop = () => (
-    <div className="flex flex-col gap-2 flex-1 min-h-0">
-      <h2
-        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center flex-shrink-0"
-        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-      >
-        SEAL THE PORTRAIT
-      </h2>
-      <p
-        className="text-[11px] md:text-sm text-center text-muted-foreground flex-shrink-0"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        This will appear in your official Heroglyph certificate.
-      </p>
+    <>
       {photoUrl && (
         <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />
       )}
-      {photoUrl && (
-        <CropPreview src={photoUrl} crop={certCrop} shape="circle" label="Certificate preview" />
-      )}
-      <GoldButton onClick={() => goTo(2)} className="flex-shrink-0">
+      <GoldButton onClick={() => goTo(2)} className="flex-shrink-0 w-full">
         LOOKS GOOD
       </GoldButton>
-    </div>
+    </>
   );
 
   const renderGridCrop = () => (
-    <div className="flex flex-col gap-2 flex-1 min-h-0">
-      <h2
-        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center flex-shrink-0"
-        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-      >
-        THE HALL OF GODS
-      </h2>
-      <p
-        className="text-[11px] md:text-sm text-center text-muted-foreground flex-shrink-0"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        Square crop for the gods' hall of fame.
-      </p>
+    <>
       {photoUrl && (
         <CropArea src={photoUrl} shape="square" value={gridCrop} onChange={setGridCrop} />
       )}
-      {photoUrl && (
-        <CropPreview src={photoUrl} crop={gridCrop} shape="square" label="Grid preview" />
-      )}
-      <GoldButton onClick={() => goTo(3)} className="flex-shrink-0">
+      <GoldButton onClick={() => goTo(3)} className="flex-shrink-0 w-full">
         DONE
       </GoldButton>
-    </div>
+    </>
   );
 
   const renderExtras = () => (
@@ -468,6 +439,9 @@ export function PhotoScreen() {
                   </div>
                 </div>
 
+                {/* Dots nav */}
+                <Dots total={3} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div
                   className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
@@ -521,6 +495,57 @@ export function PhotoScreen() {
                 {/* file input */}
                 {renderUpload()}
               </motion.div>
+            ) : sub === 1 || sub === 2 ? (
+              <motion.div
+                key={sub}
+                custom={dir}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="flex flex-col flex-1 min-h-0 w-full gap-3 md:gap-4 justify-center"
+              >
+                {/* BLOCK 1 — dark gradient card */}
+                <div
+                  className="w-full rounded-2xl flex-shrink overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+                >
+                  <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-2">
+                    <h2
+                      className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      {sub === 1 ? 'SEAL THE PORTRAIT' : 'THE HALL OF GODS'}
+                    </h2>
+                    <p
+                      className="text-white/70 text-sm text-center"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      {sub === 1
+                        ? 'This will appear in your official Heroglyph certificate.'
+                        : "Square crop for the gods' hall of fame."}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Dots nav */}
+                <Dots total={3} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+
+                {/* BLOCK 2 — cream/papyrus card */}
+                <motion.div
+                  className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.35, delay: 0.1 }}
+                >
+                  <div className="flex flex-col gap-2 md:gap-3 items-center">
+                    {screens[sub]()}
+                  </div>
+                </motion.div>
+
+                {renderUpload()}
+              </motion.div>
             ) : (
               <motion.div
                 key={sub}
@@ -533,7 +558,7 @@ export function PhotoScreen() {
                 className="flex flex-col flex-1 min-h-0 w-full"
               >
                 <div className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
-                  <Dots total={4} current={sub} />
+                  <Dots total={4} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
                   <div className="flex flex-col flex-1 min-h-0 mt-2">
                     {screens[sub]()}
                   </div>
