@@ -5,12 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-
-const TIERS = [
-  { amount: 11, label: 'Standard' },
-  { amount: 22, label: 'Patron' },
-  { amount: 33, label: 'Hero' },
-];
+import heroglyphFrame from '@/assets/heroglyph-frame.svg';
 
 const COUNTRIES = [
   'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
@@ -34,10 +29,10 @@ const COUNTRIES = [
 export function CheckoutScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
+  const dogPhotoUrl = useDogyptStore((s) => s.dogPhotoUrl);
   const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
   const setEmail = useDogyptStore((s) => s.setEmail);
 
-  const [selectedTier, setSelectedTier] = useState(11);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setLocalEmail] = useState('');
@@ -53,7 +48,7 @@ export function CheckoutScreen() {
 
   const handleContinue = () => {
     if (!isValid) return;
-    setSelectedAmount(selectedTier);
+    setSelectedAmount(11);
     setEmail(email);
     navigate('/payment');
   };
@@ -89,6 +84,29 @@ export function CheckoutScreen() {
                 Order Summary
               </h2>
 
+              {/* Heroglyph preview */}
+              <div className="flex flex-col items-center py-3">
+                <div
+                  className="relative w-24 h-24 rounded-full overflow-hidden"
+                  style={{
+                    border: '3px solid hsl(var(--gold))',
+                    boxShadow: '0 0 20px hsl(var(--gold) / 0.3)',
+                  }}
+                >
+                  {dogPhotoUrl ? (
+                    <img src={dogPhotoUrl} alt={dogName || 'Dog'} className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={heroglyphFrame} alt="Heroglyph" className="w-full h-full object-contain p-2" />
+                  )}
+                </div>
+                <span
+                  className="mt-2 text-2xl font-bold tracking-[0.15em] uppercase text-primary"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  {dogName || 'YOUR DOG'}
+                </span>
+              </div>
+
               {/* Product line */}
               <div
                 className="flex justify-between items-center rounded-xl px-3 py-2"
@@ -107,29 +125,6 @@ export function CheckoutScreen() {
                 </span>
               </div>
 
-              {/* Patron contribution */}
-              <div className="mt-1.5">
-                <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  Add patron support — every extra cent goes to shelters.
-                </p>
-                <div className="flex gap-2 justify-center">
-                  {TIERS.map((tier) => (
-                    <button
-                      key={tier.amount}
-                      onClick={() => setSelectedTier(tier.amount)}
-                      className={`flex-1 rounded-xl border-2 py-2 text-center transition-all ${
-                        selectedTier === tier.amount
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border/60 text-muted-foreground hover:border-primary/50'
-                      }`}
-                    >
-                      <span className="block text-sm font-bold" style={{ fontFamily: "'Cinzel', serif" }}>${tier.amount}</span>
-                      <span className="block text-[9px] tracking-wider uppercase" style={{ fontFamily: "'Inter', sans-serif" }}>{tier.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* TOTAL */}
               <div
                 className="mt-1.5 rounded-xl px-3 py-1.5 flex justify-between items-center"
@@ -145,7 +140,7 @@ export function CheckoutScreen() {
                   className="text-xl md:text-2xl font-bold text-primary"
                   style={{ fontFamily: "'Cinzel', serif", textShadow: '0 0 20px hsl(var(--gold) / 0.3)' }}
                 >
-                  ${selectedTier}
+                  $11
                 </span>
               </div>
             </div>
