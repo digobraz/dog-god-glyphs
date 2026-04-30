@@ -7,6 +7,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import imageCompression from 'browser-image-compression';
+import hekthorImg from '@/assets/hekthor.png';
 
 /* ───── helpers ───── */
 
@@ -244,7 +245,6 @@ export function PhotoScreen() {
   const [gdpr, setGdpr] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const extraRef = useRef<HTMLInputElement>(null);
-  const dogName = useDogyptStore((s) => s.dogName);
 
   const goTo = (next: number) => {
     setDir(next > sub ? 1 : -1);
