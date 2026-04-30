@@ -524,7 +524,9 @@ export function PhotoScreen() {
                     >
                       {sub === 1
                         ? 'This will appear in your official Heroglyph certificate.'
-                        : "Square crop for the gods' hall of fame."}
+                        : sub === 2
+                          ? "Square crop for the gods' hall of fame."
+                          : 'Add 1–3 more photos for surprises later.'}
                     </p>
                   </div>
                 </div>
