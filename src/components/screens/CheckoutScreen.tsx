@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import heroglyphFrame from '@/assets/heroglyph-frame.svg';
+import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 
 const COUNTRIES = [
   'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
@@ -84,27 +84,19 @@ export function CheckoutScreen() {
                 Order Summary
               </h2>
 
-              {/* Heroglyph preview */}
-              <div className="flex flex-col items-center py-3">
-                <div
-                  className="relative w-24 h-24 rounded-full overflow-hidden"
-                  style={{
-                    border: '3px solid hsl(var(--gold))',
-                    boxShadow: '0 0 20px hsl(var(--gold) / 0.3)',
-                  }}
-                >
-                  {dogPhotoUrl ? (
-                    <img src={dogPhotoUrl} alt={dogName || 'Dog'} className="w-full h-full object-cover" />
-                  ) : (
-                    <img src={heroglyphFrame} alt="Heroglyph" className="w-full h-full object-contain p-2" />
-                  )}
+              {/* Full heroglyph preview */}
+              <div className="flex flex-col items-center py-4">
+                <div className="w-[160px]">
+                  <HeroglyphFrame showOwner className="text-primary" />
                 </div>
-                <span
-                  className="mt-2 text-2xl font-bold tracking-[0.15em] uppercase text-primary"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {dogName || 'YOUR DOG'}
-                </span>
+                {dogName && (
+                  <span
+                    className="mt-3 text-2xl font-bold tracking-[0.15em] uppercase text-primary"
+                    style={{ fontFamily: "'Cinzel', serif" }}
+                  >
+                    {dogName}
+                  </span>
+                )}
               </div>
 
               {/* Product line */}
@@ -125,24 +117,6 @@ export function CheckoutScreen() {
                 </span>
               </div>
 
-              {/* TOTAL */}
-              <div
-                className="mt-1.5 rounded-xl px-3 py-1.5 flex justify-between items-center"
-                style={{
-                  background: 'linear-gradient(135deg, hsl(var(--gold) / 0.15), hsl(var(--gold) / 0.25))',
-                  borderTop: '2px solid hsl(var(--gold) / 0.3)',
-                }}
-              >
-                <span className="text-sm md:text-base font-bold tracking-[0.2em] uppercase text-primary" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Total
-                </span>
-                <span
-                  className="text-xl md:text-2xl font-bold text-primary"
-                  style={{ fontFamily: "'Cinzel', serif", textShadow: '0 0 20px hsl(var(--gold) / 0.3)' }}
-                >
-                  $11
-                </span>
-              </div>
             </div>
           </motion.div>
 
