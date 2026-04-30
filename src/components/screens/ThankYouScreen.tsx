@@ -145,7 +145,7 @@ export function ThankYouScreen() {
 
         {/* Card #2 — Million counter (HERO) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center py-5 md:py-8 px-4 flex-shrink-0 relative overflow-hidden"
+          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 relative overflow-hidden flex-1 min-h-0"
           style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
