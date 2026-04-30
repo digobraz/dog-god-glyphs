@@ -1,47 +1,47 @@
-# Plan: restore the broken preview and stop the blank screen loop
+# Merge Dog Name + Birthday into Single `/name` Screen
 
-## What I found
-The preview is not blank because of the new Testimonials JSX itself. The app is mounting, but the main stylesheet is failing to load in preview.
+## Goal
+Combine the dog name input and dog birthday input into one screen at `/name`. Delete the standalone `/birthday-dog` screen and rewire navigation to skip it.
 
-Confirmed symptoms:
-- The browser loads `src/main.tsx` and `src/App.tsx` successfully.
-- The request for `src/index.css?t=...` fails in preview.
-- With CSS missing, the page ends up rendering as an effectively blank white screen.
-- There are no runtime React errors from `TestimonialsSection` or `TestimonialsColumn` in the snapshots I checked.
+## Changes
 
-I also confirmed the CSS file exists in the repo, so this looks like a preview/dev-server asset serving issue triggered by the current state, not a missing file on disk.
+### 1. `src/components/screens/NameScreen.tsx` — add birthday field
+Keep the existing visual design (Hekthor speech bubble + papyrus input card). Inside the input card, stack two fields vertically:
 
-## Implementation plan
-1. Isolate the stylesheet issue by simplifying the CSS entry path.
-   - Replace the direct `import "./index.css"` dependency with a clean stylesheet path the preview serves reliably.
-   - Check whether the problem is caused by the current `src/index.css` pipeline rather than the Testimonials components.
+- **Field 1 — Dog's name** (existing): text input, required, trimmed length 1–30, uppercased on save.
+- **Field 2 — Dog's birthday** (new): shadcn Date Picker (Popover + Calendar) styled to match the papyrus card. Required. Allowed range: `1990-01-01` → today (disable future dates and pre-1990 dates).
 
-2. Reduce the blast radius of recent changes.
-   - Temporarily remove the new `TestimonialsSection` from `LandingPage` if needed to confirm the preview restores.
-   - Once the preview is visible again, reintroduce the section incrementally.
+Continue button:
+- Disabled until both name (1–30 chars after trim) AND a date are selected.
+- On click: save name via `setDogName(name.trim().toUpperCase())`, save date via `setSelection('birthdayDay', dd)`, `setSelection('birthdayMonth', mm)`, `setSelection('birthdayYear', yyyy)` (same keys old `BirthdayDogScreen` used), then `navigate('/photo')`.
+- Use the existing gold gradient button style. Replace the current "appear when input filled" pattern with a single always-visible button that toggles `disabled` state.
 
-3. Rebuild the testimonials block in the safest form.
-   - Keep the section under About Us.
-   - Preserve the 3-column vertically scrolling concept.
-   - Avoid any styling patterns that might destabilize preview rendering if one of the current CSS features is contributing.
+Persistence: on mount, prefill the name input from `dogName` (if not the default `'DAISY'`) and prefill the date from `selections.birthdayDay/Month/Year` so the values survive back-navigation.
 
-4. Verify preview rendering first, then content.
-   - Confirm the homepage renders again.
-   - Confirm the new section is visible below About Us.
-   - Confirm your earlier mobile hero adjustments still remain unchanged.
+Copy stays short and mission-toned — labels only, no marketing text:
+- Speech bubble keeps current Hekthor greeting.
+- Birthday field label: `When was your dog born?`
 
-## Technical details
-Likely failure point to test first:
-- `src/index.css` request is returning a failed response in preview even though the file exists.
+### 2. Remove `/birthday-dog` everywhere
+- Delete `src/components/screens/BirthdayDogScreen.tsx`.
+- `src/App.tsx`: remove the `BirthdayDogScreen` import and the `<Route path="/birthday-dog" ...>` line.
+- `src/components/screens/BreedPatronScreen.tsx` line 263: change `navigate('/birthday-dog')` → `navigate('/ranking')`.
+- `src/components/screens/BreedScreen.tsx` lines 60 and 187: change `navigate('/birthday-dog')` → `navigate('/ranking')`.
+- `src/components/screens/RankingScreen.tsx` line 377 (back button): change `navigate('/birthday-dog')` → `navigate('/breed')`.
 
-Files likely involved:
-- `src/main.tsx`
-- `src/index.css`
-- `src/components/landing/LandingPage.tsx`
-- `src/components/landing/TestimonialsSection.tsx`
-- `src/components/landing/TestimonialsColumn.tsx`
+### 3. Untouched (per task constraints)
+- `PhotoScreen`, owner screens, paywall, heroglyph generation logic — none of these read the dog birthday today, and we won't add such reads. Birthday remains soft-data in `selections`.
+- Owner zodiac flow (which feeds the heroglyph) is not touched.
 
-## Expected result
-- The preview stops showing a blank white canvas.
-- You can review the landing page again without wasting more credits on repeated blind fixes.
-- The testimonials section is either restored safely or temporarily removed until the preview is stable.
+## Verification
+- `/name` shows name + birthday inputs; Continue disabled until both valid.
+- Submitting on `/name` lands on `/photo`.
+- Going back from `/photo` to `/name` shows previously entered values.
+- `/birthday-dog` route returns NotFound (route deleted).
+- Wizard chain Breed → Ranking works without the removed step.
+- `rg "/birthday-dog"` returns no matches after the change.
+
+## Technical notes
+- Use shadcn `Popover` + `Calendar` per the project's datepicker pattern (`pointer-events-auto` on Calendar, `disabled={(d) => d > new Date() || d < new Date('1990-01-01')}`).
+- Store values as zero-padded strings (`'01'..'31'`, `'01'..'12'`, `'YYYY'`) to stay byte-compatible with the old `BirthdayDogScreen` write format.
+- No store schema changes; `selections` already holds the three birthday keys.

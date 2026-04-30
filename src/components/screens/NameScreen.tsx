@@ -1,21 +1,51 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Info, X, PawPrint } from 'lucide-react';
+import { Info, X, PawPrint, CalendarIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export function NameScreen() {
   const navigate = useNavigate();
   const setDogName = useDogyptStore((s) => s.setDogName);
-  const [input, setInput] = useState('');
+  const storedDogName = useDogyptStore((s) => s.dogName);
+  const setSelection = useDogyptStore((s) => s.setSelection);
+  const selections = useDogyptStore((s) => s.selections);
+
+  const initialName = storedDogName && storedDogName !== 'DAISY' ? storedDogName : '';
+  const initialDate = (() => {
+    const d = selections.birthdayDay;
+    const m = selections.birthdayMonth;
+    const y = selections.birthdayYear;
+    if (!d || !m || !y) return undefined;
+    const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+    return isNaN(dt.getTime()) ? undefined : dt;
+  })();
+
+  const [input, setInput] = useState(initialName);
+  const [birthday, setBirthday] = useState<Date | undefined>(initialDate);
   const [showInfo, setShowInfo] = useState(false);
 
+  const trimmed = input.trim();
+  const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
+  const dateValid = !!birthday;
+  const canContinue = nameValid && dateValid;
+
   const handleSend = () => {
-    if (!input.trim()) return;
-    setDogName(input.trim().toUpperCase());
+    if (!canContinue || !birthday) return;
+    setDogName(trimmed.toUpperCase());
+    const dd = String(birthday.getDate()).padStart(2, '0');
+    const mm = String(birthday.getMonth() + 1).padStart(2, '0');
+    const yyyy = String(birthday.getFullYear());
+    setSelection('birthdayDay', dd);
+    setSelection('birthdayMonth', mm);
+    setSelection('birthdayYear', yyyy);
     navigate('/photo');
   };
 
@@ -153,31 +183,63 @@ export function NameScreen() {
             <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
               <input
                 value={input}
-                onChange={(e) => setInput(e.target.value.toUpperCase())}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
+                onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
                 placeholder="Type your dog's name..."
                 className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
                 style={{ fontFamily: "'Inter', sans-serif" }}
                 autoFocus
+                maxLength={30}
               />
             </div>
-            {input.trim() && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Button
-                  onClick={handleSend}
-                  className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                    color: '#000',
-                    boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-                  }}
+
+            {/* Birthday */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full flex items-center justify-between gap-2 bg-card rounded-full px-4 py-2 border border-border/30 text-left h-[44px]",
+                    !birthday && "text-muted-foreground"
+                  )}
+                  style={{ fontFamily: "'Inter', sans-serif" }}
                 >
-                  <PawPrint className="h-4 w-4" />
-                  Continue
-                </Button>
-              </motion.div>
-            )}
+                  <span className="text-base md:text-lg uppercase">
+                    {birthday ? format(birthday, 'dd MMM yyyy') : "When was your dog born?"}
+                  </span>
+                  <CalendarIcon className="h-4 w-4 opacity-60" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={birthday}
+                  onSelect={setBirthday}
+                  disabled={(date) => date > new Date() || date < new Date('1990-01-01')}
+                  defaultMonth={birthday ?? new Date(2020, 0, 1)}
+                  captionLayout="dropdown-buttons"
+                  fromYear={1990}
+                  toYear={new Date().getFullYear()}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              onClick={handleSend}
+              disabled={!canContinue}
+              className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                color: '#000',
+                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+              }}
+            >
+              <PawPrint className="h-4 w-4" />
+              Continue
+            </Button>
             </div>
           </motion.div>
         </div>
