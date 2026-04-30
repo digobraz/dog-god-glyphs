@@ -71,20 +71,20 @@ const RINGS: Ring[] = [
   // All rings rotate the same direction at slightly different speeds so the pattern reads as
   // one continuous spiral rather than independent orbits. Outer & inner spin ~15% faster
   // than the middle pair. Sizes/radii are tuned so neighbouring rings *touch* (no visible gap).
-  { count: 6,  radius: 8,  width: 56,  height: 72,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
-  { count: 10, radius: 19, width: 80,  height: 102, duration: 82, direction: 1, startAngle: 12, opacity: 1, zIndex: 5 },
-  { count: 14, radius: 32, width: 104, height: 132, duration: 82, direction: 1, startAngle: 24, opacity: 1, zIndex: 4 },
-  { count: 18, radius: 47, width: 132, height: 168, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
+  { count: 6,  radius: 8,  width: 60,  height: 60,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
+  { count: 10, radius: 19, width: 88,  height: 88,  duration: 82, direction: 1, startAngle: 12, opacity: 1, zIndex: 5 },
+  { count: 14, radius: 32, width: 116, height: 116, duration: 82, direction: 1, startAngle: 24, opacity: 1, zIndex: 4 },
+  { count: 18, radius: 47, width: 148, height: 148, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
 ];
 
 // Mobile: fewer cards per ring → bigger gaps between photos so the spiral can breathe.
 // Sizes are slightly smaller so the layout still reads as a tight snail, just airier.
 const RINGS_MOBILE: Ring[] = [
   // Smaller cards but more of them per ring → fills dark gaps without crowding.
-  { count: 6,  radius: 8,  width: 36,  height: 46,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
-  { count: 9,  radius: 19, width: 50,  height: 64,  duration: 82, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
-  { count: 12, radius: 32, width: 64,  height: 82,  duration: 82, direction: 1, startAngle: 28, opacity: 1, zIndex: 4 },
-  { count: 16, radius: 47, width: 80,  height: 102, duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
+  { count: 6,  radius: 8,  width: 40,  height: 40,  duration: 70, direction: 1, startAngle: 0,  opacity: 1, zIndex: 6 },
+  { count: 9,  radius: 19, width: 56,  height: 56,  duration: 82, direction: 1, startAngle: 18, opacity: 1, zIndex: 5 },
+  { count: 12, radius: 32, width: 72,  height: 72,  duration: 82, direction: 1, startAngle: 28, opacity: 1, zIndex: 4 },
+  { count: 16, radius: 47, width: 90,  height: 90,  duration: 70, direction: 1, startAngle: 36, opacity: 1, zIndex: 3 },
 ];
 
 const TILT_PATTERN = [-12, -7, -3, 4, 8, 12, 6, -5];
