@@ -8,7 +8,6 @@ export interface DogyptState {
   selections: Record<string, string>;
   selectedTier: string;
   email: string;
-  customCharacter: boolean;
   selectedAmount: number;
   dogPhotoUrl: string;
   patronCategory: string;
@@ -23,7 +22,6 @@ export interface DogyptState {
   setSelection: (key: string, value: string) => void;
   setSelectedTier: (tier: string) => void;
   setEmail: (email: string) => void;
-  setCustomCharacter: (val: boolean) => void;
   setSelectedAmount: (amount: number) => void;
   setDogPhotoUrl: (url: string) => void;
   setPatronCategory: (v: string) => void;
@@ -44,7 +42,6 @@ export const useDogyptStore = create<DogyptState>()(
       selections: {},
       selectedTier: 'silver',
       email: '',
-      customCharacter: false,
       selectedAmount: 11,
       dogPhotoUrl: '',
       patronCategory: '',
@@ -59,7 +56,6 @@ export const useDogyptStore = create<DogyptState>()(
       setSelection: (key, value) => set((state) => ({ selections: { ...state.selections, [key]: value } })),
       setSelectedTier: (tier) => set({ selectedTier: tier }),
       setEmail: (email) => set({ email }),
-      setCustomCharacter: (val) => set({ customCharacter: val }),
       setSelectedAmount: (amount) => set({ selectedAmount: amount }),
       setDogPhotoUrl: (url) => set({ dogPhotoUrl: url }),
       setPatronCategory: (v) => set({ patronCategory: v }),
@@ -75,7 +71,6 @@ export const useDogyptStore = create<DogyptState>()(
         selections: {},
         selectedTier: 'silver',
         email: '',
-        customCharacter: false,
         selectedAmount: 11,
         dogPhotoUrl: '',
         patronCategory: '',
@@ -97,7 +92,6 @@ export const useDogyptStore = create<DogyptState>()(
         selections: {},
         selectedTier: 'silver',
         email: '',
-        customCharacter: false,
         selectedAmount: 11,
         dogPhotoUrl: '',
         patronCategory: '',
