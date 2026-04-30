@@ -520,6 +520,7 @@ export function PhotoScreen() {
                   style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
                 >
                   <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-2">
+                    <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-28 md:h-28 object-contain" />
                     <h2
                       className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
