@@ -198,32 +198,34 @@ export function CheckoutScreen() {
                 )}
               </div>
             </div>
+
+            {/* CTA inside card */}
+            <div className="mt-2.5 px-1">
+              <Button
+                onClick={handleContinue}
+                disabled={!isValid}
+                className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                }}
+              >
+                CONTINUE TO PAYMENT →
+              </Button>
+            </div>
+
+            {/* Disclaimer inside card */}
+            <p className="text-primary/50 text-[10px] text-center leading-relaxed px-2 mt-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+              After payment, we will send you a <span className="text-primary font-bold uppercase">DOGYPT Certificate</span> and place your photo on the website.
+            </p>
           </motion.div>
 
-          {/* CTA */}
-          <motion.div className="w-full" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.2 }}>
-            <Button
-              onClick={handleContinue}
-              disabled={!isValid}
-              className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: '#000',
-                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-              }}
-            >
-              CONTINUE TO PAYMENT →
-            </Button>
-          </motion.div>
-
-          {/* Disclaimer + Back */}
-          <p className="text-muted-foreground text-[10px] text-center leading-relaxed px-2" style={{ fontFamily: "'Inter', sans-serif" }}>
-            After payment, we will send you a <span className="text-foreground font-bold uppercase">DOGYPT Certificate</span> and place your photo on the website.
-          </p>
+          {/* Back link outside card */}
           <button
             onClick={() => navigate('/message')}
-            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors pb-2"
+            className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
             <ArrowLeft className="h-3 w-3" /> Back
