@@ -74,7 +74,7 @@ function Wheel({ values, selectedIndex, onChange, font, width = '1fr' }: WheelPr
                 transform: `scale(${scale})`,
                 transition: 'opacity 0.15s, transform 0.15s',
                 fontFamily: font,
-                color: dist === 0 ? 'hsl(var(--gold))' : 'hsl(var(--foreground) / 0.85)',
+                color: dist === 0 ? 'hsl(var(--gold-dark))' : 'hsl(var(--foreground) / 0.7)',
                 fontWeight: dist === 0 ? 700 : 500,
                 fontSize: dist === 0 ? '1.25rem' : '1.05rem',
                 letterSpacing: '0.05em',
@@ -130,21 +130,20 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
 
   return (
     <div className="relative w-full overflow-hidden">
-      {/* gold lens band — center row */}
       <div
         aria-hidden
         className="absolute left-0 right-0 pointer-events-none"
         style={{
           top: `calc(50% - ${ITEM_H / 2}px)`,
           height: ITEM_H,
-          borderTop: '1px solid hsl(var(--gold) / 0.55)',
-          borderBottom: '1px solid hsl(var(--gold) / 0.55)',
-          background: 'linear-gradient(180deg, hsl(var(--gold) / 0.05), hsl(var(--gold) / 0.12), hsl(var(--gold) / 0.05))',
+          borderTop: '1px solid hsl(var(--gold) / 0.6)',
+          borderBottom: '1px solid hsl(var(--gold) / 0.6)',
+          background: 'linear-gradient(180deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.18), hsl(var(--gold) / 0.08))',
         }}
       />
-      {/* fade overlays */}
-      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: ITEM_H * 2, background: 'linear-gradient(180deg, hsl(0 0% 0% / 0.85), transparent)' }} />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: ITEM_H * 2, background: 'linear-gradient(0deg, hsl(0 0% 0% / 0.85), transparent)' }} />
+      {/* fade overlays — papyrus */}
+      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: ITEM_H * 2, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 40%, transparent)' }} />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: ITEM_H * 2, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 40%, transparent)' }} />
 
       <div className="grid grid-cols-3 gap-0 relative">
         <Wheel
