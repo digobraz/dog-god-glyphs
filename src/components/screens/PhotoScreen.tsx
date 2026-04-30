@@ -197,32 +197,52 @@ function Dots({ total, current, onDot }: { total: number; current: number; onDot
   );
 }
 
-/* ───── Gold CTA button ───── */
-function GoldButton({
-  children,
-  onClick,
-  disabled,
-  className = '',
+/* ───── Back / Next button pair ───── */
+function BackNextButtons({
+  onBack,
+  onNext,
+  backDisabled,
+  nextDisabled,
+  backLabel = '← BACK',
+  nextLabel = 'NEXT →',
 }: {
-  children: React.ReactNode;
-  onClick: () => void;
-  disabled?: boolean;
-  className?: string;
+  onBack: () => void;
+  onNext: () => void;
+  backDisabled?: boolean;
+  nextDisabled?: boolean;
+  backLabel?: string;
+  nextLabel?: string;
 }) {
+  const common = "flex-1 rounded-full h-10 font-bold tracking-wider transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs";
   return (
-    <Button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full rounded-full h-10 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 ${className}`}
-      style={{
-        fontFamily: "'Cinzel', serif",
-        background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-        color: '#000',
-        boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
-      }}
-    >
-      {children}
-    </Button>
+    <div className="flex gap-2 w-full">
+      <Button
+        onClick={onBack}
+        disabled={backDisabled}
+        className={`${common} hover:scale-105 border-2`}
+        style={{
+          fontFamily: "'Cinzel', serif",
+          background: 'transparent',
+          borderColor: 'hsl(var(--gold) / 0.5)',
+          color: 'hsl(var(--gold))',
+        }}
+      >
+        {backLabel}
+      </Button>
+      <Button
+        onClick={onNext}
+        disabled={nextDisabled}
+        className={`${common} hover:scale-105`}
+        style={{
+          fontFamily: "'Cinzel', serif",
+          background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+          color: '#000',
+          boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+        }}
+      >
+        {nextLabel}
+      </Button>
+    </div>
   );
 }
 
@@ -295,9 +315,7 @@ export function PhotoScreen() {
       {photoUrl && (
         <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />
       )}
-      <GoldButton onClick={() => goTo(2)} className="flex-shrink-0 w-full">
-        LOOKS GOOD
-      </GoldButton>
+      <BackNextButtons onBack={() => goTo(0)} onNext={() => goTo(2)} />
     </>
   );
 
@@ -306,28 +324,13 @@ export function PhotoScreen() {
       {photoUrl && (
         <CropArea src={photoUrl} shape="square" value={gridCrop} onChange={setGridCrop} />
       )}
-      <GoldButton onClick={() => goTo(3)} className="flex-shrink-0 w-full">
-        DONE
-      </GoldButton>
+      <BackNextButtons onBack={() => goTo(1)} onNext={() => goTo(3)} />
     </>
   );
 
   const renderExtras = () => (
-    <div className="flex flex-col items-center gap-3 flex-1 min-h-0 justify-center">
-      <h2
-        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center"
-        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-      >
-        MORE FACES OF THE GOD
-      </h2>
-      <p
-        className="text-xs md:text-sm text-center text-muted-foreground px-2"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        Add 1–3 more photos for surprises later.
-      </p>
-
-      <div className="flex gap-3 justify-center">
+    <>
+      <div className="flex gap-3 justify-center w-full">
         {Array.from({ length: 3 }).map((_, i) => {
           const url = extras[i];
           return (
@@ -365,7 +368,7 @@ export function PhotoScreen() {
 
       <input ref={extraRef} type="file" accept="image/*" onChange={handleExtraUpload} className="hidden" />
 
-      <label className="flex items-start gap-2 text-[11px] text-muted-foreground px-4 cursor-pointer" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <label className="flex items-start gap-2 text-[11px] text-muted-foreground cursor-pointer w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
         <Checkbox
           checked={gdpr}
           onCheckedChange={(v) => setGdpr(!!v)}
@@ -374,17 +377,12 @@ export function PhotoScreen() {
         <span>I consent to use these for personalized content.</span>
       </label>
 
-      <div className="w-full flex flex-col items-center gap-1">
-        <GoldButton onClick={finish}>CONTINUE</GoldButton>
-        <button
-          className="text-[11px] text-muted-foreground underline"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-          onClick={finish}
-        >
-          SKIP
-        </button>
-      </div>
-    </div>
+      <BackNextButtons
+        onBack={() => goTo(0)}
+        onNext={finish}
+        nextDisabled={extras.length > 0 && !gdpr}
+      />
+    </>
   );
 
   const screens = [renderUpload, renderCertCrop, renderGridCrop, renderExtras];
@@ -440,7 +438,7 @@ export function PhotoScreen() {
                 </div>
 
                 {/* Dots nav */}
-                <Dots total={3} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+                <Dots total={4} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
 
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div
@@ -486,16 +484,18 @@ export function PhotoScreen() {
                       Best results: face clearly visible, works cropped into a circle.
                     </p>
 
-                    <GoldButton onClick={() => goTo(1)} disabled={!photoUrl}>
-                      CONTINUE
-                    </GoldButton>
+                    <BackNextButtons
+                      onBack={() => navigate('/name')}
+                      onNext={() => goTo(1)}
+                      nextDisabled={!photoUrl}
+                    />
                   </div>
                 </motion.div>
 
                 {/* file input */}
                 {renderUpload()}
               </motion.div>
-            ) : sub === 1 || sub === 2 ? (
+            ) : sub >= 1 && sub <= 3 ? (
               <motion.div
                 key={sub}
                 custom={dir}
@@ -516,7 +516,7 @@ export function PhotoScreen() {
                       className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      {sub === 1 ? 'SEAL THE PORTRAIT' : 'THE HALL OF GODS'}
+                      {sub === 1 ? 'SEAL THE PORTRAIT' : sub === 2 ? 'THE HALL OF GODS' : 'MORE FACES OF THE GOD'}
                     </h2>
                     <p
                       className="text-white/70 text-sm text-center"
@@ -524,13 +524,15 @@ export function PhotoScreen() {
                     >
                       {sub === 1
                         ? 'This will appear in your official Heroglyph certificate.'
-                        : "Square crop for the gods' hall of fame."}
+                        : sub === 2
+                          ? "Square crop for the gods' hall of fame."
+                          : 'Add 1–3 more photos for surprises later.'}
                     </p>
                   </div>
                 </div>
 
                 {/* Dots nav */}
-                <Dots total={3} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+                <Dots total={4} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
 
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div
@@ -547,23 +549,7 @@ export function PhotoScreen() {
                 {renderUpload()}
               </motion.div>
             ) : (
-              <motion.div
-                key={sub}
-                custom={dir}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="flex flex-col flex-1 min-h-0 w-full"
-              >
-                <div className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
-                  <Dots total={4} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
-                  <div className="flex flex-col flex-1 min-h-0 mt-2">
-                    {screens[sub]()}
-                  </div>
-                </div>
-              </motion.div>
+              null
             )}
           </AnimatePresence>
           </div>
