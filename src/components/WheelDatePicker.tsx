@@ -1,5 +1,35 @@
 import { useEffect, useRef, useCallback } from 'react';
 
+// Shared AudioContext + tick helper (created lazily on first user interaction)
+let _audioCtx: AudioContext | null = null;
+function playTick() {
+  try {
+    if (typeof window === 'undefined') return;
+    const Ctx = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!Ctx) return;
+    if (!_audioCtx) _audioCtx = new Ctx();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const ctx = _audioCtx;
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1400, t);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.06, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.05);
+  } catch {
+    /* ignore */
+  }
+  // light haptic on mobile
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try { (navigator as any).vibrate?.(8); } catch { /* ignore */ }
+  }
+}
+
 const ITEM_H = 28; // row height in px
 const VISIBLE = 3; // visible rows (must be odd)
 const PAD = (VISIBLE - 1) / 2;
@@ -17,6 +47,7 @@ function Wheel({ values, selectedIndex, onChange, font, width = '1fr' }: WheelPr
   const ref = useRef<HTMLDivElement>(null);
   const scrollTimer = useRef<number | null>(null);
   const isProgrammatic = useRef(false);
+  const lastTickIdx = useRef<number>(selectedIndex);
 
   // Sync scroll position when selectedIndex changes externally
   useEffect(() => {
@@ -33,6 +64,15 @@ function Wheel({ values, selectedIndex, onChange, font, width = '1fr' }: WheelPr
   const handleScroll = useCallback(() => {
     const el = ref.current;
     if (!el) return;
+    // live tick as the wheel passes each row
+    if (!isProgrammatic.current) {
+      const liveIdx = Math.round(el.scrollTop / ITEM_H);
+      const clampedLive = Math.max(0, Math.min(values.length - 1, liveIdx));
+      if (clampedLive !== lastTickIdx.current) {
+        lastTickIdx.current = clampedLive;
+        playTick();
+      }
+    }
     if (scrollTimer.current) window.clearTimeout(scrollTimer.current);
     scrollTimer.current = window.setTimeout(() => {
       if (isProgrammatic.current) return;
