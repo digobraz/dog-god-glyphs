@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Plus, X, Info } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -482,12 +483,7 @@ export function PhotoScreen() {
                         onClick={() => fileRef.current?.click()}
                       >
                         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="hsl(39 55% 51%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 17c-2.5 2-6 2-6-1 0-2 2-4 6-6 4 2 6 4 6 6 0 3-3.5 3-6 1z" />
-                          <circle cx="6" cy="8" r="2" />
-                          <circle cx="18" cy="8" r="2" />
-                          <circle cx="9" cy="4" r="1.5" />
-                          <circle cx="15" cy="4" r="1.5" />
-                        </svg>
+                        <Upload size={36} color="hsl(39 55% 51%)" strokeWidth={1.5} />
                         <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
                           Tap to upload
                         </span>
