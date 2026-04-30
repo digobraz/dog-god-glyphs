@@ -81,9 +81,10 @@ export function OwnerInfoScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-32 md:h-32 object-contain" />
-            <p className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Okay, let's talk about you, <span className="font-bold text-amber-300">hooman</span>!
+            <img src={hekthorImg} alt="HEKTHOR" className="w-40 h-40 md:w-52 md:h-52 object-contain" />
+            <p className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              Okay, let's talk about you,<br />
+              <span className="font-bold text-amber-300">hooman</span>!
             </p>
           </motion.div>
 
