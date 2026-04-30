@@ -71,7 +71,7 @@ export function MessageScreen() {
             }}
           >
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-28 md:h-28 object-contain" />
+              <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-44 md:h-44 object-contain" />
               <p
                 className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -82,14 +82,6 @@ export function MessageScreen() {
                 It will stay with them on the{' '}
                 <span className="font-bold">GODS Grid</span> — forever.
               </p>
-              {/* Gold grid icon */}
-              <span
-                className="text-2xl"
-                style={{ color: 'hsl(var(--gold))' }}
-                aria-hidden
-              >
-                ⊞
-              </span>
             </div>
           </div>
 
