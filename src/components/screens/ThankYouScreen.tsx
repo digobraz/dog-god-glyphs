@@ -80,10 +80,6 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
 // TODO: replace placeholder with user's dog photo from photo step state.
 const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&crop=face';
 
-const CREAM_CARD: React.CSSProperties = {
-  border: '1px solid hsl(var(--gold) / 0.3)',
-};
-
 /** Purple-to-gold gradient matching the paywall card */
 const GRADIENT_CARD: React.CSSProperties = {
   background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
@@ -98,12 +94,10 @@ export function ThankYouScreen() {
   const reduced = useReducedMotion();
 
   const dogName = store.dogName || 'HEKTHOR';
-  const ownerName = store.ownerName || '';
-  const ownerFirstName = ownerName.split(' ')[0] || 'friend';
   const email = store.email || '';
 
-  const packNumber = usePackNumber(dogName, email, sessionId);
-  const counter = useAnimatedCounter(packNumber ?? 0, reduced);
+  // Still register in pack DB
+  usePackNumber(dogName, email, sessionId);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
@@ -119,104 +113,29 @@ export function ThankYouScreen() {
       {/* Cards container */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
 
-        {/* Card #1 — Combined welcome card (row 1: photo+heading, row 2: big counter) */}
+        {/* Block #1 — Dog photo square, no text */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col flex-shrink-0"
-          style={CREAM_CARD}
+          className="w-full flex-1 min-h-0 flex items-center justify-center flex-shrink-0"
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Row 1 — photo + welcome heading side by side */}
-          <div className="flex flex-row items-center gap-4 px-5 pt-5 pb-0">
-            <motion.div
-              layoutId={`dog-photo-${dogName}`}
-              className="overflow-hidden flex-shrink-0"
-              style={{
-                width: 'clamp(120px, 28vw, 160px)',
-                height: 'clamp(120px, 28vw, 160px)',
-                borderRadius: 12,
-                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
-              }}
-            >
-              {/* TODO: replace with user's dog photo from photo step state */}
-              <img
-                src={DOG_PLACEHOLDER_URL}
-                alt={dogName}
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-
-            <div className="flex flex-col justify-center min-w-0">
-              <span
-                className="font-bold"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(20px, 4.5vw, 26px)',
-                  color: '#0A0A0A',
-                  lineHeight: 1.2,
-                }}
-              >
-                Welcome,
-              </span>
-              <span
-                className="font-bold"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(20px, 4.5vw, 26px)',
-                  color: '#0A0A0A',
-                  lineHeight: 1.2,
-                }}
-              >
-                {dogName} & {ownerFirstName}.
-              </span>
-            </div>
-          </div>
-
-          {/* Row 2 — big counter number, full width, centered */}
-          <div className="flex flex-col items-center px-5 pt-4 pb-5">
-            <span
-              className="uppercase tracking-[0.2em]"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 'clamp(12px, 2.5vw, 16px)',
-                color: '#0A0A0A',
-              }}
-            >
-              YOU ARE
-            </span>
-
-            <motion.span
-              className="font-bold leading-none mt-0"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 'clamp(110px, 22vw, 180px)',
-                lineHeight: 0.85,
-                background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-              animate={
-                counter.landed && !reduced
-                  ? { scale: [1, 1.04, 1] }
-                  : undefined
-              }
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-            >
-              {packNumber !== null ? counter.text : '#…'}
-            </motion.span>
-
-            <span
-              className="uppercase tracking-[0.15em]"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 'clamp(11px, 2.2vw, 14px)',
-                color: '#0A0A0A',
-              }}
-            >
-              IN DOGYPT · OF 1,000,000
-            </span>
-          </div>
+          <motion.div
+            layoutId={`dog-photo-${dogName}`}
+            className="overflow-hidden flex-shrink-0"
+            style={{
+              width: 'min(70vw, 320px)',
+              height: 'min(70vw, 320px)',
+              borderRadius: 16,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+            }}
+          >
+            <img
+              src={DOG_PLACEHOLDER_URL}
+              alt={dogName}
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
         </motion.div>
 
         {/* Card #2 — Thank you + CTA (purple-orange gradient) */}
