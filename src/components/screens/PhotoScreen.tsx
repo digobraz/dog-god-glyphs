@@ -482,7 +482,6 @@ export function PhotoScreen() {
                         style={{ border: '2px dashed hsl(var(--gold) / 0.4)' }}
                         onClick={() => fileRef.current?.click()}
                       >
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="hsl(39 55% 51%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                         <Upload size={36} color="hsl(39 55% 51%)" strokeWidth={1.5} />
                         <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
                           Tap to upload
