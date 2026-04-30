@@ -516,7 +516,7 @@ export function PhotoScreen() {
                       className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      {sub === 1 ? 'SEAL THE PORTRAIT' : 'THE HALL OF GODS'}
+                      {sub === 1 ? 'SEAL THE PORTRAIT' : sub === 2 ? 'THE HALL OF GODS' : 'MORE FACES OF THE GOD'}
                     </h2>
                     <p
                       className="text-white/70 text-sm text-center"
