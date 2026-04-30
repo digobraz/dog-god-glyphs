@@ -315,9 +315,7 @@ export function PhotoScreen() {
       {photoUrl && (
         <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />
       )}
-      <GoldButton onClick={() => goTo(2)} className="flex-shrink-0 w-full">
-        LOOKS GOOD
-      </GoldButton>
+      <BackNextButtons onBack={() => goTo(0)} onNext={() => goTo(2)} />
     </>
   );
 
@@ -326,28 +324,13 @@ export function PhotoScreen() {
       {photoUrl && (
         <CropArea src={photoUrl} shape="square" value={gridCrop} onChange={setGridCrop} />
       )}
-      <GoldButton onClick={() => goTo(3)} className="flex-shrink-0 w-full">
-        DONE
-      </GoldButton>
+      <BackNextButtons onBack={() => goTo(1)} onNext={() => goTo(3)} />
     </>
   );
 
   const renderExtras = () => (
-    <div className="flex flex-col items-center gap-3 flex-1 min-h-0 justify-center">
-      <h2
-        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center"
-        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-      >
-        MORE FACES OF THE GOD
-      </h2>
-      <p
-        className="text-xs md:text-sm text-center text-muted-foreground px-2"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        Add 1–3 more photos for surprises later.
-      </p>
-
-      <div className="flex gap-3 justify-center">
+    <>
+      <div className="flex gap-3 justify-center w-full">
         {Array.from({ length: 3 }).map((_, i) => {
           const url = extras[i];
           return (
@@ -385,7 +368,7 @@ export function PhotoScreen() {
 
       <input ref={extraRef} type="file" accept="image/*" onChange={handleExtraUpload} className="hidden" />
 
-      <label className="flex items-start gap-2 text-[11px] text-muted-foreground px-4 cursor-pointer" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <label className="flex items-start gap-2 text-[11px] text-muted-foreground cursor-pointer w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
         <Checkbox
           checked={gdpr}
           onCheckedChange={(v) => setGdpr(!!v)}
@@ -394,17 +377,12 @@ export function PhotoScreen() {
         <span>I consent to use these for personalized content.</span>
       </label>
 
-      <div className="w-full flex flex-col items-center gap-1">
-        <GoldButton onClick={finish}>CONTINUE</GoldButton>
-        <button
-          className="text-[11px] text-muted-foreground underline"
-          style={{ fontFamily: "'Inter', sans-serif" }}
-          onClick={finish}
-        >
-          SKIP
-        </button>
-      </div>
-    </div>
+      <BackNextButtons
+        onBack={() => goTo(0)}
+        onNext={finish}
+        nextDisabled={extras.length > 0 && !gdpr}
+      />
+    </>
   );
 
   const screens = [renderUpload, renderCertCrop, renderGridCrop, renderExtras];
@@ -506,9 +484,11 @@ export function PhotoScreen() {
                       Best results: face clearly visible, works cropped into a circle.
                     </p>
 
-                    <GoldButton onClick={() => goTo(1)} disabled={!photoUrl}>
-                      CONTINUE
-                    </GoldButton>
+                    <BackNextButtons
+                      onBack={() => navigate('/name')}
+                      onNext={() => goTo(1)}
+                      nextDisabled={!photoUrl}
+                    />
                   </div>
                 </motion.div>
 
