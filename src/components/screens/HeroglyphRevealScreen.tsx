@@ -5,7 +5,6 @@ import { Info, X } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
-import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
@@ -120,7 +119,6 @@ export function HeroglyphRevealScreen() {
                 animate={phase === 'complete' ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
-                <CustomCharacterBadge />
                 <Button
                   variant="outline"
                   className="rounded-full px-6 py-3 text-sm font-bold tracking-wider border-2 hover:scale-105 transition-transform"
