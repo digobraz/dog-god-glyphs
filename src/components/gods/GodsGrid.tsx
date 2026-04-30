@@ -394,7 +394,7 @@ export function GodsGrid() {
         .dog-card {
           position: absolute;
           width: 360px;
-          height: 225px;
+          height: 360px;
           border-radius: 12px;
           overflow: hidden;
           cursor: grab;
