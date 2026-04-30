@@ -59,7 +59,7 @@ export function CheckoutScreen() {
   };
 
   const inputClass =
-    'w-full rounded-xl border-2 border-border/60 bg-background/50 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors';
+    'w-full rounded-xl border-2 border-border/60 bg-background/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors';
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
@@ -165,8 +165,8 @@ export function CheckoutScreen() {
               Your Details
             </h2>
 
-            <div className="flex flex-col gap-2">
-              <div className="flex gap-2">
+            <div className="flex flex-col gap-1.5">
+              <div className="flex gap-1.5">
                 <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
                 <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
               </div>
