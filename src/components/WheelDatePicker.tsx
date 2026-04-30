@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 
 const ITEM_H = 36; // row height in px
-const VISIBLE = 5; // visible rows (must be odd)
+const VISIBLE = 3; // visible rows (must be odd)
 const PAD = (VISIBLE - 1) / 2;
 const WHEEL_H = ITEM_H * VISIBLE;
 
