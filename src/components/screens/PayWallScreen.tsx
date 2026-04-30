@@ -20,7 +20,7 @@ export function PayWallScreen() {
   const handleContinue = () => {
     if (!isValid) return;
     setSelectedAmount(selectedAmount);
-    navigate('/payment-summary');
+    navigate('/checkout');
   };
 
   return (
