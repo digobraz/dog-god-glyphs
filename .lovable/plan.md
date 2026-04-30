@@ -1,47 +1,32 @@
-# Merge Dog Name + Birthday into Single `/name` Screen
+I’ll align the `/breed` screen with the actual mobile proportions shown on `/name` and `/photo`.
 
-## Goal
-Combine the dog name input and dog birthday input into one screen at `/name`. Delete the standalone `/birthday-dog` screen and rewire navigation to skip it.
+What I’ll change
+1. Normalize the `/breed` header to match the other steps exactly.
+   - Use the same top/bottom padding as `/photo`
+   - Use the same logo height as `/name` and `/photo`
+   - Align the back button position to the same top offset
 
-## Changes
+2. Reduce the dark top card on `/breed` so it matches the visual size of block 1 on `/name` and `/photo`.
+   - Shrink Hekthor’s image on mobile
+   - Tighten the inner vertical gap/padding on mobile
+   - Adjust the heading so it does not create a taller card than the other screens
+   - Keep the same overall visual style, only correct the proportions
 
-### 1. `src/components/screens/NameScreen.tsx` — add birthday field
-Keep the existing visual design (Hekthor speech bubble + papyrus input card). Inside the input card, stack two fields vertically:
+3. Rebalance the full page layout so `/breed` uses the same vertical distribution as the neighboring steps.
+   - Ensure the main content wrapper behaves like the other onboarding screens
+   - Let the cream card take the remaining space
+   - Preserve strict `100dvh` and no scroll
 
-- **Field 1 — Dog's name** (existing): text input, required, trimmed length 1–30, uppercased on save.
-- **Field 2 — Dog's birthday** (new): shadcn Date Picker (Popover + Calendar) styled to match the papyrus card. Required. Allowed range: `1990-01-01` → today (disable future dates and pre-1990 dates).
+4. Verify the result against the real preview at mobile size.
+   - Compare `/breed` side-by-side with `/name` and `/photo`
+   - Confirm block 1 no longer appears taller or heavier than the other two
 
-Continue button:
-- Disabled until both name (1–30 chars after trim) AND a date are selected.
-- On click: save name via `setDogName(name.trim().toUpperCase())`, save date via `setSelection('birthdayDay', dd)`, `setSelection('birthdayMonth', mm)`, `setSelection('birthdayYear', yyyy)` (same keys old `BirthdayDogScreen` used), then `navigate('/photo')`.
-- Use the existing gold gradient button style. Replace the current "appear when input filled" pattern with a single always-visible button that toggles `disabled` state.
+Technical details
+- Primary file: `src/components/screens/BreedScreen.tsx`
+- Main issues found from the current code and screenshots:
+  - `/breed` header is larger than `/name` and `/photo` (`pt-4`, bigger logo, higher back button offset)
+  - The breed heading wraps taller than the neighboring screens, increasing block 1 height
+  - The answer card/layout proportions on `/breed` are not distributed like `/photo`
+- I’ll correct those proportions with class-level layout changes only; no logic or flow changes.
 
-Persistence: on mount, prefill the name input from `dogName` (if not the default `'DAISY'`) and prefill the date from `selections.birthdayDay/Month/Year` so the values survive back-navigation.
-
-Copy stays short and mission-toned — labels only, no marketing text:
-- Speech bubble keeps current Hekthor greeting.
-- Birthday field label: `When was your dog born?`
-
-### 2. Remove `/birthday-dog` everywhere
-- Delete `src/components/screens/BirthdayDogScreen.tsx`.
-- `src/App.tsx`: remove the `BirthdayDogScreen` import and the `<Route path="/birthday-dog" ...>` line.
-- `src/components/screens/BreedPatronScreen.tsx` line 263: change `navigate('/birthday-dog')` → `navigate('/ranking')`.
-- `src/components/screens/BreedScreen.tsx` lines 60 and 187: change `navigate('/birthday-dog')` → `navigate('/ranking')`.
-- `src/components/screens/RankingScreen.tsx` line 377 (back button): change `navigate('/birthday-dog')` → `navigate('/breed')`.
-
-### 3. Untouched (per task constraints)
-- `PhotoScreen`, owner screens, paywall, heroglyph generation logic — none of these read the dog birthday today, and we won't add such reads. Birthday remains soft-data in `selections`.
-- Owner zodiac flow (which feeds the heroglyph) is not touched.
-
-## Verification
-- `/name` shows name + birthday inputs; Continue disabled until both valid.
-- Submitting on `/name` lands on `/photo`.
-- Going back from `/photo` to `/name` shows previously entered values.
-- `/birthday-dog` route returns NotFound (route deleted).
-- Wizard chain Breed → Ranking works without the removed step.
-- `rg "/birthday-dog"` returns no matches after the change.
-
-## Technical notes
-- Use shadcn `Popover` + `Calendar` per the project's datepicker pattern (`pointer-events-auto` on Calendar, `disabled={(d) => d > new Date() || d < new Date('1990-01-01')}`).
-- Store values as zero-padded strings (`'01'..'31'`, `'01'..'12'`, `'YYYY'`) to stay byte-compatible with the old `BirthdayDogScreen` write format.
-- No store schema changes; `selections` already holds the three birthday keys.
+If you approve, I’ll implement these exact sizing fixes now.
