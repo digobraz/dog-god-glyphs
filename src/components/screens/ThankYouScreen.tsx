@@ -114,18 +114,19 @@ export function ThankYouScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
 
         {/* Block #1 — Dog photo square, no text */}
+        {/* Block #1 — Dog photo square, full content width */}
         <motion.div
-          className="w-full flex-1 min-h-0 flex items-center justify-center flex-shrink-0"
+          className="w-full flex-1 min-h-0 flex items-center justify-center"
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <motion.div
             layoutId={`dog-photo-${dogName}`}
-            className="overflow-hidden flex-shrink-0"
+            className="overflow-hidden w-full"
             style={{
-              width: 'min(70vw, 320px)',
-              height: 'min(70vw, 320px)',
+              aspectRatio: '1 / 1',
+              maxHeight: '100%',
               borderRadius: 16,
               boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
             }}
