@@ -138,7 +138,7 @@ export function RankingScreen() {
 
   const handleYes = () => {
     setSelection('ranking', '1');
-    navigate('/owner-name');
+    navigate('/owner-info');
   };
 
   const handleNo = () => {
@@ -148,7 +148,7 @@ export function RankingScreen() {
   const handlePickRank = (value: string) => {
     setSelected(value);
     setSelection('ranking', value);
-    setTimeout(() => navigate('/owner-name'), 500);
+    setTimeout(() => navigate('/owner-info'), 500);
   };
 
   const handleCustomConfirm = () => {
