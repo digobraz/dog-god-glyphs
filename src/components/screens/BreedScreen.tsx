@@ -108,7 +108,7 @@ export function BreedScreen() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+              <img src={hekthorImg} alt="HEKTHOR" className="w-32 h-32 md:w-48 md:h-48 object-contain" />
               <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                 Tell me, what breed is your hero?
               </p>
