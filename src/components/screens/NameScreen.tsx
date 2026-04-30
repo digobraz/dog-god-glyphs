@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
-import { SegmentedDateInput } from '@/components/SegmentedDateInput';
+import { WheelDatePicker } from '@/components/WheelDatePicker';
 
 export function NameScreen() {
   const navigate = useNavigate();
@@ -21,41 +21,39 @@ export function NameScreen() {
   const minYear = currentYear - 25;
   const maxYear = currentYear;
 
+  const stored = {
+    d: parseInt(selections.birthdayDay || '0'),
+    m: parseInt(selections.birthdayMonth || '0'),
+    y: parseInt(selections.birthdayYear || '0'),
+  };
+  const hasStored = stored.d && stored.m && stored.y;
+
   const [input, setInput] = useState(initialName);
-  const [day, setDay] = useState<string>(selections.birthdayDay || '');
-  const [month, setMonth] = useState<string>(selections.birthdayMonth || '');
-  const [year, setYear] = useState<string>(selections.birthdayYear || '');
+  const [day, setDay] = useState<number>(hasStored ? stored.d : 1);
+  const [month, setMonth] = useState<number>(hasStored ? stored.m : 1);
+  const [year, setYear] = useState<number>(hasStored ? stored.y : currentYear - 5);
+  const [touched, setTouched] = useState<boolean>(!!hasStored);
   const [showInfo, setShowInfo] = useState(false);
 
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
-
-  const dateValid = (() => {
-    if (day.length !== 2 || month.length !== 2 || year.length !== 4) return false;
-    const d = parseInt(day), m = parseInt(month), y = parseInt(year);
-    if (m < 1 || m > 12) return false;
-    if (y < minYear || y > maxYear) return false;
-    const dim = new Date(y, m, 0).getDate();
-    if (d < 1 || d > dim) return false;
-    const dt = new Date(y, m - 1, d);
-    return dt <= today;
-  })();
-
+  const dateValid = touched;
   const canContinue = nameValid && dateValid;
 
   const handleSend = () => {
     if (!canContinue) return;
     setDogName(trimmed.toUpperCase());
-    setSelection('birthdayDay', day);
-    setSelection('birthdayMonth', month);
-    setSelection('birthdayYear', year);
+    setSelection('birthdayDay', String(day).padStart(2, '0'));
+    setSelection('birthdayMonth', String(month).padStart(2, '0'));
+    setSelection('birthdayYear', String(year));
     navigate('/photo');
   };
 
-  const handleDateChange = (d: string, m: string, y: string) => {
+  const handleDateChange = (d: number, m: number, y: number) => {
     setDay(d);
     setMonth(m);
     setYear(y);
+    setTouched(true);
   };
 
   return (
@@ -202,13 +200,20 @@ export function NameScreen() {
               />
             </div>
 
-            {/* Birthday — segmented numeric date input */}
-            <SegmentedDateInput
+            {/* Birthday — inline iOS-style 3-wheel picker */}
+            <p
+              className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              When was your dog born?
+            </p>
+            <WheelDatePicker
               day={day}
               month={month}
               year={year}
               minYear={minYear}
               maxYear={maxYear}
+              maxDate={today}
               onChange={handleDateChange}
             />
 
