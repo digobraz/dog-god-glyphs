@@ -330,7 +330,6 @@ export function BreedPatronScreen() {
                       boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
                     }}
                   >
-                    <PawPrint className="h-4 w-4" />
                     Continue
                   </Button>
                 </motion.div>
