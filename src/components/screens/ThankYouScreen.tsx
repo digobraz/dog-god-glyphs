@@ -80,10 +80,6 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
 // TODO: replace placeholder with user's dog photo from photo step state.
 const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&crop=face';
 
-const CREAM_CARD: React.CSSProperties = {
-  border: '1px solid hsl(var(--gold) / 0.3)',
-};
-
 /** Purple-to-gold gradient matching the paywall card */
 const GRADIENT_CARD: React.CSSProperties = {
   background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
@@ -98,12 +94,10 @@ export function ThankYouScreen() {
   const reduced = useReducedMotion();
 
   const dogName = store.dogName || 'HEKTHOR';
-  const ownerName = store.ownerName || '';
-  const ownerFirstName = ownerName.split(' ')[0] || 'friend';
   const email = store.email || '';
 
-  const packNumber = usePackNumber(dogName, email, sessionId);
-  const counter = useAnimatedCounter(packNumber ?? 0, reduced);
+  // Still register in pack DB
+  usePackNumber(dogName, email, sessionId);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
