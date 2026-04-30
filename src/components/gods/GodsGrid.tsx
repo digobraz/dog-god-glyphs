@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { photoPositions, photos } from './godsData';
 
 const W  = 360;
-const H  = 225;
+const H  = 360;
 const GX = W + 64;
 const GY = H + 64;
 
