@@ -84,7 +84,7 @@ export function BreedScreen() {
         <div className="w-full max-w-xl flex flex-col items-center gap-3 flex-1 min-h-0">
           {/* HEKTHOR question */}
           <div
-            className="w-full rounded-2xl relative overflow-hidden flex-shrink-0 max-h-[30vh]"
+            className="w-full rounded-2xl relative overflow-hidden flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
           >
             {/* Info toggle button */}
@@ -103,13 +103,13 @@ export function BreedScreen() {
 
             {/* Default front content */}
             <motion.div
-              className="px-4 py-3 flex flex-col items-center gap-2"
+              className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <img src={hekthorImg} alt="HEKTHOR" className="w-14 h-14 md:w-20 md:h-20 object-contain" />
-              <p className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
+              <p className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                 Tell me, what breed is your hero?
               </p>
             </motion.div>
