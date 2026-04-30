@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pack_members: {
+        Row: {
+          created_at: string
+          dog_name: string
+          email: string | null
+          id: string
+          pack_number: number
+          stripe_session_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          dog_name?: string
+          email?: string | null
+          id?: string
+          pack_number?: number
+          stripe_session_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          dog_name?: string
+          email?: string | null
+          id?: string
+          pack_number?: number
+          stripe_session_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
