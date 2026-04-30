@@ -74,7 +74,7 @@ export function PayWallScreen() {
 
             {/* Certificate info */}
             <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
-              After payment, we will send you a <span className="text-foreground font-bold uppercase">DOGYPT Certificate</span> along with your <span className="text-foreground font-bold uppercase">Heroglyph</span> in PDF.
+              After payment, we will send you a <span className="text-foreground font-bold uppercase">DOGYPT Certificate</span> and place photo on the website.
             </p>
 
             <Button
