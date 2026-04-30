@@ -198,55 +198,6 @@ export function CheckoutScreen() {
                 )}
               </div>
             </div>
-          </motion.div>
-
-          {/* YOUR DETAILS card */}
-          <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-2.5 md:p-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.1 }}
-          >
-            <h2
-              className="text-center text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              Your Details
-            </h2>
-
-            <div className="flex flex-col gap-1.5">
-              <div className="flex gap-1.5">
-                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
-                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
-              </div>
-              <input type="email" placeholder="Email" value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Country"
-                  value={country}
-                  onChange={(e) => { setCountry(e.target.value); setShowCountries(true); }}
-                  onFocus={() => country && setShowCountries(true)}
-                  onBlur={() => setTimeout(() => setShowCountries(false), 150)}
-                  className={inputClass}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                />
-                {showCountries && filteredCountries.length > 0 && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 rounded-xl border-2 border-border/40 bg-background shadow-lg max-h-32 overflow-y-auto">
-                    {filteredCountries.map((c) => (
-                      <button
-                        key={c}
-                        onMouseDown={() => { setCountry(c); setShowCountries(false); }}
-                        className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* CTA inside card */}
             <div className="mt-2.5 px-1">
