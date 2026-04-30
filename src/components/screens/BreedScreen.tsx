@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search, X, Plus, Info, PawPrint } from 'lucide-react';
+import { ArrowLeft, Search, X, Plus, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
@@ -329,7 +329,6 @@ export function BreedScreen() {
                     boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
                   }}
                 >
-                  <PawPrint className="h-4 w-4" />
                   Continue
                 </Button>
               </motion.div>
