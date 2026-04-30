@@ -484,11 +484,19 @@ export function PhotoScreen() {
                       Best results: face clearly visible, works cropped into a circle.
                     </p>
 
-                    <BackNextButtons
-                      onBack={() => navigate('/name')}
-                      onNext={() => goTo(1)}
-                      nextDisabled={!photoUrl}
-                    />
+                    <Button
+                      onClick={() => goTo(1)}
+                      disabled={!photoUrl}
+                      className="w-full rounded-full h-10 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs"
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                        color: '#000',
+                        boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      NEXT →
+                    </Button>
                   </div>
                 </motion.div>
 
