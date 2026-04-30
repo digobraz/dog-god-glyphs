@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, X, Info } from 'lucide-react';
+import { ArrowLeft, Plus, X } from 'lucide-react';
 import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -501,15 +501,16 @@ export function PhotoScreen() {
                       </div>
                     )}
 
-                    {lowRes && photoUrl && (
-                      <div
-                        className="w-full rounded-lg px-3 py-2 text-[11px] leading-snug text-center"
-                        style={{ background: 'hsl(210 80% 55% / 0.12)', color: 'hsl(210 80% 40%)', fontFamily: "'Inter', sans-serif" }}
-                      >
-                        <Info className="inline h-3 w-3 mr-1 -mt-0.5" />
-                        Your god deserves a sharper portrait. Continue or upload a better photo.
-                      </div>
-                    )}
+                    <p
+                      className="text-[10px] md:text-[11px] text-center leading-snug px-2"
+                      style={{ fontFamily: "'Inter', sans-serif", color: 'hsl(39 40% 60%)' }}
+                    >
+                      <span className="inline text-green-600/70 mr-0.5">✓</span> dog facing forward
+                      {' · '}
+                      <span className="inline text-red-400/70 mr-0.5">✗</span> side profile / group
+                      <br />
+                      Best results: face clearly visible, works cropped into a circle.
+                    </p>
 
                     <GoldButton onClick={() => goTo(1)} disabled={!photoUrl}>
                       CONTINUE
