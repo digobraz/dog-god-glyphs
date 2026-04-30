@@ -64,12 +64,12 @@ export function CheckoutScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Logo */}
-      <div className="flex-shrink-0 flex justify-center pt-3 pb-1">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
+      <div className="flex-shrink-0 flex justify-center pt-2 pb-1">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-11 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl flex flex-col items-center gap-2">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-hidden">
+        <div className="w-full max-w-xl flex flex-col items-center gap-1.5">
           {/* ORDER SUMMARY card */}
           <motion.div
             className="w-full rounded-2xl overflow-hidden"
@@ -81,7 +81,7 @@ export function CheckoutScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="rounded-[0.875rem] papyrus-bg p-3 md:p-4">
+            <div className="rounded-[0.875rem] papyrus-bg p-2.5 md:p-4">
               <h2
                 className="text-center text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -108,8 +108,8 @@ export function CheckoutScreen() {
               </div>
 
               {/* Patron contribution */}
-              <div className="mt-2">
-                <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+              <div className="mt-1.5">
+                <p className="text-[10px] md:text-xs text-muted-foreground text-center mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
                   Add patron support — every extra cent goes to shelters.
                 </p>
                 <div className="flex gap-2 justify-center">
@@ -132,7 +132,7 @@ export function CheckoutScreen() {
 
               {/* TOTAL */}
               <div
-                className="mt-2 rounded-xl px-3 py-2 flex justify-between items-center"
+                className="mt-1.5 rounded-xl px-3 py-1.5 flex justify-between items-center"
                 style={{
                   background: 'linear-gradient(135deg, hsl(var(--gold) / 0.15), hsl(var(--gold) / 0.25))',
                   borderTop: '2px solid hsl(var(--gold) / 0.3)',
@@ -153,7 +153,7 @@ export function CheckoutScreen() {
 
           {/* YOUR DETAILS card */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-2.5 md:p-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
@@ -205,7 +205,7 @@ export function CheckoutScreen() {
             <Button
               onClick={handleContinue}
               disabled={!isValid}
-              className="w-full rounded-full py-5 text-base font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30"
+              className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
