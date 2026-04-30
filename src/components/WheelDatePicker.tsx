@@ -211,8 +211,8 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
           background: 'linear-gradient(180deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.18), hsl(var(--gold) / 0.08))',
         }}
       />
-      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none z-10" style={{ height: ITEM_H, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 25%, hsl(var(--papyrus) / 0) 100%)' }} />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none z-10" style={{ height: ITEM_H, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 25%, hsl(var(--papyrus) / 0) 100%)' }} />
+      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none z-10" style={{ height: ITEM_H, background: 'linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.85) 25%, hsl(var(--card) / 0) 100%)' }} />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none z-10" style={{ height: ITEM_H, background: 'linear-gradient(0deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.85) 25%, hsl(var(--card) / 0) 100%)' }} />
 
       <div className="grid grid-cols-3 gap-0 relative">
         <Wheel
