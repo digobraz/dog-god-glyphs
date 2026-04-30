@@ -80,8 +80,8 @@ export function BreedScreen() {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0 flex-1">
-          {/* BLOCK 1 — dark gradient speech bubble (duplicated from /photo) */}
+        <div className="w-full max-w-xl flex flex-col flex-1 min-h-0 gap-3 md:gap-4 justify-center">
+          {/* BLOCK 1 — exact duplicate from /photo */}
           <div
             className="w-full rounded-2xl flex-shrink overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
@@ -92,14 +92,20 @@ export function BreedScreen() {
                 className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Tell me, what breed is your hero?
+                A <span className="font-bold text-amber-300">FACE</span> OF A GOD
+              </p>
+              <p
+                className="text-white/70 text-sm text-center"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
               </p>
             </div>
           </div>
 
           {/* Answer block */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-3"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex flex-col gap-3 flex-shrink-0"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
