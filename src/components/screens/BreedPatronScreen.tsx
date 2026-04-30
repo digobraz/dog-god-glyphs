@@ -292,13 +292,7 @@ export function BreedPatronScreen() {
                 className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                A <span className="font-bold text-amber-300">FACE</span> OF A GOD
-              </p>
-              <p
-                className="text-white/70 text-sm text-center"
-                style={{ fontFamily: "'Inter', sans-serif" }}
-              >
-                Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
+                Tell me, what breed is your hero?
               </p>
             </div>
           </motion.div>
