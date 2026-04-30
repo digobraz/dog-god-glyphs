@@ -265,10 +265,10 @@ export function BreedPatronScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
         <button
           onClick={() => navigate('/photo')}
-          className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors"
+          className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
           aria-label="Back"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -276,30 +276,37 @@ export function BreedPatronScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-4 overflow-hidden">
-        <div className="w-full max-w-xl flex-1 flex flex-col gap-3 py-2 overflow-hidden">
-          {/* Block 1 — Hektor question (matches PhotoScreen design) */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-hidden">
+        <div className="w-full max-w-xl flex-1 flex flex-col gap-3 md:gap-4 justify-center min-h-0 overflow-hidden">
+          {/* Block 1 — exact duplicate from PhotoScreen */}
           <motion.div
-            className="w-full rounded-2xl p-6 flex flex-col items-center gap-4 flex-shrink-0"
+            className="w-full rounded-2xl flex-shrink overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-            <p
-              className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm"
-              style={{ fontFamily: "'Cinzel', serif" }}
-            >
-              TELL ME, WHAT <span className="font-bold text-amber-300">BREED</span>
-              {'\n'}IS <span className="font-bold">{dogName || 'YOUR HERO'}</span>?
-            </p>
+            <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
+              <p
+                className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                A <span className="font-bold text-amber-300">FACE</span> OF A GOD
+              </p>
+              <p
+                className="text-white/70 text-sm text-center"
+                style={{ fontFamily: "'Inter', sans-serif" }}
+              >
+                Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
+              </p>
+            </div>
           </motion.div>
 
           {/* Block 2/3/4 — Gradient card with picker(s) */}
-          <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-4">
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col gap-4">
             <motion.div
-              className="w-full rounded-2xl p-4 md:p-5 papyrus-bg border-2 border-border/40 shadow-sm flex flex-col gap-4"
+              className="w-full rounded-2xl p-3 md:p-4 papyrus-bg border-2 border-border/40 shadow-sm flex flex-col gap-3 flex-1 min-h-0"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
