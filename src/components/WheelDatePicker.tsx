@@ -30,8 +30,8 @@ function playTick() {
   }
 }
 
-const ITEM_H = 28; // row height in px
-const VISIBLE = 3; // visible rows (must be odd)
+const ITEM_H = 24; // row height in px
+const VISIBLE = 5; // visible rows (must be odd)
 const PAD = (VISIBLE - 1) / 2;
 const WHEEL_H = ITEM_H * VISIBLE;
 
@@ -101,8 +101,8 @@ function Wheel({ values, selectedIndex, onChange, font, width = '1fr' }: WheelPr
       <div style={{ paddingTop: PAD * ITEM_H, paddingBottom: PAD * ITEM_H }}>
         {values.map((v, i) => {
           const dist = Math.abs(i - selectedIndex);
-          const opacity = dist === 0 ? 1 : dist === 1 ? 0.45 : dist === 2 ? 0.18 : 0.08;
-          const scale = dist === 0 ? 1 : 0.88;
+          const opacity = dist === 0 ? 1 : dist === 1 ? 0.4 : dist === 2 ? 0.15 : 0;
+          const scale = dist === 0 ? 1 : dist === 1 ? 0.92 : 0.86;
           return (
             <div
               key={i}
@@ -115,8 +115,8 @@ function Wheel({ values, selectedIndex, onChange, font, width = '1fr' }: WheelPr
                 transition: 'opacity 0.15s, transform 0.15s',
                 fontFamily: font,
                 color: dist === 0 ? 'hsl(var(--gold-dark))' : 'hsl(var(--foreground) / 0.7)',
-                fontWeight: dist === 0 ? 700 : 500,
-                fontSize: dist === 0 ? '1.25rem' : '1.05rem',
+                fontWeight: dist === 0 ? 600 : 500,
+                fontSize: dist === 0 ? '1.15rem' : '1rem',
                 letterSpacing: '0.05em',
               }}
             >
@@ -170,20 +170,28 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
 
   return (
     <div className="relative w-full overflow-hidden">
+      {/* iOS-style selection lens — two thin hairlines spanning all 3 columns */}
       <div
         aria-hidden
-        className="absolute left-0 right-0 pointer-events-none"
+        className="absolute left-0 right-0 pointer-events-none z-10"
         style={{
           top: `calc(50% - ${ITEM_H / 2}px)`,
-          height: ITEM_H,
-          borderTop: '1px solid hsl(var(--gold) / 0.6)',
-          borderBottom: '1px solid hsl(var(--gold) / 0.6)',
-          background: 'linear-gradient(180deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.18), hsl(var(--gold) / 0.08))',
+          height: 0,
+          borderTop: '1px solid hsl(var(--accent) / 0.28)',
         }}
       />
-      {/* fade overlays — papyrus */}
-      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: ITEM_H, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus)) 50%, transparent 100%)' }} />
-      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none" style={{ height: ITEM_H, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus)) 50%, transparent 100%)' }} />
+      <div
+        aria-hidden
+        className="absolute left-0 right-0 pointer-events-none z-10"
+        style={{
+          top: `calc(50% + ${ITEM_H / 2}px)`,
+          height: 0,
+          borderTop: '1px solid hsl(var(--accent) / 0.28)',
+        }}
+      />
+      {/* fade overlays — papyrus, smoother across edge rows */}
+      <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none z-[5]" style={{ height: ITEM_H * 2, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.6) 60%, transparent 100%)' }} />
+      <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none z-[5]" style={{ height: ITEM_H * 2, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.6) 60%, transparent 100%)' }} />
 
       <div className="grid grid-cols-3 gap-0 relative">
         <Wheel
