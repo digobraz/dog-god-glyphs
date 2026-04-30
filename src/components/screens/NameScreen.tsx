@@ -18,7 +18,7 @@ export function NameScreen() {
   const setSelection = useDogyptStore((s) => s.setSelection);
   const selections = useDogyptStore((s) => s.selections);
 
-  const initialName = storedDogName && storedDogName !== 'DAISY' ? storedDogName : '';
+  const initialName = storedDogName || '';
   const initialDate = (() => {
     const d = selections.birthdayDay;
     const m = selections.birthdayMonth;
