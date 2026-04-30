@@ -73,15 +73,15 @@ export function BreedScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
-        <button onClick={() => navigate('/photo')} className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors">
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
+        <button onClick={() => navigate('/photo')} className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0 flex-1">
           {/* HEKTHOR question */}
           <div
             className="w-full rounded-2xl relative overflow-hidden flex-shrink"
