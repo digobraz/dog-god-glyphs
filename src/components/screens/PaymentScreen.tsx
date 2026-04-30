@@ -15,15 +15,7 @@ export function PaymentScreen() {
   const handlePay = async () => {
     const clientRefId = `${dogName}-${Date.now()}`.replace(/\s+/g, '-').toLowerCase();
 
-    await supabase.from('dogs').insert({
-      dog_name: dogName,
-      owner_name: ownerName,
-      email,
-      amount: selectedAmount,
-      selections,
-      payment_status: 'pending',
-      stripe_session_id: clientRefId,
-    });
+    // Pack member record is created on /thank-you after successful payment
 
     const params = new URLSearchParams({
       prefilled_email: email,
