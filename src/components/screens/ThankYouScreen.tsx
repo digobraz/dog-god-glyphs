@@ -44,29 +44,36 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
   return packNumber;
 }
 
-/** Animated count-up from 0 to target */
-function AnimatedCounter({ target, reduced }: { target: number; reduced: boolean | null }) {
+/** Animated count-up hook from 0 to target, returns text + landed flag */
+function useAnimatedCounter(target: number, reduced: boolean | null) {
   const [display, setDisplay] = useState(reduced ? target : 0);
+  const [landed, setLanded] = useState(!!reduced);
 
   useEffect(() => {
     if (reduced || target <= 0) {
       setDisplay(target);
+      setLanded(true);
       return;
     }
-    const duration = 800;
+    setLanded(false);
+    const duration = 1000;
     const start = performance.now();
     let raf: number;
     const tick = (now: number) => {
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
       setDisplay(Math.round(eased * target));
-      if (t < 1) raf = requestAnimationFrame(tick);
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setLanded(true);
+      }
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
   }, [target, reduced]);
 
-  return <>{`#${display.toLocaleString()}`}</>;
+  return { text: `#${display.toLocaleString()}`, landed };
 }
 
 // TODO: replace placeholder with user's dog photo from photo step state.
@@ -76,8 +83,14 @@ const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-592
 // TODO: replace with actual Hektor founder photo
 const HEKTOR_PHOTO_URL = 'https://placedog.net/100/100?random';
 
-const CARD_STYLE: React.CSSProperties = {
+const CREAM_CARD: React.CSSProperties = {
   border: '1px solid hsl(var(--gold) / 0.3)',
+};
+
+/** Purple-to-gold gradient matching the paywall card */
+const GRADIENT_CARD: React.CSSProperties = {
+  background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+  border: '1px solid hsl(45 80% 60% / 0.2)',
 };
 
 export function ThankYouScreen() {
@@ -93,6 +106,7 @@ export function ThankYouScreen() {
   const email = store.email || '';
 
   const packNumber = usePackNumber(dogName, email, sessionId);
+  const counter = useAnimatedCounter(packNumber ?? 0, reduced);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
@@ -111,7 +125,7 @@ export function ThankYouScreen() {
         {/* Card #1 — Dog photo (compact) */}
         <motion.div
           className="w-full rounded-2xl papyrus-bg flex items-center justify-center p-3 flex-shrink-0"
-          style={CARD_STYLE}
+          style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -119,7 +133,7 @@ export function ThankYouScreen() {
           <motion.div
             layoutId={`dog-photo-${dogName}`}
             className="overflow-hidden rounded-xl"
-            style={{ width: 148, height: 148 }}
+            style={{ width: 148, height: 148, border: '2px solid hsl(var(--gold) / 0.5)' }}
           >
             <img
               src={DOG_PLACEHOLDER_URL}
@@ -131,40 +145,53 @@ export function ThankYouScreen() {
 
         {/* Card #2 — Million counter (HERO) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center py-6 md:py-8 px-4 flex-shrink-0"
-          style={CARD_STYLE}
+          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 relative overflow-hidden flex-1 min-h-0"
+          style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 24 }}
         >
-          <span
-            className="leading-none font-bold"
+          {/* Radial gold glow behind the number */}
+          <div
+            className="absolute pointer-events-none"
+            style={{
+              width: 280,
+              height: 280,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, hsl(45 80% 60% / 0.18) 0%, transparent 70%)',
+              filter: 'blur(30px)',
+            }}
+          />
+          <motion.span
+            className="leading-none font-bold relative z-10"
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(110px, 18vw, 180px)',
-              background: 'linear-gradient(180deg, hsl(45 90% 65%), hsl(39 80% 45%))',
+              fontSize: 'clamp(110px, 20vw, 180px)',
+              background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
+            animate={
+              counter.landed && !reduced
+                ? { scale: [1, 1.05, 1] }
+                : undefined
+            }
+            transition={{ duration: 0.35, ease: 'easeOut' }}
           >
-            {packNumber !== null ? (
-              <AnimatedCounter target={packNumber} reduced={reduced} />
-            ) : (
-              '#…'
-            )}
-          </span>
+            {packNumber !== null ? counter.text : '#…'}
+          </motion.span>
           <span
-            className="mt-1 font-bold tracking-wide"
+            className="mt-1 font-bold tracking-wide relative z-10"
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(28px, 4.5vw, 36px)',
+              fontSize: 'clamp(28px, 5vw, 40px)',
               color: 'hsl(var(--gold) / 0.55)',
             }}
           >
             of 1,000,000
           </span>
           <span
-            className="mt-1 uppercase tracking-[0.2em]"
+            className="mt-1 uppercase tracking-[0.2em] relative z-10"
             style={{
               fontFamily: "'Cinzel', serif",
               fontSize: 'clamp(11px, 1.8vw, 14px)',
@@ -175,10 +202,10 @@ export function ThankYouScreen() {
           </span>
         </motion.div>
 
-        {/* Card #3 — Thank you + CTA (compact) */}
+        {/* Card #3 — Thank you + CTA (purple-orange gradient) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg px-4 py-3 flex flex-col gap-3 flex-shrink-0"
-          style={CARD_STYLE}
+          className="w-full rounded-2xl px-4 py-3 flex flex-col gap-3 flex-shrink-0"
+          style={GRADIENT_CARD}
           initial={reduced ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
@@ -189,20 +216,20 @@ export function ThankYouScreen() {
               src={HEKTOR_PHOTO_URL}
               alt="Hektor"
               className="w-11 h-11 rounded-full object-cover flex-shrink-0"
-              style={{ border: '2px solid hsl(var(--gold) / 0.4)' }}
+              style={{ border: '2px solid hsl(45 80% 70% / 0.6)' }}
             />
             <div className="flex flex-col">
               <span
-                className="text-[16px] md:text-[18px] font-bold tracking-wide"
-                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold))' }}
+                className="text-[17px] md:text-[19px] font-bold tracking-wide uppercase"
+                style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
               >
                 Thank you, {ownerFirstName}.
               </span>
               <span
                 className="text-[13px] md:text-[14px] italic"
-                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold) / 0.45)' }}
+                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(45 60% 85% / 0.7)' }}
               >
-                With love, Hektor &amp; Matej
+                With love, Hektor & Matej
               </span>
             </div>
           </div>
@@ -215,7 +242,7 @@ export function ThankYouScreen() {
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
               color: '#1a1200',
-              boxShadow: '0 0 30px hsl(var(--gold) / 0.35)',
+              boxShadow: '0 4px 20px hsl(45 80% 50% / 0.4)',
             }}
           >
             ENTER THE PACK →
