@@ -150,7 +150,7 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
           values={days}
           selectedIndex={dayIdx}
           onChange={(i) => apply(i + 1, month, year)}
-          font="'JetBrains Mono', monospace"
+          font="'Cinzel', serif"
         />
         <Wheel
           values={MONTHS_SHORT}
@@ -162,7 +162,7 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
           values={years}
           selectedIndex={yearIdx >= 0 ? yearIdx : years.length - 1}
           onChange={(i) => apply(day, month, years[i])}
-          font="'JetBrains Mono', monospace"
+          font="'Cinzel', serif"
         />
       </div>
     </div>
