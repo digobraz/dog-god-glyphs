@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
+import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
+import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
 
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
@@ -46,62 +48,63 @@ const letterMap: Record<string, string> = {
 export function OwnerInfoScreen() {
   const navigate = useNavigate();
   const setOwnerName = useDogyptStore((s) => s.setOwnerName);
-  const [input, setInput] = useState('');
+  const setSelection = useDogyptStore((s) => s.setSelection);
+  const storedOwnerName = useDogyptStore((s) => s.ownerName);
+  const storedGender = useDogyptStore((s) => s.selections.ownerGender);
+  const [input, setInput] = useState(storedOwnerName || '');
+  const [gender, setGender] = useState<string | null>(storedGender || null);
 
   const firstLetter = input.trim().charAt(0).toUpperCase();
   const letterSvg = letterMap[firstLetter] || null;
 
+  const canContinue = !!input.trim() && !!gender;
+
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!canContinue) return;
     setOwnerName(input.trim().toUpperCase());
-    navigate('/owner-gender');
+    setSelection('ownerGender', gender!);
+    navigate('/owner-zodiac');
   };
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-6 pb-3">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+      <div className="flex-shrink-0 flex justify-center pt-3 pb-2 md:pt-5">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl flex flex-col items-center gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
           <motion.div
-            className="w-full rounded-2xl p-6 flex flex-col items-center gap-4" style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+            className="w-full rounded-2xl px-4 py-4 md:p-5 flex flex-col items-center gap-2 md:gap-3 flex-shrink-0"
+            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-            <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Okay, let's talk about you, man!
+            <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-32 md:h-32 object-contain" />
+            <p className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              Okay, let's talk about you, <span className="font-bold text-amber-300">hooman</span>!
             </p>
           </motion.div>
 
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
               <div className="flex-1 flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
                   placeholder="Owner's first name..."
                   className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
                   style={{ fontFamily: "'Inter', sans-serif" }}
                   autoFocus
                 />
-                <Button
-                  onClick={handleSend}
-                  disabled={!input.trim()}
-                  size="icon"
-                  className="rounded-full bg-primary text-primary-foreground hover:bg-primary/80 h-9 w-9 flex-shrink-0 disabled:opacity-30"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
               </div>
 
               {/* Letter preview box */}
@@ -122,6 +125,49 @@ export function OwnerInfoScreen() {
                   </span>
                 )}
               </div>
+              </div>
+
+              {/* Gender selection */}
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setGender('man')}
+                  className={`flex-1 flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl border-2 transition-all ${
+                    gender === 'man'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/60 hover:border-primary/50'
+                  }`}
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  <img src={manSvg} alt="Man" className="h-14 md:h-20 object-contain" />
+                  <span className="text-xs md:text-sm font-bold tracking-wider uppercase">Man</span>
+                </button>
+                <button
+                  onClick={() => setGender('woman')}
+                  className={`flex-1 flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl border-2 transition-all ${
+                    gender === 'woman'
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border/60 hover:border-primary/50'
+                  }`}
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  <img src={womanSvg} alt="Woman" className="h-14 md:h-20 object-contain" />
+                  <span className="text-xs md:text-sm font-bold tracking-wider uppercase">Woman</span>
+                </button>
+              </div>
+
+              <Button
+                onClick={handleSend}
+                disabled={!canContinue}
+                className="w-full rounded-full gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                }}
+              >
+                Continue
+              </Button>
             </div>
           </motion.div>
 
