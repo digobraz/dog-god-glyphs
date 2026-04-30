@@ -103,13 +103,13 @@ export function BreedScreen() {
 
             {/* Default front content */}
             <motion.div
-              className="p-6 flex flex-col items-center gap-4"
+              className="px-4 py-3 flex flex-col items-center gap-2"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.35 }}
             >
-              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-28 md:h-28 object-contain" />
-              <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              <img src={hekthorImg} alt="HEKTHOR" className="w-14 h-14 md:w-20 md:h-20 object-contain" />
+              <p className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                 Tell me, what breed is your hero?
               </p>
             </motion.div>
