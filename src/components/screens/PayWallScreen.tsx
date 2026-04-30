@@ -71,7 +71,6 @@ export function PayWallScreen() {
                 </button>
               ))}
             </div>
-            <CustomCharacterBadge showPrice />
 
             {/* Certificate info */}
             <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
