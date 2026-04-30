@@ -124,7 +124,7 @@ export function ThankYouScreen() {
 
         {/* Card #1 — Dog photo (compact) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex items-center justify-center p-3 flex-shrink-0"
+          className="w-full rounded-2xl papyrus-bg flex items-center justify-center p-2.5 flex-shrink-0"
           style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
@@ -145,7 +145,7 @@ export function ThankYouScreen() {
 
         {/* Card #2 — Million counter (HERO) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 relative overflow-hidden flex-1 min-h-0"
+          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 py-6 relative overflow-hidden flex-shrink-0"
           style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -155,18 +155,18 @@ export function ThankYouScreen() {
           <div
             className="absolute pointer-events-none"
             style={{
-              width: 280,
-              height: 280,
+              width: 320,
+              height: 320,
               borderRadius: '50%',
-              background: 'radial-gradient(circle, hsl(45 80% 60% / 0.18) 0%, transparent 70%)',
-              filter: 'blur(30px)',
+              background: 'radial-gradient(circle, hsl(45 80% 60% / 0.2) 0%, transparent 70%)',
+              filter: 'blur(40px)',
             }}
           />
           <motion.span
             className="leading-none font-bold relative z-10"
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(110px, 20vw, 180px)',
+              fontSize: 'clamp(140px, 22vw, 240px)',
               background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
