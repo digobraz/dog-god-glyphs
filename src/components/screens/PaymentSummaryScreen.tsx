@@ -29,11 +29,9 @@ export function PaymentSummaryScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
   const selectedAmount = useDogyptStore((s) => s.selectedAmount);
-  const customCharacter = useDogyptStore((s) => s.customCharacter);
   const setEmail = useDogyptStore((s) => s.setEmail);
 
-  const customPrice = customCharacter ? 66 : 0;
-  const total = selectedAmount + customPrice;
+  const total = selectedAmount;
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
