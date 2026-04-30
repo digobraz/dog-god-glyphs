@@ -120,7 +120,7 @@ export function ThankYouScreen() {
       </div>
 
       {/* Cards container */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-2.5 max-w-lg mx-auto w-full min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-2 max-w-lg mx-auto w-full min-h-0">
 
         {/* Card #1 — Dog photo (compact) */}
         <motion.div
@@ -145,7 +145,7 @@ export function ThankYouScreen() {
 
         {/* Card #2 — Million counter (HERO) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 py-5 relative overflow-hidden"
+          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 py-4 relative overflow-hidden flex-shrink-0"
           style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -167,6 +167,7 @@ export function ThankYouScreen() {
             style={{
               fontFamily: "'Cinzel', serif",
               fontSize: 'clamp(140px, 22vw, 240px)',
+              lineHeight: 0.85,
               background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
