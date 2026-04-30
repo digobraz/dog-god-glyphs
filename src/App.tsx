@@ -19,6 +19,7 @@ import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
 import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
 import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
 import { PayWallScreen } from "@/components/screens/PayWallScreen";
+import { MessageScreen } from "@/components/screens/MessageScreen";
 import { PaymentSummaryScreen } from "@/components/screens/PaymentSummaryScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
 import { ThankYouScreen } from "@/components/screens/ThankYouScreen";
@@ -47,6 +48,7 @@ const App = () => (
           <Route path="/dog-bloodline" element={<DogBloodlineScreen />} />
           <Route path="/dog-character" element={<DogCharacterScreen />} />
           <Route path="/heroglyph-reveal" element={<HeroglyphRevealScreen />} />
+          <Route path="/message" element={<MessageScreen />} />
           <Route path="/pay-wall" element={<PayWallScreen />} />
           <Route path="/payment-summary" element={<PaymentSummaryScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
