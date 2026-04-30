@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import hekthorImg from '@/assets/hekthor.png';
 
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
@@ -77,11 +78,7 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
 }
 
 // TODO: replace placeholder with user's dog photo from photo step state.
-// We're using a placeholder so we can iterate on the design without going through the full flow each time.
 const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&crop=face';
-
-// TODO: replace with actual Hektor founder photo
-const HEKTOR_PHOTO_URL = 'https://placedog.net/100/100?random';
 
 const CREAM_CARD: React.CSSProperties = {
   border: '1px solid hsl(var(--gold) / 0.3)',
@@ -120,90 +117,96 @@ export function ThankYouScreen() {
       </div>
 
       {/* Cards container */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-2 max-w-lg mx-auto w-full min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
 
-        {/* Card #1 — Dog photo (compact) */}
+        {/* Card #1 — Combined welcome card (photo left, text right) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex items-center justify-center p-2.5 flex-shrink-0"
+          className="w-full rounded-2xl papyrus-bg flex flex-row items-center flex-shrink-0"
           style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <motion.div
-            layoutId={`dog-photo-${dogName}`}
-            className="overflow-hidden rounded-xl"
-            style={{ width: 148, height: 148, border: '2px solid hsl(var(--gold) / 0.5)' }}
-          >
-            <img
-              src={DOG_PLACEHOLDER_URL}
-              alt={dogName}
-              className="w-full h-full object-cover"
-            />
-          </motion.div>
+          {/* Left — dog photo */}
+          <div className="flex-shrink-0 p-5" style={{ paddingRight: 0 }}>
+            <motion.div
+              layoutId={`dog-photo-${dogName}`}
+              className="overflow-hidden"
+              style={{
+                width: 'clamp(120px, 28vw, 160px)',
+                height: 'clamp(120px, 28vw, 160px)',
+                borderRadius: 12,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+              }}
+            >
+              {/* TODO: replace with user's dog photo from photo step state */}
+              <img
+                src={DOG_PLACEHOLDER_URL}
+                alt={dogName}
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          </div>
+
+          {/* Right — welcome text + counter */}
+          <div className="flex flex-col justify-center py-5 px-5 min-w-0">
+            <span
+              className="font-bold"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(17px, 4vw, 22px)',
+                color: 'hsl(var(--gold))',
+                lineHeight: 1.2,
+              }}
+            >
+              Welcome, {dogName} & {ownerFirstName}.
+            </span>
+
+            <span
+              className="mt-2"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(13px, 3vw, 17px)',
+                color: 'hsl(var(--gold) / 0.5)',
+              }}
+            >
+              You are
+            </span>
+
+            <motion.span
+              className="font-bold leading-none"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(48px, 12vw, 64px)',
+                lineHeight: 0.9,
+                background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+              animate={
+                counter.landed && !reduced
+                  ? { scale: [1, 1.04, 1] }
+                  : undefined
+              }
+              transition={{ duration: 0.3, ease: 'easeOut' }}
+            >
+              {packNumber !== null ? counter.text : '#…'}
+            </motion.span>
+
+            <span
+              className="mt-1 uppercase tracking-[0.15em]"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(10px, 2.2vw, 13px)',
+                color: 'hsl(var(--gold) / 0.4)',
+              }}
+            >
+              IN DOGYPT · of 1,000,000
+            </span>
+          </div>
         </motion.div>
 
-        {/* Card #2 — Million counter (HERO) */}
-        <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center px-4 py-4 relative overflow-hidden flex-shrink-0"
-          style={CREAM_CARD}
-          initial={reduced ? false : { opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 24 }}
-        >
-          {/* Radial gold glow behind the number */}
-          <div
-            className="!absolute pointer-events-none"
-            style={{
-              width: 320,
-              height: 320,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, hsl(45 80% 60% / 0.2) 0%, transparent 70%)',
-              filter: 'blur(40px)',
-            }}
-          />
-          <motion.span
-            className="leading-none font-bold relative z-10"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(140px, 22vw, 240px)',
-              lineHeight: 0.85,
-              background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-            animate={
-              counter.landed && !reduced
-                ? { scale: [1, 1.05, 1] }
-                : undefined
-            }
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-          >
-            {packNumber !== null ? counter.text : '#…'}
-          </motion.span>
-          <span
-            className="mt-1 font-bold tracking-wide relative z-10"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(28px, 5vw, 40px)',
-              color: 'hsl(var(--gold) / 0.55)',
-            }}
-          >
-            of 1,000,000
-          </span>
-          <span
-            className="mt-1 uppercase tracking-[0.2em] relative z-10"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(11px, 1.8vw, 14px)',
-              color: 'hsl(var(--gold) / 0.35)',
-            }}
-          >
-            dogs welcomed worldwide
-          </span>
-        </motion.div>
-
-        {/* Card #3 — Thank you + CTA (purple-orange gradient) */}
+        {/* Card #2 — Thank you + CTA (purple-orange gradient) */}
         <motion.div
           className="w-full rounded-2xl px-4 py-3 flex flex-col gap-3 flex-shrink-0"
           style={GRADIENT_CARD}
@@ -214,9 +217,9 @@ export function ThankYouScreen() {
           {/* Founder row */}
           <div className="flex items-center gap-3">
             <img
-              src={HEKTOR_PHOTO_URL}
+              src={hekthorImg}
               alt="Hektor"
-              className="w-11 h-11 rounded-full object-cover flex-shrink-0"
+              className="w-12 h-12 rounded-full object-cover flex-shrink-0"
               style={{ border: '2px solid hsl(45 80% 70% / 0.6)' }}
             />
             <div className="flex flex-col">
