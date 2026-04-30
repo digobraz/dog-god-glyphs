@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search, X, Plus, Info } from 'lucide-react';
+import { ArrowLeft, Search, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
@@ -21,7 +21,6 @@ export function BreedScreen() {
   const [selectedBreed, setSelectedBreed] = useState<string | null>(null);
   const [mixBreeds, setMixBreeds] = useState<string[]>([]);
   const [mixSearch, setMixSearch] = useState('');
-  const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = fciBreeds.filter((b) =>
@@ -82,74 +81,20 @@ export function BreedScreen() {
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0 flex-1">
-          {/* HEKTHOR question */}
+          {/* BLOCK 1 — dark gradient speech bubble (duplicated from /photo) */}
           <div
-            className="w-full rounded-2xl relative overflow-hidden flex-shrink"
+            className="w-full rounded-2xl flex-shrink overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
           >
-            {/* Info toggle button */}
-            <button
-              className="absolute top-3 right-3 z-20 flex items-center justify-center"
-              style={{ width: 44, height: 44 }}
-              aria-label="Info"
-              onClick={() => setShowInfo((p) => !p)}
-            >
-              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
-                {showInfo
-                  ? <X className="h-4 w-4 text-foreground/70" />
-                  : <Info className="h-4 w-4 text-white/80" />}
-              </span>
-            </button>
-
-            {/* Default front content */}
-            <motion.div
-              className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4"
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.35 }}
-            >
+            <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
               <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
-              <p className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              <p
+                className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
                 Tell me, what breed is your hero?
               </p>
-            </motion.div>
-
-            {/* Info overlay */}
-            <AnimatePresence>
-              {showInfo && (
-                <motion.div
-                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35 }}
-                  style={{ backgroundColor: 'hsl(var(--papyrus))' }}
-                >
-                  <div className="relative z-10 p-6 pt-14 flex-1 flex flex-col items-center justify-center text-center gap-4">
-                    <h3
-                      className="text-xl md:text-2xl font-bold"
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        color: 'hsl(var(--gold-dark))',
-                      }}
-                    >
-                      The largest dog database
-                    </h3>
-                    <p
-                      className="text-sm md:text-base leading-relaxed max-w-sm"
-                      style={{
-                        fontFamily: "'Inter', sans-serif",
-                        color: 'hsl(var(--foreground))',
-                      }}
-                    >
-                      This answer helps us build our global stats! We want to see which breeds are the most represented in the DOGYPT pack.
-                    </p>
-                    {/* Space for future image */}
-                    <div className="flex-1 min-h-[80px]" />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            </div>
           </div>
 
           {/* Answer block */}
