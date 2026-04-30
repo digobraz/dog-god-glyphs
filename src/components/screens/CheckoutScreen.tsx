@@ -84,14 +84,27 @@ export function CheckoutScreen() {
                 Order Summary
               </h2>
 
-              {/* Full heroglyph preview */}
-              <div className="flex flex-col items-center py-4">
-                <div className="w-[160px]">
+              {/* Dog photo + heroglyph preview */}
+              <div className="flex flex-col items-center gap-2 py-2">
+                {/* Raw dog photo */}
+                {dogPhotoUrl && (
+                  <div
+                    className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0"
+                    style={{
+                      border: '3px solid hsl(var(--gold))',
+                      boxShadow: '0 0 16px hsl(var(--gold) / 0.25)',
+                    }}
+                  >
+                    <img src={dogPhotoUrl} alt={dogName || 'Dog'} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                {/* Full heroglyph */}
+                <div className="w-[130px]">
                   <HeroglyphFrame showOwner className="text-primary" />
                 </div>
                 {dogName && (
                   <span
-                    className="mt-3 text-2xl font-bold tracking-[0.15em] uppercase text-primary"
+                    className="text-[22px] font-bold tracking-[0.15em] uppercase text-primary"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
                     {dogName}
