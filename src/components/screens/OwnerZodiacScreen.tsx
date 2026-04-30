@@ -271,7 +271,7 @@ export function OwnerZodiacScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/owner-gender')}
+            onClick={() => navigate('/owner-info')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

@@ -10,7 +10,6 @@ import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
 import { RankingScreen } from "@/components/screens/RankingScreen";
 import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
-import { OwnerGenderScreen } from "@/components/screens/OwnerGenderScreen";
 import { OwnerZodiacScreen } from "@/components/screens/OwnerZodiacScreen";
 import { OwnerFinalScreen } from "@/components/screens/OwnerFinalScreen";
 import { DogGenderScreen } from "@/components/screens/DogGenderScreen";
@@ -39,8 +38,7 @@ const App = () => (
           <Route path="/photo" element={<PhotoScreen />} />
           <Route path="/breed" element={<BreedPatronScreen />} />
           <Route path="/ranking" element={<RankingScreen />} />
-          <Route path="/owner-name" element={<OwnerInfoScreen />} />
-          <Route path="/owner-gender" element={<OwnerGenderScreen />} />
+          <Route path="/owner-info" element={<OwnerInfoScreen />} />
           <Route path="/owner-zodiac" element={<OwnerZodiacScreen />} />
           <Route path="/owner-final" element={<OwnerFinalScreen />} />
           <Route path="/dog-gender" element={<DogGenderScreen />} />
