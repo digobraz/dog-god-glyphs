@@ -374,7 +374,7 @@ export function RankingScreen() {
             onClick={() => {
               if (phase === 'custom') setPhase('pickRank');
               else if (phase === 'pickRank') setPhase('question');
-              else navigate('/birthday-dog');
+              else navigate('/breed');
             }}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}

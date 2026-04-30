@@ -57,7 +57,7 @@ export function BreedScreen() {
       setSelection('breed', 'Unknown');
       setSelection('breedType', 'unknown');
     }
-    navigate('/birthday-dog');
+    navigate('/ranking');
   };
 
   const canContinue =
@@ -184,7 +184,7 @@ export function BreedScreen() {
                       onClick={() => {
                         setSelection('breed', 'Unknown');
                         setSelection('breedType', 'unknown');
-                        navigate('/birthday-dog');
+                        navigate('/ranking');
                       }}
                       variant="outline"
                       className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-[11px] md:text-base px-1 md:px-2 leading-tight"

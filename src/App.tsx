@@ -9,7 +9,6 @@ import { GodsGrid } from "@/components/gods/GodsGrid";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
-import { BirthdayDogScreen } from "@/components/screens/BirthdayDogScreen";
 import { RankingScreen } from "@/components/screens/RankingScreen";
 import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
 import { OwnerGenderScreen } from "@/components/screens/OwnerGenderScreen";
@@ -42,7 +41,6 @@ const App = () => (
           <Route path="/name" element={<NameScreen />} />
           <Route path="/photo" element={<PhotoScreen />} />
           <Route path="/breed" element={<BreedPatronScreen />} />
-          <Route path="/birthday-dog" element={<BirthdayDogScreen />} />
           <Route path="/ranking" element={<RankingScreen />} />
           <Route path="/owner-name" element={<OwnerInfoScreen />} />
           <Route path="/owner-gender" element={<OwnerGenderScreen />} />

@@ -260,7 +260,7 @@ export function BreedPatronScreen() {
       setPatronCategory2('');
       setPatronSvg2('');
     }
-    navigate('/birthday-dog');
+    navigate('/ranking');
   };
 
   return (
