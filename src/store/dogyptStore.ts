@@ -86,6 +86,27 @@ export const useDogyptStore = create<DogyptState>()(
         patronSvg2: '',
       }),
     }),
-    { name: 'dogypt-store' }
+    {
+      name: 'dogypt-store',
+      version: 2,
+      // Bumping version invalidates older persisted state (e.g. legacy 'DAISY' default)
+      migrate: () => ({
+        dogName: '',
+        ownerName: '',
+        currentStep: 0,
+        selections: {},
+        selectedTier: 'silver',
+        email: '',
+        customCharacter: false,
+        selectedAmount: 11,
+        dogPhotoUrl: '',
+        patronCategory: '',
+        patronSvg: '',
+        breed: '',
+        isMix: false,
+        patronCategory2: '',
+        patronSvg2: '',
+      }),
+    }
   )
 );
