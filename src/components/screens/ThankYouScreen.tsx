@@ -57,7 +57,7 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
       return;
     }
     setLanded(false);
-    const duration = 1000;
+    const duration = 600;
     const start = performance.now();
     let raf: number;
     const tick = (now: number) => {
