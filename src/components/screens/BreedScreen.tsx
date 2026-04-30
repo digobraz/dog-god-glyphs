@@ -80,11 +80,11 @@ export function BreedScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 flex-1 min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
           {/* HEKTHOR question */}
           <div
-            className="w-full rounded-2xl relative overflow-hidden flex-shrink-0"
+            className="w-full rounded-2xl relative overflow-hidden flex-shrink"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
           >
             {/* Info toggle button */}
