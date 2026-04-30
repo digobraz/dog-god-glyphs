@@ -1,15 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Info, X, PawPrint, CalendarIcon } from 'lucide-react';
+import { Info, X, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { WheelDatePicker } from '@/components/WheelDatePicker';
 
 export function NameScreen() {
   const navigate = useNavigate();
@@ -19,48 +16,58 @@ export function NameScreen() {
   const selections = useDogyptStore((s) => s.selections);
 
   const initialName = storedDogName || '';
-  const initialDate = (() => {
-    const d = selections.birthdayDay;
-    const m = selections.birthdayMonth;
-    const y = selections.birthdayYear;
-    if (!d || !m || !y) return undefined;
-    const dt = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
-    return isNaN(dt.getTime()) ? undefined : dt;
-  })();
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const minYear = currentYear - 25;
+  const maxYear = currentYear;
+
+  const stored = {
+    d: parseInt(selections.birthdayDay || '0'),
+    m: parseInt(selections.birthdayMonth || '0'),
+    y: parseInt(selections.birthdayYear || '0'),
+  };
+  const hasStored = stored.d && stored.m && stored.y;
 
   const [input, setInput] = useState(initialName);
-  const [birthday, setBirthday] = useState<Date | undefined>(initialDate);
+  const [day, setDay] = useState<number>(hasStored ? stored.d : 1);
+  const [month, setMonth] = useState<number>(hasStored ? stored.m : 1);
+  const [year, setYear] = useState<number>(hasStored ? stored.y : currentYear - 5);
+  const [touched, setTouched] = useState<boolean>(!!hasStored);
   const [showInfo, setShowInfo] = useState(false);
 
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
-  const dateValid = !!birthday;
+  const dateValid = touched;
   const canContinue = nameValid && dateValid;
 
   const handleSend = () => {
-    if (!canContinue || !birthday) return;
+    if (!canContinue) return;
     setDogName(trimmed.toUpperCase());
-    const dd = String(birthday.getDate()).padStart(2, '0');
-    const mm = String(birthday.getMonth() + 1).padStart(2, '0');
-    const yyyy = String(birthday.getFullYear());
-    setSelection('birthdayDay', dd);
-    setSelection('birthdayMonth', mm);
-    setSelection('birthdayYear', yyyy);
+    setSelection('birthdayDay', String(day).padStart(2, '0'));
+    setSelection('birthdayMonth', String(month).padStart(2, '0'));
+    setSelection('birthdayYear', String(year));
     navigate('/photo');
+  };
+
+  const handleDateChange = (d: number, m: number, y: number) => {
+    setDay(d);
+    setMonth(m);
+    setYear(y);
+    setTouched(true);
   };
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-6 pb-3">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+      <div className="flex-shrink-0 flex justify-center pt-3 pb-2 md:pt-5">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-xl flex flex-col items-center gap-6">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
 
           {/* Speech bubble */}
           <div
-            className="w-full rounded-2xl relative overflow-hidden"
+            className="w-full rounded-2xl relative overflow-hidden flex-shrink"
             style={{
               background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
             }}
@@ -80,10 +87,10 @@ export function NameScreen() {
             </button>
 
             {/* Default front content */}
-            <div className="p-6 flex flex-col items-center gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-              <p className="text-white text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>.{'\n'}What's your dog's name?
+            <div className="px-4 py-3 md:p-5 flex flex-col items-center gap-2 md:gap-3">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-32 h-32 md:w-52 md:h-52 object-contain" />
+              <p className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>. What's your dog's name?
               </p>
             </div>
 
@@ -174,12 +181,12 @@ export function NameScreen() {
 
           {/* Input */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: 0.1 }}
           >
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2 md:gap-3">
             <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
               <input
                 value={input}
@@ -193,43 +200,27 @@ export function NameScreen() {
               />
             </div>
 
-            {/* Birthday */}
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className={cn(
-                    "w-full flex items-center justify-between gap-2 bg-card rounded-full px-4 py-2 border border-border/30 text-left h-[44px]",
-                    !birthday && "text-muted-foreground"
-                  )}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                >
-                  <span className="text-base md:text-lg uppercase">
-                    {birthday ? format(birthday, 'dd MMM yyyy') : "When was your dog born?"}
-                  </span>
-                  <CalendarIcon className="h-4 w-4 opacity-60" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={birthday}
-                  onSelect={setBirthday}
-                  disabled={(date) => date > new Date() || date < new Date('1990-01-01')}
-                  defaultMonth={birthday ?? new Date(2020, 0, 1)}
-                  captionLayout="dropdown-buttons"
-                  fromYear={1990}
-                  toYear={new Date().getFullYear()}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
+            {/* Birthday — inline iOS-style 3-wheel picker */}
+            <p
+              className="text-xs md:text-sm uppercase tracking-widest text-muted-foreground text-center"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              When was your dog born?
+            </p>
+            <WheelDatePicker
+              day={day}
+              month={month}
+              year={year}
+              minYear={minYear}
+              maxYear={maxYear}
+              maxDate={today}
+              onChange={handleDateChange}
+            />
 
             <Button
               onClick={handleSend}
               disabled={!canContinue}
-              className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+              className="w-full rounded-full gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
