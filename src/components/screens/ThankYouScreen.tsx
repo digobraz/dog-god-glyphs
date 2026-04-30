@@ -111,7 +111,7 @@ export function ThankYouScreen() {
       </div>
 
       {/* Cards container */}
-      <div className="flex-1 flex flex-col items-center justify-start px-4 pt-2 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
 
         {/* Dog photo — square, full content width */}
         <motion.div
