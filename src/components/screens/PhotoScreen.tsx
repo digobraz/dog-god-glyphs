@@ -7,6 +7,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import imageCompression from 'browser-image-compression';
+import hekthorImg from '@/assets/hekthor.png';
 
 /* ───── helpers ───── */
 
@@ -281,85 +282,10 @@ export function PhotoScreen() {
   /* ───── Sub-screen renderers ───── */
 
   const renderUpload = () => (
-    <div className="flex flex-col items-center gap-3 flex-1 min-h-0 justify-center">
-      <h2
-        className="text-lg md:text-xl font-bold uppercase tracking-wider text-center"
-        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-      >
-        A FACE OF A GOD
-      </h2>
-      <p
-        className="text-xs md:text-sm text-center text-muted-foreground leading-relaxed px-2"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        Upload a clear photo of your dog — it will be sealed into their Heroglyph forever.
-      </p>
-
-      {!photoUrl ? (
-        <div
-          className="w-full max-w-[260px] aspect-square rounded-2xl flex flex-col items-center justify-center gap-3 cursor-pointer hover:border-primary/60 transition-colors"
-          style={{
-            border: '2px dashed hsl(var(--gold) / 0.4)',
-          }}
-          onClick={() => fileRef.current?.click()}
-        >
-          {/* Paw icon in gold */}
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="hsl(39 55% 51%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 17c-2.5 2-6 2-6-1 0-2 2-4 6-6 4 2 6 4 6 6 0 3-3.5 3-6 1z" />
-            <circle cx="6" cy="8" r="2" />
-            <circle cx="18" cy="8" r="2" />
-            <circle cx="9" cy="4" r="1.5" />
-            <circle cx="15" cy="4" r="1.5" />
-          </svg>
-          <span
-            className="text-xs text-muted-foreground"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            Tap to upload
-          </span>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-2">
-          <div
-            className="w-20 h-20 rounded-full overflow-hidden"
-            style={{ border: '2px solid hsl(var(--gold))' }}
-          >
-            <img src={photoUrl} alt="Dog" className="w-full h-full object-cover" />
-          </div>
-          <span
-            className="text-xs text-muted-foreground truncate max-w-[200px]"
-            style={{ fontFamily: "'Inter', sans-serif" }}
-          >
-            {fileName}
-          </span>
-          <button
-            className="text-[10px] underline text-muted-foreground"
-            onClick={() => fileRef.current?.click()}
-          >
-            Change photo
-          </button>
-        </div>
-      )}
-
-      {lowRes && photoUrl && (
-        <div
-          className="w-full rounded-lg px-3 py-2 text-[11px] leading-snug text-center"
-          style={{
-            background: 'hsl(210 80% 55% / 0.12)',
-            color: 'hsl(210 80% 40%)',
-            fontFamily: "'Inter', sans-serif",
-          }}
-        >
-          <Info className="inline h-3 w-3 mr-1 -mt-0.5" />
-          Your god deserves a sharper portrait. Continue or upload a better photo.
-        </div>
-      )}
-
+    <>
+      {/* hidden file input lives here so it persists */}
       <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
-      <GoldButton onClick={() => goTo(1)} disabled={!photoUrl}>
-        CONTINUE
-      </GoldButton>
-    </div>
+    </>
   );
 
   const renderCertCrop = () => (
@@ -506,13 +432,100 @@ export function PhotoScreen() {
 
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
-        <div className="w-full max-w-xl flex flex-col min-h-0 flex-1">
-          <div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col flex-1 min-h-0 overflow-hidden relative"
-          >
-            <Dots total={4} current={sub} />
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0 flex-1">
+          <AnimatePresence mode="wait" custom={dir}>
+            {sub === 0 ? (
+              <motion.div
+                key="upload"
+                custom={dir}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="flex flex-col flex-1 min-h-0 w-full gap-3 md:gap-4"
+              >
+                {/* BLOCK 1 — dark gradient speech bubble */}
+                <div
+                  className="w-full rounded-2xl flex-shrink overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+                >
+                  <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
+                    <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
+                    <p
+                      className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      A <span className="font-bold text-amber-300">FACE</span> OF A GOD
+                    </p>
+                    <p
+                      className="text-white/70 text-sm text-center"
+                      style={{ fontFamily: "'Inter', sans-serif" }}
+                    >
+                      Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
+                    </p>
+                  </div>
+                </div>
 
-            <AnimatePresence mode="wait" custom={dir}>
+                {/* BLOCK 2 — cream/papyrus card */}
+                <motion.div
+                  className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex-shrink-0"
+                  initial={{ opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.35, delay: 0.1 }}
+                >
+                  <div className="flex flex-col gap-2 md:gap-3">
+                    {!photoUrl ? (
+                      <div
+                        className="w-full rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-primary/60 transition-colors py-6"
+                        style={{ border: '2px dashed hsl(var(--gold) / 0.4)' }}
+                        onClick={() => fileRef.current?.click()}
+                      >
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="hsl(39 55% 51%)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 17c-2.5 2-6 2-6-1 0-2 2-4 6-6 4 2 6 4 6 6 0 3-3.5 3-6 1z" />
+                          <circle cx="6" cy="8" r="2" />
+                          <circle cx="18" cy="8" r="2" />
+                          <circle cx="9" cy="4" r="1.5" />
+                          <circle cx="15" cy="4" r="1.5" />
+                        </svg>
+                        <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          Tap to upload
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-3 py-2">
+                        <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0" style={{ border: '2px solid hsl(var(--gold))' }}>
+                          <img src={photoUrl} alt="Dog" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                          <span className="text-xs text-foreground truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{fileName}</span>
+                          <button className="text-[10px] underline text-muted-foreground self-start" onClick={() => fileRef.current?.click()}>
+                            Change photo
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {lowRes && photoUrl && (
+                      <div
+                        className="w-full rounded-lg px-3 py-2 text-[11px] leading-snug text-center"
+                        style={{ background: 'hsl(210 80% 55% / 0.12)', color: 'hsl(210 80% 40%)', fontFamily: "'Inter', sans-serif" }}
+                      >
+                        <Info className="inline h-3 w-3 mr-1 -mt-0.5" />
+                        Your god deserves a sharper portrait. Continue or upload a better photo.
+                      </div>
+                    )}
+
+                    <GoldButton onClick={() => goTo(1)} disabled={!photoUrl}>
+                      CONTINUE
+                    </GoldButton>
+                  </div>
+                </motion.div>
+
+                {/* file input */}
+                {renderUpload()}
+              </motion.div>
+            ) : (
               <motion.div
                 key={sub}
                 custom={dir}
@@ -521,13 +534,18 @@ export function PhotoScreen() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="flex flex-col flex-1 min-h-0 mt-2"
+                className="flex flex-col flex-1 min-h-0 w-full"
               >
-                {screens[sub]()}
+                <div className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
+                  <Dots total={4} current={sub} />
+                  <div className="flex flex-col flex-1 min-h-0 mt-2">
+                    {screens[sub]()}
+                  </div>
+                </div>
               </motion.div>
-            </AnimatePresence>
+            )}
+          </AnimatePresence>
           </div>
-        </div>
       </div>
     </div>
   );
