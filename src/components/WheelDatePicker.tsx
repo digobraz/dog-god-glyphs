@@ -129,7 +129,7 @@ export function WheelDatePicker({ day, month, year, minYear, maxYear, maxDate, o
   };
 
   return (
-    <div className="relative w-full rounded-xl bg-black/30 backdrop-blur-sm border border-border/30 overflow-hidden">
+    <div className="relative w-full overflow-hidden">
       {/* gold lens band — center row */}
       <div
         aria-hidden
