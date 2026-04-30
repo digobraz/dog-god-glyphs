@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LandingPage } from "@/components/landing/LandingPage";
-import { EmailLanding } from "@/components/landing/EmailLanding";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
@@ -36,8 +35,6 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<GodsGrid />} />
-          <Route path="/devhome" element={<LandingPage />} />
-          <Route path="/waitlist" element={<EmailLanding />} />
           <Route path="/name" element={<NameScreen />} />
           <Route path="/photo" element={<PhotoScreen />} />
           <Route path="/breed" element={<BreedPatronScreen />} />
@@ -56,6 +53,7 @@ const App = () => (
           <Route path="/payment-summary" element={<PaymentSummaryScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
           <Route path="/thank-you" element={<ThankYouScreen />} />
+          <Route path="/devhome" element={<LandingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
