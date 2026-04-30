@@ -51,7 +51,7 @@ export function MessageScreen() {
       osc.stop(ctx.currentTime + 0.04);
     } catch {}
 
-    navigate('/pay-wall');
+    navigate('/checkout');
   };
 
   return (
