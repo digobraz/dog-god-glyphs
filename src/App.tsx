@@ -18,9 +18,8 @@ import { DogColourScreen } from "@/components/screens/DogColourScreen";
 import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
 import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
 import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
-import { PayWallScreen } from "@/components/screens/PayWallScreen";
 import { MessageScreen } from "@/components/screens/MessageScreen";
-import { PaymentSummaryScreen } from "@/components/screens/PaymentSummaryScreen";
+import { CheckoutScreen } from "@/components/screens/CheckoutScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
 import { ThankYouScreen } from "@/components/screens/ThankYouScreen";
 import NotFound from "./pages/NotFound.tsx";
@@ -49,8 +48,9 @@ const App = () => (
           <Route path="/dog-character" element={<DogCharacterScreen />} />
           <Route path="/heroglyph-reveal" element={<HeroglyphRevealScreen />} />
           <Route path="/message" element={<MessageScreen />} />
-          <Route path="/pay-wall" element={<PayWallScreen />} />
-          <Route path="/payment-summary" element={<PaymentSummaryScreen />} />
+          <Route path="/checkout" element={<CheckoutScreen />} />
+          <Route path="/pay-wall" element={<CheckoutScreen />} />
+          <Route path="/payment-summary" element={<CheckoutScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
           <Route path="/thank-you" element={<ThankYouScreen />} />
           <Route path="/devhome" element={<LandingPage />} />
