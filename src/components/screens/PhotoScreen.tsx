@@ -98,9 +98,8 @@ function CropArea({
     <div className="flex flex-col items-center gap-2 flex-1 min-h-0">
       <div
         ref={containerRef}
-        className="relative overflow-hidden touch-none cursor-grab active:cursor-grabbing flex-1 w-full max-w-[280px] aspect-square"
+        className="relative overflow-hidden touch-none cursor-grab active:cursor-grabbing w-[260px] h-[260px] flex-shrink-0"
         style={{
-          ...maskStyle,
           border: '2px dashed hsl(var(--gold) / 0.5)',
           borderRadius: shape === 'square' ? '0.75rem' : '50%',
         }}
