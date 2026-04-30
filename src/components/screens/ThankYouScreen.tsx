@@ -145,7 +145,7 @@ export function ThankYouScreen() {
 
         {/* Card #2 — Million counter (HERO) */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center py-8 md:py-10 px-4 flex-shrink-0 relative overflow-hidden"
+          className="w-full rounded-2xl papyrus-bg flex flex-col items-center justify-center py-5 md:py-8 px-4 flex-shrink-0 relative overflow-hidden"
           style={CREAM_CARD}
           initial={reduced ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -166,7 +166,7 @@ export function ThankYouScreen() {
             className="leading-none font-bold relative z-10"
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(120px, 22vw, 200px)',
+              fontSize: 'clamp(110px, 20vw, 180px)',
               background: 'linear-gradient(180deg, #E8C77A, #B88A3E, #E8C77A)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
