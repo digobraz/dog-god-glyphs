@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Search, X, Plus, Info } from 'lucide-react';
+import { ArrowLeft, Search, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
@@ -21,7 +21,6 @@ export function BreedScreen() {
   const [selectedBreed, setSelectedBreed] = useState<string | null>(null);
   const [mixBreeds, setMixBreeds] = useState<string[]>([]);
   const [mixSearch, setMixSearch] = useState('');
-  const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = fciBreeds.filter((b) =>
