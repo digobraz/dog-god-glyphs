@@ -111,12 +111,11 @@ export function ThankYouScreen() {
       </div>
 
       {/* Cards container */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-start px-4 pt-2 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
 
-        {/* Block #1 — Dog photo square, no text */}
-        {/* Block #1 — Dog photo square, full content width */}
+        {/* Dog photo — square, full content width */}
         <motion.div
-          className="w-full flex-1 min-h-0 flex items-center justify-center"
+          className="w-full flex-shrink-0"
           initial={reduced ? false : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -126,7 +125,6 @@ export function ThankYouScreen() {
             className="overflow-hidden w-full"
             style={{
               aspectRatio: '1 / 1',
-              maxHeight: '100%',
               borderRadius: 16,
               boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
             }}
@@ -139,7 +137,16 @@ export function ThankYouScreen() {
           </motion.div>
         </motion.div>
 
-        {/* Card #2 — Thank you + CTA (purple-orange gradient) */}
+        {/* Block #1 — Cream/papyrus card, empty */}
+        <motion.div
+          className="w-full rounded-2xl papyrus-bg flex-1 min-h-0 flex-shrink"
+          style={{ border: '1px solid hsl(var(--gold) / 0.3)' }}
+          initial={reduced ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+        />
+
+        {/* Block #2 — Thank you + CTA (purple-orange gradient) */}
         <motion.div
           className="w-full rounded-2xl px-4 py-3 flex flex-col gap-3 flex-shrink-0"
           style={GRADIENT_CARD}
