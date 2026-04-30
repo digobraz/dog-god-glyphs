@@ -549,23 +549,7 @@ export function PhotoScreen() {
                 {renderUpload()}
               </motion.div>
             ) : (
-              <motion.div
-                key={sub}
-                custom={dir}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="flex flex-col flex-1 min-h-0 w-full"
-              >
-                <div className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col flex-1 min-h-0 overflow-hidden">
-                  <Dots total={4} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
-                  <div className="flex flex-col flex-1 min-h-0 mt-2">
-                    {screens[sub]()}
-                  </div>
-                </div>
-              </motion.div>
+              null
             )}
           </AnimatePresence>
           </div>
