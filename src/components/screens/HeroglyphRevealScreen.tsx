@@ -5,7 +5,6 @@ import { Info, X } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
-import { CustomCharacterBadge } from '@/components/CustomCharacterBadge';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
