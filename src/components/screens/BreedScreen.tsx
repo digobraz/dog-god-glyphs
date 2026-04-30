@@ -84,7 +84,7 @@ export function BreedScreen() {
         <div className="w-full max-w-xl flex flex-col items-center gap-3 flex-1 min-h-0">
           {/* HEKTHOR question */}
           <div
-            className="w-full rounded-2xl relative overflow-hidden flex-shrink-0"
+            className="w-full rounded-2xl relative overflow-hidden flex-shrink"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
           >
             {/* Info toggle button */}
