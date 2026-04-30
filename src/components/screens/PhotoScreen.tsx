@@ -443,7 +443,7 @@ export function PhotoScreen() {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="flex flex-col flex-1 min-h-0 w-full gap-3 md:gap-4"
+                className="flex flex-col flex-1 min-h-0 w-full gap-3 md:gap-4 justify-center"
               >
                 {/* BLOCK 1 — dark gradient speech bubble */}
                 <div
