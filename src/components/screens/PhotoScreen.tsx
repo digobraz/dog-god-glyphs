@@ -368,19 +368,9 @@ export function PhotoScreen() {
 
       <input ref={extraRef} type="file" accept="image/*" onChange={handleExtraUpload} className="hidden" />
 
-      <label className="flex items-start gap-2 text-[11px] text-muted-foreground cursor-pointer w-full" style={{ fontFamily: "'Inter', sans-serif" }}>
-        <Checkbox
-          checked={gdpr}
-          onCheckedChange={(v) => setGdpr(!!v)}
-          className="mt-0.5 border-muted-foreground/40"
-        />
-        <span>I consent to use these for personalized content.</span>
-      </label>
-
       <BackNextButtons
         onBack={() => goTo(0)}
         onNext={finish}
-        nextDisabled={extras.length > 0 && !gdpr}
       />
     </>
   );
@@ -535,7 +525,7 @@ export function PhotoScreen() {
                         ? 'This will appear in your official Heroglyph certificate.'
                         : sub === 2
                           ? "Square crop for the gods' hall of fame."
-                          : 'Add 1–3 more photos for surprises later.'}
+                          : 'Add 1–3 more photos for surprises later. (optional)'}
                     </p>
                   </div>
                 </div>
