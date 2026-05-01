@@ -144,12 +144,15 @@ export function ThankYouScreen() {
       <AnimatePresence>
         {overlayVisible && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4"
-            style={{ background: 'rgba(245, 235, 210, 0.85)' }}
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.15)' }}
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
+            {/* Floating card */}
+            <div className="flex flex-col items-center text-center gap-3"
+              style={{ background: 'rgba(245,235,210,0.97)', borderRadius: 20, padding: '32px 40px', maxWidth: 300, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
             {/* REC indicator */}
             <div className="flex items-center gap-2">
               <span className="relative flex h-4 w-4">
@@ -170,6 +173,7 @@ export function ThankYouScreen() {
             <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#888' }}>
               Capture your dog's official welcome
             </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
