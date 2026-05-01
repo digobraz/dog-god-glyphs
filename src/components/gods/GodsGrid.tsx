@@ -251,7 +251,11 @@ export function GodsGrid() {
         .gods-root {
           position: fixed;
           inset: 0;
-          background: #080808;
+          background-color: #050505;
+          background-image: url('/images/bg-dark.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
           font-family: system-ui, -apple-system, sans-serif;
           letter-spacing: -0.02em;
           user-select: none;
