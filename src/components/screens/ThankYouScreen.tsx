@@ -148,7 +148,8 @@ export function ThankYouScreen() {
       <AnimatePresence>
         {showOverlay && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center dark-bg"
+            className="z-50 dark-bg"
+            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
