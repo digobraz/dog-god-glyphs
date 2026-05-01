@@ -9,25 +9,48 @@ import hekthorImg from '@/assets/hekthor.png';
 /** iOS-style screen record button with tap ripple animation */
 function ScreenRecordTapAnimation() {
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 64, height: 64 }}>
-      {/* Outer ring */}
-      <div
-        className="absolute rounded-full"
-        style={{ width: 52, height: 52, border: '3.5px solid #1a1a1a' }}
-      />
-      {/* Inner red dot — pulses like a tap */}
+    <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
+      {/* Glow halo behind everything */}
       <motion.div
         className="absolute rounded-full"
-        style={{ width: 26, height: 26, backgroundColor: '#dc2626' }}
-        animate={{ scale: [1, 0.75, 1], opacity: [1, 0.6, 1] }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ width: 72, height: 72, background: 'radial-gradient(circle, rgba(220,38,38,0.35) 0%, transparent 70%)' }}
+        animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.8, 0.4] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Tap ripple expanding outward */}
+      {/* Outer ring — breathes */}
+      <motion.div
+        className="absolute rounded-full border-[3.5px]"
+        style={{ width: 56, height: 56, borderColor: '#dc2626' }}
+        animate={{ scale: [1, 1.08, 1], borderColor: ['#dc2626', '#ff4444', '#dc2626'] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Inner red dot — strong pulse */}
       <motion.div
         className="absolute rounded-full"
-        style={{ width: 52, height: 52, border: '2px solid rgba(220,38,38,0.35)' }}
-        animate={{ scale: [0.95, 1.4, 0.95], opacity: [0, 0.5, 0] }}
-        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+        style={{ width: 28, height: 28, backgroundColor: '#dc2626', boxShadow: '0 0 20px rgba(220,38,38,0.6)' }}
+        animate={{
+          scale: [1, 0.7, 1],
+          boxShadow: [
+            '0 0 15px rgba(220,38,38,0.4)',
+            '0 0 35px rgba(220,38,38,0.9)',
+            '0 0 15px rgba(220,38,38,0.4)',
+          ],
+        }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Ripple 1 */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 56, height: 56, border: '2px solid rgba(220,38,38,0.3)' }}
+        animate={{ scale: [1, 1.6], opacity: [0.6, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
+      />
+      {/* Ripple 2 — delayed */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 56, height: 56, border: '2px solid rgba(220,38,38,0.2)' }}
+        animate={{ scale: [1, 1.8], opacity: [0.4, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut', delay: 0.6 }}
       />
     </div>
   );
