@@ -366,18 +366,26 @@ export function ThankYouScreen() {
                   transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
-              <button
+              <motion.button
                 onClick={handleEnterPack}
                 className="relative w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
                   color: '#1a1200',
-                  boxShadow: '0 4px 20px hsl(45 80% 50% / 0.4)',
                 }}
+                animate={{
+                  scale: [1, 1.045, 1],
+                  boxShadow: [
+                    '0 4px 20px hsl(45 80% 50% / 0.4)',
+                    '0 6px 35px hsl(45 80% 50% / 0.7)',
+                    '0 4px 20px hsl(45 80% 50% / 0.4)',
+                  ],
+                }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
               >
                 ENTER THE GODS →
-              </button>
+              </motion.button>
             </div>
             <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
               Your certificate is on its way — check your email.
