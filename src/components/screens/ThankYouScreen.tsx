@@ -351,18 +351,41 @@ export function ThankYouScreen() {
 
           {/* CTA + email hint */}
           <div className="w-full flex flex-col items-center gap-2">
-            <button
-              onClick={handleEnterPack}
-              className="w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                color: '#1a1200',
-                boxShadow: '0 4px 20px hsl(45 80% 50% / 0.4)',
-              }}
-            >
-              ENTER THE GODS →
-            </button>
+            <div className="relative w-full">
+              {/* Rotating golden border line */}
+              <div
+                className="absolute -inset-[2px] rounded-full overflow-hidden"
+                style={{ padding: 2 }}
+              >
+                <motion.div
+                  className="w-full h-full rounded-full"
+                  style={{
+                    background: 'conic-gradient(from 0deg, transparent 0%, hsl(45 90% 65%) 20%, hsl(39 95% 75%) 40%, transparent 50%, transparent 70%, hsl(45 90% 55%) 85%, hsl(39 80% 45%) 95%, transparent 100%)',
+                  }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
+                />
+              </div>
+              {/* Glow pulse behind */}
+              <motion.div
+                className="absolute -inset-1 rounded-full"
+                style={{ background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))', filter: 'blur(8px)' }}
+                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+              <button
+                onClick={handleEnterPack}
+                className="relative w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                  color: '#1a1200',
+                  boxShadow: '0 4px 20px hsl(45 80% 50% / 0.4)',
+                }}
+              >
+                ENTER THE GODS →
+              </button>
+            </div>
             <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
               Your certificate is on its way — check your email.
             </p>
