@@ -59,8 +59,16 @@ export function HeroSection() {
         transition={{ duration: 0.6 }}
       >
         <span
-          className="font-black text-2xl md:text-4xl lg:text-5xl"
-          style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
+          className="font-black text-5xl md:text-7xl lg:text-8xl"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            background: 'linear-gradient(135deg, hsl(45 95% 65%) 0%, hsl(39 85% 50%) 50%, hsl(45 95% 65%) 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: '0 0 30px hsl(39 85% 50% / 0.5)',
+            filter: 'drop-shadow(0 0 20px hsl(39 85% 50% / 0.6))',
+          }}
         >
           <AnimatedCounter target={29} duration={2500} />
         </span>
