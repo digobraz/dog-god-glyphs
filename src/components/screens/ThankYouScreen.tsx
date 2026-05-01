@@ -94,10 +94,12 @@ export function ThankYouScreen() {
   const reduced = useReducedMotion();
 
   const dogName = store.dogName || 'HEKTHOR';
+  const ownerFirstName = (store.ownerName || '').split(' ')[0] || 'Friend';
   const email = store.email || '';
+  const photoUrl = store.dogPhotoUrl || DOG_PLACEHOLDER_URL;
 
-  // Still register in pack DB
-  usePackNumber(dogName, email, sessionId);
+  const packNumber = usePackNumber(dogName, email, sessionId);
+  const { text: packText, landed } = useAnimatedCounter(packNumber ?? 0, reduced);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
@@ -130,21 +132,60 @@ export function ThankYouScreen() {
             }}
           >
             <img
-              src={DOG_PLACEHOLDER_URL}
+              src={photoUrl}
               alt={dogName}
               className="w-full h-full object-cover"
             />
           </motion.div>
         </motion.div>
 
-        {/* Block #1 — Cream/papyrus card, empty */}
+        {/* Block #1 — Pack counter */}
         <motion.div
-          className="w-full rounded-2xl papyrus-bg flex-[0.5] min-h-0 flex-shrink"
+          className="w-full rounded-2xl papyrus-bg flex-[0.5] min-h-0 flex-shrink flex flex-col items-center justify-center py-4 px-4"
           style={{ border: '1px solid hsl(var(--gold) / 0.3)' }}
           initial={reduced ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.4 }}
-        />
+        >
+          {packNumber === null ? (
+            <span
+              className="text-2xl font-bold tracking-widest animate-pulse"
+              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold))' }}
+            >
+              ...
+            </span>
+          ) : (
+            <>
+              <motion.span
+                className="font-bold leading-none"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 'clamp(2.8rem, 10vw, 4.5rem)',
+                  background: 'linear-gradient(135deg, hsl(45 90% 55%), hsl(39 80% 45%))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+                animate={landed ? { scale: [1, 1.08, 1] } : {}}
+                transition={{ duration: 0.3 }}
+              >
+                {packText}
+              </motion.span>
+              <span
+                className="text-sm md:text-base font-semibold tracking-widest uppercase mt-1"
+                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--heading-on-light) / 0.8)' }}
+              >
+                of 1,000,000
+              </span>
+              <span
+                className="text-xs tracking-wider mt-0.5"
+                style={{ color: 'hsl(var(--heading-on-light) / 0.45)', fontFamily: "'Cinzel', serif" }}
+              >
+                dogs welcomed worldwide
+              </span>
+            </>
+          )}
+        </motion.div>
 
         {/* Block #2 — Thank you + CTA (purple-orange gradient) */}
         <motion.div
@@ -166,7 +207,7 @@ export function ThankYouScreen() {
                 className="text-[17px] md:text-[19px] font-bold tracking-wide uppercase"
                 style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
               >
-                Thank you, friends.
+                Thank you, {ownerFirstName}.
               </span>
               <span
                 className="text-[13px] md:text-[14px] italic"
