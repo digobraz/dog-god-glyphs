@@ -125,66 +125,70 @@ export function ThankYouScreen() {
   const photoUrl = store.dogPhotoUrl || '';
 
   const packNumber = usePackNumber(dogName, email, sessionId);
-  const { display: packDisplay, landed } = useAnimatedCounter(packNumber ?? 0, reduced);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
   }, [navigate]);
 
-  const [overlayVisible, setOverlayVisible] = useState(true);
+  const [showOverlay, setShowOverlay] = useState(true);
 
   useEffect(() => {
-    const t = setTimeout(() => setOverlayVisible(false), 2800);
+    const t = setTimeout(() => setShowOverlay(false), 3000);
     return () => clearTimeout(t);
   }, []);
 
+  // Counter only starts after overlay dismisses
+  const { display: packDisplay, landed } = useAnimatedCounter(
+    !showOverlay ? (packNumber ?? 0) : 0,
+    reduced
+  );
+
   return (
-    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
-      {/* Record This Moment overlay */}
+    <div className="dark-bg h-[100dvh] overflow-hidden relative">
       <AnimatePresence>
-        {overlayVisible && (
+        {showOverlay && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.15)' }}
+            className="absolute inset-0 z-50 flex items-center justify-center dark-bg"
             initial={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
           >
-            {/* Floating card */}
             <div className="flex flex-col items-center text-center gap-3"
-              style={{ background: 'rgba(245,235,210,0.97)', borderRadius: 20, padding: '32px 40px', maxWidth: 300, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-            {/* REC indicator */}
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-4 w-4">
-                <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-60" />
-                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500" />
-              </span>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em', color: '#dc2626', fontWeight: 700 }}>
-                REC
-              </span>
-            </div>
-
-            {/* Heading */}
-            <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-              RECORD THIS MOMENT
-            </h2>
-
-            {/* Subtext */}
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#888' }}>
-              Capture your dog's official welcome
-            </p>
+              style={{ background: 'rgba(245,235,210,0.97)', borderRadius: 16, padding: '32px 40px', maxWidth: 300, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-4 w-4">
+                  <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-60" />
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500" />
+                </span>
+                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em', color: '#dc2626', fontWeight: 700 }}>
+                  REC
+                </span>
+              </div>
+              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                RECORD THIS MOMENT
+              </h2>
+              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#888' }}>
+                Capture your dog's official welcome
+              </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* 1. Logo — on dark bg */}
-      <div className="flex-shrink-0 flex justify-center pt-3 pb-2" style={{ filter: overlayVisible ? 'blur(4px)' : 'none', transition: 'filter 0.4s ease' }}>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-10 object-contain" />
-      </div>
+      {!showOverlay && (
+      <motion.div
+        className="flex flex-col h-full"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        {/* 1. Logo — on dark bg */}
+        <div className="flex-shrink-0 flex justify-center pt-3 pb-2">
+          <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-10 object-contain" />
+        </div>
 
-      {/* Outer centering container */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-4" style={{ filter: overlayVisible ? 'blur(4px)' : 'none', transition: 'filter 0.4s ease' }}>
+        {/* Outer centering container */}
+        <div className="flex-1 flex items-center justify-center px-4 pb-4">
       <motion.div
         className="w-full max-w-sm papyrus-bg rounded-3xl flex flex-col items-center px-5 pt-7 pb-7 gap-3"
         style={{ border: '1px solid hsl(var(--gold) / 0.3)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
