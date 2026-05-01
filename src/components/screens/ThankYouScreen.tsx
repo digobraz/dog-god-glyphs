@@ -6,6 +6,70 @@ import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
+/** iOS-style screen record button with tapping finger animation */
+function ScreenRecordTapAnimation() {
+  return (
+    <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
+      {/* Outer ring — iOS screen record icon */}
+      <div
+        className="absolute rounded-full"
+        style={{
+          width: 56, height: 56,
+          border: '3.5px solid #1a1a1a',
+        }}
+      />
+      {/* Inner filled circle */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 28, height: 28, backgroundColor: '#dc2626' }}
+        animate={{
+          scale: [1, 0.85, 1],
+          opacity: [1, 0.7, 1],
+        }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Finger / tap indicator */}
+      <motion.div
+        className="absolute"
+        style={{ top: 6, left: 38 }}
+        animate={{
+          y: [0, 18, 18, 0],
+          scale: [0.9, 1, 1, 0.9],
+          opacity: [0.5, 1, 1, 0.5],
+        }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {/* Finger SVG */}
+        <svg width="28" height="38" viewBox="0 0 28 38" fill="none">
+          <path
+            d="M14 0C14 0 8 4 8 10V20C8 20 4 19 3 21C2 23 3 25 5 26L10 30C12 33 13 36 13 38H18C18 35 17 32 15 29L12 25C10 23 10 22 11 21C12 20 13 21 13 21V10C13 6 14 0 14 0Z"
+            fill="#1a1a1a"
+            opacity="0.85"
+          />
+          <path
+            d="M14 0C14 0 20 4 20 10V20C20 20 24 19 25 21C26 23 25 25 23 26L18 30C16 33 15 36 15 38H18C18 35 17 32 15 29"
+            fill="#2a2a2a"
+            opacity="0.5"
+          />
+        </svg>
+      </motion.div>
+      {/* Tap ripple */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: 56, height: 56,
+          border: '2px solid rgba(220, 38, 38, 0.4)',
+        }}
+        animate={{
+          scale: [0.9, 1.3, 0.9],
+          opacity: [0, 0.6, 0],
+        }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+      />
+    </div>
+  );
+}
+
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
   const inserted = useRef(false);
@@ -165,6 +229,10 @@ export function ThankYouScreen() {
                   REC
                 </span>
               </div>
+
+              {/* iOS-style screen record tap animation */}
+              <ScreenRecordTapAnimation />
+
               <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                 RECORD THIS MOMENT
               </h2>
