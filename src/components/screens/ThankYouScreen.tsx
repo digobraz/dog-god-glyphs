@@ -363,9 +363,6 @@ export function ThankYouScreen() {
                     background: 'conic-gradient(from 0deg, transparent 0%, hsl(45 90% 65%) 20%, hsl(39 95% 75%) 40%, transparent 50%, transparent 70%, hsl(45 90% 55%) 85%, hsl(39 80% 45%) 95%, transparent 100%)',
                   }}
                   animate={{ rotate: 360 }}
-                  style={{
-                    background: 'conic-gradient(from 0deg, transparent 0%, hsl(270 70% 65%) 20%, hsl(280 80% 75%) 40%, transparent 50%, transparent 70%, hsl(265 70% 55%) 85%, hsl(275 60% 45%) 95%, transparent 100%)',
-                  }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
