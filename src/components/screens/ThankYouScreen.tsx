@@ -5,7 +5,6 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
-import { Smartphone } from 'lucide-react';
 
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
@@ -146,7 +145,7 @@ export function ThankYouScreen() {
         {overlayVisible && (
           <motion.div
             className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4"
-            style={{ background: 'hsl(45 40% 95%)' }}
+            style={{ background: 'rgba(245, 235, 210, 0.85)' }}
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4, ease: 'easeInOut' }}
@@ -171,9 +170,6 @@ export function ThankYouScreen() {
             <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#888' }}>
               Capture your dog's official welcome
             </p>
-
-            {/* Phone icon */}
-            <Smartphone size={28} strokeWidth={1.5} color="#aaa" className="mt-1" />
           </motion.div>
         )}
       </AnimatePresence>
