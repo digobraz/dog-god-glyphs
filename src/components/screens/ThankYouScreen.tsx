@@ -317,7 +317,7 @@ export function ThankYouScreen() {
         </div>
 
         {/* Text content */}
-        <div className="w-full flex flex-col items-center gap-2 text-center">
+        <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2 text-center">
 
           {/* Congrats + dog name */}
           <div className="flex flex-col items-center gap-1 text-center">
