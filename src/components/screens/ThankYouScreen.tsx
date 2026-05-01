@@ -366,13 +366,6 @@ export function ThankYouScreen() {
                   transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
-              {/* Glow pulse behind */}
-              <motion.div
-                className="absolute -inset-1 rounded-full"
-                style={{ background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))', filter: 'blur(8px)' }}
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-              />
               <button
                 onClick={handleEnterPack}
                 className="relative w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
