@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import hekthorImg from '@/assets/hekthor.png';
 import hektorPhoto from '@/assets/hektor-photo.jpeg';
 import hektorHeroglyph from '@/assets/hekthor-heroglyph.png';
 
