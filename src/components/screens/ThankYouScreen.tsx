@@ -352,18 +352,26 @@ export function ThankYouScreen() {
           {/* CTA + email hint */}
           <div className="w-full flex flex-col items-center gap-2">
             <div className="relative w-full">
-              {/* Rotating golden border line */}
+              {/* Purple outline with shimmer */}
               <div
-                className="absolute -inset-[3px] rounded-full overflow-hidden"
-                style={{ padding: 3 }}
+                className="absolute -inset-[3px] rounded-full"
+                style={{
+                  background: 'hsl(270 80% 50%)',
+                  overflow: 'hidden',
+                }}
               >
+                {/* Shimmer highlight sweeping across */}
                 <motion.div
-                  className="w-full h-full rounded-full"
+                  className="absolute"
                   style={{
-                    background: 'conic-gradient(from 0deg, hsl(270 90% 55%) 0%, hsl(275 85% 65%) 15%, hsl(280 80% 50%) 30%, transparent 42%, transparent 100%)',
+                    width: '40%',
+                    height: '200%',
+                    top: '-50%',
+                    background: 'linear-gradient(90deg, transparent 0%, hsla(270, 90%, 80%, 0.7) 40%, hsla(280, 95%, 90%, 0.9) 50%, hsla(270, 90%, 80%, 0.7) 60%, transparent 100%)',
+                    filter: 'blur(4px)',
                   }}
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                  animate={{ left: ['-40%', '140%'] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
                 />
               </div>
               <motion.button
