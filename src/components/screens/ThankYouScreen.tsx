@@ -144,7 +144,7 @@ export function ThankYouScreen() {
       {/* Outer centering container */}
       <div className="flex-1 flex items-center justify-center px-4 pb-4">
       <motion.div
-        className="w-full max-w-sm papyrus-bg rounded-3xl flex flex-col items-center px-5 pt-7 pb-7 gap-3"
+         className="w-full max-w-xl papyrus-bg rounded-3xl flex flex-col items-center px-5 pt-7 pb-7 gap-3"
         style={{ border: '1px solid hsl(var(--gold) / 0.3)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
         initial={reduced ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
