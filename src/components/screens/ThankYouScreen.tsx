@@ -360,7 +360,7 @@ export function ThankYouScreen() {
                 <motion.div
                   className="w-full h-full rounded-full"
                   style={{
-                    background: 'conic-gradient(from 0deg, hsl(270 80% 70%) 0%, hsl(280 90% 80%) 12%, transparent 25%, transparent 100%)',
+                    background: 'conic-gradient(from 0deg, hsl(270 90% 55%) 0%, hsl(275 85% 65%) 15%, hsl(280 80% 50%) 30%, transparent 42%, transparent 100%)',
                   }}
                   animate={{ rotate: 360 }}
                   transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
