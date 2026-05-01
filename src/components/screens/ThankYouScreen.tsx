@@ -243,7 +243,7 @@ export function ThankYouScreen() {
         transition={{ duration: 0.45 }}
       >
         {/* Goal tracker + dog photo — one block */}
-        <div className="w-full rounded-2xl flex flex-col items-center flex-shrink-0 overflow-hidden"
+        <div className="w-full max-w-sm mx-auto rounded-2xl flex flex-col items-center flex-shrink-0 overflow-hidden"
           style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}>
 
           {/* Stats section */}
