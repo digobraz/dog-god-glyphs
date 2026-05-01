@@ -5,6 +5,8 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
+import hektorPhoto from '@/assets/hektor-photo.jpeg';
+import hektorHeroglyph from '@/assets/hekthor-heroglyph.png';
 
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
@@ -74,11 +76,40 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
     return () => cancelAnimationFrame(raf);
   }, [target, reduced]);
 
-  return { text: `#${display.toLocaleString()}`, landed };
+  return { display, landed };
 }
 
 // TODO: replace placeholder with user's dog photo from photo step state.
 const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&crop=face';
+
+function DogToGod({ style }: { style?: React.CSSProperties }) {
+  const [visible, setVisible] = useState(true);
+  const [label, setLabel] = useState('DOG');
+
+  useEffect(() => {
+    const t: ReturnType<typeof setTimeout>[] = [];
+    const cycle = () => {
+      setVisible(true); setLabel('DOG');
+      t.push(setTimeout(() => setVisible(false), 1400));
+      t.push(setTimeout(() => setLabel('GOD'), 1750));
+      t.push(setTimeout(() => setVisible(true), 1750));
+      t.push(setTimeout(() => setVisible(false), 3200));
+      t.push(setTimeout(() => setLabel('DOG'), 3550));
+      t.push(setTimeout(() => setVisible(true), 3550));
+      t.push(setTimeout(cycle, 5000));
+    };
+    t.push(setTimeout(cycle, 1000));
+    return () => t.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <motion.span style={style}
+      animate={{ opacity: visible ? 1 : 0 }}
+      transition={{ duration: 0.35, ease: 'easeInOut' }}>
+      {label}
+    </motion.span>
+  );
+}
 
 /** Purple-to-gold gradient matching the paywall card */
 const GRADIENT_CARD: React.CSSProperties = {
@@ -99,7 +130,7 @@ export function ThankYouScreen() {
   const photoUrl = store.dogPhotoUrl || DOG_PLACEHOLDER_URL;
 
   const packNumber = usePackNumber(dogName, email, sessionId);
-  const { text: packText, landed } = useAnimatedCounter(packNumber ?? 0, reduced);
+  const { display: packDisplay, landed } = useAnimatedCounter(packNumber ?? 0, reduced);
 
   const handleEnterPack = useCallback(() => {
     navigate('/');
@@ -112,126 +143,143 @@ export function ThankYouScreen() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-10 object-contain" />
       </div>
 
-      {/* Cards container */}
-      <div className="flex-1 flex flex-col items-center justify-center px-4 pb-3 gap-3 max-w-lg mx-auto w-full min-h-0">
+      {/* Outer centering container */}
+      <div className="flex-1 flex items-center justify-center px-4 pb-4">
+      <motion.div
+        className="w-full max-w-sm papyrus-bg rounded-3xl flex flex-col items-center px-5 pt-7 pb-7 gap-3"
+        style={{ border: '1px solid hsl(var(--gold) / 0.3)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
+        initial={reduced ? false : { opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+      >
+        {/* Goal tracker + dog photo — one block */}
+        <div className="w-full rounded-2xl flex flex-col items-center flex-shrink-0 overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}>
 
-        {/* Dog photo — square, full content width */}
-        <motion.div
-          className="w-full flex-shrink-0"
-          initial={reduced ? false : { opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <motion.div
-            layoutId={`dog-photo-${dogName}`}
-            className="overflow-hidden w-full"
-            style={{
-              aspectRatio: '1 / 1',
-              borderRadius: 16,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
-            }}
-          >
-            <img
-              src={photoUrl}
-              alt={dogName}
-              className="w-full h-full object-cover"
+          {/* Stats section */}
+          <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-3 pb-2.5">
+
+            {/* Number left, goal info right */}
+            <div className="w-full flex items-center justify-between gap-3">
+              {packNumber === null ? (
+                <span className="font-bold animate-pulse"
+                  style={{ fontFamily: "'Cinzel', serif", fontSize: 28, color: 'hsl(45 80% 65%)' }}>
+                  ...
+                </span>
+              ) : (
+                <motion.span
+                  className="font-bold leading-none"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 'clamp(1.6rem, 7vw, 2.4rem)',
+                    background: 'linear-gradient(135deg, hsl(45 95% 80%), hsl(45 80% 60%))',
+                    WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+                  }}
+                  animate={landed ? { scale: [1, 1.1, 1] } : {}}
+                  transition={{ duration: 0.35 }}
+                >
+                  #{packDisplay.toLocaleString()}
+                </motion.span>
+              )}
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="tracking-widest uppercase font-semibold"
+                  style={{ fontFamily: "'Cinzel', serif", fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>
+                  Our Goal 🎯
+                </span>
+                <span className="tracking-wider uppercase font-bold"
+                  style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.72rem, 2.8vw, 0.9rem)', color: 'hsl(45 90% 70%)' }}>
+                  1,000,000 Dogyptians
+                </span>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="w-full h-3 rounded-full overflow-hidden"
+              style={{ background: 'rgba(0,0,0,0.25)' }}>
+              <motion.div className="h-full rounded-full"
+                style={{ background: 'linear-gradient(to right, hsl(270 65% 65%), hsl(45 90% 65%))' }}
+                initial={{ width: '0%' }}
+                animate={{ width: packNumber ? `${Math.max(2.5, (packNumber / 1000000) * 100)}%` : '0%' }}
+                transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
+              />
+            </div>
+
+          </div>
+
+          {/* Dog photo — full width, absorbed into block */}
+          <div className="relative w-full overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
+          <img
+            src={photoUrl !== DOG_PLACEHOLDER_URL ? photoUrl : hektorPhoto}
+            alt={dogName}
+            className="w-full h-full object-cover object-top"
+          />
+          <div className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 28%, rgba(0,0,0,0.1) 52%, transparent 68%)' }}
+          />
+          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-2.5" style={{ height: '36%' }}>
+            <img src={hektorHeroglyph} alt="Heroglyph"
+              className="w-3/5 max-w-[170px] object-contain"
+              style={{ filter: 'drop-shadow(0 2px 10px rgba(201,146,42,0.5))' }}
             />
-          </motion.div>
-        </motion.div>
+          </div>
+          </div>
 
-        {/* Block #1 — Pack counter */}
-        <motion.div
-          className="w-full rounded-2xl papyrus-bg flex-[0.5] min-h-0 flex-shrink flex flex-col items-center justify-center py-4 px-4"
-          style={{ border: '1px solid hsl(var(--gold) / 0.3)' }}
-          initial={reduced ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-        >
-          {packNumber === null ? (
-            <span
-              className="text-2xl font-bold tracking-widest animate-pulse"
-              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold))' }}
-            >
-              ...
+        </div>
+
+        {/* Text content */}
+        <div className="w-full flex flex-col items-center gap-2 text-center">
+
+          {/* Congrats + dog name */}
+          <div className="flex flex-col items-center gap-1 text-center">
+            <div className="flex items-baseline justify-center gap-1.5 flex-wrap mb-1">
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1a1a1a' }}>
+                Congratulations,
+              </span>
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.95rem, 4vw, 1.2rem)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'linear-gradient(135deg, hsl(45 90% 50%), hsl(39 80% 40%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+                {ownerFirstName}.
+              </span>
+            </div>
+
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.2rem, 5.5vw, 1.6rem)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1, background: 'linear-gradient(135deg, hsl(45 90% 50%), hsl(39 80% 40%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              {dogName}
             </span>
-          ) : (
-            <>
-              <motion.span
-                className="font-bold leading-none"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(2.8rem, 10vw, 4.5rem)',
-                  background: 'linear-gradient(135deg, hsl(45 90% 55%), hsl(39 80% 45%))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-                animate={landed ? { scale: [1, 1.08, 1] } : {}}
-                transition={{ duration: 0.3 }}
-              >
-                {packText}
-              </motion.span>
-              <span
-                className="text-sm md:text-base font-semibold tracking-widest uppercase mt-1"
-                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--heading-on-light) / 0.8)' }}
-              >
-                of 1,000,000
-              </span>
-              <span
-                className="text-xs tracking-wider mt-0.5"
-                style={{ color: 'hsl(var(--heading-on-light) / 0.45)', fontFamily: "'Cinzel', serif" }}
-              >
-                dogs welcomed worldwide
-              </span>
-            </>
-          )}
-        </motion.div>
 
-        {/* Block #2 — Thank you + CTA (purple-orange gradient) */}
-        <motion.div
-          className="w-full rounded-2xl px-4 py-3 flex flex-col gap-3 flex-shrink-0"
-          style={GRADIENT_CARD}
-          initial={reduced ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-        >
-          {/* Founder row */}
-          <div className="flex items-center gap-3">
-            <img
-              src={hekthorImg}
-              alt="Hektor"
-              className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-            />
-            <div className="flex flex-col">
-              <span
-                className="text-[17px] md:text-[19px] font-bold tracking-wide uppercase"
-                style={{ fontFamily: "'Cinzel', serif", color: '#FAF4EC' }}
-              >
-                Thank you, {ownerFirstName}.
+            <div className="flex items-baseline gap-1.5 justify-center">
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.9rem, 3.8vw, 1.1rem)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1a1a1a' }}>
+                is now a
               </span>
-              <span
-                className="text-[13px] md:text-[14px] italic"
-                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(45 60% 85% / 0.7)' }}
-              >
-                With love, Hektor & Matej
-              </span>
+              <DogToGod style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.9rem, 3.8vw, 1.1rem)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'linear-gradient(135deg, hsl(45 90% 50%), hsl(39 80% 40%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', display: 'inline-block' }} />
             </div>
           </div>
 
-          {/* Primary CTA */}
-          <button
-            onClick={handleEnterPack}
-            className="w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-              color: '#1a1200',
-              boxShadow: '0 4px 20px hsl(45 80% 50% / 0.4)',
-            }}
-          >
-            ENTER THE PACK →
-          </button>
-        </motion.div>
+          {/* Mission text — Inter */}
+          <p className="leading-relaxed text-center"
+            style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: '#888', letterSpacing: '0.01em' }}>
+            You just changed history — one dog at a time.<br />
+            Tell the world. Spread the pack. Join us.<br />
+            <strong>IN DOG WE TRUST.</strong>
+          </p>
+
+          {/* CTA + email hint */}
+          <div className="w-full flex flex-col items-center gap-2">
+            <button
+              onClick={handleEnterPack}
+              className="w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                color: '#1a1200',
+                boxShadow: '0 4px 20px hsl(45 80% 50% / 0.4)',
+              }}
+            >
+              ENTER THE GODS →
+            </button>
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
+              Your certificate is on its way — check your email.
+            </p>
+          </div>
+        </div>
+      </motion.div>
       </div>
     </div>
   );
