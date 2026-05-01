@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
+import { Smartphone } from 'lucide-react';
 
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
@@ -131,15 +132,59 @@ export function ThankYouScreen() {
     navigate('/');
   }, [navigate]);
 
+  const [overlayVisible, setOverlayVisible] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setOverlayVisible(false), 2800);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
-    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
+      {/* Record This Moment overlay */}
+      <AnimatePresence>
+        {overlayVisible && (
+          <motion.div
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4"
+            style={{ background: 'hsl(45 40% 95%)' }}
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
+          >
+            {/* REC indicator */}
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-4 w-4">
+                <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-60" />
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500" />
+              </span>
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em', color: '#dc2626', fontWeight: 700 }}>
+                REC
+              </span>
+            </div>
+
+            {/* Heading */}
+            <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+              RECORD THIS MOMENT
+            </h2>
+
+            {/* Subtext */}
+            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#888' }}>
+              Capture your dog's official welcome
+            </p>
+
+            {/* Phone icon */}
+            <Smartphone size={28} strokeWidth={1.5} color="#aaa" className="mt-1" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 1. Logo — on dark bg */}
-      <div className="flex-shrink-0 flex justify-center pt-3 pb-2">
+      <div className="flex-shrink-0 flex justify-center pt-3 pb-2" style={{ filter: overlayVisible ? 'blur(4px)' : 'none', transition: 'filter 0.4s ease' }}>
         <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-10 object-contain" />
       </div>
 
       {/* Outer centering container */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-4">
+      <div className="flex-1 flex items-center justify-center px-4 pb-4" style={{ filter: overlayVisible ? 'blur(4px)' : 'none', transition: 'filter 0.4s ease' }}>
       <motion.div
         className="w-full max-w-sm papyrus-bg rounded-3xl flex flex-col items-center px-5 pt-7 pb-7 gap-3"
         style={{ border: '1px solid hsl(var(--gold) / 0.3)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
