@@ -252,15 +252,24 @@ export function GodsGrid() {
           position: fixed;
           inset: 0;
           background-color: #050505;
-          background-image: url('/images/bg-dark.png');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
           font-family: system-ui, -apple-system, sans-serif;
           letter-spacing: -0.02em;
           user-select: none;
           overflow: hidden;
         }
+        .gods-root::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: url('/images/bg-dark.png');
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+          filter: blur(3px);
+          z-index: 0;
+          pointer-events: none;
+        }
+        #gods-canvas { z-index: 1; }
 
         .nav-left {
           position: fixed;
