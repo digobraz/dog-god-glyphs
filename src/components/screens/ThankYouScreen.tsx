@@ -206,17 +206,7 @@ export function ThankYouScreen() {
           >
             <div className="flex flex-col items-center text-center gap-3"
               style={{ background: 'rgba(245,235,210,0.97)', borderRadius: 16, padding: '32px 40px', maxWidth: 300, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-4 w-4">
-                  <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-60" />
-                  <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500" />
-                </span>
-                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em', color: '#dc2626', fontWeight: 700 }}>
-                  REC
-                </span>
-              </div>
-
-              {/* iOS-style screen record tap animation */}
+              {/* iOS-style screen record tap animation with REC label */}
               <ScreenRecordTapAnimation />
 
               <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
