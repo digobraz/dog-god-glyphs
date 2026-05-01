@@ -4,8 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import hektorPhoto from '@/assets/hektor-photo.jpeg';
-import hektorHeroglyph from '@/assets/hekthor-heroglyph.png';
+import hekthorImg from '@/assets/hekthor.png';
 
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
@@ -208,7 +207,7 @@ export function ThankYouScreen() {
           {/* Dog photo — full width, absorbed into block */}
           <div className="relative w-full overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
           <img
-            src={photoUrl !== DOG_PLACEHOLDER_URL ? photoUrl : hektorPhoto}
+            src={photoUrl !== DOG_PLACEHOLDER_URL ? photoUrl : hekthorImg}
             alt={dogName}
             className="w-full h-full object-cover object-top"
           />
@@ -216,8 +215,8 @@ export function ThankYouScreen() {
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.7) 28%, rgba(0,0,0,0.1) 52%, transparent 68%)' }}
           />
           <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center pb-2.5" style={{ height: '36%' }}>
-            <img src={hektorHeroglyph} alt="Heroglyph"
-              className="w-3/5 max-w-[170px] object-contain"
+            <img src={dogyptLogo} alt="Heroglyph"
+              className="w-3/5 max-w-[120px] object-contain"
               style={{ filter: 'drop-shadow(0 2px 10px rgba(201,146,42,0.5))' }}
             />
           </div>
