@@ -77,9 +77,6 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
   return { display, landed };
 }
 
-// TODO: replace placeholder with user's dog photo from photo step state.
-const DOG_PLACEHOLDER_URL = 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=400&fit=crop&crop=face';
-
 function DogToGod({ style }: { style?: React.CSSProperties }) {
   const [visible, setVisible] = useState(true);
   const [label, setLabel] = useState('DOG');
@@ -125,7 +122,7 @@ export function ThankYouScreen() {
   const dogName = store.dogName || 'HEKTHOR';
   const ownerFirstName = (store.ownerName || '').split(' ')[0] || 'Friend';
   const email = store.email || '';
-  const photoUrl = store.dogPhotoUrl || DOG_PLACEHOLDER_URL;
+  const photoUrl = store.dogPhotoUrl || '';
 
   const packNumber = usePackNumber(dogName, email, sessionId);
   const { display: packDisplay, landed } = useAnimatedCounter(packNumber ?? 0, reduced);
@@ -207,7 +204,7 @@ export function ThankYouScreen() {
           {/* Dog photo — full width, absorbed into block */}
           <div className="relative w-full overflow-hidden" style={{ aspectRatio: '1 / 1' }}>
           <img
-            src={photoUrl !== DOG_PLACEHOLDER_URL ? photoUrl : hekthorImg}
+            src={photoUrl || hekthorImg}
             alt={dogName}
             className="w-full h-full object-cover object-top"
           />
