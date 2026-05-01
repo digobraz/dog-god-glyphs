@@ -354,16 +354,16 @@ export function ThankYouScreen() {
             <div className="relative w-full">
               {/* Rotating golden border line */}
               <div
-                className="absolute -inset-[2px] rounded-full overflow-hidden"
-                style={{ padding: 2 }}
+                className="absolute -inset-[3px] rounded-full overflow-hidden"
+                style={{ padding: 3 }}
               >
                 <motion.div
                   className="w-full h-full rounded-full"
                   style={{
-                    background: 'conic-gradient(from 0deg, transparent 0%, hsl(270 70% 65%) 20%, hsl(280 80% 75%) 40%, transparent 50%, transparent 70%, hsl(265 70% 55%) 85%, hsl(275 60% 45%) 95%, transparent 100%)',
+                    background: 'conic-gradient(from 0deg, hsl(270 80% 70%) 0%, hsl(280 90% 80%) 12%, transparent 25%, transparent 100%)',
                   }}
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 2.5, repeat: Infinity, ease: 'linear' }}
+                  transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
               {/* Glow pulse behind */}
