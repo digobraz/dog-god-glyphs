@@ -491,10 +491,10 @@ export function GodsGrid() {
           height: 360px;
           border-radius: 12px;
           overflow: hidden;
-          cursor: grab;
+          cursor: pointer;
           transition: transform 150ms ease, box-shadow 150ms ease;
         }
-        .is-dragging .dog-card { cursor: grabbing; transition: none; }
+        .is-dragging .dog-card { cursor: pointer; transition: none; }
         .dog-card:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 5; }
         .is-dragging .dog-card:hover { transform: none; box-shadow: none; }
 
