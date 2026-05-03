@@ -12,14 +12,21 @@ const REVEAL_ROW = 1;
 
 const REVEAL_SYMBOL = '/images/character-watcher.svg';
 
-const FLAG_CODES = ['sk','cz','pl','hu','at','de','us','gb','fr','it'];
+const FLAG_NAMES: Record<string, string> = {
+  sk: 'Slovensko',
+  cz: 'Česko',
+  pl: 'Poľsko',
+  hu: 'Maďarsko',
+  at: 'Rakúsko',
+  de: 'Nemecko',
+  us: 'USA',
+  gb: 'Veľká Británia',
+  fr: 'Francúzsko',
+  it: 'Taliansko',
+};
 
-function flagFor(col: number, row: number) {
-  const c = col + 500;
-  const r = row + 500;
-  let h = (c * 2654435761 + r * 40503 + (c ^ r) * 374761393) >>> 0;
-  h = (h ^ (h >>> 13)) >>> 0;
-  return FLAG_CODES[h % FLAG_CODES.length];
+function flagFor(_col: number, _row: number) {
+  return 'sk';
 }
 
 function getPos(filename: string): string {
@@ -142,7 +149,7 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
         <button class="card-info" data-info aria-label="Info">i</button>
-        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="" loading="lazy" draggable="false">
+        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${FLAG_NAMES[cc] || cc}" title="${FLAG_NAMES[cc] || cc}" loading="lazy" draggable="false">
         <div class="card-label">${p.n}</div>
       `;
       return el;
