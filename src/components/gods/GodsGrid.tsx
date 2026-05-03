@@ -12,6 +12,16 @@ const REVEAL_ROW = 1;
 
 const REVEAL_SYMBOL = '/images/character-watcher.svg';
 
+const FLAG_CODES = ['sk','cz','pl','hu','at','de','us','gb','fr','it'];
+
+function flagFor(col: number, row: number) {
+  const c = col + 500;
+  const r = row + 500;
+  let h = (c * 2654435761 + r * 40503 + (c ^ r) * 374761393) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  return FLAG_CODES[h % FLAG_CODES.length];
+}
+
 function getPos(filename: string): string {
   const key = decodeURIComponent(filename).normalize('NFC');
   return photoPositions[key] || '50% 50%';
@@ -128,8 +138,11 @@ export function GodsGrid() {
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
       const pos = getPos(p.f);
+      const cc = flagFor(col, row);
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
+        <button class="card-info" data-info aria-label="Info">i</button>
+        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="" loading="lazy" draggable="false">
         <div class="card-label">${p.n}</div>
       `;
       return el;
@@ -183,7 +196,7 @@ export function GodsGrid() {
     const onMouseDown = (e: MouseEvent) => {
       if (raf) cancelAnimationFrame(raf);
       const target = e.target as HTMLElement;
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn') || target.closest('.card-info')) return;
       dragging = true;
       startX = e.clientX - ox;
       startY = e.clientY - oy;
