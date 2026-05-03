@@ -50,55 +50,58 @@
     --card-foreground: 0 0% 0%;
     --popover: 36 43% 95%;
     --popover-foreground: 0 0% 0%;
-    --primary: 39 55% 51%;
+    --primary: 40 56% 52%;
     --primary-foreground: 0 0% 0%;
     --secondary: 36 33% 85%;
     --secondary-foreground: 0 0% 0%;
     --muted: 36 20% 80%;
     --muted-foreground: 0 0% 40%;
-    --accent: 39 55% 51%;
+    --accent: 40 56% 52%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 39 55% 51%;
+    --border: 40 56% 52%;
     --input: 36 20% 80%;
-    --ring: 39 55% 51%;
+    --ring: 40 56% 52%;
     --radius: 0.75rem;
 
-    --gold: 39 55% 51%;
-    --gold-dark: 36 58% 40%;
-    --heading-on-light: 36 58% 40%;
+    --gold-light: 40 65% 66%;   /* #E5C16E — manual v2 canonical */
+    --gold: 40 56% 52%;         /* #C99A3F — manual v2 canonical */
+    --gold-deep: 35 64% 38%;    /* #A07423 — manual v2 canonical */
+    --gold-dark: 35 64% 38%;    /* legacy alias for --gold-deep */
+    --heading-on-light: 35 64% 38%;
     --papyrus: 36 33% 91%;
     --papyrus-light: 36 43% 95%;
+    --radius-cta: 0.5rem;       /* 8px cartouche — buttons */
 
     --sidebar-background: 36 33% 91%;
     --sidebar-foreground: 0 0% 0%;
-    --sidebar-primary: 39 55% 51%;
+    --sidebar-primary: 40 56% 52%;
     --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 36 33% 85%;
     --sidebar-accent-foreground: 0 0% 0%;
-    --sidebar-border: 39 55% 51%;
-    --sidebar-ring: 39 55% 51%;
+    --sidebar-border: 40 56% 52%;
+    --sidebar-ring: 40 56% 52%;
   }
 
   .dark {
     --background: 0 0% 0%;
-    --foreground: 39 55% 51%;
+    --foreground: 40 56% 52%;
     --card: 0 0% 5%;
-    --card-foreground: 39 55% 51%;
+    --card-foreground: 40 56% 52%;
     --popover: 0 0% 5%;
-    --popover-foreground: 39 55% 51%;
-    --primary: 39 55% 51%;
+    --popover-foreground: 40 56% 52%;
+    --primary: 40 56% 52%;
     --primary-foreground: 0 0% 0%;
     --secondary: 0 0% 10%;
-    --secondary-foreground: 39 55% 51%;
+    --secondary-foreground: 40 56% 52%;
     --muted: 0 0% 15%;
-    --muted-foreground: 39 40% 60%;
-    --accent: 39 55% 51%;
+    --muted-foreground: 40 65% 66%;
+    --accent: 40 56% 52%;
     --accent-foreground: 0 0% 0%;
-    --border: 39 55% 51%;
+    --border: 40 56% 52%;
     --input: 0 0% 15%;
-    --ring: 39 55% 51%;
+    --ring: 40 56% 52%;
   }
 }
 
@@ -112,7 +115,7 @@ html {
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Space Grotesk', sans-serif;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Cinzel', serif;
@@ -214,13 +217,13 @@ html {
 .hero-shine {
   background-image: linear-gradient(
     100deg,
-    #A3782B 0%,
-    #C49B42 25%,
-    #FFF4C2 48%,
+    #A07423 0%,
+    #C99A3F 25%,
+    #E5C16E 48%,
     #FFFFFF 50%,
-    #FFF4C2 52%,
-    #C49B42 75%,
-    #A3782B 100%
+    #E5C16E 52%,
+    #C99A3F 75%,
+    #A07423 100%
   );
   background-size: 250% 100%;
   background-position: -150% 0;
@@ -229,7 +232,7 @@ html {
   -webkit-text-fill-color: transparent;
   color: transparent;
   animation: hero-shimmer 9s ease-in-out infinite;
-  text-shadow: 0 0 18px rgba(255, 244, 194, 0.35);
-  filter: drop-shadow(0 0 18px rgba(196, 155, 66, 0.45))
-          drop-shadow(0 0 40px rgba(255, 220, 130, 0.25));
+  text-shadow: 0 0 18px rgba(229, 193, 110, 0.35);
+  filter: drop-shadow(0 0 18px rgba(201, 154, 63, 0.45))
+          drop-shadow(0 0 40px rgba(229, 193, 110, 0.25));
 }

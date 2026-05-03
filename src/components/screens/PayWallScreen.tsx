@@ -94,7 +94,7 @@ export function PayWallScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/heroglyph-reveal')}
+            onClick={() => navigate('/heroglyph/reveal')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

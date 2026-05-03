@@ -87,7 +87,7 @@ export function DogShapeScreen() {
   const handleSelect = (shape: string) => {
     setSelected(shape);
     setSelection('dogShape', shape);
-    setTimeout(() => navigate('/dog-character'), 500);
+    setTimeout(() => navigate('/heroglyph/dog-character'), 500);
   };
 
   // Reset scroll to center third when reaching edges
@@ -259,7 +259,7 @@ export function DogShapeScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/dog-bloodline')}
+            onClick={() => navigate('/heroglyph/dog-bloodline')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pb-6"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

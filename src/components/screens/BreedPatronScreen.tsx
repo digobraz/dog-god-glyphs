@@ -262,14 +262,14 @@ export function BreedPatronScreen() {
       setPatronCategory2('');
       setPatronSvg2('');
     }
-    navigate('/ranking');
+    navigate('/heroglyph/ranking');
   };
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
         <button
-          onClick={() => navigate('/photo')}
+          onClick={() => navigate('/heroglyph/photo')}
           className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
           aria-label="Back"
         >

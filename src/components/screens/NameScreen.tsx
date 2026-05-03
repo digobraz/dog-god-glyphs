@@ -46,7 +46,7 @@ export function NameScreen() {
     setSelection('birthdayDay', String(day).padStart(2, '0'));
     setSelection('birthdayMonth', String(month).padStart(2, '0'));
     setSelection('birthdayYear', String(year));
-    navigate('/photo');
+    navigate('/heroglyph/photo');
   };
 
   const handleDateChange = (d: number, m: number, y: number) => {

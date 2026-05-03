@@ -56,7 +56,7 @@ export function BreedScreen() {
       setSelection('breed', 'Unknown');
       setSelection('breedType', 'unknown');
     }
-    navigate('/ranking');
+    navigate('/heroglyph/ranking');
   };
 
   const canContinue =
@@ -73,7 +73,7 @@ export function BreedScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
-        <button onClick={() => navigate('/photo')} className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors">
+        <button onClick={() => navigate('/heroglyph/photo')} className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors">
           <ArrowLeft className="h-5 w-5" />
         </button>
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
@@ -135,7 +135,7 @@ export function BreedScreen() {
                       onClick={() => {
                         setSelection('breed', 'Unknown');
                         setSelection('breedType', 'unknown');
-                        navigate('/ranking');
+                        navigate('/heroglyph/ranking');
                       }}
                       variant="outline"
                       className="flex-1 rounded-xl border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-[11px] md:text-base px-1 md:px-2 leading-tight"

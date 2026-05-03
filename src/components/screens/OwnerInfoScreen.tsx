@@ -63,7 +63,7 @@ export function OwnerInfoScreen() {
     if (!canContinue) return;
     setOwnerName(input.trim());
     setSelection('ownerGender', gender!);
-    navigate('/owner-zodiac');
+    navigate('/heroglyph/owner-zodiac');
   };
 
   return (
@@ -174,7 +174,7 @@ export function OwnerInfoScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/ranking')}
+            onClick={() => navigate('/heroglyph/ranking')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

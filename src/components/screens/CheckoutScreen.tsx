@@ -206,7 +206,7 @@ export function CheckoutScreen() {
 
           {/* Back link outside card */}
           <button
-            onClick={() => navigate('/message')}
+            onClick={() => navigate('/heroglyph/message')}
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

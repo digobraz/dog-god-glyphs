@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,6 +23,8 @@ import { CheckoutScreen } from "@/components/screens/CheckoutScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
 import { ThankYouScreen } from "@/components/screens/ThankYouScreen";
 import NotFound from "./pages/NotFound.tsx";
+import Terms from "./pages/Terms.tsx";
+import Privacy from "./pages/Privacy.tsx";
 
 const queryClient = new QueryClient();
 
@@ -34,25 +36,33 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<GodsGrid />} />
-          <Route path="/name" element={<NameScreen />} />
-          <Route path="/photo" element={<PhotoScreen />} />
-          <Route path="/breed" element={<BreedPatronScreen />} />
-          <Route path="/ranking" element={<RankingScreen />} />
-          <Route path="/owner-info" element={<OwnerInfoScreen />} />
-          <Route path="/owner-zodiac" element={<OwnerZodiacScreen />} />
-          <Route path="/owner-final" element={<OwnerFinalScreen />} />
-          <Route path="/dog-gender" element={<DogGenderScreen />} />
-          <Route path="/dog-fate" element={<DogFateScreen />} />
-          <Route path="/dog-colour" element={<DogColourScreen />} />
-          <Route path="/dog-bloodline" element={<DogBloodlineScreen />} />
-          <Route path="/dog-character" element={<DogCharacterScreen />} />
-          <Route path="/heroglyph-reveal" element={<HeroglyphRevealScreen />} />
-          <Route path="/message" element={<MessageScreen />} />
+
+          {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov) */}
+          <Route path="/heroglyph" element={<Navigate to="/heroglyph/name" replace />} />
+          <Route path="/heroglyph/name" element={<NameScreen />} />
+          <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+          <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
+          <Route path="/heroglyph/ranking" element={<RankingScreen />} />
+          <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
+          <Route path="/heroglyph/owner-zodiac" element={<OwnerZodiacScreen />} />
+          <Route path="/heroglyph/owner-final" element={<OwnerFinalScreen />} />
+          <Route path="/heroglyph/dog-gender" element={<DogGenderScreen />} />
+          <Route path="/heroglyph/dog-fate" element={<DogFateScreen />} />
+          <Route path="/heroglyph/dog-colour" element={<DogColourScreen />} />
+          <Route path="/heroglyph/dog-bloodline" element={<DogBloodlineScreen />} />
+          <Route path="/heroglyph/dog-character" element={<DogCharacterScreen />} />
+          <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
+          <Route path="/heroglyph/message" element={<MessageScreen />} />
+
+          {/* Checkout — Stripe (flat, success_url je /welcome) */}
           <Route path="/checkout" element={<CheckoutScreen />} />
           <Route path="/pay-wall" element={<CheckoutScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
-          <Route path="/thank-you" element={<ThankYouScreen />} />
+          <Route path="/welcome" element={<ThankYouScreen />} />
+          <Route path="/thank-you" element={<ThankYouScreen />} />{/* legacy alias for in-flight Stripe sessions */}
           <Route path="/devhome" element={<LandingPage />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

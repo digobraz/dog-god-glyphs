@@ -74,7 +74,7 @@ export function OwnerFinalScreen() {
                 <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s part.
               </p>
               <Button
-                onClick={() => navigate('/dog-gender')}
+                onClick={() => navigate('/heroglyph/dog-gender')}
                 className="w-full rounded-xl gap-2 h-11 text-base font-bold tracking-wider hover:scale-[1.02] transition-transform"
                 style={{
                   fontFamily: "'Cinzel', serif",
@@ -129,7 +129,7 @@ export function OwnerFinalScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/owner-zodiac')}
+            onClick={() => navigate('/heroglyph/owner-zodiac')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

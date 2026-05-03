@@ -19,7 +19,7 @@ export function DogBloodlineScreen() {
   const handleSelect = (bloodline: string) => {
     setSelected(bloodline);
     setSelection('dogBloodline', bloodline);
-    setTimeout(() => navigate('/dog-character'), 500);
+    setTimeout(() => navigate('/heroglyph/dog-character'), 500);
   };
 
   return (
@@ -176,7 +176,7 @@ export function DogBloodlineScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/dog-colour')}
+            onClick={() => navigate('/heroglyph/dog-colour')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

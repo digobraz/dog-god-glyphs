@@ -49,6 +49,8 @@ export default {
         },
         gold: {
           DEFAULT: "hsl(var(--gold))",
+          light: "hsl(var(--gold-light))",
+          deep: "hsl(var(--gold-deep))",
           dark: "hsl(var(--gold-dark))",
         },
         "heading-on-light": "hsl(var(--heading-on-light))",
@@ -71,6 +73,7 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        cta: "var(--radius-cta)",
       },
       keyframes: {
         "accordion-down": {

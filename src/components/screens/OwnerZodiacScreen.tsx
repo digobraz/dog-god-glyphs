@@ -146,7 +146,7 @@ export function OwnerZodiacScreen() {
 
   const handleContinue = () => {
     if (!canContinue) return;
-    navigate('/owner-final');
+    navigate('/heroglyph/owner-final');
   };
 
   return (
@@ -263,7 +263,7 @@ export function OwnerZodiacScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/owner-info')}
+            onClick={() => navigate('/heroglyph/owner-info')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

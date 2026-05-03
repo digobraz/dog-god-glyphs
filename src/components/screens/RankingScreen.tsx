@@ -138,7 +138,7 @@ export function RankingScreen() {
 
   const handleYes = () => {
     setSelection('ranking', '1');
-    navigate('/owner-info');
+    navigate('/heroglyph/owner-info');
   };
 
   const handleNo = () => {
@@ -148,7 +148,7 @@ export function RankingScreen() {
   const handlePickRank = (value: string) => {
     setSelected(value);
     setSelection('ranking', value);
-    setTimeout(() => navigate('/owner-info'), 500);
+    setTimeout(() => navigate('/heroglyph/owner-info'), 500);
   };
 
   const handleCustomConfirm = () => {
@@ -374,7 +374,7 @@ export function RankingScreen() {
             onClick={() => {
               if (phase === 'custom') setPhase('pickRank');
               else if (phase === 'pickRank') setPhase('question');
-              else navigate('/breed');
+              else navigate('/heroglyph/breed');
             }}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}

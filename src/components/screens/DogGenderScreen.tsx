@@ -19,7 +19,7 @@ export function DogGenderScreen() {
   const handleSelect = (gender: string) => {
     setSelected(gender);
     setSelection('dogGender', gender);
-    setTimeout(() => navigate('/dog-fate'), 500);
+    setTimeout(() => navigate('/heroglyph/dog-fate'), 500);
   };
 
   return (
@@ -176,7 +176,7 @@ export function DogGenderScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/owner-final')}
+            onClick={() => navigate('/heroglyph/owner-final')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >

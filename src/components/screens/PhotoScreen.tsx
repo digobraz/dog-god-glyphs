@@ -323,7 +323,7 @@ export function PhotoScreen() {
     setExtraPhotos(extras);
     setCloudinaryExtraPublicIds(extraPublicIds.current);
     setGdprConsent(gdpr);
-    navigate('/breed');
+    navigate('/heroglyph/breed');
   };
 
   /* ───── Sub-screen renderers ───── */
@@ -407,7 +407,7 @@ export function PhotoScreen() {
       {/* Header */}
       <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
         <button
-          onClick={() => (sub > 0 ? goTo(sub - 1) : navigate('/name'))}
+          onClick={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))}
           className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />

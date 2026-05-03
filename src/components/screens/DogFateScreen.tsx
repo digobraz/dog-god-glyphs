@@ -19,7 +19,7 @@ export function DogFateScreen() {
   const handleSelect = (fate: string) => {
     setSelected(fate);
     setSelection('dogFate', fate);
-    setTimeout(() => navigate('/dog-colour'), 500);
+    setTimeout(() => navigate('/heroglyph/dog-colour'), 500);
   };
 
   return (
@@ -176,7 +176,7 @@ export function DogFateScreen() {
 
           {/* Back button */}
           <button
-            onClick={() => navigate('/dog-gender')}
+            onClick={() => navigate('/heroglyph/dog-gender')}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
