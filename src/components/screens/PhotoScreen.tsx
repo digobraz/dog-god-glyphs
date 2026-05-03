@@ -1,7 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, X } from 'lucide-react';
+import { ArrowLeft, Plus, X, Loader2 } from 'lucide-react';
 import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -9,18 +9,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
+import { uploadMainPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
 
 /* ───── helpers ───── */
 
-async function compressFile(file: File): Promise<string> {
+async function compressFile(file: File): Promise<{ url: string; blob: Blob }> {
   const compressed = await imageCompression(file, {
     maxWidthOrHeight: 1600,
     fileType: 'image/webp',
     initialQuality: 0.85,
     useWebWorker: true,
-    exifOrientation: 1, // strip EXIF by forcing orientation
+    exifOrientation: 1,
   });
-  return URL.createObjectURL(compressed);
+  return { url: URL.createObjectURL(compressed), blob: compressed };
 }
 
 function getImageDimensions(url: string): Promise<{ w: number; h: number }> {
@@ -247,10 +248,15 @@ function BackNextButtons({
 }
 
 /* ───── MAIN COMPONENT ───── */
+type UploadState = 'idle' | 'uploading' | 'done' | 'error';
+
 export function PhotoScreen() {
   const navigate = useNavigate();
   const dogName = useDogyptStore((s) => s.dogName);
+  const sessionId = useDogyptStore((s) => s.sessionId);
   const setDogPhotoUrl = useDogyptStore((s) => s.setDogPhotoUrl);
+  const setCloudinaryPublicId = useDogyptStore((s) => s.setCloudinaryPublicId);
+  const setCloudinaryExtraPublicIds = useDogyptStore((s) => s.setCloudinaryExtraPublicIds);
   const setCertCropData = useDogyptStore((s) => s.setCertCropData);
   const setGridCropData = useDogyptStore((s) => s.setGridCropData);
   const setExtraPhotos = useDogyptStore((s) => s.setExtraPhotos);
@@ -265,6 +271,8 @@ export function PhotoScreen() {
   const [gridCrop, setGridCrop] = useState({ x: 0, y: 0, zoom: 1 });
   const [extras, setExtras] = useState<string[]>([]);
   const [gdpr, setGdpr] = useState(false);
+  const [uploadState, setUploadState] = useState<UploadState>('idle');
+  const extraPublicIds = useRef<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const extraRef = useRef<HTMLInputElement>(null);
 
@@ -277,26 +285,43 @@ export function PhotoScreen() {
     const file = e.target.files?.[0];
     if (!file) return;
     setFileName(file.name);
-    const url = await compressFile(file);
+    const { url, blob } = await compressFile(file);
     const dims = await getImageDimensions(url);
     setLowRes(dims.w < 1500 && dims.h < 1500);
     setPhotoUrl(url);
+    setDogPhotoUrl(url);
     e.target.value = '';
+
+    // Upload to Cloudinary in background
+    setUploadState('uploading');
+    uploadMainPhoto(blob, sessionId)
+      .then(({ publicId }) => {
+        setCloudinaryPublicId(publicId);
+        setUploadState('done');
+      })
+      .catch(() => setUploadState('error'));
   };
 
   const handleExtraUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = await compressFile(file);
+    const { url, blob } = await compressFile(file);
+    const nextIndex = extras.length;
     setExtras((p) => (p.length < 3 ? [...p, url] : p));
     e.target.value = '';
+
+    uploadExtraPhoto(blob, sessionId, nextIndex + 1)
+      .then(({ publicId }) => {
+        extraPublicIds.current = [...extraPublicIds.current, publicId];
+      })
+      .catch(() => {/* extras upload failure is non-blocking */});
   };
 
   const finish = () => {
-    if (photoUrl) setDogPhotoUrl(photoUrl);
     setCertCropData(certCrop);
     setGridCropData(gridCrop);
     setExtraPhotos(extras);
+    setCloudinaryExtraPublicIds(extraPublicIds.current);
     setGdprConsent(gdpr);
     navigate('/breed');
   };
@@ -459,6 +484,17 @@ export function PhotoScreen() {
                           <button className="text-[10px] underline text-muted-foreground self-start" onClick={() => fileRef.current?.click()}>
                             Change photo
                           </button>
+                          {uploadState === 'uploading' && (
+                            <span className="flex items-center gap-1 text-[10px]" style={{ color: 'hsl(var(--gold) / 0.7)', fontFamily: "'Space Grotesk', sans-serif" }}>
+                              <Loader2 className="h-3 w-3 animate-spin" /> Sealing into eternity…
+                            </span>
+                          )}
+                          {uploadState === 'done' && (
+                            <span className="text-[10px] text-green-500/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>✓ Sealed</span>
+                          )}
+                          {uploadState === 'error' && (
+                            <span className="text-[10px] text-red-400/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Upload failed – will retry at checkout</span>
+                          )}
                         </div>
                       </div>
                     )}

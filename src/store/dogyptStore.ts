@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface DogyptState {
+  sessionId: string;
   dogName: string;
   ownerName: string;
   currentStep: number;
@@ -10,6 +11,8 @@ export interface DogyptState {
   email: string;
   selectedAmount: number;
   dogPhotoUrl: string;
+  cloudinaryPublicId: string;
+  cloudinaryExtraPublicIds: string[];
   patronCategory: string;
   patronSvg: string;
   breed: string;
@@ -28,6 +31,8 @@ export interface DogyptState {
   setEmail: (email: string) => void;
   setSelectedAmount: (amount: number) => void;
   setDogPhotoUrl: (url: string) => void;
+  setCloudinaryPublicId: (id: string) => void;
+  setCloudinaryExtraPublicIds: (ids: string[]) => void;
   setPatronCategory: (v: string) => void;
   setPatronSvg: (v: string) => void;
   setBreed: (v: string) => void;
@@ -41,27 +46,34 @@ export interface DogyptState {
   reset: () => void;
 }
 
+const freshState = () => ({
+  sessionId: crypto.randomUUID(),
+  dogName: '',
+  ownerName: '',
+  currentStep: 0,
+  selections: {} as Record<string, string>,
+  selectedTier: 'silver',
+  email: '',
+  selectedAmount: 11,
+  dogPhotoUrl: '',
+  cloudinaryPublicId: '',
+  cloudinaryExtraPublicIds: [] as string[],
+  patronCategory: '',
+  patronSvg: '',
+  breed: '',
+  isMix: false,
+  patronCategory2: '',
+  patronSvg2: '',
+  certCropData: null,
+  gridCropData: null,
+  extraPhotos: [] as string[],
+  gdprConsent: false,
+});
+
 export const useDogyptStore = create<DogyptState>()(
   persist(
     (set) => ({
-      dogName: '',
-      ownerName: '',
-      currentStep: 0,
-      selections: {},
-      selectedTier: 'silver',
-      email: '',
-      selectedAmount: 11,
-      dogPhotoUrl: '',
-      patronCategory: '',
-      patronSvg: '',
-      breed: '',
-      isMix: false,
-      patronCategory2: '',
-      patronSvg2: '',
-      certCropData: null,
-      gridCropData: null,
-      extraPhotos: [],
-      gdprConsent: false,
+      ...freshState(),
       setDogName: (name) => set({ dogName: name }),
       setOwnerName: (name) => set({ ownerName: name }),
       setStep: (step) => set({ currentStep: step }),
@@ -70,6 +82,8 @@ export const useDogyptStore = create<DogyptState>()(
       setEmail: (email) => set({ email }),
       setSelectedAmount: (amount) => set({ selectedAmount: amount }),
       setDogPhotoUrl: (url) => set({ dogPhotoUrl: url }),
+      setCloudinaryPublicId: (id) => set({ cloudinaryPublicId: id }),
+      setCloudinaryExtraPublicIds: (ids) => set({ cloudinaryExtraPublicIds: ids }),
       setPatronCategory: (v) => set({ patronCategory: v }),
       setPatronSvg: (v) => set({ patronSvg: v }),
       setBreed: (v) => set({ breed: v }),
@@ -80,51 +94,12 @@ export const useDogyptStore = create<DogyptState>()(
       setGridCropData: (v) => set({ gridCropData: v }),
       setExtraPhotos: (v) => set({ extraPhotos: v }),
       setGdprConsent: (v) => set({ gdprConsent: v }),
-      reset: () => set({
-        dogName: '',
-        ownerName: '',
-        currentStep: 0,
-        selections: {},
-        selectedTier: 'silver',
-        email: '',
-        selectedAmount: 11,
-        dogPhotoUrl: '',
-        patronCategory: '',
-        patronSvg: '',
-        breed: '',
-        isMix: false,
-        patronCategory2: '',
-        patronSvg2: '',
-        certCropData: null,
-        gridCropData: null,
-        extraPhotos: [],
-        gdprConsent: false,
-      }),
+      reset: () => set(freshState()),
     }),
     {
       name: 'dogypt-store',
-      version: 2,
-      // Bumping version invalidates older persisted state (e.g. legacy 'DAISY' default)
-      migrate: () => ({
-        dogName: '',
-        ownerName: '',
-        currentStep: 0,
-        selections: {},
-        selectedTier: 'silver',
-        email: '',
-        selectedAmount: 11,
-        dogPhotoUrl: '',
-        patronCategory: '',
-        patronSvg: '',
-        breed: '',
-        isMix: false,
-        patronCategory2: '',
-        patronSvg2: '',
-        certCropData: null,
-        gridCropData: null,
-        extraPhotos: [],
-        gdprConsent: false,
-      }),
+      version: 3,
+      migrate: () => freshState(),
     }
   )
 );
