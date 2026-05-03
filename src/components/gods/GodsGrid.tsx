@@ -511,8 +511,10 @@ export function GodsGrid() {
           background: rgba(30,30,30,0.35);
           color: white;
           border-radius: 999px;
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
           font-size: 0.75rem;
-          font-weight: 500;
+          font-weight: 700;
+          letter-spacing: 0.06em;
           display: flex; align-items: center;
           backdrop-filter: blur(6px);
         }
@@ -527,7 +529,8 @@ export function GodsGrid() {
           object-fit: cover;
           border: 1.5px solid rgba(255,255,255,0.9);
           box-shadow: 0 2px 8px rgba(0,0,0,0.45);
-          pointer-events: none;
+          pointer-events: auto;
+          cursor: help;
           background: #1a1a1a;
         }
         .card-info {
