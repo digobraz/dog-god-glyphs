@@ -120,7 +120,7 @@ export function GodsGrid() {
         <span class="hero-count">${photos.length} gods here</span>
       `;
       const btn = el.querySelector('[data-join]');
-      btn?.addEventListener('click', () => navigate('/name'));
+      btn?.addEventListener('click', () => navigate('/heroglyph/name'));
       return el;
     }
 
@@ -775,7 +775,7 @@ export function GodsGrid() {
         </div>
 
         <div className="nav-right">
-          <button className="subscribe-btn" onClick={() => navigate('/name')}>
+          <button className="subscribe-btn" onClick={() => navigate('/heroglyph/name')}>
             Join
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
               <path d="M8 2V14M2 8H14"/>
