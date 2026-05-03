@@ -1,27 +1,38 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { supabase } from '@/lib/supabase';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
-const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_aFa28rd5T2M4fUTbzdeZ200';
+const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
 
 export function PaymentScreen() {
   const navigate = useNavigate();
-  const { email, dogName, ownerName, selectedAmount, selections } = useDogyptStore();
+  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl } = useDogyptStore();
+  const [loading, setLoading] = useState(false);
 
   const handlePay = async () => {
-    const clientRefId = `${dogName}-${Date.now()}`.replace(/\s+/g, '-').toLowerCase();
-
-    // Pack member record is created on /thank-you after successful payment
-
-    const params = new URLSearchParams({
-      prefilled_email: email,
-      client_reference_id: clientRefId,
-    });
-    window.location.href = `${STRIPE_PAYMENT_LINK}?${params.toString()}`;
+    setLoading(true);
+    try {
+      const res = await fetch(CREATE_CHECKOUT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dogName,
+          ownerName,
+          email,
+          selections,
+          dogPhotoUrl,
+          amount: selectedAmount ?? 11,
+        }),
+      });
+      const { url } = await res.json();
+      if (url) window.location.href = url;
+    } catch {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,14 +55,15 @@ export function PaymentScreen() {
 
             <div className="text-center py-2">
               <p className="text-2xl font-bold text-amber-300" style={{ fontFamily: "'Cinzel', serif" }}>
-                ${selectedAmount} USD
+                ${selectedAmount ?? 11} USD
               </p>
               <p className="text-xs text-muted-foreground mt-1">DOGYPT HEROGLYPH CERTIFICATE for {dogName || 'your dog'}</p>
             </div>
 
             <Button
               onClick={handlePay}
-              className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform mt-2"
+              disabled={loading}
+              className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform mt-2 disabled:opacity-60 disabled:scale-100"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
@@ -59,7 +71,10 @@ export function PaymentScreen() {
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
               }}
             >
-              <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> PAY WITH STRIPE</span>
+              {loading
+                ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> PREPARING...</span>
+                : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> PAY WITH STRIPE</span>
+              }
             </Button>
 
             <p className="text-[10px] text-muted-foreground/60 text-center flex items-center justify-center gap-1">

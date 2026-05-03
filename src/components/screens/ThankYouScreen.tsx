@@ -97,14 +97,38 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
   return packNumber;
 }
 
-const SEND_CERT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/send-certificate';
+const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 
-function useSendCertificate(email: string, dogName: string, ownerName: string, selections: Record<string, string>, sessionId: string | null) {
+function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string }) {
+  const [data, setData] = useState(fallbackStore);
+  const fetched = useRef(false);
+
+  useEffect(() => {
+    if (!sessionId || fetched.current) return;
+    fetched.current = true;
+    fetch(`${EDGE_BASE}/get-session-data?session_id=${sessionId}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.dogName) setData({
+          dogName: d.dogName,
+          ownerName: d.ownerName,
+          email: d.email,
+          selections: d.selections,
+          dogPhotoUrl: d.dogPhotoUrl,
+        });
+      })
+      .catch(() => {/* use fallback store */});
+  }, [sessionId]);
+
+  return data;
+}
+
+function useSendCertificate(email: string, dogName: string, ownerName: string, selections: Record<string, string>, dogPhotoUrl: string, sessionId: string | null) {
   const sent = useRef(false);
   useEffect(() => {
     if (!email || sent.current) return;
     sent.current = true;
-    fetch(SEND_CERT_URL, {
+    fetch(`${EDGE_BASE}/send-certificate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -112,10 +136,11 @@ function useSendCertificate(email: string, dogName: string, ownerName: string, s
         dogName,
         ownerName,
         heroglyphCode: buildHeroglyphCode(selections),
+        dogPhotoUrl,
         sessionId,
       }),
     }).catch(() => {/* silent fail */});
-  }, [email, dogName, ownerName, selections, sessionId]);
+  }, [email, dogName, ownerName, selections, dogPhotoUrl, sessionId]);
 }
 
 /** Animated count-up hook from 0 to target, returns text + landed flag */
@@ -196,13 +221,21 @@ export function ThankYouScreen() {
   const store = useDogyptStore();
   const reduced = useReducedMotion();
 
-  const dogName = store.dogName || 'HEKTHOR';
-  const ownerFirstName = (store.ownerName || '').split(' ')[0] || 'Friend';
-  const email = store.email || '';
-  const photoUrl = store.dogPhotoUrl || '';
+  const certData = useSessionData(sessionId, {
+    dogName: store.dogName || 'HEKTHOR',
+    ownerName: store.ownerName || '',
+    email: store.email || '',
+    selections: store.selections,
+    dogPhotoUrl: store.dogPhotoUrl || '',
+  });
+
+  const dogName = certData.dogName;
+  const ownerFirstName = certData.ownerName.split(' ')[0] || 'Friend';
+  const email = certData.email;
+  const photoUrl = certData.dogPhotoUrl;
 
   const packNumber = usePackNumber(dogName, email, sessionId);
-  useSendCertificate(email, dogName, store.ownerName || '', store.selections, sessionId);
+  useSendCertificate(email, dogName, certData.ownerName, certData.selections, certData.dogPhotoUrl, sessionId);
 
   const handleEnterPack = useCallback(() => {
     const params = new URLSearchParams({
