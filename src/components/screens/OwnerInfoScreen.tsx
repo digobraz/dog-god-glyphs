@@ -52,7 +52,7 @@ export function OwnerInfoScreen() {
   const storedOwnerName = useDogyptStore((s) => s.ownerName);
   const storedGender = useDogyptStore((s) => s.selections.ownerGender);
   const [input, setInput] = useState(storedOwnerName || '');
-  const [gender, setGender] = useState<string | null>(storedGender || null);
+  const [gender, setGender] = useState<string | null>(storedGender || 'woman');
 
   const firstLetter = input.trim().charAt(0).toUpperCase();
   const letterSvg = letterMap[firstLetter] || null;
@@ -61,7 +61,7 @@ export function OwnerInfoScreen() {
 
   const handleSend = () => {
     if (!canContinue) return;
-    setOwnerName(input.trim().toUpperCase());
+    setOwnerName(input.trim());
     setSelection('ownerGender', gender!);
     navigate('/owner-zodiac');
   };
@@ -75,14 +75,14 @@ export function OwnerInfoScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
           <motion.div
-            className="w-full rounded-2xl px-4 py-4 md:p-5 flex flex-col items-center gap-2 md:gap-3 flex-shrink-0"
+            className="w-full rounded-2xl px-4 py-3 md:p-5 flex flex-col items-center gap-2 md:gap-3 flex-shrink-0"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-52 h-52 md:w-64 md:h-64 object-contain" />
-            <p className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+            <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
+            <p className="text-white text-center text-base md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               Okay, let's talk about you,<br />
               <span className="font-bold text-amber-300">hooman</span>!
             </p>
@@ -95,37 +95,37 @@ export function OwnerInfoScreen() {
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-              <div className="flex-1 flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
-                  placeholder="Owner's first name..."
-                  className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
-                  style={{ fontFamily: "'Inter', sans-serif" }}
-                  autoFocus
-                />
-              </div>
-
-              {/* Letter preview box */}
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                {letterSvg ? (
-                  <motion.img
-                    key={firstLetter}
-                    src={letterSvg}
-                    alt={firstLetter}
-                    className="h-10 md:h-14 object-contain"
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex-1 min-w-0 flex items-center gap-2 bg-card rounded-xl px-3 py-2 border border-border/30">
+                  <input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
+                    placeholder="Owner's first name..."
+                    className="flex-1 min-w-0 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                    autoFocus
                   />
-                ) : (
-                  <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
-                    ?
-                  </span>
-                )}
-              </div>
+                </div>
+
+                {/* Letter preview box */}
+                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {letterSvg ? (
+                    <motion.img
+                      key={firstLetter}
+                      src={letterSvg}
+                      alt={firstLetter}
+                      className="h-9 md:h-14 object-contain"
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                    />
+                  ) : (
+                    <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>
+                      ?
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Gender selection */}
@@ -134,7 +134,7 @@ export function OwnerInfoScreen() {
                   onClick={() => setGender('man')}
                   className={`flex-1 flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl border-2 transition-all ${
                     gender === 'man'
-                      ? 'border-primary bg-primary/10'
+                      ? 'is-selected-purple'
                       : 'border-border/60 hover:border-primary/50'
                   }`}
                   style={{ fontFamily: "'Cinzel', serif" }}
@@ -146,7 +146,7 @@ export function OwnerInfoScreen() {
                   onClick={() => setGender('woman')}
                   className={`flex-1 flex flex-col items-center gap-1.5 p-2 md:p-3 rounded-xl border-2 transition-all ${
                     gender === 'woman'
-                      ? 'border-primary bg-primary/10'
+                      ? 'is-selected-purple'
                       : 'border-border/60 hover:border-primary/50'
                   }`}
                   style={{ fontFamily: "'Cinzel', serif" }}
@@ -159,12 +159,12 @@ export function OwnerInfoScreen() {
               <Button
                 onClick={handleSend}
                 disabled={!canContinue}
-                className="w-full rounded-full gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+                className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                   color: '#000',
-                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                 }}
               >
                 Continue

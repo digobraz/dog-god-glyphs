@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Send, Camera, X, Plus, ArrowLeft } from 'lucide-react';
+import { Send, X, Plus, ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
@@ -42,14 +42,14 @@ export function ChatScreen() {
     {
       botText: "Hi, I'm HEKTHOR.\nWhat's your dog's name?",
       content: (
-        <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+        <div className="flex items-center gap-2 bg-card rounded-xl px-4 py-2 border border-border/30">
           <input
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSendName(); }}
             placeholder="Type your dog's name..."
             className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
-            style={{ fontFamily: "'Inter', sans-serif" }}
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             autoFocus
           />
           <Button
@@ -99,20 +99,27 @@ export function ChatScreen() {
             <Button
               onClick={() => fileInputRef.current?.click()}
               disabled={photos.length >= 5}
-              variant="outline"
-              className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground gap-2 disabled:opacity-30"
-              style={{ fontFamily: "'Cinzel', serif" }}
+              className="flex-1 rounded-xl h-10 font-bold tracking-wider disabled:opacity-30"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'transparent',
+                border: '2px solid hsl(var(--gold) / 0.5)',
+                color: 'hsl(var(--gold))',
+              }}
             >
-              <Camera className="h-4 w-4" />
               Add Photos
             </Button>
             {photos.length > 0 && (
               <Button
                 onClick={goNext}
-                className="flex-1 rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2"
-                style={{ fontFamily: "'Cinzel', serif" }}
+                className="flex-1 rounded-xl h-10 font-bold tracking-wider hover:scale-[1.02] transition-transform"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                }}
               >
-                <Send className="h-4 w-4" />
                 Continue
               </Button>
             )}
@@ -153,7 +160,7 @@ export function ChatScreen() {
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.35 }}
             >
-              <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+              <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
               <p
                 className="text-foreground text-center text-xl md:text-2xl leading-relaxed whitespace-pre-line"
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -161,7 +168,7 @@ export function ChatScreen() {
                 {currentStep.botText}
               </p>
               {currentStep.subtitle && (
-                <p className="text-muted-foreground text-sm text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+                <p className="text-muted-foreground text-sm text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   {currentStep.subtitle}
                 </p>
               )}

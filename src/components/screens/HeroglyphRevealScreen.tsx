@@ -121,7 +121,7 @@ export function HeroglyphRevealScreen() {
               >
                 <Button
                   variant="outline"
-                  className="rounded-full px-6 py-3 text-sm font-bold tracking-wider border-2 hover:scale-105 transition-transform"
+                  className="rounded-xl px-6 py-3 text-sm font-bold tracking-wider border-2 hover:scale-[1.02] transition-transform"
                   style={{
                     fontFamily: "'Cinzel', serif",
                     borderColor: 'hsl(var(--gold))',
@@ -202,12 +202,12 @@ export function HeroglyphRevealScreen() {
               </div>
               <Button
                 onClick={() => navigate('/message')}
-                className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform border-2 border-white/30"
+                className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform border-2 border-white/30"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
                   color: '#000',
-                  boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.4)',
                 }}
               >
                 GRAB MY HEROGLYPH
@@ -275,12 +275,12 @@ export function HeroglyphRevealScreen() {
               </div>
               <Button
                 onClick={() => navigate('/message')}
-                className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform border-2 border-white/30"
+                className="w-full rounded-xl py-4 text-base font-bold tracking-wider hover:scale-[1.02] transition-transform border-2 border-white/30"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
                   color: '#000',
-                  boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.4)',
                 }}
               >
                 GRAB MY HEROGLYPH

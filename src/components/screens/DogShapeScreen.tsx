@@ -188,7 +188,7 @@ export function DogShapeScreen() {
                   <div className="p-6 pt-12 md:pt-6 text-center max-w-sm">
                     <p
                       className="text-foreground/70 text-sm md:text-base leading-relaxed"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       With 500+ breeds out there, we can't do labels—we do silhouettes. Pick the visual archetype that best captures your hero's unique shape and size.
                     </p>

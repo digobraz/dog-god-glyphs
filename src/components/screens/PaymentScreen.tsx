@@ -51,12 +51,12 @@ export function PaymentScreen() {
 
             <Button
               onClick={handlePay}
-              className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform mt-2"
+              className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform mt-2"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                 color: '#000',
-                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
               }}
             >
               <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> PAY WITH STRIPE</span>

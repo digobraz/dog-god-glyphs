@@ -87,16 +87,16 @@ export function BreedScreen() {
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
           >
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
+              <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
               <p
-                className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
+                className="text-white text-center text-base md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
                 A <span className="font-bold text-amber-300">FACE</span> OF A GOD
               </p>
               <p
                 className="text-white/70 text-sm text-center"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
               </p>
@@ -118,7 +118,7 @@ export function BreedScreen() {
                     <Button
                       onClick={() => setMode('purebred')}
                       variant="outline"
-                      className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-sm md:text-base px-2"
+                      className="flex-1 rounded-xl border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-sm md:text-base px-2"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       One Breed
@@ -126,7 +126,7 @@ export function BreedScreen() {
                     <Button
                       onClick={() => setMode('mix')}
                       variant="outline"
-                      className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-sm md:text-base px-2"
+                      className="flex-1 rounded-xl border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-sm md:text-base px-2"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       Mix
@@ -138,7 +138,7 @@ export function BreedScreen() {
                         navigate('/ranking');
                       }}
                       variant="outline"
-                      className="flex-1 rounded-full border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-[11px] md:text-base px-1 md:px-2 leading-tight"
+                      className="flex-1 rounded-xl border-primary text-foreground hover:bg-primary hover:text-primary-foreground h-12 text-[11px] md:text-base px-1 md:px-2 leading-tight"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
                       I don't know, just perfect!
@@ -149,7 +149,7 @@ export function BreedScreen() {
 
               {mode === 'unknown' && (
                 <motion.div key="unknown" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-3">
-                  <button onClick={() => setMode('choose')} className="self-start text-muted-foreground text-sm flex items-center gap-1 hover:text-foreground transition-colors" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <button onClick={() => setMode('choose')} className="self-start text-muted-foreground text-sm flex items-center gap-1 hover:text-foreground transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     <ArrowLeft className="h-3 w-3" /> Back
                   </button>
                   <p className="text-center text-foreground text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
@@ -160,11 +160,11 @@ export function BreedScreen() {
 
               {mode === 'purebred' && (
                 <motion.div key="purebred" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-3">
-                  <button onClick={() => { setMode('choose'); setSearch(''); setSelectedBreed(null); }} className="self-start text-muted-foreground text-sm flex items-center gap-1 hover:text-foreground transition-colors" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <button onClick={() => { setMode('choose'); setSearch(''); setSelectedBreed(null); }} className="self-start text-muted-foreground text-sm flex items-center gap-1 hover:text-foreground transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     <ArrowLeft className="h-3 w-3" /> Back
                   </button>
                   <div className="relative">
-                    <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+                    <div className="flex items-center gap-2 bg-card rounded-xl px-4 py-2 border border-border/30">
                       <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                       <input
                         ref={inputRef}
@@ -172,7 +172,7 @@ export function BreedScreen() {
                         onChange={(e) => { setSearch(e.target.value); setSelectedBreed(null); }}
                         placeholder="Search breed..."
                         className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       />
                       {search && (
                         <button onClick={() => { setSearch(''); setSelectedBreed(null); }} className="text-muted-foreground hover:text-foreground">
@@ -188,7 +188,7 @@ export function BreedScreen() {
                               key={breed}
                               onClick={() => handleSelectPurebred(breed)}
                               className="px-3 py-1.5 rounded-full border border-border/40 text-foreground hover:bg-primary/20 transition-colors text-xs"
-                              style={{ fontFamily: "'Inter', sans-serif" }}
+                              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                             >
                               {breed}
                             </button>
@@ -209,10 +209,10 @@ export function BreedScreen() {
 
               {mode === 'mix' && (
                 <motion.div key="mix" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-3">
-                  <button onClick={() => { setMode('choose'); setMixSearch(''); setMixBreeds([]); }} className="self-start text-muted-foreground text-sm flex items-center gap-1 hover:text-foreground transition-colors" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <button onClick={() => { setMode('choose'); setMixSearch(''); setMixBreeds([]); }} className="self-start text-muted-foreground text-sm flex items-center gap-1 hover:text-foreground transition-colors" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     <ArrowLeft className="h-3 w-3" /> Back
                   </button>
-                  <p className="text-muted-foreground text-xs text-center" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <p className="text-muted-foreground text-xs text-center" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     Select 2–4 breeds
                   </p>
                   {mixBreeds.length > 0 && (
@@ -229,7 +229,7 @@ export function BreedScreen() {
                   )}
                   {mixBreeds.length < 4 && (
                     <div className="relative">
-                      <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+                      <div className="flex items-center gap-2 bg-card rounded-xl px-4 py-2 border border-border/30">
                         <Plus className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <input
                           ref={inputRef}
@@ -237,7 +237,7 @@ export function BreedScreen() {
                           onChange={(e) => setMixSearch(e.target.value)}
                           placeholder={mixBreeds.length === 0 ? "Search first breed..." : "Add another breed..."}
                           className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
+                          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                         />
                         {mixSearch && (
                           <button onClick={() => setMixSearch('')} className="text-muted-foreground hover:text-foreground">
@@ -253,7 +253,7 @@ export function BreedScreen() {
                                 key={breed}
                                 onClick={() => handleAddMix(breed)}
                                 className="px-3 py-1.5 rounded-full border border-border/40 text-foreground hover:bg-primary/20 transition-colors text-xs"
-                                style={{ fontFamily: "'Inter', sans-serif" }}
+                                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                               >
                                 {breed}
                               </button>
@@ -272,12 +272,12 @@ export function BreedScreen() {
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <Button
                   onClick={handleContinue}
-                  className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform"
+                  className="w-full rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
                   style={{
                     fontFamily: "'Cinzel', serif",
                     background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                     color: '#000',
-                    boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                   }}
                 >
                   Continue

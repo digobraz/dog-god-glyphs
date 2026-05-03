@@ -32,12 +32,12 @@ export function RevealScreen() {
           >
             <Button
               onClick={() => setStep(15)}
-              className="px-8 py-5 text-lg font-bold tracking-wider rounded-full"
+              className="px-8 py-5 text-lg font-bold tracking-wider rounded-xl"
               style={{
                 fontFamily: 'Cinzel, serif',
                 backgroundColor: 'hsl(var(--gold))',
                 color: '#000',
-                boxShadow: '0 0 30px hsl(var(--gold) / 0.5)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.3)',
               }}
             >
               CONTINUE →

@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { getChineseZodiac } from '@/lib/zodiac';
+import { WheelYearPicker } from '@/components/WheelDatePicker';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
@@ -111,13 +112,20 @@ function ScrollableStrip({
   );
 }
 
+const DEFAULT_YEAR = 1990;
+
 export function OwnerZodiacScreen() {
   const navigate = useNavigate();
   const setSelection = useDogyptStore((s) => s.setSelection);
+  const savedZodiac = useDogyptStore((s) => s.selections.ownerZodiac);
+  const savedChinese = useDogyptStore((s) => s.selections.ownerChineseZodiac);
 
-  const [selectedZodiac, setSelectedZodiac] = useState<string | null>(null);
-  const [yearInput, setYearInput] = useState('');
-  const [chineseResult, setChineseResult] = useState<{ name: string; emoji: string } | null>(null);
+  const [selectedZodiac, setSelectedZodiac] = useState<string | null>(savedZodiac || null);
+  const [yearValue, setYearValue] = useState(DEFAULT_YEAR);
+  const [yearTouched, setYearTouched] = useState(!!savedChinese);
+  const [chineseResult, setChineseResult] = useState<{ name: string; emoji: string } | null>(
+    savedChinese ? getChineseZodiac(DEFAULT_YEAR) : null
+  );
 
   const westernScrollRef = useRef<HTMLDivElement>(null);
 
@@ -126,24 +134,15 @@ export function OwnerZodiacScreen() {
     setSelection('ownerZodiac', sign.name);
   };
 
-  const handleYearChange = (value: string) => {
-    const clean = value.replace(/\D/g, '').slice(0, 4);
-    setYearInput(clean);
-    if (clean.length === 4) {
-      const year = parseInt(clean);
-      if (year > 1900 && year < 2030) {
-        const zodiac = getChineseZodiac(year);
-        setChineseResult(zodiac);
-        setSelection('ownerChineseZodiac', zodiac.name);
-      } else {
-        setChineseResult(null);
-      }
-    } else {
-      setChineseResult(null);
-    }
+  const handleYearChange = (year: number) => {
+    setYearValue(year);
+    setYearTouched(true);
+    const zodiac = getChineseZodiac(year);
+    setChineseResult(zodiac);
+    setSelection('ownerChineseZodiac', zodiac.name);
   };
 
-  const canContinue = !!selectedZodiac && !!chineseResult;
+  const canContinue = !!selectedZodiac && yearTouched;
 
   const handleContinue = () => {
     if (!canContinue) return;
@@ -165,8 +164,8 @@ export function OwnerZodiacScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
-            <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+            <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
+            <p className="text-white text-center text-base md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               What do the stars say about you?
             </p>
           </motion.div>
@@ -189,10 +188,10 @@ export function OwnerZodiacScreen() {
                   <button
                     key={sign.name}
                     onClick={() => handleSelectZodiac(sign)}
-                    className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all w-14 ${
+                    className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all w-14 border-2 ${
                       selectedZodiac === sign.name
-                        ? 'bg-primary/20 border-2 border-primary ring-1 ring-primary/30 scale-105'
-                        : 'border border-border/30 hover:bg-card/80 hover:border-border/60'
+                        ? 'is-selected-purple scale-105'
+                        : 'border-border/30 hover:bg-card/80 hover:border-border/60'
                     }`}
                   >
                     <img src={sign.img} alt={sign.name} className="h-8 w-8 object-contain" />
@@ -206,7 +205,7 @@ export function OwnerZodiacScreen() {
 
             {/* 2. Chinese Zodiac */}
             <motion.div
-              className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-3"
+              className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 flex flex-col gap-3 overflow-hidden"
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.35, delay: 0.2 }}
@@ -216,42 +215,31 @@ export function OwnerZodiacScreen() {
               </p>
 
               <div className="flex items-center gap-3">
-                <div className="flex-1 flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
-                  <input
-                    value={yearInput}
-                    onChange={(e) => handleYearChange(e.target.value)}
-                    placeholder="Year of birth"
-                    className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-                    style={{ fontFamily: "'Inter', sans-serif" }}
-                    inputMode="numeric"
-                  />
+                <div className="flex-1">
+                  <WheelYearPicker year={yearValue} minYear={1930} maxYear={new Date().getFullYear()} onChange={handleYearChange} />
                 </div>
 
-                <div className="w-14 h-14 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {chineseResult ? (
-                    <motion.div
-                      key={chineseResult.name}
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {chineseAnimalImages[chineseResult.name] ? (
-                        <img src={chineseAnimalImages[chineseResult.name]} alt={chineseResult.name} className="h-10 object-contain" />
-                      ) : (
-                        <span className="text-2xl">{chineseResult.emoji}</span>
-                      )}
-                    </motion.div>
-                  ) : (
-                    <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>?</span>
-                  )}
+                <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <div className="w-14 h-14 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center overflow-hidden">
+                    {chineseResult ? (
+                      <motion.img
+                        key={chineseResult.name}
+                        src={chineseAnimalImages[chineseResult.name]}
+                        alt={chineseResult.name}
+                        className="h-10 object-contain"
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    ) : (
+                      <span className="text-muted-foreground/30 text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif" }}>?</span>
+                    )}
+                  </div>
+                  <span className="text-[8px] text-muted-foreground leading-none truncate w-14 text-center" style={{ fontFamily: "'Cinzel', serif" }}>
+                    {chineseResult ? chineseResult.name : ''}
+                  </span>
                 </div>
               </div>
-
-              {chineseResult && (
-                <p className="text-xs text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Year of the {chineseResult.name}
-                </p>
-              )}
             </motion.div>
           </div>
 
@@ -260,10 +248,14 @@ export function OwnerZodiacScreen() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
               <Button
                 onClick={handleContinue}
-                className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary/80 gap-2 h-11"
-                style={{ fontFamily: "'Cinzel', serif" }}
+                className="w-full rounded-xl h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                }}
               >
-                <Send className="h-4 w-4" />
                 Continue
               </Button>
             </motion.div>

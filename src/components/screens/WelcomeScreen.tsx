@@ -53,8 +53,8 @@ export function WelcomeScreen() {
         >
           <Button
             onClick={() => setStep(1)}
-            className="mt-4 px-8 py-6 text-lg font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-full shadow-lg"
-            style={{ fontFamily: 'Cinzel, serif', boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}
+            className="mt-4 px-8 py-6 text-lg font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-xl shadow-lg"
+            style={{ fontFamily: 'Cinzel, serif', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.3)' }}
           >
             BEGIN THE RITUAL →
           </Button>

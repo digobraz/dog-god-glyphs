@@ -52,24 +52,22 @@ export function DogColourScreen() {
 
           {/* 2. BLOCK - Hekthor question */}
           <motion.div
-            className="w-full rounded-2xl p-6 md:p-8 flex items-center gap-5"
+            className="w-full rounded-2xl px-4 py-4 flex flex-col items-center gap-2 text-center"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-            <div className="flex flex-col gap-2 pr-8">
-              <h3
-                className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
-                style={{ fontFamily: "'Cinzel', serif" }}
-              >
-                Dog Colour
-              </h3>
-              <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
-              </p>
-            </div>
+            <img src={hekthorImg} alt="HEKTHOR" className="w-28 h-28 md:w-36 md:h-36 object-contain" />
+            <h3
+              className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
+              style={{ fontFamily: "'Cinzel', serif" }}
+            >
+              Dog Colour
+            </h3>
+            <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
+            </p>
           </motion.div>
 
           {/* 3. BLOCK - Options */}
@@ -85,7 +83,7 @@ export function DogColourScreen() {
                 onClick={() => handleSelect('bright')}
                 className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                   selected === 'bright'
-                    ? 'border-primary bg-primary/10'
+                    ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -102,7 +100,7 @@ export function DogColourScreen() {
                 onClick={() => handleSelect('dark')}
                 className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                   selected === 'dark'
-                    ? 'border-primary bg-primary/10'
+                    ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -119,7 +117,7 @@ export function DogColourScreen() {
                 onClick={() => handleSelect('mix')}
                 className={`flex-1 flex flex-col items-center gap-3 p-4 rounded-xl border-2 transition-all ${
                   selected === 'mix'
-                    ? 'border-primary bg-primary/10'
+                    ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}

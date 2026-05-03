@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { photoPositions, photos } from './godsData';
 
@@ -6,6 +6,11 @@ const W  = 360;
 const H  = 360;
 const GX = W + 64;
 const GY = H + 64;
+
+const REVEAL_COL = 3;
+const REVEAL_ROW = 1;
+
+const REVEAL_SYMBOL = '/images/character-watcher.svg';
 
 function getPos(filename: string): string {
   const key = decodeURIComponent(filename).normalize('NFC');
@@ -25,6 +30,45 @@ export function GodsGrid() {
   const appRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
+
+  const revealData = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get('reveal');
+    const isDemo = mode === 'demo';
+    const active = mode === 'true' || isDemo;
+    return {
+      active,
+      dogName: isDemo ? 'Toby' : (params.get('dogName') || 'Your Dog'),
+      photoUrl: isDemo ? '/dogs/toby.jpg' : (params.get('photoUrl') || ''),
+      packNumber: isDemo ? String(photos.length) : (params.get('packNumber') || String(photos.length + 1)),
+    };
+  }, []);
+
+  // Reveal sequence timing
+  // step 1: black screen + symbol burns in
+  // step 2: only dog photo visible on black (symbol fades, grid still hidden)
+  // step 3: grid appears around dog (+2s after photo)
+  // step 4: done, overlay removed
+  useEffect(() => {
+    if (!revealData.active) return;
+    setRevealStep(1);
+    const t1 = setTimeout(() => setRevealStep(2), 2000);  // symbol done → only photo
+    const t2 = setTimeout(() => setRevealStep(3), 4200);  // +2.2s → grid appears
+    const t3 = setTimeout(() => {
+      setRevealStep(4);
+      window.history.replaceState(null, '', '/');
+    }, 5800);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, [revealData.active]);
+
+  // Activate card animation when photo appears
+  useEffect(() => {
+    if (revealStep === 2) {
+      const card = document.querySelector('.reveal-card');
+      card?.classList.add('reveal-active');
+    }
+  }, [revealStep]);
 
   useEffect(() => {
     const app = appRef.current;
@@ -33,8 +77,12 @@ export function GodsGrid() {
 
     let vw = window.innerWidth;
     let vh = window.innerHeight;
-    let ox = vw / 2 - W / 2;
-    let oy = vh / 2 - H / 2;
+    let ox = revealData.active
+      ? vw / 2 - REVEAL_COL * GX - W / 2
+      : vw / 2 - W / 2;
+    let oy = revealData.active
+      ? vh / 2 - REVEAL_ROW * GY - H / 2
+      : vh / 2 - H / 2;
     let dragging = false;
     let startX = 0, startY = 0;
     let prevX = 0, prevY = 0, prevT = 0;
@@ -59,8 +107,21 @@ export function GodsGrid() {
       return el;
     }
 
+    function makeRevealCard() {
+      const el = document.createElement('article');
+      el.className = 'dog-card reveal-card';
+      el.style.left = (REVEAL_COL * GX) + 'px';
+      el.style.top  = (REVEAL_ROW * GY) + 'px';
+      el.innerHTML = `
+        <div class="reveal-card-inner" style="background-image:url('${revealData.photoUrl}')"></div>
+        <div class="card-label">${revealData.dogName} · #${revealData.packNumber}</div>
+      `;
+      return el;
+    }
+
     function makeCard(col: number, row: number) {
       if (col === 0 && row === 0) return makeHeroCard();
+      if (revealData.active && col === REVEAL_COL && row === REVEAL_ROW) return makeRevealCard();
       const p = photoFor(col, row);
       const el = document.createElement('article');
       el.className = 'dog-card';
@@ -514,6 +575,127 @@ export function GodsGrid() {
           font-family: 'Cinzel', serif;
           text-transform: uppercase;
         }
+
+        /* ── Reveal card (in grid) ── */
+        .reveal-card-inner {
+          position: absolute;
+          inset: 0;
+          background-size: cover;
+          background-position: 50% 30%;
+          border-radius: 12px;
+          opacity: 0;
+          transition: opacity 0ms;
+        }
+        .reveal-card.reveal-active .reveal-card-inner {
+          opacity: 1;
+          transition: opacity 800ms ease;
+        }
+
+        /* Card gold glow on reveal */
+        @keyframes card-entrance {
+          0%   { box-shadow: none; transform: scale(0.9); }
+          40%  { transform: scale(1.07);
+                 box-shadow: 0 0 0 3px rgba(196,155,66,0.9),
+                             0 0 100px rgba(196,155,66,0.95),
+                             0 0 200px rgba(196,155,66,0.5); }
+          70%  { transform: scale(0.98); }
+          100% { transform: scale(1);
+                 box-shadow: 0 0 0 2px rgba(196,155,66,0.55),
+                             0 0 50px rgba(196,155,66,0.45),
+                             0 0 100px rgba(196,155,66,0.2); }
+        }
+        @keyframes card-glow-loop {
+          0%,100% { box-shadow: 0 0 0 2px rgba(196,155,66,0.55),
+                                0 0 50px rgba(196,155,66,0.45),
+                                0 0 100px rgba(196,155,66,0.2); }
+          50%     { box-shadow: 0 0 0 3px rgba(196,155,66,0.75),
+                                0 0 70px rgba(196,155,66,0.65),
+                                0 0 140px rgba(196,155,66,0.3); }
+        }
+        .reveal-card.reveal-active {
+          animation: card-entrance 1.4s cubic-bezier(0.34,1.3,0.64,1) forwards,
+                     card-glow-loop 4s ease-in-out 1.4s infinite;
+          z-index: 10;
+        }
+
+        /* Brand rune – burned into photo, pulses forever */
+
+        /* ── Reveal sequence overlay ── */
+        .rev-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 100;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #080808;
+          pointer-events: none;
+          transition: none;
+        }
+        .rev-overlay.step-2 { background: transparent; }
+        .rev-overlay.step-3 { background: transparent; }
+
+        /* Square spotlight: box-shadow covers everything OUTSIDE 360x360 center */
+        .rev-spotlight {
+          position: absolute;
+          top: 50%; left: 50%;
+          width: 360px; height: 360px;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 0 0 9999px #080808;
+          pointer-events: none;
+          opacity: 0;
+          border-radius: 12px;
+        }
+        .rev-overlay.step-2 .rev-spotlight {
+          opacity: 1;
+          transition: none;
+        }
+        .rev-overlay.step-3 .rev-spotlight {
+          opacity: 0;
+          transition: opacity 1400ms ease;
+        }
+
+        /* Symbol: black SVG → gold via invert+filter, burns in, gone before photo */
+        .rev-big-symbol {
+          width: 420px;
+          height: auto;
+          object-fit: contain;
+          pointer-events: none;
+          animation: symbol-burn 2s cubic-bezier(0.25,0.46,0.45,0.94) forwards;
+          will-change: transform, opacity, filter;
+        }
+        .rev-overlay.step-2 .rev-big-symbol,
+        .rev-overlay.step-3 .rev-big-symbol {
+          opacity: 0 !important;
+          transition: opacity 400ms ease;
+          animation: none;
+        }
+
+        @keyframes symbol-burn {
+          0%   { opacity: 0;
+                 filter: invert(1) brightness(0.2) blur(20px);
+                 transform: scale(0.15); }
+          12%  { opacity: 0.4;
+                 filter: invert(1) brightness(0.6) blur(6px);
+                 transform: scale(0.55); }
+          28%  { opacity: 1;
+                 filter: invert(1) brightness(4)
+                   drop-shadow(0 0 50px #FFF)
+                   drop-shadow(0 0 100px #FFD700)
+                   drop-shadow(0 0 200px rgba(196,155,66,0.9));
+                 transform: scale(1.25); }
+          48%  { filter: invert(1) brightness(2.5)
+                   drop-shadow(0 0 35px rgba(255,210,60,0.9))
+                   drop-shadow(0 0 90px rgba(196,155,66,0.6));
+                 transform: scale(0.9); }
+          70%  { transform: scale(1.05); }
+          85%  { transform: scale(0.98); }
+          100% { opacity: 1;
+                 filter: invert(1) brightness(1.4)
+                   drop-shadow(0 0 25px rgba(196,155,66,0.8))
+                   drop-shadow(0 0 70px rgba(196,155,66,0.4));
+                 transform: scale(1); }
+        }
       `}</style>
 
       <div className="gods-root">
@@ -551,6 +733,13 @@ export function GodsGrid() {
         <div ref={appRef} role="application" style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
           <div ref={canvasRef} id="gods-canvas" />
         </div>
+
+        {revealData.active && revealStep > 0 && revealStep < 4 && (
+          <div className={`rev-overlay step-${revealStep}`}>
+            <div className="rev-spotlight" />
+            <img className="rev-big-symbol" src={REVEAL_SYMBOL} alt="DOGYPT" />
+          </div>
+        )}
       </div>
     </>
   );

@@ -221,7 +221,7 @@ interface HeroglyphFrameProps {
 }
 
 export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, pulseAllEmpty = false, style }: HeroglyphFrameProps) {
-  const { selections, ownerName } = useDogyptStore();
+  const { selections, ownerName, patronSvg } = useDogyptStore();
 
   const ownerGenderSrc = showOwner ? genderMap[selections.ownerGender] : undefined;
   const chineseZodiacSrc = showOwner ? chineseMap[selections.ownerChineseZodiac] : undefined;
@@ -234,7 +234,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
   const dogFateSrc = dogFateMap[selections.dogFate];
   const dogColourSrc = dogColourMap[selections.dogColour];
   const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
-  const dogShapeSrc = dogShapeMap[selections.dogShape];
+  const dogShapeSrc = patronSvg ? `/patrons/${patronSvg}` : undefined;
   const dogChar1Src = dogCharacterMap[selections.dogCharacter1];
   const dogChar2Src = dogCharacterMap[selections.dogCharacter2];
 

@@ -39,7 +39,7 @@ export function DogNameScreen() {
         <Button
           onClick={handleSubmit}
           disabled={!name.trim()}
-          className="px-8 py-5 text-base font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-full disabled:opacity-30"
+          className="px-8 py-5 text-base font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-xl disabled:opacity-30"
           style={{ fontFamily: 'Cinzel, serif' }}
         >
           NEXT →

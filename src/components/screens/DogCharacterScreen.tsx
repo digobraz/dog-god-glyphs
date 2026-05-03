@@ -163,7 +163,7 @@ export function DogCharacterScreen() {
                       </h4>
                       <p
                         className="text-foreground/70 text-xs md:text-sm leading-relaxed"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         Choose the two character traits that best describe your dog. These shape the symbols inside the Heroglyph.
                       </p>
@@ -203,7 +203,7 @@ export function DogCharacterScreen() {
                         onClick={() => handleSelect(char.value)}
                         className={`flex-shrink-0 relative flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all snap-start ${
                           isSelected
-                            ? 'border-primary bg-primary/10'
+                            ? 'is-selected-purple'
                             : 'border-border/60 hover:border-primary/50'
                         }`}
                         style={{ fontFamily: "'Cinzel', serif", width: '100px' }}

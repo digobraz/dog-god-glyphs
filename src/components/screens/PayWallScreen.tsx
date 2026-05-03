@@ -43,7 +43,7 @@ export function PayWallScreen() {
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
             </p>
-            <p className="text-white/70 text-xs md:text-sm leading-relaxed text-center drop-shadow-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <p className="text-white/70 text-xs md:text-sm leading-relaxed text-center drop-shadow-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               However you can pay more and help our vision. Every cent goes to a good cause.
             </p>
           </motion.div>
@@ -73,19 +73,19 @@ export function PayWallScreen() {
             </div>
 
             {/* Certificate info */}
-            <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <p className="text-muted-foreground text-xs text-center leading-relaxed" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               After payment, we will send you a <span className="text-foreground font-bold uppercase">DOGYPT Certificate</span> and place photo on the website.
             </p>
 
             <Button
               onClick={handleContinue}
               disabled={!isValid}
-              className="w-full rounded-full py-6 text-lg font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30 mt-2"
+              className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-30 mt-2"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                 color: '#000',
-                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
               }}
             >
               NEXT →

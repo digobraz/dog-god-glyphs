@@ -6,11 +6,11 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
-import patronBreeds from '@/data/patronBreeds.json';
+import breedsData from '@/data/breeds.json';
 
-type BreedEntry = { n: number; en: string };
-type BreedsByCategory = Record<string, BreedEntry[]>;
-const data = patronBreeds as BreedsByCategory;
+type Breed = { id: number; en: string; sk: string; patron: string; group: string };
+type BreedsFile = { version: string; breeds: Breed[] };
+const BREEDS = (breedsData as BreedsFile).breeds;
 
 const CATEGORIES: { id: string; name: string }[] = [
   { id: '01', name: 'Furballs' },
@@ -30,12 +30,14 @@ const SVG_COUNTS: Record<string, number> = {
   '06': 8, '07': 10, '08': 6, '09': 6, '10': 9,
 };
 
-// Build flat searchable list with category info
-const ALL_BREEDS: { name: string; category: string }[] = [];
-for (const cat of Object.keys(data)) {
-  for (const b of data[cat]) ALL_BREEDS.push({ name: b.en, category: cat });
-}
-ALL_BREEDS.sort((a, b) => a.name.localeCompare(b.name));
+// Flat searchable list — name → group + canonical patron silhouette
+const ALL_BREEDS: { name: string; category: string; patron: string }[] = BREEDS
+  .map((b) => ({ name: b.en, category: b.group, patron: `${b.patron}.svg` }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const breedToPatron: Record<string, string> = Object.fromEntries(
+  ALL_BREEDS.map((b) => [`${b.category}|${b.name}`, b.patron])
+);
 
 const svgsFor = (cat: string): string[] => {
   const n = SVG_COUNTS[cat] ?? 0;
@@ -91,7 +93,7 @@ function BreedPicker({
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <div
-            className="flex items-center gap-2 rounded-full px-4 h-11 bg-card border border-border/40"
+            className="flex items-center gap-2 rounded-xl px-4 h-11 bg-card border border-border/40"
           >
             <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
           {selectedBreed ? (
@@ -112,7 +114,7 @@ function BreedPicker({
               onChange={(e) => setSearch(e.target.value)}
               placeholder={placeholder}
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             />
           )}
           {!selectedBreed && search && (
@@ -129,11 +131,11 @@ function BreedPicker({
                   onClick={() => onSelectBreed(m.name, m.category)}
                   className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b border-border/20 last:border-0 hover:bg-primary/10 text-foreground"
                 >
-                  <span className="text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <span className="text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {m.name}
                   </span>
                   <img
-                    src={patronUrl(`${m.category}-01.svg`)}
+                    src={patronUrl(breedToPatron[`${m.category}|${m.name}`] ?? `${m.category}-01.svg`)}
                     alt=""
                     className="h-6 w-6 object-contain opacity-90"
                   />
@@ -188,7 +190,7 @@ function BreedPicker({
                 isSel
                   ? {
                       boxShadow:
-                        '0 0 0 2px hsl(270 60% 45% / 0.25), 0 0 18px 4px hsl(270 70% 50% / 0.35), 0 0 40px 12px hsl(270 70% 55% / 0.18), 0 0 70px 24px hsl(270 70% 55% / 0.08), inset 0 0 10px hsl(270 70% 50% / 0.18)',
+                        '0 0 0 2px hsl(270 60% 45% / 0.5), inset 0 0 12px hsl(270 70% 50% / 0.2)',
                     }
                   : undefined
               }
@@ -231,7 +233,7 @@ export function BreedPatronScreen() {
     setBreed1(name);
     setSearch1(name);
     setCat1(cat);
-    setSvg1(`${cat}-01.svg`);
+    setSvg1(breedToPatron[`${cat}|${name}`] ?? `${cat}-01.svg`);
   };
   const handleClearBreed1 = () => { setBreed1(''); setSearch1(''); setSvg1(''); };
 
@@ -239,7 +241,7 @@ export function BreedPatronScreen() {
     setBreed2(name);
     setSearch2(name);
     setCat2(cat);
-    setSvg2(`${cat}-01.svg`);
+    setSvg2(breedToPatron[`${cat}|${name}`] ?? `${cat}-01.svg`);
   };
   const handleClearBreed2 = () => { setBreed2(''); setSearch2(''); setSvg2(''); };
 
@@ -287,7 +289,7 @@ export function BreedPatronScreen() {
             transition={{ duration: 0.35 }}
           >
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
+              <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
               <p
                 className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -323,12 +325,12 @@ export function BreedPatronScreen() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                   <Button
                     onClick={handleContinue}
-                    className="w-full rounded-full gap-2 h-11 font-bold tracking-wider hover:scale-105 transition-transform"
+                    className="w-full rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
                     style={{
                       fontFamily: "'Cinzel', serif",
                       background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                       color: '#000',
-                      boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                     }}
                   >
                     Continue

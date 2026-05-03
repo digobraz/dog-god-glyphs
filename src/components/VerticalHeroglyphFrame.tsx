@@ -176,7 +176,7 @@ interface VerticalHeroglyphFrameProps {
 }
 
 export function VerticalHeroglyphFrame({ className = '' }: VerticalHeroglyphFrameProps) {
-  const { selections, ownerName } = useDogyptStore();
+  const { selections, ownerName, patronSvg } = useDogyptStore();
 
   const ownerGenderSrc = genderMap[selections.ownerGender];
   const chineseZodiacSrc = chineseMap[selections.ownerChineseZodiac];
@@ -189,7 +189,9 @@ export function VerticalHeroglyphFrame({ className = '' }: VerticalHeroglyphFram
   const dogFateSrc = dogFateMap[selections.dogFate];
   const dogColourSrc = dogColourMap[selections.dogColour];
   const dogBloodlineSrc = dogBloodlineMap[selections.dogBloodline];
-  const dogShapeSrc = dogShapeMap[selections.dogShape];
+  const dogShapeSrc = patronSvg
+    ? `/patrons/${patronSvg}`
+    : dogShapeMap[selections.dogShape];
   const dogChar1Src = dogCharacterMap[selections.dogCharacter1];
   const dogChar2Src = dogCharacterMap[selections.dogCharacter2];
 

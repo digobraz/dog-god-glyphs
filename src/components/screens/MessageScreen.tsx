@@ -96,7 +96,7 @@ export function MessageScreen() {
               {/* Section heading */}
               <p
                 className="text-xs uppercase tracking-widest text-muted-foreground text-center"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 Your Message
               </p>
@@ -112,7 +112,7 @@ export function MessageScreen() {
                   rows={3}
                   className="w-full bg-card rounded-xl px-4 py-3 text-foreground text-sm leading-relaxed placeholder:text-muted-foreground/50 outline-none border-2 transition-colors resize-none"
                   style={{
-                    fontFamily: "'Inter', sans-serif",
+                    fontFamily: "'Space Grotesk', sans-serif",
                     borderColor: message.length > 0
                       ? 'hsl(var(--gold))'
                       : 'hsl(var(--border) / 0.3)',
@@ -130,7 +130,7 @@ export function MessageScreen() {
                 <span
                   className="absolute bottom-2 right-3 text-xs font-medium"
                   style={{
-                    fontFamily: "'Inter', sans-serif",
+                    fontFamily: "'Space Grotesk', sans-serif",
                     color: isOverLimit ? 'hsl(0 70% 55%)' : 'hsl(var(--gold))',
                   }}
                 >
@@ -141,7 +141,7 @@ export function MessageScreen() {
               {/* Info line */}
               <p
                 className="text-[10px] md:text-xs text-muted-foreground text-center leading-relaxed"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 This message will appear on your dog's profile in the{' '}
                 <span className="font-semibold text-foreground/70">GODS Grid</span>.
@@ -151,7 +151,7 @@ export function MessageScreen() {
               <Button
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="w-full rounded-full gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+                className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: canSubmit

@@ -88,8 +88,8 @@ export function NameScreen() {
 
             {/* Default front content */}
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
-              <p className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+              <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
+              <p className="text-white text-center text-base md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
                 Hi, I'm <span className="font-bold text-amber-300">HEKTHOR</span>.<br />
                 What's your dog's name?
               </p>
@@ -109,16 +109,16 @@ export function NameScreen() {
                   {/* Content – equal padding all around, pt accounts for X button */}
                   <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col min-h-0">
                     {/* Two-column layout */}
-                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0 items-stretch overflow-hidden">
-                      {/* Left column – video */}
-                      <div className="w-[38%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden">
+                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0 items-center overflow-hidden">
+                      {/* Left column – video, fixed aspect ratio centered against right text */}
+                      <div className="w-[38%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden aspect-[3/4]">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
                           loop
                           muted
                           playsInline
-                          className="w-full h-full object-cover rounded-2xl"
+                          className="w-full h-full object-cover object-center"
                         />
                       </div>
 
@@ -133,7 +133,7 @@ export function NameScreen() {
 
                         <p
                           className="text-foreground/80 text-[10px] md:text-sm leading-relaxed line-clamp-5 md:line-clamp-none"
-                          style={{ fontFamily: "'Inter', sans-serif" }}
+                          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                         >
                           Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.
                         </p>
@@ -188,14 +188,14 @@ export function NameScreen() {
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-2 md:gap-3">
-            <div className="flex items-center gap-2 bg-card rounded-full px-4 py-2 border border-border/30">
+            <div className="flex items-center gap-2 bg-card rounded-xl px-4 py-2 border border-border/30">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
                 onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
                 placeholder="Type your dog's name..."
                 className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
-                style={{ fontFamily: "'Inter', sans-serif" }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 autoFocus
                 maxLength={30}
               />
@@ -221,12 +221,12 @@ export function NameScreen() {
             <Button
               onClick={handleSend}
               disabled={!canContinue}
-              className="w-full rounded-full gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100"
+              className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                 color: '#000',
-                boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
               }}
             >
               Continue
