@@ -210,7 +210,7 @@ export function GodsGrid() {
       prevX = e.clientX; prevY = e.clientY; prevT = performance.now();
       vx = vy = 0;
       app!.classList.add('is-dragging');
-      document.body.style.cursor = 'grabbing';
+      document.body.style.cursor = 'pointer';
     };
     const onMouseMove = (e: MouseEvent) => {
       if (!dragging) return;
