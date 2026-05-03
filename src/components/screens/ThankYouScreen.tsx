@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
+import { buildHeroglyphCode } from '@/components/CertificateCard';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hektorPhoto from '@/assets/hektor-photo.jpeg';
 import hektorHeroglyph from '@/assets/hekthor-heroglyph.png';
@@ -96,6 +97,27 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
   return packNumber;
 }
 
+const SEND_CERT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/send-certificate';
+
+function useSendCertificate(email: string, dogName: string, ownerName: string, selections: Record<string, string>, sessionId: string | null) {
+  const sent = useRef(false);
+  useEffect(() => {
+    if (!email || sent.current) return;
+    sent.current = true;
+    fetch(SEND_CERT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        dogName,
+        ownerName,
+        heroglyphCode: buildHeroglyphCode(selections),
+        sessionId,
+      }),
+    }).catch(() => {/* silent fail */});
+  }, [email, dogName, ownerName, selections, sessionId]);
+}
+
 /** Animated count-up hook from 0 to target, returns text + landed flag */
 function useAnimatedCounter(target: number, reduced: boolean | null) {
   const [display, setDisplay] = useState(reduced ? target : 0);
@@ -180,6 +202,7 @@ export function ThankYouScreen() {
   const photoUrl = store.dogPhotoUrl || '';
 
   const packNumber = usePackNumber(dogName, email, sessionId);
+  useSendCertificate(email, dogName, store.ownerName || '', store.selections, sessionId);
 
   const handleEnterPack = useCallback(() => {
     const params = new URLSearchParams({
