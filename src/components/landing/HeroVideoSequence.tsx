@@ -194,12 +194,12 @@ export function HeroVideoSequence() {
 
           <motion.a
             href="/generator-process"
-            className="mt-5 md:mt-8 inline-block px-7 py-3 md:px-10 md:py-4 rounded-full text-base md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105"
+            className="mt-5 md:mt-8 inline-block px-7 py-3 md:px-10 md:py-4 rounded-xl text-base md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-[1.02]"
             style={{
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
               color: '#000',
-              boxShadow: '0 0 40px hsl(39 80% 50% / 0.4)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 14px rgba(0,0,0,0.4)',
             }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -225,7 +225,7 @@ export function HeroVideoSequence() {
           <motion.button
             type="button"
             onClick={handlePlayClick}
-            className="pointer-events-auto flex items-center gap-3 mb-3 transition-transform hover:scale-105 cursor-pointer bg-transparent border-0 p-0"
+            className="pointer-events-auto flex items-center gap-3 mb-3 transition-transform hover:scale-[1.02] cursor-pointer bg-transparent border-0 p-0"
             style={{ opacity: labelOpacity }}
           >
             <span

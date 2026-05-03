@@ -67,13 +67,13 @@ function VisionStep({ step, index }: { step: typeof steps[0]; index: number }) {
         {step.isCTA && (
           <motion.a
             href="/name"
-            className="mt-4 inline-block px-10 py-4 rounded-full text-lg md:text-xl font-bold tracking-wider border-2 transition-transform hover:scale-105"
+            className="mt-4 inline-block px-10 py-4 rounded-xl text-lg md:text-xl font-bold tracking-wider border-2 transition-transform hover:scale-[1.02]"
             style={{
               fontFamily: "'Cinzel', serif",
               background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
               color: '#000',
               borderColor: 'rgba(163,120,43,0.3)',
-              boxShadow: '0 0 40px hsl(39 80% 50% / 0.4)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 14px rgba(0,0,0,0.4)',
             }}
             whileHover={{ scale: 1.05 }}
           >

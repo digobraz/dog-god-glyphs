@@ -170,7 +170,7 @@ function CropPreview({
       </div>
       <span
         className="text-[10px] text-muted-foreground"
-        style={{ fontFamily: "'Inter', sans-serif" }}
+        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
       >
         {label}
       </span>
@@ -213,7 +213,7 @@ function BackNextButtons({
   backLabel?: string;
   nextLabel?: string;
 }) {
-  const common = "flex-1 rounded-full h-10 font-bold tracking-wider transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs";
+  const common = "flex-1 rounded-xl h-10 font-bold tracking-wider transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs";
   return (
     <div className="flex gap-2 w-full">
       <Button
@@ -237,7 +237,7 @@ function BackNextButtons({
           fontFamily: "'Cinzel', serif",
           background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
           color: '#000',
-          boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
         }}
       >
         {nextLabel}
@@ -411,7 +411,7 @@ export function PhotoScreen() {
                   style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
                 >
                   <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-                    <img src={hekthorImg} alt="HEKTHOR" className="w-48 h-48 md:w-64 md:h-64 object-contain" />
+                    <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
                     <p
                       className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
@@ -420,7 +420,7 @@ export function PhotoScreen() {
                     </p>
                     <p
                       className="text-white/70 text-sm text-center"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
                     </p>
@@ -445,7 +445,7 @@ export function PhotoScreen() {
                         onClick={() => fileRef.current?.click()}
                       >
                         <Upload size={36} color="hsl(39 55% 51%)" strokeWidth={1.5} />
-                        <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
+                        <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                           Tap to upload
                         </span>
                       </div>
@@ -455,7 +455,7 @@ export function PhotoScreen() {
                           <img src={photoUrl} alt="Dog" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                          <span className="text-xs text-foreground truncate" style={{ fontFamily: "'Inter', sans-serif" }}>{fileName}</span>
+                          <span className="text-xs text-foreground truncate" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{fileName}</span>
                           <button className="text-[10px] underline text-muted-foreground self-start" onClick={() => fileRef.current?.click()}>
                             Change photo
                           </button>
@@ -465,7 +465,7 @@ export function PhotoScreen() {
 
                     <p
                       className="text-[10px] md:text-[11px] text-center leading-snug px-2"
-                      style={{ fontFamily: "'Inter', sans-serif", color: 'hsl(39 40% 60%)' }}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'hsl(39 40% 60%)' }}
                     >
                       <span className="inline text-green-600/70 mr-0.5">✓</span> dog facing forward
                       {' · '}
@@ -477,12 +477,12 @@ export function PhotoScreen() {
                     <Button
                       onClick={() => goTo(1)}
                       disabled={!photoUrl}
-                      className="w-full rounded-full h-10 font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs"
+                      className="w-full rounded-xl h-10 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100 text-xs"
                       style={{
                         fontFamily: "'Cinzel', serif",
                         background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                         color: '#000',
-                        boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                       }}
                     >
                       NEXT →
@@ -519,7 +519,7 @@ export function PhotoScreen() {
                     </h2>
                     <p
                       className="text-white/70 text-sm text-center"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       {sub === 1
                         ? 'This will appear in your official Heroglyph certificate.'

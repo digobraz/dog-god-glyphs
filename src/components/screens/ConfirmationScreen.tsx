@@ -79,8 +79,8 @@ export function ConfirmationScreen() {
 
         <Button
           onClick={handleReturn}
-          className="px-8 py-5 text-lg font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-full"
-          style={{ fontFamily: 'Cinzel, serif', boxShadow: '0 0 30px hsl(var(--gold) / 0.4)' }}
+          className="px-8 py-5 text-lg font-bold tracking-wider bg-primary text-primary-foreground hover:bg-primary/80 rounded-xl"
+          style={{ fontFamily: 'Cinzel, serif', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0,0,0,0.3)' }}
         >
           RETURN TO DOGYPT
         </Button>

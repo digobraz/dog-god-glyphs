@@ -72,7 +72,7 @@ export function WizardScreen() {
             autoFocus
           />
           <Button onClick={handleYearSubmit} disabled={yearInput.length !== 4}
-            className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold">
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-xl font-bold">
             CALCULATE →
           </Button>
         </div>
@@ -84,7 +84,7 @@ export function WizardScreen() {
         <div className="flex flex-col items-center gap-4">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className={cn("w-64 justify-center text-lg py-6 border-2 border-primary rounded-full", !date && "text-muted-foreground")}>
+              <Button variant="outline" className={cn("w-64 justify-center text-lg py-6 border-2 border-primary rounded-xl", !date && "text-muted-foreground")}>
                 {date ? format(date, 'MMMM d') : 'Pick your birthday'}
               </Button>
             </PopoverTrigger>
@@ -198,7 +198,7 @@ export function WizardScreen() {
         {isMobile && (
           <Sheet>
             <SheetTrigger asChild>
-              <button className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-6 py-3 rounded-full text-sm font-bold tracking-wider shadow-lg"
+              <button className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-primary text-primary-foreground px-6 py-3 rounded-xl text-sm font-bold tracking-wider shadow-lg"
                 style={{ fontFamily: 'Cinzel, serif', boxShadow: '0 0 20px hsl(var(--gold) / 0.4)' }}>
                 VIEW HEROGLYPH ↑
               </button>

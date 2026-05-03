@@ -86,12 +86,12 @@ export function HeroSection() {
 
       <motion.a
         href="/generator-process"
-        className="mt-8 inline-block px-10 py-4 rounded-full text-lg md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-105 relative z-20"
+        className="mt-8 inline-block px-10 py-4 rounded-xl text-lg md:text-xl font-bold tracking-wider border-2 border-[#FAF4EC]/30 transition-transform hover:scale-[1.02] relative z-20"
         style={{
           fontFamily: "'Cinzel', serif",
           background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
           color: '#000',
-          boxShadow: '0 0 40px hsl(39 80% 50% / 0.4)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2), 0 4px 14px rgba(0,0,0,0.4)',
         }}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

@@ -73,19 +73,17 @@ export function DogBloodlineScreen() {
             </button>
 
             {/* Default content */}
-            <div className="p-6 md:p-8 flex items-center gap-5 min-h-[180px]">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-24 md:h-24 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-2 pr-8">
-                <h3
-                  className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  Dog Bloodline
-                </h3>
-                <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Is your dog <span className="font-bold text-amber-300">pure</span> or <span className="font-bold text-amber-300">wild</span>?
-                </p>
-              </div>
+            <div className="px-4 py-4 flex flex-col items-center gap-2 text-center">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-28 h-28 md:w-36 md:h-36 object-contain" />
+              <h3
+                className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                Dog Bloodline
+              </h3>
+              <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                Is your dog <span className="font-bold text-amber-300">pure</span> or <span className="font-bold text-amber-300">wild</span>?
+              </p>
             </div>
 
             {/* Info overlay */}
@@ -110,7 +108,7 @@ export function DogBloodlineScreen() {
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         Original with pure bloodline.
                       </p>
@@ -129,7 +127,7 @@ export function DogBloodlineScreen() {
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         Original without pure bloodline.
                       </p>
@@ -152,7 +150,7 @@ export function DogBloodlineScreen() {
                 onClick={() => handleSelect('aristocrat')}
                 className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
                   selected === 'aristocrat'
-                    ? 'border-primary bg-primary/10'
+                    ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -165,7 +163,7 @@ export function DogBloodlineScreen() {
                 onClick={() => handleSelect('mutt')}
                 className={`flex-1 flex flex-col items-center gap-3 p-5 rounded-xl border-2 transition-all ${
                   selected === 'mutt'
-                    ? 'border-primary bg-primary/10'
+                    ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}

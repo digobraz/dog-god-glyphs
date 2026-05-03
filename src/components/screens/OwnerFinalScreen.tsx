@@ -44,7 +44,7 @@ export function OwnerFinalScreen() {
 
           {/* Hekthor message block */}
           <motion.div
-            className="w-full rounded-2xl relative overflow-hidden flex-1 min-h-0"
+            className="w-full rounded-2xl relative overflow-hidden"
             style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -65,26 +65,26 @@ export function OwnerFinalScreen() {
             </button>
 
             {/* Default content */}
-            <div className="p-6 md:p-8 flex items-center gap-6 h-full">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-32 md:h-32 object-contain flex-shrink-0" />
-              <div className="flex flex-col gap-4 pr-10 flex-1">
-                <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  HOOMAN,<br />your part is done. That little frame — that is you! Now let's finish HEROGLYPH with{' '}
-                  <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s part.
-                </p>
-                <Button
-                  onClick={() => navigate('/dog-gender')}
-                  className="w-full rounded-full gap-2 h-14 px-8 text-lg font-bold tracking-wider hover:scale-105 transition-transform border-2 border-white/30"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                    color: '#000',
-                    boxShadow: '0 0 40px hsl(45 90% 60% / 0.6), 0 0 15px hsl(45 90% 60% / 0.3), 0 4px 15px rgba(0,0,0,0.4)',
-                  }}
-                >
-                  LET'S GO
-                </Button>
-              </div>
+            <div className="px-4 py-4 flex flex-col items-center gap-3 text-center">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-28 h-28 md:w-36 md:h-36 object-contain" />
+              <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                HOOMAN, your part is done.<br />
+                That little frame — that is you!<br />
+                Now let's finish the HEROGLYPH with{' '}
+                <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>'s part.
+              </p>
+              <Button
+                onClick={() => navigate('/dog-gender')}
+                className="w-full rounded-xl gap-2 h-11 text-base font-bold tracking-wider hover:scale-[1.02] transition-transform"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.4)',
+                }}
+              >
+                LET'S GO
+              </Button>
             </div>
 
             {/* Info overlay */}
@@ -107,7 +107,7 @@ export function OwnerFinalScreen() {
                     </h3>
                     <p
                       className="text-foreground/80 text-[11px] md:text-xs leading-snug max-w-md mt-1.5"
-                      style={{ fontFamily: "'Inter', sans-serif" }}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       The HEROGLYPH consists of two frames that together form your dog's true identity. In Ancient Egypt, the names of gods and pharaohs were written inside similar protective oval frames, called cartouches, to preserve their legacy for eternity.
                     </p>
@@ -116,7 +116,7 @@ export function OwnerFinalScreen() {
                       <img src={cleopatraImg} alt="Cleopatra's cartouche" className="w-full" />
                       <p
                         className="text-foreground/50 text-[10px] md:text-xs italic"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         This hieroglyph belongs to Cleopatra.
                       </p>

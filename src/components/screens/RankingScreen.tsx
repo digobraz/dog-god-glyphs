@@ -197,7 +197,7 @@ export function RankingScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-56 h-56 md:w-64 md:h-64 object-contain" />
+            <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               Is <span className="font-bold text-amber-300">{dogName || 'your pup'}</span> the first dog you've ever had?
             </p>
@@ -353,12 +353,12 @@ export function RankingScreen() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
                     <button
                       onClick={handleCustomConfirm}
-                      className="w-full rounded-full h-11 font-bold tracking-wider hover:scale-105 transition-transform"
+                      className="w-full rounded-xl h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
                       style={{
                         fontFamily: "'Cinzel', serif",
                         background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                         color: '#000',
-                        boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                       }}
                     >
                       Continue

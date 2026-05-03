@@ -128,23 +128,27 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
   return { display, landed };
 }
 
+const DOG_GOD_WORDS = ['DOG', 'GOD', 'DOGYPTIAN'] as const;
+
 function DogToGod({ style }: { style?: React.CSSProperties }) {
   const [visible, setVisible] = useState(true);
-  const [label, setLabel] = useState('DOG');
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    const HOLD = 1400;
+    const FADE = 350;
     const t: ReturnType<typeof setTimeout>[] = [];
-    const cycle = () => {
-      setVisible(true); setLabel('DOG');
-      t.push(setTimeout(() => setVisible(false), 1400));
-      t.push(setTimeout(() => setLabel('GOD'), 1750));
-      t.push(setTimeout(() => setVisible(true), 1750));
-      t.push(setTimeout(() => setVisible(false), 3200));
-      t.push(setTimeout(() => setLabel('DOG'), 3550));
-      t.push(setTimeout(() => setVisible(true), 3550));
-      t.push(setTimeout(cycle, 5000));
+    let i = 0;
+    const tick = () => {
+      t.push(setTimeout(() => setVisible(false), HOLD));
+      t.push(setTimeout(() => {
+        i = (i + 1) % DOG_GOD_WORDS.length;
+        setIndex(i);
+        setVisible(true);
+      }, HOLD + FADE));
+      t.push(setTimeout(tick, HOLD + FADE * 2));
     };
-    t.push(setTimeout(cycle, 1000));
+    t.push(setTimeout(tick, 1000));
     return () => t.forEach(clearTimeout);
   }, []);
 
@@ -152,7 +156,7 @@ function DogToGod({ style }: { style?: React.CSSProperties }) {
     <motion.span style={style}
       animate={{ opacity: visible ? 1 : 0 }}
       transition={{ duration: 0.35, ease: 'easeInOut' }}>
-      {label}
+      {DOG_GOD_WORDS[index]}
     </motion.span>
   );
 }
@@ -178,8 +182,14 @@ export function ThankYouScreen() {
   const packNumber = usePackNumber(dogName, email, sessionId);
 
   const handleEnterPack = useCallback(() => {
-    navigate('/');
-  }, [navigate]);
+    const params = new URLSearchParams({
+      reveal: 'true',
+      dogName,
+      packNumber: String(packNumber ?? 0),
+    });
+    if (photoUrl) params.set('photoUrl', photoUrl);
+    navigate(`/?${params.toString()}`);
+  }, [navigate, dogName, packNumber, photoUrl]);
 
   const [showOverlay, setShowOverlay] = useState(true);
 
@@ -213,7 +223,7 @@ export function ThankYouScreen() {
               <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                 RECORD THIS MOMENT
               </h2>
-              <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 13, color: '#888' }}>
+              <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: '#888' }}>
                 Capture your dog's official welcome
               </p>
             </div>
@@ -320,54 +330,59 @@ export function ThankYouScreen() {
         <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2 text-center">
 
           {/* Congrats + dog name */}
-          <div className="flex flex-col items-center gap-1 text-center">
-            <div className="flex items-baseline justify-center gap-1.5 flex-wrap mb-1">
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#1a1a1a' }}>
-                Congratulations,
-              </span>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.95rem, 4vw, 1.2rem)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', background: 'linear-gradient(135deg, hsl(45 90% 50%), hsl(39 80% 40%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                {ownerFirstName}.
-              </span>
-            </div>
+          <div className="flex flex-col items-center gap-0.5 text-center w-full">
+            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#888' }}>
+              Congratulations, <strong style={{ color: '#555' }}>{ownerFirstName}.</strong>
+            </span>
 
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(1.2rem, 5.5vw, 1.6rem)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', lineHeight: 1, background: 'linear-gradient(135deg, hsl(45 90% 50%), hsl(39 80% 40%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+            <div style={{ width: '100%', height: 1, background: 'linear-gradient(90deg, transparent, hsl(45 80% 60% / 0.4), transparent)', margin: '4px 0' }} />
+
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(2rem, 9vw, 2.8rem)', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', lineHeight: 1, color: '#1a1a1a' }}>
               {dogName}
             </span>
 
-            <div className="flex items-baseline gap-1.5 justify-center">
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.9rem, 3.8vw, 1.1rem)', fontWeight: 400, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#1a1a1a' }}>
-                is now a
+            <div style={{ width: '100%', height: 1, background: 'linear-gradient(90deg, transparent, hsl(45 80% 60% / 0.4), transparent)', margin: '4px 0' }} />
+
+            <div className="flex items-center gap-1.5 justify-center flex-wrap">
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.75rem, 3vw, 0.9rem)', fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#555' }}>
+                is officially a
               </span>
-              <DogToGod style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.9rem, 3.8vw, 1.1rem)', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', background: 'linear-gradient(135deg, hsl(45 90% 50%), hsl(39 80% 40%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', display: 'inline-block' }} />
+              <DogToGod style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)', display: 'inline-block', minWidth: '6.5em', textAlign: 'center' }} />
             </div>
           </div>
 
-          {/* Mission text — Inter */}
+          {/* Mission text */}
           <p className="leading-relaxed text-center"
-            style={{ fontFamily: "'Inter', sans-serif", fontSize: 12, color: '#888', letterSpacing: '0.01em' }}>
+            style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: '#888', letterSpacing: '0.01em' }}>
             You just changed history — one dog at a time.<br />
-            Tell the world. Spread the pack. Join us.<br />
-            <strong>IN DOG WE TRUST.</strong>
+            Spread the pack. <strong style={{ color: '#555', letterSpacing: '0.08em' }}>IN DOG WE TRUST.</strong>
           </p>
 
           {/* CTA + email hint */}
           <div className="w-full flex flex-col items-center gap-2">
-            <div className="relative w-full">
-              {/* Purple outline with shimmer */}
+            {/* Outer motion wrapper — scales EVERYTHING together */}
+            <motion.div
+              className="relative w-full cursor-pointer"
+              animate={{
+                scale: [1, 1.045, 1],
+                filter: [
+                  'drop-shadow(0 4px 16px hsl(270 80% 50% / 0.5))',
+                  'drop-shadow(0 6px 28px hsl(270 80% 50% / 0.85))',
+                  'drop-shadow(0 4px 16px hsl(270 80% 50% / 0.5))',
+                ],
+              }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+              onClick={handleEnterPack}
+            >
+              {/* Purple border — part of the same scaling unit */}
               <div
-                className="absolute -inset-[3px] rounded-full"
-                style={{
-                  background: 'hsl(270 80% 50%)',
-                  overflow: 'hidden',
-                }}
+                className="absolute -inset-[3px] rounded-xl overflow-hidden"
+                style={{ background: 'hsl(270 80% 50%)' }}
               >
-                {/* Shimmer highlight sweeping across */}
                 <motion.div
                   className="absolute"
                   style={{
-                    width: '40%',
-                    height: '200%',
-                    top: '-50%',
+                    width: '40%', height: '200%', top: '-50%',
                     background: 'linear-gradient(90deg, transparent 0%, hsla(270, 90%, 80%, 0.7) 40%, hsla(280, 95%, 90%, 0.9) 50%, hsla(270, 90%, 80%, 0.7) 60%, transparent 100%)',
                     filter: 'blur(4px)',
                   }}
@@ -375,28 +390,18 @@ export function ThankYouScreen() {
                   transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', repeatDelay: 1 }}
                 />
               </div>
-              <motion.button
-                onClick={handleEnterPack}
-                className="relative w-full py-3.5 rounded-full text-sm font-bold tracking-widest uppercase transition-all hover:scale-[1.02] active:scale-[0.98]"
+              <button
+                className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
                   color: '#1a1200',
                 }}
-                animate={{
-                  scale: [1, 1.045, 1],
-                  boxShadow: [
-                    '0 4px 20px hsl(45 80% 50% / 0.4)',
-                    '0 6px 35px hsl(45 80% 50% / 0.7)',
-                    '0 4px 20px hsl(45 80% 50% / 0.4)',
-                  ],
-                }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
               >
                 ENTER THE GODS →
-              </motion.button>
-            </div>
-            <p style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
+              </button>
+            </motion.div>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
               Your certificate is on its way — check your email.
             </p>
           </div>

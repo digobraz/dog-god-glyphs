@@ -100,7 +100,7 @@ export function CheckoutScreen() {
                 )}
                 {/* Full heroglyph */}
                 <div className="w-[130px]">
-                  <HeroglyphFrame showOwner className="text-primary" />
+                  <HeroglyphFrame showOwner className="text-foreground" />
                 </div>
                 {dogName && (
                   <span
@@ -118,7 +118,7 @@ export function CheckoutScreen() {
                 style={{ background: 'linear-gradient(135deg, hsl(var(--gold) / 0.08), hsl(var(--gold) / 0.15))' }}
               >
                 <div className="flex flex-col">
-                  <span className="text-[10px] tracking-widest uppercase text-foreground/50" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  <span className="text-[10px] tracking-widest uppercase text-foreground/50" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                     {dogName || 'Your dog'}'s
                   </span>
                   <span className="text-base md:text-lg font-bold tracking-[0.15em] uppercase text-primary" style={{ fontFamily: "'Cinzel', serif" }}>
@@ -149,10 +149,10 @@ export function CheckoutScreen() {
 
             <div className="flex flex-col gap-1.5">
               <div className="flex gap-1.5">
-                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
-                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
+                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               </div>
-              <input type="email" placeholder="Email" value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Inter', sans-serif" }} />
+              <input type="email" placeholder="Email" value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               <div className="relative">
                 <input
                   type="text"
@@ -162,7 +162,7 @@ export function CheckoutScreen() {
                   onFocus={() => country && setShowCountries(true)}
                   onBlur={() => setTimeout(() => setShowCountries(false), 150)}
                   className={inputClass}
-                  style={{ fontFamily: "'Inter', sans-serif" }}
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 />
                 {showCountries && filteredCountries.length > 0 && (
                   <div className="absolute z-20 top-full left-0 right-0 mt-1 rounded-xl border-2 border-border/40 bg-background shadow-lg max-h-32 overflow-y-auto">
@@ -171,7 +171,7 @@ export function CheckoutScreen() {
                         key={c}
                         onMouseDown={() => { setCountry(c); setShowCountries(false); }}
                         className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
-                        style={{ fontFamily: "'Inter', sans-serif" }}
+                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         {c}
                       </button>
@@ -186,12 +186,12 @@ export function CheckoutScreen() {
               <Button
                 onClick={handleContinue}
                 disabled={!isValid}
-                className="w-full rounded-full py-4 text-base font-bold tracking-wider hover:scale-105 transition-transform disabled:opacity-30"
+                className="w-full rounded-xl py-4 text-base font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-30"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
                   color: '#000',
-                  boxShadow: '0 0 40px hsl(var(--gold) / 0.5), 0 4px 20px rgba(0,0,0,0.3)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                 }}
               >
                 CONTINUE TO PAYMENT →
@@ -199,7 +199,7 @@ export function CheckoutScreen() {
             </div>
 
             {/* Disclaimer inside card */}
-            <p className="text-primary/50 text-[10px] text-center leading-relaxed px-2 mt-2" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <p className="text-primary/50 text-[10px] text-center leading-relaxed px-2 mt-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               After payment, we will send you a <span className="text-primary font-bold uppercase">DOGYPT Certificate</span> and place your photo on the website.
             </p>
           </motion.div>

@@ -1,0 +1,2727 @@
+{
+  "version": "2026-04-30",
+  "breeds": [
+    {
+      "id": 1,
+      "en": "Affenpinscher",
+      "sk": "Affenpinčiar",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 2,
+      "en": "Biewer Terrier",
+      "sk": "Biewer teriér",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 3,
+      "en": "Bolognese",
+      "sk": "Boloňský psík",
+      "patron": "02-01",
+      "group": "02"
+    },
+    {
+      "id": 4,
+      "en": "Brussels Griffon",
+      "sk": "Bruselský grifón",
+      "patron": "02-04",
+      "group": "02"
+    },
+    {
+      "id": 5,
+      "en": "Chihuahua",
+      "sk": "Čivava",
+      "patron": "03-01",
+      "group": "03"
+    },
+    {
+      "id": 6,
+      "en": "Chinese Crested",
+      "sk": "Čínsky chocholatý",
+      "patron": "03-03",
+      "group": "03"
+    },
+    {
+      "id": 7,
+      "en": "Coton de Tulear",
+      "sk": "Coton de Tulear",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 8,
+      "en": "English Toy Terrier",
+      "sk": "Anglický toy teriér",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 9,
+      "en": "Havanese",
+      "sk": "Havanský psík",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 10,
+      "en": "Italian Greyhound",
+      "sk": "Taliansky chrtík",
+      "patron": "04-04",
+      "group": "04"
+    },
+    {
+      "id": 11,
+      "en": "Japanese Chin",
+      "sk": "Japonský čin",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 12,
+      "en": "Japanese Terrier",
+      "sk": "Japonský teriér",
+      "patron": "04-02",
+      "group": "04"
+    },
+    {
+      "id": 13,
+      "en": "Löwchen",
+      "sk": "Levíček",
+      "patron": "02-01",
+      "group": "02"
+    },
+    {
+      "id": 14,
+      "en": "Maltese",
+      "sk": "Maltézsky psík",
+      "patron": "02-01",
+      "group": "02"
+    },
+    {
+      "id": 15,
+      "en": "Maltipoo",
+      "sk": "Maltipoo",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 16,
+      "en": "Morkie",
+      "sk": "Morkie",
+      "patron": "02-01",
+      "group": "02"
+    },
+    {
+      "id": 17,
+      "en": "Norrbottenspets",
+      "sk": "Norrbottenspets",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 18,
+      "en": "Papillon",
+      "sk": "Papillón",
+      "patron": "03-02",
+      "group": "03"
+    },
+    {
+      "id": 19,
+      "en": "Pekingese",
+      "sk": "Pekinský palácový psík",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 20,
+      "en": "Petit Brabançon",
+      "sk": "Petit brabançon",
+      "patron": "02-04",
+      "group": "02"
+    },
+    {
+      "id": 21,
+      "en": "Phalène",
+      "sk": "Phalène",
+      "patron": "03-02",
+      "group": "03"
+    },
+    {
+      "id": 22,
+      "en": "Pomeranian",
+      "sk": "Pomeranian",
+      "patron": "01-02",
+      "group": "01"
+    },
+    {
+      "id": 23,
+      "en": "Prague Ratter",
+      "sk": "Pražský krysarík",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 24,
+      "en": "Russian Toy",
+      "sk": "Ruský toy",
+      "patron": "03-02",
+      "group": "03"
+    },
+    {
+      "id": 25,
+      "en": "Russkiy Toy (long-haired)",
+      "sk": "Ruský toy dlhosrstý",
+      "patron": "03-02",
+      "group": "03"
+    },
+    {
+      "id": 26,
+      "en": "Shorkie",
+      "sk": "Shorkie",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 27,
+      "en": "Toy Fox Terrier",
+      "sk": "Toy fox teriér",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 28,
+      "en": "Toy Poodle",
+      "sk": "Toy pudel",
+      "patron": "06-07",
+      "group": "06"
+    },
+    {
+      "id": 29,
+      "en": "Volpino Italiano",
+      "sk": "Taliansky volpino",
+      "patron": "01-02",
+      "group": "01"
+    },
+    {
+      "id": 30,
+      "en": "Yorkipoo",
+      "sk": "Yorkipoo",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 31,
+      "en": "Yorkshire Terrier",
+      "sk": "Yorkšírsky teriér",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 32,
+      "en": "Alaskan Klee Kai",
+      "sk": "Alaskan Klee Kai",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 33,
+      "en": "Alpine Dachsbracke",
+      "sk": "Alpská jazvečia brakka",
+      "patron": "05-04",
+      "group": "05"
+    },
+    {
+      "id": 34,
+      "en": "Australian Terrier",
+      "sk": "Austrálsky teriér",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 35,
+      "en": "Austrian Pinscher",
+      "sk": "Rakúsky pinč",
+      "patron": "04-02",
+      "group": "04"
+    },
+    {
+      "id": 36,
+      "en": "Basenji",
+      "sk": "Basenji",
+      "patron": "03-05",
+      "group": "03"
+    },
+    {
+      "id": 37,
+      "en": "Basset Artésien Normand",
+      "sk": "Basset artézsko-normandský",
+      "patron": "05-04",
+      "group": "05"
+    },
+    {
+      "id": 38,
+      "en": "Basset Bleu de Gascogne",
+      "sk": "Basset modrý gaskonský",
+      "patron": "05-04",
+      "group": "05"
+    },
+    {
+      "id": 39,
+      "en": "Basset Fauve de Bretagne",
+      "sk": "Basset bretonský",
+      "patron": "05-05",
+      "group": "05"
+    },
+    {
+      "id": 40,
+      "en": "Bichon Frise",
+      "sk": "Bišón",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 41,
+      "en": "Border Terrier",
+      "sk": "Border teriér",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 42,
+      "en": "Boston Terrier",
+      "sk": "Bostonský teriér",
+      "patron": "07-01",
+      "group": "07"
+    },
+    {
+      "id": 43,
+      "en": "Cairn Terrier",
+      "sk": "Cairn teriér",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 44,
+      "en": "Cao da Serra de Aires",
+      "sk": "Portugalský ovčiak",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 45,
+      "en": "Cardigan Welsh Corgi",
+      "sk": "Cardigan Welsh Corgi",
+      "patron": "05-02",
+      "group": "05"
+    },
+    {
+      "id": 46,
+      "en": "Cavachon",
+      "sk": "Cavachon",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 47,
+      "en": "Cavalier King Charles Spaniel",
+      "sk": "Kavalier King Charles",
+      "patron": "06-01",
+      "group": "06"
+    },
+    {
+      "id": 48,
+      "en": "Cavapoo",
+      "sk": "Cavapoo",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 49,
+      "en": "Cesky Terrier",
+      "sk": "Český teriér",
+      "patron": "02-07",
+      "group": "02"
+    },
+    {
+      "id": 50,
+      "en": "Cockapoo",
+      "sk": "Cockapoo",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 51,
+      "en": "Croatian Sheepdog",
+      "sk": "Chorvátsky ovčiak",
+      "patron": "09-05",
+      "group": "09"
+    },
+    {
+      "id": 52,
+      "en": "Dachshund",
+      "sk": "Jazvečík",
+      "patron": "05-01",
+      "group": "05"
+    },
+    {
+      "id": 53,
+      "en": "Dandie Dinmont Terrier",
+      "sk": "Dandie Dinmont teriér",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 54,
+      "en": "Drever",
+      "sk": "Drever",
+      "patron": "05-04",
+      "group": "05"
+    },
+    {
+      "id": 55,
+      "en": "Dutch Smoushond",
+      "sk": "Holandský smoushond",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 56,
+      "en": "French Bulldog",
+      "sk": "Francúzsky buldoček",
+      "patron": "07-01",
+      "group": "07"
+    },
+    {
+      "id": 57,
+      "en": "German Hunting Terrier",
+      "sk": "Nemecký poľovný teriér",
+      "patron": "08-01",
+      "group": "08"
+    },
+    {
+      "id": 58,
+      "en": "German Pinscher",
+      "sk": "Nemecký pinč",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 59,
+      "en": "German Spitz (Klein)",
+      "sk": "Nemecký špic malý",
+      "patron": "01-02",
+      "group": "01"
+    },
+    {
+      "id": 60,
+      "en": "German Spitz (Mittel)",
+      "sk": "Nemecký špic stredný",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 61,
+      "en": "Glen of Imaal Terrier",
+      "sk": "Glen of Imaal teriér",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 62,
+      "en": "Grand Basset Griffon Vendéen",
+      "sk": "GBGV",
+      "patron": "05-05",
+      "group": "05"
+    },
+    {
+      "id": 63,
+      "en": "Jack Russell Terrier",
+      "sk": "Jack Russell teriér",
+      "patron": "04-01",
+      "group": "04"
+    },
+    {
+      "id": 64,
+      "en": "Japanese Spitz",
+      "sk": "Japonský špic",
+      "patron": "01-02",
+      "group": "01"
+    },
+    {
+      "id": 65,
+      "en": "King Charles Spaniel",
+      "sk": "King Charles španiel",
+      "patron": "06-01",
+      "group": "06"
+    },
+    {
+      "id": 66,
+      "en": "Kooikerhondje",
+      "sk": "Kooikerhondje",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 67,
+      "en": "Kromfohrländer",
+      "sk": "Kromfohrländer",
+      "patron": "04-02",
+      "group": "04"
+    },
+    {
+      "id": 68,
+      "en": "Lagotto Romagnolo",
+      "sk": "Lagotto Romagnolo",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 69,
+      "en": "Lakeland Terrier",
+      "sk": "Lakeland teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 70,
+      "en": "Lancashire Heeler",
+      "sk": "Lancashire heeler",
+      "patron": "05-02",
+      "group": "05"
+    },
+    {
+      "id": 71,
+      "en": "Lhasa Apso",
+      "sk": "Lhasa Apso",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 72,
+      "en": "Manchester Terrier",
+      "sk": "Manchester teriér",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 73,
+      "en": "Miniature Bull Terrier",
+      "sk": "Bull teriér mini",
+      "patron": "07-04",
+      "group": "07"
+    },
+    {
+      "id": 74,
+      "en": "Miniature Pinscher",
+      "sk": "Trpasličí pinč",
+      "patron": "03-05",
+      "group": "03"
+    },
+    {
+      "id": 75,
+      "en": "Miniature Poodle",
+      "sk": "Pudel trpasličí",
+      "patron": "06-07",
+      "group": "06"
+    },
+    {
+      "id": 76,
+      "en": "Miniature Schnauzer",
+      "sk": "Bradáč trpaslíčí",
+      "patron": "02-10",
+      "group": "02"
+    },
+    {
+      "id": 77,
+      "en": "Mudi",
+      "sk": "Mudi",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 78,
+      "en": "Norfolk Terrier",
+      "sk": "Norfolk teriér",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 79,
+      "en": "Norwegian Lundehund",
+      "sk": "Nórsky lundehund",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 80,
+      "en": "Norwich Terrier",
+      "sk": "Norwich teriér",
+      "patron": "02-05",
+      "group": "02"
+    },
+    {
+      "id": 81,
+      "en": "Parson Russell Terrier",
+      "sk": "Parson Russell teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 82,
+      "en": "Pembroke Welsh Corgi",
+      "sk": "Pembroke Welsh Corgi",
+      "patron": "05-02",
+      "group": "05"
+    },
+    {
+      "id": 83,
+      "en": "Petit Basset Griffon Vendéen",
+      "sk": "PBGV",
+      "patron": "05-05",
+      "group": "05"
+    },
+    {
+      "id": 84,
+      "en": "Pomsky",
+      "sk": "Pomsky",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 85,
+      "en": "Poochon",
+      "sk": "Poochon",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 86,
+      "en": "Pug",
+      "sk": "Mops",
+      "patron": "07-02",
+      "group": "07"
+    },
+    {
+      "id": 87,
+      "en": "Puggle",
+      "sk": "Puggle",
+      "patron": "07-02",
+      "group": "07"
+    },
+    {
+      "id": 88,
+      "en": "Pumi",
+      "sk": "Pumi",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 89,
+      "en": "Rat Terrier",
+      "sk": "Rat teriér",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 90,
+      "en": "Russian Tsvetnaya Bolonka",
+      "sk": "Ruská farebná bolonka",
+      "patron": "02-01",
+      "group": "02"
+    },
+    {
+      "id": 91,
+      "en": "Schapendoes",
+      "sk": "Schapendoes",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 92,
+      "en": "Schipperke",
+      "sk": "Schipperke",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 93,
+      "en": "Schnoodle",
+      "sk": "Schnoodle",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 94,
+      "en": "Scottish Terrier",
+      "sk": "Škótsky teriér",
+      "patron": "02-07",
+      "group": "02"
+    },
+    {
+      "id": 95,
+      "en": "Sealyham Terrier",
+      "sk": "Sealyham teriér",
+      "patron": "02-07",
+      "group": "02"
+    },
+    {
+      "id": 96,
+      "en": "Shetland Sheepdog",
+      "sk": "Šetlandský ovčiak",
+      "patron": "09-02",
+      "group": "09"
+    },
+    {
+      "id": 97,
+      "en": "Shichon",
+      "sk": "Shichon",
+      "patron": "02-02",
+      "group": "02"
+    },
+    {
+      "id": 98,
+      "en": "Shih Tzu",
+      "sk": "Ši-cu",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 99,
+      "en": "Silky Terrier",
+      "sk": "Silky teriér",
+      "patron": "02-06",
+      "group": "02"
+    },
+    {
+      "id": 100,
+      "en": "Skye Terrier",
+      "sk": "Skye teriér",
+      "patron": "02-07",
+      "group": "02"
+    },
+    {
+      "id": 101,
+      "en": "Small Swiss Hound",
+      "sk": "Malý švajčiarsky durič",
+      "patron": "05-06",
+      "group": "05"
+    },
+    {
+      "id": 102,
+      "en": "Smooth Fox Terrier",
+      "sk": "Fox teriér hladkosrstý",
+      "patron": "04-01",
+      "group": "04"
+    },
+    {
+      "id": 103,
+      "en": "Spanish Water Dog",
+      "sk": "Španielsky vodný pes",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 104,
+      "en": "Stabyhoun",
+      "sk": "Stabyhoun",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 105,
+      "en": "Swedish Vallhund",
+      "sk": "Švédsky valhund",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 106,
+      "en": "Teddy Roosevelt Terrier",
+      "sk": "Teddy Roosevelt teriér",
+      "patron": "04-01",
+      "group": "04"
+    },
+    {
+      "id": 107,
+      "en": "Tibetan Spaniel",
+      "sk": "Tibetský španiel",
+      "patron": "01-02",
+      "group": "01"
+    },
+    {
+      "id": 108,
+      "en": "Tibetan Terrier",
+      "sk": "Tibetský teriér",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 109,
+      "en": "Welsh Terrier",
+      "sk": "Welsh teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 110,
+      "en": "West Highland White Terrier",
+      "sk": "Westík",
+      "patron": "02-06",
+      "group": "02"
+    },
+    {
+      "id": 111,
+      "en": "Westphalian Dachsbracke",
+      "sk": "Vestfálska jazvečia brakka",
+      "patron": "05-03",
+      "group": "05"
+    },
+    {
+      "id": 112,
+      "en": "Wetterhoun",
+      "sk": "Wetterhoun",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 113,
+      "en": "Wire Fox Terrier",
+      "sk": "Fox teriér drsnosrstý",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 114,
+      "en": "Afghan Hound",
+      "sk": "Afgánsky chrt",
+      "patron": "04-08",
+      "group": "04"
+    },
+    {
+      "id": 115,
+      "en": "Aidi",
+      "sk": "Aidi",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 116,
+      "en": "Airedale Terrier",
+      "sk": "Airedale teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 117,
+      "en": "American Cocker Spaniel",
+      "sk": "Americký kokeršpaniel",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 118,
+      "en": "American English Coonhound",
+      "sk": "Am. English Coonhound",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 119,
+      "en": "American Foxhound",
+      "sk": "Am. foxhound",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 120,
+      "en": "American Pit Bull Terrier",
+      "sk": "Am. pit bull teriér",
+      "patron": "07-05",
+      "group": "07"
+    },
+    {
+      "id": 121,
+      "en": "American Staffordshire Terrier",
+      "sk": "Am. stafordšírsky teriér",
+      "patron": "07-05",
+      "group": "07"
+    },
+    {
+      "id": 122,
+      "en": "American Water Spaniel",
+      "sk": "Am. vodný španiel",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 123,
+      "en": "Anglo-Français de Petite Vénerie",
+      "sk": "Anglo-francúzsky malý",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 124,
+      "en": "Appenzeller Sennenhund",
+      "sk": "Appenzellský salašný pes",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 125,
+      "en": "Ariegeois",
+      "sk": "Ariegeois",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 126,
+      "en": "Aussiedoodle",
+      "sk": "Aussiedoodle",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 127,
+      "en": "Australian Cattle Dog",
+      "sk": "Austrálsky dobytkársky",
+      "patron": "09-05",
+      "group": "09"
+    },
+    {
+      "id": 128,
+      "en": "Australian Shepherd",
+      "sk": "Austrálsky ovčiak",
+      "patron": "09-01",
+      "group": "09"
+    },
+    {
+      "id": 129,
+      "en": "Austrian Black and Tan Hound",
+      "sk": "Rakúsky čierno-plavý durič",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 130,
+      "en": "Azawakh",
+      "sk": "Azawakh",
+      "patron": "04-05",
+      "group": "04"
+    },
+    {
+      "id": 131,
+      "en": "Barbet",
+      "sk": "Barbet",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 132,
+      "en": "Basset Hound",
+      "sk": "Baset",
+      "patron": "05-04",
+      "group": "05"
+    },
+    {
+      "id": 133,
+      "en": "Bavarian Mountain Scent Hound",
+      "sk": "Bavorský farbiar",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 134,
+      "en": "Beagle",
+      "sk": "Bígl",
+      "patron": "05-06",
+      "group": "05"
+    },
+    {
+      "id": 135,
+      "en": "Beagle Harrier",
+      "sk": "Bígl harrier",
+      "patron": "05-06",
+      "group": "05"
+    },
+    {
+      "id": 136,
+      "en": "Bearded Collie",
+      "sk": "Bradatá kólia",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 137,
+      "en": "Bedlington Terrier",
+      "sk": "Bedlington teriér",
+      "patron": "02-09",
+      "group": "02"
+    },
+    {
+      "id": 138,
+      "en": "Belgian Groenendael",
+      "sk": "Belgický groenendael",
+      "patron": "09-03",
+      "group": "09"
+    },
+    {
+      "id": 139,
+      "en": "Belgian Laekenois",
+      "sk": "Belgický laekenois",
+      "patron": "09-03",
+      "group": "09"
+    },
+    {
+      "id": 140,
+      "en": "Belgian Malinois",
+      "sk": "Belgický ovčiak malinois",
+      "patron": "09-04",
+      "group": "09"
+    },
+    {
+      "id": 141,
+      "en": "Belgian Tervuren",
+      "sk": "Belgický tervueren",
+      "patron": "09-03",
+      "group": "09"
+    },
+    {
+      "id": 142,
+      "en": "Bergamasco Sheepdog",
+      "sk": "Bergamský ovčiak",
+      "patron": "01-09",
+      "group": "01"
+    },
+    {
+      "id": 143,
+      "en": "Berger Picard",
+      "sk": "Berger Picard",
+      "patron": "02-11",
+      "group": "02"
+    },
+    {
+      "id": 144,
+      "en": "Berger des Pyrénées",
+      "sk": "Pyrenejský ovčiak",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 145,
+      "en": "Billy",
+      "sk": "Billy",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 146,
+      "en": "Black Norwegian Elkhound",
+      "sk": "Čierny nórsky losiar",
+      "patron": "01-06",
+      "group": "01"
+    },
+    {
+      "id": 147,
+      "en": "Black and Tan Coonhound",
+      "sk": "Black and Tan Coonhound",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 148,
+      "en": "Blue Picardy Spaniel",
+      "sk": "Modrý pikardský španiel",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 149,
+      "en": "Bluetick Coonhound",
+      "sk": "Bluetick Coonhound",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 150,
+      "en": "Border Collie",
+      "sk": "Borderská kólia",
+      "patron": "09-01",
+      "group": "09"
+    },
+    {
+      "id": 151,
+      "en": "Borzoi",
+      "sk": "Ruský vlkodav",
+      "patron": "04-06",
+      "group": "04"
+    },
+    {
+      "id": 152,
+      "en": "Boykin Spaniel",
+      "sk": "Boykin španiel",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 153,
+      "en": "Bracco Italiano",
+      "sk": "Bracco Italiano",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 154,
+      "en": "Braque du Bourbonnais",
+      "sk": "Bourbonský stavač",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 155,
+      "en": "Brittany",
+      "sk": "Bretónsky španiel",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 156,
+      "en": "Bull Terrier",
+      "sk": "Bull teriér",
+      "patron": "07-04",
+      "group": "07"
+    },
+    {
+      "id": 157,
+      "en": "Canaan Dog",
+      "sk": "Kanánsky pes",
+      "patron": "09-05",
+      "group": "09"
+    },
+    {
+      "id": 158,
+      "en": "Canarian Warren Hound",
+      "sk": "Kanársky podenco",
+      "patron": "03-06",
+      "group": "03"
+    },
+    {
+      "id": 159,
+      "en": "Catalan Sheepdog",
+      "sk": "Katalánsky ovčiak",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 160,
+      "en": "Cesky Fousek",
+      "sk": "Český fúzač",
+      "patron": "10-05",
+      "group": "10"
+    },
+    {
+      "id": 161,
+      "en": "Chart Polski",
+      "sk": "Poľský chrt",
+      "patron": "04-05",
+      "group": "04"
+    },
+    {
+      "id": 162,
+      "en": "Chien d'Artois",
+      "sk": "Artézsky pes",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 163,
+      "en": "Chow Chow",
+      "sk": "Čau-čau",
+      "patron": "07-07",
+      "group": "07"
+    },
+    {
+      "id": 164,
+      "en": "Cirneco dell'Etna",
+      "sk": "Cirneco dell'Etna",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 165,
+      "en": "Clumber Spaniel",
+      "sk": "Clumber španiel",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 166,
+      "en": "Curly-Coated Retriever",
+      "sk": "Kudrnatý retriever",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 167,
+      "en": "Czechoslovakian Wolfdog",
+      "sk": "Československý vlčiak",
+      "patron": "09-06",
+      "group": "09"
+    },
+    {
+      "id": 168,
+      "en": "Dalmatian",
+      "sk": "Dalmatín",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 169,
+      "en": "Deutscher Wachtelhund",
+      "sk": "Nemecký prepeličiar",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 170,
+      "en": "Drentse Patrijshond",
+      "sk": "Drentský jarabičiar",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 171,
+      "en": "Dutch Shepherd",
+      "sk": "Holandský ovčiak",
+      "patron": "09-05",
+      "group": "09"
+    },
+    {
+      "id": 172,
+      "en": "East Siberian Laika",
+      "sk": "Východosibírska lajka",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 173,
+      "en": "English Bulldog",
+      "sk": "Anglický buldok",
+      "patron": "07-03",
+      "group": "07"
+    },
+    {
+      "id": 174,
+      "en": "English Cocker Spaniel",
+      "sk": "Anglický kokeršpaniel",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 175,
+      "en": "English Foxhound",
+      "sk": "Angl. foxhound",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 176,
+      "en": "English Springer Spaniel",
+      "sk": "Anglický springer španiel",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 177,
+      "en": "Entlebucher Mountain Dog",
+      "sk": "Entlebucher salašný pes",
+      "patron": "10-04",
+      "group": "10"
+    },
+    {
+      "id": 178,
+      "en": "Eurasier",
+      "sk": "Eurasier",
+      "patron": "01-06",
+      "group": "01"
+    },
+    {
+      "id": 179,
+      "en": "Field Spaniel",
+      "sk": "Field španiel",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 180,
+      "en": "Finnish Hound",
+      "sk": "Fínsky durič",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 181,
+      "en": "Finnish Lapphund",
+      "sk": "Fínsky laponský pes",
+      "patron": "01-04",
+      "group": "01"
+    },
+    {
+      "id": 182,
+      "en": "Finnish Spitz",
+      "sk": "Fínsky špic",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 183,
+      "en": "Flat-Coated Retriever",
+      "sk": "Plochosrstý retriever",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 184,
+      "en": "French Pointing Dog",
+      "sk": "Francúzsky stavač",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 185,
+      "en": "French Spaniel",
+      "sk": "Francúzsky španiel",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 186,
+      "en": "Galgo Español",
+      "sk": "Španielsky chrt",
+      "patron": "04-05",
+      "group": "04"
+    },
+    {
+      "id": 187,
+      "en": "German Longhaired Pointer",
+      "sk": "Nemecký dlhosrstý stavač",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 188,
+      "en": "German Shorthaired Pointer",
+      "sk": "Nemecký krátkosrstý stavač",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 189,
+      "en": "German Wirehaired Pointer",
+      "sk": "Nemecký drsnosrstý stavač",
+      "patron": "06-08",
+      "group": "06"
+    },
+    {
+      "id": 190,
+      "en": "Goldendoodle",
+      "sk": "Goldendoodle",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 191,
+      "en": "Gonczy Polski",
+      "sk": "Poľský durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 192,
+      "en": "Greenland Dog",
+      "sk": "Grónsky pes",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 193,
+      "en": "Halden Hound",
+      "sk": "Haldenov durič",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 194,
+      "en": "Hamilton Hound",
+      "sk": "Hamiltonov durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 195,
+      "en": "Hanoverian Scenthound",
+      "sk": "Hanoverský farbiar",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 196,
+      "en": "Harrier",
+      "sk": "Harrier",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 197,
+      "en": "Hellinikos Ichnilatis",
+      "sk": "Grécky durič",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 198,
+      "en": "Hokkaido",
+      "sk": "Hokkaido",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 199,
+      "en": "Hygenhund",
+      "sk": "Hygenhund",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 200,
+      "en": "Ibizan Hound",
+      "sk": "Ibizský pes",
+      "patron": "04-06",
+      "group": "04"
+    },
+    {
+      "id": 201,
+      "en": "Icelandic Sheepdog",
+      "sk": "Islandský ovčiak",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 202,
+      "en": "Irish Terrier",
+      "sk": "Írsky teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 203,
+      "en": "Irish Water Spaniel",
+      "sk": "Írsky vodný španiel",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 204,
+      "en": "Istrian Shorthaired Hound",
+      "sk": "Istrský krátkosrstý durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 205,
+      "en": "Italian Hound",
+      "sk": "Taliansky durič",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 206,
+      "en": "Italian Spinone",
+      "sk": "Taliansky spinone",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 207,
+      "en": "Jindo",
+      "sk": "Kórejský jindo",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 208,
+      "en": "Kai Ken",
+      "sk": "Kai Ken",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 209,
+      "en": "Karelian Bear Dog",
+      "sk": "Karelský medvedí pes",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 210,
+      "en": "Keeshond",
+      "sk": "Keeshond",
+      "patron": "01-04",
+      "group": "01"
+    },
+    {
+      "id": 211,
+      "en": "Kerry Blue Terrier",
+      "sk": "Kerry Blue teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 212,
+      "en": "Kishu Ken",
+      "sk": "Kishu Ken",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 213,
+      "en": "Krasky Ovcar",
+      "sk": "Kraský ovčiak",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 214,
+      "en": "Labradoodle",
+      "sk": "Labradoodle",
+      "patron": "08-01",
+      "group": "08"
+    },
+    {
+      "id": 215,
+      "en": "Magyar Agar",
+      "sk": "Maďarský chrt",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 216,
+      "en": "Majorca Shepherd Dog",
+      "sk": "Malorský ovčiak",
+      "patron": "08-06",
+      "group": "08"
+    },
+    {
+      "id": 217,
+      "en": "Norwegian Buhund",
+      "sk": "Nórsky buhund",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 218,
+      "en": "Norwegian Elkhound",
+      "sk": "Nórsky losiar",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 219,
+      "en": "Norwegian Hound",
+      "sk": "Nórsky durič",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 220,
+      "en": "Nova Scotia Duck Tolling Retriever",
+      "sk": "NS Duck Tolling retr.",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 221,
+      "en": "Old Danish Pointing Dog",
+      "sk": "Starý dánsky stavač",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 222,
+      "en": "Perdiguero de Burgos",
+      "sk": "Burgosský stavač",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 223,
+      "en": "Peruvian Inca Orchid",
+      "sk": "Peruánsky naháč",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 224,
+      "en": "Pharaoh Hound",
+      "sk": "Faraónsky pes",
+      "patron": "03-06",
+      "group": "03"
+    },
+    {
+      "id": 225,
+      "en": "Picardy Spaniel",
+      "sk": "Pikardský španiel",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 226,
+      "en": "Plott Hound",
+      "sk": "Plott Hound",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 227,
+      "en": "Polish Hound",
+      "sk": "Poľský chrt",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 228,
+      "en": "Polish Lowland Sheepdog",
+      "sk": "Poľský nížinný ovčiak",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 229,
+      "en": "Pont-Audemer Spaniel",
+      "sk": "Pont-audemer španiel",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 230,
+      "en": "Porcelaine",
+      "sk": "Porcelaine",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 231,
+      "en": "Portuguese Podengo",
+      "sk": "Portugalský podengo",
+      "patron": "03-06",
+      "group": "03"
+    },
+    {
+      "id": 232,
+      "en": "Portuguese Pointing Dog",
+      "sk": "Portugalský stavač",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 233,
+      "en": "Portuguese Water Dog",
+      "sk": "Portugalský vodný pes",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 234,
+      "en": "Posavaz Hound",
+      "sk": "Posávsky durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 235,
+      "en": "Pudelpointer",
+      "sk": "Pudelpointer",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 236,
+      "en": "Puli",
+      "sk": "Puli",
+      "patron": "01-01",
+      "group": "01"
+    },
+    {
+      "id": 237,
+      "en": "Redbone Coonhound",
+      "sk": "Redbone Coonhound",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 238,
+      "en": "Rough Collie",
+      "sk": "Kólia dlhosrstá",
+      "patron": "09-02",
+      "group": "09"
+    },
+    {
+      "id": 239,
+      "en": "Russian-European Laika",
+      "sk": "Rusko-európska lajka",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 240,
+      "en": "Saarloos Wolfdog",
+      "sk": "Saarloos vlčiak",
+      "patron": "09-06",
+      "group": "09"
+    },
+    {
+      "id": 241,
+      "en": "Saluki",
+      "sk": "Saluki",
+      "patron": "04-07",
+      "group": "04"
+    },
+    {
+      "id": 242,
+      "en": "Schiller Hound",
+      "sk": "Schillerov durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 243,
+      "en": "Serbian Hound",
+      "sk": "Srbský durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 244,
+      "en": "Serbian Tricolour Hound",
+      "sk": "Srbský trojfarebný durič",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 245,
+      "en": "Shar Pei",
+      "sk": "Šarpej",
+      "patron": "07-07",
+      "group": "07"
+    },
+    {
+      "id": 246,
+      "en": "Shiba Inu",
+      "sk": "Shiba Inu",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 247,
+      "en": "Shikoku",
+      "sk": "Shikoku",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 248,
+      "en": "Sloughi",
+      "sk": "Sloughi",
+      "patron": "04-05",
+      "group": "04"
+    },
+    {
+      "id": 249,
+      "en": "Slovakian Wirehaired Pointer",
+      "sk": "Slovenský hrubosrstý stavač",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 250,
+      "en": "Slovensky Kopov",
+      "sk": "Slovenský kopov",
+      "patron": "05-03",
+      "group": "05"
+    },
+    {
+      "id": 251,
+      "en": "Smooth Collie",
+      "sk": "Kólia krátkosrstá",
+      "patron": "09-02",
+      "group": "09"
+    },
+    {
+      "id": 252,
+      "en": "Smålandsstövare",
+      "sk": "Smålandský durič",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 253,
+      "en": "Soft Coated Wheaten Terrier",
+      "sk": "Wheaten teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 254,
+      "en": "Staffordshire Bull Terrier",
+      "sk": "Stafordšírsky bull teriér",
+      "patron": "07-05",
+      "group": "07"
+    },
+    {
+      "id": 255,
+      "en": "Standard Poodle",
+      "sk": "Pudel veľký",
+      "patron": "06-07",
+      "group": "06"
+    },
+    {
+      "id": 256,
+      "en": "Standard Schnauzer",
+      "sk": "Bradáč stredný",
+      "patron": "02-10",
+      "group": "02"
+    },
+    {
+      "id": 257,
+      "en": "Styrian Coarse-haired Hound",
+      "sk": "Štajerský drsnosrstý durič",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 258,
+      "en": "Sussex Spaniel",
+      "sk": "Sussex španiel",
+      "patron": "06-02",
+      "group": "06"
+    },
+    {
+      "id": 259,
+      "en": "Swedish Elkhound",
+      "sk": "Švédsky losiar",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 260,
+      "en": "Swedish Lapphund",
+      "sk": "Švédsky laponský pes",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 261,
+      "en": "Swiss Hound",
+      "sk": "Švajčiarsky durič",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 262,
+      "en": "Thai Ridgeback",
+      "sk": "Thajský ridgeback",
+      "patron": "03-06",
+      "group": "03"
+    },
+    {
+      "id": 263,
+      "en": "Transylvanian Hound",
+      "sk": "Transylvánsky durič",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 264,
+      "en": "Treeing Walker Coonhound",
+      "sk": "Treeing Walker Coonhound",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 265,
+      "en": "Tyrolean Hound",
+      "sk": "Tirolský durič",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 266,
+      "en": "Vizsla",
+      "sk": "Vyžla maďarská",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 267,
+      "en": "Weimaraner",
+      "sk": "Weimarský stavač",
+      "patron": "06-04",
+      "group": "06"
+    },
+    {
+      "id": 268,
+      "en": "Welsh Springer Spaniel",
+      "sk": "Welšský springer španiel",
+      "patron": "08-07",
+      "group": "08"
+    },
+    {
+      "id": 269,
+      "en": "West Siberian Laika",
+      "sk": "Západosibírska lajka",
+      "patron": "01-03",
+      "group": "01"
+    },
+    {
+      "id": 270,
+      "en": "Whippet",
+      "sk": "Whippet",
+      "patron": "04-04",
+      "group": "04"
+    },
+    {
+      "id": 271,
+      "en": "Wirehaired Vizsla",
+      "sk": "Vyžla drsnosrstá",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 272,
+      "en": "Xoloitzcuintli",
+      "sk": "Mexický naháč",
+      "patron": "03-04",
+      "group": "03"
+    },
+    {
+      "id": 273,
+      "en": "Akita Inu",
+      "sk": "Akita Inu",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 274,
+      "en": "Alaskan Malamute",
+      "sk": "Aljašský malamut",
+      "patron": "01-06",
+      "group": "01"
+    },
+    {
+      "id": 275,
+      "en": "American Akita",
+      "sk": "Americká akita",
+      "patron": "01-05",
+      "group": "01"
+    },
+    {
+      "id": 276,
+      "en": "American Bulldog",
+      "sk": "Americký buldok",
+      "patron": "07-08",
+      "group": "07"
+    },
+    {
+      "id": 277,
+      "en": "Anatolian Shepherd",
+      "sk": "Anatolský ovčiak",
+      "patron": "10-04",
+      "group": "10"
+    },
+    {
+      "id": 278,
+      "en": "Australian Kelpie",
+      "sk": "Austrálsky kelpie",
+      "patron": "09-05",
+      "group": "09"
+    },
+    {
+      "id": 279,
+      "en": "Beauceron",
+      "sk": "Beauceronský ovčiak",
+      "patron": "08-05",
+      "group": "08"
+    },
+    {
+      "id": 280,
+      "en": "Bernedoodle",
+      "sk": "Bernedoodle",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 281,
+      "en": "Bernese Mountain Dog",
+      "sk": "Bernský salašný pes",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 282,
+      "en": "Black Russian Terrier",
+      "sk": "Čierny ruský teriér",
+      "patron": "02-08",
+      "group": "02"
+    },
+    {
+      "id": 283,
+      "en": "Bloodhound",
+      "sk": "Bloodhound",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 284,
+      "en": "Bouvier des Ardennes",
+      "sk": "Ardennský bouvier",
+      "patron": "02-11",
+      "group": "02"
+    },
+    {
+      "id": 285,
+      "en": "Bouvier des Flandres",
+      "sk": "Flanderský bouvier",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 286,
+      "en": "Boxer",
+      "sk": "Boxer",
+      "patron": "07-09",
+      "group": "07"
+    },
+    {
+      "id": 287,
+      "en": "Briard",
+      "sk": "Briard",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 288,
+      "en": "Bullmastiff",
+      "sk": "Bulmastif",
+      "patron": "10-09",
+      "group": "10"
+    },
+    {
+      "id": 289,
+      "en": "Ca de Bou",
+      "sk": "Malorská doga",
+      "patron": "07-10",
+      "group": "07"
+    },
+    {
+      "id": 290,
+      "en": "Cane Corso",
+      "sk": "Talianske cane corso",
+      "patron": "10-08",
+      "group": "10"
+    },
+    {
+      "id": 291,
+      "en": "Cao de Castro Laboreiro",
+      "sk": "Castro Laboreiro pes",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 292,
+      "en": "Caucasian Shepherd",
+      "sk": "Kaukazský ovčiak",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 293,
+      "en": "Central Asian Shepherd",
+      "sk": "Stredoázijský ovčiak",
+      "patron": "10-04",
+      "group": "10"
+    },
+    {
+      "id": 294,
+      "en": "Chesapeake Bay Retriever",
+      "sk": "Chesapeake Bay retriever",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 295,
+      "en": "Cimarrón Uruguayo",
+      "sk": "Cimarrón Uruguayo",
+      "patron": "06-08",
+      "group": "06"
+    },
+    {
+      "id": 296,
+      "en": "Dobermann",
+      "sk": "Dobrman",
+      "patron": "03-07",
+      "group": "03"
+    },
+    {
+      "id": 297,
+      "en": "Dogo Argentino",
+      "sk": "Argentínska doga",
+      "patron": "10-07",
+      "group": "10"
+    },
+    {
+      "id": 298,
+      "en": "Dogue de Bordeaux",
+      "sk": "Bordeauxská doga",
+      "patron": "07-03",
+      "group": "07"
+    },
+    {
+      "id": 299,
+      "en": "English Setter",
+      "sk": "Anglický seter",
+      "patron": "08-04",
+      "group": "08"
+    },
+    {
+      "id": 300,
+      "en": "Estrela Mountain Dog",
+      "sk": "Estrela pes",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 301,
+      "en": "Fila Brasileiro",
+      "sk": "Brazílska fila",
+      "patron": "05-07",
+      "group": "05"
+    },
+    {
+      "id": 302,
+      "en": "German Shepherd",
+      "sk": "Nemecký ovčiak",
+      "patron": "09-06",
+      "group": "09"
+    },
+    {
+      "id": 303,
+      "en": "Giant Schnauzer",
+      "sk": "Bradáč veľký",
+      "patron": "02-10",
+      "group": "02"
+    },
+    {
+      "id": 304,
+      "en": "Golden Retriever",
+      "sk": "Zlatý retriever",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 305,
+      "en": "Gordon Setter",
+      "sk": "Gordonov seter",
+      "patron": "08-04",
+      "group": "08"
+    },
+    {
+      "id": 306,
+      "en": "Grand Anglo-Français",
+      "sk": "Veľký anglo-francúzsky durič",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 307,
+      "en": "Grand Bleu de Gascogne",
+      "sk": "Veľký modrý gaskonský",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 308,
+      "en": "Grand Griffon Vendéen",
+      "sk": "Veľký grifonský vendéenský",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 309,
+      "en": "Greater Swiss Mountain Dog",
+      "sk": "Veľký švajč. salašný pes",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 310,
+      "en": "Greyhound",
+      "sk": "Greyhound",
+      "patron": "04-05",
+      "group": "04"
+    },
+    {
+      "id": 311,
+      "en": "Griffon Fauve de Bretagne",
+      "sk": "Bretonský ryšavý grifón",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 312,
+      "en": "Griffon Nivernais",
+      "sk": "Griffon Nivernais",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 313,
+      "en": "Hovawart",
+      "sk": "Hovawart",
+      "patron": "08-03",
+      "group": "08"
+    },
+    {
+      "id": 314,
+      "en": "Irish Red and White Setter",
+      "sk": "Írsky čer.-biely seter",
+      "patron": "08-04",
+      "group": "08"
+    },
+    {
+      "id": 315,
+      "en": "Irish Setter",
+      "sk": "Írsky seter",
+      "patron": "08-04",
+      "group": "08"
+    },
+    {
+      "id": 316,
+      "en": "Irish Wolfhound",
+      "sk": "Írsky vlkodav",
+      "patron": "10-05",
+      "group": "10"
+    },
+    {
+      "id": 317,
+      "en": "Kangal",
+      "sk": "Kangal",
+      "patron": "10-04",
+      "group": "10"
+    },
+    {
+      "id": 318,
+      "en": "Komondor",
+      "sk": "Komondor",
+      "patron": "01-09",
+      "group": "01"
+    },
+    {
+      "id": 319,
+      "en": "Kuvasz",
+      "sk": "Kuvasz",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 320,
+      "en": "Labrador Retriever",
+      "sk": "Labradorský retriever",
+      "patron": "08-01",
+      "group": "08"
+    },
+    {
+      "id": 321,
+      "en": "Landseer",
+      "sk": "Landseer",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 322,
+      "en": "Lapinporokoira",
+      "sk": "Laponský pasnícky pes",
+      "patron": "09-05",
+      "group": "09"
+    },
+    {
+      "id": 323,
+      "en": "Large Münsterländer",
+      "sk": "Veľký münsterlandský stavač",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 324,
+      "en": "Leonberger",
+      "sk": "Leonberger",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 325,
+      "en": "Maremma Sheepdog",
+      "sk": "Maremmanský ovčiak",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 326,
+      "en": "Newfoundland",
+      "sk": "Novofundlandský pes",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 327,
+      "en": "Old English Sheepdog",
+      "sk": "Staroanglický ovčiak",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 328,
+      "en": "Otterhound",
+      "sk": "Otterhound",
+      "patron": "01-07",
+      "group": "01"
+    },
+    {
+      "id": 329,
+      "en": "Perro de Presa Canario",
+      "sk": "Kanárska doga",
+      "patron": "10-06",
+      "group": "10"
+    },
+    {
+      "id": 330,
+      "en": "Pointer (English)",
+      "sk": "Anglický pointer",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 331,
+      "en": "Polish Tatra Sheepdog",
+      "sk": "Poľský tatranský ovčiak",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 332,
+      "en": "Pyrenean Mountain Dog",
+      "sk": "Pyrenejský horský pes",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 333,
+      "en": "Rafeiro do Alentejo",
+      "sk": "Rafeiro do Alentejo",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 334,
+      "en": "Rhodesian Ridgeback",
+      "sk": "Rhodézsky ridgeback",
+      "patron": "06-08",
+      "group": "06"
+    },
+    {
+      "id": 335,
+      "en": "Rottweiler",
+      "sk": "Rotvajler",
+      "patron": "07-10",
+      "group": "07"
+    },
+    {
+      "id": 336,
+      "en": "Saint Bernard",
+      "sk": "Svätý Bernard",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 337,
+      "en": "Samoyed",
+      "sk": "Samojed",
+      "patron": "01-04",
+      "group": "01"
+    },
+    {
+      "id": 338,
+      "en": "Sarplaninac",
+      "sk": "Šarplaninský ovčiak",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 339,
+      "en": "Scottish Deerhound",
+      "sk": "Škótsky jeleňar",
+      "patron": "10-05",
+      "group": "10"
+    },
+    {
+      "id": 340,
+      "en": "Sheepadoodle",
+      "sk": "Sheepadoodle",
+      "patron": "02-03",
+      "group": "02"
+    },
+    {
+      "id": 341,
+      "en": "Siberian Husky",
+      "sk": "Sibírsky husky",
+      "patron": "01-06",
+      "group": "01"
+    },
+    {
+      "id": 342,
+      "en": "Slovensky Cuvac",
+      "sk": "Slovenský čuvač",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 343,
+      "en": "Small Münsterländer",
+      "sk": "Malý münsterlandský stavač",
+      "patron": "06-06",
+      "group": "06"
+    },
+    {
+      "id": 344,
+      "en": "South African Boerboel",
+      "sk": "Juhoafrický boerboel",
+      "patron": "07-10",
+      "group": "07"
+    },
+    {
+      "id": 345,
+      "en": "South Russian Ovcharka",
+      "sk": "Juhoruský ovčiak",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 346,
+      "en": "Spanish Mastiff",
+      "sk": "Španielsky mastif",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 347,
+      "en": "St. Germain Pointing Dog",
+      "sk": "St. Germain stavač",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 348,
+      "en": "Tibetan Mastiff",
+      "sk": "Tibetský mastif",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 349,
+      "en": "Tornjak",
+      "sk": "Tornjak",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 350,
+      "en": "Tosa Inu",
+      "sk": "Tosa",
+      "patron": "06-08",
+      "group": "06"
+    },
+    {
+      "id": 351,
+      "en": "White Swiss Shepherd",
+      "sk": "Biely švajčiarsky ovčiak",
+      "patron": "09-06",
+      "group": "09"
+    },
+    {
+      "id": 352,
+      "en": "Wirehaired Pointing Griffon",
+      "sk": "Griffon Korthals",
+      "patron": "10-05",
+      "group": "10"
+    },
+    {
+      "id": 353,
+      "en": "Broholmer",
+      "sk": "Broholmer",
+      "patron": "06-08",
+      "group": "06"
+    },
+    {
+      "id": 354,
+      "en": "English Mastiff",
+      "sk": "Anglický mastif",
+      "patron": "10-09",
+      "group": "10"
+    },
+    {
+      "id": 355,
+      "en": "Great Dane",
+      "sk": "Nemecká doga",
+      "patron": "10-06",
+      "group": "10"
+    },
+    {
+      "id": 356,
+      "en": "Moscow Watchdog",
+      "sk": "Moskovský strážny pes",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 357,
+      "en": "Neapolitan Mastiff",
+      "sk": "Neapolský mastif",
+      "patron": "10-09",
+      "group": "10"
+    },
+    {
+      "id": 358,
+      "en": "Pyrenean Mastiff",
+      "sk": "Pyrenejský mastif",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 1001,
+      "en": "American Bandogge",
+      "sk": "Americký bandog",
+      "patron": "10-08",
+      "group": "10"
+    },
+    {
+      "id": 1002,
+      "en": "American Bully",
+      "sk": "Americký bully",
+      "patron": "07-05",
+      "group": "07"
+    },
+    {
+      "id": 1003,
+      "en": "American Eskimo Dog",
+      "sk": "Americký eskimácky pes",
+      "patron": "01-04",
+      "group": "01"
+    },
+    {
+      "id": 1004,
+      "en": "Akbash",
+      "sk": "Akbash",
+      "patron": "10-01",
+      "group": "10"
+    },
+    {
+      "id": 1005,
+      "en": "Bucovina Shepherd",
+      "sk": "Bukovinský pastier",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 1006,
+      "en": "Mioritic Shepherd",
+      "sk": "Mioritský pastier",
+      "patron": "01-08",
+      "group": "01"
+    },
+    {
+      "id": 1007,
+      "en": "Karakachan",
+      "sk": "Karakačan",
+      "patron": "10-02",
+      "group": "10"
+    },
+    {
+      "id": 1008,
+      "en": "Catahoula Leopard Dog",
+      "sk": "Catahoulský leopardí pes",
+      "patron": "06-03",
+      "group": "06"
+    },
+    {
+      "id": 1009,
+      "en": "Mountain Cur",
+      "sk": "Mountain Cur",
+      "patron": "08-01",
+      "group": "08"
+    },
+    {
+      "id": 1010,
+      "en": "Black Mouth Cur",
+      "sk": "Black Mouth Cur",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 1011,
+      "en": "Patterdale Terrier",
+      "sk": "Patterdale teriér",
+      "patron": "04-01",
+      "group": "04"
+    },
+    {
+      "id": 1012,
+      "en": "Plummer Terrier",
+      "sk": "Plummer teriér",
+      "patron": "04-01",
+      "group": "04"
+    },
+    {
+      "id": 1013,
+      "en": "Toy Manchester Terrier",
+      "sk": "Toy manchesterský teriér",
+      "patron": "04-02",
+      "group": "04"
+    },
+    {
+      "id": 1014,
+      "en": "Olde English Bulldogge",
+      "sk": "Staroanglický buldog",
+      "patron": "07-03",
+      "group": "07"
+    },
+    {
+      "id": 1015,
+      "en": "Dunker",
+      "sk": "Dunker",
+      "patron": "05-06",
+      "group": "05"
+    },
+    {
+      "id": 1016,
+      "en": "Smålandsstövare",
+      "sk": "Smålandsstövare",
+      "patron": "04-01",
+      "group": "04"
+    },
+    {
+      "id": 1017,
+      "en": "Poitevin",
+      "sk": "Poitevin",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 1018,
+      "en": "Danish-Swedish Farmdog",
+      "sk": "Dánsko-švédsky farmársky",
+      "patron": "06-05",
+      "group": "06"
+    },
+    {
+      "id": 1019,
+      "en": "Boerboel",
+      "sk": "Búrsky pes",
+      "patron": "07-10",
+      "group": "07"
+    },
+    {
+      "id": 1020,
+      "en": "Tornjak",
+      "sk": "Tornjak",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 1021,
+      "en": "Šarplaninac",
+      "sk": "Šarplaninec",
+      "patron": "10-03",
+      "group": "10"
+    },
+    {
+      "id": 1022,
+      "en": "Cão de Gado Transmontano",
+      "sk": "Transmontano",
+      "patron": "10-01",
+      "group": "10"
+    }
+  ],
+  "groups": [
+    {
+      "id": "01",
+      "name": "Furballs",
+      "desc": "Thick double coats, nordic spitz types, walking carpets.",
+      "patronCount": 9
+    },
+    {
+      "id": "02",
+      "name": "Wooligans",
+      "desc": "Curly and scruffy small dogs, living sheep and walking brushes.",
+      "patronCount": 11
+    },
+    {
+      "id": "03",
+      "name": "Antennas",
+      "desc": "Slender with erect ears, always on high alert.",
+      "patronCount": 7
+    },
+    {
+      "id": "04",
+      "name": "Speedsters",
+      "desc": "Aerodynamic sighthounds and slim athletes, built for raw speed.",
+      "patronCount": 8
+    },
+    {
+      "id": "05",
+      "name": "Schnozzers",
+      "desc": "Floppy ears, nose to the ground — trackers and scent hounds.",
+      "patronCount": 7
+    },
+    {
+      "id": "06",
+      "name": "Aristocrats",
+      "desc": "Elegant pointers and setters, noble hunting specialists.",
+      "patronCount": 8
+    },
+    {
+      "id": "07",
+      "name": "Smushfaces",
+      "desc": "Flat-nosed snorters and muscle-bound powerhouses — brachycephalic and bully types combined.",
+      "patronCount": 10
+    },
+    {
+      "id": "08",
+      "name": "Splashers",
+      "desc": "Retrievers and water lovers, born to fetch and swim.",
+      "patronCount": 7
+    },
+    {
+      "id": "09",
+      "name": "Wolflikes",
+      "desc": "Herding breeds and wolf-type shepherds, intelligent commanders.",
+      "patronCount": 6
+    },
+    {
+      "id": "10",
+      "name": "Giants",
+      "desc": "Oversized guardians and gentle giants, massive and majestic.",
+      "patronCount": 9
+    }
+  ]
+}
