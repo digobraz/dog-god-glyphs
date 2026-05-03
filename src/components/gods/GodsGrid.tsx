@@ -510,6 +510,43 @@ export function GodsGrid() {
           backdrop-filter: blur(6px);
         }
 
+        .card-flag {
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          object-fit: cover;
+          border: 1.5px solid rgba(255,255,255,0.9);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+          pointer-events: none;
+          background: #1a1a1a;
+        }
+        .card-info {
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          background: rgba(20,20,20,0.55);
+          backdrop-filter: blur(6px);
+          color: #fff;
+          font-family: Georgia, 'Times New Roman', serif;
+          font-style: italic;
+          font-size: 13px;
+          line-height: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255,255,255,0.25);
+          cursor: pointer;
+          padding: 0;
+          transition: background 150ms ease;
+        }
+        .card-info:hover { background: rgba(60,60,60,0.75); }
+
         .center-hero {
           position: absolute;
           z-index: 2;
