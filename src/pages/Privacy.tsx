@@ -4,47 +4,47 @@ import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: "1. Who We Are",
-    body: "TODO — DOGYPT právny subjekt, sídlo, IČO, kontaktný email pre dotazy o ochrane osobných údajov.",
+    body: "DOGYPT s.r.o., a Slovak limited liability company (IČO 54 444 594), registered seat Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia. We are the controller of the personal data described below. For any privacy-related question write to privacy@dogypt.com. We have not appointed a Data Protection Officer because our processing does not meet the GDPR Art. 37 thresholds. Effective date: 4 May 2026.",
   },
   {
     title: "2. Data We Collect",
-    body: "TODO — email pri checkout, meno psa, fotka (Cloudinary), birthday, owner gender/zodiac, platobné údaje (cez Stripe — DOGYPT karty nevidí).",
+    body: "When you use the HEROGLYPH flow we collect: your email address, your dog’s name, the photo of your dog you upload (stored on Cloudinary), the symbolic answers you select (gender, colour, fate, bloodline, character, your zodiac, your initial), and your dog’s birth date if provided. Stripe collects your payment details directly — we receive only a payment confirmation, the last 4 digits of the card, and country. Our servers automatically log technical data (IP address, user-agent, request time) for security and abuse prevention.",
   },
   {
     title: "3. How We Use It",
-    body: "TODO — generovanie heroglyph certifikátu, doručenie PDF mailom, GodsGrid zobrazenie (verejné), interný analytics o používaní flowa.",
+    body: "We use your data to: generate and deliver your HEROGLYPH certificate; send you the certificate email and a small number of follow-up Pack messages; display your dog’s entry in the public GodsGrid (only the dog’s name, photo, and HEROGLYPH symbol appear publicly — never your email, your name, or your private code); operate, secure, and improve the Service; comply with legal obligations such as accounting and consumer protection.",
   },
   {
     title: "4. Legal Basis (GDPR)",
-    body: "TODO — plnenie zmluvy (čl. 6.1.b), súhlas pri marketing emailoch (čl. 6.1.a), oprávnený záujem pri analytics (čl. 6.1.f).",
+    body: "We rely on Art. 6(1)(b) GDPR (performance of a contract) for the HEROGLYPH delivery and Pack membership; Art. 6(1)(a) (consent) for any marketing email beyond service messages — you can withdraw at any time; Art. 6(1)(f) (legitimate interest) for security logging, abuse prevention, and aggregate analytics; and Art. 6(1)(c) (legal obligation) for tax and accounting records.",
   },
   {
     title: "5. Sharing & Sub-processors",
-    body: "TODO — Stripe (platby), Cloudinary (fotky), Resend/Postmark (emaily), Supabase (DB), Vercel/Lovable (hosting). Žiadny predaj dát tretím stranám.",
+    body: "We do not sell your data. We share it only with sub-processors that help us run the Service: Stripe Payments Europe, Ltd. (payments) · Cloudinary Ltd. (photo storage and delivery) · Resend, Inc. (transactional email) · Supabase, Inc. (database and authentication) · WebSupport s.r.o. (web hosting) · GitHub, Inc. (deployment pipeline). Each sub-processor is bound by its own data processing agreement.",
   },
   {
     title: "6. Cookies & Tracking",
-    body: "TODO — minimálne cookies (session, preferences), žiadne third-party tracking pixels v MVP. Plánovaný GA4/Plausible po launchi.",
+    body: "We use only the cookies and local storage we need to make the Service work (session, language, your in-progress HEROGLYPH selections). We do not run third-party advertising or cross-site tracking pixels. If we add privacy-friendly product analytics (such as Plausible) we will update this section before turning them on.",
   },
   {
     title: "7. Retention",
-    body: "TODO — heroglyph data uchovávame trvalo (kým neexistuje žiadosť o vymazanie). Email logs 12 mesiacov.",
+    body: "Your HEROGLYPH and Pack profile are kept for as long as your account exists, because the GodsGrid is the lifetime registry of every member of the Pack. Transactional email logs are kept for 12 months for support and fraud prevention. Accounting records are kept for 10 years as required by Slovak law (Act 431/2002 Coll.). When you ask us to delete your account, we remove personal identifiers within 30 days and keep only the legally required minimum.",
   },
   {
     title: "8. Your Rights",
-    body: "TODO — právo na prístup, opravu, vymazanie, prenosnosť, námietku, sťažnosť na ÚOOÚ. Postup uplatnenia: email na privacy@dogypt.com (TODO doména).",
+    body: "Under GDPR you have the right to access your data, to correct it, to have it erased, to restrict or object to processing, to data portability, and to withdraw consent at any time. You can also lodge a complaint with the Slovak supervisory authority — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. To exercise any of these rights write to privacy@dogypt.com — we reply within 30 days.",
   },
   {
     title: "9. International Transfers",
-    body: "TODO — niektoré sub-processory sú v USA (Stripe, Cloudinary, Resend). Spoliehame sa na Standard Contractual Clauses + DPA.",
+    body: "Some of our sub-processors (Stripe, Cloudinary, Resend, Supabase, GitHub) operate servers outside the EU/EEA, mostly in the United States. Where personal data leaves the EU/EEA we rely on the European Commission’s Standard Contractual Clauses, the EU–US Data Privacy Framework, and additional safeguards required by GDPR Chapter V.",
   },
   {
     title: "10. Changes to This Policy",
-    body: "TODO — zmeny oznámime mailom 30 dní vopred. Verzia + dátum účinnosti vždy hore.",
+    body: "We will tell you about material changes by email at least 30 days before they take effect. Minor edits — typos, sub-processor name updates, new contact addresses — take effect on publication. The current version and date are always at the top of this page; older versions are available on request.",
   },
   {
     title: "11. Contact",
-    body: "TODO — privacy@dogypt.com, poštová adresa.",
+    body: "Privacy & data requests: privacy@dogypt.com · General questions: info@dogypt.com · Postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia.",
   },
 ];
 
@@ -75,7 +75,7 @@ export default function Privacy() {
           className="text-xs uppercase tracking-[0.2em] mb-10"
           style={{ fontFamily: "'JetBrains Mono', monospace", color: "rgba(14,14,14,0.5)" }}
         >
-          Last updated: TODO · Draft (placeholder)
+          Last updated: 4 May 2026 · v1.0
         </p>
 
         <div className="space-y-8">
