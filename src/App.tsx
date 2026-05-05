@@ -36,6 +36,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<GodsGrid />} />
+          <Route path="/grid" element={<GodsGrid />} />
+          <Route path="/gods" element={<GodsGrid />} />
 
           {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov) */}
           <Route path="/heroglyph" element={<Navigate to="/heroglyph/name" replace />} />

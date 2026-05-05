@@ -3,7 +3,10 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
-import { buildHeroglyphCode } from '@/components/CertificateCard';
+import { CertificateCard, buildHeroglyphCode } from '@/components/CertificateCard';
+import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
+import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hektorPhoto from '@/assets/hektor-photo.jpeg';
 import hektorHeroglyph from '@/assets/hekthor-heroglyph.png';
@@ -102,6 +105,7 @@ const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string }) {
   const [data, setData] = useState(fallbackStore);
   const fetched = useRef(false);
+  const sessionResolved = useRef(false);
 
   useEffect(() => {
     if (!sessionId || fetched.current) return;
@@ -109,38 +113,34 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
     fetch(`${EDGE_BASE}/get-session-data?session_id=${sessionId}`)
       .then(r => r.json())
       .then(d => {
-        if (d.dogName) setData({
-          dogName: d.dogName,
-          ownerName: d.ownerName,
-          email: d.email,
-          selections: d.selections,
-          dogPhotoUrl: d.dogPhotoUrl,
-        });
+        if (d.dogName) {
+          sessionResolved.current = true;
+          setData({
+            dogName: d.dogName,
+            ownerName: d.ownerName,
+            email: d.email,
+            selections: d.selections,
+            dogPhotoUrl: d.dogPhotoUrl,
+          });
+        }
       })
       .catch(() => {/* use fallback store */});
   }, [sessionId]);
 
-  return data;
-}
-
-function useSendCertificate(email: string, dogName: string, ownerName: string, selections: Record<string, string>, dogPhotoUrl: string, sessionId: string | null) {
-  const sent = useRef(false);
+  // Mirror live store when no session OR when session fetch hasn't resolved yet
+  // (Zustand persist hydrates async, so initial fallback can be empty.)
   useEffect(() => {
-    if (!email || sent.current) return;
-    sent.current = true;
-    fetch(`${EDGE_BASE}/send-certificate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email,
-        dogName,
-        ownerName,
-        heroglyphCode: buildHeroglyphCode(selections),
-        dogPhotoUrl,
-        sessionId,
-      }),
-    }).catch(() => {/* silent fail */});
-  }, [email, dogName, ownerName, selections, dogPhotoUrl, sessionId]);
+    if (sessionResolved.current) return;
+    setData(prev => ({
+      dogName: fallbackStore.dogName || prev.dogName,
+      ownerName: fallbackStore.ownerName || prev.ownerName,
+      email: fallbackStore.email || prev.email,
+      selections: Object.keys(fallbackStore.selections || {}).length ? fallbackStore.selections : prev.selections,
+      dogPhotoUrl: fallbackStore.dogPhotoUrl || prev.dogPhotoUrl,
+    }));
+  }, [fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections]);
+
+  return data;
 }
 
 /** Animated count-up hook from 0 to target, returns text + landed flag */
@@ -235,7 +235,41 @@ export function ThankYouScreen() {
   const photoUrl = certData.dogPhotoUrl;
 
   const packNumber = usePackNumber(dogName, email, sessionId);
-  useSendCertificate(email, dogName, certData.ownerName, certData.selections, certData.dogPhotoUrl, sessionId);
+
+  // Rehydrate store from session data so hidden HeroglyphFrame/VerticalHeroglyphFrame render correctly
+  useEffect(() => {
+    if (!certData.dogName || !certData.selections) return;
+    const s = useDogyptStore.getState();
+    if (certData.dogName && s.dogName !== certData.dogName) s.setDogName(certData.dogName);
+    if (certData.ownerName && s.ownerName !== certData.ownerName) s.setOwnerName(certData.ownerName);
+    if (certData.dogPhotoUrl && s.dogPhotoUrl !== certData.dogPhotoUrl) s.setDogPhotoUrl(certData.dogPhotoUrl);
+    Object.entries(certData.selections).forEach(([k, v]) => {
+      if (typeof v === 'string') s.setSelection(k, v);
+    });
+  }, [certData]);
+
+  // Hidden PDF render targets
+  const certRef = useRef<HTMLDivElement>(null);
+  const verticalRef = useRef<HTMLDivElement>(null);
+  const horizontalRef = useRef<HTMLDivElement>(null);
+
+  const heroglyphCode = buildHeroglyphCode(certData.selections);
+  const certNumber = sessionId
+    ? `#DOG-${sessionId.slice(-6).toUpperCase()}`
+    : `#DOG-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  const issuedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  usePostPaymentPipeline({
+    email,
+    dogName,
+    ownerName: certData.ownerName,
+    dogPhotoUrl: photoUrl,
+    sessionId,
+    packNumber,
+    certRef,
+    verticalRef,
+    horizontalRef,
+  });
 
   const handleEnterPack = useCallback(() => {
     const params = new URLSearchParams({
@@ -466,6 +500,26 @@ export function ThankYouScreen() {
       </div>
       </motion.div>
       )}
+
+      {/* Hidden PDF render targets — off-screen, rendered for html-to-image */}
+      <div aria-hidden="true" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
+        <div ref={certRef}>
+          <CertificateCard
+            dogName={dogName}
+            ownerName={certData.ownerName}
+            photoUrl={photoUrl}
+            heroglyphCode={heroglyphCode}
+            certNumber={certNumber}
+            issuedDate={issuedDate}
+          />
+        </div>
+        <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent' }}>
+          <VerticalHeroglyphFrame />
+        </div>
+        <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent' }}>
+          <HeroglyphFrame showOwner />
+        </div>
+      </div>
     </div>
   );
 }

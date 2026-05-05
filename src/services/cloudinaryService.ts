@@ -2,6 +2,7 @@ const CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
 const PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
 const BASE_URL = `https://res.cloudinary.com/${CLOUD}/image/upload`;
 const UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`;
+const RAW_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${CLOUD}/raw/upload`;
 
 export type CloudinaryResult = { publicId: string; secureUrl: string };
 
@@ -39,3 +40,40 @@ export const gridTileUrl = (publicId: string) =>
 
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
+
+// PDF storage moved to Supabase Storage (Cloudinary free tier blocks PDF delivery, returns 401).
+const SUPABASE_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
+const PDF_BUCKET = 'pdfs';
+
+async function uploadPdfBlob(blob: Blob, folder: string, publicId: string): Promise<CloudinaryResult> {
+  const path = `${folder}/${publicId}.pdf`;
+  const url = `${SUPABASE_URL}/storage/v1/object/${PDF_BUCKET}/${path}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      apikey: SUPABASE_ANON_KEY,
+      'Content-Type': 'application/pdf',
+      'x-upsert': 'true',
+    },
+    body: blob,
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase pdf ${res.status}: ${err}`);
+  }
+  return {
+    publicId: path,
+    secureUrl: `${SUPABASE_URL}/storage/v1/object/public/${PDF_BUCKET}/${path}`,
+  };
+}
+
+export const uploadCertPdf = (blob: Blob, sessionId: string) =>
+  uploadPdfBlob(blob, `tmp/${sessionId}/pdf`, 'certificate');
+
+export const uploadVerticalPdf = (blob: Blob, sessionId: string) =>
+  uploadPdfBlob(blob, `tmp/${sessionId}/pdf`, 'heroglyph-vertical');
+
+export const uploadHorizontalPdf = (blob: Blob, sessionId: string) =>
+  uploadPdfBlob(blob, `tmp/${sessionId}/pdf`, 'heroglyph-horizontal');
