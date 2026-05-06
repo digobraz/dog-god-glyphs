@@ -138,7 +138,7 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
               · Heroglyph ·
             </div>
             <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <HeroglyphFrame showOwner className="" style={{ width: '100%', height: 'auto', mixBlendMode: 'multiply', filter: 'contrast(1.08) sepia(.06)', color: ink } as React.CSSProperties} />
+              <HeroglyphFrame showOwner className="" style={{ width: '100%', height: 'auto', color: '#000' } as React.CSSProperties} />
             </div>
           </div>
 
@@ -202,7 +202,7 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
                 <span style={{ font: `400 12px/1 'IM Fell English', serif`, fontStyle: 'italic', color: goldDark, opacity: .75 }}>the first dogyptian</span>
                 <div style={{ width: 80, height: 1, background: `linear-gradient(90deg, transparent, ${goldDark}, transparent)` }} />
                 <span style={{ font: `700 15px/1 'Cinzel', serif`, letterSpacing: '.2em', color: ink }}>HEKTHOR I.</span>
-                <HeroglyphFrame showOwner={false} style={{ height: 36, width: 'auto', mixBlendMode: 'multiply', filter: 'contrast(1.08)', color: ink } as React.CSSProperties} />
+                <HeroglyphFrame showOwner={false} style={{ height: 36, width: 'auto', color: '#000' } as React.CSSProperties} />
               </div>
 
               {/* Right: seal */}

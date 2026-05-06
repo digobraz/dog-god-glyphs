@@ -513,10 +513,10 @@ export function ThankYouScreen() {
             issuedDate={issuedDate}
           />
         </div>
-        <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent' }}>
+        <div ref={verticalRef} style={{ width: 800, height: 1131, background: 'transparent', color: '#000' }}>
           <VerticalHeroglyphFrame />
         </div>
-        <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent' }}>
+        <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent', color: '#000' }}>
           <HeroglyphFrame showOwner />
         </div>
       </div>
