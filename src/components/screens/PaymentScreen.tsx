@@ -10,7 +10,7 @@ const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/
 
 export function PaymentScreen() {
   const navigate = useNavigate();
-  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl } = useDogyptStore();
+  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2 } = useDogyptStore();
   const [loading, setLoading] = useState(false);
 
   const handlePay = async () => {
@@ -25,6 +25,8 @@ export function PaymentScreen() {
           email,
           selections,
           dogPhotoUrl,
+          patronSvg,
+          patronSvg2,
           amount: selectedAmount ?? 11,
         }),
       });

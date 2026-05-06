@@ -102,7 +102,7 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
 
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 
-function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string }) {
+function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
   const [data, setData] = useState(fallbackStore);
   const fetched = useRef(false);
   const sessionResolved = useRef(false);
@@ -121,6 +121,8 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
             email: d.email,
             selections: d.selections,
             dogPhotoUrl: d.dogPhotoUrl,
+            patronSvg: d.patronSvg ?? '',
+            patronSvg2: d.patronSvg2 ?? '',
           });
         }
       })
@@ -137,8 +139,10 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
       email: fallbackStore.email || prev.email,
       selections: Object.keys(fallbackStore.selections || {}).length ? fallbackStore.selections : prev.selections,
       dogPhotoUrl: fallbackStore.dogPhotoUrl || prev.dogPhotoUrl,
+      patronSvg: fallbackStore.patronSvg || prev.patronSvg,
+      patronSvg2: fallbackStore.patronSvg2 || prev.patronSvg2,
     }));
-  }, [fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections]);
+  }, [fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections, fallbackStore.patronSvg, fallbackStore.patronSvg2]);
 
   return data;
 }
@@ -227,6 +231,8 @@ export function ThankYouScreen() {
     email: store.email || '',
     selections: store.selections,
     dogPhotoUrl: store.dogPhotoUrl || '',
+    patronSvg: store.patronSvg || '',
+    patronSvg2: store.patronSvg2 || '',
   });
 
   const dogName = certData.dogName;
@@ -243,6 +249,8 @@ export function ThankYouScreen() {
     if (certData.dogName && s.dogName !== certData.dogName) s.setDogName(certData.dogName);
     if (certData.ownerName && s.ownerName !== certData.ownerName) s.setOwnerName(certData.ownerName);
     if (certData.dogPhotoUrl && s.dogPhotoUrl !== certData.dogPhotoUrl) s.setDogPhotoUrl(certData.dogPhotoUrl);
+    if (certData.patronSvg && s.patronSvg !== certData.patronSvg) s.setPatronSvg(certData.patronSvg);
+    if (certData.patronSvg2 && s.patronSvg2 !== certData.patronSvg2) s.setPatronSvg2(certData.patronSvg2);
     Object.entries(certData.selections).forEach(([k, v]) => {
       if (typeof v === 'string') s.setSelection(k, v);
     });
