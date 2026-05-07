@@ -1,7 +1,7 @@
 /* ============ DOGYPT Spiral Landing — native, performance-tuned ============ */
 
 .dogypt-spiral-root {
-  --bg: #0E0E0E;
+  --bg: #000000;
   --gold: #C99A3F;
   --gold2: #A07423;
   --gold3: #E5C16E;
@@ -45,12 +45,12 @@
   z-index: 1;
   pointer-events: none;
   background: radial-gradient(ellipse 50% 48% at 50% 50%,
-    var(--bg) 0%,
-    var(--bg) 22%,
-    rgba(14, 14, 14, 0.85) 42%,
-    rgba(14, 14, 14, 0.55) 62%,
-    rgba(14, 14, 14, 0.40) 82%,
-    rgba(14, 14, 14, 0.30) 100%);
+    #000 0%,
+    #000 22%,
+    rgba(0, 0, 0, 0.85) 42%,
+    rgba(0, 0, 0, 0.55) 62%,
+    rgba(0, 0, 0, 0.40) 82%,
+    rgba(0, 0, 0, 0.30) 100%);
 }
 
 .dogypt-spiral-root .spiral-card {

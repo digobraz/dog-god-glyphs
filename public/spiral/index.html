@@ -17,7 +17,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:    #0E0E0E;             /* manual v2 ink */
+      --bg:    #000000;             /* pure black per user request */
       --gold:  #C99A3F;             /* manual v2 gold */
       --gold2: #A07423;             /* manual v2 gold-deep */
       --gold3: #E5C16E;             /* manual v2 gold-light */
@@ -71,12 +71,12 @@
       z-index: 1;
       pointer-events: none;
       background: radial-gradient(ellipse 50% 48% at 50% 50%,
-        var(--bg) 0%,
-        var(--bg) 22%,
-        rgba(14,14,14,0.85) 42%,
-        rgba(14,14,14,0.55) 62%,
-        rgba(14,14,14,0.40) 82%,
-        rgba(14,14,14,0.30) 100%);
+        #000 0%,
+        #000 22%,
+        rgba(0,0,0,0.85) 42%,
+        rgba(0,0,0,0.55) 62%,
+        rgba(0,0,0,0.40) 82%,
+        rgba(0,0,0,0.30) 100%);
     }
 
     .spiral-card {
