@@ -42,8 +42,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<MaintenanceScreen />} />
+          <Route path="/" element={<SpiralLanding />} />
           <Route path="/spiral" element={<SpiralLanding />} />
+          <Route path="/maintenance" element={<MaintenanceScreen />} />
           <Route path="/grid" element={<GodsGrid />} />
           <Route path="/gods" element={<GodsGrid />} />
 
