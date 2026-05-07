@@ -10,7 +10,7 @@ const GY = H + 64;
 const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
 
-const REVEAL_SYMBOL = '/images/character-watcher.svg';
+const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
 
 const FLAG_NAMES: Record<string, string> = {
   sk: 'Slovensko',
