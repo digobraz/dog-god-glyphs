@@ -27,6 +27,8 @@ import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Pack from "./pages/Pack.tsx";
 import PackDogDetail from "./pages/PackDogDetail.tsx";
+import PackEternal from "./pages/PackEternal.tsx";
+import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
 
 const queryClient = new QueryClient();
@@ -75,6 +77,8 @@ const App = () => (
           {/* /pack — buyer backoffice (auth-gated) */}
           <Route path="/pack" element={<Pack />} />
           <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
+          <Route path="/pack/eternal" element={<PackEternal />} />
+          <Route path="/pack/profile" element={<PackProfile />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
