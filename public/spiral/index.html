@@ -8,6 +8,10 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="image" href="img/dogypt-logo-icon.png" fetchpriority="high">
+  <link rel="preload" as="image" href="img/1.webp" fetchpriority="high">
+  <link rel="preload" as="image" href="img/2.webp">
+  <link rel="preload" as="image" href="img/3.webp">
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -56,12 +60,22 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      -webkit-mask-image: radial-gradient(ellipse 38% 36% at 50% 50%,
-        transparent 0%, rgba(0,0,0,0.10) 18%,
-        rgba(0,0,0,0.45) 42%, rgba(0,0,0,0.85) 64%, black 78%);
-      mask-image: radial-gradient(ellipse 38% 36% at 50% 50%,
-        transparent 0%, rgba(0,0,0,0.10) 18%,
-        rgba(0,0,0,0.45) 42%, rgba(0,0,0,0.85) 64%, black 78%);
+    }
+
+    /* Static bg-color overlay replaces the mask-image. Visually equivalent, no GPU
+       mask compositing on every animation frame. */
+    .cards-fade {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse 38% 36% at 50% 50%,
+        var(--bg) 0%,
+        var(--bg) 18%,
+        rgba(14,14,14,0.85) 38%,
+        rgba(14,14,14,0.55) 58%,
+        rgba(14,14,14,0.15) 74%,
+        transparent 86%);
     }
 
     .spiral-card {
@@ -72,6 +86,8 @@
       pointer-events: none;
       will-change: transform;
       transform-origin: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.55);
+      contain: layout paint;
     }
     .spiral-card img {
       width: 100%;
@@ -131,9 +147,7 @@
       -webkit-text-fill-color: transparent;
       color: transparent;
       animation: hero-shimmer 9s ease-in-out infinite;
-      text-shadow: 0 0 18px rgba(229, 193, 110, 0.35);
-      filter: drop-shadow(0 0 18px rgba(201, 154, 63, 0.45))
-              drop-shadow(0 0 40px rgba(229, 193, 110, 0.25));
+      text-shadow: 0 0 24px rgba(229, 193, 110, 0.45);
     }
 
     .hero-h1 {
@@ -273,6 +287,7 @@
 
 <section class="hero" id="hero">
   <div class="cards-field" id="cardsField"></div>
+  <div class="cards-fade"></div>
 
   <div class="hero-content">
     <img class="hero-logo" src="img/dogypt-logo-icon.png" alt="DOGYPT">
@@ -300,24 +315,31 @@
 /* ========== SPIRAL ========== */
 const DOG_PHOTOS = Array.from({ length: 31 }, (_, i) => `img/${i + 1}.webp`);
 
-const SPIRAL_K  = 42;
-const SPIRAL_SP = 0.15;
-const N_CARDS   = 38;
-const BASE_W    = 210;
-const BASE_H    = 162;
-const MIN_SCALE = 0.28;
-const MAX_SCALE = 1.0;
+const SPIRAL_K   = 42;
+const SPIRAL_SP  = 0.15;
+const MIN_SCALE  = 0.28;
+const MAX_SCALE  = 1.0;
+const FRAME_MS   = 1000 / 30;
+
+const isMobile      = window.matchMedia('(max-width: 767px)').matches;
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const N_CARDS = isMobile ? 18 : 22;
+const BASE_W  = isMobile ? 168 : 200;
+const BASE_H  = isMobile ? 130 : 154;
 
 let spiralCards = [];
-let spiralStart = null;
+let spiralStart = 0;
+let lastDraw    = 0;
+let rafId       = 0;
 
 function buildSpiral() {
   const field = document.getElementById('cardsField');
   field.innerHTML = '';
   spiralCards = [];
 
+  const diag = Math.sqrt((window.innerWidth / 2) ** 2 + (window.innerHeight / 2) ** 2);
   for (let i = 0; i < N_CARDS; i++) {
-    const thetaBase = (i / N_CARDS) * (Math.sqrt((window.innerWidth / 2) ** 2 + (window.innerHeight / 2) ** 2) * 1.1 / SPIRAL_K);
+    const thetaBase = (i / N_CARDS) * (diag * 1.1 / SPIRAL_K);
     const photoUrl  = DOG_PHOTOS[i % DOG_PHOTOS.length];
     const rotDeg    = Math.random() * 32 - 16;
 
@@ -325,14 +347,18 @@ function buildSpiral() {
     card.className    = 'spiral-card';
     card.style.width  = BASE_W + 'px';
     card.style.height = BASE_H + 'px';
-    card.style.boxShadow = '0 12px 40px rgba(0,0,0,0.75),0 3px 8px rgba(0,0,0,0.5)';
 
     const img = document.createElement('img');
     img.src       = photoUrl;
     img.alt       = '';
-    img.loading   = 'lazy';
     img.decoding  = 'async';
     img.draggable = false;
+    if (i < 4) {
+      img.fetchPriority = 'high';
+    } else {
+      img.fetchPriority = 'low';
+      img.loading = 'lazy';
+    }
 
     card.appendChild(img);
     field.appendChild(card);
@@ -341,6 +367,11 @@ function buildSpiral() {
 }
 
 function spiralAnimate(ts) {
+  if (ts - lastDraw < FRAME_MS) {
+    rafId = requestAnimationFrame(spiralAnimate);
+    return;
+  }
+  lastDraw = ts;
   if (!spiralStart) spiralStart = ts;
   const t = (ts - spiralStart) / 1000;
 
@@ -350,7 +381,8 @@ function spiralAnimate(ts) {
   const cy   = H / 2;
   const TMAX = Math.sqrt(cx * cx + cy * cy) * 1.1 / SPIRAL_K;
 
-  for (const { el, thetaBase, rotDeg } of spiralCards) {
+  for (let i = 0; i < spiralCards.length; i++) {
+    const { el, thetaBase, rotDeg } = spiralCards[i];
     const theta    = (thetaBase + SPIRAL_SP * t) % TMAX;
     const progress = theta / TMAX;
     const r        = SPIRAL_K * theta;
@@ -360,20 +392,52 @@ function spiralAnimate(ts) {
 
     const tx = (x - BASE_W / 2).toFixed(1);
     const ty = (y - BASE_H / 2).toFixed(1);
-    el.style.transform = `translate(${tx}px,${ty}px) scale(${scale.toFixed(3)}) rotate(${rotDeg.toFixed(1)}deg)`;
+    el.style.transform = `translate3d(${tx}px,${ty}px,0) scale(${scale.toFixed(3)}) rotate(${rotDeg.toFixed(1)}deg)`;
   }
 
-  requestAnimationFrame(spiralAnimate);
+  rafId = requestAnimationFrame(spiralAnimate);
 }
+
+function startAnim() {
+  cancelAnimationFrame(rafId);
+  lastDraw = 0;
+  rafId = requestAnimationFrame(spiralAnimate);
+}
+
+function stopAnim() {
+  cancelAnimationFrame(rafId);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopAnim();
+  else if (!reducedMotion) startAnim();
+});
 
 let _resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
-  _resizeTimer = setTimeout(() => { buildSpiral(); spiralStart = null; }, 250);
+  _resizeTimer = setTimeout(() => {
+    stopAnim();
+    buildSpiral();
+    spiralStart = 0;
+    if (reducedMotion) {
+      lastDraw = performance.now() - FRAME_MS;
+      spiralAnimate(performance.now());
+      stopAnim();
+    } else {
+      startAnim();
+    }
+  }, 250);
 });
 
 buildSpiral();
-requestAnimationFrame(spiralAnimate);
+if (reducedMotion) {
+  lastDraw = performance.now() - FRAME_MS;
+  spiralAnimate(performance.now());
+  stopAnim();
+} else {
+  startAnim();
+}
 
 /* ========== FORM (Google Forms zbernica — funkcia 1:1 z dogypt.com) ========== */
 const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd0TkuULnE1R-dbYO0_yfnOhxMQBjOmPZmuRaA-9cjDIMMYnA/formResponse';
