@@ -292,14 +292,32 @@ export function PhotoScreen() {
     setDogPhotoUrl(url);
     e.target.value = '';
 
-    // Upload to Cloudinary in background
+    // Upload to Cloudinary — stable HTTPS URL replaces blob in store so
+    // post-Stripe-redirect rendering (cert PDF, /welcome card, grid reveal)
+    // doesn't deadlock on dead blob URLs.
     setUploadState('uploading');
     uploadMainPhoto(blob, sessionId)
-      .then(({ publicId }) => {
+      .then(({ publicId, secureUrl }) => {
         setCloudinaryPublicId(publicId);
+        setDogPhotoUrl(secureUrl);
         setUploadState('done');
       })
       .catch(() => setUploadState('error'));
+  };
+
+  const retryMainUpload = async () => {
+    if (!photoUrl) return;
+    try {
+      const res = await fetch(photoUrl);
+      const blob = await res.blob();
+      setUploadState('uploading');
+      const { publicId, secureUrl } = await uploadMainPhoto(blob, sessionId);
+      setCloudinaryPublicId(publicId);
+      setDogPhotoUrl(secureUrl);
+      setUploadState('done');
+    } catch {
+      setUploadState('error');
+    }
   };
 
   const handleExtraUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -493,7 +511,13 @@ export function PhotoScreen() {
                             <span className="text-[10px] text-green-500/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>✓ Sealed</span>
                           )}
                           {uploadState === 'error' && (
-                            <span className="text-[10px] text-red-400/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Upload failed – will retry at checkout</span>
+                            <button
+                              onClick={retryMainUpload}
+                              className="text-[10px] underline text-red-400/80 self-start"
+                              style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                            >
+                              Upload failed — retry
+                            </button>
                           )}
                         </div>
                       </div>

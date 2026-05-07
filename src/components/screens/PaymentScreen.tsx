@@ -8,14 +8,33 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
 
+const PHOTO_TIMEOUT_MS = 12_000;
+
+async function waitForStablePhotoUrl(timeoutMs = PHOTO_TIMEOUT_MS): Promise<string> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const current = useDogyptStore.getState().dogPhotoUrl;
+    if (current && !current.startsWith('blob:')) return current;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+  return useDogyptStore.getState().dogPhotoUrl;
+}
+
 export function PaymentScreen() {
   const navigate = useNavigate();
   const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2 } = useDogyptStore();
   const [loading, setLoading] = useState(false);
+  const [waitingPhoto, setWaitingPhoto] = useState(false);
 
   const handlePay = async () => {
     setLoading(true);
     try {
+      let stablePhotoUrl = dogPhotoUrl;
+      if (stablePhotoUrl?.startsWith('blob:')) {
+        setWaitingPhoto(true);
+        stablePhotoUrl = await waitForStablePhotoUrl();
+        setWaitingPhoto(false);
+      }
       const res = await fetch(CREATE_CHECKOUT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -24,7 +43,7 @@ export function PaymentScreen() {
           ownerName,
           email,
           selections,
-          dogPhotoUrl,
+          dogPhotoUrl: stablePhotoUrl,
           patronSvg,
           patronSvg2,
           amount: selectedAmount ?? 11,
@@ -34,6 +53,7 @@ export function PaymentScreen() {
       if (url) window.location.href = url;
     } catch {
       setLoading(false);
+      setWaitingPhoto(false);
     }
   };
 
@@ -74,7 +94,7 @@ export function PaymentScreen() {
               }}
             >
               {loading
-                ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> PREPARING...</span>
+                ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {waitingPhoto ? 'SEALING PHOTO...' : 'PREPARING...'}</span>
                 : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> PAY WITH STRIPE</span>
               }
             </Button>
