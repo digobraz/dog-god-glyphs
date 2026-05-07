@@ -25,8 +25,11 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
       <div
         ref={ref}
         style={{
+          // A4 portrait at 1080 px width: 1080 * 297/210 = 1527 px height.
+          // Matches PDF aspect ratio exactly so server-side or client-side
+          // PDF render does not produce white side bands.
           width: 1080,
-          height: 1350,
+          height: 1527,
           position: 'relative',
           overflow: 'hidden',
           background: `
@@ -82,7 +85,9 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
           position: 'relative', zIndex: 8,
           width: '100%', height: '100%',
           display: 'flex', flexDirection: 'column', alignItems: 'center',
-          padding: '65px 110px 70px',
+          // Top padding slightly higher to balance the taller A4 canvas;
+          // bottom padding bumped so footer row breathes against border.
+          padding: '90px 110px 95px',
           overflow: 'hidden',
           boxSizing: 'border-box',
         }}>
