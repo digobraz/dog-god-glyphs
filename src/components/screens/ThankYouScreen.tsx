@@ -3,7 +3,8 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
-import { CertificateCard, buildHeroglyphCode } from '@/components/CertificateCard';
+import { CertificateCard } from '@/components/CertificateCard';
+import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
@@ -261,7 +262,16 @@ export function ThankYouScreen() {
   const verticalRef = useRef<HTMLDivElement>(null);
   const horizontalRef = useRef<HTMLDivElement>(null);
 
-  const heroglyphCode = buildHeroglyphCode(certData.selections);
+  const heroglyphCode = buildHeroglyphCode({
+    dogName,
+    ownerName: certData.ownerName,
+    patronSvg: certData.patronSvg,
+    breed: certData.selections?.breed,
+    patronCategory: certData.selections?.patronCategory,
+    country:
+      certData.selections?.country || certData.selections?.ownerCountry,
+    selections: certData.selections,
+  });
   const certNumber = sessionId
     ? `#DOG-${sessionId.slice(-6).toUpperCase()}`
     : `#DOG-${Date.now().toString(36).toUpperCase().slice(-6)}`;

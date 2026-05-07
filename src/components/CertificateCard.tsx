@@ -1,5 +1,8 @@
 import { forwardRef } from 'react';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+// Re-export for backwards compatibility — callers may import buildHeroglyphCode
+// from '@/components/CertificateCard'. New code should import from '@/lib/heroglyphCode'.
+export { buildHeroglyphCode, buildHeroglyphCodeFromSelections } from '@/lib/heroglyphCode';
 
 interface CertificateCardProps {
   dogName: string;
@@ -241,23 +244,5 @@ function Divider({ style }: { style?: React.CSSProperties }) {
   );
 }
 
-export function buildHeroglyphCode(selections: Record<string, string>): string {
-  const s = (key: string, len: number) => {
-    const val = (selections[key] || '').replace(/-/g, '').toUpperCase();
-    return val.substring(0, len).padEnd(len, 'X');
-  };
-  return [
-    'H',
-    s('dogGender', 1),
-    s('dogColour', 1),
-    s('dogFate', 1),
-    s('dogBloodline', 1),
-    s('dogShape', 2),
-    s('dogCharacter1', 3),
-    s('dogCharacter2', 3),
-    s('ownerGender', 1),
-    s('ownerChineseZodiac', 2),
-    s('ownerZodiac', 3),
-    s('ranking', 2),
-  ].join('-');
-}
+// buildHeroglyphCode now lives in '@/lib/heroglyphCode' (16-segment canonical schema).
+// Re-export above keeps existing imports working.
