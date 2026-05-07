@@ -31,11 +31,39 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
 
     setTimeout(async () => {
       try {
+        // Pre-inline cross-origin images (Cloudinary delivery has no CORS header,
+        // so <img> elements would taint the canvas and break html-to-image).
+        // Fetching via JS bypasses the canvas taint check.
+        const revokes: string[] = [];
+        const targets = [certRef.current, verticalRef.current, horizontalRef.current].filter(Boolean) as HTMLElement[];
+        for (const root of targets) {
+          const imgs = Array.from(root.querySelectorAll('img'));
+          await Promise.all(imgs.map(async (img) => {
+            const src = img.src;
+            if (!src || src.startsWith('blob:') || src.startsWith('data:') || src.startsWith(location.origin)) return;
+            try {
+              const r = await fetch(src, { mode: 'cors' });
+              if (!r.ok) return;
+              const blob = await r.blob();
+              const objUrl = URL.createObjectURL(blob);
+              revokes.push(objUrl);
+              await new Promise<void>((resolve) => {
+                const tmp = new Image();
+                tmp.onload = () => { img.src = objUrl; resolve(); };
+                tmp.onerror = () => resolve();
+                tmp.src = objUrl;
+              });
+            } catch { /* leave original src — toPng may still succeed */ }
+          }));
+        }
+
         const [certBlob, vBlob, hBlob] = await renderPdfsSequential([
           { element: certRef.current!, orientation: 'portrait', fileName: 'certificate.pdf' },
           { element: verticalRef.current!, orientation: 'portrait', marginMm: 25, bgColor: '#F5EDE0', fileName: 'heroglyph-vertical.pdf' },
           { element: horizontalRef.current!, orientation: 'landscape', marginMm: 20, bgColor: '#F5EDE0', fileName: 'heroglyph-horizontal.pdf' },
         ]);
+
+        revokes.forEach((u) => { try { URL.revokeObjectURL(u); } catch { /* ignore */ } });
 
         const [c, v, h] = await Promise.all([
           uploadCertPdf(certBlob, sid),
