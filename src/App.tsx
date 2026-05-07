@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { SpiralLanding } from "@/components/landing/SpiralLanding";
+import { MaintenanceScreen } from "@/components/MaintenanceScreen";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
@@ -41,7 +42,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<SpiralLanding />} />
+          <Route path="/" element={<MaintenanceScreen />} />
+          <Route path="/spiral" element={<SpiralLanding />} />
           <Route path="/grid" element={<GodsGrid />} />
           <Route path="/gods" element={<GodsGrid />} />
 
