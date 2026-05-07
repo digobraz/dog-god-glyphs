@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOGYPT — In Dog We Trust</title>
+  <meta name="description" content="A new era for dogs and humans is about to begin.">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:    #0E0E0E;             /* manual v2 ink */
+      --gold:  #C99A3F;             /* manual v2 gold */
+      --gold2: #A07423;             /* manual v2 gold-deep */
+      --gold3: #E5C16E;             /* manual v2 gold-light */
+      --cta-orange: #E69E1A;        /* manual v2 CTA dark stroke */
+      --cta-yellow: #F5C73D;        /* manual v2 CTA dark fill */
+      --text:  #FAF4EC;
+      --muted: rgba(250,244,236,0.55);
+    }
+
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overflow: hidden;
+      height: 100dvh;
+    }
+
+    /* ---------- HERO LOGO (nad mottom) ---------- */
+    .hero-logo {
+      width: clamp(96px, 11vw, 132px);
+      height: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 0 24px rgba(196,155,66,0.35));
+      margin-bottom: -4px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    /* ---------- HERO + SPIRAL ---------- */
+    .hero {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .cards-field {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      -webkit-mask-image: radial-gradient(ellipse 38% 36% at 50% 50%,
+        transparent 0%, rgba(0,0,0,0.10) 18%,
+        rgba(0,0,0,0.45) 42%, rgba(0,0,0,0.85) 64%, black 78%);
+      mask-image: radial-gradient(ellipse 38% 36% at 50% 50%,
+        transparent 0%, rgba(0,0,0,0.10) 18%,
+        rgba(0,0,0,0.45) 42%, rgba(0,0,0,0.85) 64%, black 78%);
+    }
+
+    .spiral-card {
+      position: absolute;
+      left: 0; top: 0;
+      border-radius: 16px;
+      overflow: hidden;
+      pointer-events: none;
+      will-change: transform;
+      transform-origin: center;
+    }
+    .spiral-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+      display: block;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      background:
+        /* 1) vignette za mottom (centrum) — silnejšie okolie textu */
+        radial-gradient(ellipse 17% 40% at 50% 46%,
+          #000 0%, #000 48%, rgba(0,0,0,0.92) 68%, rgba(0,0,0,0.62) 82%, rgba(0,0,0,0.25) 94%, transparent 100%),
+        /* 2) vignette okolo formy (input + tlačidlo) — silnejšie okolie */
+        radial-gradient(ellipse 24% 16% at 50% 74%,
+          rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.82) 36%, rgba(0,0,0,0.5) 68%, rgba(0,0,0,0.18) 88%, transparent 100%),
+        /* 3) asymetria — pravá strana zatmavená, ľavá netknutá */
+        linear-gradient(to right,
+          transparent 0%, transparent 52%, rgba(0,0,0,0.30) 76%, rgba(0,0,0,0.62) 100%);
+    }
+
+    /* ---------- HERO CONTENT ---------- */
+    .hero-content {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 24px;
+      padding: 0 24px;
+    }
+
+    /* Shimmer / shine sweep across hero headline (z /devhome index.css) */
+    @keyframes hero-shimmer {
+      0%   { background-position: -150% 0; }
+      60%  { background-position: 250% 0; }
+      100% { background-position: 250% 0; }
+    }
+    .hero-shine {
+      background-image: linear-gradient(100deg,
+        #A07423 0%, #C99A3F 25%, #E5C16E 48%,
+        #FFFFFF 50%, #E5C16E 52%, #C99A3F 75%, #A07423 100%);
+      background-size: 250% 100%;
+      background-position: -150% 0;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+      animation: hero-shimmer 9s ease-in-out infinite;
+      text-shadow: 0 0 18px rgba(229, 193, 110, 0.35);
+      filter: drop-shadow(0 0 18px rgba(201, 154, 63, 0.45))
+              drop-shadow(0 0 40px rgba(229, 193, 110, 0.25));
+    }
+
+    .hero-h1 {
+      font-family: 'Cinzel', serif;
+      font-weight: 900;
+      font-size: clamp(2.6rem, 8.1vw, 6.66rem);
+      letter-spacing: 0.09em;
+      line-height: 0.94;
+      text-transform: uppercase;
+      max-width: 880px;
+    }
+    @media (min-width: 768px) {
+      .hero-h1 { font-size: clamp(2.6rem, 5.5vw, 4.54rem); }
+    }
+
+    .hero-sub {
+      font-family: 'Inter', sans-serif;
+      color: var(--muted);
+      font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+      letter-spacing: 0.04em;
+      max-width: 460px;
+      line-height: 1.55;
+    }
+    @media (max-width: 767px) {
+      .hero-sub {
+        font-size: 1.08rem;
+        line-height: 1.5;
+        max-width: 320px;
+      }
+    }
+
+    /* ---------- FORM (zbernica, funkcia z dogypt.com) ---------- */
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 520px;
+      margin-top: 4px;
+    }
+
+    input[type="email"] {
+      flex: 1 1 220px;
+      min-width: 200px;
+      padding: 14px 22px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(201,154,63,0.45);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    input[type="email"]::placeholder { color: rgba(250,244,236,0.35); }
+    input[type="email"]:focus {
+      border-color: var(--gold);
+      background: rgba(255,255,255,0.09);
+    }
+
+    .btn-gold {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+      border: 1px solid rgba(250,244,236,0.30);
+      border-radius: 8px;
+      color: #000000;
+      font-family: 'Cinzel', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.22s, opacity 0.22s;
+      box-shadow: 0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+      white-space: nowrap;
+    }
+    .btn-gold:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .btn-gold:active { transform: scale(0.98); }
+
+    .form-msg {
+      width: 100%;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      margin-top: 4px;
+    }
+    .form-msg.error { color: rgba(245,100,100,0.85); }
+
+    .success {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      font-size: 1.05rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 767px) {
+      .hero-content { gap: 20px; padding: 0 22px; }
+      .hero-logo { width: clamp(78px, 22vw, 104px); margin-bottom: 0; }
+      .hero-h1 { line-height: 1.0; }
+      form { gap: 10px; max-width: 320px; margin-left: auto; margin-right: auto; }
+      input[type="email"] {
+        flex: 1 1 100%;
+        font-size: 0.92rem;
+        padding: 12px 18px;
+      }
+      .btn-gold {
+        width: 100%;
+        padding: 12px 24px;
+        font-size: 0.78rem;
+        letter-spacing: 0.18em;
+      }
+
+      /* Mobile vignette — agresívny len pri obsahu, rýchle vyhasínanie na okrajoch */
+      .hero::after {
+        background:
+          /* 1) motto + logo + subtitle (užší pás okolo textu) */
+          radial-gradient(ellipse 38% 26% at 50% 42%,
+            #000 0%, #000 38%, rgba(0,0,0,0.95) 58%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.12) 94%, transparent 100%),
+          /* 2) form (užší stred — input/button kompaktnejšie) */
+          radial-gradient(ellipse 48% 12% at 50% 76%,
+            rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.78) 42%, rgba(0,0,0,0.32) 76%, transparent 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<section class="hero" id="hero">
+  <div class="cards-field" id="cardsField"></div>
+
+  <div class="hero-content">
+    <img class="hero-logo" src="img/dogypt-logo-icon.png" alt="DOGYPT">
+    <h1 class="hero-h1 hero-shine">In Dog<br>We Trust</h1>
+
+    <p class="hero-sub">A new era for dogs and humans is about to begin.</p>
+
+    <form id="emailForm" novalidate>
+      <input
+        type="email"
+        id="emailInput"
+        placeholder="your@email.com"
+        autocomplete="email"
+        required
+      >
+      <button type="submit" class="btn-gold">I'm In</button>
+      <p class="form-msg error" id="errorMsg" style="display:none">Something went wrong. Try again.</p>
+    </form>
+
+    <p class="success" id="successMsg" style="display:none">You're in. We'll be in touch.</p>
+  </div>
+</section>
+
+<script>
+/* ========== SPIRAL ========== */
+const DOG_PHOTOS = Array.from({ length: 31 }, (_, i) => `img/${i + 1}.webp`);
+
+const SPIRAL_K  = 42;
+const SPIRAL_SP = 0.15;
+const N_CARDS   = 38;
+const BASE_W    = 210;
+const BASE_H    = 162;
+const MIN_SCALE = 0.28;
+const MAX_SCALE = 1.0;
+
+let spiralCards = [];
+let spiralStart = null;
+
+function buildSpiral() {
+  const field = document.getElementById('cardsField');
+  field.innerHTML = '';
+  spiralCards = [];
+
+  for (let i = 0; i < N_CARDS; i++) {
+    const thetaBase = (i / N_CARDS) * (Math.sqrt((window.innerWidth / 2) ** 2 + (window.innerHeight / 2) ** 2) * 1.1 / SPIRAL_K);
+    const photoUrl  = DOG_PHOTOS[i % DOG_PHOTOS.length];
+    const rotDeg    = Math.random() * 32 - 16;
+
+    const card = document.createElement('div');
+    card.className    = 'spiral-card';
+    card.style.width  = BASE_W + 'px';
+    card.style.height = BASE_H + 'px';
+    card.style.boxShadow = '0 12px 40px rgba(0,0,0,0.75),0 3px 8px rgba(0,0,0,0.5)';
+
+    const img = document.createElement('img');
+    img.src       = photoUrl;
+    img.alt       = '';
+    img.loading   = 'lazy';
+    img.decoding  = 'async';
+    img.draggable = false;
+
+    card.appendChild(img);
+    field.appendChild(card);
+    spiralCards.push({ el: card, thetaBase, rotDeg });
+  }
+}
+
+function spiralAnimate(ts) {
+  if (!spiralStart) spiralStart = ts;
+  const t = (ts - spiralStart) / 1000;
+
+  const W    = window.innerWidth;
+  const H    = window.innerHeight;
+  const cx   = W / 2;
+  const cy   = H / 2;
+  const TMAX = Math.sqrt(cx * cx + cy * cy) * 1.1 / SPIRAL_K;
+
+  for (const { el, thetaBase, rotDeg } of spiralCards) {
+    const theta    = (thetaBase + SPIRAL_SP * t) % TMAX;
+    const progress = theta / TMAX;
+    const r        = SPIRAL_K * theta;
+    const x        = cx + r * Math.cos(theta);
+    const y        = cy + r * Math.sin(theta);
+    const scale    = MIN_SCALE + (MAX_SCALE - MIN_SCALE) * progress;
+
+    const tx = (x - BASE_W / 2).toFixed(1);
+    const ty = (y - BASE_H / 2).toFixed(1);
+    el.style.transform = `translate(${tx}px,${ty}px) scale(${scale.toFixed(3)}) rotate(${rotDeg.toFixed(1)}deg)`;
+  }
+
+  requestAnimationFrame(spiralAnimate);
+}
+
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => { buildSpiral(); spiralStart = null; }, 250);
+});
+
+buildSpiral();
+requestAnimationFrame(spiralAnimate);
+
+/* ========== FORM (Google Forms zbernica — funkcia 1:1 z dogypt.com) ========== */
+const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd0TkuULnE1R-dbYO0_yfnOhxMQBjOmPZmuRaA-9cjDIMMYnA/formResponse';
+const ENTRY_ID = 'entry.2054138710';
+
+document.getElementById('emailForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  const email      = document.getElementById('emailInput').value.trim();
+  const errorMsg   = document.getElementById('errorMsg');
+  const successMsg = document.getElementById('successMsg');
+  errorMsg.style.display = 'none';
+
+  if (!email) return;
+
+  try {
+    await fetch(FORM_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ [ENTRY_ID]: email }),
+    });
+    document.getElementById('emailForm').style.display = 'none';
+    successMsg.style.display = 'block';
+  } catch {
+    errorMsg.style.display = 'block';
+  }
+});
+</script>
+
+</body>
+</html>
