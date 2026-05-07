@@ -27,6 +27,7 @@ import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Pack from "./pages/Pack.tsx";
 import PackDogDetail from "./pages/PackDogDetail.tsx";
+import Login from "./pages/Login.tsx";
 
 const queryClient = new QueryClient();
 
@@ -67,6 +68,9 @@ const App = () => (
           <Route path="/devhome" element={<LandingPage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+
+          {/* Pack backoffice auth — magic link callback */}
+          <Route path="/login" element={<Login />} />
 
           {/* /pack — buyer backoffice (auth-gated) */}
           <Route path="/pack" element={<Pack />} />
