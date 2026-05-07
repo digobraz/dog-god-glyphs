@@ -62,20 +62,21 @@
       pointer-events: none;
     }
 
-    /* Static bg-color overlay replaces the mask-image. Visually equivalent, no GPU
-       mask compositing on every animation frame. */
+    /* Static bg-color overlay replaces the mask-image. Never fully transparent at corners
+       so cards there are muted to a uniform dark tone (no "lighter corners vs darker
+       center blob" effect). */
     .cards-fade {
       position: absolute;
       inset: 0;
       z-index: 1;
       pointer-events: none;
-      background: radial-gradient(ellipse 38% 36% at 50% 50%,
+      background: radial-gradient(ellipse 50% 48% at 50% 50%,
         var(--bg) 0%,
-        var(--bg) 18%,
-        rgba(14,14,14,0.85) 38%,
-        rgba(14,14,14,0.55) 58%,
-        rgba(14,14,14,0.15) 74%,
-        transparent 86%);
+        var(--bg) 22%,
+        rgba(14,14,14,0.85) 42%,
+        rgba(14,14,14,0.55) 62%,
+        rgba(14,14,14,0.40) 82%,
+        rgba(14,14,14,0.30) 100%);
     }
 
     .spiral-card {

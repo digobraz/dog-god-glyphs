@@ -36,20 +36,21 @@
 }
 
 /* Center fade-out: a static bg-color overlay that covers the cards in the middle and
-   fades to transparent toward the edges. Visually equivalent to the original mask-image
-   but is a single static paint instead of GPU mask compositing on every animation frame. */
+   tapers toward the edges. Never fully transparent — keeps a low-opacity tint at the
+   corners so the cards there are muted to the same dark tone, eliminating the
+   "lighter corners vs darker center blob" perception. */
 .dogypt-spiral-root .cards-fade {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: radial-gradient(ellipse 38% 36% at 50% 50%,
+  background: radial-gradient(ellipse 50% 48% at 50% 50%,
     var(--bg) 0%,
-    var(--bg) 18%,
-    rgba(14, 14, 14, 0.85) 38%,
-    rgba(14, 14, 14, 0.55) 58%,
-    rgba(14, 14, 14, 0.15) 74%,
-    transparent 86%);
+    var(--bg) 22%,
+    rgba(14, 14, 14, 0.85) 42%,
+    rgba(14, 14, 14, 0.55) 62%,
+    rgba(14, 14, 14, 0.40) 82%,
+    rgba(14, 14, 14, 0.30) 100%);
 }
 
 .dogypt-spiral-root .spiral-card {
