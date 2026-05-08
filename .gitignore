@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Env files (publishable keys, but best practice to exclude)
+.env
+.env.local
+.env.production
+.env.development
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
