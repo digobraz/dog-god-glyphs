@@ -90,6 +90,29 @@
       transparent 0%, transparent 52%, rgba(0, 0, 0, 0.30) 76%, rgba(0, 0, 0, 0.62) 100%);
 }
 
+/* Desktop only: shrink the central dark "blob" so spiral cards come closer to logo/text.
+   Mobile keeps its own values via the @media (max-width: 767px) overrides below. */
+@media (min-width: 768px) {
+  .dogypt-spiral-root .cards-fade {
+    background: radial-gradient(ellipse 30% 30% at 50% 50%,
+      #000 0%,
+      #000 12%,
+      rgba(0, 0, 0, 0.72) 38%,
+      rgba(0, 0, 0, 0.50) 65%,
+      rgba(0, 0, 0, 0.34) 85%,
+      rgba(0, 0, 0, 0.30) 100%);
+  }
+  .dogypt-spiral-root .vignette {
+    background:
+      radial-gradient(ellipse 12% 28% at 50% 46%,
+        #000 0%, #000 38%, rgba(0, 0, 0, 0.88) 62%, rgba(0, 0, 0, 0.45) 82%, rgba(0, 0, 0, 0.15) 94%, transparent 100%),
+      radial-gradient(ellipse 18% 12% at 50% 72%,
+        rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.72) 38%, rgba(0, 0, 0, 0.35) 72%, rgba(0, 0, 0, 0.12) 90%, transparent 100%),
+      linear-gradient(to right,
+        transparent 0%, transparent 56%, rgba(0, 0, 0, 0.24) 80%, rgba(0, 0, 0, 0.50) 100%);
+  }
+}
+
 .dogypt-spiral-root .hero-content {
   position: absolute;
   inset: 0;

@@ -22,7 +22,7 @@ export function SpiralLanding() {
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    const N_CARDS = isMobile ? 18 : 22;
+    const N_CARDS = isMobile ? 18 : 26;
     const BASE_W = isMobile ? 168 : 200;
     const BASE_H = isMobile ? 130 : 154;
 
