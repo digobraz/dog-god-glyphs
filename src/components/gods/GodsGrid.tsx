@@ -257,7 +257,6 @@ export function GodsGrid() {
           <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
         </div>
         <div class="card-name-block">
-          <div class="card-rank card-rank-gold">#1</div>
           <div class="card-label hektor-label">HEKTHOR</div>
         </div>
       `;
@@ -314,7 +313,6 @@ export function GodsGrid() {
           <img class="dog-heroglyph" src="/patrons/${esc(dog.patron_svg)}" alt="${safeName} heroglyph" draggable="false">
         </div>` : ''}
         <div class="card-name-block">
-          <div class="card-rank">#${packNum}</div>
           <div class="card-label">${safeName}</div>
         </div>
       `;
@@ -349,7 +347,6 @@ export function GodsGrid() {
         <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         <div class="card-name-block">
-          <div class="card-rank">#${packNum}</div>
           <div class="card-label">${safeName}</div>
         </div>
       `;
