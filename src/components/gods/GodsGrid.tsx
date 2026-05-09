@@ -252,7 +252,6 @@ export function GodsGrid() {
           <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
         </div>
-        <button class="card-info" aria-label="Info">i</button>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
           <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
@@ -262,10 +261,6 @@ export function GodsGrid() {
           <div class="card-label hektor-label">HEKTHOR</div>
         </div>
       `;
-      el.querySelector('.card-info')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCard(el);
-      });
       return el;
     }
 
@@ -313,7 +308,6 @@ export function GodsGrid() {
           <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
         </div>
-        <button class="card-info" aria-label="Info">i</button>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         ${dog.patron_svg ? `
         <div class="dog-heroglyph-wrap">
@@ -324,10 +318,6 @@ export function GodsGrid() {
           <div class="card-label">${safeName}</div>
         </div>
       `;
-      el.querySelector('.card-info')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCard(el);
-      });
       return el;
     }
 
@@ -357,17 +347,12 @@ export function GodsGrid() {
           <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
         </div>
-        <button class="card-info" aria-label="Info">i</button>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         <div class="card-name-block">
           <div class="card-rank">#${packNum}</div>
           <div class="card-label">${safeName}</div>
         </div>
       `;
-      el.querySelector('.card-info')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCard(el);
-      });
       return el;
     }
 
