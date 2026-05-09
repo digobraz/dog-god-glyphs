@@ -257,7 +257,6 @@ export function GodsGrid() {
           <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
         </div>
         <div class="card-name-block">
-          <div class="card-rank card-rank-gold">#1</div>
           <div class="card-label hektor-label">HEKTHOR</div>
         </div>
       `;
@@ -314,7 +313,6 @@ export function GodsGrid() {
           <img class="dog-heroglyph" src="/patrons/${esc(dog.patron_svg)}" alt="${safeName} heroglyph" draggable="false">
         </div>` : ''}
         <div class="card-name-block">
-          <div class="card-rank">#${packNum}</div>
           <div class="card-label">${safeName}</div>
         </div>
       `;
@@ -349,7 +347,6 @@ export function GodsGrid() {
         <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         <div class="card-name-block">
-          <div class="card-rank">#${packNum}</div>
           <div class="card-label">${safeName}</div>
         </div>
       `;
@@ -905,12 +902,19 @@ export function GodsGrid() {
           top: 10px;
           left: 10px;
           z-index: 2;
-          font-family: 'Cinzel', serif;
-          font-size: 0.65rem;
+          height: 24px;
+          padding: 0 10px;
+          background: rgba(30,30,30,0.35);
+          color: white;
+          border-radius: 999px;
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-size: 0.7rem;
           font-weight: 700;
-          color: #C99A3F;
-          letter-spacing: 0.08em;
-          text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+          letter-spacing: 0.06em;
+          display: inline-flex;
+          align-items: center;
+          backdrop-filter: blur(6px);
+          white-space: nowrap;
           line-height: 1;
           pointer-events: none;
         }
