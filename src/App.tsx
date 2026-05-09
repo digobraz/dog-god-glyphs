@@ -22,7 +22,7 @@ import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScree
 import { MessageScreen } from "@/components/screens/MessageScreen";
 import { CheckoutScreen } from "@/components/screens/CheckoutScreen";
 import { PaymentScreen } from "@/components/screens/PaymentScreen";
-import { ThankYouScreen } from "@/components/screens/ThankYouScreen";
+import { WelcomeScreen } from "@/components/screens/WelcomeScreen";
 import NotFound from "./pages/NotFound.tsx";
 import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
@@ -67,8 +67,8 @@ const App = () => (
           <Route path="/checkout" element={<CheckoutScreen />} />
           <Route path="/pay-wall" element={<CheckoutScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
-          <Route path="/welcome" element={<ThankYouScreen />} />
-          <Route path="/thank-you" element={<ThankYouScreen />} />{/* legacy alias for in-flight Stripe sessions */}
+          <Route path="/welcome" element={<WelcomeScreen />} />
+          <Route path="/thank-you" element={<Navigate to="/welcome" replace />} />{/* legacy alias for in-flight Stripe sessions */}
           <Route path="/devhome" element={<LandingPage />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />

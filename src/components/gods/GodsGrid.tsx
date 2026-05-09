@@ -54,11 +54,13 @@ export function GodsGrid() {
     const mode = params.get('reveal');
     const isDemo = mode === 'demo';
     const active = mode === 'true' || isDemo;
+    const patronFile = params.get('patronSvg') || '';
     return {
       active,
       dogName: isDemo ? 'Toby' : (params.get('dogName') || 'Your Dog'),
       photoUrl: isDemo ? '/dogs/toby.jpg' : (params.get('photoUrl') || ''),
       packNumber: isDemo ? String(photos.length) : (params.get('packNumber') || String(photos.length + 1)),
+      revealSymbol: patronFile ? `/patrons/${patronFile}` : REVEAL_SYMBOL,
     };
   }, []);
 
@@ -129,10 +131,27 @@ export function GodsGrid() {
       el.className = 'dog-card reveal-card';
       el.style.left = (REVEAL_COL * GX) + 'px';
       el.style.top  = (REVEAL_ROW * GY) + 'px';
+      const safeName = (revealData.dogName || 'DOGYPTIAN')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const inner = revealData.photoUrl
+        ? `<div class="reveal-card-inner" style="background-image:url('${revealData.photoUrl}')"></div>`
+        : `<div class="reveal-card-inner reveal-card-fallback"><span class="cartouche">${safeName}</span></div>`;
       el.innerHTML = `
-        <div class="reveal-card-inner" style="background-image:url('${revealData.photoUrl}')"></div>
-        <div class="card-label">${revealData.dogName} · #${revealData.packNumber}</div>
+        ${inner}
+        <div class="card-label">${safeName} · #${revealData.packNumber}</div>
       `;
+      // Image-load fallback: if the URL 404s or decode fails, swap to cartouche.
+      if (revealData.photoUrl) {
+        const probe = new Image();
+        probe.src = revealData.photoUrl;
+        probe.onerror = () => {
+          const node = el.querySelector('.reveal-card-inner') as HTMLElement | null;
+          if (!node) return;
+          node.style.backgroundImage = '';
+          node.classList.add('reveal-card-fallback');
+          node.innerHTML = `<span class="cartouche">${safeName}</span>`;
+        };
+      }
       return el;
     }
 
@@ -650,6 +669,21 @@ export function GodsGrid() {
           opacity: 1;
           transition: opacity 800ms ease;
         }
+        .reveal-card-fallback {
+          background: linear-gradient(135deg, hsl(270 40% 18%), hsl(45 60% 30%));
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 16px;
+        }
+        .reveal-card-fallback .cartouche {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(1.4rem, 6vw, 2rem);
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: hsl(45 90% 60%);
+        }
 
         /* Card gold glow on reveal */
         @keyframes card-entrance {
@@ -797,7 +831,7 @@ export function GodsGrid() {
         {revealData.active && revealStep > 0 && revealStep < 4 && (
           <div className={`rev-overlay step-${revealStep}`}>
             <div className="rev-spotlight" />
-            <img className="rev-big-symbol" src={REVEAL_SYMBOL} alt="DOGYPT" />
+            <img className="rev-big-symbol" src={revealData.revealSymbol} alt={revealData.dogName} />
           </div>
         )}
       </div>
