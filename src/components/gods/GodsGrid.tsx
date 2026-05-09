@@ -190,6 +190,9 @@ export function GodsGrid() {
         </div>
         <button class="card-info" aria-label="Info">i</button>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
+        <div class="hektor-heroglyph-wrap">
+          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
+        </div>
         <div class="card-name-block">
           <div class="card-rank card-rank-gold">FOUNDER</div>
           <div class="card-label hektor-label">HEKTOR</div>
@@ -660,17 +663,12 @@ export function GodsGrid() {
         }
         .is-dragging .dog-card:hover { transform: none; box-shadow: none; }
 
-        /* Gradient overlay via ::after — appears on hover */
+        /* Overlay — appears on hover, uniform dark */
         .dog-card::after {
           content: '';
           position: absolute;
           inset: 0;
-          background: linear-gradient(
-            to bottom,
-            rgba(0,0,0,0.28) 0%,
-            rgba(0,0,0,0.56) 55%,
-            rgba(0,0,0,0.86) 100%
-          );
+          background: rgba(0,0,0,0.62);
           opacity: 0;
           will-change: opacity;
           transition: opacity 220ms ease;
@@ -949,6 +947,35 @@ export function GodsGrid() {
           font-weight: 900;
           letter-spacing: 0.12em;
           box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* ── Hektor heroglyph — hover only, centered ── */
+        .hektor-heroglyph-wrap {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: calc(100% - 32px);
+          z-index: 4;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 220ms ease;
+        }
+        .hektor-card:not(.is-open):hover .hektor-heroglyph-wrap { opacity: 1; }
+        .is-dragging .hektor-heroglyph-wrap { opacity: 0 !important; }
+        .hektor-heroglyph {
+          width: 100%;
+          height: auto;
+          display: block;
+          pointer-events: none;
+          filter:
+            brightness(0) invert(1)
+            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
+            drop-shadow(0 0 14px rgba(201,154,63,0.95))
+            drop-shadow(0 0 32px rgba(201,154,63,0.55));
         }
 
         /* ── Reveal card (in grid) ── */
