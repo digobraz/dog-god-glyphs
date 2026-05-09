@@ -13,6 +13,7 @@ interface RealDog {
   patron_svg: string | null;
   heroglyph_png_url: string | null;
   country: string | null;
+  owner_message: string | null;
 }
 
 function generatePackPositions(count: number): Array<{col: number, row: number}> {
@@ -250,7 +251,10 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
+          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
+          <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
+          <div class="card-open-msg">The dog who started it all. Adopted 2017. Every journey begins with one step — his was a 42-day walk across Slovakia.</div>
         </div>
         <div class="card-rank-top">#1</div>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
@@ -302,10 +306,14 @@ export function GodsGrid() {
       el.className = 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
+      const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : (dog.patron_svg ? `/patrons/${esc(dog.patron_svg)}` : '');
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
+          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
+          <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
+          ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
         </div>
         <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
@@ -887,6 +895,18 @@ export function GodsGrid() {
           max-width: 280px;
           font-style: italic;
           margin-top: 2px;
+        }
+        .card-open-heroglyph {
+          width: 64%;
+          height: auto;
+          display: block;
+          pointer-events: none;
+          filter:
+            brightness(0) invert(1)
+            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
+            drop-shadow(0 0 14px rgba(201,154,63,0.95))
+            drop-shadow(0 0 32px rgba(201,154,63,0.55));
+          margin-bottom: 4px;
         }
 
         .card-flag {
