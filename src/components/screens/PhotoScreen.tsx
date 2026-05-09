@@ -33,6 +33,53 @@ function getImageDimensions(url: string): Promise<{ w: number; h: number }> {
   });
 }
 
+/* ───── Canvas crop helper ───── */
+async function canvasCropAndUpload(
+  photoUrl: string,
+  crop: { x: number; y: number; zoom: number },
+  sessionId: string,
+): Promise<{ publicId: string; secureUrl: string } | null> {
+  if (crop.zoom === 1 && crop.x === 0 && crop.y === 0) return null;
+
+  const img = new Image();
+  img.src = photoUrl;
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error('load'));
+  });
+
+  const S = 260;
+  const canvas = document.createElement('canvas');
+  canvas.width = S;
+  canvas.height = S;
+  const ctx = canvas.getContext('2d')!;
+
+  const { naturalWidth: nW, naturalHeight: nH } = img;
+  const sCover = Math.max(S / nW, S / nH);
+  const offX = (nW * sCover - S) / 2;
+  const offY = (nH * sCover - S) / 2;
+  const half = S / 2;
+  const tx = S * crop.x / 100;
+  const ty = S * crop.y / 100;
+
+  // Inverse the CSS transform: translate(tx%, ty%) scale(zoom) with origin at center
+  const ix0 = (0 - half - tx) / crop.zoom + half;
+  const ix1 = (S - half - tx) / crop.zoom + half;
+  const iy0 = (0 - half - ty) / crop.zoom + half;
+
+  const srcX = (ix0 + offX) / sCover;
+  const srcY = (iy0 + offY) / sCover;
+  const srcW = (ix1 - ix0) / sCover;
+
+  ctx.drawImage(img, srcX, srcY, srcW, srcW, 0, 0, S, S);
+
+  const blob = await new Promise<Blob>((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob'))), 'image/webp', 0.92),
+  );
+
+  return uploadMainPhoto(blob, sessionId);
+}
+
 /* ───── slide variants ───── */
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
@@ -280,6 +327,7 @@ export function PhotoScreen() {
   const [fileName, setFileName] = useState('');
   const [lowRes, setLowRes] = useState(false);
   const [certCrop, setCertCrop] = useState({ x: 0, y: 0, zoom: 1 });
+  const [finishing, setFinishing] = useState(false);
   const [extras, setExtras] = useState<string[]>([]);
   const [gdpr, setGdpr] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
@@ -346,7 +394,15 @@ export function PhotoScreen() {
       .catch(() => {/* extras upload failure is non-blocking */});
   };
 
-  const finish = () => {
+  const finish = async () => {
+    setFinishing(true);
+    try {
+      const result = await canvasCropAndUpload(photoUrl!, certCrop, sessionId!);
+      if (result) {
+        setCloudinaryPublicId(result.publicId);
+        setDogPhotoUrl(result.secureUrl);
+      }
+    } catch { /* non-blocking — original upload stays */ }
     setCertCropData(certCrop);
     setGridCropData(certCrop);
     setExtraPhotos(extras);
@@ -416,6 +472,8 @@ export function PhotoScreen() {
       <BackNextButtons
         onBack={() => goTo(1)}
         onNext={finish}
+        nextDisabled={finishing}
+        nextLabel={finishing ? 'SAVING...' : 'NEXT →'}
       />
     </>
   );
