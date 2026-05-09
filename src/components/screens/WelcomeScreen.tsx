@@ -69,6 +69,7 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
     inserted.current = true;
 
     async function registerAndFetch() {
+      // Try INSERT first; if it fails (e.g. duplicate session), fall through to count
       try {
         const { data } = await supabase
           .from('pack_members')
@@ -82,15 +83,16 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
 
         if (data?.pack_number) {
           setPackNumber(data.pack_number);
-        } else {
-          const { count } = await supabase
-            .from('pack_members')
-            .select('*', { count: 'exact', head: true });
-          if (count && count > 0) setPackNumber(count);
+          return;
         }
-      } catch {
-        // Silent fail
-      }
+      } catch { /* INSERT failed — fall through to count */ }
+
+      try {
+        const { count } = await supabase
+          .from('pack_members')
+          .select('*', { count: 'exact', head: true });
+        if (count && count > 0) setPackNumber(count);
+      } catch { /* silent */ }
     }
 
     registerAndFetch();

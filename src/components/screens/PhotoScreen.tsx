@@ -334,6 +334,7 @@ export function PhotoScreen() {
   const extraPublicIds = useRef<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
   const extraRef = useRef<HTMLInputElement>(null);
+  const cropApplied = useRef(false);
 
   const goTo = (next: number) => {
     setDir(next > sub ? 1 : -1);
@@ -357,6 +358,7 @@ export function PhotoScreen() {
     setUploadState('uploading');
     uploadMainPhoto(blob, sessionId)
       .then(({ publicId, secureUrl }) => {
+        if (cropApplied.current) return; // canvas crop already set a newer URL
         setCloudinaryPublicId(publicId);
         setDogPhotoUrl(secureUrl);
         setUploadState('done');
@@ -399,6 +401,7 @@ export function PhotoScreen() {
     try {
       const result = await canvasCropAndUpload(photoUrl!, certCrop, sessionId!);
       if (result) {
+        cropApplied.current = true;
         setCloudinaryPublicId(result.publicId);
         setDogPhotoUrl(result.secureUrl);
       }
