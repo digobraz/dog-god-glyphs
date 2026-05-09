@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { heroglyphSVGSmall, heroglyphSVGLarge } from '@/lib/heroglyphSVG';
+
 import { photoPositions, photos } from './godsData';
 
 const W  = 360;
@@ -12,7 +12,6 @@ const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
 
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
-const HEKTOR_CODE   = 'H-XY-M-L-E-08-00-XY-CH10-Z05-M-01-M-P-SVK-2017';
 
 const FLAG_NAMES: Record<string, string> = {
   sk: 'Slovensko',
@@ -77,26 +76,6 @@ function photoFor(col: number, row: number) {
   return photos[cellHash(col, row) % photos.length];
 }
 
-function fakeHeroglyphCode(name: string, hash: number): string {
-  const h2 = (hash * 1664525 + 1013904223) >>> 0;
-  const h3 = (h2 * 1664525 + 1013904223) >>> 0;
-  const initial = (name || 'X').trim().replace(/[^A-Za-z]/g, 'X').charAt(0).toUpperCase();
-  const G  = ['XY','XX'];
-  const CL = ['M','R','S'];
-  const F  = ['L','P'];
-  const B  = ['E','S'];
-  const ZC = ['01','02','03','04','05','06','07','08','09','10','11','12'];
-  const CH = ['W','H','M','P','G','L','C','A'];
-  const OI = 'ABCDEFGHJKLMNOPRSTUVZ';
-  const CC = ['SVK','CZE','HUN','AUT','POL','DEU','USA','GBR','FRA','ITA'];
-  return [
-    initial, G[hash%2], CL[h2%3], F[h3%2], B[hash%2],
-    String((h2%9+1)).padStart(2,'0'), String((h3%11+1)).padStart(2,'0'),
-    G[h2%2], `CH${ZC[hash%12]}`, `Z${ZC[h2%12]}`,
-    OI[h3%OI.length], String((h2%5+1)).padStart(2,'0'),
-    CH[hash%8], CH[h2%8], CC[h3%CC.length], String(2000+(hash%24)),
-  ].join('-');
-}
 
 export function GodsGrid() {
   const navigate = useNavigate();
@@ -203,12 +182,9 @@ export function GodsGrid() {
       el.className = 'dog-card hektor-card';
       el.style.left = '0px';
       el.style.top  = (-1 * GY) + 'px';
-      const svgSm = heroglyphSVGSmall(HEKTOR_CODE);
-      const svgLg = heroglyphSVGLarge(HEKTOR_CODE, 'FOUNDER');
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
-          ${svgLg}
           <div class="card-open-rank">FOUNDER</div>
           <div class="card-open-name">HEKTOR</div>
         </div>
@@ -218,7 +194,6 @@ export function GodsGrid() {
           <div class="card-rank card-rank-gold">FOUNDER</div>
           <div class="card-label hektor-label">HEKTOR</div>
         </div>
-        <div class="card-hover-content">${svgSm}</div>
       `;
       el.querySelector('.card-info')?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -263,14 +238,10 @@ export function GodsGrid() {
       const hash = cellHash(col, row);
       const p = photos[hash % photos.length];
       const packNum = (hash % 950) + 50;
-      const code = fakeHeroglyphCode(p.n, hash);
-      const cc = 'sk'; // static default; DB cards will pass dog.country
+      const cc = 'sk';
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc(p.n.toUpperCase());
       const pos = getPos(p.f);
-
-      const svgSm = heroglyphSVGSmall(code);
-      const svgLg = heroglyphSVGLarge(code, packNum);
 
       const el = document.createElement('article');
       el.className = 'dog-card';
@@ -279,7 +250,6 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
         <div class="card-open-overlay">
-          ${svgLg}
           <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
         </div>
@@ -289,7 +259,6 @@ export function GodsGrid() {
           <div class="card-rank">#${packNum}</div>
           <div class="card-label">${safeName}</div>
         </div>
-        <div class="card-hover-content">${svgSm}</div>
       `;
       el.querySelector('.card-info')?.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -763,20 +732,7 @@ export function GodsGrid() {
           white-space: nowrap;
         }
 
-        /* Hover content: heroglyph SVG, appears on hover */
-        .card-hover-content {
-          position: absolute;
-          bottom: 14px;
-          left: 50%;
-          transform: translateX(-50%);
-          z-index: 3;
-          opacity: 0;
-          will-change: opacity;
-          transition: opacity 220ms ease;
-          pointer-events: none;
-        }
-        .dog-card:not(.is-open):hover .card-hover-content { opacity: 1; }
-        .is-dragging .dog-card .card-hover-content { opacity: 0 !important; }
+
 
         /* Click (open) overlay */
         .card-open-overlay {
