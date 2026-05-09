@@ -44,11 +44,13 @@ const slideVariants = {
 function CropArea({
   src,
   shape,
+  overlayCircle,
   value,
   onChange,
 }: {
   src: string;
   shape: 'circle' | 'square';
+  overlayCircle?: boolean;
   value: { x: number; y: number; zoom: number };
   onChange: (v: { x: number; y: number; zoom: number }) => void;
 }) {
@@ -69,7 +71,7 @@ function CropArea({
     const size = Math.min(rect.width, rect.height);
     const dx = ((e.clientX - dragStart.current.x) / size) * 100;
     const dy = ((e.clientY - dragStart.current.y) / size) * 100;
-    const maxOffset = ((value.zoom - 1) / value.zoom) * 50;
+    const maxOffset = (value.zoom - 1) * 50;
     onChange({
       ...value,
       x: clamp(dragStart.current.ox + dx, -maxOffset, maxOffset),
@@ -84,7 +86,7 @@ function CropArea({
   const handleWheel = (e: React.WheelEvent) => {
     e.stopPropagation();
     const newZoom = clamp(value.zoom - e.deltaY * 0.002, 1, 4);
-    const maxOffset = ((newZoom - 1) / newZoom) * 50;
+    const maxOffset = (newZoom - 1) * 50;
     onChange({
       x: clamp(value.x, -maxOffset, maxOffset),
       y: clamp(value.y, -maxOffset, maxOffset),
@@ -120,6 +122,16 @@ function CropArea({
             transform: `translate(${value.x}%, ${value.y}%) scale(${value.zoom})`,
           }}
         />
+        {overlayCircle && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              borderRadius: '50%',
+              border: '2px dashed hsl(var(--gold) / 0.8)',
+              boxShadow: 'inset 0 0 0 9999px hsl(0 0% 0% / 0.35)',
+            }}
+          />
+        )}
       </div>
       {/* zoom slider */}
       <input
@@ -129,7 +141,7 @@ function CropArea({
         value={value.zoom * 100}
         onChange={(e) => {
           const z = Number(e.target.value) / 100;
-          const maxOffset = ((z - 1) / z) * 50;
+          const maxOffset = (z - 1) * 50;
           const cl = (v: number) => clamp(v, -maxOffset, maxOffset);
           onChange({ x: cl(value.x), y: cl(value.y), zoom: z });
         }}
@@ -268,7 +280,6 @@ export function PhotoScreen() {
   const [fileName, setFileName] = useState('');
   const [lowRes, setLowRes] = useState(false);
   const [certCrop, setCertCrop] = useState({ x: 0, y: 0, zoom: 1 });
-  const [gridCrop, setGridCrop] = useState({ x: 0, y: 0, zoom: 1 });
   const [extras, setExtras] = useState<string[]>([]);
   const [gdpr, setGdpr] = useState(false);
   const [uploadState, setUploadState] = useState<UploadState>('idle');
@@ -337,7 +348,7 @@ export function PhotoScreen() {
 
   const finish = () => {
     setCertCropData(certCrop);
-    setGridCropData(gridCrop);
+    setGridCropData(certCrop);
     setExtraPhotos(extras);
     setCloudinaryExtraPublicIds(extraPublicIds.current);
     setGdprConsent(gdpr);
@@ -353,21 +364,12 @@ export function PhotoScreen() {
     </>
   );
 
-  const renderCertCrop = () => (
+  const renderCrop = () => (
     <>
       {photoUrl && (
-        <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />
+        <CropArea src={photoUrl} shape="square" overlayCircle value={certCrop} onChange={setCertCrop} />
       )}
       <BackNextButtons onBack={() => goTo(0)} onNext={() => goTo(2)} />
-    </>
-  );
-
-  const renderGridCrop = () => (
-    <>
-      {photoUrl && (
-        <CropArea src={photoUrl} shape="square" value={gridCrop} onChange={setGridCrop} />
-      )}
-      <BackNextButtons onBack={() => goTo(1)} onNext={() => goTo(3)} />
     </>
   );
 
@@ -412,13 +414,13 @@ export function PhotoScreen() {
       <input ref={extraRef} type="file" accept="image/*" onChange={handleExtraUpload} className="hidden" />
 
       <BackNextButtons
-        onBack={() => goTo(0)}
+        onBack={() => goTo(1)}
         onNext={finish}
       />
     </>
   );
 
-  const screens = [renderUpload, renderCertCrop, renderGridCrop, renderExtras];
+  const screens = [renderUpload, renderCrop, renderExtras];
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
@@ -471,7 +473,7 @@ export function PhotoScreen() {
                 </div>
 
                 {/* Dots nav */}
-                <Dots total={4} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+                <Dots total={3} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
 
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div
@@ -553,7 +555,7 @@ export function PhotoScreen() {
                 {/* file input */}
                 {renderUpload()}
               </motion.div>
-            ) : sub >= 1 && sub <= 3 ? (
+            ) : sub >= 1 && sub <= 2 ? (
               <motion.div
                 key={sub}
                 custom={dir}
@@ -575,23 +577,21 @@ export function PhotoScreen() {
                       className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      {sub === 1 ? 'SEAL THE PORTRAIT' : sub === 2 ? 'THE HALL OF GODS' : 'MORE FACES OF THE GOD'}
+                      {sub === 1 ? 'ADJUST YOUR PORTRAIT' : 'MORE FACES OF THE GOD'}
                     </h2>
                     <p
                       className="text-white/70 text-sm text-center"
                       style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       {sub === 1
-                        ? 'This will appear in your official Heroglyph certificate.'
-                        : sub === 2
-                          ? "Square crop for the gods' hall of fame."
-                          : 'Add 1–3 more photos for surprises later. (optional)'}
+                        ? 'Drag to position your dog within the frame.'
+                        : 'Add 1–3 more photos for surprises later. (optional)'}
                     </p>
                   </div>
                 </div>
 
                 {/* Dots nav */}
-                <Dots total={4} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+                <Dots total={3} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
 
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div

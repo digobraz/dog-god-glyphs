@@ -173,10 +173,17 @@ function SlotImage({ x, y, w, h, src }: { x: number; y: number; w: number; h: nu
 
 interface VerticalHeroglyphFrameProps {
   className?: string;
+  /** When provided, overrides the Zustand store — use for rendering arbitrary dog heroglyphs */
+  data?: {
+    selections: Record<string, string>;
+    ownerName?: string;
+    patronSvg?: string;
+  };
 }
 
-export function VerticalHeroglyphFrame({ className = '' }: VerticalHeroglyphFrameProps) {
-  const { selections, ownerName, patronSvg } = useDogyptStore();
+export function VerticalHeroglyphFrame({ className = '', data }: VerticalHeroglyphFrameProps) {
+  const store = useDogyptStore();
+  const { selections, ownerName, patronSvg } = data || store;
 
   const ownerGenderSrc = genderMap[selections.ownerGender];
   const chineseZodiacSrc = chineseMap[selections.ownerChineseZodiac];

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { heroglyphSVGSmall, heroglyphSVGLarge } from '@/lib/heroglyphSVG';
 import { photoPositions, photos } from './godsData';
 
 const W  = 360;
@@ -11,6 +12,7 @@ const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
 
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
+const HEKTOR_CODE   = 'H-XY-M-L-E-08-00-XY-CH10-Z05-M-01-M-P-SVK-2017';
 
 const FLAG_NAMES: Record<string, string> = {
   sk: 'Slovensko',
@@ -25,8 +27,38 @@ const FLAG_NAMES: Record<string, string> = {
   it: 'Taliansko',
 };
 
-function flagFor(_col: number, _row: number) {
-  return 'sk';
+function countryToISO2(country?: string | null): string {
+  if (!country) return 'sk';
+  const MAP: Record<string, string> = {
+    'slovakia':'sk','slovensko':'sk','svk':'sk','sk':'sk',
+    'czechia':'cz','czech republic':'cz','česko':'cz','cze':'cz','cz':'cz',
+    'hungary':'hu','maďarsko':'hu','hun':'hu',
+    'austria':'at','rakúsko':'at','aut':'at',
+    'poland':'pl','poľsko':'pl','pol':'pl',
+    'germany':'de','nemecko':'de','deu':'de',
+    'france':'fr','francúzsko':'fr','fra':'fr',
+    'italy':'it','taliansko':'it','ita':'it',
+    'spain':'es','španielsko':'es','esp':'es',
+    'united states':'us','usa':'us',
+    'united kingdom':'gb','uk':'gb','gbr':'gb',
+    'ireland':'ie','irl':'ie',
+    'netherlands':'nl','nld':'nl',
+    'switzerland':'ch','che':'ch',
+    'sweden':'se','swe':'se',
+    'norway':'no','nor':'no',
+    'denmark':'dk','dnk':'dk',
+    'finland':'fi','fin':'fi',
+    'australia':'au','aus':'au',
+    'canada':'ca','can':'ca',
+    'ukraine':'ua','ukr':'ua',
+    'romania':'ro','rou':'ro',
+    'croatia':'hr','hrv':'hr',
+  };
+  return MAP[country.trim().toLowerCase()] || 'sk';
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function getPos(filename: string): string {
@@ -34,12 +66,36 @@ function getPos(filename: string): string {
   return photoPositions[key] || '50% 50%';
 }
 
-function photoFor(col: number, row: number) {
+function cellHash(col: number, row: number): number {
   const c = col + 500;
   const r = row + 500;
   let h = (c * 374761393 + r * 1013904223 + (c ^ r) * 2246822519) >>> 0;
-  h = (h ^ (h >>> 16)) >>> 0;
-  return photos[h % photos.length];
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+function photoFor(col: number, row: number) {
+  return photos[cellHash(col, row) % photos.length];
+}
+
+function fakeHeroglyphCode(name: string, hash: number): string {
+  const h2 = (hash * 1664525 + 1013904223) >>> 0;
+  const h3 = (h2 * 1664525 + 1013904223) >>> 0;
+  const initial = (name || 'X').trim().replace(/[^A-Za-z]/g, 'X').charAt(0).toUpperCase();
+  const G  = ['XY','XX'];
+  const CL = ['M','R','S'];
+  const F  = ['L','P'];
+  const B  = ['E','S'];
+  const ZC = ['01','02','03','04','05','06','07','08','09','10','11','12'];
+  const CH = ['W','H','M','P','G','L','C','A'];
+  const OI = 'ABCDEFGHJKLMNOPRSTUVZ';
+  const CC = ['SVK','CZE','HUN','AUT','POL','DEU','USA','GBR','FRA','ITA'];
+  return [
+    initial, G[hash%2], CL[h2%3], F[h3%2], B[hash%2],
+    String((h2%9+1)).padStart(2,'0'), String((h3%11+1)).padStart(2,'0'),
+    G[h2%2], `CH${ZC[hash%12]}`, `Z${ZC[h2%12]}`,
+    OI[h3%OI.length], String((h2%5+1)).padStart(2,'0'),
+    CH[hash%8], CH[h2%8], CC[h3%CC.length], String(2000+(hash%24)),
+  ].join('-');
 }
 
 export function GodsGrid() {
@@ -72,8 +128,8 @@ export function GodsGrid() {
   useEffect(() => {
     if (!revealData.active) return;
     setRevealStep(1);
-    const t1 = setTimeout(() => setRevealStep(2), 2000);  // symbol done → only photo
-    const t2 = setTimeout(() => setRevealStep(3), 4200);  // +2.2s → grid appears
+    const t1 = setTimeout(() => setRevealStep(2), 2000);
+    const t2 = setTimeout(() => setRevealStep(3), 4200);
     const t3 = setTimeout(() => {
       setRevealStep(4);
       window.history.replaceState(null, '', '/');
@@ -81,7 +137,6 @@ export function GodsGrid() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [revealData.active]);
 
-  // Activate card animation when photo appears
   useEffect(() => {
     if (revealStep === 2) {
       const card = document.querySelector('.reveal-card');
@@ -109,6 +164,23 @@ export function GodsGrid() {
     let raf: number | null = null;
     const cells = new Map<string, HTMLElement>();
 
+    // Click/tap tracking
+    let downX = 0, downY = 0;
+    let touchDownX = 0, touchDownY = 0;
+    let openCardEl: HTMLElement | null = null;
+
+    function toggleCard(card: HTMLElement) {
+      const opening = !card.classList.contains('is-open');
+      if (openCardEl && openCardEl !== card) openCardEl.classList.remove('is-open');
+      if (opening) {
+        card.classList.add('is-open');
+        openCardEl = card;
+      } else {
+        card.classList.remove('is-open');
+        openCardEl = null;
+      }
+    }
+
     function makeHeroCard() {
       const el = document.createElement('div');
       el.className = 'center-hero';
@@ -131,12 +203,27 @@ export function GodsGrid() {
       el.className = 'dog-card hektor-card';
       el.style.left = '0px';
       el.style.top  = (-1 * GY) + 'px';
+      const svgSm = heroglyphSVGSmall(HEKTOR_CODE);
+      const svgLg = heroglyphSVGLarge(HEKTOR_CODE, 'FOUNDER');
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
-        <button class="card-info" data-info aria-label="Info">i</button>
+        <div class="card-open-overlay">
+          ${svgLg}
+          <div class="card-open-rank">FOUNDER</div>
+          <div class="card-open-name">HEKTOR</div>
+        </div>
+        <button class="card-info" aria-label="Info">i</button>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
-        <div class="card-label hektor-label">HEKTOR</div>
+        <div class="card-name-block">
+          <div class="card-rank card-rank-gold">FOUNDER</div>
+          <div class="card-label hektor-label">HEKTOR</div>
+        </div>
+        <div class="card-hover-content">${svgSm}</div>
       `;
+      el.querySelector('.card-info')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCard(el);
+      });
       return el;
     }
 
@@ -154,7 +241,6 @@ export function GodsGrid() {
         ${inner}
         <div class="card-label">${safeName} · #${revealData.packNumber}</div>
       `;
-      // Image-load fallback: if the URL 404s or decode fails, swap to cartouche.
       if (revealData.photoUrl) {
         const probe = new Image();
         probe.src = revealData.photoUrl;
@@ -173,19 +259,42 @@ export function GodsGrid() {
       if (col === 0 && row === 0) return makeHeroCard();
       if (col === 0 && row === -1) return makeHektorCard();
       if (revealData.active && col === REVEAL_COL && row === REVEAL_ROW) return makeRevealCard();
-      const p = photoFor(col, row);
+
+      const hash = cellHash(col, row);
+      const p = photos[hash % photos.length];
+      const packNum = (hash % 950) + 50;
+      const code = fakeHeroglyphCode(p.n, hash);
+      const cc = 'sk'; // static default; DB cards will pass dog.country
+      const flagName = FLAG_NAMES[cc] || cc;
+      const safeName = esc(p.n.toUpperCase());
+      const pos = getPos(p.f);
+
+      const svgSm = heroglyphSVGSmall(code);
+      const svgLg = heroglyphSVGLarge(code, packNum);
+
       const el = document.createElement('article');
       el.className = 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
-      const pos = getPos(p.f);
-      const cc = flagFor(col, row);
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
-        <button class="card-info" data-info aria-label="Info">i</button>
-        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${FLAG_NAMES[cc] || cc}" title="${FLAG_NAMES[cc] || cc}" loading="lazy" draggable="false">
-        <div class="card-label">${p.n}</div>
+        <div class="card-open-overlay">
+          ${svgLg}
+          <div class="card-open-rank">#${packNum}</div>
+          <div class="card-open-name">${safeName}</div>
+        </div>
+        <button class="card-info" aria-label="Info">i</button>
+        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
+        <div class="card-name-block">
+          <div class="card-rank">#${packNum}</div>
+          <div class="card-label">${safeName}</div>
+        </div>
+        <div class="card-hover-content">${svgSm}</div>
       `;
+      el.querySelector('.card-info')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCard(el);
+      });
       return el;
     }
 
@@ -237,8 +346,15 @@ export function GodsGrid() {
     const onMouseDown = (e: MouseEvent) => {
       if (raf) cancelAnimationFrame(raf);
       const target = e.target as HTMLElement;
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn') || target.closest('.card-info')) return;
+      // Close open card if clicking outside it
+      if (openCardEl && !openCardEl.contains(target)) {
+        openCardEl.classList.remove('is-open');
+        openCardEl = null;
+      }
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn')) return;
       dragging = true;
+      downX = e.clientX;
+      downY = e.clientY;
       startX = e.clientX - ox;
       startY = e.clientY - oy;
       prevX = e.clientX; prevY = e.clientY; prevT = performance.now();
@@ -257,11 +373,22 @@ export function GodsGrid() {
       oy = e.clientY - startY;
       render();
     };
-    const onMouseUp = () => {
+    const onMouseUp = (e: MouseEvent) => {
       if (!dragging) return;
       dragging = false;
       app!.classList.remove('is-dragging');
       document.body.style.cursor = 'default';
+
+      const dist = Math.hypot(e.clientX - downX, e.clientY - downY);
+      if (dist < 6) {
+        // Click: find dog card (not hero widget, not card-info which has its own handler)
+        const target = e.target as HTMLElement;
+        if (!target.closest('.card-info')) {
+          const card = target.closest('.dog-card:not(.center-hero)') as HTMLElement | null;
+          if (card) { toggleCard(card); return; }
+        }
+        return; // don't start inertia on click
+      }
       raf = requestAnimationFrame(inertia);
     };
 
@@ -269,6 +396,8 @@ export function GodsGrid() {
       if (raf) cancelAnimationFrame(raf);
       const t = e.touches[0];
       dragging = true;
+      touchDownX = t.clientX;
+      touchDownY = t.clientY;
       startX = t.clientX - ox;
       startY = t.clientY - oy;
       prevX = t.clientX; prevY = t.clientY; prevT = performance.now();
@@ -287,9 +416,32 @@ export function GodsGrid() {
       oy = t.clientY - startY;
       render();
     };
-    const onTouchEnd = () => {
+    const onTouchEnd = (e: TouchEvent) => {
       dragging = false;
       app!.classList.remove('is-dragging');
+
+      if (e.changedTouches.length > 0) {
+        const t = e.changedTouches[0];
+        const dist = Math.hypot(t.clientX - touchDownX, t.clientY - touchDownY);
+        if (dist < 12) {
+          // Tap: close open card if tapping outside, or toggle tapped card
+          if (openCardEl) {
+            const el = document.elementFromPoint(t.clientX, t.clientY);
+            if (el && openCardEl.contains(el)) {
+              // tap inside open card → close it
+              openCardEl.classList.remove('is-open');
+              openCardEl = null;
+              return;
+            }
+            openCardEl.classList.remove('is-open');
+            openCardEl = null;
+          }
+          const el = document.elementFromPoint(t.clientX, t.clientY);
+          const card = (el as HTMLElement | null)?.closest?.('.dog-card:not(.center-hero)') as HTMLElement | null;
+          if (card) { toggleCard(card); return; }
+          return;
+        }
+      }
       raf = requestAnimationFrame(inertia);
     };
 
@@ -519,6 +671,7 @@ export function GodsGrid() {
           will-change: transform;
         }
 
+        /* ── Dog card base ── */
         .dog-card {
           position: absolute;
           width: 360px;
@@ -529,17 +682,73 @@ export function GodsGrid() {
           transition: transform 150ms ease, box-shadow 150ms ease;
         }
         .is-dragging .dog-card { cursor: pointer; transition: none; }
-        .dog-card:hover { transform: scale(1.08); box-shadow: 0 8px 32px rgba(0,0,0,0.2); z-index: 5; }
+
+        /* Hover: scale + gradient darkening (suppressed on open card & during drag) */
+        .dog-card:not(.is-open):hover {
+          transform: scale(1.08);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+          z-index: 5;
+        }
         .is-dragging .dog-card:hover { transform: none; box-shadow: none; }
+
+        /* Gradient overlay via ::after — appears on hover */
+        .dog-card::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            to bottom,
+            rgba(0,0,0,0.28) 0%,
+            rgba(0,0,0,0.56) 55%,
+            rgba(0,0,0,0.86) 100%
+          );
+          opacity: 0;
+          will-change: opacity;
+          transition: opacity 220ms ease;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .dog-card:not(.is-open):hover::after { opacity: 1; }
+        .is-dragging .dog-card::after { opacity: 0 !important; }
+
+        /* Elements that hide on hover (and on open) */
+        .card-info, .card-flag, .card-name-block {
+          will-change: opacity;
+          transition: opacity 160ms ease;
+        }
+        .dog-card:not(.is-open):hover .card-info,
+        .dog-card:not(.is-open):hover .card-flag,
+        .dog-card:not(.is-open):hover .card-name-block { opacity: 0; }
+        .is-dragging .dog-card .card-info,
+        .is-dragging .dog-card .card-flag,
+        .is-dragging .dog-card .card-name-block { opacity: 1 !important; }
 
         .card-img {
           width: 100%; height: 100%;
           background-size: cover;
           background-color: #1a1a1a;
         }
-        .card-label {
+
+        /* Name block (default state, bottom-left) */
+        .card-name-block {
           position: absolute;
           bottom: 8px; left: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          z-index: 2;
+        }
+        .card-rank {
+          font-family: 'Cinzel', serif;
+          font-size: 0.6rem;
+          font-weight: 700;
+          color: #C99A3F;
+          letter-spacing: 0.08em;
+          text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+          line-height: 1;
+        }
+        .card-rank-gold { color: #C99A3F; }
+        .card-label {
           height: 28px;
           padding: 0 10px;
           background: rgba(30,30,30,0.35);
@@ -551,6 +760,74 @@ export function GodsGrid() {
           letter-spacing: 0.06em;
           display: flex; align-items: center;
           backdrop-filter: blur(6px);
+          white-space: nowrap;
+        }
+
+        /* Hover content: heroglyph SVG, appears on hover */
+        .card-hover-content {
+          position: absolute;
+          bottom: 14px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 3;
+          opacity: 0;
+          will-change: opacity;
+          transition: opacity 220ms ease;
+          pointer-events: none;
+        }
+        .dog-card:not(.is-open):hover .card-hover-content { opacity: 1; }
+        .is-dragging .dog-card .card-hover-content { opacity: 0 !important; }
+
+        /* Click (open) overlay */
+        .card-open-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.88);
+          border-radius: inherit;
+          z-index: 6;
+          opacity: 0;
+          pointer-events: none;
+          will-change: opacity;
+          transition: opacity 220ms ease;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 16px;
+          overflow: hidden;
+        }
+        .dog-card.is-open .card-open-overlay { opacity: 1; pointer-events: auto; }
+        .dog-card.is-open { z-index: 8; }
+        .dog-card.is-open .card-info,
+        .dog-card.is-open .card-flag,
+        .dog-card.is-open .card-name-block { opacity: 0; }
+
+        .card-open-rank {
+          font-family: 'Cinzel', serif;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #C99A3F;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          margin-top: 4px;
+        }
+        .card-open-name {
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.92);
+          letter-spacing: 0.08em;
+          text-align: center;
+        }
+        .card-open-msg {
+          font-size: 0.7rem;
+          color: rgba(255,255,255,0.6);
+          text-align: center;
+          line-height: 1.55;
+          max-width: 280px;
+          font-style: italic;
+          margin-top: 2px;
         }
 
         .card-flag {
@@ -566,6 +843,7 @@ export function GodsGrid() {
           pointer-events: auto;
           cursor: help;
           background: #1a1a1a;
+          z-index: 2;
         }
         .card-info {
           position: absolute;
@@ -587,10 +865,12 @@ export function GodsGrid() {
           border: 1px solid rgba(255,255,255,0.25);
           cursor: pointer;
           padding: 0;
-          transition: background 150ms ease;
+          transition: background 150ms ease, opacity 160ms ease;
+          z-index: 2;
         }
         .card-info:hover { background: rgba(60,60,60,0.75); }
 
+        /* ── Center hero ── */
         .center-hero {
           position: absolute;
           z-index: 2;
@@ -661,9 +941,7 @@ export function GodsGrid() {
           transform: scale(1.04);
           box-shadow: 0 0 56px rgba(230, 158, 26, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
-        .join-btn:active {
-          transform: scale(0.98);
-        }
+        .join-btn:active { transform: scale(0.98); }
         .hero-count {
           font-size: 0.95rem;
           color: rgba(255,255,255,0.85);
@@ -692,7 +970,7 @@ export function GodsGrid() {
           animation: hektor-glow-loop 4.5s ease-in-out infinite;
           z-index: 4;
         }
-        .hektor-card:hover {
+        .hektor-card:not(.is-open):hover {
           transform: scale(1.06);
           box-shadow:
             0 0 0 3px rgba(244,199,90,1),
@@ -774,8 +1052,6 @@ export function GodsGrid() {
           z-index: 10;
         }
 
-        /* Brand rune – burned into photo, pulses forever */
-
         /* ── Reveal sequence overlay ── */
         .rev-overlay {
           position: fixed;
@@ -791,7 +1067,6 @@ export function GodsGrid() {
         .rev-overlay.step-2 { background: transparent; }
         .rev-overlay.step-3 { background: transparent; }
 
-        /* Square spotlight: box-shadow covers everything OUTSIDE 360x360 center */
         .rev-spotlight {
           position: absolute;
           top: 50%; left: 50%;
@@ -811,7 +1086,6 @@ export function GodsGrid() {
           transition: opacity 1400ms ease;
         }
 
-        /* Symbol: black SVG → gold via invert+filter, burns in, gone before photo */
         .rev-big-symbol {
           width: 420px;
           height: auto;
