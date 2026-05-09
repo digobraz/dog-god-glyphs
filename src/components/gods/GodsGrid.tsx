@@ -863,19 +863,10 @@ export function GodsGrid() {
         }
         .dog-card.is-open .card-open-overlay { opacity: 1; pointer-events: auto; }
         .dog-card.is-open { z-index: 8; }
-        .dog-card.is-open .card-info,
+        .dog-card.is-open .card-rank-top,
         .dog-card.is-open .card-flag,
         .dog-card.is-open .card-name-block { opacity: 0; }
 
-        .card-open-rank {
-          font-family: 'Cinzel', serif;
-          font-size: 0.7rem;
-          font-weight: 700;
-          color: #C99A3F;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          margin-top: 4px;
-        }
         .card-open-name {
           font-family: 'Cinzel Decorative', 'Cinzel', serif;
           font-size: 0.95rem;
