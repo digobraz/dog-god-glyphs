@@ -3,6 +3,37 @@ import { useNavigate } from 'react-router-dom';
 
 import { photoPositions, photos } from './godsData';
 
+const GRID_DOGS_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs';
+
+interface RealDog {
+  id: string;
+  dog_name: string | null;
+  pack_number: number | null;
+  cloudinary_main_url: string | null;
+  patron_svg: string | null;
+  country: string | null;
+}
+
+function generatePackPositions(count: number): Array<{col: number, row: number}> {
+  const skip = new Set(['0,0', '0,-1']);
+  const result: Array<{col: number, row: number}> = [];
+  let col = 0, row = 0;
+  let dx = 1, dy = 0;
+  let steps = 1, stepCount = 0, turns = 0;
+  while (result.length < count) {
+    if (!skip.has(`${col},${row}`)) result.push({col, row});
+    col += dx; row += dy;
+    stepCount++;
+    if (stepCount === steps) {
+      stepCount = 0;
+      [dx, dy] = [-dy, dx];
+      turns++;
+      if (turns % 2 === 0) steps++;
+    }
+  }
+  return result;
+}
+
 const W  = 360;
 const H  = 360;
 const GX = W + 64;
@@ -83,6 +114,8 @@ export function GodsGrid() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
+  const [dogsReady, setDogsReady] = useState(false);
+  const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
 
   const revealData = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -97,6 +130,28 @@ export function GodsGrid() {
       packNumber: isDemo ? String(photos.length) : (params.get('packNumber') || String(photos.length + 1)),
       revealSymbol: patronFile ? `/patrons/${patronFile}` : REVEAL_SYMBOL,
     };
+  }, []);
+
+  // Load real dogs for the grid
+  useEffect(() => {
+    fetch(GRID_DOGS_URL)
+      .then(r => r.ok ? r.json() : [])
+      .then((dogs: RealDog[]) => {
+        if (dogs.length > 0) {
+          const maxN = dogs.reduce((m, d) => Math.max(m, d.pack_number ?? 0), 0);
+          const positions = generatePackPositions(maxN + 5);
+          const map = new Map<string, RealDog>();
+          for (const dog of dogs) {
+            const n = dog.pack_number;
+            if (n && n >= 1 && n - 1 < positions.length) {
+              map.set(`${positions[n - 1].col},${positions[n - 1].row}`, dog);
+            }
+          }
+          realDogMapRef.current = map;
+        }
+        setDogsReady(true);
+      })
+      .catch(() => setDogsReady(true));
   }, []);
 
   // Reveal sequence timing
@@ -124,6 +179,7 @@ export function GodsGrid() {
   }, [revealStep]);
 
   useEffect(() => {
+    if (!dogsReady) return;
     const app = appRef.current;
     const canvas = canvasRef.current;
     if (!app || !canvas) return;
@@ -233,10 +289,47 @@ export function GodsGrid() {
       return el;
     }
 
+    function makeRealDogCard(dog: RealDog, col: number, row: number) {
+      const cc = countryToISO2(dog.country);
+      const flagName = FLAG_NAMES[cc] || cc;
+      const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
+      const packNum = dog.pack_number ?? '?';
+
+      const el = document.createElement('article');
+      el.className = 'dog-card';
+      el.style.left = (col * GX) + 'px';
+      el.style.top  = (row * GY) + 'px';
+      el.innerHTML = `
+        <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
+        <div class="card-open-overlay">
+          <div class="card-open-rank">#${packNum}</div>
+          <div class="card-open-name">${safeName}</div>
+        </div>
+        <button class="card-info" aria-label="Info">i</button>
+        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
+        ${dog.patron_svg ? `
+        <div class="dog-heroglyph-wrap">
+          <img class="dog-heroglyph" src="/patrons/${esc(dog.patron_svg)}" alt="${safeName} heroglyph" draggable="false">
+        </div>` : ''}
+        <div class="card-name-block">
+          <div class="card-rank">#${packNum}</div>
+          <div class="card-label">${safeName}</div>
+        </div>
+      `;
+      el.querySelector('.card-info')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleCard(el);
+      });
+      return el;
+    }
+
     function makeCard(col: number, row: number) {
       if (col === 0 && row === 0) return makeHeroCard();
       if (col === 0 && row === -1) return makeHektorCard();
       if (revealData.active && col === REVEAL_COL && row === REVEAL_ROW) return makeRevealCard();
+
+      const realDog = realDogMapRef.current.get(`${col},${row}`);
+      if (realDog) return makeRealDogCard(realDog, col, row);
 
       const hash = cellHash(col, row);
       const p = photos[hash % photos.length];
@@ -480,7 +573,7 @@ export function GodsGrid() {
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate]);
+  }, [navigate, dogsReady]);
 
   return (
     <>
@@ -967,6 +1060,35 @@ export function GodsGrid() {
         .hektor-card:not(.is-open):hover .hektor-heroglyph-wrap { opacity: 1; }
         .is-dragging .hektor-heroglyph-wrap { opacity: 0 !important; }
         .hektor-heroglyph {
+          width: 100%;
+          height: auto;
+          display: block;
+          pointer-events: none;
+          filter:
+            brightness(0) invert(1)
+            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
+            drop-shadow(0 0 14px rgba(201,154,63,0.95))
+            drop-shadow(0 0 32px rgba(201,154,63,0.55));
+        }
+
+        /* ── Real dog heroglyph — hover only, centered ── */
+        .dog-heroglyph-wrap {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: calc(100% - 32px);
+          z-index: 4;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 220ms ease;
+        }
+        .dog-card:not(.is-open):hover .dog-heroglyph-wrap { opacity: 1; }
+        .is-dragging .dog-heroglyph-wrap { opacity: 0 !important; }
+        .dog-heroglyph {
           width: 100%;
           height: auto;
           display: block;
