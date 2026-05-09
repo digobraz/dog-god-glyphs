@@ -252,7 +252,6 @@ export function GodsGrid() {
           <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
         </div>
-        <button class="card-info" aria-label="Info">i</button>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
           <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
@@ -262,10 +261,6 @@ export function GodsGrid() {
           <div class="card-label hektor-label">HEKTHOR</div>
         </div>
       `;
-      el.querySelector('.card-info')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleCard(el);
-      });
       return el;
     }
 
