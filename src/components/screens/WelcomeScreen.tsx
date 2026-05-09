@@ -7,6 +7,7 @@ import { CertificateCard } from '@/components/CertificateCard';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { GoldParticles } from '@/components/GoldParticles';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
@@ -296,23 +297,24 @@ export function WelcomeScreen() {
     navigate(`/grid?${params.toString()}`);
   }, [navigate, dogName, packNumber, photoUrl]);
 
-  const [showOverlay, setShowOverlay] = useState(true);
+  const [phase, setPhase] = useState<'overlay' | 'reveal' | 'main'>('overlay');
 
   useEffect(() => {
-    const t = setTimeout(() => setShowOverlay(false), 3000);
-    return () => clearTimeout(t);
+    const t1 = setTimeout(() => setPhase('reveal'), 3000);
+    const t2 = setTimeout(() => setPhase('main'), 6500);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // Counter only starts after overlay dismisses
+  // Counter only starts after reveal dismisses
   const { display: packDisplay, landed } = useAnimatedCounter(
-    !showOverlay ? (packNumber ?? 0) : 0,
+    phase === 'main' ? (packNumber ?? 0) : 0,
     reduced
   );
 
   return (
     <div className="dark-bg min-h-[100dvh] overflow-y-auto overflow-x-hidden relative">
       <AnimatePresence>
-        {showOverlay && (
+        {phase === 'overlay' && (
           <motion.div
             className="z-50 dark-bg"
             style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -322,9 +324,7 @@ export function WelcomeScreen() {
           >
             <div className="flex flex-col items-center text-center gap-3"
               style={{ background: 'rgba(245,235,210,0.97)', borderRadius: 16, padding: '32px 40px', maxWidth: 300, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-              {/* iOS-style screen record tap animation with REC label */}
               <ScreenRecordTapAnimation />
-
               <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
                 RECORD THIS MOMENT
               </h2>
@@ -336,7 +336,76 @@ export function WelcomeScreen() {
         )}
       </AnimatePresence>
 
-      {!showOverlay && (
+      <AnimatePresence>
+        {phase === 'reveal' && (
+          <motion.div
+            key="heroglyph-reveal"
+            style={{ position: 'fixed', inset: 0, zIndex: 45, background: '#000', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <GoldParticles count={35} />
+
+            {/* Ambient glow pulse */}
+            <motion.div
+              animate={{ opacity: [0.15, 0.35, 0.15] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{
+                position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1,
+                background: 'radial-gradient(ellipse 80% 60% at 50% 50%, hsl(var(--gold) / 0.12) 0%, transparent 70%)',
+              }}
+            />
+
+            <motion.div
+              initial={{ scale: 0.82, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ duration: 1.1, type: 'spring', bounce: 0.25, delay: 0.15 }}
+              style={{ zIndex: 10, width: '100%', maxWidth: 540, padding: '0 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}
+            >
+              <img src={dogyptLogo} alt="DOGYPT" style={{ height: 36, objectFit: 'contain' }} />
+
+              <div style={{
+                borderRadius: 24, padding: 3,
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark) / 0.7), hsl(var(--gold)))',
+                boxShadow: '0 0 60px hsl(var(--gold) / 0.45), 0 0 120px hsl(var(--gold) / 0.15)',
+                width: '100%',
+              }}>
+                <div style={{ borderRadius: 21, background: '#06050a', padding: '20px 16px 16px' }}>
+                  <motion.h1
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.6 }}
+                    style={{
+                      textAlign: 'center', fontFamily: "'Cinzel', serif",
+                      fontSize: 'clamp(1rem, 4vw, 1.35rem)', fontWeight: 700,
+                      letterSpacing: '0.22em', textTransform: 'uppercase',
+                      color: 'hsl(var(--gold))',
+                      textShadow: '0 0 28px hsl(var(--gold) / 0.55)',
+                      marginBottom: 16,
+                    }}
+                  >
+                    {(dogName || 'YOUR DOG').toUpperCase()}'S HEROGLYPH
+                  </motion.h1>
+                  <HeroglyphFrame showOwner className="text-foreground" />
+                </div>
+              </div>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.0, duration: 0.7 }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'hsl(var(--gold) / 0.6)', letterSpacing: '0.18em', textTransform: 'uppercase' }}
+              >
+                YOUR ETERNAL SYMBOL IS READY
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {phase === 'main' && (
       <motion.div
         className="flex flex-col min-h-[100dvh]"
         initial={{ opacity: 0 }}
