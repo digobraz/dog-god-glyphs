@@ -1238,6 +1238,67 @@ export function GodsGrid() {
           animation: none;
         }
 
+        /* ── Filter / find dog by number ── */
+        .filter-btn {
+          position: fixed;
+          bottom: 16px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 50;
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          background: rgba(12,12,12,0.85);
+          backdrop-filter: blur(12px);
+          border: 1px solid rgba(201,154,63,0.35);
+          color: rgba(201,154,63,0.9);
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+          transition: border-color 150ms;
+        }
+        .filter-btn:hover { border-color: rgba(201,154,63,0.7); }
+        .filter-btn.active { border-color: rgba(201,154,63,0.9); }
+
+        .filter-panel {
+          position: fixed;
+          bottom: 68px;
+          left: 50%;
+          transform: translateX(-50%) translateY(6px);
+          z-index: 51;
+          background: rgba(12,12,12,0.95);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(201,154,63,0.45);
+          border-radius: 12px;
+          padding: 6px 14px 6px 10px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 200ms ease, transform 200ms ease;
+          min-width: 130px;
+        }
+        .filter-panel.open {
+          opacity: 1;
+          pointer-events: auto;
+          transform: translateX(-50%) translateY(0);
+        }
+        .filter-input {
+          background: transparent;
+          border: none;
+          outline: none;
+          color: white;
+          font-family: 'Cinzel', serif;
+          font-size: 0.85rem;
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          width: 80px;
+          -moz-appearance: textfield;
+        }
+        .filter-input::-webkit-outer-spin-button,
+        .filter-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .filter-input::placeholder { color: rgba(255,255,255,0.28); font-weight: 400; font-family: inherit; }
+
         @keyframes symbol-burn {
           0%   { opacity: 0;
                  filter: invert(1) brightness(0.2) blur(20px);
@@ -1282,20 +1343,54 @@ export function GodsGrid() {
         </div>
 
         <div className="nav-right">
-          <button className="subscribe-btn" onClick={() => navigate('/heroglyph/name')}>
-            Join
+          <button className="subscribe-btn" id="gods-center-btn">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M8 2V14M2 8H14"/>
+              <path d="M8 2V8M8 14V8M8 8H2M8 8H14"/>
             </svg>
+            Center
           </button>
         </div>
 
-        <button className="center-btn" id="gods-center-btn">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
-            <path d="M8 2V8M8 14V8M8 8H2M8 8H14"/>
+        <button
+          className={`filter-btn${filterOpen ? ' active' : ''}`}
+          onClick={() => setFilterOpen(f => !f)}
+          aria-label="Find dog by number"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="6.5" cy="6.5" r="4"/>
+            <path d="M10 10L14 14"/>
           </svg>
-          Center
         </button>
+
+        <div className={`filter-panel${filterOpen ? ' open' : ''}`}>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="rgba(201,154,63,0.7)" strokeWidth="2" strokeLinecap="round">
+            <circle cx="6.5" cy="6.5" r="4"/>
+            <path d="M10 10L14 14"/>
+          </svg>
+          <input
+            ref={filterInputRef}
+            className="filter-input"
+            type="number"
+            min="1"
+            placeholder="Dog #"
+            value={filterValue}
+            onChange={e => setFilterValue(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                const n = parseInt(filterValue, 10);
+                if (!isNaN(n) && n >= 1) {
+                  navigateToRef.current?.(n);
+                  setFilterOpen(false);
+                  setFilterValue('');
+                }
+              }
+              if (e.key === 'Escape') {
+                setFilterOpen(false);
+                setFilterValue('');
+              }
+            }}
+          />
+        </div>
 
         <div ref={appRef} role="application" style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
           <div ref={canvasRef} id="gods-canvas" />
