@@ -900,30 +900,20 @@ export function GodsGrid() {
           background: #1a1a1a;
           z-index: 2;
         }
-        .card-info {
+        .card-rank-top {
           position: absolute;
           top: 10px;
           left: 10px;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: rgba(20,20,20,0.55);
-          backdrop-filter: blur(6px);
-          color: #fff;
-          font-family: Georgia, 'Times New Roman', serif;
-          font-style: italic;
-          font-size: 13px;
-          line-height: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(255,255,255,0.25);
-          cursor: pointer;
-          padding: 0;
-          transition: background 150ms ease, opacity 160ms ease;
           z-index: 2;
+          font-family: 'Cinzel', serif;
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #C99A3F;
+          letter-spacing: 0.08em;
+          text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+          line-height: 1;
+          pointer-events: none;
         }
-        .card-info:hover { background: rgba(60,60,60,0.75); }
 
         /* ── Center hero ── */
         .center-hero {
