@@ -11,6 +11,7 @@ interface RealDog {
   pack_number: number | null;
   cloudinary_main_url: string | null;
   patron_svg: string | null;
+  heroglyph_png_url: string | null;
   country: string | null;
 }
 
@@ -308,7 +309,10 @@ export function GodsGrid() {
         </div>
         <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
-        ${dog.patron_svg ? `
+        ${dog.heroglyph_png_url ? `
+        <div class="dog-heroglyph-wrap">
+          <img class="dog-heroglyph" src="${esc(dog.heroglyph_png_url)}" alt="${safeName} heroglyph" draggable="false">
+        </div>` : dog.patron_svg ? `
         <div class="dog-heroglyph-wrap">
           <img class="dog-heroglyph" src="/patrons/${esc(dog.patron_svg)}" alt="${safeName} heroglyph" draggable="false">
         </div>` : ''}

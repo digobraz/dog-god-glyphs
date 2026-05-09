@@ -77,3 +77,22 @@ export const uploadVerticalPdf = (blob: Blob, sessionId: string) =>
 
 export const uploadHorizontalPdf = (blob: Blob, sessionId: string) =>
   uploadPdfBlob(blob, `tmp/${sessionId}/pdf`, 'heroglyph-horizontal');
+
+async function uploadPngBlob(blob: Blob, folder: string, publicId: string): Promise<CloudinaryResult> {
+  const fd = new FormData();
+  fd.append('file', blob, `${publicId}.png`);
+  fd.append('upload_preset', PRESET);
+  fd.append('folder', folder);
+  fd.append('public_id', publicId);
+
+  const res = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Cloudinary png ${res.status}: ${err}`);
+  }
+  const json = await res.json();
+  return { publicId: json.public_id, secureUrl: json.secure_url };
+}
+
+export const uploadHeroglyphPng = (blob: Blob, sessionId: string) =>
+  uploadPngBlob(blob, 'heroglyphs', sessionId);

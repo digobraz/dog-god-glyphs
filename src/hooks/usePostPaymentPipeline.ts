@@ -1,6 +1,7 @@
 import { useEffect, useRef, RefObject } from 'react';
+import { toPng } from 'html-to-image';
 import { renderPdfsSequential } from '@/services/pdfService';
-import { uploadCertPdf, uploadVerticalPdf, uploadHorizontalPdf } from '@/services/cloudinaryService';
+import { uploadCertPdf, uploadVerticalPdf, uploadHorizontalPdf, uploadHeroglyphPng } from '@/services/cloudinaryService';
 
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 const RENDER_DELAY_MS = 1500;
@@ -87,6 +88,21 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           }));
         }
 
+        // Capture heroglyph PNG from the horizontal frame SVG before PDF rendering
+        let heroglyphPngUrl = '';
+        try {
+          const svgEl = horizontalRef.current?.querySelector('svg') as HTMLElement | null;
+          if (svgEl) {
+            const dataUrl = await toPng(svgEl, { cacheBust: true, pixelRatio: 2, backgroundColor: undefined });
+            const pngRes = await fetch(dataUrl);
+            const pngBlob = await pngRes.blob();
+            const pngResult = await uploadHeroglyphPng(pngBlob, sid);
+            heroglyphPngUrl = pngResult.secureUrl;
+          }
+        } catch (e) {
+          console.warn('[postPayment] heroglyph PNG capture failed:', e);
+        }
+
         const [certBlob, vBlob, hBlob] = await renderPdfsSequential([
           { element: certRef.current!, orientation: 'portrait', fileName: 'certificate.pdf' },
           { element: verticalRef.current!, orientation: 'portrait', marginMm: 25, bgColor: '#F5EDE0', fileName: 'heroglyph-vertical.pdf' },
@@ -111,6 +127,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
             dogPhotoUrl,
             sessionId,
             packNumber,
+            heroglyphPngUrl,
             pdfUrls: { cert: c.secureUrl, vertical: v.secureUrl, horizontal: h.secureUrl },
           }),
         });
