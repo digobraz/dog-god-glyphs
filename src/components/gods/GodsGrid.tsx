@@ -118,7 +118,7 @@ export function GodsGrid() {
       el.innerHTML = `
         <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
         <p class="hero-tagline">The place where <span class="gold">Dog is God.</span></p>
-        <button class="join-btn" data-join>Create Your Heroglyph</button>
+        <button class="join-btn" data-join>Become Dogyptian</button>
         <span class="hero-count"><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">1 000 000</span> DOGS</span>
       `;
       const btn = el.querySelector('[data-join]');
