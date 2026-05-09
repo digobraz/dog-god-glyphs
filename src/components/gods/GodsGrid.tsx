@@ -115,7 +115,11 @@ export function GodsGrid() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
   const [dogsReady, setDogsReady] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterValue, setFilterValue] = useState('');
   const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
+  const navigateToRef = useRef<((n: number) => void) | null>(null);
+  const filterInputRef = useRef<HTMLInputElement>(null);
 
   const revealData = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -166,10 +170,14 @@ export function GodsGrid() {
     const t2 = setTimeout(() => setRevealStep(3), 4200);
     const t3 = setTimeout(() => {
       setRevealStep(4);
-      window.history.replaceState(null, '', '/');
+      window.history.replaceState(null, '', '/grid');
     }, 5800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [revealData.active]);
+
+  useEffect(() => {
+    if (filterOpen) filterInputRef.current?.focus();
+  }, [filterOpen]);
 
   useEffect(() => {
     if (revealStep === 2) {
@@ -416,7 +424,7 @@ export function GodsGrid() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn') || target.closest('.filter-btn') || target.closest('.filter-panel')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -553,6 +561,30 @@ export function GodsGrid() {
     window.addEventListener('touchend', onTouchEnd);
     app.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('resize', onResize);
+
+    function navigateTo(n: number) {
+      if (n < 1) return;
+      if (raf) cancelAnimationFrame(raf);
+      const positions = generatePackPositions(n + 5);
+      if (n - 1 >= positions.length) return;
+      const { col, row } = positions[n - 1];
+      const tx = vw / 2 - col * GX - W / 2;
+      const ty = vh / 2 - row * GY - H / 2;
+      const sx = ox, sy = oy;
+      const t0 = performance.now();
+      const dur = 800;
+      const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+      function step(now: number) {
+        const p = Math.min((now - t0) / dur, 1);
+        const e = ease(p);
+        ox = sx + (tx - sx) * e;
+        oy = sy + (ty - sy) * e;
+        render();
+        if (p < 1) raf = requestAnimationFrame(step);
+      }
+      raf = requestAnimationFrame(step);
+    }
+    navigateToRef.current = navigateTo;
 
     const centerBtn = document.getElementById('gods-center-btn');
     centerBtn?.addEventListener('click', onCenter);
