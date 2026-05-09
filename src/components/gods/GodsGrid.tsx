@@ -249,9 +249,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
         </div>
+        <div class="card-rank-top">#1</div>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
           <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
@@ -305,9 +305,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
         </div>
+        <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         ${dog.patron_svg ? `
         <div class="dog-heroglyph-wrap">
@@ -344,9 +344,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
         </div>
+        <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         <div class="card-name-block">
           <div class="card-rank">#${packNum}</div>
@@ -789,14 +789,14 @@ export function GodsGrid() {
         .is-dragging .dog-card::after { opacity: 0 !important; }
 
         /* Elements that hide on hover (and on open) */
-        .card-info, .card-flag, .card-name-block {
+        .card-rank-top, .card-flag, .card-name-block {
           will-change: opacity;
           transition: opacity 160ms ease;
         }
-        .dog-card:not(.is-open):hover .card-info,
+        .dog-card:not(.is-open):hover .card-rank-top,
         .dog-card:not(.is-open):hover .card-flag,
         .dog-card:not(.is-open):hover .card-name-block { opacity: 0; }
-        .is-dragging .dog-card .card-info,
+        .is-dragging .dog-card .card-rank-top,
         .is-dragging .dog-card .card-flag,
         .is-dragging .dog-card .card-name-block { opacity: 1 !important; }
 
@@ -863,19 +863,10 @@ export function GodsGrid() {
         }
         .dog-card.is-open .card-open-overlay { opacity: 1; pointer-events: auto; }
         .dog-card.is-open { z-index: 8; }
-        .dog-card.is-open .card-info,
+        .dog-card.is-open .card-rank-top,
         .dog-card.is-open .card-flag,
         .dog-card.is-open .card-name-block { opacity: 0; }
 
-        .card-open-rank {
-          font-family: 'Cinzel', serif;
-          font-size: 0.7rem;
-          font-weight: 700;
-          color: #C99A3F;
-          letter-spacing: 0.1em;
-          text-transform: uppercase;
-          margin-top: 4px;
-        }
         .card-open-name {
           font-family: 'Cinzel Decorative', 'Cinzel', serif;
           font-size: 0.95rem;
@@ -909,30 +900,20 @@ export function GodsGrid() {
           background: #1a1a1a;
           z-index: 2;
         }
-        .card-info {
+        .card-rank-top {
           position: absolute;
           top: 10px;
           left: 10px;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: rgba(20,20,20,0.55);
-          backdrop-filter: blur(6px);
-          color: #fff;
-          font-family: Georgia, 'Times New Roman', serif;
-          font-style: italic;
-          font-size: 13px;
-          line-height: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(255,255,255,0.25);
-          cursor: pointer;
-          padding: 0;
-          transition: background 150ms ease, opacity 160ms ease;
           z-index: 2;
+          font-family: 'Cinzel', serif;
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: #C99A3F;
+          letter-spacing: 0.08em;
+          text-shadow: 0 1px 6px rgba(0,0,0,0.9);
+          line-height: 1;
+          pointer-events: none;
         }
-        .card-info:hover { background: rgba(60,60,60,0.75); }
 
         /* ── Center hero ── */
         .center-hero {
