@@ -50,7 +50,7 @@ export function PaymentScreen() {
         }),
       });
       const { url } = await res.json();
-      if (url) window.location.href = url;
+      if (url) window.open(url, '_top');
     } catch {
       setLoading(false);
       setWaitingPhoto(false);
