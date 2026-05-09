@@ -305,9 +305,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
         </div>
+        <div class="card-rank-top">#${packNum}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
         ${dog.patron_svg ? `
         <div class="dog-heroglyph-wrap">
