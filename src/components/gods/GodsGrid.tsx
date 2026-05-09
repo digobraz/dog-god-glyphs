@@ -116,7 +116,7 @@ export function GodsGrid() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
-  const [revealSymbol, setRevealSymbol] = useState(() => revealData.heroglyphUrl || REVEAL_SYMBOL);
+  const [revealSymbol, setRevealSymbol] = useState(() => new URLSearchParams(window.location.search).get('heroglyphUrl') || REVEAL_SYMBOL);
   const [dogsReady, setDogsReady] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterValue, setFilterValue] = useState('');
