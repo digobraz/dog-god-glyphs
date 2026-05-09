@@ -284,6 +284,7 @@ export function WelcomeScreen() {
     certRef,
     verticalRef,
     horizontalRef,
+    onHeroglyphReady: setHeroglyphPngUrl,
   });
 
   const handleEnterPack = useCallback(() => {
@@ -293,9 +294,11 @@ export function WelcomeScreen() {
       packNumber: String(packNumber ?? 0),
     });
     if (photoUrl) params.set('photoUrl', photoUrl);
+    if (heroglyphPngUrl) params.set('heroglyphUrl', heroglyphPngUrl);
     navigate(`/grid?${params.toString()}`);
-  }, [navigate, dogName, packNumber, photoUrl]);
+  }, [navigate, dogName, packNumber, photoUrl, heroglyphPngUrl]);
 
+  const [heroglyphPngUrl, setHeroglyphPngUrl] = useState('');
   const [showOverlay, setShowOverlay] = useState(true);
 
   useEffect(() => {

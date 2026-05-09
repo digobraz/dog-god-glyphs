@@ -116,7 +116,7 @@ export function GodsGrid() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
-  const [revealSymbol, setRevealSymbol] = useState(REVEAL_SYMBOL);
+  const [revealSymbol, setRevealSymbol] = useState(() => revealData.heroglyphUrl || REVEAL_SYMBOL);
   const [dogsReady, setDogsReady] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterValue, setFilterValue] = useState('');
@@ -134,6 +134,7 @@ export function GodsGrid() {
       dogName: isDemo ? 'Toby' : (params.get('dogName') || 'Your Dog'),
       photoUrl: isDemo ? '/dogs/toby.jpg' : (params.get('photoUrl') || ''),
       packNumber: isDemo ? String(photos.length) : (params.get('packNumber') || String(photos.length + 1)),
+      heroglyphUrl: params.get('heroglyphUrl') || '',
     };
   }, []);
 
@@ -153,7 +154,7 @@ export function GodsGrid() {
             }
           }
           realDogMapRef.current = map;
-          if (revealData.active) {
+          if (revealData.active && !revealData.heroglyphUrl) {
             const packNum = parseInt(revealData.packNumber, 10);
             const revealDog = dogs.find(d => d.pack_number === packNum);
             if (revealDog?.heroglyph_png_url) {
@@ -171,8 +172,10 @@ export function GodsGrid() {
   // step 2: only dog photo visible on black (symbol fades, grid still hidden)
   // step 3: grid appears around dog (+2s after photo)
   // step 4: done, overlay removed
+  // If heroglyphUrl is in URL params we start immediately; otherwise wait for DB load.
   useEffect(() => {
     if (!revealData.active) return;
+    if (!revealData.heroglyphUrl && !dogsReady) return;
     setRevealStep(1);
     const t1 = setTimeout(() => setRevealStep(2), 2000);
     const t2 = setTimeout(() => setRevealStep(3), 4200);
@@ -181,7 +184,7 @@ export function GodsGrid() {
       window.history.replaceState(null, '', '/grid');
     }, 5800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, [revealData.active]);
+  }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
 
   useEffect(() => {
     if (filterOpen) filterInputRef.current?.focus();

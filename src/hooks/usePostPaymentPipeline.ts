@@ -16,10 +16,11 @@ interface PipelineArgs {
   certRef: RefObject<HTMLDivElement>;
   verticalRef: RefObject<HTMLDivElement>;
   horizontalRef: RefObject<HTMLDivElement>;
+  onHeroglyphReady?: (url: string) => void;
 }
 
 export function usePostPaymentPipeline(args: PipelineArgs) {
-  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef } = args;
+  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, onHeroglyphReady } = args;
   const fired = useRef(false);
 
   useEffect(() => {
@@ -98,6 +99,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
             const pngBlob = await pngRes.blob();
             const pngResult = await uploadHeroglyphPng(pngBlob, sid);
             heroglyphPngUrl = pngResult.secureUrl;
+            onHeroglyphReady?.(heroglyphPngUrl);
           }
         } catch (e) {
           console.warn('[postPayment] heroglyph PNG capture failed:', e);
