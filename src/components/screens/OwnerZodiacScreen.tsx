@@ -187,7 +187,7 @@ export function OwnerZodiacScreen() {
                 {westernSigns.map((sign) => (
                   <button
                     key={sign.name}
-                    onClick={() => handleSelectZodiac(sign)}
+                    onClick={(e) => { handleSelectZodiac(sign); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
                     className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all w-14 border-2 ${
                       selectedZodiac === sign.name
                         ? 'is-selected-purple scale-105'
@@ -220,7 +220,7 @@ export function OwnerZodiacScreen() {
                 </div>
 
                 <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <div className="w-14 h-14 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center overflow-hidden">
+                  <div className={`w-14 h-14 rounded-xl border-2 flex items-center justify-center overflow-hidden ${chineseResult ? 'is-selected-purple' : 'border-border/60 bg-card/50'}`}>
                     {chineseResult ? (
                       <motion.img
                         key={chineseResult.name}

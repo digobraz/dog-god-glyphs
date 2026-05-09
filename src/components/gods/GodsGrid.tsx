@@ -116,6 +116,7 @@ export function GodsGrid() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
+  const [revealSymbol, setRevealSymbol] = useState(REVEAL_SYMBOL);
   const [dogsReady, setDogsReady] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterValue, setFilterValue] = useState('');
@@ -128,13 +129,11 @@ export function GodsGrid() {
     const mode = params.get('reveal');
     const isDemo = mode === 'demo';
     const active = mode === 'true' || isDemo;
-    const patronFile = params.get('patronSvg') || '';
     return {
       active,
       dogName: isDemo ? 'Toby' : (params.get('dogName') || 'Your Dog'),
       photoUrl: isDemo ? '/dogs/toby.jpg' : (params.get('photoUrl') || ''),
       packNumber: isDemo ? String(photos.length) : (params.get('packNumber') || String(photos.length + 1)),
-      revealSymbol: patronFile ? `/patrons/${patronFile}` : REVEAL_SYMBOL,
     };
   }, []);
 
@@ -154,11 +153,18 @@ export function GodsGrid() {
             }
           }
           realDogMapRef.current = map;
+          if (revealData.active) {
+            const packNum = parseInt(revealData.packNumber, 10);
+            const revealDog = dogs.find(d => d.pack_number === packNum);
+            if (revealDog?.heroglyph_png_url) {
+              setRevealSymbol(revealDog.heroglyph_png_url);
+            }
+          }
         }
         setDogsReady(true);
       })
       .catch(() => setDogsReady(true));
-  }, []);
+  }, [revealData.active, revealData.packNumber]);
 
   // Reveal sequence timing
   // step 1: black screen + symbol burns in
@@ -1396,7 +1402,7 @@ export function GodsGrid() {
         {revealData.active && revealStep > 0 && revealStep < 4 && (
           <div className={`rev-overlay step-${revealStep}`}>
             <div className="rev-spotlight" />
-            <img className="rev-big-symbol" src={revealData.revealSymbol} alt={revealData.dogName} />
+            <img className="rev-big-symbol" src={revealSymbol} alt={revealData.dogName} />
           </div>
         )}
       </div>

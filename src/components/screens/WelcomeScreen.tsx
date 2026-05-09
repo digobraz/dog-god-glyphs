@@ -180,24 +180,30 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
   return { display, landed };
 }
 
+const DOG_GOD_WORDS = ['DOG', 'GOD'] as const;
+
 function DogToGod({ style }: { style?: React.CSSProperties }) {
-  const [word, setWord] = useState<'DOG' | 'GOD'>('DOG');
+  const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const fadeOut = setTimeout(() => setVisible(false), 2000);
-    const swap = setTimeout(() => {
-      setWord('GOD');
+    const INTERVAL = 3000;
+    const FADE_OUT = INTERVAL - 700;
+
+    const fadeOut = setInterval(() => setVisible(false), FADE_OUT);
+    const swap = setInterval(() => {
+      setIndex(i => (i + 1) % DOG_GOD_WORDS.length);
       setVisible(true);
-    }, 2700);
-    return () => { clearTimeout(fadeOut); clearTimeout(swap); };
+    }, INTERVAL);
+
+    return () => { clearInterval(fadeOut); clearInterval(swap); };
   }, []);
 
   return (
     <motion.span style={style}
       animate={{ opacity: visible ? 1 : 0 }}
-      transition={{ duration: 0.7, ease: 'easeInOut' }}>
-      {word}
+      transition={{ duration: 0.5, ease: 'easeInOut' }}>
+      {DOG_GOD_WORDS[index]}
     </motion.span>
   );
 }
@@ -280,7 +286,6 @@ export function WelcomeScreen() {
     horizontalRef,
   });
 
-  const patronSvgFile = certData.patronSvg;
   const handleEnterPack = useCallback(() => {
     const params = new URLSearchParams({
       reveal: 'true',
@@ -288,9 +293,8 @@ export function WelcomeScreen() {
       packNumber: String(packNumber ?? 0),
     });
     if (photoUrl) params.set('photoUrl', photoUrl);
-    if (patronSvgFile) params.set('patronSvg', patronSvgFile);
     navigate(`/grid?${params.toString()}`);
-  }, [navigate, dogName, packNumber, photoUrl, patronSvgFile]);
+  }, [navigate, dogName, packNumber, photoUrl]);
 
   const [showOverlay, setShowOverlay] = useState(true);
 
