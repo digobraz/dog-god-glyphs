@@ -61,7 +61,7 @@ export function OwnerInfoScreen() {
 
   const handleSend = () => {
     if (!canContinue) return;
-    setOwnerName(input.trim());
+    setOwnerName(input.trim().toUpperCase());
     setSelection('ownerGender', gender!);
     navigate('/heroglyph/owner-zodiac');
   };
@@ -102,14 +102,14 @@ export function OwnerInfoScreen() {
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
                     placeholder="Owner's first name..."
-                    className="flex-1 min-w-0 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg"
+                    className="flex-1 min-w-0 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     autoFocus
                   />
                 </div>
 
                 {/* Letter preview box */}
-                <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 border-border/60 bg-card/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 flex items-center justify-center flex-shrink-0 overflow-hidden ${letterSvg ? 'is-selected-purple' : 'border-border/60 bg-card/50'}`}>
                   {letterSvg ? (
                     <motion.img
                       key={firstLetter}
