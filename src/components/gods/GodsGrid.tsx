@@ -249,9 +249,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
         </div>
+        <div class="card-rank-top">#1</div>
         <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
           <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
