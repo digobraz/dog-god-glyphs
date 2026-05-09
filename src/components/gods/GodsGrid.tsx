@@ -806,9 +806,12 @@ export function GodsGrid() {
         /* Name block (default state, bottom-left) */
         .card-name-block {
           position: absolute;
-          bottom: 8px; left: 8px;
+          bottom: 8px;
+          left: 50%;
+          transform: translateX(-50%);
           display: flex;
           flex-direction: column;
+          align-items: center;
           gap: 3px;
           z-index: 2;
         }
