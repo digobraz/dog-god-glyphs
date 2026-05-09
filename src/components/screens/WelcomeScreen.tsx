@@ -236,6 +236,7 @@ export function WelcomeScreen() {
   const email = certData.email;
   const photoUrl = certData.dogPhotoUrl;
   const [photoFailed, setPhotoFailed] = useState(false);
+  const [heroglyphPngUrl, setHeroglyphPngUrl] = useState('');
   useEffect(() => { setPhotoFailed(false); }, [photoUrl]);
 
   const packNumber = usePackNumber(dogName, email, sessionId);
@@ -298,7 +299,6 @@ export function WelcomeScreen() {
     navigate(`/grid?${params.toString()}`);
   }, [navigate, dogName, packNumber, photoUrl, heroglyphPngUrl]);
 
-  const [heroglyphPngUrl, setHeroglyphPngUrl] = useState('');
   const [showOverlay, setShowOverlay] = useState(true);
 
   useEffect(() => {
