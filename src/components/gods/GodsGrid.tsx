@@ -789,14 +789,14 @@ export function GodsGrid() {
         .is-dragging .dog-card::after { opacity: 0 !important; }
 
         /* Elements that hide on hover (and on open) */
-        .card-info, .card-flag, .card-name-block {
+        .card-rank-top, .card-flag, .card-name-block {
           will-change: opacity;
           transition: opacity 160ms ease;
         }
-        .dog-card:not(.is-open):hover .card-info,
+        .dog-card:not(.is-open):hover .card-rank-top,
         .dog-card:not(.is-open):hover .card-flag,
         .dog-card:not(.is-open):hover .card-name-block { opacity: 0; }
-        .is-dragging .dog-card .card-info,
+        .is-dragging .dog-card .card-rank-top,
         .is-dragging .dog-card .card-flag,
         .is-dragging .dog-card .card-name-block { opacity: 1 !important; }
 
