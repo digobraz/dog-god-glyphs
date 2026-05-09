@@ -119,10 +119,24 @@ export function GodsGrid() {
         <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
         <p class="hero-tagline">The place where <span class="gold">Dog is God.</span></p>
         <button class="join-btn" data-join>Create Your Heroglyph</button>
-        <span class="hero-count">${photos.length} gods here</span>
+        <span class="hero-count"><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">1 000 000</span> DOGS</span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', () => navigate('/heroglyph/name'));
+      return el;
+    }
+
+    function makeHektorCard() {
+      const el = document.createElement('article');
+      el.className = 'dog-card hektor-card';
+      el.style.left = '0px';
+      el.style.top  = (-1 * GY) + 'px';
+      el.innerHTML = `
+        <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
+        <button class="card-info" data-info aria-label="Info">i</button>
+        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
+        <div class="card-label hektor-label">HEKTOR</div>
+      `;
       return el;
     }
 
@@ -157,6 +171,7 @@ export function GodsGrid() {
 
     function makeCard(col: number, row: number) {
       if (col === 0 && row === 0) return makeHeroCard();
+      if (col === 0 && row === -1) return makeHektorCard();
       if (revealData.active && col === REVEAL_COL && row === REVEAL_ROW) return makeRevealCard();
       const p = photoFor(col, row);
       const el = document.createElement('article');
@@ -583,6 +598,7 @@ export function GodsGrid() {
           gap: 16px;
           text-align: center;
           pointer-events: auto;
+          width: max-content;
         }
         .center-hero::before {
           content: '';
@@ -609,6 +625,7 @@ export function GodsGrid() {
         }
         .hero-tagline .gold {
           display: inline;
+          white-space: nowrap;
           font-weight: 700;
           background: linear-gradient(100deg, #A3782B 0%, #C49B42 30%, #FFF4C2 50%, #C49B42 70%, #A3782B 100%);
           background-size: 200% 100%;
@@ -625,34 +642,79 @@ export function GodsGrid() {
         }
         .join-btn {
           margin-top: 6px;
-          height: 54px;
-          padding: 0 52px;
-          border-radius: 999px;
-          background: linear-gradient(180deg, #EDD06A 0%, #C49B42 55%, #9A7228 100%);
-          color: #1a0d00;
+          padding: 14px 32px;
+          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+          border: 1px solid rgba(250, 244, 236, 0.30);
+          border-radius: 8px;
+          color: #000;
           font-family: 'Cinzel', serif;
-          font-weight: 900;
-          font-size: 0.82rem;
-          letter-spacing: 0.22em;
+          font-size: 0.85rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
-          border: none;
           cursor: pointer;
           white-space: nowrap;
-          box-shadow: 0 0 40px rgba(196,155,66,0.4), 0 4px 20px rgba(0,0,0,0.5),
-                      inset 0 1px 0 rgba(255,255,255,0.25);
-          transition: box-shadow 250ms, transform 150ms;
+          box-shadow: 0 0 40px rgba(230, 158, 26, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          transition: transform 0.2s, box-shadow 0.22s, opacity 0.22s;
         }
         .join-btn:hover {
-          box-shadow: 0 0 70px rgba(196,155,66,0.65), 0 6px 28px rgba(0,0,0,0.5),
-                      inset 0 1px 0 rgba(255,255,255,0.25);
           transform: scale(1.04);
+          box-shadow: 0 0 56px rgba(230, 158, 26, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .join-btn:active {
+          transform: scale(0.98);
         }
         .hero-count {
-          font-size: 0.68rem;
-          color: rgba(255,255,255,0.2);
-          letter-spacing: 0.14em;
+          font-size: 0.95rem;
+          color: rgba(255,255,255,0.85);
+          letter-spacing: 0.16em;
           font-family: 'Cinzel', serif;
+          font-weight: 700;
           text-transform: uppercase;
+          text-shadow: 0 0 14px rgba(0,0,0,0.85);
+        }
+        .hero-count-num {
+          background: linear-gradient(180deg, #F4C75A 0%, #D8821F 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-weight: 900;
+        }
+        .hero-count-sep { color: rgba(255,255,255,0.55); margin: 0 4px; }
+        .hero-count-total { color: rgba(255,255,255,0.7); }
+
+        /* ── Hektor — fixed founder card, gold frame + glow ── */
+        .hektor-card {
+          box-shadow:
+            0 0 0 3px rgba(196,155,66,0.95),
+            0 0 60px rgba(216,130,31,0.55),
+            0 0 130px rgba(216,130,31,0.28);
+          animation: hektor-glow-loop 4.5s ease-in-out infinite;
+          z-index: 4;
+        }
+        .hektor-card:hover {
+          transform: scale(1.06);
+          box-shadow:
+            0 0 0 3px rgba(244,199,90,1),
+            0 0 90px rgba(216,130,31,0.85),
+            0 0 200px rgba(216,130,31,0.45);
+        }
+        @keyframes hektor-glow-loop {
+          0%, 100% { box-shadow:
+            0 0 0 3px rgba(196,155,66,0.95),
+            0 0 60px rgba(216,130,31,0.55),
+            0 0 130px rgba(216,130,31,0.28); }
+          50%      { box-shadow:
+            0 0 0 3px rgba(244,199,90,1),
+            0 0 80px rgba(216,130,31,0.75),
+            0 0 170px rgba(216,130,31,0.38); }
+        }
+        .hektor-label {
+          background: linear-gradient(180deg, rgba(196,155,66,0.92) 0%, rgba(154,114,40,0.92) 100%);
+          color: #15080a;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
         /* ── Reveal card (in grid) ── */
