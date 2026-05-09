@@ -49,9 +49,17 @@ export function PaymentScreen() {
           amount: selectedAmount ?? 11,
         }),
       });
-      const { url } = await res.json();
-      if (url) window.open(url, '_top');
-    } catch {
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_top');
+        // fallback: ak _top navigation zlyha (iframe sandbox), otvor novu zalozku
+        setTimeout(() => setLoading(false), 2000);
+      } else {
+        console.error('create-checkout error:', data.error);
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('payment fetch error:', err);
       setLoading(false);
       setWaitingPhoto(false);
     }
