@@ -25,6 +25,9 @@ async function uploadBlob(blob: Blob, folder: string, publicId: string): Promise
 export const uploadMainPhoto = (blob: Blob, sessionId: string) =>
   uploadBlob(blob, `tmp/${sessionId}`, 'main');
 
+export const uploadCroppedPhoto = (blob: Blob, sessionId: string) =>
+  uploadBlob(blob, `tmp/${sessionId}`, 'main_crop');
+
 export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =>
   uploadBlob(blob, `tmp/${sessionId}/extras`, String(index).padStart(2, '0'));
 

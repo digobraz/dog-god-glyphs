@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
-import { uploadMainPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
+import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
 
 /* ───── helpers ───── */
 
@@ -34,50 +34,53 @@ function getImageDimensions(url: string): Promise<{ w: number; h: number }> {
 }
 
 /* ───── Canvas crop helper ───── */
+// CSS reference size must match the CropArea container (260px).
+// OUT is the actual saved image size — larger = better quality for cert PDF.
 async function canvasCropAndUpload(
   photoUrl: string,
   crop: { x: number; y: number; zoom: number },
   sessionId: string,
-): Promise<{ publicId: string; secureUrl: string } | null> {
-  if (crop.zoom === 1 && crop.x === 0 && crop.y === 0) return null;
-
+): Promise<{ publicId: string; secureUrl: string }> {
   const img = new Image();
+  img.crossOrigin = 'anonymous';
   img.src = photoUrl;
   await new Promise<void>((resolve, reject) => {
     img.onload = () => resolve();
-    img.onerror = () => reject(new Error('load'));
+    img.onerror = () => reject(new Error('img-load'));
   });
 
-  const S = 260;
+  const REF = 260; // matches CropArea container CSS size
+  const OUT = 800; // saved image resolution
   const canvas = document.createElement('canvas');
-  canvas.width = S;
-  canvas.height = S;
+  canvas.width = OUT;
+  canvas.height = OUT;
   const ctx = canvas.getContext('2d')!;
 
   const { naturalWidth: nW, naturalHeight: nH } = img;
-  const sCover = Math.max(S / nW, S / nH);
-  const offX = (nW * sCover - S) / 2;
-  const offY = (nH * sCover - S) / 2;
-  const half = S / 2;
-  const tx = S * crop.x / 100;
-  const ty = S * crop.y / 100;
+  const sCover = Math.max(REF / nW, REF / nH);
+  const offX = (nW * sCover - REF) / 2;
+  const offY = (nH * sCover - REF) / 2;
+  const half = REF / 2;
+  const tx = REF * crop.x / 100;
+  const ty = REF * crop.y / 100;
 
-  // Inverse the CSS transform: translate(tx%, ty%) scale(zoom) with origin at center
+  // Inverse CSS: translate(tx%, ty%) scale(zoom) with transform-origin at center
   const ix0 = (0 - half - tx) / crop.zoom + half;
-  const ix1 = (S - half - tx) / crop.zoom + half;
+  const ix1 = (REF - half - tx) / crop.zoom + half;
   const iy0 = (0 - half - ty) / crop.zoom + half;
 
   const srcX = (ix0 + offX) / sCover;
   const srcY = (iy0 + offY) / sCover;
   const srcW = (ix1 - ix0) / sCover;
 
-  ctx.drawImage(img, srcX, srcY, srcW, srcW, 0, 0, S, S);
+  ctx.drawImage(img, srcX, srcY, srcW, srcW, 0, 0, OUT, OUT);
 
   const blob = await new Promise<Blob>((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob'))), 'image/webp', 0.92),
   );
 
-  return uploadMainPhoto(blob, sessionId);
+  // Use main_crop public_id to avoid conflict with the original main upload
+  return uploadCroppedPhoto(blob, sessionId);
 }
 
 /* ───── slide variants ───── */
@@ -400,12 +403,12 @@ export function PhotoScreen() {
     setFinishing(true);
     try {
       const result = await canvasCropAndUpload(photoUrl!, certCrop, sessionId!);
-      if (result) {
-        cropApplied.current = true;
-        setCloudinaryPublicId(result.publicId);
-        setDogPhotoUrl(result.secureUrl);
-      }
-    } catch { /* non-blocking — original upload stays */ }
+      cropApplied.current = true;
+      setCloudinaryPublicId(result.publicId);
+      setDogPhotoUrl(result.secureUrl);
+    } catch (err) {
+      console.error('[photo] crop upload failed — using original:', err);
+    }
     setCertCropData(certCrop);
     setGridCropData(certCrop);
     setExtraPhotos(extras);
