@@ -80,7 +80,7 @@ export function MessageScreen() {
                 <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>.
                 <br />
                 It will stay with them in{' '}
-                <span className="font-bold">dogypt</span> -forever.
+                <span className="font-bold">dogypt</span> - forever.
               </p>
             </div>
           </div>
