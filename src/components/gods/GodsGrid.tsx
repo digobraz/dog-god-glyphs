@@ -289,6 +289,9 @@ export function GodsGrid() {
         : `<div class="reveal-card-inner reveal-card-fallback"><span class="cartouche">${safeName}</span></div>`;
       el.innerHTML = `
         ${inner}
+        <div class="dog-heroglyph-wrap">
+          <img class="dog-heroglyph" src="${esc(revealSymbol)}" alt="${safeName} heroglyph" draggable="false">
+        </div>
         <div class="card-label">${safeName} · #${revealData.packNumber}</div>
       `;
       if (revealData.photoUrl) {
