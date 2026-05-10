@@ -6,6 +6,7 @@ import {
   useTransform,
   useMotionValueEvent,
   AnimatePresence,
+  type MotionValue,
 } from 'framer-motion';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
@@ -25,6 +26,19 @@ const BLOCKS = [
     ],
     symbol: '𓂀',
     shortDesc: 'One identity. One movement.',
+  },
+  {
+    tag: 'THE TEMPLE',
+    heading: 'A World That\nRuns on\nLoyalty.',
+    body: 'The Dogyptian digital temple — an app, a portal, a social network, and an economy built entirely for the pack. Own rules. Own currency. Self-sustaining.',
+    cards: [
+      { title: 'The App', desc: 'Portal, social network, one identity.' },
+      { title: 'The Economy', desc: 'A closed ecosystem with its own rules.' },
+      { title: 'The Currency', desc: 'Backed by loyalty. Not speculation.' },
+      { title: 'Self-Sustaining', desc: 'The Pack funds itself. Forever.' },
+    ],
+    symbol: '𓊽',
+    shortDesc: 'App, portal, economy — one identity.',
   },
   {
     tag: 'THE MISSION',
@@ -66,20 +80,7 @@ const BLOCKS = [
     shortDesc: 'Every year with your dog matters.',
   },
   {
-    tag: 'THE TEMPLE',
-    heading: 'A World That\nRuns on\nLoyalty.',
-    body: 'The Dogyptian digital temple — an app, a portal, a social network, and an economy built entirely for the pack. Own rules. Own currency. Self-sustaining.',
-    cards: [
-      { title: 'The App', desc: 'Portal, social network, one identity.' },
-      { title: 'The Economy', desc: 'A closed ecosystem with its own rules.' },
-      { title: 'The Currency', desc: 'Backed by loyalty. Not speculation.' },
-      { title: 'Self-Sustaining', desc: 'The Pack funds itself. Forever.' },
-    ],
-    symbol: '𓊽',
-    shortDesc: 'App, portal, economy — one identity.',
-  },
-  {
-    tag: 'THE WHY',
+    tag: 'THE LEGACY',
     heading: '700,000,000\nDogs. No Home.\nNo Human.',
     body: "That number is not a statistic. It's a mission. Every Heroglyph funds a dog in need. Every Dogyptian carries this truth: no dog should be alone.",
     cards: [
@@ -123,14 +124,15 @@ function FeatureCard({ title, desc }: { title: string; desc: string }) {
       onMouseLeave={handleMouseLeave}
       style={{
         position: 'relative',
-        background: 'rgba(250,244,236,0.03)',
-        border: '1px solid rgba(196,155,66,0.13)',
+        background: 'rgba(250,244,236,0.04)',
+        border: '1px solid rgba(196,155,66,0.32)',
         borderRadius: 10,
         padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
         gap: 5,
         overflow: 'hidden',
+        boxShadow: '0 0 0 0px rgba(196,155,66,0), inset 0 0 24px rgba(196,155,66,0.03)',
         '--x': '50%',
         '--y': '50%',
       } as React.CSSProperties}
@@ -195,9 +197,9 @@ function SymbolVisual({ symbol, activeIndex }: { symbol: string; activeIndex: nu
       className="relative aspect-square rounded-2xl flex items-center justify-center overflow-hidden"
       style={{
         width: 'min(100%, 52vw, 420px)',
-        background: 'rgba(196,155,66,0.025)',
-        border: '1px solid rgba(196,155,66,0.12)',
-        boxShadow: '0 0 100px rgba(196,155,66,0.07), 0 0 300px rgba(196,155,66,0.03)',
+        background: 'rgba(196,155,66,0.03)',
+        border: '1px solid rgba(196,155,66,0.38)',
+        boxShadow: '0 0 60px rgba(196,155,66,0.14), 0 0 180px rgba(196,155,66,0.06), inset 0 0 40px rgba(196,155,66,0.04)',
       }}
     >
       <motion.div
@@ -276,6 +278,49 @@ function SymbolVisual({ symbol, activeIndex }: { symbol: string; activeIndex: nu
           <path d="M0 16 L0 0 L16 0" stroke="#C49B42" strokeWidth="1.5" />
         </svg>
       ))}
+    </div>
+  );
+}
+
+function ProgressBar({ progress, isActive }: { progress: MotionValue<number>; isActive: boolean }) {
+  const tipLeft = useTransform(progress, [0, 1], ['0%', '100%']);
+  return (
+    <div
+      style={{
+        position: 'relative',
+        height: 2,
+        width: '100%',
+        borderRadius: 999,
+        background: 'rgba(250,244,236,0.07)',
+      }}
+    >
+      <motion.div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 999,
+          transformOrigin: 'left',
+          scaleX: progress,
+          background: 'linear-gradient(90deg, rgba(196,155,66,0.25), #C49B42)',
+        }}
+      />
+      {isActive && (
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            marginTop: -4,
+            marginLeft: -4,
+            left: tipLeft,
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            background: '#FFF8E0',
+            boxShadow: '0 0 6px 3px rgba(255,240,180,0.95), 0 0 18px 8px rgba(245,199,61,0.7)',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -363,13 +408,26 @@ export default function Vision() {
       >
         <div
           className="sticky top-0 w-full flex flex-col"
-          style={{ height: '100dvh', backgroundColor: '#080808' }}
+          style={{ height: '100dvh', backgroundColor: '#080808', paddingBottom: 'clamp(100px, 11vh, 130px)' }}
         >
           {/* Main content */}
           <div
-            className="flex-1 flex flex-col md:flex-row items-center gap-8 md:gap-14 px-6 md:px-0 md:w-[min(900px,82vw)] md:mx-auto min-h-0 overflow-hidden w-full"
-            style={{ paddingTop: 'clamp(72px, 10vh, 96px)' }}
+            className="flex-1 flex items-center justify-center min-h-0 w-full px-4 md:px-6"
+            style={{
+              paddingTop: 'clamp(72px, 9vh, 88px)',
+              paddingBottom: 'clamp(28px, 5vh, 56px)',
+            }}
           >
+            {/* Bordered card */}
+            <div
+              className="flex flex-col md:flex-row items-center gap-8 md:gap-14 w-full md:w-[min(1100px,94vw)]"
+              style={{
+                border: '1px solid rgba(196,155,66,0.22)',
+                borderRadius: 16,
+                padding: 'clamp(24px, 3.5vw, 48px)',
+                background: 'rgba(250,244,236,0.018)',
+              }}
+            >
             {/* Visual */}
             <div className="w-full md:w-[44%] flex items-center justify-center shrink-0">
               <SymbolVisual symbol={block.symbol} activeIndex={activeIndex} />
@@ -436,44 +494,23 @@ export default function Vision() {
                     ))}
                   </div>
 
-                  {activeIndex === 5 && (
-                    <Link
-                      to="/heroglyph"
-                      style={{
-                        display: 'inline-block',
-                        fontFamily: "'Cinzel', serif",
-                        fontWeight: 700,
-                        fontSize: 13,
-                        letterSpacing: '0.12em',
-                        padding: '12px 28px',
-                        background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-                        color: '#000',
-                        border: '1px solid rgba(250,244,236,0.30)',
-                        borderRadius: 8,
-                        textDecoration: 'none',
-                        alignSelf: 'flex-start',
-                        marginTop: 4,
-                      }}
-                    >
-                      BECOME DOGYPTIAN
-                    </Link>
-                  )}
                 </motion.div>
               </AnimatePresence>
             </div>
+            </div>{/* end bordered card */}
           </div>
 
           {/* Bottom nav tabs */}
           <div
             className="flex-none"
-            style={{ borderTop: '1px solid rgba(250,244,236,0.05)' }}
+            style={{}}
           >
-            <div className="grid grid-cols-6 md:w-[min(900px,82vw)] md:mx-auto">
+            <div className="grid grid-cols-6 md:w-[min(1100px,94vw)] md:mx-auto">
               {BLOCKS.map((b, i) => (
                 <button
                   key={b.tag}
                   onClick={() => handleTabClick(i)}
-                  className="relative flex flex-col gap-2 px-3 md:px-6 py-4 md:py-5 text-left cursor-pointer bg-transparent border-0"
+                  className="relative flex flex-col gap-2 px-3 md:px-4 py-4 md:py-5 text-left cursor-pointer bg-transparent border-0"
                   style={{
                     borderRight:
                       i < 5 ? '1px solid rgba(250,244,236,0.05)' : 'none',
@@ -495,18 +532,7 @@ export default function Vision() {
                     </span>
                   </span>
 
-                  <div
-                    className="relative h-[2px] w-full rounded-full overflow-hidden"
-                    style={{ background: 'rgba(250,244,236,0.07)' }}
-                  >
-                    <motion.div
-                      className="absolute inset-0 rounded-full origin-left"
-                      style={{
-                        scaleX: progresses[i],
-                        background: 'linear-gradient(90deg, #C49B42, #F0D88A)',
-                      }}
-                    />
-                  </div>
+                  <ProgressBar progress={progresses[i]} isActive={i === activeIndex} />
 
                   <p
                     className="hidden md:block text-[10px] leading-relaxed"
