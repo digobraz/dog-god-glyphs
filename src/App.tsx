@@ -31,6 +31,7 @@ import PackDogDetail from "./pages/PackDogDetail.tsx";
 import PackEternal from "./pages/PackEternal.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
+import Vision from "./pages/Vision.tsx";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
           <Route path="/welcome" element={<WelcomeScreen />} />
           <Route path="/thank-you" element={<Navigate to="/welcome" replace />} />{/* legacy alias for in-flight Stripe sessions */}
           <Route path="/devhome" element={<LandingPage />} />
+          <Route path="/vision" element={<Vision />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
 

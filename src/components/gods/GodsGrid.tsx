@@ -1346,6 +1346,7 @@ export function GodsGrid() {
         <div className="nav-left">
           <nav className="main-nav">
             <a href="/">DOGYPT</a>
+            <a href="/vision">Vision</a>
             <button onClick={() => setInfoOpen(true)}>Info</button>
           </nav>
         </div>
