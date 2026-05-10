@@ -51,13 +51,23 @@ export default function Login() {
   // We also accept ?token=... as a fallback alias used by older callers.
   useEffect(() => {
     let cancelled = false;
+    const dogId = params.get("dogId") ?? "";
+    const targetAfter = dogId ? `/pack/dogs/${dogId}` : "/pack";
+
+    // Listen for supabase auto-processing #access_token from hash fragment.
+    // supabase-js processes the hash asynchronously after createClient(),
+    // so getSession() may return null even with a valid token in the URL.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if (event === "SIGNED_IN" && session) {
+        setStatus("success");
+        navigate(targetAfter, { replace: true });
+      }
+    });
 
     async function verify() {
-      const dogId = params.get("dogId") ?? "";
-      const targetAfter = dogId ? `/pack/dogs/${dogId}` : "/pack";
-
       try {
-        // Fast path: a session may already exist (hash fragment auto-handled).
+        // Fast path: session already exists (e.g. page re-visit).
         const { data: sessionData } = await supabase.auth.getSession();
         if (!cancelled && sessionData?.session) {
           setStatus("success");
@@ -67,12 +77,20 @@ export default function Login() {
 
         const tokenHash = params.get("token_hash") ?? params.get("token") ?? "";
         const typeParam = (params.get("type") ?? "magiclink") as "magiclink" | "email";
+        // Detect hash-fragment token — supabase redirects here with #access_token=...
+        const hasHashToken = window.location.hash.includes("access_token=");
 
-        if (!tokenHash) {
+        if (!tokenHash && !hasHashToken) {
           if (!cancelled) setStatus("missing");
           return;
         }
 
+        if (!tokenHash) {
+          // Hash token present — supabase-js is processing it, onAuthStateChange will fire.
+          return;
+        }
+
+        // PKCE / verify flow: token_hash in query params.
         const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: typeParam,
@@ -85,9 +103,7 @@ export default function Login() {
           setStatus(isExpired(error.message) ? "expired" : "invalid");
           return;
         }
-
-        setStatus("success");
-        navigate(targetAfter, { replace: true });
+        // onAuthStateChange fires SIGNED_IN → handles redirect.
       } catch (err) {
         if (cancelled) return;
         const message = err instanceof Error ? err.message : String(err);
@@ -99,6 +115,7 @@ export default function Login() {
     verify();
     return () => {
       cancelled = true;
+      subscription.unsubscribe();
     };
   }, [params, navigate]);
 
