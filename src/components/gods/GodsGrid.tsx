@@ -284,6 +284,12 @@ export function GodsGrid() {
       el.style.top  = (REVEAL_ROW * GY) + 'px';
       const safeName = (revealData.dogName || 'DOGYPTIAN')
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const packNumInt = parseInt(revealData.packNumber, 10);
+      let cc = 'sk';
+      for (const dog of realDogMapRef.current.values()) {
+        if (dog.pack_number === packNumInt) { cc = countryToISO2(dog.country); break; }
+      }
+      const flagName = FLAG_NAMES[cc] || cc;
       const inner = revealData.photoUrl
         ? `<div class="reveal-card-inner" style="background-image:url('${revealData.photoUrl}')"></div>`
         : `<div class="reveal-card-inner reveal-card-fallback"><span class="cartouche">${safeName}</span></div>`;
@@ -292,7 +298,11 @@ export function GodsGrid() {
         <div class="dog-heroglyph-wrap">
           <img class="dog-heroglyph" src="${esc(revealSymbol)}" alt="${safeName} heroglyph" draggable="false">
         </div>
-        <div class="card-label">${safeName} · #${revealData.packNumber}</div>
+        <div class="card-rank-top">#${revealData.packNumber}</div>
+        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
+        <div class="card-name-block">
+          <div class="card-label">${safeName}</div>
+        </div>
       `;
       if (revealData.photoUrl) {
         const probe = new Image();
