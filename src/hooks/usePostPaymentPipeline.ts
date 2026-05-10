@@ -4,6 +4,8 @@ import { renderPdfsSequential } from '@/services/pdfService';
 import { uploadCertPdf, uploadVerticalPdf, uploadHorizontalPdf, uploadHeroglyphPng } from '@/services/cloudinaryService';
 
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+const EDGE_HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY };
 const RENDER_DELAY_MS = 1500;
 
 interface PipelineArgs {
@@ -103,7 +105,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
             // Fire-and-forget: save to DB immediately, independent of PDF success
             fetch(`${EDGE_BASE}/send-certificate`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: EDGE_HEADERS,
               body: JSON.stringify({ sessionId: sid, heroglyphPngUrl }),
             }).catch(() => {});
           }
@@ -127,7 +129,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
 
         await fetch(`${EDGE_BASE}/send-certificate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: EDGE_HEADERS,
           body: JSON.stringify({
             email,
             dogName,
