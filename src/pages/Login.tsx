@@ -59,11 +59,16 @@ export default function Login() {
     // so getSession() may return null even with a valid token in the URL.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
-      if (event === "SIGNED_IN" && session) {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         setStatus("success");
         navigate(targetAfter, { replace: true });
       }
     });
+
+    // Fallback: if supabase never fires SIGNED_IN (expired/invalid token), don't hang forever.
+    const timeout = setTimeout(() => {
+      if (!cancelled) setStatus("expired");
+    }, 7000);
 
     async function verify() {
       try {
@@ -115,6 +120,7 @@ export default function Login() {
     verify();
     return () => {
       cancelled = true;
+      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, [params, navigate]);
