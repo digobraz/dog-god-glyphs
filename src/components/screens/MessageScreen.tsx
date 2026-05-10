@@ -76,11 +76,11 @@ export function MessageScreen() {
                 className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Leave a message for{' '}
+                Leave a eternal message for{' '}
                 <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>.
                 <br />
-                It will stay with them on the{' '}
-                <span className="font-bold">GODS Grid</span> — forever.
+                It will stay with them in{' '}
+                <span className="font-bold">dogypt</span> -forever.
               </p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export function MessageScreen() {
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 This message will appear on your dog's profile in the{' '}
-                <span className="font-semibold text-foreground/70">GODS Grid</span>.
+                <span className="font-semibold text-foreground/70">DOGYPT.com</span>.
               </p>
 
               {/* Submit button */}

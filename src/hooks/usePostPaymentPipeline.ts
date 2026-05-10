@@ -92,7 +92,7 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
         // Capture heroglyph PNG from the horizontal frame SVG before PDF rendering
         let heroglyphPngUrl = '';
         try {
-          const svgEl = horizontalRef.current?.querySelector('svg') as HTMLElement | null;
+          const svgEl = horizontalRef.current?.querySelector('svg') as unknown as HTMLElement | null;
           if (svgEl) {
             const dataUrl = await toPng(svgEl, { cacheBust: true, pixelRatio: 2, backgroundColor: undefined });
             const pngRes = await fetch(dataUrl);
