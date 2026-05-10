@@ -100,6 +100,12 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
             const pngResult = await uploadHeroglyphPng(pngBlob, sid);
             heroglyphPngUrl = pngResult.secureUrl;
             onHeroglyphReady?.(heroglyphPngUrl);
+            // Fire-and-forget: save to DB immediately, independent of PDF success
+            fetch(`${EDGE_BASE}/send-certificate`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId: sid, heroglyphPngUrl }),
+            }).catch(() => {});
           }
         } catch (e) {
           console.warn('[postPayment] heroglyph PNG capture failed:', e);
