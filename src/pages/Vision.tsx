@@ -17,10 +17,11 @@ const BLOCKS = [
     tag: 'THE NATION',
     heading: '200 Million\nDog Lovers.\nOne Nation.',
     body: "DOGYPT is not a platform. It's an identity. One million is our first milestone — our destination is 200 million Dogyptians united by a single belief: dogs belong in the world.",
-    bullets: [
-      'One Heroglyph. One dog. One permanent place in the pack.',
-      '1 million Dogyptians is where it begins.',
-      'You are not a user. You are Dogyptian.',
+    cards: [
+      { title: 'One Symbol', desc: 'Your dog. One permanent mark in the pack.' },
+      { title: 'Pack Number', desc: "You're Dogyptian No. X. Recorded forever." },
+      { title: 'One Belief', desc: 'Dogs belong in the world.' },
+      { title: '200M Strong', desc: '1 million is just the beginning.' },
     ],
     symbol: '𓂀',
     shortDesc: 'One identity. One movement.',
@@ -29,10 +30,11 @@ const BLOCKS = [
     tag: 'THE MISSION',
     heading: 'A Network\nBuilt to\nRescue.',
     body: "Every Dogyptian is trained, connected, and ready. First aid. Fundraising. Direct rescue. The Pack doesn't wait for institutions — it moves.",
-    bullets: [
-      'First aid knowledge embedded in every member portal.',
-      'Transparent fundraising — every cent publicly tracked.',
-      'Direct rescue coordination across borders.',
+    cards: [
+      { title: 'First Aid', desc: 'Emergency knowledge in every member portal.' },
+      { title: 'Fundraising', desc: 'Every cent tracked. Zero overhead.' },
+      { title: 'Rescue Network', desc: 'Cross-border coordination, no middlemen.' },
+      { title: 'Always Ready', desc: "The Pack moves. It doesn't wait." },
     ],
     symbol: '𓃭',
     shortDesc: 'Trained, connected, ready.',
@@ -41,10 +43,11 @@ const BLOCKS = [
     tag: 'THE WORLD',
     heading: 'Real Places.\nReal Dogs.\nReal Heroes.',
     body: 'DOGYPT funds real shelters, real gardens, real infrastructure. From rescue sanctuaries to iconic landmarks — physical proof that this movement exists.',
-    bullets: [
-      'DOGYPT-funded shelters, each with named dog heroes.',
-      'Gardens, parks, lakes, and Dogyptian pyramids.',
-      'Infrastructure built for dogs — and the people who love them.',
+    cards: [
+      { title: 'Shelters', desc: 'Funded and named after real dog heroes.' },
+      { title: 'Sacred Lands', desc: 'Gardens, parks, and Dogyptian pyramids.' },
+      { title: 'Infrastructure', desc: 'Built for dogs and the people who love them.' },
+      { title: 'Physical Proof', desc: 'This movement exists. You can visit it.' },
     ],
     symbol: '𓇳',
     shortDesc: 'Physical proof of the movement.',
@@ -53,10 +56,11 @@ const BLOCKS = [
     tag: 'THE RESEARCH',
     heading: "Dogs Live\nToo Short.\nWe're Changing That.",
     body: 'Part of every Heroglyph funds veterinary science — longevity research, disease prevention, and the work that lets our dogs live longer.',
-    bullets: [
-      'Direct funding of longevity and health research.',
-      'Partnerships with leading veterinary institutions.',
-      'Because every year with your dog matters.',
+    cards: [
+      { title: 'Longevity', desc: 'Direct funding of dog lifespan research.' },
+      { title: 'Prevention', desc: 'Disease research, not just treatment.' },
+      { title: 'Institutions', desc: 'Partnerships with leading vet science labs.' },
+      { title: 'Every Year', desc: 'One more year with your dog matters.' },
     ],
     symbol: '𓆑',
     shortDesc: 'Every year with your dog matters.',
@@ -65,10 +69,11 @@ const BLOCKS = [
     tag: 'THE TEMPLE',
     heading: 'A World That\nRuns on\nLoyalty.',
     body: 'The Dogyptian digital temple — an app, a portal, a social network, and an economy built entirely for the pack. Own rules. Own currency. Self-sustaining.',
-    bullets: [
-      'App, portal, and social network — one identity.',
-      'A closed ecosystem with its own economy.',
-      'The Dogyptian currency: backed by loyalty, not speculation.',
+    cards: [
+      { title: 'The App', desc: 'Portal, social network, one identity.' },
+      { title: 'The Economy', desc: 'A closed ecosystem with its own rules.' },
+      { title: 'The Currency', desc: 'Backed by loyalty. Not speculation.' },
+      { title: 'Self-Sustaining', desc: 'The Pack funds itself. Forever.' },
     ],
     symbol: '𓊽',
     shortDesc: 'App, portal, economy — one identity.',
@@ -77,10 +82,11 @@ const BLOCKS = [
     tag: 'THE WHY',
     heading: '700,000,000\nDogs. No Home.\nNo Human.',
     body: "That number is not a statistic. It's a mission. Every Heroglyph funds a dog in need. Every Dogyptian carries this truth: no dog should be alone.",
-    bullets: [
-      'Every Heroglyph funds a dog in need.',
-      'Transparent impact — every cent tracked.',
-      'No dog should be alone.',
+    cards: [
+      { title: '700M Dogs', desc: 'Homeless globally. Right now.' },
+      { title: 'Your Heroglyph', desc: 'Funds a dog in need. Every purchase.' },
+      { title: 'Transparent', desc: 'Every cent tracked. Public ledger.' },
+      { title: 'No Dog Alone', desc: 'This is the mission. This is the why.' },
     ],
     symbol: '𓀭',
     shortDesc: 'No dog should be alone.',
@@ -322,42 +328,49 @@ export default function Vision() {
                     {block.body}
                   </p>
 
-                  <ul
+                  <div
                     style={{
-                      listStyle: 'none',
-                      padding: 0,
-                      margin: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 10,
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: 8,
                     }}
                   >
-                    {block.bullets.map((b) => (
-                      <li
-                        key={b}
+                    {block.cards.map((card) => (
+                      <div
+                        key={card.title}
                         style={{
+                          background: 'rgba(250,244,236,0.03)',
+                          border: '1px solid rgba(196,155,66,0.13)',
+                          borderRadius: 10,
+                          padding: '12px 14px',
                           display: 'flex',
-                          alignItems: 'flex-start',
-                          gap: 10,
-                          fontSize: 'clamp(12px, 1.3vw, 14px)',
-                          lineHeight: 1.6,
-                          color: 'rgba(250,244,236,0.42)',
+                          flexDirection: 'column',
+                          gap: 5,
                         }}
                       >
                         <span
                           style={{
-                            width: 4,
-                            height: 4,
-                            borderRadius: '50%',
-                            background: GOLD,
-                            marginTop: 7,
-                            flexShrink: 0,
+                            fontFamily: "'Cinzel', serif",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            letterSpacing: '0.08em',
+                            color: GOLD,
                           }}
-                        />
-                        {b}
-                      </li>
+                        >
+                          {card.title}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            lineHeight: 1.55,
+                            color: 'rgba(250,244,236,0.40)',
+                          }}
+                        >
+                          {card.desc}
+                        </span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
 
                   {activeIndex === 5 && (
                     <Link
