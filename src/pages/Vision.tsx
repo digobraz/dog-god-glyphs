@@ -16,13 +16,13 @@ const SEG = 1 / 6;
 const BLOCKS = [
   {
     tag: 'THE NATION',
-    heading: '200 Million\nDog Lovers.\nOne Nation.',
-    body: "DOGYPT is not a platform. It's an identity. One million is our first milestone — our destination is 200 million Dogyptians united by a single belief: dogs belong in the world.",
+    heading: 'Doglovers,\nAssemble!',
+    body: "470 million dogs have a family. Think we can find 0.213% of their owners who know Dog is God? That's 1 million. That's Year One. The future's largest dog community starts here.",
     cards: [
-      { title: 'One Symbol', desc: 'Your dog. One permanent mark in the pack.' },
-      { title: 'Pack Number', desc: "You're Dogyptian No. X. Recorded forever." },
-      { title: 'One Belief', desc: 'Dogs belong in the world.' },
-      { title: '200M Strong', desc: '1 million is just the beginning.' },
+      { title: 'In Dog We Trust', desc: 'Not a slogan.\nA new religion — Dog is God.' },
+      { title: 'New Era', desc: 'Dogs gave us everything.\nTime to give back.' },
+      { title: 'One Symbol', desc: 'It starts with a Heroglyph.\nYour dog\'s permanent mark.' },
+      { title: 'The Pack', desc: '0.213% of all dog owners.\n1M Dogyptians. One nation.' },
     ],
     symbol: '𓂀',
     shortDesc: 'One identity. One movement.',
@@ -32,10 +32,10 @@ const BLOCKS = [
     heading: 'A World That\nRuns on\nLoyalty.',
     body: 'The Dogyptian digital temple — an app, a portal, a social network, and an economy built entirely for the pack. Own rules. Own currency. Self-sustaining.',
     cards: [
-      { title: 'The App', desc: 'Portal, social network, one identity.' },
-      { title: 'The Economy', desc: 'A closed ecosystem with its own rules.' },
-      { title: 'The Currency', desc: 'Backed by loyalty. Not speculation.' },
-      { title: 'Self-Sustaining', desc: 'The Pack funds itself. Forever.' },
+      { title: 'The App', desc: 'Portal, social network.\nOne identity.' },
+      { title: 'The Economy', desc: 'A closed ecosystem.\nOwn rules, own currency.' },
+      { title: 'The Currency', desc: 'Backed by loyalty.\nNot speculation.' },
+      { title: 'Self-Sustaining', desc: 'The Pack funds itself.\nForever.' },
     ],
     symbol: '𓊽',
     shortDesc: 'App, portal, economy — one identity.',
@@ -45,10 +45,10 @@ const BLOCKS = [
     heading: 'A Network\nBuilt to\nRescue.',
     body: "Every Dogyptian is trained, connected, and ready. First aid. Fundraising. Direct rescue. The Pack doesn't wait for institutions — it moves.",
     cards: [
-      { title: 'First Aid', desc: 'Emergency knowledge in every member portal.' },
-      { title: 'Fundraising', desc: 'Every cent tracked. Zero overhead.' },
-      { title: 'Rescue Network', desc: 'Cross-border coordination, no middlemen.' },
-      { title: 'Always Ready', desc: "The Pack moves. It doesn't wait." },
+      { title: 'First Aid', desc: 'Emergency knowledge.\nIn every member portal.' },
+      { title: 'Fundraising', desc: 'Every cent tracked.\nZero overhead.' },
+      { title: 'Rescue Network', desc: 'Cross-border coordination.\nNo middlemen.' },
+      { title: 'Always Ready', desc: "The Pack moves.\nIt doesn't wait." },
     ],
     symbol: '𓃭',
     shortDesc: 'Trained, connected, ready.',
@@ -58,10 +58,10 @@ const BLOCKS = [
     heading: 'Real Places.\nReal Dogs.\nReal Heroes.',
     body: 'DOGYPT funds real shelters, real gardens, real infrastructure. From rescue sanctuaries to iconic landmarks — physical proof that this movement exists.',
     cards: [
-      { title: 'Shelters', desc: 'Funded and named after real dog heroes.' },
-      { title: 'Sacred Lands', desc: 'Gardens, parks, and Dogyptian pyramids.' },
-      { title: 'Infrastructure', desc: 'Built for dogs and the people who love them.' },
-      { title: 'Physical Proof', desc: 'This movement exists. You can visit it.' },
+      { title: 'Shelters', desc: 'Funded by the Pack.\nNamed after real dog heroes.' },
+      { title: 'Sacred Lands', desc: 'Gardens, parks.\nDogyptian pyramids.' },
+      { title: 'Infrastructure', desc: 'Built for dogs.\nAnd the people who love them.' },
+      { title: 'Physical Proof', desc: 'This movement exists.\nYou can visit it.' },
     ],
     symbol: '𓇳',
     shortDesc: 'Physical proof of the movement.',
@@ -71,10 +71,10 @@ const BLOCKS = [
     heading: "Dogs Live\nToo Short.\nWe're Changing That.",
     body: 'Part of every Heroglyph funds veterinary science — longevity research, disease prevention, and the work that lets our dogs live longer.',
     cards: [
-      { title: 'Longevity', desc: 'Direct funding of dog lifespan research.' },
-      { title: 'Prevention', desc: 'Disease research, not just treatment.' },
-      { title: 'Institutions', desc: 'Partnerships with leading vet science labs.' },
-      { title: 'Every Year', desc: 'One more year with your dog matters.' },
+      { title: 'Longevity', desc: 'Direct funding.\nDog lifespan research.' },
+      { title: 'Prevention', desc: 'Disease research.\nNot just treatment.' },
+      { title: 'Institutions', desc: 'Partnerships with vet labs.\nReal funding, real science.' },
+      { title: 'Every Year', desc: 'One more year with your dog.\nIt matters.' },
     ],
     symbol: '𓆑',
     shortDesc: 'Every year with your dog matters.',
@@ -84,10 +84,10 @@ const BLOCKS = [
     heading: '700,000,000\nDogs. No Home.\nNo Human.',
     body: "That number is not a statistic. It's a mission. Every Heroglyph funds a dog in need. Every Dogyptian carries this truth: no dog should be alone.",
     cards: [
-      { title: '700M Dogs', desc: 'Homeless globally. Right now.' },
-      { title: 'Your Heroglyph', desc: 'Funds a dog in need. Every purchase.' },
-      { title: 'Transparent', desc: 'Every cent tracked. Public ledger.' },
-      { title: 'No Dog Alone', desc: 'This is the mission. This is the why.' },
+      { title: '700M Dogs', desc: 'Homeless globally.\nRight now.' },
+      { title: 'Your Heroglyph', desc: 'Funds a dog in need.\nEvery purchase.' },
+      { title: 'Transparent', desc: 'Every cent tracked.\nPublic ledger.' },
+      { title: 'No Dog Alone', desc: 'This is the mission.\nThis is the why.' },
     ],
     symbol: '𓀭',
     shortDesc: 'No dog should be alone.',
@@ -183,6 +183,7 @@ function FeatureCard({ title, desc }: { title: string; desc: string }) {
           fontSize: 11,
           lineHeight: 1.55,
           color: 'rgba(250,244,236,0.40)',
+          whiteSpace: 'pre-line',
         }}
       >
         {desc}
@@ -453,7 +454,7 @@ export default function Vision() {
                       color: GOLD,
                     }}
                   >
-                    DOGYPT — {block.tag}
+                    {block.tag}
                   </span>
 
                   <h2
