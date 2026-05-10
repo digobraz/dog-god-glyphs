@@ -65,9 +65,10 @@ export default function Login() {
       }
     });
 
-    // Fallback: if supabase never fires SIGNED_IN (expired/invalid token), don't hang forever.
+    // Fallback: if supabase never fires SIGNED_IN (e.g. hash token expired), don't hang forever.
+    // Only override if still "verifying" — never clobber a definitive state.
     const timeout = setTimeout(() => {
-      if (!cancelled) setStatus("expired");
+      if (!cancelled) setStatus(prev => prev === "verifying" ? "expired" : prev);
     }, 7000);
 
     async function verify() {
@@ -82,11 +83,21 @@ export default function Login() {
 
         const tokenHash = params.get("token_hash") ?? params.get("token") ?? "";
         const typeParam = (params.get("type") ?? "magiclink") as "magiclink" | "email";
-        // Detect hash-fragment token — supabase redirects here with #access_token=...
         const hasHashToken = window.location.hash.includes("access_token=");
+        const hasHashError = window.location.hash.includes("error=");
 
         if (!tokenHash && !hasHashToken) {
-          if (!cancelled) setStatus("missing");
+          if (hasHashError) {
+            // Supabase redirected with error (expired / already-used OTP)
+            const hashParams = new URLSearchParams(window.location.hash.slice(1));
+            const errorDesc = hashParams.get("error_description") ?? hashParams.get("error") ?? "";
+            if (!cancelled) {
+              setErrorDetail(errorDesc);
+              setStatus(isExpired(errorDesc) ? "expired" : "invalid");
+            }
+          } else {
+            if (!cancelled) setStatus("missing");
+          }
           return;
         }
 
@@ -126,29 +137,35 @@ export default function Login() {
   }, [params, navigate]);
 
   async function handleResend() {
-    // Best-effort resend: we do not have the original email here unless the
-    // user is partially authenticated, so we fall back to navigating home
-    // where the heroglyph flow can re-trigger the magic link.
+    const dogId = params.get("dogId") ?? "";
+    if (!dogId) {
+      navigate("/", { replace: true });
+      return;
+    }
     setResending(true);
     try {
-      const { data } = await supabase.auth.getUser();
-      const email = data?.user?.email;
-      if (email) {
-        await supabase.auth.signInWithOtp({ email });
-        setResendSent(true);
+      const { error } = await supabase.functions.invoke("resend-magic-link", {
+        body: { dogId },
+      });
+      if (error) {
+        setErrorDetail(error.message ?? "Failed to resend");
       } else {
-        navigate("/", { replace: true });
+        setResendSent(true);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      setErrorDetail(message);
+      setErrorDetail(err instanceof Error ? err.message : String(err));
     } finally {
       setResending(false);
     }
   }
 
   const copy = COPY[status];
-  const showResend = status === "expired" || status === "invalid" || status === "network";
+  const dogIdPresent = !!params.get("dogId");
+  const showResend =
+    status === "expired" ||
+    status === "invalid" ||
+    status === "network" ||
+    (status === "missing" && dogIdPresent);
 
   return (
     <div className="dark-bg min-h-screen flex flex-col items-center justify-center px-4 py-10">
