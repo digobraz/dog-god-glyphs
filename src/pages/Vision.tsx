@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   motion,
@@ -92,6 +92,102 @@ const BLOCKS = [
     shortDesc: 'No dog should be alone.',
   },
 ];
+
+function FeatureCard({ title, desc }: { title: string; desc: string }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const borderRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    cardRef.current.style.setProperty('--x', `${e.clientX - rect.left}px`);
+    cardRef.current.style.setProperty('--y', `${e.clientY - rect.top}px`);
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    if (borderRef.current) borderRef.current.style.opacity = '1';
+    if (innerRef.current) innerRef.current.style.opacity = '1';
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (borderRef.current) borderRef.current.style.opacity = '0';
+    if (innerRef.current) innerRef.current.style.opacity = '0';
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        position: 'relative',
+        background: 'rgba(250,244,236,0.03)',
+        border: '1px solid rgba(196,155,66,0.13)',
+        borderRadius: 10,
+        padding: '12px 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 5,
+        overflow: 'hidden',
+        '--x': '50%',
+        '--y': '50%',
+      } as React.CSSProperties}
+    >
+      {/* Border glow — lights up the border edge at cursor position */}
+      <div
+        ref={borderRef}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 'inherit',
+          background: 'radial-gradient(18rem circle at var(--x) var(--y), rgba(201,154,63,0.5), transparent 40%)',
+          opacity: 0,
+          transition: 'opacity 0.4s',
+          pointerEvents: 'none',
+        }}
+      />
+      {/* Inner spotlight — subtle gold tint on content */}
+      <div
+        ref={innerRef}
+        style={{
+          position: 'absolute',
+          inset: 1,
+          borderRadius: 'inherit',
+          background: 'radial-gradient(18rem circle at var(--x) var(--y), rgba(201,154,63,0.07), transparent)',
+          opacity: 0,
+          transition: 'opacity 0.4s',
+          pointerEvents: 'none',
+        }}
+      />
+      <span
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          fontFamily: "'Cinzel', serif",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.08em',
+          color: GOLD,
+        }}
+      >
+        {title}
+      </span>
+      <span
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          fontSize: 11,
+          lineHeight: 1.55,
+          color: 'rgba(250,244,236,0.40)',
+        }}
+      >
+        {desc}
+      </span>
+    </div>
+  );
+}
 
 function SymbolVisual({ symbol, activeIndex }: { symbol: string; activeIndex: number }) {
   return (
@@ -336,39 +432,7 @@ export default function Vision() {
                     }}
                   >
                     {block.cards.map((card) => (
-                      <div
-                        key={card.title}
-                        style={{
-                          background: 'rgba(250,244,236,0.03)',
-                          border: '1px solid rgba(196,155,66,0.13)',
-                          borderRadius: 10,
-                          padding: '12px 14px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 5,
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontFamily: "'Cinzel', serif",
-                            fontSize: 10,
-                            fontWeight: 700,
-                            letterSpacing: '0.08em',
-                            color: GOLD,
-                          }}
-                        >
-                          {card.title}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            lineHeight: 1.55,
-                            color: 'rgba(250,244,236,0.40)',
-                          }}
-                        >
-                          {card.desc}
-                        </span>
-                      </div>
+                      <FeatureCard key={card.title} title={card.title} desc={card.desc} />
                     ))}
                   </div>
 
