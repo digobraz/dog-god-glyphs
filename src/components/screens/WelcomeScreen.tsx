@@ -69,24 +69,35 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
     inserted.current = true;
 
     async function registerAndFetch() {
-      // Try INSERT first; if it fails (e.g. duplicate session), fall through to count
-      try {
-        const { data } = await supabase
-          .from('pack_members')
-          .insert({
-            dog_name: dogName || 'Unknown',
-            email: email || null,
-            stripe_session_id: sessionId || null,
-          })
-          .select('pack_number')
-          .single();
+      // Try INSERT first. If webhook already inserted (duplicate stripe_session_id), SELECT the existing row.
+      const { data: inserted } = await supabase
+        .from('pack_members')
+        .insert({
+          dog_name: dogName || 'Unknown',
+          email: email || null,
+          stripe_session_id: sessionId || null,
+        })
+        .select('pack_number')
+        .single();
 
-        if (data?.pack_number) {
-          setPackNumber(data.pack_number);
-          return;
-        }
-      } catch { /* INSERT failed — fall through to count */ }
+      if (inserted?.pack_number) {
+        setPackNumber(inserted.pack_number);
+        return;
+      }
 
+      // INSERT failed (duplicate) — get the number assigned by the webhook
+      if (sessionId) {
+        try {
+          const { data: existing } = await supabase
+            .from('pack_members')
+            .select('pack_number')
+            .eq('stripe_session_id', sessionId)
+            .single();
+          if (existing?.pack_number) { setPackNumber(existing.pack_number); return; }
+        } catch { /* silent */ }
+      }
+
+      // Last resort: total count
       try {
         const { count } = await supabase
           .from('pack_members')
