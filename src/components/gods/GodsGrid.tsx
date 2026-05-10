@@ -342,9 +342,6 @@ export function GodsGrid() {
         ${dog.heroglyph_png_url ? `
         <div class="dog-heroglyph-wrap">
           <img class="dog-heroglyph" src="${esc(dog.heroglyph_png_url)}" alt="${safeName} heroglyph" draggable="false">
-        </div>` : dog.patron_svg ? `
-        <div class="dog-heroglyph-wrap">
-          <img class="dog-heroglyph" src="/patrons/${esc(dog.patron_svg)}" alt="${safeName} heroglyph" draggable="false">
         </div>` : ''}
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
