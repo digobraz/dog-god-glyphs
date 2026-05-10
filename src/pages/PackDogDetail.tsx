@@ -38,6 +38,7 @@ export default function PackDogDetail() {
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [resending, setResending] = useState(false);
+  const [packNumber, setPackNumber] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -50,7 +51,6 @@ export default function PackDogDetail() {
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        // Auth gate inside PackLayout will redirect — but bail out gracefully.
         return;
       }
 
@@ -67,7 +67,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, created_at, stripe_session_id, pack_number, owner_name'
+          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, created_at, stripe_session_id'
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -85,6 +85,24 @@ export default function PackDogDetail() {
       }
       setDog(data);
       setStatus('ready');
+
+      // Fetch pack_number from pack_members via stripe_session_id.
+      if (data.stripe_session_id) {
+        const { data: pm } = await (supabase as unknown as {
+          from: (t: string) => {
+            select: (cols: string) => {
+              eq: (col: string, val: string) => {
+                maybeSingle: () => Promise<{ data: { pack_number: number } | null; error: unknown }>;
+              };
+            };
+          };
+        })
+          .from('pack_members')
+          .select('pack_number')
+          .eq('stripe_session_id', data.stripe_session_id)
+          .maybeSingle();
+        if (mounted && pm?.pack_number) setPackNumber(pm.pack_number);
+      }
     }
 
     load();
@@ -107,10 +125,10 @@ export default function PackDogDetail() {
   }, [dog]);
 
   const certNumber = useMemo(() => {
-    if (dog?.pack_number) return `#${String(dog.pack_number).padStart(5, '0')}`;
+    if (packNumber) return `#${String(packNumber).padStart(5, '0')}`;
     if (dog?.id) return `#${dog.id.slice(0, 8).toUpperCase()}`;
     return '#—';
-  }, [dog]);
+  }, [dog, packNumber]);
 
   const handleResend = async () => {
     if (!dog?.id || resending) return;
