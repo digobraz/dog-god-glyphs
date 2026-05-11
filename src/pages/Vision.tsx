@@ -418,16 +418,22 @@ function GateRevealSection() {
                 x: isLeft ? gateLeft : gateRight,
               }}
             >
-              {/* Gate photo via background — 200%×100% ensures exact 50% seam split */}
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage: 'url(/images/brana.jpg)',
-                backgroundSize: '200% 100%',
-                backgroundPosition: isLeft ? 'left center' : 'right center',
-                backgroundRepeat: 'no-repeat',
-                pointerEvents: 'none',
-              }}/>
+              {/* Gate photo — height fills viewport, center aligns with seam on any screen */}
+              <img
+                src="/images/brana.jpg"
+                alt=""
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  [isLeft ? 'right' : 'left']: 0,
+                  // translate(±50%) moves img so its CENTER lands on the seam edge
+                  transform: `translate(${isLeft ? '50%' : '-50%'}, -50%)`,
+                  height: '100dvh',
+                  width: 'auto',
+                  maxWidth: 'none',
+                  pointerEvents: 'none',
+                }}
+              />
               {/* Seam glow on inner edge */}
               <div style={{
                 position: 'absolute',
