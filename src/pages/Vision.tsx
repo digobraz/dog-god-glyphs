@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   motion,
@@ -335,25 +335,37 @@ function GateRevealSection() {
     offset: ['start start', 'end end'],
   });
 
-  // Sync video currentTime with scroll
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    const video = videoRef.current;
-    if (!video || !video.duration) return;
-    // Video scrubs from scroll 0.15 → 0.85
-    const videoProgress = Math.max(0, Math.min(1, (p - 0.15) / 0.7));
-    video.currentTime = videoProgress * video.duration;
-  });
+  // RAF loop — reads scroll once per frame, avoids seeking queue buildup
+  useEffect(() => {
+    let rafId: number;
+    let lastTime = -1;
+    const loop = () => {
+      const video = videoRef.current;
+      if (video && video.duration) {
+        const p = scrollYProgress.get();
+        const vp = Math.max(0, Math.min(1, (p - 0.1) / 0.75));
+        const target = vp * video.duration;
+        if (Math.abs(video.currentTime - target) > 0.033) {
+          video.currentTime = target;
+          lastTime = target;
+        }
+      }
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafId);
+  }, [scrollYProgress]);
 
-  // Gate panels open from 0.1 → 0.55 scroll progress
-  const gateLeft = useTransform(scrollYProgress, [0.1, 0.55], ['0%', '-100%'], { clamp: true });
-  const gateRight = useTransform(scrollYProgress, [0.1, 0.55], ['0%', '100%'], { clamp: true });
-  // Gate glow anticipation
-  const gateGlow = useTransform(scrollYProgress, [0, 0.12], [0, 1], { clamp: true });
-  // CTA appears at 0.78 → 0.92
-  const ctaOpacity = useTransform(scrollYProgress, [0.78, 0.92], [0, 1], { clamp: true });
-  const ctaY = useTransform(scrollYProgress, [0.78, 0.92], [40, 0], { clamp: true });
-  // Video opacity — fades in as gate opens
-  const videoOpacity = useTransform(scrollYProgress, [0.18, 0.4], [0, 1], { clamp: true });
+  // Gate panels open immediately from 0 → 0.45 scroll progress
+  const gateLeft = useTransform(scrollYProgress, [0, 0.45], ['0%', '-100%'], { clamp: true });
+  const gateRight = useTransform(scrollYProgress, [0, 0.45], ['0%', '100%'], { clamp: true });
+  // Gate glow — full from start
+  const gateGlow = useTransform(scrollYProgress, [0, 0.06], [0.4, 1], { clamp: true });
+  // CTA appears at 0.72 → 0.88
+  const ctaOpacity = useTransform(scrollYProgress, [0.72, 0.88], [0, 1], { clamp: true });
+  const ctaY = useTransform(scrollYProgress, [0.72, 0.88], [40, 0], { clamp: true });
+  // Video opacity — fades in early
+  const videoOpacity = useTransform(scrollYProgress, [0.08, 0.3], [0, 1], { clamp: true });
 
   return (
     <section
