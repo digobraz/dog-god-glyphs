@@ -360,9 +360,9 @@ function GateRevealSection() {
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
   // Video fades in as gate opens
   const videoOpacity = useTransform(scrollYProgress, [0.05, 0.25], [0, 1], { clamp: true });
-  // CTA text + button appear near end
-  const ctaOpacity = useTransform(scrollYProgress, [0.65, 0.8], [0, 1], { clamp: true });
-  const ctaY       = useTransform(scrollYProgress, [0.65, 0.8], [36, 0], { clamp: true });
+  // CTA appears only when hand+paw touch = video end = scroll ≈ 0.85
+  const ctaOpacity = useTransform(scrollYProgress, [0.85, 0.93], [0, 1], { clamp: true });
+  const ctaY       = useTransform(scrollYProgress, [0.85, 0.93], [36, 0], { clamp: true });
 
   return (
     <section
