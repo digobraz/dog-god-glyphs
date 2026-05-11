@@ -330,10 +330,10 @@ function GateRevealSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Starts tracking when section enters viewport from below (opens gate while still in vision blocks)
+  // Tracking starts when section fills viewport — logo fully visible before gate moves
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start end', 'end end'],
+    offset: ['start start', 'end end'],
   });
 
   // RAF loop — reads scroll.get() once per frame, avoids seeking queue
