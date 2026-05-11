@@ -56,7 +56,7 @@ const BLOCKS = [
   {
     tag: 'THE WORLD',
     heading: 'OFFLINE\nINFRASTRUCTURE.',
-    body: "Imagine a shelter without the sad faces. That's what happens when the work is paid and the infrastructure is real. The Pack funds it directly — to dogs and the people beside them, not to governments.",
+    body: "Imagine a shelter without the sad faces. That's what happens when the work is paid and the infrastructure is real. The Pack funds it directly — to dogs and the people beside them.",
     cards: [
       { title: 'Dogypt Center', desc: 'Not a charity facility.\nShelter 2.0. A new model.' },
       { title: 'Dogyptland', desc: 'Dog-first territories.\nParks, lands, sacred grounds.' },
@@ -68,16 +68,16 @@ const BLOCKS = [
   },
   {
     tag: 'THE RESEARCH',
-    heading: "Dogs Live\nToo Short.\nWe're Changing That.",
-    body: 'Part of every Heroglyph funds veterinary science — longevity research, disease prevention, and the work that lets our dogs live longer.',
+    heading: 'Real Data.\nDog-First.',
+    body: 'Most dog research is funded by the brands selling dog food. DOGYPT backs the full spectrum — from longevity science to holistic and traditional approaches. For dogs. Not brands.',
     cards: [
-      { title: 'Longevity', desc: 'Direct funding.\nDog lifespan research.' },
-      { title: 'Prevention', desc: 'Disease research.\nNot just treatment.' },
-      { title: 'Institutions', desc: 'Partnerships with vet labs.\nReal funding, real science.' },
-      { title: 'Every Year', desc: 'One more year with your dog.\nIt matters.' },
+      { title: 'Longevity', desc: 'More years with your dog.\nFunded research, real results.' },
+      { title: 'Holistic Medicine', desc: 'From TCM to acupuncture.\nEvery approach that helps dogs.' },
+      { title: 'Dog Tech', desc: 'Smart gadgets, wearables, health monitors.\nBuilt for dogs. Not shelf space.' },
+      { title: 'Open Data', desc: 'No brand owns these results.\nPublic. Transparent. Always.' },
     ],
     symbol: '𓆑',
-    shortDesc: 'Every year with your dog matters.',
+    shortDesc: 'Real science. No brand agenda.',
   },
   {
     tag: 'THE LEGACY',
