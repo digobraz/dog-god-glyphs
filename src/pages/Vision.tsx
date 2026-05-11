@@ -330,24 +330,23 @@ function GateRevealSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Starts tracking when section enters viewport from below (opens gate while still in vision blocks)
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ['start start', 'end end'],
+    offset: ['start end', 'end end'],
   });
 
-  // RAF loop — reads scroll once per frame, avoids seeking queue buildup
+  // RAF loop — reads scroll.get() once per frame, avoids seeking queue
   useEffect(() => {
     let rafId: number;
-    let lastTime = -1;
     const loop = () => {
       const video = videoRef.current;
-      if (video && video.duration) {
+      if (video && video.readyState >= 2 && video.duration) {
         const p = scrollYProgress.get();
-        const vp = Math.max(0, Math.min(1, (p - 0.1) / 0.75));
+        const vp = Math.max(0, Math.min(1, (p - 0.15) / 0.7));
         const target = vp * video.duration;
-        if (Math.abs(video.currentTime - target) > 0.033) {
+        if (Math.abs(video.currentTime - target) > 0.025) {
           video.currentTime = target;
-          lastTime = target;
         }
       }
       rafId = requestAnimationFrame(loop);
@@ -356,16 +355,14 @@ function GateRevealSection() {
     return () => cancelAnimationFrame(rafId);
   }, [scrollYProgress]);
 
-  // Gate panels open immediately from 0 → 0.45 scroll progress
-  const gateLeft = useTransform(scrollYProgress, [0, 0.45], ['0%', '-100%'], { clamp: true });
-  const gateRight = useTransform(scrollYProgress, [0, 0.45], ['0%', '100%'], { clamp: true });
-  // Gate glow — full from start
-  const gateGlow = useTransform(scrollYProgress, [0, 0.06], [0.4, 1], { clamp: true });
-  // CTA appears at 0.72 → 0.88
-  const ctaOpacity = useTransform(scrollYProgress, [0.72, 0.88], [0, 1], { clamp: true });
-  const ctaY = useTransform(scrollYProgress, [0.72, 0.88], [40, 0], { clamp: true });
-  // Video opacity — fades in early
-  const videoOpacity = useTransform(scrollYProgress, [0.08, 0.3], [0, 1], { clamp: true });
+  // Gate opens from first scroll tick (section enters viewport)
+  const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
+  const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
+  // Video fades in as gate opens
+  const videoOpacity = useTransform(scrollYProgress, [0.05, 0.25], [0, 1], { clamp: true });
+  // CTA text + button appear near end
+  const ctaOpacity = useTransform(scrollYProgress, [0.65, 0.8], [0, 1], { clamp: true });
+  const ctaY       = useTransform(scrollYProgress, [0.65, 0.8], [36, 0], { clamp: true });
 
   return (
     <section
@@ -398,18 +395,13 @@ function GateRevealSection() {
           }}
         />
 
-        {/* Dark vignette over video */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'radial-gradient(ellipse 70% 70% at 50% 50%, transparent 20%, rgba(0,0,0,0.55) 100%)',
-            pointerEvents: 'none',
-            zIndex: 2,
-          }}
-        />
+        {/* Edge vignette — only outermost edges, keeps center bright */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
+          background: 'radial-gradient(ellipse 90% 85% at 50% 50%, transparent 55%, rgba(0,0,0,0.35) 100%)',
+        }}/>
 
-        {/* ═══ GATE PANELS ═══ */}
+        {/* ═══ GATE PANELS — actual gate photo, split at seam ═══ */}
         {(['left', 'right'] as const).map((side) => {
           const isLeft = side === 'left';
           return (
@@ -426,221 +418,87 @@ function GateRevealSection() {
                 x: isLeft ? gateLeft : gateRight,
               }}
             >
-              {/* ── SVG panel decoration ── */}
-              <svg
-                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
-                viewBox="0 0 400 700"
-                preserveAspectRatio="none"
-              >
-                <defs>
-                  <radialGradient id={`bg-${side}`} cx="50%" cy="35%" r="75%">
-                    <stop offset="0%" stopColor="#1c1408" />
-                    <stop offset="100%" stopColor="#060402" />
-                  </radialGradient>
-                  <linearGradient id={`outer-col-${side}`} x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#C99A3F" stopOpacity="0.08" />
-                    <stop offset="50%" stopColor="#E8B84B" stopOpacity="0.35" />
-                    <stop offset="100%" stopColor="#C99A3F" stopOpacity="0.12" />
-                  </linearGradient>
-                  <linearGradient id={`seam-col-${side}`} x1={isLeft ? '0' : '1'} y1="0" x2={isLeft ? '1' : '0'} y2="0">
-                    <stop offset="0%" stopColor="#C99A3F" stopOpacity="0.04" />
-                    <stop offset="60%" stopColor="#E8B84B" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#FFF0A0" stopOpacity="1" />
-                  </linearGradient>
-                  <pattern id={`diamonds-${side}`} width="30" height="30" patternUnits="userSpaceOnUse">
-                    <path d="M15 2 L28 15 L15 28 L2 15 Z" fill="none" stroke="#C99A3F" strokeWidth="0.7" strokeOpacity="0.3"/>
-                  </pattern>
-                  <pattern id={`hlines-${side}`} width="400" height="14" patternUnits="userSpaceOnUse">
-                    <line x1="0" y1="0" x2="400" y2="0" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.14"/>
-                  </pattern>
-                  <filter id={`glow-${side}`}>
-                    <feGaussianBlur stdDeviation="3" result="blur"/>
-                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                  </filter>
-                </defs>
-
-                {/* Background */}
-                <rect width="400" height="700" fill={`url(#bg-${side})`}/>
-
-                {/* Subtle horizontal lines throughout */}
-                <rect width="400" height="700" fill={`url(#hlines-${side})`}/>
-
-                {/* ── OUTER COLUMN (far edge) ── */}
-                <rect x="0" y="0" width="42" height="700" fill={`url(#outer-col-${side})`}/>
-                <line x1="42" y1="0" x2="42" y2="700" stroke="#C99A3F" strokeWidth="1.2" strokeOpacity="0.55"/>
-                <line x1="50" y1="0" x2="50" y2="700" stroke="#C99A3F" strokeWidth="0.35" strokeOpacity="0.22"/>
-                {/* Lotus capital top */}
-                <path d="M21 18 Q10 30 6 48 Q21 38 21 48 Q21 38 36 48 Q32 30 21 18Z" fill="#C99A3F" fillOpacity="0.28"/>
-                {/* Lotus capital bottom */}
-                <path d="M21 682 Q10 670 6 652 Q21 662 21 652 Q21 662 36 652 Q32 670 21 682Z" fill="#C99A3F" fillOpacity="0.28"/>
-                {/* Outer col vertical lines */}
-                {[12, 22, 32].map(x => (
-                  <line key={x} x1={x} y1="60" x2={x} y2="640" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.2"/>
-                ))}
-
-                {/* ── TOP CORNICE ── */}
-                <rect x="50" y="0" width="314" height="62" fill="#100c05"/>
-                <line x1="50" y1="62" x2="364" y2="62" stroke="#C99A3F" strokeWidth="1.4" strokeOpacity="0.7"/>
-                <line x1="50" y1="56" x2="364" y2="56" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.3"/>
-                <line x1="50" y1="66" x2="364" y2="66" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.25"/>
-                {/* Cornice horizontal rules */}
-                {[14, 24, 34, 46].map(y => (
-                  <line key={y} x1="80" y1={y} x2="340" y2={y} stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
-                ))}
-                {/* Wing / scarab motif */}
-                <path d="M207 10 L155 40 L168 40 L207 24 L246 40 L259 40 Z" fill="#C99A3F" fillOpacity="0.35"/>
-                <path d="M207 10 L193 26 L207 22 L221 26 Z" fill="#C99A3F" fillOpacity="0.5"/>
-                {/* Cornice side columns */}
-                <rect x="50" y="0" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
-                <rect x="342" y="0" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
-
-                {/* ── UPPER DIAMOND GRID ── */}
-                <rect x="50" y="66" width="314" height="200" fill={`url(#diamonds-${side})`}/>
-                {/* Upper grid border */}
-                <line x1="50" y1="266" x2="364" y2="266" stroke="#C99A3F" strokeWidth="1" strokeOpacity="0.55"/>
-                <line x1="50" y1="272" x2="364" y2="272" stroke="#C99A3F" strokeWidth="0.35" strokeOpacity="0.25"/>
-                {/* Sub-column lines in diamond area */}
-                <line x1="150" y1="66" x2="150" y2="266" stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
-                <line x1="260" y1="66" x2="260" y2="266" stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
-
-                {/* ── MIDDLE SECTION (below diamond grid, above bottom) ── */}
-                {[310, 346, 382, 416, 452, 488, 520, 550, 578].map(y => (
-                  <line key={y} x1="50" y1={y} x2="364" y2={y} stroke="#C99A3F" strokeWidth="0.45" strokeOpacity="0.2"/>
-                ))}
-                {/* Vertical sub-panel lines */}
-                <line x1="150" y1="272" x2="150" y2="630" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.2"/>
-                <line x1="260" y1="272" x2="260" y2="630" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.2"/>
-
-                {/* ── BOTTOM CORNICE ── */}
-                <rect x="50" y="638" width="314" height="62" fill="#100c05"/>
-                <line x1="50" y1="638" x2="364" y2="638" stroke="#C99A3F" strokeWidth="1.4" strokeOpacity="0.7"/>
-                <line x1="50" y1="644" x2="364" y2="644" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.3"/>
-                {[654, 664, 676, 686].map(y => (
-                  <line key={y} x1="80" y1={y} x2="340" y2={y} stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
-                ))}
-                <rect x="50" y="638" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
-                <rect x="342" y="638" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
-
-                {/* ── SEAM COLUMN (inner edge — bright gold) ── */}
-                <rect x={isLeft ? 362 : 0} y="0" width="38" height="700" fill={`url(#seam-col-${side})`}/>
-                {/* Seam edge glow line */}
-                <line
-                  x1={isLeft ? 400 : 0} y1="0"
-                  x2={isLeft ? 400 : 0} y2="700"
-                  stroke="#F5C73D" strokeWidth="2.5" strokeOpacity="0.9"
-                  filter={`url(#glow-${side})`}
-                />
-                {/* Seam column inner line */}
-                <line
-                  x1={isLeft ? 362 : 38} y1="0"
-                  x2={isLeft ? 362 : 38} y2="700"
-                  stroke="#C99A3F" strokeWidth="0.8" strokeOpacity="0.5"
-                />
-              </svg>
-
-              {/* ── CIRCULAR SEAL — split at seam ── */}
-              <div
+              {/* Gate photo — each panel shows its half of the image */}
+              <img
+                src="/images/brana.jpg"
+                alt=""
                 style={{
                   position: 'absolute',
-                  top: '50%',
-                  [isLeft ? 'right' : 'left']: 0,
-                  transform: `translate(${isLeft ? '50%' : '-50%'}, -50%)`,
-                  width: 'clamp(200px, 32vw, 400px)',
-                  height: 'clamp(200px, 32vw, 400px)',
-                  zIndex: 3,
+                  top: 0,
+                  [isLeft ? 'left' : 'right']: 0,
+                  width: '200%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: isLeft ? 'left center' : 'right center',
                   pointerEvents: 'none',
                 }}
-              >
-                {/* Outer glow ring */}
-                <div style={{
-                  position: 'absolute', inset: 0, borderRadius: '50%',
-                  boxShadow: '0 0 40px 8px rgba(201,154,63,0.35), 0 0 80px 20px rgba(201,154,63,0.12)',
-                }}/>
-                {/* Outer border ring */}
-                <div style={{
-                  position: 'absolute', inset: 0, borderRadius: '50%',
-                  border: '4px solid #C99A3F',
-                  background: 'radial-gradient(circle, #0e0905 55%, #1a1208 100%)',
-                }}/>
-                {/* Inner ring */}
-                <div style={{
-                  position: 'absolute', inset: '10%', borderRadius: '50%',
-                  border: '1.5px solid rgba(201,154,63,0.45)',
-                }}/>
-                {/* Logo */}
-                <div style={{
-                  position: 'absolute', inset: '18%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <img
-                    src={dogyptLogo}
-                    alt="DOGYPT"
-                    style={{
-                      width: '100%', height: '100%', objectFit: 'contain',
-                      filter: 'drop-shadow(0 0 14px rgba(201,154,63,0.7)) brightness(1.1)',
-                    }}
-                  />
-                </div>
-              </div>
+              />
+              {/* Seam glow on inner edge */}
+              <div style={{
+                position: 'absolute',
+                top: 0, bottom: 0,
+                [isLeft ? 'right' : 'left']: 0,
+                width: 3,
+                background: 'linear-gradient(180deg, transparent 0%, #F5C73D 20%, #FFF8E0 50%, #F5C73D 80%, transparent 100%)',
+                boxShadow: isLeft
+                  ? '2px 0 18px 6px rgba(245,199,61,0.6)'
+                  : '-2px 0 18px 6px rgba(245,199,61,0.6)',
+                zIndex: 2,
+              }}/>
             </motion.div>
           );
         })}
 
-        {/* Top seam glow — fixed, full width */}
-        <div
-          style={{
-            position: 'absolute', top: 0, left: 0, right: 0, height: 5, zIndex: 11,
-            background: 'linear-gradient(90deg, transparent 5%, #C99A3F 30%, #F5C73D 50%, #C99A3F 70%, transparent 95%)',
-            boxShadow: '0 0 20px 5px rgba(201,154,63,0.55)',
-          }}
-        />
+        {/* Top gold line — seam header */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: 4, zIndex: 11,
+          background: 'linear-gradient(90deg, transparent 5%, #C99A3F 30%, #F5C73D 50%, #C99A3F 70%, transparent 95%)',
+          boxShadow: '0 0 16px 4px rgba(201,154,63,0.5)',
+        }}/>
 
-        {/* CTA overlay — appears at end */}
+        {/* CTA — text fades in, button always solid */}
         <motion.div
           style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 20,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 28,
-            opacity: ctaOpacity,
+            position: 'absolute', inset: 0, zIndex: 20,
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: 24, pointerEvents: 'none',
             y: ctaY,
-            pointerEvents: 'none',
           }}
         >
-          {/* Dark overlay for CTA legibility */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,0,0,0.65) 0%, transparent 100%)',
+          {/* Legibility backdrop — fades with text */}
+          <motion.div style={{
+            position: 'absolute', inset: 0, opacity: ctaOpacity,
+            background: 'radial-gradient(ellipse 55% 45% at 50% 50%, rgba(0,0,0,0.7) 0%, transparent 100%)',
             pointerEvents: 'none',
-          }} />
+          }}/>
 
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-            <div style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(10px, 1.2vw, 13px)',
-              letterSpacing: '0.4em',
-              color: 'rgba(201,154,63,0.7)',
-              textTransform: 'uppercase',
-            }}>
-              The Pack awaits
-            </div>
-            <h2 style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              fontSize: 'clamp(28px, 5vw, 64px)',
-              color: '#FAF4EC',
-              letterSpacing: '0.05em',
-              margin: 0,
-              textShadow: '0 0 40px rgba(0,0,0,0.8)',
-            }}>
-              BECOME DOGYPTIAN
-            </h2>
-            <motion.div style={{ pointerEvents: 'auto' }}>
+            <motion.div style={{ opacity: ctaOpacity }}>
+              <div style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(10px, 1.2vw, 13px)',
+                letterSpacing: '0.4em',
+                color: 'rgba(201,154,63,0.8)',
+                textTransform: 'uppercase',
+                marginBottom: 12,
+              }}>
+                The Pack awaits
+              </div>
+              <h2 style={{
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: 'clamp(28px, 5vw, 64px)',
+                color: '#FAF4EC',
+                letterSpacing: '0.05em',
+                margin: 0,
+                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+              }}>
+                BECOME DOGYPTIAN
+              </h2>
+            </motion.div>
+
+            {/* Button: no opacity — always fully solid gold */}
+            <div style={{ pointerEvents: 'auto' }}>
               <Link
                 to="/heroglyph"
                 style={{
@@ -649,18 +507,18 @@ function GateRevealSection() {
                   fontWeight: 700,
                   fontSize: 'clamp(12px, 1.4vw, 15px)',
                   letterSpacing: '0.14em',
-                  padding: 'clamp(12px, 1.5vw, 16px) clamp(28px, 3.5vw, 44px)',
+                  padding: 'clamp(13px, 1.6vw, 17px) clamp(32px, 4vw, 52px)',
                   background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
                   color: '#000',
-                  border: '1px solid rgba(250,244,236,0.30)',
+                  border: '1px solid rgba(250,244,236,0.3)',
                   borderRadius: 8,
                   textDecoration: 'none',
-                  boxShadow: '0 0 32px rgba(201,154,63,0.5)',
+                  boxShadow: '0 0 28px rgba(201,154,63,0.55), inset 0 1px 0 rgba(255,255,255,0.25)',
                 }}
               >
                 CLAIM YOUR HEROGLYPH →
               </Link>
-            </motion.div>
+            </div>
           </div>
         </motion.div>
       </div>
