@@ -326,6 +326,268 @@ function ProgressBar({ progress, isActive }: { progress: MotionValue<number>; is
   );
 }
 
+function GateRevealSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end end'],
+  });
+
+  // Sync video currentTime with scroll
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    const video = videoRef.current;
+    if (!video || !video.duration) return;
+    // Video scrubs from scroll 0.15 → 0.85
+    const videoProgress = Math.max(0, Math.min(1, (p - 0.15) / 0.7));
+    video.currentTime = videoProgress * video.duration;
+  });
+
+  // Gate panels open from 0.1 → 0.55 scroll progress
+  const gateLeft = useTransform(scrollYProgress, [0.1, 0.55], ['0%', '-100%'], { clamp: true });
+  const gateRight = useTransform(scrollYProgress, [0.1, 0.55], ['0%', '100%'], { clamp: true });
+  // Gate glow anticipation
+  const gateGlow = useTransform(scrollYProgress, [0, 0.12], [0, 1], { clamp: true });
+  // CTA appears at 0.78 → 0.92
+  const ctaOpacity = useTransform(scrollYProgress, [0.78, 0.92], [0, 1], { clamp: true });
+  const ctaY = useTransform(scrollYProgress, [0.78, 0.92], [40, 0], { clamp: true });
+  // Video opacity — fades in as gate opens
+  const videoOpacity = useTransform(scrollYProgress, [0.18, 0.4], [0, 1], { clamp: true });
+
+  return (
+    <section
+      ref={sectionRef}
+      style={{ height: '500vh', position: 'relative', backgroundColor: '#000' }}
+    >
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          height: '100dvh',
+          overflow: 'hidden',
+          backgroundColor: '#000',
+        }}
+      >
+        {/* Video layer — behind gate */}
+        <motion.video
+          ref={videoRef}
+          src="/videos/touch_opening.mp4"
+          muted
+          playsInline
+          preload="auto"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: videoOpacity,
+          }}
+        />
+
+        {/* Dark vignette over video */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse 70% 70% at 50% 50%, transparent 20%, rgba(0,0,0,0.55) 100%)',
+            pointerEvents: 'none',
+            zIndex: 2,
+          }}
+        />
+
+        {/* LEFT GATE PANEL */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '50%',
+            height: '100%',
+            backgroundColor: '#000',
+            zIndex: 10,
+            x: gateLeft,
+            borderRight: '1px solid rgba(201,154,63,0.6)',
+          }}
+        >
+          {/* Gold ornament — right edge of left panel */}
+          <motion.div
+            style={{
+              position: 'absolute',
+              right: -1,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              background: 'linear-gradient(180deg, transparent 0%, #C99A3F 20%, #F5C73D 50%, #C99A3F 80%, transparent 100%)',
+              opacity: gateGlow,
+              boxShadow: '0 0 20px 4px rgba(201,154,63,0.7)',
+            }}
+          />
+          {/* Corner bracket top */}
+          <svg style={{ position: 'absolute', top: 20, right: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M32 0 L32 32 L0 32" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
+          </svg>
+          {/* Corner bracket bottom */}
+          <svg style={{ position: 'absolute', bottom: 20, right: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M32 32 L32 0 L0 0" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
+          </svg>
+          {/* Hieroglyph center decoration */}
+          <div style={{
+            position: 'absolute',
+            right: 28,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontFamily: 'serif',
+            fontSize: 28,
+            color: 'rgba(201,154,63,0.35)',
+            letterSpacing: '0.15em',
+            writingMode: 'vertical-rl',
+            textOrientation: 'mixed',
+          }}>
+            𓂀𓊽𓃭
+          </div>
+        </motion.div>
+
+        {/* RIGHT GATE PANEL */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            width: '50%',
+            height: '100%',
+            backgroundColor: '#000',
+            zIndex: 10,
+            x: gateRight,
+            borderLeft: '1px solid rgba(201,154,63,0.6)',
+          }}
+        >
+          {/* Gold ornament — left edge of right panel */}
+          <motion.div
+            style={{
+              position: 'absolute',
+              left: -1,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              background: 'linear-gradient(180deg, transparent 0%, #C99A3F 20%, #F5C73D 50%, #C99A3F 80%, transparent 100%)',
+              opacity: gateGlow,
+              boxShadow: '0 0 20px 4px rgba(201,154,63,0.7)',
+            }}
+          />
+          {/* Corner bracket top */}
+          <svg style={{ position: 'absolute', top: 20, left: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M0 0 L0 32 L32 32" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
+          </svg>
+          {/* Corner bracket bottom */}
+          <svg style={{ position: 'absolute', bottom: 20, left: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <path d="M0 32 L0 0 L32 0" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
+          </svg>
+          {/* Hieroglyph center decoration */}
+          <div style={{
+            position: 'absolute',
+            left: 28,
+            top: '50%',
+            transform: 'translateY(-50%)',
+            fontFamily: 'serif',
+            fontSize: 28,
+            color: 'rgba(201,154,63,0.35)',
+            letterSpacing: '0.15em',
+            writingMode: 'vertical-rl',
+            textOrientation: 'mixed',
+          }}>
+            𓇳𓆑𓀭
+          </div>
+        </motion.div>
+
+        {/* Top arch / gate header — stays centered while gate opens */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 6,
+            background: 'linear-gradient(90deg, transparent 0%, #C99A3F 30%, #F5C73D 50%, #C99A3F 70%, transparent 100%)',
+            zIndex: 11,
+            boxShadow: '0 0 18px 4px rgba(201,154,63,0.5)',
+          }}
+        />
+
+        {/* CTA overlay — appears at end */}
+        <motion.div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 20,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 28,
+            opacity: ctaOpacity,
+            y: ctaY,
+            pointerEvents: 'none',
+          }}
+        >
+          {/* Dark overlay for CTA legibility */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(0,0,0,0.65) 0%, transparent 100%)',
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+            <div style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(10px, 1.2vw, 13px)',
+              letterSpacing: '0.4em',
+              color: 'rgba(201,154,63,0.7)',
+              textTransform: 'uppercase',
+            }}>
+              The Pack awaits
+            </div>
+            <h2 style={{
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 'clamp(28px, 5vw, 64px)',
+              color: '#FAF4EC',
+              letterSpacing: '0.05em',
+              margin: 0,
+              textShadow: '0 0 40px rgba(0,0,0,0.8)',
+            }}>
+              BECOME DOGYPTIAN
+            </h2>
+            <motion.div style={{ pointerEvents: 'auto' }}>
+              <Link
+                to="/heroglyph"
+                style={{
+                  display: 'inline-block',
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(12px, 1.4vw, 15px)',
+                  letterSpacing: '0.14em',
+                  padding: 'clamp(12px, 1.5vw, 16px) clamp(28px, 3.5vw, 44px)',
+                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                  color: '#000',
+                  border: '1px solid rgba(250,244,236,0.30)',
+                  borderRadius: 8,
+                  textDecoration: 'none',
+                  boxShadow: '0 0 32px rgba(201,154,63,0.5)',
+                }}
+              >
+                CLAIM YOUR HEROGLYPH →
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
 export default function Vision() {
   const wrapperRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -547,6 +809,8 @@ export default function Vision() {
           </div>
         </div>
       </section>
+
+      <GateRevealSection />
     </div>
   );
 }
