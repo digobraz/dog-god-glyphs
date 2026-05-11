@@ -409,121 +409,189 @@ function GateRevealSection() {
           }}
         />
 
-        {/* LEFT GATE PANEL */}
-        <motion.div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '50%',
-            height: '100%',
-            backgroundColor: '#000',
-            zIndex: 10,
-            x: gateLeft,
-            borderRight: '1px solid rgba(201,154,63,0.6)',
-          }}
-        >
-          {/* Gold ornament — right edge of left panel */}
-          <motion.div
-            style={{
-              position: 'absolute',
-              right: -1,
-              top: 0,
-              bottom: 0,
-              width: 4,
-              background: 'linear-gradient(180deg, transparent 0%, #C99A3F 20%, #F5C73D 50%, #C99A3F 80%, transparent 100%)',
-              opacity: gateGlow,
-              boxShadow: '0 0 20px 4px rgba(201,154,63,0.7)',
-            }}
-          />
-          {/* Corner bracket top */}
-          <svg style={{ position: 'absolute', top: 20, right: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M32 0 L32 32 L0 32" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
-          </svg>
-          {/* Corner bracket bottom */}
-          <svg style={{ position: 'absolute', bottom: 20, right: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M32 32 L32 0 L0 0" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
-          </svg>
-          {/* Hieroglyph center decoration */}
-          <div style={{
-            position: 'absolute',
-            right: 28,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            fontFamily: 'serif',
-            fontSize: 28,
-            color: 'rgba(201,154,63,0.35)',
-            letterSpacing: '0.15em',
-            writingMode: 'vertical-rl',
-            textOrientation: 'mixed',
-          }}>
-            𓂀𓊽𓃭
-          </div>
-        </motion.div>
+        {/* ═══ GATE PANELS ═══ */}
+        {(['left', 'right'] as const).map((side) => {
+          const isLeft = side === 'left';
+          return (
+            <motion.div
+              key={side}
+              style={{
+                position: 'absolute',
+                top: 0,
+                [isLeft ? 'left' : 'right']: 0,
+                width: '50%',
+                height: '100%',
+                overflow: 'hidden',
+                zIndex: 10,
+                x: isLeft ? gateLeft : gateRight,
+              }}
+            >
+              {/* ── SVG panel decoration ── */}
+              <svg
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+                viewBox="0 0 400 700"
+                preserveAspectRatio="none"
+              >
+                <defs>
+                  <radialGradient id={`bg-${side}`} cx="50%" cy="35%" r="75%">
+                    <stop offset="0%" stopColor="#1c1408" />
+                    <stop offset="100%" stopColor="#060402" />
+                  </radialGradient>
+                  <linearGradient id={`outer-col-${side}`} x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#C99A3F" stopOpacity="0.08" />
+                    <stop offset="50%" stopColor="#E8B84B" stopOpacity="0.35" />
+                    <stop offset="100%" stopColor="#C99A3F" stopOpacity="0.12" />
+                  </linearGradient>
+                  <linearGradient id={`seam-col-${side}`} x1={isLeft ? '0' : '1'} y1="0" x2={isLeft ? '1' : '0'} y2="0">
+                    <stop offset="0%" stopColor="#C99A3F" stopOpacity="0.04" />
+                    <stop offset="60%" stopColor="#E8B84B" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#FFF0A0" stopOpacity="1" />
+                  </linearGradient>
+                  <pattern id={`diamonds-${side}`} width="30" height="30" patternUnits="userSpaceOnUse">
+                    <path d="M15 2 L28 15 L15 28 L2 15 Z" fill="none" stroke="#C99A3F" strokeWidth="0.7" strokeOpacity="0.3"/>
+                  </pattern>
+                  <pattern id={`hlines-${side}`} width="400" height="14" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="400" y2="0" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.14"/>
+                  </pattern>
+                  <filter id={`glow-${side}`}>
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                </defs>
 
-        {/* RIGHT GATE PANEL */}
-        <motion.div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: '50%',
-            height: '100%',
-            backgroundColor: '#000',
-            zIndex: 10,
-            x: gateRight,
-            borderLeft: '1px solid rgba(201,154,63,0.6)',
-          }}
-        >
-          {/* Gold ornament — left edge of right panel */}
-          <motion.div
-            style={{
-              position: 'absolute',
-              left: -1,
-              top: 0,
-              bottom: 0,
-              width: 4,
-              background: 'linear-gradient(180deg, transparent 0%, #C99A3F 20%, #F5C73D 50%, #C99A3F 80%, transparent 100%)',
-              opacity: gateGlow,
-              boxShadow: '0 0 20px 4px rgba(201,154,63,0.7)',
-            }}
-          />
-          {/* Corner bracket top */}
-          <svg style={{ position: 'absolute', top: 20, left: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M0 0 L0 32 L32 32" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
-          </svg>
-          {/* Corner bracket bottom */}
-          <svg style={{ position: 'absolute', bottom: 20, left: 20, opacity: 0.5 }} width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <path d="M0 32 L0 0 L32 0" stroke="#C99A3F" strokeWidth="1.5" fill="none" />
-          </svg>
-          {/* Hieroglyph center decoration */}
-          <div style={{
-            position: 'absolute',
-            left: 28,
-            top: '50%',
-            transform: 'translateY(-50%)',
-            fontFamily: 'serif',
-            fontSize: 28,
-            color: 'rgba(201,154,63,0.35)',
-            letterSpacing: '0.15em',
-            writingMode: 'vertical-rl',
-            textOrientation: 'mixed',
-          }}>
-            𓇳𓆑𓀭
-          </div>
-        </motion.div>
+                {/* Background */}
+                <rect width="400" height="700" fill={`url(#bg-${side})`}/>
 
-        {/* Top arch / gate header — stays centered while gate opens */}
+                {/* Subtle horizontal lines throughout */}
+                <rect width="400" height="700" fill={`url(#hlines-${side})`}/>
+
+                {/* ── OUTER COLUMN (far edge) ── */}
+                <rect x="0" y="0" width="42" height="700" fill={`url(#outer-col-${side})`}/>
+                <line x1="42" y1="0" x2="42" y2="700" stroke="#C99A3F" strokeWidth="1.2" strokeOpacity="0.55"/>
+                <line x1="50" y1="0" x2="50" y2="700" stroke="#C99A3F" strokeWidth="0.35" strokeOpacity="0.22"/>
+                {/* Lotus capital top */}
+                <path d="M21 18 Q10 30 6 48 Q21 38 21 48 Q21 38 36 48 Q32 30 21 18Z" fill="#C99A3F" fillOpacity="0.28"/>
+                {/* Lotus capital bottom */}
+                <path d="M21 682 Q10 670 6 652 Q21 662 21 652 Q21 662 36 652 Q32 670 21 682Z" fill="#C99A3F" fillOpacity="0.28"/>
+                {/* Outer col vertical lines */}
+                {[12, 22, 32].map(x => (
+                  <line key={x} x1={x} y1="60" x2={x} y2="640" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.2"/>
+                ))}
+
+                {/* ── TOP CORNICE ── */}
+                <rect x="50" y="0" width="314" height="62" fill="#100c05"/>
+                <line x1="50" y1="62" x2="364" y2="62" stroke="#C99A3F" strokeWidth="1.4" strokeOpacity="0.7"/>
+                <line x1="50" y1="56" x2="364" y2="56" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.3"/>
+                <line x1="50" y1="66" x2="364" y2="66" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.25"/>
+                {/* Cornice horizontal rules */}
+                {[14, 24, 34, 46].map(y => (
+                  <line key={y} x1="80" y1={y} x2="340" y2={y} stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
+                ))}
+                {/* Wing / scarab motif */}
+                <path d="M207 10 L155 40 L168 40 L207 24 L246 40 L259 40 Z" fill="#C99A3F" fillOpacity="0.35"/>
+                <path d="M207 10 L193 26 L207 22 L221 26 Z" fill="#C99A3F" fillOpacity="0.5"/>
+                {/* Cornice side columns */}
+                <rect x="50" y="0" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
+                <rect x="342" y="0" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
+
+                {/* ── UPPER DIAMOND GRID ── */}
+                <rect x="50" y="66" width="314" height="200" fill={`url(#diamonds-${side})`}/>
+                {/* Upper grid border */}
+                <line x1="50" y1="266" x2="364" y2="266" stroke="#C99A3F" strokeWidth="1" strokeOpacity="0.55"/>
+                <line x1="50" y1="272" x2="364" y2="272" stroke="#C99A3F" strokeWidth="0.35" strokeOpacity="0.25"/>
+                {/* Sub-column lines in diamond area */}
+                <line x1="150" y1="66" x2="150" y2="266" stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
+                <line x1="260" y1="66" x2="260" y2="266" stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
+
+                {/* ── MIDDLE SECTION (below diamond grid, above bottom) ── */}
+                {[310, 346, 382, 416, 452, 488, 520, 550, 578].map(y => (
+                  <line key={y} x1="50" y1={y} x2="364" y2={y} stroke="#C99A3F" strokeWidth="0.45" strokeOpacity="0.2"/>
+                ))}
+                {/* Vertical sub-panel lines */}
+                <line x1="150" y1="272" x2="150" y2="630" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.2"/>
+                <line x1="260" y1="272" x2="260" y2="630" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.2"/>
+
+                {/* ── BOTTOM CORNICE ── */}
+                <rect x="50" y="638" width="314" height="62" fill="#100c05"/>
+                <line x1="50" y1="638" x2="364" y2="638" stroke="#C99A3F" strokeWidth="1.4" strokeOpacity="0.7"/>
+                <line x1="50" y1="644" x2="364" y2="644" stroke="#C99A3F" strokeWidth="0.4" strokeOpacity="0.3"/>
+                {[654, 664, 676, 686].map(y => (
+                  <line key={y} x1="80" y1={y} x2="340" y2={y} stroke="#C99A3F" strokeWidth="0.5" strokeOpacity="0.3"/>
+                ))}
+                <rect x="50" y="638" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
+                <rect x="342" y="638" width="22" height="62" fill="#C99A3F" fillOpacity="0.06"/>
+
+                {/* ── SEAM COLUMN (inner edge — bright gold) ── */}
+                <rect x={isLeft ? 362 : 0} y="0" width="38" height="700" fill={`url(#seam-col-${side})`}/>
+                {/* Seam edge glow line */}
+                <line
+                  x1={isLeft ? 400 : 0} y1="0"
+                  x2={isLeft ? 400 : 0} y2="700"
+                  stroke="#F5C73D" strokeWidth="2.5" strokeOpacity="0.9"
+                  filter={`url(#glow-${side})`}
+                />
+                {/* Seam column inner line */}
+                <line
+                  x1={isLeft ? 362 : 38} y1="0"
+                  x2={isLeft ? 362 : 38} y2="700"
+                  stroke="#C99A3F" strokeWidth="0.8" strokeOpacity="0.5"
+                />
+              </svg>
+
+              {/* ── CIRCULAR SEAL — split at seam ── */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  [isLeft ? 'right' : 'left']: 0,
+                  transform: `translate(${isLeft ? '50%' : '-50%'}, -50%)`,
+                  width: 'clamp(200px, 32vw, 400px)',
+                  height: 'clamp(200px, 32vw, 400px)',
+                  zIndex: 3,
+                  pointerEvents: 'none',
+                }}
+              >
+                {/* Outer glow ring */}
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: '50%',
+                  boxShadow: '0 0 40px 8px rgba(201,154,63,0.35), 0 0 80px 20px rgba(201,154,63,0.12)',
+                }}/>
+                {/* Outer border ring */}
+                <div style={{
+                  position: 'absolute', inset: 0, borderRadius: '50%',
+                  border: '4px solid #C99A3F',
+                  background: 'radial-gradient(circle, #0e0905 55%, #1a1208 100%)',
+                }}/>
+                {/* Inner ring */}
+                <div style={{
+                  position: 'absolute', inset: '10%', borderRadius: '50%',
+                  border: '1.5px solid rgba(201,154,63,0.45)',
+                }}/>
+                {/* Logo */}
+                <div style={{
+                  position: 'absolute', inset: '18%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <img
+                    src={dogyptLogo}
+                    alt="DOGYPT"
+                    style={{
+                      width: '100%', height: '100%', objectFit: 'contain',
+                      filter: 'drop-shadow(0 0 14px rgba(201,154,63,0.7)) brightness(1.1)',
+                    }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
+
+        {/* Top seam glow — fixed, full width */}
         <div
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 6,
-            background: 'linear-gradient(90deg, transparent 0%, #C99A3F 30%, #F5C73D 50%, #C99A3F 70%, transparent 100%)',
-            zIndex: 11,
-            boxShadow: '0 0 18px 4px rgba(201,154,63,0.5)',
+            position: 'absolute', top: 0, left: 0, right: 0, height: 5, zIndex: 11,
+            background: 'linear-gradient(90deg, transparent 5%, #C99A3F 30%, #F5C73D 50%, #C99A3F 70%, transparent 95%)',
+            boxShadow: '0 0 20px 5px rgba(201,154,63,0.55)',
           }}
         />
 
