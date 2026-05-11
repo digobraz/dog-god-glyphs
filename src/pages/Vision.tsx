@@ -73,7 +73,7 @@ const BLOCKS = [
     cards: [
       { title: 'Longevity', desc: 'More years with your dog.\nFunded research, real results.' },
       { title: 'Holistic Medicine', desc: 'From TCM to acupuncture.\nEvery approach that helps dogs.' },
-      { title: 'Dog Tech', desc: 'Smart gadgets, wearables, health monitors.\nBuilt for dogs. Not shelf space.' },
+      { title: 'Dog Tech', desc: 'Smart gadgets, wearables,\nhealth monitors for dogs.' },
       { title: 'Open Data', desc: 'No brand owns these results.\nPublic. Transparent. Always.' },
     ],
     symbol: '𓆑',
