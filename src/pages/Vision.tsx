@@ -81,16 +81,16 @@ const BLOCKS = [
   },
   {
     tag: 'THE LEGACY',
-    heading: '700,000,000\nDogs. No Home.\nNo Human.',
-    body: "That number is not a statistic. It's a mission. Every Heroglyph funds a dog in need. Every Dogyptian carries this truth: no dog should be alone.",
+    heading: 'Their Only\nHope Is Us.',
+    body: "The world is splitting — virtual, orbital, and natural. Dog people are the natural side. We're building this for them — and for every generation that follows.",
     cards: [
-      { title: '700M Dogs', desc: 'Homeless globally.\nRight now.' },
-      { title: 'Your Heroglyph', desc: 'Funds a dog in need.\nEvery purchase.' },
-      { title: 'Transparent', desc: 'Every cent tracked.\nPublic ledger.' },
-      { title: 'No Dog Alone', desc: 'This is the mission.\nThis is the why.' },
+      { title: 'The Split', desc: 'Virtual, orbital, or natural.\nDog people know which side.' },
+      { title: '430 Million', desc: '470 million dogs. One Heroglyph.\nThe math works if we do.' },
+      { title: 'The Oath', desc: 'Every Dogyptian carries it.\nNo dog alone. Forever.' },
+      { title: 'New World', desc: 'Dog people. Natural side.\nThe era begins now.' },
     ],
     symbol: '𓀭',
-    shortDesc: 'No dog should be alone.',
+    shortDesc: 'Their only hope is us.',
   },
 ];
 
