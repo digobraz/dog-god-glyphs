@@ -418,18 +418,18 @@ function GateRevealSection() {
                 x: isLeft ? gateLeft : gateRight,
               }}
             >
-              {/* Gate photo — each panel shows its half of the image */}
+              {/* Gate photo — anchored at seam edge, no objectFit (preserves center split) */}
               <img
                 src="/images/brana.jpg"
                 alt=""
                 style={{
                   position: 'absolute',
-                  top: 0,
+                  top: '50%',
                   [isLeft ? 'left' : 'right']: 0,
+                  transform: 'translateY(-50%)',
                   width: '200%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: isLeft ? 'left center' : 'right center',
+                  height: 'auto',
+                  minHeight: '100%',
                   pointerEvents: 'none',
                 }}
               />
