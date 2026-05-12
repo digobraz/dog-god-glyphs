@@ -357,9 +357,10 @@ function GateRevealSection() {
   // Gate opens from first scroll tick
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // Button fades in when hands almost touch; white fills after — both clamp at 1 forever
-  const ctaOpacity = useTransform(scrollYProgress, [0.72, 0.82], [0, 1], { clamp: true });
-  const whiteFade  = useTransform(scrollYProgress, [0.82, 0.96], [0, 1], { clamp: true });
+  // Button fades in when hands almost touch
+  const ctaOpacity  = useTransform(scrollYProgress, [0.72, 0.82], [0, 1], { clamp: true });
+  // Video fades out after button appears — reveals white sticky bg; no overlay needed (avoids z-index/stacking-context bug)
+  const videoOpacity = useTransform(scrollYProgress, [0.82, 0.96], [1, 0], { clamp: true });
 
   return (
     <section
@@ -372,11 +373,11 @@ function GateRevealSection() {
           top: 0,
           height: '100dvh',
           overflow: 'hidden',
-          backgroundColor: '#000',
+          backgroundColor: '#fff',
         }}
       >
-        {/* Video layer — behind gate; full brightness */}
-        <video
+        {/* Video fades out to reveal white bg — no overlay needed, avoids z-index stacking context bug */}
+        <motion.video
           ref={videoRef}
           src="/videos/touch_opening.mp4"
           muted
@@ -388,16 +389,9 @@ function GateRevealSection() {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            opacity: videoOpacity,
           }}
         />
-
-        {/* White overlay — fades in after button, turns background fully white */}
-        <motion.div style={{
-          position: 'absolute', inset: 0, zIndex: 15,
-          background: '#fff',
-          opacity: whiteFade,
-          pointerEvents: 'none',
-        }} />
 
         {/* ═══ GATE PANELS — actual gate photo, split at seam ═══ */}
         {(['left', 'right'] as const).map((side) => {
