@@ -358,9 +358,10 @@ function GateRevealSection() {
   // Gate opens from first scroll tick (section enters viewport)
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // CTA appears only when hand+paw touch = video end = scroll ≈ 0.85
-  const ctaOpacity = useTransform(scrollYProgress, [0.85, 0.93], [0, 1], { clamp: true });
-  const ctaY       = useTransform(scrollYProgress, [0.85, 0.93], [36, 0], { clamp: true });
+  // Video brightens as gate opens — light pouring through effect
+  const videoBrightness = useTransform(scrollYProgress, [0, 0.45], ['brightness(0.15)', 'brightness(1.05)'], { clamp: true });
+  // CTA fades in at video peak, then stays forever (clamp keeps at 1)
+  const ctaOpacity = useTransform(scrollYProgress, [0.78, 0.90], [0, 1], { clamp: true });
 
   return (
     <section
@@ -376,8 +377,8 @@ function GateRevealSection() {
           backgroundColor: '#000',
         }}
       >
-        {/* Video layer — behind gate; gate panels (zIndex 10) cover it before opening */}
-        <video
+        {/* Video layer — behind gate; brightens as gate opens */}
+        <motion.video
           ref={videoRef}
           src="/videos/touch_opening.mp4"
           muted
@@ -389,6 +390,7 @@ function GateRevealSection() {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            filter: videoBrightness,
           }}
         />
 
@@ -429,70 +431,35 @@ function GateRevealSection() {
           );
         })}
 
-        {/* CTA — text fades in, button always solid */}
+        {/* CTA — button only, fades in at peak, stays forever */}
         <motion.div
           style={{
             position: 'absolute', inset: 0, zIndex: 20,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: 24, pointerEvents: 'none',
-            y: ctaY,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            pointerEvents: 'none',
+            opacity: ctaOpacity,
           }}
         >
-          {/* Legibility backdrop — fades with text */}
-          <motion.div style={{
-            position: 'absolute', inset: 0, opacity: ctaOpacity,
-            background: 'radial-gradient(ellipse 55% 45% at 50% 50%, rgba(0,0,0,0.7) 0%, transparent 100%)',
-            pointerEvents: 'none',
-          }}/>
-
-          <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-            <motion.div style={{ opacity: ctaOpacity }}>
-              <div style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 'clamp(10px, 1.2vw, 13px)',
-                letterSpacing: '0.4em',
-                color: 'rgba(201,154,63,0.8)',
-                textTransform: 'uppercase',
-                marginBottom: 12,
-              }}>
-                The Pack awaits
-              </div>
-              <h2 style={{
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 'clamp(28px, 5vw, 64px)',
-                color: '#FAF4EC',
-                letterSpacing: '0.05em',
-                margin: 0,
-                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
-              }}>
-                BECOME DOGYPTIAN
-              </h2>
-            </motion.div>
-
-            {/* Button: fades in with CTA text after gate opens */}
-            <motion.div style={{ opacity: ctaOpacity, pointerEvents: 'auto' }}>
-              <Link
-                to="/heroglyph"
-                style={{
-                  display: 'inline-block',
-                  fontFamily: "'Cinzel', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(12px, 1.4vw, 15px)',
-                  letterSpacing: '0.14em',
-                  padding: 'clamp(13px, 1.6vw, 17px) clamp(32px, 4vw, 52px)',
-                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-                  color: '#000',
-                  border: '1px solid rgba(250,244,236,0.3)',
-                  borderRadius: 8,
-                  textDecoration: 'none',
-                  boxShadow: '0 0 28px rgba(201,154,63,0.55), inset 0 1px 0 rgba(255,255,255,0.25)',
-                }}
-              >
-                CLAIM YOUR HEROGLYPH →
-              </Link>
-            </motion.div>
-          </div>
+          <Link
+            to="/heroglyph"
+            style={{
+              pointerEvents: 'auto',
+              display: 'inline-block',
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 'clamp(13px, 1.5vw, 17px)',
+              letterSpacing: '0.14em',
+              padding: 'clamp(15px, 1.8vw, 20px) clamp(36px, 5vw, 64px)',
+              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+              color: '#000',
+              border: '1px solid rgba(250,244,236,0.3)',
+              borderRadius: 8,
+              textDecoration: 'none',
+              boxShadow: '0 0 32px rgba(201,154,63,0.65), inset 0 1px 0 rgba(255,255,255,0.25)',
+            }}
+          >
+            BECOME DOGYPTIAN
+          </Link>
         </motion.div>
       </div>
     </section>
