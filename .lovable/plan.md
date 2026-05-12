@@ -1,18 +1,29 @@
-## Problém
+## Cieľ
 
-Po premenovaní routingu na `/heroglyph/<step>` zostali v kóde tri zastarané odkazy, ktoré vedú na neexistujúce stránky (404):
+Pridať plávajúci dev navigačný dropdown, ktorý je viditeľný iba v development/preview prostredí (nie na produkčnom `dogypt.com`) a obsahuje odkazy na všetky routes z `App.tsx`. Slúži len na rýchlu navigáciu počas vývoja.
 
-| Súbor | Riadok | Aktuálne | Má byť |
-|---|---|---|---|
-| `src/components/gods/GodsGrid.tsx` | 123 | `navigate('/name')` (CTA tlačidlo "Forge heroglyph" v gridu) | `navigate('/heroglyph/name')` |
-| `src/components/gods/GodsGrid.tsx` | 778 | `navigate('/name')` (subscribe / spodný CTA) | `navigate('/heroglyph/name')` |
-| `src/components/screens/DogCharacterScreen.tsx` | 241 | `navigate('/dog-shape')` (Back button) | `navigate('/heroglyph/dog-bloodline')` — predchádzajúci krok v toku |
+## Čo pridám
 
-Ostatné navigácie v projekte už používajú `/heroglyph/*` prefix správne (overené `rg`-om naprieč `src/`).
+1. **Nový komponent** `src/components/DevNav.tsx`
+   - Plávajúce tlačidlo vpravo dole (fixed, z-index vysoký, aby neprekážalo)
+   - Po kliknutí sa rozbalí dropdown so zoznamom všetkých routes zoskupených do sekcií:
+     - **Landing / Public**: `/`, `/spiral`, `/grid`, `/gods`, `/devhome`, `/vision`, `/terms`, `/privacy`
+     - **Heroglyph wizard**: všetkých 14 krokov `/heroglyph/*`
+     - **Checkout**: `/checkout`, `/payment`, `/welcome`
+     - **Pack (auth)**: `/login`, `/pack`, `/pack/eternal`, `/pack/profile`
+   - Aktívna route zvýraznená
+   - Použije shadcn `DropdownMenu` + `react-router-dom` `Link`
 
-## Zmena
+2. **Mount v `src/App.tsx`**
+   - Vložiť `<DevNav />` vnútri `<BrowserRouter>` (mimo `<Routes>`), aby bol viditeľný na každej stránke
+   - Render iba ak `import.meta.env.DEV === true` **alebo** hostname obsahuje `lovable.app` (preview). Na `dogypt.com` sa nezobrazí.
 
-1. V `GodsGrid.tsx` zmeniť obe inštancie `'/name'` → `'/heroglyph/name'`.
-2. V `DogCharacterScreen.tsx` zmeniť back-button `'/dog-shape'` → `'/heroglyph/dog-bloodline'` (poradie wizardu: bloodline → character → reveal).
+## Dizajn
 
-Žiadne ďalšie úpravy nie sú potrebné — routy v `App.tsx` sú v poriadku.
+Malé diskrétne tlačidlo (ikona zoznamu + label „Dev nav"), tmavé pozadie s opacity, aby ladilo s landing/wizard a nerušilo. Žiadne zmeny existujúcich stránok, štýlov ani logiky.
+
+## Mimo scope
+
+- Žiadne úpravy existujúcich komponentov, routes, ani štýlov.
+- Žiadne backend zmeny.
+- Žiadny zásah do produkčnej navigácie (Header landing page ostáva nezmenený).
