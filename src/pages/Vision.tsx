@@ -329,8 +329,9 @@ function ProgressBar({ progress, isActive }: { progress: MotionValue<number>; is
 function GateRevealSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  // Once button reaches full opacity, lock it + white permanently — survives scroll-back
+  const [revealed, setRevealed] = useState(false);
 
-  // Tracking starts when section fills viewport — logo fully visible before gate moves
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end end'],
@@ -355,13 +356,22 @@ function GateRevealSection() {
     return () => cancelAnimationFrame(rafId);
   }, [scrollYProgress]);
 
-  // Gate opens from first scroll tick (section enters viewport)
+  // Gate opens from first scroll tick
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // Button appears when hands almost touch (~85% through video), stays forever
-  const ctaOpacity = useTransform(scrollYProgress, [0.72, 0.82], [0, 1], { clamp: true });
-  // White fills everything right after button fully appears — end state: white canvas + button only
-  const whiteFade  = useTransform(scrollYProgress, [0.82, 0.96], [0, 1], { clamp: true });
+  // Button fades in when hands almost touch
+  const ctaRaw   = useTransform(scrollYProgress, [0.72, 0.82], [0, 1], { clamp: true });
+  // White fills everything after button fully appears
+  const whiteRaw = useTransform(scrollYProgress, [0.82, 0.96], [0, 1], { clamp: true });
+
+  // Once white reaches full opacity, lock the entire end-state: white canvas + button, no scroll-back
+  useMotionValueEvent(whiteRaw, 'change', (v) => {
+    if (v >= 1) setRevealed(true);
+  });
+
+  // When locked: plain 1 (ignores scroll); when not: live MotionValue
+  const ctaOpacity = revealed ? 1 : ctaRaw;
+  const whiteFade  = revealed ? 1 : whiteRaw;
 
   return (
     <section
