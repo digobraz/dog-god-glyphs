@@ -358,11 +358,10 @@ function GateRevealSection() {
   // Gate opens from first scroll tick (section enters viewport)
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // Button fades in at peak closeness, stays forever (clamp)
-  const ctaOpacity  = useTransform(scrollYProgress, [0.58, 0.70], [0, 1], { clamp: true });
-  // White bg + share text appear after button is fully visible
-  const whiteFade   = useTransform(scrollYProgress, [0.76, 0.90], [0, 1], { clamp: true });
-  const shareFade   = useTransform(scrollYProgress, [0.82, 0.94], [0, 1], { clamp: true });
+  // Button appears when hands almost touch (~85% through video), stays forever
+  const ctaOpacity = useTransform(scrollYProgress, [0.72, 0.82], [0, 1], { clamp: true });
+  // White fills everything right after button fully appears — end state: white canvas + button only
+  const whiteFade  = useTransform(scrollYProgress, [0.82, 0.96], [0, 1], { clamp: true });
 
   return (
     <section
@@ -438,12 +437,11 @@ function GateRevealSection() {
           );
         })}
 
-        {/* CTA — button + share text, both stay once shown */}
+        {/* CTA — button only, stays once shown, floats above white */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: 36, pointerEvents: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          pointerEvents: 'none',
         }}>
           <motion.div style={{ opacity: ctaOpacity, pointerEvents: 'auto' }}>
             <Link
@@ -466,18 +464,6 @@ function GateRevealSection() {
               BECOME DOGYPTIAN
             </Link>
           </motion.div>
-
-          <motion.p style={{
-            opacity: shareFade,
-            fontFamily: "'Cinzel', serif",
-            fontSize: 'clamp(11px, 1.2vw, 14px)',
-            letterSpacing: '0.08em',
-            color: 'rgba(0,0,0,0.55)',
-            margin: 0,
-            textAlign: 'center',
-          }}>
-            A Dogyptian always passes it on.<br />Share with the next dog lover.
-          </motion.p>
         </div>
       </div>
     </section>
