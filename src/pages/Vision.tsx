@@ -9,7 +9,6 @@ import {
   type MotionValue,
 } from 'framer-motion';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-import { photos } from '@/components/gods/godsData';
 
 const GOLD = '#C99A3F';
 const SEG = 1 / 6;
@@ -95,52 +94,6 @@ const BLOCKS = [
   },
 ];
 
-const BG_PHOTOS = photos.slice(0, 20);
-
-function VisionBackground() {
-  return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden' }}>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(5, 1fr)',
-          gridTemplateRows: 'repeat(4, 1fr)',
-          gap: 6,
-          width: '100%',
-          height: '100%',
-        }}
-      >
-        {BG_PHOTOS.map((photo, i) => (
-          <div
-            key={i}
-            style={{
-              backgroundImage: `url(/dogs/${encodeURIComponent(photo.f)})`,
-              backgroundSize: 'cover',
-              backgroundPosition: '50% 30%',
-              opacity: 0.2,
-              filter: 'blur(1px) saturate(0.7)',
-            }}
-          />
-        ))}
-      </div>
-      {/* Base dark tint */}
-      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.72)' }} />
-      {/* Edge vignette */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse 80% 70% at 50% 35%, transparent 25%, rgba(0,0,0,0.65) 100%)',
-        pointerEvents: 'none',
-      }} />
-      {/* Bottom fade to black — hides the 6-block transitions */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%',
-        background: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.65) 60%, transparent 100%)',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  );
-}
-
 function FeatureCard({ title, desc }: { title: string; desc: string }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const borderRef = useRef<HTMLDivElement>(null);
@@ -171,9 +124,7 @@ function FeatureCard({ title, desc }: { title: string; desc: string }) {
       onMouseLeave={handleMouseLeave}
       style={{
         position: 'relative',
-        background: 'rgba(0,0,0,0.45)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
+        background: 'rgba(250,244,236,0.04)',
         border: '1px solid rgba(196,155,66,0.32)',
         borderRadius: 10,
         padding: '12px 14px',
@@ -181,7 +132,7 @@ function FeatureCard({ title, desc }: { title: string; desc: string }) {
         flexDirection: 'column',
         gap: 5,
         overflow: 'hidden',
-        boxShadow: '0 2px 24px rgba(0,0,0,0.5), inset 0 0 24px rgba(196,155,66,0.03)',
+        boxShadow: '0 0 0 0px rgba(196,155,66,0), inset 0 0 24px rgba(196,155,66,0.03)',
         '--x': '50%',
         '--y': '50%',
       } as React.CSSProperties}
@@ -247,9 +198,7 @@ function SymbolVisual({ symbol, activeIndex }: { symbol: string; activeIndex: nu
       className="relative aspect-square rounded-2xl flex items-center justify-center overflow-hidden"
       style={{
         width: 'min(100%, 52vw, 420px)',
-        background: 'rgba(0,0,0,0.38)',
-        backdropFilter: 'blur(18px)',
-        WebkitBackdropFilter: 'blur(18px)',
+        background: 'rgba(196,155,66,0.03)',
         border: '1px solid rgba(196,155,66,0.38)',
         boxShadow: '0 0 60px rgba(196,155,66,0.14), 0 0 180px rgba(196,155,66,0.06), inset 0 0 40px rgba(196,155,66,0.04)',
       }}
@@ -608,8 +557,7 @@ export default function Vision() {
   const block = BLOCKS[activeIndex];
 
   return (
-    <div style={{ color: '#F2EAD6', position: 'relative' }}>
-      <VisionBackground />
+    <div style={{ background: '#000', color: '#F2EAD6' }}>
       {/* Fixed nav */}
       <header
         style={{
@@ -658,11 +606,11 @@ export default function Vision() {
       <section
         ref={wrapperRef}
         className="relative w-full"
-        style={{ height: '700vh', position: 'relative', zIndex: 1 }}
+        style={{ height: '700vh', backgroundColor: '#000' }}
       >
         <div
           className="sticky top-0 w-full flex flex-col"
-          style={{ height: '100dvh', paddingBottom: 'clamp(100px, 11vh, 130px)', position: 'relative' }}
+          style={{ height: '100dvh', backgroundColor: '#080808', paddingBottom: 'clamp(100px, 11vh, 130px)' }}
         >
           {/* Main content */}
           <div
@@ -676,13 +624,10 @@ export default function Vision() {
             <div
               className="flex flex-col md:flex-row items-center gap-8 md:gap-14 w-full md:w-[min(1100px,94vw)]"
               style={{
-                border: '1px solid rgba(201,154,63,0.28)',
+                border: '1px solid rgba(196,155,66,0.22)',
                 borderRadius: 16,
                 padding: 'clamp(24px, 3.5vw, 48px)',
-                background: 'rgba(0,0,0,0.48)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                boxShadow: '0 8px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,154,63,0.1)',
+                background: 'rgba(250,244,236,0.018)',
               }}
             >
             {/* Visual */}
@@ -801,20 +746,6 @@ export default function Vision() {
               ))}
             </div>
           </div>
-
-          {/* Bottom fade — zakrýva prechod medzi 6 blokmi */}
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '40%',
-              background: 'linear-gradient(to top, #000 0%, rgba(0,0,0,0.88) 30%, rgba(0,0,0,0.55) 60%, transparent 100%)',
-              pointerEvents: 'none',
-              zIndex: 5,
-            }}
-          />
         </div>
       </section>
 
