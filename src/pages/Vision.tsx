@@ -420,7 +420,7 @@ function GateRevealSection() {
             >
               {/* Gate photo — height fills viewport, center aligns with seam on any screen */}
               <img
-                src="/images/brana.jpg"
+                src="/images/brana-final.png"
                 alt=""
                 style={{
                   position: 'absolute',
@@ -434,28 +434,9 @@ function GateRevealSection() {
                   pointerEvents: 'none',
                 }}
               />
-              {/* Seam glow on inner edge */}
-              <div style={{
-                position: 'absolute',
-                top: 0, bottom: 0,
-                [isLeft ? 'right' : 'left']: 0,
-                width: 3,
-                background: 'linear-gradient(180deg, transparent 0%, #F5C73D 20%, #FFF8E0 50%, #F5C73D 80%, transparent 100%)',
-                boxShadow: isLeft
-                  ? '2px 0 18px 6px rgba(245,199,61,0.6)'
-                  : '-2px 0 18px 6px rgba(245,199,61,0.6)',
-                zIndex: 2,
-              }}/>
             </motion.div>
           );
         })}
-
-        {/* Top gold line — seam header */}
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 4, zIndex: 11,
-          background: 'linear-gradient(90deg, transparent 5%, #C99A3F 30%, #F5C73D 50%, #C99A3F 70%, transparent 95%)',
-          boxShadow: '0 0 16px 4px rgba(201,154,63,0.5)',
-        }}/>
 
         {/* CTA — text fades in, button always solid */}
         <motion.div
