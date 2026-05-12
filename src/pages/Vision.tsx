@@ -358,8 +358,6 @@ function GateRevealSection() {
   // Gate opens from first scroll tick (section enters viewport)
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // Video brightens as gate opens — light pouring through effect
-  const videoBrightness = useTransform(scrollYProgress, [0, 0.45], ['brightness(0.15)', 'brightness(1.05)'], { clamp: true });
   // CTA fades in at video peak, then stays forever (clamp keeps at 1)
   const ctaOpacity = useTransform(scrollYProgress, [0.78, 0.90], [0, 1], { clamp: true });
 
@@ -377,8 +375,8 @@ function GateRevealSection() {
           backgroundColor: '#000',
         }}
       >
-        {/* Video layer — behind gate; brightens as gate opens */}
-        <motion.video
+        {/* Video layer — behind gate; full brightness */}
+        <video
           ref={videoRef}
           src="/videos/touch_opening.mp4"
           muted
@@ -390,7 +388,6 @@ function GateRevealSection() {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            filter: videoBrightness,
           }}
         />
 
@@ -440,6 +437,13 @@ function GateRevealSection() {
             opacity: ctaOpacity,
           }}
         >
+          {/* White radial glow behind button */}
+          <div style={{
+            position: 'absolute',
+            width: '60vw', height: '40vh',
+            background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
           <Link
             to="/heroglyph"
             style={{
