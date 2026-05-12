@@ -660,25 +660,26 @@ export function GodsGrid() {
         .main-nav {
           display: flex;
           align-items: center;
-          gap: 12px;
-          background: rgba(163,163,163,0.8);
+          gap: 20px;
+          background: rgba(250,244,236,0.92);
           backdrop-filter: blur(12px);
-          padding: 6px 16px;
+          padding: 7px 20px;
           border-radius: 999px;
         }
         .main-nav a, .main-nav button {
-          font-weight: 500;
-          color: white;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          color: #000;
           text-decoration: none;
-          font-size: 0.9rem;
+          font-size: 0.78rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
           background: none;
           border: none;
           cursor: pointer;
-          font-family: inherit;
-          letter-spacing: -0.02em;
           padding: 0;
         }
-        .main-nav a:hover, .main-nav button:hover { opacity: 0.8; }
+        .main-nav a:hover, .main-nav button:hover { opacity: 0.55; }
 
         .info-overlay {
           position: fixed;
@@ -736,20 +737,21 @@ export function GodsGrid() {
         }
         .subscribe-btn {
           height: 40px;
-          padding: 0 16px;
+          padding: 0 18px;
           border-radius: 999px;
-          background: rgba(163,163,163,0.8);
+          background: rgba(250,244,236,0.92);
           backdrop-filter: blur(12px);
-          color: white;
-          font-weight: 500;
-          display: flex; align-items: center; gap: 6px;
+          color: #000;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.78rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          display: flex; align-items: center; gap: 7px;
           border: none;
           cursor: pointer;
-          font-size: 0.9rem;
-          font-family: inherit;
-          letter-spacing: -0.02em;
         }
-        .subscribe-btn:hover { opacity: 0.85; }
+        .subscribe-btn:hover { opacity: 0.75; }
 
         .center-btn {
           position: fixed;
@@ -1263,17 +1265,17 @@ export function GodsGrid() {
           z-index: 50;
           width: 40px; height: 40px;
           border-radius: 50%;
-          background: rgba(12,12,12,0.85);
+          background: rgba(250,244,236,0.92);
           backdrop-filter: blur(12px);
-          border: 1px solid rgba(201,154,63,0.35);
-          color: rgba(201,154,63,0.9);
+          border: 1px solid rgba(0,0,0,0.12);
+          color: rgba(0,0,0,0.7);
           cursor: pointer;
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-          transition: border-color 150ms;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+          transition: border-color 150ms, opacity 150ms;
         }
-        .filter-btn:hover { border-color: rgba(201,154,63,0.7); }
-        .filter-btn.active { border-color: rgba(201,154,63,0.9); }
+        .filter-btn:hover { opacity: 0.75; }
+        .filter-btn.active { border-color: rgba(0,0,0,0.35); }
 
         .filter-panel {
           position: fixed;
@@ -1281,9 +1283,9 @@ export function GodsGrid() {
           left: 50%;
           transform: translateX(-50%) translateY(6px);
           z-index: 51;
-          background: rgba(12,12,12,0.95);
+          background: rgba(250,244,236,0.96);
           backdrop-filter: blur(20px);
-          border: 1px solid rgba(201,154,63,0.45);
+          border: 1px solid rgba(0,0,0,0.12);
           border-radius: 12px;
           padding: 6px 14px 6px 10px;
           display: flex;
@@ -1303,7 +1305,7 @@ export function GodsGrid() {
           background: transparent;
           border: none;
           outline: none;
-          color: white;
+          color: #000;
           font-family: 'Cinzel', serif;
           font-size: 0.85rem;
           font-weight: 700;
@@ -1313,7 +1315,7 @@ export function GodsGrid() {
         }
         .filter-input::-webkit-outer-spin-button,
         .filter-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-        .filter-input::placeholder { color: rgba(255,255,255,0.28); font-weight: 400; font-family: inherit; }
+        .filter-input::placeholder { color: rgba(0,0,0,0.32); font-weight: 400; font-family: inherit; }
 
         @keyframes symbol-burn {
           0%   { opacity: 0;
@@ -1345,9 +1347,9 @@ export function GodsGrid() {
       <div className="gods-root">
         <div className="nav-left">
           <nav className="main-nav">
-            <a href="/">DOGYPT</a>
             <a href="/vision">Vision</a>
-            <button onClick={() => setInfoOpen(true)}>Info</button>
+            <a href="/codex">Codex</a>
+            <a href="/about">About</a>
           </nav>
         </div>
 
@@ -1361,7 +1363,7 @@ export function GodsGrid() {
 
         <div className="nav-right">
           <button className="subscribe-btn" id="gods-center-btn">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
               <path d="M8 2V8M8 14V8M8 8H2M8 8H14"/>
             </svg>
             Center
@@ -1380,7 +1382,7 @@ export function GodsGrid() {
         </button>
 
         <div className={`filter-panel${filterOpen ? ' open' : ''}`}>
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="rgba(201,154,63,0.7)" strokeWidth="2" strokeLinecap="round">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.45)" strokeWidth="2" strokeLinecap="round">
             <circle cx="6.5" cy="6.5" r="4"/>
             <path d="M10 10L14 14"/>
           </svg>
