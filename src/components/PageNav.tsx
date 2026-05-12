@@ -41,7 +41,7 @@ export function PageNav() {
               style={{
                 fontFamily: "'Cinzel', serif",
                 fontWeight: 700,
-                fontSize: 'clamp(10px, 1.1vw, 13px)',
+                fontSize: '0.78rem',
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 color: isActive ? '#000' : 'rgba(0,0,0,0.42)',
