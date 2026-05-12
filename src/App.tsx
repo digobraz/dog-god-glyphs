@@ -32,6 +32,7 @@ import PackEternal from "./pages/PackEternal.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
 import Vision from "./pages/Vision.tsx";
+import { DevNav } from "@/components/DevNav";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <DevNav />
         <Routes>
           <Route path="/" element={<SpiralLanding />} />
           <Route path="/spiral" element={<SpiralLanding />} />
