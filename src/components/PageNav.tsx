@@ -11,24 +11,26 @@ export function PageNav() {
   const { pathname } = useLocation();
 
   return (
-    <header
+    <div
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
+        top: 12,
+        left: 20,
         zIndex: 50,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '16px 28px',
-        background: 'rgba(0,0,0,0.85)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(201,154,63,0.18)',
       }}
     >
-      <nav style={{ display: 'flex', gap: 'clamp(24px, 4vw, 52px)', alignItems: 'center' }}>
+      <nav
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20,
+          background: 'rgba(250,244,236,0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          padding: '7px 20px',
+          borderRadius: 999,
+        }}
+      >
         {NAV_ITEMS.map(({ label, to }) => {
           const isActive = to === '/' ? pathname === '/' || pathname === '/grid' : pathname === to;
           return (
@@ -39,12 +41,13 @@ export function PageNav() {
                 fontFamily: "'Cinzel', serif",
                 fontWeight: 700,
                 fontSize: 'clamp(10px, 1.1vw, 13px)',
-                letterSpacing: '0.18em',
-                color: isActive ? '#FAF4EC' : 'rgba(201,154,63,0.65)',
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: isActive ? '#000' : 'rgba(0,0,0,0.42)',
                 textDecoration: 'none',
                 borderBottom: isActive ? '1px solid #C99A3F' : '1px solid transparent',
-                paddingBottom: 3,
-                transition: 'color 0.2s, border-color 0.2s',
+                paddingBottom: 2,
+                transition: 'color 0.2s, opacity 0.2s',
               }}
             >
               {label}
@@ -52,6 +55,6 @@ export function PageNav() {
           );
         })}
       </nav>
-    </header>
+    </div>
   );
 }

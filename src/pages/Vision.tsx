@@ -526,7 +526,7 @@ export default function Vision() {
           <div
             className="flex-1 flex items-center justify-center min-h-0 w-full px-4 md:px-6"
             style={{
-              paddingTop: 'clamp(90px, calc(3.5vh + 62px), 106px)',
+              paddingTop: 'clamp(62px, calc(3.5vh + 36px), 78px)',
               paddingBottom: 'clamp(28px, 3.5vh, 44px)',
             }}
           >
