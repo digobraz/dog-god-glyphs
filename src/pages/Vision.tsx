@@ -509,7 +509,7 @@ export default function Vision() {
   const block = BLOCKS[activeIndex];
 
   return (
-    <div style={{ background: '#000', color: '#F2EAD6' }}>
+    <div style={{ background: '#000', color: '#F2EAD6', position: 'relative' }}>
       <PageNav />
 
       {/* Scroll-driven sticky section */}
@@ -526,7 +526,7 @@ export default function Vision() {
           <div
             className="flex-1 flex items-center justify-center min-h-0 w-full px-4 md:px-6"
             style={{
-              paddingTop: 'clamp(62px, calc(3.5vh + 36px), 78px)',
+              paddingTop: 'clamp(56px, calc(3.5vh + 30px), 72px)',
               paddingBottom: 'clamp(28px, 3.5vh, 44px)',
             }}
           >
