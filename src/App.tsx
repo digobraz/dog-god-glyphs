@@ -32,6 +32,8 @@ import PackEternal from "./pages/PackEternal.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
 import Vision from "./pages/Vision.tsx";
+import Codex from "./pages/Codex.tsx";
+import About from "./pages/About.tsx";
 import { DevNav } from "@/components/DevNav";
 
 const queryClient = new QueryClient();
@@ -74,6 +76,8 @@ const App = () => (
           <Route path="/thank-you" element={<Navigate to="/welcome" replace />} />{/* legacy alias for in-flight Stripe sessions */}
           <Route path="/devhome" element={<LandingPage />} />
           <Route path="/vision" element={<Vision />} />
+          <Route path="/codex" element={<Codex />} />
+          <Route path="/about" element={<About />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
 
