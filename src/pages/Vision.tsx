@@ -418,12 +418,12 @@ function GateRevealSection() {
                 x: isLeft ? gateLeft : gateRight,
               }}
             >
-              {/* Gate photo — 100vw inner div ensures full coverage on any aspect ratio */}
+              {/* Gate photo — 100vw inner div; left:0/right:0 anchors outer edge so image center lands on seam */}
               <div
                 style={{
                   position: 'absolute',
                   top: 0,
-                  [isLeft ? 'right' : 'left']: 0,
+                  [isLeft ? 'left' : 'right']: 0,
                   width: '100vw',
                   height: '100dvh',
                   backgroundImage: 'url(/images/brana-final.png)',
