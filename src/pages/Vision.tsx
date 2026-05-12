@@ -372,10 +372,11 @@ function GateRevealSection() {
     if (p < 0.75) whiteOutLocked.current = false;
 
     if (whiteOutLocked.current) {
-      finalVideoOpacity.set(0);
+      finalVideoOpacity.set(0.1);
     } else {
-      const raw = p < 0.82 ? 1 : 1 - (p - 0.82) / (0.97 - 0.82);
-      finalVideoOpacity.set(Math.max(0, Math.min(1, raw)));
+      // Fades from 1 → 0.1 (90% transparent, paw+hand still visible through white bg)
+      const raw = p < 0.82 ? 1 : 1 - (p - 0.82) / (0.97 - 0.82) * 0.9;
+      finalVideoOpacity.set(Math.max(0.1, Math.min(1, raw)));
     }
   });
 
