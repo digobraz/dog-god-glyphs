@@ -13,10 +13,11 @@ export function PageNav() {
   return (
     <div
       style={{
-        width: '100%',
-        display: 'flex',
-        justifyContent: 'center',
-        paddingTop: 22,
+        position: 'fixed',
+        top: 22,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 50,
       }}
     >
       <nav
