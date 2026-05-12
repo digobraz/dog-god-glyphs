@@ -329,6 +329,7 @@ function ProgressBar({ progress, isActive }: { progress: MotionValue<number>; is
 function GateRevealSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [btnVisible, setBtnVisible] = useState(false);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -357,10 +358,14 @@ function GateRevealSection() {
   // Gate opens from first scroll tick
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // Button fades in when hands almost touch
-  const ctaOpacity  = useTransform(scrollYProgress, [0.72, 0.82], [0, 1], { clamp: true });
+
+  // Button appears at 95% video progress (vp=0.95 → p=0.815), then locks — no fade, no going back
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    if (p >= 0.815) setBtnVisible(true);
+  });
+
   // Video fades out after button appears — reveals white sticky bg; no overlay needed (avoids z-index/stacking-context bug)
-  const videoOpacity = useTransform(scrollYProgress, [0.82, 0.96], [1, 0], { clamp: true });
+  const videoOpacity = useTransform(scrollYProgress, [0.82, 0.97], [1, 0], { clamp: true });
 
   return (
     <section
@@ -429,13 +434,13 @@ function GateRevealSection() {
           );
         })}
 
-        {/* CTA — button only, stays once shown, floats above white */}
+        {/* CTA — snaps to full opacity at 95% video, state-locked (no motion value), floats above white */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none',
         }}>
-          <motion.div style={{ opacity: ctaOpacity, pointerEvents: 'auto' }}>
+          <div style={{ opacity: btnVisible ? 1 : 0, pointerEvents: btnVisible ? 'auto' : 'none' }}>
             <Link
               to="/heroglyph"
               style={{
@@ -455,7 +460,7 @@ function GateRevealSection() {
             >
               BECOME DOGYPTIAN
             </Link>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
