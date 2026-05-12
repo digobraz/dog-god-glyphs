@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { PageNav } from '@/components/PageNav';
 import {
   motion,
   useScroll,
@@ -9,8 +10,6 @@ import {
   AnimatePresence,
   type MotionValue,
 } from 'framer-motion';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
-
 const GOLD = '#C99A3F';
 const SEG = 1 / 6;
 
@@ -511,49 +510,7 @@ export default function Vision() {
 
   return (
     <div style={{ background: '#000', color: '#F2EAD6' }}>
-      {/* Fixed nav */}
-      <header
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 50,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 28px',
-          background: 'rgba(0,0,0,0.85)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid rgba(201,154,63,0.18)',
-        }}
-      >
-        <Link to="/">
-          <img
-            src={dogyptLogo}
-            alt="DOGYPT"
-            style={{ height: 30, objectFit: 'contain' }}
-          />
-        </Link>
-        <Link
-          to="/heroglyph"
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontWeight: 700,
-            fontSize: 13,
-            letterSpacing: '0.12em',
-            padding: '9px 20px',
-            background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-            color: '#000',
-            border: '1px solid rgba(250,244,236,0.30)',
-            borderRadius: 8,
-            textDecoration: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          BECOME DOGYPTIAN
-        </Link>
-      </header>
+      <PageNav />
 
       {/* Scroll-driven sticky section */}
       <section
