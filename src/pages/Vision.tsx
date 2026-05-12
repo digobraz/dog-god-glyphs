@@ -520,28 +520,18 @@ export default function Vision() {
       >
         <div
           className="sticky top-0 w-full flex flex-col"
-          style={{ height: '100dvh', backgroundColor: '#000', paddingBottom: 'clamp(100px, 11vh, 130px)' }}
+          style={{ height: '100dvh', backgroundColor: '#000', paddingBottom: '10px' }}
         >
           {/* Main content */}
           <div
             className="flex-1 flex items-center justify-center min-h-0 w-full px-4 md:px-6"
             style={{
-              paddingTop: 'clamp(72px, 9vh, 88px)',
-              paddingBottom: 'clamp(28px, 5vh, 56px)',
+              paddingTop: 'clamp(90px, calc(3.5vh + 62px), 106px)',
+              paddingBottom: 'clamp(28px, 3.5vh, 44px)',
             }}
           >
-            {/* Bordered card — glass */}
             <div
               className="flex flex-col md:flex-row items-center gap-8 md:gap-14 w-full md:w-[min(1100px,94vw)]"
-              style={{
-                border: '1px solid rgba(201,154,63,0.28)',
-                borderRadius: 16,
-                padding: 'clamp(24px, 3.5vw, 48px)',
-                background: 'rgba(0,0,0,0.52)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                boxShadow: '0 8px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201,154,63,0.10)',
-              }}
             >
             {/* Visual */}
             <div className="w-full md:w-[44%] flex items-center justify-center shrink-0">
@@ -618,6 +608,7 @@ export default function Vision() {
           {/* Bottom nav tabs */}
           <div
             className="flex-none px-4 md:px-6"
+            style={{ transform: 'translateY(-20px)' }}
           >
             <div
               className="grid grid-cols-6 md:w-[min(1100px,94vw)] md:mx-auto"
