@@ -358,8 +358,6 @@ function GateRevealSection() {
   // Gate opens from first scroll tick (section enters viewport)
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // Video fades in as gate opens
-  const videoOpacity = useTransform(scrollYProgress, [0.05, 0.25], [0, 1], { clamp: true });
   // CTA appears only when hand+paw touch = video end = scroll ≈ 0.85
   const ctaOpacity = useTransform(scrollYProgress, [0.85, 0.93], [0, 1], { clamp: true });
   const ctaY       = useTransform(scrollYProgress, [0.85, 0.93], [36, 0], { clamp: true });
@@ -378,8 +376,8 @@ function GateRevealSection() {
           backgroundColor: '#000',
         }}
       >
-        {/* Video layer — behind gate */}
-        <motion.video
+        {/* Video layer — behind gate; gate panels (zIndex 10) cover it before opening */}
+        <video
           ref={videoRef}
           src="/videos/touch_opening.mp4"
           muted
@@ -391,7 +389,6 @@ function GateRevealSection() {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: videoOpacity,
           }}
         />
 
