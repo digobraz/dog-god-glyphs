@@ -358,13 +358,16 @@ function GateRevealSection() {
   // Gate opens from first scroll tick (section enters viewport)
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
-  // CTA fades in at video peak, then stays forever (clamp keeps at 1)
-  const ctaOpacity = useTransform(scrollYProgress, [0.78, 0.90], [0, 1], { clamp: true });
+  // Button fades in at peak closeness, stays forever (clamp)
+  const ctaOpacity  = useTransform(scrollYProgress, [0.58, 0.70], [0, 1], { clamp: true });
+  // White bg + share text appear after button is fully visible
+  const whiteFade   = useTransform(scrollYProgress, [0.76, 0.90], [0, 1], { clamp: true });
+  const shareFade   = useTransform(scrollYProgress, [0.82, 0.94], [0, 1], { clamp: true });
 
   return (
     <section
       ref={sectionRef}
-      style={{ height: '500vh', position: 'relative', backgroundColor: '#000' }}
+      style={{ height: '650vh', position: 'relative', backgroundColor: '#000' }}
     >
       <div
         style={{
@@ -391,6 +394,13 @@ function GateRevealSection() {
           }}
         />
 
+        {/* White overlay — fades in after button, turns background fully white */}
+        <motion.div style={{
+          position: 'absolute', inset: 0, zIndex: 15,
+          background: '#fff',
+          opacity: whiteFade,
+          pointerEvents: 'none',
+        }} />
 
         {/* ═══ GATE PANELS — actual gate photo, split at seam ═══ */}
         {(['left', 'right'] as const).map((side) => {
@@ -428,43 +438,47 @@ function GateRevealSection() {
           );
         })}
 
-        {/* CTA — button only, fades in at peak, stays forever */}
-        <motion.div
-          style={{
-            position: 'absolute', inset: 0, zIndex: 20,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            pointerEvents: 'none',
-            opacity: ctaOpacity,
-          }}
-        >
-          {/* White radial glow behind button */}
-          <div style={{
-            position: 'absolute',
-            width: '60vw', height: '40vh',
-            background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.55) 0%, transparent 70%)',
-            pointerEvents: 'none',
-          }} />
-          <Link
-            to="/heroglyph"
-            style={{
-              pointerEvents: 'auto',
-              display: 'inline-block',
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              fontSize: 'clamp(13px, 1.5vw, 17px)',
-              letterSpacing: '0.14em',
-              padding: 'clamp(15px, 1.8vw, 20px) clamp(36px, 5vw, 64px)',
-              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-              color: '#000',
-              border: '1px solid rgba(250,244,236,0.3)',
-              borderRadius: 8,
-              textDecoration: 'none',
-              boxShadow: '0 0 32px rgba(201,154,63,0.65), inset 0 1px 0 rgba(255,255,255,0.25)',
-            }}
-          >
-            BECOME DOGYPTIAN
-          </Link>
-        </motion.div>
+        {/* CTA — button + share text, both stay once shown */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 20,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 36, pointerEvents: 'none',
+        }}>
+          <motion.div style={{ opacity: ctaOpacity, pointerEvents: 'auto' }}>
+            <Link
+              to="/heroglyph"
+              style={{
+                display: 'inline-block',
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: 'clamp(14px, 1.6vw, 18px)',
+                letterSpacing: '0.16em',
+                padding: 'clamp(16px, 2vw, 22px) clamp(40px, 5.5vw, 72px)',
+                background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                color: '#000',
+                border: '1.5px solid rgba(0,0,0,0.12)',
+                borderRadius: 8,
+                textDecoration: 'none',
+                boxShadow: '0 4px 32px rgba(201,154,63,0.8), 0 0 0 6px rgba(245,199,61,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
+              }}
+            >
+              BECOME DOGYPTIAN
+            </Link>
+          </motion.div>
+
+          <motion.p style={{
+            opacity: shareFade,
+            fontFamily: "'Cinzel', serif",
+            fontSize: 'clamp(11px, 1.2vw, 14px)',
+            letterSpacing: '0.08em',
+            color: 'rgba(0,0,0,0.55)',
+            margin: 0,
+            textAlign: 'center',
+          }}>
+            A Dogyptian always passes it on.<br />Share with the next dog lover.
+          </motion.p>
+        </div>
       </div>
     </section>
   );
