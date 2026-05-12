@@ -25,7 +25,7 @@ const BLOCKS = [
       { title: 'The Pack', desc: '0.213% of all dog owners.\n1M Dogyptians. One nation.' },
     ],
     symbol: '𓂀',
-    shortDesc: 'One identity. One movement.',
+    shortDesc: 'One identity.\nOne movement.',
   },
   {
     tag: 'THE TEMPLE',
@@ -38,7 +38,7 @@ const BLOCKS = [
       { title: 'Full Ecosystem', desc: 'Portal, fundraising, shelter maps.\nOne purpose — the dog.' },
     ],
     symbol: '𓊽',
-    shortDesc: 'The only home built for Dogyptians.',
+    shortDesc: 'The only home\nbuilt for Dogyptians.',
   },
   {
     tag: 'THE MISSION',
@@ -51,7 +51,7 @@ const BLOCKS = [
       { title: 'Dog Purpose', desc: 'Not scared faces.\nEvery dog has a mission.' },
     ],
     symbol: '𓃭',
-    shortDesc: 'A new model. Not another campaign.',
+    shortDesc: 'A new model.\nNot another campaign.',
   },
   {
     tag: 'THE WORLD',
@@ -64,7 +64,7 @@ const BLOCKS = [
       { title: 'Dogypt Map', desc: 'Dog-friendly spots, worldwide.\nMarked. Always growing.' },
     ],
     symbol: '𓇳',
-    shortDesc: 'Infrastructure. Not charity.',
+    shortDesc: 'Infrastructure.\nNot charity.',
   },
   {
     tag: 'THE RESEARCH',
@@ -77,7 +77,7 @@ const BLOCKS = [
       { title: 'Open Data', desc: 'No brand owns these results.\nPublic. Transparent. Always.' },
     ],
     symbol: '𓆑',
-    shortDesc: 'Real science. No brand agenda.',
+    shortDesc: 'Real science.\nNo brand agenda.',
   },
   {
     tag: 'THE LEGACY',
@@ -90,7 +90,7 @@ const BLOCKS = [
       { title: 'New World', desc: 'Dog people. Natural side.\nThe era begins now.' },
     ],
     symbol: '𓀭',
-    shortDesc: 'Their only hope is us.',
+    shortDesc: 'Their only\nhope is us.',
   },
 ];
 
@@ -395,11 +395,6 @@ function GateRevealSection() {
           }}
         />
 
-        {/* Edge vignette — only outermost edges, keeps center bright */}
-        <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
-          background: 'radial-gradient(ellipse 90% 85% at 50% 50%, transparent 55%, rgba(0,0,0,0.35) 100%)',
-        }}/>
 
         {/* ═══ GATE PANELS — actual gate photo, split at seam ═══ */}
         {(['left', 'right'] as const).map((side) => {
@@ -695,7 +690,6 @@ export default function Vision() {
                 background: 'rgba(0,0,0,0.50)',
                 backdropFilter: 'blur(18px)',
                 WebkitBackdropFilter: 'blur(18px)',
-                border: '1px solid rgba(201,154,63,0.16)',
                 borderRadius: 12,
                 overflow: 'hidden',
               }}
@@ -711,13 +705,13 @@ export default function Vision() {
                   }}
                 >
                   <span
-                    className="text-[9px] md:text-[11px] font-bold tracking-widest uppercase transition-colors duration-500"
+                    className="text-[9px] md:text-[12px] font-bold tracking-widest uppercase transition-colors duration-500 whitespace-nowrap overflow-hidden text-ellipsis"
                     style={{
                       fontFamily: "'Cinzel', serif",
                       color:
                         i === activeIndex
                           ? '#FAF4EC'
-                          : 'rgba(250,244,236,0.22)',
+                          : 'rgba(250,244,236,0.35)',
                     }}
                   >
                     <span className="hidden md:inline">{b.tag}</span>
@@ -729,8 +723,13 @@ export default function Vision() {
                   <ProgressBar progress={progresses[i]} isActive={i === activeIndex} />
 
                   <p
-                    className="hidden md:block text-[10px] leading-relaxed"
-                    style={{ color: 'rgba(250,244,236,0.28)', margin: 0 }}
+                    className="hidden md:block text-[10px]"
+                    style={{
+                      color: 'rgba(250,244,236,0.28)',
+                      margin: 0,
+                      lineHeight: 1.6,
+                      whiteSpace: 'pre-line',
+                    }}
                   >
                     {b.shortDesc}
                   </p>
