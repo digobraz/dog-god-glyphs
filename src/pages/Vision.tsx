@@ -4,6 +4,7 @@ import {
   motion,
   useScroll,
   useTransform,
+  useMotionValue,
   useMotionValueEvent,
   AnimatePresence,
   type MotionValue,
@@ -330,6 +331,9 @@ function GateRevealSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [btnVisible, setBtnVisible] = useState(false);
+  // Ref-based lock: white-out commits at 0.97, resets only when scrolled back past 0.75
+  const whiteOutLocked = useRef(false);
+  const finalVideoOpacity = useMotionValue(1);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -359,13 +363,21 @@ function GateRevealSection() {
   const gateLeft  = useTransform(scrollYProgress, [0, 0.4], ['0%', '-100%'], { clamp: true });
   const gateRight = useTransform(scrollYProgress, [0, 0.4], ['0%',  '100%'], { clamp: true });
 
-  // Button appears at 95% video progress (vp=0.95 → p=0.815), then locks — no fade, no going back
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
-    if (p >= 0.815) setBtnVisible(true);
-  });
+    // Button: bidirectional — appears at 95% video (p≈0.815), hides on scroll-back below threshold
+    setBtnVisible(p >= 0.815);
 
-  // Video fades out after button appears — reveals white sticky bg; no overlay needed (avoids z-index/stacking-context bug)
-  const videoOpacity = useTransform(scrollYProgress, [0.82, 0.97], [1, 0], { clamp: true });
+    // White-out hysteresis: locks fully white at 0.97, resets only when far back (0.75)
+    if (p >= 0.97) whiteOutLocked.current = true;
+    if (p < 0.75) whiteOutLocked.current = false;
+
+    if (whiteOutLocked.current) {
+      finalVideoOpacity.set(0);
+    } else {
+      const raw = p < 0.82 ? 1 : 1 - (p - 0.82) / (0.97 - 0.82);
+      finalVideoOpacity.set(Math.max(0, Math.min(1, raw)));
+    }
+  });
 
   return (
     <section
@@ -381,7 +393,7 @@ function GateRevealSection() {
           backgroundColor: '#fff',
         }}
       >
-        {/* Video fades out to reveal white bg — no overlay needed, avoids z-index stacking context bug */}
+        {/* Video — opacity driven by manual motion value with white-out hysteresis lock */}
         <motion.video
           ref={videoRef}
           src="/videos/touch_opening.mp4"
@@ -394,7 +406,7 @@ function GateRevealSection() {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: videoOpacity,
+            opacity: finalVideoOpacity,
           }}
         />
 
@@ -434,7 +446,7 @@ function GateRevealSection() {
           );
         })}
 
-        {/* CTA — snaps to full opacity at 95% video, state-locked (no motion value), floats above white */}
+        {/* CTA — bidirectional visibility (p≥0.815), snaps to full opacity, no transition */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 20,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
