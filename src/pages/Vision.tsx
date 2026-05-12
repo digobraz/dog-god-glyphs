@@ -418,19 +418,18 @@ function GateRevealSection() {
                 x: isLeft ? gateLeft : gateRight,
               }}
             >
-              {/* Gate photo — height fills viewport, center aligns with seam on any screen */}
-              <img
-                src="/images/brana-final.png"
-                alt=""
+              {/* Gate photo — 100vw inner div ensures full coverage on any aspect ratio */}
+              <div
                 style={{
                   position: 'absolute',
-                  top: '50%',
+                  top: 0,
                   [isLeft ? 'right' : 'left']: 0,
-                  // translate(±50%) moves img so its CENTER lands on the seam edge
-                  transform: `translate(${isLeft ? '50%' : '-50%'}, -50%)`,
+                  width: '100vw',
                   height: '100dvh',
-                  width: 'auto',
-                  maxWidth: 'none',
+                  backgroundImage: 'url(/images/brana-final.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center center',
+                  backgroundRepeat: 'no-repeat',
                   pointerEvents: 'none',
                 }}
               />
@@ -479,8 +478,8 @@ function GateRevealSection() {
               </h2>
             </motion.div>
 
-            {/* Button: no opacity — always fully solid gold */}
-            <div style={{ pointerEvents: 'auto' }}>
+            {/* Button: fades in with CTA text after gate opens */}
+            <motion.div style={{ opacity: ctaOpacity, pointerEvents: 'auto' }}>
               <Link
                 to="/heroglyph"
                 style={{
@@ -500,7 +499,7 @@ function GateRevealSection() {
               >
                 CLAIM YOUR HEROGLYPH →
               </Link>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>
