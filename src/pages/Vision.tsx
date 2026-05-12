@@ -482,6 +482,7 @@ function GateRevealSection() {
 export default function Vision() {
   const wrapperRef = useRef<HTMLElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [navVisible, setNavVisible] = useState(true);
 
   const { scrollYProgress } = useScroll({
     target: wrapperRef,
@@ -499,6 +500,7 @@ export default function Vision() {
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     const idx = Math.min(Math.floor(p / SEG), 5);
     setActiveIndex((prev) => (prev !== idx ? idx : prev));
+    setNavVisible(p < 0.97);
   });
 
   const handleTabClick = (i: number) => {
@@ -510,6 +512,13 @@ export default function Vision() {
 
   return (
     <div style={{ background: '#000', color: '#F2EAD6' }}>
+      <div style={{
+        opacity: navVisible ? 1 : 0,
+        transition: 'opacity 0.4s ease',
+        pointerEvents: navVisible ? 'auto' : 'none',
+      }}>
+        <PageNav />
+      </div>
 
       {/* Scroll-driven sticky section */}
       <section
@@ -519,9 +528,8 @@ export default function Vision() {
       >
         <div
           className="sticky top-0 w-full flex flex-col"
-          style={{ height: '100dvh', backgroundColor: '#000', paddingBottom: '10px', position: 'relative' }}
+          style={{ height: '100dvh', backgroundColor: '#000', paddingBottom: '10px' }}
         >
-          <PageNav />
           {/* Main content */}
           <div
             className="flex-1 flex items-center justify-center min-h-0 w-full px-4 md:px-6"

@@ -13,7 +13,7 @@ export function PageNav() {
   return (
     <div
       style={{
-        position: 'absolute',
+        position: 'fixed',
         top: 22,
         left: '50%',
         transform: 'translateX(-50%)',
