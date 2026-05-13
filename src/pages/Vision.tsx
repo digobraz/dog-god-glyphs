@@ -496,7 +496,7 @@ function GateRevealSection() {
               color: 'rgba(0,0,0,0.38)',
               textAlign: 'center',
               letterSpacing: '0.02em',
-              maxWidth: 360,
+              whiteSpace: 'nowrap',
             }}>
               If you've already done so, please send this to another doglover!
             </div>
