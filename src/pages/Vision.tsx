@@ -511,7 +511,19 @@ export default function Vision() {
   const block = BLOCKS[activeIndex];
 
   return (
-    <div style={{ background: '#000', color: '#F2EAD6' }}>
+    <div style={{ color: '#F2EAD6', position: 'relative' }}>
+      {/* Fixed bg layer: same gold-symbol texture as GodsGrid, extra dark overlay */}
+      <div style={{
+        position: 'fixed', inset: 0,
+        backgroundImage: "url('/images/bg-dark.png')",
+        backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+        filter: 'blur(3px)', zIndex: -2, pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'fixed', inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.72)',
+        zIndex: -1, pointerEvents: 'none',
+      }} />
       <div style={{
         opacity: navVisible ? 1 : 0,
         transition: 'opacity 0.4s ease',
@@ -524,11 +536,11 @@ export default function Vision() {
       <section
         ref={wrapperRef}
         className="relative w-full"
-        style={{ height: '700vh', backgroundColor: '#000' }}
+        style={{ height: '700vh', backgroundColor: 'transparent' }}
       >
         <div
           className="sticky top-0 w-full flex flex-col"
-          style={{ height: '100dvh', backgroundColor: '#000', paddingBottom: '10px' }}
+          style={{ height: '100dvh', backgroundColor: 'transparent', paddingBottom: '10px' }}
         >
           {/* Main content */}
           <div
@@ -612,6 +624,14 @@ export default function Vision() {
             </div>
             </div>{/* end bordered card */}
           </div>
+
+          {/* Bottom fade: covers tabs + smooth transition to GateRevealSection */}
+          <div style={{
+            position: 'absolute', bottom: 0, left: 0, right: 0,
+            height: '25%',
+            background: 'linear-gradient(to bottom, transparent, #000)',
+            pointerEvents: 'none', zIndex: 10,
+          }} />
 
           {/* Bottom nav tabs */}
           <div
