@@ -625,18 +625,18 @@ export default function Vision() {
             </div>{/* end bordered card */}
           </div>
 
-          {/* Bottom fade: behind tabs — texture fades to black toward bottom */}
+          {/* Bottom fade: transparent → solid black by 60%, solid black covers tab area */}
           <div style={{
             position: 'absolute', bottom: 0, left: 0, right: 0,
-            height: '25%',
-            background: 'linear-gradient(to bottom, transparent, #000)',
+            height: '38%',
+            background: 'linear-gradient(to bottom, transparent 0%, #000 60%)',
             pointerEvents: 'none', zIndex: 0,
           }} />
 
           {/* Bottom nav tabs */}
           <div
             className="flex-none px-4 md:px-6"
-            style={{ transform: 'translateY(-30px)', position: 'relative', zIndex: 1 }}
+            style={{ transform: 'translateY(-30px)', position: 'relative', zIndex: 1, backgroundColor: '#000' }}
           >
             <div
               className="grid grid-cols-6 md:w-[min(1100px,94vw)] md:mx-auto"
