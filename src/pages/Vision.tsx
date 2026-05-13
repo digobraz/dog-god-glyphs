@@ -452,26 +452,54 @@ function GateRevealSection() {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'none',
         }}>
-          <div style={{ opacity: btnVisible ? 1 : 0, pointerEvents: btnVisible ? 'auto' : 'none' }}>
-            <Link
-              to="/heroglyph"
-              style={{
-                display: 'inline-block',
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 'clamp(14px, 1.6vw, 18px)',
-                letterSpacing: '0.16em',
-                padding: 'clamp(16px, 2vw, 22px) clamp(40px, 5.5vw, 72px)',
-                background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-                color: '#000',
-                border: '1.5px solid rgba(0,0,0,0.12)',
-                borderRadius: 8,
-                textDecoration: 'none',
-                boxShadow: '0 4px 32px rgba(201,154,63,0.8), 0 0 0 6px rgba(245,199,61,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
-              }}
-            >
-              BECOME DOGYPTIAN
-            </Link>
+          <div style={{
+            opacity: btnVisible ? 1 : 0,
+            pointerEvents: btnVisible ? 'auto' : 'none',
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            gap: 'clamp(14px, 2.2vh, 26px)',
+          }}>
+            <div style={{
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 'clamp(26px, 4.2vw, 56px)',
+              letterSpacing: '0.2em',
+              color: 'rgba(0,0,0,0.70)',
+              textAlign: 'center',
+            }}>
+              IN DOG WE TRUST
+            </div>
+
+            <motion.div whileHover={{ scale: 0.96 }} whileTap={{ scale: 0.93 }} style={{ display: 'inline-block', cursor: 'pointer' }}>
+              <Link
+                to="/heroglyph"
+                style={{
+                  display: 'inline-block',
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(14px, 1.6vw, 18px)',
+                  letterSpacing: '0.16em',
+                  padding: 'clamp(16px, 2vw, 22px) clamp(40px, 5.5vw, 72px)',
+                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                  color: '#000',
+                  border: '1.5px solid rgba(0,0,0,0.12)',
+                  borderRadius: 8,
+                  textDecoration: 'none',
+                  boxShadow: '0 4px 32px rgba(201,154,63,0.8), 0 0 0 6px rgba(245,199,61,0.18), inset 0 1px 0 rgba(255,255,255,0.4)',
+                }}
+              >
+                BECOME DOGYPTIAN
+              </Link>
+            </motion.div>
+
+            <div style={{
+              fontSize: 'clamp(11px, 1.1vw, 13px)',
+              color: 'rgba(0,0,0,0.38)',
+              textAlign: 'center',
+              letterSpacing: '0.02em',
+              maxWidth: 360,
+            }}>
+              If you've already done so, please send this to another doglover!
+            </div>
           </div>
         </div>
       </div>
