@@ -128,17 +128,14 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           uploadHorizontalPdf(hBlob, sid),
         ]);
 
+        // Silent PATCH: persist PDF URLs to dogs.pdf_*_url. No email — stripe-webhook
+        // already sent the welcome email with magic link to /pack where the buyer
+        // downloads these PDFs.
         await fetch(`${EDGE_BASE}/send-certificate`, {
           method: 'POST',
           headers: EDGE_HEADERS,
           body: JSON.stringify({
-            email,
-            dogName,
-            ownerName,
-            dogPhotoUrl,
-            sessionId,
-            packNumber,
-            heroglyphPngUrl,
+            sessionId: sid,
             pdfUrls: { cert: c.secureUrl, vertical: v.secureUrl, horizontal: h.secureUrl },
           }),
         });

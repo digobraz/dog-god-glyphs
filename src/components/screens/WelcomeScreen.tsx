@@ -481,7 +481,7 @@ export function WelcomeScreen() {
           <div className="w-full flex flex-col items-center gap-2">
             <motion.button
               onClick={handleEnterPack}
-              disabled={packNumber === null}
+              disabled={packNumber === null || !heroglyphPngUrl}
               className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
               style={{
                 fontFamily: "'Cinzel', serif",
@@ -489,10 +489,14 @@ export function WelcomeScreen() {
                 color: '#1a1200',
                 boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
               }}
-              animate={packNumber !== null ? { scale: [1, 1.025, 1] } : {}}
+              animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             >
-              {packNumber === null ? 'PREPARING YOUR PLACE...' : 'ENTER THE GODS →'}
+              {packNumber === null
+                ? 'PREPARING YOUR PLACE...'
+                : !heroglyphPngUrl
+                  ? 'FORGING YOUR HEROGLYPH...'
+                  : 'ENTER THE GODS →'}
             </motion.button>
             <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
               Your certificate is on its way — check your email.
