@@ -636,7 +636,7 @@ export default function Vision() {
           {/* Bottom nav tabs */}
           <div
             className="flex-none px-4 md:px-6"
-            style={{ transform: 'translateY(-40px)', position: 'relative', zIndex: 1, backgroundColor: '#000' }}
+            style={{ transform: 'translateY(-50px)', position: 'relative', zIndex: 1, backgroundColor: '#000' }}
           >
             <div
               className="grid grid-cols-6 md:w-[min(1100px,94vw)] md:mx-auto"
