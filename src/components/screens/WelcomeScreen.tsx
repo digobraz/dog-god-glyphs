@@ -60,6 +60,11 @@ function ScreenRecordTapAnimation() {
   );
 }
 
+// Direct REST — bypasses supabase-js client which Lovable may overwrite with zombie project.
+const PM_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/rest/v1/pack_members';
+const PM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
+const PM_HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PM_KEY}`, 'apikey': PM_KEY };
+
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
   const ran = useRef(false);
@@ -70,20 +75,17 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
 
     async function registerAndFetch() {
       // Try INSERT first — succeeds if we beat the webhook.
-      const { data: insertResult } = await supabase
-        .from('pack_members')
-        .insert({
-          dog_name: dogName || 'Unknown',
-          email: email || null,
-          stripe_session_id: sessionId || null,
-        })
-        .select('pack_number')
-        .single();
-
-      if (insertResult?.pack_number) {
-        setPackNumber(insertResult.pack_number);
-        return;
-      }
+      try {
+        const res = await fetch(`${PM_URL}?select=pack_number`, {
+          method: 'POST',
+          headers: { ...PM_HEADERS, 'Prefer': 'return=representation' },
+          body: JSON.stringify({ dog_name: dogName || 'Unknown', email: email || null, stripe_session_id: sessionId || null }),
+        });
+        if (res.ok) {
+          const rows = await res.json();
+          if (rows?.[0]?.pack_number) { setPackNumber(rows[0].pack_number); return; }
+        }
+      } catch { /* fall through to poll */ }
 
       // INSERT failed (duplicate or webhook race). Poll until the webhook inserts the row.
       // Stripe webhook can take 30-45s on slow infra; 15 × 3s = 45s window.
@@ -91,14 +93,12 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
       for (let i = 0; i < 15; i++) {
         if (i > 0) await new Promise(r => setTimeout(r, 3000));
         try {
-          const { data: existing } = await supabase
-            .from('pack_members')
-            .select('pack_number')
-            .eq('stripe_session_id', sessionId)
-            .single();
-          if (existing?.pack_number) {
-            setPackNumber(existing.pack_number);
-            return;
+          const res = await fetch(`${PM_URL}?select=pack_number&stripe_session_id=eq.${encodeURIComponent(sessionId)}`, {
+            headers: PM_HEADERS,
+          });
+          if (res.ok) {
+            const rows = await res.json();
+            if (rows?.[0]?.pack_number) { setPackNumber(rows[0].pack_number); return; }
           }
         } catch { /* continue */ }
       }
