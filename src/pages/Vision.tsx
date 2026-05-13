@@ -192,6 +192,164 @@ function FeatureCard({ title, desc }: { title: string; desc: string }) {
   );
 }
 
+function BlockVisual({ index }: { index: number }) {
+  const G = '#C99A3F';
+  const GF = 'rgba(201,154,63,0.35)';
+
+  if (index === 0) {
+    const COLS = 7, SIZE = 22, STEP = 30;
+    const OFF = (220 - COLS * STEP + (STEP - SIZE)) / 2;
+    return (
+      <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
+        {Array.from({ length: COLS * COLS }).map((_, i) => {
+          const col = i % COLS, row = Math.floor(i / COLS);
+          const isCenter = col === 3 && row === 3;
+          return (
+            <motion.rect
+              key={i}
+              x={OFF + col * STEP} y={OFF + row * STEP}
+              width={SIZE} height={SIZE} rx="3"
+              fill={isCenter ? G : GF}
+              stroke={G} strokeWidth={isCenter ? 0 : 0.4} strokeOpacity={0.5}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: isCenter ? 1 : 0.35 }}
+              transition={{ delay: (col + row) * 0.04, duration: 0.3 }}
+            />
+          );
+        })}
+      </svg>
+    );
+  }
+
+  if (index === 1) {
+    const R = 72;
+    const nodes = ['DB', 'PASS', 'SOC', 'MAP', 'FUND'];
+    const positions = nodes.map((_, i) => {
+      const a = (i / nodes.length) * Math.PI * 2 - Math.PI / 2;
+      return { x: 110 + R * Math.cos(a), y: 110 + R * Math.sin(a) };
+    });
+    return (
+      <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
+        <circle cx="110" cy="110" r={R} stroke={G} strokeWidth="0.5" strokeOpacity="0.25" fill="none" />
+        {positions.map((p, i) => (
+          <motion.line key={i} x1="110" y1="110" x2={p.x} y2={p.y}
+            stroke={G} strokeWidth="0.4" strokeOpacity={0}
+            animate={{ strokeOpacity: 0.2 }} transition={{ delay: i * 0.1 }} />
+        ))}
+        <rect x="104" y="78" width="12" height="46" rx="2" fill="rgba(201,154,63,0.08)" stroke={G} strokeWidth="0.8" strokeOpacity="0.65" />
+        <polygon points="110,65 104,78 116,78" fill={G} fillOpacity="0.75" />
+        <circle cx="110" cy="124" r="5" fill={G} fillOpacity="0.9" />
+        {nodes.map((label, i) => (
+          <motion.g key={label} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 + i * 0.1 }}>
+            <circle cx={positions[i].x} cy={positions[i].y} r="16" fill="rgba(201,154,63,0.06)" stroke={G} strokeWidth="0.7" strokeOpacity="0.6" />
+            <text x={positions[i].x} y={positions[i].y + 4} textAnchor="middle" fill={G} fillOpacity={0.7} fontSize="7" fontFamily="Cinzel, serif" letterSpacing="0.08em">{label}</text>
+          </motion.g>
+        ))}
+      </svg>
+    );
+  }
+
+  if (index === 2) {
+    return (
+      <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
+        <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+          <text x="110" y="98" textAnchor="middle" fill={G} fontSize="54" fontFamily="Cinzel, serif" fontWeight="700">430M</text>
+        </motion.g>
+        <line x1="40" y1="110" x2="180" y2="110" stroke={G} strokeWidth="0.5" strokeOpacity="0.3" />
+        <motion.g initial={{ opacity: 0 }} animate={{ opacity: 0.55 }} transition={{ delay: 0.3 }}>
+          <text x="110" y="128" textAnchor="middle" fill={G} fontSize="9" fontFamily="Cinzel, serif" letterSpacing="0.3em">STRAY DOGS</text>
+        </motion.g>
+        <motion.g initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: 0.5 }}>
+          <ellipse cx="110" cy="172" rx="12" ry="10" fill={G} />
+          <circle cx="97" cy="158" r="5" fill={G} />
+          <circle cx="108" cy="153" r="5" fill={G} />
+          <circle cx="119" cy="153" r="5" fill={G} />
+          <circle cx="130" cy="158" r="5" fill={G} />
+        </motion.g>
+      </svg>
+    );
+  }
+
+  if (index === 3) {
+    const pins: [number, number][] = [[58,75],[92,65],[118,70],[145,75],[162,88],[55,105],[80,115],[110,120],[148,108],[165,118]];
+    return (
+      <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
+        <circle cx="110" cy="110" r="82" stroke={G} strokeWidth="0.8" strokeOpacity="0.5" fill="none" />
+        <ellipse cx="110" cy="110" rx="82" ry="22" stroke={G} strokeWidth="0.4" strokeOpacity="0.2" fill="none" />
+        <ellipse cx="110" cy="110" rx="44" ry="82" stroke={G} strokeWidth="0.4" strokeOpacity="0.2" fill="none" />
+        <line x1="28" y1="110" x2="192" y2="110" stroke={G} strokeWidth="0.3" strokeOpacity="0.15" />
+        <line x1="110" y1="28" x2="110" y2="192" stroke={G} strokeWidth="0.3" strokeOpacity="0.15" />
+        {pins.map(([px, py], i) => (
+          <motion.circle key={i} cx={px} cy={py} r="3.5" fill={G}
+            initial={{ opacity: 0 }} animate={{ opacity: 0.85 }}
+            transition={{ delay: i * 0.1, duration: 0.25 }} />
+        ))}
+      </svg>
+    );
+  }
+
+  if (index === 4) {
+    const N = 12;
+    const rungs = Array.from({ length: N + 1 }, (_, i) => {
+      const t = i / N;
+      const y = 15 + t * 190;
+      const phase = t * Math.PI * 3.5;
+      return { y, x1: Math.round(110 + 38 * Math.cos(phase)), x2: Math.round(110 - 38 * Math.cos(phase)) };
+    });
+    const d1 = rungs.map((r, i) => `${i === 0 ? 'M' : 'L'} ${r.x1} ${r.y.toFixed(1)}`).join(' ');
+    const d2 = rungs.map((r, i) => `${i === 0 ? 'M' : 'L'} ${r.x2} ${r.y.toFixed(1)}`).join(' ');
+    return (
+      <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
+        <motion.path d={d1} stroke={G} strokeWidth="1.5" strokeOpacity="0.7" fill="none"
+          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.9 }} />
+        <motion.path d={d2} stroke={G} strokeWidth="1.5" strokeOpacity="0.7" fill="none"
+          initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.9, delay: 0.1 }} />
+        {rungs.map((r, i) => (
+          <motion.line key={i} x1={r.x1} y1={r.y} x2={r.x2} y2={r.y}
+            stroke={G} strokeWidth="0.8" strokeOpacity="0.3"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.06 }} />
+        ))}
+        {rungs.filter((_, i) => i % 3 === 0).map((r, i) => (
+          <motion.circle key={i} cx={r.x1} cy={r.y} r="4" fill={G}
+            initial={{ opacity: 0 }} animate={{ opacity: 0.8 }} transition={{ delay: 0.8 + i * 0.08 }} />
+        ))}
+      </svg>
+    );
+  }
+
+  const stars: [number, number][] = [[38,28],[75,18],[125,22],[168,32],[52,52],[162,48],[96,14],[145,60],[30,45]];
+  return (
+    <svg width="220" height="220" viewBox="0 0 220 220" fill="none">
+      {stars.map(([sx, sy], i) => (
+        <motion.circle key={i} cx={sx} cy={sy} r="1.5" fill={G}
+          initial={{ opacity: 0 }} animate={{ opacity: [0, 1, 0.6, 1] }}
+          transition={{ delay: i * 0.08, duration: 0.5 }} />
+      ))}
+      <motion.circle cx="110" cy="148" r="20" fill="none" stroke={G} strokeWidth="1" strokeOpacity="0.45"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} />
+      <motion.line x1="18" y1="168" x2="202" y2="168" stroke={G} strokeWidth="0.8" strokeOpacity="0.4"
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6 }} />
+      <motion.g fill="none" stroke={G} strokeWidth="3" strokeLinecap="round"
+        initial={{ opacity: 0 }} animate={{ opacity: 0.8 }} transition={{ delay: 0.4 }}>
+        <circle cx="82" cy="130" r="6" strokeWidth="2" />
+        <line x1="82" y1="136" x2="82" y2="158" />
+        <line x1="74" y1="143" x2="95" y2="153" />
+        <line x1="78" y1="158" x2="76" y2="172" />
+        <line x1="86" y1="158" x2="88" y2="172" />
+      </motion.g>
+      <motion.g fill={G} initial={{ opacity: 0 }} animate={{ opacity: 0.82 }} transition={{ delay: 0.55 }}>
+        <ellipse cx="125" cy="163" rx="18" ry="9" />
+        <circle cx="141" cy="155" r="9" />
+        <ellipse cx="146" cy="148" rx="6" ry="3.5" transform="rotate(-15 146 148)" />
+        <rect x="111" y="170" width="5" height="8" rx="2" />
+        <rect x="120" y="170" width="5" height="8" rx="2" />
+        <rect x="131" y="170" width="5" height="8" rx="2" />
+        <path d="M 108 157 Q 99 147 103 140" stroke={G} strokeWidth="3" strokeLinecap="round" fill="none" />
+      </motion.g>
+    </svg>
+  );
+}
+
 function SymbolVisual({ symbol, activeIndex }: { symbol: string; activeIndex: number }) {
   return (
     <div
@@ -239,16 +397,7 @@ function SymbolVisual({ symbol, activeIndex }: { symbol: string; activeIndex: nu
           className="relative z-10 flex flex-col items-center"
           style={{ gap: 14 }}
         >
-          <div
-            style={{
-              fontSize: 'clamp(72px, 11vw, 116px)',
-              lineHeight: 1,
-              filter: 'drop-shadow(0 0 28px rgba(201,154,63,0.55))',
-              color: GOLD,
-            }}
-          >
-            {symbol}
-          </div>
+          <BlockVisual index={activeIndex} />
           <div
             style={{
               fontFamily: "'Cinzel', serif",
