@@ -328,7 +328,7 @@ export function GodsGrid() {
       el.className = 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
-      const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : (dog.patron_svg ? `/patrons/${esc(dog.patron_svg)}` : '');
+      const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
