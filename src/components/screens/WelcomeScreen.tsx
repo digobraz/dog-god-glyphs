@@ -62,15 +62,15 @@ function ScreenRecordTapAnimation() {
 
 function usePackNumber(dogName: string, email: string, sessionId: string | null) {
   const [packNumber, setPackNumber] = useState<number | null>(null);
-  const inserted = useRef(false);
+  const ran = useRef(false);
 
   useEffect(() => {
-    if (inserted.current) return;
-    inserted.current = true;
+    if (ran.current) return;
+    ran.current = true;
 
     async function registerAndFetch() {
-      // Try INSERT first. If webhook already inserted (duplicate stripe_session_id), SELECT the existing row.
-      const { data: inserted } = await supabase
+      // Try INSERT first — succeeds if we beat the webhook.
+      const { data: insertResult } = await supabase
         .from('pack_members')
         .insert({
           dog_name: dogName || 'Unknown',
@@ -80,30 +80,28 @@ function usePackNumber(dogName: string, email: string, sessionId: string | null)
         .select('pack_number')
         .single();
 
-      if (inserted?.pack_number) {
-        setPackNumber(inserted.pack_number);
+      if (insertResult?.pack_number) {
+        setPackNumber(insertResult.pack_number);
         return;
       }
 
-      // INSERT failed (duplicate) — get the number assigned by the webhook
-      if (sessionId) {
+      // INSERT failed (duplicate or webhook race). Poll until the webhook inserts the row.
+      // Stripe webhook can take 30-45s on slow infra; 15 × 3s = 45s window.
+      if (!sessionId) return;
+      for (let i = 0; i < 15; i++) {
+        if (i > 0) await new Promise(r => setTimeout(r, 3000));
         try {
           const { data: existing } = await supabase
             .from('pack_members')
             .select('pack_number')
             .eq('stripe_session_id', sessionId)
             .single();
-          if (existing?.pack_number) { setPackNumber(existing.pack_number); return; }
-        } catch { /* silent */ }
+          if (existing?.pack_number) {
+            setPackNumber(existing.pack_number);
+            return;
+          }
+        } catch { /* continue */ }
       }
-
-      // Last resort: total count
-      try {
-        const { count } = await supabase
-          .from('pack_members')
-          .select('*', { count: 'exact', head: true });
-        if (count && count > 0) setPackNumber(count);
-      } catch { /* silent */ }
     }
 
     registerAndFetch();
