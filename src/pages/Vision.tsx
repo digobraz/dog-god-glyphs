@@ -488,12 +488,17 @@ function GateRevealSection() {
     offset: ['start start', 'end end'],
   });
 
+  // Force video data load — preload="auto" is ignored on iOS Safari without this
+  useEffect(() => {
+    videoRef.current?.load();
+  }, []);
+
   // RAF loop — reads scroll.get() once per frame, avoids seeking queue
   useEffect(() => {
     let rafId: number;
     const loop = () => {
       const video = videoRef.current;
-      if (video && video.readyState >= 2 && video.duration) {
+      if (video && video.readyState >= 1 && isFinite(video.duration) && video.duration > 0) {
         const p = scrollYProgress.get();
         const vp = Math.max(0, Math.min(1, (p - 0.15) / 0.7));
         const target = vp * video.duration;
