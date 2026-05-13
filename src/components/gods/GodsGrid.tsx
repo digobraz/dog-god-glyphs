@@ -324,24 +324,30 @@ export function GodsGrid() {
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
       const packNum = dog.pack_number ?? '?';
 
+      // Dogs without heroglyph_png_url show # (no number) — patron_svg as fallback on hover
+      const hasHeroglyph = !!dog.heroglyph_png_url;
+      const heroImgSrc = hasHeroglyph
+        ? esc(dog.heroglyph_png_url!)
+        : (dog.patron_svg ? `/patrons/${esc(dog.patron_svg)}` : '');
+      const rankBadge = hasHeroglyph ? `#${packNum}` : '#';
+
       const el = document.createElement('article');
       el.className = 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
-      const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
-          <div class="card-open-rank">#${packNum}</div>
+          ${heroImgSrc ? `<img class="card-open-heroglyph" src="${heroImgSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
+          <div class="card-open-rank">${rankBadge}</div>
           <div class="card-open-name">${safeName}</div>
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
         </div>
-        <div class="card-rank-top">#${packNum}</div>
+        <div class="card-rank-top">${rankBadge}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
-        ${dog.heroglyph_png_url ? `
+        ${heroImgSrc ? `
         <div class="dog-heroglyph-wrap">
-          <img class="dog-heroglyph" src="${esc(dog.heroglyph_png_url)}" alt="${safeName} heroglyph" draggable="false">
+          <img class="dog-heroglyph" src="${heroImgSrc}" alt="${safeName} heroglyph" draggable="false">
         </div>` : ''}
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
