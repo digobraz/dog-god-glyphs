@@ -105,8 +105,18 @@ function cellHash(col: number, row: number): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
+// Deterministická bijekcia (col,row) → index v `photos`. Primes coprime
+// k photos.length zaručujú, že žiadne dve bunky v rovnakom rade ani stĺpci
+// (v rozsahu jedného full cyklu) nemajú rovnakú fotku. Diagonály tiež OK.
+function photoIndex(col: number, row: number): number {
+  const len = photos.length;
+  const n = ((col % len) + len) % len;
+  const m = ((row % len) + len) % len;
+  return (n * 7 + m * 11 + 31) % len;
+}
+
 function photoFor(col: number, row: number) {
-  return photos[cellHash(col, row) % photos.length];
+  return photos[photoIndex(col, row)];
 }
 
 
@@ -358,27 +368,21 @@ export function GodsGrid() {
       const realDog = realDogMapRef.current.get(`${col},${row}`);
       if (realDog) return makeRealDogCard(realDog, col, row);
 
-      const hash = cellHash(col, row);
-      const p = photos[hash % photos.length];
-      const packNum = (hash % 950) + 50;
-      const cc = 'sk';
-      const flagName = FLAG_NAMES[cc] || cc;
-      const safeName = esc(p.n.toUpperCase());
+      const p = photos[photoIndex(col, row)];
       const pos = getPos(p.f);
 
       const el = document.createElement('article');
-      el.className = 'dog-card';
+      el.className = 'dog-card dog-card--placeholder';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
         <div class="card-open-overlay">
-          <div class="card-open-name">${safeName}</div>
+          <div class="card-open-name">AWAITING</div>
         </div>
-        <div class="card-rank-top">#</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
+        <div class="card-rank-top">#—</div>
         <div class="card-name-block">
-          <div class="card-label">${safeName}</div>
+          <div class="card-label">AWAITING</div>
         </div>
       `;
       return el;
@@ -846,6 +850,27 @@ export function GodsGrid() {
         }
         .is-dragging .dog-card { cursor: pointer; transition: none; }
 
+        /* Placeholder dogs — stmavené, greyscale, bez identity */
+        .dog-card--placeholder { cursor: default; }
+        .dog-card--placeholder .card-img {
+          filter: grayscale(1) brightness(0.55) contrast(0.9);
+          opacity: 0.35;
+        }
+        .dog-card--placeholder .card-name-block,
+        .dog-card--placeholder .card-rank-top {
+          opacity: 0.30;
+        }
+        .dog-card--placeholder .card-label {
+          font-size: 0.7rem !important;
+          letter-spacing: 0.22em !important;
+          color: rgba(250,244,236,0.55) !important;
+        }
+        .dog-card--placeholder:hover {
+          transform: none !important;
+          box-shadow: none !important;
+        }
+        .dog-card--placeholder .card-open-overlay { display: none; }
+
         /* Hover: scale + gradient darkening (suppressed on open card & during drag) */
         .dog-card:not(.is-open):hover {
           transform: scale(1.08);
@@ -1070,26 +1095,55 @@ export function GodsGrid() {
         }
         .join-btn {
           margin-top: 6px;
-          padding: 14px 32px;
+          padding: 16px 40px;
           background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-          border: 1px solid rgba(250, 244, 236, 0.30);
+          border: 1px solid rgba(250, 244, 236, 0.40);
           border-radius: 8px;
           color: #000;
           font-family: 'Cinzel', serif;
-          font-size: 0.85rem;
-          font-weight: 700;
-          letter-spacing: 0.12em;
+          font-size: 0.98rem;
+          font-weight: 900;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           cursor: pointer;
           white-space: nowrap;
-          box-shadow: 0 0 40px rgba(230, 158, 26, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-          transition: transform 0.2s, box-shadow 0.22s, opacity 0.22s;
+          box-shadow:
+            0 0 24px rgba(255, 200, 90, 0.65),
+            0 0 60px rgba(230, 158, 26, 0.50),
+            0 0 110px rgba(230, 158, 26, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+          text-shadow: 0 1px 0 rgba(255, 240, 200, 0.45);
+          transition: transform 0.2s, box-shadow 0.25s, opacity 0.22s;
+          animation: joinBtnPulse 3.2s ease-in-out infinite;
         }
         .join-btn:hover {
-          transform: scale(1.04);
-          box-shadow: 0 0 56px rgba(230, 158, 26, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          transform: scale(1.05);
+          box-shadow:
+            0 0 36px rgba(255, 215, 110, 0.85),
+            0 0 90px rgba(230, 158, 26, 0.70),
+            0 0 150px rgba(230, 158, 26, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
         }
         .join-btn:active { transform: scale(0.98); }
+        @keyframes joinBtnPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 24px rgba(255, 200, 90, 0.55),
+              0 0 60px rgba(230, 158, 26, 0.42),
+              0 0 110px rgba(230, 158, 26, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.45);
+          }
+          50% {
+            box-shadow:
+              0 0 34px rgba(255, 215, 110, 0.85),
+              0 0 84px rgba(230, 158, 26, 0.62),
+              0 0 140px rgba(230, 158, 26, 0.38),
+              inset 0 1px 0 rgba(255, 255, 255, 0.55);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .join-btn { animation: none; }
+        }
         .hero-count {
           font-size: 0.95rem;
           color: rgba(255,255,255,0.85);
