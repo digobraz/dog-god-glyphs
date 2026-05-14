@@ -49,9 +49,11 @@ interface PackLayoutProps {
   children: ReactNode;
   title?: string;
   subtitle?: string;
+  topStrip?: ReactNode;
+  wide?: boolean;
 }
 
-export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
@@ -118,6 +120,20 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
 
   return (
     <div className="min-h-[100dvh]" style={{ background: bgGradient, color: T.ink }}>
+      {/* Top strip (e.g. live stats ticker) — sits above the sticky header */}
+      {topStrip && (
+        <div
+          style={{
+            borderBottom: `1px solid ${T.hairline}`,
+            background: 'linear-gradient(180deg, rgba(242,229,199,0.94), rgba(242,229,199,0.86))',
+            backdropFilter: 'blur(8px)',
+            padding: '8px 14px',
+          }}
+        >
+          {topStrip}
+        </div>
+      )}
+
       {/* Header — centered logo */}
       <header
         className="sticky top-0 z-30"
@@ -133,7 +149,7 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
             <img
               src={dogyptLogo}
               alt="DOGYPT"
-              style={{ height: 24, width: 'auto', filter: 'invert(1)', opacity: 0.88 }}
+              style={{ height: 26, width: 'auto', opacity: 0.95 }}
             />
           </Link>
           <div className="absolute right-0 top-1/2 -translate-y-1/2">
@@ -187,7 +203,7 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-2xl px-4 sm:px-6 py-6 pb-28 md:pb-12">
+      <div className={`mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-28 md:pb-12`}>
         {(title || subtitle) && (
           <header className="mb-7 text-center">
             {subtitle && (

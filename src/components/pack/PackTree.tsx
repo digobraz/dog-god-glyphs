@@ -18,11 +18,13 @@ interface PackTreeProps {
   ownerAvatarUrl: string | null;
   ownerInitial: string;
   dogs: DogNode[];
+  hideOwner?: boolean;
 }
 
-export function PackTree({ ownerAvatarUrl, ownerInitial, dogs }: PackTreeProps) {
+export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: PackTreeProps) {
   return (
     <section
+      className="pack-card-hover h-full"
       style={{
         background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
         borderRadius: 24,
@@ -30,6 +32,8 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs }: PackTreeProps) 
         border: `1px solid ${T.hairline}`,
         boxShadow: '0 20px 50px -25px rgba(31, 26, 14, 0.18)',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <div
@@ -46,21 +50,21 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs }: PackTreeProps) 
         My Pack
       </div>
 
-      <div className="flex flex-col items-center">
-        {/* Owner node */}
-        <OwnerNode avatarUrl={ownerAvatarUrl} initial={ownerInitial} />
+      <div className="flex flex-col items-center flex-1 justify-center">
+        {/* Owner node — hidden in 2-col layout where owner sits in HeroCard */}
+        {!hideOwner && <OwnerNode avatarUrl={ownerAvatarUrl} initial={ownerInitial} />}
 
         {/* Tree connector + dog rows */}
         {dogs.length === 0 ? (
           <>
-            <Connector />
+            {!hideOwner && <Connector />}
             <AddDogButton label="Forge your first heroglyph" />
           </>
         ) : (
           <>
             {dogs.map((d, i) => (
               <div key={d.id} className="flex flex-col items-center w-full">
-                <Connector />
+                {(i > 0 || !hideOwner) && <Connector />}
                 <DogRow dog={d} isLast={i === dogs.length - 1} />
               </div>
             ))}
@@ -145,31 +149,35 @@ function DogRow({ dog }: { dog: DogNode; isLast: boolean }) {
     >
       {/* Dog circle photo */}
       <div
-        className="shrink-0"
+        className="shrink-0 relative"
         style={{
           width: 64,
           height: 64,
           borderRadius: '50%',
           background: T.bg,
-          overflow: 'hidden',
+          overflow: 'visible',
           border: `1px solid ${T.hairline}`,
-          position: 'relative',
+          boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 0 16px 1px rgba(201, 154, 63, 0.22)',
         }}
       >
-        {dog.cloudinary_main_url ? (
-          <img
-            src={dog.cloudinary_main_url}
-            alt={name}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <div
-            className="flex items-center justify-center h-full"
-            style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.2em' }}
-          >
-            NO PHOTO
-          </div>
-        )}
+        <div
+          className="absolute inset-0 rounded-full overflow-hidden"
+        >
+          {dog.cloudinary_main_url ? (
+            <img
+              src={dog.cloudinary_main_url}
+              alt={name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <div
+              className="flex items-center justify-center h-full"
+              style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.2em' }}
+            >
+              NO PHOTO
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Name + meta */}

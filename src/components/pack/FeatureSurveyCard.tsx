@@ -113,6 +113,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
 
   return (
     <section
+      className="pack-card-hover h-full"
       style={{
         background: T.ink,
         color: T.card,
@@ -121,6 +122,8 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
         boxShadow: '0 25px 60px -20px rgba(31, 26, 14, 0.55)',
         overflow: 'hidden',
         position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Hero strip — gradient + icon collage */}
