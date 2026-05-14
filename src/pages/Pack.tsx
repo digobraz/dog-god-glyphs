@@ -1,241 +1,248 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, ScrollText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PackLayout } from '@/components/pack/PackLayout';
+import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
+import { HeroCard } from '@/components/pack/HeroCard';
+import { PackTree } from '@/components/pack/PackTree';
+import { StatTicker } from '@/components/pack/StatTicker';
+import { FeatureSurveyCard } from '@/components/pack/FeatureSurveyCard';
+import { TopCountries } from '@/components/pack/TopCountries';
+import { OnboardingProgress, type OnboardingStep } from '@/components/pack/OnboardingProgress';
+import { Announcements } from '@/components/pack/Announcements';
+import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
 
-/**
- * Local Dog row type — `dogs` table is added by sub-agent #1 (Issue #13).
- * Once the migration lands and Supabase types are regenerated this can be
- * replaced with `Tables<'dogs'>` from `@/integrations/supabase/types`.
- */
+const T = PACK_THEME;
+
+const STATS_EDGE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-pack-stats';
+
 interface DogRow {
   id: string;
   user_id: string | null;
   dog_name: string | null;
   cloudinary_main_url: string | null;
+  cloudinary_extras: string[] | null;
   heroglyph_code: string | null;
   breed: string | null;
+  grid_message: string | null;
+  stripe_session_id: string | null;
   created_at: string;
+  pack_number?: number | null;
+}
+
+interface PackStats {
+  total: number;
+  last24h: number;
+  last30d: number;
+  topCountries: { country: string; count: number }[];
+  appVotes: number;
+  featureVotes: Record<string, number>;
+}
+
+interface UserMeta {
+  name: string;
+  email: string;
+  avatarUrl: string | null;
+}
+
+function firstNameFrom(email: string, fullName?: string): string {
+  if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
+  if (!email) return 'Dogyptian';
+  const local = email.split('@')[0] || '';
+  const base = local.split('+')[0].replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
+  if (!base) return 'Dogyptian';
+  return base.charAt(0).toUpperCase() + base.slice(1);
 }
 
 export default function Pack() {
   const [dogs, setDogs] = useState<DogRow[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [stats, setStats] = useState<PackStats | null>(null);
+  const [user, setUser] = useState<UserMeta | null>(null);
+  const [featureVotes, setFeatureVotes] = useState<Record<string, number>>({});
 
   useEffect(() => {
     let mounted = true;
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (!u) return;
 
-      // We bypass typed client since `dogs` schema isn't in types.ts yet.
-      const { data, error } = await (supabase as unknown as {
+      const meta = (u.user_metadata ?? {}) as Record<string, string | undefined>;
+      const fullName = meta.full_name || meta.name;
+      const avatarUrl = meta.avatar_url || meta.avatar || null;
+      const display = firstNameFrom(u.email ?? '', fullName);
+      if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null });
+
+      const { data } = await (supabase as unknown as {
         from: (t: string) => {
           select: (cols: string) => {
             eq: (col: string, val: string) => {
-              order: (col: string, opts: { ascending: boolean }) => Promise<{ data: DogRow[] | null; error: { message: string } | null }>;
+              order: (col: string, opts: { ascending: boolean }) => Promise<{ data: DogRow[] | null }>;
             };
           };
         };
       })
         .from('dogs')
-        .select('id, user_id, dog_name, cloudinary_main_url, heroglyph_code, breed, created_at')
-        .eq('user_id', user.id)
+        .select('id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, breed, grid_message, stripe_session_id, created_at')
+        .eq('user_id', u.id)
         .order('created_at', { ascending: false });
 
       if (!mounted) return;
-      if (error) {
-        setError(error.message);
-        setDogs([]);
-      } else {
-        setDogs((data ?? []) as DogRow[]);
+      const list = (data ?? []) as DogRow[];
+      const sids = list.map((d) => d.stripe_session_id).filter(Boolean) as string[];
+      if (sids.length) {
+        const { data: pm } = await (supabase as unknown as {
+          from: (t: string) => {
+            select: (cols: string) => {
+              in: (col: string, vals: string[]) => Promise<{ data: { stripe_session_id: string; pack_number: number }[] | null }>;
+            };
+          };
+        })
+          .from('pack_members')
+          .select('stripe_session_id, pack_number')
+          .in('stripe_session_id', sids);
+        if (pm && mounted) {
+          const map = new Map(pm.map((r) => [r.stripe_session_id, r.pack_number]));
+          for (const d of list) {
+            if (d.stripe_session_id) d.pack_number = map.get(d.stripe_session_id) ?? null;
+          }
+        }
+      }
+      setDogs(list);
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch(STATS_EDGE);
+        const j = (await res.json()) as PackStats;
+        if (!mounted) return;
+        setStats(j);
+        setFeatureVotes(j.featureVotes ?? {});
+      } catch {
+        // best-effort
       }
     }
 
     load();
+    loadStats();
     return () => {
       mounted = false;
     };
   }, []);
 
+  const onboardingSteps: OnboardingStep[] = (() => {
+    const list = dogs ?? [];
+    const hasDog = list.length > 0;
+    const hasMessage = list.some((d) => (d.grid_message ?? '').trim().length > 0);
+    const hasExtras = list.some((d) => (d.cloudinary_extras ?? []).length > 0);
+    const hasAvatar = !!user?.avatarUrl;
+    return [
+      { label: 'Forge your first heroglyph', done: hasDog },
+      { label: 'Add your photo', done: hasAvatar },
+      { label: 'Write a message on the Grid', done: hasMessage },
+      { label: 'Add extra photos of your dog', done: hasExtras },
+    ];
+  })();
+
+  const ownerInitial = (user?.name?.[0] || user?.email?.[0] || 'D').toUpperCase();
+  const treeDogs = (dogs ?? []).map((d) => ({
+    id: d.id,
+    dog_name: d.dog_name,
+    cloudinary_main_url: d.cloudinary_main_url,
+    heroglyph_code: d.heroglyph_code,
+    breed: d.breed,
+    pack_number: d.pack_number ?? null,
+  }));
+
   return (
-    <PackLayout title="My Heroglyphs" subtitle="The Pack">
-      {dogs === null && !error ? (
-        <SkeletonGrid />
-      ) : error ? (
-        <PaperCard>
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#3a1f00' }}>
-            We couldn’t load your pack right now. Please try again in a moment.
-          </p>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: '#7a4c08', marginTop: 8 }}>
-            {error}
-          </p>
-        </PaperCard>
-      ) : dogs.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-          {dogs.map((d) => (
-            <DogCard key={d.id} dog={d} />
-          ))}
-        </div>
-      )}
+    <PackLayout>
+      <div className="flex flex-col gap-5">
+        {/* Hero — centered owner identity */}
+        {user && (
+          <HeroCard name={user.name} email={user.email} avatarUrl={user.avatarUrl} />
+        )}
+
+        {/* Marquee stats */}
+        <StatTicker
+          stats={
+            stats
+              ? {
+                  total: stats.total,
+                  last24h: stats.last24h,
+                  last30d: stats.last30d,
+                  topCountry: stats.topCountries?.[0]?.country,
+                }
+              : undefined
+          }
+        />
+
+        {/* MY PACK — tree structure */}
+        {dogs === null ? (
+          <TreeSkeleton />
+        ) : (
+          <PackTree
+            ownerAvatarUrl={user?.avatarUrl ?? null}
+            ownerInitial={ownerInitial}
+            dogs={treeDogs}
+          />
+        )}
+
+        {/* Feature survey */}
+        <FeatureSurveyCard votes={featureVotes} onVotesChange={setFeatureVotes} />
+
+        {/* Onboarding progress */}
+        <OnboardingProgress steps={onboardingSteps} />
+
+        {/* Top countries */}
+        <section>
+          <SectionLabel>Top countries</SectionLabel>
+          <TopCountries rows={stats?.topCountries ?? []} />
+        </section>
+
+        {/* Constitution */}
+        <ConstitutionCard />
+
+        {/* Announcements */}
+        <Announcements />
+
+        <div style={{ height: 32 }} />
+      </div>
     </PackLayout>
   );
 }
 
-function DogCard({ dog }: { dog: DogRow }) {
-  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Link
-      to={`/pack/dogs/${dog.id}`}
-      className="group block rounded-md border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--papyrus)/0.04)] p-3 transition-all hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.05)]"
-    >
-      <div className="aspect-square w-full overflow-hidden rounded-md bg-[#0c0a05] border border-[hsl(var(--gold)/0.25)]">
-        {dog.cloudinary_main_url ? (
-          <img
-            src={dog.cloudinary_main_url}
-            alt={name}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-[hsl(var(--gold)/0.5)]">
-            <ScrollText className="h-10 w-10" />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-3 px-1">
-        <div
-          className="text-[hsl(var(--gold))]"
-          style={{
-            fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-            fontWeight: 700,
-            fontSize: 18,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          {name}
-        </div>
-        {dog.heroglyph_code && (
-          <div
-            className="mt-1 text-[hsl(var(--gold)/0.7)] truncate"
-            style={{
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 11,
-              letterSpacing: '0.08em',
-            }}
-            title={dog.heroglyph_code}
-          >
-            {dog.heroglyph_code}
-          </div>
-        )}
-        <div className="mt-3 flex items-center justify-between">
-          {dog.breed ? (
-            <span
-              className="text-[hsl(var(--gold)/0.6)]"
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 11,
-                letterSpacing: '0.08em',
-              }}
-            >
-              {dog.breed}
-            </span>
-          ) : (
-            <span />
-          )}
-          <span
-            className="inline-flex items-center gap-1 text-[hsl(var(--gold))]"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 11,
-              letterSpacing: '0.28em',
-              textTransform: 'uppercase',
-            }}
-          >
-            Open <ArrowRight className="h-3 w-3" />
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function EmptyState() {
-  return (
-    <PaperCard>
-      <h2
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontWeight: 700,
-          fontSize: 22,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: '#1a0900',
-          marginBottom: 12,
-        }}
-      >
-        Your Pack Is Empty
-      </h2>
-      <p
-        style={{
-          fontFamily: "'Space Grotesk', sans-serif",
-          color: '#3a1f00',
-          fontSize: 14,
-          lineHeight: 1.6,
-          marginBottom: 24,
-        }}
-      >
-        No heroglyphs are bound to this account yet. Forge one to begin the pack.
-      </p>
-      <Link
-        to="/heroglyph/name"
-        className="inline-flex items-center gap-2 rounded-md bg-[hsl(var(--gold))] px-5 py-3 text-black hover:bg-[hsl(var(--gold-light))] transition-colors"
-        style={{
-          fontFamily: "'Cinzel', serif",
-          letterSpacing: '0.22em',
-          fontSize: 12,
-          textTransform: 'uppercase',
-          fontWeight: 700,
-          borderRadius: 8,
-        }}
-      >
-        Forge Heroglyph
-        <ArrowRight className="h-3 w-3" />
-      </Link>
-    </PaperCard>
-  );
-}
-
-function SkeletonGrid() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="rounded-md border border-[hsl(var(--gold)/0.2)] bg-[hsl(var(--gold)/0.02)] p-3 animate-pulse"
-        >
-          <div className="aspect-square w-full rounded-md bg-[hsl(var(--gold)/0.06)]" />
-          <div className="mt-3 h-4 w-2/3 rounded bg-[hsl(var(--gold)/0.1)]" />
-          <div className="mt-2 h-3 w-1/2 rounded bg-[hsl(var(--gold)/0.07)]" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function PaperCard({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="papyrus-bg mx-auto max-w-xl rounded-md border border-[hsl(var(--gold)/0.5)] p-6 md:p-8"
-      style={{ borderRadius: 8 }}
+    <h2
+      className="text-center mb-3"
+      style={{
+        fontFamily: "'Cinzel', serif",
+        fontSize: 11,
+        letterSpacing: '0.34em',
+        textTransform: 'uppercase',
+        color: T.inkDim,
+      }}
     >
       {children}
+    </h2>
+  );
+}
+
+function TreeSkeleton() {
+  return (
+    <div
+      className="animate-pulse"
+      style={{
+        background: T.card,
+        border: `1px solid ${T.hairline}`,
+        borderRadius: 24,
+        padding: 26,
+      }}
+    >
+      <div
+        className="mx-auto"
+        style={{ width: 72, height: 72, borderRadius: '50%', background: T.bg }}
+      />
+      <div className="mx-auto mt-3" style={{ width: 2, height: 22, background: T.border }} />
+      <div className="mt-3" style={{ height: 76, background: T.bg, borderRadius: 18 }} />
     </div>
   );
 }

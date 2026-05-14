@@ -1,12 +1,25 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, Loader2, Mail, Share2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Download,
+  FileText,
+  Loader2,
+  Mail,
+  ExternalLink,
+  Save,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PackLayout } from '@/components/pack/PackLayout';
+import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
 import { CertificateCard } from '@/components/CertificateCard';
 import { useToast } from '@/hooks/use-toast';
+import { uploadExtraPhoto } from '@/services/cloudinaryService';
 
+const T = PACK_THEME;
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
+const MESSAGE_MAX = 240;
 
 interface DogRow {
   id: string;
@@ -23,8 +36,8 @@ interface DogRow {
   birth_year: number | null;
   patron_svg: string | null;
   patron_svg2: string | null;
+  grid_message: string | null;
   created_at: string;
-  /** Stripe ref / pack number / etc. — best-effort optional fields. */
   stripe_session_id?: string | null;
   pack_number?: number | null;
   owner_name?: string | null;
@@ -41,6 +54,14 @@ export default function PackDogDetail() {
   const [packNumber, setPackNumber] = useState<number | null>(null);
   const { toast } = useToast();
 
+  const [messageDraft, setMessageDraft] = useState('');
+  const [messageSaving, setMessageSaving] = useState(false);
+  const [messageDirty, setMessageDirty] = useState(false);
+
+  const [extras, setExtras] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     let mounted = true;
 
@@ -50,9 +71,7 @@ export default function PackDogDetail() {
         return;
       }
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return;
-      }
+      if (!user) return;
 
       const { data, error } = await (supabase as unknown as {
         from: (t: string) => {
@@ -67,7 +86,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, created_at, stripe_session_id'
+          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, grid_message, created_at, stripe_session_id, owner_name',
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -84,15 +103,16 @@ export default function PackDogDetail() {
         return;
       }
       setDog(data);
+      setMessageDraft(data.grid_message ?? '');
+      setExtras(Array.isArray(data.cloudinary_extras) ? data.cloudinary_extras : []);
       setStatus('ready');
 
-      // Fetch pack_number from pack_members via stripe_session_id.
       if (data.stripe_session_id) {
         const { data: pm } = await (supabase as unknown as {
           from: (t: string) => {
             select: (cols: string) => {
               eq: (col: string, val: string) => {
-                maybeSingle: () => Promise<{ data: { pack_number: number } | null; error: unknown }>;
+                maybeSingle: () => Promise<{ data: { pack_number: number } | null }>;
               };
             };
           };
@@ -130,28 +150,113 @@ export default function PackDogDetail() {
     return '#—';
   }, [dog, packNumber]);
 
+  const handleSaveMessage = async () => {
+    if (!dog?.id || messageSaving) return;
+    setMessageSaving(true);
+    try {
+      const next = messageDraft.trim().slice(0, MESSAGE_MAX);
+      const { error: upErr } = await (supabase as unknown as {
+        from: (t: string) => {
+          update: (vals: { grid_message: string | null }) => {
+            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+          };
+        };
+      })
+        .from('dogs')
+        .update({ grid_message: next || null })
+        .eq('id', dog.id);
+      if (upErr) throw new Error(upErr.message);
+      setDog({ ...dog, grid_message: next || null });
+      setMessageDirty(false);
+      toast({ title: 'Message saved', description: 'Visible on your GRID card.' });
+    } catch (err) {
+      toast({
+        title: 'Could not save',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setMessageSaving(false);
+    }
+  };
+
+  const handleAddPhoto = () => fileInputRef.current?.click();
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !dog?.id) return;
+    setUploading(true);
+    try {
+      const sessionFolder = dog.stripe_session_id || dog.id;
+      const result = await uploadExtraPhoto(file, sessionFolder, extras.length + 1);
+      const next = [...extras, result.secureUrl];
+      const { error: upErr } = await (supabase as unknown as {
+        from: (t: string) => {
+          update: (vals: { cloudinary_extras: string[] }) => {
+            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+          };
+        };
+      })
+        .from('dogs')
+        .update({ cloudinary_extras: next })
+        .eq('id', dog.id);
+      if (upErr) throw new Error(upErr.message);
+      setExtras(next);
+      toast({ title: 'Photo added' });
+    } catch (err) {
+      toast({
+        title: 'Upload failed',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemovePhoto = async (url: string) => {
+    if (!dog?.id) return;
+    const next = extras.filter((u) => u !== url);
+    try {
+      const { error: upErr } = await (supabase as unknown as {
+        from: (t: string) => {
+          update: (vals: { cloudinary_extras: string[] }) => {
+            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+          };
+        };
+      })
+        .from('dogs')
+        .update({ cloudinary_extras: next })
+        .eq('id', dog.id);
+      if (upErr) throw new Error(upErr.message);
+      setExtras(next);
+    } catch (err) {
+      toast({
+        title: 'Could not remove',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleResend = async () => {
     if (!dog?.id || resending) return;
     setResending(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (session?.access_token) {
-        headers.Authorization = `Bearer ${session.access_token}`;
-      }
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
       const res = await fetch(`${EDGE_BASE}/send-certificate`, {
         method: 'POST',
         headers,
         body: JSON.stringify({ dogId: dog.id, force: true }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      toast({
-        title: 'Email re-sent',
-        description: 'Check your inbox in a moment.',
-      });
+      toast({ title: 'Email re-sent', description: 'Check your inbox in a moment.' });
     } catch (err) {
       toast({
-        title: 'Could not re-send email',
+        title: 'Could not re-send',
         description: err instanceof Error ? err.message : 'Unknown error',
         variant: 'destructive',
       });
@@ -163,14 +268,12 @@ export default function PackDogDetail() {
   if (status === 'loading') {
     return (
       <PackLayout>
-        <CenteredPaper>
-          <div className="flex items-center justify-center gap-2" style={{ color: '#3a1f00' }}>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 12, textTransform: 'uppercase' }}>
-              Loading
-            </span>
-          </div>
-        </CenteredPaper>
+        <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 11 }}>
+            LOADING
+          </span>
+        </div>
       </PackLayout>
     );
   }
@@ -178,39 +281,7 @@ export default function PackDogDetail() {
   if (status === 'not-found') {
     return (
       <PackLayout>
-        <CenteredPaper>
-          <h2
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              fontSize: 22,
-              letterSpacing: '0.18em',
-              textTransform: 'uppercase',
-              color: '#1a0900',
-              marginBottom: 8,
-            }}
-          >
-            Heroglyph Not Found
-          </h2>
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#3a1f00', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
-            This heroglyph is either not yours or no longer exists.
-          </p>
-          <Link
-            to="/pack"
-            className="inline-flex items-center gap-2 rounded-md border border-[#7a4c08] px-4 py-2 text-[#1a0900] hover:bg-[hsl(var(--gold)/0.08)]"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              letterSpacing: '0.22em',
-              fontSize: 12,
-              textTransform: 'uppercase',
-              fontWeight: 700,
-              borderRadius: 8,
-            }}
-          >
-            <ArrowLeft className="h-3 w-3" />
-            Back to Pack
-          </Link>
-        </CenteredPaper>
+        <NotFoundBox />
       </PackLayout>
     );
   }
@@ -218,14 +289,7 @@ export default function PackDogDetail() {
   if (status === 'error' || !dog) {
     return (
       <PackLayout>
-        <CenteredPaper>
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#3a1f00' }}>
-            Something went wrong while loading this heroglyph.
-          </p>
-          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: '#7a4c08', marginTop: 8 }}>
-            {errorMsg}
-          </p>
-        </CenteredPaper>
+        <ErrorBox message={errorMsg} />
       </PackLayout>
     );
   }
@@ -239,27 +303,86 @@ export default function PackDogDetail() {
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           to="/pack"
-          className="inline-flex items-center gap-2 text-[hsl(var(--gold)/0.8)] hover:text-[hsl(var(--gold))]"
-          style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.22em', fontSize: 11, textTransform: 'uppercase' }}
+          className="inline-flex items-center gap-2"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            letterSpacing: '0.22em',
+            fontSize: 11,
+            textTransform: 'uppercase',
+            color: T.inkDim,
+            textDecoration: 'none',
+          }}
         >
           <ArrowLeft className="h-3 w-3" />
           Pack
         </Link>
-        <div
-          className="text-[hsl(var(--gold)/0.7)]"
-          style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: '0.06em' }}
-          title={heroglyphCode}
-        >
-          {heroglyphCode}
-        </div>
+        {packNumber && (
+          <Link
+            to={`/grid?focus=${packNumber}`}
+            className="inline-flex items-center gap-1.5"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 10,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: T.ink,
+              padding: '7px 12px',
+              border: `1px solid ${T.border}`,
+              borderRadius: 999,
+              textDecoration: 'none',
+            }}
+          >
+            View on Grid {certNumber}
+            <ExternalLink className="h-3 w-3" />
+          </Link>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
-        {/* Certificate preview — scaled to fit */}
-        <div className="flex justify-center">
+      <h1
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 32,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          color: T.ink,
+        }}
+      >
+        {dogName}
+      </h1>
+      <div
+        style={{
+          marginTop: 4,
+          fontFamily: "'Cinzel', serif",
+          fontSize: 11,
+          letterSpacing: '0.28em',
+          textTransform: 'uppercase',
+          color: T.inkDim,
+          marginBottom: 22,
+        }}
+      >
+        {certNumber} · {issuedDate}
+      </div>
+
+      <div className="flex flex-col gap-5">
+        {/* Certificate preview */}
+        <section
+          style={{
+            background: T.card,
+            borderRadius: 22,
+            padding: 16,
+            border: `1px solid ${T.hairline}`,
+            boxShadow: '0 12px 36px rgba(10,10,10,0.06)',
+          }}
+        >
           <div
-            className="relative w-full max-w-[540px] aspect-[1080/1350] overflow-hidden rounded-md border border-[hsl(var(--gold)/0.4)]"
-            style={{ boxShadow: '0 30px 80px rgba(0,0,0,0.55)' }}
+            className="relative w-full mx-auto overflow-hidden"
+            style={{
+              aspectRatio: '1080 / 1350',
+              maxWidth: 480,
+              borderRadius: 14,
+              border: `1px solid ${T.hairline}`,
+            }}
           >
             <div
               style={{
@@ -268,20 +391,16 @@ export default function PackDogDetail() {
                 transformOrigin: 'top left',
                 width: 1080,
                 height: 1350,
-                transform: 'scale(0.5)',
               }}
               ref={(el) => {
                 if (!el) return;
-                // Responsive scale to fit the wrapper width
                 const wrapper = el.parentElement;
                 if (!wrapper) return;
                 const apply = () => {
                   const w = wrapper.clientWidth;
-                  const scale = w / 1080;
-                  el.style.transform = `scale(${scale})`;
+                  el.style.transform = `scale(${w / 1080})`;
                 };
                 apply();
-                // observe resizes
                 const ro = new ResizeObserver(apply);
                 ro.observe(wrapper);
               }}
@@ -296,81 +415,276 @@ export default function PackDogDetail() {
               />
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Action panel */}
-        <aside className="flex flex-col gap-3">
-          <div
-            className="rounded-md border border-[hsl(var(--gold)/0.35)] bg-[hsl(var(--gold)/0.04)] p-4"
-            style={{ borderRadius: 8 }}
-          >
+        {/* Grid message */}
+        <section
+          style={{
+            background: T.card,
+            border: `1px solid ${T.hairline}`,
+            borderRadius: 20,
+            padding: 20,
+            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-3">
             <div
-              className="text-[hsl(var(--gold)/0.7)] mb-2"
-              style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 10,
+                letterSpacing: '0.32em',
+                textTransform: 'uppercase',
+                color: T.inkDim,
+              }}
             >
-              Heroglyph Code
+              Grid Message
             </div>
-            <div
-              className="text-[hsl(var(--gold))] break-all"
-              style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 13, letterSpacing: '0.04em' }}
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 10,
+                color: T.inkDim,
+              }}
             >
-              {heroglyphCode}
-            </div>
+              {messageDraft.length}/{MESSAGE_MAX}
+            </span>
           </div>
+          <textarea
+            value={messageDraft}
+            onChange={(e) => {
+              setMessageDraft(e.target.value.slice(0, MESSAGE_MAX));
+              setMessageDirty(true);
+            }}
+            placeholder="A few words shown on your GRID card — a tribute, a memory, a hello to the pack."
+            rows={3}
+            style={{
+              width: '100%',
+              background: T.bg,
+              border: `1px solid ${T.hairline}`,
+              borderRadius: 12,
+              padding: 14,
+              color: T.ink,
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 14,
+              lineHeight: 1.5,
+              resize: 'vertical',
+              outline: 'none',
+            }}
+          />
+          <div className="mt-3 flex items-center justify-end">
+            <button
+              type="button"
+              onClick={handleSaveMessage}
+              disabled={!messageDirty || messageSaving}
+              className="inline-flex items-center gap-2"
+              style={{
+                background: messageDirty ? T.ink : 'transparent',
+                color: messageDirty ? T.card : T.inkFaint,
+                border: messageDirty ? 'none' : `1px solid ${T.hairline}`,
+                padding: '11px 16px',
+                borderRadius: 10,
+                fontFamily: "'Cinzel', serif",
+                fontSize: 11,
+                letterSpacing: '0.24em',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                cursor: messageDirty ? 'pointer' : 'default',
+                opacity: messageSaving ? 0.6 : 1,
+                transition: 'all 0.15s',
+              }}
+            >
+              {messageSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+              {messageSaving ? 'Saving' : 'Save'}
+            </button>
+          </div>
+        </section>
 
+        {/* Photos */}
+        <section
+          style={{
+            background: T.card,
+            border: `1px solid ${T.hairline}`,
+            borderRadius: 20,
+            padding: 20,
+            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 10,
+                letterSpacing: '0.32em',
+                textTransform: 'uppercase',
+                color: T.inkDim,
+              }}
+            >
+              Photos
+            </div>
+            <button
+              type="button"
+              onClick={handleAddPhoto}
+              disabled={uploading}
+              className="inline-flex items-center gap-2"
+              style={{
+                background: T.ink,
+                color: T.card,
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: 999,
+                fontFamily: "'Cinzel', serif",
+                fontSize: 10,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                cursor: uploading ? 'progress' : 'pointer',
+                opacity: uploading ? 0.6 : 1,
+              }}
+            >
+              {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+              Add photo
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            {dog.cloudinary_main_url && (
+              <PhotoTile url={dog.cloudinary_main_url} primary />
+            )}
+            {extras.map((u) => (
+              <PhotoTile key={u} url={u} onRemove={() => handleRemovePhoto(u)} />
+            ))}
+            {extras.length === 0 && !dog.cloudinary_main_url && (
+              <div
+                className="col-span-3"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 13,
+                  color: T.inkDim,
+                  padding: 18,
+                  border: `1px dashed ${T.border}`,
+                  borderRadius: 12,
+                  textAlign: 'center',
+                }}
+              >
+                No photos yet.
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Actions */}
+        <section className="flex flex-col gap-3">
           <DownloadButton
-            label="Download Certificate PDF"
+            label="Certificate PDF"
             href={dog.pdf_cert_url}
             filename={`${dogName}-certificate.pdf`}
             primary
           />
-          <DownloadButton
-            label="Download Vertical"
-            href={dog.pdf_vertical_url}
-            filename={`${dogName}-vertical.pdf`}
-          />
-          <DownloadButton
-            label="Download Horizontal"
-            href={dog.pdf_horizontal_url}
-            filename={`${dogName}-horizontal.pdf`}
-          />
-
+          <div className="grid grid-cols-2 gap-3">
+            <DownloadButton
+              label="Vertical"
+              href={dog.pdf_vertical_url}
+              filename={`${dogName}-vertical.pdf`}
+            />
+            <DownloadButton
+              label="Horizontal"
+              href={dog.pdf_horizontal_url}
+              filename={`${dogName}-horizontal.pdf`}
+            />
+          </div>
           <button
             type="button"
             onClick={handleResend}
             disabled={resending}
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-[hsl(var(--gold)/0.3)] px-4 py-2 text-[hsl(var(--gold)/0.85)] hover:text-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.06)] disabled:opacity-50 transition-colors"
+            className="inline-flex items-center justify-center gap-2"
             style={{
+              background: 'transparent',
+              border: `1px solid ${T.border}`,
+              padding: '14px 14px',
+              borderRadius: 12,
               fontFamily: "'Cinzel', serif",
               fontSize: 11,
               letterSpacing: '0.22em',
               textTransform: 'uppercase',
-              borderRadius: 8,
+              color: T.ink,
+              cursor: resending ? 'progress' : 'pointer',
+              opacity: resending ? 0.6 : 1,
             }}
           >
             {resending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-            Re-send Email
+            Re-send email
           </button>
+        </section>
 
-          <button
-            type="button"
-            disabled
-            title="Coming soon"
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-[hsl(var(--gold)/0.2)] px-4 py-2 text-[hsl(var(--gold)/0.45)] cursor-not-allowed"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 11,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              borderRadius: 8,
-            }}
-          >
-            <Share2 className="h-3 w-3" />
-            Share — Coming Soon
-          </button>
-        </aside>
+        <div style={{ height: 24 }} />
       </div>
     </PackLayout>
+  );
+}
+
+function PhotoTile({ url, primary, onRemove }: { url: string; primary?: boolean; onRemove?: () => void }) {
+  return (
+    <div
+      className="relative group"
+      style={{
+        aspectRatio: '1 / 1',
+        background: T.bg,
+        borderRadius: 12,
+        overflow: 'hidden',
+        border: `1px solid ${T.hairline}`,
+      }}
+    >
+      <img src={url} alt="" loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      {primary && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 6,
+            left: 6,
+            padding: '3px 8px',
+            background: 'rgba(255, 251, 242, 0.94)',
+            color: T.ink,
+            fontFamily: "'Cinzel', serif",
+            fontSize: 8,
+            letterSpacing: '0.22em',
+            borderRadius: 4,
+            fontWeight: 700,
+          }}
+        >
+          MAIN
+        </div>
+      )}
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove photo"
+          className="opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{
+            position: 'absolute',
+            top: 6,
+            right: 6,
+            width: 26,
+            height: 26,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(10, 10, 10, 0.78)',
+            color: T.card,
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
+          }}
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -388,13 +702,18 @@ function DownloadButton({
   const enabled = !!href;
   const Icon = primary ? FileText : Download;
 
-  const baseStyle = {
+  const baseStyle: React.CSSProperties = {
     fontFamily: "'Cinzel', serif",
-    fontSize: 12,
+    fontSize: 11,
     letterSpacing: '0.22em',
-    textTransform: 'uppercase' as const,
+    textTransform: 'uppercase',
     fontWeight: 700,
-    borderRadius: 8,
+    borderRadius: 12,
+    padding: '14px 14px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   };
 
   if (!enabled) {
@@ -402,14 +721,14 @@ function DownloadButton({
       <button
         type="button"
         disabled
-        title="Generating… try again in a minute"
-        className={
-          'inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 cursor-not-allowed ' +
-          (primary
-            ? 'bg-[hsl(var(--gold)/0.2)] text-[hsl(var(--gold)/0.55)]'
-            : 'border border-[hsl(var(--gold)/0.25)] text-[hsl(var(--gold)/0.45)]')
-        }
-        style={baseStyle}
+        title="Generating…"
+        style={{
+          ...baseStyle,
+          background: primary ? T.hairline : 'transparent',
+          border: primary ? 'none' : `1px solid ${T.hairline}`,
+          color: T.inkFaint,
+          cursor: 'not-allowed',
+        }}
       >
         <Loader2 className="h-3 w-3 animate-spin" />
         {label}
@@ -423,13 +742,13 @@ function DownloadButton({
       download={filename}
       target="_blank"
       rel="noopener noreferrer"
-      className={
-        'inline-flex items-center justify-center gap-2 rounded-md px-4 py-3 transition-colors ' +
-        (primary
-          ? 'bg-[hsl(var(--gold))] text-black hover:bg-[hsl(var(--gold-light))]'
-          : 'border border-[hsl(var(--gold)/0.5)] text-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.08)]')
-      }
-      style={baseStyle}
+      style={{
+        ...baseStyle,
+        background: primary ? T.ink : 'transparent',
+        border: primary ? 'none' : `1px solid ${T.border}`,
+        color: primary ? T.card : T.ink,
+        textDecoration: 'none',
+      }}
     >
       <Icon className="h-3 w-3" />
       {label}
@@ -437,15 +756,66 @@ function DownloadButton({
   );
 }
 
-function CenteredPaper({ children }: { children: React.ReactNode }) {
+function NotFoundBox() {
   return (
-    <div className="mx-auto max-w-md">
-      <div
-        className="papyrus-bg rounded-md border border-[hsl(var(--gold)/0.5)] p-6 md:p-8 text-center"
-        style={{ borderRadius: 8 }}
+    <div
+      style={{
+        background: T.card,
+        borderRadius: 20,
+        padding: 28,
+        maxWidth: 480,
+        margin: '0 auto',
+        border: `1px solid ${T.hairline}`,
+      }}
+    >
+      <h2
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 22,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          color: T.ink,
+          marginBottom: 10,
+        }}
       >
-        {children}
-      </div>
+        Not Found
+      </h2>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.inkDim, fontSize: 14, marginBottom: 20 }}>
+        This heroglyph is either not yours or no longer exists.
+      </p>
+      <Link
+        to="/pack"
+        className="inline-flex items-center justify-center gap-2 w-full"
+        style={{
+          background: T.ink,
+          color: T.card,
+          padding: '12px 16px',
+          borderRadius: 12,
+          fontFamily: "'Cinzel', serif",
+          letterSpacing: '0.22em',
+          fontSize: 11,
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          textDecoration: 'none',
+        }}
+      >
+        <ArrowLeft className="h-3 w-3" />
+        Back to Pack
+      </Link>
+    </div>
+  );
+}
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div style={{ background: T.card, borderRadius: 16, padding: 20, maxWidth: 480, margin: '0 auto' }}>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.ink }}>
+        Something went wrong while loading this heroglyph.
+      </p>
+      <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.inkDim, marginTop: 6 }}>
+        {message}
+      </p>
     </div>
   );
 }

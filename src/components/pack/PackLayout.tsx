@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Sparkles, ScrollText, UserCircle2 } from 'lucide-react';
+import { LogOut, Sparkles, ScrollText, UserCircle2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import dogyptLogo from '@/assets/dogypt-logo.png';
 
 interface NavItem {
   to: string;
@@ -19,16 +19,35 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/pack', label: 'My Heroglyphs', icon: <ScrollText className="h-4 w-4" /> },
-  { to: '/pack/eternal', label: '✦ Eternal Dog', icon: <Sparkles className="h-4 w-4" /> },
-  { to: '/pack/profile', label: 'Profile', icon: <UserCircle2 className="h-4 w-4" /> },
+  { to: '/pack', label: 'Pack', icon: <ScrollText className="h-5 w-5" /> },
+  { to: '/pack/eternal', label: 'Eternal', icon: <Sparkles className="h-5 w-5" /> },
+  { to: '/pack/profile', label: 'Profile', icon: <UserCircle2 className="h-5 w-5" /> },
 ];
+
+// Soft sandy palette — bledá hnedá, mierny gradient svetlo→tmavšie
+export const PACK_THEME = {
+  bgTop: '#F2E5C7',
+  bgBottom: '#E5D5B3',
+  bg: '#EDDCBD',
+  card: '#FFFBF2',
+  cardSoft: '#FCF4DF',
+  ink: '#1F1A0E', // off-black, warm
+  inkDim: 'rgba(31, 26, 14, 0.62)',
+  inkFaint: 'rgba(31, 26, 14, 0.42)',
+  hairline: 'rgba(31, 26, 14, 0.08)',
+  border: 'rgba(31, 26, 14, 0.16)',
+  accentGold: '#C99A3F',
+  growGreen: '#3D7A4E',
+  growGreenSoft: 'rgba(61, 122, 78, 0.12)',
+  alertRed: '#B25640',
+  alertRedSoft: 'rgba(178, 86, 64, 0.12)',
+};
+
+const T = PACK_THEME;
 
 interface PackLayoutProps {
   children: ReactNode;
-  /** Optional title shown on top of the body */
   title?: string;
-  /** Optional subtitle / kicker line */
   subtitle?: string;
 }
 
@@ -37,12 +56,9 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Auth gate
   useEffect(() => {
     let mounted = true;
-
     supabase.auth.getSession().then(({ data: { session: s } }) => {
       if (!mounted) return;
       setSession(s);
@@ -52,7 +68,6 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
         navigate(`/login?return=${ret}`, { replace: true });
       }
     });
-
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, s) => {
       if (!mounted) return;
       setSession(s);
@@ -61,18 +76,12 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
         navigate(`/login?return=${ret}`, { replace: true });
       }
     });
-
     return () => {
       mounted = false;
       subscription.subscription.unsubscribe();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Close drawer when route changes
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [location.pathname]);
 
   const email = session?.user?.email ?? '';
   const emailShort = useMemo(() => {
@@ -86,12 +95,18 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
     navigate('/', { replace: true });
   };
 
+  const bgGradient = `linear-gradient(180deg, ${T.bgTop} 0%, ${T.bg} 38%, ${T.bgBottom} 100%)`;
+
   if (loading) {
     return (
-      <div className="dark-bg min-h-screen flex items-center justify-center">
+      <div className="min-h-[100dvh] flex items-center justify-center" style={{ background: bgGradient }}>
         <div
-          className="text-[hsl(var(--gold))]"
-          style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 14 }}
+          style={{
+            fontFamily: "'Cinzel', serif",
+            letterSpacing: '0.3em',
+            fontSize: 12,
+            color: T.inkDim,
+          }}
         >
           LOADING…
         </div>
@@ -99,180 +114,199 @@ export function PackLayout({ children, title, subtitle }: PackLayoutProps) {
     );
   }
 
-  if (!session) {
-    // Redirect happens in effect; render nothing while in transit
-    return null;
-  }
+  if (!session) return null;
 
   return (
-    <div className="dark-bg min-h-screen text-[hsl(var(--gold))]">
-      {/* Header */}
+    <div className="min-h-[100dvh]" style={{ background: bgGradient, color: T.ink }}>
+      {/* Header — centered logo */}
       <header
-        className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-[hsl(var(--gold)/0.25)] bg-black/55 backdrop-blur-md"
-        style={{ padding: '12px 16px' }}
+        className="sticky top-0 z-30"
+        style={{
+          padding: '14px 18px',
+          borderBottom: `1px solid ${T.hairline}`,
+          background: 'linear-gradient(180deg, rgba(242,229,199,0.92), rgba(242,229,199,0.78))',
+          backdropFilter: 'blur(10px)',
+        }}
       >
-        <div className="flex items-center gap-3">
-          {/* Mobile drawer toggle */}
-          <button
-            type="button"
-            aria-label="Open navigation"
-            className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-[hsl(var(--gold)/0.4)] text-[hsl(var(--gold))]"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-          <Link to="/pack" className="flex items-center gap-2">
+        <div className="relative flex items-center justify-center">
+          <Link to="/pack" className="flex items-center" style={{ textDecoration: 'none' }}>
             <img
               src={dogyptLogo}
               alt="DOGYPT"
-              style={{ height: 28, width: 'auto', filter: 'drop-shadow(0 0 18px rgba(201,154,63,0.35))' }}
+              style={{ height: 24, width: 'auto', filter: 'invert(1)', opacity: 0.88 }}
             />
           </Link>
-        </div>
-
-        {/* Email pill */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-md border border-[hsl(var(--gold)/0.45)] bg-[hsl(var(--gold)/0.06)] px-3 py-1.5 text-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.12)] transition-colors"
-              style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, letterSpacing: '0.04em' }}
-            >
-              <span className="hidden sm:inline">{emailShort || 'Account'}</span>
-              <span className="sm:hidden">●</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-[220px]">
-            {email && (
-              <>
-                <div
-                  className="px-2 py-2 text-xs text-muted-foreground truncate"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                >
-                  {email}
-                </div>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem onClick={() => navigate('/pack/profile')}>
-              <UserCircle2 className="mr-2 h-4 w-4" />
-              Profile
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </header>
-
-      <div className="mx-auto flex w-full max-w-6xl gap-0 md:gap-6 px-4 md:px-6 py-6">
-        {/* Sidebar (desktop) */}
-        <aside className="hidden md:block w-56 shrink-0">
-          <nav className="sticky top-24 flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <PackNavLink key={item.to} item={item} />
-            ))}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="mt-3 inline-flex items-center gap-2 rounded-md border border-[hsl(var(--gold)/0.3)] px-3 py-2 text-left text-[hsl(var(--gold))] hover:bg-[hsl(var(--gold)/0.08)] transition-colors"
-              style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.18em', fontSize: 12, textTransform: 'uppercase' }}
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </button>
-          </nav>
-        </aside>
-
-        {/* Mobile drawer */}
-        {drawerOpen && (
-          <div
-            className="md:hidden fixed inset-0 z-40 flex"
-            onClick={() => setDrawerOpen(false)}
-          >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
-            <div
-              className="relative flex h-full w-72 max-w-[80%] flex-col gap-2 border-r border-[hsl(var(--gold)/0.3)] bg-black/95 p-5"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <img src={dogyptLogo} alt="DOGYPT" style={{ height: 24 }} />
+          <div className="absolute right-0 top-1/2 -translate-y-1/2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  aria-label="Close navigation"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[hsl(var(--gold)/0.3)] text-[hsl(var(--gold))]"
-                  onClick={() => setDrawerOpen(false)}
+                  className="inline-flex items-center gap-2"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 12,
+                    letterSpacing: '0.02em',
+                    color: T.ink,
+                    padding: '6px 12px',
+                    borderRadius: 999,
+                    border: `1px solid ${T.border}`,
+                    background: T.card,
+                  }}
                 >
-                  <X className="h-4 w-4" />
+                  <span className="hidden sm:inline">{emailShort || 'Account'}</span>
+                  <span
+                    className="sm:hidden"
+                    style={{ width: 6, height: 6, borderRadius: 3, background: T.ink }}
+                  />
                 </button>
-              </div>
-              {NAV_ITEMS.map((item) => (
-                <PackNavLink key={item.to} item={item} onClick={() => setDrawerOpen(false)} />
-              ))}
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="mt-4 inline-flex items-center gap-2 rounded-md border border-[hsl(var(--gold)/0.3)] px-3 py-2 text-left text-[hsl(var(--gold))]"
-                style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.18em', fontSize: 12, textTransform: 'uppercase' }}
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
-            </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[220px]">
+                {email && (
+                  <>
+                    <div
+                      className="px-2 py-2 text-xs truncate"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.inkDim }}
+                    >
+                      {email}
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem onClick={() => navigate('/pack/profile')}>
+                  <UserCircle2 className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
+        </div>
+      </header>
 
-        {/* Main content */}
-        <main className="flex-1 min-w-0">
-          {(title || subtitle) && (
-            <header className="mb-6">
-              {subtitle && (
-                <div
-                  className="mb-2 text-[hsl(var(--gold)/0.7)]"
-                  style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.32em', fontSize: 11, textTransform: 'uppercase' }}
-                >
-                  {subtitle}
-                </div>
-              )}
-              {title && (
-                <h1
-                  className="text-[hsl(var(--gold))]"
-                  style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.18em', fontSize: 28, textTransform: 'uppercase', fontWeight: 700 }}
-                >
-                  {title}
-                </h1>
-              )}
-            </header>
-          )}
-          {children}
-        </main>
+      <div className="mx-auto w-full max-w-2xl px-4 sm:px-6 py-6 pb-28 md:pb-12">
+        {(title || subtitle) && (
+          <header className="mb-7 text-center">
+            {subtitle && (
+              <div
+                className="mb-2"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: '0.32em',
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  color: T.inkDim,
+                }}
+              >
+                {subtitle}
+              </div>
+            )}
+            {title && (
+              <h1
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  letterSpacing: '0.1em',
+                  fontSize: 28,
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: T.ink,
+                }}
+              >
+                {title}
+              </h1>
+            )}
+          </header>
+        )}
+        <main>{children}</main>
       </div>
+
+      {/* Bottom tab bar mobile */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+        style={{
+          background: 'rgba(242, 229, 199, 0.96)',
+          borderTop: `1px solid ${T.hairline}`,
+          backdropFilter: 'blur(12px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
+        <div className="flex items-stretch justify-around">
+          {NAV_ITEMS.map((item) => (
+            <BottomTabLink key={item.to} item={item} />
+          ))}
+        </div>
+      </nav>
+
+      {/* Pill nav desktop */}
+      <nav
+        className="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+        style={{
+          background: T.card,
+          border: `1px solid ${T.border}`,
+          borderRadius: 999,
+          boxShadow: '0 20px 60px -15px rgba(31, 26, 14, 0.18)',
+          padding: 6,
+        }}
+      >
+        <div className="flex items-center gap-1">
+          {NAV_ITEMS.map((item) => (
+            <DesktopPillLink key={item.to} item={item} />
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
 
-function PackNavLink({ item, onClick }: { item: NavItem; onClick?: () => void }) {
+function BottomTabLink({ item }: { item: NavItem }) {
   return (
     <NavLink
       to={item.to}
       end={item.to === '/pack'}
-      onClick={onClick}
-      className={({ isActive }) =>
-        [
-          'inline-flex items-center gap-2 rounded-md border px-3 py-2 transition-colors',
-          isActive
-            ? 'border-[hsl(var(--gold)/0.6)] bg-[hsl(var(--gold)/0.12)] text-[hsl(var(--gold))]'
-            : 'border-transparent text-[hsl(var(--gold)/0.7)] hover:bg-[hsl(var(--gold)/0.06)] hover:text-[hsl(var(--gold))]',
-        ].join(' ')
-      }
-      style={{
+      className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5"
+      style={({ isActive }) => ({
+        color: isActive ? T.ink : T.inkDim,
+        borderTop: isActive ? `2px solid ${T.ink}` : `2px solid transparent`,
+        marginTop: -1,
+        transition: 'color 0.15s',
+      })}
+    >
+      {item.icon}
+      <span
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 9,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+        }}
+      >
+        {item.label}
+      </span>
+    </NavLink>
+  );
+}
+
+function DesktopPillLink({ item }: { item: NavItem }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === '/pack'}
+      className="inline-flex items-center gap-2 transition-all"
+      style={({ isActive }) => ({
+        padding: '8px 16px',
+        borderRadius: 999,
+        background: isActive ? T.ink : 'transparent',
+        color: isActive ? T.card : T.inkDim,
         fontFamily: "'Cinzel', serif",
+        fontSize: 11,
         letterSpacing: '0.18em',
-        fontSize: 12,
         textTransform: 'uppercase',
-      }}
+        fontWeight: 600,
+        textDecoration: 'none',
+      })}
     >
       {item.icon}
       <span>{item.label}</span>
