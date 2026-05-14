@@ -648,6 +648,57 @@ export function GodsGrid() {
         }
         #gods-canvas { z-index: 1; }
 
+        .bg-shimmer {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          display: flex;
+          mix-blend-mode: screen;
+          opacity: 0.55;
+        }
+        .bg-shimmer__col {
+          flex: 1;
+          position: relative;
+          overflow: hidden;
+        }
+        .bg-shimmer__col::before {
+          content: '';
+          position: absolute;
+          left: -15%;
+          right: -15%;
+          height: 55%;
+          background: linear-gradient(180deg,
+            rgba(255,180,60,0) 0%,
+            rgba(255,180,60,0.10) 30%,
+            rgba(255,215,130,0.22) 50%,
+            rgba(255,180,60,0.10) 70%,
+            rgba(255,180,60,0) 100%);
+          filter: blur(10px);
+          will-change: transform, opacity;
+          animation-duration: 9s;
+          animation-timing-function: ease-in-out;
+          animation-iteration-count: infinite;
+          animation-delay: var(--shimmer-delay, 0s);
+        }
+        .bg-shimmer__col--down::before { animation-name: bgShimmerDown; }
+        .bg-shimmer__col--up::before   { animation-name: bgShimmerUp; }
+        @keyframes bgShimmerDown {
+          0%   { transform: translateY(-70%); opacity: 0; }
+          15%  { opacity: 1; }
+          85%  { opacity: 1; }
+          100% { transform: translateY(230%); opacity: 0; }
+        }
+        @keyframes bgShimmerUp {
+          0%   { transform: translateY(230%); opacity: 0; }
+          15%  { opacity: 1; }
+          85%  { opacity: 1; }
+          100% { transform: translateY(-70%); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .bg-shimmer { display: none; }
+        }
+
         .nav-left {
           position: fixed;
           top: 12px;
@@ -1345,6 +1396,20 @@ export function GodsGrid() {
       `}</style>
 
       <div className="gods-root">
+        <div className="bg-shimmer" aria-hidden="true">
+          {Array.from({ length: 8 }).map((_, i) => {
+            const delays = [0, -5.2, -2.1, -7.4, -3.6, -1.3, -6.5, -4.0];
+            const dir = i % 2 === 0 ? 'down' : 'up';
+            return (
+              <div
+                key={i}
+                className={`bg-shimmer__col bg-shimmer__col--${dir}`}
+                style={{ ['--shimmer-delay' as string]: `${delays[i]}s` }}
+              />
+            );
+          })}
+        </div>
+
         <div className="nav-left">
           <nav className="main-nav">
             <a href="/vision">Vision</a>
