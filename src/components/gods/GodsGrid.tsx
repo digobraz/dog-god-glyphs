@@ -655,26 +655,26 @@ export function GodsGrid() {
           pointer-events: none;
           display: flex;
           mix-blend-mode: screen;
-          opacity: 0.55;
+          opacity: 0.7;
+          overflow: hidden;
         }
         .bg-shimmer__col {
           flex: 1;
           position: relative;
-          overflow: hidden;
+          overflow: visible;
         }
         .bg-shimmer__col::before {
           content: '';
           position: absolute;
-          left: -15%;
-          right: -15%;
-          height: 55%;
-          background: linear-gradient(180deg,
-            rgba(255,180,60,0) 0%,
-            rgba(255,180,60,0.10) 30%,
-            rgba(255,215,130,0.22) 50%,
-            rgba(255,180,60,0.10) 70%,
-            rgba(255,180,60,0) 100%);
-          filter: blur(10px);
+          left: -40%;
+          right: -40%;
+          height: 70%;
+          background: radial-gradient(ellipse 55% 50% at 50% 50%,
+            rgba(255,210,110,0.32) 0%,
+            rgba(255,180,60,0.18) 35%,
+            rgba(255,160,40,0.06) 65%,
+            transparent 85%);
+          filter: blur(14px);
           will-change: transform, opacity;
           animation-duration: 9s;
           animation-timing-function: ease-in-out;
@@ -684,16 +684,16 @@ export function GodsGrid() {
         .bg-shimmer__col--down::before { animation-name: bgShimmerDown; }
         .bg-shimmer__col--up::before   { animation-name: bgShimmerUp; }
         @keyframes bgShimmerDown {
-          0%   { transform: translateY(-70%); opacity: 0; }
-          15%  { opacity: 1; }
-          85%  { opacity: 1; }
-          100% { transform: translateY(230%); opacity: 0; }
+          0%   { transform: translateY(-90%); opacity: 0; }
+          20%  { opacity: 1; }
+          80%  { opacity: 1; }
+          100% { transform: translateY(250%); opacity: 0; }
         }
         @keyframes bgShimmerUp {
-          0%   { transform: translateY(230%); opacity: 0; }
-          15%  { opacity: 1; }
-          85%  { opacity: 1; }
-          100% { transform: translateY(-70%); opacity: 0; }
+          0%   { transform: translateY(250%); opacity: 0; }
+          20%  { opacity: 1; }
+          80%  { opacity: 1; }
+          100% { transform: translateY(-90%); opacity: 0; }
         }
         @media (prefers-reduced-motion: reduce) {
           .bg-shimmer { display: none; }
