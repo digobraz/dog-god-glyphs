@@ -265,26 +265,40 @@ export default function Heroglyph() {
       attachSymbol(s, i, pts);
     });
 
-    // TOP-half symbols: route UP through top corridor, around the perimeter,
-    // down the side, across the gutter, and into the frame.
-    //   (cx, cy) -> (cx, topY) -> (sideX, topY) -> (sideX, gutterY)
-    //            -> (ANCHOR_X, gutterY) -> (ANCHOR_X, FRAME_TOP)
+    // TOP-half symbols: default route UP through top corridor, around the
+    // perimeter, down the side, across the gutter, and into the frame.
+    // Exceptions (LATERAL_TOP_SYMBOLS) exit laterally instead — used when
+    // a lateral path has clear space and feels more natural (e.g. MALE
+    // crown at the leftmost edge has no other symbols to its left).
+    const LATERAL_TOP_SYMBOLS = new Set(['MALE']);
     topSymbols.forEach((s, i) => {
       const isLeft = s.cx < ANCHOR_X;
-      const topY = -TOP_PAD + 22 + i * 10;   // staggered lanes in top corridor
       const sideX = isLeft
         ? -SIDE_PAD + 26 + i * 8
         : ART_W + SIDE_PAD - 26 - i * 8;
-      // Upper portion of the gutter — keeps top-routed lanes above bottom-routed ones.
       const gutterY = GUTTER_TOP + 4 + i * 8;
-      const pts = [
-        [s.cx, s.cy],
-        [s.cx, topY],
-        [sideX, topY],
-        [sideX, gutterY],
-        [ANCHOR_X, gutterY],
-        [ANCHOR_X, ANCHOR_Y],
-      ];
+      let pts: number[][];
+      if (LATERAL_TOP_SYMBOLS.has(s.id)) {
+        // Lateral: exit straight to the side corridor, then down + into frame
+        pts = [
+          [s.cx, s.cy],
+          [sideX, s.cy],
+          [sideX, gutterY],
+          [ANCHOR_X, gutterY],
+          [ANCHOR_X, ANCHOR_Y],
+        ];
+      } else {
+        // Default: up + around the perimeter
+        const topY = -TOP_PAD + 22 + i * 10;
+        pts = [
+          [s.cx, s.cy],
+          [s.cx, topY],
+          [sideX, topY],
+          [sideX, gutterY],
+          [ANCHOR_X, gutterY],
+          [ANCHOR_X, ANCHOR_Y],
+        ];
+      }
       attachSymbol(s, bottomSymbols.length + i, pts);
     });
 
