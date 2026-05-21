@@ -3,25 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
-type SymbolMeaning = { label: string; name: string; value: string };
+type SymbolMeaning = { label: string; value: string };
 
 // Meanings sourced from the actual /heroglyph/<step> flow screens — same labels
 // users see when picking values; Hektor I.'s heroglyph mirrors those selections.
 const MEANINGS: Record<string, SymbolMeaning> = {
   // Big cartouche (the dog)
-  MALE:           { label: 'Dog Gender',     name: "King's Crown",   value: 'King · Male' },
-  DARK:           { label: 'Dog Colour',     name: 'Crescent Moon',  value: 'Dark Coat' },
-  'L---LABRADOR': { label: 'The Patron',     name: 'Labrador',       value: 'Labrador · Hound' },
-  FOUNDED:        { label: 'The Origin',     name: 'Ankh',           value: 'Raised · Safe Home' },
-  SAVAGE:         { label: 'Dog Bloodline',  name: 'Papyrus Scroll', value: 'Pure Lineage' },
-  TANIER:         { label: 'Character I',    name: 'Winged Spirit',  value: 'Maverick' },
-  WATER:          { label: 'Character II',   name: 'Wave',           value: 'Water Lover' },
+  MALE:           { label: 'Dog Gender',     value: 'King' },
+  DARK:           { label: 'Dog Colour',     value: 'Dark Coat' },
+  'L---LABRADOR': { label: 'The Patron',     value: 'Hektor' },
+  FOUNDED:        { label: 'The Origin',     value: 'Raised' },
+  SAVAGE:         { label: 'Dog Bloodline',  value: 'Pure' },
+  TANIER:         { label: 'Character I',    value: 'Maverick' },
+  WATER:          { label: 'Character II',   value: 'Water Lover' },
   // Small cartouche (the owner)
-  MAN:            { label: 'Owner Gender',   name: 'Figure',         value: 'Male' },
-  LEO:            { label: 'Western Zodiac', name: 'Lion',           value: 'Leo' },
-  ROASTER:        { label: 'Chinese Zodiac', name: 'Rooster',        value: 'Year of the Rooster' },
-  M:              { label: 'Owner Initial',  name: 'Letter M',       value: 'For Matej' },
-  _1:             { label: 'Ranking',        name: 'Numeral I',      value: '#1 — Founder' },
+  MAN:            { label: 'Owner Gender',   value: 'King' },
+  LEO:            { label: 'Western Zodiac', value: 'Leo' },
+  ROASTER:        { label: 'Chinese Zodiac', value: 'Rooster' },
+  M:              { label: 'Owner Initial',  value: 'Matej' },
+  _1:             { label: 'Ranking',        value: '#1 — Founder' },
 };
 
 const SYMBOL_IDS = Object.keys(MEANINGS);
@@ -446,19 +446,22 @@ export default function Heroglyph() {
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
+                    justifyContent: 'center',
                     textAlign: 'center',
-                    gap: 6,
+                    gap: 2,
+                    width: '100%',
                     animation: 'meaning-fade-in 240ms ease',
                   }}
                 >
                   <span
                     style={{
                       fontFamily: "'Cinzel', serif",
-                      fontSize: 'clamp(0.6rem, 1.4vw, 0.75rem)',
+                      fontSize: 'clamp(0.55rem, 1.25vw, 0.68rem)',
                       letterSpacing: '0.28em',
                       textTransform: 'uppercase',
                       color: 'hsl(var(--gold-deep))',
                       fontWeight: 700,
+                      lineHeight: 1.1,
                     }}
                   >
                     {meaning.label}
@@ -467,23 +470,17 @@ export default function Heroglyph() {
                     style={{
                       fontFamily: "'Cinzel', serif",
                       fontWeight: 700,
-                      fontSize: 'clamp(1rem, 2.6vw, 1.45rem)',
+                      fontSize: 'clamp(0.85rem, 2.1vw, 1.15rem)',
                       letterSpacing: '0.04em',
                       color: '#1a0a05',
-                      lineHeight: 1.1,
+                      lineHeight: 1.05,
+                      whiteSpace: 'nowrap',
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }}
                   >
-                    {meaning.name}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      fontSize: 'clamp(0.7rem, 1.5vw, 0.88rem)',
-                      letterSpacing: '0.06em',
-                      color: 'hsl(var(--foreground) / 0.75)',
-                    }}
-                  >
-                    ({meaning.value})
+                    {meaning.value}
                   </span>
                 </div>
               ) : (
