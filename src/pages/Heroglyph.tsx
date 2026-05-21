@@ -8,6 +8,9 @@ type SymbolMeaning = { label: string; value: string };
 // Meanings sourced from the actual /heroglyph/<step> flow screens — same labels
 // users see when picking values; Hektor I.'s heroglyph mirrors those selections.
 const MEANINGS: Record<string, SymbolMeaning> = {
+  // Whole-cartouche clicks (click on empty area inside a frame)
+  __DOG:          { label: 'Dog',             value: 'Hekthor' },
+  __OWNER:        { label: 'Owner',           value: 'Matej' },
   // Big cartouche (the dog) — all labels prefixed with "Dog"
   MALE:           { label: 'Dog Gender',      value: 'King' },
   DARK:           { label: 'Dog Colour',      value: 'Dark Coat' },
@@ -72,6 +75,43 @@ export default function Heroglyph() {
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     const ns = 'http://www.w3.org/2000/svg';
+
+    // 1b. Cartouche-wide click pads — inserted at the very top of the SVG
+    // so they render BEHIND everything else. Empty space inside a frame
+    // triggers the corresponding "whole cartouche" meaning. Symbols and
+    // their click-pads stack above and take click priority.
+    const dogPad = document.createElementNS(ns, 'rect');
+    dogPad.setAttribute('x', '24');
+    dogPad.setAttribute('y', '15');
+    dogPad.setAttribute('width', String(3140 - 24));
+    dogPad.setAttribute('height', String(810 - 15));
+    dogPad.setAttribute('fill', 'rgba(0,0,0,0)');
+    dogPad.setAttribute('pointer-events', 'all');
+    dogPad.classList.add('cartouche-pad', 'cartouche-pad-dog');
+    dogPad.setAttribute('data-symbol', '__DOG');
+    (dogPad as unknown as HTMLElement).style.cursor = 'pointer';
+    svg.insertBefore(dogPad, svg.firstChild);
+
+    const ownerPad = document.createElementNS(ns, 'rect');
+    ownerPad.setAttribute('x', '1674');
+    ownerPad.setAttribute('y', '118');
+    ownerPad.setAttribute('width', '789');
+    ownerPad.setAttribute('height', '589');
+    ownerPad.setAttribute('fill', 'rgba(0,0,0,0)');
+    ownerPad.setAttribute('pointer-events', 'all');
+    ownerPad.classList.add('cartouche-pad', 'cartouche-pad-owner');
+    ownerPad.setAttribute('data-symbol', '__OWNER');
+    (ownerPad as unknown as HTMLElement).style.cursor = 'pointer';
+    svg.insertBefore(ownerPad, dogPad.nextSibling);
+
+    const cartoucheClick = (id: string) => (e: Event) => {
+      e.stopPropagation();
+      setActiveSymbol((cur) => (cur === id ? null : id));
+    };
+    const dogClickFn = cartoucheClick('__DOG');
+    const ownerClickFn = cartoucheClick('__OWNER');
+    dogPad.addEventListener('click', dogClickFn);
+    ownerPad.addEventListener('click', ownerClickFn);
 
     // 2. Build tentacles group (rendered ABOVE heroglyph for visibility)
     const tentacleGroup = document.createElementNS(ns, 'g');
@@ -255,6 +295,10 @@ export default function Heroglyph() {
     return () => {
       handlers.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
       clickPads.forEach((p) => p.remove());
+      dogPad.removeEventListener('click', dogClickFn);
+      ownerPad.removeEventListener('click', ownerClickFn);
+      dogPad.remove();
+      ownerPad.remove();
       tentacleGroup.remove();
       frameGroup.remove();
     };
@@ -308,11 +352,12 @@ export default function Heroglyph() {
         /* All original heroglyph content -> black silhouette
            (exclude meaning-frame rects + invisible click-pads) */
         .heroglyph-svg-wrap svg path,
-        .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.mf-rect):not(.hero-click-pad) {
+        .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.mf-rect):not(.hero-click-pad):not(.cartouche-pad) {
           fill: #000 !important;
           stroke: #000 !important;
         }
-        .heroglyph-svg-wrap .hero-click-pad {
+        .heroglyph-svg-wrap .hero-click-pad,
+        .heroglyph-svg-wrap .cartouche-pad {
           fill: transparent !important;
           stroke: none !important;
         }
