@@ -8,20 +8,20 @@ type SymbolMeaning = { label: string; value: string };
 // Meanings sourced from the actual /heroglyph/<step> flow screens — same labels
 // users see when picking values; Hektor I.'s heroglyph mirrors those selections.
 const MEANINGS: Record<string, SymbolMeaning> = {
-  // Big cartouche (the dog)
-  MALE:           { label: 'Dog Gender',     value: 'King' },
-  DARK:           { label: 'Dog Colour',     value: 'Dark Coat' },
-  'L---LABRADOR': { label: 'The Patron',     value: 'Hektor' },
-  FOUNDED:        { label: 'The Origin',     value: 'Raised' },
-  SAVAGE:         { label: 'Dog Bloodline',  value: 'Pure' },
-  TANIER:         { label: 'Character I',    value: 'Maverick' },
-  WATER:          { label: 'Character II',   value: 'Water Lover' },
+  // Big cartouche (the dog) — all labels prefixed with "Dog"
+  MALE:           { label: 'Dog Gender',      value: 'King' },
+  DARK:           { label: 'Dog Colour',      value: 'Dark Coat' },
+  'L---LABRADOR': { label: 'Dog Patron',      value: 'Hekthor' },
+  FOUNDED:        { label: 'Dog Origin',      value: 'Rescued' },
+  SAVAGE:         { label: 'Dog Bloodline',   value: 'Mutt (without papers)' },
+  TANIER:         { label: 'Dog Character I', value: "Favourite Frisbee" },
+  WATER:          { label: 'Dog Character II', value: 'Water Lover' },
   // Small cartouche (the owner)
-  MAN:            { label: 'Owner Gender',   value: 'King' },
+  MAN:            { label: 'Owner Gender',   value: 'Man' },
   LEO:            { label: 'Western Zodiac', value: 'Leo' },
   ROASTER:        { label: 'Chinese Zodiac', value: 'Rooster' },
   M:              { label: 'Owner Initial',  value: 'Matej' },
-  _1:             { label: 'Ranking',        value: '#1 — Founder' },
+  _1:             { label: 'Ranking',        value: '#1 — First Dog' },
 };
 
 const SYMBOL_IDS = Object.keys(MEANINGS);
@@ -166,6 +166,7 @@ export default function Heroglyph() {
       .filter((s) => s.cy < TOP_BOTTOM_SPLIT)
       .sort((a, b) => a.cy - b.cy);
 
+    const clickPads: Element[] = [];
     const attachSymbol = (s: typeof symbolBBoxes[number], idx: number, pts: number[][]) => {
       const poly = document.createElementNS(ns, 'polyline');
       poly.setAttribute('points', pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' '));
@@ -189,6 +190,25 @@ export default function Heroglyph() {
       };
       s.el.addEventListener('click', click);
       handlers.push({ el: s.el, type: 'click', fn: click });
+
+      // Invisible click-pad rect covering the symbol's bbox — captures clicks
+      // inside hollow areas (papyrus scroll interior, dog silhouette gaps).
+      const pad = document.createElementNS(ns, 'rect');
+      pad.setAttribute('x', String(s.bb.x));
+      pad.setAttribute('y', String(s.bb.y));
+      pad.setAttribute('width', String(s.bb.width));
+      pad.setAttribute('height', String(s.bb.height));
+      pad.setAttribute('fill', 'rgba(0,0,0,0)');
+      pad.setAttribute('pointer-events', 'all');
+      pad.classList.add('hero-click-pad');
+      pad.setAttribute('data-symbol', s.id);
+      (pad as unknown as HTMLElement).style.cursor = 'pointer';
+      // Insert pad just BEFORE the symbol element so the symbol renders on top
+      // (pad still receives clicks where the symbol's fill is transparent).
+      s.el.parentNode?.insertBefore(pad, s.el);
+      pad.addEventListener('click', click);
+      handlers.push({ el: pad, type: 'click', fn: click });
+      clickPads.push(pad);
     };
 
     // BOTTOM-half symbols: straight DOWN → gutter → into frame top.
@@ -234,6 +254,7 @@ export default function Heroglyph() {
 
     return () => {
       handlers.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
+      clickPads.forEach((p) => p.remove());
       tentacleGroup.remove();
       frameGroup.remove();
     };
@@ -285,11 +306,15 @@ export default function Heroglyph() {
           display: block;
         }
         /* All original heroglyph content -> black silhouette
-           (exclude meaning-frame rects via .mf-rect class) */
+           (exclude meaning-frame rects + invisible click-pads) */
         .heroglyph-svg-wrap svg path,
-        .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.mf-rect) {
+        .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.mf-rect):not(.hero-click-pad) {
           fill: #000 !important;
           stroke: #000 !important;
+        }
+        .heroglyph-svg-wrap .hero-click-pad {
+          fill: transparent !important;
+          stroke: none !important;
         }
         /* Meaning frame: papyrus gradient + gold stroke */
         .heroglyph-svg-wrap .mf-shadow {
@@ -379,12 +404,12 @@ export default function Heroglyph() {
               style={{
                 position: 'relative',
                 zIndex: 2,
-                paddingTop: 14,
-                paddingBottom: 2,
+                paddingTop: 26,
+                paddingBottom: 6,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: 2,
+                gap: 4,
               }}
             >
               <h2
@@ -400,7 +425,7 @@ export default function Heroglyph() {
                   textAlign: 'center',
                 }}
               >
-                Heroglyph of Hektor I.
+                Heroglyph of Hekthor I.
               </h2>
               <span
                 style={{
@@ -448,7 +473,7 @@ export default function Heroglyph() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     textAlign: 'center',
-                    gap: 2,
+                    gap: 10,
                     width: '100%',
                     animation: 'meaning-fade-in 240ms ease',
                   }}
