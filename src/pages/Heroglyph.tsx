@@ -28,15 +28,6 @@ export default function Heroglyph() {
   const svgWrapRef = useRef<HTMLDivElement>(null);
   const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 768px)');
-    const apply = () => setIsMobile(mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,133 +86,6 @@ export default function Heroglyph() {
 
   const meaning = activeSymbol ? MEANINGS[activeSymbol] : null;
 
-  const HeroglyphCard = (
-    <div
-      className="w-full rounded-2xl relative overflow-hidden"
-      style={{
-        background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10)',
-      }}
-    >
-      <div
-        ref={svgWrapRef}
-        className={`heroglyph-svg-wrap ${activeSymbol ? 'has-active' : ''} ${isMobile ? 'is-vertical' : ''}`}
-        style={{
-          width: '100%',
-          padding: isMobile ? '24px 12px' : '28px 36px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: isMobile ? '56vh' : 'auto',
-        }}
-        dangerouslySetInnerHTML={{ __html: svgMarkup }}
-      />
-
-      {/* Pill tooltip overlay */}
-      {meaning && (
-        <div
-          className="heroglyph-pill"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: 16,
-            transform: 'translateX(-50%)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 20px',
-            background: 'linear-gradient(135deg, hsl(var(--gold-light)), hsl(var(--gold)))',
-            color: '#1a1208',
-            fontFamily: "'Cinzel', serif",
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            letterSpacing: '0.04em',
-            borderRadius: 999,
-            boxShadow: '0 8px 22px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35)',
-            border: '1px solid rgba(255,255,255,0.25)',
-            whiteSpace: 'nowrap',
-            maxWidth: 'calc(100% - 32px)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            animation: 'pill-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-            pointerEvents: 'auto',
-          }}
-        >
-          <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#5a3a0a' }}>
-            {meaning.label}:
-          </span>
-          <span>{meaning.name}</span>
-          <span style={{ opacity: 0.7 }}>({meaning.value})</span>
-        </div>
-      )}
-
-      {!svgMarkup && (
-        <div style={{ padding: 60, color: 'rgba(255,255,255,0.6)', textAlign: 'center' }}>Loading…</div>
-      )}
-    </div>
-  );
-
-  const TextBlock = (
-    <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
-      <h1
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontWeight: 700,
-          fontSize: isMobile ? 'clamp(1.6rem, 7vw, 2.1rem)' : 'clamp(2rem, 3.6vw, 2.8rem)',
-          letterSpacing: '0.1em',
-          color: 'hsl(var(--gold))',
-          margin: 0,
-          lineHeight: 1.05,
-        }}
-      >
-        THE HEROGLYPH
-      </h1>
-
-      <div style={{ width: 64, height: 1, background: 'hsl(var(--gold) / 0.45)' }} />
-
-      <p
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: isMobile ? '1rem' : '1.1rem',
-          letterSpacing: '0.04em',
-          color: '#F5E8C8',
-          lineHeight: 1.6,
-          margin: 0,
-          maxWidth: 540,
-          textShadow: '0 2px 12px rgba(0,0,0,0.65)',
-        }}
-      >
-        A symbol for those unashamed to love their dog.
-        <br />
-        Your ticket into a worldwide movement that worships them back.
-      </p>
-    </div>
-  );
-
-  const CtaBlock = (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, width: '100%' }}>
-      <Button
-        onClick={() => navigate('/heroglyph/name')}
-        className="rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
-        style={{
-          fontFamily: "'Cinzel', serif",
-          background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-          color: '#000',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-          letterSpacing: '0.18em',
-          padding: '0 28px',
-          width: isMobile ? '100%' : 'auto',
-          minWidth: isMobile ? 'auto' : 280,
-        }}
-      >
-        Claim Your Heroglyph →
-      </Button>
-      <div style={{ fontSize: '0.72rem', letterSpacing: '0.22em', color: 'hsl(var(--gold) / 0.75)', textTransform: 'uppercase', fontFamily: "'Cinzel', serif", textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
-        $11 · Permanent Symbol · 1 of 1
-      </div>
-    </div>
-  );
-
   return (
     <div className="dark-bg flex flex-col min-h-[100dvh]">
       <style>{`
@@ -229,47 +93,40 @@ export default function Heroglyph() {
           width: 100%;
           height: auto;
           display: block;
-          max-height: ${isMobile ? '70vh' : '320px'};
-        }
-        .heroglyph-svg-wrap.is-vertical svg {
-          transform: rotate(90deg);
-          transform-origin: center center;
-          max-height: none;
-          width: auto;
-          height: 70vh;
+          max-height: 280px;
         }
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]) {
-          fill: #1a0a05 !important;
-          stroke: #1a0a05 !important;
+          fill: hsl(var(--gold-deep)) !important;
+          stroke: hsl(var(--gold-deep)) !important;
         }
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
-          fill: #1a0a05 !important;
-          stroke: #1a0a05 !important;
+          fill: hsl(var(--gold-deep)) !important;
+          stroke: hsl(var(--gold-deep)) !important;
           transition: opacity 0.22s ease, filter 0.22s ease, transform 0.22s ease;
           transform-box: fill-box;
           transform-origin: center;
           animation: hero-pulse 2.8s ease-in-out infinite;
         }
         .heroglyph-svg-wrap.has-active .hero-zone {
-          opacity: 0.35;
+          opacity: 0.32;
           animation: none;
         }
         .heroglyph-svg-wrap.has-active .hero-zone.is-active {
           opacity: 1;
-          fill: #FFF6E0 !important;
-          stroke: #FFF6E0 !important;
-          filter: drop-shadow(0 0 12px rgba(255,255,255,0.85)) drop-shadow(0 0 22px rgba(255,220,140,0.6));
+          fill: hsl(var(--gold)) !important;
+          stroke: hsl(var(--gold)) !important;
+          filter: drop-shadow(0 0 10px hsl(var(--gold) / 0.65)) drop-shadow(0 0 20px hsl(var(--gold) / 0.35));
           animation: hero-tap 0.4s ease-out;
         }
         @keyframes hero-pulse {
-          0%, 100% { opacity: 0.78; filter: drop-shadow(0 0 0 rgba(0,0,0,0)); }
-          50%      { opacity: 1;    filter: drop-shadow(0 0 6px rgba(255,255,255,0.35)); }
+          0%, 100% { opacity: 0.7; }
+          50%      { opacity: 1; filter: drop-shadow(0 0 4px hsl(var(--gold) / 0.35)); }
         }
         @keyframes hero-tap {
           0%   { transform: scale(1); }
-          50%  { transform: scale(1.08); }
+          50%  { transform: scale(1.10); }
           100% { transform: scale(1); }
         }
         @keyframes pill-pop {
@@ -278,33 +135,164 @@ export default function Heroglyph() {
         }
       `}</style>
 
-      {/* Top logo (matches /heroglyph/name) */}
+      {/* Top logo */}
       <div className="flex-shrink-0 flex justify-center pt-3 pb-2 md:pt-5">
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      {/* Centered content stack */}
+      {/* Centered content stack: 2 papyrus blocks */}
       <div className="flex-1 flex flex-col items-center px-4 pb-8 md:justify-center md:pb-12">
-        <div
-          className="w-full flex flex-col items-center"
-          style={{
-            maxWidth: isMobile ? '100%' : 720,
-            gap: isMobile ? 20 : 24,
-          }}
-        >
-          {isMobile ? (
-            <>
-              {TextBlock}
-              {HeroglyphCard}
-              {CtaBlock}
-            </>
-          ) : (
-            <>
-              {HeroglyphCard}
-              {TextBlock}
-              {CtaBlock}
-            </>
-          )}
+        <div className="w-full flex flex-col items-center gap-4 md:gap-5" style={{ maxWidth: 640 }}>
+
+          {/* Block 1 — Heroglyph card (papyrus) */}
+          <div
+            className="w-full papyrus-bg rounded-2xl border-2 relative overflow-hidden"
+            style={{
+              borderColor: 'hsl(var(--gold) / 0.45)',
+              boxShadow: '0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4)',
+            }}
+          >
+            <div
+              ref={svgWrapRef}
+              className={`heroglyph-svg-wrap ${activeSymbol ? 'has-active' : ''}`}
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                width: '100%',
+                padding: '22px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              dangerouslySetInnerHTML={{ __html: svgMarkup }}
+            />
+
+            {/* Pill tooltip overlay */}
+            {meaning && (
+              <div
+                className="heroglyph-pill"
+                style={{
+                  position: 'absolute',
+                  left: '50%',
+                  bottom: 12,
+                  transform: 'translateX(-50%)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 18px',
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-deep)))',
+                  color: '#1a0a05',
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  letterSpacing: '0.04em',
+                  borderRadius: 999,
+                  boxShadow: '0 6px 18px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.4)',
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  whiteSpace: 'nowrap',
+                  maxWidth: 'calc(100% - 32px)',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  animation: 'pill-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+                  zIndex: 2,
+                }}
+              >
+                <span style={{ textTransform: 'uppercase', letterSpacing: '0.14em', color: '#4a2a05' }}>
+                  {meaning.label}:
+                </span>
+                <span>{meaning.name}</span>
+                <span style={{ opacity: 0.78 }}>({meaning.value})</span>
+              </div>
+            )}
+
+            {!svgMarkup && (
+              <div style={{ padding: 60, color: 'hsl(var(--gold-deep) / 0.6)', textAlign: 'center', position: 'relative', zIndex: 1 }}>
+                Loading…
+              </div>
+            )}
+          </div>
+
+          {/* Block 2 — Text + CTA card (papyrus) */}
+          <div
+            className="w-full papyrus-bg rounded-2xl border-2 relative overflow-hidden"
+            style={{
+              borderColor: 'hsl(var(--gold) / 0.45)',
+              boxShadow: '0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4)',
+            }}
+          >
+            <div
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                padding: '24px 22px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: 14,
+              }}
+            >
+              <h1
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(1.7rem, 4.2vw, 2.4rem)',
+                  letterSpacing: '0.1em',
+                  color: 'hsl(var(--gold-deep))',
+                  margin: 0,
+                  lineHeight: 1.05,
+                }}
+              >
+                THE HEROGLYPH
+              </h1>
+
+              <div style={{ width: 56, height: 1, background: 'hsl(var(--gold-deep) / 0.4)' }} />
+
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 'clamp(0.92rem, 1.4vw, 1.05rem)',
+                  letterSpacing: '0.02em',
+                  color: 'hsl(var(--foreground) / 0.85)',
+                  lineHeight: 1.6,
+                  margin: 0,
+                  maxWidth: 480,
+                }}
+              >
+                A symbol for those unashamed to love their dog.
+                <br />
+                Your ticket into a worldwide movement that worships them back.
+              </p>
+
+              <Button
+                onClick={() => navigate('/heroglyph/name')}
+                className="rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform mt-2"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                  letterSpacing: '0.18em',
+                  padding: '0 28px',
+                  minWidth: 260,
+                }}
+              >
+                Claim Your Heroglyph →
+              </Button>
+
+              <div
+                style={{
+                  fontSize: '0.7rem',
+                  letterSpacing: '0.22em',
+                  color: 'hsl(var(--gold-deep) / 0.7)',
+                  textTransform: 'uppercase',
+                  fontFamily: "'Cinzel', serif",
+                }}
+              >
+                $11 · Permanent Symbol · 1 of 1
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
