@@ -13,7 +13,7 @@ const MEANINGS: Record<string, SymbolMeaning> = {
   DARK:           { label: 'Dog Colour',      value: 'Dark Coat' },
   'L---LABRADOR': { label: 'Dog Patron',      value: 'Hekthor' },
   FOUNDED:        { label: 'Dog Origin',      value: 'Rescued' },
-  SAVAGE:         { label: 'Dog Bloodline',   value: 'Mutt (without papers)' },
+  SAVAGE:         { label: 'Dog Bloodline',   value: 'Mutt' },
   TANIER:         { label: 'Dog Character I', value: "Favourite Frisbee" },
   WATER:          { label: 'Dog Character II', value: 'Water Lover' },
   // Small cartouche (the owner)
