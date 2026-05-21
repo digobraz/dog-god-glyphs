@@ -5,32 +5,43 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 type SymbolMeaning = { label: string; name: string; value: string };
 
+// Meanings sourced from the actual /heroglyph/<step> flow screens — same labels
+// users see when picking values; Hektor I.'s heroglyph mirrors those selections.
 const MEANINGS: Record<string, SymbolMeaning> = {
-  MALE:           { label: 'Gender',          name: "Man Figure",      value: 'Male' },
-  'L---LABRADOR': { label: 'Breed',           name: 'Hound',           value: 'Labrador' },
-  DARK:           { label: 'Coat',            name: 'Crescent Moon',   value: 'Dark' },
-  WATER:          { label: 'Element',         name: 'Wave',            value: 'Water' },
-  LEO:            { label: 'Western Zodiac',  name: 'Lion',            value: 'Leo' },
-  ROASTER:        { label: 'Chinese Zodiac',  name: 'Rooster',         value: 'Year of the Rooster' },
-  SAVAGE:         { label: 'Trait I',         name: 'Fang',            value: 'Savage' },
-  TANIER:         { label: 'Trait II',        name: 'Bowl',            value: 'Loyal' },
-  MAN:            { label: 'Owner',           name: 'Figure',          value: 'Male' },
-  M:              { label: 'Owner Initial',   name: 'Letter M',        value: 'Matej' },
-  FOUNDED:        { label: 'Rank',            name: 'Ankh',            value: '#1 — Founder' },
-  _1:             { label: 'Rank',            name: 'Numeral',         value: '#1 — Founder' },
+  // Big cartouche (the dog)
+  MALE:           { label: 'Dog Gender',     name: "King's Crown",   value: 'King · Male' },
+  DARK:           { label: 'Dog Colour',     name: 'Crescent Moon',  value: 'Dark Coat' },
+  'L---LABRADOR': { label: 'The Patron',     name: 'Labrador',       value: 'Labrador · Hound' },
+  FOUNDED:        { label: 'The Origin',     name: 'Ankh',           value: 'Raised · Safe Home' },
+  WATER:          { label: 'Dog Bloodline',  name: 'Wave',           value: 'Pure Lineage' },
+  SAVAGE:         { label: 'Character I',    name: 'Fang',           value: 'Maverick' },
+  TANIER:         { label: 'Character II',   name: 'Winged Spirit',  value: 'Water Lover' },
+  // Small cartouche (the owner)
+  MAN:            { label: 'Owner Gender',   name: 'Figure',         value: 'Male' },
+  LEO:            { label: 'Western Zodiac', name: 'Lion',           value: 'Leo' },
+  ROASTER:        { label: 'Chinese Zodiac', name: 'Rooster',        value: 'Year of the Rooster' },
+  M:              { label: 'Owner Initial',  name: 'Letter M',       value: 'For Matej' },
+  _1:             { label: 'Ranking',        name: 'Numeral I',      value: '#1 — Founder' },
 };
 
 const SYMBOL_IDS = Object.keys(MEANINGS);
 const SVG_URL = '/heroglyph/hektor-horizontal.svg';
 
-// Original viewBox: 0 0 3165 825. Extend bottom for frame area.
-const FRAME_TOP = 1020;
-const FRAME_HEIGHT = 460;
-const NEW_HEIGHT = FRAME_TOP + FRAME_HEIGHT + 60; // = 1540
-const FRAME_X = 220;
-const FRAME_WIDTH = 3165 - 2 * FRAME_X;
-const ANCHOR_X = 3165 / 2;
-const ANCHOR_Y = FRAME_TOP;
+// Original heroglyph viewBox: 0 0 3165 825.
+// Extend bottom for meaning frame; pad sides for tentacle corridors.
+const ART_W = 3165;
+const ART_H = 825;
+const SIDE_PAD = 90;                 // left/right corridor outside heroglyph
+const TOP_PAD = 100;                 // top corridor outside heroglyph
+const GUTTER_TOP = ART_H + 30;       // 855 — top of routing gutter
+const FRAME_X = 420;                 // narrower meaning frame
+const FRAME_TOP = 1040;
+const FRAME_HEIGHT = 360;
+const FRAME_W = ART_W - 2 * FRAME_X; // 2325
+const FRAME_RX = 56;                 // round corners
+const NEW_HEIGHT = FRAME_TOP + FRAME_HEIGHT + 60; // 1460 (height of art zone below origin)
+const ANCHOR_X = ART_W / 2;          // 1582.5
+const ANCHOR_Y = FRAME_TOP;          // 1040
 
 export default function Heroglyph() {
   const navigate = useNavigate();
@@ -53,74 +64,172 @@ export default function Heroglyph() {
     const svg = root.querySelector('svg');
     if (!svg) return;
 
-    // 1. Extend viewBox bottom for frame area
-    svg.setAttribute('viewBox', `0 0 3165 ${NEW_HEIGHT}`);
+    // 1. Extend viewBox: add side corridors + top corridor + bottom frame area
+    svg.setAttribute(
+      'viewBox',
+      `${-SIDE_PAD} ${-TOP_PAD} ${ART_W + 2 * SIDE_PAD} ${NEW_HEIGHT + TOP_PAD}`,
+    );
     svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
-    // 2. Insert tentacles group BEFORE heroglyph content (under symbols)
     const ns = 'http://www.w3.org/2000/svg';
+
+    // 2. Build tentacles group (rendered ABOVE heroglyph for visibility)
     const tentacleGroup = document.createElementNS(ns, 'g');
     tentacleGroup.id = 'tentacles';
 
-    const handlers: Array<{ el: Element; type: string; fn: (e: Event) => void }> = [];
-    const tentaclesByID: Record<string, SVGLineElement> = {};
-
-    SYMBOL_IDS.forEach((id, idx) => {
-      const el = svg.querySelector(`[id="${CSS.escape(id)}"]`) as SVGGraphicsElement | null;
-      if (!el) return;
-      el.classList.add('hero-zone');
-      (el as unknown as HTMLElement).style.animationDelay = `${(idx * 0.28).toFixed(2)}s`;
-
-      // Compute symbol centroid
-      let cx = 1582, cy = 412;
-      try {
-        const bbox = el.getBBox();
-        cx = bbox.x + bbox.width / 2;
-        cy = bbox.y + bbox.height / 2;
-      } catch {}
-
-      // Create tentacle line
-      const line = document.createElementNS(ns, 'line');
-      line.setAttribute('x1', String(ANCHOR_X));
-      line.setAttribute('y1', String(ANCHOR_Y));
-      line.setAttribute('x2', String(cx));
-      line.setAttribute('y2', String(cy));
-      line.setAttribute('stroke', '#FF8C42');
-      line.setAttribute('stroke-width', '3');
-      line.setAttribute('stroke-dasharray', '10 8');
-      line.setAttribute('stroke-linecap', 'round');
-      line.classList.add('tentacle');
-      line.setAttribute('data-symbol', id);
-      line.style.animationDelay = `${(idx * 0.18).toFixed(2)}s`;
-      tentacleGroup.appendChild(line);
-      tentaclesByID[id] = line;
-
-      // Click handler
-      const click = (e: Event) => {
-        e.stopPropagation();
-        setActiveSymbol((cur) => (cur === id ? null : id));
-      };
-      el.addEventListener('click', click);
-      handlers.push({ el, type: 'click', fn: click });
-    });
-
-    // Append tentacles AFTER heroglyph so they're visible on top
-    svg.appendChild(tentacleGroup);
-
-    // 3. Append frame rect at bottom
+    // 3. Build meaning frame group (rendered above tentacles so it sits cleanly)
     const frameGroup = document.createElementNS(ns, 'g');
     frameGroup.id = 'meaning-frame';
 
+    // Defs for soft gradient + glow
+    const defs = document.createElementNS(ns, 'defs');
+    defs.innerHTML = `
+      <linearGradient id="frameFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%"   stop-color="#FAF3E1" stop-opacity="0.92"/>
+        <stop offset="50%"  stop-color="#F2E2BD" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#E8D29C" stop-opacity="0.92"/>
+      </linearGradient>
+      <filter id="frameGlow" x="-10%" y="-30%" width="120%" height="160%">
+        <feGaussianBlur stdDeviation="8" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    `;
+    frameGroup.appendChild(defs);
+
+    // Outer soft shadow ring
+    const frameShadow = document.createElementNS(ns, 'rect');
+    frameShadow.setAttribute('x', String(FRAME_X - 6));
+    frameShadow.setAttribute('y', String(FRAME_TOP - 6));
+    frameShadow.setAttribute('width', String(FRAME_W + 12));
+    frameShadow.setAttribute('height', String(FRAME_HEIGHT + 12));
+    frameShadow.setAttribute('rx', String(FRAME_RX + 6));
+    frameShadow.setAttribute('fill', 'rgba(201, 154, 63, 0.18)');
+    frameShadow.setAttribute('stroke', 'none');
+    frameShadow.setAttribute('filter', 'url(#frameGlow)');
+    frameShadow.classList.add('mf-rect', 'mf-shadow');
+    frameGroup.appendChild(frameShadow);
+
+    // Main rect (rounded papyrus)
     const frameRect = document.createElementNS(ns, 'rect');
     frameRect.setAttribute('x', String(FRAME_X));
     frameRect.setAttribute('y', String(FRAME_TOP));
-    frameRect.setAttribute('width', String(FRAME_WIDTH));
+    frameRect.setAttribute('width', String(FRAME_W));
     frameRect.setAttribute('height', String(FRAME_HEIGHT));
-    frameRect.setAttribute('rx', '24');
-    frameRect.setAttribute('fill', 'rgba(0,0,0,0.05)');
+    frameRect.setAttribute('rx', String(FRAME_RX));
+    frameRect.setAttribute('fill', 'url(#frameFill)');
     frameRect.setAttribute('stroke', '#C99A3F');
-    frameRect.setAttribute('stroke-width', '4');
+    frameRect.setAttribute('stroke-width', '5');
+    frameRect.classList.add('mf-rect', 'mf-main');
     frameGroup.appendChild(frameRect);
+
+    // Inner thin gold hairline
+    const frameInner = document.createElementNS(ns, 'rect');
+    frameInner.setAttribute('x', String(FRAME_X + 14));
+    frameInner.setAttribute('y', String(FRAME_TOP + 14));
+    frameInner.setAttribute('width', String(FRAME_W - 28));
+    frameInner.setAttribute('height', String(FRAME_HEIGHT - 28));
+    frameInner.setAttribute('rx', String(FRAME_RX - 12));
+    frameInner.setAttribute('fill', 'none');
+    frameInner.setAttribute('stroke', '#C99A3F');
+    frameInner.setAttribute('stroke-width', '1.5');
+    frameInner.setAttribute('stroke-opacity', '0.55');
+    frameInner.classList.add('mf-rect', 'mf-inner');
+    frameGroup.appendChild(frameInner);
+
+    const handlers: Array<{ el: Element; type: string; fn: (e: Event) => void }> = [];
+
+    // Split symbols by left/right half (used to pick exit side)
+    const symbolBBoxes: Array<{ id: string; el: SVGGraphicsElement; cx: number; cy: number; bb: DOMRect }> = [];
+    SYMBOL_IDS.forEach((id) => {
+      const el = svg.querySelector(`[id="${CSS.escape(id)}"]`) as SVGGraphicsElement | null;
+      if (!el) return;
+      try {
+        const bb = el.getBBox() as unknown as DOMRect;
+        symbolBBoxes.push({
+          id,
+          el,
+          cx: bb.x + bb.width / 2,
+          cy: bb.y + bb.height / 2,
+          bb,
+        });
+      } catch {/* skip */}
+    });
+
+    // Split into TOP-half and BOTTOM-half (by symbol centroid cy).
+    // Bottom-half symbols take the SHORTEST path — straight DOWN to gutter.
+    // Top-half symbols route via the outer side corridor (around the heroglyph).
+    const TOP_BOTTOM_SPLIT = ART_H * 0.45;
+    const bottomSymbols = symbolBBoxes
+      .filter((s) => s.cy >= TOP_BOTTOM_SPLIT)
+      .sort((a, b) => a.cx - b.cx);
+    const topSymbols = symbolBBoxes
+      .filter((s) => s.cy < TOP_BOTTOM_SPLIT)
+      .sort((a, b) => a.cy - b.cy);
+
+    const attachSymbol = (s: typeof symbolBBoxes[number], idx: number, pts: number[][]) => {
+      const poly = document.createElementNS(ns, 'polyline');
+      poly.setAttribute('points', pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' '));
+      poly.setAttribute('fill', 'none');
+      poly.setAttribute('stroke', '#FF8C42');
+      poly.setAttribute('stroke-width', '3');
+      poly.setAttribute('stroke-dasharray', '10 8');
+      poly.setAttribute('stroke-linecap', 'round');
+      poly.setAttribute('stroke-linejoin', 'round');
+      poly.classList.add('tentacle');
+      poly.setAttribute('data-symbol', s.id);
+      poly.style.animationDelay = `${(idx * 0.18).toFixed(2)}s`;
+      tentacleGroup.appendChild(poly);
+
+      s.el.classList.add('hero-zone');
+      (s.el as unknown as HTMLElement).style.animationDelay = `${(idx * 0.22).toFixed(2)}s`;
+
+      const click = (e: Event) => {
+        e.stopPropagation();
+        setActiveSymbol((cur) => (cur === s.id ? null : s.id));
+      };
+      s.el.addEventListener('click', click);
+      handlers.push({ el: s.el, type: 'click', fn: click });
+    };
+
+    // BOTTOM-half symbols: straight DOWN → gutter → into frame top.
+    //   (cx, cy) -> (cx, gutterY) -> (ANCHOR_X, gutterY) -> (ANCHOR_X, FRAME_TOP)
+    // Stagger gutterY per symbol so horizontal lanes don't overlap.
+    bottomSymbols.forEach((s, i) => {
+      const gutterY = GUTTER_TOP + 24 + i * 12;
+      const pts = [
+        [s.cx, s.cy],
+        [s.cx, gutterY],
+        [ANCHOR_X, gutterY],
+        [ANCHOR_X, ANCHOR_Y],
+      ];
+      attachSymbol(s, i, pts);
+    });
+
+    // TOP-half symbols: route UP through top corridor, around the perimeter,
+    // down the side, across the gutter, and into the frame.
+    //   (cx, cy) -> (cx, topY) -> (sideX, topY) -> (sideX, gutterY)
+    //            -> (ANCHOR_X, gutterY) -> (ANCHOR_X, FRAME_TOP)
+    topSymbols.forEach((s, i) => {
+      const isLeft = s.cx < ANCHOR_X;
+      const topY = -TOP_PAD + 22 + i * 10;   // staggered lanes in top corridor
+      const sideX = isLeft
+        ? -SIDE_PAD + 26 + i * 8
+        : ART_W + SIDE_PAD - 26 - i * 8;
+      // Upper portion of the gutter — keeps top-routed lanes above bottom-routed ones.
+      const gutterY = GUTTER_TOP + 4 + i * 8;
+      const pts = [
+        [s.cx, s.cy],
+        [s.cx, topY],
+        [sideX, topY],
+        [sideX, gutterY],
+        [ANCHOR_X, gutterY],
+        [ANCHOR_X, ANCHOR_Y],
+      ];
+      attachSymbol(s, bottomSymbols.length + i, pts);
+    });
+
+    // Tentacles UNDER frame (so frame sits on top), but ABOVE heroglyph art
+    svg.appendChild(tentacleGroup);
     svg.appendChild(frameGroup);
 
     return () => {
@@ -157,12 +266,15 @@ export default function Heroglyph() {
 
   const meaning = activeSymbol ? MEANINGS[activeSymbol] : null;
 
-  // Meaning overlay position — matches frame area in SVG (bottom band)
-  // FRAME occupies y=[1020 .. 1480] in viewBox of total height 1540
-  // = bottom 30.5% of card vertically
-  const FRAME_BOTTOM_PCT = ((NEW_HEIGHT - FRAME_TOP) / NEW_HEIGHT) * 100;     // ~33.8%
-  const FRAME_TOP_OFFSET_PCT = (FRAME_TOP / NEW_HEIGHT) * 100;                  // ~66.2%
-  const FRAME_X_PCT = (FRAME_X / 3165) * 100;                                  // ~6.95%
+  // Meaning overlay position — matches frame area in viewBox.
+  // ViewBox: (-SIDE_PAD, -TOP_PAD, ART_W + 2*SIDE_PAD, NEW_HEIGHT + TOP_PAD).
+  const FULL_W = ART_W + 2 * SIDE_PAD;
+  const FULL_H = NEW_HEIGHT + TOP_PAD;
+  const FRAME_LEFT_PX = SIDE_PAD + FRAME_X;
+  const FRAME_X_PCT = (FRAME_LEFT_PX / FULL_W) * 100;
+  const FRAME_RIGHT_PCT = FRAME_X_PCT;
+  const FRAME_TOP_PCT = ((FRAME_TOP + TOP_PAD) / FULL_H) * 100;
+  const FRAME_H_PCT = (FRAME_HEIGHT / FULL_H) * 100;
 
   return (
     <div className="dark-bg flex flex-col min-h-[100dvh]">
@@ -172,11 +284,25 @@ export default function Heroglyph() {
           height: auto;
           display: block;
         }
-        /* All original heroglyph content -> black silhouette */
+        /* All original heroglyph content -> black silhouette
+           (exclude meaning-frame rects via .mf-rect class) */
         .heroglyph-svg-wrap svg path,
-        .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not([data-meta="frame"]) {
+        .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.mf-rect) {
           fill: #000 !important;
           stroke: #000 !important;
+        }
+        /* Meaning frame: papyrus gradient + gold stroke */
+        .heroglyph-svg-wrap .mf-shadow {
+          fill: rgba(201, 154, 63, 0.18) !important;
+          stroke: none !important;
+        }
+        .heroglyph-svg-wrap .mf-main {
+          fill: url(#frameFill) !important;
+          stroke: #C99A3F !important;
+        }
+        .heroglyph-svg-wrap .mf-inner {
+          fill: none !important;
+          stroke: #C99A3F !important;
         }
         /* Symbols: black fill but orange glow */
         .heroglyph-svg-wrap .hero-zone {
@@ -199,14 +325,14 @@ export default function Heroglyph() {
           filter: drop-shadow(0 0 10px #C99A3F) drop-shadow(0 0 22px rgba(201, 154, 63, 0.75)) drop-shadow(0 0 4px #FFD566);
           animation: hero-tap 0.4s ease-out;
         }
-        /* Tentacles (dashed lines) */
+        /* Tentacles (dashed polylines) */
         .heroglyph-svg-wrap .tentacle {
-          opacity: 0.7;
+          opacity: 0.65;
           animation: tentacle-flow 1.8s linear infinite;
           transition: stroke 0.25s ease, opacity 0.25s ease, stroke-width 0.25s ease;
         }
         .heroglyph-svg-wrap.has-active .tentacle {
-          opacity: 0.22;
+          opacity: 0.18;
           animation-duration: 3s;
         }
         .heroglyph-svg-wrap.has-active .tentacle.is-active {
@@ -215,11 +341,6 @@ export default function Heroglyph() {
           stroke-width: 6 !important;
           filter: drop-shadow(0 0 6px rgba(201, 154, 63, 0.9)) drop-shadow(0 0 12px rgba(201, 154, 63, 0.5));
           animation-duration: 0.8s;
-        }
-        /* Meaning frame box (in SVG) */
-        .heroglyph-svg-wrap #meaning-frame rect {
-          fill: rgba(0,0,0,0.06) !important;
-          stroke: #C99A3F !important;
         }
         @keyframes hero-pulse {
           0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 140, 66, 0.35)); }
@@ -245,11 +366,11 @@ export default function Heroglyph() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      {/* Centered content stack: 2 papyrus blocks */}
+      {/* Centered content stack: title + 2 cards (unified max-w-xl) */}
       <div className="flex-1 flex flex-col items-center px-4 pb-8 md:justify-center md:pb-12">
-        <div className="w-full flex flex-col items-center gap-4 md:gap-5" style={{ maxWidth: 760 }}>
+        <div className="w-full max-w-xl flex flex-col items-center gap-4 md:gap-5">
 
-          {/* Block 1 — Heroglyph card (papyrus, larger) */}
+          {/* Block 1 — Heroglyph card (title inside, smaller) */}
           <div
             className="w-full papyrus-bg rounded-2xl border-2 relative overflow-hidden"
             style={{
@@ -257,37 +378,71 @@ export default function Heroglyph() {
               boxShadow: '0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4)',
             }}
           >
+            {/* Title (inside card, top) */}
             <div
-              ref={svgWrapRef}
-              className={`heroglyph-svg-wrap ${activeSymbol ? 'has-active' : ''}`}
               style={{
                 position: 'relative',
-                zIndex: 1,
-                width: '100%',
-                padding: '20px 16px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              dangerouslySetInnerHTML={{ __html: svgMarkup }}
-            />
-
-            {/* Meaning text overlay — positioned over the SVG frame band */}
-            <div
-              style={{
-                position: 'absolute',
-                left: `${FRAME_X_PCT}%`,
-                right: `${FRAME_X_PCT}%`,
-                top: `${FRAME_TOP_OFFSET_PCT}%`,
-                height: `${FRAME_BOTTOM_PCT}%`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '8px 18px',
-                pointerEvents: 'none',
                 zIndex: 2,
+                paddingTop: 14,
+                paddingBottom: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
               }}
             >
+              <h2
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(0.78rem, 1.7vw, 0.95rem)',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  color: 'hsl(var(--gold-deep))',
+                  margin: 0,
+                  lineHeight: 1.15,
+                  textAlign: 'center',
+                }}
+              >
+                Heroglyph of Hektor I.
+              </h2>
+              <span
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 'clamp(0.54rem, 1.05vw, 0.62rem)',
+                  letterSpacing: '0.34em',
+                  textTransform: 'uppercase',
+                  color: 'hsl(var(--gold-deep) / 0.7)',
+                }}
+              >
+                First Dogyptian
+              </span>
+            </div>
+
+            <div style={{ padding: '4px 14px 14px' }}>
+              <div style={{ position: 'relative' }}>
+                <div
+                  ref={svgWrapRef}
+                  className={`heroglyph-svg-wrap ${activeSymbol ? 'has-active' : ''}`}
+                  style={{ width: '100%', display: 'block' }}
+                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                />
+                {/* Meaning text overlay — positioned over the SVG frame band */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: `${FRAME_X_PCT}%`,
+                    right: `${FRAME_RIGHT_PCT}%`,
+                    top: `${FRAME_TOP_PCT}%`,
+                    height: `${FRAME_H_PCT}%`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '8px 22px',
+                    pointerEvents: 'none',
+                    zIndex: 2,
+                  }}
+                >
               {meaning ? (
                 <div
                   key={activeSymbol}
@@ -296,15 +451,15 @@ export default function Heroglyph() {
                     flexDirection: 'column',
                     alignItems: 'center',
                     textAlign: 'center',
-                    gap: 4,
+                    gap: 6,
                     animation: 'meaning-fade-in 240ms ease',
                   }}
                 >
                   <span
                     style={{
                       fontFamily: "'Cinzel', serif",
-                      fontSize: 'clamp(0.62rem, 1.4vw, 0.78rem)',
-                      letterSpacing: '0.24em',
+                      fontSize: 'clamp(0.6rem, 1.4vw, 0.75rem)',
+                      letterSpacing: '0.28em',
                       textTransform: 'uppercase',
                       color: 'hsl(var(--gold-deep))',
                       fontWeight: 700,
@@ -316,9 +471,10 @@ export default function Heroglyph() {
                     style={{
                       fontFamily: "'Cinzel', serif",
                       fontWeight: 700,
-                      fontSize: 'clamp(0.95rem, 2.3vw, 1.35rem)',
+                      fontSize: 'clamp(1rem, 2.6vw, 1.45rem)',
                       letterSpacing: '0.04em',
                       color: '#1a0a05',
+                      lineHeight: 1.1,
                     }}
                   >
                     {meaning.name}
@@ -326,9 +482,9 @@ export default function Heroglyph() {
                   <span
                     style={{
                       fontFamily: "'Cinzel', serif",
-                      fontSize: 'clamp(0.7rem, 1.5vw, 0.85rem)',
+                      fontSize: 'clamp(0.7rem, 1.5vw, 0.88rem)',
                       letterSpacing: '0.06em',
-                      color: 'hsl(var(--foreground) / 0.7)',
+                      color: 'hsl(var(--foreground) / 0.75)',
                     }}
                   >
                     ({meaning.value})
@@ -338,16 +494,18 @@ export default function Heroglyph() {
                 <div
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 'clamp(0.65rem, 1.4vw, 0.82rem)',
-                    letterSpacing: '0.2em',
+                    fontSize: 'clamp(0.62rem, 1.4vw, 0.78rem)',
+                    letterSpacing: '0.24em',
                     textTransform: 'uppercase',
-                    color: 'hsl(var(--gold-deep) / 0.55)',
+                    color: 'hsl(var(--gold-deep) / 0.6)',
                     textAlign: 'center',
                   }}
                 >
                   Tap a symbol to reveal its meaning
                 </div>
               )}
+                </div>
+              </div>
             </div>
 
             {!svgMarkup && (
