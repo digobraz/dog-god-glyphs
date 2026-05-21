@@ -13,9 +13,9 @@ const MEANINGS: Record<string, SymbolMeaning> = {
   DARK:           { label: 'Dog Colour',     name: 'Crescent Moon',  value: 'Dark Coat' },
   'L---LABRADOR': { label: 'The Patron',     name: 'Labrador',       value: 'Labrador · Hound' },
   FOUNDED:        { label: 'The Origin',     name: 'Ankh',           value: 'Raised · Safe Home' },
-  WATER:          { label: 'Dog Bloodline',  name: 'Wave',           value: 'Pure Lineage' },
-  SAVAGE:         { label: 'Character I',    name: 'Fang',           value: 'Maverick' },
-  TANIER:         { label: 'Character II',   name: 'Winged Spirit',  value: 'Water Lover' },
+  SAVAGE:         { label: 'Dog Bloodline',  name: 'Papyrus Scroll', value: 'Pure Lineage' },
+  TANIER:         { label: 'Character I',    name: 'Winged Spirit',  value: 'Maverick' },
+  WATER:          { label: 'Character II',   name: 'Wave',           value: 'Water Lover' },
   // Small cartouche (the owner)
   MAN:            { label: 'Owner Gender',   name: 'Figure',         value: 'Male' },
   LEO:            { label: 'Western Zodiac', name: 'Lion',           value: 'Leo' },
@@ -170,7 +170,7 @@ export default function Heroglyph() {
       const poly = document.createElementNS(ns, 'polyline');
       poly.setAttribute('points', pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' '));
       poly.setAttribute('fill', 'none');
-      poly.setAttribute('stroke', '#FF8C42');
+      poly.setAttribute('stroke', '#E6A435');
       poly.setAttribute('stroke-width', '3');
       poly.setAttribute('stroke-dasharray', '10 8');
       poly.setAttribute('stroke-linecap', 'round');
@@ -304,19 +304,19 @@ export default function Heroglyph() {
           fill: none !important;
           stroke: #C99A3F !important;
         }
-        /* Symbols: black fill but orange glow */
+        /* Symbols: black fill with gold-amber pulse glow */
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
           fill: #000 !important;
           stroke: #000 !important;
-          filter: drop-shadow(0 0 6px #FF8C42) drop-shadow(0 0 14px rgba(255, 140, 66, 0.55));
+          filter: drop-shadow(0 0 6px #E6A435) drop-shadow(0 0 14px rgba(230, 164, 53, 0.55));
           transition: filter 0.25s ease, transform 0.25s ease;
           transform-box: fill-box;
           transform-origin: center;
           animation: hero-pulse 2.6s ease-in-out infinite;
         }
         .heroglyph-svg-wrap.has-active .hero-zone {
-          filter: drop-shadow(0 0 3px rgba(255, 140, 66, 0.25));
+          filter: drop-shadow(0 0 3px rgba(230, 164, 53, 0.25));
           opacity: 0.55;
           animation: none;
         }
@@ -325,26 +325,22 @@ export default function Heroglyph() {
           filter: drop-shadow(0 0 10px #C99A3F) drop-shadow(0 0 22px rgba(201, 154, 63, 0.75)) drop-shadow(0 0 4px #FFD566);
           animation: hero-tap 0.4s ease-out;
         }
-        /* Tentacles (dashed polylines) */
+        /* Tentacles (dashed polylines) — hidden in idle, visible only on active */
         .heroglyph-svg-wrap .tentacle {
-          opacity: 0.65;
-          animation: tentacle-flow 1.8s linear infinite;
-          transition: stroke 0.25s ease, opacity 0.25s ease, stroke-width 0.25s ease;
-        }
-        .heroglyph-svg-wrap.has-active .tentacle {
-          opacity: 0.18;
-          animation-duration: 3s;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.25s ease, stroke 0.25s ease, stroke-width 0.25s ease;
         }
         .heroglyph-svg-wrap.has-active .tentacle.is-active {
           stroke: #C99A3F !important;
           opacity: 1;
           stroke-width: 6 !important;
           filter: drop-shadow(0 0 6px rgba(201, 154, 63, 0.9)) drop-shadow(0 0 12px rgba(201, 154, 63, 0.5));
-          animation-duration: 0.8s;
+          animation: tentacle-flow 0.8s linear infinite;
         }
         @keyframes hero-pulse {
-          0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 140, 66, 0.35)); }
-          50%      { filter: drop-shadow(0 0 10px #FF8C42) drop-shadow(0 0 20px rgba(255, 140, 66, 0.7)); }
+          0%, 100% { filter: drop-shadow(0 0 4px rgba(230, 164, 53, 0.35)); }
+          50%      { filter: drop-shadow(0 0 10px #E6A435) drop-shadow(0 0 20px rgba(230, 164, 53, 0.7)); }
         }
         @keyframes hero-tap {
           0%   { transform: scale(1); }
