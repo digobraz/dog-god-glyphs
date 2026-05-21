@@ -34,6 +34,7 @@ import Login from "./pages/Login.tsx";
 import Vision from "./pages/Vision.tsx";
 import Codex from "./pages/Codex.tsx";
 import About from "./pages/About.tsx";
+import Heroglyph from "./pages/Heroglyph.tsx";
 import { DevNav } from "@/components/DevNav";
 
 const queryClient = new QueryClient();
@@ -52,7 +53,7 @@ const App = () => (
           <Route path="/gods" element={<GodsGrid />} />
 
           {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov) */}
-          <Route path="/heroglyph" element={<Navigate to="/heroglyph/name" replace />} />
+          <Route path="/heroglyph" element={<Heroglyph />} />
           <Route path="/heroglyph/name" element={<NameScreen />} />
           <Route path="/heroglyph/photo" element={<PhotoScreen />} />
           <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
