@@ -37,6 +37,13 @@ const PILLS = [
   'Forever in DOGYPT',
 ];
 
+const MANIFEST_PILLS: Array<{ icon: string; label: string }> = [
+  { icon: '/icons/heroglyph-page/star.svg',     label: 'One of a Kind' },
+  { icon: '/icons/heroglyph-page/ankh.svg',     label: 'Vow of Faith' },
+  { icon: '/icons/heroglyph-page/heartpaw.svg', label: 'Eternal Bond' },
+  { icon: '/icons/heroglyph-page/pack.svg',     label: 'Global Pack' },
+];
+
 export default function Heroglyph() {
   const navigate = useNavigate();
   const svgWrapRef = useRef<HTMLDivElement>(null);
@@ -377,7 +384,7 @@ export default function Heroglyph() {
             dangerouslySetInnerHTML={{ __html: svgMarkup }}
           />
 
-          {/* Pills (above CTA) */}
+          {/* Pills row 1 — flagship features (solid gold) */}
           <div
             style={{
               display: 'flex',
@@ -393,17 +400,65 @@ export default function Heroglyph() {
                 style={{
                   fontFamily: "'Cinzel', serif",
                   fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
+                  fontWeight: 700,
                   letterSpacing: '0.18em',
                   textTransform: 'uppercase',
-                  color: '#E6A435',
-                  background: 'rgba(230,164,53,0.06)',
-                  border: '1px solid rgba(230,164,53,0.45)',
+                  color: '#1a0a05',
+                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                  border: '1px solid rgba(0,0,0,0.12)',
                   borderRadius: 999,
-                  padding: '6px 14px',
+                  padding: '7px 16px',
                   whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 10px rgba(201,154,63,0.45), inset 0 1px 0 rgba(255,255,255,0.32)',
                 }}
               >
                 {p}
+              </div>
+            ))}
+          </div>
+
+          {/* Pills row 2 — manifest (icon + label) */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              gap: 8,
+              marginTop: 10,
+            }}
+          >
+            {MANIFEST_PILLS.map((m) => (
+              <div
+                key={m.label}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 'clamp(0.62rem, 1.05vw, 0.74rem)',
+                  fontWeight: 700,
+                  letterSpacing: '0.16em',
+                  textTransform: 'uppercase',
+                  color: '#1a0a05',
+                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                  border: '1px solid rgba(0,0,0,0.12)',
+                  borderRadius: 999,
+                  padding: '6px 14px 6px 10px',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 10px rgba(201,154,63,0.45), inset 0 1px 0 rgba(255,255,255,0.32)',
+                }}
+              >
+                <img
+                  src={m.icon}
+                  alt=""
+                  style={{
+                    width: 16,
+                    height: 16,
+                    objectFit: 'contain',
+                    filter: 'brightness(0)',
+                  }}
+                />
+                {m.label}
               </div>
             ))}
           </div>
@@ -420,11 +475,11 @@ export default function Heroglyph() {
               letterSpacing: '0.2em',
               padding: '0 36px',
               minWidth: 280,
-              marginTop: 18,
+              marginTop: 22,
               border: '1.5px solid rgba(0,0,0,0.12)',
             }}
           >
-            Build My Heroglyph →
+            Enter The Dogypt →
           </Button>
 
           {/* Sub-text under CTA */}
