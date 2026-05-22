@@ -31,17 +31,47 @@ const SIDE_PAD = 60;
 const TOP_PAD = 60;
 const BOTTOM_PAD = 60;
 
-const PILLS = [
-  '12 Questions',
-  '3 Minutes',
-  'Forever in DOGYPT',
+type PillData = { icon: string; label: string; tooltip: string; tooltipSub?: string };
+
+const PILLS_ROW_1: PillData[] = [
+  {
+    icon: '/icons/heroglyph-page/clipboard.svg',
+    label: '12 Questions',
+    tooltip: 'Twelve quick answers about your dog.',
+  },
+  {
+    icon: '/icons/heroglyph-page/sandclock.svg',
+    label: '3 Minutes',
+    tooltip: 'An interactive quiz full of fun.',
+  },
+  {
+    icon: '/icons/heroglyph-page/scarab.svg',
+    label: 'Forever in DOGYPT.com',
+    tooltip: "Your dog's name forever in your heart — and in the digital world.",
+  },
 ];
 
-const MANIFEST_PILLS: Array<{ icon: string; label: string }> = [
-  { icon: '/icons/heroglyph-page/star.svg',     label: 'One of a Kind' },
-  { icon: '/icons/heroglyph-page/ankh.svg',     label: 'Vow of Faith' },
-  { icon: '/icons/heroglyph-page/heartpaw.svg', label: 'Eternal Bond' },
-  { icon: '/icons/heroglyph-page/pack.svg',     label: 'Global Pack' },
+const PILLS_ROW_2: PillData[] = [
+  {
+    icon: '/icons/heroglyph-page/star.svg',
+    label: 'One of a Kind',
+    tooltip: 'No two heroglyphs are alike — every symbol is unique!',
+  },
+  {
+    icon: '/icons/heroglyph-page/ankh.svg',
+    label: 'Vow of Faith',
+    tooltip: 'Your sign of allegiance to the Dogyptian path — IN DOG WE TRUST!',
+  },
+  {
+    icon: '/icons/heroglyph-page/heartpaw.svg',
+    label: 'Eternal Bond',
+    tooltip: 'A symbol of the eternal bond between you and your dog.',
+  },
+  {
+    icon: '/icons/heroglyph-page/eye.svg',
+    label: 'One Symbolic Payment',
+    tooltip: '$11 once — no subscriptions. All money stays in DOGYPT — for development and systematic help!',
+  },
 ];
 
 export default function Heroglyph() {
@@ -50,6 +80,18 @@ export default function Heroglyph() {
   const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [tooltipSymbol, setTooltipSymbol] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [pillTooltip, setPillTooltip] = useState<PillData | null>(null);
+  const [pillTooltipPos, setPillTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState<boolean>(
+    typeof window !== 'undefined' ? window.innerWidth < 640 : false,
+  );
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Load SVG markup once
   useEffect(() => {
@@ -205,6 +247,27 @@ export default function Heroglyph() {
         }}
       />
       <style>{`
+        .heroglyph-svg-wrap {
+          filter:
+            drop-shadow(0 0 3px rgba(255, 215, 110, 0.45))
+            drop-shadow(0 0 10px rgba(245, 199, 61, 0.22));
+          animation: heroglyph-aura-pulse 3.2s ease-in-out infinite;
+        }
+        @keyframes heroglyph-aura-pulse {
+          0%, 100% {
+            filter:
+              drop-shadow(0 0 3px rgba(255, 215, 110, 0.4))
+              drop-shadow(0 0 10px rgba(245, 199, 61, 0.2));
+          }
+          50% {
+            filter:
+              drop-shadow(0 0 4px rgba(255, 225, 130, 0.55))
+              drop-shadow(0 0 14px rgba(245, 199, 61, 0.3));
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .heroglyph-svg-wrap { animation: none; }
+        }
         .heroglyph-svg-wrap svg {
           width: 100%;
           height: auto;
@@ -212,8 +275,8 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.hero-click-pad):not(.cartouche-pad) {
-          fill: #E6A435 !important;
-          stroke: #E6A435 !important;
+          fill: #F5C73D !important;
+          stroke: #F5C73D !important;
         }
         .heroglyph-svg-wrap .hero-click-pad,
         .heroglyph-svg-wrap .cartouche-pad {
@@ -247,24 +310,150 @@ export default function Heroglyph() {
           0%   { opacity: 0; transform: translateY(4px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        /* Dictionary block: stack on mobile, 2 columns + divider on desktop */
+        /* Dictionary block: 2 columns on ALL viewports — mobile auto-sized, desktop fixed ratio */
         .dict-block {
-          grid-template-columns: 1fr;
+          grid-template-columns: minmax(auto, max-content) minmax(0, 1fr);
         }
         .dict-block .dict-right {
-          padding-top: 12px;
-          border-top: 1px solid rgba(201,154,63,0.45);
+          padding-left: clamp(10px, 2.2vw, 22px);
+          border-left: 1px solid rgba(201,154,63,0.45);
         }
         @media (min-width: 640px) {
           .dict-block {
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
           }
-          .dict-block .dict-right {
-            padding-top: 0;
-            padding-left: clamp(14px, 2.4vw, 24px);
-            border-top: none;
-            border-left: 1px solid rgba(201,154,63,0.45);
+        }
+
+        /* Pills marquee — moving track inside container, fade edges */
+        .pill-marquee {
+          width: 100%;
+          max-width: 640px;
+          overflow: hidden;
+          mask-image: linear-gradient(to right, transparent 0, black 7%, black 93%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to right, transparent 0, black 7%, black 93%, transparent 100%);
+        }
+        .pill-marquee-track {
+          display: inline-flex;
+          gap: 10px;
+          padding: 4px 0;
+          white-space: nowrap;
+          animation: pill-scroll-left 38s linear infinite;
+          will-change: transform;
+        }
+        .pill-marquee-track.reverse {
+          animation: pill-scroll-right 38s linear infinite;
+        }
+        .pill-marquee:hover .pill-marquee-track {
+          animation-play-state: paused;
+        }
+        @keyframes pill-scroll-left {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        @keyframes pill-scroll-right {
+          0%   { transform: translateX(-50%); }
+          100% { transform: translateX(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .pill-marquee-track,
+          .pill-marquee-track.reverse {
+            animation: none;
+            transform: translateX(0);
           }
+        }
+
+        /* Outline pill — papyrus-cream border/text, 15% papyrus tint fill */
+        .pill-outline {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'Cinzel', serif;
+          font-size: clamp(0.58rem, 0.95vw, 0.7rem);
+          font-weight: 700;
+          letter-spacing: 0.18em;
+          text-transform: uppercase;
+          color: #FAF3E1;
+          background: rgba(250, 243, 225, 0.10);
+          border: 1px solid rgba(250, 243, 225, 0.55);
+          border-radius: 999px;
+          padding: 5px 12px;
+          white-space: nowrap;
+          cursor: pointer;
+          transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+          flex-shrink: 0;
+        }
+        .pill-outline:hover {
+          color: #FFFCF1;
+          border-color: rgba(250, 243, 225, 0.95);
+          background: rgba(250, 243, 225, 0.20);
+          transform: translateY(-1px);
+          box-shadow: 0 0 0 3px rgba(250, 243, 225, 0.08);
+        }
+        .pill-outline-icon {
+          width: 13px;
+          height: 13px;
+          object-fit: contain;
+          /* Black SVG → papyrus cream (#FAF3E1) */
+          filter: brightness(0) saturate(100%) invert(96%) sepia(7%)
+                  saturate(382%) hue-rotate(355deg) brightness(101%) contrast(96%);
+          opacity: 0.85;
+          transition: opacity 0.18s ease;
+        }
+        .pill-outline:hover .pill-outline-icon {
+          opacity: 1;
+        }
+
+        /* CTA — replicates /grid .join-btn */
+        .heroglyph-cta {
+          margin-top: 40px;
+          padding: 16px 40px;
+          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+          border: 1px solid rgba(250, 244, 236, 0.40);
+          border-radius: 8px;
+          color: #000;
+          font-family: 'Cinzel', serif;
+          font-size: 0.98rem;
+          font-weight: 900;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          cursor: pointer;
+          white-space: nowrap;
+          box-shadow:
+            0 0 24px rgba(255, 200, 90, 0.65),
+            0 0 60px rgba(230, 158, 26, 0.50),
+            0 0 110px rgba(230, 158, 26, 0.28),
+            inset 0 1px 0 rgba(255, 255, 255, 0.45);
+          text-shadow: 0 1px 0 rgba(255, 240, 200, 0.45);
+          transition: transform 0.2s, box-shadow 0.25s, opacity 0.22s;
+          animation: heroglyphCtaPulse 3.2s ease-in-out infinite;
+        }
+        .heroglyph-cta:hover {
+          transform: scale(1.05);
+          box-shadow:
+            0 0 36px rgba(255, 215, 110, 0.85),
+            0 0 90px rgba(230, 158, 26, 0.70),
+            0 0 150px rgba(230, 158, 26, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+        .heroglyph-cta:active { transform: scale(0.98); }
+        @keyframes heroglyphCtaPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 24px rgba(255, 200, 90, 0.55),
+              0 0 60px rgba(230, 158, 26, 0.42),
+              0 0 110px rgba(230, 158, 26, 0.22),
+              inset 0 1px 0 rgba(255, 255, 255, 0.45);
+          }
+          50% {
+            box-shadow:
+              0 0 34px rgba(255, 215, 110, 0.85),
+              0 0 84px rgba(230, 158, 26, 0.62),
+              0 0 140px rgba(230, 158, 26, 0.38),
+              inset 0 1px 0 rgba(255, 255, 255, 0.55);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .heroglyph-cta { animation: none; }
         }
       `}</style>
 
@@ -273,24 +462,23 @@ export default function Heroglyph() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-4 pb-10 md:pt-6 relative" style={{ zIndex: 2 }}>
-        <div className="w-full max-w-2xl flex flex-col items-center text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-12 pb-16 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
+        <div className="w-full max-w-3xl flex flex-col items-center text-center">
 
-          {/* HERO TITLE — "THE SYMBOL" gold-orange glow, rest in white */}
+          {/* HERO TITLE — Line 1: "THE SYMBOL THAT" (gold + white), Line 2: "CHANGES HISTORY" (white); wraps to 3 lines at narrow viewports */}
           <h1
             style={{
               fontFamily: "'Cinzel', serif",
               fontWeight: 700,
-              fontSize: 'clamp(2.1rem, 6.5vw, 4.2rem)',
+              fontSize: 'clamp(2.6rem, 6vw, 3.4rem)',
               letterSpacing: '0.04em',
-              lineHeight: 1.05,
+              lineHeight: 1.08,
               margin: 0,
               textTransform: 'uppercase',
             }}
           >
             <span
               style={{
-                display: 'block',
                 background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -300,15 +488,28 @@ export default function Heroglyph() {
             >
               The Symbol
             </span>
-            <span
-              style={{
-                display: 'block',
-                color: '#FAF4EC',
-                marginTop: 'clamp(2px, 0.4vw, 6px)',
-              }}
-            >
-              That Changes History
-            </span>
+            {isMobile ? (
+              <>
+                <br />
+                <span style={{ color: '#FAF4EC' }}>That Changes</span>
+                <br />
+                <span style={{ color: '#FAF4EC' }}>History</span>
+              </>
+            ) : (
+              <>
+                <span style={{ color: '#FAF4EC' }}>{' '}That</span>
+                <br />
+                <span
+                  style={{
+                    color: '#FAF4EC',
+                    marginTop: 'clamp(2px, 0.4vw, 6px)',
+                    display: 'inline-block',
+                  }}
+                >
+                  Changes History
+                </span>
+              </>
+            )}
           </h1>
 
           {/* Dictionary-style definition — 2 columns with vertical divider */}
@@ -326,48 +527,80 @@ export default function Heroglyph() {
               paddingRight: 'clamp(8px, 2vw, 16px)',
             }}
           >
-            {/* Left column: name + IPA */}
+            {/* Left column: name + IPA (etymology moved to hover tooltip) */}
             <div className="dict-left">
               <div
+                onMouseEnter={(e) => {
+                  setPillTooltip({
+                    icon: '',
+                    label: 'Heroglyph',
+                    tooltip: 'HERO = DOG · GLYPH = SYMBOL',
+                    tooltipSub: 'GOD name for every DOG.',
+                  });
+                  setPillTooltipPos({ x: e.clientX, y: e.clientY });
+                }}
+                onMouseMove={(e) => setPillTooltipPos({ x: e.clientX, y: e.clientY })}
+                onMouseLeave={() => setPillTooltip(null)}
+                onTouchStart={(e) => {
+                  const t = e.touches[0];
+                  if (t) {
+                    setPillTooltip({
+                      icon: '',
+                      label: 'Heroglyph',
+                      tooltip: 'HERO = DOG · GLYPH = SYMBOL',
+                      tooltipSub: 'GOD name for every DOG.',
+                    });
+                    setPillTooltipPos({ x: t.clientX, y: t.clientY });
+                  }
+                }}
                 style={{
                   fontFamily: "'Cinzel', serif",
                   fontWeight: 700,
-                  fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
-                  letterSpacing: '0.01em',
+                  fontSize: 'clamp(1.45rem, 3vw, 1.95rem)',
+                  letterSpacing: 0,
                   lineHeight: 1.05,
-                  color: '#E6A435',
                   margin: 0,
+                  whiteSpace: 'nowrap',
+                  cursor: 'help',
+                  display: 'inline-block',
+                  background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.4)) drop-shadow(0 0 5px rgba(230,158,26,0.5))',
                 }}
               >
                 Heroglyph
               </div>
               <div
                 style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(0.78rem, 1.3vw, 0.92rem)',
-                  color: 'rgba(250,244,236,0.75)',
-                  marginTop: 4,
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 'clamp(0.72rem, 1.2vw, 0.84rem)',
+                  color: 'rgba(250,244,236,0.78)',
+                  marginTop: 6,
                   fontStyle: 'italic',
+                  letterSpacing: '0.02em',
                 }}
               >
-                [ˈhe-roʊ-ɡlɪf]{' '}
+                [ˈhɪr-oʊ-ɡlɪf]{' '}
                 <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
               </div>
             </div>
 
-            {/* Right column: definition */}
+            {/* Right column: flowing definition, all cream/white */}
             <p
               className="dict-right"
               style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 'clamp(0.95rem, 1.5vw, 1.08rem)',
-                color: 'rgba(250,244,236,0.88)',
-                lineHeight: 1.55,
+                fontFamily: "'Inter', sans-serif",
+                fontSize: 'clamp(0.85rem, 1.3vw, 0.98rem)',
+                fontWeight: 400,
+                color: '#FAF4EC',
+                lineHeight: 1.5,
+                letterSpacing: '0.005em',
                 margin: 0,
-                letterSpacing: '0.01em',
               }}
             >
-              A unique symbol — your ticket to the place where DOG is GOD.
+              A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.
             </p>
           </div>
 
@@ -377,124 +610,66 @@ export default function Heroglyph() {
             className="heroglyph-svg-wrap"
             style={{
               width: '100%',
-              maxWidth: 440,
-              marginTop: 28,
+              maxWidth: 380,
+              marginTop: 32,
               position: 'relative',
             }}
             dangerouslySetInnerHTML={{ __html: svgMarkup }}
           />
 
-          {/* Pills row 1 — flagship features (solid gold) */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: 8,
-              marginTop: 24,
-            }}
-          >
-            {PILLS.map((p) => (
-              <div
-                key={p}
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
-                  fontWeight: 700,
-                  letterSpacing: '0.18em',
-                  textTransform: 'uppercase',
-                  color: '#1a0a05',
-                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  borderRadius: 999,
-                  padding: '7px 16px',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 10px rgba(201,154,63,0.45), inset 0 1px 0 rgba(255,255,255,0.32)',
-                }}
-              >
-                {p}
-              </div>
-            ))}
-          </div>
+          {/* Pills: 1 row on mobile, 2 opposite-direction rows on desktop */}
+          {isMobile ? (
+            <PillMarquee
+              pills={[...PILLS_ROW_1, ...PILLS_ROW_2]}
+              reverse={false}
+              onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
+              onMove={(x, y) => setPillTooltipPos({ x, y })}
+              onLeave={() => setPillTooltip(null)}
+              marginTop={32}
+            />
+          ) : (
+            <>
+              <PillMarquee
+                pills={PILLS_ROW_1}
+                reverse={false}
+                onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
+                onMove={(x, y) => setPillTooltipPos({ x, y })}
+                onLeave={() => setPillTooltip(null)}
+                marginTop={32}
+              />
+              <PillMarquee
+                pills={PILLS_ROW_2}
+                reverse={true}
+                onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
+                onMove={(x, y) => setPillTooltipPos({ x, y })}
+                onLeave={() => setPillTooltip(null)}
+                marginTop={12}
+              />
+            </>
+          )}
 
-          {/* Pills row 2 — manifest (icon + label) */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center',
-              gap: 8,
-              marginTop: 10,
-            }}
-          >
-            {MANIFEST_PILLS.map((m) => (
-              <div
-                key={m.label}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(0.62rem, 1.05vw, 0.74rem)',
-                  fontWeight: 700,
-                  letterSpacing: '0.16em',
-                  textTransform: 'uppercase',
-                  color: '#1a0a05',
-                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-                  border: '1px solid rgba(0,0,0,0.12)',
-                  borderRadius: 999,
-                  padding: '6px 14px 6px 10px',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 10px rgba(201,154,63,0.45), inset 0 1px 0 rgba(255,255,255,0.32)',
-                }}
-              >
-                <img
-                  src={m.icon}
-                  alt=""
-                  style={{
-                    width: 16,
-                    height: 16,
-                    objectFit: 'contain',
-                    filter: 'brightness(0)',
-                  }}
-                />
-                {m.label}
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <Button
+          {/* CTA — replicates /grid .join-btn (bigger, font-weight 900, pulsing glow) */}
+          <button
             onClick={() => navigate('/heroglyph/name')}
-            className="rounded-xl gap-2 h-14 font-bold tracking-wider hover:scale-[1.02] transition-transform"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-              color: '#000',
-              boxShadow: '0 4px 32px rgba(201,154,63,0.6), 0 0 0 5px rgba(245,199,61,0.15), inset 0 1px 0 rgba(255,255,255,0.35)',
-              letterSpacing: '0.2em',
-              padding: '0 36px',
-              minWidth: 280,
-              marginTop: 22,
-              border: '1.5px solid rgba(0,0,0,0.12)',
-            }}
+            className="heroglyph-cta"
           >
-            Enter The Dogypt →
-          </Button>
+            Create Heroglyph
+          </button>
 
           {/* Sub-text under CTA */}
           <div
             style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)',
-              letterSpacing: '0.2em',
+              fontFamily: "'Inter', sans-serif",
+              fontSize: 'clamp(0.7rem, 1.15vw, 0.8rem)',
+              fontWeight: 500,
+              letterSpacing: '0.24em',
               textTransform: 'uppercase',
-              color: 'rgba(250,244,236,0.55)',
-              marginTop: 16,
+              color: 'rgba(250,244,236,0.5)',
+              marginTop: 20,
               textAlign: 'center',
             }}
           >
-            Every dog owner is needed
+            Doglovers, assemble!
           </div>
 
           {!svgMarkup && (
@@ -550,6 +725,128 @@ export default function Heroglyph() {
           </div>
         </div>
       )}
+
+      {/* Pill tooltip — same papyrus style, follows cursor */}
+      {pillTooltip && (
+        <div
+          style={{
+            position: 'fixed',
+            left: pillTooltipPos.x + 14,
+            top: pillTooltipPos.y + 14,
+            zIndex: 100,
+            pointerEvents: 'none',
+            background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
+            border: '1.5px solid #C99A3F',
+            borderRadius: 10,
+            padding: '8px 14px',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
+            color: '#1a0a05',
+            minWidth: 180,
+            maxWidth: 300,
+            animation: 'tooltip-fade-in 160ms ease',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: '0.62rem',
+              letterSpacing: '0.24em',
+              textTransform: 'uppercase',
+              color: '#9c6f1f',
+              fontWeight: 700,
+              marginBottom: 3,
+            }}
+          >
+            {pillTooltip.label}
+          </div>
+          {pillTooltip.tooltipSub ? (
+            <>
+              <div
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  lineHeight: 1.25,
+                  color: '#1a0a05',
+                }}
+              >
+                {pillTooltip.tooltip}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.74rem',
+                  fontWeight: 400,
+                  letterSpacing: '0.005em',
+                  lineHeight: 1.4,
+                  marginTop: 4,
+                  color: '#5c3e10',
+                }}
+              >
+                {pillTooltip.tooltipSub}
+              </div>
+            </>
+          ) : (
+            <div
+              style={{
+                fontFamily: "'Inter', sans-serif",
+                fontSize: '0.86rem',
+                fontWeight: 400,
+                letterSpacing: '0.005em',
+                lineHeight: 1.4,
+              }}
+            >
+              {pillTooltip.tooltip}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Marquee row of outline pills — duplicated content for seamless loop,
+// fade-mask on container edges (NOT page edges), pause on hover.
+function PillMarquee({
+  pills,
+  reverse,
+  onEnter,
+  onMove,
+  onLeave,
+  marginTop,
+}: {
+  pills: PillData[];
+  reverse: boolean;
+  onEnter: (p: PillData, x: number, y: number) => void;
+  onMove: (x: number, y: number) => void;
+  onLeave: () => void;
+  marginTop: number;
+}) {
+  const renderPill = (p: PillData, key: string) => (
+    <div
+      key={key}
+      className="pill-outline"
+      onMouseEnter={(e) => onEnter(p, e.clientX, e.clientY)}
+      onMouseMove={(e) => onMove(e.clientX, e.clientY)}
+      onMouseLeave={onLeave}
+      onTouchStart={(e) => {
+        const t = e.touches[0];
+        if (t) onEnter(p, t.clientX, t.clientY);
+      }}
+    >
+      <img src={p.icon} alt="" className="pill-outline-icon" />
+      {p.label}
+    </div>
+  );
+
+  return (
+    <div className="pill-marquee" style={{ marginTop }}>
+      <div className={`pill-marquee-track${reverse ? ' reverse' : ''}`}>
+        {pills.map((p, i) => renderPill(p, `a-${i}`))}
+        {pills.map((p, i) => renderPill(p, `b-${i}`))}
+      </div>
     </div>
   );
 }
