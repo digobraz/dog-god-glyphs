@@ -68,30 +68,7 @@ export default function Heroglyph() {
 
     const ns = 'http://www.w3.org/2000/svg';
 
-    // Metallic gold gradient — applied as fill via CSS url(#metalGold)
-    const defs = document.createElementNS(ns, 'defs');
-    defs.id = 'heroglyph-defs';
-    defs.innerHTML = `
-      <linearGradient id="metalGold" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-        <stop offset="0%"   stop-color="#5C3F0A"/>
-        <stop offset="15%"  stop-color="#A37A1F"/>
-        <stop offset="35%"  stop-color="#E6A435"/>
-        <stop offset="48%"  stop-color="#FFE9A8"/>
-        <stop offset="52%"  stop-color="#FFFEF5"/>
-        <stop offset="58%"  stop-color="#FFE9A8"/>
-        <stop offset="75%"  stop-color="#C99A3F"/>
-        <stop offset="90%"  stop-color="#7A5512"/>
-        <stop offset="100%" stop-color="#3B2706"/>
-      </linearGradient>
-      <linearGradient id="metalGoldHover" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
-        <stop offset="0%"   stop-color="#C99A3F"/>
-        <stop offset="35%"  stop-color="#FFD566"/>
-        <stop offset="50%"  stop-color="#FFFFFF"/>
-        <stop offset="65%"  stop-color="#FFD566"/>
-        <stop offset="100%" stop-color="#A37A1F"/>
-      </linearGradient>
-    `;
-    svg.insertBefore(defs, svg.firstChild);
+    // Heroglyph fill = flat metallic gold (matches PNG canonical look)
 
     // Cartouche-wide click/hover pads (Dog + Owner whole frames)
     const dogPad = document.createElementNS(ns, 'rect');
@@ -185,7 +162,6 @@ export default function Heroglyph() {
       clickPads.forEach((p) => p.remove());
       dogPad.remove();
       ownerPad.remove();
-      defs.remove();
     };
   }, [svgMarkup]);
 
@@ -229,9 +205,8 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.hero-click-pad):not(.cartouche-pad) {
-          fill: url(#metalGold) !important;
-          stroke: #8B6418 !important;
-          stroke-width: 0.6 !important;
+          fill: #E6A435 !important;
+          stroke: #E6A435 !important;
         }
         .heroglyph-svg-wrap .hero-click-pad,
         .heroglyph-svg-wrap .cartouche-pad {
@@ -240,18 +215,17 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
-          fill: url(#metalGold) !important;
-          stroke: #8B6418 !important;
-          stroke-width: 0.6 !important;
-          filter: drop-shadow(0 0 2px rgba(255,250,235,0.85)) drop-shadow(0 0 5px rgba(255,228,170,0.45));
-          transition: filter 0.2s ease, transform 0.2s ease;
+          fill: #E6A435 !important;
+          stroke: #E6A435 !important;
+          filter: drop-shadow(0 0 2px rgba(255,250,235,0.85)) drop-shadow(0 0 5px rgba(255,228,170,0.4));
+          transition: filter 0.2s ease, transform 0.2s ease, fill 0.2s ease;
           transform-box: fill-box;
           transform-origin: center;
           animation: hero-pulse 2.6s ease-in-out infinite;
         }
         .heroglyph-svg-wrap .hero-zone:hover {
-          fill: url(#metalGoldHover) !important;
-          stroke: #C99A3F !important;
+          fill: #FFD566 !important;
+          stroke: #FFD566 !important;
           filter: drop-shadow(0 0 3px #FFFFFF) drop-shadow(0 0 8px rgba(255,250,235,0.95));
           transform: scale(1.08);
         }
