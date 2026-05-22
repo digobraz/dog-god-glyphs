@@ -266,6 +266,25 @@ export default function Heroglyph() {
           0%   { opacity: 0; transform: translateY(4px); }
           100% { opacity: 1; transform: translateY(0); }
         }
+        /* Dictionary block: stack on mobile, 2 columns + divider on desktop */
+        .dict-block {
+          grid-template-columns: 1fr;
+        }
+        .dict-block .dict-right {
+          padding-top: 12px;
+          border-top: 1px solid rgba(201,154,63,0.45);
+        }
+        @media (min-width: 640px) {
+          .dict-block {
+            grid-template-columns: 1fr 1fr;
+          }
+          .dict-block .dict-right {
+            padding-top: 0;
+            padding-left: clamp(14px, 2.4vw, 24px);
+            border-top: none;
+            border-left: 1px solid rgba(201,154,63,0.45);
+          }
+        }
       `}</style>
 
       {/* Top logo */}
@@ -276,7 +295,7 @@ export default function Heroglyph() {
       <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 md:justify-center md:pt-6 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-2xl flex flex-col items-center text-center">
 
-          {/* HERO TITLE — gold-orange glow */}
+          {/* HERO TITLE — "THE SYMBOL" gold-orange glow, rest in white */}
           <h1
             style={{
               fontFamily: "'Cinzel', serif",
@@ -286,61 +305,78 @@ export default function Heroglyph() {
               lineHeight: 1.05,
               margin: 0,
               textTransform: 'uppercase',
-              background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
             }}
           >
-            The Symbol That<br />Changes History
+            <span
+              style={{
+                display: 'block',
+                background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
+              }}
+            >
+              The Symbol
+            </span>
+            <span
+              style={{
+                display: 'block',
+                color: '#FAF4EC',
+                marginTop: 'clamp(2px, 0.4vw, 6px)',
+              }}
+            >
+              That Changes History
+            </span>
           </h1>
 
-          {/* Dictionary-style definition block */}
+          {/* Dictionary-style definition — 2 columns with vertical divider */}
           <div
+            className="dict-block"
             style={{
               marginTop: 28,
               width: '100%',
-              maxWidth: 560,
+              maxWidth: 640,
+              display: 'grid',
+              alignItems: 'center',
+              gap: 'clamp(14px, 3vw, 28px)',
               textAlign: 'left',
               paddingLeft: 'clamp(8px, 2vw, 16px)',
               paddingRight: 'clamp(8px, 2vw, 16px)',
             }}
           >
-            <div
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
-                letterSpacing: '0.01em',
-                lineHeight: 1.05,
-                color: '#E6A435',
-                margin: 0,
-              }}
-            >
-              Heroglyph
+            {/* Left column: name + IPA */}
+            <div className="dict-left">
+              <div
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
+                  letterSpacing: '0.01em',
+                  lineHeight: 1.05,
+                  color: '#E6A435',
+                  margin: 0,
+                }}
+              >
+                Heroglyph
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 'clamp(0.78rem, 1.3vw, 0.92rem)',
+                  color: 'rgba(250,244,236,0.75)',
+                  marginTop: 4,
+                  fontStyle: 'italic',
+                }}
+              >
+                [ˈhe-roʊ-ɡlɪf]{' '}
+                <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
+              </div>
             </div>
-            <div
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 'clamp(0.78rem, 1.3vw, 0.92rem)',
-                color: 'rgba(250,244,236,0.75)',
-                marginTop: 4,
-                fontStyle: 'italic',
-              }}
-            >
-              [ˈhe-roʊ-ɡlɪf]{' '}
-              <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
-            </div>
-            <div
-              style={{
-                height: 1,
-                background: 'rgba(201,154,63,0.45)',
-                margin: '12px 0 12px',
-                width: '100%',
-              }}
-            />
+
+            {/* Right column: definition */}
             <p
+              className="dict-right"
               style={{
                 fontFamily: "'Cinzel', serif",
                 fontSize: 'clamp(0.95rem, 1.5vw, 1.08rem)',
