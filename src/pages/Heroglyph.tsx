@@ -215,28 +215,24 @@ export default function Heroglyph() {
           cursor: pointer;
           fill: #E6A435 !important;
           stroke: #E6A435 !important;
-          filter: drop-shadow(0 0 6px #E6A435) drop-shadow(0 0 14px rgba(230,164,53,0.6));
-          transition: filter 0.25s ease, transform 0.25s ease;
+          filter: drop-shadow(0 0 2px rgba(255,250,235,0.9)) drop-shadow(0 0 5px rgba(255,245,220,0.55));
+          transition: filter 0.2s ease, transform 0.2s ease, fill 0.2s ease;
           transform-box: fill-box;
           transform-origin: center;
           animation: hero-pulse 2.6s ease-in-out infinite;
         }
         .heroglyph-svg-wrap .hero-zone:hover {
-          fill: #FFD566 !important;
-          stroke: #FFD566 !important;
-          filter: drop-shadow(0 0 10px #FFD566) drop-shadow(0 0 22px rgba(255,213,102,0.85)) drop-shadow(0 0 4px #FFF6E0);
+          fill: #FFF6E0 !important;
+          stroke: #FFF6E0 !important;
+          filter: drop-shadow(0 0 3px #FFFFFF) drop-shadow(0 0 8px rgba(255,250,235,0.95));
           transform: scale(1.08);
         }
         .heroglyph-svg-wrap .cartouche-pad:hover {
           cursor: pointer;
         }
-        /* Overall heroglyph glow when idle */
-        .heroglyph-svg-wrap {
-          filter: drop-shadow(0 0 18px rgba(230,164,53,0.35));
-        }
         @keyframes hero-pulse {
-          0%, 100% { filter: drop-shadow(0 0 4px rgba(230,164,53,0.4)); }
-          50%      { filter: drop-shadow(0 0 12px #E6A435) drop-shadow(0 0 24px rgba(230,164,53,0.75)); }
+          0%, 100% { filter: drop-shadow(0 0 1.5px rgba(255,250,235,0.7)) drop-shadow(0 0 4px rgba(255,245,220,0.4)); }
+          50%      { filter: drop-shadow(0 0 2.5px rgba(255,253,240,1)) drop-shadow(0 0 7px rgba(255,248,225,0.7)); }
         }
         @keyframes tooltip-fade-in {
           0%   { opacity: 0; transform: translateY(4px); }
