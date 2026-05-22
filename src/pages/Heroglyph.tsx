@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Info, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import hekthorHeroglyphPng from '@/assets/hekthor-heroglyph.png';
 
 type SymbolMeaning = { label: string; value: string };
 
@@ -34,24 +37,26 @@ const SVG_URL = '/heroglyph/hektor-horizontal.svg';
 // Extend bottom for meaning frame; pad sides for tentacle corridors.
 const ART_W = 3165;
 const ART_H = 825;
-const SIDE_PAD = 90;                 // left/right corridor outside heroglyph
-const TOP_PAD = 100;                 // top corridor outside heroglyph
-const GUTTER_TOP = ART_H + 30;       // 855 — top of routing gutter
-const FRAME_X = 420;                 // narrower meaning frame
+const SIDE_PAD = 90;
+const TOP_PAD = 100;
+const GUTTER_TOP = ART_H + 30;
+const FRAME_X = 420;
 const FRAME_TOP = 1040;
 const FRAME_HEIGHT = 360;
-const FRAME_W = ART_W - 2 * FRAME_X; // 2325
-const FRAME_RX = 56;                 // round corners
-const NEW_HEIGHT = FRAME_TOP + FRAME_HEIGHT + 60; // 1460 (height of art zone below origin)
-const ANCHOR_X = ART_W / 2;          // 1582.5
-const ANCHOR_Y = FRAME_TOP;          // 1040
+const FRAME_W = ART_W - 2 * FRAME_X;
+const FRAME_RX = 56;
+const NEW_HEIGHT = FRAME_TOP + FRAME_HEIGHT + 60;
+const ANCHOR_X = ART_W / 2;
+const ANCHOR_Y = FRAME_TOP;
 
 export default function Heroglyph() {
   const navigate = useNavigate();
   const svgWrapRef = useRef<HTMLDivElement>(null);
   const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
+  const [showInteractive, setShowInteractive] = useState(false);
 
+  // Preload SVG once on mount so the toggle feels instant.
   useEffect(() => {
     let cancelled = false;
     fetch(SVG_URL)
@@ -60,14 +65,13 @@ export default function Heroglyph() {
     return () => { cancelled = true; };
   }, []);
 
-  // Augment SVG: extend viewBox, add tentacles + frame, attach click handlers
+  // Augment SVG only while interactive mode is visible.
   useEffect(() => {
-    if (!svgMarkup || !svgWrapRef.current) return;
+    if (!showInteractive || !svgMarkup || !svgWrapRef.current) return;
     const root = svgWrapRef.current;
     const svg = root.querySelector('svg');
     if (!svg) return;
 
-    // 1. Extend viewBox: add side corridors + top corridor + bottom frame area
     svg.setAttribute(
       'viewBox',
       `${-SIDE_PAD} ${-TOP_PAD} ${ART_W + 2 * SIDE_PAD} ${NEW_HEIGHT + TOP_PAD}`,
@@ -76,10 +80,6 @@ export default function Heroglyph() {
 
     const ns = 'http://www.w3.org/2000/svg';
 
-    // 1b. Cartouche-wide click pads — inserted at the very top of the SVG
-    // so they render BEHIND everything else. Empty space inside a frame
-    // triggers the corresponding "whole cartouche" meaning. Symbols and
-    // their click-pads stack above and take click priority.
     const dogPad = document.createElementNS(ns, 'rect');
     dogPad.setAttribute('x', '24');
     dogPad.setAttribute('y', '15');
@@ -113,15 +113,12 @@ export default function Heroglyph() {
     dogPad.addEventListener('click', dogClickFn);
     ownerPad.addEventListener('click', ownerClickFn);
 
-    // 2. Build tentacles group (rendered ABOVE heroglyph for visibility)
     const tentacleGroup = document.createElementNS(ns, 'g');
     tentacleGroup.id = 'tentacles';
 
-    // 3. Build meaning frame group (rendered above tentacles so it sits cleanly)
     const frameGroup = document.createElementNS(ns, 'g');
     frameGroup.id = 'meaning-frame';
 
-    // Defs for soft gradient + glow
     const defs = document.createElementNS(ns, 'defs');
     defs.innerHTML = `
       <linearGradient id="frameFill" x1="0" y1="0" x2="0" y2="1">
@@ -136,7 +133,6 @@ export default function Heroglyph() {
     `;
     frameGroup.appendChild(defs);
 
-    // Outer soft shadow ring
     const frameShadow = document.createElementNS(ns, 'rect');
     frameShadow.setAttribute('x', String(FRAME_X - 6));
     frameShadow.setAttribute('y', String(FRAME_TOP - 6));
@@ -149,7 +145,6 @@ export default function Heroglyph() {
     frameShadow.classList.add('mf-rect', 'mf-shadow');
     frameGroup.appendChild(frameShadow);
 
-    // Main rect (rounded papyrus)
     const frameRect = document.createElementNS(ns, 'rect');
     frameRect.setAttribute('x', String(FRAME_X));
     frameRect.setAttribute('y', String(FRAME_TOP));
@@ -162,7 +157,6 @@ export default function Heroglyph() {
     frameRect.classList.add('mf-rect', 'mf-main');
     frameGroup.appendChild(frameRect);
 
-    // Inner thin gold hairline
     const frameInner = document.createElementNS(ns, 'rect');
     frameInner.setAttribute('x', String(FRAME_X + 14));
     frameInner.setAttribute('y', String(FRAME_TOP + 14));
@@ -178,7 +172,6 @@ export default function Heroglyph() {
 
     const handlers: Array<{ el: Element; type: string; fn: (e: Event) => void }> = [];
 
-    // Split symbols by left/right half (used to pick exit side)
     const symbolBBoxes: Array<{ id: string; el: SVGGraphicsElement; cx: number; cy: number; bb: DOMRect }> = [];
     SYMBOL_IDS.forEach((id) => {
       const el = svg.querySelector(`[id="${CSS.escape(id)}"]`) as SVGGraphicsElement | null;
@@ -195,9 +188,6 @@ export default function Heroglyph() {
       } catch {/* skip */}
     });
 
-    // Split into TOP-half and BOTTOM-half (by symbol centroid cy).
-    // Bottom-half symbols take the SHORTEST path — straight DOWN to gutter.
-    // Top-half symbols route via the outer side corridor (around the heroglyph).
     const TOP_BOTTOM_SPLIT = ART_H * 0.45;
     const bottomSymbols = symbolBBoxes
       .filter((s) => s.cy >= TOP_BOTTOM_SPLIT)
@@ -231,8 +221,6 @@ export default function Heroglyph() {
       s.el.addEventListener('click', click);
       handlers.push({ el: s.el, type: 'click', fn: click });
 
-      // Invisible click-pad rect covering the symbol's bbox — captures clicks
-      // inside hollow areas (papyrus scroll interior, dog silhouette gaps).
       const pad = document.createElementNS(ns, 'rect');
       pad.setAttribute('x', String(s.bb.x));
       pad.setAttribute('y', String(s.bb.y));
@@ -243,17 +231,12 @@ export default function Heroglyph() {
       pad.classList.add('hero-click-pad');
       pad.setAttribute('data-symbol', s.id);
       (pad as unknown as HTMLElement).style.cursor = 'pointer';
-      // Insert pad just BEFORE the symbol element so the symbol renders on top
-      // (pad still receives clicks where the symbol's fill is transparent).
       s.el.parentNode?.insertBefore(pad, s.el);
       pad.addEventListener('click', click);
       handlers.push({ el: pad, type: 'click', fn: click });
       clickPads.push(pad);
     };
 
-    // BOTTOM-half symbols: straight DOWN → gutter → into frame top.
-    //   (cx, cy) -> (cx, gutterY) -> (ANCHOR_X, gutterY) -> (ANCHOR_X, FRAME_TOP)
-    // Stagger gutterY per symbol so horizontal lanes don't overlap.
     bottomSymbols.forEach((s, i) => {
       const gutterY = GUTTER_TOP + 24 + i * 12;
       const pts = [
@@ -265,11 +248,6 @@ export default function Heroglyph() {
       attachSymbol(s, i, pts);
     });
 
-    // TOP-half symbols: default route UP through top corridor, around the
-    // perimeter, down the side, across the gutter, and into the frame.
-    // Exceptions (LATERAL_TOP_SYMBOLS) exit laterally instead — used when
-    // a lateral path has clear space and feels more natural (e.g. MALE
-    // crown at the leftmost edge has no other symbols to its left).
     const LATERAL_TOP_SYMBOLS = new Set(['MALE']);
     topSymbols.forEach((s, i) => {
       const isLeft = s.cx < ANCHOR_X;
@@ -279,7 +257,6 @@ export default function Heroglyph() {
       const gutterY = GUTTER_TOP + 4 + i * 8;
       let pts: number[][];
       if (LATERAL_TOP_SYMBOLS.has(s.id)) {
-        // Lateral: exit straight to the side corridor, then down + into frame
         pts = [
           [s.cx, s.cy],
           [sideX, s.cy],
@@ -288,7 +265,6 @@ export default function Heroglyph() {
           [ANCHOR_X, ANCHOR_Y],
         ];
       } else {
-        // Default: up + around the perimeter
         const topY = -TOP_PAD + 22 + i * 10;
         pts = [
           [s.cx, s.cy],
@@ -302,7 +278,6 @@ export default function Heroglyph() {
       attachSymbol(s, bottomSymbols.length + i, pts);
     });
 
-    // Tentacles UNDER frame (so frame sits on top), but ABOVE heroglyph art
     svg.appendChild(tentacleGroup);
     svg.appendChild(frameGroup);
 
@@ -316,10 +291,11 @@ export default function Heroglyph() {
       tentacleGroup.remove();
       frameGroup.remove();
     };
-  }, [svgMarkup]);
+  }, [svgMarkup, showInteractive]);
 
-  // Tap outside resets
+  // Tap outside resets active symbol (interactive mode only)
   useEffect(() => {
+    if (!showInteractive) return;
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Element;
       if (!target.closest('.heroglyph-svg-wrap')) {
@@ -328,7 +304,7 @@ export default function Heroglyph() {
     };
     document.addEventListener('click', onDocClick);
     return () => document.removeEventListener('click', onDocClick);
-  }, []);
+  }, [showInteractive]);
 
   // Toggle is-active on symbol + matching tentacle
   useEffect(() => {
@@ -341,12 +317,15 @@ export default function Heroglyph() {
       const tent = root.querySelector(`.tentacle[data-symbol="${activeSymbol}"]`);
       if (tent) tent.classList.add('is-active');
     }
-  }, [activeSymbol, svgMarkup]);
+  }, [activeSymbol, svgMarkup, showInteractive]);
+
+  // Reset active symbol when leaving interactive mode
+  useEffect(() => {
+    if (!showInteractive) setActiveSymbol(null);
+  }, [showInteractive]);
 
   const meaning = activeSymbol ? MEANINGS[activeSymbol] : null;
 
-  // Meaning overlay position — matches frame area in viewBox.
-  // ViewBox: (-SIDE_PAD, -TOP_PAD, ART_W + 2*SIDE_PAD, NEW_HEIGHT + TOP_PAD).
   const FULL_W = ART_W + 2 * SIDE_PAD;
   const FULL_H = NEW_HEIGHT + TOP_PAD;
   const FRAME_LEFT_PX = SIDE_PAD + FRAME_X;
@@ -356,26 +335,35 @@ export default function Heroglyph() {
   const FRAME_H_PCT = (FRAME_HEIGHT / FULL_H) * 100;
 
   return (
-    <div className="dark-bg flex flex-col min-h-[100dvh]">
+    <div className="dark-bg flex flex-col min-h-[100dvh] relative">
+      {/* Dark overlay over bg-dark.png texture for legibility */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
       <style>{`
         .heroglyph-svg-wrap svg {
           width: 100%;
           height: auto;
           display: block;
         }
-        /* All original heroglyph content -> black silhouette
-           (exclude meaning-frame rects + invisible click-pads) */
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.mf-rect):not(.hero-click-pad):not(.cartouche-pad) {
-          fill: #000 !important;
-          stroke: #000 !important;
+          fill: #C99A3F !important;
+          stroke: #C99A3F !important;
         }
         .heroglyph-svg-wrap .hero-click-pad,
         .heroglyph-svg-wrap .cartouche-pad {
           fill: transparent !important;
           stroke: none !important;
         }
-        /* Meaning frame: papyrus gradient + gold stroke */
         .heroglyph-svg-wrap .mf-shadow {
           fill: rgba(201, 154, 63, 0.18) !important;
           stroke: none !important;
@@ -388,11 +376,10 @@ export default function Heroglyph() {
           fill: none !important;
           stroke: #C99A3F !important;
         }
-        /* Symbols: black fill with gold-amber pulse glow */
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
-          fill: #000 !important;
-          stroke: #000 !important;
+          fill: #C99A3F !important;
+          stroke: #C99A3F !important;
           filter: drop-shadow(0 0 6px #E6A435) drop-shadow(0 0 14px rgba(230, 164, 53, 0.55));
           transition: filter 0.25s ease, transform 0.25s ease;
           transform-box: fill-box;
@@ -409,7 +396,6 @@ export default function Heroglyph() {
           filter: drop-shadow(0 0 10px #C99A3F) drop-shadow(0 0 22px rgba(201, 154, 63, 0.75)) drop-shadow(0 0 4px #FFD566);
           animation: hero-tap 0.4s ease-out;
         }
-        /* Tentacles (dashed polylines) — hidden in idle, visible only on active */
         .heroglyph-svg-wrap .tentacle {
           opacity: 0;
           pointer-events: none;
@@ -439,6 +425,9 @@ export default function Heroglyph() {
           0%   { opacity: 0; transform: translateY(4px); }
           100% { opacity: 1; transform: translateY(0); }
         }
+        .manifest-icon img {
+          filter: brightness(0) saturate(100%) invert(58%) sepia(56%) saturate(481%) hue-rotate(2deg) brightness(91%) contrast(86%);
+        }
       `}</style>
 
       {/* Top logo */}
@@ -446,233 +435,258 @@ export default function Heroglyph() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      {/* Centered content stack: title + 2 cards (unified max-w-xl) */}
-      <div className="flex-1 flex flex-col items-center px-4 pb-8 md:justify-center md:pb-12">
-        <div className="w-full max-w-xl flex flex-col items-center gap-4 md:gap-5">
+      {/* Free-flowing content on dark bg (no card) */}
+      <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 md:justify-center md:pt-6">
+        <div className="w-full max-w-2xl flex flex-col items-center text-center">
 
-          {/* Block 1 — Heroglyph card (title inside, smaller) */}
-          <div
-            className="w-full papyrus-bg rounded-2xl border-2 relative overflow-hidden"
+          {/* HERO TITLE — gold-orange glow */}
+          <h1
             style={{
-              borderColor: 'hsl(var(--gold) / 0.45)',
-              boxShadow: '0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4)',
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 'clamp(2.1rem, 6.5vw, 4.2rem)',
+              letterSpacing: '0.04em',
+              lineHeight: 1.05,
+              margin: 0,
+              textTransform: 'uppercase',
+              background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
             }}
           >
-            {/* Title (inside card, top) */}
-            <div
-              style={{
-                position: 'relative',
-                zIndex: 2,
-                paddingTop: 26,
-                paddingBottom: 6,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 4,
-              }}
+            The Symbol That<br />Changes History
+          </h1>
+
+          {/* Body — short, two lines */}
+          <p
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(0.95rem, 1.7vw, 1.15rem)',
+              letterSpacing: '0.02em',
+              color: 'rgba(250,244,236,0.82)',
+              lineHeight: 1.55,
+              margin: '24px 0 0',
+              maxWidth: 540,
+            }}
+          >
+            A unique symbol — your ticket to the place<br />
+            where DOG is GOD.
+          </p>
+
+          <p
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(0.78rem, 1.3vw, 0.92rem)',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: '#C99A3F',
+              margin: '14px 0 0',
+              fontWeight: 700,
+            }}
+          >
+            12 questions · 3 minutes
+          </p>
+
+          {/* Heroglyph (smaller) with (i) toggle */}
+          <div style={{ position: 'relative', width: '100%', maxWidth: 420, marginTop: 26 }}>
+            {/* (i) toggle */}
+            <button
+              className="flex items-center justify-center"
+              style={{ position: 'absolute', top: 0, right: 0, width: 40, height: 40, zIndex: 30 }}
+              aria-label={showInteractive ? 'Close interactive heroglyph' : 'Open interactive heroglyph'}
+              onClick={() => setShowInteractive((p) => !p)}
             >
-              <h2
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(0.78rem, 1.7vw, 0.95rem)',
-                  letterSpacing: '0.2em',
-                  textTransform: 'uppercase',
-                  color: 'hsl(var(--gold-deep))',
-                  margin: 0,
-                  lineHeight: 1.15,
-                  textAlign: 'center',
-                }}
-              >
-                Heroglyph of Hekthor I.
-              </h2>
               <span
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
                 style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(0.54rem, 1.05vw, 0.62rem)',
-                  letterSpacing: '0.34em',
-                  textTransform: 'uppercase',
-                  color: 'hsl(var(--gold-deep) / 0.7)',
+                  border: '1.5px solid rgba(201,154,63,0.55)',
+                  background: 'rgba(0,0,0,0.5)',
+                  backdropFilter: 'blur(4px)',
                 }}
               >
-                First Dogyptian
+                {showInteractive
+                  ? <X className="h-4 w-4" style={{ color: '#E6A435' }} />
+                  : <Info className="h-4 w-4" style={{ color: '#E6A435' }} />}
               </span>
-            </div>
-
-            <div style={{ padding: '4px 14px 14px' }}>
-              <div style={{ position: 'relative' }}>
-                <div
-                  ref={svgWrapRef}
-                  className={`heroglyph-svg-wrap ${activeSymbol ? 'has-active' : ''}`}
-                  style={{ width: '100%', display: 'block' }}
-                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
-                />
-                {/* Meaning text overlay — positioned over the SVG frame band */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: `${FRAME_X_PCT}%`,
-                    right: `${FRAME_RIGHT_PCT}%`,
-                    top: `${FRAME_TOP_PCT}%`,
-                    height: `${FRAME_H_PCT}%`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '8px 22px',
-                    pointerEvents: 'none',
-                    zIndex: 2,
-                  }}
-                >
-              {meaning ? (
-                <div
-                  key={activeSymbol}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    textAlign: 'center',
-                    gap: 10,
-                    width: '100%',
-                    animation: 'meaning-fade-in 240ms ease',
-                  }}
-                >
-                  <span
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      fontSize: 'clamp(0.55rem, 1.25vw, 0.68rem)',
-                      letterSpacing: '0.28em',
-                      textTransform: 'uppercase',
-                      color: 'hsl(var(--gold-deep))',
-                      fontWeight: 700,
-                      lineHeight: 1.1,
-                    }}
-                  >
-                    {meaning.label}
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      fontWeight: 700,
-                      fontSize: 'clamp(0.85rem, 2.1vw, 1.15rem)',
-                      letterSpacing: '0.04em',
-                      color: '#1a0a05',
-                      lineHeight: 1.05,
-                      whiteSpace: 'nowrap',
-                      maxWidth: '100%',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {meaning.value}
-                  </span>
-                </div>
-              ) : (
-                <div
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 'clamp(0.62rem, 1.4vw, 0.78rem)',
-                    letterSpacing: '0.24em',
-                    textTransform: 'uppercase',
-                    color: 'hsl(var(--gold-deep) / 0.6)',
-                    textAlign: 'center',
-                  }}
-                >
-                  Tap a symbol to reveal its meaning
-                </div>
-              )}
-                </div>
+            </button>
+            {/* Heroglyph image / interactive */}
+            <div style={{ position: 'relative' }}>
+                <AnimatePresence mode="wait">
+                  {!showInteractive ? (
+                    <motion.div
+                      key="static"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
+                    >
+                      <img
+                        src={hekthorHeroglyphPng}
+                        alt="Hekthor I. heroglyph — the first ever made"
+                        style={{
+                          width: '100%',
+                          maxWidth: 520,
+                          height: 'auto',
+                          objectFit: 'contain',
+                          display: 'block',
+                        }}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="interactive"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      style={{ width: '100%' }}
+                    >
+                      <div
+                        ref={svgWrapRef}
+                        className={`heroglyph-svg-wrap ${activeSymbol ? 'has-active' : ''}`}
+                        style={{ width: '100%', display: 'block', position: 'relative' }}
+                        dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                      />
+                      {/* Meaning text overlay */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: `${FRAME_X_PCT}%`,
+                          right: `${FRAME_RIGHT_PCT}%`,
+                          top: `${FRAME_TOP_PCT}%`,
+                          height: `${FRAME_H_PCT}%`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '8px 22px',
+                          pointerEvents: 'none',
+                          zIndex: 2,
+                        }}
+                      >
+                        {meaning ? (
+                          <div
+                            key={activeSymbol}
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              textAlign: 'center',
+                              gap: 10,
+                              width: '100%',
+                              animation: 'meaning-fade-in 240ms ease',
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontFamily: "'Cinzel', serif",
+                                fontSize: 'clamp(0.55rem, 1.25vw, 0.68rem)',
+                                letterSpacing: '0.28em',
+                                textTransform: 'uppercase',
+                                color: 'hsl(var(--gold-deep))',
+                                fontWeight: 700,
+                                lineHeight: 1.1,
+                              }}
+                            >
+                              {meaning.label}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily: "'Cinzel', serif",
+                                fontWeight: 700,
+                                fontSize: 'clamp(0.85rem, 2.1vw, 1.15rem)',
+                                letterSpacing: '0.04em',
+                                color: '#1a0a05',
+                                lineHeight: 1.05,
+                                whiteSpace: 'nowrap',
+                                maxWidth: '100%',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {meaning.value}
+                            </span>
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              fontFamily: "'Cinzel', serif",
+                              fontSize: 'clamp(0.62rem, 1.4vw, 0.78rem)',
+                              letterSpacing: '0.24em',
+                              textTransform: 'uppercase',
+                              color: 'hsl(var(--gold-deep) / 0.6)',
+                              textAlign: 'center',
+                            }}
+                          >
+                            Tap a symbol to reveal its meaning
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            </div>
 
-            {!svgMarkup && (
-              <div style={{ padding: 60, color: 'hsl(var(--gold-deep) / 0.6)', textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                Loading…
+            {/* Caption under heroglyph (only in interactive mode) */}
+            {showInteractive && (
+              <div
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 'clamp(0.62rem, 1.2vw, 0.72rem)',
+                  letterSpacing: '0.28em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(201,154,63,0.7)',
+                  textAlign: 'center',
+                  marginTop: 6,
+                }}
+              >
+                Tap a symbol — see its meaning
               </div>
             )}
           </div>
 
-          {/* Block 2 — Text + CTA card (papyrus) */}
-          <div
-            className="w-full papyrus-bg rounded-2xl border-2 relative overflow-hidden"
+          {/* CTA */}
+          <Button
+            onClick={() => navigate('/heroglyph/name')}
+            className="rounded-xl gap-2 h-14 font-bold tracking-wider hover:scale-[1.02] transition-transform"
             style={{
-              borderColor: 'hsl(var(--gold) / 0.45)',
-              boxShadow: '0 10px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4)',
+              fontFamily: "'Cinzel', serif",
+              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+              color: '#000',
+              boxShadow: '0 4px 32px rgba(201,154,63,0.6), 0 0 0 5px rgba(245,199,61,0.15), inset 0 1px 0 rgba(255,255,255,0.35)',
+              letterSpacing: '0.2em',
+              padding: '0 36px',
+              minWidth: 280,
+              marginTop: 30,
+              border: '1.5px solid rgba(0,0,0,0.12)',
             }}
           >
-            <div
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                padding: '24px 22px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: 14,
-              }}
-            >
-              <h1
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(1.7rem, 4.2vw, 2.4rem)',
-                  letterSpacing: '0.1em',
-                  color: 'hsl(var(--gold-deep))',
-                  margin: 0,
-                  lineHeight: 1.05,
-                }}
-              >
-                THE HEROGLYPH
-              </h1>
+            Build My Heroglyph →
+          </Button>
 
-              <div style={{ width: 56, height: 1, background: 'hsl(var(--gold-deep) / 0.4)' }} />
-
-              <p
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 'clamp(0.92rem, 1.4vw, 1.05rem)',
-                  letterSpacing: '0.02em',
-                  color: 'hsl(var(--foreground) / 0.85)',
-                  lineHeight: 1.6,
-                  margin: 0,
-                  maxWidth: 480,
-                }}
-              >
-                A symbol for those unashamed to love their dog.
-                <br />
-                Your ticket into a worldwide movement that worships them back.
-              </p>
-
-              <Button
-                onClick={() => navigate('/heroglyph/name')}
-                className="rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform mt-2"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                  color: '#000',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-                  letterSpacing: '0.18em',
-                  padding: '0 28px',
-                  minWidth: 260,
-                }}
-              >
-                Claim Your Heroglyph →
-              </Button>
-
-              <div
-                style={{
-                  fontSize: '0.7rem',
-                  letterSpacing: '0.22em',
-                  color: 'hsl(var(--gold-deep) / 0.7)',
-                  textTransform: 'uppercase',
-                  fontFamily: "'Cinzel', serif",
-                }}
-              >
-                $11 · Permanent Symbol · 1 of 1
-              </div>
-            </div>
+          {/* Sub-text under CTA */}
+          <div
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 'clamp(0.72rem, 1.2vw, 0.82rem)',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'rgba(250,244,236,0.55)',
+              marginTop: 16,
+              textAlign: 'center',
+            }}
+          >
+            Every dog owner is needed
           </div>
+
+          {!svgMarkup && showInteractive && (
+            <div style={{ padding: 40, color: 'rgba(201,154,63,0.6)', textAlign: 'center' }}>
+              Loading…
+            </div>
+          )}
         </div>
       </div>
     </div>
