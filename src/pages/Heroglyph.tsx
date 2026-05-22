@@ -266,7 +266,7 @@ export default function Heroglyph() {
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
-      <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 md:justify-center md:pt-6 relative" style={{ zIndex: 2 }}>
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-4 pb-10 md:pt-6 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-2xl flex flex-col items-center text-center">
 
           {/* HERO TITLE — "THE SYMBOL" gold-orange glow, rest in white */}
