@@ -68,6 +68,31 @@ export default function Heroglyph() {
 
     const ns = 'http://www.w3.org/2000/svg';
 
+    // Metallic gold gradient — applied as fill via CSS url(#metalGold)
+    const defs = document.createElementNS(ns, 'defs');
+    defs.id = 'heroglyph-defs';
+    defs.innerHTML = `
+      <linearGradient id="metalGold" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="#5C3F0A"/>
+        <stop offset="15%"  stop-color="#A37A1F"/>
+        <stop offset="35%"  stop-color="#E6A435"/>
+        <stop offset="48%"  stop-color="#FFE9A8"/>
+        <stop offset="52%"  stop-color="#FFFEF5"/>
+        <stop offset="58%"  stop-color="#FFE9A8"/>
+        <stop offset="75%"  stop-color="#C99A3F"/>
+        <stop offset="90%"  stop-color="#7A5512"/>
+        <stop offset="100%" stop-color="#3B2706"/>
+      </linearGradient>
+      <linearGradient id="metalGoldHover" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+        <stop offset="0%"   stop-color="#C99A3F"/>
+        <stop offset="35%"  stop-color="#FFD566"/>
+        <stop offset="50%"  stop-color="#FFFFFF"/>
+        <stop offset="65%"  stop-color="#FFD566"/>
+        <stop offset="100%" stop-color="#A37A1F"/>
+      </linearGradient>
+    `;
+    svg.insertBefore(defs, svg.firstChild);
+
     // Cartouche-wide click/hover pads (Dog + Owner whole frames)
     const dogPad = document.createElementNS(ns, 'rect');
     dogPad.setAttribute('x', '24');
@@ -160,6 +185,7 @@ export default function Heroglyph() {
       clickPads.forEach((p) => p.remove());
       dogPad.remove();
       ownerPad.remove();
+      defs.remove();
     };
   }, [svgMarkup]);
 
@@ -203,8 +229,9 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.hero-click-pad):not(.cartouche-pad) {
-          fill: #E6A435 !important;
-          stroke: #E6A435 !important;
+          fill: url(#metalGold) !important;
+          stroke: #8B6418 !important;
+          stroke-width: 0.6 !important;
         }
         .heroglyph-svg-wrap .hero-click-pad,
         .heroglyph-svg-wrap .cartouche-pad {
@@ -213,17 +240,18 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
-          fill: #E6A435 !important;
-          stroke: #E6A435 !important;
-          filter: drop-shadow(0 0 2px rgba(255,250,235,0.9)) drop-shadow(0 0 5px rgba(255,245,220,0.55));
-          transition: filter 0.2s ease, transform 0.2s ease, fill 0.2s ease;
+          fill: url(#metalGold) !important;
+          stroke: #8B6418 !important;
+          stroke-width: 0.6 !important;
+          filter: drop-shadow(0 0 2px rgba(255,250,235,0.85)) drop-shadow(0 0 5px rgba(255,228,170,0.45));
+          transition: filter 0.2s ease, transform 0.2s ease;
           transform-box: fill-box;
           transform-origin: center;
           animation: hero-pulse 2.6s ease-in-out infinite;
         }
         .heroglyph-svg-wrap .hero-zone:hover {
-          fill: #FFF6E0 !important;
-          stroke: #FFF6E0 !important;
+          fill: url(#metalGoldHover) !important;
+          stroke: #C99A3F !important;
           filter: drop-shadow(0 0 3px #FFFFFF) drop-shadow(0 0 8px rgba(255,250,235,0.95));
           transform: scale(1.08);
         }
@@ -268,40 +296,85 @@ export default function Heroglyph() {
             The Symbol That<br />Changes History
           </h1>
 
-          {/* Body — "Heroglyph — a unique symbol..." */}
-          <p
+          {/* Dictionary-style definition block */}
+          <div
             style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(0.95rem, 1.7vw, 1.15rem)',
-              letterSpacing: '0.02em',
-              color: 'rgba(250,244,236,0.85)',
-              lineHeight: 1.55,
-              margin: '24px 0 0',
+              marginTop: 28,
+              width: '100%',
               maxWidth: 560,
+              textAlign: 'left',
+              paddingLeft: 'clamp(8px, 2vw, 16px)',
+              paddingRight: 'clamp(8px, 2vw, 16px)',
             }}
           >
-            <span
+            <div
               style={{
+                fontFamily: "'Cinzel', serif",
                 fontWeight: 700,
+                fontSize: 'clamp(1.8rem, 4.5vw, 2.6rem)',
+                letterSpacing: '0.01em',
+                lineHeight: 1.05,
                 color: '#E6A435',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                marginRight: 8,
+                margin: 0,
               }}
             >
               Heroglyph
-            </span>
-            — a unique symbol, your ticket to the place where DOG is GOD.
-          </p>
+            </div>
+            <div
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(0.78rem, 1.3vw, 0.92rem)',
+                color: 'rgba(250,244,236,0.75)',
+                marginTop: 4,
+                fontStyle: 'italic',
+              }}
+            >
+              [ˈhe-roʊ-ɡlɪf]{' '}
+              <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
+            </div>
+            <div
+              style={{
+                height: 1,
+                background: 'rgba(201,154,63,0.45)',
+                margin: '12px 0 12px',
+                width: '100%',
+              }}
+            />
+            <p
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 'clamp(0.95rem, 1.5vw, 1.08rem)',
+                color: 'rgba(250,244,236,0.88)',
+                lineHeight: 1.55,
+                margin: 0,
+                letterSpacing: '0.01em',
+              }}
+            >
+              A unique symbol — your ticket to the place where DOG is GOD.
+            </p>
+          </div>
 
-          {/* Pills */}
+          {/* Heroglyph — always interactive, no toggle */}
+          <div
+            ref={svgWrapRef}
+            className="heroglyph-svg-wrap"
+            style={{
+              width: '100%',
+              maxWidth: 440,
+              marginTop: 28,
+              position: 'relative',
+            }}
+            dangerouslySetInnerHTML={{ __html: svgMarkup }}
+          />
+
+          {/* Pills (above CTA) */}
           <div
             style={{
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'center',
               gap: 8,
-              marginTop: 18,
+              marginTop: 24,
             }}
           >
             {PILLS.map((p) => (
@@ -325,19 +398,6 @@ export default function Heroglyph() {
             ))}
           </div>
 
-          {/* Heroglyph — always interactive, no toggle */}
-          <div
-            ref={svgWrapRef}
-            className="heroglyph-svg-wrap"
-            style={{
-              width: '100%',
-              maxWidth: 440,
-              marginTop: 30,
-              position: 'relative',
-            }}
-            dangerouslySetInnerHTML={{ __html: svgMarkup }}
-          />
-
           {/* CTA */}
           <Button
             onClick={() => navigate('/heroglyph/name')}
@@ -350,7 +410,7 @@ export default function Heroglyph() {
               letterSpacing: '0.2em',
               padding: '0 36px',
               minWidth: 280,
-              marginTop: 28,
+              marginTop: 18,
               border: '1.5px solid rgba(0,0,0,0.12)',
             }}
           >
