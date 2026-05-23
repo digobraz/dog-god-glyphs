@@ -654,20 +654,22 @@ export default function Codex() {
         .codex-hektor {
           position: absolute;
           top: 50%;
-          height: clamp(90vh, 108vh, 124vh);
           width: auto;
-          transform: translateY(-50%);
           object-fit: contain;
           /* black BG of PNG blends with page BG */
         }
         .codex-cow {
+          height: clamp(78vh, 94vh, 108vh);
           left: -2vw;
+          transform: translateY(-50%);
           filter: drop-shadow(0 0 30px rgba(245,199,61,0.18));
           -webkit-mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
                   mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
         }
         .codex-hektor {
-          right: -2vw;
+          height: clamp(90vh, 108vh, 124vh);
+          right: 4vw;
+          transform: translateY(-50%);
           -webkit-mask-image: linear-gradient(to left, #000 0%, #000 78%, transparent 100%);
                   mask-image: linear-gradient(to left, #000 0%, #000 78%, transparent 100%);
         }
@@ -736,12 +738,8 @@ export default function Codex() {
             drop-shadow(0 0 5px rgba(230,158,26,0.36));
         }
         @media (max-width: 767px) {
-          .codex-cow,
-          .codex-hektor {
-            height: clamp(55vh, 70vh, 82vh);
-          }
-          .codex-cow { left: -10vw; }
-          .codex-hektor { right: -10vw; }
+          .codex-cow { height: clamp(48vh, 62vh, 72vh); left: -10vw; }
+          .codex-hektor { height: clamp(55vh, 70vh, 82vh); right: 0vw; }
           .codex-3-overlay { max-width: 320px; gap: 14px; }
           .codex-stat-number { font-size: clamp(2rem, 12vw, 3rem); }
           .codex-stat-sub { font-size: 0.7rem; letter-spacing: 0.12em; }
