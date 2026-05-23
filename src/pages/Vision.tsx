@@ -281,6 +281,12 @@ export default function Vision() {
           flex-basis: 100%;
           height: 0;
         }
+        .pill-row-break-mobile { display: none; }
+        .pill-row-break-desktop { display: block; }
+        @media (max-width: 767px) {
+          .pill-row-break-mobile { display: block; }
+          .pill-row-break-desktop { display: none; }
+        }
 
         /* Roadmap connector — papyrus "···" inline */
         .pill-connector {
@@ -518,16 +524,16 @@ export default function Vision() {
         }
       `}</style>
 
-      {/* Top bar: logo centered on top, nav row centered below (mobile + desktop both stacked) */}
+      {/* Top bar: mobile = logo + hamburger inline (row); desktop = logo above nav (col) */}
       <div
-        className="flex-shrink-0 relative flex flex-col items-center justify-center px-5 md:px-0 pb-1 md:pb-2 pt-[19px] md:pt-[14px]"
+        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[19px] md:pt-[14px]"
         style={{ zIndex: 2 }}
       >
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
           <img
             src={dogyptLogo}
             alt="DOGYPT"
-            className="h-6 md:h-10 object-contain"
+            className="h-9 md:h-10 object-contain"
           />
         </Link>
         <PageNav />
@@ -654,7 +660,8 @@ export default function Vision() {
                       </span>
                     )}
                   </button>
-                  {i === 2 && <span className="pill-row-break" aria-hidden />}
+                  {i === 2 && <span className="pill-row-break pill-row-break-desktop" aria-hidden />}
+                  {(i === 1 || i === 3) && <span className="pill-row-break pill-row-break-mobile" aria-hidden />}
                 </Fragment>
               ))}
 

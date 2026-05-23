@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
+import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 
 const NAV_ITEMS = [
   { label: 'WALL', to: '/grid' },
@@ -47,12 +48,15 @@ function useIsMobile() {
 }
 
 export function PageNav() {
-  const { pathname } = useLocation();
   const isMobile = useIsMobile();
+  return isMobile ? <MobileNav /> : <DesktopNav />;
+}
+
+function DesktopNav() {
+  const { pathname } = useLocation();
   const [lang, setLang] = useState<LangCode>('en');
   const [langOpen, setLangOpen] = useState(false);
 
-  // ESC closes modal
   useEffect(() => {
     if (!langOpen) return;
     const onKey = (e: KeyboardEvent) => {
@@ -62,7 +66,6 @@ export function PageNav() {
     return () => document.removeEventListener('keydown', onKey);
   }, [langOpen]);
 
-  // Lock body scroll while modal open
   useEffect(() => {
     if (!langOpen) return;
     const prev = document.body.style.overflow;
@@ -80,13 +83,13 @@ export function PageNav() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: isMobile ? 6 : 14,
+        gap: 14,
         padding: '10px 0 6px',
         position: 'relative',
         zIndex: 50,
       }}
     >
-      {NAV_ITEMS.filter((item) => !(isMobile && item.label === 'WALL')).map(({ label, to }) => {
+      {NAV_ITEMS.map(({ label, to }) => {
         const isActive =
           to === '/grid'
             ? pathname === '/grid' || pathname === '/gods' || pathname === '/'
@@ -97,7 +100,7 @@ export function PageNav() {
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: isMobile ? 6 : 14,
+              gap: 14,
             }}
           >
             <Link
@@ -105,8 +108,8 @@ export function PageNav() {
               style={{
                 fontFamily: "'Cinzel', serif",
                 fontWeight: 700,
-                fontSize: isMobile ? 12 : 'clamp(10px, 1.5vw, 0.78rem)',
-                letterSpacing: isMobile ? '0.10em' : '0.15em',
+                fontSize: 'clamp(10px, 1.5vw, 0.78rem)',
+                letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 color: isActive ? '#C99A3F' : 'rgba(242,234,214,0.55)',
                 textDecoration: 'none',
@@ -125,7 +128,7 @@ export function PageNav() {
               style={{
                 display: 'inline-block',
                 width: 1,
-                height: isMobile ? 9 : 12,
+                height: 12,
                 background: 'rgba(242,234,214,0.28)',
               }}
             />
@@ -145,7 +148,7 @@ export function PageNav() {
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
-          fontSize: isMobile ? 14 : 'clamp(15px, 1.6vw, 18px)',
+          fontSize: 'clamp(15px, 1.6vw, 18px)',
           lineHeight: 1,
         }}
       >
@@ -165,6 +168,379 @@ export function PageNav() {
           document.body,
         )}
     </nav>
+  );
+}
+
+function MobileNav() {
+  const [open, setOpen] = useState(false);
+  const [lang, setLang] = useState<LangCode>('en');
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Open menu"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          padding: '6px 18px 4px',
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <style>{`
+          @keyframes hamburgerPulse {
+            0%, 100% {
+              filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
+              opacity: 0.88;
+            }
+            50% {
+              filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.55));
+              opacity: 1;
+            }
+          }
+          .hamburger-svg {
+            display: block;
+            animation: hamburgerPulse 2.4s ease-in-out infinite;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .hamburger-svg { animation: none; opacity: 1; }
+          }
+        `}</style>
+        <svg
+          width="28"
+          height="22"
+          viewBox="0 0 28 22"
+          fill="none"
+          aria-hidden
+          className="hamburger-svg"
+        >
+          <line x1="3" y1="4" x2="25" y2="4" stroke="#FAF4EC" strokeWidth="2.4" strokeLinecap="round" />
+          <line x1="3" y1="11" x2="25" y2="11" stroke="#FAF4EC" strokeWidth="2.4" strokeLinecap="round" />
+          <line x1="3" y1="18" x2="25" y2="18" stroke="#FAF4EC" strokeWidth="2.4" strokeLinecap="round" />
+        </svg>
+      </button>
+
+      {open &&
+        createPortal(
+          <MobileMenuOverlay
+            currentLang={lang}
+            onSelectLang={(c) => setLang(c)}
+            onClose={() => setOpen(false)}
+          />,
+          document.body,
+        )}
+    </>
+  );
+}
+
+function MobileMenuOverlay({
+  currentLang,
+  onSelectLang,
+  onClose,
+}: {
+  currentLang: LangCode;
+  onSelectLang: (c: LangCode) => void;
+  onClose: () => void;
+}) {
+  const { pathname } = useLocation();
+  const [langOpen, setLangOpen] = useState(false);
+  const current = LANGS.find((l) => l.code === currentLang) ?? LANGS[0];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menu"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: '#000',
+        zIndex: 300,
+        display: 'flex',
+        flexDirection: 'column',
+        animation: 'mobileMenuSlide 0.32s cubic-bezier(0.22, 1, 0.36, 1)',
+        overflowY: 'auto',
+      }}
+    >
+      <style>{`
+        @keyframes mobileMenuSlide {
+          from { transform: translateY(-100%); }
+          to   { transform: translateY(0); }
+        }
+        @keyframes mobileMenuFade {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+
+      {/* Radial vignette to match site */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.55) 70%, #000 100%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Close × — fixed top-right */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close menu"
+        style={{
+          position: 'absolute',
+          top: 18,
+          right: 18,
+          width: 36,
+          height: 36,
+          borderRadius: 999,
+          background: 'transparent',
+          border: '1px solid rgba(201,154,63,0.45)',
+          color: '#C99A3F',
+          fontSize: 22,
+          lineHeight: 1,
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3,
+        }}
+      >
+        ×
+      </button>
+
+      {/* Items — centered (logo + nav + lang) */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: langOpen ? 'flex-start' : 'center',
+          gap: langOpen ? 16 : 24,
+          padding: langOpen ? '36px 24px 24px' : '60px 24px 40px',
+          position: 'relative',
+          zIndex: 1,
+          animation: 'mobileMenuFade 0.38s ease-out 0.08s both',
+          transition: 'gap 0.32s ease, padding 0.32s ease, justify-content 0.32s ease',
+        }}
+      >
+        {/* Centered circular logo — large, shrinks when language dropdown opens */}
+        <Link
+          to="/grid"
+          onClick={onClose}
+          aria-label="WALL — home"
+          style={{
+            display: 'inline-flex',
+            transition: 'transform 0.32s ease, margin 0.32s ease',
+            transform: langOpen ? 'scale(0.36)' : 'scale(1)',
+            transformOrigin: 'center center',
+            marginBottom: langOpen ? -60 : 4,
+          }}
+        >
+          <div
+            style={{
+              width: 184,
+              height: 184,
+              borderRadius: 999,
+              border: '2px solid rgba(201,154,63,0.70)',
+              background: '#000',
+              boxShadow:
+                '0 0 44px rgba(201,154,63,0.42), inset 0 0 0 3px rgba(0,0,0,0.6)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
+          >
+            <img
+              src={dogyptLogoRound}
+              alt="DOGYPT"
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+              }}
+            />
+          </div>
+        </Link>
+        {NAV_ITEMS.map(({ label, to }) => {
+          const isActive =
+            to === '/grid'
+              ? pathname === '/grid' || pathname === '/gods' || pathname === '/'
+              : pathname === to;
+          return (
+            <Link
+              key={to}
+              to={to}
+              onClick={onClose}
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: 22,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: isActive ? '#C99A3F' : 'rgba(242,234,214,0.85)',
+                textDecoration: 'none',
+                borderBottom: isActive
+                  ? '1.5px solid #C99A3F'
+                  : '1.5px solid transparent',
+                paddingBottom: 3,
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              {label}
+            </Link>
+          );
+        })}
+
+        {/* Language picker */}
+        <div
+          style={{
+            marginTop: 18,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 12,
+            width: '100%',
+            maxWidth: 280,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setLangOpen((v) => !v)}
+            aria-haspopup="listbox"
+            aria-expanded={langOpen}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '10px 18px',
+              background: 'rgba(250,243,225,0.06)',
+              border: '1px solid rgba(201,154,63,0.55)',
+              borderRadius: 999,
+              cursor: 'pointer',
+              color: '#FAF3E1',
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 600,
+              fontSize: 12,
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+            }}
+          >
+            <span style={{ fontSize: 18, lineHeight: 1 }}>{current.flag}</span>
+            <span>{current.label}</span>
+            <svg
+              width="10"
+              height="6"
+              viewBox="0 0 10 6"
+              fill="none"
+              aria-hidden
+              style={{
+                transform: langOpen ? 'rotate(180deg)' : 'rotate(0)',
+                transition: 'transform 0.2s',
+              }}
+            >
+              <path
+                d="M1 1 L5 5 L9 1"
+                stroke="#C99A3F"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {langOpen && (
+            <div
+              role="listbox"
+              style={{
+                width: '100%',
+                maxHeight: '40vh',
+                overflowY: 'auto',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 6,
+                padding: 8,
+                background: 'rgba(250,243,225,0.04)',
+                border: '1px solid rgba(201,154,63,0.30)',
+                borderRadius: 10,
+                animation: 'mobileMenuFade 0.2s ease-out',
+              }}
+            >
+              {LANGS.map((l) => {
+                const active = l.code === currentLang;
+                return (
+                  <button
+                    key={l.code}
+                    type="button"
+                    role="option"
+                    aria-selected={active}
+                    onClick={() => {
+                      onSelectLang(l.code);
+                      setLangOpen(false);
+                    }}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 7,
+                      padding: '7px 9px',
+                      background: active ? 'rgba(201,154,63,0.22)' : 'transparent',
+                      border: active
+                        ? '1px solid #C99A3F'
+                        : '1px solid rgba(201,154,63,0.25)',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      color: '#FAF3E1',
+                    }}
+                  >
+                    <span style={{ fontSize: 15, lineHeight: 1 }}>{l.flag}</span>
+                    <span
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontWeight: 700,
+                        fontSize: 10,
+                        letterSpacing: '0.08em',
+                      }}
+                    >
+                      {l.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

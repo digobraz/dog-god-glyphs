@@ -1,166 +1,193 @@
+import { Link } from 'react-router-dom';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import { PageNav } from '@/components/PageNav';
-
-const SECTIONS = [
-  {
-    num: 'I.',
-    title: 'The Canon',
-    sub: 'Who We Are',
-    body: 'We are the nation of dog lovers who know the truth written backwards in the name of God. We are not a club. We are not a charity. We are a civilisation built around the most honest creature on Earth.',
-  },
-  {
-    num: 'II.',
-    title: 'The Creed',
-    sub: 'What We Believe',
-    body: 'Dog is God. Not a metaphor — a mirror. Every dog alive today carries the covenant made the moment the first wolf chose to walk beside the first human. We honour that choice.',
-  },
-  {
-    num: 'III.',
-    title: 'The Commandments',
-    sub: 'How We Act',
-    body: 'A Dogyptian feeds before eating, walks before working, and defends without hesitation. We do not breed suffering. We do not look away from the street. Every dog deserves a name.',
-  },
-  {
-    num: 'IV.',
-    title: 'The Sacraments',
-    sub: 'How We Mark Belonging',
-    body: 'The Heroglyph is the first sacrament — the permanent mark that places your dog in the eternal record of the Pack. Every symbol is unique. Every symbol is sacred.',
-  },
-];
 
 export default function Codex() {
   return (
-    <div style={{ background: '#000', color: '#F2EAD6', minHeight: '100vh' }}>
-      <PageNav />
-
-      {/* Hero */}
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
+      {/* Radial vignette — identical to /heroglyph, /vision, /about */}
       <div
+        aria-hidden
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-          paddingTop: 'clamp(96px, 14vh, 140px)',
-          paddingBottom: 'clamp(48px, 7vh, 80px)',
-          paddingLeft: 24,
-          paddingRight: 24,
-          borderBottom: '1px solid rgba(201,154,63,0.14)',
+          position: 'absolute',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
+          zIndex: 0,
+          pointerEvents: 'none',
         }}
+      />
+
+      <style>{`
+        .codex-stack {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: clamp(14px, 2.4vh, 22px);
+          width: 100%;
+          max-width: 720px;
+          text-align: center;
+        }
+
+        .codex-eyebrow {
+          font-family: 'Cinzel', serif;
+          font-size: clamp(0.62rem, 0.95vw, 0.74rem);
+          letter-spacing: 0.36em;
+          color: rgba(250,244,236,0.50);
+          text-transform: uppercase;
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          margin: 0;
+        }
+        .codex-eyebrow::before,
+        .codex-eyebrow::after {
+          content: '';
+          height: 1px;
+          width: clamp(20px, 3vw, 32px);
+          background: rgba(201,154,63,0.45);
+        }
+
+        .codex-headline {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(2.2rem, 5.4vw, 4rem);
+          letter-spacing: 0.02em;
+          line-height: 1;
+          margin: 0;
+          text-transform: uppercase;
+          background:
+            linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter:
+            drop-shadow(0 0 22px rgba(245,199,61,0.42))
+            drop-shadow(0 0 7px rgba(230,158,26,0.5));
+        }
+
+        .codex-sub {
+          font-family: 'Cinzel', serif;
+          font-style: italic;
+          font-weight: 500;
+          font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+          letter-spacing: 0.04em;
+          color: rgba(250,244,236,0.78);
+          margin: 0;
+          line-height: 1.3;
+        }
+
+        .codex-preamble {
+          width: 100%;
+          max-width: 640px;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1.5px solid #C99A3F;
+          border-radius: 12px;
+          padding: clamp(18px, 2.8vh, 28px) clamp(20px, 4vw, 34px);
+          font-family: 'Cinzel', serif;
+          font-style: italic;
+          font-weight: 500;
+          font-size: clamp(0.82rem, 1.15vw, 0.98rem);
+          line-height: 1.65;
+          color: #1a0a05;
+          text-align: center;
+          letter-spacing: 0.01em;
+          box-shadow:
+            0 8px 28px rgba(0,0,0,0.55),
+            0 0 0 3px rgba(201,154,63,0.18);
+        }
+        @media (max-width: 767px) {
+          .codex-preamble {
+            font-size: 11.5px;
+            line-height: 1.55;
+            padding: 14px 16px;
+          }
+        }
+        .codex-preamble-label {
+          font-family: 'Cinzel', serif;
+          font-style: normal;
+          font-weight: 700;
+          font-size: 0.62rem;
+          letter-spacing: 0.32em;
+          text-transform: uppercase;
+          color: #8a5a14;
+          margin: 0 0 10px;
+        }
+
+        .codex-question {
+          font-family: 'Cinzel', serif;
+          font-weight: 600;
+          font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+          line-height: 1.5;
+          color: #FAF4EC;
+          letter-spacing: 0.02em;
+          max-width: 600px;
+          margin: 0;
+          text-wrap: balance;
+        }
+        .codex-question .accent {
+          color: #C99A3F;
+        }
+        @media (max-width: 767px) {
+          .codex-question { font-size: 12.5px; line-height: 1.45; }
+        }
+
+        .codex-footer {
+          font-family: 'Cinzel', serif;
+          font-size: clamp(0.6rem, 0.9vw, 0.7rem);
+          letter-spacing: 0.26em;
+          color: rgba(250,244,236,0.40);
+          text-transform: uppercase;
+          margin: 0;
+        }
+        .codex-footer .link {
+          color: rgba(201,154,63,0.78);
+          text-decoration: none;
+        }
+      `}</style>
+
+      {/* Top bar — same pattern as Vision */}
+      <div
+        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[19px] md:pt-[14px]"
+        style={{ zIndex: 2 }}
       >
-        <p style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 'clamp(9px, 1vw, 11px)',
-          fontWeight: 700,
-          letterSpacing: '0.32em',
-          textTransform: 'uppercase',
-          color: '#C99A3F',
-          marginBottom: 20,
-        }}>
-          The Sacred Laws of Dogyptism
-        </p>
-        <h1 style={{
-          fontFamily: "'Cinzel', serif",
-          fontWeight: 700,
-          fontSize: 'clamp(2.8rem, 8vw, 6rem)',
-          letterSpacing: '-0.01em',
-          lineHeight: 1,
-          color: '#FAF4EC',
-          marginBottom: 24,
-        }}>
-          THE CODEX
-        </h1>
-        <p style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 'clamp(0.8rem, 1.2vw, 1rem)',
-          color: 'rgba(250,244,236,0.45)',
-          letterSpacing: '0.08em',
-          maxWidth: 480,
-          lineHeight: 1.7,
-        }}>
-          Every religion needs a constitution. Every nation needs laws.
-          The Codex is the living document of Dogyptism.
-        </p>
+        <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
+          <img
+            src={dogyptLogo}
+            alt="DOGYPT"
+            className="h-9 md:h-10 object-contain"
+          />
+        </Link>
+        <PageNav />
       </div>
 
-      {/* Sections */}
-      <div style={{
-        maxWidth: 760,
-        margin: '0 auto',
-        padding: 'clamp(48px, 8vh, 80px) 24px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'clamp(32px, 5vh, 56px)',
-      }}>
-        {SECTIONS.map((s) => (
-          <div
-            key={s.num}
-            style={{
-              borderLeft: '2px solid rgba(201,154,63,0.35)',
-              paddingLeft: 28,
-            }}
-          >
-            <p style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              letterSpacing: '0.22em',
-              color: '#C99A3F',
-              textTransform: 'uppercase',
-              marginBottom: 6,
-            }}>
-              Part {s.num} — {s.sub}
-            </p>
-            <h2 style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              fontSize: 'clamp(1.2rem, 2.5vw, 1.6rem)',
-              color: '#FAF4EC',
-              letterSpacing: '0.04em',
-              marginBottom: 14,
-            }}>
-              {s.title}
-            </h2>
-            <p style={{
-              fontSize: 'clamp(0.85rem, 1.2vw, 0.95rem)',
-              color: 'rgba(250,244,236,0.55)',
-              lineHeight: 1.75,
-              maxWidth: 600,
-            }}>
-              {s.body}
+      {/* Main centered */}
+      <div
+        className="flex-1 flex items-center justify-center px-5 md:px-10 relative min-h-0"
+        style={{ zIndex: 2 }}
+      >
+        <div className="codex-stack">
+          <p className="codex-eyebrow">Sacred Laws of Dogyptism</p>
+          <h1 className="codex-headline">The Codex</h1>
+          <p className="codex-sub">The living constitution of the Pack.</p>
+
+          <div className="codex-preamble" role="note" aria-label="Preamble">
+            <p className="codex-preamble-label">Preamble</p>
+            <p style={{ margin: 0 }}>
+              "We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution."
             </p>
           </div>
-        ))}
-      </div>
 
-      {/* Full constitution CTA */}
-      <div style={{
-        borderTop: '1px solid rgba(201,154,63,0.14)',
-        padding: 'clamp(48px, 8vh, 72px) 24px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 16,
-        textAlign: 'center',
-      }}>
-        <p style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: '0.75rem',
-          letterSpacing: '0.2em',
-          color: 'rgba(201,154,63,0.6)',
-          textTransform: 'uppercase',
-        }}>
-          Full Constitution
-        </p>
-        <p style={{
-          color: 'rgba(250,244,236,0.4)',
-          fontSize: '0.9rem',
-          lineHeight: 1.6,
-          maxWidth: 400,
-        }}>
-          The complete Constitution of Dogyptism — all nine parts — is coming to{' '}
-          <span style={{ color: 'rgba(201,154,63,0.7)', fontFamily: "'Cinzel', serif" }}>
-            dogyptism.dogypt.com
-          </span>
-        </p>
+          <p className="codex-question">
+            A billion people hold the cow sacred.{' '}
+            <span className="accent">Will enough of us stand for the dog?</span>
+          </p>
+
+          <p className="codex-footer">
+            Full Constitution →{' '}
+            <span className="link">dogyptism.dogypt.com</span>
+          </p>
+        </div>
       </div>
     </div>
   );
