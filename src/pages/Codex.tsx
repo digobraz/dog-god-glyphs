@@ -125,13 +125,13 @@ export default function Codex() {
         .codex-slider {
           position: relative;
           width: 100%;
-          max-width: 1020px;
+          max-width: 880px;
           height: 100%;
           display: flex;
           flex-direction: column;
           align-items: stretch;
           justify-content: center;
-          padding: 0 clamp(80px, 8vw, 96px);
+          padding: 0 clamp(12px, 2vw, 24px);
         }
         .codex-viewport {
           flex: 0 0 auto;
@@ -334,39 +334,7 @@ export default function Codex() {
           .codex-question-big { font-size: 17px; line-height: 1.35; }
         }
 
-        /* ── Nav ── */
-        .codex-nav-btn {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 3;
-          appearance: none;
-          background: none;
-          border: 1px solid rgba(201,154,63,0.45);
-          color: #C99A3F;
-          width: 44px;
-          height: 44px;
-          border-radius: 50%;
-          font-family: 'Cinzel', serif;
-          font-size: 1.6rem;
-          line-height: 1;
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, opacity 180ms ease;
-        }
-        .codex-nav-btn.prev { left: clamp(2px, 0.6vw, 10px); }
-        .codex-nav-btn.next { right: clamp(2px, 0.6vw, 10px); }
-        .codex-nav-btn:hover:not(:disabled) {
-          background: rgba(201,154,63,0.12);
-          border-color: rgba(201,154,63,0.85);
-          transform: translateY(-50%) scale(1.05);
-        }
-        .codex-nav-btn:disabled {
-          opacity: 0.38;
-          cursor: not-allowed;
-        }
+        /* ── Dots ── */
         .codex-dots {
           display: flex;
           align-items: center;
@@ -396,7 +364,6 @@ export default function Codex() {
           transform: scale(1.15);
         }
         @media (max-width: 767px) {
-          .codex-nav-btn { width: 38px; height: 38px; font-size: 1.3rem; }
           .codex-dot { width: 10px; height: 10px; }
         }
       `}</style>
@@ -422,20 +389,6 @@ export default function Codex() {
         style={{ zIndex: 2 }}
       >
         <div className="codex-slider">
-          <button
-            className="codex-nav-btn prev"
-            onClick={prev}
-            aria-label="Previous"
-          >
-            ‹
-          </button>
-          <button
-            className="codex-nav-btn next"
-            onClick={next}
-            aria-label="Next"
-          >
-            ›
-          </button>
           <div
             className={`codex-viewport ${dragging ? 'dragging' : ''}`}
             onPointerDown={onPointerDown}
