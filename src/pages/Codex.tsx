@@ -129,12 +129,14 @@ export default function Codex() {
           height: 100%;
           display: flex;
           flex-direction: column;
+          align-items: stretch;
+          justify-content: center;
           padding: 0 clamp(80px, 8vw, 96px);
         }
         .codex-viewport {
-          flex: 1;
+          flex: 0 0 auto;
+          width: 100%;
           overflow: hidden;
-          min-height: 0;
           position: relative;
           touch-action: pan-y;
           cursor: grab;
@@ -146,17 +148,16 @@ export default function Codex() {
         .codex-track {
           display: flex;
           width: 100%;
-          height: 100%;
+          align-items: stretch;
           transition: transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
         }
         .codex-slide {
           flex: 0 0 100%;
-          height: 100%;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          padding: 0 clamp(8px, 2vw, 24px);
+          padding: clamp(20px, 3vh, 40px) clamp(8px, 2vw, 24px);
           text-align: center;
         }
         .codex-slider .codex-slide > * + * {
@@ -164,8 +165,7 @@ export default function Codex() {
         }
         .codex-slider > .codex-dots {
           flex-shrink: 0;
-          margin-top: 25px;
-          padding-bottom: clamp(10px, 1.6vh, 18px);
+          margin-top: 30px;
         }
 
         /* ── Slide 1 ── */
@@ -202,8 +202,8 @@ export default function Codex() {
           text-wrap: balance;
         }
         @media (max-width: 767px) {
-          .codex-preamble-text { font-size: 15px; line-height: 1.5; }
-          .codex-headline { font-size: 1.8rem; }
+          .codex-preamble-text { font-size: 17.5px; line-height: 1.5; }
+          .codex-headline { font-size: 2.4rem; letter-spacing: 0.03em; }
         }
 
         /* ── Slide 2: papyrus + index ── */
