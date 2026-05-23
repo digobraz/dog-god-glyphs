@@ -172,14 +172,15 @@ export default function Codex() {
         .codex-headline {
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: clamp(2.2rem, 5.4vw, 4rem);
+          font-size: clamp(3rem, 7.2vw, 5.6rem);
           letter-spacing: 0.04em;
-          line-height: 1;
+          line-height: 1.02;
           margin: 0;
           text-transform: uppercase;
           color: rgba(250,244,236,0.95);
         }
         .codex-headline .grad {
+          display: block;
           background:
             linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
           -webkit-background-clip: text;
@@ -188,6 +189,9 @@ export default function Codex() {
           filter:
             drop-shadow(0 0 22px rgba(245,199,61,0.42))
             drop-shadow(0 0 7px rgba(230,158,26,0.5));
+        }
+        .codex-headline .line {
+          display: block;
         }
         .codex-preamble-text {
           font-family: 'Cinzel', serif;
@@ -203,7 +207,7 @@ export default function Codex() {
         }
         @media (max-width: 767px) {
           .codex-preamble-text { font-size: 17.5px; line-height: 1.5; }
-          .codex-headline { font-size: 2.4rem; letter-spacing: 0.03em; }
+          .codex-headline { font-size: 3.1rem; letter-spacing: 0.03em; }
         }
 
         /* ── Slide 2: papyrus + index ── */
@@ -404,7 +408,8 @@ export default function Codex() {
               {/* Slide 1: headline + preamble */}
               <div className="codex-slide" aria-label="Preamble">
                 <h1 className="codex-headline">
-                  <span className="grad">In Dog</span> We Trust
+                  <span className="grad">In Dog</span>
+                  <span className="line">We Trust</span>
                 </h1>
                 <p className="codex-preamble-text">
                   "We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution."
