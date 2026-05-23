@@ -193,6 +193,39 @@ export default function Codex() {
         .codex-headline .line {
           display: block;
         }
+        .codex-preamble-wrap {
+          position: relative;
+          width: 100%;
+          max-width: 820px;
+          padding: clamp(8px, 1.2vh, 18px) clamp(28px, 5vw, 52px);
+        }
+        .codex-quote {
+          position: absolute;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(4.5rem, 9vw, 7.5rem);
+          line-height: 0.6;
+          pointer-events: none;
+          user-select: none;
+          background:
+            linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter:
+            drop-shadow(0 0 18px rgba(245,199,61,0.35))
+            drop-shadow(0 0 5px rgba(230,158,26,0.35));
+          opacity: 0.85;
+        }
+        .codex-quote.left {
+          top: 0;
+          left: 0;
+        }
+        .codex-quote.right {
+          bottom: 0;
+          right: 0;
+          transform: translateY(50%);
+        }
         .codex-preamble-text {
           font-family: 'Cinzel', serif;
           font-weight: 500;
@@ -202,8 +235,29 @@ export default function Codex() {
           letter-spacing: 0.02em;
           color: rgba(250,244,236,0.92);
           margin: 0;
-          max-width: 820px;
           text-wrap: balance;
+        }
+        .codex-oath-label {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(0.62rem, 0.95vw, 0.76rem);
+          letter-spacing: 0.36em;
+          color: rgba(201,154,63,0.7);
+          text-transform: uppercase;
+          margin: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: clamp(10px, 1.6vw, 16px);
+        }
+        .codex-oath-label::before,
+        .codex-oath-label::after {
+          content: '';
+          height: 1px;
+          width: clamp(22px, 3.4vw, 40px);
+          background: rgba(201,154,63,0.5);
+        }
+        .codex-slider .codex-slide > .codex-oath-label {
+          margin-top: clamp(14px, 2vh, 22px);
         }
         @media (max-width: 767px) {
           .codex-preamble-text { font-size: 20px; line-height: 1.45; }
@@ -413,9 +467,14 @@ export default function Codex() {
                   <span className="grad">In Dog</span>
                   <span className="line">We Trust</span>
                 </h1>
-                <p className="codex-preamble-text">
-                  "We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution."
-                </p>
+                <div className="codex-preamble-wrap">
+                  <span className="codex-quote left" aria-hidden>“</span>
+                  <p className="codex-preamble-text">
+                    We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution.
+                  </p>
+                  <span className="codex-quote right" aria-hidden>”</span>
+                </div>
+                <p className="codex-oath-label">The Oath of the Pack</p>
               </div>
 
               {/* Slide 2: Sacred Index in papyrus */}
