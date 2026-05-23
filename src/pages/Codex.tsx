@@ -1,11 +1,43 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import { PageNav } from '@/components/PageNav';
 
+const SACRED_INDEX: ReadonlyArray<readonly [string, string, string]> = [
+  ['I.',    'CANON',           'who we are'],
+  ['II.',   'CREDO',           'what we believe'],
+  ['III.',  'COMMANDMENTS',    'how we act'],
+  ['IV.',   'SACRAMENTS',      'how we pray'],
+  ['V.',    'HIERARCHY',       'who is who'],
+  ['VI.',   'SACRED PLACES',   'where we gather'],
+  ['VII.',  'TEXTS',           'what we read'],
+  ['VIII.', 'LANGUAGE',        'how we speak'],
+  ['IX.',   'ECONOMY',         'how we sustain'],
+  ['X.',    'INSTITUTIONS',    'how we govern'],
+  ['XI.',   'EXPANSION',       'how we grow'],
+  ['XII.',  'ANTI-DOCTRINES',  'what we are not'],
+];
+
+const TOTAL_SLIDES = 3;
+
 export default function Codex() {
+  const [slide, setSlide] = useState(0);
+
+  const next = () => setSlide((s) => Math.min(s + 1, TOTAL_SLIDES - 1));
+  const prev = () => setSlide((s) => Math.max(s - 1, 0));
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') next();
+      else if (e.key === 'ArrowLeft') prev();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
-      {/* Radial vignette — identical to /heroglyph, /vision, /about */}
+      {/* Radial vignette */}
       <div
         aria-hidden
         style={{
@@ -19,39 +51,42 @@ export default function Codex() {
       />
 
       <style>{`
-        .codex-stack {
+        .codex-slider {
+          position: relative;
+          width: 100%;
+          max-width: 880px;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .codex-viewport {
+          flex: 1;
+          overflow: hidden;
+          min-height: 0;
+        }
+        .codex-track {
+          display: flex;
+          width: 100%;
+          height: 100%;
+          transition: transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .codex-slide {
+          flex: 0 0 100%;
+          height: 100%;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: clamp(14px, 2.4vh, 22px);
-          width: 100%;
-          max-width: 720px;
+          justify-content: center;
+          gap: clamp(14px, 2.6vh, 26px);
+          padding: 0 clamp(8px, 2vw, 24px);
           text-align: center;
         }
 
-        .codex-eyebrow {
-          font-family: 'Cinzel', serif;
-          font-size: clamp(0.62rem, 0.95vw, 0.74rem);
-          letter-spacing: 0.36em;
-          color: rgba(250,244,236,0.50);
-          text-transform: uppercase;
-          display: inline-flex;
-          align-items: center;
-          gap: 12px;
-          margin: 0;
-        }
-        .codex-eyebrow::before,
-        .codex-eyebrow::after {
-          content: '';
-          height: 1px;
-          width: clamp(20px, 3vw, 32px);
-          background: rgba(201,154,63,0.45);
-        }
-
+        /* ── Slide 1 ── */
         .codex-headline {
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: clamp(2.2rem, 5.4vw, 4rem);
+          font-size: clamp(2.4rem, 6vw, 4.4rem);
           letter-spacing: 0.02em;
           line-height: 1;
           margin: 0;
@@ -65,88 +100,215 @@ export default function Codex() {
             drop-shadow(0 0 22px rgba(245,199,61,0.42))
             drop-shadow(0 0 7px rgba(230,158,26,0.5));
         }
-
-        .codex-sub {
+        .codex-preamble-text {
           font-family: 'Cinzel', serif;
-          font-style: italic;
           font-weight: 500;
-          font-size: clamp(0.95rem, 1.6vw, 1.2rem);
-          letter-spacing: 0.04em;
-          color: rgba(250,244,236,0.78);
+          font-style: italic;
+          font-size: clamp(0.92rem, 1.25vw, 1.1rem);
+          line-height: 1.55;
+          letter-spacing: 0.02em;
+          color: rgba(250,244,236,0.86);
           margin: 0;
-          line-height: 1.3;
+          max-width: 720px;
+          text-wrap: balance;
+        }
+        @media (max-width: 767px) {
+          .codex-preamble-text { font-size: 13px; line-height: 1.5; }
         }
 
-        .codex-preamble {
+        /* ── Slide 2: papyrus + index ── */
+        .codex-paper {
           width: 100%;
-          max-width: 640px;
+          max-width: 720px;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1.5px solid #C99A3F;
           border-radius: 12px;
-          padding: clamp(18px, 2.8vh, 28px) clamp(20px, 4vw, 34px);
-          font-family: 'Cinzel', serif;
-          font-style: italic;
-          font-weight: 500;
-          font-size: clamp(0.82rem, 1.15vw, 0.98rem);
-          line-height: 1.65;
-          color: #1a0a05;
-          text-align: center;
-          letter-spacing: 0.01em;
+          padding: clamp(18px, 2.6vh, 28px) clamp(22px, 4vw, 36px);
           box-shadow:
             0 8px 28px rgba(0,0,0,0.55),
             0 0 0 3px rgba(201,154,63,0.18);
         }
-        @media (max-width: 767px) {
-          .codex-preamble {
-            font-size: 11.5px;
-            line-height: 1.55;
-            padding: 14px 16px;
-          }
-        }
-        .codex-preamble-label {
+        .codex-paper-label {
           font-family: 'Cinzel', serif;
-          font-style: normal;
           font-weight: 700;
           font-size: 0.62rem;
           letter-spacing: 0.32em;
           text-transform: uppercase;
           color: #8a5a14;
-          margin: 0 0 10px;
-        }
-
-        .codex-question {
-          font-family: 'Cinzel', serif;
-          font-weight: 600;
-          font-size: clamp(0.85rem, 1.3vw, 1.05rem);
-          line-height: 1.5;
-          color: #FAF4EC;
-          letter-spacing: 0.02em;
-          max-width: 600px;
-          margin: 0;
-          text-wrap: balance;
-        }
-        .codex-question .accent {
-          color: #C99A3F;
+          margin: 0 0 clamp(10px, 1.6vh, 16px);
+          text-align: center;
         }
         @media (max-width: 767px) {
-          .codex-question { font-size: 12.5px; line-height: 1.45; }
+          .codex-paper { padding: 14px 16px; }
+          .codex-paper-label { font-size: 0.58rem; margin: 0 0 8px; }
         }
 
-        .codex-footer {
+        .codex-index {
+          width: 100%;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          column-gap: clamp(24px, 4vw, 56px);
           font-family: 'Cinzel', serif;
-          font-size: clamp(0.6rem, 0.9vw, 0.7rem);
-          letter-spacing: 0.26em;
-          color: rgba(250,244,236,0.40);
-          text-transform: uppercase;
-          margin: 0;
+          font-size: clamp(0.78rem, 1.05vw, 0.92rem);
+          letter-spacing: 0.04em;
+          text-align: left;
         }
-        .codex-footer .link {
-          color: rgba(201,154,63,0.78);
-          text-decoration: none;
+        .codex-index .col {
+          display: flex;
+          flex-direction: column;
+        }
+        .codex-index .row {
+          display: grid;
+          grid-template-columns: 2.6em auto;
+          align-items: baseline;
+          column-gap: 0.5em;
+          padding: 4px 0;
+          border-bottom: 1px solid rgba(138,90,20,0.20);
+        }
+        .codex-index .col .row:last-child { border-bottom: none; }
+        .codex-index .num {
+          color: rgba(138,90,20,0.62);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+        .codex-index .item { display: inline; }
+        .codex-index .item .name {
+          color: #6e4710;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.06em;
+        }
+        .codex-index .item .desc {
+          color: rgba(38,22,4,0.62);
+          font-weight: 400;
+          font-style: italic;
+          letter-spacing: 0.02em;
+          text-transform: none;
+        }
+        .codex-index .item .dash {
+          color: rgba(38,22,4,0.34);
+          margin: 0 0.35em;
+        }
+        @media (max-width: 767px) {
+          .codex-index {
+            font-size: 11.5px;
+            column-gap: 14px;
+          }
+          .codex-index .row {
+            grid-template-columns: 2.2em auto;
+            padding: 3px 0;
+          }
+          .codex-index .item .dash { margin: 0 0.25em; }
+        }
+
+        .codex-paper-link {
+          font-family: 'Cinzel', serif;
+          font-size: clamp(0.62rem, 0.9vw, 0.72rem);
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          color: #8a5a14;
+          margin: clamp(12px, 1.8vh, 18px) 0 0;
+          text-align: center;
+        }
+        .codex-paper-link .accent {
+          color: #C99A3F;
+        }
+
+        /* ── Slide 3: the question ── */
+        .codex-question-big {
+          font-family: 'Cinzel', serif;
+          font-weight: 600;
+          font-style: italic;
+          font-size: clamp(1.3rem, 2.4vw, 1.95rem);
+          line-height: 1.4;
+          letter-spacing: 0.02em;
+          margin: 0;
+          max-width: 760px;
+          text-wrap: balance;
+          color: rgba(250,244,236,0.92);
+        }
+        .codex-question-big .accent {
+          display: block;
+          margin-top: 0.5em;
+          background:
+            linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter:
+            drop-shadow(0 0 14px rgba(245,199,61,0.32))
+            drop-shadow(0 0 5px rgba(230,158,26,0.36));
+        }
+        @media (max-width: 767px) {
+          .codex-question-big { font-size: 17px; line-height: 1.35; }
+        }
+
+        /* ── Nav ── */
+        .codex-nav {
+          flex-shrink: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: clamp(14px, 2.5vw, 22px);
+          padding: clamp(8px, 1.4vh, 14px) 0;
+        }
+        .codex-nav-btn {
+          appearance: none;
+          background: none;
+          border: 1px solid rgba(201,154,63,0.45);
+          color: #C99A3F;
+          width: 38px;
+          height: 38px;
+          border-radius: 50%;
+          font-family: 'Cinzel', serif;
+          font-size: 1.4rem;
+          line-height: 1;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 180ms ease, border-color 180ms ease, transform 180ms ease, opacity 180ms ease;
+        }
+        .codex-nav-btn:hover:not(:disabled) {
+          background: rgba(201,154,63,0.12);
+          border-color: rgba(201,154,63,0.85);
+          transform: scale(1.05);
+        }
+        .codex-nav-btn:disabled {
+          opacity: 0.25;
+          cursor: not-allowed;
+        }
+        .codex-dots {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .codex-dot {
+          appearance: none;
+          background: rgba(201,154,63,0.30);
+          border: none;
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          padding: 0;
+          cursor: pointer;
+          transition: background 180ms ease, transform 180ms ease;
+        }
+        .codex-dot.active {
+          background: #C99A3F;
+          transform: scale(1.3);
+        }
+        .codex-dot:hover:not(.active) {
+          background: rgba(201,154,63,0.55);
+        }
+        @media (max-width: 767px) {
+          .codex-nav-btn { width: 34px; height: 34px; font-size: 1.2rem; }
+          .codex-dot { width: 7px; height: 7px; }
         }
       `}</style>
 
-      {/* Top bar — same pattern as Vision */}
+      {/* Top bar */}
       <div
         className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[19px] md:pt-[14px]"
         style={{ zIndex: 2 }}
@@ -161,32 +323,91 @@ export default function Codex() {
         <PageNav />
       </div>
 
-      {/* Main centered */}
+      {/* Slider */}
       <div
         className="flex-1 flex items-center justify-center px-5 md:px-10 relative min-h-0"
         style={{ zIndex: 2 }}
       >
-        <div className="codex-stack">
-          <p className="codex-eyebrow">Sacred Laws of Dogyptism</p>
-          <h1 className="codex-headline">The Codex</h1>
-          <p className="codex-sub">The living constitution of the Pack.</p>
+        <div className="codex-slider">
+          <div className="codex-viewport">
+            <div
+              className="codex-track"
+              style={{ transform: `translateX(-${slide * 100}%)` }}
+            >
+              {/* Slide 1: headline + preamble */}
+              <div className="codex-slide" aria-label="Preamble">
+                <h1 className="codex-headline">The Codex</h1>
+                <p className="codex-preamble-text">
+                  "We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution."
+                </p>
+              </div>
 
-          <div className="codex-preamble" role="note" aria-label="Preamble">
-            <p className="codex-preamble-label">Preamble</p>
-            <p style={{ margin: 0 }}>
-              "We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution."
-            </p>
+              {/* Slide 2: Sacred Index in papyrus */}
+              <div className="codex-slide" aria-label="Sacred Index">
+                <div className="codex-paper">
+                  <p className="codex-paper-label">Sacred Index</p>
+                  <div className="codex-index" role="list">
+                    {[0, 1].map((col) => (
+                      <div className="col" key={col}>
+                        {SACRED_INDEX.slice(col * 6, col * 6 + 6).map(([num, name, desc]) => (
+                          <div className="row" role="listitem" key={num}>
+                            <span className="num">{num}</span>
+                            <span className="item">
+                              <span className="name">{name}</span>
+                              <span className="dash">—</span>
+                              <span className="desc">{desc}</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="codex-paper-link">
+                    Full Constitution — <span className="accent">coming 06.06.2026</span>
+                  </p>
+                </div>
+              </div>
+
+              {/* Slide 3: the question */}
+              <div className="codex-slide" aria-label="The Question">
+                <p className="codex-question-big">
+                  A billion people hold the cow sacred.
+                  <span className="accent">Will enough of us stand for the dog?</span>
+                </p>
+              </div>
+            </div>
           </div>
 
-          <p className="codex-question">
-            A billion people hold the cow sacred.{' '}
-            <span className="accent">Will enough of us stand for the dog?</span>
-          </p>
-
-          <p className="codex-footer">
-            Full Constitution →{' '}
-            <span className="link">dogyptism.dogypt.com</span>
-          </p>
+          {/* Nav */}
+          <div className="codex-nav" aria-label="Codex slider navigation">
+            <button
+              className="codex-nav-btn"
+              onClick={prev}
+              disabled={slide === 0}
+              aria-label="Previous"
+            >
+              ‹
+            </button>
+            <div className="codex-dots">
+              {[0, 1, 2].map((i) => (
+                <button
+                  key={i}
+                  className={`codex-dot ${i === slide ? 'active' : ''}`}
+                  onClick={() => setSlide(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  aria-current={i === slide}
+                />
+              ))}
+            </div>
+            <button
+              className="codex-nav-btn"
+              onClick={next}
+              disabled={slide === TOTAL_SLIDES - 1}
+              aria-label="Next"
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
     </div>
