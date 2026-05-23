@@ -206,8 +206,10 @@ export default function Codex() {
           text-wrap: balance;
         }
         @media (max-width: 767px) {
-          .codex-preamble-text { font-size: 17.5px; line-height: 1.5; }
-          .codex-headline { font-size: 3.1rem; letter-spacing: 0.03em; }
+          .codex-preamble-text { font-size: 20px; line-height: 1.45; }
+          .codex-headline { font-size: 3.8rem; letter-spacing: 0.03em; line-height: 1.04; }
+          .codex-slider { padding: 0 clamp(8px, 2vw, 16px); }
+          .codex-slide { padding: clamp(12px, 2vh, 24px) clamp(4px, 1.5vw, 12px); }
         }
 
         /* ── Slide 2: papyrus + index ── */
