@@ -130,17 +130,15 @@ export default function Codex() {
   };
 
   return (
-    <div className={`dark-bg flex flex-col h-[100dvh] overflow-hidden relative ${slide === 2 ? 'codex-bg-bright' : ''}`}>
+    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
       {/* Radial vignette — lighter on slide 3 so BG mosaic stays visible around PNGs */}
       <div
         aria-hidden
         style={{
           position: 'absolute',
           inset: 0,
-          background: slide === 2
-            ? 'transparent'
-            : 'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
-          transition: 'background 380ms ease',
+          background:
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -153,12 +151,6 @@ export default function Codex() {
       </div>
 
       <style>{`
-        /* Slide 3: brighten BG mosaic so heroglyph symbols are visible around PNGs */
-        .codex-bg-bright::before {
-          filter: blur(0) brightness(1.8) saturate(1.15) !important;
-          opacity: 1 !important;
-          transition: filter 380ms ease, opacity 380ms ease;
-        }
         .codex-slider {
           position: relative;
           width: 100%;
@@ -670,15 +662,11 @@ export default function Codex() {
           height: clamp(78vh, 94vh, 108vh);
           left: 50px;
           transform: translateY(-50%);
-          -webkit-mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
-                  mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
         }
         .codex-hektor {
           height: clamp(90vh, 108vh, 124vh);
           right: 4vw;
           transform: translateY(-50%);
-          -webkit-mask-image: linear-gradient(to left, #000 0%, #000 78%, transparent 100%);
-                  mask-image: linear-gradient(to left, #000 0%, #000 78%, transparent 100%);
         }
         .codex-3-overlay {
           position: relative;
