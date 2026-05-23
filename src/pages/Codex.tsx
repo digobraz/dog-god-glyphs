@@ -659,13 +659,13 @@ export default function Codex() {
           /* black BG of PNG blends with page BG */
         }
         .codex-cow {
-          height: clamp(82vh, 96vh, 110vh);
-          left: -8vw;
+          height: clamp(65vh, 78vh, 90vh);
+          left: 1vw;
           transform: translateY(-50%);
         }
         .codex-hektor {
-          height: clamp(78vh, 92vh, 106vh);
-          right: -12vw;
+          height: clamp(58vh, 70vh, 82vh);
+          right: 1vw;
           transform: translateY(-50%);
         }
         .codex-3-overlay {
@@ -733,8 +733,8 @@ export default function Codex() {
             drop-shadow(0 0 5px rgba(230,158,26,0.36));
         }
         @media (max-width: 767px) {
-          .codex-cow { height: clamp(58vh, 74vh, 86vh); left: -8vw; }
-          .codex-hektor { height: clamp(58vh, 72vh, 84vh); right: -10vw; }
+          .codex-cow { height: clamp(45vh, 58vh, 70vh); left: 2vw; }
+          .codex-hektor { height: clamp(42vh, 52vh, 64vh); right: 2vw; }
           .codex-3-overlay { max-width: 320px; gap: 14px; }
           .codex-stat-number { font-size: clamp(2rem, 12vw, 3rem); }
           .codex-stat-sub { font-size: 0.7rem; letter-spacing: 0.12em; }
