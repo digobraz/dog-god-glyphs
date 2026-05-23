@@ -156,7 +156,7 @@ export default function About() {
 
       {/* Top bar — same pattern as Vision */}
       <div
-        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[19px] md:pt-[14px]"
+        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[39px] md:pt-[34px]"
         style={{ zIndex: 2 }}
       >
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">

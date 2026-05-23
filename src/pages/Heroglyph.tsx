@@ -461,7 +461,7 @@ export default function Heroglyph() {
       `}</style>
 
       {/* Top logo */}
-      <div className="flex-shrink-0 flex justify-center pt-3 pb-2 md:pt-5 relative" style={{ zIndex: 2 }}>
+      <div className="flex-shrink-0 flex justify-center pt-[32px] pb-2 md:pt-[40px] relative" style={{ zIndex: 2 }}>
         <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
       </div>
 
