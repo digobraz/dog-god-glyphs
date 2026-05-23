@@ -45,8 +45,8 @@ export default function Codex() {
   const wheelAccum = useRef(0);
   const wheelLock = useRef(false);
 
-  const next = () => setSlide((s) => Math.min(s + 1, TOTAL_SLIDES - 1));
-  const prev = () => setSlide((s) => Math.max(s - 1, 0));
+  const next = () => setSlide((s) => (s + 1) % TOTAL_SLIDES);
+  const prev = () => setSlide((s) => (s - 1 + TOTAL_SLIDES) % TOTAL_SLIDES);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -81,24 +81,28 @@ export default function Codex() {
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
   };
 
-  // Trackpad horizontal scroll → slide change (debounced, locked per swipe)
+  // Trackpad horizontal scroll → one slide per gesture (debounced, hard-locked)
   const onWheel = (e: React.WheelEvent) => {
     const dx = e.deltaX;
     const dy = e.deltaY;
     // Prefer horizontal intent
     if (Math.abs(dx) <= Math.abs(dy) * 1.2) return;
-    if (wheelLock.current) return;
+    // Hard lock during cooldown — discard inertial residue
+    if (wheelLock.current) {
+      wheelAccum.current = 0;
+      return;
+    }
     wheelAccum.current += dx;
-    if (wheelAccum.current >= 40) {
+    if (wheelAccum.current >= 60) {
       next();
       wheelLock.current = true;
       wheelAccum.current = 0;
-      setTimeout(() => { wheelLock.current = false; }, 500);
-    } else if (wheelAccum.current <= -40) {
+      setTimeout(() => { wheelLock.current = false; }, 700);
+    } else if (wheelAccum.current <= -60) {
       prev();
       wheelLock.current = true;
       wheelAccum.current = 0;
-      setTimeout(() => { wheelLock.current = false; }, 500);
+      setTimeout(() => { wheelLock.current = false; }, 700);
     }
   };
 
@@ -121,11 +125,11 @@ export default function Codex() {
         .codex-slider {
           position: relative;
           width: 100%;
-          max-width: 940px;
+          max-width: 1020px;
           height: 100%;
           display: flex;
           flex-direction: column;
-          padding: 0 clamp(48px, 6vw, 64px);
+          padding: 0 clamp(80px, 8vw, 96px);
         }
         .codex-viewport {
           flex: 1;
@@ -158,8 +162,10 @@ export default function Codex() {
         .codex-slider .codex-slide > * + * {
           margin-top: clamp(28px, 4.5vh, 48px);
         }
-        .codex-slider .codex-slide > .codex-dots {
-          margin-top: clamp(32px, 5vh, 56px);
+        .codex-slider > .codex-dots {
+          flex-shrink: 0;
+          margin-top: 25px;
+          padding-bottom: clamp(10px, 1.6vh, 18px);
         }
 
         /* ── Slide 1 ── */
@@ -419,7 +425,6 @@ export default function Codex() {
           <button
             className="codex-nav-btn prev"
             onClick={prev}
-            disabled={slide === 0}
             aria-label="Previous"
           >
             ‹
@@ -427,7 +432,6 @@ export default function Codex() {
           <button
             className="codex-nav-btn next"
             onClick={next}
-            disabled={slide === TOTAL_SLIDES - 1}
             aria-label="Next"
           >
             ›
@@ -452,7 +456,6 @@ export default function Codex() {
                 <p className="codex-preamble-text">
                   "We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution."
                 </p>
-                <Dots slide={slide} setSlide={setSlide} />
               </div>
 
               {/* Slide 2: Sacred Index in papyrus */}
@@ -479,7 +482,6 @@ export default function Codex() {
                     Full Constitution — <span className="accent">coming 06.06.2026</span>
                   </p>
                 </div>
-                <Dots slide={slide} setSlide={setSlide} />
               </div>
 
               {/* Slide 3: the question */}
@@ -488,10 +490,12 @@ export default function Codex() {
                   A billion people hold the cow sacred.
                   <span className="accent">Will enough of us stand for the dog?</span>
                 </p>
-                <Dots slide={slide} setSlide={setSlide} />
               </div>
             </div>
           </div>
+
+          {/* Static dots — single instance under viewport, only `active` mutates */}
+          <Dots slide={slide} setSlide={setSlide} />
         </div>
       </div>
     </div>
