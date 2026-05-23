@@ -258,7 +258,7 @@ export function GodsGrid() {
         <span class="hero-count"><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">1 000 000</span> DOGS</span>
       `;
       const btn = el.querySelector('[data-join]');
-      btn?.addEventListener('click', () => navigate('/heroglyph/name'));
+      btn?.addEventListener('click', () => navigate('/heroglyph'));
       return el;
     }
 

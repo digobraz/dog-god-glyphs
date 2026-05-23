@@ -32,6 +32,7 @@ import PackEternal from "./pages/PackEternal.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
 import Vision from "./pages/Vision.tsx";
+import Mission from "./pages/Mission.tsx";
 import Codex from "./pages/Codex.tsx";
 import About from "./pages/About.tsx";
 import Heroglyph from "./pages/Heroglyph.tsx";
@@ -77,6 +78,7 @@ const App = () => (
           <Route path="/thank-you" element={<Navigate to="/welcome" replace />} />{/* legacy alias for in-flight Stripe sessions */}
           <Route path="/devhome" element={<LandingPage />} />
           <Route path="/vision" element={<Vision />} />
+          <Route path="/mission" element={<Mission />} />
           <Route path="/codex" element={<Codex />} />
           <Route path="/about" element={<About />} />
           <Route path="/terms" element={<Terms />} />

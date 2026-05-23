@@ -245,7 +245,7 @@ function DogRow({ dog }: { dog: DogNode; isLast: boolean }) {
 function AddDogButton({ label, small }: { label: string; small?: boolean }) {
   return (
     <Link
-      to="/heroglyph/name"
+      to="/heroglyph"
       className="inline-flex items-center gap-2"
       style={{
         background: small ? 'transparent' : T.ink,

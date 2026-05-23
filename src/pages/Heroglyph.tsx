@@ -249,20 +249,23 @@ export default function Heroglyph() {
       <style>{`
         .heroglyph-svg-wrap {
           filter:
-            drop-shadow(0 0 3px rgba(255, 215, 110, 0.45))
-            drop-shadow(0 0 10px rgba(245, 199, 61, 0.22));
+            drop-shadow(0 0 18px rgba(255, 215, 110, 0.95))
+            drop-shadow(0 0 42px rgba(201, 154, 63, 0.70))
+            drop-shadow(0 0 90px rgba(201, 154, 63, 0.35));
           animation: heroglyph-aura-pulse 3.2s ease-in-out infinite;
         }
         @keyframes heroglyph-aura-pulse {
           0%, 100% {
             filter:
-              drop-shadow(0 0 3px rgba(255, 215, 110, 0.4))
-              drop-shadow(0 0 10px rgba(245, 199, 61, 0.2));
+              drop-shadow(0 0 18px rgba(255, 215, 110, 0.90))
+              drop-shadow(0 0 42px rgba(201, 154, 63, 0.65))
+              drop-shadow(0 0 90px rgba(201, 154, 63, 0.30));
           }
           50% {
             filter:
-              drop-shadow(0 0 4px rgba(255, 225, 130, 0.55))
-              drop-shadow(0 0 14px rgba(245, 199, 61, 0.3));
+              drop-shadow(0 0 24px rgba(255, 230, 140, 1))
+              drop-shadow(0 0 56px rgba(216, 130, 31, 0.80))
+              drop-shadow(0 0 120px rgba(216, 130, 31, 0.40));
           }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -275,8 +278,8 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.hero-click-pad):not(.cartouche-pad) {
-          fill: #F5C73D !important;
-          stroke: #F5C73D !important;
+          fill: #FFD566 !important;
+          stroke: #FFD566 !important;
         }
         .heroglyph-svg-wrap .hero-click-pad,
         .heroglyph-svg-wrap .cartouche-pad {
@@ -285,26 +288,26 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
-          fill: #E6A435 !important;
-          stroke: #E6A435 !important;
-          filter: drop-shadow(0 0 2px rgba(255,250,235,0.85)) drop-shadow(0 0 5px rgba(255,228,170,0.4));
+          fill: #FFD566 !important;
+          stroke: #FFD566 !important;
+          filter: drop-shadow(0 0 3px rgba(255,250,235,0.95)) drop-shadow(0 0 8px rgba(255,228,170,0.6));
           transition: filter 0.2s ease, transform 0.2s ease, fill 0.2s ease;
           transform-box: fill-box;
           transform-origin: center;
           animation: hero-pulse 2.6s ease-in-out infinite;
         }
         .heroglyph-svg-wrap .hero-zone:hover {
-          fill: #FFD566 !important;
-          stroke: #FFD566 !important;
-          filter: drop-shadow(0 0 3px #FFFFFF) drop-shadow(0 0 8px rgba(255,250,235,0.95));
+          fill: #FFF4C2 !important;
+          stroke: #FFF4C2 !important;
+          filter: drop-shadow(0 0 4px #FFFFFF) drop-shadow(0 0 12px rgba(255,235,160,1));
           transform: scale(1.08);
         }
         .heroglyph-svg-wrap .cartouche-pad:hover {
           cursor: pointer;
         }
         @keyframes hero-pulse {
-          0%, 100% { filter: drop-shadow(0 0 1.5px rgba(255,250,235,0.7)) drop-shadow(0 0 4px rgba(255,245,220,0.4)); }
-          50%      { filter: drop-shadow(0 0 2.5px rgba(255,253,240,1)) drop-shadow(0 0 7px rgba(255,248,225,0.7)); }
+          0%, 100% { filter: drop-shadow(0 0 2px rgba(255,250,235,0.8)) drop-shadow(0 0 6px rgba(255,245,220,0.55)); }
+          50%      { filter: drop-shadow(0 0 4px rgba(255,253,240,1)) drop-shadow(0 0 11px rgba(255,248,225,0.85)); }
         }
         @keyframes tooltip-fade-in {
           0%   { opacity: 0; transform: translateY(4px); }
@@ -746,19 +749,6 @@ export default function Heroglyph() {
             animation: 'tooltip-fade-in 160ms ease',
           }}
         >
-          <div
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: '0.62rem',
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: '#9c6f1f',
-              fontWeight: 700,
-              marginBottom: 3,
-            }}
-          >
-            {pillTooltip.label}
-          </div>
           {pillTooltip.tooltipSub ? (
             <>
               <div

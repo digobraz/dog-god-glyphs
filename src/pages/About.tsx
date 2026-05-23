@@ -124,7 +124,7 @@ export default function About() {
 
           <div style={{ marginTop: 36 }}>
             <Link
-              to="/heroglyph/name"
+              to="/heroglyph"
               style={{
                 display: 'inline-block',
                 fontFamily: "'Cinzel', serif",
