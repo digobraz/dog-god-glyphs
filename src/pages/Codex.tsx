@@ -148,39 +148,7 @@ export default function Codex() {
 
       {/* Slide 3 bleed PNGs — rendered at page level so they extend past slider edges */}
       <div className={`codex-bleed ${slide === 2 ? 'active' : ''}`} aria-hidden>
-        <img src="/images/codex3-cow-nohalo.png" alt="" className="codex-cow" />
-        <svg className="codex-halo" viewBox="0 0 200 60" preserveAspectRatio="xMidYMid meet" aria-hidden>
-          <defs>
-            <radialGradient id="haloGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#FFE08A" stopOpacity="1" />
-              <stop offset="55%" stopColor="#F5C73D" stopOpacity="0.9" />
-              <stop offset="100%" stopColor="#E69E1A" stopOpacity="0.0" />
-            </radialGradient>
-            <linearGradient id="haloRing" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#E69E1A" />
-              <stop offset="50%" stopColor="#FFE08A" />
-              <stop offset="100%" stopColor="#E69E1A" />
-            </linearGradient>
-          </defs>
-          {/* outer glow */}
-          <ellipse cx="100" cy="30" rx="92" ry="22" fill="url(#haloGlow)" opacity="0.55" />
-          {/* main ring */}
-          <ellipse
-            cx="100" cy="30" rx="75" ry="14"
-            fill="none"
-            stroke="url(#haloRing)"
-            strokeWidth="3.4"
-            opacity="0.95"
-          />
-          {/* inner thin highlight */}
-          <ellipse
-            cx="100" cy="30" rx="75" ry="14"
-            fill="none"
-            stroke="#FFF6D8"
-            strokeWidth="0.9"
-            opacity="0.7"
-          />
-        </svg>
+        <img src="/images/codex3-cow.png" alt="" className="codex-cow" />
         <img src="/images/codex3-hektor-v1.png" alt="" className="codex-hektor" />
       </div>
 
@@ -704,48 +672,6 @@ export default function Codex() {
           transform: translateY(-50%);
           -webkit-mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
                   mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
-        }
-        /* Halo above cow — float + glow pulse */
-        .codex-halo {
-          position: absolute;
-          width: clamp(300px, 30vw, 460px);
-          height: auto;
-          /* Anchored above cow's head (cow renders 94vh tall, top edge at ~3vh) */
-          top: 7.5vh;
-          left: clamp(140px, 14.5vw, 240px);
-          pointer-events: none;
-          filter:
-            drop-shadow(0 0 16px rgba(245,199,61,0.85))
-            drop-shadow(0 0 38px rgba(245,199,61,0.55))
-            drop-shadow(0 0 70px rgba(230,158,26,0.35));
-          animation: haloFloat 4.2s ease-in-out infinite, haloPulse 2.8s ease-in-out infinite;
-          transform-origin: center;
-          will-change: transform, filter;
-        }
-        @keyframes haloFloat {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-8px); }
-        }
-        @keyframes haloPulse {
-          0%, 100% {
-            filter:
-              drop-shadow(0 0 16px rgba(245,199,61,0.85))
-              drop-shadow(0 0 38px rgba(245,199,61,0.55))
-              drop-shadow(0 0 70px rgba(230,158,26,0.35));
-          }
-          50% {
-            filter:
-              drop-shadow(0 0 28px rgba(255,224,138,1))
-              drop-shadow(0 0 58px rgba(245,199,61,0.75))
-              drop-shadow(0 0 110px rgba(230,158,26,0.5));
-          }
-        }
-        @media (max-width: 767px) {
-          .codex-halo {
-            width: clamp(160px, 38vw, 220px);
-            top: 8vh;
-            left: clamp(40px, 14vw, 80px);
-          }
         }
         .codex-hektor {
           height: clamp(90vh, 108vh, 124vh);
