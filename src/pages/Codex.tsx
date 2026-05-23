@@ -660,7 +660,7 @@ export default function Codex() {
         }
         .codex-cow {
           height: clamp(78vh, 94vh, 108vh);
-          left: -2vw;
+          left: 50px;
           transform: translateY(-50%);
           filter: drop-shadow(0 0 30px rgba(245,199,61,0.18));
           -webkit-mask-image: linear-gradient(to right, #000 0%, #000 78%, transparent 100%);
@@ -738,7 +738,7 @@ export default function Codex() {
             drop-shadow(0 0 5px rgba(230,158,26,0.36));
         }
         @media (max-width: 767px) {
-          .codex-cow { height: clamp(48vh, 62vh, 72vh); left: -10vw; }
+          .codex-cow { height: clamp(48vh, 62vh, 72vh); left: 20px; }
           .codex-hektor { height: clamp(55vh, 70vh, 82vh); right: 0vw; }
           .codex-3-overlay { max-width: 320px; gap: 14px; }
           .codex-stat-number { font-size: clamp(2rem, 12vw, 3rem); }
