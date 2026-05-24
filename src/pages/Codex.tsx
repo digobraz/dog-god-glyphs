@@ -592,7 +592,7 @@ export default function Codex() {
           background: linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
           color: #3a2204;
           font-family: 'Cinzel', serif;
-          font-weight: 700;
+          font-weight: 900;
           font-size: clamp(0.74rem, 1vw, 0.9rem);
           letter-spacing: 0.24em;
           text-transform: uppercase;
@@ -650,26 +650,38 @@ export default function Codex() {
         .codex-bleed.active {
           opacity: 1;
         }
+        /* ╔══════════════════════════════════════════════════════════════════╗
+           ║  🔒 LOCKED 2026-05-24 (hektor posunutý o 50px nižšie na PC)       ║
+           ║  PC NESMIE byť dotknutý bez výslovného povolenia — Matej hrozí    ║
+           ║  právnymi krokmi. Pri akomkoľvek edite v tomto súbore overiť že   ║
+           ║  values nižšie ostávajú nedotknuté:                                ║
+           ║    cow:    left:-50, bottom:-80, scale(1.14) origin bottom left   ║
+           ║    hektor: right:0, bottom:0,  scale(1.08) origin bottom right    ║
+           ║  Mobile (@media max-width:767px) môže byť ladený samostatne.      ║
+           ╚══════════════════════════════════════════════════════════════════╝ */
         .codex-cow,
         .codex-hektor {
           position: absolute;
-          top: 50%;
-          width: auto;
+          bottom: 0;
+          width: 50vw;
+          height: 100vh;
           object-fit: contain;
-          /* black BG of PNG blends with page BG */
         }
         .codex-cow {
-          height: clamp(95vh, 110vh, 126vh);
-          top: 0;
-          left: -16vw;
-          transform: none;
+          left: -50px;
+          bottom: -80px;
+          object-position: bottom left;
+          transform: scale(1.14);
+          transform-origin: bottom left;
         }
         .codex-hektor {
-          height: clamp(95vh, 110vh, 126vh);
-          top: 0;
-          right: -18vw;
-          transform: none;
+          right: 0;
+          bottom: 0;
+          object-position: bottom right;
+          transform: scale(1.08);
+          transform-origin: bottom right;
         }
+        /* ── END LOCK ────────────────────────────────────────────────────── */
         .codex-3-overlay {
           position: relative;
           z-index: 2;
@@ -681,16 +693,47 @@ export default function Codex() {
           width: 100%;
           max-width: 540px;
           margin: 0 auto;
-          padding: clamp(20px, 4vh, 40px) clamp(12px, 2vw, 20px);
+          /* Asymetrický padding: top > bottom posúva text ~50px nižšie
+             (justify-content:center centruje medzi padding edges). Kompenzuje
+             priestor pod viewportom obsadený dots-mi, aby text sedel približne
+             na strede obrazovky. */
+          padding: clamp(100px, 14vh, 140px) clamp(12px, 2vw, 20px) clamp(20px, 4vh, 40px);
           height: 100%;
         }
         .codex-stat-number {
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: clamp(2.4rem, 6.4vw, 4.8rem);
           letter-spacing: 0.04em;
           line-height: 1;
           margin: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: clamp(2px, 0.4vh, 6px);
+        }
+        /* Riadok 1: "1.2 BILLION" — hero veľkosť + gold gradient, inline row */
+        .codex-stat-row {
+          display: flex;
+          align-items: baseline;
+          gap: clamp(0.5em, 1.3vw, 0.75em);
+        }
+        .codex-stat-row-bottom {
+          gap: clamp(0.3em, 0.8vw, 0.45em);
+        }
+        /* Parenthetical: "(15% of all)" — rovnaká veľkosť ako PEOPLE, len tlmená farba + italic */
+        .codex-stat-note {
+          font-family: 'Cinzel', serif;
+          font-weight: 400;
+          font-style: italic;
+          font-size: clamp(1.15rem, 2.4vw, 2.25rem);
+          color: rgba(250,244,236,0.55);
+          letter-spacing: 0.02em;
+          line-height: 1;
+        }
+        .codex-stat-l1,
+        .codex-stat-l2 {
+          font-size: clamp(2.4rem, 6.4vw, 4.8rem);
+          line-height: 1;
           background:
             linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
           -webkit-background-clip: text;
@@ -700,39 +743,84 @@ export default function Codex() {
             drop-shadow(0 0 22px rgba(245,199,61,0.42))
             drop-shadow(0 0 7px rgba(230,158,26,0.5));
         }
+        /* Riadok 2: "PEOPLE" — zjednotená veľkosť s parenthetical, šírka ≤ top row */
+        .codex-stat-l3 {
+          font-size: clamp(1.15rem, 2.4vw, 2.25rem);
+          line-height: 1;
+          color: rgba(250,244,236,0.95);
+          font-weight: 400;
+          filter: drop-shadow(0 0 8px rgba(250,244,236,0.18));
+        }
         .codex-stat-sub {
           font-family: 'Cinzel', serif;
-          font-weight: 500;
+          font-weight: 900;
           font-style: italic;
-          font-size: clamp(0.78rem, 1.1vw, 0.95rem);
-          letter-spacing: 0.16em;
+          font-size: clamp(1.35rem, 2vw, 1.85rem);
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: rgba(201,154,63,0.78);
+          color: #E69E1A;
+          text-decoration: underline;
+          text-decoration-color: #E69E1A;
+          text-decoration-thickness: 2px;
+          text-underline-offset: 4px;
           margin: -8px 0 0;
+          filter: drop-shadow(0 0 10px rgba(230,158,26,0.4));
         }
         .codex-question-big {
           font-family: 'Cinzel', serif;
-          font-weight: 600;
-          font-style: italic;
-          font-size: clamp(1.05rem, 1.8vw, 1.5rem);
-          line-height: 1.4;
-          letter-spacing: 0.02em;
+          font-weight: 400;
+          font-style: normal;
+          font-size: clamp(0.82rem, 1.05vw, 0.98rem);
+          line-height: 1.45;
+          letter-spacing: 0.015em;
           margin: 0;
-          max-width: 460px;
+          max-width: clamp(280px, 26vw, 360px);
           text-wrap: balance;
           color: rgba(250,244,236,0.92);
         }
         .codex-question-big .accent {
           display: block;
           margin-top: 0.4em;
-          background:
-            linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          filter:
-            drop-shadow(0 0 14px rgba(245,199,61,0.32))
-            drop-shadow(0 0 5px rgba(230,158,26,0.36));
+          color: rgba(250,244,236,0.95);
+          filter: drop-shadow(0 0 10px rgba(250,244,236,0.18));
+        }
+        /* Micro-copy pod CTA — body font (Inter), zúžená na šírku tlačítka */
+        .codex-microcopy {
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          font-weight: 400;
+          font-style: normal;
+          font-size: clamp(0.68rem, 0.82vw, 0.78rem);
+          line-height: 1.4;
+          letter-spacing: 0.01em;
+          color: rgba(250,244,236,0.65);
+          margin: 0;
+          max-width: clamp(240px, 22vw, 320px);
+          text-wrap: balance;
+          text-align: center;
+        }
+        /* Sub-link pod CTA — sekundárny destination signal */
+        .codex-cta-sub {
+          font-family: 'Cinzel', serif;
+          font-weight: 600;
+          font-size: clamp(0.7rem, 0.92vw, 0.82rem);
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: rgba(201,154,63,0.8);
+          text-decoration: none;
+          border-bottom: 1px solid rgba(201,154,63,0.35);
+          padding-bottom: 2px;
+          transition: color 180ms ease, border-color 180ms ease;
+        }
+        .codex-cta-sub:hover {
+          color: #F5C73D;
+          border-color: rgba(245,199,61,0.7);
+        }
+        /* CTA cluster: micro-copy + button + sub-link as a single tight block */
+        .codex-cta-cluster {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: clamp(10px, 1.4vh, 16px);
         }
         @media (max-width: 767px) {
           .codex-cow { height: clamp(72vh, 90vh, 106vh); left: -14vw; top: 0; }
@@ -896,15 +984,26 @@ export default function Codex() {
               {/* Slide 3: cow vs dog — visual (PNGs rendered at page-level below) */}
               <div className="codex-slide codex-slide-3" aria-label="The Question">
                 <div className="codex-3-overlay">
-                  <p className="codex-stat-number">1.2 BILLION</p>
-                  <p className="codex-stat-sub">hold the cow sacred</p>
-                  <p className="codex-question-big">
-                    Will enough of us
-                    <span className="accent">stand for the dog?</span>
+                  <p className="codex-stat-number">
+                    <span className="codex-stat-row">
+                      <span className="codex-stat-l1">1.2</span>
+                      <span className="codex-stat-l2">BILLION</span>
+                    </span>
+                    <span className="codex-stat-row codex-stat-row-bottom">
+                      <span className="codex-stat-l3">PEOPLE</span>
+                      <span className="codex-stat-note">(15% of all)</span>
+                    </span>
                   </p>
-                  <Link to="/heroglyph" className="codex-cta">
-                    Claim Your Heroglyph
-                  </Link>
+                  <p className="codex-stat-sub">bow to the cow</p>
+                  <p className="codex-question-big">
+                    <span className="accent">A religion for dogs? In a world this absurd, why the hell not. We're crazy enough to mean it — sane enough to actually help them.</span>
+                  </p>
+                  <div className="codex-cta-cluster">
+                    <Link to="/heroglyph" className="codex-cta">
+                      Become Dogyptian
+                    </Link>
+                    <p className="codex-microcopy">It takes one click to stand on the right side of history.</p>
+                  </div>
                 </div>
               </div>
             </div>
