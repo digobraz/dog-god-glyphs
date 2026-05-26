@@ -777,7 +777,7 @@ export default function Heroglyph() {
                 onClick={() => navigate('/heroglyph/name')}
                 className="heroglyph-cta"
               >
-                Create Heroglyph
+                Become Dogyptian
               </button>
               <div
                 style={{
@@ -829,7 +829,7 @@ export default function Heroglyph() {
                 onClick={() => navigate('/heroglyph/name')}
                 className="heroglyph-cta"
               >
-                Create Heroglyph
+                Become Dogyptian
               </button>
               <div
                 style={{
