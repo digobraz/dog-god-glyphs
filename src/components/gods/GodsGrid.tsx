@@ -370,6 +370,7 @@ export function GodsGrid() {
 
       const p = photos[photoIndex(col, row)];
       const pos = getPos(p.f);
+      const safeName = esc((p.n || 'DOGYPTIAN').toUpperCase());
 
       const el = document.createElement('article');
       el.className = 'dog-card dog-card--placeholder';
@@ -378,11 +379,12 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
         <div class="card-open-overlay">
-          <div class="card-open-name">AWAITING</div>
+          <div class="card-open-name">${safeName}</div>
         </div>
         <div class="card-rank-top">#—</div>
+        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
         <div class="card-name-block">
-          <div class="card-label">AWAITING</div>
+          <div class="card-label">${safeName}</div>
         </div>
       `;
       return el;
