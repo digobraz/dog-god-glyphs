@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 
@@ -85,6 +86,7 @@ export default function Heroglyph() {
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== 'undefined' ? window.innerWidth < 640 : false,
   );
+  const [defOpen, setDefOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -458,124 +460,174 @@ export default function Heroglyph() {
         @media (prefers-reduced-motion: reduce) {
           .heroglyph-cta { animation: none; }
         }
+        /* Mobile compact CTA — smaller margins/padding so /heroglyph fits 100vh,
+           with extra horizontal breathing room (wider button, side gaps). */
+        @media (max-width: 639px) {
+          .heroglyph-cta {
+            margin-top: 18px;
+            padding: 14px 52px;
+            font-size: 0.95rem;
+            letter-spacing: 0.13em;
+            min-width: 260px;
+          }
+        }
       `}</style>
 
       <PageTopBar withNav />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-12 pb-16 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
+      <div className="flex-1 flex flex-col items-center justify-start md:justify-center px-5 pt-2 pb-6 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-3xl flex flex-col items-center text-center">
 
-          {/* HERO TITLE — Line 1: "THE SYMBOL THAT" (gold + white), Line 2: "CHANGES HISTORY" (white); wraps to 3 lines at narrow viewports */}
-          <h1
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              fontSize: 'clamp(2.6rem, 6vw, 3.4rem)',
-              letterSpacing: '0.04em',
-              lineHeight: 1.08,
-              margin: 0,
-              textTransform: 'uppercase',
-            }}
-          >
-            <span
-              style={{
-                background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
-              }}
-            >
-              The Symbol
-            </span>
-            {isMobile ? (
-              <>
-                <br />
-                <span style={{ color: '#FAF4EC' }}>That Changes</span>
-                <br />
-                <span style={{ color: '#FAF4EC' }}>History</span>
-              </>
-            ) : (
-              <>
-                <span style={{ color: '#FAF4EC' }}>{' '}That</span>
-                <br />
-                <span
-                  style={{
-                    color: '#FAF4EC',
-                    marginTop: 'clamp(2px, 0.4vw, 6px)',
-                    display: 'inline-block',
-                  }}
-                >
-                  Changes History
-                </span>
-              </>
-            )}
-          </h1>
-
-          {/* Dictionary-style definition — 2 columns with vertical divider */}
-          <div
-            className="dict-block"
-            style={{
-              marginTop: 28,
-              width: '100%',
-              maxWidth: 640,
-              display: 'grid',
-              alignItems: 'center',
-              gap: 'clamp(14px, 3vw, 28px)',
-              textAlign: 'left',
-              paddingLeft: 'clamp(8px, 2vw, 16px)',
-              paddingRight: 'clamp(8px, 2vw, 16px)',
-            }}
-          >
-            {/* Left column: name + IPA (etymology moved to hover tooltip) */}
-            <div className="dict-left">
-              <div
-                onMouseEnter={(e) => {
-                  setPillTooltip({
-                    icon: '',
-                    label: 'Heroglyph',
-                    tooltip: 'HERO = DOG · GLYPH = SYMBOL',
-                    tooltipSub: 'GOD name for every DOG.',
-                  });
-                  setPillTooltipPos({ x: e.clientX, y: e.clientY });
-                }}
-                onMouseMove={(e) => setPillTooltipPos({ x: e.clientX, y: e.clientY })}
-                onMouseLeave={() => setPillTooltip(null)}
-                onTouchStart={(e) => {
-                  const t = e.touches[0];
-                  if (t) {
-                    setPillTooltip({
-                      icon: '',
-                      label: 'Heroglyph',
-                      tooltip: 'HERO = DOG · GLYPH = SYMBOL',
-                      tooltipSub: 'GOD name for every DOG.',
-                    });
-                    setPillTooltipPos({ x: t.clientX, y: t.clientY });
-                  }
-                }}
+          {/* HERO TITLE — Mobile: "THE / SYMBOL" stacked (big gold) + "THAT CHANGES HISTORY" subline (Vision-style, weight 500, uppercase, single row).
+              Desktop: "THE SYMBOL THAT / CHANGES HISTORY" (locked). */}
+          {isMobile ? (
+            <>
+              <h1
                 style={{
                   fontFamily: "'Cinzel', serif",
                   fontWeight: 700,
-                  fontSize: 'clamp(1.45rem, 3vw, 1.95rem)',
-                  letterSpacing: 0,
-                  lineHeight: 1.05,
+                  fontSize: 'clamp(3rem, 14vw, 4.6rem)',
+                  letterSpacing: '0.04em',
+                  lineHeight: 0.95,
                   margin: 0,
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
+                  }}
+                >
+                  The
+                  <br />
+                  Symbol
+                </span>
+              </h1>
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontStyle: 'italic',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1.05rem, 4.4vw, 1.45rem)',
+                  letterSpacing: '0.04em',
+                  color: 'rgba(250,244,236,0.92)',
+                  textTransform: 'none',
+                  margin: '12px 0 0',
+                  lineHeight: 1.1,
                   whiteSpace: 'nowrap',
-                  cursor: 'help',
-                  display: 'inline-block',
+                }}
+              >
+                That Changes History
+              </p>
+            </>
+          ) : (
+            <h1
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: 'clamp(2.6rem, 6vw, 3.4rem)',
+                letterSpacing: '0.04em',
+                lineHeight: 1.08,
+                margin: 0,
+                textTransform: 'uppercase',
+              }}
+            >
+              <span
+                style={{
                   background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.4)) drop-shadow(0 0 5px rgba(230,158,26,0.5))',
+                  filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
                 }}
               >
-                Heroglyph
-              </div>
+                The Symbol
+              </span>
+              <span style={{ color: '#FAF4EC' }}>{' '}That</span>
+              <br />
+              <span
+                style={{
+                  color: '#FAF4EC',
+                  marginTop: 'clamp(2px, 0.4vw, 6px)',
+                  display: 'inline-block',
+                }}
+              >
+                Changes History
+              </span>
+            </h1>
+          )}
+
+          {isMobile ? (
+            <>
+              {/* MOBILE: SVG first (−10% size), then clickable label, IPA, accordion definition */}
+              <div
+                ref={svgWrapRef}
+                className="heroglyph-svg-wrap"
+                style={{
+                  width: '100%',
+                  maxWidth: 342,
+                  marginTop: 14,
+                  position: 'relative',
+                }}
+                dangerouslySetInnerHTML={{ __html: svgMarkup }}
+              />
+
+              {/* Heroglyph word — clickable, chevron + dashed underline hint */}
+              <button
+                type="button"
+                onClick={() => setDefOpen((o) => !o)}
+                aria-expanded={defOpen}
+                aria-controls="heroglyph-def"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  marginTop: 14,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  WebkitTapHighlightColor: 'transparent',
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    fontWeight: 700,
+                    fontSize: '1.7rem',
+                    letterSpacing: 0,
+                    lineHeight: 1.05,
+                    background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: 'drop-shadow(0 0 14px rgba(245,199,61,0.4))',
+                    borderBottom: '1px dashed rgba(245,199,61,0.6)',
+                    paddingBottom: 2,
+                  }}
+                >
+                  Heroglyph
+                </span>
+                <ChevronDown
+                  size={20}
+                  color="#F5C73D"
+                  strokeWidth={2.4}
+                  style={{
+                    transition: 'transform 280ms ease',
+                    transform: defOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}
+                />
+              </button>
+
+              {/* IPA + noun */}
               <div
                 style={{
                   fontFamily: "'Inter', sans-serif",
-                  fontSize: 'clamp(0.72rem, 1.2vw, 0.84rem)',
+                  fontSize: '0.8rem',
                   color: 'rgba(250,244,236,0.78)',
                   marginTop: 6,
                   fontStyle: 'italic',
@@ -585,50 +637,170 @@ export default function Heroglyph() {
                 [ˈhɪr-oʊ-ɡlɪf]{' '}
                 <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
               </div>
-            </div>
 
-            {/* Right column: flowing definition, all cream/white */}
-            <p
-              className="dict-right"
-              style={{
-                fontFamily: "'Inter', sans-serif",
-                fontSize: 'clamp(0.85rem, 1.3vw, 0.98rem)',
-                fontWeight: 400,
-                color: '#FAF4EC',
-                lineHeight: 1.5,
-                letterSpacing: '0.005em',
-                margin: 0,
-              }}
-            >
-              A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.
-            </p>
-          </div>
-
-          {/* Heroglyph — always interactive, no toggle */}
-          <div
-            ref={svgWrapRef}
-            className="heroglyph-svg-wrap"
-            style={{
-              width: '100%',
-              maxWidth: 380,
-              marginTop: 32,
-              position: 'relative',
-            }}
-            dangerouslySetInnerHTML={{ __html: svgMarkup }}
-          />
-
-          {/* Pills: 1 row on mobile, 2 opposite-direction rows on desktop */}
-          {isMobile ? (
-            <PillMarquee
-              pills={[...PILLS_ROW_1, ...PILLS_ROW_2]}
-              reverse={false}
-              onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
-              onMove={(x, y) => setPillTooltipPos({ x, y })}
-              onLeave={() => setPillTooltip(null)}
-              marginTop={32}
-            />
+              {/* Accordion: definition expands on click */}
+              <div
+                id="heroglyph-def"
+                style={{
+                  display: 'grid',
+                  gridTemplateRows: defOpen ? '1fr' : '0fr',
+                  transition: 'grid-template-rows 320ms ease, margin-top 320ms ease',
+                  width: '100%',
+                  maxWidth: 460,
+                  marginTop: defOpen ? 14 : 0,
+                }}
+              >
+                <div style={{ overflow: 'hidden' }}>
+                  <p
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: '0.92rem',
+                      fontWeight: 400,
+                      color: '#FAF4EC',
+                      lineHeight: 1.5,
+                      letterSpacing: '0.005em',
+                      margin: 0,
+                      padding: '12px 14px',
+                      background: 'rgba(250,244,236,0.04)',
+                      border: '1px solid rgba(245,199,61,0.22)',
+                      borderRadius: 8,
+                      textAlign: 'left',
+                    }}
+                  >
+                    A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.
+                  </p>
+                </div>
+              </div>
+            </>
           ) : (
             <>
+              {/* DESKTOP: original dict-block (2-col) above SVG (LOCKED) */}
+              <div
+                className="dict-block"
+                style={{
+                  marginTop: 28,
+                  width: '100%',
+                  maxWidth: 640,
+                  display: 'grid',
+                  alignItems: 'center',
+                  gap: 'clamp(14px, 3vw, 28px)',
+                  textAlign: 'left',
+                  paddingLeft: 'clamp(8px, 2vw, 16px)',
+                  paddingRight: 'clamp(8px, 2vw, 16px)',
+                }}
+              >
+                <div className="dict-left">
+                  <div
+                    onMouseEnter={(e) => {
+                      setPillTooltip({
+                        icon: '',
+                        label: 'Heroglyph',
+                        tooltip: 'HERO = DOG · GLYPH = SYMBOL',
+                        tooltipSub: 'GOD name for every DOG.',
+                      });
+                      setPillTooltipPos({ x: e.clientX, y: e.clientY });
+                    }}
+                    onMouseMove={(e) => setPillTooltipPos({ x: e.clientX, y: e.clientY })}
+                    onMouseLeave={() => setPillTooltip(null)}
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      fontWeight: 700,
+                      fontSize: 'clamp(1.45rem, 3vw, 1.95rem)',
+                      letterSpacing: 0,
+                      lineHeight: 1.05,
+                      margin: 0,
+                      whiteSpace: 'nowrap',
+                      cursor: 'help',
+                      display: 'inline-block',
+                      background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.4)) drop-shadow(0 0 5px rgba(230,158,26,0.5))',
+                    }}
+                  >
+                    Heroglyph
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Inter', sans-serif",
+                      fontSize: 'clamp(0.72rem, 1.2vw, 0.84rem)',
+                      color: 'rgba(250,244,236,0.78)',
+                      marginTop: 6,
+                      fontStyle: 'italic',
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    [ˈhɪr-oʊ-ɡlɪf]{' '}
+                    <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
+                  </div>
+                </div>
+
+                <p
+                  className="dict-right"
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: 'clamp(0.85rem, 1.3vw, 0.98rem)',
+                    fontWeight: 400,
+                    color: '#FAF4EC',
+                    lineHeight: 1.5,
+                    letterSpacing: '0.005em',
+                    margin: 0,
+                  }}
+                >
+                  A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.
+                </p>
+              </div>
+
+              <div
+                ref={svgWrapRef}
+                className="heroglyph-svg-wrap"
+                style={{
+                  width: '100%',
+                  maxWidth: 380,
+                  marginTop: 32,
+                  position: 'relative',
+                }}
+                dangerouslySetInnerHTML={{ __html: svgMarkup }}
+              />
+            </>
+          )}
+
+          {isMobile ? (
+            <>
+              {/* MOBILE order: CTA → outro → pills last (CTA above the fold) */}
+              <button
+                onClick={() => navigate('/heroglyph/name')}
+                className="heroglyph-cta"
+              >
+                Create Heroglyph
+              </button>
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.7rem',
+                  fontWeight: 500,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(250,244,236,0.5)',
+                  marginTop: 10,
+                  textAlign: 'center',
+                }}
+              >
+                Doglovers, assemble!
+              </div>
+              <PillMarquee
+                pills={[...PILLS_ROW_1, ...PILLS_ROW_2]}
+                reverse={false}
+                onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
+                onMove={(x, y) => setPillTooltipPos({ x, y })}
+                onLeave={() => setPillTooltip(null)}
+                marginTop={16}
+              />
+            </>
+          ) : (
+            <>
+              {/* DESKTOP order LOCKED: pills (2 rows) → CTA → outro */}
               <PillMarquee
                 pills={PILLS_ROW_1}
                 reverse={false}
@@ -645,32 +817,28 @@ export default function Heroglyph() {
                 onLeave={() => setPillTooltip(null)}
                 marginTop={12}
               />
+              <button
+                onClick={() => navigate('/heroglyph/name')}
+                className="heroglyph-cta"
+              >
+                Create Heroglyph
+              </button>
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: 'clamp(0.7rem, 1.15vw, 0.8rem)',
+                  fontWeight: 500,
+                  letterSpacing: '0.24em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(250,244,236,0.5)',
+                  marginTop: 20,
+                  textAlign: 'center',
+                }}
+              >
+                Doglovers, assemble!
+              </div>
             </>
           )}
-
-          {/* CTA — replicates /grid .join-btn (bigger, font-weight 900, pulsing glow) */}
-          <button
-            onClick={() => navigate('/heroglyph/name')}
-            className="heroglyph-cta"
-          >
-            Create Heroglyph
-          </button>
-
-          {/* Sub-text under CTA */}
-          <div
-            style={{
-              fontFamily: "'Inter', sans-serif",
-              fontSize: 'clamp(0.7rem, 1.15vw, 0.8rem)',
-              fontWeight: 500,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: 'rgba(250,244,236,0.5)',
-              marginTop: 20,
-              textAlign: 'center',
-            }}
-          >
-            Doglovers, assemble!
-          </div>
 
           {!svgMarkup && (
             <div style={{ padding: 40, color: 'rgba(201,154,63,0.6)', textAlign: 'center' }}>
@@ -726,8 +894,86 @@ export default function Heroglyph() {
         </div>
       )}
 
-      {/* Pill tooltip — same papyrus style, follows cursor */}
-      {pillTooltip && (
+      {/* Pill tooltip — mobile: bottom-center bubble + tap-outside close; desktop: cursor-follow */}
+      {pillTooltip && isMobile && (
+        <>
+          {/* invisible backdrop for tap-outside dismiss */}
+          <div
+            onClick={() => setPillTooltip(null)}
+            onTouchStart={() => setPillTooltip(null)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 99,
+              background: 'transparent',
+            }}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              left: '50%',
+              bottom: 18,
+              transform: 'translateX(-50%)',
+              zIndex: 100,
+              pointerEvents: 'none',
+              background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
+              border: '1.5px solid #C99A3F',
+              borderRadius: 10,
+              padding: '10px 16px',
+              boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
+              color: '#1a0a05',
+              minWidth: 180,
+              maxWidth: '85vw',
+              textAlign: 'center',
+              animation: 'tooltip-fade-in 160ms ease',
+            }}
+          >
+            {pillTooltip.tooltipSub ? (
+              <>
+                <div
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    lineHeight: 1.25,
+                    color: '#1a0a05',
+                  }}
+                >
+                  {pillTooltip.tooltip}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Inter', sans-serif",
+                    fontSize: '0.78rem',
+                    fontWeight: 400,
+                    letterSpacing: '0.005em',
+                    lineHeight: 1.4,
+                    marginTop: 4,
+                    color: '#5c3e10',
+                  }}
+                >
+                  {pillTooltip.tooltipSub}
+                </div>
+              </>
+            ) : (
+              <div
+                style={{
+                  fontFamily: "'Inter', sans-serif",
+                  fontSize: '0.88rem',
+                  fontWeight: 400,
+                  letterSpacing: '0.005em',
+                  lineHeight: 1.4,
+                }}
+              >
+                {pillTooltip.tooltip}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+      {pillTooltip && !isMobile && (
         <div
           style={{
             position: 'fixed',

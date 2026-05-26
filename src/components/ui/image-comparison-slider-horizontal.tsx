@@ -8,6 +8,8 @@ interface ImageComparisonSliderProps extends React.HTMLAttributes<HTMLDivElement
   altRight?: string;
   initialPosition?: number;
   handleLogo?: string;
+  /** Optional mobile variant of the handle logo (e.g. text-only without silhouette). Shown only on <768px. */
+  mobileHandleLogo?: string;
 }
 
 export const ImageComparisonSlider = React.forwardRef<
@@ -23,6 +25,7 @@ export const ImageComparisonSlider = React.forwardRef<
       altRight = 'After',
       initialPosition = 50,
       handleLogo = '/images/mission/dogypt-circle-logo.png',
+      mobileHandleLogo,
       ...props
     },
     ref,
@@ -91,8 +94,69 @@ export const ImageComparisonSlider = React.forwardRef<
                 0 0 130px rgba(230, 158, 26, 0.36);
             }
           }
+          @keyframes dogyptHandlePulseMobile {
+            0%, 100% {
+              box-shadow:
+                0 0 24px rgba(255, 215, 110, 0.85),
+                0 0 56px rgba(245, 199, 61, 0.65),
+                0 0 110px rgba(230, 158, 26, 0.40),
+                inset 0 0 0 1px rgba(255, 235, 180, 0.55);
+            }
+            50% {
+              box-shadow:
+                0 0 38px rgba(255, 230, 150, 1),
+                0 0 84px rgba(245, 199, 61, 0.90),
+                0 0 160px rgba(230, 158, 26, 0.55),
+                inset 0 0 0 1px rgba(255, 245, 210, 0.75);
+            }
+          }
+          @keyframes sliderArrowLeft {
+            0%, 100% { transform: translate(0, -50%); opacity: 0.5; }
+            50%      { transform: translate(-6px, -50%); opacity: 1; }
+          }
+          @keyframes sliderArrowRight {
+            0%, 100% { transform: translate(0, -50%); opacity: 0.5; }
+            50%      { transform: translate(6px, -50%); opacity: 1; }
+          }
+          .handle-logo-mobile { display: none; }
+          .slider-arrow { display: none; }
+          @media (max-width: 767px) {
+            .dogypt-slider-handle {
+              width: 76px !important;
+              height: 76px !important;
+              background: #000 !important;
+              border: 2px solid #F5C73D !important;
+              animation-name: dogyptHandlePulseMobile !important;
+              animation-duration: 2.4s !important;
+            }
+            .handle-logo-desktop { display: none; }
+            .handle-logo-mobile {
+              display: block;
+              width: 72%;
+              height: auto;
+              filter: drop-shadow(0 0 6px rgba(245,199,61,0.55));
+            }
+            .slider-arrow {
+              position: absolute;
+              top: 50%;
+              display: inline-flex;
+              pointer-events: none;
+            }
+            .slider-arrow svg {
+              filter: drop-shadow(0 0 6px rgba(245,199,61,0.7));
+            }
+            .slider-arrow-left {
+              right: calc(100% + 6px);
+              animation: sliderArrowLeft 1.4s ease-in-out infinite;
+            }
+            .slider-arrow-right {
+              left: calc(100% + 6px);
+              animation: sliderArrowRight 1.4s ease-in-out infinite;
+            }
+          }
           @media (prefers-reduced-motion: reduce) {
             .dogypt-slider-handle { animation: none !important; }
+            .slider-arrow { animation: none !important; }
           }
         `}</style>
         <div
@@ -168,18 +232,59 @@ export const ImageComparisonSlider = React.forwardRef<
               aria-orientation="horizontal"
               aria-label="Image comparison slider"
             >
+              {/* Desktop: original circle-logo PNG (silhouette + text in own ring) */}
               <img
                 src={handleLogo}
                 alt=""
                 draggable={false}
+                className="handle-logo-desktop"
                 style={{
                   width: '100%',
                   height: '100%',
                   objectFit: 'contain',
-                  display: 'block',
                   pointerEvents: 'none',
                 }}
               />
+
+              {/* Mobile: text-only logo (silhouette žije v PageTopBar), v gold ring */}
+              {mobileHandleLogo && (
+                <img
+                  src={mobileHandleLogo}
+                  alt=""
+                  draggable={false}
+                  className="handle-logo-mobile"
+                  style={{
+                    objectFit: 'contain',
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+
+              {/* Mobile: pulzujúce drag indikátory */}
+              <span className="slider-arrow slider-arrow-left" aria-hidden>
+                <svg width="14" height="22" viewBox="0 0 14 22" fill="none">
+                  <path
+                    d="M11 2 L3 11 L11 20"
+                    stroke="#F5C73D"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </span>
+              <span className="slider-arrow slider-arrow-right" aria-hidden>
+                <svg width="14" height="22" viewBox="0 0 14 22" fill="none">
+                  <path
+                    d="M3 2 L11 11 L3 20"
+                    stroke="#F5C73D"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                  />
+                </svg>
+              </span>
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBar } from '@/components/PageTopBar';
+import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
 
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
 type PillData = { icon: string; label: string; tooltip: string; status: PillStatus };
@@ -73,12 +74,12 @@ export default function Vision() {
   }, []);
 
   return (
-    <div className="dark-bg flex flex-col min-h-[100dvh] overflow-y-auto md:h-[100dvh] md:overflow-hidden relative">
-      {/* Mild radial overlay — identical to /heroglyph */}
+    <div className="dark-bg vision-root flex flex-col h-[100dvh] overflow-y-auto md:overflow-hidden relative">
+      {/* Mild radial overlay — fixed so it stays put when scroll-snap moves sections */}
       <div
         aria-hidden
         style={{
-          position: 'absolute',
+          position: 'fixed',
           inset: 0,
           background:
             'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
@@ -87,15 +88,14 @@ export default function Vision() {
         }}
       />
 
-      {/* Mobile-only fixed dark halo — okolie sticky image stmavuje (vignette spotlight efekt) */}
+      {/* Mobile only: extra 25% dark layer on page bg (image stays in original colors — z-index higher) */}
       <div
         className="md:hidden"
         aria-hidden
         style={{
           position: 'fixed',
           inset: 0,
-          background:
-            'radial-gradient(ellipse 72% 50% at center, transparent 0%, transparent 38%, rgba(0,0,0,0.55) 68%, rgba(0,0,0,0.82) 100%)',
+          background: 'rgba(0,0,0,0.25)',
           zIndex: 1,
           pointerEvents: 'none',
         }}
@@ -153,9 +153,11 @@ export default function Vision() {
         }
         @media (max-width: 767px) {
           .mission-para {
-            font-size: 11px;
-            line-height: 1.55;
+            font-size: clamp(18px, 5.2vw, 23px);
+            line-height: 1.45;
             max-width: 92%;
+            color: rgba(250,244,236,0.94);
+            text-align: center;
             text-wrap: balance;
           }
         }
@@ -188,17 +190,47 @@ export default function Vision() {
           .mission-bottom { align-items: center; }
         }
 
-        /* Mobile: collapse wrappers so all leaf items become flex children of .mission-grid + reorder */
+        /* ── MOBILE: 2 "podlažia" – snap scroll, každá sekcia = jeden viewport ── */
+        .m-screen {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
         @media (max-width: 767px) {
-          .mission-left,
-          .mission-left-middle,
-          .mission-bottom { display: contents; }
-          .mission-headline { order: 1; }
-          .mission-para    { order: 2; }
-          .square-frame    { order: 3; }
-          .mission-cta     { order: 4; }
-          .mission-pillars { order: 5; }
-          .pill-tooltip    { order: 6; }
+          .vision-root {
+            scroll-snap-type: y mandatory;
+            scroll-padding-top: 90px;
+          }
+          .topbar-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: #000;
+            flex-shrink: 0;
+          }
+          .mission-grid { gap: 0; max-width: none; flex: 1 0 auto; }
+          .m-screen {
+            height: calc(100dvh - 90px);
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            padding: 0 5vw;
+            flex-shrink: 0;
+          }
+          .m-screen-a {
+            justify-content: flex-start;
+            padding-top: clamp(20px, 4vh, 40px);
+            gap: clamp(16px, 2.8vh, 24px);
+          }
+          .m-screen-b {
+            justify-content: flex-start;
+            padding-top: clamp(22px, 5vh, 48px);
+            gap: clamp(22px, 3.6vh, 32px);
+          }
+        }
+        @media (min-width: 768px) {
+          .m-screen { display: contents; }
+          .topbar-wrap { display: contents; }
         }
 
         /* Desktop: 3 groups in left column with space-between — top group / CTA centered / pills bottom */
@@ -226,7 +258,11 @@ export default function Vision() {
           justify-content: flex-start;
         }
         @media (max-width: 767px) {
-          .mission-pillars { justify-content: center; }
+          .mission-pillars {
+            justify-content: center;
+            gap: 9px;
+            max-width: 92%;
+          }
         }
         .mission-pill {
           position: relative;
@@ -255,10 +291,11 @@ export default function Vision() {
         }
         @media (max-width: 767px) {
           .mission-pill {
-            font-size: 8px;
-            letter-spacing: 0.14em;
-            padding: 3px 7px;
-            gap: 4px;
+            font-size: 13px;
+            letter-spacing: 0.16em;
+            padding: 7px 14px;
+            gap: 7px;
+            border-radius: 999px;
           }
         }
         .mission-pill-icon {
@@ -270,8 +307,8 @@ export default function Vision() {
           opacity: 0.85;
         }
         @media (max-width: 767px) {
-          .mission-pill-icon { width: 10px; height: 10px; }
-          .pill-status-dot { width: 5px; height: 5px; }
+          .mission-pill-icon { width: 15px; height: 15px; }
+          .pill-status-dot { width: 8px; height: 8px; }
         }
 
         /* Status dot — done (green) / progress (orange pulsing) / future (red) */
@@ -315,7 +352,7 @@ export default function Vision() {
         .pill-row-break-mobile { display: none; }
         .pill-row-break-desktop { display: block; }
         @media (max-width: 767px) {
-          .pill-row-break-mobile { display: block; }
+          .pill-row-break-mobile { display: none; }
           .pill-row-break-desktop { display: none; }
         }
 
@@ -405,7 +442,7 @@ export default function Vision() {
         @media (max-width: 767px) {
           .pill-tooltip {
             position: absolute;
-            bottom: calc(100% + 10px);
+            top: calc(100% + 10px);
             left: 50%;
             transform: translateX(-50%);
             width: max-content;
@@ -450,16 +487,34 @@ export default function Vision() {
         }
         @media (max-width: 767px) {
           .square-frame {
-            max-width: 92vw;
+            max-width: 76vw;
             margin-left: auto;
             margin-right: auto;
-            /* Sticky center: image lepí v strede viewportu pri scrole */
-            position: sticky;
-            top: calc(50dvh - 46vw);
-            z-index: 5;
           }
-          /* CTA + pills musia byť nad halo (fixed root halo z=1) */
-          .mission-bottom, .mission-pillars { position: relative; z-index: 10; }
+        }
+
+        /* ── MOBILE: pulsing scroll arrow under headline (section A only) ── */
+        .scroll-arrow {
+          display: none;
+        }
+        @media (max-width: 767px) {
+          .scroll-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: clamp(6px, 1.4vh, 14px);
+            animation: scrollArrowPulse 1.8s ease-in-out infinite;
+          }
+          .scroll-arrow svg {
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.35));
+          }
+        }
+        @keyframes scrollArrowPulse {
+          0%, 100% { transform: translateY(0); opacity: 0.7; }
+          50%      { transform: translateY(7px); opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .scroll-arrow { animation: none; opacity: 0.9; }
         }
         .square-label {
           position: absolute;
@@ -510,12 +565,12 @@ export default function Vision() {
         @media (max-width: 767px) {
           .mission-cta {
             align-self: center;
-            padding: 9px 26px;
-            font-size: 0.78rem;
-            letter-spacing: 0.12em;
+            padding: 13px 34px;
+            font-size: 0.95rem;
+            letter-spacing: 0.14em;
             margin-bottom: 2px;
           }
-          .mission-pillars { margin-bottom: 28px; }
+          .mission-pillars { margin-bottom: 0; }
         }
         .mission-cta:hover {
           transform: scale(1.05);
@@ -565,99 +620,106 @@ export default function Vision() {
         }
       `}</style>
 
-      <PageTopBar withNav />
+      <div className="topbar-wrap">
+        <PageTopBar withNav />
+      </div>
 
       {/* Main 2-col area */}
       <div
-        className="flex-1 flex items-start md:items-center justify-center px-5 md:px-10 relative md:min-h-0 pt-[calc(18vh-50px)] pb-10 md:pt-0 md:pb-0"
+        className="flex-1 flex items-start md:items-center justify-center px-0 md:px-10 relative md:min-h-0 md:pt-0 md:pb-0"
         style={{ zIndex: 2 }}
       >
-        <div className="mission-grid">
-          {/* ── LEFT: 3-group flex (top eyebrow / middle group / bottom CTA) ── */}
-          <div
-            className="mission-left"
-            style={{
-              textAlign: isMobile ? 'center' : 'left',
-              alignItems: isMobile ? 'center' : 'flex-start',
-            }}
-          >
-            {/* MIDDLE — headline + para + pillars, grouped with own gap */}
-            <div
-              className="mission-left-middle"
-              style={{ alignItems: isMobile ? 'center' : 'flex-start' }}
-            >
-              <div className="mission-headline">
-                <h1
-                  className="headline-main"
+        {(() => {
+          const headlineJsx = (
+            <div className="mission-headline">
+              <h1
+                className="headline-main"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(2.4rem, 5.4vw, 4.2rem)',
+                  letterSpacing: '0.02em',
+                  lineHeight: 0.98,
+                  margin: 0,
+                  textTransform: 'uppercase',
+                }}
+              >
+                <span
                   style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontWeight: 700,
-                    fontSize: 'clamp(2.4rem, 5.4vw, 4.2rem)',
-                    letterSpacing: '0.02em',
-                    lineHeight: 0.98,
-                    margin: 0,
-                    textTransform: 'uppercase',
+                    background:
+                      'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter:
+                      'drop-shadow(0 0 22px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5))',
                   }}
                 >
-                  <span
-                    style={{
-                      background:
-                        'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      filter:
-                        'drop-shadow(0 0 22px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5))',
-                    }}
-                  >
-                    Imagine
-                  </span>
-                  <br />
-                  <span style={{ color: '#FAF4EC' }}>A World</span>
-                </h1>
-                <p
-                  className="headline-sub"
+                  Imagine
+                </span>
+                <br />
+                <span style={{ color: '#FAF4EC' }}>A World</span>
+              </h1>
+              <p
+                className="headline-sub"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontStyle: 'italic',
+                  fontWeight: 500,
+                  fontSize: 'clamp(1.15rem, 2.2vw, 1.7rem)',
+                  letterSpacing: '0.04em',
+                  color: 'rgba(250,244,236,0.90)',
+                  textTransform: 'none',
+                  margin: '8px 0 0',
+                  lineHeight: 1.15,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Built By{' '}
+                <span
                   style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontStyle: 'italic',
-                    fontWeight: 500,
-                    fontSize: 'clamp(1.15rem, 2.2vw, 1.7rem)',
-                    letterSpacing: '0.04em',
-                    color: 'rgba(250,244,236,0.90)',
-                    textTransform: 'none',
-                    margin: '8px 0 0',
-                    lineHeight: 1.15,
-                    whiteSpace: 'nowrap',
+                    textDecoration: 'underline',
+                    textDecorationThickness: '1px',
+                    textUnderlineOffset: '0.18em',
+                    textDecorationColor: 'rgba(201,154,63,0.85)',
                   }}
                 >
-                  Built By{' '}
-                  <span
-                    style={{
-                      textDecoration: 'underline',
-                      textDecorationThickness: '1px',
-                      textUnderlineOffset: '0.18em',
-                      textDecorationColor: 'rgba(201,154,63,0.85)',
-                    }}
-                  >
-                    Doglovers
-                  </span>
-                  .
-                </p>
-              </div>
-
-              <p className="mission-para">
-                Beyond borders and politics — doglovers are Earth's kindest hidden force. Only together, we can rebuild the system and change the world.
+                  Doglovers
+                </span>
+                .
               </p>
             </div>
+          );
 
-            {/* MIDDLE — CTA (centered between top group and pills on desktop) */}
-            <div className="mission-bottom">
-              <button onClick={() => navigate('/heroglyph')} className="mission-cta">
-                Become Dogyptian
-              </button>
+          const imageJsx = (
+            <div className="square-frame" aria-label="Day One vs One Day">
+              <ImageComparisonSlider
+                leftImage="/images/mission/shelter-before.png"
+                rightImage="/images/mission/shelter-after.png"
+                altLeft="Day One — overwhelmed dog shelter"
+                altRight="One Day — Dogypt Center"
+                initialPosition={50}
+                handleLogo="/images/mission/dogypt-circle-logo.png"
+                mobileHandleLogo={dogyptTextLogo}
+              />
+              <div className="square-label today">Day One</div>
+              <div className="square-label dogypt">One Day</div>
             </div>
+          );
 
-            {/* BOTTOM — pills roadmap */}
+          const paraJsx = (
+            <p className="mission-para">
+              Beyond borders and politics — doglovers are Earth's kindest hidden force. Only together, we can rebuild the system and change the world.
+            </p>
+          );
+
+          const ctaJsx = (
+            <button onClick={() => navigate('/heroglyph')} className="mission-cta">
+              Become Dogyptian
+            </button>
+          );
+
+          const pillsJsx = (
             <div className="mission-pillars">
               {PILLARS.map((p, i) => (
                 <Fragment key={p.label}>
@@ -681,7 +743,6 @@ export default function Vision() {
                     <span className={`pill-status-dot ${p.status}`} aria-hidden />
                     <img src={p.icon} alt="" className="mission-pill-icon" />
                     {p.label}
-                    {/* Desktop: per-pill floating tooltip (papyrus + arrow) */}
                     {!isMobile && activePill === i && (
                       <span className="pill-tooltip-float" role="tooltip">
                         {p.tooltip}
@@ -693,7 +754,6 @@ export default function Vision() {
                 </Fragment>
               ))}
 
-              {/* Mobile: floating tooltip above pills row, horizontally centered to viewport */}
               {isMobile && activePill !== null && (
                 <div
                   className="pill-tooltip"
@@ -709,22 +769,56 @@ export default function Vision() {
                 </div>
               )}
             </div>
-          </div>
+          );
 
-          {/* ── RIGHT: image comparison slider ── */}
-          <div className="square-frame" aria-label="Day One vs One Day">
-            <ImageComparisonSlider
-              leftImage="/images/mission/shelter-before.png"
-              rightImage="/images/mission/shelter-after.png"
-              altLeft="Day One — overwhelmed dog shelter"
-              altRight="One Day — Dogypt Center"
-              initialPosition={50}
-              handleLogo="/images/mission/dogypt-circle-logo.png"
-            />
-            <div className="square-label today">Day One</div>
-            <div className="square-label dogypt">One Day</div>
-          </div>
-        </div>
+          return (
+            <div className="mission-grid">
+              {isMobile ? (
+                <>
+                  <section className="m-screen m-screen-a">
+                    {imageJsx}
+                    {headlineJsx}
+                    <span className="scroll-arrow" aria-hidden>
+                      <svg width="28" height="16" viewBox="0 0 28 16" fill="none">
+                        <path
+                          d="M4 4 L14 12.5 L24 4"
+                          stroke="#FAF4EC"
+                          strokeWidth="2.4"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          fill="none"
+                        />
+                      </svg>
+                    </span>
+                  </section>
+                  <section className="m-screen m-screen-b">
+                    {paraJsx}
+                    {ctaJsx}
+                    {pillsJsx}
+                  </section>
+                </>
+              ) : (
+                <>
+                  <div
+                    className="mission-left"
+                    style={{ textAlign: 'left', alignItems: 'flex-start' }}
+                  >
+                    <div
+                      className="mission-left-middle"
+                      style={{ alignItems: 'flex-start' }}
+                    >
+                      {headlineJsx}
+                      {paraJsx}
+                    </div>
+                    <div className="mission-bottom">{ctaJsx}</div>
+                    {pillsJsx}
+                  </div>
+                  {imageJsx}
+                </>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
     </div>
