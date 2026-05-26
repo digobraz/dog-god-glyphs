@@ -153,10 +153,10 @@ export default function Vision() {
         }
         @media (max-width: 767px) {
           .mission-para {
-            font-size: clamp(18px, 5.2vw, 23px);
-            line-height: 1.45;
+            font-size: clamp(15px, 4.4vw, 19px);
+            line-height: 1.5;
             max-width: 92%;
-            color: rgba(250,244,236,0.94);
+            color: rgba(250,244,236,0.92);
             text-align: center;
             text-wrap: balance;
           }
@@ -291,10 +291,10 @@ export default function Vision() {
         }
         @media (max-width: 767px) {
           .mission-pill {
-            font-size: 13px;
-            letter-spacing: 0.16em;
-            padding: 7px 14px;
-            gap: 7px;
+            font-size: 11px;
+            letter-spacing: 0.14em;
+            padding: 5px 11px;
+            gap: 6px;
             border-radius: 999px;
           }
         }
@@ -307,8 +307,8 @@ export default function Vision() {
           opacity: 0.85;
         }
         @media (max-width: 767px) {
-          .mission-pill-icon { width: 15px; height: 15px; }
-          .pill-status-dot { width: 8px; height: 8px; }
+          .mission-pill-icon { width: 12px; height: 12px; }
+          .pill-status-dot { width: 6px; height: 6px; }
         }
 
         /* Status dot — done (green) / progress (orange pulsing) / future (red) */
