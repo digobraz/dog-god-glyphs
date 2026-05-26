@@ -3,40 +3,7 @@ import { Link } from 'react-router-dom';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptSeal from '@/assets/dogypt-seal.png';
 import { PageNav } from '@/components/PageNav';
-
-type ChapterRow = {
-  num: string;
-  name: string;
-  desc: string;
-  subs: string[];
-};
-
-const SACRED_INDEX: ChapterRow[] = [
-  { num: 'I.',    name: 'CANON',          desc: 'who we are',
-    subs: ['The Founding Myth', 'GOD is DOG', 'The Age of the Dog', 'The Syncretic Clause'] },
-  { num: 'II.',   name: 'CREDO',          desc: 'what we believe',
-    subs: ['Seven Truths About Dogs', 'The DOG-GOD Philosophy', 'The Present Moment'] },
-  { num: 'III.',  name: 'COMMANDMENTS',   desc: 'how we act',
-    subs: ['The Ten Duties of a Dogyptian', 'The Seven Sins', 'The Seven Virtues', 'Duties to the Dog Race', 'Mantra of the Community', 'The Proud Dogyptian'] },
-  { num: 'IV.',   name: 'SACRAMENTS',     desc: 'how we pray',
-    subs: ['The Sacraments', 'The Prayers', 'Feasts & Calendar', 'Life Rituals'] },
-  { num: 'V.',    name: 'HIERARCHY',      desc: 'who is who',
-    subs: ['HEKTHOR I.', 'The Pharaoh', 'The Dogyptian Council', 'The Conscious Dog Person'] },
-  { num: 'VI.',   name: 'SACRED PLACES',  desc: 'where we gather',
-    subs: ['dogypt.com — The Virtual Temple', 'DOGYPT Centres', 'DOGYPTLAND', 'Local Circles'] },
-  { num: 'VII.',  name: 'TEXTS',          desc: 'what we read',
-    subs: ['The DOGYPT Constitution', 'The Heroglyph Manual', 'Cesta s Hrdinom (The Hero’s Journey)'] },
-  { num: 'VIII.', name: 'LANGUAGE',       desc: 'how we speak',
-    subs: ['Dogyptish', 'The Heroglyph', 'Liturgical Colours', 'Identification', 'The DOGYPT Logo'] },
-  { num: 'IX.',   name: 'ECONOMY',        desc: 'how we sustain',
-    subs: ['Principles Binding From Day One', 'Deferred for Later Revision'] },
-  { num: 'X.',    name: 'INSTITUTIONS',   desc: 'how we govern',
-    subs: ['Layer 1 — The Movement', 'Layer 2 — Slovak Civic Association', 'Layer 3 — USA 501(c)(3) Nonprofit', 'Layer 4 — Church of Slovakia', 'Layer 5 — International Umbrella'] },
-  { num: 'XI.',   name: 'EXPANSION',      desc: 'how we grow',
-    subs: ['Phase Slovakia (2026)', 'Phase USA (2027)', 'Phase Europe (2027–2028)', 'Phase World (2028+)', 'The “Same Story” Principle'] },
-  { num: 'XII.',  name: 'ANTI-DOCTRINES', desc: 'what we are not',
-    subs: ['Not a Personality Cult', 'Not a Competitor to Other Faiths', 'Not Anti-Veterinary', 'Not Empty MLM', 'Not Vegan / Anti-Meat Ideology', 'Not a Political Project'] },
-];
+import { SACRED_INDEX } from '@/data/sacredIndex.generated';
 
 const TOTAL_SLIDES = 3;
 
@@ -63,6 +30,8 @@ export default function Codex() {
   const [dragging, setDragging] = useState(false);
   const dragStartX = useRef<number | null>(null);
   const dragAccum = useRef(0);
+  const dragCaptured = useRef(false);
+  const swipeOccurred = useRef(false);
   const wheelAccum = useRef(0);
   const wheelLock = useRef(false);
 
@@ -78,19 +47,26 @@ export default function Codex() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
-  // Pointer (touch + mouse + pen) swipe
+  // Pointer (touch + mouse + pen) swipe — LAZY capture pattern.
+  // Pointer capture sa nastaví AŽ po prekročení movement thresholdu (10px) → tap na button
+  // ide normálne (button vidí svoje pointer eventy), swipe naprieč slidmi sa zoberie keď user reálne ťahá.
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    // Skip swipe gesture if pointer lands on an interactive child (accordion button, CTA, etc.)
-    if ((e.target as HTMLElement).closest('button, a')) return;
     dragStartX.current = e.clientX;
     dragAccum.current = 0;
-    setDragging(true);
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragCaptured.current = false;
+    swipeOccurred.current = false;
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (dragStartX.current === null) return;
     dragAccum.current = e.clientX - dragStartX.current;
+    // Akonáhle movement prekročí 10px → preberieme pointer + označíme swipe (blokne sa click na button)
+    if (!dragCaptured.current && Math.abs(dragAccum.current) > 10) {
+      dragCaptured.current = true;
+      swipeOccurred.current = true;
+      setDragging(true);
+      try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+    }
   };
   const onPointerUp = (e: React.PointerEvent) => {
     if (dragStartX.current === null) return;
@@ -101,7 +77,18 @@ export default function Codex() {
     dragStartX.current = null;
     dragAccum.current = 0;
     setDragging(false);
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+    if (dragCaptured.current) {
+      try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+      dragCaptured.current = false;
+    }
+  };
+  // Po swipe prevent click — inak by sa accordion button na slide 2 toggol pri každom swipe.
+  const onClickCapture = (e: React.MouseEvent) => {
+    if (swipeOccurred.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      swipeOccurred.current = false;
+    }
   };
 
   // Trackpad horizontal scroll → one slide per gesture (debounced, hard-locked)
@@ -165,7 +152,8 @@ export default function Codex() {
         .codex-viewport {
           flex: 0 0 auto;
           width: 100%;
-          overflow: hidden;
+          overflow-x: hidden;
+          overflow-y: visible;
           position: relative;
           touch-action: pan-y;
           cursor: grab;
@@ -198,10 +186,13 @@ export default function Codex() {
         }
 
         /* ── Slide 1 ── */
+        /* 🔒🔒 LOCK PC HARD (2026-05-24): Slide 1 PC HOTOVÝ. NEDOTÝKAŤ SA.
+           Default = MOBILE only (@media max-width:767px).
+           PC úpravy LEN na explicit "na PC" / "zruš lock". */
         .codex-headline {
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: clamp(3rem, 7.2vw, 5.6rem);
+          font-size: clamp(2.85rem, 6.84vw, 5.32rem);
           letter-spacing: 0.04em;
           line-height: 1.02;
           margin: 0;
@@ -304,6 +295,17 @@ export default function Codex() {
           margin: 0;
           text-wrap: balance;
         }
+        .codex-preamble-text strong {
+          font-weight: 700;
+          font-style: italic;
+          color: #F5C73D;
+          background:
+            linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter: drop-shadow(0 0 6px rgba(245,199,61,0.30));
+        }
         .codex-oath-label {
           font-family: 'Cinzel', serif;
           font-weight: 700;
@@ -327,13 +329,16 @@ export default function Codex() {
           margin-top: clamp(14px, 2vh, 22px);
         }
         @media (max-width: 767px) {
-          .codex-preamble-text { font-size: 20px; line-height: 1.45; }
-          .codex-headline { font-size: 3.8rem; letter-spacing: 0.03em; line-height: 1.04; }
+          .codex-preamble-text { font-size: 16px; line-height: 1.45; }
+          .codex-headline { font-size: 2.8rem; letter-spacing: 0.03em; line-height: 1.04; }
           .codex-slider { padding: 0 clamp(8px, 2vw, 16px); }
           .codex-slide { padding: clamp(12px, 2vh, 24px) clamp(4px, 1.5vw, 12px); }
         }
 
         /* ── Slide 2: papyrus + index ── */
+        /* 🔒🔒 LOCK PC HARD (2026-05-24): Slide 2 PC HOTOVÝ. NEDOTÝKAŤ SA.
+           Default = MOBILE only (@media max-width:767px).
+           PC úpravy LEN na explicit "na PC" / "zruš lock". */
         .codex-paper {
           position: relative;
           width: 100%;
@@ -345,6 +350,8 @@ export default function Codex() {
           box-shadow:
             0 12px 36px rgba(0,0,0,0.6),
             0 0 0 3px rgba(201,154,63,0.20);
+          display: flex;
+          flex-direction: column;
         }
         /* Inner double-border cert frame */
         .codex-paper::after {
@@ -442,12 +449,30 @@ export default function Codex() {
           white-space: nowrap;
         }
         @media (max-width: 767px) {
-          .codex-paper { padding: 18px 16px 16px; }
+          .codex-paper {
+            padding: 18px 14px 28px;
+            max-width: 100%;
+            box-sizing: border-box;
+          }
           .codex-paper::after { inset: 5px; border-radius: 8px; }
-          .codex-paper-header { gap: 14px; padding-bottom: 12px; margin-bottom: 12px; }
-          .codex-seal { width: 88px; }
-          .codex-paper-title { font-size: 1.7rem; letter-spacing: 0.03em; }
-          .codex-paper-subtitle { font-size: 0.6rem; margin-top: 6px; letter-spacing: 0.01em; }
+          .codex-paper-header {
+            gap: 12px;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            flex-wrap: nowrap;
+          }
+          .codex-paper-titles { min-width: 0; flex: 1 1 auto; }
+          .codex-seal { width: 92px; }
+          .codex-paper-title { font-size: 1.45rem; letter-spacing: 0.02em; }
+          .codex-paper-title span { white-space: normal; }
+          /* Mobile: title v 3 riadkoch — The / Dogyptian / Constitution */
+          .codex-paper-title .title-decor { display: block; }
+          .codex-paper-subtitle {
+            font-size: 0.6rem;
+            margin-top: 6px;
+            letter-spacing: 0.01em;
+            white-space: normal;
+          }
         }
 
         .codex-index {
@@ -459,6 +484,7 @@ export default function Codex() {
           font-size: clamp(0.74rem, 1vw, 0.86rem);
           letter-spacing: 0.04em;
           text-align: left;
+          /* Index — natural height, no overflow clipping (bubbles musia presahovať) */
         }
         .codex-index .col {
           display: flex;
@@ -466,6 +492,10 @@ export default function Codex() {
         }
         .codex-row {
           border-bottom: 1px solid rgba(138,90,20,0.20);
+          position: relative;
+        }
+        .codex-row.open {
+          z-index: 30;
         }
         .codex-index .col .codex-row:last-child { border-bottom: none; }
         .codex-row-head {
@@ -476,7 +506,7 @@ export default function Codex() {
           width: 100%;
           cursor: pointer;
           display: grid;
-          grid-template-columns: 2.4em 1fr auto;
+          grid-template-columns: 2.4em 1fr;
           align-items: baseline;
           column-gap: 0.4em;
           text-align: left;
@@ -489,8 +519,12 @@ export default function Codex() {
         .codex-row-head:hover {
           background: rgba(201,154,63,0.10);
         }
-        .codex-row.open .codex-row-head {
-          background: rgba(201,154,63,0.14);
+        /* .open highlight len pre touch devices — na PC sa .open class síce nastaví
+           cez onClick, ale ZIADNE visual side-effecty (bublina + highlight) */
+        @media (hover: none) {
+          .codex-row.open .codex-row-head {
+            background: rgba(201,154,63,0.14);
+          }
         }
         .codex-index .num {
           color: rgba(138,90,20,0.62);
@@ -521,61 +555,138 @@ export default function Codex() {
           color: rgba(38,22,4,0.34);
           margin: 0 0.32em;
         }
-        .codex-row-head .caret {
-          color: rgba(138,90,20,0.5);
-          font-size: 0.8em;
-          line-height: 1;
-          transition: transform 220ms ease, color 220ms ease;
-          align-self: center;
-        }
-        .codex-row.open .codex-row-head .caret {
-          transform: rotate(180deg);
-          color: #8a5a14;
-        }
-        /* Accordion body — grid-template-rows trick keeps container width stable */
+        /* ── PC: bubble tooltip pattern (like /vision pills) ──
+           Floating papyrus card with arrow pointing to row.
+           Smart flip: rows 1-3 = bubble BELOW (arrow up), rows 4-6 = bubble ABOVE (arrow down). */
         .codex-row-body {
-          display: grid;
-          grid-template-rows: 0fr;
-          transition: grid-template-rows 280ms ease;
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          top: calc(100% + 10px);
+          width: max-content;
+          min-width: 180px;
+          max-width: clamp(220px, 22vw, 300px);
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1.5px solid #C99A3F;
+          border-radius: 10px;
+          padding: 10px 14px;
+          box-shadow:
+            0 8px 28px rgba(0,0,0,0.55),
+            0 0 0 3px rgba(201,154,63,0.18);
+          z-index: 50;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transition: opacity 180ms ease;
+          text-align: left;
         }
-        .codex-row.open .codex-row-body {
-          grid-template-rows: 1fr;
+        /* Arrow — default: pointing UP (bubble below row) */
+        .codex-row-body::after {
+          content: '';
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 7px solid transparent;
+          border-bottom-color: #C99A3F;
+        }
+        /* Bottom rows (4, 5, 6) — flip bubble ABOVE row, arrow points DOWN */
+        .codex-index .col .codex-row:nth-child(n+4) .codex-row-body {
+          top: auto;
+          bottom: calc(100% + 10px);
+        }
+        .codex-index .col .codex-row:nth-child(n+4) .codex-row-body::after {
+          bottom: auto;
+          top: 100%;
+          border-bottom-color: transparent;
+          border-top-color: #C99A3F;
+        }
+        .codex-row.open,
+        .codex-row:hover,
+        .codex-row:focus-within {
+          z-index: 50;
+        }
+        /* PC (hover-capable): trigger LEN cez hover — žiadny focus/click effect */
+        @media (hover: hover) and (pointer: fine) {
+          .codex-row:hover .codex-row-body {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+          }
+        }
+        /* Touch devices (mobile): tap-toggle cez .open class */
+        @media (hover: none) {
+          .codex-row.open .codex-row-body {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+          }
         }
         .codex-row-body-inner {
-          overflow: hidden;
+          /* no overflow:hidden in bubble mode */
         }
         .codex-row-body ul {
           list-style: none;
           margin: 0;
-          padding: 4px 0 8px 2.8em;
+          padding: 0 0 0 12px;
         }
         .codex-row-body li {
           font-family: 'Cinzel', serif;
-          font-size: 0.78em;
+          font-size: 0.85em;
           font-weight: 500;
-          letter-spacing: 0.04em;
-          color: rgba(90,58,12,0.85);
-          padding: 2px 0;
+          letter-spacing: 0.03em;
+          color: #5a3a0c;
+          padding: 3px 0;
           position: relative;
         }
         .codex-row-body li::before {
           content: '·';
-          color: rgba(201,154,63,0.7);
+          color: #C99A3F;
           position: absolute;
-          left: -0.9em;
+          left: -10px;
           font-weight: 700;
+          font-size: 1.1em;
         }
         @media (max-width: 767px) {
           .codex-index {
-            font-size: 11.5px;
-            column-gap: 12px;
+            grid-template-columns: 1fr 1fr;
+            font-size: 11px;
+            column-gap: 10px;
           }
+          .codex-index .col .codex-row:last-child { border-bottom: 1px solid rgba(138,90,20,0.20); }
+          .codex-index .col:last-child .codex-row:last-child { border-bottom: none; }
           .codex-row-head {
-            grid-template-columns: 2em 1fr auto;
-            padding: 4px 4px;
+            grid-template-columns: 1.8em minmax(0, 1fr);
+            padding: 6px 3px;
+            column-gap: 0.3em;
+            white-space: nowrap;
           }
-          .codex-index .item .dash { margin: 0 0.22em; }
-          .codex-row-body ul { padding: 3px 0 6px 2em; }
+          /* Mobile: len nadpisy */
+          .codex-index .item .desc,
+          .codex-index .item .dash { display: none; }
+          /* Mobile bubble — per-col anchoring aby NEPRESVITALA do druhých slajdov.
+             Left col → anchor LEFT to row left, right col → anchor RIGHT to row right.
+             Width capped na 80vw / 300px aby zostala v slide viewporte.
+             Arrow off na mobile (per-col anchoring misaligns arrow vs row center). */
+          .codex-row-body {
+            width: min(80vw, 300px);
+            min-width: 0;
+            max-width: none;
+            padding: 11px 14px;
+          }
+          .codex-index .col:first-child .codex-row-body {
+            left: 0;
+            right: auto;
+            transform: none;
+          }
+          .codex-index .col:last-child .codex-row-body {
+            left: auto;
+            right: 0;
+            transform: none;
+          }
+          .codex-row-body::after {
+            display: none;
+          }
         }
 
         /* CTA button — Read Full Constitution */
@@ -628,6 +739,9 @@ export default function Codex() {
         }
 
         /* ── Slide 3: the question (cow vs dog visual) ── */
+        /* 🔒🔒 LOCK PC HARD (2026-05-24): Slide 3 PC HOTOVÝ. NEDOTÝKAŤ SA.
+           Default = MOBILE only (@media max-width:767px).
+           PC úpravy LEN na explicit "na PC" / "zruš lock". */
         .codex-slide-3 {
           position: relative;
           width: 100%;
@@ -719,13 +833,17 @@ export default function Codex() {
         }
         .codex-stat-row-bottom {
           gap: clamp(0.3em, 0.8vw, 0.45em);
+          white-space: nowrap;
+          flex-wrap: nowrap;
         }
-        /* Parenthetical: "(15% of all)" — rovnaká veľkosť ako PEOPLE, len tlmená farba + italic */
+        /* Parenthetical: "(15% worldwide)" — rovnaká veľkosť ako PEOPLE, len tlmená farba + italic.
+           Hierarchy: row 1 (BILLION) > row 2 (PEOPLE) > row 3 (bow to the cow).
+           Row 2 šírka ≈ row 1 šírka, font o niečo menší. */
         .codex-stat-note {
           font-family: 'Cinzel', serif;
           font-weight: 400;
           font-style: italic;
-          font-size: clamp(1.15rem, 2.4vw, 2.25rem);
+          font-size: clamp(1.15rem, 2.2vw, 2.1rem);
           color: rgba(250,244,236,0.55);
           letter-spacing: 0.02em;
           line-height: 1;
@@ -743,9 +861,11 @@ export default function Codex() {
             drop-shadow(0 0 22px rgba(245,199,61,0.42))
             drop-shadow(0 0 7px rgba(230,158,26,0.5));
         }
-        /* Riadok 2: "PEOPLE" — zjednotená veľkosť s parenthetical, šírka ≤ top row */
+        /* Riadok 2: "PEOPLE" — rovnaká veľkosť ako parenthetical.
+           Hierarchy: row 1 (BILLION) > row 2 (PEOPLE) > row 3 (bow to the cow).
+           Row 2 šírka ≈ row 1 šírka, font o niečo menší. */
         .codex-stat-l3 {
-          font-size: clamp(1.15rem, 2.4vw, 2.25rem);
+          font-size: clamp(1.15rem, 2.2vw, 2.1rem);
           line-height: 1;
           color: rgba(250,244,236,0.95);
           font-weight: 400;
@@ -770,11 +890,12 @@ export default function Codex() {
           font-family: 'Cinzel', serif;
           font-weight: 400;
           font-style: normal;
-          font-size: clamp(0.82rem, 1.05vw, 0.98rem);
-          line-height: 1.45;
+          /* PC: variant A copy zväčšená pre punch (mobile má vlastný override 15px) */
+          font-size: clamp(1.25rem, 1.8vw, 1.75rem);
+          line-height: 1.35;
           letter-spacing: 0.015em;
           margin: 0;
-          max-width: clamp(280px, 26vw, 360px);
+          max-width: clamp(280px, 32vw, 480px);
           text-wrap: balance;
           color: rgba(250,244,236,0.92);
         }
@@ -783,6 +904,20 @@ export default function Codex() {
           margin-top: 0.4em;
           color: rgba(250,244,236,0.95);
           filter: drop-shadow(0 0 10px rgba(250,244,236,0.18));
+        }
+        /* PC: DOGLOVERS? + ARE YOU READY? = bold a trocha väčšie ako base body */
+        .codex-question-big .q-call {
+          display: inline-block;
+          font-weight: 700;
+          font-size: 1.25em;
+          letter-spacing: 0.025em;
+        }
+        /* PC: LET'S WORSHIP OUR DOGS = šírka < tlačítka pod (menšie ako button) */
+        .codex-question-big .q-action {
+          display: inline-block;
+          font-size: 0.65em;
+          letter-spacing: 0.1em;
+          margin-top: 0.5em;
         }
         /* Micro-copy pod CTA — body font (Inter), zúžená na šírku tlačítka */
         .codex-microcopy {
@@ -823,12 +958,59 @@ export default function Codex() {
           gap: clamp(10px, 1.4vh, 16px);
         }
         @media (max-width: 767px) {
-          .codex-cow { height: clamp(72vh, 90vh, 106vh); left: -14vw; top: 0; }
-          .codex-hektor { height: clamp(72vh, 90vh, 106vh); right: -14vw; top: 0; }
-          .codex-3-overlay { max-width: 320px; gap: 14px; }
+          /* 🔒🔒 LOCK MOBILE HARD (2026-05-24): Slide 3 mobile HOTOVÝ. NEDOTÝKAŤ SA.
+             Cow + Hektor scale/position, padding-top, BOW size, copy variant A,
+             microcopy hide — všetko finálne. Úpravy LEN na explicit "zruš lock". */
+          .codex-cow {
+            height: clamp(72vh, 90vh, 106vh);
+            /* Mobile: posun o 20px doprava (left: -14vw + 20px) */
+            left: calc(-14vw + 20px);
+            /* Mobile: posun o 50px nadol (top: 0 → top: 50px) */
+            top: 50px;
+            /* Mobile: +5% +15% nad PC scale (1.14 × 1.05 × 1.15 ≈ 1.377) */
+            transform: scale(1.377);
+            transform-origin: bottom left;
+          }
+          .codex-hektor {
+            height: clamp(72vh, 90vh, 106vh);
+            /* Mobile: posun o 30px doľava (right: -14vw + 30px) */
+            right: calc(-14vw + 30px);
+            top: 0;
+            /* Mobile: +10% +15% −10% nad PC scale (1.08 × 1.10 × 1.15 × 0.90 ≈ 1.229) */
+            transform: scale(1.229);
+            transform-origin: bottom right;
+          }
+          .codex-3-overlay {
+            max-width: 320px;
+            gap: 14px;
+            /* Mobile: anchor top — match slide 1 headline Y position.
+               flex-start + minimal padding-top → content ide čo najvyššie. */
+            justify-content: flex-start;
+            padding-top: clamp(10px, 2vh, 24px);
+            padding-bottom: clamp(20px, 4vh, 40px);
+          }
           .codex-stat-number { font-size: clamp(2rem, 12vw, 3rem); }
-          .codex-stat-sub { font-size: 0.7rem; letter-spacing: 0.12em; }
+          .codex-stat-sub {
+            /* Mobile: BOW TO THE COW šírkovo ≈ horný riadok „1.2 BILLION" */
+            font-size: 1.35rem;
+            letter-spacing: 0.08em;
+          }
           .codex-question-big { font-size: 15px; line-height: 1.35; }
+          /* Mobile: DOGLOVERS + ARE YOU READY = veľký biely bold call.
+             LET'S WORSHIP OUR DOGS = jeden riadok normal weight. */
+          .codex-question-big .q-call {
+            display: inline-block;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
+          }
+          .codex-question-big .q-action {
+            display: inline-block;
+            white-space: nowrap;
+            margin-top: 6px;
+          }
         }
 
         /* ── Dots ── */
@@ -892,6 +1074,7 @@ export default function Codex() {
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerUp}
+            onClickCapture={onClickCapture}
             onWheel={onWheel}
           >
             <div
@@ -910,7 +1093,7 @@ export default function Codex() {
                   <span className="codex-frame bl" aria-hidden />
                   <span className="codex-frame br" aria-hidden />
                   <p className="codex-preamble-text">
-                    We, the nation of doglovers — knowing the infinite loyalty, the true love and the pure soul of every dog on Earth — in order to lift the standing of dogs in human society, build them a community, better their lives, and rewrite the fate of every dog in need, do give ourselves this constitution.
+                    We, the nation of doglovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.
                   </p>
                 </div>
                 <p className="codex-oath-label">The Oath of the Pack</p>
@@ -945,6 +1128,7 @@ export default function Codex() {
                                 type="button"
                                 className="codex-row-head"
                                 aria-expanded={open}
+                                onMouseDown={(e) => e.preventDefault()}
                                 onClick={() => setOpenIdx(open ? null : globalIdx)}
                               >
                                 <span className="num">{row.num}</span>
@@ -953,7 +1137,6 @@ export default function Codex() {
                                   <span className="dash">—</span>
                                   <span className="desc">{row.desc}</span>
                                 </span>
-                                <span className="caret" aria-hidden>▾</span>
                               </button>
                               <div className="codex-row-body">
                                 <div className="codex-row-body-inner">
@@ -991,18 +1174,21 @@ export default function Codex() {
                     </span>
                     <span className="codex-stat-row codex-stat-row-bottom">
                       <span className="codex-stat-l3">PEOPLE</span>
-                      <span className="codex-stat-note">(15% of all)</span>
+                      <span className="codex-stat-note">(15% worldwide)</span>
                     </span>
                   </p>
                   <p className="codex-stat-sub">bow to the cow</p>
                   <p className="codex-question-big">
-                    <span className="accent">A religion for dogs? In a world this absurd, why the hell not. We're crazy enough to mean it — sane enough to actually help them.</span>
+                    <span className="accent">
+                      <span className="q-call">DOGLOVERS?</span><br />
+                      <span className="q-call">ARE YOU READY?</span><br />
+                      <span className="q-action">LET'S WORSHIP OUR DOGS.</span>
+                    </span>
                   </p>
                   <div className="codex-cta-cluster">
                     <Link to="/heroglyph" className="codex-cta">
                       Become Dogyptian
                     </Link>
-                    <p className="codex-microcopy">It takes one click to stand on the right side of history.</p>
                   </div>
                 </div>
               </div>

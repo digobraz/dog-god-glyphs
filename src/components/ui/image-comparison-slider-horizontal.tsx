@@ -48,7 +48,10 @@ export const ImageComparisonSlider = React.forwardRef<
       if (!isDragging) return;
       handleMove(e.touches[0].clientX);
     };
-    const handleInteractionStart = () => setIsDragging(true);
+    const handleInteractionStart = (e: React.MouseEvent | React.TouchEvent) => {
+      e.stopPropagation();
+      setIsDragging(true);
+    };
     const handleInteractionEnd = () => setIsDragging(false);
 
     React.useEffect(() => {
@@ -98,8 +101,6 @@ export const ImageComparisonSlider = React.forwardRef<
             'relative w-full h-full overflow-hidden select-none group',
             className,
           )}
-          onMouseDown={handleInteractionStart}
-          onTouchStart={handleInteractionStart}
           {...props}
         >
           {/* RIGHT image (AFTER) — bottom layer */}
@@ -127,7 +128,7 @@ export const ImageComparisonSlider = React.forwardRef<
 
           {/* Slider divider + handle */}
           <div
-            className="absolute top-0 h-full cursor-ew-resize"
+            className="absolute top-0 h-full pointer-events-none"
             style={{ left: `calc(${sliderPosition}% - 1px)`, width: '2px' }}
           >
             {/* Gold hairline divider */}
@@ -148,14 +149,18 @@ export const ImageComparisonSlider = React.forwardRef<
                 'flex items-center justify-center rounded-full',
                 'transition-transform duration-200 ease-out',
                 'group-hover:scale-105',
-                isDragging && 'scale-110',
+                isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab',
               )}
               style={{
                 width: 'clamp(56px, 6vw, 72px)',
                 height: 'clamp(56px, 6vw, 72px)',
                 background: 'transparent',
                 animation: 'dogyptHandlePulse 3.2s ease-in-out infinite',
+                touchAction: 'none',
+                pointerEvents: 'auto',
               }}
+              onMouseDown={handleInteractionStart}
+              onTouchStart={handleInteractionStart}
               role="slider"
               aria-valuenow={sliderPosition}
               aria-valuemin={0}

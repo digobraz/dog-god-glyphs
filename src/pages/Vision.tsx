@@ -74,7 +74,7 @@ export default function Vision() {
   }, []);
 
   return (
-    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
+    <div className="dark-bg flex flex-col min-h-[100dvh] overflow-y-auto md:h-[100dvh] md:overflow-hidden relative">
       {/* Mild radial overlay — identical to /heroglyph */}
       <div
         aria-hidden
@@ -84,6 +84,20 @@ export default function Vision() {
           background:
             'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
           zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Mobile-only fixed dark halo — okolie sticky image stmavuje (vignette spotlight efekt) */}
+      <div
+        className="md:hidden"
+        aria-hidden
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse 72% 50% at center, transparent 0%, transparent 38%, rgba(0,0,0,0.55) 68%, rgba(0,0,0,0.82) 100%)',
+          zIndex: 1,
           pointerEvents: 'none',
         }}
       />
@@ -98,6 +112,24 @@ export default function Vision() {
           width: 100%;
           max-width: 1120px;
           text-align: center;
+        }
+        @media (max-width: 767px) {
+          .mission-grid { gap: clamp(18px, 3vh, 30px); }
+        }
+
+        /* Mobile-only headline — match /codex .codex-headline mobile size (IN DOG WE TRUST) for cross-page consistency */
+        @media (max-width: 767px) {
+          .headline-main {
+            font-size: 2.8rem !important;
+            letter-spacing: 0.03em !important;
+            line-height: 1.04 !important;
+          }
+          .headline-sub {
+            font-size: 1.5rem !important;
+            letter-spacing: 0.06em !important;
+            margin-top: 10px !important;
+            white-space: nowrap !important;
+          }
         }
         @media (min-width: 768px) {
           .mission-grid {
@@ -418,7 +450,17 @@ export default function Vision() {
           margin: 0 auto;
         }
         @media (max-width: 767px) {
-          .square-frame { max-width: min(44vh, 300px); }
+          .square-frame {
+            max-width: 92vw;
+            margin-left: auto;
+            margin-right: auto;
+            /* Sticky center: image lepí v strede viewportu pri scrole */
+            position: sticky;
+            top: calc(50dvh - 46vw);
+            z-index: 5;
+          }
+          /* CTA + pills musia byť nad halo (fixed root halo z=1) */
+          .mission-bottom, .mission-pillars { position: relative; z-index: 10; }
         }
         .square-label {
           position: absolute;
@@ -541,7 +583,7 @@ export default function Vision() {
 
       {/* Main 2-col area */}
       <div
-        className="flex-1 flex items-center justify-center px-5 md:px-10 relative min-h-0"
+        className="flex-1 flex items-start md:items-center justify-center px-5 md:px-10 relative md:min-h-0 pt-[calc(18vh-50px)] pb-10 md:pt-0 md:pb-0"
         style={{ zIndex: 2 }}
       >
         <div className="mission-grid">

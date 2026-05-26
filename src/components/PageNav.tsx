@@ -276,6 +276,7 @@ function MobileMenuOverlay({
       role="dialog"
       aria-modal="true"
       aria-label="Menu"
+      onClick={onClose}
       style={{
         position: 'fixed',
         inset: 0,
@@ -309,33 +310,6 @@ function MobileMenuOverlay({
           pointerEvents: 'none',
         }}
       />
-
-      {/* Close × — fixed top-right */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close menu"
-        style={{
-          position: 'absolute',
-          top: 18,
-          right: 18,
-          width: 36,
-          height: 36,
-          borderRadius: 999,
-          background: 'transparent',
-          border: '1px solid rgba(201,154,63,0.45)',
-          color: '#C99A3F',
-          fontSize: 22,
-          lineHeight: 1,
-          cursor: 'pointer',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 3,
-        }}
-      >
-        ×
-      </button>
 
       {/* Items — centered (logo + nav + lang) */}
       <div
@@ -422,8 +396,9 @@ function MobileMenuOverlay({
           );
         })}
 
-        {/* Language picker */}
+        {/* Language picker — stopPropagation so opening it doesn't close menu */}
         <div
+          onClick={(e) => e.stopPropagation()}
           style={{
             marginTop: 18,
             display: 'flex',
