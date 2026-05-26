@@ -12,24 +12,32 @@ const NAV_ITEMS = [
 
 type LangCode =
   | 'en' | 'sk' | 'cs' | 'pt' | 'zh' | 'ru' | 'de' | 'es'
-  | 'fr' | 'it' | 'pl' | 'nl' | 'uk' | 'ja' | 'tr' | 'hi';
-const LANGS: { code: LangCode; flag: string; label: string; native: string }[] = [
-  { code: 'en', flag: '🇺🇸', label: 'USA', native: 'English' },
-  { code: 'sk', flag: '🇸🇰', label: 'SVK', native: 'Slovenčina' },
-  { code: 'cs', flag: '🇨🇿', label: 'CZE', native: 'Čeština' },
-  { code: 'pt', flag: '🇵🇹', label: 'PRT', native: 'Português' },
-  { code: 'zh', flag: '🇨🇳', label: 'CHN', native: '中文' },
-  { code: 'ru', flag: '🇷🇺', label: 'RUS', native: 'Русский' },
-  { code: 'uk', flag: '🇺🇦', label: 'UKR', native: 'Українська' },
-  { code: 'de', flag: '🇩🇪', label: 'DEU', native: 'Deutsch' },
-  { code: 'nl', flag: '🇳🇱', label: 'NLD', native: 'Nederlands' },
-  { code: 'es', flag: '🇪🇸', label: 'ESP', native: 'Español' },
-  { code: 'fr', flag: '🇫🇷', label: 'FRA', native: 'Français' },
-  { code: 'it', flag: '🇮🇹', label: 'ITA', native: 'Italiano' },
-  { code: 'pl', flag: '🇵🇱', label: 'POL', native: 'Polski' },
-  { code: 'ja', flag: '🇯🇵', label: 'JPN', native: '日本語' },
-  { code: 'tr', flag: '🇹🇷', label: 'TUR', native: 'Türkçe' },
-  { code: 'hi', flag: '🇮🇳', label: 'IND', native: 'हिन्दी' },
+  | 'fr' | 'it' | 'pl' | 'nl' | 'uk' | 'ja' | 'tr' | 'hi'
+  | 'ar' | 'ko';
+// 18 jazykov — poradie matchuje LanguagePicker.tsx (canonical zdroj pravdy).
+// Layout = 2-col 9-row column-major: LEFT col (world) prvých 9, RIGHT col (EU) druhých 9.
+// `enabled` = je k dispozícii preklad. Iba en + sk zatiaľ, ostatné disabled (visual dim).
+const LANGS: { code: LangCode; flag: string; label: string; native: string; enabled: boolean }[] = [
+  // ── LEFT column (world / Asian / global) ──
+  { code: 'en', flag: '🇺🇸', label: 'ENG', native: 'English',    enabled: true  },
+  { code: 'es', flag: '🇪🇸', label: 'ESP', native: 'Español',    enabled: false },
+  { code: 'pt', flag: '🇵🇹', label: 'PRT', native: 'Português',  enabled: false },
+  { code: 'zh', flag: '🇨🇳', label: 'CHN', native: '中文',         enabled: false },
+  { code: 'ja', flag: '🇯🇵', label: 'JPN', native: '日本語',        enabled: false },
+  { code: 'hi', flag: '🇮🇳', label: 'IND', native: 'हिन्दी',      enabled: false },
+  { code: 'ar', flag: '🇸🇦', label: 'ARA', native: 'العربية',    enabled: false },
+  { code: 'ru', flag: '🇷🇺', label: 'RUS', native: 'Русский',    enabled: false },
+  { code: 'ko', flag: '🇰🇷', label: 'KOR', native: '한국어',        enabled: false },
+  // ── RIGHT column (EU + neighbors) ──
+  { code: 'sk', flag: '🇸🇰', label: 'SVK', native: 'Slovenčina', enabled: true  },
+  { code: 'cs', flag: '🇨🇿', label: 'CZE', native: 'Čeština',    enabled: false },
+  { code: 'de', flag: '🇩🇪', label: 'DEU', native: 'Deutsch',    enabled: false },
+  { code: 'nl', flag: '🇳🇱', label: 'NLD', native: 'Nederlands', enabled: false },
+  { code: 'fr', flag: '🇫🇷', label: 'FRA', native: 'Français',   enabled: false },
+  { code: 'it', flag: '🇮🇹', label: 'ITA', native: 'Italiano',   enabled: false },
+  { code: 'pl', flag: '🇵🇱', label: 'POL', native: 'Polski',     enabled: false },
+  { code: 'uk', flag: '🇺🇦', label: 'UKR', native: 'Українська', enabled: false },
+  { code: 'tr', flag: '🇹🇷', label: 'TUR', native: 'Türkçe',     enabled: false },
 ];
 
 function useIsMobile() {
@@ -326,8 +334,8 @@ function MobileMenuOverlay({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: langOpen ? 'flex-start' : 'center',
-          gap: langOpen ? 16 : 24,
-          padding: langOpen ? '36px 24px 24px' : '60px 24px 40px',
+          gap: langOpen ? 10 : 24,
+          padding: langOpen ? '12px 24px 16px' : '60px 24px 40px',
           position: 'relative',
           zIndex: 1,
           animation: 'mobileMenuFade 0.38s ease-out 0.08s both',
@@ -343,14 +351,14 @@ function MobileMenuOverlay({
             display: 'inline-flex',
             transition: 'transform 0.32s ease, margin 0.32s ease',
             transform: langOpen ? 'scale(0.36)' : 'scale(1)',
-            transformOrigin: 'center center',
-            marginBottom: langOpen ? -60 : 4,
+            transformOrigin: 'top center',
+            marginBottom: langOpen ? -68 : 4,
           }}
         >
           <div
             style={{
-              width: 184,
-              height: 184,
+              width: 138,
+              height: 138,
               borderRadius: 999,
               border: '2px solid rgba(201,154,63,0.70)',
               background: '#000',
@@ -386,7 +394,7 @@ function MobileMenuOverlay({
               style={{
                 fontFamily: "'Cinzel', serif",
                 fontWeight: 700,
-                fontSize: 22,
+                fontSize: langOpen ? 14 : 22,
                 letterSpacing: '0.18em',
                 textTransform: 'uppercase',
                 color: isActive ? '#C99A3F' : 'rgba(242,234,214,0.85)',
@@ -396,6 +404,7 @@ function MobileMenuOverlay({
                   : '1.5px solid transparent',
                 paddingBottom: 3,
                 WebkitTapHighlightColor: 'transparent',
+                transition: 'font-size 0.32s ease',
               }}
             >
               {label}
@@ -407,13 +416,16 @@ function MobileMenuOverlay({
         <div
           onClick={(e) => e.stopPropagation()}
           style={{
-            marginTop: 18,
+            marginTop: langOpen ? 6 : 18,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 12,
+            gap: 10,
             width: '100%',
             maxWidth: 280,
+            flex: langOpen ? '1 1 auto' : '0 0 auto',
+            minHeight: 0,
+            transition: 'margin 0.32s ease',
           }}
         >
           <button
@@ -466,10 +478,13 @@ function MobileMenuOverlay({
               role="listbox"
               style={{
                 width: '100%',
-                maxHeight: '40vh',
-                overflowY: 'auto',
+                flex: '1 1 auto',
+                minHeight: 0,
+                overflow: 'hidden',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
+                gridTemplateRows: 'repeat(9, 1fr)',
+                gridAutoFlow: 'column',
                 gap: 6,
                 padding: 8,
                 background: 'rgba(250,243,225,0.04)',
@@ -486,7 +501,9 @@ function MobileMenuOverlay({
                     type="button"
                     role="option"
                     aria-selected={active}
+                    aria-disabled={!l.enabled}
                     onClick={() => {
+                      if (!l.enabled) return;
                       onSelectLang(l.code);
                       setLangOpen(false);
                     }}
@@ -500,8 +517,9 @@ function MobileMenuOverlay({
                         ? '1px solid #C99A3F'
                         : '1px solid rgba(201,154,63,0.25)',
                       borderRadius: 6,
-                      cursor: 'pointer',
+                      cursor: l.enabled ? 'pointer' : 'not-allowed',
                       color: '#FAF3E1',
+                      opacity: l.enabled ? 1 : 0.38,
                     }}
                   >
                     <span style={{ fontSize: 15, lineHeight: 1 }}>{l.flag}</span>
@@ -642,7 +660,8 @@ function LanguageModal({
                 type="button"
                 role="option"
                 aria-selected={active}
-                onClick={() => onSelect(l.code)}
+                aria-disabled={!l.enabled}
+                onClick={() => { if (l.enabled) onSelect(l.code); }}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -653,11 +672,12 @@ function LanguageModal({
                     ? '1.5px solid #C99A3F'
                     : '1px solid rgba(201,154,63,0.30)',
                   borderRadius: 8,
-                  cursor: 'pointer',
+                  cursor: l.enabled ? 'pointer' : 'not-allowed',
+                  opacity: l.enabled ? 1 : 0.42,
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
                 onMouseEnter={(e) => {
-                  if (!active)
+                  if (!active && l.enabled)
                     e.currentTarget.style.background = 'rgba(201,154,63,0.18)';
                 }}
                 onMouseLeave={(e) => {

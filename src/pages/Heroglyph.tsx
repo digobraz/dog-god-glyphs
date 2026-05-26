@@ -584,6 +584,50 @@ export default function Heroglyph() {
                 dangerouslySetInnerHTML={{ __html: svgMarkup }}
               />
 
+              {/* Symbol meaning bubble — inline pod heroglyph SVG (in-flow, posúva obsah nadol).
+                  Mobile only. Desktop ostáva cursor-follow nižšie v JSX. */}
+              {meaning && (
+                <div
+                  style={{
+                    marginTop: 14,
+                    width: '100%',
+                    maxWidth: 320,
+                    textAlign: 'center',
+                    background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
+                    border: '1.5px solid #C99A3F',
+                    borderRadius: 10,
+                    padding: '10px 16px',
+                    boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
+                    fontFamily: "'Cinzel', serif",
+                    color: '#1a0a05',
+                    animation: 'tooltip-fade-in 160ms ease',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: '0.62rem',
+                      letterSpacing: '0.24em',
+                      textTransform: 'uppercase',
+                      color: '#9c6f1f',
+                      fontWeight: 700,
+                      marginBottom: 3,
+                    }}
+                  >
+                    {meaning.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: '0.98rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.02em',
+                      lineHeight: 1.15,
+                    }}
+                  >
+                    {meaning.value}
+                  </div>
+                </div>
+              )}
+
               {/* Heroglyph word — clickable, chevron + dashed underline hint */}
               <button
                 type="button"
@@ -856,30 +900,25 @@ export default function Heroglyph() {
         </div>
       </div>
 
-      {/* Symbol meaning tooltip — mobile: bottom-center; desktop: cursor-follow.
-          Always clamped to viewport so the bubble stays fully visible. */}
-      {meaning && (
+      {/* Symbol meaning tooltip — desktop only (cursor-follow, viewport-clamped).
+          Mobile má vlastný inline render hneď pod SVG (in-flow, posúva content nadol). */}
+      {meaning && !isMobile && (
         <div
           style={{
             position: 'fixed',
-            ...(isMobile
-              ? { left: '50%', bottom: 18, transform: 'translateX(-50%)' }
-              : {
-                  left: Math.min(tooltipPos.x + 14, window.innerWidth - 296),
-                  top: Math.min(tooltipPos.y + 14, window.innerHeight - 120),
-                }),
+            left: Math.min(tooltipPos.x + 14, window.innerWidth - 296),
+            top: Math.min(tooltipPos.y + 14, window.innerHeight - 120),
             zIndex: 100,
             pointerEvents: 'none',
             background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
             border: '1.5px solid #C99A3F',
             borderRadius: 10,
-            padding: isMobile ? '10px 16px' : '8px 14px',
+            padding: '8px 14px',
             boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
             fontFamily: "'Cinzel', serif",
             color: '#1a0a05',
-            minWidth: isMobile ? 200 : 140,
-            maxWidth: isMobile ? '85vw' : 280,
-            textAlign: isMobile ? 'center' : 'left',
+            minWidth: 140,
+            maxWidth: 280,
             animation: 'tooltip-fade-in 160ms ease',
           }}
         >
