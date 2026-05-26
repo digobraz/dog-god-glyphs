@@ -850,20 +850,15 @@ export function GodsGrid() {
         }
         .is-dragging .dog-card { cursor: pointer; transition: none; }
 
-        /* Placeholder dogs — stmavené, greyscale, bez identity */
+        /* Placeholder dogs — greyscale, bez identity; photo 60%, popisky 100% */
         .dog-card--placeholder { cursor: default; }
         .dog-card--placeholder .card-img {
-          filter: grayscale(1) brightness(0.55) contrast(0.9);
-          opacity: 0.35;
-        }
-        .dog-card--placeholder .card-name-block,
-        .dog-card--placeholder .card-rank-top {
-          opacity: 0.30;
+          filter: grayscale(1) brightness(0.85) contrast(0.95);
+          opacity: 0.6;
         }
         .dog-card--placeholder .card-label {
           font-size: 0.7rem !important;
           letter-spacing: 0.22em !important;
-          color: rgba(250,244,236,0.55) !important;
         }
         .dog-card--placeholder:hover {
           transform: none !important;
