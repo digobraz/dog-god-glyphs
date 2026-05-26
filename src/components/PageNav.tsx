@@ -213,35 +213,42 @@ function MobileNav() {
         }}
       >
         <style>{`
-          @keyframes hamburgerPulse {
+          @keyframes chevronPulse {
             0%, 100% {
               filter: drop-shadow(0 0 0 rgba(255, 255, 255, 0));
               opacity: 0.88;
+              transform: translateY(0);
             }
             50% {
               filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.55));
               opacity: 1;
+              transform: translateY(2px);
             }
           }
-          .hamburger-svg {
+          .chevron-svg {
             display: block;
-            animation: hamburgerPulse 2.4s ease-in-out infinite;
+            animation: chevronPulse 2.4s ease-in-out infinite;
           }
           @media (prefers-reduced-motion: reduce) {
-            .hamburger-svg { animation: none; opacity: 1; }
+            .chevron-svg { animation: none; opacity: 1; transform: none; }
           }
         `}</style>
         <svg
           width="28"
-          height="22"
-          viewBox="0 0 28 22"
+          height="16"
+          viewBox="0 0 28 16"
           fill="none"
           aria-hidden
-          className="hamburger-svg"
+          className="chevron-svg"
         >
-          <line x1="3" y1="4" x2="25" y2="4" stroke="#FAF4EC" strokeWidth="2.4" strokeLinecap="round" />
-          <line x1="3" y1="11" x2="25" y2="11" stroke="#FAF4EC" strokeWidth="2.4" strokeLinecap="round" />
-          <line x1="3" y1="18" x2="25" y2="18" stroke="#FAF4EC" strokeWidth="2.4" strokeLinecap="round" />
+          <path
+            d="M4 4 L14 12.5 L24 4"
+            stroke="#FAF4EC"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
         </svg>
       </button>
 

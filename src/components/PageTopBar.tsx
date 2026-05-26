@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.png';
 import { PageNav } from './PageNav';
 
 interface PageTopBarProps {
@@ -18,7 +19,8 @@ interface PageTopBarProps {
 
 /**
  * DOGYPT canonical top-bar.
- * Mobile pt = 15px (LOCKED 2026-05-26). Logo h-9 md:h-12.
+ * Mobile pt = 15px (LOCKED 2026-05-26). Mobile logo = silueta h-10
+ * (dogypt-logo-mobile.png, bez DOG YPT cartouche); desktop = full logo h-12.
  * Every new page that needs a top logo MUST use this component.
  */
 export function PageTopBar({
@@ -27,17 +29,24 @@ export function PageTopBar({
   backAriaLabel = 'Back',
 }: PageTopBarProps) {
   const logo = (
-    <img
-      src={dogyptLogo}
-      alt="DOGYPT"
-      className="h-9 md:h-12 object-contain"
-    />
+    <>
+      <img
+        src={dogyptLogoMobile}
+        alt="DOGYPT"
+        className="h-10 object-contain md:hidden"
+      />
+      <img
+        src={dogyptLogo}
+        alt="DOGYPT"
+        className="hidden md:block md:h-12 object-contain"
+      />
+    </>
   );
 
   if (withNav) {
     return (
       <div
-        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[34px]"
+        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[34px]"
         style={{ zIndex: 2 }}
       >
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">

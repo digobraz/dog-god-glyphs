@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { PageTopBar } from '@/components/PageTopBar';
 
 type SymbolMeaning = { label: string; value: string };
 
@@ -460,10 +460,7 @@ export default function Heroglyph() {
         }
       `}</style>
 
-      {/* Top logo */}
-      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-2 md:pt-[40px] relative" style={{ zIndex: 2 }}>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </div>
+      <PageTopBar withNav />
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 pt-12 pb-16 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-3xl flex flex-col items-center text-center">
