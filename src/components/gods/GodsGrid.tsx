@@ -606,7 +606,9 @@ export function GodsGrid() {
     navigateToRef.current = navigateTo;
 
     const centerBtn = document.getElementById('gods-center-btn');
+    const centerBtnMobile = document.getElementById('gods-center-btn-mobile');
     centerBtn?.addEventListener('click', onCenter);
+    centerBtnMobile?.addEventListener('click', onCenter);
 
     render();
 
@@ -620,6 +622,7 @@ export function GodsGrid() {
       app.removeEventListener('wheel', onWheel);
       window.removeEventListener('resize', onResize);
       centerBtn?.removeEventListener('click', onCenter);
+      centerBtnMobile?.removeEventListener('click', onCenter);
       if (raf) cancelAnimationFrame(raf);
       cells.forEach(el => el.remove());
       cells.clear();
@@ -718,8 +721,8 @@ export function GodsGrid() {
           display: flex;
           align-items: center;
           gap: 20px;
-          background: rgba(250,244,236,0.92);
-          backdrop-filter: blur(12px);
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.45);
           padding: 7px 20px;
           border-radius: 999px;
         }
@@ -1367,9 +1370,8 @@ export function GodsGrid() {
           z-index: 50;
           width: 40px; height: 40px;
           border-radius: 50%;
-          background: rgba(250,244,236,0.92);
-          backdrop-filter: blur(12px);
-          border: 1px solid rgba(0,0,0,0.12);
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.45);
           color: rgba(0,0,0,0.7);
           cursor: pointer;
           display: flex; align-items: center; justify-content: center;
@@ -1418,6 +1420,57 @@ export function GodsGrid() {
         .filter-input::-webkit-outer-spin-button,
         .filter-input::-webkit-inner-spin-button { -webkit-appearance: none; }
         .filter-input::placeholder { color: rgba(0,0,0,0.32); font-weight: 400; font-family: inherit; }
+
+        /* ── Mobile (≤768px): nav pills centered top, center btn next to filter at bottom ── */
+        .center-btn-mobile { display: none; }
+
+        @media (max-width: 768px) {
+          .nav-left {
+            left: 50%;
+            transform: translateX(-50%);
+          }
+          .nav-right { display: none; }
+
+          .center-btn-mobile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            bottom: 16px;
+            left: calc(50% + 4px);
+            z-index: 50;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+            border: 1px solid rgba(201,154,63,0.45);
+            color: rgba(0,0,0,0.7);
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+            padding: 0;
+          }
+          .center-btn-mobile:hover { opacity: 0.85; }
+
+          .filter-btn {
+            left: calc(50% - 4px);
+            transform: translateX(-100%);
+          }
+        }
+
+        /* ── Touch devices: skip hover preview → tap goes straight to info ── */
+        @media (hover: none) {
+          .dog-card:not(.is-open):hover {
+            transform: none !important;
+            box-shadow: none !important;
+          }
+          .dog-card:not(.is-open):hover::after { opacity: 0 !important; }
+          .dog-card:not(.is-open):hover .card-rank-top,
+          .dog-card:not(.is-open):hover .card-flag,
+          .dog-card:not(.is-open):hover .card-name-block { opacity: 1 !important; }
+          .dog-card:not(.is-open):hover .dog-heroglyph-wrap,
+          .hektor-card:not(.is-open):hover .hektor-heroglyph-wrap { opacity: 0 !important; }
+          .hektor-card:not(.is-open):hover { transform: none !important; }
+        }
 
         @keyframes symbol-burn {
           0%   { opacity: 0;
@@ -1494,6 +1547,14 @@ export function GodsGrid() {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="6.5" cy="6.5" r="4"/>
             <path d="M10 10L14 14"/>
+          </svg>
+        </button>
+
+        <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label="Center grid">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="12" cy="12" r="9"/>
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none"/>
           </svg>
         </button>
 
