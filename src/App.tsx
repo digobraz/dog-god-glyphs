@@ -1,9 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LandingPage } from "@/components/landing/LandingPage";
 import { SpiralLanding } from "@/components/landing/SpiralLanding";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import { NameScreen } from "@/components/screens/NameScreen";
@@ -51,7 +50,6 @@ const App = () => (
           <Route path="/" element={<SpiralLanding />} />
           <Route path="/spiral" element={<SpiralLanding />} />
           <Route path="/grid" element={<GodsGrid />} />
-          <Route path="/gods" element={<GodsGrid />} />
 
           {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov) */}
           <Route path="/heroglyph" element={<Heroglyph />} />
@@ -72,11 +70,8 @@ const App = () => (
 
           {/* Checkout — Stripe (flat, success_url je /welcome) */}
           <Route path="/checkout" element={<CheckoutScreen />} />
-          <Route path="/pay-wall" element={<CheckoutScreen />} />
           <Route path="/payment" element={<PaymentScreen />} />
           <Route path="/welcome" element={<WelcomeScreen />} />
-          <Route path="/thank-you" element={<Navigate to="/welcome" replace />} />{/* legacy alias for in-flight Stripe sessions */}
-          <Route path="/devhome" element={<LandingPage />} />
           <Route path="/vision" element={<Vision />} />
           {import.meta.env.DEV && (
             <Route path="/betavision" element={<BetaVision />} />

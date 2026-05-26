@@ -1,12 +1,18 @@
 import { useNavigate } from 'react-router-dom';
 import { PageTopBar } from '@/components/PageTopBar';
+import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 
 export default function About() {
   const navigate = useNavigate();
 
   return (
-    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
-      {/* Radial vignette — identical to /heroglyph & /vision */}
+    <div className="dark-bg flex flex-col relative">
+      {/* Hero fold — natural min-height, NOT locked vh100 (scroll povolený) */}
+      <section
+        className="relative flex flex-col"
+        style={{ minHeight: '100dvh' }}
+      >
+      {/* Radial vignette — only behind hero fold */}
       <div
         aria-hidden
         style={{
@@ -215,6 +221,10 @@ export default function About() {
           </div>
         </div>
       </div>
+      </section>
+
+      {/* Testimonials — migrované z /devhome 2026-05-26 */}
+      <TestimonialsSection />
     </div>
   );
 }

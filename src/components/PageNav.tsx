@@ -92,7 +92,7 @@ function DesktopNav() {
       {NAV_ITEMS.map(({ label, to }) => {
         const isActive =
           to === '/grid'
-            ? pathname === '/grid' || pathname === '/gods' || pathname === '/'
+            ? pathname === '/grid' || pathname === '/'
             : pathname === to;
         return (
           <span
