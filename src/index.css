@@ -109,6 +109,32 @@ html {
   overscroll-behavior: none;
   background-color: #000;
 }
+body {
+  background-color: #000;
+}
+
+/*
+ * Landscape-short escape hatch (2026-05-26).
+ * Pages locked to h-[100dvh] overflow-hidden break in phone landscape
+ * (viewport height ~400px < required content). When orientation is
+ * landscape AND viewport height ≤600px, force scroll so content reaches.
+ * Portrait + tablet/desktop unaffected.
+ */
+@media (orientation: landscape) and (max-height: 600px) {
+  .dark-bg {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+  }
+}
+
+/*
+ * Safari iOS theme-color sampling — note for /codex slide 3.
+ * PNGs s baked alpha halo (cow/Hekthor) bleed into bottom edge → Safari
+ * môže sampling-om dostať light pixely → chrome flip. Fix nepatrí sem
+ * globálne (prepisoval by content); rieš per-slide cez ::after mask
+ * BEHIND content alebo cez PNG re-export bez halo.
+ */
 
 @layer base {
   * {
