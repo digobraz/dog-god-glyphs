@@ -352,6 +352,13 @@ export default function Heroglyph() {
         .pill-marquee:hover .pill-marquee-track {
           animation-play-state: paused;
         }
+        /* On touch devices marquee never pauses — tap shows tooltip without stopping the scroll */
+        @media (hover: none) {
+          .pill-marquee:hover .pill-marquee-track,
+          .pill-marquee .pill-marquee-track {
+            animation-play-state: running;
+          }
+        }
         @keyframes pill-scroll-left {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
@@ -598,25 +605,21 @@ export default function Heroglyph() {
                 <span
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    fontWeight: 700,
-                    fontSize: '1.7rem',
-                    letterSpacing: 0,
+                    fontWeight: 600,
+                    fontSize: '1.2rem',
+                    letterSpacing: '0.02em',
                     lineHeight: 1.05,
-                    background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    filter: 'drop-shadow(0 0 14px rgba(245,199,61,0.4))',
-                    borderBottom: '1px dashed rgba(245,199,61,0.6)',
+                    color: 'rgba(250,244,236,0.92)',
+                    borderBottom: '1px dashed rgba(250,244,236,0.45)',
                     paddingBottom: 2,
                   }}
                 >
                   Heroglyph
                 </span>
                 <ChevronDown
-                  size={20}
-                  color="#F5C73D"
-                  strokeWidth={2.4}
+                  size={16}
+                  color="rgba(250,244,236,0.85)"
+                  strokeWidth={2.2}
                   style={{
                     transition: 'transform 280ms ease',
                     transform: defOpen ? 'rotate(180deg)' : 'rotate(0deg)',
