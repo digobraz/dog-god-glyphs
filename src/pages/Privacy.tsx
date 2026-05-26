@@ -52,7 +52,7 @@ export default function Privacy() {
   return (
     <div className="dark-bg min-h-screen flex flex-col items-center py-10 md:py-16 px-4">
       <Link to="/" className="mb-8 md:mb-10">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
       </Link>
 
       <article

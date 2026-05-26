@@ -1,8 +1,7 @@
 import { Fragment, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
-import { PageNav } from '@/components/PageNav';
+import { PageTopBar } from '@/components/PageTopBar';
 
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
 type PillData = { icon: string; label: string; tooltip: string; status: PillStatus };
@@ -566,20 +565,7 @@ export default function Vision() {
         }
       `}</style>
 
-      {/* Top bar: mobile = logo + hamburger inline (row); desktop = logo above nav (col) */}
-      <div
-        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[39px] md:pt-[34px]"
-        style={{ zIndex: 2 }}
-      >
-        <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
-          <img
-            src={dogyptLogo}
-            alt="DOGYPT"
-            className="h-9 md:h-10 object-contain"
-          />
-        </Link>
-        <PageNav />
-      </div>
+      <PageTopBar withNav />
 
       {/* Main 2-col area */}
       <div

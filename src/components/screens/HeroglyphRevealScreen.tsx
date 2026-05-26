@@ -60,7 +60,7 @@ export function HeroglyphRevealScreen() {
         transition={{ duration: 1 }}
       >
         {/* Logo */}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
 
         {/* 1. BLOCK - Ornamental frame with heroglyph */}
         <motion.div

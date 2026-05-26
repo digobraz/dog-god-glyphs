@@ -134,7 +134,7 @@ export function ChatScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Header: back + logo */}
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-4 pb-2 px-4">
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-4">
         {step > 0 && (
           <button
             onClick={goBack}
@@ -143,7 +143,7 @@ export function ChatScreen() {
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
       </div>
 
       {/* Main content — centered */}

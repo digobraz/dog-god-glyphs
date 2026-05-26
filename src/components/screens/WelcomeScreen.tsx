@@ -356,8 +356,8 @@ export function WelcomeScreen() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {/* 1. Logo — on dark bg */}
-        <div className="flex-shrink-0 flex justify-center pt-3 pb-2">
-          <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-10 object-contain" />
+        <div className="flex-shrink-0 flex justify-center pt-[15px] pb-2 md:pt-3">
+          <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
         </div>
 
         {/* Outer centering container */}

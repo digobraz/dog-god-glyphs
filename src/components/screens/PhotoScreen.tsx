@@ -489,14 +489,14 @@ export function PhotoScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4">
         <button
           onClick={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))}
           className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
       </div>
 
       {/* Content */}

@@ -170,7 +170,7 @@ export default function Login() {
   return (
     <div className="dark-bg min-h-screen flex flex-col items-center justify-center px-4 py-10">
       <Link to="/" className="mb-8 md:mb-10" aria-label="DOGYPT home">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-10 md:h-14 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
       </Link>
 
       <article

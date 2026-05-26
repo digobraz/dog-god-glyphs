@@ -267,7 +267,7 @@ export function BreedPatronScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-3 pb-2 px-4">
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4">
         <button
           onClick={() => navigate('/heroglyph/photo')}
           className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
@@ -275,7 +275,7 @@ export function BreedPatronScreen() {
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-8 md:h-12 object-contain" />
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-hidden">

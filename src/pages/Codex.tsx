@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptSeal from '@/assets/dogypt-seal.png';
-import { PageNav } from '@/components/PageNav';
+import { PageTopBar } from '@/components/PageTopBar';
 import { SACRED_INDEX } from '@/data/sacredIndex.generated';
 
 const TOTAL_SLIDES = 3;
@@ -1047,20 +1046,7 @@ export default function Codex() {
         }
       `}</style>
 
-      {/* Top bar */}
-      <div
-        className="flex-shrink-0 relative flex flex-row md:flex-col items-center justify-center gap-3 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[39px] md:pt-[34px]"
-        style={{ zIndex: 2 }}
-      >
-        <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
-          <img
-            src={dogyptLogo}
-            alt="DOGYPT"
-            className="h-9 md:h-10 object-contain"
-          />
-        </Link>
-        <PageNav />
-      </div>
+      <PageTopBar withNav />
 
       {/* Slider */}
       <div

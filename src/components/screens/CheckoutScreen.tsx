@@ -59,8 +59,8 @@ export function CheckoutScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Logo */}
-      <div className="flex-shrink-0 flex justify-center pt-2 pb-1">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-7 md:h-11 object-contain" />
+      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-1 md:pt-2">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-hidden">
