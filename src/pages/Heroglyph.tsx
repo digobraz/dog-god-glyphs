@@ -164,7 +164,8 @@ export default function Heroglyph() {
         e.stopPropagation();
         const touch = (e as TouchEvent).touches?.[0];
         if (touch) {
-          setTooltipSymbol(id);
+          // Toggle: same symbol tapped again → close
+          setTooltipSymbol((prev) => (prev === id ? null : id));
           setTooltipPos({ x: touch.clientX, y: touch.clientY });
         }
       };
@@ -475,7 +476,7 @@ export default function Heroglyph() {
 
       <PageTopBar withNav />
 
-      <div className="flex-1 flex flex-col items-center justify-start md:justify-center px-5 pt-2 pb-6 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
+      <div className="flex-1 flex flex-col items-center justify-start md:justify-center px-5 pt-6 pb-6 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-3xl flex flex-col items-center text-center">
 
           {/* HERO TITLE — Mobile: "THE / SYMBOL" stacked (big gold) + "THAT CHANGES HISTORY" subline (Vision-style, weight 500, uppercase, single row).
@@ -795,6 +796,10 @@ export default function Heroglyph() {
                 onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
                 onMove={(x, y) => setPillTooltipPos({ x, y })}
                 onLeave={() => setPillTooltip(null)}
+                onTap={(p, x, y) => {
+                  setPillTooltip((prev) => (prev?.label === p.label ? null : p));
+                  setPillTooltipPos({ x, y });
+                }}
                 marginTop={16}
               />
             </>
@@ -848,24 +853,30 @@ export default function Heroglyph() {
         </div>
       </div>
 
-      {/* Floating tooltip following cursor */}
+      {/* Symbol meaning tooltip — mobile: bottom-center; desktop: cursor-follow.
+          Always clamped to viewport so the bubble stays fully visible. */}
       {meaning && (
         <div
           style={{
             position: 'fixed',
-            left: tooltipPos.x + 14,
-            top: tooltipPos.y + 14,
+            ...(isMobile
+              ? { left: '50%', bottom: 18, transform: 'translateX(-50%)' }
+              : {
+                  left: Math.min(tooltipPos.x + 14, window.innerWidth - 296),
+                  top: Math.min(tooltipPos.y + 14, window.innerHeight - 120),
+                }),
             zIndex: 100,
             pointerEvents: 'none',
             background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
             border: '1.5px solid #C99A3F',
             borderRadius: 10,
-            padding: '8px 14px',
+            padding: isMobile ? '10px 16px' : '8px 14px',
             boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
             fontFamily: "'Cinzel', serif",
             color: '#1a0a05',
-            minWidth: 140,
-            maxWidth: 280,
+            minWidth: isMobile ? 200 : 140,
+            maxWidth: isMobile ? '85vw' : 280,
+            textAlign: isMobile ? 'center' : 'left',
             animation: 'tooltip-fade-in 160ms ease',
           }}
         >
@@ -1048,6 +1059,7 @@ function PillMarquee({
   onEnter,
   onMove,
   onLeave,
+  onTap,
   marginTop,
 }: {
   pills: PillData[];
@@ -1055,6 +1067,7 @@ function PillMarquee({
   onEnter: (p: PillData, x: number, y: number) => void;
   onMove: (x: number, y: number) => void;
   onLeave: () => void;
+  onTap?: (p: PillData, x: number, y: number) => void;
   marginTop: number;
 }) {
   const renderPill = (p: PillData, key: string) => (
@@ -1066,7 +1079,9 @@ function PillMarquee({
       onMouseLeave={onLeave}
       onTouchStart={(e) => {
         const t = e.touches[0];
-        if (t) onEnter(p, t.clientX, t.clientY);
+        if (!t) return;
+        if (onTap) onTap(p, t.clientX, t.clientY);
+        else onEnter(p, t.clientX, t.clientY);
       }}
     >
       <img src={p.icon} alt="" className="pill-outline-icon" />
