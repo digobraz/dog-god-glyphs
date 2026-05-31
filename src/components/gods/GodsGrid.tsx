@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 
 const GRID_DOGS_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs';
@@ -443,7 +444,7 @@ export function GodsGrid() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.subscribe-btn') || target.closest('.filter-btn') || target.closest('.filter-panel')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.filter-panel')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -605,9 +606,7 @@ export function GodsGrid() {
     }
     navigateToRef.current = navigateTo;
 
-    const centerBtn = document.getElementById('gods-center-btn');
     const centerBtnMobile = document.getElementById('gods-center-btn-mobile');
-    centerBtn?.addEventListener('click', onCenter);
     centerBtnMobile?.addEventListener('click', onCenter);
 
     render();
@@ -621,7 +620,6 @@ export function GodsGrid() {
       window.removeEventListener('touchend', onTouchEnd);
       app.removeEventListener('wheel', onWheel);
       window.removeEventListener('resize', onResize);
-      centerBtn?.removeEventListener('click', onCenter);
       centerBtnMobile?.removeEventListener('click', onCenter);
       if (raf) cancelAnimationFrame(raf);
       cells.forEach(el => el.remove());
@@ -789,29 +787,6 @@ export function GodsGrid() {
           color: rgba(255,255,255,0.55);
           max-width: 520px;
         }
-
-        .nav-right {
-          position: fixed;
-          top: 12px; right: 20px;
-          z-index: 50;
-        }
-        .subscribe-btn {
-          height: 40px;
-          padding: 0 18px;
-          border-radius: 999px;
-          background: rgba(250,244,236,0.92);
-          backdrop-filter: blur(12px);
-          color: #000;
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.78rem;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          display: flex; align-items: center; gap: 7px;
-          border: none;
-          cursor: pointer;
-        }
-        .subscribe-btn:hover { opacity: 0.75; }
 
         .center-btn {
           position: fixed;
@@ -1075,6 +1050,7 @@ export function GodsGrid() {
           line-height: 1.8;
           text-transform: uppercase;
           text-align: center;
+          white-space: nowrap;
         }
         .hero-tagline .gold {
           display: inline;
@@ -1365,8 +1341,8 @@ export function GodsGrid() {
         .filter-btn {
           position: fixed;
           bottom: 16px;
-          left: 50%;
-          transform: translateX(-50%);
+          left: calc(50% - 4px);
+          transform: translateX(-100%);
           z-index: 50;
           width: 40px; height: 40px;
           border-radius: 50%;
@@ -1421,39 +1397,31 @@ export function GodsGrid() {
         .filter-input::-webkit-inner-spin-button { -webkit-appearance: none; }
         .filter-input::placeholder { color: rgba(0,0,0,0.32); font-weight: 400; font-family: inherit; }
 
-        /* ── Mobile (≤768px): nav pills centered top, center btn next to filter at bottom ── */
-        .center-btn-mobile { display: none; }
+        /* ── Center grid button (terč) — side-by-side with filter at bottom ── */
+        .center-btn-mobile {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: fixed;
+          bottom: 16px;
+          left: calc(50% + 4px);
+          z-index: 50;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.45);
+          color: rgba(0,0,0,0.7);
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+          padding: 0;
+        }
+        .center-btn-mobile:hover { opacity: 0.85; }
 
         @media (max-width: 768px) {
           .nav-left {
             left: 50%;
             transform: translateX(-50%);
-          }
-          .nav-right { display: none; }
-
-          .center-btn-mobile {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: fixed;
-            bottom: 16px;
-            left: calc(50% + 4px);
-            z-index: 50;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-            border: 1px solid rgba(201,154,63,0.45);
-            color: rgba(0,0,0,0.7);
-            cursor: pointer;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-            padding: 0;
-          }
-          .center-btn-mobile:hover { opacity: 0.85; }
-
-          .filter-btn {
-            left: calc(50% - 4px);
-            transform: translateX(-100%);
           }
         }
 
@@ -1519,6 +1487,7 @@ export function GodsGrid() {
             <a href="/vision">Vision</a>
             <a href="/codex">Codex</a>
             <a href="/about">About</a>
+            <LanguagePicker />
           </nav>
         </div>
 
@@ -1528,15 +1497,6 @@ export function GodsGrid() {
             <h2>1,000,000 dogs.<br/>Will we make it?</h2>
             <p>DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack. We're collecting one million heroes. Be among the first.</p>
           </div>
-        </div>
-
-        <div className="nav-right">
-          <button className="subscribe-btn" id="gods-center-btn">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-              <path d="M8 2V8M8 14V8M8 8H2M8 8H14"/>
-            </svg>
-            Center
-          </button>
         </div>
 
         <button

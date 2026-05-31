@@ -568,7 +568,7 @@ export default function Vision() {
             padding: 13px 34px;
             font-size: 0.95rem;
             letter-spacing: 0.14em;
-            margin-bottom: 2px;
+            margin: clamp(18px, 3.5vh, 30px) 0;
           }
           .mission-pillars { margin-bottom: 0; }
         }
