@@ -972,11 +972,12 @@ export default function Codex() {
           }
           .codex-hektor {
             height: clamp(72vh, 90vh, 106vh);
-            /* Mobile: posun o 30px doľava (right: -14vw + 30px) */
-            right: calc(-14vw + 30px);
-            top: 0;
-            /* Mobile: +10% +15% −10% nad PC scale (1.08 × 1.10 × 1.15 × 0.90 ≈ 1.229) */
-            transform: scale(1.229);
+            /* Mobile: posun o 30px doľava, potom o 15px doprava (2026-05-31) → -14vw + 15px */
+            right: calc(-14vw + 15px);
+            /* Mobile: posun o 50px nadol (2026-05-31) */
+            top: 50px;
+            /* Mobile: +10% +15% −10% nad PC scale, +10% (2026-05-31) → 1.08 × 1.10 × 1.15 × 0.90 × 1.10 ≈ 1.352 */
+            transform: scale(1.352);
             transform-origin: bottom right;
           }
           .codex-3-overlay {
