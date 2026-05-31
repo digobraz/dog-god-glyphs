@@ -67,7 +67,7 @@ export function TestimonialsSection() {
     <section
       id="testimonials"
       className="relative py-24 md:py-32 overflow-hidden"
-      style={{ backgroundColor: '#000000' }}
+      style={{ background: 'linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.45) 18%, #000000 42%)' }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-8">
         <motion.div
