@@ -146,10 +146,13 @@ export default function About() {
         /* ── Headline ── */
         .about-quote {
           font-family: 'Cinzel', serif; font-weight: 700;
-          font-size: clamp(2.2rem, 4.8vw, 3.7rem); line-height: 1.08; letter-spacing: 0.01em; margin: 0;
+          font-size: clamp(2.6rem, 5.6vw, 4.4rem); line-height: 1.08; letter-spacing: 0.01em; margin: 0;
           background: linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           filter: drop-shadow(0 0 22px rgba(245,199,61,0.40)) drop-shadow(0 0 7px rgba(230,158,26,0.5));
+        }
+        .about-quote .aq-white {
+          -webkit-text-fill-color: #FAF4EC; color: #FAF4EC;
         }
         .about-sub {
           font-family: 'Cinzel', serif; font-weight: 400; font-size: clamp(1rem, 1.7vw, 1.45rem);
@@ -160,7 +163,7 @@ export default function About() {
           color: rgba(250,244,236,0.78); line-height: 1.7; margin: 0; max-width: 480px; text-wrap: balance;
         }
         @media (max-width: 767px) {
-          .about-quote { font-size: clamp(2rem, 9vw, 2.6rem); }
+          .about-quote { font-size: clamp(2.3rem, 10.5vw, 3.1rem); }
           .about-sub { font-size: 1.05rem; }
           .hero-intro { font-size: 0.9rem; max-width: 100%; }
         }
@@ -301,8 +304,7 @@ export default function About() {
           <div className="hero-grid">
             <div className="flex flex-col" style={{ gap: 'clamp(16px, 2.6vh, 24px)' }}>
               <div className="flex flex-col" style={{ gap: '10px' }}>
-                <h1 className="about-quote">“A Dog Changed My Life.”</h1>
-                <p className="about-sub">(So did yours.)</p>
+                <h1 className="about-quote"><span className="aq-white">It Was Never</span> “Just a Dog.”</h1>
               </div>
               <p className="hero-intro">
                 In 2017 a black shelter dog named Hekthor walked into my life and never left. What grew between us became a journey, a book, and finally a movement. This is our story — and the start of yours.
