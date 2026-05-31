@@ -1,229 +1,390 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 
+/**
+ * /about — „A Dog Changed My Life." (So did yours.)
+ * HERO (headline + intro + Matej & Hekthor photo) → scroll → vertical TIMELINE.
+ * Timeline = 5 milestones, each card holds its OWN image + text (mobile-safe).
+ * Desktop: cards alternate left/right of a gold centre line; mobile: single column.
+ *
+ * PLACEHOLDER 2026-05-31: years, body copy & most images sú placeholder.
+ * Reálne fotky + presné roky dodá Matej. Video-vizitka = budúcnosť.
+ */
+
+type Milestone = {
+  id: number;
+  year: string;       // placeholder — Matej upresní
+  tag: string;
+  title: string;
+  body: string;
+  imageUrl: string;
+};
+
+const ph = () => 'https://placehold.co/800x500/15100a/15100a?text=%20';
+
+const MILESTONES: Milestone[] = [
+  {
+    id: 1,
+    year: '2017',
+    tag: 'The Shelter',
+    title: 'It started in a shelter.',
+    body:
+      'A black dog nobody wanted was waiting behind a shelter fence. His name became Hekthor. Adopting him wasn’t rescue — it was the beginning of everything.',
+    imageUrl: ph(),
+  },
+  {
+    id: 2,
+    year: '2018',
+    tag: 'The Bond',
+    title: 'He held me up.',
+    body:
+      'He pulled me through the hardest stretch of my life without saying a single word. Every dog person knows this — they carry you exactly when you’re falling.',
+    imageUrl: '/images/hektor-grid.jpg',
+  },
+  {
+    id: 3,
+    year: '2019',
+    tag: 'The Journey',
+    title: '42 days. 800 kilometres.',
+    body:
+      'Together we walked across Slovakia — 42 days, 800 kilometres, one quiet promise. That road became a book: „Cesta s Hrdinom“ — The Road with a Hero.',
+    imageUrl: ph(),
+  },
+  {
+    id: 4,
+    year: '2023',
+    tag: 'The Voice',
+    title: 'It stopped being mine.',
+    body:
+      'Somewhere on that road the story stopped being about one man and one dog. Dogs give us everything and ask for almost nothing — they deserve a louder voice.',
+    imageUrl: ph(),
+  },
+  {
+    id: 5,
+    year: 'Now',
+    tag: 'Dogypt',
+    title: 'So we built one.',
+    body:
+      'DOGYPT is a movement for everyone whose life was changed by a dog. Built on the oldest, most honest bond on Earth. Hekthor is founder #1. You are next.',
+    imageUrl: '/images/email-pic-matej-hektor.png',
+  },
+];
+
 export default function About() {
-  const navigate = useNavigate();
+  const tlRef = useRef<HTMLDivElement>(null);
+  const pinRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dotsRef = useRef<HTMLDivElement>(null);
+
+  // Scroll-reveal milestones (mobile vertical timeline)
+  useEffect(() => {
+    const rows = tlRef.current?.querySelectorAll('.tl-row');
+    if (!rows || rows.length === 0) return;
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('in-view'); }),
+      { threshold: 0.18, rootMargin: '0px 0px -8% 0px' },
+    );
+    rows.forEach((r) => io.observe(r));
+    return () => io.disconnect();
+  }, []);
+
+  // Pinned horizontal carousel (desktop): vertical scroll → horizontal translate
+  useEffect(() => {
+    const wrap = pinRef.current, track = trackRef.current;
+    if (!wrap || !track) return;
+    let raf = 0, pitch = 0, maxShift = 0, count = 0;
+
+    const setup = () => {
+      const cards = track.querySelectorAll<HTMLElement>('.hcard');
+      count = cards.length;
+      if (window.innerWidth < 768 || count < 2) {
+        track.style.transform = '';
+        track.style.paddingLeft = track.style.paddingRight = '';
+        return false;
+      }
+      const pad = Math.max((window.innerWidth - cards[0].offsetWidth) / 2, 0);
+      track.style.paddingLeft = `${pad}px`;
+      track.style.paddingRight = `${pad}px`;
+      pitch = cards[1].offsetLeft - cards[0].offsetLeft;
+      maxShift = pitch * (count - 1);
+      return true;
+    };
+
+    const render = () => {
+      if (window.innerWidth < 768) return;
+      const total = wrap.offsetHeight - window.innerHeight;
+      const p = total > 0 ? Math.min(Math.max(-wrap.getBoundingClientRect().top / total, 0), 1) : 0;
+      track.style.transform = `translate3d(${-(p * maxShift)}px,0,0)`;
+      const active = Math.round(p * (count - 1));
+      const dots = dotsRef.current?.children;
+      if (dots) for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', i === active);
+    };
+
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+    const onResize = () => { if (setup()) render(); };
+    if (setup()) render();
+    const t = setTimeout(() => { if (setup()) render(); }, 200); // re-measure after fonts/layout
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
 
   return (
-    <div className="dark-bg flex flex-col relative">
-      {/* Hero fold — natural min-height, NOT locked vh100 (scroll povolený) */}
-      <section
-        className="relative flex flex-col"
-        style={{ minHeight: '100dvh' }}
-      >
-      {/* Radial vignette — only behind hero fold */}
-      <div
-        aria-hidden
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-
+    <div className="dark-bg about-root flex flex-col relative" style={{ overflowX: 'clip' }}>
       <style>{`
-        .about-grid {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: clamp(14px, 2.4vh, 22px);
-          width: 100%;
-          max-width: 1120px;
-          text-align: center;
+        /* About je viac-obrazovková → bg-dark.png nech je viewport-sized (fixed),
+           inak cover roztiahne vzor cez celú výšku stránky = obrie ikonky.
+           Scopnuté len na .about-root, globálny .dark-bg ostáva nedotknutý. */
+        .about-root.dark-bg::before { position: fixed; }
+
+        /* ── Headline ── */
+        .about-quote {
+          font-family: 'Cinzel', serif; font-weight: 700;
+          font-size: clamp(2.2rem, 4.8vw, 3.7rem); line-height: 1.08; letter-spacing: 0.01em; margin: 0;
+          background: linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          filter: drop-shadow(0 0 22px rgba(245,199,61,0.40)) drop-shadow(0 0 7px rgba(230,158,26,0.5));
+        }
+        .about-sub {
+          font-family: 'Cinzel', serif; font-weight: 400; font-size: clamp(1rem, 1.7vw, 1.45rem);
+          color: rgba(250,244,236,0.92); letter-spacing: 0.04em; margin: 0;
+        }
+        .hero-intro {
+          font-family: 'Inter', sans-serif; font-size: clamp(0.92rem, 1.15vw, 1.05rem); font-weight: 400;
+          color: rgba(250,244,236,0.78); line-height: 1.7; margin: 0; max-width: 480px; text-wrap: balance;
+        }
+        @media (max-width: 767px) {
+          .about-quote { font-size: clamp(2rem, 9vw, 2.6rem); }
+          .about-sub { font-size: 1.05rem; }
+          .hero-intro { font-size: 0.9rem; max-width: 100%; }
+        }
+
+        /* ── Hero ── */
+        .hero-grid {
+          display: flex; flex-direction: column; gap: clamp(22px, 4vh, 36px);
+          width: 100%; max-width: 1120px; align-items: center; text-align: center;
         }
         @media (min-width: 768px) {
-          .about-grid {
-            display: grid;
-            grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-            gap: clamp(28px, 4.5vw, 64px);
-            align-items: center;
-            text-align: left;
+          .hero-grid {
+            display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+            gap: clamp(40px, 5vw, 80px); align-items: center; text-align: left;
           }
         }
-
-        .about-left {
-          display: flex;
-          flex-direction: column;
-          gap: clamp(14px, 2.2vh, 22px);
+        .hero-photo {
+          position: relative; width: 100%; max-width: min(58vh, 480px); aspect-ratio: 1 / 1;
+          border-radius: 16px; overflow: hidden; margin: 0 auto; background: #0a0705;
+          box-shadow: 0 0 72px rgba(201,154,63,0.22), 0 0 0 1px rgba(250,244,236,0.10) inset;
         }
-        @media (max-width: 767px) {
-          .about-left { display: contents; }
-          .about-eyebrow  { order: 1; }
-          .about-headline { order: 2; }
-          .about-para     { order: 3; }
-          .about-cta      { order: 4; }
-          .about-photo    { order: 5; }
-        }
+        @media (max-width: 767px) { .hero-photo { max-width: min(50vh, 320px); } }
+        .hero-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        .about-eyebrow {
-          font-family: 'Cinzel', serif;
-          font-size: clamp(0.62rem, 0.95vw, 0.74rem);
-          letter-spacing: 0.36em;
+        .scroll-hint {
+          display: flex; flex-direction: column; align-items: center; gap: 6px;
+          color: rgba(201,154,63,0.8); animation: hintBob 1.9s ease-in-out infinite;
+        }
+        @keyframes hintBob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+        .scroll-hint span {
+          font-family: 'Cinzel', serif; font-size: 0.62rem; letter-spacing: 0.32em; text-transform: uppercase;
           color: rgba(250,244,236,0.45);
-          text-transform: uppercase;
-          display: inline-flex;
-          align-items: center;
-          gap: 12px;
-          margin: 0;
-        }
-        .about-eyebrow::before {
-          content: '';
-          height: 1px;
-          width: clamp(20px, 3vw, 32px);
-          background: rgba(201,154,63,0.45);
         }
 
-        .about-para {
-          font-family: 'Inter', sans-serif;
-          font-size: clamp(0.85rem, 1.15vw, 0.98rem);
-          font-weight: 400;
-          color: rgba(250,244,236,0.78);
-          line-height: 1.65;
-          letter-spacing: 0.005em;
-          margin: 0;
-          max-width: 520px;
+        /* ── Timeline ── */
+        .tl-section { width: 100%; display: flex; flex-direction: column; align-items: center; padding: clamp(20px,6vh,64px) 20px clamp(40px,9vh,90px); position: relative; z-index: 2; }
+        .tl-head { text-align: center; margin-bottom: clamp(26px, 5vh, 52px); }
+        .tl-eyebrow {
+          font-family: 'Cinzel', serif; font-size: clamp(0.6rem,0.9vw,0.72rem); letter-spacing: 0.34em;
+          text-transform: uppercase; color: rgba(250,244,236,0.45); margin: 0 0 10px;
         }
-        @media (max-width: 767px) {
-          .about-para {
-            font-size: 11px;
-            line-height: 1.55;
-            max-width: 92%;
-            text-wrap: balance;
+        .tl-h2 {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+          margin: 0; text-transform: uppercase; letter-spacing: 0.02em;
+          background: linear-gradient(135deg, #F5C73D 0%, #FFB840 40%, #E69E1A 70%, #F5C73D 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          filter: drop-shadow(0 0 16px rgba(245,199,61,0.32));
+        }
+
+        /* ── Cards (shared) ── */
+        .tl-card {
+          background: linear-gradient(180deg, rgba(28,22,14,0.92) 0%, rgba(16,12,8,0.94) 100%);
+          border: 1px solid rgba(201,154,63,0.26); border-radius: 14px; overflow: hidden;
+          box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+        }
+        .tl-img { position: relative; width: 100%; aspect-ratio: 16 / 10; background: #0a0705; }
+        .tl-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .tl-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%); }
+        .tl-body-wrap { padding: clamp(16px, 2vw, 22px) clamp(18px, 2.2vw, 26px) clamp(18px, 2.4vw, 24px); }
+        .tl-year {
+          display: inline-block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.72rem;
+          letter-spacing: 0.2em; color: #C99A3F; border: 1px solid rgba(201,154,63,0.4);
+          padding: 3px 12px; border-radius: 999px; margin-bottom: 12px;
+        }
+        .tl-title { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(1.1rem, 1.7vw, 1.35rem); color: #FAF4EC; margin: 0 0 9px; letter-spacing: 0.01em; }
+        .tl-text { font-family: 'Inter', sans-serif; font-size: clamp(0.85rem, 1vw, 0.95rem); line-height: 1.65; color: rgba(250,244,236,0.76); margin: 0; }
+
+        .tl-node {
+          position: absolute; width: 15px; height: 15px; border-radius: 50%; z-index: 3;
+          background: radial-gradient(circle at 35% 30%, #FFD879, #C99A3F 70%);
+          box-shadow: 0 0 0 4px rgba(201,154,63,0.18), 0 0 14px rgba(201,154,63,0.6);
+        }
+        .tl-conn { position: absolute; background: rgba(201,154,63,0.5); z-index: 1; }
+        .tl-row { opacity: 0; transform: translateY(26px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .tl-row.in-view { opacity: 1; transform: none; }
+        .tl-hint { display: none; }
+
+        /* ── MOBILE (base): vertical single column, line on the left ── */
+        .tl { position: relative; width: 100%; max-width: 520px; }
+        .tl::before {
+          content: ''; position: absolute; top: 8px; bottom: 8px; left: 13px; width: 2px;
+          background: linear-gradient(180deg, rgba(201,154,63,0) 0%, rgba(201,154,63,0.55) 8%, rgba(201,154,63,0.55) 92%, rgba(201,154,63,0) 100%);
+        }
+        .tl-row { position: relative; width: 100%; box-sizing: border-box; padding: 0 0 0 42px; margin-bottom: 26px; }
+        .tl-node { top: 24px; left: 6px; }
+        .tl-conn { top: 30px; left: 14px; height: 1.5px; width: 22px; }
+
+        /* mobile timeline hidden on desktop (PC uses pinned carousel below) */
+        @media (min-width: 768px) { .tl-section { display: none; } }
+
+        /* ===== PC PINNED HORIZONTAL CAROUSEL ===== */
+        .hpin { display: none; }
+        @media (min-width: 768px) {
+          .hpin { display: block; position: relative; z-index: 2; }  /* height inline = N×100vh */
+          .hpin-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+          .hpin-head { position: absolute; top: 0; left: 0; right: 0; text-align: center; padding-top: clamp(74px, 13vh, 130px); z-index: 4; pointer-events: none; }
+          .hpin-head .tl-eyebrow { margin: 0 0 8px; }
+          .hpin-head .tl-h2 { margin: 0; }
+          .hpin-stage { position: absolute; inset: 0; display: flex; align-items: center; }
+          .hpin-track { display: flex; align-items: center; will-change: transform; }
+
+          .hcard {
+            flex: 0 0 auto; width: min(1120px, 88vw); margin-right: 48px;
+            display: flex; align-items: center; gap: clamp(26px, 3vw, 50px);
+            background: linear-gradient(180deg, rgba(22,16,10,0.95) 0%, rgba(11,8,5,0.97) 100%);
+            border: 1px solid rgba(201,154,63,0.22); border-radius: 22px;
+            padding: clamp(26px, 2.8vw, 44px);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
           }
-        }
-
-        .about-photo {
-          position: relative;
-          width: 100%;
-          max-width: min(62vh, 560px);
-          aspect-ratio: 1 / 1;
-          border-radius: 14px;
-          overflow: hidden;
-          box-shadow:
-            0 0 72px rgba(201,154,63,0.22),
-            0 0 0 1px rgba(250,244,236,0.10) inset;
-          margin: 0 auto;
-          background: #0a0705;
-        }
-        @media (max-width: 767px) {
-          .about-photo { max-width: min(44vh, 300px); }
-        }
-        .about-photo img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          display: block;
-        }
-
-        .about-cta {
-          padding: clamp(11px, 1.7vh, 15px) clamp(28px, 4.4vw, 44px);
-          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-          border: 1px solid rgba(250, 244, 236, 0.40);
-          border-radius: 8px;
-          color: #000;
-          font-family: 'Cinzel', serif;
-          font-size: clamp(0.84rem, 1.2vw, 0.98rem);
-          font-weight: 900;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          cursor: pointer;
-          white-space: nowrap;
-          box-shadow:
-            0 0 24px rgba(255, 200, 90, 0.65),
-            0 0 60px rgba(230, 158, 26, 0.50),
-            inset 0 1px 0 rgba(255, 255, 255, 0.45);
-          text-shadow: 0 1px 0 rgba(255, 240, 200, 0.45);
-          transition: transform 0.2s, box-shadow 0.25s;
-          align-self: flex-start;
-        }
-        @media (max-width: 767px) {
-          .about-cta {
-            align-self: center;
-            padding: 9px 26px;
-            font-size: 0.78rem;
-            letter-spacing: 0.12em;
+          .hcard-photo {
+            flex: 0 0 auto; width: min(42vh, 400px); aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
+            background: #0a0705; box-shadow: 0 0 0 1px rgba(250,244,236,0.10) inset;
           }
+          .hcard-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+          .hcard-text { flex: 1 1 auto; min-width: 0; }
+          .hcard-text .tl-year { font-size: 0.8rem; margin-bottom: 16px; }
+          .hcard-text .tl-title { font-size: clamp(1.6rem, 2.7vw, 2.3rem); margin-bottom: 16px; }
+          .hcard-text .tl-text { font-size: clamp(0.98rem, 1.2vw, 1.12rem); line-height: 1.7; max-width: 560px; }
+
+          .hpin-dots { position: absolute; bottom: clamp(28px, 5vh, 54px); left: 50%; transform: translateX(-50%); display: flex; gap: 9px; z-index: 4; }
+          .hpin-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(201,154,63,0.3); transition: width .35s ease, background .35s ease; }
+          .hpin-dot.on { width: 26px; background: #C99A3F; }
         }
-        .about-cta:hover {
-          transform: scale(1.05);
-          box-shadow:
-            0 0 36px rgba(255, 215, 110, 0.85),
-            0 0 90px rgba(230, 158, 26, 0.70),
-            inset 0 1px 0 rgba(255, 255, 255, 0.55);
-        }
-        .about-cta:active { transform: scale(0.98); }
       `}</style>
 
-      <PageTopBar withNav />
+      {/* ───────────── HERO ───────────── */}
+      <section className="relative flex flex-col" style={{ minHeight: '100dvh' }}>
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute', inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.55) 100%)',
+            zIndex: 0, pointerEvents: 'none',
+          }}
+        />
+        <PageTopBar withNav />
 
-      {/* Main 2-col area */}
-      <div
-        className="flex-1 flex items-center justify-center px-5 md:px-10 relative min-h-0"
-        style={{ zIndex: 2 }}
-      >
-        <div className="about-grid">
-          {/* LEFT — text block */}
-          <div className="about-left">
-            <p className="about-eyebrow">Our Origin</p>
+        <div className="flex-1 flex items-center justify-center px-5 md:px-10 py-8 relative min-h-0" style={{ zIndex: 2 }}>
+          <div className="hero-grid">
+            <div className="flex flex-col" style={{ gap: 'clamp(16px, 2.6vh, 24px)' }}>
+              <div className="flex flex-col" style={{ gap: '10px' }}>
+                <h1 className="about-quote">“A Dog Changed My Life.”</h1>
+                <p className="about-sub">(So did yours.)</p>
+              </div>
+              <p className="hero-intro">
+                In 2017 a black shelter dog named Hekthor walked into my life and never left. What grew between us became a journey, a book, and finally a movement. This is our story — and the start of yours.
+              </p>
+            </div>
 
-            <h1
-              className="about-headline"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 'clamp(1.9rem, 4.4vw, 3.4rem)',
-                letterSpacing: '0.02em',
-                lineHeight: 1.05,
-                margin: 0,
-                textTransform: 'uppercase',
-              }}
-            >
-              <span style={{ color: '#FAF4EC' }}>Blame it on a</span>
-              <br />
-              <span
-                style={{
-                  background:
-                    'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  filter:
-                    'drop-shadow(0 0 22px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5))',
-                }}
-              >
-                Black Shelter Dog.
-              </span>
-            </h1>
-
-            <p className="about-para">
-              In 2017 a black shelter dog named Hekthor walked into Matej's life and never left. Together they crossed Slovakia — 42 days, 800 kilometres, one quiet promise. That walk became a book. The book became a question we couldn't put down: what if doglovers shared more than photos?
-              <br />
-              <br />
-              DOGYPT is the answer. A movement built on the oldest, most honest relationship on Earth. Hekthor is founder #1. The Pack is growing. You are next.
-            </p>
-
-            <button
-              onClick={() => navigate('/heroglyph')}
-              className="about-cta"
-              style={{ marginTop: 4 }}
-            >
-              Become Dogyptian
-            </button>
-          </div>
-
-          {/* RIGHT — photo */}
-          <div className="about-photo" aria-label="Matej and Hekthor">
-            <img src="/images/email-pic-matej-hektor.png" alt="Matej and Hekthor" />
+            <div className="hero-photo" aria-label="Matej and Hekthor">
+              <img src="/images/email-pic-matej-hektor.png" alt="Matej and Hekthor" />
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* scroll hint */}
+        <div className="scroll-hint" style={{ position: 'relative', zIndex: 2, paddingBottom: 22 }}>
+          <span>Our Story</span>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
       </section>
 
-      {/* Testimonials — migrované z /devhome 2026-05-26 */}
+      {/* ───────────── TIMELINE — PC: pinned horizontal carousel ───────────── */}
+      <section className="hpin" style={{ height: `${MILESTONES.length * 100}vh` }} ref={pinRef}>
+        <div className="hpin-sticky">
+          <div className="hpin-head">
+            <p className="tl-eyebrow">— The Road That Built Dogypt —</p>
+            <h2 className="tl-h2">How We Got Here</h2>
+          </div>
+          <div className="hpin-stage">
+            <div className="hpin-track" ref={trackRef}>
+              {MILESTONES.map((m) => (
+                <div key={m.id} className="hcard">
+                  <div className="hcard-photo">
+                    <img src={m.imageUrl} alt={m.tag}
+                      onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
+                  </div>
+                  <div className="hcard-text">
+                    <span className="tl-year">{m.year}</span>
+                    <h3 className="tl-title">{m.title}</h3>
+                    <p className="tl-text">{m.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="hpin-dots" ref={dotsRef}>
+            {MILESTONES.map((m, i) => (
+              <span key={m.id} className={`hpin-dot${i === 0 ? ' on' : ''}`} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ───────────── TIMELINE — mobile: vertical ───────────── */}
+      <section className="tl-section">
+        <div className="tl-head">
+          <p className="tl-eyebrow">— The Road That Built Dogypt —</p>
+          <h2 className="tl-h2">How We Got Here</h2>
+        </div>
+
+        <div className="tl" ref={tlRef}>
+          {MILESTONES.map((m) => (
+            <div key={m.id} className="tl-row">
+              <span className="tl-node" />
+              <span className="tl-conn" />
+              <article className="tl-card">
+                <div className="tl-img">
+                  <img src={m.imageUrl} alt={m.tag}
+                    onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
+                </div>
+                <div className="tl-body-wrap">
+                  <span className="tl-year">{m.year}</span>
+                  <h3 className="tl-title">{m.title}</h3>
+                  <p className="tl-text">{m.body}</p>
+                </div>
+              </article>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Testimonials — placeholder, nechané zatiaľ (Matej 2026-05-31) */}
       <TestimonialsSection />
     </div>
   );
