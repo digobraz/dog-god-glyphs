@@ -830,7 +830,9 @@ export function GodsGrid() {
         }
         .is-dragging .dog-card { cursor: pointer; transition: none; }
 
-        /* Placeholder dogs — farebné ale priesvitné (nie pietne); photo 60%, popisky 100% */
+        /* 🔒 LOCKED 2026-06-02 (Matej schválil grid vzhľad po smoke teste ZEUS):
+           Placeholder dogs = farebné ale priesvitné (nie pietne); photo 60%, popisky 100%.
+           NEMENIŤ brightness/opacity/grayscale bez výslovného OK. */
         .dog-card--placeholder { cursor: default; }
         .dog-card--placeholder .card-img {
           filter: brightness(0.92) contrast(0.97);
