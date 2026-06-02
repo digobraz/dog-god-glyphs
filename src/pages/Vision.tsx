@@ -93,58 +93,6 @@ const WF_INTRO_SVG = `<svg viewBox="0 0 200 250" ${wfStroke}>
   <path d="M146 150 L92 96" stroke-dasharray="3 6" stroke="${WF_INK}" opacity="0.5"/>
 </svg>`;
 
-/* Hand-built Egyptian papyrus scroll (replaces the CSS box — that read "machine-made").
-   Chunky cylindrical rolls + dark spiral end-caps, a sheet with frayed/torn organic
-   sides and a gentle outward bow, warm aged parchment shading. The doodle illustrations
-   sit in a separate inset layer ON TOP of this graphic (wf-sheet). */
-const WF_SHEET_PATH =
-  'M 54 70 L 246 70 L 252 96 L 245 122 L 253 148 L 246 174 L 254 200 ' +
-  'L 246 226 L 253 252 L 245 278 L 252 304 L 246 330 L 54 330 ' +
-  'L 48 304 L 55 278 L 47 252 L 54 226 L 46 200 L 54 174 L 47 148 L 55 122 L 48 96 Z';
-const PAPYRUS_SVG = `<svg viewBox="0 0 300 400" preserveAspectRatio="xMidYMid meet">
-  <defs>
-    <linearGradient id="wfSheetG" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#c19d5b"/><stop offset="0.18" stop-color="#dcc185"/>
-      <stop offset="0.5" stop-color="#eedcae"/><stop offset="0.82" stop-color="#dcc185"/>
-      <stop offset="1" stop-color="#c19d5b"/>
-    </linearGradient>
-    <linearGradient id="wfSheetV" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#6e4f24" stop-opacity="0.4"/>
-      <stop offset="0.13" stop-color="#6e4f24" stop-opacity="0"/>
-      <stop offset="0.87" stop-color="#6e4f24" stop-opacity="0"/>
-      <stop offset="1" stop-color="#6e4f24" stop-opacity="0.4"/>
-    </linearGradient>
-    <linearGradient id="wfRollG" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#553a17"/><stop offset="0.16" stop-color="#a8813f"/>
-      <stop offset="0.42" stop-color="#ecd6a6"/><stop offset="0.52" stop-color="#f5deaf"/>
-      <stop offset="0.64" stop-color="#d8b67e"/><stop offset="0.86" stop-color="#876733"/>
-      <stop offset="1" stop-color="#46300f"/>
-    </linearGradient>
-    <radialGradient id="wfCapG" cx="0.4" cy="0.4" r="0.72">
-      <stop offset="0" stop-color="#f0daa6"/><stop offset="0.4" stop-color="#cda868"/>
-      <stop offset="0.72" stop-color="#946f35"/><stop offset="1" stop-color="#46300f"/>
-    </radialGradient>
-    <filter id="wfFray" x="-6%" y="-6%" width="112%" height="112%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.07" numOctaves="2" seed="9" result="n"/>
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="5"/>
-    </filter>
-  </defs>
-  <g filter="url(#wfFray)">
-    <path d="${WF_SHEET_PATH}" fill="url(#wfSheetG)"/>
-    <path d="${WF_SHEET_PATH}" fill="url(#wfSheetV)"/>
-  </g>
-  <g>
-    <rect x="22" y="40" width="256" height="48" rx="24" fill="url(#wfRollG)"/>
-    <ellipse cx="34" cy="64" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
-    <ellipse cx="266" cy="64" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
-  </g>
-  <g>
-    <rect x="22" y="312" width="256" height="48" rx="24" fill="url(#wfRollG)"/>
-    <ellipse cx="34" cy="336" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
-    <ellipse cx="266" cy="336" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
-  </g>
-</svg>`;
-
 const WF_ICONS: Record<string, string> = {
   ankh: '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M12 11 L12 22 M7 16 L17 16"/></svg>',
   pyramid: '<svg viewBox="0 0 24 24"><path d="M12 3 L22 21 L2 21 Z M7 12 L17 12"/></svg>',
@@ -162,31 +110,30 @@ type Beat = {
   mech?: string;
   icon?: string;
   svg: string;
-  video?: string; // optional looping mp4 (replaces svg when present)
+  figure?: string; // transparent figure PNG drawn ONTO the realistic papyrus frame
+  img?: string; // baked papyrus+scene PNG on black (full, replaces the papyrus frame)
+  video?: string; // optional looping mp4 (replaces svg/img when present)
 };
 
 const WF_BEATS: Beat[] = [
   {
-    tag: 'WHAT IF',
+    tag: 'I HAD A DREAM',
     intro: true,
-    lead: 'What if a dog was never just a dog?',
+    lead: 'What if every doglover saw a dog as more than just an animal?',
+    figure: '/images/vision/figure-dream.png',
     svg: WF_INTRO_SVG,
   },
   {
-    tag: 'SEE',
+    tag: 'THE SYMBOL',
     n: '01',
-    h: 'What if every doglover saw a dog as more than an animal?',
-    p: 'Not property. Not a pet. A soul worth a symbol. The moment you truly see it — you mark it.',
-    mech: 'You claim a Heroglyph',
+    h: 'A unique symbol is a universal language — one that can unite doglovers all around the world.',
     icon: 'ankh',
     svg: wfManDog(`<g transform="translate(116,-6)">${wfHeroglyph}</g><path d="M124 22 q-8 -10 -16 -4" ${wfStroke}/>`),
   },
   {
-    tag: 'GATHER',
+    tag: 'A MILLION',
     n: '02',
-    h: 'What if one heroglyph became a million?',
-    p: 'Every symbol is a doglover who chose the same thing. A million is not a crowd — it is a force with a shared fund.',
-    mech: 'A global community forms',
+    h: 'One symbol becomes a thousand. A thousand become a million — no longer scattered, but one force bound by the same love.',
     icon: 'pyramid',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}>${Array.from({ length: 9 })
       .map((_, i) => {
@@ -197,20 +144,16 @@ const WF_BEATS: Beat[] = [
       .join('')}</svg>`,
   },
   {
-    tag: 'BUILD',
+    tag: 'A FORCE',
     n: '03',
-    h: 'What if that force funded what the system ignores?',
-    p: 'Not shelters that manage misery — working solutions that end it. Money in the open, accounts on the table.',
-    mech: 'Systematic help, transparent economy',
+    h: 'A million doglovers share more than a symbol — they share a fund. Money in the open, accounts on the table, kindness with real power behind it.',
     icon: 'heartpaw',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><path d="M40 200 l0 -70 l60 -42 l60 42 l0 70 Z"/><path d="M40 130 l60 -42 l60 42"/><rect x="86" y="150" width="28" height="50"/><circle cx="100" cy="58" r="18"/><path d="M100 49 l0 18 M91 58 l18 0"/></svg>`,
   },
   {
-    tag: 'GOVERN',
+    tag: 'WE BUILD',
     n: '04',
-    h: 'What if doglovers built their own?',
-    p: 'Centers on every continent. Owned by us, governed by us — we vote, we decide, we build.',
-    mech: 'Collective decisions, our own infrastructure',
+    h: 'Not shelters that manage misery — we build what ends it. Dogypt Centers on every continent: owned by us, governed by us.',
     icon: 'balance',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><ellipse cx="100" cy="158" rx="78" ry="28"/>${Array.from({ length: 6 })
       .map((_, i) => {
@@ -222,10 +165,9 @@ const WF_BEATS: Beat[] = [
       .join('')}<path d="M100 46 l0 66 M72 64 l56 0 M72 64 l-10 24 l20 0 Z M128 64 l-10 24 l20 0 Z"/></svg>`,
   },
   {
-    tag: 'THE MIRACLE',
+    tag: 'THE DREAM COMES TRUE',
     n: '05',
-    h: 'Then no dog is ever left behind.',
-    p: 'Every stray returned. Every life a home. One symbol, multiplied a million times, rebuilt the world around a bond.',
+    h: 'Then the dream is no longer a dream. Every stray returned, every life a home — not by magic, but by a million people who finally agreed: a dog matters.',
     mech: 'Become Dogyptian',
     icon: 'ankh',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><g transform="translate(66,86) scale(2)">${wfHeroglyph}</g><path d="M40 60 q60 -40 120 0" stroke-dasharray="2 7" opacity="0.5" stroke="${WF_INK}"/></svg>`,
@@ -996,8 +938,9 @@ export default function Vision() {
          * start (= pin engages). Inside the 600vh pin there are no further snap points,
          * so the beats scroll freely. Style only lives while /vision is mounted. */
         @media (min-width: 768px) {
-          html { scroll-snap-type: y proximity; scroll-padding-top: 0; }
-          .vision-video-hero { scroll-snap-align: start; }
+          html { scroll-snap-type: y proximity; }
+          /* NB: NO snap-align on the hero — it would snap the page down by the topbar
+           * height on load and hide the menu. Only the WHAT IF section is a snap point. */
           .wf-pin { scroll-snap-align: start; scroll-snap-stop: always; }
         }
         .wf-sticky {
@@ -1010,35 +953,39 @@ export default function Vision() {
           text-transform: uppercase; color: rgba(250,244,236,0.32); z-index: 4;
         }
         .wf-grid {
-          flex: 1; display: grid; grid-template-columns: 1fr 1fr;
-          align-items: center; gap: clamp(20px, 4vw, 60px);
-          max-width: 1240px; width: 100%; margin: 0 auto;
-          padding: 54px clamp(20px, 5vw, 60px) 96px;
+          flex: 1; display: grid; grid-template-columns: 1.7fr 1fr;
+          align-items: center; gap: clamp(18px, 3vw, 44px);
+          max-width: 1440px; width: 100%; margin: 0 auto;
+          padding: 48px clamp(20px, 5vw, 56px) 92px;
         }
 
         /* LEFT — papyrus scroll (rolled ends; colours from /religion .codex-paper) */
         .wf-scroll-col { display: flex; align-items: center; justify-content: center; }
+        /* Big papyrus area — each beat is a self-contained baked papyrus+scene image
+         * (square, on black) OR a fallback realistic-papyrus PNG + doodle. */
         .wf-papyrus {
-          position: relative; width: 100%; max-width: 360px; aspect-ratio: 3 / 4;
-          filter: drop-shadow(0 22px 40px rgba(0,0,0,0.55));
-        }
-        /* SVG scroll graphic (rolls + frayed parchment sheet) fills the whole papyrus box */
-        .wf-scroll-graphic { position: absolute; inset: 0; z-index: 1; }
-        .wf-scroll-graphic svg { width: 100%; height: 100%; display: block; }
-        /* Illustration layer — inset to the sheet body (clear of the top/bottom rolls) */
-        .wf-sheet {
-          position: absolute; z-index: 2;
-          top: 24%; bottom: 24%; left: 19%; right: 19%;
-          overflow: visible;
+          position: relative; width: 100%; max-width: 900px; max-height: 82vh;
+          aspect-ratio: 1344 / 1022; margin: 0 auto;
         }
         .wf-illus {
           position: absolute; inset: 0; opacity: 0;
           transform: scale(0.97) translateY(8px);
           transition: opacity .5s ease, transform .5s ease;
-          display: flex; align-items: center; justify-content: center; padding: 4% 6%;
         }
+        /* Baked papyrus+scene image (or video) fills the whole area */
+        .wf-scene-full { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+        /* Fallback: realistic papyrus frame + doodle inset to the writable sheet body */
+        .wf-scroll-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; }
+        .wf-sheet-inner {
+          position: absolute; z-index: 2;
+          /* inset to the writable sheet of papyrus-scroll.png (measured) + extra margin
+           * so the figure sits in the middle, clear of the rolls and curled side edges */
+          top: 22%; bottom: 24%; left: 29%; right: 29%;
+          display: flex; align-items: center; justify-content: center;
+        }
+        .wf-fig { width: 100%; height: 100%; object-fit: contain; }
         .wf-illus.on { opacity: 1; transform: scale(1) translateY(0); }
-        .wf-illus .wf-art, .wf-illus video { width: 100%; height: 100%; object-fit: contain; }
+        .wf-illus .wf-art { width: 100%; height: 100%; }
         .wf-illus .wf-art svg { width: 100%; height: 100%; }
 
         /* Ink self-draw: line-art strokes draw themselves when the beat activates.
@@ -1124,8 +1071,11 @@ export default function Vision() {
           .wf-sticky:not(.wf-armed) .wf-block.on > * { opacity: 1; }
         }
         .wf-intro .wf-big {
-          font-family: 'Cinzel', serif; font-weight: 700; color: #C99A3F;
-          font-size: clamp(3rem, 9vw, 6.5rem); line-height: 0.98; letter-spacing: 0.04em;
+          font-family: 'Cinzel', serif; font-weight: 700;
+          font-size: clamp(2.75rem, 7vw, 5rem); line-height: 1.0; letter-spacing: 0.04em;
+        }
+        .wf-intro .wf-big-w { color: #FAF4EC; }
+        .wf-intro .wf-big-g {
           background: linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           filter: drop-shadow(0 0 18px rgba(245,199,61,0.34));
@@ -1243,37 +1193,46 @@ export default function Vision() {
             {/* LEFT: papyrus scroll */}
             <div className="wf-scroll-col">
               <div className="wf-papyrus">
-                <div
-                  className="wf-scroll-graphic"
-                  aria-hidden
-                  dangerouslySetInnerHTML={{ __html: PAPYRUS_SVG }}
-                />
-                <div className="wf-sheet">
-                  {WF_BEATS.map((b, i) => (
-                    <div
-                      key={b.tag}
-                      className={`wf-illus${wfState === i ? ' on' : ''}`}
-                      aria-hidden={wfState !== i}
-                    >
-                      {b.video ? (
-                        <video
-                          src={b.video}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          preload="auto"
+                {WF_BEATS.map((b, i) => (
+                  <div
+                    key={b.tag}
+                    className={`wf-illus${wfState === i ? ' on' : ''}`}
+                    aria-hidden={wfState !== i}
+                  >
+                    {b.video ? (
+                      <video
+                        className="wf-scene-full"
+                        src={b.video}
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        preload="auto"
+                      />
+                    ) : b.img ? (
+                      <img className="wf-scene-full" src={b.img} alt="" />
+                    ) : (
+                      <>
+                        <img
+                          className="wf-scroll-img"
+                          src="/images/vision/papyrus-scroll.png"
+                          alt=""
+                          aria-hidden
                         />
-                      ) : (
-                        <div
-                          className="wf-art"
-                          dangerouslySetInnerHTML={{ __html: b.svg }}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <span className="wf-note">placeholder · doodle Matej + Hektor</span>
-                </div>
+                        <div className="wf-sheet-inner">
+                          {b.figure ? (
+                            <img className="wf-fig" src={b.figure} alt="" />
+                          ) : (
+                            <div
+                              className="wf-art"
+                              dangerouslySetInnerHTML={{ __html: b.svg }}
+                            />
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1287,7 +1246,11 @@ export default function Vision() {
                 >
                   {b.intro ? (
                     <>
-                      <div className="wf-big">WHAT&nbsp;IF…</div>
+                      <div className="wf-big">
+                        <span className="wf-big-w">I HAD</span>
+                        <br />
+                        <span className="wf-big-g">A DREAM</span>
+                      </div>
                       <div className="wf-lead">{b.lead}</div>
                     </>
                   ) : (
@@ -1295,14 +1258,15 @@ export default function Vision() {
                       <span className="wf-num">{b.n} / 05</span>
                       <div className="wf-anchor">{b.tag}</div>
                       <h3>{b.h}</h3>
-                      <p>{b.p}</p>
-                      <div className="wf-mech">
-                        <span
-                          className="wf-mech-ic"
-                          dangerouslySetInnerHTML={{ __html: WF_ICONS[b.icon ?? 'ankh'] }}
-                        />
-                        <span className="wf-mech-txt">→ {b.mech}</span>
-                      </div>
+                      {b.mech && (
+                        <div className="wf-mech">
+                          <span
+                            className="wf-mech-ic"
+                            dangerouslySetInnerHTML={{ __html: WF_ICONS[b.icon ?? 'ankh'] }}
+                          />
+                          <span className="wf-mech-txt">→ {b.mech}</span>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
