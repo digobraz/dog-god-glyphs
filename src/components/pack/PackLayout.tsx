@@ -61,8 +61,15 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
 
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
+    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       if (!mounted) return;
+      if (s) {
+        // Dolinkuj psov kúpených pred signupom / 2. psa existujúceho usera.
+        // Trigger link_dogs_to_new_user beží len pri prvom signupe — toto pokryje zvyšok.
+        // Await pred render detí, aby PackList fetchol psov až po napojení.
+        try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
+        if (!mounted) return;
+      }
       setSession(s);
       setLoading(false);
       if (!s) {
