@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
@@ -35,6 +36,16 @@ export function PaymentScreen() {
         stablePhotoUrl = await waitForStablePhotoUrl();
         setWaitingPhoto(false);
       }
+      // Same inputs as WelcomeScreen → deterministic, matches the certificate the buyer sees.
+      const heroglyphCode = buildHeroglyphCode({
+        dogName,
+        ownerName,
+        patronSvg,
+        breed: selections?.breed,
+        patronCategory: selections?.patronCategory,
+        country: selections?.country || selections?.ownerCountry,
+        selections,
+      });
       const res = await fetch(CREATE_CHECKOUT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,6 +57,7 @@ export function PaymentScreen() {
           dogPhotoUrl: stablePhotoUrl,
           patronSvg,
           patronSvg2,
+          heroglyphCode,
           amount: selectedAmount ?? 11,
         }),
       });

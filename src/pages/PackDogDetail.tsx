@@ -105,7 +105,8 @@ export default function PackDogDetail() {
         return;
       }
       setDog(data);
-      setMessageDraft(data.grid_message ?? '');
+      // Fallback for dogs bought before grid_message column was populated (message lived in selections.dogMessage).
+      setMessageDraft(data.grid_message ?? data.selections?.dogMessage ?? '');
       setExtras(Array.isArray(data.cloudinary_extras) ? data.cloudinary_extras : []);
       setStatus('ready');
 

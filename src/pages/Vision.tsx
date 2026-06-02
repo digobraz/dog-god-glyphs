@@ -199,6 +199,7 @@ export default function Vision() {
   const wfPinRef = useRef<HTMLElement>(null);
   const [wfState, setWfState] = useState<number>(0);
   const [wfProgress, setWfProgress] = useState<number>(0);
+  const [wfEntered, setWfEntered] = useState<boolean>(false); // arms the slide1→slide2 entrance
 
   useEffect(() => {
     const pin = wfPinRef.current;
@@ -208,10 +209,19 @@ export default function Vision() {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const total = pin.offsetHeight - window.innerHeight;
-        const p = total > 0 ? Math.max(0, Math.min(1, -pin.getBoundingClientRect().top / total)) : 0;
+        const vh = window.innerHeight;
+        const rectTop = pin.getBoundingClientRect().top;
+        const total = pin.offsetHeight - vh;
+        const p = total > 0 ? Math.max(0, Math.min(1, -rectTop / total)) : 0;
         setWfProgress(p);
         setWfState(Math.max(0, Math.min(WF_BEATS.length - 1, Math.floor(p * WF_BEATS.length))));
+        // Arm the entrance (papyrus unroll + first beat draw-in) as the section
+        // crosses into pin range. Hysteresis so it disarms above and replays on re-entry.
+        setWfEntered((prev) => {
+          if (!prev && rectTop < vh * 0.3) return true;
+          if (prev && rectTop > vh * 0.55) return false;
+          return prev;
+        });
         ticking = false;
       });
     };
@@ -221,7 +231,7 @@ export default function Vision() {
   }, []);
 
   return (
-    <div className="dark-bg vision-root flex flex-col min-h-[100dvh] overflow-y-auto relative">
+    <div className="dark-bg vision-root flex flex-col min-h-[100dvh] relative">
       {/* Mild radial overlay — fixed so it stays put when scroll-snap moves sections */}
       <div
         aria-hidden
@@ -953,47 +963,47 @@ export default function Vision() {
         /* rolled paper cylinders top + bottom */
         .wf-roll {
           position: relative; z-index: 3; flex: 0 0 auto;
-          height: 34px; margin: 0 -14px; border-radius: 20px;
+          height: 38px; margin: 0 -16px; border-radius: 22px;
           background: linear-gradient(180deg,
-            #A8884F 0%, #C9AD78 14%, #EFE0BD 38%, #FBF3DB 50%,
-            #ECDDB6 62%, #C9AD78 86%, #A8884F 100%);
+            #7d5d31 0%, #a8813f 12%, #d8b878 34%, #ecd3a0 50%,
+            #d2b074 64%, #9d7838 86%, #6e4f28 100%);
           box-shadow:
-            inset 0 2px 3px rgba(255,247,225,0.6),
-            inset 0 -4px 6px rgba(120,90,45,0.5),
-            0 1px 0 rgba(0,0,0,0.25);
+            inset 0 2px 4px rgba(255,243,210,0.55),
+            inset 0 -5px 8px rgba(90,62,20,0.55),
+            0 2px 4px rgba(0,0,0,0.35);
         }
-        /* spiral cross-section caps at each end of the roll */
+        /* spiral cross-section caps at each end of the roll (chunky, dark Egyptian core) */
         .wf-roll::before, .wf-roll::after {
-          content: ''; position: absolute; top: 50%; width: 30px; height: 40px;
+          content: ''; position: absolute; top: 50%; width: 34px; height: 47px;
           transform: translateY(-50%); border-radius: 50%; z-index: 4;
-          background: radial-gradient(ellipse at 50% 50%,
-            #FBF3DB 0%, #E2D1A2 40%, #C0A36F 72%, #936F3A 100%);
-          box-shadow: 0 0 0 1.5px rgba(140,100,55,0.55), inset 0 0 7px rgba(120,90,45,0.6);
+          background: radial-gradient(ellipse at 42% 42%,
+            #f0dba8 0%, #d2b074 38%, #9d7838 68%, #5e421f 100%);
+          box-shadow: 0 0 0 1.5px rgba(70,48,20,0.6), inset 0 0 9px rgba(80,55,22,0.7);
         }
-        .wf-roll::before { left: -7px; }
-        .wf-roll::after { right: -7px; }
+        .wf-roll::before { left: -9px; }
+        .wf-roll::after { right: -9px; }
         /* curl shadow the roll casts onto the sheet */
         .wf-roll-top { margin-bottom: -6px; }
         .wf-roll-bottom { margin-top: -6px; }
         .wf-sheet {
-          position: relative; flex: 1 1 auto; z-index: 1; overflow: hidden;
+          position: relative; flex: 1 1 auto; z-index: 1; overflow: visible;
           border-radius: 4px;
-          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1.5px solid #C99A3F;
-          box-shadow:
-            inset 0 16px 18px -11px rgba(90,58,12,0.55),
-            inset 0 -16px 18px -11px rgba(90,58,12,0.55),
-            inset 0 0 48px rgba(160,130,80,0.22),
-            0 0 0 1px rgba(201,154,63,0.4);
         }
-        /* inner double-border cert frame (matches /religion) */
-        .wf-sheet::after {
-          content: ''; position: absolute; inset: 7px;
-          border: 1px solid rgba(201,154,63,0.5); border-radius: 5px;
-          pointer-events: none; z-index: 2;
+        /* Aged Egyptian parchment fill on a filtered layer → torn organic side edges,
+         * warm tan body, vignette darkening at edges, faint warped papyrus fibers,
+         * soft cylinder-bulge highlight down the centre. Content sits above (z-index). */
+        .wf-sheet::before {
+          content: ''; position: absolute; inset: 0; z-index: 0; border-radius: 5px;
+          background:
+            repeating-linear-gradient(91deg, rgba(120,88,42,0.05) 0 2px, transparent 2px 6px),
+            radial-gradient(125% 100% at 50% 50%, transparent 52%, rgba(120,82,38,0.42) 100%),
+            radial-gradient(150% 82% at 50% 44%, rgba(255,247,224,0.55) 0%, transparent 62%),
+            linear-gradient(166deg, #e9d39f 0%, #dcc085 28%, #cdaa69 58%, #bd9857 84%, #ad8547 100%);
+          filter: url(#wf-torn);
+          box-shadow: inset 0 0 40px rgba(150,112,60,0.30);
         }
         .wf-illus {
-          position: absolute; inset: 0; opacity: 0;
+          position: absolute; inset: 0; z-index: 2; opacity: 0;
           transform: scale(0.97) translateY(8px);
           transition: opacity .5s ease, transform .5s ease;
           display: flex; align-items: center; justify-content: center; padding: 12% 14%;
@@ -1001,6 +1011,35 @@ export default function Vision() {
         .wf-illus.on { opacity: 1; transform: scale(1) translateY(0); }
         .wf-illus .wf-art, .wf-illus video { width: 100%; height: 100%; object-fit: contain; }
         .wf-illus .wf-art svg { width: 100%; height: 100%; }
+
+        /* Ink self-draw: line-art strokes draw themselves when the beat activates.
+         * Fixed dasharray (doodles are small) → each stroke reveals from 0; sub-strokes
+         * stagger via nth-child so the drawing builds piece by piece. Re-runs each beat
+         * because the .on class toggles on/off as wfState changes. */
+        .wf-illus .wf-art svg :is(path, rect, circle, ellipse, line, polyline, polygon) {
+          stroke-dasharray: 520;
+          stroke-dashoffset: 520;
+        }
+        .wf-illus.on .wf-art svg :is(path, rect, circle, ellipse, line, polyline, polygon) {
+          animation: wfInkDraw 0.8s cubic-bezier(0.55, 0, 0.45, 1) forwards;
+        }
+        .wf-illus.on .wf-art svg > *:nth-child(1)  { animation-delay: 0.10s; }
+        .wf-illus.on .wf-art svg > *:nth-child(2)  { animation-delay: 0.18s; }
+        .wf-illus.on .wf-art svg > *:nth-child(3)  { animation-delay: 0.26s; }
+        .wf-illus.on .wf-art svg > *:nth-child(4)  { animation-delay: 0.33s; }
+        .wf-illus.on .wf-art svg > *:nth-child(5)  { animation-delay: 0.40s; }
+        .wf-illus.on .wf-art svg > *:nth-child(6)  { animation-delay: 0.46s; }
+        .wf-illus.on .wf-art svg > *:nth-child(7)  { animation-delay: 0.52s; }
+        .wf-illus.on .wf-art svg > *:nth-child(8)  { animation-delay: 0.58s; }
+        .wf-illus.on .wf-art svg > *:nth-child(9)  { animation-delay: 0.63s; }
+        .wf-illus.on .wf-art svg > *:nth-child(n+10) { animation-delay: 0.68s; }
+        @keyframes wfInkDraw { to { stroke-dashoffset: 0; } }
+        @media (prefers-reduced-motion: reduce) {
+          .wf-illus .wf-art svg :is(path, rect, circle, ellipse, line, polyline, polygon) {
+            stroke-dashoffset: 0;
+            animation: none;
+          }
+        }
         .wf-note {
           position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; z-index: 3;
           font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(90,58,12,0.4);
@@ -1010,10 +1049,51 @@ export default function Vision() {
         .wf-text { position: relative; min-height: 360px; }
         .wf-block {
           position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
-          opacity: 0; transform: translateY(14px); transition: opacity .45s ease, transform .45s ease;
+          opacity: 0; transition: opacity .4s ease;
           pointer-events: none;
         }
-        .wf-block.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .wf-block.on { opacity: 1; pointer-events: auto; }
+        /* Gradual text reveal — each line rises in sequence when the beat activates.
+         * Motion lives on the children (block fades only) so lines cascade one by one;
+         * re-runs each beat via the .on toggle. */
+        .wf-block.on > * { animation: wfRise .55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        .wf-block.on > *:nth-child(1) { animation-delay: 0.08s; }
+        .wf-block.on > *:nth-child(2) { animation-delay: 0.20s; }
+        .wf-block.on > *:nth-child(3) { animation-delay: 0.32s; }
+        .wf-block.on > *:nth-child(4) { animation-delay: 0.44s; }
+        .wf-block.on > *:nth-child(5) { animation-delay: 0.56s; }
+        @keyframes wfRise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) {
+          .wf-block.on > * { animation: none; }
+        }
+
+        /* ── SLIDE 1 → SLIDE 2 entrance (armed by JS .wf-armed when section enters pin range) ──
+         * Papyrus unrolls top→bottom, the first beat's ink + text reveal as the entry
+         * (held until armed so they don't play off-screen at mount), WHAT IF title blurs in. */
+        .wf-sticky:not(.wf-armed) .wf-papyrus { clip-path: inset(0 0 100% 0); opacity: 0; }
+        .wf-sticky.wf-armed .wf-papyrus { animation: wfUnroll 1s cubic-bezier(0.72, 0, 0.24, 1) both; }
+        @keyframes wfUnroll {
+          0%   { clip-path: inset(0 0 100% 0); opacity: 0; transform: translateY(-16px); }
+          30%  { opacity: 1; }
+          100% { clip-path: inset(0 0 0 0);    opacity: 1; transform: translateY(0); }
+        }
+        .wf-sticky:not(.wf-armed) .wf-illus.on .wf-art svg :is(path, rect, circle, ellipse, line, polyline, polygon) { animation: none; }
+        .wf-sticky:not(.wf-armed) .wf-block.on > * { animation: none; opacity: 0; }
+        .wf-sticky.wf-armed .wf-intro.on .wf-big {
+          animation: wfTitleReveal 1.1s cubic-bezier(0.2, 1, 0.3, 1) 0.12s both;
+        }
+        @keyframes wfTitleReveal {
+          from { opacity: 0; transform: translateY(26px) scale(0.93);
+                 filter: drop-shadow(0 0 18px rgba(245,199,61,0.34)) blur(9px); letter-spacing: 0.24em; }
+          to   { opacity: 1; transform: none;
+                 filter: drop-shadow(0 0 18px rgba(245,199,61,0.34)) blur(0); letter-spacing: 0.04em; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .wf-sticky.wf-armed .wf-papyrus,
+          .wf-sticky.wf-armed .wf-intro.on .wf-big { animation: none; }
+          .wf-sticky:not(.wf-armed) .wf-papyrus { clip-path: none; opacity: 1; }
+          .wf-sticky:not(.wf-armed) .wf-block.on > * { opacity: 1; }
+        }
         .wf-intro .wf-big {
           font-family: 'Cinzel', serif; font-weight: 700; color: #C99A3F;
           font-size: clamp(3rem, 9vw, 6.5rem); line-height: 0.98; letter-spacing: 0.04em;
@@ -1055,6 +1135,16 @@ export default function Vision() {
           .wf-step .wf-knob { width: 8px; height: 8px; }
         }
       `}</style>
+
+      {/* Torn-edge filter for the papyrus sheet (fractal noise → displacement = ragged organic edges) */}
+      <svg aria-hidden width="0" height="0" style={{ position: 'absolute' }} focusable="false">
+        <defs>
+          <filter id="wf-torn" x="-8%" y="-8%" width="116%" height="116%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.014 0.026" numOctaves="3" seed="7" result="n" />
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
 
       <div className="topbar-wrap">
         <PageTopBar withNav />
@@ -1128,7 +1218,7 @@ export default function Vision() {
         ref={wfPinRef}
         style={{ height: `${WF_BEATS.length * 100}vh`, zIndex: 2 }}
       >
-        <div className="wf-sticky">
+        <div className={`wf-sticky${wfEntered ? ' wf-armed' : ''}`}>
           <div className="wf-hint">Keep scrolling — the path unfolds</div>
           <div className="wf-grid">
             {/* LEFT: papyrus scroll */}
