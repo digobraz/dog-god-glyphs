@@ -103,6 +103,13 @@ export default function Vision() {
       />
 
       <style>{`
+        /* Page scrollovateľný (min-h + overflow-y-auto) → .dark-bg::before (absolute, cover)
+         * by sa inak roztiahol na celú výšku scrollu a zväčšil heroglyf pozadie.
+         * Fix = fixed na viewport (rovnaký pattern ako .about-root). Scoped na .vision-root. */
+        .vision-root.dark-bg::before {
+          position: fixed;
+        }
+
         /* ── 2-col layout (mobile: flex column with reordered items via display:contents) ── */
         .mission-grid {
           display: flex;
@@ -646,14 +653,25 @@ export default function Vision() {
         }
         .video-embed-frame {
           position: relative;
-          width: min(920px, 100%);
+          width: min(680px, 100%);
           aspect-ratio: 16 / 9;
           border-radius: 14px;
           overflow: hidden;
           background: #000;
           box-shadow:
-            0 0 72px rgba(201,154,63,0.22),
-            0 0 0 1px rgba(250,244,236,0.14) inset;
+            0 0 90px 12px rgba(201,154,63,0.40),
+            0 0 180px 30px rgba(201,154,63,0.22),
+            0 0 0 1px rgba(250,244,236,0.16) inset;
+          transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                      box-shadow 0.45s ease;
+        }
+        /* Po kliku na "Watch ..." → náhľad sa zväčší + spustí prehrávanie */
+        .video-embed-frame.is-playing {
+          width: min(980px, 100%);
+          box-shadow:
+            0 0 120px 16px rgba(201,154,63,0.48),
+            0 0 220px 40px rgba(201,154,63,0.26),
+            0 0 0 1px rgba(250,244,236,0.18) inset;
         }
         .video-embed-frame iframe {
           position: absolute;
@@ -710,22 +728,36 @@ export default function Vision() {
         .video-poster:active .video-play-btn { transform: scale(0.97); }
         .video-hero-caption {
           font-family: 'Cinzel', serif;
-          font-size: clamp(0.62rem, 0.95vw, 0.78rem);
+          font-size: clamp(0.64rem, 0.98vw, 0.82rem);
           font-weight: 600;
           letter-spacing: 0.28em;
           text-transform: uppercase;
-          color: rgba(250,244,236,0.55);
+          color: rgba(250,244,236,0.66);
           margin: 0;
-          display: inline-flex;
-          align-items: center;
-          gap: 9px;
+          padding: 4px 2px;
+          background: none;
+          border: 0;
+          cursor: pointer;
+          display: inline-block;
+          text-decoration: underline;
+          text-decoration-color: rgba(201,154,63,0.70);
+          text-decoration-thickness: 1px;
+          text-underline-offset: 0.34em;
+          -webkit-tap-highlight-color: transparent;
+          transition: color 0.2s ease, text-decoration-color 0.2s ease;
         }
         .video-hero-caption::before {
           content: '\\25B6';
           font-size: 0.7em;
           color: #C99A3F;
-          transform: translateY(0.5px);
+          margin-right: 9px;
+          display: inline-block;
         }
+        .video-hero-caption:hover {
+          color: #F5C73D;
+          text-decoration-color: #F5C73D;
+        }
+        .video-hero-caption:hover::before { color: #F5C73D; }
 
         /* Content area below the video — own viewport band on desktop */
         .vision-content-area { width: 100%; }
@@ -759,10 +791,19 @@ export default function Vision() {
             The Vision
           </span>
         </h1>
-        <div className="video-embed-frame">
+        {!videoPlaying && (
+          <button
+            type="button"
+            className="video-hero-caption"
+            onClick={() => setVideoPlaying(true)}
+          >
+            Watch Dogypt Intro Movie
+          </button>
+        )}
+        <div className={`video-embed-frame${videoPlaying ? ' is-playing' : ''}`}>
           {videoPlaying ? (
             <iframe
-              src="https://www.youtube.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&color=white"
+              src="https://www.youtube-nocookie.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white"
               title="DOGYPT Intro Movie"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
@@ -784,7 +825,6 @@ export default function Vision() {
             </button>
           )}
         </div>
-        <p className="video-hero-caption">Watch Dogypt Intro Movie</p>
       </section>
 
       {/* Main 2-col area */}
