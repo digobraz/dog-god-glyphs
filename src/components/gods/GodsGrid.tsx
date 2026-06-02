@@ -830,10 +830,10 @@ export function GodsGrid() {
         }
         .is-dragging .dog-card { cursor: pointer; transition: none; }
 
-        /* Placeholder dogs — greyscale, bez identity; photo 60%, popisky 100% */
+        /* Placeholder dogs — farebné ale priesvitné (nie pietne); photo 60%, popisky 100% */
         .dog-card--placeholder { cursor: default; }
         .dog-card--placeholder .card-img {
-          filter: grayscale(1) brightness(0.85) contrast(0.95);
+          filter: brightness(0.92) contrast(0.97);
           opacity: 0.6;
         }
         .dog-card--placeholder .card-label {
