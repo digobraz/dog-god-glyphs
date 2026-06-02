@@ -16,6 +16,7 @@ import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
 import { CertificateCard } from '@/components/CertificateCard';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
+import { useDogyptStore } from '@/store/dogyptStore';
 
 const T = PACK_THEME;
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
@@ -36,6 +37,7 @@ interface DogRow {
   birth_year: number | null;
   patron_svg: string | null;
   patron_svg2: string | null;
+  selections: Record<string, string> | null;
   grid_message: string | null;
   created_at: string;
   stripe_session_id?: string | null;
@@ -86,7 +88,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, grid_message, created_at, stripe_session_id, owner_name',
+          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, owner_name',
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -130,6 +132,25 @@ export default function PackDogDetail() {
       mounted = false;
     };
   }, [id]);
+
+  // Rehydrate global store so CertificateCard's HeroglyphFrame (reads selections/
+  // ownerName/patronSvg from the store, not props) renders THIS dog's symbol.
+  // Without this, a fresh magic-link login or a 2nd dog shows an empty/wrong
+  // heroglyph on the on-page certificate. Mirrors WelcomeScreen rehydration.
+  useEffect(() => {
+    if (!dog) return;
+    const s = useDogyptStore.getState();
+    if (dog.dog_name) s.setDogName(dog.dog_name);
+    if (dog.owner_name) s.setOwnerName(dog.owner_name);
+    if (dog.cloudinary_main_url) s.setDogPhotoUrl(dog.cloudinary_main_url);
+    if (dog.patron_svg) s.setPatronSvg(dog.patron_svg);
+    if (dog.patron_svg2) s.setPatronSvg2(dog.patron_svg2);
+    if (dog.selections) {
+      Object.entries(dog.selections).forEach(([k, v]) => {
+        if (typeof v === 'string') s.setSelection(k, v);
+      });
+    }
+  }, [dog]);
 
   const issuedDate = useMemo(() => {
     if (!dog?.created_at) return '';
