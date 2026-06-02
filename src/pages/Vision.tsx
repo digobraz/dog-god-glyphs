@@ -112,7 +112,8 @@ type Beat = {
   svg: string;
   figure?: string; // transparent figure PNG drawn ONTO the realistic papyrus frame
   img?: string; // baked papyrus+scene PNG on black (full, replaces the papyrus frame)
-  video?: string; // optional looping mp4 (replaces svg/img when present)
+  video?: string; // mp4 fallback (baked black bg) — Safari / no-webm
+  videoWebm?: string; // transparent VP9-alpha webm (primary) — papyrus floats, no box
 };
 
 const WF_BEATS: Beat[] = [
@@ -121,6 +122,7 @@ const WF_BEATS: Beat[] = [
     intro: true,
     lead: 'What if every doglover saw a dog as more than just an animal?',
     video: '/videos/vision-dream.mp4',
+    videoWebm: '/videos/vision-dream.webm',
     figure: '/images/vision/figure-dream.png',
     svg: WF_INTRO_SVG,
   },
@@ -1203,13 +1205,15 @@ export default function Vision() {
                     {b.video ? (
                       <video
                         className="wf-scene-full"
-                        src={b.video}
                         autoPlay
                         muted
                         loop
                         playsInline
                         preload="auto"
-                      />
+                      >
+                        {b.videoWebm && <source src={b.videoWebm} type="video/webm" />}
+                        <source src={b.video} type="video/mp4" />
+                      </video>
                     ) : b.img ? (
                       <img className="wf-scene-full" src={b.img} alt="" />
                     ) : (
