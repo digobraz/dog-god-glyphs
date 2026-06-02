@@ -6,7 +6,7 @@ import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 const NAV_ITEMS = [
   { label: 'WALL', to: '/grid' },
   { label: 'VISION', to: '/vision' },
-  { label: 'CODEX', to: '/codex' },
+  { label: 'RELIGION', to: '/religion' },
   { label: 'ABOUT', to: '/about' },
 ];
 

@@ -32,7 +32,7 @@ import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
 import Vision from "./pages/Vision.tsx";
 import BetaVision from "./pages/BetaVision.tsx";
-import Codex from "./pages/Codex.tsx";
+import Religion from "./pages/Religion.tsx";
 import About from "./pages/About.tsx";
 import Heroglyph from "./pages/Heroglyph.tsx";
 import { DevNav } from "@/components/DevNav";
@@ -76,7 +76,7 @@ const App = () => (
           {import.meta.env.DEV && (
             <Route path="/betavision" element={<BetaVision />} />
           )}
-          <Route path="/codex" element={<Codex />} />
+          <Route path="/religion" element={<Religion />} />
           <Route path="/about" element={<About />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />

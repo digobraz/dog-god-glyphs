@@ -4,120 +4,43 @@ import dogyptSeal from '@/assets/dogypt-seal.png';
 import { PageTopBar } from '@/components/PageTopBar';
 import { SACRED_INDEX } from '@/data/sacredIndex.generated';
 
-const TOTAL_SLIDES = 3;
-
-function Dots({ slide, setSlide }: { slide: number; setSlide: (i: number) => void }) {
-  return (
-    <div className="codex-dots" aria-hidden>
-      {[0, 1, 2].map((i) => (
-        <button
-          key={i}
-          type="button"
-          className={`codex-dot ${i === slide ? 'active' : ''}`}
-          onClick={() => setSlide(i)}
-          aria-label={`Slide ${i + 1}`}
-          aria-current={i === slide}
-        />
-      ))}
-    </div>
-  );
-}
-
-export default function Codex() {
-  const [slide, setSlide] = useState(0);
+export default function Religion() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const dragStartX = useRef<number | null>(null);
-  const dragAccum = useRef(0);
-  const dragCaptured = useRef(false);
-  const swipeOccurred = useRef(false);
-  const wheelAccum = useRef(0);
-  const wheelLock = useRef(false);
+  const [active, setActive] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
-  const next = () => setSlide((s) => (s + 1) % TOTAL_SLIDES);
-  const prev = () => setSlide((s) => (s - 1 + TOTAL_SLIDES) % TOTAL_SLIDES);
-
+  // Vertikálny scroll-snap (klasický scroll; každá sekcia = fix obrazovka).
+  // IntersectionObserver na scroll kontajneri sleduje centrovanú sekciu →
+  //   • .in-view reveal animácia · • aktívna bodka · • cow/Hektor bleed iba na sekcii 0.
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') next();
-      else if (e.key === 'ArrowLeft') prev();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    const root = scrollRef.current;
+    if (!root) return;
+    const sections = sectionRefs.current.filter(Boolean) as HTMLElement[];
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            if (entry.intersectionRatio >= 0.55) {
+              setActive(Number((entry.target as HTMLElement).dataset.idx));
+            }
+          }
+        }
+      },
+      { root, threshold: [0.55] }
+    );
+    sections.forEach((s) => io.observe(s));
+    return () => io.disconnect();
   }, []);
 
-  // Pointer (touch + mouse + pen) swipe — LAZY capture pattern.
-  // Pointer capture sa nastaví AŽ po prekročení movement thresholdu (10px) → tap na button
-  // ide normálne (button vidí svoje pointer eventy), swipe naprieč slidmi sa zoberie keď user reálne ťahá.
-  const onPointerDown = (e: React.PointerEvent) => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
-    dragStartX.current = e.clientX;
-    dragAccum.current = 0;
-    dragCaptured.current = false;
-    swipeOccurred.current = false;
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (dragStartX.current === null) return;
-    dragAccum.current = e.clientX - dragStartX.current;
-    // Akonáhle movement prekročí 10px → preberieme pointer + označíme swipe (blokne sa click na button)
-    if (!dragCaptured.current && Math.abs(dragAccum.current) > 10) {
-      dragCaptured.current = true;
-      swipeOccurred.current = true;
-      setDragging(true);
-      try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-    }
-  };
-  const onPointerUp = (e: React.PointerEvent) => {
-    if (dragStartX.current === null) return;
-    const dx = dragAccum.current;
-    const threshold = 50;
-    if (dx <= -threshold) next();
-    else if (dx >= threshold) prev();
-    dragStartX.current = null;
-    dragAccum.current = 0;
-    setDragging(false);
-    if (dragCaptured.current) {
-      try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
-      dragCaptured.current = false;
-    }
-  };
-  // Po swipe prevent click — inak by sa accordion button na slide 2 toggol pri každom swipe.
-  const onClickCapture = (e: React.MouseEvent) => {
-    if (swipeOccurred.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      swipeOccurred.current = false;
-    }
-  };
-
-  // Trackpad horizontal scroll → one slide per gesture (debounced, hard-locked)
-  const onWheel = (e: React.WheelEvent) => {
-    const dx = e.deltaX;
-    const dy = e.deltaY;
-    // Prefer horizontal intent
-    if (Math.abs(dx) <= Math.abs(dy) * 1.2) return;
-    // Hard lock during cooldown — discard inertial residue
-    if (wheelLock.current) {
-      wheelAccum.current = 0;
-      return;
-    }
-    wheelAccum.current += dx;
-    if (wheelAccum.current >= 60) {
-      next();
-      wheelLock.current = true;
-      wheelAccum.current = 0;
-      setTimeout(() => { wheelLock.current = false; }, 700);
-    } else if (wheelAccum.current <= -60) {
-      prev();
-      wheelLock.current = true;
-      wheelAccum.current = 0;
-      setTimeout(() => { wheelLock.current = false; }, 700);
-    }
+  const go = (i: number) => {
+    sectionRefs.current[i]?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden relative">
-      {/* Radial vignette — lighter on slide 3 so BG mosaic stays visible around PNGs */}
+    <div className="dark-bg codex-page flex flex-col h-[100dvh] overflow-hidden relative">
+      {/* Radial vignette — drží sa 1 obrazovky (page = 100dvh), pozadie sa nezväčšuje */}
       <div
         aria-hidden
         style={{
@@ -130,13 +53,38 @@ export default function Codex() {
         }}
       />
 
-      {/* Slide 3 bleed PNGs — rendered at page level so they extend past slider edges */}
-      <div className={`codex-bleed ${slide === 2 ? 'active' : ''}`} aria-hidden>
+      {/* Cow/Hektor bleed PNGs — page-level (presahujú sekcie), aktívne iba na hero sekcii 0 */}
+      <div className={`codex-bleed ${active === 0 ? 'active' : ''}`} aria-hidden>
         <img src="/images/codex3-cow.png" alt="" className="codex-cow" />
         <img src="/images/codex3-hektor-v1.png" alt="" className="codex-hektor" />
       </div>
 
       <style>{`
+        /* Vertikálny scroll-snap kontajner — klasický scroll, fix obrazovka per sekcia.
+           Stránka ostáva 100dvh + overflow-hidden → pozadie sa NEzväčšuje; scrolluje len toto. */
+        .codex-scroll {
+          flex: 1 1 auto;
+          min-height: 0;
+          width: 100%;
+          overflow-y: scroll;
+          overflow-x: hidden;
+          scroll-snap-type: y mandatory;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          position: relative;
+          z-index: 2;
+        }
+        .codex-scroll::-webkit-scrollbar { display: none; }
+        .codex-section {
+          height: 100%;
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          scroll-snap-align: start;
+          scroll-snap-stop: always;
+          position: relative;
+        }
         .codex-slider {
           position: relative;
           width: 100%;
@@ -147,25 +95,6 @@ export default function Codex() {
           align-items: stretch;
           justify-content: center;
           padding: 0 clamp(12px, 2vw, 24px);
-        }
-        .codex-viewport {
-          flex: 0 0 auto;
-          width: 100%;
-          overflow-x: hidden;
-          overflow-y: visible;
-          position: relative;
-          touch-action: pan-y;
-          cursor: grab;
-          user-select: none;
-        }
-        .codex-viewport.dragging {
-          cursor: grabbing;
-        }
-        .codex-track {
-          display: flex;
-          width: 100%;
-          align-items: stretch;
-          transition: transform 420ms cubic-bezier(0.4, 0, 0.2, 1);
         }
         .codex-slide {
           flex: 0 0 100%;
@@ -179,9 +108,41 @@ export default function Codex() {
         .codex-slider .codex-slide > * + * {
           margin-top: clamp(28px, 4.5vh, 48px);
         }
-        .codex-slider > .codex-dots {
-          flex-shrink: 0;
-          margin-top: 30px;
+
+        /* ── Scroll-reveal animácie (rešpektuje prefers-reduced-motion) ──
+           Pokojový stav = identity transform → locked layout zostáva nedotknutý. */
+        @media (prefers-reduced-motion: no-preference) {
+          .codex-section .codex-slide:not(.codex-slide-3) {
+            opacity: 0;
+            transform: translateY(34px);
+            transition: opacity 720ms cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 720ms cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform;
+          }
+          .codex-section.in-view .codex-slide:not(.codex-slide-3) {
+            opacity: 1;
+            transform: none;
+          }
+          /* Hero (cow vs dog): staggered reveal jednotlivých riadkov overlayu */
+          .codex-3-overlay > * {
+            opacity: 0;
+            transform: translateY(26px);
+            transition: opacity 760ms cubic-bezier(0.22, 1, 0.36, 1),
+                        transform 760ms cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: opacity, transform;
+          }
+          .codex-section.in-view .codex-3-overlay > * { opacity: 1; transform: none; }
+          .codex-section.in-view .codex-3-overlay > *:nth-child(1) { transition-delay: 100ms; }
+          .codex-section.in-view .codex-3-overlay > *:nth-child(2) { transition-delay: 220ms; }
+          .codex-section.in-view .codex-3-overlay > *:nth-child(3) { transition-delay: 340ms; }
+          .codex-section.in-view .codex-3-overlay > *:nth-child(4) { transition-delay: 460ms; }
+        }
+
+        /* Landscape-short fallback: dark-bg ide na height:auto (index.css) → necháme
+           prirodzený scroll bez snapu, aby sa obsah dal prečítať. */
+        @media (orientation: landscape) and (max-height: 600px) {
+          .codex-scroll { overflow: visible; height: auto; scroll-snap-type: none; }
+          .codex-section { height: auto; min-height: 100dvh; }
         }
 
         /* ── Slide 1 ── */
@@ -1013,179 +974,195 @@ export default function Codex() {
           }
         }
 
-        /* ── Dots ── */
-        .codex-dots {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 14px;
-        }
-        .codex-dot {
+        /* ── Scroll hint ── */
+        .codex-scrollhint {
+          position: fixed;
+          left: 50%;
+          bottom: clamp(14px, 3vh, 28px);
+          transform: translateX(-50%);
           appearance: none;
-          background: rgba(201,154,63,0.55);
-          border: 1px solid rgba(201,154,63,0.85);
-          width: 11px;
-          height: 11px;
-          border-radius: 50%;
-          padding: 0;
+          background: transparent;
+          border: none;
+          padding: 6px 12px;
           cursor: pointer;
-          transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
-          box-shadow: 0 0 6px rgba(201,154,63,0.35);
+          font-size: 26px;
+          line-height: 1;
+          color: rgba(201,154,63,0.85);
+          filter: drop-shadow(0 0 8px rgba(201,154,63,0.4));
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 400ms ease;
+          z-index: 6;
         }
-        .codex-dot.active {
-          background: #F5C73D;
-          border-color: #F5C73D;
-          transform: scale(1.35);
-          box-shadow: 0 0 14px rgba(245,199,61,0.7);
+        .codex-scrollhint.show {
+          opacity: 1;
+          pointer-events: auto;
         }
-        .codex-dot:hover:not(.active) {
-          background: rgba(201,154,63,0.85);
-          transform: scale(1.15);
+        @media (prefers-reduced-motion: no-preference) {
+          .codex-scrollhint.show span {
+            display: inline-block;
+            animation: codexBounce 1.8s ease-in-out infinite;
+          }
         }
-        @media (max-width: 767px) {
-          .codex-dot { width: 10px; height: 10px; }
+        @keyframes codexBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(6px); }
         }
       `}</style>
 
       <PageTopBar withNav />
 
-      {/* Slider */}
-      <div
-        className="flex-1 flex items-center justify-center px-5 md:px-10 relative min-h-0"
-        style={{ zIndex: 2 }}
-      >
-        <div className="codex-slider">
-          <div
-            className={`codex-viewport ${dragging ? 'dragging' : ''}`}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
-            onClickCapture={onClickCapture}
-            onWheel={onWheel}
-          >
-            <div
-              className="codex-track"
-              style={{ transform: `translateX(-${slide * 100}%)` }}
-            >
-              {/* Slide 1: headline + preamble */}
-              <div className="codex-slide" aria-label="Preamble">
-                <h1 className="codex-headline">
-                  <span className="grad">In Dog</span>
-                  <span className="line">We Trust</span>
-                </h1>
-                <div className="codex-preamble-wrap">
-                  <span className="codex-frame tl" aria-hidden />
-                  <span className="codex-frame tr" aria-hidden />
-                  <span className="codex-frame bl" aria-hidden />
-                  <span className="codex-frame br" aria-hidden />
-                  <p className="codex-preamble-text">
-                    We, the nation of doglovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.
-                  </p>
-                </div>
-                <p className="codex-oath-label">The Oath of the Pack</p>
-              </div>
-
-              {/* Slide 2: Sacred Index in papyrus */}
-              <div className="codex-slide" aria-label="Sacred Index">
-                <div className="codex-paper">
-                  <div className="codex-paper-header">
-                    <div className="codex-seal-wrap">
-                      <img src={dogyptSeal} alt="" className="codex-seal" aria-hidden />
-                    </div>
-                    <div className="codex-paper-titles">
-                      <h2 className="codex-paper-title">
-                        <span>The <em className="title-decor">Dogyptian</em></span>
-                        <span>Constitution</span>
-                      </h2>
-                      <p className="codex-paper-subtitle">
-                        Required reading for every doglover to become a Dogyptian.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="codex-index" role="list">
-                    {[0, 1].map((col) => (
-                      <div className="col" key={col}>
-                        {SACRED_INDEX.slice(col * 6, col * 6 + 6).map((row, idx) => {
-                          const globalIdx = col * 6 + idx;
-                          const open = openIdx === globalIdx;
-                          return (
-                            <div className={`codex-row ${open ? 'open' : ''}`} role="listitem" key={row.num}>
-                              <button
-                                type="button"
-                                className="codex-row-head"
-                                aria-expanded={open}
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={() => setOpenIdx(open ? null : globalIdx)}
-                              >
-                                <span className="num">{row.num}</span>
-                                <span className="item">
-                                  <span className="name">{row.name}</span>
-                                  <span className="dash">—</span>
-                                  <span className="desc">{row.desc}</span>
-                                </span>
-                              </button>
-                              <div className="codex-row-body">
-                                <div className="codex-row-body-inner">
-                                  <ul>
-                                    {row.subs.map((s) => <li key={s}>{s}</li>)}
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="codex-cta-wrap">
-                    <a
-                      href="https://dogyptism.dogypt.com"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="codex-cta"
-                    >
-                      Read Full Constitution
-                    </a>
-                  </div>
-                </div>
-              </div>
-
-              {/* Slide 3: cow vs dog — visual (PNGs rendered at page-level below) */}
-              <div className="codex-slide codex-slide-3" aria-label="The Question">
-                <div className="codex-3-overlay">
-                  <p className="codex-stat-number">
-                    <span className="codex-stat-row">
-                      <span className="codex-stat-l1">1.2</span>
-                      <span className="codex-stat-l2">BILLION</span>
-                    </span>
-                    <span className="codex-stat-row codex-stat-row-bottom">
-                      <span className="codex-stat-l3">PEOPLE</span>
-                      <span className="codex-stat-note">(15% worldwide)</span>
-                    </span>
-                  </p>
-                  <p className="codex-stat-sub">bow to the cow</p>
-                  <p className="codex-question-big">
-                    <span className="accent">
-                      <span className="q-call">DOGLOVERS?</span><br />
-                      <span className="q-call">ARE YOU READY?</span><br />
-                      <span className="q-action">LET'S WORSHIP OUR DOGS.</span>
-                    </span>
-                  </p>
-                  <div className="codex-cta-cluster">
-                    <Link to="/heroglyph" className="codex-cta">
-                      Become Dogyptian
-                    </Link>
-                  </div>
+      {/* Vertikálny scroll-snap: 3 sekcie pod sebou, každá = fix obrazovka */}
+      <div className="codex-scroll" ref={scrollRef}>
+        {/* Sekcia 1 — The Question (cow vs dog). Bleed PNGs sa renderujú page-level vyššie. */}
+        <section
+          className="codex-section"
+          data-idx={0}
+          aria-label="The Question"
+          ref={(el) => { sectionRefs.current[0] = el; }}
+        >
+          <div className="codex-slider">
+            <div className="codex-slide codex-slide-3">
+              <div className="codex-3-overlay">
+                <p className="codex-stat-number">
+                  <span className="codex-stat-row">
+                    <span className="codex-stat-l1">1.2</span>
+                    <span className="codex-stat-l2">BILLION</span>
+                  </span>
+                  <span className="codex-stat-row codex-stat-row-bottom">
+                    <span className="codex-stat-l3">PEOPLE</span>
+                    <span className="codex-stat-note">(15% worldwide)</span>
+                  </span>
+                </p>
+                <p className="codex-stat-sub">bow to the cow</p>
+                <p className="codex-question-big">
+                  <span className="accent">
+                    <span className="q-call">DOGLOVERS?</span><br />
+                    <span className="q-call">ARE YOU READY?</span><br />
+                    <span className="q-action">LET'S WORSHIP OUR DOGS.</span>
+                  </span>
+                </p>
+                <div className="codex-cta-cluster">
+                  <Link to="/heroglyph" className="codex-cta">
+                    Become Dogyptian
+                  </Link>
                 </div>
               </div>
             </div>
           </div>
+        </section>
 
-          {/* Static dots — single instance under viewport, only `active` mutates */}
-          <Dots slide={slide} setSlide={setSlide} />
-        </div>
+        {/* Sekcia 2 — Preamble (In Dog We Trust) */}
+        <section
+          className="codex-section"
+          data-idx={1}
+          aria-label="Preamble"
+          ref={(el) => { sectionRefs.current[1] = el; }}
+        >
+          <div className="codex-slider">
+            <div className="codex-slide">
+              <h1 className="codex-headline">
+                <span className="grad">In Dog</span>
+                <span className="line">We Trust</span>
+              </h1>
+              <div className="codex-preamble-wrap">
+                <span className="codex-frame tl" aria-hidden />
+                <span className="codex-frame tr" aria-hidden />
+                <span className="codex-frame bl" aria-hidden />
+                <span className="codex-frame br" aria-hidden />
+                <p className="codex-preamble-text">
+                  We, the nation of doglovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.
+                </p>
+              </div>
+              <p className="codex-oath-label">The Oath of the Pack</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Sekcia 3 — Sacred Index (papyrus) */}
+        <section
+          className="codex-section"
+          data-idx={2}
+          aria-label="Sacred Index"
+          ref={(el) => { sectionRefs.current[2] = el; }}
+        >
+          <div className="codex-slider">
+            <div className="codex-slide">
+              <div className="codex-paper">
+                <div className="codex-paper-header">
+                  <div className="codex-seal-wrap">
+                    <img src={dogyptSeal} alt="" className="codex-seal" aria-hidden />
+                  </div>
+                  <div className="codex-paper-titles">
+                    <h2 className="codex-paper-title">
+                      <span>The <em className="title-decor">Dogyptian</em></span>
+                      <span>Constitution</span>
+                    </h2>
+                    <p className="codex-paper-subtitle">
+                      Required reading for every doglover to become a Dogyptian.
+                    </p>
+                  </div>
+                </div>
+                <div className="codex-index" role="list">
+                  {[0, 1].map((col) => (
+                    <div className="col" key={col}>
+                      {SACRED_INDEX.slice(col * 6, col * 6 + 6).map((row, idx) => {
+                        const globalIdx = col * 6 + idx;
+                        const open = openIdx === globalIdx;
+                        return (
+                          <div className={`codex-row ${open ? 'open' : ''}`} role="listitem" key={row.num}>
+                            <button
+                              type="button"
+                              className="codex-row-head"
+                              aria-expanded={open}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => setOpenIdx(open ? null : globalIdx)}
+                            >
+                              <span className="num">{row.num}</span>
+                              <span className="item">
+                                <span className="name">{row.name}</span>
+                                <span className="dash">—</span>
+                                <span className="desc">{row.desc}</span>
+                              </span>
+                            </button>
+                            <div className="codex-row-body">
+                              <div className="codex-row-body-inner">
+                                <ul>
+                                  {row.subs.map((s) => <li key={s}>{s}</li>)}
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+                <div className="codex-cta-wrap">
+                  <a
+                    href="https://dogyptism.dogypt.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="codex-cta"
+                  >
+                    Read Full Constitution
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
+
+      {/* Scroll hint — iba na hero (cow vs dog) */}
+      <button
+        type="button"
+        className={`codex-scrollhint ${active === 0 ? 'show' : ''}`}
+        onClick={() => go(1)}
+        aria-label="Scroll down"
+      >
+        <span aria-hidden>▾</span>
+      </button>
     </div>
   );
 }

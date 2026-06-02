@@ -1487,7 +1487,7 @@ export function GodsGrid() {
         <div className="nav-left">
           <nav className="main-nav">
             <a href="/vision">Vision</a>
-            <a href="/codex">Codex</a>
+            <a href="/religion">Religion</a>
             <a href="/about">About</a>
             <LanguagePicker />
           </nav>

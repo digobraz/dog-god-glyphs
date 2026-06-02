@@ -20,7 +20,7 @@ const GROUPS: RouteGroup[] = [
       { path: "/spiral", name: "Spiral (alias)" },
       { path: "/grid", name: "Wall" },
       { path: "/vision", name: "Vision" },
-      { path: "/codex", name: "Codex" },
+      { path: "/religion", name: "Religion" },
       { path: "/about", name: "About" },
       { path: "/terms", name: "Terms" },
       { path: "/privacy", name: "Privacy" },

@@ -124,7 +124,7 @@ export default function Vision() {
           .mission-grid { gap: clamp(18px, 3vh, 30px); }
         }
 
-        /* Mobile-only headline — match /codex .codex-headline mobile size (IN DOG WE TRUST) for cross-page consistency */
+        /* Mobile-only headline — match /religion .codex-headline mobile size (IN DOG WE TRUST) for cross-page consistency */
         @media (max-width: 767px) {
           .headline-main {
             font-size: 2.8rem !important;
