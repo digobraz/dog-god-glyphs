@@ -120,6 +120,7 @@ const WF_BEATS: Beat[] = [
     tag: 'I HAD A DREAM',
     intro: true,
     lead: 'What if every doglover saw a dog as more than just an animal?',
+    video: '/videos/vision-dream.mp4',
     figure: '/images/vision/figure-dream.png',
     svg: WF_INTRO_SVG,
   },
