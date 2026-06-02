@@ -93,6 +93,58 @@ const WF_INTRO_SVG = `<svg viewBox="0 0 200 250" ${wfStroke}>
   <path d="M146 150 L92 96" stroke-dasharray="3 6" stroke="${WF_INK}" opacity="0.5"/>
 </svg>`;
 
+/* Hand-built Egyptian papyrus scroll (replaces the CSS box — that read "machine-made").
+   Chunky cylindrical rolls + dark spiral end-caps, a sheet with frayed/torn organic
+   sides and a gentle outward bow, warm aged parchment shading. The doodle illustrations
+   sit in a separate inset layer ON TOP of this graphic (wf-sheet). */
+const WF_SHEET_PATH =
+  'M 54 70 L 246 70 L 252 96 L 245 122 L 253 148 L 246 174 L 254 200 ' +
+  'L 246 226 L 253 252 L 245 278 L 252 304 L 246 330 L 54 330 ' +
+  'L 48 304 L 55 278 L 47 252 L 54 226 L 46 200 L 54 174 L 47 148 L 55 122 L 48 96 Z';
+const PAPYRUS_SVG = `<svg viewBox="0 0 300 400" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="wfSheetG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c19d5b"/><stop offset="0.18" stop-color="#dcc185"/>
+      <stop offset="0.5" stop-color="#eedcae"/><stop offset="0.82" stop-color="#dcc185"/>
+      <stop offset="1" stop-color="#c19d5b"/>
+    </linearGradient>
+    <linearGradient id="wfSheetV" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6e4f24" stop-opacity="0.4"/>
+      <stop offset="0.13" stop-color="#6e4f24" stop-opacity="0"/>
+      <stop offset="0.87" stop-color="#6e4f24" stop-opacity="0"/>
+      <stop offset="1" stop-color="#6e4f24" stop-opacity="0.4"/>
+    </linearGradient>
+    <linearGradient id="wfRollG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#553a17"/><stop offset="0.16" stop-color="#a8813f"/>
+      <stop offset="0.42" stop-color="#ecd6a6"/><stop offset="0.52" stop-color="#f5deaf"/>
+      <stop offset="0.64" stop-color="#d8b67e"/><stop offset="0.86" stop-color="#876733"/>
+      <stop offset="1" stop-color="#46300f"/>
+    </linearGradient>
+    <radialGradient id="wfCapG" cx="0.4" cy="0.4" r="0.72">
+      <stop offset="0" stop-color="#f0daa6"/><stop offset="0.4" stop-color="#cda868"/>
+      <stop offset="0.72" stop-color="#946f35"/><stop offset="1" stop-color="#46300f"/>
+    </radialGradient>
+    <filter id="wfFray" x="-6%" y="-6%" width="112%" height="112%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.07" numOctaves="2" seed="9" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="5"/>
+    </filter>
+  </defs>
+  <g filter="url(#wfFray)">
+    <path d="${WF_SHEET_PATH}" fill="url(#wfSheetG)"/>
+    <path d="${WF_SHEET_PATH}" fill="url(#wfSheetV)"/>
+  </g>
+  <g>
+    <rect x="22" y="40" width="256" height="48" rx="24" fill="url(#wfRollG)"/>
+    <ellipse cx="34" cy="64" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
+    <ellipse cx="266" cy="64" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
+  </g>
+  <g>
+    <rect x="22" y="312" width="256" height="48" rx="24" fill="url(#wfRollG)"/>
+    <ellipse cx="34" cy="336" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
+    <ellipse cx="266" cy="336" rx="15" ry="25" fill="url(#wfCapG)" stroke="rgba(70,48,20,0.5)" stroke-width="1"/>
+  </g>
+</svg>`;
+
 const WF_ICONS: Record<string, string> = {
   ankh: '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M12 11 L12 22 M7 16 L17 16"/></svg>',
   pyramid: '<svg viewBox="0 0 24 24"><path d="M12 3 L22 21 L2 21 Z M7 12 L17 12"/></svg>',
@@ -937,6 +989,17 @@ export default function Vision() {
 
         /* ===== WHAT IF… pinned scrollytelling roadmap ===== */
         .wf-pin { position: relative; } /* tall: height = beats*100vh (inline) */
+
+        /* Scroll-snap (desktop): the hand-off from the video hero (slide 1) to the
+         * WHAT IF section (slide 2) snaps — you can't rest between them, the second
+         * screen is pulled in and fixes. snap-stop:always forces a stop at wf-pin's
+         * start (= pin engages). Inside the 600vh pin there are no further snap points,
+         * so the beats scroll freely. Style only lives while /vision is mounted. */
+        @media (min-width: 768px) {
+          html { scroll-snap-type: y proximity; scroll-padding-top: 0; }
+          .vision-video-hero { scroll-snap-align: start; }
+          .wf-pin { scroll-snap-align: start; scroll-snap-stop: always; }
+        }
         .wf-sticky {
           position: sticky; top: 0; height: 100vh; overflow: hidden;
           display: flex; flex-direction: column;
@@ -956,57 +1019,23 @@ export default function Vision() {
         /* LEFT — papyrus scroll (rolled ends; colours from /religion .codex-paper) */
         .wf-scroll-col { display: flex; align-items: center; justify-content: center; }
         .wf-papyrus {
-          position: relative; width: 100%; max-width: 380px; aspect-ratio: 3 / 4;
-          display: flex; flex-direction: column;
-          filter: drop-shadow(0 22px 42px rgba(0,0,0,0.55));
+          position: relative; width: 100%; max-width: 360px; aspect-ratio: 3 / 4;
+          filter: drop-shadow(0 22px 40px rgba(0,0,0,0.55));
         }
-        /* rolled paper cylinders top + bottom */
-        .wf-roll {
-          position: relative; z-index: 3; flex: 0 0 auto;
-          height: 38px; margin: 0 -16px; border-radius: 22px;
-          background: linear-gradient(180deg,
-            #7d5d31 0%, #a8813f 12%, #d8b878 34%, #ecd3a0 50%,
-            #d2b074 64%, #9d7838 86%, #6e4f28 100%);
-          box-shadow:
-            inset 0 2px 4px rgba(255,243,210,0.55),
-            inset 0 -5px 8px rgba(90,62,20,0.55),
-            0 2px 4px rgba(0,0,0,0.35);
-        }
-        /* spiral cross-section caps at each end of the roll (chunky, dark Egyptian core) */
-        .wf-roll::before, .wf-roll::after {
-          content: ''; position: absolute; top: 50%; width: 34px; height: 47px;
-          transform: translateY(-50%); border-radius: 50%; z-index: 4;
-          background: radial-gradient(ellipse at 42% 42%,
-            #f0dba8 0%, #d2b074 38%, #9d7838 68%, #5e421f 100%);
-          box-shadow: 0 0 0 1.5px rgba(70,48,20,0.6), inset 0 0 9px rgba(80,55,22,0.7);
-        }
-        .wf-roll::before { left: -9px; }
-        .wf-roll::after { right: -9px; }
-        /* curl shadow the roll casts onto the sheet */
-        .wf-roll-top { margin-bottom: -6px; }
-        .wf-roll-bottom { margin-top: -6px; }
+        /* SVG scroll graphic (rolls + frayed parchment sheet) fills the whole papyrus box */
+        .wf-scroll-graphic { position: absolute; inset: 0; z-index: 1; }
+        .wf-scroll-graphic svg { width: 100%; height: 100%; display: block; }
+        /* Illustration layer — inset to the sheet body (clear of the top/bottom rolls) */
         .wf-sheet {
-          position: relative; flex: 1 1 auto; z-index: 1; overflow: visible;
-          border-radius: 4px;
-        }
-        /* Aged Egyptian parchment fill on a filtered layer → torn organic side edges,
-         * warm tan body, vignette darkening at edges, faint warped papyrus fibers,
-         * soft cylinder-bulge highlight down the centre. Content sits above (z-index). */
-        .wf-sheet::before {
-          content: ''; position: absolute; inset: 0; z-index: 0; border-radius: 5px;
-          background:
-            repeating-linear-gradient(91deg, rgba(120,88,42,0.05) 0 2px, transparent 2px 6px),
-            radial-gradient(125% 100% at 50% 50%, transparent 52%, rgba(120,82,38,0.42) 100%),
-            radial-gradient(150% 82% at 50% 44%, rgba(255,247,224,0.55) 0%, transparent 62%),
-            linear-gradient(166deg, #e9d39f 0%, #dcc085 28%, #cdaa69 58%, #bd9857 84%, #ad8547 100%);
-          filter: url(#wf-torn);
-          box-shadow: inset 0 0 40px rgba(150,112,60,0.30);
+          position: absolute; z-index: 2;
+          top: 24%; bottom: 24%; left: 19%; right: 19%;
+          overflow: visible;
         }
         .wf-illus {
-          position: absolute; inset: 0; z-index: 2; opacity: 0;
+          position: absolute; inset: 0; opacity: 0;
           transform: scale(0.97) translateY(8px);
           transition: opacity .5s ease, transform .5s ease;
-          display: flex; align-items: center; justify-content: center; padding: 12% 14%;
+          display: flex; align-items: center; justify-content: center; padding: 4% 6%;
         }
         .wf-illus.on { opacity: 1; transform: scale(1) translateY(0); }
         .wf-illus .wf-art, .wf-illus video { width: 100%; height: 100%; object-fit: contain; }
@@ -1136,16 +1165,6 @@ export default function Vision() {
         }
       `}</style>
 
-      {/* Torn-edge filter for the papyrus sheet (fractal noise → displacement = ragged organic edges) */}
-      <svg aria-hidden width="0" height="0" style={{ position: 'absolute' }} focusable="false">
-        <defs>
-          <filter id="wf-torn" x="-8%" y="-8%" width="116%" height="116%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.014 0.026" numOctaves="3" seed="7" result="n" />
-            <feDisplacementMap in="SourceGraphic" in2="n" scale="11" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-      </svg>
-
       <div className="topbar-wrap">
         <PageTopBar withNav />
       </div>
@@ -1224,7 +1243,11 @@ export default function Vision() {
             {/* LEFT: papyrus scroll */}
             <div className="wf-scroll-col">
               <div className="wf-papyrus">
-                <div className="wf-roll wf-roll-top" aria-hidden />
+                <div
+                  className="wf-scroll-graphic"
+                  aria-hidden
+                  dangerouslySetInnerHTML={{ __html: PAPYRUS_SVG }}
+                />
                 <div className="wf-sheet">
                   {WF_BEATS.map((b, i) => (
                     <div
@@ -1251,7 +1274,6 @@ export default function Vision() {
                   ))}
                   <span className="wf-note">placeholder · doodle Matej + Hektor</span>
                 </div>
-                <div className="wf-roll wf-roll-bottom" aria-hidden />
               </div>
             </div>
 
