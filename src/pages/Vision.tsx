@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -59,6 +59,127 @@ const PILLARS: PillData[] = [
   },
 ];
 
+/* ===================================================================
+   WHAT IF… pinned scrollytelling roadmap
+   - dark page bg preserved; papyrus = scroll artefact only (left col)
+   - papyrus colour = /religion .codex-paper tokens (warm gold papyrus)
+   - illustrations = SCHEMATIC placeholders (real doodle Matej+Hektor TBD).
+     Each beat supports an optional looping video (beat.video) that replaces
+     the SVG when the animated asset exists — drop the file in /public/videos/.
+   =================================================================== */
+const WF_INK = '#5a3a0c'; // brown ink matching /religion papyrus text
+const wfStroke = `stroke="${WF_INK}" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"`;
+const wfHeroglyph = `<rect x="0" y="0" width="34" height="46" rx="4" ${wfStroke}/><path d="M17 9 l0 28 M9 22 l16 0" ${wfStroke}/>`;
+const wfManDog = (extra = '') => `<svg viewBox="0 0 200 250" ${wfStroke}>
+  <circle cx="66" cy="70" r="15"/>
+  <path d="M66 85 L66 148 M66 100 L48 126 M66 100 L86 122"/>
+  <path d="M66 148 L54 198 M66 148 L80 198"/>
+  <path d="M118 160 q4 -32 28 -32 q22 0 24 26 l12 2"/>
+  <path d="M118 160 l0 38 M130 160 l0 38 M158 152 l2 46 M170 154 l2 44"/>
+  <path d="M144 130 l-6 -16 M164 132 l8 -14"/>
+  ${extra}
+</svg>`;
+
+const WF_INTRO_SVG = `<svg viewBox="0 0 200 250" ${wfStroke}>
+  <circle cx="74" cy="64" r="17"/>
+  <path d="M74 81 L74 150"/>
+  <path d="M74 100 L52 126"/>
+  <path d="M74 100 L96 118 L86 86 L78 78"/>
+  <path d="M74 150 L60 205 M74 150 L88 205"/>
+  <path d="M120 205 q2 -40 30 -42 q24 -2 26 26"/>
+  <path d="M150 163 q-10 -6 -8 -18 M168 168 q8 -8 4 -18"/>
+  <path d="M120 205 l0 -2 M138 205 l0 -10 M176 196 l4 9"/>
+  <path d="M150 163 q-14 8 -16 22"/>
+  <path d="M146 150 L92 96" stroke-dasharray="3 6" stroke="${WF_INK}" opacity="0.5"/>
+</svg>`;
+
+const WF_ICONS: Record<string, string> = {
+  ankh: '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M12 11 L12 22 M7 16 L17 16"/></svg>',
+  pyramid: '<svg viewBox="0 0 24 24"><path d="M12 3 L22 21 L2 21 Z M7 12 L17 12"/></svg>',
+  heartpaw: '<svg viewBox="0 0 24 24"><path d="M12 21 C4 15 4 8 8 7 C10 6.5 12 8 12 10 C12 8 14 6.5 16 7 C20 8 20 15 12 21 Z"/></svg>',
+  balance: '<svg viewBox="0 0 24 24"><path d="M12 3 L12 21 M5 21 L19 21 M5 7 L19 7 M5 7 L2 14 L8 14 Z M19 7 L16 14 L22 14 Z"/></svg>',
+};
+
+type Beat = {
+  tag: string;
+  intro?: boolean;
+  lead?: string;
+  n?: string;
+  h?: string;
+  p?: string;
+  mech?: string;
+  icon?: string;
+  svg: string;
+  video?: string; // optional looping mp4 (replaces svg when present)
+};
+
+const WF_BEATS: Beat[] = [
+  {
+    tag: 'WHAT IF',
+    intro: true,
+    lead: 'What if a dog was never just a dog?',
+    svg: WF_INTRO_SVG,
+  },
+  {
+    tag: 'SEE',
+    n: '01',
+    h: 'What if every doglover saw a dog as more than an animal?',
+    p: 'Not property. Not a pet. A soul worth a symbol. The moment you truly see it — you mark it.',
+    mech: 'You claim a Heroglyph',
+    icon: 'ankh',
+    svg: wfManDog(`<g transform="translate(116,-6)">${wfHeroglyph}</g><path d="M124 22 q-8 -10 -16 -4" ${wfStroke}/>`),
+  },
+  {
+    tag: 'GATHER',
+    n: '02',
+    h: 'What if one heroglyph became a million?',
+    p: 'Every symbol is a doglover who chose the same thing. A million is not a crowd — it is a force with a shared fund.',
+    mech: 'A global community forms',
+    icon: 'pyramid',
+    svg: `<svg viewBox="0 0 200 250" ${wfStroke}>${Array.from({ length: 9 })
+      .map((_, i) => {
+        const x = 34 + (i % 3) * 52;
+        const y = 50 + Math.floor(i / 3) * 62;
+        return `<rect x="${x}" y="${y}" width="28" height="38" rx="3"/><path d="M${x + 14} ${y + 7} l0 24 M${x + 5} ${y + 17} l18 0"/>`;
+      })
+      .join('')}</svg>`,
+  },
+  {
+    tag: 'BUILD',
+    n: '03',
+    h: 'What if that force funded what the system ignores?',
+    p: 'Not shelters that manage misery — working solutions that end it. Money in the open, accounts on the table.',
+    mech: 'Systematic help, transparent economy',
+    icon: 'heartpaw',
+    svg: `<svg viewBox="0 0 200 250" ${wfStroke}><path d="M40 200 l0 -70 l60 -42 l60 42 l0 70 Z"/><path d="M40 130 l60 -42 l60 42"/><rect x="86" y="150" width="28" height="50"/><circle cx="100" cy="58" r="18"/><path d="M100 49 l0 18 M91 58 l18 0"/></svg>`,
+  },
+  {
+    tag: 'GOVERN',
+    n: '04',
+    h: 'What if doglovers built their own?',
+    p: 'Centers on every continent. Owned by us, governed by us — we vote, we decide, we build.',
+    mech: 'Collective decisions, our own infrastructure',
+    icon: 'balance',
+    svg: `<svg viewBox="0 0 200 250" ${wfStroke}><ellipse cx="100" cy="158" rx="78" ry="28"/>${Array.from({ length: 6 })
+      .map((_, i) => {
+        const a = (i / 6) * Math.PI * 2;
+        const x = 100 + Math.cos(a) * 78;
+        const y = 158 + Math.sin(a) * 28;
+        return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="8"/>`;
+      })
+      .join('')}<path d="M100 46 l0 66 M72 64 l56 0 M72 64 l-10 24 l20 0 Z M128 64 l-10 24 l20 0 Z"/></svg>`,
+  },
+  {
+    tag: 'THE MIRACLE',
+    n: '05',
+    h: 'Then no dog is ever left behind.',
+    p: 'Every stray returned. Every life a home. One symbol, multiplied a million times, rebuilt the world around a bond.',
+    mech: 'Become Dogyptian',
+    icon: 'ankh',
+    svg: `<svg viewBox="0 0 200 250" ${wfStroke}><g transform="translate(66,86) scale(2)">${wfHeroglyph}</g><path d="M40 60 q60 -40 120 0" stroke-dasharray="2 7" opacity="0.5" stroke="${WF_INK}"/></svg>`,
+  },
+];
+
 export default function Vision() {
   const navigate = useNavigate();
   const [activePill, setActivePill] = useState<number | null>(null);
@@ -72,6 +193,31 @@ export default function Vision() {
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  // ── WHAT IF pinned scrollytelling: scroll progress → active beat ──
+  const wfPinRef = useRef<HTMLElement>(null);
+  const [wfState, setWfState] = useState<number>(0);
+  const [wfProgress, setWfProgress] = useState<number>(0);
+
+  useEffect(() => {
+    const pin = wfPinRef.current;
+    if (!pin) return;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const total = pin.offsetHeight - window.innerHeight;
+        const p = total > 0 ? Math.max(0, Math.min(1, -pin.getBoundingClientRect().top / total)) : 0;
+        setWfProgress(p);
+        setWfState(Math.max(0, Math.min(WF_BEATS.length - 1, Math.floor(p * WF_BEATS.length))));
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   return (
@@ -695,13 +841,23 @@ export default function Vision() {
           justify-content: center;
           -webkit-tap-highlight-color: transparent;
         }
-        .video-poster img {
+        .video-poster img,
+        .video-bg-loop {
           position: absolute;
           inset: 0;
           width: 100%;
           height: 100%;
           object-fit: cover;
           display: block;
+        }
+        /* Dark overlay so the looping bg video doesn't glare */
+        .video-poster::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.45);
+          z-index: 1;
+          pointer-events: none;
         }
         .video-play-btn {
           position: relative;
@@ -768,6 +924,136 @@ export default function Vision() {
             padding-bottom: 60px;
           }
         }
+
+        /* ===== WHAT IF… pinned scrollytelling roadmap ===== */
+        .wf-pin { position: relative; } /* tall: height = beats*100vh (inline) */
+        .wf-sticky {
+          position: sticky; top: 0; height: 100vh; overflow: hidden;
+          display: flex; flex-direction: column;
+        }
+        .wf-hint {
+          position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+          font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.24em;
+          text-transform: uppercase; color: rgba(250,244,236,0.32); z-index: 4;
+        }
+        .wf-grid {
+          flex: 1; display: grid; grid-template-columns: 1fr 1fr;
+          align-items: center; gap: clamp(20px, 4vw, 60px);
+          max-width: 1240px; width: 100%; margin: 0 auto;
+          padding: 54px clamp(20px, 5vw, 60px) 96px;
+        }
+
+        /* LEFT — papyrus scroll (rolled ends; colours from /religion .codex-paper) */
+        .wf-scroll-col { display: flex; align-items: center; justify-content: center; }
+        .wf-papyrus {
+          position: relative; width: 100%; max-width: 380px; aspect-ratio: 3 / 4;
+          display: flex; flex-direction: column;
+          filter: drop-shadow(0 22px 42px rgba(0,0,0,0.55));
+        }
+        /* rolled paper cylinders top + bottom */
+        .wf-roll {
+          position: relative; z-index: 3; flex: 0 0 auto;
+          height: 34px; margin: 0 -14px; border-radius: 20px;
+          background: linear-gradient(180deg,
+            #A8884F 0%, #C9AD78 14%, #EFE0BD 38%, #FBF3DB 50%,
+            #ECDDB6 62%, #C9AD78 86%, #A8884F 100%);
+          box-shadow:
+            inset 0 2px 3px rgba(255,247,225,0.6),
+            inset 0 -4px 6px rgba(120,90,45,0.5),
+            0 1px 0 rgba(0,0,0,0.25);
+        }
+        /* spiral cross-section caps at each end of the roll */
+        .wf-roll::before, .wf-roll::after {
+          content: ''; position: absolute; top: 50%; width: 30px; height: 40px;
+          transform: translateY(-50%); border-radius: 50%; z-index: 4;
+          background: radial-gradient(ellipse at 50% 50%,
+            #FBF3DB 0%, #E2D1A2 40%, #C0A36F 72%, #936F3A 100%);
+          box-shadow: 0 0 0 1.5px rgba(140,100,55,0.55), inset 0 0 7px rgba(120,90,45,0.6);
+        }
+        .wf-roll::before { left: -7px; }
+        .wf-roll::after { right: -7px; }
+        /* curl shadow the roll casts onto the sheet */
+        .wf-roll-top { margin-bottom: -6px; }
+        .wf-roll-bottom { margin-top: -6px; }
+        .wf-sheet {
+          position: relative; flex: 1 1 auto; z-index: 1; overflow: hidden;
+          border-radius: 4px;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1.5px solid #C99A3F;
+          box-shadow:
+            inset 0 16px 18px -11px rgba(90,58,12,0.55),
+            inset 0 -16px 18px -11px rgba(90,58,12,0.55),
+            inset 0 0 48px rgba(160,130,80,0.22),
+            0 0 0 1px rgba(201,154,63,0.4);
+        }
+        /* inner double-border cert frame (matches /religion) */
+        .wf-sheet::after {
+          content: ''; position: absolute; inset: 7px;
+          border: 1px solid rgba(201,154,63,0.5); border-radius: 5px;
+          pointer-events: none; z-index: 2;
+        }
+        .wf-illus {
+          position: absolute; inset: 0; opacity: 0;
+          transform: scale(0.97) translateY(8px);
+          transition: opacity .5s ease, transform .5s ease;
+          display: flex; align-items: center; justify-content: center; padding: 12% 14%;
+        }
+        .wf-illus.on { opacity: 1; transform: scale(1) translateY(0); }
+        .wf-illus .wf-art, .wf-illus video { width: 100%; height: 100%; object-fit: contain; }
+        .wf-illus .wf-art svg { width: 100%; height: 100%; }
+        .wf-note {
+          position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; z-index: 3;
+          font-size: 8px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(90,58,12,0.4);
+        }
+
+        /* RIGHT — dark text column */
+        .wf-text { position: relative; min-height: 360px; }
+        .wf-block {
+          position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+          opacity: 0; transform: translateY(14px); transition: opacity .45s ease, transform .45s ease;
+          pointer-events: none;
+        }
+        .wf-block.on { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .wf-intro .wf-big {
+          font-family: 'Cinzel', serif; font-weight: 700; color: #C99A3F;
+          font-size: clamp(3rem, 9vw, 6.5rem); line-height: 0.98; letter-spacing: 0.04em;
+          background: linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          filter: drop-shadow(0 0 18px rgba(245,199,61,0.34));
+        }
+        .wf-intro .wf-lead {
+          margin-top: 20px; font-style: italic; color: rgba(250,244,236,0.7);
+          font-size: clamp(1rem, 2.4vw, 1.3rem); max-width: 24ch;
+        }
+        .wf-block .wf-num { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.3em; color: rgba(250,244,236,0.5); margin-bottom: 10px; }
+        .wf-block .wf-anchor { font-family: 'Cinzel', serif; font-weight: 700; color: #C99A3F; font-size: clamp(1.8rem, 4.6vw, 3rem); line-height: 1; margin-bottom: 14px; letter-spacing: 0.05em; }
+        .wf-block h3 { font-family: 'Cinzel', serif; font-weight: 600; font-size: clamp(1.15rem, 2.6vw, 1.7rem); line-height: 1.25; color: #FAF4EC; margin-bottom: 14px; max-width: 24ch; text-wrap: balance; }
+        .wf-block p { font-size: clamp(0.95rem, 2vw, 1.1rem); line-height: 1.6; color: rgba(250,244,236,0.74); max-width: 40ch; margin-bottom: 20px; text-wrap: balance; }
+        .wf-mech { display: flex; align-items: center; gap: 11px; padding: 12px 16px; border-radius: 10px; border: 1px solid rgba(201,154,63,0.4); background: rgba(201,154,63,0.10); max-width: 40ch; }
+        .wf-mech-ic { flex: 0 0 26px; width: 26px; height: 26px; }
+        .wf-mech-ic svg { width: 100%; height: 100%; stroke: #C99A3F; fill: none; stroke-width: 1.6; }
+        .wf-mech-txt { font-family: 'Cinzel', serif; font-size: clamp(.8rem, 1.7vw, .95rem); letter-spacing: 0.04em; color: #FAF4EC; font-weight: 600; }
+
+        /* BOTTOM — progress indicator */
+        .wf-progress { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 clamp(20px, 5vw, 60px) 26px; max-width: 1240px; margin: 0 auto; z-index: 4; }
+        .wf-track { position: relative; height: 3px; background: rgba(250,244,236,0.14); border-radius: 3px; }
+        .wf-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #E69E1A, #F5C73D); }
+        .wf-steps { display: flex; justify-content: space-between; margin-top: 14px; }
+        .wf-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(250,244,236,0.32); transition: color .3s; }
+        .wf-step .wf-knob { width: 9px; height: 9px; border-radius: 50%; background: rgba(250,244,236,0.2); transition: all .3s; }
+        .wf-step.done { color: rgba(250,244,236,0.6); }
+        .wf-step.done .wf-knob { background: #C99A3F; }
+        .wf-step.active { color: #F5C73D; }
+        .wf-step.active .wf-knob { background: #F5C73D; box-shadow: 0 0 12px rgba(245,199,61,0.8); transform: scale(1.4); }
+
+        @media (max-width: 767px) {
+          .wf-grid { grid-template-columns: 1fr; gap: 18px; padding: 34px 20px 116px; align-content: center; }
+          .wf-scroll-col { order: -1; }
+          .wf-papyrus { max-width: 190px; }
+          .wf-text { min-height: 250px; }
+          .wf-step-label { display: none; }
+          .wf-step .wf-knob { width: 8px; height: 8px; }
+        }
       `}</style>
 
       <div className="topbar-wrap">
@@ -815,7 +1101,16 @@ export default function Vision() {
               onClick={() => setVideoPlaying(true)}
               aria-label="Play Dogypt Intro Movie"
             >
-              <img src="/images/mission/intro-poster.jpg" alt="" />
+              <video
+                className="video-bg-loop"
+                src="/videos/vision-intro-montage.mp4"
+                poster="/images/mission/intro-poster.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="auto"
+              />
               <span className="video-play-btn" aria-hidden>
                 <svg viewBox="0 0 72 72" width="72" height="72">
                   <circle cx="36" cy="36" r="34" fill="none" stroke="#C99A3F" strokeWidth="2.5" />
@@ -824,6 +1119,102 @@ export default function Vision() {
               </span>
             </button>
           )}
+        </div>
+      </section>
+
+      {/* ── WHAT IF… pinned scrollytelling roadmap ── */}
+      <section
+        className="wf-pin"
+        ref={wfPinRef}
+        style={{ height: `${WF_BEATS.length * 100}vh`, zIndex: 2 }}
+      >
+        <div className="wf-sticky">
+          <div className="wf-hint">Keep scrolling — the path unfolds</div>
+          <div className="wf-grid">
+            {/* LEFT: papyrus scroll */}
+            <div className="wf-scroll-col">
+              <div className="wf-papyrus">
+                <div className="wf-roll wf-roll-top" aria-hidden />
+                <div className="wf-sheet">
+                  {WF_BEATS.map((b, i) => (
+                    <div
+                      key={b.tag}
+                      className={`wf-illus${wfState === i ? ' on' : ''}`}
+                      aria-hidden={wfState !== i}
+                    >
+                      {b.video ? (
+                        <video
+                          src={b.video}
+                          autoPlay
+                          muted
+                          loop
+                          playsInline
+                          preload="auto"
+                        />
+                      ) : (
+                        <div
+                          className="wf-art"
+                          dangerouslySetInnerHTML={{ __html: b.svg }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <span className="wf-note">placeholder · doodle Matej + Hektor</span>
+                </div>
+                <div className="wf-roll wf-roll-bottom" aria-hidden />
+              </div>
+            </div>
+
+            {/* RIGHT: dark text column */}
+            <div className="wf-text">
+              {WF_BEATS.map((b, i) => (
+                <div
+                  key={b.tag}
+                  className={`wf-block${b.intro ? ' wf-intro' : ''}${wfState === i ? ' on' : ''}`}
+                  aria-hidden={wfState !== i}
+                >
+                  {b.intro ? (
+                    <>
+                      <div className="wf-big">WHAT&nbsp;IF…</div>
+                      <div className="wf-lead">{b.lead}</div>
+                    </>
+                  ) : (
+                    <>
+                      <span className="wf-num">{b.n} / 05</span>
+                      <div className="wf-anchor">{b.tag}</div>
+                      <h3>{b.h}</h3>
+                      <p>{b.p}</p>
+                      <div className="wf-mech">
+                        <span
+                          className="wf-mech-ic"
+                          dangerouslySetInnerHTML={{ __html: WF_ICONS[b.icon ?? 'ankh'] }}
+                        />
+                        <span className="wf-mech-txt">→ {b.mech}</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* bottom progress indicator (zľava → doprava) */}
+          <div className="wf-progress">
+            <div className="wf-track">
+              <div className="wf-fill" style={{ width: `${(wfProgress * 100).toFixed(1)}%` }} />
+            </div>
+            <div className="wf-steps">
+              {WF_BEATS.map((b, i) => (
+                <div
+                  key={b.tag}
+                  className={`wf-step${wfState === i ? ' active' : ''}${i < wfState ? ' done' : ''}`}
+                >
+                  <span className="wf-knob" />
+                  <span className="wf-step-label">{b.tag}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
