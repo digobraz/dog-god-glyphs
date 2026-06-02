@@ -62,6 +62,7 @@ const PILLARS: PillData[] = [
 export default function Vision() {
   const navigate = useNavigate();
   const [activePill, setActivePill] = useState<number | null>(null);
+  const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== 'undefined' ? window.innerWidth < 768 : false,
   );
@@ -74,7 +75,7 @@ export default function Vision() {
   }, []);
 
   return (
-    <div className="dark-bg vision-root flex flex-col h-[100dvh] overflow-y-auto md:overflow-hidden relative">
+    <div className="dark-bg vision-root flex flex-col min-h-[100dvh] overflow-y-auto relative">
       {/* Mild radial overlay — fixed so it stays put when scroll-snap moves sections */}
       <div
         aria-hidden
@@ -198,10 +199,6 @@ export default function Vision() {
           align-items: center;
         }
         @media (max-width: 767px) {
-          .vision-root {
-            scroll-snap-type: y mandatory;
-            scroll-padding-top: 90px;
-          }
           .topbar-wrap {
             position: sticky;
             top: 0;
@@ -209,22 +206,20 @@ export default function Vision() {
             background: #000;
             flex-shrink: 0;
           }
-          .mission-grid { gap: 0; max-width: none; flex: 1 0 auto; }
+          .mission-grid { gap: 0; max-width: none; }
           .m-screen {
-            height: calc(100dvh - 90px);
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
             padding: 0 5vw;
-            flex-shrink: 0;
           }
           .m-screen-a {
             justify-content: flex-start;
-            padding-top: clamp(20px, 4vh, 40px);
+            padding-top: clamp(24px, 5vh, 48px);
+            padding-bottom: clamp(40px, 8vh, 70px);
             gap: clamp(16px, 2.8vh, 24px);
           }
           .m-screen-b {
             justify-content: flex-start;
-            padding-top: clamp(22px, 5vh, 48px);
+            padding-top: clamp(10px, 3vh, 28px);
+            padding-bottom: clamp(48px, 10vh, 90px);
             gap: clamp(22px, 3.6vh, 32px);
           }
         }
@@ -618,15 +613,183 @@ export default function Vision() {
           width: clamp(20px, 3vw, 32px);
           background: rgba(201,154,63,0.45);
         }
+
+        /* ── INTRO VIDEO HERO (top section) ── */
+        .vision-video-hero {
+          position: relative;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: clamp(18px, 3vh, 30px);
+          padding: clamp(28px, 6vh, 60px) 5vw clamp(36px, 7vh, 72px);
+          min-height: calc(100dvh - 72px);
+          text-align: center;
+        }
+        @media (max-width: 767px) {
+          .vision-video-hero {
+            min-height: auto;
+            padding-top: clamp(24px, 5vh, 40px);
+            padding-bottom: clamp(30px, 6vh, 50px);
+            gap: clamp(16px, 2.6vh, 24px);
+          }
+        }
+        .video-hero-title {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(2.2rem, 5vw, 3.8rem);
+          letter-spacing: 0.03em;
+          line-height: 1;
+          margin: 0;
+          text-transform: uppercase;
+        }
+        .video-embed-frame {
+          position: relative;
+          width: min(920px, 100%);
+          aspect-ratio: 16 / 9;
+          border-radius: 14px;
+          overflow: hidden;
+          background: #000;
+          box-shadow:
+            0 0 72px rgba(201,154,63,0.22),
+            0 0 0 1px rgba(250,244,236,0.14) inset;
+        }
+        .video-embed-frame iframe {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          border: 0;
+        }
+        /* Clean facade poster — no YouTube chrome until played */
+        .video-poster {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          padding: 0;
+          border: 0;
+          background: #000;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          -webkit-tap-highlight-color: transparent;
+        }
+        .video-poster img {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .video-play-btn {
+          position: relative;
+          z-index: 2;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: clamp(64px, 9vw, 84px);
+          height: clamp(64px, 9vw, 84px);
+          border-radius: 50%;
+          background: rgba(0, 0, 0, 0.32);
+          backdrop-filter: blur(2px);
+          transition: transform 0.2s ease, background 0.2s ease;
+        }
+        .video-play-btn svg {
+          width: 100%;
+          height: 100%;
+          filter: drop-shadow(0 0 10px rgba(201, 154, 63, 0.55));
+        }
+        .video-poster:hover .video-play-btn {
+          transform: scale(1.08);
+          background: rgba(0, 0, 0, 0.45);
+        }
+        .video-poster:active .video-play-btn { transform: scale(0.97); }
+        .video-hero-caption {
+          font-family: 'Cinzel', serif;
+          font-size: clamp(0.62rem, 0.95vw, 0.78rem);
+          font-weight: 600;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          color: rgba(250,244,236,0.55);
+          margin: 0;
+          display: inline-flex;
+          align-items: center;
+          gap: 9px;
+        }
+        .video-hero-caption::before {
+          content: '\\25B6';
+          font-size: 0.7em;
+          color: #C99A3F;
+          transform: translateY(0.5px);
+        }
+
+        /* Content area below the video — own viewport band on desktop */
+        .vision-content-area { width: 100%; }
+        @media (min-width: 768px) {
+          .vision-content-area {
+            min-height: 100dvh;
+            padding-top: 40px;
+            padding-bottom: 60px;
+          }
+        }
       `}</style>
 
       <div className="topbar-wrap">
         <PageTopBar withNav />
       </div>
 
+      {/* ── Intro video hero ── */}
+      <section className="vision-video-hero" style={{ zIndex: 2 }}>
+        <h1 className="video-hero-title">
+          <span
+            style={{
+              background:
+                'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              filter:
+                'drop-shadow(0 0 22px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5))',
+            }}
+          >
+            The Vision
+          </span>
+        </h1>
+        <div className="video-embed-frame">
+          {videoPlaying ? (
+            <iframe
+              src="https://www.youtube.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&color=white"
+              title="DOGYPT Intro Movie"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          ) : (
+            <button
+              type="button"
+              className="video-poster"
+              onClick={() => setVideoPlaying(true)}
+              aria-label="Play Dogypt Intro Movie"
+            >
+              <img src="/images/mission/intro-poster.jpg" alt="" />
+              <span className="video-play-btn" aria-hidden>
+                <svg viewBox="0 0 72 72" width="72" height="72">
+                  <circle cx="36" cy="36" r="34" fill="none" stroke="#C99A3F" strokeWidth="2.5" />
+                  <path d="M29 25 L51 36 L29 47 Z" fill="none" stroke="#C99A3F" strokeWidth="2.5" strokeLinejoin="round" />
+                </svg>
+              </span>
+            </button>
+          )}
+        </div>
+        <p className="video-hero-caption">Watch Dogypt Intro Movie</p>
+      </section>
+
       {/* Main 2-col area */}
       <div
-        className="flex-1 flex items-start md:items-center justify-center px-0 md:px-10 relative md:min-h-0 md:pt-0 md:pb-0"
+        className="vision-content-area flex items-start md:items-center justify-center px-0 md:px-10 relative"
         style={{ zIndex: 2 }}
       >
         {(() => {
