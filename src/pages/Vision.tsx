@@ -211,8 +211,8 @@ const WF_BEATS: Beat[] = [
     svg: WF_INTRO_SVG,
   },
   {
-    tag: 'THE UNIQUE SYMBOL',
-    bigW: 'THE UNIQUE', bigG: 'SYMBOL',
+    tag: 'THE SYMBOL',
+    bigW: 'THE', bigG: 'SYMBOL',
     n: '01',
     h: 'Our language of love is <span class="wf-hl">DOG</span>. And beyond its ordinary name, every dog carries its own <span class="wf-hl">unique symbol</span> — the <span class="wf-hl">HEROGLYPH</span>. It\'s a <span class="wf-hl">universal language</span>, a <span class="wf-hl">sacred tool</span> to unite every doglover on Earth.',
     icon: 'ankh',
@@ -238,6 +238,7 @@ const WF_BEATS: Beat[] = [
     tag: 'DIGITAL TEMPLE',
     bigW: 'DIGITAL', bigG: 'TEMPLE',
     n: '03',
+    video: '/videos/vision-temple.mp4',
     h: 'One app, <span class="wf-hl">only for real doglovers</span> — no fake people. The first <span class="wf-hl">dog-friendly digital world</span> built just for us: a social home, and an ecosystem that truly helps — <span class="wf-hl">travel, vets, services, education</span>, and <span class="wf-hl">fundraisers</span> for dogs in need.',
     icon: 'heartpaw',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><path d="M40 200 l0 -70 l60 -42 l60 42 l0 70 Z"/><path d="M40 130 l60 -42 l60 42"/><rect x="86" y="150" width="28" height="50"/><circle cx="100" cy="58" r="18"/><path d="M100 49 l0 18 M91 58 l18 0"/></svg>`,
@@ -246,6 +247,7 @@ const WF_BEATS: Beat[] = [
     tag: 'REAL CENTERS',
     bigW: 'REAL', bigG: 'CENTERS',
     n: '04',
+    video: '/videos/vision-centers.mp4',
     h: 'The old shelter managed misery. The <span class="wf-hl">sanctuary</span> ends it. Real centers across the world for <span class="wf-hl">care, training, and research</span> — financed <span class="wf-hl">in the open</span>, every account on the table.',
     icon: 'balance',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><ellipse cx="100" cy="158" rx="78" ry="28"/>${Array.from({ length: 6 })
@@ -258,11 +260,11 @@ const WF_BEATS: Beat[] = [
       .join('')}<path d="M100 46 l0 66 M72 64 l56 0 M72 64 l-10 24 l20 0 Z M128 64 l-10 24 l20 0 Z"/></svg>`,
   },
   {
-    tag: 'THE DREAM COMES TRUE',
-    bigW: 'THE DREAM', bigG: 'COMES TRUE',
+    tag: 'A NEW ERA',
+    bigW: 'A NEW', bigG: 'ERA',
     n: '05',
-    h: 'Then the dream is no longer a dream. Every stray returned, every life a home — not by magic, but by a million people who finally agreed: a dog matters.',
-    mech: 'Become Dogyptian',
+    video: '/videos/vision-era.mp4',
+    h: 'Beyond borders and politics, doglovers are Earth\'s <span class="wf-hl">kindest hidden force</span>. Only together can we <span class="wf-hl">rebuild the system</span> and change the world — and leave behind something that protects our dogs <span class="wf-hl">forever</span>.',
     icon: 'ankh',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><g transform="translate(66,86) scale(2)">${wfHeroglyph}</g><path d="M40 60 q60 -40 120 0" stroke-dasharray="2 7" opacity="0.5" stroke="${WF_INK}"/></svg>`,
   },
@@ -288,6 +290,7 @@ export default function Vision() {
 
   // ── WHAT IF pinned scrollytelling: scroll progress → active beat ──
   const wfPinRef = useRef<HTMLElement>(null);
+  const finaleRef = useRef<HTMLElement>(null); // 3rd floor (CTA) — auto-snap target
   const [wfState, setWfState] = useState<number>(0);
   const [wfProgress, setWfProgress] = useState<number>(0);
   const [wfEntered, setWfEntered] = useState<boolean>(false); // arms the slide1→slide2 entrance
@@ -296,13 +299,89 @@ export default function Vision() {
     const pin = wfPinRef.current;
     if (!pin) return;
     let ticking = false;
+    // Controlled hero → papyrus entry: when the section first reaches the top of
+    // the viewport (coming down from the hero), we hard-lock to beat 1 and briefly
+    // swallow any residual fling momentum so a strong scroll can't blast straight
+    // through beats 2-4. The lock releases after a short hold (deliberate scroll
+    // then advances beat-by-beat) or immediately if the user pulls back up.
+    let prevRectTop = pin.getBoundingClientRect().top;
+    let entryLocked = false;
+    let lockReleaseAt = 0;
+    let lastScrollY = window.scrollY;
+    let scrollDir = 1; // 1 = down, -1 = up
+    // Auto-glide between the 3 "floors" (hero · papyrus · CTA finale): never rest
+    // half-way. On scroll-end inside a transition, smoothly commit to a floor once
+    // it's been entered by ≥25% in the scroll direction (proximity snap alone allowed
+    // a mid-rest). The pin's inner 6-beat region is NEVER snapped — it scrolls freely.
+    const COMMIT = 0.25; // commit threshold: 25% into the transition → stick
+    let snapping = false;
+    const tryAutoGlide = () => {
+      if (snapping || entryLocked) return;
+      if (!window.matchMedia('(min-width: 768px)').matches) return; // desktop only (matches CSS snap)
+      const finale = finaleRef.current;
+      const vh = window.innerHeight;
+      const y = window.scrollY;
+      const pinTop = y + pin.getBoundingClientRect().top; // scrollY where papyrus aligns to top
+      const finaleTop = finale ? y + finale.getBoundingClientRect().top : Infinity;
+      const beatEnd = finaleTop - vh; // scrollY where the last beat sits fully (pin about to release)
+      const down = scrollDir > 0;
+      let target: number | null = null;
+
+      if (y < pinTop - 4) {
+        // ── floor 1 ↔ 2: hero ↔ papyrus ──
+        const prog = pinTop > 0 ? y / pinTop : 0; // 0 = hero top, 1 = papyrus engaged
+        target = down ? (prog >= COMMIT ? pinTop : 0) : (prog <= 1 - COMMIT ? 0 : pinTop);
+      } else if (y > beatEnd + 4) {
+        // ── floor 2 ↔ 3: papyrus (last beat) ↔ finale ──
+        const prog = Math.max(0, Math.min(1, (y - beatEnd) / vh)); // 0 = last beat, 1 = finale
+        target = down ? (prog >= COMMIT ? finaleTop : beatEnd) : (prog <= 1 - COMMIT ? beatEnd : finaleTop);
+      } else {
+        return; // inside the 6-beat free-scroll region → no snapping
+      }
+
+      if (target == null || Math.abs(target - y) < 6) return;
+      snapping = true;
+      window.scrollTo({ top: target, behavior: 'smooth' });
+      window.setTimeout(() => { snapping = false; }, 680);
+    };
+    let snapEndTimer = 0;
+    const onScrollEnd = () => {
+      window.clearTimeout(snapEndTimer);
+      snapEndTimer = window.setTimeout(tryAutoGlide, 120);
+    };
     const onScroll = () => {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
         const vh = window.innerHeight;
         const rectTop = pin.getBoundingClientRect().top;
+        if (window.scrollY !== lastScrollY) {
+          scrollDir = window.scrollY > lastScrollY ? 1 : -1;
+          lastScrollY = window.scrollY;
+        }
         const total = pin.offsetHeight - vh;
+        const pinTopAbs = window.scrollY + rectTop; // absolute scrollY where beat 1 aligns to top
+
+        // Engage the lock the moment the pin top crosses the viewport top going down.
+        if (!entryLocked && prevRectTop > 0 && rectTop <= 0) {
+          entryLocked = true;
+          lockReleaseAt = performance.now() + 500;
+        }
+        if (entryLocked) {
+          if (rectTop > 2) {
+            entryLocked = false; // user pulled back toward the hero → let go
+          } else {
+            if (rectTop < -0.5) window.scrollTo(0, pinTopAbs); // clamp any overshoot to beat 1
+            setWfProgress(0);
+            setWfState(0);
+            setWfEntered(true);
+            if (performance.now() >= lockReleaseAt) entryLocked = false;
+            prevRectTop = rectTop;
+            ticking = false;
+            return;
+          }
+        }
+
         const p = total > 0 ? Math.max(0, Math.min(1, -rectTop / total)) : 0;
         setWfProgress(p);
         setWfState(Math.max(0, Math.min(WF_BEATS.length - 1, Math.floor(p * WF_BEATS.length))));
@@ -313,12 +392,18 @@ export default function Vision() {
           if (prev && rectTop > vh * 0.55) return false;
           return prev;
         });
+        prevRectTop = rectTop;
         ticking = false;
       });
     };
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('scroll', onScrollEnd, { passive: true });
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scroll', onScrollEnd);
+      window.clearTimeout(snapEndTimer);
+    };
   }, []);
 
   return (
@@ -896,6 +981,16 @@ export default function Vision() {
             gap: clamp(16px, 2.6vh, 24px);
           }
         }
+        /* Desktop: sticky topbar (~72px) sits in-flow above the hero, so centering
+         * within (100dvh − 72px) pushes the optical centre ~36px below the true
+         * viewport centre → looks low under the fading topbar. Bias content up via
+         * a heavier bottom padding so it sits at the real viewport centre. */
+        @media (min-width: 768px) {
+          .vision-video-hero {
+            padding-top: clamp(14px, 2vh, 26px);
+            padding-bottom: clamp(84px, 11vh, 130px);
+          }
+        }
         .video-hero-title {
           font-family: 'Cinzel', serif;
           font-weight: 700;
@@ -1226,22 +1321,44 @@ export default function Vision() {
         /* BOTTOM — progress indicator */
         .wf-progress { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 clamp(20px, 5vw, 60px) 26px; max-width: 1240px; margin: 0 auto; z-index: 4; }
         .wf-track { position: relative; height: 3px; background: rgba(250,244,236,0.14); border-radius: 3px; }
-        .wf-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #E69E1A, #F5C73D); }
+        .wf-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 3px; background: linear-gradient(90deg, rgba(230,158,26,0) 0%, #E69E1A 55%, #F5C73D 100%); }
+        /* Comet head — glowing tip at the leading edge of the progress fill. The bar
+         * gradient (transparent → gold) reads as the trailing tail. */
+        .wf-fill::after {
+          content: '';
+          position: absolute;
+          right: -3px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 11px;
+          height: 11px;
+          border-radius: 50%;
+          background: radial-gradient(circle, #FFF6DC 0%, #F5C73D 55%, rgba(245,199,61,0) 100%);
+          box-shadow:
+            0 0 7px 2px rgba(245,199,61,0.95),
+            0 0 16px 5px rgba(245,199,61,0.65),
+            0 0 30px 9px rgba(230,158,26,0.40);
+          animation: wfCometPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes wfCometPulse {
+          0%, 100% { transform: translateY(-50%) scale(1); box-shadow: 0 0 7px 2px rgba(245,199,61,0.95), 0 0 16px 5px rgba(245,199,61,0.65), 0 0 30px 9px rgba(230,158,26,0.40); }
+          50% { transform: translateY(-50%) scale(1.18); box-shadow: 0 0 10px 3px rgba(245,199,61,1), 0 0 22px 7px rgba(245,199,61,0.75), 0 0 40px 13px rgba(230,158,26,0.50); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .wf-fill::after { animation: none; }
+        }
         .wf-steps { display: flex; justify-content: space-between; margin-top: 14px; }
         .wf-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(250,244,236,0.32); transition: color .3s; }
-        .wf-step .wf-knob { width: 9px; height: 9px; border-radius: 50%; background: rgba(250,244,236,0.2); transition: all .3s; }
+        .wf-step .wf-knob { display: none; } /* dots removed — comet head carries the progress now */
         .wf-step.done { color: rgba(250,244,236,0.6); }
-        .wf-step.done .wf-knob { background: #C99A3F; }
         .wf-step.active { color: #F5C73D; }
-        .wf-step.active .wf-knob { background: #F5C73D; box-shadow: 0 0 12px rgba(245,199,61,0.8); transform: scale(1.4); }
 
         @media (max-width: 767px) {
           .wf-grid { grid-template-columns: 1fr; gap: 18px; padding: 34px 20px 116px; align-content: center; }
           .wf-scroll-col { order: -1; }
           .wf-papyrus { height: 40vh; width: calc(40vh * 815 / 892); max-width: 86%; }
           .wf-text { min-height: 250px; }
-          .wf-step-label { display: none; }
-          .wf-step .wf-knob { width: 8px; height: 8px; }
+          .wf-steps { display: none; } /* mobile: labels were hidden + dots removed → empty row, drop it (comet bar carries progress) */
         }
       `}</style>
 
@@ -1318,7 +1435,6 @@ export default function Vision() {
         style={{ height: `${WF_BEATS.length * 100}vh`, zIndex: 2 }}
       >
         <div className={`wf-sticky${wfEntered ? ' wf-armed' : ''}`}>
-          <div className="wf-hint">Keep scrolling — the path unfolds</div>
           <div className="wf-grid">
             {/* LEFT: papyrus scroll — ONE persistent canvas (papyrus fixed, only the
                 figure video swaps per beat; see PapyrusStage). */}
@@ -1391,202 +1507,64 @@ export default function Vision() {
         </div>
       </section>
 
-      {/* Main 2-col area */}
-      <div
-        className="vision-content-area flex items-start md:items-center justify-center px-0 md:px-10 relative"
-        style={{ zIndex: 2 }}
+      {/* Final CTA — WHAT IF (bookends the WHAT IF papyrus story above) */}
+      <section
+        ref={finaleRef}
+        className="vision-finale flex flex-col items-center justify-center text-center px-6"
+        style={{ zIndex: 2, minHeight: 'calc(100dvh - 72px)', gap: 'clamp(20px, 4vh, 38px)' }}
       >
-        {(() => {
-          const headlineJsx = (
-            <div className="mission-headline">
-              <h1
-                className="headline-main"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(2.4rem, 5.4vw, 4.2rem)',
-                  letterSpacing: '0.02em',
-                  lineHeight: 0.98,
-                  margin: 0,
-                  textTransform: 'uppercase',
-                }}
-              >
-                <span
-                  style={{
-                    background:
-                      'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    filter:
-                      'drop-shadow(0 0 22px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5))',
-                  }}
-                >
-                  Imagine
-                </span>
-                <br />
-                <span style={{ color: '#FAF4EC' }}>A World</span>
-              </h1>
-              <p
-                className="headline-sub"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontStyle: 'italic',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1.15rem, 2.2vw, 1.7rem)',
-                  letterSpacing: '0.04em',
-                  color: 'rgba(250,244,236,0.90)',
-                  textTransform: 'none',
-                  margin: '8px 0 0',
-                  lineHeight: 1.15,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Built By{' '}
-                <span
-                  style={{
-                    textDecoration: 'underline',
-                    textDecorationThickness: '1px',
-                    textUnderlineOffset: '0.18em',
-                    textDecorationColor: 'rgba(201,154,63,0.85)',
-                  }}
-                >
-                  Doglovers
-                </span>
-                .
-              </p>
-            </div>
-          );
-
-          const imageJsx = (
-            <div className="square-frame" aria-label="Day One vs One Day">
-              <ImageComparisonSlider
-                leftImage="/images/mission/shelter-before.png"
-                rightImage="/images/mission/shelter-after.png"
-                altLeft="Day One — overwhelmed dog shelter"
-                altRight="One Day — Dogypt Center"
-                initialPosition={50}
-                handleLogo="/images/mission/dogypt-circle-logo.png"
-                mobileHandleLogo={dogyptTextLogo}
-              />
-              <div className="square-label today">Day One</div>
-              <div className="square-label dogypt">One Day</div>
-            </div>
-          );
-
-          const paraJsx = (
-            <p className="mission-para">
-              Beyond borders and politics — doglovers are Earth's kindest hidden force. Only together, we can rebuild the system and change the world.
-            </p>
-          );
-
-          const ctaJsx = (
-            <button onClick={() => navigate('/heroglyph')} className="mission-cta">
-              Become Dogyptian
-            </button>
-          );
-
-          const pillsJsx = (
-            <div className="mission-pillars">
-              {PILLARS.map((p, i) => (
-                <Fragment key={p.label}>
-                  <button
-                    type="button"
-                    className={`mission-pill${isMobile && activePill === i ? ' is-active' : ''}`}
-                    onClick={() => {
-                      if (isMobile) {
-                        setActivePill((prev) => (prev === i ? null : i));
-                      }
-                    }}
-                    onMouseEnter={() => {
-                      if (!isMobile) setActivePill(i);
-                    }}
-                    onMouseLeave={() => {
-                      if (!isMobile)
-                        setActivePill((prev) => (prev === i ? null : prev));
-                    }}
-                    aria-expanded={isMobile ? activePill === i : undefined}
-                  >
-                    <span className={`pill-status-dot ${p.status}`} aria-hidden />
-                    <img src={p.icon} alt="" className="mission-pill-icon" />
-                    {p.label}
-                    {!isMobile && activePill === i && (
-                      <span className="pill-tooltip-float" role="tooltip">
-                        {p.tooltip}
-                      </span>
-                    )}
-                  </button>
-                  {i === 2 && <span className="pill-row-break pill-row-break-desktop" aria-hidden />}
-                  {(i === 1 || i === 3) && <span className="pill-row-break pill-row-break-mobile" aria-hidden />}
-                </Fragment>
-              ))}
-
-              {isMobile && activePill !== null && (
-                <div
-                  className="pill-tooltip"
-                  role="tooltip"
-                  onClick={() => setActivePill(null)}
-                >
-                  <div className="pill-tooltip-label">
-                    {PILLARS[activePill].label}
-                  </div>
-                  <div className="pill-tooltip-text">
-                    {PILLARS[activePill].tooltip}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-
-          return (
-            <div className="mission-grid">
-              {isMobile ? (
-                <>
-                  <section className="m-screen m-screen-a">
-                    {imageJsx}
-                    {headlineJsx}
-                    <span className="scroll-arrow" aria-hidden>
-                      <svg width="28" height="16" viewBox="0 0 28 16" fill="none">
-                        <path
-                          d="M4 4 L14 12.5 L24 4"
-                          stroke="#FAF4EC"
-                          strokeWidth="2.4"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          fill="none"
-                        />
-                      </svg>
-                    </span>
-                  </section>
-                  <section className="m-screen m-screen-b">
-                    {paraJsx}
-                    {ctaJsx}
-                    {pillsJsx}
-                  </section>
-                </>
-              ) : (
-                <>
-                  <div
-                    className="mission-left"
-                    style={{ textAlign: 'left', alignItems: 'flex-start' }}
-                  >
-                    <div
-                      className="mission-left-middle"
-                      style={{ alignItems: 'flex-start' }}
-                    >
-                      {headlineJsx}
-                      {paraJsx}
-                    </div>
-                    <div className="mission-bottom">{ctaJsx}</div>
-                    {pillsJsx}
-                  </div>
-                  {imageJsx}
-                </>
-              )}
-            </div>
-          );
-        })()}
-      </div>
+        <h2
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontWeight: 700,
+            fontSize: 'clamp(3rem, 9vw, 7rem)',
+            letterSpacing: '0.04em',
+            lineHeight: 0.95,
+            margin: 0,
+            textTransform: 'uppercase',
+            background:
+              'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            filter:
+              'drop-shadow(0 0 26px rgba(245,199,61,0.40)) drop-shadow(0 0 8px rgba(230,158,26,0.5))',
+          }}
+        >
+          What if…
+        </h2>
+        <p
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontWeight: 500,
+            fontSize: 'clamp(1.2rem, 3vw, 2.1rem)',
+            lineHeight: 1.4,
+            color: 'rgba(250,244,236,0.92)',
+            maxWidth: '22ch',
+            margin: 0,
+          }}
+        >
+          …every doglover said{' '}
+          <span style={{ color: '#F5C73D', fontStyle: 'italic' }}>yes</span> to one crazy idea?
+        </p>
+        <p
+          style={{
+            fontSize: 'clamp(0.95rem, 1.9vw, 1.2rem)',
+            color: 'rgba(250,244,236,0.62)',
+            letterSpacing: '0.04em',
+            margin: 0,
+          }}
+        >
+          A new era is just one click away.
+        </p>
+        <button
+          onClick={() => navigate('/heroglyph')}
+          className="mission-cta"
+          style={{ alignSelf: 'center' }}
+        >
+          Become Dogyptian
+        </button>
+      </section>
 
     </div>
   );
