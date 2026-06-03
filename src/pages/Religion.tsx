@@ -66,6 +66,9 @@ export default function Religion() {
           width: 100%;
           overflow-y: scroll;
           overflow-x: hidden;
+          /* Bez scroll-anchoringu — keď sa na 3. dvojstrane zjavia CTA tlačidlá pod knihou,
+             zmena výšky obsahu nesmie skokom presunúť scroll (predtým „vrátilo na hero"). */
+          overflow-anchor: none;
           scroll-snap-type: y mandatory;
           scrollbar-width: none;
           -webkit-overflow-scrolling: touch;
@@ -109,6 +112,32 @@ export default function Religion() {
         /* Sacred Index slide = Constitution kniha (flipbook) → širší priestor, menší padding */
         .codex-slider-book { max-width: 1120px; }
         .codex-slider-book .codex-slide { padding: clamp(8px, 1.6vh, 18px) clamp(6px, 1.5vw, 16px); }
+        /* Nadpis nad knihou (2026-06-03, PC + mobile) — absolútne hore v sekcii, mimo
+           layout knihy → knihu neposúva. */
+        .codex-book-title {
+          position: absolute;
+          top: clamp(12px, 3vh, 34px);
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 7;
+          margin: 0;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(1.05rem, 2.4vw, 1.9rem);
+          letter-spacing: 0.05em;
+          text-align: center;
+          white-space: nowrap;
+          pointer-events: none;
+          background:
+            linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          filter: drop-shadow(0 0 14px rgba(245,199,61,0.32));
+        }
+        @media (max-width: 767px) {
+          .codex-book-title { top: 14px; font-size: 1.05rem; letter-spacing: 0.04em; }
+        }
 
         /* ── Scroll-reveal animácie (rešpektuje prefers-reduced-motion) ──
            Pokojový stav = identity transform → locked layout zostáva nedotknutý. */
@@ -237,7 +266,8 @@ export default function Religion() {
         .codex-frame.bl::after { bottom: -3.5px; left: -3.5px; }
         .codex-frame.br::after { bottom: -3.5px; right: -3.5px; }
         @media (max-width: 767px) {
-          .codex-preamble-wrap { padding: 22px 22px; }
+          /* Mobile (2026-06-03): zúžiť rámik znenia ústavy */
+          .codex-preamble-wrap { padding: 18px 20px; max-width: 320px; margin: 0 auto; }
           .codex-frame { width: 24px; height: 24px; }
           .codex-frame::before { width: calc(100% - 10px); height: calc(100% - 10px); }
           .codex-frame.tl::before { top: 4px; left: 4px; }
@@ -290,10 +320,20 @@ export default function Religion() {
           margin-top: clamp(14px, 2vh, 22px);
         }
         @media (max-width: 767px) {
-          .codex-preamble-text { font-size: 16px; line-height: 1.45; }
+          .codex-preamble-text { font-size: 14px; line-height: 1.4; }
           .codex-headline { font-size: 2.8rem; letter-spacing: 0.03em; line-height: 1.04; }
           .codex-slider { padding: 0 clamp(8px, 2vw, 16px); }
           .codex-slide { padding: clamp(12px, 2vh, 24px) clamp(4px, 1.5vw, 12px); }
+          /* Mobile (2026-06-03): preamble (znenie ústavy + rámik) — zúžiť + posunúť hore.
+             Scoped na preamble slide = .codex-slider (nie -book) + .codex-slide (nie -3). */
+          .codex-slider:not(.codex-slider-book) .codex-slide:not(.codex-slide-3) {
+            justify-content: flex-start;
+            padding-top: clamp(24px, 6vh, 56px);
+          }
+          /* Zúžiť vertikálny odstup medzi headline / rámikom / oath (len preamble má >1 child) */
+          .codex-slider:not(.codex-slider-book) .codex-slide:not(.codex-slide-3) > * + * {
+            margin-top: clamp(18px, 3vh, 28px);
+          }
         }
 
         /* ── Slide 2: papyrus + index ── */
@@ -765,6 +805,10 @@ export default function Religion() {
         .codex-bleed:not(.active) .codex-hektor {
           transform: translateX(25%) scale(1.08);
         }
+        /* 🔒 PC/DESKTOP SLIDE-3 HERO LOCKED 2026-06-03 (Matej „super religion hotovo na PC lock"):
+           overlay padding-top clamp(64px,9vh,96px) [1.2 BILLION vyššie] · .q-call 1.7em [DOGLOVERS]
+           · .codex-question-big margin-top clamp(12px,1.8vh,24px) v @media(min-width:768px) [BOW→DOGLOVERS odstup]
+           · "ARE YOU READY?" odstránené. NEMENIŤ PC bez Matejovho OK. Mobil = vlastný HARD LOCK nižšie. */
         .codex-3-overlay {
           position: relative;
           z-index: 2;
@@ -780,7 +824,7 @@ export default function Religion() {
              (justify-content:center centruje medzi padding edges). Kompenzuje
              priestor pod viewportom obsadený dots-mi, aby text sedel približne
              na strede obrazovky. */
-          padding: clamp(100px, 14vh, 140px) clamp(12px, 2vw, 20px) clamp(20px, 4vh, 40px);
+          padding: clamp(64px, 9vh, 96px) clamp(12px, 2vw, 20px) clamp(20px, 4vh, 40px);
           height: 100%;
         }
         .codex-stat-number {
@@ -874,12 +918,19 @@ export default function Religion() {
           color: rgba(250,244,236,0.95);
           filter: drop-shadow(0 0 10px rgba(250,244,236,0.18));
         }
-        /* PC: DOGLOVERS? + ARE YOU READY? = bold a trocha väčšie ako base body */
+        /* PC: DOGLOVERS? = bold, zväčšené (hero call) */
         .codex-question-big .q-call {
           display: inline-block;
           font-weight: 700;
-          font-size: 1.25em;
+          font-size: 1.7em;
           letter-spacing: 0.025em;
+        }
+        /* PC-only: väčší odstup medzi "bow to the cow" a DOGLOVERS
+           (scoped na min-width:768px — mobil je HARD LOCKED, nededí) */
+        @media (min-width: 768px) {
+          .codex-question-big {
+            margin-top: clamp(12px, 1.8vh, 24px);
+          }
         }
         /* PC: LET'S WORSHIP OUR DOGS = šírka < tlačítka pod (menšie ako button) */
         .codex-question-big .q-action {
@@ -963,7 +1014,8 @@ export default function Religion() {
             /* Mobile: anchor top — match slide 1 headline Y position.
                flex-start + minimal padding-top → content ide čo najvyššie. */
             justify-content: flex-start;
-            padding-top: clamp(10px, 2vh, 24px);
+            /* Mobile (2026-06-03, Matej OK): overlay obsah posunutý o +75px nadol */
+            padding-top: calc(clamp(10px, 2vh, 24px) + 75px);
             padding-bottom: clamp(20px, 4vh, 40px);
           }
           .codex-stat-number { font-size: clamp(2rem, 12vw, 3rem); }
@@ -1054,7 +1106,6 @@ export default function Religion() {
                 <p className="codex-question-big">
                   <span className="accent">
                     <span className="q-call">DOGLOVERS?</span><br />
-                    <span className="q-call">ARE YOU READY?</span><br />
                     <span className="q-action">LET'S WORSHIP OUR DOGS.</span>
                   </span>
                 </p>
@@ -1102,6 +1153,7 @@ export default function Religion() {
           aria-label="Sacred Index"
           ref={(el) => { sectionRefs.current[2] = el; }}
         >
+          <h2 className="codex-book-title">The Bible for doglovers</h2>
           <div className="codex-slider codex-slider-book">
             <div className="codex-slide">
               <ConstitutionBook />

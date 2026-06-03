@@ -26,10 +26,12 @@ function calcDims() {
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
   const mobile = vw < 768;
   if (mobile) {
-    let h = vh * 0.60;
-    let w = h * RATIO;
-    const maxW = vw * 0.90;
-    if (w > maxW) { w = maxW; h = w / RATIO; }
+    // Mobile (2026-06-03): celá dvojstrana ako na PC — fit do šírky, 10px po stranách.
+    const side = 10;
+    let w = (vw - 2 * side) / 2;     // per-page → spread = vw - 20px
+    let h = w / RATIO;
+    const maxH = vh * 0.72;          // vertikálny strop (nad hint/nav pod knihou)
+    if (h > maxH) { h = maxH; w = h * RATIO; }
     return { w: Math.round(w), h: Math.round(h), mobile };
   }
   let h = Math.min(vh * 0.76, 840);
@@ -117,10 +119,13 @@ export default function ConstitutionBook() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const spreadW = dims.mobile ? dims.w : dims.w * 2;
+  const spreadW = dims.w * 2;
 
   return (
-    <div className={`cb-wrap ${opened ? 'cb-open' : 'cb-closed'}`}>
+    <div
+      className={`cb-wrap ${opened ? 'cb-open' : 'cb-closed'}`}
+      style={{ '--cb-h': `${dims.h}px` } as React.CSSProperties}
+    >
       <style>{CSS}</style>
 
       <div className="cb-stage" style={{ width: spreadW, height: dims.h }}>
@@ -141,7 +146,7 @@ export default function ConstitutionBook() {
             drawShadow
             flippingTime={750}
             showCover={false}
-            usePortrait
+            usePortrait={!dims.mobile}
             mobileScrollSupport={false}
             useMouseEvents
             swipeDistance={18}
@@ -235,12 +240,21 @@ export default function ConstitutionBook() {
           <button type="button" className="cb-arrow" onClick={() => flip('next')} disabled={page >= 4} aria-label="Next page">›</button>
         </div>
       )}
+
+      {/* Mobile only: CTA tlačidlá poslednej dvojstrany vytiahnuté POD knihu, pod seba.
+          In-page verzia je na mobile skrytá cez CSS (.cb-cta-page .cb-cta-btn). */}
+      {dims.mobile && opened && page >= 4 && (
+        <div className="cb-mobile-cta">
+          <Link to="/heroglyph" className="cb-cta-btn">Become Dogyptian</Link>
+          <a href="https://dogyptism.dogypt.com" target="_blank" rel="noreferrer" className="cb-cta-btn cb-cta-ghost">Full Constitution</a>
+        </div>
+      )}
     </div>
   );
 }
 
 const CSS = `
-.cb-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.2vh,24px);width:100%;height:100%;}
+.cb-wrap{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(12px,2.2vh,24px);width:100%;height:100%;}
 .cb-stage{position:relative;flex:0 0 auto;max-width:100%;}
 
 /* crossfade vrstvy */
@@ -251,6 +265,15 @@ const CSS = `
   clip-path:inset(7.5% 0 8% 0);}
 .cb-open .cb-bookwrap{opacity:1;pointer-events:auto;}
 .cb-book{margin:0 auto;}
+
+/* PC (2026-06-03, Matej OK): kniha −15% (scale od stredu) aby bolo nad ňou vidno nadpis
+   "The Bible for doglovers". Scale = strany aj text sa zmenšia proporčne. Mobile má vlastný layout. */
+@media (min-width:768px){
+  .cb-stage{transform:scale(0.85);}
+  /* "Tap the book to open" 15px pod VIZUÁLNYM spodkom knihy (box je väčší kvôli scale →
+     absolútne cez --cb-h × 0.85, inak by hint visel priďaleko). Hint = len closed stav. */
+  .cb-hint{position:absolute;left:50%;top:calc(50% + (var(--cb-h) * 0.85 / 2) + 15px);transform:translateX(-50%);}
+}
 
 .cb-cover-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   background:none;border:none;padding:0;cursor:pointer;z-index:6;
@@ -354,5 +377,38 @@ const CSS = `
 @media (max-width:767px){
   .cb-left .cb-content{padding:12% 10% 12% 17%;}
   .cb-right .cb-content{padding:12% 17% 12% 10%;}
+  /* Mobile (2026-06-03): KNIHA fixne na rovnakej úrovni v OBOCH stavoch (closed == open) a nemenná.
+     Trik: .cb-stage = jediný prvok vo flow (centrovaný) + fixný translateY; šípky/hint/CTA sú
+     position:absolute (mimo flow) → nikdy neposunú knihu. --cb-h = výška knihy (inline z JS). */
+  .cb-wrap{position:relative;}
+  .cb-stage{transform:translateY(-60px);}
+  .cb-hint{position:absolute;left:50%;top:calc(50% - 60px + var(--cb-h)/2 + 12px);transform:translateX(-50%);}
+  /* Mobile (2026-06-03): TITLE strana — nadpis −15% −10% (20px → 15.3px) */
+  .cb-title{font-size:15.3px;}
+  /* Mobile (2026-06-03): 2. dvojstrana (kapitoly) — obsah −15% −10% (scale 0.765) */
+  .cb-chapters{transform:scale(0.765);}
+  /* Mobile (2026-06-03): 3. dvojstrana (CTA) — obsah −15% (translateX nudge zachovaný) */
+  .cb-left .cb-cta-page{transform:translateX(25px) scale(0.85);}
+  .cb-right .cb-cta-page{transform:translateX(-25px) scale(0.85);}
+  /* Mobile (2026-06-03): ľavý CTA body do 2 riadkov (menší font, plná šírka strany) */
+  .cb-left .cb-cta-text{font-size:9px;max-width:none;}
+  /* Mobile (2026-06-03): CTA tlačidlá — menšie (font+padding) ale zvýraznené (zlatý glow),
+     posun do vonkajšej strany (ľavé doľava, pravé doprava ~5px po scale 0.85) */
+  .cb-cta-btn{padding:.5em 10px;font-size:10px;
+    border-color:rgba(250,244,236,.55);
+    box-shadow:0 3px 10px rgba(90,58,12,.4),0 0 14px rgba(245,199,61,.5);}
+  .cb-left .cb-cta-btn{transform:translateX(-6px);}
+  .cb-right .cb-cta-btn{transform:translateX(6px);}
+  /* Mobile (2026-06-03): posledná dvojstrana (CTA) — nadpis −10% (18.7px → 16.83px) */
+  .cb-cta-head{font-size:16.83px;}
+  /* Mobile (2026-06-03): šípky NAD knihou, 20px medzera, absolútne (nehýbu knihou) */
+  .cb-nav{position:absolute;left:50%;top:calc(50% - 60px - var(--cb-h)/2 - 20px);transform:translate(-50%,-100%);margin:0;}
+  /* Mobile (2026-06-03): in-page CTA tlačidlá skryté — vytiahnuté pod knihu (JSX .cb-mobile-cta) */
+  .cb-cta-page .cb-cta-btn{display:none;}
+  .cb-mobile-cta{position:absolute;left:50%;top:calc(50% - 60px + var(--cb-h)/2 + 16px);transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;padding:0 16px;box-sizing:border-box;}
+  .cb-mobile-cta .cb-cta-btn{display:inline-block;transform:none;width:100%;max-width:260px;text-align:center;
+    font-size:14px;padding:.8em 2em;
+    box-shadow:0 4px 14px rgba(90,58,12,.4),0 0 16px rgba(245,199,61,.5);}
 }
 `;
