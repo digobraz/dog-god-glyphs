@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import dogyptSeal from '@/assets/dogypt-seal.png';
 import { PageTopBar } from '@/components/PageTopBar';
-import { SACRED_INDEX } from '@/data/sacredIndex.generated';
+import ConstitutionBook from '@/components/religion/ConstitutionBook';
 
 export default function Religion() {
-  const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [active, setActive] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -108,6 +106,9 @@ export default function Religion() {
         .codex-slider .codex-slide > * + * {
           margin-top: clamp(28px, 4.5vh, 48px);
         }
+        /* Sacred Index slide = Constitution kniha (flipbook) → širší priestor, menší padding */
+        .codex-slider-book { max-width: 1120px; }
+        .codex-slider-book .codex-slide { padding: clamp(8px, 1.6vh, 18px) clamp(6px, 1.5vw, 16px); }
 
         /* ── Scroll-reveal animácie (rešpektuje prefers-reduced-motion) ──
            Pokojový stav = identity transform → locked layout zostáva nedotknutý. */
@@ -709,7 +710,8 @@ export default function Religion() {
           padding: 0 !important;
           overflow: visible;
         }
-        /* PNGs rendered at page level (outside viewport's overflow:hidden) */
+        /* PNGs rendered at page level (outside viewport's overflow:hidden).
+           Vždy viditeľné — mimo hero sa odsunú do strán (nie fade-out), ostávajú ako rámovanie. */
         .codex-bleed {
           position: absolute;
           top: 0;
@@ -717,12 +719,8 @@ export default function Religion() {
           width: 100%;
           height: 100%;
           pointer-events: none;
-          opacity: 0;
-          transition: opacity 380ms ease 80ms;
-          z-index: 1;
-        }
-        .codex-bleed.active {
           opacity: 1;
+          z-index: 1;
         }
         /* ╔══════════════════════════════════════════════════════════════════╗
            ║  🔒 LOCKED 2026-05-24 (hektor posunutý o 50px nižšie na PC)       ║
@@ -740,6 +738,8 @@ export default function Religion() {
           width: 50vw;
           height: 100vh;
           object-fit: contain;
+          transition: transform 650ms cubic-bezier(0.22, 1, 0.36, 1);
+          will-change: transform;
         }
         .codex-cow {
           left: -50px;
@@ -756,6 +756,15 @@ export default function Religion() {
           transform-origin: bottom right;
         }
         /* ── END LOCK ────────────────────────────────────────────────────── */
+        /* Scroll posun (2026-06-02): mimo hero (bleed nemá .active) sa krava odsunie
+           doľava, Hektor doprava → stred sa uvoľní pre obsah, okraje ostanú ako
+           rámovanie. Locked scale + origin zachované, pridaný len translateX. */
+        .codex-bleed:not(.active) .codex-cow {
+          transform: translateX(-25%) scale(1.14);
+        }
+        .codex-bleed:not(.active) .codex-hektor {
+          transform: translateX(25%) scale(1.08);
+        }
         .codex-3-overlay {
           position: relative;
           z-index: 2;
@@ -941,6 +950,13 @@ export default function Religion() {
             transform: scale(1.352);
             transform-origin: bottom right;
           }
+          /* Scroll posun (mobile): jemný odsun 25% — okraje ostanú ako rámovanie */
+          .codex-bleed:not(.active) .codex-cow {
+            transform: translateX(-25%) scale(1.377);
+          }
+          .codex-bleed:not(.active) .codex-hektor {
+            transform: translateX(25%) scale(1.352);
+          }
           .codex-3-overlay {
             max-width: 320px;
             gap: 14px;
@@ -1086,69 +1102,9 @@ export default function Religion() {
           aria-label="Sacred Index"
           ref={(el) => { sectionRefs.current[2] = el; }}
         >
-          <div className="codex-slider">
+          <div className="codex-slider codex-slider-book">
             <div className="codex-slide">
-              <div className="codex-paper">
-                <div className="codex-paper-header">
-                  <div className="codex-seal-wrap">
-                    <img src={dogyptSeal} alt="" className="codex-seal" aria-hidden />
-                  </div>
-                  <div className="codex-paper-titles">
-                    <h2 className="codex-paper-title">
-                      <span>The <em className="title-decor">Dogyptian</em></span>
-                      <span>Constitution</span>
-                    </h2>
-                    <p className="codex-paper-subtitle">
-                      Required reading for every doglover to become a Dogyptian.
-                    </p>
-                  </div>
-                </div>
-                <div className="codex-index" role="list">
-                  {[0, 1].map((col) => (
-                    <div className="col" key={col}>
-                      {SACRED_INDEX.slice(col * 6, col * 6 + 6).map((row, idx) => {
-                        const globalIdx = col * 6 + idx;
-                        const open = openIdx === globalIdx;
-                        return (
-                          <div className={`codex-row ${open ? 'open' : ''}`} role="listitem" key={row.num}>
-                            <button
-                              type="button"
-                              className="codex-row-head"
-                              aria-expanded={open}
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => setOpenIdx(open ? null : globalIdx)}
-                            >
-                              <span className="num">{row.num}</span>
-                              <span className="item">
-                                <span className="name">{row.name}</span>
-                                <span className="dash">—</span>
-                                <span className="desc">{row.desc}</span>
-                              </span>
-                            </button>
-                            <div className="codex-row-body">
-                              <div className="codex-row-body-inner">
-                                <ul>
-                                  {row.subs.map((s) => <li key={s}>{s}</li>)}
-                                </ul>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-                <div className="codex-cta-wrap">
-                  <a
-                    href="https://dogyptism.dogypt.com"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="codex-cta"
-                  >
-                    Read Full Constitution
-                  </a>
-                </div>
-              </div>
+              <ConstitutionBook />
             </div>
           </div>
         </section>

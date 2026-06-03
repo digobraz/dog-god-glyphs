@@ -7,6 +7,89 @@ import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
 type PillData = { icon: string; label: string; tooltip: string; status: PillStatus };
 
+/* ONE persistent <canvas> for the whole WHAT IF papyrus. The papyrus PNG is drawn
+ * EVERY frame, pixel-identical → it never moves, fades or changes structure as you
+ * scroll between beats. Only the figure changes: each beat's figure is a video on a
+ * white background, drawn with globalCompositeOperation='multiply' (white ×papyrus =
+ * papyrus → vanishes; black ink stays). Canvas multiply works in EVERY browser incl.
+ * iOS Safari (mix-blend-mode on a <video> element does not). When the active beat
+ * changes only the FIGURE cross-fades (the papyrus stays put). The papyrus PNG has a
+ * transparent surround so the dark page shows around the rolled scroll — no box. */
+function PapyrusStage({ papyrus, sheet, videos, active }: {
+  papyrus: string;
+  sheet: { x: number; y: number; w: number; h: number }; // fractions of the canvas
+  videos: (string | null)[]; // figure video per beat (null = no figure yet)
+  active: number; // current beat index (wfState)
+}) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const vidRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const fade = useRef({ from: active, to: active, t: 1 });
+  const { x: sxF, y: syF, w: swF, h: shF } = sheet;
+
+  // Active beat changed → cross-fade the figure (papyrus untouched).
+  useEffect(() => {
+    const f = fade.current;
+    if (active !== f.to) { f.from = f.to; f.to = active; f.t = 0; }
+  }, [active]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!canvas || !ctx) return;
+
+    let raf = 0, ready = false, lastTs = 0;
+    const FADE_S = 0.4;
+    const pap = new Image();
+    pap.onload = () => { canvas.width = pap.naturalWidth; canvas.height = pap.naturalHeight; ready = true; };
+    pap.src = papyrus;
+    vidRefs.current.forEach((v) => v && v.play().catch(() => {}));
+
+    const drawFig = (idx: number, alpha: number) => {
+      const v = vidRefs.current[idx];
+      if (!v || v.readyState < 2 || !v.videoWidth || alpha <= 0) return;
+      const W = canvas.width, H = canvas.height;
+      const sx = sxF * W, sy = syF * H, sw = swF * W, sh = shF * H;
+      const s = Math.min(sw / v.videoWidth, sh / v.videoHeight);
+      const dw = v.videoWidth * s, dh = v.videoHeight * s;
+      ctx.globalAlpha = alpha;
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.drawImage(v, sx + (sw - dw) / 2, sy + (sh - dh) / 2, dw, dh);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    };
+
+    const draw = (ts: number) => {
+      if (ready) {
+        const f = fade.current;
+        if (f.t < 1) { f.t = Math.min(1, f.t + (lastTs ? (ts - lastTs) / 1000 : 0) / FADE_S); }
+        lastTs = ts;
+        const W = canvas.width, H = canvas.height;
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.clearRect(0, 0, W, H);
+        ctx.drawImage(pap, 0, 0, W, H); // static papyrus — never changes
+        if (f.from !== f.to && f.t < 1) drawFig(f.from, 1 - f.t); // outgoing figure
+        drawFig(f.to, f.from !== f.to ? f.t : 1); // incoming / steady figure
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, [papyrus, sxF, syF, swF, shF, videos]);
+
+  return (
+    <>
+      <canvas ref={canvasRef} className="wf-scene-canvas" aria-hidden />
+      {videos.map((v, i) =>
+        v ? (
+          <video key={i} ref={(el) => { vidRefs.current[i] = el; }} src={v}
+                 muted loop playsInline preload="auto" aria-hidden style={{ display: 'none' }} />
+        ) : null
+      )}
+    </>
+  );
+}
+
 const PILLARS: PillData[] = [
   {
     icon: '/icons/mission/ankh.svg',
@@ -104,6 +187,8 @@ type Beat = {
   tag: string;
   intro?: boolean;
   lead?: string;
+  bigW?: string; // headline line 1 (white)
+  bigG?: string; // headline line 2 (gold)
   n?: string;
   h?: string;
   p?: string;
@@ -112,31 +197,34 @@ type Beat = {
   svg: string;
   figure?: string; // transparent figure PNG drawn ONTO the realistic papyrus frame
   img?: string; // baked papyrus+scene PNG on black (full, replaces the papyrus frame)
-  video?: string; // mp4 fallback (baked black bg) — Safari / no-webm
-  videoWebm?: string; // transparent VP9-alpha webm (primary) — papyrus floats, no box
+  video?: string; // figure-on-white mp4 overlaid via mix-blend-mode:multiply onto papyrus-vision.png (universal, no alpha)
 };
 
 const WF_BEATS: Beat[] = [
   {
     tag: 'I HAD A DREAM',
     intro: true,
+    bigW: 'I HAD', bigG: 'A DREAM',
     lead: 'What if every doglover saw a dog as more than just an animal?',
     video: '/videos/vision-dream.mp4',
-    videoWebm: '/videos/vision-dream.webm',
     figure: '/images/vision/figure-dream.png',
     svg: WF_INTRO_SVG,
   },
   {
-    tag: 'THE SYMBOL',
+    tag: 'THE UNIQUE SYMBOL',
+    bigW: 'THE UNIQUE', bigG: 'SYMBOL',
     n: '01',
-    h: 'A unique symbol is a universal language — one that can unite doglovers all around the world.',
+    h: 'Our language of love is <span class="wf-hl">DOG</span>. And beyond its ordinary name, every dog carries its own <span class="wf-hl">unique symbol</span> — the <span class="wf-hl">HEROGLYPH</span>. It\'s a <span class="wf-hl">universal language</span>, a <span class="wf-hl">sacred tool</span> to unite every doglover on Earth.',
     icon: 'ankh',
+    video: '/videos/vision-symbol.mp4',
     svg: wfManDog(`<g transform="translate(116,-6)">${wfHeroglyph}</g><path d="M124 22 q-8 -10 -16 -4" ${wfStroke}/>`),
   },
   {
-    tag: 'A MILLION',
+    tag: 'A DOG NATION',
+    bigW: 'A DOG', bigG: 'NATION',
     n: '02',
-    h: 'One symbol becomes a thousand. A thousand become a million — no longer scattered, but one force bound by the same love.',
+    video: '/videos/vision-nation.mp4',
+    h: 'Let\'s make a <span class="wf-hl">miracle</span>. Our first milestone: to unite <span class="wf-hl">a million doglovers</span>. Imagine the <span class="wf-hl">sheer power</span> we\'d hold together — everything we could do for ourselves, our dogs, and <span class="wf-hl">dogs in need</span>, beyond any state. <span class="wf-hl">We would be the state.</span>',
     icon: 'pyramid',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}>${Array.from({ length: 9 })
       .map((_, i) => {
@@ -147,16 +235,18 @@ const WF_BEATS: Beat[] = [
       .join('')}</svg>`,
   },
   {
-    tag: 'A FORCE',
+    tag: 'DIGITAL TEMPLE',
+    bigW: 'DIGITAL', bigG: 'TEMPLE',
     n: '03',
-    h: 'A million doglovers share more than a symbol — they share a fund. Money in the open, accounts on the table, kindness with real power behind it.',
+    h: 'One app, <span class="wf-hl">only for real doglovers</span> — no fake people. The first <span class="wf-hl">dog-friendly digital world</span> built just for us: a social home, and an ecosystem that truly helps — <span class="wf-hl">travel, vets, services, education</span>, and <span class="wf-hl">fundraisers</span> for dogs in need.',
     icon: 'heartpaw',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><path d="M40 200 l0 -70 l60 -42 l60 42 l0 70 Z"/><path d="M40 130 l60 -42 l60 42"/><rect x="86" y="150" width="28" height="50"/><circle cx="100" cy="58" r="18"/><path d="M100 49 l0 18 M91 58 l18 0"/></svg>`,
   },
   {
-    tag: 'WE BUILD',
+    tag: 'REAL CENTERS',
+    bigW: 'REAL', bigG: 'CENTERS',
     n: '04',
-    h: 'Not shelters that manage misery — we build what ends it. Dogypt Centers on every continent: owned by us, governed by us.',
+    h: 'The old shelter managed misery. The <span class="wf-hl">sanctuary</span> ends it. Real centers across the world for <span class="wf-hl">care, training, and research</span> — financed <span class="wf-hl">in the open</span>, every account on the table.',
     icon: 'balance',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><ellipse cx="100" cy="158" rx="78" ry="28"/>${Array.from({ length: 6 })
       .map((_, i) => {
@@ -169,6 +259,7 @@ const WF_BEATS: Beat[] = [
   },
   {
     tag: 'THE DREAM COMES TRUE',
+    bigW: 'THE DREAM', bigG: 'COMES TRUE',
     n: '05',
     h: 'Then the dream is no longer a dream. Every stray returned, every life a home — not by magic, but by a million people who finally agreed: a dog matters.',
     mech: 'Become Dogyptian',
@@ -176,6 +267,9 @@ const WF_BEATS: Beat[] = [
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><g transform="translate(66,86) scale(2)">${wfHeroglyph}</g><path d="M40 60 q60 -40 120 0" stroke-dasharray="2 7" opacity="0.5" stroke="${WF_INK}"/></svg>`,
   },
 ];
+
+// Figure video per beat (null = no figure yet) — fed to the single persistent PapyrusStage.
+const WF_VIDEOS: (string | null)[] = WF_BEATS.map((b) => b.video ?? null);
 
 export default function Vision() {
   const navigate = useNavigate();
@@ -385,7 +479,14 @@ export default function Vision() {
         }
         @media (min-width: 768px) {
           .m-screen { display: contents; }
-          .topbar-wrap { display: contents; }
+          /* Sticky top bar across the whole page (incl. the WHAT IF pin section,
+           * which is itself sticky). z-index above wf-sticky/progress; soft fade so
+           * the dark heroglyph page isn't hard-masked behind the logo + nav. */
+          .topbar-wrap {
+            position: sticky; top: 0; z-index: 60;
+            background: linear-gradient(180deg, rgba(0,0,0,0.94) 58%, rgba(0,0,0,0));
+            padding-bottom: 14px;
+          }
         }
 
         /* Desktop: 3 groups in left column with space-between — top group / CTA centered / pills bottom */
@@ -956,10 +1057,12 @@ export default function Vision() {
           text-transform: uppercase; color: rgba(250,244,236,0.32); z-index: 4;
         }
         .wf-grid {
-          flex: 1; display: grid; grid-template-columns: 1.7fr 1fr;
-          align-items: center; gap: clamp(18px, 3vw, 44px);
-          max-width: 1440px; width: 100%; margin: 0 auto;
-          padding: 48px clamp(20px, 5vw, 56px) 92px;
+          flex: 1; display: grid; grid-template-columns: 2.1fr 1fr;
+          align-items: center; align-content: center; gap: clamp(18px, 3vw, 44px);
+          max-width: 1480px; width: 100%; margin: 0 auto;
+          /* top clears the sticky header, bottom clears the progress bar → the auto-height
+           * row centres in the band between them instead of pinning to the top */
+          padding: 84px clamp(20px, 5vw, 56px) 64px;
         }
 
         /* LEFT — papyrus scroll (rolled ends; colours from /religion .codex-paper) */
@@ -967,8 +1070,17 @@ export default function Vision() {
         /* Big papyrus area — each beat is a self-contained baked papyrus+scene image
          * (square, on black) OR a fallback realistic-papyrus PNG + doodle. */
         .wf-papyrus {
-          position: relative; width: 100%; max-width: 900px; max-height: 82vh;
-          aspect-ratio: 1344 / 1022; margin: 0 auto;
+          /* ╔═══ LOCKED 2026-06-03 (Matej OK: "toto je tá správna poloha") ═══╗
+           * Poloha + rozmer papyrusu na PC pre VŠETKY beaty (zdieľaný kontajner).
+           * NEMENIŤ bez výslovného OK:
+           *   height: 68vh · width: calc(68vh * 815/892) · top: 25px · flex-shrink: 0
+           *   (+ .wf-grid: align-content:center, padding 84px/64px)
+           * Height-driven + EXPLICIT calc width (NIE aspect-ratio+auto — flexbox by
+           * zrútil šírku). Papyrus PNG je orezaný natesno (815×892).
+           * ╚════════════════════════════════════════════════════════════════╝ */
+          position: relative; flex-shrink: 0; top: 25px;
+          height: 68vh; width: calc(68vh * 815 / 892); max-width: 100%;
+          margin: 0 auto;
         }
         .wf-illus {
           position: absolute; inset: 0; opacity: 0;
@@ -977,6 +1089,10 @@ export default function Vision() {
         }
         /* Baked papyrus+scene image (or video) fills the whole area */
         .wf-scene-full { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+        /* Canvas beat: papyrus PNG + figure-on-white multiplied (see PapyrusStage).
+         * Container aspect == papyrus aspect → canvas fills edge-to-edge, transparent
+         * surround lets the dark page show around the rolled scroll (no box). */
+        .wf-scene-canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
         /* Fallback: realistic papyrus frame + doodle inset to the writable sheet body */
         .wf-scroll-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; }
         .wf-sheet-inner {
@@ -1026,6 +1142,11 @@ export default function Vision() {
 
         /* RIGHT — dark text column */
         .wf-text { position: relative; min-height: 360px; }
+        /* Desktop: pull the text column left toward the (locked) papyrus — kills the
+         * dead space between the centred scroll and the copy. Papyrus is NOT moved. */
+        @media (min-width: 768px) {
+          .wf-text { margin-left: clamp(-220px, -9vw, -90px); }
+        }
         .wf-block {
           position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
           opacity: 0; transition: opacity .4s ease;
@@ -1073,19 +1194,25 @@ export default function Vision() {
           .wf-sticky:not(.wf-armed) .wf-papyrus { clip-path: none; opacity: 1; }
           .wf-sticky:not(.wf-armed) .wf-block.on > * { opacity: 1; }
         }
-        .wf-intro .wf-big {
+        /* Unified headline + lead typography for ALL beats (taken from slide 1) */
+        .wf-block .wf-big {
           font-family: 'Cinzel', serif; font-weight: 700;
-          font-size: clamp(2.75rem, 7vw, 5rem); line-height: 1.0; letter-spacing: 0.04em;
+          font-size: clamp(3.4rem, 8.6vw, 6.4rem); line-height: 0.98; letter-spacing: 0.04em;
+          white-space: nowrap; /* 2-line white/gold headline, no wrap */
         }
-        .wf-intro .wf-big-w { color: #FAF4EC; }
-        .wf-intro .wf-big-g {
+        .wf-big-w { color: #FAF4EC; }
+        .wf-big-g {
           background: linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           filter: drop-shadow(0 0 18px rgba(245,199,61,0.34));
         }
-        .wf-intro .wf-lead {
-          margin-top: 20px; font-style: italic; color: rgba(250,244,236,0.7);
-          font-size: clamp(1rem, 2.4vw, 1.3rem); max-width: 24ch;
+        .wf-block .wf-lead {
+          margin-top: 24px; font-style: normal; color: rgba(250,244,236,0.72);
+          font-size: clamp(1.05rem, 2.4vw, 1.35rem); line-height: 1.55; max-width: 34ch;
+        }
+        /* highlighted key words in the story */
+        .wf-lead .wf-hl {
+          font-style: italic; font-weight: 600; color: #F5C73D;
         }
         .wf-block .wf-num { font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 0.3em; color: rgba(250,244,236,0.5); margin-bottom: 10px; }
         .wf-block .wf-anchor { font-family: 'Cinzel', serif; font-weight: 700; color: #C99A3F; font-size: clamp(1.8rem, 4.6vw, 3rem); line-height: 1; margin-bottom: 14px; letter-spacing: 0.05em; }
@@ -1111,7 +1238,7 @@ export default function Vision() {
         @media (max-width: 767px) {
           .wf-grid { grid-template-columns: 1fr; gap: 18px; padding: 34px 20px 116px; align-content: center; }
           .wf-scroll-col { order: -1; }
-          .wf-papyrus { max-width: 190px; }
+          .wf-papyrus { height: 40vh; width: calc(40vh * 815 / 892); max-width: 86%; }
           .wf-text { min-height: 250px; }
           .wf-step-label { display: none; }
           .wf-step .wf-knob { width: 8px; height: 8px; }
@@ -1193,51 +1320,16 @@ export default function Vision() {
         <div className={`wf-sticky${wfEntered ? ' wf-armed' : ''}`}>
           <div className="wf-hint">Keep scrolling — the path unfolds</div>
           <div className="wf-grid">
-            {/* LEFT: papyrus scroll */}
+            {/* LEFT: papyrus scroll — ONE persistent canvas (papyrus fixed, only the
+                figure video swaps per beat; see PapyrusStage). */}
             <div className="wf-scroll-col">
               <div className="wf-papyrus">
-                {WF_BEATS.map((b, i) => (
-                  <div
-                    key={b.tag}
-                    className={`wf-illus${wfState === i ? ' on' : ''}`}
-                    aria-hidden={wfState !== i}
-                  >
-                    {b.video ? (
-                      <video
-                        className="wf-scene-full"
-                        autoPlay
-                        muted
-                        loop
-                        playsInline
-                        preload="auto"
-                      >
-                        {b.videoWebm && <source src={b.videoWebm} type="video/webm" />}
-                        <source src={b.video} type="video/mp4" />
-                      </video>
-                    ) : b.img ? (
-                      <img className="wf-scene-full" src={b.img} alt="" />
-                    ) : (
-                      <>
-                        <img
-                          className="wf-scroll-img"
-                          src="/images/vision/papyrus-scroll.png"
-                          alt=""
-                          aria-hidden
-                        />
-                        <div className="wf-sheet-inner">
-                          {b.figure ? (
-                            <img className="wf-fig" src={b.figure} alt="" />
-                          ) : (
-                            <div
-                              className="wf-art"
-                              dangerouslySetInnerHTML={{ __html: b.svg }}
-                            />
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                ))}
+                <PapyrusStage
+                  papyrus="/images/vision/papyrus-vision.png"
+                  sheet={{ x: 0.10, y: 0.15, w: 0.80, h: 0.71 }}
+                  videos={WF_VIDEOS}
+                  active={wfState}
+                />
               </div>
             </div>
 
@@ -1249,30 +1341,30 @@ export default function Vision() {
                   className={`wf-block${b.intro ? ' wf-intro' : ''}${wfState === i ? ' on' : ''}`}
                   aria-hidden={wfState !== i}
                 >
+                  <div className="wf-big">
+                    <span className="wf-big-w">{b.bigW}</span>
+                    <br />
+                    <span className="wf-big-g">{b.bigG}</span>
+                  </div>
                   {b.intro ? (
-                    <>
-                      <div className="wf-big">
-                        <span className="wf-big-w">I HAD</span>
-                        <br />
-                        <span className="wf-big-g">A DREAM</span>
-                      </div>
-                      <div className="wf-lead">{b.lead}</div>
-                    </>
+                    <div className="wf-lead">
+                      In 2018, I had a <span className="wf-hl">vision</span> of how to{' '}
+                      <span className="wf-hl">save every dog on Earth</span>. And it's actually
+                      simple — every doglover <span className="wf-hl">unites into one community</span>,
+                      one that sees a dog as <span className="wf-hl">more than just an animal</span>.
+                      So here we are…
+                    </div>
                   ) : (
-                    <>
-                      <span className="wf-num">{b.n} / 05</span>
-                      <div className="wf-anchor">{b.tag}</div>
-                      <h3>{b.h}</h3>
-                      {b.mech && (
-                        <div className="wf-mech">
-                          <span
-                            className="wf-mech-ic"
-                            dangerouslySetInnerHTML={{ __html: WF_ICONS[b.icon ?? 'ankh'] }}
-                          />
-                          <span className="wf-mech-txt">→ {b.mech}</span>
-                        </div>
-                      )}
-                    </>
+                    <div className="wf-lead" dangerouslySetInnerHTML={{ __html: b.h ?? '' }} />
+                  )}
+                  {b.mech && (
+                    <div className="wf-mech">
+                      <span
+                        className="wf-mech-ic"
+                        dangerouslySetInnerHTML={{ __html: WF_ICONS[b.icon ?? 'ankh'] }}
+                      />
+                      <span className="wf-mech-txt">→ {b.mech}</span>
+                    </div>
                   )}
                 </div>
               ))}
