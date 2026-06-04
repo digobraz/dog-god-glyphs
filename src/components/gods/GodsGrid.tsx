@@ -133,7 +133,6 @@ export function GodsGrid() {
   const [filterValue, setFilterValue] = useState('');
   const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
   const navigateToRef = useRef<((n: number) => void) | null>(null);
-  const filterInputRef = useRef<HTMLInputElement>(null);
 
   const revealData = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -197,9 +196,31 @@ export function GodsGrid() {
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
 
+  const submitFilter = () => {
+    const n = parseInt(filterValue, 10);
+    if (!isNaN(n) && n >= 1) navigateToRef.current?.(n);
+    setFilterOpen(false);
+    setFilterValue('');
+  };
+
+  // Desktop hardware-keyboard support for the numpad overlay
   useEffect(() => {
-    if (filterOpen) filterInputRef.current?.focus();
-  }, [filterOpen]);
+    if (!filterOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key >= '0' && e.key <= '9') {
+        setFilterValue(v => (v + e.key).slice(0, 6));
+      } else if (e.key === 'Backspace') {
+        setFilterValue(v => v.slice(0, -1));
+      } else if (e.key === 'Enter') {
+        submitFilter();
+      } else if (e.key === 'Escape') {
+        setFilterOpen(false);
+        setFilterValue('');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [filterOpen, filterValue]);
 
   useEffect(() => {
     if (revealStep === 2) {
@@ -444,7 +465,7 @@ export function GodsGrid() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.filter-panel')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.numpad-overlay')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -654,57 +675,6 @@ export function GodsGrid() {
           pointer-events: none;
         }
         #gods-canvas { z-index: 1; }
-
-        .bg-shimmer {
-          position: absolute;
-          inset: 0;
-          z-index: 0;
-          pointer-events: none;
-          display: flex;
-          mix-blend-mode: screen;
-          opacity: 0.7;
-          overflow: hidden;
-        }
-        .bg-shimmer__col {
-          flex: 1;
-          position: relative;
-          overflow: visible;
-        }
-        .bg-shimmer__col::before {
-          content: '';
-          position: absolute;
-          left: -40%;
-          right: -40%;
-          height: 70%;
-          background: radial-gradient(ellipse 55% 50% at 50% 50%,
-            rgba(255,210,110,0.32) 0%,
-            rgba(255,180,60,0.18) 35%,
-            rgba(255,160,40,0.06) 65%,
-            transparent 85%);
-          filter: blur(14px);
-          will-change: transform, opacity;
-          animation-duration: 9s;
-          animation-timing-function: ease-in-out;
-          animation-iteration-count: infinite;
-          animation-delay: var(--shimmer-delay, 0s);
-        }
-        .bg-shimmer__col--down::before { animation-name: bgShimmerDown; }
-        .bg-shimmer__col--up::before   { animation-name: bgShimmerUp; }
-        @keyframes bgShimmerDown {
-          0%   { transform: translateY(-90%); opacity: 0; }
-          20%  { opacity: 1; }
-          80%  { opacity: 1; }
-          100% { transform: translateY(250%); opacity: 0; }
-        }
-        @keyframes bgShimmerUp {
-          0%   { transform: translateY(250%); opacity: 0; }
-          20%  { opacity: 1; }
-          80%  { opacity: 1; }
-          100% { transform: translateY(-90%); opacity: 0; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .bg-shimmer { display: none; }
-        }
 
         .nav-left {
           position: fixed;
@@ -1359,45 +1329,88 @@ export function GodsGrid() {
         .filter-btn:hover { opacity: 0.75; }
         .filter-btn.active { border-color: rgba(0,0,0,0.35); }
 
-        .filter-panel {
+        /* Numpad overlay — dims the screen, centered beige keypad (no native keyboard) */
+        .numpad-overlay {
           position: fixed;
-          bottom: 68px;
-          left: 50%;
-          transform: translateX(-50%) translateY(6px);
-          z-index: 51;
-          background: rgba(250,244,236,0.96);
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(0,0,0,0.12);
-          border-radius: 12px;
-          padding: 6px 14px 6px 10px;
+          inset: 0;
+          z-index: 200;
+          background: rgba(0,0,0,0.72);
+          backdrop-filter: blur(6px);
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: center;
           opacity: 0;
           pointer-events: none;
-          transition: opacity 200ms ease, transform 200ms ease;
-          min-width: 130px;
+          transition: opacity 200ms ease;
         }
-        .filter-panel.open {
-          opacity: 1;
-          pointer-events: auto;
-          transform: translateX(-50%) translateY(0);
+        .numpad-overlay.open { opacity: 1; pointer-events: auto; }
+        .numpad {
+          width: min(80vw, 290px);
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.5);
+          border-radius: 16px;
+          padding: 16px;
+          box-shadow: 0 16px 56px rgba(0,0,0,0.55);
+          transform: scale(0.92);
+          transition: transform 200ms ease;
         }
-        .filter-input {
-          background: transparent;
-          border: none;
-          outline: none;
-          color: #000;
+        .numpad-overlay.open .numpad { transform: scale(1); }
+        .numpad-display {
+          height: 54px;
+          margin-bottom: 14px;
+          border-radius: 10px;
+          background: rgba(255,255,255,0.45);
+          border: 1px solid rgba(201,154,63,0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
           font-family: 'Cinzel', serif;
-          font-size: 0.85rem;
           font-weight: 700;
-          letter-spacing: 0.1em;
-          width: 80px;
-          -moz-appearance: textfield;
+          font-size: 1.7rem;
+          letter-spacing: 0.12em;
+          color: rgba(0,0,0,0.82);
         }
-        .filter-input::-webkit-outer-spin-button,
-        .filter-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-        .filter-input::placeholder { color: rgba(0,0,0,0.32); font-weight: 400; font-family: inherit; }
+        .numpad-display .ph {
+          color: rgba(0,0,0,0.3);
+          font-size: 1rem;
+          letter-spacing: 0.08em;
+        }
+        .numpad-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        .numpad-key {
+          height: 52px;
+          border-radius: 10px;
+          border: 1px solid rgba(201,154,63,0.4);
+          background: rgba(255,255,255,0.38);
+          color: rgba(0,0,0,0.8);
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 1.3rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          user-select: none;
+          -webkit-tap-highlight-color: transparent;
+          transition: background 120ms, transform 80ms;
+        }
+        .numpad-key:active {
+          transform: scale(0.95);
+          background: rgba(201,154,63,0.28);
+        }
+        .numpad-key--cancel {
+          color: #CF3A2E;
+          border-color: rgba(207,58,46,0.45);
+          background: rgba(207,58,46,0.08);
+        }
+        .numpad-key--enter {
+          color: #2E9E4F;
+          border-color: rgba(46,158,79,0.5);
+          background: rgba(46,158,79,0.10);
+        }
 
         /* ── Center grid button (terč) — side-by-side with filter at bottom ── */
         .center-btn-mobile {
@@ -1470,20 +1483,6 @@ export function GodsGrid() {
       `}</style>
 
       <div className="gods-root">
-        <div className="bg-shimmer" aria-hidden="true">
-          {Array.from({ length: 8 }).map((_, i) => {
-            const delays = [0, -5.2, -2.1, -7.4, -3.6, -1.3, -6.5, -4.0];
-            const dir = i % 2 === 0 ? 'down' : 'up';
-            return (
-              <div
-                key={i}
-                className={`bg-shimmer__col bg-shimmer__col--${dir}`}
-                style={{ ['--shimmer-delay' as string]: `${delays[i]}s` }}
-              />
-            );
-          })}
-        </div>
-
         <div className="nav-left">
           <nav className="main-nav">
             <a href="/vision">Vision</a>
@@ -1520,34 +1519,48 @@ export function GodsGrid() {
           </svg>
         </button>
 
-        <div className={`filter-panel${filterOpen ? ' open' : ''}`}>
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.45)" strokeWidth="2" strokeLinecap="round">
-            <circle cx="6.5" cy="6.5" r="4"/>
-            <path d="M10 10L14 14"/>
-          </svg>
-          <input
-            ref={filterInputRef}
-            className="filter-input"
-            type="number"
-            min="1"
-            placeholder="Dog #"
-            value={filterValue}
-            onChange={e => setFilterValue(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === 'Enter') {
-                const n = parseInt(filterValue, 10);
-                if (!isNaN(n) && n >= 1) {
-                  navigateToRef.current?.(n);
-                  setFilterOpen(false);
-                  setFilterValue('');
-                }
-              }
-              if (e.key === 'Escape') {
-                setFilterOpen(false);
-                setFilterValue('');
-              }
-            }}
-          />
+        <div
+          className={`numpad-overlay${filterOpen ? ' open' : ''}`}
+          onClick={(e) => { if (e.target === e.currentTarget) { setFilterOpen(false); setFilterValue(''); } }}
+        >
+          <div className="numpad" role="dialog" aria-label="Find dog by number">
+            <div className="numpad-display">
+              {filterValue ? `#${filterValue}` : <span className="ph">Dog #</span>}
+            </div>
+            <div className="numpad-grid">
+              {['1','2','3','4','5','6','7','8','9'].map(d => (
+                <button
+                  key={d}
+                  className="numpad-key"
+                  onClick={() => setFilterValue(v => (v + d).slice(0, 6))}
+                >{d}</button>
+              ))}
+              <button
+                className="numpad-key numpad-key--cancel"
+                onClick={() => setFilterValue('')}
+                aria-label="Clear"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M7 5 H14.5 L20.5 12 L14.5 19 H7 A2 2 0 0 1 5 17 V7 A2 2 0 0 1 7 5 Z"/>
+                  <path d="M8.4 9.4 L12.6 14.6 M12.6 9.4 L8.4 14.6"/>
+                </svg>
+              </button>
+              <button
+                className="numpad-key"
+                onClick={() => setFilterValue(v => (v + '0').slice(0, 6))}
+              >0</button>
+              <button
+                className="numpad-key numpad-key--enter"
+                onClick={submitFilter}
+                aria-label="Confirm"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M8 12.5 L11 15.5 L16.5 9"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div ref={appRef} role="application" style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
