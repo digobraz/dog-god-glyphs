@@ -483,7 +483,7 @@ export default function Heroglyph() {
 
       <PageTopBar withNav />
 
-      <div className="flex-1 flex flex-col items-center justify-start md:justify-center px-5 pt-6 pb-6 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-6 pb-6 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-3xl flex flex-col items-center text-center">
 
           {/* HERO TITLE — Mobile: "THE / SYMBOL" stacked (big gold) + "THAT CHANGES HISTORY" subline (Vision-style, weight 500, uppercase, single row).
@@ -533,40 +533,46 @@ export default function Heroglyph() {
               </p>
             </>
           ) : (
-            <h1
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: 'clamp(2.6rem, 6vw, 3.4rem)',
-                letterSpacing: '0.04em',
-                lineHeight: 1.08,
-                margin: 0,
-                textTransform: 'uppercase',
-              }}
-            >
-              <span
+            <>
+              <h1
                 style={{
-                  background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 'clamp(2.6rem, 6vw, 3.4rem)',
+                  letterSpacing: '0.04em',
+                  lineHeight: 1.08,
+                  margin: 0,
+                  textTransform: 'uppercase',
                 }}
               >
-                The Symbol
-              </span>
-              <span style={{ color: '#FAF4EC' }}>{' '}That</span>
-              <br />
-              <span
+                <span
+                  style={{
+                    background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
+                  }}
+                >
+                  The Symbol
+                </span>
+              </h1>
+              <p
                 style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontStyle: 'italic',
+                  fontWeight: 400,
+                  fontSize: 'clamp(1.2rem, 2.4vw, 1.6rem)',
+                  letterSpacing: '0.04em',
                   color: '#FAF4EC',
-                  marginTop: 'clamp(2px, 0.4vw, 6px)',
-                  display: 'inline-block',
+                  textTransform: 'none',
+                  margin: 'clamp(6px, 0.8vw, 12px) 0 0',
+                  lineHeight: 1.1,
                 }}
               >
-                Changes History
-              </span>
-            </h1>
+                That Changes History
+              </p>
+            </>
           )}
 
           {isMobile ? (

@@ -1,16 +1,11 @@
 import { PACK_THEME } from './PackLayout';
+import { countryFlag } from '@/lib/countryGeo';
 
 const T = PACK_THEME;
 
 interface CountryRow {
   country: string;
   count: number;
-}
-
-function flagFor(code: string): string {
-  const c = code.trim().toUpperCase();
-  if (c.length !== 2 || !/^[A-Z]{2}$/.test(c)) return '';
-  return String.fromCodePoint(...[...c].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
 }
 
 export function TopCountries({ rows }: { rows: CountryRow[] }) {
@@ -47,7 +42,7 @@ export function TopCountries({ rows }: { rows: CountryRow[] }) {
     >
       {rows.map((r, i) => {
         const pct = max > 0 ? (r.count / max) * 100 : 0;
-        const flag = flagFor(r.country);
+        const flag = countryFlag(r.country);
         return (
           <div
             key={r.country}

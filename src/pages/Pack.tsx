@@ -1,16 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Link2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
 import { HeroCard } from '@/components/pack/HeroCard';
 import { PackTree } from '@/components/pack/PackTree';
-import { StatTicker } from '@/components/pack/StatTicker';
 import { FeatureSurveyCard } from '@/components/pack/FeatureSurveyCard';
-import { TopCountries } from '@/components/pack/TopCountries';
+import { GlobePulse } from '@/components/pack/GlobePulse';
+import { FounderInvite } from '@/components/pack/FounderInvite';
 import { OnboardingProgress, type OnboardingStep } from '@/components/pack/OnboardingProgress';
 import { Announcements } from '@/components/pack/Announcements';
 import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
-import { PhaseCard } from '@/components/pack/PhaseCard';
 
 const T = PACK_THEME;
 
@@ -20,14 +18,18 @@ interface DogRow {
   id: string;
   user_id: string | null;
   dog_name: string | null;
+  owner_name: string | null;
   cloudinary_main_url: string | null;
   cloudinary_extras: string[] | null;
   heroglyph_code: string | null;
+  heroglyph_png_url: string | null;
   breed: string | null;
+  country: string | null;
   grid_message: string | null;
   stripe_session_id: string | null;
   created_at: string;
   pack_number?: number | null;
+  selections?: { ownerGender?: string | null } | null;
 }
 
 interface PackStats {
@@ -35,6 +37,7 @@ interface PackStats {
   last24h: number;
   last30d: number;
   topCountries: { country: string; count: number }[];
+  topBreeds: { breed: string; count: number }[];
   appVotes: number;
   featureVotes: Record<string, number>;
 }
@@ -83,7 +86,7 @@ export default function Pack() {
         };
       })
         .from('dogs')
-        .select('id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, breed, grid_message, stripe_session_id, created_at')
+        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, breed, country, grid_message, stripe_session_id, created_at, selections')
         .eq('user_id', u.id)
         .order('created_at', { ascending: false });
 
@@ -150,26 +153,31 @@ export default function Pack() {
     dog_name: d.dog_name,
     cloudinary_main_url: d.cloudinary_main_url,
     heroglyph_code: d.heroglyph_code,
+    heroglyph_png_url: d.heroglyph_png_url,
     breed: d.breed,
     pack_number: d.pack_number ?? null,
   }));
 
-  const tickerStats = stats
-    ? {
-        total: stats.total,
-        last24h: stats.last24h,
-        last30d: stats.last30d,
-        topCountry: stats.topCountries?.[0]?.country,
-      }
-    : undefined;
+  // Meno majiteľa = owner_name z primárneho psa (fallback na email-derived)
+  const ownerName = (dogs ?? [])
+    .map((d) => (d.owner_name ?? '').trim())
+    .find((n) => n.length > 0);
+  const displayName = ownerName
+    ? ownerName.split(' ')[0].charAt(0).toUpperCase() + ownerName.split(' ')[0].slice(1).toLowerCase()
+    : (user?.name ?? 'Dogyptian');
 
-  const founderNumber = treeDogs
-    .map((d) => d.pack_number)
-    .filter((n): n is number => typeof n === 'number' && n > 0)
-    .sort((a, b) => a - b)[0] ?? null;
+  // Faraón placeholder podľa pohlavia majiteľa (z heroglyph selections), keď chýba reálna fotka
+  const ownerGender = (dogs ?? [])
+    .map((d) => d.selections?.ownerGender)
+    .find((g): g is 'man' | 'woman' => g === 'man' || g === 'woman') ?? null;
+
+  // Krajina majiteľa = country z prvého psa s vyplnenou krajinou → pin na globe.
+  const ownerCountry = (dogs ?? [])
+    .map((d) => (d.country ?? '').trim())
+    .find((c) => c.length > 0) ?? null;
 
   return (
-    <PackLayout wide topStrip={<StatTicker stats={tickerStats} />}>
+    <PackLayout wide>
       <PackAnimations />
 
       <div className="relative flex flex-col gap-6">
@@ -180,16 +188,12 @@ export default function Pack() {
         <div className="relative grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-stretch">
           {user && (
             <HeroCard
-              name={user.name}
+              name={displayName}
               email={user.email}
               avatarUrl={user.avatarUrl}
-              founderNumber={founderNumber}
-              dogCount={treeDogs.length}
+              genderPlaceholder={ownerGender}
             />
           )}
-
-          {/* Mobile bond — between hero and pack */}
-          <BondMarker className="md:hidden -my-2" />
 
           {dogs === null ? (
             <TreeSkeleton />
@@ -201,23 +205,19 @@ export default function Pack() {
               hideOwner
             />
           )}
-
-          {/* Desktop bond — animated link between cards */}
-          <BondMarker desktop className="hidden md:flex" />
         </div>
 
-        {/* Row 2 — Phase LEFT, Survey RIGHT — equal heights */}
+        {/* Full-width — planéta + počítadlo + TOP krajiny */}
+        <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
+
+        {/* Row 2 — dotazník (blok 4) LEFT | Hekthor pozvánka (blok 5) RIGHT.
+            Mobile: survey nad Hekthorom. */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7 items-stretch">
-          <PhaseCard total={stats?.total ?? 0} />
           <FeatureSurveyCard votes={featureVotes} onVotesChange={setFeatureVotes} />
+          <FounderInvite />
         </div>
 
         <OnboardingProgress steps={onboardingSteps} />
-
-        <section>
-          <SectionLabel>Top countries</SectionLabel>
-          <TopCountries rows={stats?.topCountries ?? []} />
-        </section>
 
         <ConstitutionCard />
         <Announcements />
@@ -293,6 +293,10 @@ function PackAnimations() {
         0%, 100% { transform: translate(0, 0); }
         50% { transform: translate(-50px, -40px); }
       }
+      @keyframes ms-fade {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
       .pack-card-hover {
         transition: transform 0.25s ease, box-shadow 0.25s ease;
         will-change: transform;
@@ -305,111 +309,6 @@ function PackAnimations() {
   );
 }
 
-function BondMarker({ className, desktop }: { className?: string; desktop?: boolean }) {
-  if (desktop) {
-    return (
-      <>
-        {/* Animated flow line connecting the two cards */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute hidden md:block"
-          style={{
-            top: 92,
-            left: 'calc(50% - 60px)',
-            width: 120,
-            height: 2,
-            background:
-              'repeating-linear-gradient(90deg, rgba(201, 154, 63, 0.75) 0 6px, transparent 6px 12px)',
-            backgroundSize: '18px 100%',
-            animation: 'pack-bond-flow 1.2s linear infinite',
-            opacity: 0.7,
-            zIndex: 1,
-          }}
-        />
-        <span
-          aria-hidden
-          className={`${className ?? ''} pointer-events-none absolute left-1/2 items-center justify-center`}
-          style={{
-            top: 70,
-            width: 44,
-            height: 44,
-            borderRadius: '50%',
-            background: `linear-gradient(135deg, #FFFBF2 0%, #F3E5BD 100%)`,
-            border: `1px solid ${T.accentGold}`,
-            color: T.accentGold,
-            animation: 'pack-bond-pulse 3s ease-in-out infinite',
-            zIndex: 2,
-          }}
-        >
-          <Link2 className="h-4 w-4" />
-        </span>
-      </>
-    );
-  }
-
-  return (
-    <div
-      aria-hidden
-      className={`${className ?? ''} flex items-center justify-center gap-2 relative`}
-      style={{ zIndex: 2 }}
-    >
-      <span
-        style={{
-          flex: 1,
-          maxWidth: 80,
-          height: 2,
-          background:
-            'repeating-linear-gradient(90deg, rgba(201, 154, 63, 0.7) 0 5px, transparent 5px 10px)',
-          backgroundSize: '15px 100%',
-          animation: 'pack-bond-flow 1s linear infinite',
-        }}
-      />
-      <span
-        className="inline-flex items-center justify-center"
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: '50%',
-          background: `linear-gradient(135deg, #FFFBF2 0%, #F3E5BD 100%)`,
-          border: `1px solid ${T.accentGold}`,
-          color: T.accentGold,
-          animation: 'pack-breathe 3s ease-in-out infinite',
-          boxShadow: '0 0 22px rgba(201, 154, 63, 0.35)',
-        }}
-      >
-        <Link2 className="h-4 w-4" />
-      </span>
-      <span
-        style={{
-          flex: 1,
-          maxWidth: 80,
-          height: 2,
-          background:
-            'repeating-linear-gradient(90deg, rgba(201, 154, 63, 0.7) 0 5px, transparent 5px 10px)',
-          backgroundSize: '15px 100%',
-          animation: 'pack-bond-flow 1s linear infinite',
-        }}
-      />
-    </div>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <h2
-      className="text-center mb-3"
-      style={{
-        fontFamily: "'Cinzel', serif",
-        fontSize: 11,
-        letterSpacing: '0.34em',
-        textTransform: 'uppercase',
-        color: T.inkDim,
-      }}
-    >
-      {children}
-    </h2>
-  );
-}
 
 function TreeSkeleton() {
   return (

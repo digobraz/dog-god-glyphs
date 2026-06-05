@@ -1,6 +1,6 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, Sparkles, ScrollText, UserCircle2 } from 'lucide-react';
+import { ReactNode, useEffect, useState } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { LogOut, Sparkles, ScrollText, UserCircle2, ChevronDown } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -10,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import dogyptLogo from '@/assets/dogypt-logo.png';
 
 interface NavItem {
   to: string;
@@ -24,8 +23,18 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/pack/profile', label: 'Profile', icon: <UserCircle2 className="h-5 w-5" /> },
 ];
 
-// Soft sandy palette — bledá hnedá, mierny gradient svetlo→tmavšie
+// Soft sandy palette — bledé papyrusové bloky (karty) na ČIERNOM pozadí (web-konzistentné).
+// POZN: bgTop/bg/bgBottom = svetlé VÝPLNE VNÚTRI kariet (HeroCard/PackTree/skeletony), NIE page bg.
 export const PACK_THEME = {
+  // "Naše tmavé" — #050505 + bg-dark.png heroglyf textúra (ako GodsGrid / heroglyph flow)
+  pageBg: '#050505',
+  glass: 'rgba(5, 5, 5, 0.72)',
+  glassSoft: 'rgba(5, 5, 5, 0.55)',
+  onDark: 'rgba(245, 240, 228, 0.86)',
+  onDarkDim: 'rgba(245, 240, 228, 0.46)',
+  onDarkHair: 'rgba(245, 240, 228, 0.10)',
+  onDarkBorder: 'rgba(245, 240, 228, 0.18)',
+  // Light fills INSIDE cards (papyrus) — neslúžia ako page bg
   bgTop: '#F2E5C7',
   bgBottom: '#E5D5B3',
   bg: '#EDDCBD',
@@ -93,31 +102,27 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
   }, []);
 
   const email = session?.user?.email ?? '';
-  const emailShort = useMemo(() => {
-    if (!email) return '';
-    if (email.length <= 22) return email;
-    return email.slice(0, 18) + '…';
-  }, [email]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/', { replace: true });
   };
 
-  const bgGradient = `linear-gradient(180deg, ${T.bgTop} 0%, ${T.bg} 38%, ${T.bgBottom} 100%)`;
-
   if (loading) {
     return (
-      <div className="min-h-[100dvh] flex items-center justify-center" style={{ background: bgGradient }}>
+      <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
+        <HieroglyphBg />
+        <div className="relative" style={{ zIndex: 1 }}>
         <div
           style={{
             fontFamily: "'Cinzel', serif",
             letterSpacing: '0.3em',
             fontSize: 12,
-            color: T.inkDim,
+            color: T.onDarkDim,
           }}
         >
           LOADING…
+        </div>
         </div>
       </div>
     );
@@ -126,13 +131,14 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
   if (!session) return null;
 
   return (
-    <div className="min-h-[100dvh]" style={{ background: bgGradient, color: T.ink }}>
+    <div className="min-h-[100dvh] relative" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
+      <HieroglyphBg />
       {/* Top strip (e.g. live stats ticker) — sits above the sticky header */}
       {topStrip && (
         <div
           style={{
-            borderBottom: `1px solid ${T.hairline}`,
-            background: 'linear-gradient(180deg, rgba(242,229,199,0.94), rgba(242,229,199,0.86))',
+            borderBottom: `1px solid ${T.onDarkHair}`,
+            background: T.glassSoft,
             backdropFilter: 'blur(8px)',
             padding: '8px 14px',
           }}
@@ -141,76 +147,56 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
         </div>
       )}
 
-      {/* Header — centered logo */}
+      {/* Header — email-as-account (logo dropped; members are already "inside") */}
       <header
         className="sticky top-0 z-30"
         style={{
-          padding: '14px 18px',
-          borderBottom: `1px solid ${T.hairline}`,
-          background: 'linear-gradient(180deg, rgba(242,229,199,0.92), rgba(242,229,199,0.78))',
+          padding: '12px 18px',
+          borderBottom: `1px solid ${T.onDarkHair}`,
+          background: T.glass,
           backdropFilter: 'blur(10px)',
         }}
       >
-        <div className="relative flex items-center justify-center">
-          <Link to="/pack" className="flex items-center" style={{ textDecoration: 'none' }}>
-            <img
-              src={dogyptLogo}
-              alt="DOGYPT"
-              style={{ height: 26, width: 'auto', opacity: 0.95 }}
-            />
-          </Link>
-          <div className="absolute right-0 top-1/2 -translate-y-1/2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 12,
-                    letterSpacing: '0.02em',
-                    color: T.ink,
-                    padding: '6px 12px',
-                    borderRadius: 999,
-                    border: `1px solid ${T.border}`,
-                    background: T.card,
-                  }}
-                >
-                  <span className="hidden sm:inline">{emailShort || 'Account'}</span>
-                  <span
-                    className="sm:hidden"
-                    style={{ width: 6, height: 6, borderRadius: 3, background: T.ink }}
-                  />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[220px]">
-                {email && (
-                  <>
-                    <div
-                      className="px-2 py-2 text-xs truncate"
-                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.inkDim }}
-                    >
-                      {email}
-                    </div>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem onClick={() => navigate('/pack/profile')}>
-                  <UserCircle2 className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+        <div className="flex items-center justify-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 transition-opacity hover:opacity-80"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 12.5,
+                  letterSpacing: '0.03em',
+                  color: T.onDark,
+                  padding: '6px 14px',
+                  borderRadius: 999,
+                  border: `1px solid ${T.onDarkBorder}`,
+                  background: 'rgba(245, 240, 228, 0.04)',
+                  maxWidth: '86vw',
+                }}
+              >
+                <span className="truncate">{email || 'Account'}</span>
+                <ChevronDown className="h-3.5 w-3.5 shrink-0" style={{ opacity: 0.7 }} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="min-w-[200px]">
+              <DropdownMenuItem onClick={() => navigate('/pack/profile')}>
+                <UserCircle2 className="mr-2 h-4 w-4" />
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
-      <div className={`mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-28 md:pb-12`}>
+      <div className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-28 md:pb-12`}>
+        {/* Desktop nav — 3 icon cards above the blocks (mobile uses bottom tab bar) */}
+        <DesktopTopNav />
         {(title || subtitle) && (
           <header className="mb-7 text-center">
             {subtitle && (
@@ -221,7 +207,7 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
                   letterSpacing: '0.32em',
                   fontSize: 10,
                   textTransform: 'uppercase',
-                  color: T.inkDim,
+                  color: T.onDarkDim,
                 }}
               >
                 {subtitle}
@@ -235,7 +221,7 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
                   fontSize: 28,
                   textTransform: 'uppercase',
                   fontWeight: 700,
-                  color: T.ink,
+                  color: T.onDark,
                 }}
               >
                 {title}
@@ -250,8 +236,8 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
       <nav
         className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
         style={{
-          background: 'rgba(242, 229, 199, 0.96)',
-          borderTop: `1px solid ${T.hairline}`,
+          background: T.glass,
+          borderTop: `1px solid ${T.onDarkHair}`,
           backdropFilter: 'blur(12px)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
         }}
@@ -263,24 +249,41 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
         </div>
       </nav>
 
-      {/* Pill nav desktop */}
-      <nav
-        className="hidden md:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
-        style={{
-          background: T.card,
-          border: `1px solid ${T.border}`,
-          borderRadius: 999,
-          boxShadow: '0 20px 60px -15px rgba(31, 26, 14, 0.18)',
-          padding: 6,
-        }}
-      >
-        <div className="flex items-center gap-1">
-          {NAV_ITEMS.map((item) => (
-            <DesktopPillLink key={item.to} item={item} />
-          ))}
-        </div>
-      </nav>
     </div>
+  );
+}
+
+// "Naše tmavé" pozadie — bg-dark.png heroglyf textúra (blur) + jemný radial overlay.
+// Mirror GodsGrid (.gods-root::before) + Heroglyph flow (.dark-bg + radial). zIndex 0.
+function HieroglyphBg() {
+  return (
+    <>
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundImage: "url('/images/bg-dark.png')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          filter: 'blur(3px)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background:
+            'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}
+      />
+    </>
   );
 }
 
@@ -291,8 +294,8 @@ function BottomTabLink({ item }: { item: NavItem }) {
       end={item.to === '/pack'}
       className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5"
       style={({ isActive }) => ({
-        color: isActive ? T.ink : T.inkDim,
-        borderTop: isActive ? `2px solid ${T.ink}` : `2px solid transparent`,
+        color: isActive ? T.accentGold : T.onDarkDim,
+        borderTop: isActive ? `2px solid ${T.accentGold}` : `2px solid transparent`,
         marginTop: -1,
         transition: 'color 0.15s',
       })}
@@ -312,27 +315,48 @@ function BottomTabLink({ item }: { item: NavItem }) {
   );
 }
 
-function DesktopPillLink({ item }: { item: NavItem }) {
+// Desktop nav = 3 papyrus icon cards above the blocks
+function DesktopTopNav() {
+  return (
+    <nav className="hidden md:flex items-stretch gap-3 md:gap-5 mb-6 w-full">
+      {NAV_ITEMS.map((item) => (
+        <TopNavCard key={item.to} item={item} />
+      ))}
+    </nav>
+  );
+}
+
+function TopNavCard({ item }: { item: NavItem }) {
   return (
     <NavLink
       to={item.to}
       end={item.to === '/pack'}
-      className="inline-flex items-center gap-2 transition-all"
+      className="pack-card-hover group flex flex-1 flex-col items-center justify-center gap-1.5 transition-all"
       style={({ isActive }) => ({
-        padding: '8px 16px',
-        borderRadius: 999,
-        background: isActive ? T.ink : 'transparent',
-        color: isActive ? T.card : T.inkDim,
-        fontFamily: "'Cinzel', serif",
-        fontSize: 11,
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        fontWeight: 600,
+        padding: '14px 22px',
+        borderRadius: 16,
+        background: T.card,
+        border: `1px solid ${isActive ? T.accentGold : T.border}`,
+        boxShadow: isActive
+          ? '0 10px 30px -12px rgba(201,154,63,0.45)'
+          : '0 8px 24px -16px rgba(0,0,0,0.5)',
+        color: isActive ? T.accentGold : T.inkDim,
         textDecoration: 'none',
       })}
     >
       {item.icon}
-      <span>{item.label}</span>
+      <span
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 11,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          color: 'inherit',
+        }}
+      >
+        {item.label}
+      </span>
     </NavLink>
   );
 }

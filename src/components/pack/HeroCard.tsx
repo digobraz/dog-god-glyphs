@@ -1,23 +1,25 @@
 import { Link } from 'react-router-dom';
-import { Camera } from 'lucide-react';
+import { Camera, Crown } from 'lucide-react';
 import { PACK_THEME } from './PackLayout';
 
 const T = PACK_THEME;
+
+const AVATAR_SIZE = 164;
+// Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
+const STORY_RING = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
 
 interface HeroCardProps {
   name: string;
   email: string;
   avatarUrl: string | null;
-  founderNumber?: number | null;
-  dogCount?: number;
+  /** Faraón line-art placeholder podľa pohlavia majiteľa (selections.ownerGender) keď chýba reálna fotka */
+  genderPlaceholder?: 'man' | 'woman' | null;
 }
 
-export function HeroCard({ name, email, avatarUrl, founderNumber, dogCount = 0 }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null }: HeroCardProps) {
   const initial = name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
   const hasAvatar = !!avatarUrl;
-  const founderLabel = founderNumber
-    ? `FOUNDER #${String(founderNumber).padStart(5, '0')}`
-    : 'PACK CANDIDATE';
+  const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
 
   return (
     <section
@@ -62,85 +64,79 @@ export function HeroCard({ name, email, avatarUrl, founderNumber, dogCount = 0 }
         }}
       />
 
-      <div className="flex flex-col items-center text-center flex-1 relative">
-        {/* Avatar with breathing gold ring */}
-        <div className="relative" style={{ width: 100, height: 100 }}>
+      <div className="flex flex-col items-center text-center flex-1 justify-center relative">
+        {/* Avatar — Instagram-style fialový gradient ring (väčší rámik) */}
+        <div className="relative" style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}>
+          {/* pulsing purple glow behind */}
           <span
             aria-hidden
             className="absolute inset-0 rounded-full"
             style={{
-              animation: 'pack-breathe 3.6s ease-in-out infinite',
-              boxShadow: hasAvatar
-                ? `0 0 0 1px ${T.accentGold}, 0 0 24px 2px rgba(201, 154, 63, 0.45)`
-                : `0 0 0 1px rgba(201, 154, 63, 0.4), 0 0 18px 2px rgba(201, 154, 63, 0.18)`,
+              animation: 'pack-breathe 3.8s ease-in-out infinite',
+              boxShadow: '0 0 26px 2px rgba(124, 58, 237, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
             }}
           />
-          <Link
-            to="/pack/profile?edit=avatar"
-            aria-label="Edit avatar"
-            className="relative group block"
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: '50%',
-              border: hasAvatar ? `2px solid ${T.accentGold}` : `2px dashed ${T.border}`,
-              background: hasAvatar
-                ? 'transparent'
-                : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
-              overflow: 'hidden',
-              textDecoration: 'none',
-              transition: 'transform 0.2s',
-            }}
+          {/* gradient ring */}
+          <div
+            className="relative rounded-full"
+            style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, padding: 4, background: STORY_RING }}
           >
-            {hasAvatar ? (
-              <img
-                src={avatarUrl!}
-                alt={name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <span
-                className="flex items-center justify-center h-full w-full"
+            {/* gap ring (papyrus) */}
+            <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
+              <Link
+                to="/pack/profile?edit=avatar"
+                aria-label="Edit avatar"
+                className="relative group block h-full w-full"
                 style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 34,
-                  fontWeight: 700,
-                  color: T.inkDim,
+                  borderRadius: '50%',
+                  background: hasAvatar
+                    ? 'transparent'
+                    : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
+                  overflow: 'hidden',
+                  textDecoration: 'none',
                 }}
               >
-                {initial}
-              </span>
-            )}
-            <span
-              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              style={{
-                background: 'rgba(31, 26, 14, 0.5)',
-                borderRadius: '50%',
-                color: T.card,
-              }}
-            >
-              <Camera className="h-5 w-5" />
-            </span>
-          </Link>
+                {hasAvatar ? (
+                  <img
+                    src={avatarUrl!}
+                    alt={name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : placeholderSrc ? (
+                  <span className="flex items-center justify-center h-full w-full" style={{ padding: 20 }}>
+                    <img
+                      src={placeholderSrc}
+                      alt={name}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                    />
+                  </span>
+                ) : (
+                  <span
+                    className="flex items-center justify-center h-full w-full"
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: 54,
+                      fontWeight: 700,
+                      color: T.inkDim,
+                    }}
+                  >
+                    {initial}
+                  </span>
+                )}
+                <span
+                  className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    background: 'rgba(31, 26, 14, 0.5)',
+                    borderRadius: '50%',
+                    color: T.card,
+                  }}
+                >
+                  <Camera className="h-5 w-5" />
+                </span>
+              </Link>
+            </div>
+          </div>
         </div>
-
-        {!hasAvatar && (
-          <Link
-            to="/pack/profile?edit=avatar"
-            className="mt-3 inline-flex items-center gap-1.5"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 12,
-              color: T.accentGold,
-              textDecoration: 'underline',
-              textUnderlineOffset: 3,
-              textDecorationColor: 'rgba(201, 154, 63, 0.4)',
-            }}
-          >
-            <Camera className="h-3 w-3" />
-            add your photo
-          </Link>
-        )}
 
         <div
           className="mt-5"
@@ -171,101 +167,33 @@ export function HeroCard({ name, email, avatarUrl, founderNumber, dogCount = 0 }
         >
           {name}
         </div>
+        {/* LEVEL badge — zlato-fialový (Pharaoh); level systém = brainstorm ďalšia session */}
         <div
+          className="mt-3 inline-flex items-center gap-2"
           style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 12,
-            color: T.inkDim,
-            marginTop: 4,
+            padding: '7px 16px',
+            borderRadius: 999,
+            background: 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)',
+            border: '1px solid rgba(201, 154, 63, 0.55)',
+            boxShadow: '0 5px 18px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
           }}
         >
-          {email}
-        </div>
-
-        {/* Spacer pushes identity badge to bottom */}
-        <div className="flex-1" style={{ minHeight: 18 }} />
-
-        {/* Identity badge */}
-        <div className="w-full mt-4">
-          <div
-            className="mx-auto flex items-center justify-center gap-2"
+          <Crown className="h-3.5 w-3.5" style={{ color: 'hsl(45 92% 82%)' }} />
+          <span
             style={{
-              padding: '10px 14px',
-              borderRadius: 999,
-              background: `linear-gradient(90deg, rgba(201, 154, 63, 0.10) 0%, rgba(201, 154, 63, 0.22) 50%, rgba(201, 154, 63, 0.10) 100%)`,
-              border: `1px solid rgba(201, 154, 63, 0.32)`,
-              maxWidth: '100%',
-              flexWrap: 'wrap',
+              fontFamily: "'Cinzel', serif",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.26em',
+              textTransform: 'uppercase',
+              color: '#FFF6E6',
+              textShadow: '0 1px 4px rgba(0,0,0,0.35)',
             }}
           >
-            <LivePulse />
-            <span
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 10.5,
-                fontWeight: 700,
-                letterSpacing: '0.28em',
-                textTransform: 'uppercase',
-                color: T.ink,
-              }}
-            >
-              Dogyptian
-            </span>
-            <span style={{ color: T.inkFaint, fontSize: 10 }}>·</span>
-            <span
-              style={{
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                fontSize: 11,
-                letterSpacing: '0.12em',
-                color: T.accentGold,
-              }}
-            >
-              {founderLabel}
-            </span>
-          </div>
-          {dogCount > 0 && (
-            <div
-              className="text-center mt-2"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 9.5,
-                letterSpacing: '0.34em',
-                textTransform: 'uppercase',
-                color: T.inkFaint,
-              }}
-            >
-              Guardian of {dogCount} {dogCount === 1 ? 'dog' : 'dogs'}
-            </div>
-          )}
+            Pharaoh
+          </span>
         </div>
       </div>
     </section>
-  );
-}
-
-function LivePulse() {
-  return (
-    <span
-      className="relative inline-flex"
-      style={{ width: 8, height: 8 }}
-      aria-hidden
-    >
-      <span
-        className="absolute inset-0 rounded-full"
-        style={{
-          background: '#3D7A4E',
-          animation: 'pack-live-pulse 1.8s ease-out infinite',
-        }}
-      />
-      <span
-        className="relative inline-block rounded-full"
-        style={{
-          width: 8,
-          height: 8,
-          background: '#3D7A4E',
-          boxShadow: '0 0 0 1px rgba(255,255,255,0.4)',
-        }}
-      />
-    </span>
   );
 }

@@ -23,6 +23,10 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const vidRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  // Offscreen scratch canvas — Matej confirmed this state worked on iPhone ("super"
+  // at session start, no white box). Video frame → scratch (source-over), then the
+  // scratch canvas is multiplied onto the main canvas.
+  const scratchRef = useRef<HTMLCanvasElement | null>(null);
   const fade = useRef({ from: active, to: active, t: 1 });
   const { x: sxF, y: syF, w: swF, h: shF } = sheet;
 
@@ -31,6 +35,26 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
     const f = fade.current;
     if (active !== f.to) { f.from = f.to; f.to = active; f.t = 0; }
   }, [active]);
+
+  // iOS won't start the videos from a mount-time .play() (stays paused at rs4) and the
+  // canvas→canvas multiply only gets real frames from a PLAYING video → paused = empty
+  // papyrus. Kick them on the first user gesture (any touch/scroll/tap), which iOS
+  // accepts, and keep retrying any that fall back to paused.
+  useEffect(() => {
+    const playAll = () => vidRefs.current.forEach((v) => v && v.paused && v.play().catch(() => {}));
+    playAll();
+    const opts = { passive: true, capture: true } as AddEventListenerOptions;
+    document.addEventListener('touchstart', playAll, opts);
+    document.addEventListener('pointerdown', playAll, opts);
+    document.addEventListener('scroll', playAll, opts);
+    const iv = setInterval(playAll, 1000); // safety net: re-arm any paused video
+    return () => {
+      document.removeEventListener('touchstart', playAll, opts);
+      document.removeEventListener('pointerdown', playAll, opts);
+      document.removeEventListener('scroll', playAll, opts);
+      clearInterval(iv);
+    };
+  }, [videos]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,9 +75,19 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
       const sx = sxF * W, sy = syF * H, sw = swF * W, sh = shF * H;
       const s = Math.min(sw / v.videoWidth, sh / v.videoHeight);
       const dw = v.videoWidth * s, dh = v.videoHeight * s;
+      let scratch = scratchRef.current;
+      if (!scratch) { scratch = document.createElement('canvas'); scratchRef.current = scratch; }
+      if (scratch.width !== v.videoWidth || scratch.height !== v.videoHeight) {
+        scratch.width = v.videoWidth; scratch.height = v.videoHeight;
+      }
+      const sctx = scratch.getContext('2d');
+      if (!sctx) return;
+      sctx.globalCompositeOperation = 'source-over';
+      sctx.clearRect(0, 0, scratch.width, scratch.height);
+      sctx.drawImage(v, 0, 0);
       ctx.globalAlpha = alpha;
       ctx.globalCompositeOperation = 'multiply';
-      ctx.drawImage(v, sx + (sw - dw) / 2, sy + (sh - dh) / 2, dw, dh);
+      ctx.drawImage(scratch, sx + (sw - dw) / 2, sy + (sh - dh) / 2, dw, dh);
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = 'source-over';
     };
@@ -79,11 +113,18 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
 
   return (
     <>
-      <canvas ref={canvasRef} className="wf-scene-canvas" aria-hidden />
+      <canvas ref={canvasRef} className="wf-scene-canvas" aria-hidden style={{ zIndex: 1 }} />
       {videos.map((v, i) =>
         v ? (
+          /* iOS DEBUG-CONFIRMED: display:none → video stuck at readyState 1 (metadata
+           * only), paused, never decodes → canvas gets no frame. iOS needs the video
+           * RENDERED at real size + autoplay to decode/play. So: full-size, opacity 0,
+           * BEHIND the canvas (zIndex 0 < canvas 1) → invisible to the eye, but iOS
+           * decodes + plays it; the canvas samples its frames and composites. */
           <video key={i} ref={(el) => { vidRefs.current[i] = el; }} src={v}
-                 muted loop playsInline preload="auto" aria-hidden style={{ display: 'none' }} />
+                 muted loop playsInline autoPlay preload="auto" aria-hidden
+                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%',
+                          objectFit: 'contain', opacity: 0, zIndex: 0, pointerEvents: 'none' }} />
         ) : null
       )}
     </>
@@ -440,6 +481,13 @@ export default function Vision() {
          * Fix = fixed na viewport (rovnaký pattern ako .about-root). Scoped na .vision-root. */
         .vision-root.dark-bg::before {
           position: fixed;
+          /* inset:0 by ukotvil spodok pozadia na spodok viewportu → keď sa na mobile
+           * pri scrolle (hero → papyrus) schová adresný riadok, viewport sa zväčší a
+           * background-size:cover prepočíta = heroglyf mierne zazoomuje („pozadie sa
+           * o trochu zmení"). Ukotvenie na 100lvh (veľký viewport) drží výšku boxu
+           * konštantnú bez ohľadu na toolbar → pozadie nehybné. */
+          inset: 0 0 auto 0;
+          height: 100lvh;
         }
 
         /* ── 2-col layout (mobile: flex column with reordered items via display:contents) ── */
@@ -974,12 +1022,16 @@ export default function Vision() {
           text-align: center;
         }
         @media (max-width: 767px) {
+          /* Fill the band between the sticky top-bar (~89px) and the viewport bottom,
+           * then centre the whole hero block within it. */
           .vision-video-hero {
-            min-height: auto;
-            padding-top: clamp(24px, 5vh, 40px);
-            padding-bottom: clamp(30px, 6vh, 50px);
-            gap: clamp(16px, 2.6vh, 24px);
+            min-height: calc(100svh - 89px);
+            justify-content: center;
+            padding-top: clamp(12px, 2vh, 20px);
+            padding-bottom: clamp(12px, 2vh, 20px);
+            gap: clamp(18px, 3vh, 30px);
           }
+          .video-hero-title { font-size: clamp(2.9rem, 12vw, 3.5rem) !important; }
         }
         /* Desktop: sticky topbar (~72px) sits in-flow above the hero, so centering
          * within (100dvh − 72px) pushes the optical centre ~36px below the true
@@ -1354,11 +1406,29 @@ export default function Vision() {
         .wf-step.active { color: #F5C73D; }
 
         @media (max-width: 767px) {
-          .wf-grid { grid-template-columns: 1fr; gap: 18px; padding: 34px 20px 116px; align-content: center; }
+          /* DETERMINISTIC top offset (NOT centered): centering pushed the block above
+           * the sticky top-bar on short phones (gap went negative). Fixed padding-top =
+           * top-bar (~89px) + comfortable gap → papyrus always sits clear of the logo,
+           * identical on every viewport height. */
+          .wf-grid { grid-template-columns: 1fr; gap: 16px; padding: 120px 20px 40px; align-content: start; }
           .wf-scroll-col { order: -1; }
-          .wf-papyrus { height: 40vh; width: calc(40vh * 815 / 892); max-width: 86%; }
-          .wf-text { min-height: 250px; }
+          .wf-papyrus { height: 54.14vh; width: calc(54.14vh * 815 / 892); max-width: 86%; } /* +10% +15% +7% */
+          .wf-text { min-height: 250px; margin-top: 155px; } /* push headline+body below papyrus */
+          /* Mobile typography: headline on ONE line (hide the desktop <br>, join the
+           * white + gold word with a nbsp), body −10% vs the shared desktop sizes */
+          .wf-block .wf-big { font-size: 2rem; }
+          .wf-block .wf-big br { display: none; }
+          .wf-block .wf-big-w::after { content: '\\00a0'; }
+          .wf-block .wf-lead { font-size: 0.95rem; margin-top: 18px; }
           .wf-steps { display: none; } /* mobile: labels were hidden + dots removed → empty row, drop it (comet bar carries progress) */
+          .wf-progress { bottom: 30px; } /* lift the comet status bar up */
+        }
+        /* Short phones (SE-class): shrink papyrus + lift the top offset so the longest
+         * beat's body never spills past the progress bar. */
+        @media (max-width: 767px) and (max-height: 740px) {
+          .wf-grid { padding-top: 96px; }
+          .wf-papyrus { height: 37.45vh; width: calc(37.45vh * 815 / 892); } /* +10% +7% */
+          .wf-text { margin-top: 20px; } /* short phones: keep the longest beat clear of the progress bar */
         }
       `}</style>
 
@@ -1547,23 +1617,28 @@ export default function Vision() {
           …every doglover said{' '}
           <span style={{ color: '#F5C73D', fontStyle: 'italic' }}>yes</span> to one crazy idea?
         </p>
-        <p
-          style={{
-            fontSize: 'clamp(0.95rem, 1.9vw, 1.2rem)',
-            color: 'rgba(250,244,236,0.62)',
-            letterSpacing: '0.04em',
-            margin: 0,
-          }}
-        >
-          A new era is just one click away.
-        </p>
-        <button
-          onClick={() => navigate('/heroglyph')}
-          className="mission-cta"
-          style={{ alignSelf: 'center' }}
-        >
-          Become Dogyptian
-        </button>
+        {/* button + tagline as one group so the tagline sits a tight 7px under the
+            button (the section's larger flex gap stays above the button) */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' }}>
+          <button
+            onClick={() => navigate('/heroglyph')}
+            className="mission-cta"
+            style={{ alignSelf: 'center', margin: 0 }}
+          >
+            Become Dogyptian
+          </button>
+          <p
+            style={{
+              fontSize: 'clamp(0.95rem, 1.9vw, 1.2rem)',
+              fontStyle: 'italic',
+              color: 'rgba(250,244,236,0.62)',
+              letterSpacing: '0.04em',
+              margin: 0,
+            }}
+          >
+            A new era is just one click away.
+          </p>
+        </div>
       </section>
 
     </div>
