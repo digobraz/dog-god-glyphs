@@ -6,7 +6,7 @@
  *   1.  A-Z       — first letter of dog name
  *   2.  XY/XX     — dog gender (king=XY, queen=XX)
  *   3.  M/R/S     — dog colour (dark=M, mix=R, bright=S)
- *   4.  L/P       — dog fate (raised=L, rescued=P)
+ *   4.  P/L       — dog fate (raised/puppy=P Pacifier, rescued/adopted=L Lifebuoy)
  *   5.  E/S       — dog bloodline (mutt=E, aristocrat=S)
  *   6.  CC        — patron category (01–10) from breeds.json
  *   7.  PP        — patron number in category (00 reserved Hekthor only)
@@ -15,8 +15,8 @@
  *   10. Z01-12    — owner Western zodiac index, prefixed Z
  *   11. A-Z       — first letter of owner name
  *   12. 01+       — ranking (which dog of the owner) zero-padded 2 digits
- *   13. char₁     — first character first letter (A/C/G/H/L/M/P/W)
- *   14. char₂     — second character first letter
+ *   13. char₁     — first character 2-letter code (GU/EN/MV/WA/GO/LO/CH/PL)
+ *   14. char₂     — second character 2-letter code
  *   15. SVK       — country ISO 3166-1 alpha-3
  *   16. YYYY      — dog birthday year
  *
@@ -55,11 +55,16 @@ const DOG_COLOUR_TO_CODE: Record<string, string> = {
   bright: 'S',
 };
 
+// LOCK 2026-06-06 (plany/heroglyph-kod-symboly.md): osud OPRAVENÝ (predtým prehodené).
+//   raised (od šteňaťa) = Pacifier (dudlík) = P
+//   rescued (zachránený) = Lifebuoy (záchranné koleso) = L
 const DOG_FATE_TO_CODE: Record<string, string> = {
-  raised: 'L',     // L = Lifelong / Founded
-  rescued: 'P',    // P = Pacifier / Rescued
-  founded: 'L',
+  raised: 'P',
+  puppy: 'P',      // alias (wizardSteps legacy)
   pacifier: 'P',
+  rescued: 'L',
+  adopted: 'L',
+  lifebuoy: 'L',
 };
 
 const DOG_BLOODLINE_TO_CODE: Record<string, string> = {
@@ -97,21 +102,20 @@ const WESTERN_ZODIAC_ORDER = [
   'Pisces',      // 12
 ];
 
-// Character key (asset filename slug) → letter from spec:
-//   A=Aporter, C=Chillman, G=Gourmet, H=Hyperactive, L=Lover,
-//   M=Maverick (formerly Pirate), P=Poseidog (= waterlover/playful?), W=Watcher
+// LOCK 2026-06-06 (plany/heroglyph-kod-symboly.md): 2-PÍSMENOVÉ kódy, unikátne iniciály.
+// Hodnoty zľava = `value` z DogCharacterScreen + aliasy (legacy/wizardSteps).
+//   Guardian GU 👁️ · Energizer EN 🔋 · Maverick MV ☠️ · Waterlover WA 🌊
+//   Gourmet GO 🥣 · Lover LO 💘 · Chiller CH 🛋️ · Player PL 🎾
+// Founder výnimka: Hektor Player má v reálnom kóde 'RFO' (frisbee), číta sa ako PL.
 const CHARACTER_TO_CODE: Record<string, string> = {
-  watcher: 'W',
-  hyperactive: 'H',
-  pirate: 'M',      // Maverick (asset still named PIRATE)
-  maverick: 'M',
-  waterlover: 'P',  // Poseidog
-  poseidog: 'P',
-  gourmet: 'G',
-  lover: 'L',
-  chillman: 'C',
-  playful: 'A',     // Aporter (no canonical asset yet — best-effort fallback)
-  aporter: 'A',
+  watcher: 'GU',     guardian: 'GU',
+  hyperactive: 'EN', energizer: 'EN',
+  pirate: 'MV',      maverick: 'MV',    savage: 'MV',
+  waterlover: 'WA',  poseidog: 'WA',
+  gourmet: 'GO',
+  lover: 'LO',
+  chillman: 'CH',    chiller: 'CH',     chillmaster: 'CH',
+  playful: 'PL',     player: 'PL',      aporter: 'PL',  gamer: 'PL',
 };
 
 // ISO 3166-1 alpha-3 lookup. Covers EN + SK names of common destinations
@@ -275,12 +279,12 @@ function countryISO3(country: string | undefined): string {
 }
 
 function characterCode(value: string | undefined): string {
-  if (!value) return 'X';
+  if (!value) return 'XX';
   const code = CHARACTER_TO_CODE[value.toLowerCase()];
   if (code) return code;
-  // Fallback: first letter uppercase
-  const ch = value.trim().charAt(0).toUpperCase();
-  return /^[A-Z]$/.test(ch) ? ch : 'X';
+  // Fallback: first two letters uppercase
+  const ch = value.trim().slice(0, 2).toUpperCase();
+  return /^[A-Z]{2}$/.test(ch) ? ch : 'XX';
 }
 
 // ---------------------------------------------------------------------------
@@ -307,19 +311,20 @@ export interface HeroglyphCodeInput {
 /**
  * Build the canonical 16-segment heroglyph code.
  *
- * Hektor's golden case:
+ * Hektor's golden case (LOCK 2026-06-06 — 2-letter chars + fate swap):
  *   buildHeroglyphCode({
  *     dogName: 'Hektor', ownerName: 'Matej',
  *     patronSvg: '08-00.svg', country: 'Slovensko',
  *     selections: {
- *       dogGender: 'king', dogColour: 'dark', dogFate: 'raised',
+ *       dogGender: 'king', dogColour: 'dark', dogFate: 'rescued',
  *       dogBloodline: 'mutt', ownerGender: 'man',
  *       ownerChineseZodiac: 'Rooster', ownerZodiac: 'Leo',
- *       ranking: '1', dogCharacter1: 'pirate', dogCharacter2: 'waterlover',
- *       birthdayYear: '2016',
+ *       ranking: '1', dogCharacter1: 'playful', dogCharacter2: 'waterlover',
+ *       birthdayYear: '2015',
  *     },
  *   })
- * → "H-XY-M-L-E-08-00-XY-CH10-Z05-M-01-M-P-SVK-2016"
+ * → "H-XY-M-L-E-08-00-XY-CH10-Z05-M-01-PL-WA-SVK-2015"
+ *   (Hektor founder výnimka: 'PL' v reálnom kóde nahradené 'RFO' — frisbee.)
  */
 export function buildHeroglyphCode(
   raw: HeroglyphCodeInput | Record<string, string>

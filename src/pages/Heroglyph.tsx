@@ -15,7 +15,7 @@ const MEANINGS: Record<string, SymbolMeaning> = {
   FOUNDED:        { label: 'Dog Origin',       value: 'Rescued' },
   SAVAGE:         { label: 'Dog Bloodline',    value: 'Mutt' },
   TANIER:         { label: 'Dog Character I',  value: 'Favourite Frisbee' },
-  WATER:          { label: 'Dog Character II', value: 'Water Lover' },
+  WATER:          { label: 'Dog Character II', value: 'Waterlover' },
   MAN:            { label: 'Owner Gender',     value: 'Man' },
   LEO:            { label: 'Western Zodiac',   value: 'Leo' },
   ROASTER:        { label: 'Chinese Zodiac',   value: 'Rooster' },

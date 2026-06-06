@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { PACK_THEME } from './PackLayout';
 import { Ranking } from './Ranking';
 import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
+import dogSilhouette from '@/assets/dogypt-logo-mobile.png';
 
 const T = PACK_THEME;
 
@@ -433,20 +434,30 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
         }}
       />
 
-      {/* Centered block title */}
-      <div className="relative text-center" style={{ marginBottom: 22 }}>
-        <h2
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 'clamp(20px, 4.4vw, 30px)',
-            fontWeight: 700,
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            color: T.accentGold,
-            lineHeight: 1.05,
-          }}
-        >
-          DOGYPT NATION
+      {/* Centered block title — black DOGYPT logo + italic "nation" */}
+      <div className="relative w-full flex flex-col items-center" style={{ marginBottom: 22 }}>
+        <h2 className="flex items-center justify-center gap-2.5" style={{ margin: 0, lineHeight: 1 }}>
+          <img
+            src="/images/dogypt-logo-black-w.png"
+            alt="DOGYPT"
+            style={{
+              height: 'clamp(28px, 5.6vw, 40px)',
+              width: 'auto',
+              display: 'block',
+            }}
+          />
+          <span
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontStyle: 'italic',
+              fontSize: 'clamp(16px, 3.4vw, 24px)',
+              fontWeight: 600,
+              color: T.ink,
+              lineHeight: 1,
+            }}
+          >
+            nation
+          </span>
         </h2>
         <div
           aria-hidden
@@ -481,9 +492,8 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
             >
               <defs>
                 <linearGradient id="packArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#6d28d9" />
-                  <stop offset="48%" stopColor="#a21caf" />
-                  <stop offset="100%" stopColor="#F5C73D" />
+                  <stop offset="0%" stopColor="#7c3aed" />
+                  <stop offset="100%" stopColor="#C99A3F" />
                 </linearGradient>
               </defs>
               <g transform={`rotate(135 50 50)`}>
@@ -525,6 +535,20 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
                   borderRadius: '50%',
                   background:
                     'radial-gradient(circle, rgba(252,245,226,0.96) 0%, rgba(252,245,226,0.74) 42%, rgba(252,245,226,0.20) 64%, transparent 77%)',
+                }}
+              />
+              {/* Dog silhouette watermark — za číslom, priehľadný vodoznak */}
+              <img
+                aria-hidden
+                src={dogSilhouette}
+                alt=""
+                style={{
+                  position: 'absolute',
+                  width: '46%',
+                  height: 'auto',
+                  opacity: 0.1,
+                  filter: 'grayscale(1) brightness(0)',
+                  pointerEvents: 'none',
                 }}
               />
               <div className="relative">

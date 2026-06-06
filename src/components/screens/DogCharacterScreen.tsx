@@ -17,14 +17,14 @@ import loverSvg from '@/assets/character/CHARACTER-LOVER.svg';
 import chillmanSvg from '@/assets/character/CHARACTER-CHILLMAN.svg';
 
 const characters = [
-  { value: 'watcher', label: 'Watcher', img: watcherSvg, isCustom: false },
-  { value: 'playful', label: 'Playful', img: playfulSvg, isCustom: false },
-  { value: 'hyperactive', label: 'Hyperactive', img: hyperactiveSvg, isCustom: false },
+  { value: 'watcher', label: 'Guardian', img: watcherSvg, isCustom: false },
+  { value: 'playful', label: 'Player', img: playfulSvg, isCustom: false },
+  { value: 'hyperactive', label: 'Energizer', img: hyperactiveSvg, isCustom: false },
   { value: 'pirate', label: 'Maverick', img: pirateSvg, isCustom: false },
-  { value: 'waterlover', label: 'Water Lover', img: waterloverSvg, isCustom: false },
+  { value: 'waterlover', label: 'Waterlover', img: waterloverSvg, isCustom: false },
   { value: 'gourmet', label: 'Gourmet', img: gourmetSvg, isCustom: false },
   { value: 'lover', label: 'Lover', img: loverSvg, isCustom: false },
-  { value: 'chillman', label: 'Chillman', img: chillmanSvg, isCustom: false },
+  { value: 'chillman', label: 'Chiller', img: chillmanSvg, isCustom: false },
 ];
 
 const tripleCharacters = [...characters, ...characters, ...characters];
