@@ -57,30 +57,8 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
         {/* Owner node — hidden in 2-col layout where owner sits in HeroCard */}
         {!hideOwner && <OwnerNode avatarUrl={ownerAvatarUrl} initial={ownerInitial} />}
 
-        {/* 1 pes = hero karta · 2+ psov = kompaktný stack riadkov */}
-        {dogs.length === 0 ? (
-          <div
-            className="text-center"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 11,
-              letterSpacing: '0.24em',
-              textTransform: 'uppercase',
-              color: 'hsl(45 70% 90% / 0.78)',
-              padding: '18px 8px',
-            }}
-          >
-            No heroglyphs yet
-          </div>
-        ) : dogs.length === 1 ? (
-          <PrimaryDog dog={dogs[0]} />
-        ) : (
-          <div className="w-full flex flex-col gap-3">
-            {dogs.map((d) => (
-              <DogRow key={d.id} dog={d} />
-            ))}
-          </div>
-        )}
+        {/* Adaptívna hustota — 1 hero · 2-4 riadky · 5-12 mriežka foto+meno · 13+ stena len foto */}
+        <DogCollection dogs={dogs} />
       </div>
 
       {/* Action footer — Add dog (gold, brand manuál) + Invite friend (outline) */}
@@ -213,6 +191,167 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
   );
 }
 
+// Adaptívna hustota podľa počtu psov — všetko v jednom rámci bez scrollu.
+function DogCollection({ dogs }: { dogs: DogNode[] }) {
+  if (dogs.length === 0) {
+    return (
+      <div
+        className="text-center"
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 11,
+          letterSpacing: '0.24em',
+          textTransform: 'uppercase',
+          color: 'hsl(45 70% 90% / 0.78)',
+          padding: '18px 8px',
+        }}
+      >
+        No heroglyphs yet
+      </div>
+    );
+  }
+
+  const ordered = [...dogs].sort(
+    (a, b) =>
+      (a.pack_number ?? Number.MAX_SAFE_INTEGER) - (b.pack_number ?? Number.MAX_SAFE_INTEGER),
+  );
+
+  // 1 pes = hero karta (foto + meno + plný heroglyf)
+  if (ordered.length === 1) return <PrimaryDog dog={ordered[0]} />;
+
+  // 2–4 = plné riadky (foto + meno + # + heroglyf + ikonka)
+  if (ordered.length <= 4) {
+    return (
+      <div className="w-full flex flex-col gap-3">
+        {ordered.map((d) => (
+          <DogRow key={d.id} dog={d} />
+        ))}
+      </div>
+    );
+  }
+
+  // 5–12 = štvorcová mriežka (foto + meno + malé #)
+  if (ordered.length <= 12) {
+    return (
+      <div className="w-full grid grid-cols-3 gap-2.5">
+        {ordered.map((d) => (
+          <DogGridCard key={d.id} dog={d} />
+        ))}
+      </div>
+    );
+  }
+
+  // 13+ = stena (len foto + # v rohu)
+  return (
+    <div
+      className="w-full grid gap-2"
+      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}
+    >
+      {ordered.map((d) => (
+        <DogAvatar key={d.id} dog={d} />
+      ))}
+    </div>
+  );
+}
+
+// 5–12 psov: štvorcová karta — foto + meno + malé #
+function DogGridCard({ dog }: { dog: DogNode }) {
+  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const founder = dog.pack_number ? `#${dog.pack_number}` : null;
+  return (
+    <Link
+      to={`/pack/dogs/${dog.id}`}
+      className="flex flex-col items-center pack-card-hover"
+      style={{
+        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+        border: `1px solid rgba(201, 154, 63, 0.30)`,
+        borderRadius: 14,
+        padding: '14px 8px 12px',
+        textDecoration: 'none',
+        boxShadow: '0 8px 22px -16px rgba(20, 8, 40, 0.5)',
+      }}
+    >
+      <div
+        style={{
+          width: 62,
+          height: 62,
+          borderRadius: '50%',
+          background: T.bg,
+          overflow: 'hidden',
+          border: `2px solid ${T.accentGold}`,
+          boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.40)',
+        }}
+      >
+        {dog.cloudinary_main_url ? (
+          <img src={dog.cloudinary_main_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 7, letterSpacing: '0.14em' }}>
+            NO PHOTO
+          </div>
+        )}
+      </div>
+      <div
+        className="w-full text-center"
+        style={{
+          fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+          fontSize: 12,
+          fontWeight: 700,
+          color: T.ink,
+          marginTop: 9,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {name}
+      </div>
+      {founder && (
+        <div
+          style={{
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 9.5,
+            fontWeight: 700,
+            color: T.accentGold,
+            marginTop: 3,
+            lineHeight: 1,
+          }}
+        >
+          {founder}
+        </div>
+      )}
+    </Link>
+  );
+}
+
+// 13+ psov: stena — IBA foto (kruh). Bez #, bez mena. Tap = profil.
+function DogAvatar({ dog }: { dog: DogNode }) {
+  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  return (
+    <Link
+      to={`/pack/dogs/${dog.id}`}
+      title={name}
+      className="relative block pack-card-hover"
+      style={{
+        aspectRatio: '1 / 1',
+        borderRadius: '50%',
+        background: T.bg,
+        overflow: 'hidden',
+        border: `2px solid ${T.accentGold}`,
+        boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.35)',
+        textDecoration: 'none',
+      }}
+    >
+      {dog.cloudinary_main_url ? (
+        <img src={dog.cloudinary_main_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 6, letterSpacing: '0.1em' }}>
+          NO PHOTO
+        </div>
+      )}
+    </Link>
+  );
+}
+
 function DogRow({ dog }: { dog: DogNode }) {
   const name = (dog.dog_name || 'Unnamed').toUpperCase();
   const founder = dog.pack_number ? `#${dog.pack_number}` : null;
@@ -260,54 +399,55 @@ function DogRow({ dog }: { dog: DogNode }) {
         )}
       </div>
 
-      {/* Meno + # + heroglyf thumb */}
+      {/* Meno + # pod menom */}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
+        <div
+          style={{
+            fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+            fontSize: 19,
+            fontWeight: 700,
+            letterSpacing: '0.03em',
+            color: T.ink,
+            lineHeight: 1.05,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {name}
+        </div>
+        {founder && (
           <span
+            className="inline-flex items-center"
             style={{
-              fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-              fontSize: 19,
+              marginTop: 7,
+              padding: '2px 9px',
+              borderRadius: 999,
+              background: 'rgba(201, 154, 63, 0.14)',
+              border: '1px solid rgba(201, 154, 63, 0.50)',
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 11,
               fontWeight: 700,
-              letterSpacing: '0.03em',
-              color: T.ink,
+              color: T.accentGold,
               lineHeight: 1,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
             }}
           >
-            {name}
+            {founder}
           </span>
-          {founder && (
-            <span
-              className="inline-flex items-center shrink-0"
-              style={{
-                padding: '2px 8px',
-                borderRadius: 999,
-                background: 'rgba(201, 154, 63, 0.14)',
-                border: '1px solid rgba(201, 154, 63, 0.50)',
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                fontSize: 11,
-                fontWeight: 700,
-                color: T.accentGold,
-                lineHeight: 1,
-              }}
-            >
-              {founder}
-            </span>
-          )}
-        </div>
-        {dog.heroglyph_png_url && (
-          <img
-            src={dog.heroglyph_png_url}
-            alt={`${name} heroglyph`}
-            style={{ height: 22, width: 'auto', maxWidth: '100%', objectFit: 'contain', display: 'block', marginTop: 9 }}
-          />
         )}
       </div>
 
-      {/* Profil ikonka */}
-      <ScrollText className="h-4 w-4 shrink-0" style={{ color: T.accentGold }} />
+      {/* Heroglyf — väčší, posunutý doľava (miesto pre profil ikonku vpravo) */}
+      {dog.heroglyph_png_url && (
+        <img
+          src={dog.heroglyph_png_url}
+          alt={`${name} heroglyph`}
+          style={{ height: 40, width: 'auto', maxWidth: 132, objectFit: 'contain', display: 'block', flexShrink: 0 }}
+        />
+      )}
+
+      {/* Profil ikonka — rozklik celého psieho profilu */}
+      <ScrollText className="h-4 w-4 shrink-0" style={{ color: T.accentGold, marginLeft: 2 }} />
     </Link>
   );
 }
