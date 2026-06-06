@@ -57,7 +57,7 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
         {/* Owner node — hidden in 2-col layout where owner sits in HeroCard */}
         {!hideOwner && <OwnerNode avatarUrl={ownerAvatarUrl} initial={ownerInitial} />}
 
-        {/* Single-dog focus — primárny pes (foto → meno → heroglyf). Multi-pes náhľad = neskôr. */}
+        {/* 1 pes = hero karta · 2+ psov = kompaktný stack riadkov */}
         {dogs.length === 0 ? (
           <div
             className="text-center"
@@ -72,8 +72,14 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
           >
             No heroglyphs yet
           </div>
-        ) : (
+        ) : dogs.length === 1 ? (
           <PrimaryDog dog={dogs[0]} />
+        ) : (
+          <div className="w-full flex flex-col gap-3">
+            {dogs.map((d) => (
+              <DogRow key={d.id} dog={d} />
+            ))}
+          </div>
         )}
       </div>
 
@@ -204,6 +210,105 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
           )}
         </div>
       </div>
+  );
+}
+
+function DogRow({ dog }: { dog: DogNode }) {
+  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const founder = dog.pack_number ? `#${dog.pack_number}` : null;
+
+  // Kompaktná bledá karta — foto + meno(+#) + heroglyf thumb + profil link. Celý riadok = link.
+  return (
+    <Link
+      to={`/pack/dogs/${dog.id}`}
+      className="relative flex items-center gap-3.5 w-full pack-card-hover"
+      style={{
+        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+        border: `1px solid rgba(201, 154, 63, 0.30)`,
+        borderRadius: 16,
+        padding: '13px 15px',
+        boxShadow: '0 10px 26px -16px rgba(20, 8, 40, 0.5)',
+        textDecoration: 'none',
+      }}
+    >
+      {/* Foto — kruh, zlatý prsteň */}
+      <div
+        style={{
+          width: 58,
+          height: 58,
+          borderRadius: '50%',
+          background: T.bg,
+          overflow: 'hidden',
+          flexShrink: 0,
+          border: `2px solid ${T.accentGold}`,
+          boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.40)',
+        }}
+      >
+        {dog.cloudinary_main_url ? (
+          <img
+            src={dog.cloudinary_main_url}
+            alt={name}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div
+            className="flex items-center justify-center h-full"
+            style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.16em' }}
+          >
+            NO PHOTO
+          </div>
+        )}
+      </div>
+
+      {/* Meno + # + heroglyf thumb */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+              fontSize: 19,
+              fontWeight: 700,
+              letterSpacing: '0.03em',
+              color: T.ink,
+              lineHeight: 1,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {name}
+          </span>
+          {founder && (
+            <span
+              className="inline-flex items-center shrink-0"
+              style={{
+                padding: '2px 8px',
+                borderRadius: 999,
+                background: 'rgba(201, 154, 63, 0.14)',
+                border: '1px solid rgba(201, 154, 63, 0.50)',
+                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                fontSize: 11,
+                fontWeight: 700,
+                color: T.accentGold,
+                lineHeight: 1,
+              }}
+            >
+              {founder}
+            </span>
+          )}
+        </div>
+        {dog.heroglyph_png_url && (
+          <img
+            src={dog.heroglyph_png_url}
+            alt={`${name} heroglyph`}
+            style={{ height: 22, width: 'auto', maxWidth: '100%', objectFit: 'contain', display: 'block', marginTop: 9 }}
+          />
+        )}
+      </div>
+
+      {/* Profil ikonka */}
+      <ScrollText className="h-4 w-4 shrink-0" style={{ color: T.accentGold }} />
+    </Link>
   );
 }
 
