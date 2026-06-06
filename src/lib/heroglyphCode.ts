@@ -106,7 +106,7 @@ const WESTERN_ZODIAC_ORDER = [
 // Hodnoty zľava = `value` z DogCharacterScreen + aliasy (legacy/wizardSteps).
 //   Guardian GU 👁️ · Energizer EN 🔋 · Maverick MV ☠️ · Waterlover WA 🌊
 //   Gourmet GO 🥣 · Lover LO 💘 · Chiller CH 🛋️ · Player PL 🎾
-// Founder výnimka: Hektor Player má v reálnom kóde 'RFO' (frisbee), číta sa ako PL.
+// (Founder účty môžu mať v DB ručnú výnimku v char segmente — číta sa ako bežný kód.)
 const CHARACTER_TO_CODE: Record<string, string> = {
   watcher: 'GU',     guardian: 'GU',
   hyperactive: 'EN', energizer: 'EN',
@@ -320,11 +320,10 @@ export interface HeroglyphCodeInput {
  *       dogBloodline: 'mutt', ownerGender: 'man',
  *       ownerChineseZodiac: 'Rooster', ownerZodiac: 'Leo',
  *       ranking: '1', dogCharacter1: 'playful', dogCharacter2: 'waterlover',
- *       birthdayYear: '2015',
+ *       birthdayYear: '2016',
  *     },
  *   })
- * → "H-XY-M-L-E-08-00-XY-CH10-Z05-M-01-PL-WA-SVK-2015"
- *   (Hektor founder výnimka: 'PL' v reálnom kóde nahradené 'RFO' — frisbee.)
+ * → "H-XY-M-L-E-08-00-XY-CH10-Z05-M-01-PL-WA-SVK-2016"
  */
 export function buildHeroglyphCode(
   raw: HeroglyphCodeInput | Record<string, string>
