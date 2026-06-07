@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
@@ -12,7 +13,9 @@ import mixSvg from '@/assets/colour/COLOUR-MIX.svg';
 
 export function DogColourScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
+  const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -42,7 +45,7 @@ export function DogColourScreen() {
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
+                {t('heroglyph.flow.dogHeroglyphTitle', { dogName: displayName })}
               </h2>
               <div className="px-2">
                 <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogColour" />
@@ -63,10 +66,10 @@ export function DogColourScreen() {
               className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
               style={{ fontFamily: "'Cinzel', serif" }}
             >
-              Dog Colour
+              {t('heroglyph.flow.dogColour.title')}
             </h3>
             <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              What <span className="font-bold text-amber-300">coat</span> is your dog wearing?
+              {t('heroglyph.flow.dogColour.questionPrefix')} <span className="font-bold text-amber-300">{t('heroglyph.flow.dogColour.questionCoat')}</span>{t('heroglyph.flow.dogColour.questionSuffix')}
             </p>
           </motion.div>
 
@@ -88,10 +91,10 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={brightSvg} alt="Bright" className="h-10 md:h-14 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Bright</span>
+                <img src={brightSvg} alt={t('heroglyph.flow.dogColour.bright')} className="h-10 md:h-14 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogColour.bright')}</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Sun
+                  {t('heroglyph.flow.dogColour.brightSub')}
                 </span>
               </button>
 
@@ -105,10 +108,10 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={darkSvg} alt="Dark" className="h-10 md:h-14 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Dark</span>
+                <img src={darkSvg} alt={t('heroglyph.flow.dogColour.dark')} className="h-10 md:h-14 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogColour.dark')}</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Moon
+                  {t('heroglyph.flow.dogColour.darkSub')}
                 </span>
               </button>
 
@@ -122,10 +125,10 @@ export function DogColourScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={mixSvg} alt="Mix" className="h-10 md:h-14 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mix</span>
+                <img src={mixSvg} alt={t('heroglyph.flow.dogColour.mix')} className="h-10 md:h-14 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogColour.mix')}</span>
                 <span className="text-xs text-muted-foreground text-center leading-snug">
-                  Rainbow
+                  {t('heroglyph.flow.dogColour.mixSub')}
                 </span>
               </button>
             </div>
@@ -137,7 +140,7 @@ export function DogColourScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.dogColour.back')}
           </button>
         </div>
       </div>

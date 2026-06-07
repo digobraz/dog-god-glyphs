@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
@@ -11,7 +12,9 @@ import queenSvg from '@/assets/gender/GENDER-FEMALE.svg';
 
 export function DogGenderScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
+  const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -42,7 +45,7 @@ export function DogGenderScreen() {
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
+                {t('heroglyph.flow.dogHeroglyphTitle', { dogName: displayName })}
               </h2>
               <div className="px-2">
                 <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogGender" />
@@ -62,7 +65,7 @@ export function DogGenderScreen() {
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
-              aria-label="Info about Dog Gender"
+              aria-label={t('heroglyph.flow.dogGender.infoAria')}
               onClick={() => setShowInfo((p) => !p)}
             >
               <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
@@ -79,10 +82,10 @@ export function DogGenderScreen() {
                 className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Dog Gender
+                {t('heroglyph.flow.dogGender.title')}
               </h3>
               <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Do you have a <span className="font-bold text-amber-300">king</span> or a <span className="font-bold text-amber-300">queen</span> at home?
+                {t('heroglyph.flow.dogGender.questionPrefix')} <span className="font-bold text-amber-300">{t('heroglyph.flow.dogGender.questionKing')}</span> {t('heroglyph.flow.dogGender.questionOr')} <span className="font-bold text-amber-300">{t('heroglyph.flow.dogGender.questionQueen')}</span>{t('heroglyph.flow.dogGender.questionSuffix')}
               </p>
             </div>
 
@@ -104,13 +107,13 @@ export function DogGenderScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        3-Point Crown
+                        {t('heroglyph.flow.dogGender.info3Title')}
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        For boys who've mastered the 3-paw balance. One leg up, maximum aim, absolute legend.
+                        {t('heroglyph.flow.dogGender.info3Body')}
                       </p>
                     </div>
 
@@ -123,13 +126,13 @@ export function DogGenderScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        4-Point Crown
+                        {t('heroglyph.flow.dogGender.info4Title')}
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        For girls who prefer the 4-paw stability. Maximum comfort, zero mess, total elegance.
+                        {t('heroglyph.flow.dogGender.info4Body')}
                       </p>
                     </div>
                   </div>
@@ -155,8 +158,8 @@ export function DogGenderScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={kingSvg} alt="King" className="h-12 md:h-16 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">King</span>
+                <img src={kingSvg} alt={t('heroglyph.flow.dogGender.king')} className="h-12 md:h-16 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogGender.king')}</span>
               </button>
 
               <button
@@ -168,8 +171,8 @@ export function DogGenderScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={queenSvg} alt="Queen" className="h-12 md:h-16 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Queen</span>
+                <img src={queenSvg} alt={t('heroglyph.flow.dogGender.queen')} className="h-12 md:h-16 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogGender.queen')}</span>
               </button>
             </div>
           </motion.div>
@@ -180,7 +183,7 @@ export function DogGenderScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.dogGender.back')}
           </button>
         </div>
       </div>

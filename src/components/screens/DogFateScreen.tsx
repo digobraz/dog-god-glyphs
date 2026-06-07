@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
@@ -11,7 +12,9 @@ import rescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 
 export function DogFateScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
+  const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -42,7 +45,7 @@ export function DogFateScreen() {
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
+                {t('heroglyph.flow.dogHeroglyphTitle', { dogName: displayName })}
               </h2>
               <div className="px-2">
                 <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogFate" />
@@ -62,7 +65,7 @@ export function DogFateScreen() {
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
-              aria-label="Info about Dog Fate"
+              aria-label={t('heroglyph.flow.dogFate.infoAria')}
               onClick={() => setShowInfo((p) => !p)}
             >
               <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
@@ -79,10 +82,10 @@ export function DogFateScreen() {
                 className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                The Origin
+                {t('heroglyph.flow.dogFate.title')}
               </h3>
               <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Was your dog born into a <span className="font-bold text-amber-300">safe home</span> or given a <span className="font-bold text-amber-300">second chance</span> at life?
+                {t('heroglyph.flow.dogFate.questionPrefix')} <span className="font-bold text-amber-300">{t('heroglyph.flow.dogFate.questionSafe')}</span> {t('heroglyph.flow.dogFate.questionOr')} <span className="font-bold text-amber-300">{t('heroglyph.flow.dogFate.questionSecond')}</span>{t('heroglyph.flow.dogFate.questionSuffix')}
               </p>
             </div>
 
@@ -104,13 +107,13 @@ export function DogFateScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Baby Pacifier
+                        {t('heroglyph.flow.dogFate.infoRaisedTitle')}
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        A dog born into the family. Raised with love from day one.
+                        {t('heroglyph.flow.dogFate.infoRaisedBody')}
                       </p>
                     </div>
 
@@ -123,13 +126,13 @@ export function DogFateScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Lifebuoy
+                        {t('heroglyph.flow.dogFate.infoRescuedTitle')}
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        A rescued or found dog. Given a second chance at life.
+                        {t('heroglyph.flow.dogFate.infoRescuedBody')}
                       </p>
                     </div>
                   </div>
@@ -155,8 +158,8 @@ export function DogFateScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={raisedSvg} alt="Raised" className="h-12 md:h-16 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Raised</span>
+                <img src={raisedSvg} alt={t('heroglyph.flow.dogFate.raised')} className="h-12 md:h-16 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogFate.raised')}</span>
               </button>
 
               <button
@@ -168,8 +171,8 @@ export function DogFateScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={rescuedSvg} alt="Rescued" className="h-12 md:h-16 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Rescued</span>
+                <img src={rescuedSvg} alt={t('heroglyph.flow.dogFate.rescued')} className="h-12 md:h-16 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogFate.rescued')}</span>
               </button>
             </div>
           </motion.div>
@@ -180,7 +183,7 @@ export function DogFateScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.dogFate.back')}
           </button>
         </div>
       </div>

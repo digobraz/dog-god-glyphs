@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { getChineseZodiac } from '@/lib/zodiac';
 import { WheelYearPicker } from '@/components/WheelDatePicker';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
@@ -116,6 +117,7 @@ const DEFAULT_YEAR = 1990;
 
 export function OwnerZodiacScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const setSelection = useDogyptStore((s) => s.setSelection);
   const savedZodiac = useDogyptStore((s) => s.selections.ownerZodiac);
   const savedChinese = useDogyptStore((s) => s.selections.ownerChineseZodiac);
@@ -166,7 +168,7 @@ export function OwnerZodiacScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
             <p className="text-white text-center text-base md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              What do the stars say about you?
+              {t('heroglyph.flow.ownerZodiac.question')}
             </p>
           </motion.div>
 
@@ -180,7 +182,7 @@ export function OwnerZodiacScreen() {
               transition={{ duration: 0.35, delay: 0.1 }}
             >
               <p className="text-xs uppercase tracking-widest text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                Zodiac Sign
+                {t('heroglyph.flow.ownerZodiac.westernLabel')}
               </p>
 
               <ScrollableStrip scrollRef={westernScrollRef}>
@@ -194,9 +196,9 @@ export function OwnerZodiacScreen() {
                         : 'border-border/30 hover:bg-card/80 hover:border-border/60'
                     }`}
                   >
-                    <img src={sign.img} alt={sign.name} className="h-8 w-8 object-contain" />
+                    <img src={sign.img} alt={t(`heroglyph.flow.ownerZodiac.sign.${sign.name}`)} className="h-8 w-8 object-contain" />
                     <span className="text-[8px] text-muted-foreground leading-none truncate w-full text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                      {sign.name}
+                      {t(`heroglyph.flow.ownerZodiac.sign.${sign.name}`)}
                     </span>
                   </button>
                 ))}
@@ -211,7 +213,7 @@ export function OwnerZodiacScreen() {
               transition={{ duration: 0.35, delay: 0.2 }}
             >
               <p className="text-xs uppercase tracking-widest text-muted-foreground text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                Chinese Zodiac
+                {t('heroglyph.flow.ownerZodiac.chineseLabel')}
               </p>
 
               <div className="flex items-center gap-3">
@@ -225,7 +227,7 @@ export function OwnerZodiacScreen() {
                       <motion.img
                         key={chineseResult.name}
                         src={chineseAnimalImages[chineseResult.name]}
-                        alt={chineseResult.name}
+                        alt={t(`heroglyph.flow.ownerZodiac.animal.${chineseResult.name}`)}
                         className="h-10 object-contain"
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -236,7 +238,7 @@ export function OwnerZodiacScreen() {
                     )}
                   </div>
                   <span className="text-[8px] text-muted-foreground leading-none truncate w-14 text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-                    {chineseResult ? chineseResult.name : ''}
+                    {chineseResult ? t(`heroglyph.flow.ownerZodiac.animal.${chineseResult.name}`) : ''}
                   </span>
                 </div>
               </div>
@@ -256,7 +258,7 @@ export function OwnerZodiacScreen() {
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                 }}
               >
-                Continue
+                {t('heroglyph.flow.ownerZodiac.continue')}
               </Button>
             </motion.div>
           )}
@@ -267,7 +269,7 @@ export function OwnerZodiacScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.ownerZodiac.back')}
           </button>
         </div>
       </div>
