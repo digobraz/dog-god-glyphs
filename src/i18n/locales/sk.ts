@@ -71,12 +71,12 @@ export const sk: Partial<Dict> = {
   'vision.finale.tagline': 'Od novej éry ťa delí jeden klik.',
 
   // ── /heroglyph intro ──
-  // hero title — case riadi CSS text-transform (rovnaký case ako EN)
-  // „Ten" pridané (vs Matejov draft „Symbol,") aby veľký nadpis mal 2 slová na 2 riadky
-  // bez duplicity s sublinom „Ktorý Mení Históriu". Číta sa: „Ten symbol, ktorý mení históriu".
-  'heroglyph.intro.title.line1': 'Ten',
-  'heroglyph.intro.title.line2': 'Symbol,',
-  'heroglyph.intro.title.desktop': 'Ten Symbol,',
+  // hero title — case riadi CSS text-transform. SK = iba „SYMBOL," (Matej 2026-06-07);
+  // mobile = 1 riadok (line2 prázdny → render vynechá <br>), desktop = „Symbol,". Číta sa
+  // s sublinom „Ktorý Mení Históriu" = „Symbol, ktorý mení históriu".
+  'heroglyph.intro.title.line1': 'Symbol,',
+  'heroglyph.intro.title.line2': '',
+  'heroglyph.intro.title.desktop': 'Symbol,',
   'heroglyph.intro.title.sub': 'Ktorý Mení Históriu',
 
   // dictionary blok ("DOG is GOD" = MOTTO → ostáva EN)

@@ -528,8 +528,12 @@ export default function Heroglyph() {
                   }}
                 >
                   {t('heroglyph.intro.title.line1')}
-                  <br />
-                  {t('heroglyph.intro.title.line2')}
+                  {t('heroglyph.intro.title.line2') && (
+                    <>
+                      <br />
+                      {t('heroglyph.intro.title.line2')}
+                    </>
+                  )}
                 </span>
               </h1>
               <p

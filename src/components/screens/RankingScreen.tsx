@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
+import { useT } from '@/i18n/LanguageContext';
 
 import num1 from '@/assets/numbers/NUMBER-1.svg';
 import num2 from '@/assets/numbers/NUMBER-2.svg';
@@ -129,6 +130,7 @@ function ordinalSuffix(n: number): string {
 
 export function RankingScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [phase, setPhase] = useState<'question' | 'pickRank' | 'custom'>('question');
@@ -199,7 +201,16 @@ export function RankingScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Is <span className="font-bold text-amber-300">{dogName || 'your pup'}</span> the first dog you've ever had?
+              {(() => {
+                const parts = t('heroglyph.flow.ranking.question').split('{dogName}');
+                return (
+                  <>
+                    {parts[0]}
+                    <span className="font-bold text-amber-300">{dogName || t('heroglyph.flow.ranking.yourPup')}</span>
+                    {parts[1]}
+                  </>
+                );
+              })()}
             </p>
           </motion.div>
 
@@ -222,7 +233,7 @@ export function RankingScreen() {
                   >
                     <RomanComposed num={1} height={64} />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
-                      YES, my first love
+                      {t('heroglyph.flow.ranking.yesLabel')}
                     </span>
                   </button>
                   <button
@@ -232,7 +243,7 @@ export function RankingScreen() {
                   >
                     <RomanComposed num={2} height={64} />
                     <span className="text-sm md:text-base font-bold tracking-wider uppercase">
-                      NO, dog lover forever!
+                      {t('heroglyph.flow.ranking.noLabel')}
                     </span>
                   </button>
                 </div>
@@ -249,7 +260,16 @@ export function RankingScreen() {
                 transition={{ duration: 0.35 }}
               >
                 <p className="text-foreground text-center text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Which dog is <span className="font-bold">{dogName || 'your pup'}</span>?
+                  {(() => {
+                    const parts = t('heroglyph.flow.ranking.whichDog').split('{dogName}');
+                    return (
+                      <>
+                        {parts[0]}
+                        <span className="font-bold">{dogName || t('heroglyph.flow.ranking.yourPup')}</span>
+                        {parts[1]}
+                      </>
+                    );
+                  })()}
                 </p>
 
                 {/* Mobile: horizontal slider */}
@@ -277,7 +297,7 @@ export function RankingScreen() {
                         <Hash className="h-6 w-6 text-foreground/60" />
                       </div>
                       <span className="text-[10px] font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                        11–50
+                        {t('heroglyph.flow.ranking.range')}
                       </span>
                     </button>
                   </div>
@@ -303,7 +323,7 @@ export function RankingScreen() {
                       <Hash className="h-7 w-7 text-foreground/60" />
                     </div>
                     <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                      11–50
+                      {t('heroglyph.flow.ranking.range')}
                     </span>
                   </button>
                 </div>
@@ -320,7 +340,7 @@ export function RankingScreen() {
                 transition={{ duration: 0.35 }}
               >
                 <p className="text-foreground text-center text-sm tracking-wider uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-                  Enter dog number (11–50)
+                  {t('heroglyph.flow.ranking.enterNumber')}
                 </p>
 
                 <div className="flex items-center gap-4">
@@ -361,7 +381,7 @@ export function RankingScreen() {
                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                       }}
                     >
-                      Continue
+                      {t('heroglyph.flow.ranking.continue')}
                     </button>
                   </motion.div>
                 )}
@@ -379,7 +399,7 @@ export function RankingScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.ranking.back')}
           </button>
         </div>
       </div>

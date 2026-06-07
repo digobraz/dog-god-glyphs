@@ -8,6 +8,7 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
+import { useT } from '@/i18n/LanguageContext';
 
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
@@ -47,6 +48,7 @@ const letterMap: Record<string, string> = {
 
 export function OwnerInfoScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const setOwnerName = useDogyptStore((s) => s.setOwnerName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const storedOwnerName = useDogyptStore((s) => s.ownerName);
@@ -83,8 +85,8 @@ export function OwnerInfoScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
             <p className="text-white text-center text-base md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Okay, let's talk about you,<br />
-              <span className="font-bold text-amber-300">hooman</span>!
+              {t('heroglyph.flow.ownerInfo.greetingPrefix')}<br />
+              <span className="font-bold text-amber-300">{t('heroglyph.flow.ownerInfo.greetingWord')}</span>!
             </p>
           </motion.div>
 
@@ -101,7 +103,7 @@ export function OwnerInfoScreen() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
-                    placeholder="Owner's first name..."
+                    placeholder={t('heroglyph.flow.ownerInfo.placeholder')}
                     className="flex-1 min-w-0 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     autoFocus
@@ -139,8 +141,8 @@ export function OwnerInfoScreen() {
                   }`}
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  <img src={manSvg} alt="Man" className="h-14 md:h-20 object-contain" />
-                  <span className="text-xs md:text-sm font-bold tracking-wider uppercase">Man</span>
+                  <img src={manSvg} alt={t('heroglyph.flow.ownerInfo.man')} className="h-14 md:h-20 object-contain" />
+                  <span className="text-xs md:text-sm font-bold tracking-wider uppercase">{t('heroglyph.flow.ownerInfo.man')}</span>
                 </button>
                 <button
                   onClick={() => setGender('woman')}
@@ -151,8 +153,8 @@ export function OwnerInfoScreen() {
                   }`}
                   style={{ fontFamily: "'Cinzel', serif" }}
                 >
-                  <img src={womanSvg} alt="Woman" className="h-14 md:h-20 object-contain" />
-                  <span className="text-xs md:text-sm font-bold tracking-wider uppercase">Woman</span>
+                  <img src={womanSvg} alt={t('heroglyph.flow.ownerInfo.woman')} className="h-14 md:h-20 object-contain" />
+                  <span className="text-xs md:text-sm font-bold tracking-wider uppercase">{t('heroglyph.flow.ownerInfo.woman')}</span>
                 </button>
               </div>
 
@@ -167,7 +169,7 @@ export function OwnerInfoScreen() {
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                 }}
               >
-                Continue
+                {t('heroglyph.flow.ownerInfo.continue')}
               </Button>
             </div>
           </motion.div>
@@ -178,7 +180,7 @@ export function OwnerInfoScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.ownerInfo.back')}
           </button>
         </div>
       </div>

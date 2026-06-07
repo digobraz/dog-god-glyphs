@@ -297,7 +297,7 @@ export function BreedPatronScreen() {
                 className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Tell me, what breed is your hero?
+                {t('heroglyph.flow.breed.question')}
               </p>
             </div>
           </motion.div>
@@ -320,7 +320,7 @@ export function BreedPatronScreen() {
                 setActiveCategory={setCat1}
                 selectedSvg={svg1}
                 onSelectSvg={setSvg1}
-                placeholder="Search breed..."
+                placeholder={t('heroglyph.flow.breed.searchPlaceholder')}
               />
 
               {/* Continue button — appears after a silhouette is chosen */}
@@ -336,7 +336,7 @@ export function BreedPatronScreen() {
                       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                     }}
                   >
-                    Continue
+                    {t('heroglyph.flow.breed.continue')}
                   </Button>
                 </motion.div>
               )}
