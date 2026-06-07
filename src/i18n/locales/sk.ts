@@ -299,7 +299,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.dogFate.rescued': 'Zachránený',
   'heroglyph.flow.dogFate.infoRaisedTitle': 'Cumlík',
   'heroglyph.flow.dogFate.infoRaisedBody': 'Pes, ktorý sa narodil do rodiny. Vychovávaný s láskou od prvého dňa.',
-  'heroglyph.flow.dogFate.infoRescuedTitle': 'Záchranný kruh',
+  'heroglyph.flow.dogFate.infoRescuedTitle': 'Záchranné koleso',
   'heroglyph.flow.dogFate.infoRescuedBody': 'Zachránený alebo nájdený pes. Dostal druhú šancu v živote.',
   'heroglyph.flow.dogFate.back': 'Späť',
 
@@ -373,7 +373,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.message.promptStaySuffix': ' - navždy.',
   'heroglyph.flow.message.yourMessage': 'Tvoj Odkaz',
   'heroglyph.flow.message.placeholder':
-    'Milý/Milá {dogName}, ďakujem za každú sekundu, ktorú som mal/a to šťastie stráviť po tvojom boku…',
+    'Milý/Milá {dogName}, ďakujem za každý deň s tebou — a teším sa na všetky krásne chvíle, čo nás ešte čakajú…',
   'heroglyph.flow.message.profileNotePrefix': 'Tento odkaz sa zobrazí na profile tvojho psa na ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',

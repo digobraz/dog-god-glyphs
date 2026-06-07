@@ -360,14 +360,14 @@ export const en = {
   'heroglyph.flow.reveal.cta': 'GRAB MY HEROGLYPH',
 
   // ── /heroglyph flow — step 14: message ──
-  'heroglyph.flow.message.promptPrefix': 'Leave a eternal message for ',
+  'heroglyph.flow.message.promptPrefix': 'Leave an eternal message for ',
   'heroglyph.flow.message.promptMid': '.',
   'heroglyph.flow.message.promptStayPrefix': 'It will stay with them in ',
   'heroglyph.flow.message.promptStayWord': 'dogypt',
   'heroglyph.flow.message.promptStaySuffix': ' - forever.',
   'heroglyph.flow.message.yourMessage': 'Your Message',
   'heroglyph.flow.message.placeholder':
-    'Dear {dogName}, thank you for every second I was lucky enough to spend by your side…',
+    "Dear {dogName}, thank you for every day with you — and I can't wait for all the beautiful moments still ahead of us…",
   'heroglyph.flow.message.profileNotePrefix': "This message will appear on your dog's profile in the ",
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
