@@ -69,4 +69,77 @@ export const sk: Partial<Dict> = {
     '…každý psíčkar povedal <span style="color:#F5C73D;font-weight:700">áno</span> tomuto bláznivému nápadu?',
   'vision.finale.cta': 'Staň sa Dogypťanom',
   'vision.finale.tagline': 'Od novej éry ťa delí jeden klik.',
+
+  // ── /heroglyph intro ──
+  // hero title — case riadi CSS text-transform (rovnaký case ako EN)
+  'heroglyph.intro.title.line1': 'Symbol,',
+  'heroglyph.intro.title.line2': 'Ktorý',
+  'heroglyph.intro.title.desktop': 'Symbol,',
+  'heroglyph.intro.title.sub': 'Ktorý Mení Históriu',
+
+  // dictionary blok ("DOG is GOD" = MOTTO → ostáva EN)
+  'heroglyph.intro.word': 'Heroglyph',
+  'heroglyph.intro.ipa': '[ˈhɪr-oʊ-ɡlɪf]',
+  'heroglyph.intro.noun': 'podstatné meno',
+  'heroglyph.intro.definition':
+    'Unikátny symbol, ktorý opisuje teba a tvojho psa — vaše večné puto. Zároveň vstupenka do DOGYPT — miesta, kde DOG is GOD.',
+
+  // Heroglyph slovo tooltip (motto IN DOG WE TRUST sa nikde tu nevyskytuje)
+  'heroglyph.intro.wordTooltip': 'HERO = PES · GLYPH = SYMBOL',
+  'heroglyph.intro.wordTooltipSub': 'BOŽSKÉ meno pre každého PSA.',
+
+  // CTA + outro
+  'heroglyph.intro.cta': 'Staň sa Dogypťanom',
+  'heroglyph.intro.outro': 'Psíčkari, do zbrane!',
+  'heroglyph.intro.loading': 'Načítava sa…',
+
+  // pills rad 1
+  'heroglyph.intro.pill.questions.label': '12 otázok',
+  'heroglyph.intro.pill.questions.tooltip': 'Dvanásť rýchlych odpovedí o tvojom psovi.',
+  'heroglyph.intro.pill.minutes.label': '3 minúty',
+  'heroglyph.intro.pill.minutes.tooltip': 'Interaktívny kvíz plný zábavy.',
+  'heroglyph.intro.pill.forever.label': 'Navždy na DOGYPT.com',
+  'heroglyph.intro.pill.forever.tooltip':
+    'Meno tvojho psa navždy v tvojom srdci — aj v digitálnom svete.',
+
+  // pills rad 2 (MOTTO IN DOG WE TRUST ostáva EN)
+  'heroglyph.intro.pill.unique.label': 'Jediný svojho druhu',
+  'heroglyph.intro.pill.unique.tooltip': 'Žiadne dva heroglyfy nie sú rovnaké — každý symbol je unikátny!',
+  'heroglyph.intro.pill.vow.label': 'Sľub Viery',
+  'heroglyph.intro.pill.vow.tooltip': 'Tvoj znak vernosti dogyptiánskej ceste — IN DOG WE TRUST!',
+  'heroglyph.intro.pill.bond.label': 'Večné Puto',
+  'heroglyph.intro.pill.bond.tooltip': 'Symbol večného puta medzi tebou a tvojím psom.',
+  'heroglyph.intro.pill.payment.label': 'Jedna Symbolická Platba',
+  'heroglyph.intro.pill.payment.tooltip':
+    '$11 raz — žiadne predplatné. Všetky peniaze ostávajú v DOGYPT — na vývoj a systematickú pomoc!',
+
+  // showcase symbol meanings (Hekthorov heroglyf) — vlastné mená (Hekthor/Matej) NEPREKLADÁM
+  'heroglyph.intro.meaning.dog.label': 'Pes',
+  'heroglyph.intro.meaning.dog.value': 'Hekthor',
+  'heroglyph.intro.meaning.owner.label': 'Majiteľ',
+  'heroglyph.intro.meaning.owner.value': 'Matej',
+  'heroglyph.intro.meaning.dogGender.label': 'Pohlavie Psa',
+  'heroglyph.intro.meaning.dogGender.value': 'Kráľ',
+  'heroglyph.intro.meaning.dogColour.label': 'Farba Psa',
+  'heroglyph.intro.meaning.dogColour.value': 'Tmavá srsť',
+  'heroglyph.intro.meaning.dogPatron.label': 'Patrón Psa',
+  'heroglyph.intro.meaning.dogPatron.value': 'Hekthor',
+  'heroglyph.intro.meaning.dogOrigin.label': 'Pôvod Psa',
+  'heroglyph.intro.meaning.dogOrigin.value': 'Zachránený',
+  'heroglyph.intro.meaning.dogBloodline.label': 'Pôvodová Línia',
+  'heroglyph.intro.meaning.dogBloodline.value': 'Kríženec',
+  'heroglyph.intro.meaning.dogCharacter1.label': 'Charakter Psa I',
+  'heroglyph.intro.meaning.dogCharacter1.value': 'Obľúbené frisbee',
+  'heroglyph.intro.meaning.dogCharacter2.label': 'Charakter Psa II',
+  'heroglyph.intro.meaning.dogCharacter2.value': 'Milovník vody',
+  'heroglyph.intro.meaning.ownerGender.label': 'Pohlavie Majiteľa',
+  'heroglyph.intro.meaning.ownerGender.value': 'Muž',
+  'heroglyph.intro.meaning.westernZodiac.label': 'Západný Zverokruh',
+  'heroglyph.intro.meaning.westernZodiac.value': 'Lev',
+  'heroglyph.intro.meaning.chineseZodiac.label': 'Čínsky Zverokruh',
+  'heroglyph.intro.meaning.chineseZodiac.value': 'Kohút',
+  'heroglyph.intro.meaning.ownerInitial.label': 'Iniciála Majiteľa',
+  'heroglyph.intro.meaning.ownerInitial.value': 'Matej',
+  'heroglyph.intro.meaning.ranking.label': 'Poradie',
+  'heroglyph.intro.meaning.ranking.value': '#1 — Prvý pes',
 };

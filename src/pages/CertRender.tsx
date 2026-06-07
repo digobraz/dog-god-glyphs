@@ -53,7 +53,7 @@ const PAGE: Record<
   ArtifactType,
   { wMm: number; hMm: number; padMm: number; bg: string; natW: number; natH: number }
 > = {
-  cert: { wMm: 210, hMm: 297, padMm: 0, bg: 'transparent', natW: 1080, natH: 1527 },
+  cert: { wMm: 210, hMm: 297, padMm: 0, bg: '#efe2c5', natW: 1080, natH: 1527 },
   vertical: { wMm: 210, hMm: 297, padMm: 25, bg: FRAME_BG, natW: 800, natH: 1131 },
   horizontal: { wMm: 297, hMm: 210, padMm: 20, bg: FRAME_BG, natW: 1200, natH: 321 },
 };
@@ -124,24 +124,41 @@ export default function CertRender() {
   useEffect(() => {
     if (!dog) return;
     let cancelled = false;
+    const preload = (src: string) =>
+      new Promise<void>((res) => {
+        if (!src) return res();
+        const im = new Image();
+        im.onload = () => res();
+        im.onerror = () => res();
+        im.src = src;
+      });
     const markReady = async () => {
       try {
+        // <img> elements
         const imgs = Array.from(document.querySelectorAll('img'));
-        await Promise.all(
-          imgs.map((img) =>
-            img.complete && img.naturalWidth > 0
-              ? Promise.resolve()
-              : new Promise<void>((res) => {
-                  img.addEventListener('load', () => res(), { once: true });
-                  img.addEventListener('error', () => res(), { once: true });
-                }),
-          ),
+        const imgWaits = imgs.map((img) =>
+          img.complete && img.naturalWidth > 0
+            ? Promise.resolve()
+            : new Promise<void>((res) => {
+                img.addEventListener('load', () => res(), { once: true });
+                img.addEventListener('error', () => res(), { once: true });
+              }),
         );
+        // SVG <image href> elements (heroglyph symbols) — these are NOT <img>,
+        // so preload each href to guarantee it's decoded before we signal ready.
+        const svgImages = Array.from(document.querySelectorAll('image'));
+        const svgWaits = svgImages.map((el) =>
+          preload(el.getAttribute('href') || el.getAttribute('xlink:href') || ''),
+        );
+        // Web fonts (Cinzel) too.
+        const fontWait = (document as Document & { fonts?: { ready?: Promise<unknown> } })
+          .fonts?.ready ?? Promise.resolve();
+        await Promise.all([...imgWaits, ...svgWaits, fontWait]);
       } catch {
         /* ignore */
       }
-      // give the heroglyph SVG + fonts a beat to settle
-      await new Promise((res) => setTimeout(res, 400));
+      // settle: paint the decoded SVG symbols + fonts before capture
+      await new Promise((res) => setTimeout(res, 800));
       if (!cancelled) document.documentElement.setAttribute('data-render-ready', '1');
     };
     markReady();
@@ -218,14 +235,14 @@ export default function CertRender() {
     <>
       <style>{`
         @page { size: ${type === 'horizontal' ? 'A4 landscape' : 'A4 portrait'}; margin: 0; }
-        html, body { margin: 0; padding: 0; background: #fff; }
+        html, body, #root { margin: 0; padding: 0; height: 100%; background: ${geom.bg}; }
         #cert-render-page { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       `}</style>
       <div
         id="cert-render-page"
         style={{
-          width: `${geom.wMm}mm`,
-          height: `${geom.hMm}mm`,
+          width: '100vw',
+          height: '100vh',
           padding: `${geom.padMm}mm`,
           background: geom.bg,
           boxSizing: 'border-box',

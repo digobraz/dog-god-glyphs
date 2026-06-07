@@ -297,6 +297,21 @@ export default function PackDogDetail() {
     }
   };
 
+  // Auto-generate PDFs on first view if any are missing. This is the reliable
+  // server-side path: the buyer always reaches this page via the email magic
+  // link, and the request is held by the browser (~30s) so there's no
+  // background-task time limit. Covers the "closed the tab on /welcome" case.
+  const autoGenFired = useRef(false);
+  useEffect(() => {
+    if (!dog || autoGenFired.current || regenerating) return;
+    const missing = !dog.pdf_cert_url || !dog.pdf_vertical_url || !dog.pdf_horizontal_url;
+    if (missing) {
+      autoGenFired.current = true;
+      void handleRegenerate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dog]);
+
   const handleResend = async () => {
     if (!dog?.id || resending) return;
     setResending(true);

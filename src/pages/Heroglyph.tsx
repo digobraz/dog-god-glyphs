@@ -3,24 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useT } from '@/i18n/LanguageContext';
 
+// label/value sú i18n KĽÚČE (module-level const nemôže volať t()); preklad pri renderi.
 type SymbolMeaning = { label: string; value: string };
 
 const MEANINGS: Record<string, SymbolMeaning> = {
-  __DOG:          { label: 'Dog',              value: 'Hekthor' },
-  __OWNER:        { label: 'Owner',            value: 'Matej' },
-  MALE:           { label: 'Dog Gender',       value: 'King' },
-  DARK:           { label: 'Dog Colour',       value: 'Dark Coat' },
-  'L---LABRADOR': { label: 'Dog Patron',       value: 'Hekthor' },
-  FOUNDED:        { label: 'Dog Origin',       value: 'Rescued' },
-  SAVAGE:         { label: 'Dog Bloodline',    value: 'Mutt' },
-  TANIER:         { label: 'Dog Character I',  value: 'Favourite Frisbee' },
-  WATER:          { label: 'Dog Character II', value: 'Water Lover' },
-  MAN:            { label: 'Owner Gender',     value: 'Man' },
-  LEO:            { label: 'Western Zodiac',   value: 'Leo' },
-  ROASTER:        { label: 'Chinese Zodiac',   value: 'Rooster' },
-  M:              { label: 'Owner Initial',    value: 'Matej' },
-  _1:             { label: 'Ranking',          value: '#1 — First Dog' },
+  __DOG:          { label: 'heroglyph.intro.meaning.dog.label',           value: 'heroglyph.intro.meaning.dog.value' },
+  __OWNER:        { label: 'heroglyph.intro.meaning.owner.label',         value: 'heroglyph.intro.meaning.owner.value' },
+  MALE:           { label: 'heroglyph.intro.meaning.dogGender.label',     value: 'heroglyph.intro.meaning.dogGender.value' },
+  DARK:           { label: 'heroglyph.intro.meaning.dogColour.label',     value: 'heroglyph.intro.meaning.dogColour.value' },
+  'L---LABRADOR': { label: 'heroglyph.intro.meaning.dogPatron.label',     value: 'heroglyph.intro.meaning.dogPatron.value' },
+  FOUNDED:        { label: 'heroglyph.intro.meaning.dogOrigin.label',     value: 'heroglyph.intro.meaning.dogOrigin.value' },
+  SAVAGE:         { label: 'heroglyph.intro.meaning.dogBloodline.label',  value: 'heroglyph.intro.meaning.dogBloodline.value' },
+  TANIER:         { label: 'heroglyph.intro.meaning.dogCharacter1.label', value: 'heroglyph.intro.meaning.dogCharacter1.value' },
+  WATER:          { label: 'heroglyph.intro.meaning.dogCharacter2.label', value: 'heroglyph.intro.meaning.dogCharacter2.value' },
+  MAN:            { label: 'heroglyph.intro.meaning.ownerGender.label',   value: 'heroglyph.intro.meaning.ownerGender.value' },
+  LEO:            { label: 'heroglyph.intro.meaning.westernZodiac.label', value: 'heroglyph.intro.meaning.westernZodiac.value' },
+  ROASTER:        { label: 'heroglyph.intro.meaning.chineseZodiac.label', value: 'heroglyph.intro.meaning.chineseZodiac.value' },
+  M:              { label: 'heroglyph.intro.meaning.ownerInitial.label',  value: 'heroglyph.intro.meaning.ownerInitial.value' },
+  _1:             { label: 'heroglyph.intro.meaning.ranking.label',       value: 'heroglyph.intro.meaning.ranking.value' },
 };
 
 const SYMBOL_IDS = Object.keys(MEANINGS);
@@ -34,49 +36,62 @@ const BOTTOM_PAD = 60;
 
 type PillData = { icon: string; label: string; tooltip: string; tooltipSub?: string };
 
+// label/tooltip/tooltipSub sú i18n KĽÚČE (module-level const nemôže volať t());
+// pred odovzdaním do PillMarquee / setPillTooltip sa preložia cez t() v komponente.
 const PILLS_ROW_1: PillData[] = [
   {
     icon: '/icons/heroglyph-page/clipboard.svg',
-    label: '12 Questions',
-    tooltip: 'Twelve quick answers about your dog.',
+    label: 'heroglyph.intro.pill.questions.label',
+    tooltip: 'heroglyph.intro.pill.questions.tooltip',
   },
   {
     icon: '/icons/heroglyph-page/sandclock.svg',
-    label: '3 Minutes',
-    tooltip: 'An interactive quiz full of fun.',
+    label: 'heroglyph.intro.pill.minutes.label',
+    tooltip: 'heroglyph.intro.pill.minutes.tooltip',
   },
   {
     icon: '/icons/heroglyph-page/scarab.svg',
-    label: 'Forever in DOGYPT.com',
-    tooltip: "Your dog's name forever in your heart — and in the digital world.",
+    label: 'heroglyph.intro.pill.forever.label',
+    tooltip: 'heroglyph.intro.pill.forever.tooltip',
   },
 ];
 
 const PILLS_ROW_2: PillData[] = [
   {
     icon: '/icons/heroglyph-page/star.svg',
-    label: 'One of a Kind',
-    tooltip: 'No two heroglyphs are alike — every symbol is unique!',
+    label: 'heroglyph.intro.pill.unique.label',
+    tooltip: 'heroglyph.intro.pill.unique.tooltip',
   },
   {
     icon: '/icons/heroglyph-page/ankh.svg',
-    label: 'Vow of Faith',
-    tooltip: 'Your sign of allegiance to the Dogyptian path — IN DOG WE TRUST!',
+    label: 'heroglyph.intro.pill.vow.label',
+    tooltip: 'heroglyph.intro.pill.vow.tooltip',
   },
   {
     icon: '/icons/heroglyph-page/heartpaw.svg',
-    label: 'Eternal Bond',
-    tooltip: 'A symbol of the eternal bond between you and your dog.',
+    label: 'heroglyph.intro.pill.bond.label',
+    tooltip: 'heroglyph.intro.pill.bond.tooltip',
   },
   {
     icon: '/icons/heroglyph-page/eye.svg',
-    label: 'One Symbolic Payment',
-    tooltip: '$11 once — no subscriptions. All money stays in DOGYPT — for development and systematic help!',
+    label: 'heroglyph.intro.pill.payment.label',
+    tooltip: 'heroglyph.intro.pill.payment.tooltip',
   },
 ];
 
+// Preloží PillData kľúče → text (volá sa v komponente, kde je dostupné t()).
+function translatePills(pills: PillData[], t: (k: string) => string): PillData[] {
+  return pills.map((p) => ({
+    ...p,
+    label: t(p.label),
+    tooltip: t(p.tooltip),
+    tooltipSub: p.tooltipSub ? t(p.tooltipSub) : undefined,
+  }));
+}
+
 export default function Heroglyph() {
   const navigate = useNavigate();
+  const t = useT();
   const svgWrapRef = useRef<HTMLDivElement>(null);
   const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [tooltipSymbol, setTooltipSymbol] = useState<string | null>(null);
@@ -234,6 +249,8 @@ export default function Heroglyph() {
   }, []);
 
   const meaning = tooltipSymbol ? MEANINGS[tooltipSymbol] : null;
+  const pillsRow1 = translatePills(PILLS_ROW_1, t);
+  const pillsRow2 = translatePills(PILLS_ROW_2, t);
 
   return (
     <div className="dark-bg flex flex-col min-h-[100dvh] relative">
@@ -510,9 +527,9 @@ export default function Heroglyph() {
                     filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
                   }}
                 >
-                  The
+                  {t('heroglyph.intro.title.line1')}
                   <br />
-                  Symbol
+                  {t('heroglyph.intro.title.line2')}
                 </span>
               </h1>
               <p
@@ -529,7 +546,7 @@ export default function Heroglyph() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                That Changes History
+                {t('heroglyph.intro.title.sub')}
               </p>
             </>
           ) : (
@@ -554,7 +571,7 @@ export default function Heroglyph() {
                     filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
                   }}
                 >
-                  The Symbol
+                  {t('heroglyph.intro.title.desktop')}
                 </span>
               </h1>
               <p
@@ -570,7 +587,7 @@ export default function Heroglyph() {
                   lineHeight: 1.1,
                 }}
               >
-                That Changes History
+                {t('heroglyph.intro.title.sub')}
               </p>
             </>
           )}
@@ -619,7 +636,7 @@ export default function Heroglyph() {
                       marginBottom: 3,
                     }}
                   >
-                    {meaning.label}
+                    {t(meaning.label)}
                   </div>
                   <div
                     style={{
@@ -629,7 +646,7 @@ export default function Heroglyph() {
                       lineHeight: 1.15,
                     }}
                   >
-                    {meaning.value}
+                    {t(meaning.value)}
                   </div>
                 </div>
               )}
@@ -664,7 +681,7 @@ export default function Heroglyph() {
                     paddingBottom: 2,
                   }}
                 >
-                  Heroglyph
+                  {t('heroglyph.intro.word')}
                 </span>
                 <ChevronDown
                   size={16}
@@ -688,8 +705,8 @@ export default function Heroglyph() {
                   letterSpacing: '0.02em',
                 }}
               >
-                [ˈhɪr-oʊ-ɡlɪf]{' '}
-                <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
+                {t('heroglyph.intro.ipa')}{' '}
+                <span style={{ fontWeight: 700, fontStyle: 'normal' }}>{t('heroglyph.intro.noun')}</span>
               </div>
 
               {/* Accordion: definition expands on click */}
@@ -721,7 +738,7 @@ export default function Heroglyph() {
                       textAlign: 'left',
                     }}
                   >
-                    A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.
+                    {t('heroglyph.intro.definition')}
                   </p>
                 </div>
               </div>
@@ -748,9 +765,9 @@ export default function Heroglyph() {
                     onMouseEnter={(e) => {
                       setPillTooltip({
                         icon: '',
-                        label: 'Heroglyph',
-                        tooltip: 'HERO = DOG · GLYPH = SYMBOL',
-                        tooltipSub: 'GOD name for every DOG.',
+                        label: t('heroglyph.intro.word'),
+                        tooltip: t('heroglyph.intro.wordTooltip'),
+                        tooltipSub: t('heroglyph.intro.wordTooltipSub'),
                       });
                       setPillTooltipPos({ x: e.clientX, y: e.clientY });
                     }}
@@ -785,8 +802,8 @@ export default function Heroglyph() {
                       letterSpacing: '0.02em',
                     }}
                   >
-                    [ˈhɪr-oʊ-ɡlɪf]{' '}
-                    <span style={{ fontWeight: 700, fontStyle: 'normal' }}>noun</span>
+                    {t('heroglyph.intro.ipa')}{' '}
+                    <span style={{ fontWeight: 700, fontStyle: 'normal' }}>{t('heroglyph.intro.noun')}</span>
                   </div>
                 </div>
 
@@ -802,7 +819,7 @@ export default function Heroglyph() {
                     margin: 0,
                   }}
                 >
-                  A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.
+                  {t('heroglyph.intro.definition')}
                 </p>
               </div>
 
@@ -938,7 +955,7 @@ export default function Heroglyph() {
               marginBottom: 3,
             }}
           >
-            {meaning.label}
+            {t(meaning.label)}
           </div>
           <div
             style={{
@@ -948,7 +965,7 @@ export default function Heroglyph() {
               lineHeight: 1.15,
             }}
           >
-            {meaning.value}
+            {t(meaning.value)}
           </div>
         </div>
       )}

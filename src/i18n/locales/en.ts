@@ -65,4 +65,77 @@ export const en = {
     '…every doglover said <span style="color:#F5C73D;font-style:italic">yes</span> to one crazy idea?',
   'vision.finale.cta': 'Become Dogyptian',
   'vision.finale.tagline': 'A new era is just one click away.',
+
+  // ── /heroglyph intro ──
+  // hero title (mobile = 2 riadky "The"/"Symbol"; desktop = "The Symbol") — case riadi CSS text-transform
+  'heroglyph.intro.title.line1': 'The',
+  'heroglyph.intro.title.line2': 'Symbol',
+  'heroglyph.intro.title.desktop': 'The Symbol',
+  'heroglyph.intro.title.sub': 'That Changes History',
+
+  // dictionary blok
+  'heroglyph.intro.word': 'Heroglyph',
+  'heroglyph.intro.ipa': '[ˈhɪr-oʊ-ɡlɪf]',
+  'heroglyph.intro.noun': 'noun',
+  'heroglyph.intro.definition':
+    'A unique symbol describing you and your dog, your eternal bond. Also a ticket to DOGYPT — the place where DOG is GOD.',
+
+  // Heroglyph slovo tooltip (desktop hover)
+  'heroglyph.intro.wordTooltip': 'HERO = DOG · GLYPH = SYMBOL',
+  'heroglyph.intro.wordTooltipSub': 'GOD name for every DOG.',
+
+  // CTA + outro
+  'heroglyph.intro.cta': 'Become Dogyptian',
+  'heroglyph.intro.outro': 'Doglovers, assemble!',
+  'heroglyph.intro.loading': 'Loading…',
+
+  // pills rad 1
+  'heroglyph.intro.pill.questions.label': '12 Questions',
+  'heroglyph.intro.pill.questions.tooltip': 'Twelve quick answers about your dog.',
+  'heroglyph.intro.pill.minutes.label': '3 Minutes',
+  'heroglyph.intro.pill.minutes.tooltip': 'An interactive quiz full of fun.',
+  'heroglyph.intro.pill.forever.label': 'Forever in DOGYPT.com',
+  'heroglyph.intro.pill.forever.tooltip':
+    "Your dog's name forever in your heart — and in the digital world.",
+
+  // pills rad 2
+  'heroglyph.intro.pill.unique.label': 'One of a Kind',
+  'heroglyph.intro.pill.unique.tooltip': 'No two heroglyphs are alike — every symbol is unique!',
+  'heroglyph.intro.pill.vow.label': 'Vow of Faith',
+  'heroglyph.intro.pill.vow.tooltip': 'Your sign of allegiance to the Dogyptian path — IN DOG WE TRUST!',
+  'heroglyph.intro.pill.bond.label': 'Eternal Bond',
+  'heroglyph.intro.pill.bond.tooltip': 'A symbol of the eternal bond between you and your dog.',
+  'heroglyph.intro.pill.payment.label': 'One Symbolic Payment',
+  'heroglyph.intro.pill.payment.tooltip':
+    '$11 once — no subscriptions. All money stays in DOGYPT — for development and systematic help!',
+
+  // showcase symbol meanings (Hekthorov heroglyf) — label + value
+  'heroglyph.intro.meaning.dog.label': 'Dog',
+  'heroglyph.intro.meaning.dog.value': 'Hekthor',
+  'heroglyph.intro.meaning.owner.label': 'Owner',
+  'heroglyph.intro.meaning.owner.value': 'Matej',
+  'heroglyph.intro.meaning.dogGender.label': 'Dog Gender',
+  'heroglyph.intro.meaning.dogGender.value': 'King',
+  'heroglyph.intro.meaning.dogColour.label': 'Dog Colour',
+  'heroglyph.intro.meaning.dogColour.value': 'Dark Coat',
+  'heroglyph.intro.meaning.dogPatron.label': 'Dog Patron',
+  'heroglyph.intro.meaning.dogPatron.value': 'Hekthor',
+  'heroglyph.intro.meaning.dogOrigin.label': 'Dog Origin',
+  'heroglyph.intro.meaning.dogOrigin.value': 'Rescued',
+  'heroglyph.intro.meaning.dogBloodline.label': 'Dog Bloodline',
+  'heroglyph.intro.meaning.dogBloodline.value': 'Mutt',
+  'heroglyph.intro.meaning.dogCharacter1.label': 'Dog Character I',
+  'heroglyph.intro.meaning.dogCharacter1.value': 'Favourite Frisbee',
+  'heroglyph.intro.meaning.dogCharacter2.label': 'Dog Character II',
+  'heroglyph.intro.meaning.dogCharacter2.value': 'Water Lover',
+  'heroglyph.intro.meaning.ownerGender.label': 'Owner Gender',
+  'heroglyph.intro.meaning.ownerGender.value': 'Man',
+  'heroglyph.intro.meaning.westernZodiac.label': 'Western Zodiac',
+  'heroglyph.intro.meaning.westernZodiac.value': 'Leo',
+  'heroglyph.intro.meaning.chineseZodiac.label': 'Chinese Zodiac',
+  'heroglyph.intro.meaning.chineseZodiac.value': 'Rooster',
+  'heroglyph.intro.meaning.ownerInitial.label': 'Owner Initial',
+  'heroglyph.intro.meaning.ownerInitial.value': 'Matej',
+  'heroglyph.intro.meaning.ranking.label': 'Ranking',
+  'heroglyph.intro.meaning.ranking.value': '#1 — First Dog',
 } as const;
