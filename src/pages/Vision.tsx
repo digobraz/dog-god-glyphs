@@ -1399,11 +1399,10 @@ export default function Vision() {
           .wf-scroll-col { order: -1; }
           .wf-papyrus { height: 54.14vh; width: calc(54.14vh * 815 / 892); max-width: 86%; } /* +10% +15% +7% */
           .wf-text { min-height: 250px; margin-top: 155px; } /* push headline+body below papyrus */
-          /* Mobile typography: headline on ONE line (hide the desktop <br>, join the
-           * white + gold word with a nbsp), body −10% vs the shared desktop sizes */
-          .wf-block .wf-big { font-size: 2rem; }
-          .wf-block .wf-big br { display: none; }
-          .wf-block .wf-big-w::after { content: '\\00a0'; }
+          /* Mobile typography: KEEP the 2-line white/gold headline (<br> stays) so the
+           * heading is always ≤2 lines in every language — a forced single line overflowed
+           * with long SK words (STREDISKÁ, ONLINE CHRÁM…). fluid clamp shrinks to fit width. */
+          .wf-block .wf-big { font-size: clamp(1.75rem, 8.4vw, 2.3rem); line-height: 1.04; }
           .wf-block .wf-lead { font-size: 0.95rem; margin-top: 18px; }
           .wf-steps { display: none; } /* mobile: labels were hidden + dots removed → empty row, drop it (comet bar carries progress) */
           .wf-progress { bottom: 30px; } /* lift the comet status bar up */
