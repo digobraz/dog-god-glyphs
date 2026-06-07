@@ -202,7 +202,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.ranking.question': 'Je {dogName} tvoj prvý pes?',
   'heroglyph.flow.ranking.yourPup': 'tvoj pes',
   'heroglyph.flow.ranking.yesLabel': 'ÁNO, moja prvá láska',
-  'heroglyph.flow.ranking.noLabel': 'NIE, psíčkar navždy!',
+  'heroglyph.flow.ranking.noLabel': 'NIE, mal som ich viac',
   'heroglyph.flow.ranking.whichDog': 'Koľký pes je {dogName}?',
   'heroglyph.flow.ranking.range': '11–50',
   'heroglyph.flow.ranking.enterNumber': 'Zadaj číslo psa (11–50)',
