@@ -1402,10 +1402,13 @@ export default function Vision() {
           .wf-scroll-col { order: -1; }
           .wf-papyrus { height: 54.14vh; width: calc(54.14vh * 815 / 892); max-width: 86%; } /* +10% +15% +7% */
           .wf-text { min-height: 250px; margin-top: 155px; } /* push headline+body below papyrus */
-          /* Mobile typography: KEEP the 2-line white/gold headline (<br> stays) so the
-           * heading is always ≤2 lines in every language — a forced single line overflowed
-           * with long SK words (STREDISKÁ, ONLINE CHRÁM…). fluid clamp shrinks to fit width. */
-          .wf-block .wf-big { font-size: clamp(1.55rem, 7.4vw, 2.05rem); line-height: 1.07; }
+          /* Mobile typography: JOIN white+gold on ONE line (hide <br>, nbsp between) but allow
+           * NATURAL wrap (white-space: normal) → short headings stay 1 line, long ones (FUNKČNÉ
+           * STREDISKÁ) wrap to 2 at the space. Bigger font than desktop-scaled so it reads well.
+           * line-height 1.08 = headroom for uppercase carons (Č/Š/É). */
+          .wf-block .wf-big { font-size: clamp(2.1rem, 10vw, 2.9rem); line-height: 1.08; white-space: normal; }
+          .wf-block .wf-big br { display: none; }
+          .wf-block .wf-big-w::after { content: ' '; } /* breakable space → long heading wraps here */
           .wf-block .wf-lead { font-size: 0.95rem; margin-top: 18px; }
           .wf-steps { display: none; } /* mobile: labels were hidden + dots removed → empty row, drop it (comet bar carries progress) */
           .wf-progress { bottom: 30px; } /* lift the comet status bar up */
