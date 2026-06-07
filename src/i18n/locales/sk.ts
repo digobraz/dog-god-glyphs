@@ -155,7 +155,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.name.whoTitle': 'KTO JE',
   'heroglyph.flow.name.whoTitleName': 'HEKTHOR?',
   'heroglyph.flow.name.whoBody':
-    'Hekthor je zakladajúci hrdina a duša DOGYPT. Zachránený z útulku, jeho vernosť inšpirovala globálne hnutie, ktoré uctieva psov ako bohov. Jeho misiou je vytvoriť jedinečný HEROGLYPH pre každého psa na Zemi a zjednotiť najväčšiu komunitu psíčkarov na svete, aby pomohla miliónom psov v núdzi.',
+    'Hekthor je prvý Dogypťan. Zachránený z ulice a adoptovaný z útulku, jeho vernosť a láska inšpirovala globálne hnutie, ktoré uctieva psov ako bohov. Jeho misiou je vyrobiť jedinečný HEROGLYPH pre každého psa na Zemi a zjednotiť najväčšiu komunitu psíčkarov, ktorá pomôže miliónom psov v núdzi.',
   'heroglyph.flow.name.born': 'Narodený',
   'heroglyph.flow.name.adopted': 'Adoptovaný',
   'heroglyph.flow.name.location': 'Miesto',

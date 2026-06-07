@@ -149,7 +149,7 @@ export const en = {
   'heroglyph.flow.name.whoTitle': 'WHO IS',
   'heroglyph.flow.name.whoTitleName': 'HEKTHOR?',
   'heroglyph.flow.name.whoBody':
-    "Hekthor is the founding hero and the soul of DOGYPT. Rescued from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.",
+    "Hekthor is the first Dogyptian. Rescued from the streets and adopted from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.",
   'heroglyph.flow.name.born': 'Born',
   'heroglyph.flow.name.adopted': 'Adopted',
   'heroglyph.flow.name.location': 'Location',
