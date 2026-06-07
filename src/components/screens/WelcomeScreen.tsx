@@ -8,6 +8,7 @@ import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
+import { useT } from '@/i18n/LanguageContext';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 /** iOS-style screen record button with tap ripple animation */
@@ -224,6 +225,7 @@ const GRADIENT_CARD: React.CSSProperties = {
 };
 
 export function WelcomeScreen() {
+  const t = useT();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
@@ -241,7 +243,7 @@ export function WelcomeScreen() {
   });
 
   const dogName = certData.dogName;
-  const ownerFirstName = certData.ownerName.split(' ')[0] || 'Friend';
+  const ownerFirstName = certData.ownerName.split(' ')[0] || t('welcome.ownerFallback');
   const email = certData.email;
   const photoUrl = certData.dogPhotoUrl;
   const [photoFailed, setPhotoFailed] = useState(false);
@@ -338,10 +340,10 @@ export function WelcomeScreen() {
               <ScreenRecordTapAnimation />
 
               <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                RECORD THIS MOMENT
+                {t('welcome.record.title')}
               </h2>
               <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: '#888' }}>
-                Capture your dog's official welcome
+                {t('welcome.record.subtitle')}
               </p>
             </div>
           </motion.div>
@@ -401,11 +403,11 @@ export function WelcomeScreen() {
               <div className="flex flex-col items-end gap-0.5">
                 <span className="tracking-widest uppercase font-semibold"
                   style={{ fontFamily: "'Cinzel', serif", fontSize: 10, color: 'rgba(255,255,255,0.6)' }}>
-                  Our Goal 🎯
+                  {t('welcome.goal.label')}
                 </span>
                 <span className="tracking-wider uppercase font-bold"
                   style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.72rem, 2.8vw, 0.9rem)', color: 'hsl(45 90% 70%)' }}>
-                  1,000,000 Heroglyphs
+                  {t('welcome.goal.target')}
                 </span>
               </div>
             </div>
@@ -451,7 +453,7 @@ export function WelcomeScreen() {
           {/* Congrats + dog name */}
           <div className="flex flex-col items-center gap-0.5 text-center w-full">
             <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#888' }}>
-              Congratulations, <strong style={{ color: '#555' }}>{ownerFirstName}.</strong>
+              {t('welcome.congratsPrefix')}<strong style={{ color: '#555' }}>{t('welcome.congratsName', { name: ownerFirstName })}</strong>
             </span>
 
             <div style={{ width: '100%', height: 1, background: 'linear-gradient(90deg, transparent, hsl(45 80% 60% / 0.4), transparent)', margin: '4px 0' }} />
@@ -464,7 +466,7 @@ export function WelcomeScreen() {
 
             <div className="flex items-center gap-1.5 justify-center flex-wrap">
               <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.75rem, 3vw, 0.9rem)', fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#555' }}>
-                is officially a
+                {t('welcome.officiallyA')}
               </span>
               <DogToGod style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)', display: 'inline-block', minWidth: '2.6em', textAlign: 'left' }} />
             </div>
@@ -473,8 +475,8 @@ export function WelcomeScreen() {
           {/* Mission text */}
           <p className="leading-relaxed text-center"
             style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: '#888', letterSpacing: '0.01em' }}>
-            You just changed history — one dog at a time.<br />
-            Spread the pack. <strong style={{ color: '#555', letterSpacing: '0.08em' }}>IN DOG WE TRUST.</strong>
+            {t('welcome.missionLine1')}<br />
+            {t('welcome.missionSpread')}<strong style={{ color: '#555', letterSpacing: '0.08em' }}>{t('welcome.missionMotto')}</strong>
           </p>
 
           {/* CTA + email hint */}
@@ -493,13 +495,13 @@ export function WelcomeScreen() {
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             >
               {packNumber === null
-                ? 'PREPARING YOUR PLACE...'
+                ? t('welcome.cta.preparing')
                 : !heroglyphPngUrl
-                  ? 'FORGING YOUR HEROGLYPH...'
-                  : 'ENTER THE GODS →'}
+                  ? t('welcome.cta.forging')
+                  : t('welcome.cta.enter')}
             </motion.button>
             <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
-              Your certificate is on its way — check your email.
+              {t('welcome.emailHint')}
             </p>
           </div>
         </div>

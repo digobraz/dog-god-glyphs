@@ -395,4 +395,47 @@ export const sk: Partial<Dict> = {
   'heroglyph.checkout.disclaimerSuffix': ' a umiestnime fotku tvojho psa na web.',
   'heroglyph.checkout.back': 'Späť',
   'heroglyph.checkout.dogFallback': 'Pes',
+
+  // ── /welcome — post-payment (WelcomeScreen) ──
+  'welcome.record.title': 'NAHRAJ TENTO MOMENT',
+  'welcome.record.subtitle': 'Zachyť oficiálne privítanie tvojho psa',
+  'welcome.goal.label': 'Náš Cieľ 🎯',
+  'welcome.goal.target': '1 000 000 Heroglyphov',
+  'welcome.congratsPrefix': 'Gratulujeme, ',
+  'welcome.congratsName': '{name}.',
+  'welcome.ownerFallback': 'Priateľu',
+  'welcome.officiallyA': 'je oficiálne',
+  // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka ostáva EN.
+  'welcome.missionLine1': 'Práve si zmenil/a históriu — sme o chlp lepší!',
+  'welcome.missionSpread': 'Rozšír svorku. ',
+  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.cta.preparing': 'PRIPRAVUJEM TVOJE MIESTO…',
+  'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',
+  'welcome.cta.enter': 'VSTÚP MEDZI BOHOV →',
+  'welcome.emailHint': 'Tvoj certifikát je na ceste — skontroluj si e-mail.',
+
+  // ── /login — magic-link callback (Login.tsx) ──
+  'login.eyebrow': 'DOGYPT · Prístup do Svorky',
+  'login.verifying.title': 'Otváram bránu',
+  'login.verifying.body': 'Overujem tvoj magic link…',
+  'login.success.title': 'Vitaj späť',
+  'login.success.body': 'Presmerovávam ťa do tvojej svorky…',
+  'login.expired.title': 'Link expiroval',
+  'login.expired.body': 'Magic linky majú krátku platnosť. Požiadaj o nový a pošleme ti ho do schránky.',
+  'login.invalid.title': 'Link nerozpoznaný',
+  'login.invalid.body': 'Nedokázali sme overiť tento link. Možno bol už použitý alebo skopírovaný nesprávne.',
+  'login.network.title': 'Problém so spojením',
+  'login.network.body': 'Nedostali sme sa do chrámu. Skontroluj si pripojenie a skús znova.',
+  'login.missing.title': 'Token nenájdený',
+  'login.missing.body': 'Táto stránka očakáva magic link z e-mailu. Skontroluj si schránku a nájdi najnovší.',
+  'login.resend.idle': 'Poslať nový magic link',
+  'login.resend.sending': 'Odosielam…',
+  'login.resend.sent': 'Magic link odoslaný',
+  'login.backHome': 'Späť domov',
+  'login.homeAria': 'DOGYPT domov',
+
+  // ── 404 — NotFound.tsx ──
+  'notFound.code': '404',
+  'notFound.message': 'Hups! Stránka sa nenašla',
+  'notFound.returnHome': 'Späť na úvod',
 };

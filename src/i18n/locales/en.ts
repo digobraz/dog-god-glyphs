@@ -389,4 +389,58 @@ export const en = {
   'heroglyph.checkout.disclaimerSuffix': ' and place your photo on the website.',
   'heroglyph.checkout.back': 'Back',
   'heroglyph.checkout.dogFallback': 'Dog',
+
+  // ── /welcome — post-payment (WelcomeScreen) ──
+  // record-moment overlay
+  'welcome.record.title': 'RECORD THIS MOMENT',
+  'welcome.record.subtitle': "Capture your dog's official welcome",
+  // goal tracker
+  'welcome.goal.label': 'Our Goal 🎯',
+  'welcome.goal.target': '1,000,000 Heroglyphs',
+  // congrats + name
+  'welcome.congratsPrefix': 'Congratulations, ',
+  'welcome.congratsName': '{name}.',
+  'welcome.ownerFallback': 'Friend',
+  'welcome.officiallyA': 'is officially a',
+  // mission text (code source of truth — renders identically)
+  'welcome.missionLine1': 'You just changed history — one dog at a time.',
+  'welcome.missionSpread': 'Spread the pack. ',
+  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  // CTA states (PREPARING → FORGING → ENTER)
+  'welcome.cta.preparing': 'PREPARING YOUR PLACE...',
+  'welcome.cta.forging': 'FORGING YOUR HEROGLYPH...',
+  'welcome.cta.enter': 'ENTER THE GODS →',
+  'welcome.emailHint': 'Your certificate is on its way — check your email.',
+
+  // ── /login — magic-link callback (Login.tsx) ──
+  'login.eyebrow': 'DOGYPT · Pack Access',
+  // status: verifying
+  'login.verifying.title': 'Opening the Gate',
+  'login.verifying.body': 'Verifying your magic link…',
+  // status: success
+  'login.success.title': 'Welcome Back',
+  'login.success.body': 'Redirecting you to your pack…',
+  // status: expired
+  'login.expired.title': 'Link Expired',
+  'login.expired.body': 'Magic links are short-lived. Request a fresh one and we will send it to your inbox.',
+  // status: invalid
+  'login.invalid.title': 'Link Not Recognised',
+  'login.invalid.body': 'We could not verify this link. It may have already been used or copied incorrectly.',
+  // status: network
+  'login.network.title': 'Connection Hiccup',
+  'login.network.body': 'We could not reach the temple. Check your connection and try again.',
+  // status: missing
+  'login.missing.title': 'No Token Found',
+  'login.missing.body': 'This page expects a magic link from your email. Check your inbox for the latest one.',
+  // resend button states
+  'login.resend.idle': 'Resend magic link',
+  'login.resend.sending': 'Sending…',
+  'login.resend.sent': 'Magic link sent',
+  'login.backHome': 'Back home',
+  'login.homeAria': 'DOGYPT home',
+
+  // ── 404 — NotFound.tsx ──
+  'notFound.code': '404',
+  'notFound.message': 'Oops! Page not found',
+  'notFound.returnHome': 'Return to Home',
 } as const;
