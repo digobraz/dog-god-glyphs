@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import breedsData from '@/data/breeds.json';
+import { useT } from '@/i18n/LanguageContext';
 
 type Breed = { id: number; en: string; sk: string; patron: string; group: string };
 type BreedsFile = { version: string; breeds: Breed[] };
@@ -63,9 +64,10 @@ interface BreedPickerProps {
 function BreedPicker({
   search, setSearch, selectedBreed, onSelectBreed, onClearBreed,
   activeCategory, setActiveCategory, selectedSvg, onSelectSvg,
-  placeholder = 'Search breed...',
+  placeholder,
   trailing,
 }: BreedPickerProps) {
+  const t = useT();
   const matches = useMemo(() => {
     if (search.trim().length < 2 || selectedBreed) return [];
     const q = search.toLowerCase();
@@ -112,7 +114,7 @@ function BreedPicker({
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={placeholder}
+              placeholder={placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             />
@@ -167,7 +169,7 @@ function BreedPicker({
               }`}
               style={{ fontFamily: "'Cinzel', serif" }}
             >
-              {cat.id} {cat.name}
+              {cat.id} {t(`heroglyph.flow.breed.cat.${cat.id}`)}
             </button>
           );
         })}
@@ -206,6 +208,7 @@ function BreedPicker({
 
 export function BreedPatronScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
   const setBreed = useDogyptStore((s) => s.setBreed);
   const setIsMixStore = useDogyptStore((s) => s.setIsMix);

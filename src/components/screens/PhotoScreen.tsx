@@ -10,6 +10,7 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
 import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
+import { useT } from '@/i18n/LanguageContext';
 
 /* ───── helpers ───── */
 
@@ -314,6 +315,7 @@ type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 
 export function PhotoScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
   const sessionId = useDogyptStore((s) => s.sessionId);
   const setDogPhotoUrl = useDogyptStore((s) => s.setDogPhotoUrl);
@@ -431,7 +433,12 @@ export function PhotoScreen() {
       {photoUrl && (
         <CropArea src={photoUrl} shape="square" overlayCircle value={certCrop} onChange={setCertCrop} />
       )}
-      <BackNextButtons onBack={() => goTo(0)} onNext={() => goTo(2)} />
+      <BackNextButtons
+        onBack={() => goTo(0)}
+        onNext={() => goTo(2)}
+        backLabel={t('heroglyph.flow.photo.back')}
+        nextLabel={t('heroglyph.flow.photo.next')}
+      />
     </>
   );
 
@@ -479,7 +486,8 @@ export function PhotoScreen() {
         onBack={() => goTo(1)}
         onNext={finish}
         nextDisabled={finishing}
-        nextLabel={finishing ? 'SAVING...' : 'NEXT →'}
+        backLabel={t('heroglyph.flow.photo.back')}
+        nextLabel={finishing ? t('heroglyph.flow.photo.saving') : t('heroglyph.flow.photo.next')}
       />
     </>
   );
@@ -525,13 +533,13 @@ export function PhotoScreen() {
                       className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      A <span className="font-bold text-amber-300">FACE</span> OF A GOD
+                      {t('heroglyph.flow.photo.faceOfGodPrefix')} <span className="font-bold text-amber-300">{t('heroglyph.flow.photo.faceOfGodWord')}</span> {t('heroglyph.flow.photo.faceOfGodSuffix')}
                     </p>
                     <p
                       className="text-white/70 text-sm text-center"
                       style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
-                      Upload a clear photo of {dogName || 'your dog'} — it will be sealed into their Heroglyph forever.
+                      {t('heroglyph.flow.photo.uploadHint', { dogName: dogName || t('heroglyph.flow.photo.yourDog') })}
                     </p>
                   </div>
                 </div>
@@ -555,7 +563,7 @@ export function PhotoScreen() {
                       >
                         <Upload size={36} color="hsl(39 55% 51%)" strokeWidth={1.5} />
                         <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                          Tap to upload
+                          {t('heroglyph.flow.photo.tapToUpload')}
                         </span>
                       </div>
                     ) : (
@@ -566,15 +574,15 @@ export function PhotoScreen() {
                         <div className="flex flex-col gap-0.5 min-w-0 flex-1">
                           <span className="text-xs text-foreground truncate" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{fileName}</span>
                           <button className="text-[10px] underline text-muted-foreground self-start" onClick={() => fileRef.current?.click()}>
-                            Change photo
+                            {t('heroglyph.flow.photo.changePhoto')}
                           </button>
                           {uploadState === 'uploading' && (
                             <span className="flex items-center gap-1 text-[10px]" style={{ color: 'hsl(var(--gold) / 0.7)', fontFamily: "'Space Grotesk', sans-serif" }}>
-                              <Loader2 className="h-3 w-3 animate-spin" /> Sealing into eternity…
+                              <Loader2 className="h-3 w-3 animate-spin" /> {t('heroglyph.flow.photo.sealing')}
                             </span>
                           )}
                           {uploadState === 'done' && (
-                            <span className="text-[10px] text-green-500/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>✓ Sealed</span>
+                            <span className="text-[10px] text-green-500/80" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{t('heroglyph.flow.photo.sealed')}</span>
                           )}
                           {uploadState === 'error' && (
                             <button
@@ -582,7 +590,7 @@ export function PhotoScreen() {
                               className="text-[10px] underline text-red-400/80 self-start"
                               style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                             >
-                              Upload failed — retry
+                              {t('heroglyph.flow.photo.uploadFailed')}
                             </button>
                           )}
                         </div>
@@ -593,11 +601,11 @@ export function PhotoScreen() {
                       className="text-[10px] md:text-[11px] text-center leading-snug px-2"
                       style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'hsl(39 40% 60%)' }}
                     >
-                      <span className="inline text-green-600/70 mr-0.5">✓</span> dog facing forward
+                      <span className="inline text-green-600/70 mr-0.5">✓</span> {t('heroglyph.flow.photo.tipForward')}
                       {' · '}
-                      <span className="inline text-red-400/70 mr-0.5">✗</span> side profile / group
+                      <span className="inline text-red-400/70 mr-0.5">✗</span> {t('heroglyph.flow.photo.tipSide')}
                       <br />
-                      Best results: face clearly visible, works cropped into a circle.
+                      {t('heroglyph.flow.photo.tipBest')}
                     </p>
 
                     <Button
@@ -611,7 +619,7 @@ export function PhotoScreen() {
                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                       }}
                     >
-                      NEXT →
+                      {t('heroglyph.flow.photo.next')}
                     </Button>
                   </div>
                 </motion.div>
@@ -641,15 +649,15 @@ export function PhotoScreen() {
                       className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      {sub === 1 ? 'ADJUST YOUR PORTRAIT' : 'MORE FACES OF THE GOD'}
+                      {sub === 1 ? t('heroglyph.flow.photo.adjustTitle') : t('heroglyph.flow.photo.moreTitle')}
                     </h2>
                     <p
                       className="text-white/70 text-sm text-center"
                       style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
                       {sub === 1
-                        ? 'Drag to position your dog within the frame.'
-                        : 'Add 1–3 more photos for surprises later. (optional)'}
+                        ? t('heroglyph.flow.photo.adjustHint')
+                        : t('heroglyph.flow.photo.moreHint')}
                     </p>
                   </div>
                 </div>

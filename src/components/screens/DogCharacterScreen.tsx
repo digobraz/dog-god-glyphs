@@ -7,24 +7,25 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 
-import watcherSvg from '@/assets/character/CHARACTER-WATCHER.svg';
-import playfulSvg from '@/assets/character/CHARACTER-PLAYFUL.svg';
-import hyperactiveSvg from '@/assets/character/CHARACTER-HYPERACTIVE.svg';
-import pirateSvg from '@/assets/character/CHARACTER-PIRATE.svg';
+import guardianSvg from '@/assets/character/CHARACTER-GUARDIAN.svg';
+import playerSvg from '@/assets/character/CHARACTER-PLAYER.svg';
+import energizerSvg from '@/assets/character/CHARACTER-ENERGIZER.svg';
+import maverickSvg from '@/assets/character/CHARACTER-MAVERICK.svg';
 import waterloverSvg from '@/assets/character/CHARACTER-WATERLOVER.svg';
 import gourmetSvg from '@/assets/character/CHARACTER-GOURMET.svg';
 import loverSvg from '@/assets/character/CHARACTER-LOVER.svg';
-import chillmanSvg from '@/assets/character/CHARACTER-CHILLMAN.svg';
+import chillerSvg from '@/assets/character/CHARACTER-CHILLER.svg';
 
+// value === asset basename (lowercase) so HeroglyphFrame's glob map keys match.
 const characters = [
-  { value: 'watcher', label: 'Guardian', img: watcherSvg, isCustom: false },
-  { value: 'playful', label: 'Player', img: playfulSvg, isCustom: false },
-  { value: 'hyperactive', label: 'Energizer', img: hyperactiveSvg, isCustom: false },
-  { value: 'pirate', label: 'Maverick', img: pirateSvg, isCustom: false },
+  { value: 'guardian', label: 'Guardian', img: guardianSvg, isCustom: false },
+  { value: 'player', label: 'Player', img: playerSvg, isCustom: false },
+  { value: 'energizer', label: 'Energizer', img: energizerSvg, isCustom: false },
+  { value: 'maverick', label: 'Maverick', img: maverickSvg, isCustom: false },
   { value: 'waterlover', label: 'Waterlover', img: waterloverSvg, isCustom: false },
   { value: 'gourmet', label: 'Gourmet', img: gourmetSvg, isCustom: false },
   { value: 'lover', label: 'Lover', img: loverSvg, isCustom: false },
-  { value: 'chillman', label: 'Chiller', img: chillmanSvg, isCustom: false },
+  { value: 'chiller', label: 'Chiller', img: chillerSvg, isCustom: false },
 ];
 
 const tripleCharacters = [...characters, ...characters, ...characters];
