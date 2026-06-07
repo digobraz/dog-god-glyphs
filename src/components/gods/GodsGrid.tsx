@@ -37,10 +37,12 @@ function generatePackPositions(count: number): Array<{col: number, row: number}>
   return result;
 }
 
-const W  = 360;
-const H  = 360;
-const GX = W + 64;
-const GY = H + 64;
+// Mobil (<768px) = karty psov -33% (menšie karty, vyššia hustota grid steny). Desktop nedotknutý.
+const MScale = (typeof window !== 'undefined' && window.innerWidth < 768) ? 0.67 : 1;
+const W  = Math.round(360 * MScale);
+const H  = Math.round(360 * MScale);
+const GX = W + Math.round(64 * MScale);
+const GY = H + Math.round(64 * MScale);
 
 const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
@@ -277,7 +279,7 @@ export function GodsGrid() {
         <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
         <p class="hero-tagline">The place where<br><span class="gold">Dog is God.</span></p>
         <button class="join-btn" data-join>Become Dogyptian</button>
-        <span class="hero-count"><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">1 000 000</span> DOGS</span>
+        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">1 000 000</span> DOGS</span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', () => navigate('/heroglyph'));
@@ -791,8 +793,8 @@ export function GodsGrid() {
         /* ── Dog card base ── */
         .dog-card {
           position: absolute;
-          width: 360px;
-          height: 360px;
+          width: ${W}px;
+          height: ${H}px;
           border-radius: 12px;
           overflow: hidden;
           cursor: pointer;
@@ -1093,6 +1095,8 @@ export function GodsGrid() {
           .join-btn { animation: none; }
         }
         .hero-count {
+          display: inline-flex;
+          align-items: center;
           font-size: 0.95rem;
           color: rgba(255,255,255,0.85);
           letter-spacing: 0.16em;
@@ -1100,6 +1104,12 @@ export function GodsGrid() {
           font-weight: 700;
           text-transform: uppercase;
           text-shadow: 0 0 14px rgba(0,0,0,0.85);
+          padding: 6px 16px;
+          border: 1px solid rgba(201,154,63,0.5);
+          border-radius: 999px;
+          background: rgba(8,8,8,0.55);
+          box-shadow: 0 0 16px rgba(201,154,63,0.2), 0 0 12px rgba(0,0,0,0.85);
+          backdrop-filter: blur(6px);
         }
         .hero-count-num {
           background: linear-gradient(180deg, #F4C75A 0%, #D8821F 100%);
@@ -1438,6 +1448,28 @@ export function GodsGrid() {
             left: 50%;
             transform: translateX(-50%);
           }
+
+          /* Mobil center hero: zmenšené logo + CTA, zvýraznený počet psov */
+          .center-hero { gap: 13px; }
+          .hero-logo-icon { width: 108px; height: 108px; } /* -10% */
+          .join-btn {
+            padding: 11px 28px;       /* -30% */
+            font-size: 0.69rem;       /* -30% */
+            letter-spacing: 0.12em;
+          }
+          /* počet psov: badge je globálny, mobil len zmenší (menší než CTA) */
+          .hero-count {
+            font-size: 0.92rem;
+            padding: 5px 14px;
+          }
+          .hero-count-num { font-size: 1.05rem; }
+        }
+        .hero-count-globe {
+          width: 15px; height: 15px;
+          color: #E2B45C;
+          margin-right: 7px;
+          flex-shrink: 0;
+          filter: drop-shadow(0 0 5px rgba(201,154,63,0.45));
         }
 
         /* ── Touch devices: skip hover preview → tap goes straight to info ── */
