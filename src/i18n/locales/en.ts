@@ -384,9 +384,9 @@ export const en = {
   'heroglyph.checkout.email': 'Email',
   'heroglyph.checkout.country': 'Country',
   'heroglyph.checkout.cta': 'CONTINUE TO PAYMENT →',
-  'heroglyph.checkout.disclaimerPrefix': 'After payment, we will send you a ',
+  'heroglyph.checkout.disclaimerPrefix': "After payment, we'll place your dog's photo on the website and your ",
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certificate',
-  'heroglyph.checkout.disclaimerSuffix': ' and place your photo on the website.',
+  'heroglyph.checkout.disclaimerSuffix': ' in your profile.',
   'heroglyph.checkout.back': 'Back',
   'heroglyph.checkout.dogFallback': 'Dog',
 

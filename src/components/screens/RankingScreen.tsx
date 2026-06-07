@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 
 import num1 from '@/assets/numbers/NUMBER-1.svg';
 import num2 from '@/assets/numbers/NUMBER-2.svg';
@@ -131,6 +131,9 @@ function ordinalSuffix(n: number): string {
 export function RankingScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const { lang } = useLang();
+  // Ordinál: EN = „2nd/3rd" (anglický sufix), ostatné jazyky = „2./3." (SK formát).
+  const ordinal = (n: number) => (lang === 'en' ? ordinalSuffix(n) : `${n}.`);
   const dogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [phase, setPhase] = useState<'question' | 'pickRank' | 'custom'>('question');
@@ -179,7 +182,7 @@ export function RankingScreen() {
     >
       <RomanComposed num={opt.num} height={iconHeight} />
       <span className="text-xs font-medium tracking-wide uppercase" style={{ fontFamily: "'Cinzel', serif" }}>
-        {opt.label}
+        {ordinal(opt.num)}
       </span>
     </button>
   );
@@ -363,7 +366,7 @@ export function RankingScreen() {
                     >
                       <RomanComposed num={parseInt(customNum)} height={48} />
                       <span className="text-xs text-muted-foreground" style={{ fontFamily: "'Cinzel', serif" }}>
-                        {ordinalSuffix(parseInt(customNum))}
+                        {ordinal(parseInt(customNum))}
                       </span>
                     </motion.div>
                   )}
