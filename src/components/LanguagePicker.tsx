@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLang } from '@/i18n/LanguageContext';
 
 type LangCode = 'en' | 'sk' | string;
 
@@ -35,15 +36,6 @@ const LANGS: LangEntry[] = [
   { code: 'TUR', label: 'tur', countries: ['tr'],             enabled: false },
 ];
 
-const STORAGE_KEY = 'dogypt_lang';
-
-function readStoredLang(): LangCode {
-  if (typeof window === 'undefined') return 'en';
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored && LANGS.some(l => l.label === stored && l.enabled)) return stored;
-  return 'en';
-}
-
 function FlagStack({ countries }: { countries: string[] }) {
   // Vertical-slice composite (per Matej ref image 2026-05-26): viaceré vlajky
   // sa zobrazia ako vertikálne pruhy vedľa seba, každý cropped na stred.
@@ -63,10 +55,8 @@ function FlagStack({ countries }: { countries: string[] }) {
 
 export default function LanguagePicker() {
   const [open, setOpen] = useState(false);
-  const [lang, setLang] = useState<LangCode>('en');
+  const { lang, setLang } = useLang();
   const wrapRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => { setLang(readStoredLang()); }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -89,8 +79,7 @@ export default function LanguagePicker() {
 
   const pick = (entry: LangEntry) => {
     if (!entry.enabled) return;
-    setLang(entry.label);
-    try { window.localStorage.setItem(STORAGE_KEY, entry.label); } catch {}
+    setLang(entry.label); // context zapíše do localStorage + re-renderuje appku
     setOpen(false);
   };
 

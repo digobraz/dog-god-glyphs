@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 import { SpiralLanding } from "@/components/landing/SpiralLanding";
 import { GodsGrid } from "@/components/gods/GodsGrid";
 import { NameScreen } from "@/components/screens/NameScreen";
@@ -41,6 +42,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <LanguageProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -94,6 +96,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </LanguageProvider>
   </QueryClientProvider>
 );
 

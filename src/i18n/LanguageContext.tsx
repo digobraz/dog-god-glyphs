@@ -1,0 +1,107 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { en } from './locales/en';
+import { sk } from './locales/sk';
+
+/**
+ * DOGYPT i18n — ľahká vlastná vrstva (bez react-i18next, Lovable-friendly).
+ *
+ * - Locale slovníky = FLAT dotted kľúče (`vision.hero.headline`), aby bol lookup
+ *   triviálny a fallback na EN deterministický.
+ * - `en` je MASTER / zdroj pravdy typu. Ostatné locale = Partial<Dict> → chýbajúci
+ *   kľúč ticho padne na EN (nikdy prázdny string).
+ * - Číta `dogypt_lang` z localStorage — ten istý kľúč, ktorý LanguagePicker UŽ zapisuje.
+ *   Provider reaguje na zmenu (vrátane `storage` eventu z iného tabu).
+ */
+
+export type Dict = typeof en;
+export type LangCode = string;
+
+const STORAGE_KEY = 'dogypt_lang';
+
+// Registry zapnutých locale slovníkov. Pridať jazyk = import + zápis sem.
+// (LanguagePicker `enabled` flag riadi VIDITEĽNOSŤ v UI; tu je dostupnosť obsahu.)
+const DICTS: Record<string, Partial<Dict>> = {
+  en,
+  sk,
+};
+
+// RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.
+const RTL_LANGS = new Set(['ara', 'ar']);
+
+function readStoredLang(): LangCode {
+  if (typeof window === 'undefined') return 'en';
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) || 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+// key je `string` (nie `keyof Dict`), aby fungovali dynamické kľúče
+// (napr. `vision.beat.${id}.tag`). Chýbajúci kľúč → fallback na EN, inak na samotný kľúč.
+type TFunction = (key: string, vars?: Record<string, string | number>) => string;
+
+type LanguageContextValue = {
+  lang: LangCode;
+  setLang: (lang: LangCode) => void;
+  t: TFunction;
+};
+
+const LanguageContext = createContext<LanguageContextValue | null>(null);
+
+function interpolate(template: string, vars?: Record<string, string | number>): string {
+  if (!vars) return template;
+  return template.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m));
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<LangCode>(readStoredLang);
+
+  // Aplikuj jazyk na <html> (lang + dir) pri každej zmene.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL_LANGS.has(lang) ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  // Sync naprieč tabmi.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) setLangState(e.newValue);
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
+  const setLang = useCallback((next: LangCode) => {
+    setLangState(next);
+    try { window.localStorage.setItem(STORAGE_KEY, next); } catch {}
+  }, []);
+
+  const t = useCallback<TFunction>((key, vars) => {
+    const dict = (DICTS[lang] ?? en) as Record<string, string>;
+    const value = dict[key] ?? (en as Record<string, string>)[key];
+    return interpolate(value ?? key, vars);
+  }, [lang]);
+
+  const value = useMemo<LanguageContextValue>(() => ({ lang, setLang, t }), [lang, setLang, t]);
+
+  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+}
+
+function useLanguageContext(): LanguageContextValue {
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error('useLanguage/useT must be used within <LanguageProvider>');
+  return ctx;
+}
+
+/** `const t = useT();  t('vision.hero.headline')` */
+export function useT(): TFunction {
+  return useLanguageContext().t;
+}
+
+/** `const { lang, setLang } = useLang();` — pre LanguagePicker / PageNav menu. */
+export function useLang(): { lang: LangCode; setLang: (lang: LangCode) => void } {
+  const { lang, setLang } = useLanguageContext();
+  return { lang, setLang };
+}

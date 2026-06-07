@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
+import { useLang } from '@/i18n/LanguageContext';
 
 const NAV_ITEMS = [
   { label: 'WALL', to: '/grid' },
@@ -62,7 +63,7 @@ export function PageNav() {
 
 function DesktopNav() {
   const { pathname } = useLocation();
-  const [lang, setLang] = useState<LangCode>('en');
+  const { lang, setLang } = useLang(); // i18n context — reálny swap obsahu
   const [langOpen, setLangOpen] = useState(false);
 
   useEffect(() => {
@@ -181,7 +182,7 @@ function DesktopNav() {
 
 function MobileNav() {
   const [open, setOpen] = useState(false);
-  const [lang, setLang] = useState<LangCode>('en');
+  const { lang, setLang } = useLang(); // i18n context — reálny swap obsahu
 
   useEffect(() => {
     if (!open) return;

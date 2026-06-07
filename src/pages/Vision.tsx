@@ -2,6 +2,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useT } from '@/i18n/LanguageContext';
 import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
 
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
@@ -225,14 +226,9 @@ const WF_ICONS: Record<string, string> = {
 };
 
 type Beat = {
-  tag: string;
+  id: string; // i18n kľúč base: vision.beat.<id>.{tag,bigW,bigG,h}; intro lead = vision.intro.lead
   intro?: boolean;
-  lead?: string;
-  bigW?: string; // headline line 1 (white)
-  bigG?: string; // headline line 2 (gold)
   n?: string;
-  h?: string;
-  p?: string;
   mech?: string;
   icon?: string;
   svg: string;
@@ -243,29 +239,23 @@ type Beat = {
 
 const WF_BEATS: Beat[] = [
   {
-    tag: 'I HAD A DREAM',
+    id: 'dream',
     intro: true,
-    bigW: 'I HAD', bigG: 'A DREAM',
-    lead: 'What if every doglover saw a dog as more than just an animal?',
     video: '/videos/vision-dream.mp4',
     figure: '/images/vision/figure-dream.png',
     svg: WF_INTRO_SVG,
   },
   {
-    tag: 'THE SYMBOL',
-    bigW: 'THE', bigG: 'SYMBOL',
+    id: 'symbol',
     n: '01',
-    h: 'Our language of love is <span class="wf-hl">DOG</span>. And beyond its ordinary name, every dog carries its own <span class="wf-hl">unique symbol</span> — the <span class="wf-hl">HEROGLYPH</span>. It\'s a <span class="wf-hl">universal language</span>, a <span class="wf-hl">sacred tool</span> to unite every doglover on Earth.',
     icon: 'ankh',
     video: '/videos/vision-symbol.mp4',
     svg: wfManDog(`<g transform="translate(116,-6)">${wfHeroglyph}</g><path d="M124 22 q-8 -10 -16 -4" ${wfStroke}/>`),
   },
   {
-    tag: 'A DOG NATION',
-    bigW: 'A DOG', bigG: 'NATION',
+    id: 'nation',
     n: '02',
     video: '/videos/vision-nation.mp4',
-    h: 'Let\'s make a <span class="wf-hl">miracle</span>. Our first milestone: to unite <span class="wf-hl">a million doglovers</span>. Imagine the <span class="wf-hl">sheer power</span> we\'d hold together — everything we could do for ourselves, our dogs, and <span class="wf-hl">dogs in need</span>, beyond any state. <span class="wf-hl">We would be the state.</span>',
     icon: 'pyramid',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}>${Array.from({ length: 9 })
       .map((_, i) => {
@@ -276,20 +266,16 @@ const WF_BEATS: Beat[] = [
       .join('')}</svg>`,
   },
   {
-    tag: 'DIGITAL TEMPLE',
-    bigW: 'DIGITAL', bigG: 'TEMPLE',
+    id: 'temple',
     n: '03',
     video: '/videos/vision-temple.mp4',
-    h: 'One app, <span class="wf-hl">only for real doglovers</span> — no fake people. The first <span class="wf-hl">dog-friendly digital world</span> built just for us: a social home, and an ecosystem that truly helps — <span class="wf-hl">travel, vets, services, education</span>, and <span class="wf-hl">fundraisers</span> for dogs in need.',
     icon: 'heartpaw',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><path d="M40 200 l0 -70 l60 -42 l60 42 l0 70 Z"/><path d="M40 130 l60 -42 l60 42"/><rect x="86" y="150" width="28" height="50"/><circle cx="100" cy="58" r="18"/><path d="M100 49 l0 18 M91 58 l18 0"/></svg>`,
   },
   {
-    tag: 'REAL CENTERS',
-    bigW: 'REAL', bigG: 'CENTERS',
+    id: 'centers',
     n: '04',
     video: '/videos/vision-centers.mp4',
-    h: 'The old shelter managed misery. The <span class="wf-hl">sanctuary</span> ends it. Real centers across the world for <span class="wf-hl">care, training, and research</span> — financed <span class="wf-hl">in the open</span>, every account on the table.',
     icon: 'balance',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><ellipse cx="100" cy="158" rx="78" ry="28"/>${Array.from({ length: 6 })
       .map((_, i) => {
@@ -301,11 +287,9 @@ const WF_BEATS: Beat[] = [
       .join('')}<path d="M100 46 l0 66 M72 64 l56 0 M72 64 l-10 24 l20 0 Z M128 64 l-10 24 l20 0 Z"/></svg>`,
   },
   {
-    tag: 'A NEW ERA',
-    bigW: 'A NEW', bigG: 'ERA',
+    id: 'era',
     n: '05',
     video: '/videos/vision-era.mp4',
-    h: 'Beyond borders and politics, doglovers are Earth\'s <span class="wf-hl">kindest hidden force</span>. Only together can we <span class="wf-hl">rebuild the system</span> and change the world — and leave behind something that protects our dogs <span class="wf-hl">forever</span>.',
     icon: 'ankh',
     svg: `<svg viewBox="0 0 200 250" ${wfStroke}><g transform="translate(66,86) scale(2)">${wfHeroglyph}</g><path d="M40 60 q60 -40 120 0" stroke-dasharray="2 7" opacity="0.5" stroke="${WF_INK}"/></svg>`,
   },
@@ -316,6 +300,7 @@ const WF_VIDEOS: (string | null)[] = WF_BEATS.map((b) => b.video ?? null);
 
 export default function Vision() {
   const navigate = useNavigate();
+  const t = useT();
   const [activePill, setActivePill] = useState<number | null>(null);
   const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(
@@ -1450,7 +1435,7 @@ export default function Vision() {
                 'drop-shadow(0 0 22px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5))',
             }}
           >
-            The Vision
+            {t('vision.hero.title')}
           </span>
         </h1>
         {!videoPlaying && (
@@ -1459,14 +1444,14 @@ export default function Vision() {
             className="video-hero-caption"
             onClick={() => setVideoPlaying(true)}
           >
-            Watch Dogypt Intro Movie
+            {t('vision.hero.watch')}
           </button>
         )}
         <div className={`video-embed-frame${videoPlaying ? ' is-playing' : ''}`}>
           {videoPlaying ? (
             <iframe
               src="https://www.youtube-nocookie.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white"
-              title="DOGYPT Intro Movie"
+              title={t('vision.hero.videoTitle')}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
             />
@@ -1475,7 +1460,7 @@ export default function Vision() {
               type="button"
               className="video-poster"
               onClick={() => setVideoPlaying(true)}
-              aria-label="Play Dogypt Intro Movie"
+              aria-label={t('vision.hero.playLabel')}
             >
               <video
                 className="video-bg-loop"
@@ -1523,25 +1508,25 @@ export default function Vision() {
             <div className="wf-text">
               {WF_BEATS.map((b, i) => (
                 <div
-                  key={b.tag}
+                  key={b.id}
                   className={`wf-block${b.intro ? ' wf-intro' : ''}${wfState === i ? ' on' : ''}`}
                   aria-hidden={wfState !== i}
                 >
                   <div className="wf-big">
-                    <span className="wf-big-w">{b.bigW}</span>
+                    <span className="wf-big-w">{t(`vision.beat.${b.id}.bigW`)}</span>
                     <br />
-                    <span className="wf-big-g">{b.bigG}</span>
+                    <span className="wf-big-g">{t(`vision.beat.${b.id}.bigG`)}</span>
                   </div>
                   {b.intro ? (
-                    <div className="wf-lead">
-                      In 2018, I had a <span className="wf-hl">vision</span> of how to{' '}
-                      <span className="wf-hl">save every dog on Earth</span>. And it's actually
-                      simple — every doglover <span className="wf-hl">unites into one community</span>,
-                      one that sees a dog as <span className="wf-hl">more than just an animal</span>.
-                      So here we are…
-                    </div>
+                    <div
+                      className="wf-lead"
+                      dangerouslySetInnerHTML={{ __html: t('vision.intro.lead') }}
+                    />
                   ) : (
-                    <div className="wf-lead" dangerouslySetInnerHTML={{ __html: b.h ?? '' }} />
+                    <div
+                      className="wf-lead"
+                      dangerouslySetInnerHTML={{ __html: t(`vision.beat.${b.id}.h`) }}
+                    />
                   )}
                   {b.mech && (
                     <div className="wf-mech">
@@ -1565,11 +1550,11 @@ export default function Vision() {
             <div className="wf-steps">
               {WF_BEATS.map((b, i) => (
                 <div
-                  key={b.tag}
+                  key={b.id}
                   className={`wf-step${wfState === i ? ' active' : ''}${i < wfState ? ' done' : ''}`}
                 >
                   <span className="wf-knob" />
-                  <span className="wf-step-label">{b.tag}</span>
+                  <span className="wf-step-label">{t(`vision.beat.${b.id}.tag`)}</span>
                 </div>
               ))}
             </div>
@@ -1601,7 +1586,7 @@ export default function Vision() {
               'drop-shadow(0 0 26px rgba(245,199,61,0.40)) drop-shadow(0 0 8px rgba(230,158,26,0.5))',
           }}
         >
-          What if…
+          {t('vision.finale.title')}
         </h2>
         <p
           style={{
@@ -1613,10 +1598,8 @@ export default function Vision() {
             maxWidth: '22ch',
             margin: 0,
           }}
-        >
-          …every doglover said{' '}
-          <span style={{ color: '#F5C73D', fontStyle: 'italic' }}>yes</span> to one crazy idea?
-        </p>
+          dangerouslySetInnerHTML={{ __html: t('vision.finale.lead') }}
+        />
         {/* button + tagline as one group so the tagline sits a tight 7px under the
             button (the section's larger flex gap stays above the button) */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' }}>
@@ -1625,7 +1608,7 @@ export default function Vision() {
             className="mission-cta"
             style={{ alignSelf: 'center', margin: 0 }}
           >
-            Become Dogyptian
+            {t('vision.finale.cta')}
           </button>
           <p
             style={{
@@ -1636,7 +1619,7 @@ export default function Vision() {
               margin: 0,
             }}
           >
-            A new era is just one click away.
+            {t('vision.finale.tagline')}
           </p>
         </div>
       </section>
