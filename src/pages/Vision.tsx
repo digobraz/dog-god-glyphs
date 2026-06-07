@@ -1329,8 +1329,11 @@ export default function Vision() {
         /* Unified headline + lead typography for ALL beats (taken from slide 1) */
         .wf-block .wf-big {
           font-family: 'Cinzel', serif; font-weight: 700;
-          font-size: clamp(3.4rem, 8.6vw, 6.4rem); line-height: 0.98; letter-spacing: 0.04em;
-          white-space: nowrap; /* 2-line white/gold headline, no wrap */
+          /* smaller than before so long SK words (STREDISKÁ, DIGITÁLNY…) don't overflow;
+             line-height 1.08 leaves headroom so uppercase carons (Č/Š/É) aren't clipped
+             by the background-clip:text line box */
+          font-size: clamp(2.6rem, 6.2vw, 4.8rem); line-height: 1.08; letter-spacing: 0.04em;
+          white-space: nowrap; /* 2-line white/gold headline, no wrap → max 2 lines */
         }
         .wf-big-w { color: #FAF4EC; }
         .wf-big-g {
@@ -1402,7 +1405,7 @@ export default function Vision() {
           /* Mobile typography: KEEP the 2-line white/gold headline (<br> stays) so the
            * heading is always ≤2 lines in every language — a forced single line overflowed
            * with long SK words (STREDISKÁ, ONLINE CHRÁM…). fluid clamp shrinks to fit width. */
-          .wf-block .wf-big { font-size: clamp(1.75rem, 8.4vw, 2.3rem); line-height: 1.04; }
+          .wf-block .wf-big { font-size: clamp(1.55rem, 7.4vw, 2.05rem); line-height: 1.07; }
           .wf-block .wf-lead { font-size: 0.95rem; margin-top: 18px; }
           .wf-steps { display: none; } /* mobile: labels were hidden + dots removed → empty row, drop it (comet bar carries progress) */
           .wf-progress { bottom: 30px; } /* lift the comet status bar up */
@@ -1571,9 +1574,10 @@ export default function Vision() {
           style={{
             fontFamily: "'Cinzel', serif",
             fontWeight: 700,
-            fontSize: 'clamp(3rem, 9vw, 7rem)',
+            fontSize: 'clamp(2.6rem, 8vw, 6rem)',
             letterSpacing: '0.04em',
-            lineHeight: 0.95,
+            lineHeight: 1.12,
+            paddingTop: '0.06em',
             margin: 0,
             textTransform: 'uppercase',
             background:
