@@ -10,6 +10,7 @@ import {
   Save,
   Plus,
   Trash2,
+  RefreshCw,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
@@ -53,6 +54,7 @@ export default function PackDogDetail() {
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [resending, setResending] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const [packNumber, setPackNumber] = useState<number | null>(null);
   const { toast } = useToast();
 
@@ -259,6 +261,39 @@ export default function PackDogDetail() {
         description: err instanceof Error ? err.message : 'Unknown error',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!dog?.id || regenerating) return;
+    setRegenerating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
+      const res = await fetch(`${EDGE_BASE}/generate-pdfs`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ dogId: dog.id }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
+      const urls = json?.urls || {};
+      setDog({
+        ...dog,
+        pdf_cert_url: urls.cert ?? dog.pdf_cert_url,
+        pdf_vertical_url: urls.vertical ?? dog.pdf_vertical_url,
+        pdf_horizontal_url: urls.horizontal ?? dog.pdf_horizontal_url,
+      });
+      toast({ title: 'Certificate ready', description: 'Your PDFs have been generated.' });
+    } catch (err) {
+      toast({
+        title: 'Could not generate PDFs',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setRegenerating(false);
     }
   };
 
@@ -619,6 +654,42 @@ export default function PackDogDetail() {
               filename={`${dogName}-horizontal.pdf`}
             />
           </div>
+          {(() => {
+            const hasPdfs = !!(dog.pdf_cert_url && dog.pdf_vertical_url && dog.pdf_horizontal_url);
+            return (
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={regenerating}
+                className="inline-flex items-center justify-center gap-2"
+                style={{
+                  background: hasPdfs ? 'transparent' : T.ink,
+                  border: hasPdfs ? `1px solid ${T.border}` : 'none',
+                  padding: '14px 14px',
+                  borderRadius: 12,
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 11,
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: hasPdfs ? T.ink : T.card,
+                  cursor: regenerating ? 'progress' : 'pointer',
+                  opacity: regenerating ? 0.6 : 1,
+                }}
+              >
+                {regenerating ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
+                {regenerating
+                  ? 'Generating…'
+                  : hasPdfs
+                    ? 'Regenerate PDFs'
+                    : 'Generate certificate PDFs'}
+              </button>
+            );
+          })()}
           <button
             type="button"
             onClick={handleResend}

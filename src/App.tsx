@@ -36,6 +36,7 @@ import BetaVision from "./pages/BetaVision.tsx";
 import Religion from "./pages/Religion.tsx";
 import About from "./pages/About.tsx";
 import Heroglyph from "./pages/Heroglyph.tsx";
+import CertRender from "./pages/CertRender.tsx";
 import { DevNav } from "@/components/DevNav";
 
 const queryClient = new QueryClient();
@@ -92,6 +93,7 @@ const App = () => (
           <Route path="/pack/eternal" element={<PackEternal />} />
           <Route path="/pack/profile" element={<PackProfile />} />
 
+          <Route path="/cert-render/:id" element={<CertRender />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

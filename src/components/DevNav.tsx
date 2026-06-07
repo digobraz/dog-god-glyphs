@@ -67,6 +67,9 @@ const GROUPS: RouteGroup[] = [
 export function DevNav() {
   const { pathname } = useLocation();
 
+  // Never on headless PDF render targets — would bleed into the generated PDF.
+  if (pathname.startsWith("/cert-render")) return null;
+
   // Hide on production custom domain (dogypt.com). Show in dev + lovable.app preview/published.
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
