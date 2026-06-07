@@ -9,10 +9,9 @@ import type { Dict } from '../LanguageContext';
  * Texty = Matejova ručná úprava 2026-06-07 (prvý strojový draft prepísaný).
  * PRAVIDLO (Matej 2026-06-07): „DOG" sa v bežnom texte PREKLADÁ (→ PES), ale MOTTO
  *   sa nikdy nemení — „DOG IS GOD" / brand motto ostáva vždy EN naprieč jazykmi.
- * Vyriešené: beat 1 „PES" OK (text, nie motto); beat 3 „dog-friendly" (bol preklep).
- * OTVORENÉ (čakajú Mateja):
- *   - finále lead: „áno" ostáva malými (zlatá kurzíva už zvýrazňuje); Matej napísal „ÁNO".
- *   - finále CTA „Staň sa Dogypťanom" — Matej ešte nevybral (alt: „Pridaj sa" / nechať EN).
+ * Vyriešené (Matej 2026-06-07): beat 1 „PES" OK (text, nie motto); beat 3 „dog-friendly";
+ *   finále „áno" = malými + BOLD (zlatá, font-weight 700, nie kurzíva, nie verzálky);
+ *   CTA „Staň sa Dogypťanom" OSTÁVA. /vision SK = FINÁL.
  */
 export const sk: Partial<Dict> = {
   // ── /vision — hero ──
@@ -67,7 +66,7 @@ export const sk: Partial<Dict> = {
   // ── /vision — finále CTA ──
   'vision.finale.title': 'Čo ak by…',
   'vision.finale.lead':
-    '…každý psíčkar povedal <span style="color:#F5C73D;font-style:italic">áno</span> tomuto bláznivému nápadu?',
+    '…každý psíčkar povedal <span style="color:#F5C73D;font-weight:700">áno</span> tomuto bláznivému nápadu?',
   'vision.finale.cta': 'Staň sa Dogypťanom',
   'vision.finale.tagline': 'Od novej éry ťa delí jeden klik.',
 };
