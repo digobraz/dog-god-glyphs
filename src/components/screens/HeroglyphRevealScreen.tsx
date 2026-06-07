@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Info, X } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
@@ -13,6 +14,7 @@ import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 
 export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
   const [showVertical, setShowVertical] = useState(false);
@@ -86,7 +88,7 @@ export function HeroglyphRevealScreen() {
                 }}
                 layout
               >
-                {dogName}'s Heroglyph
+                {t('heroglyph.flow.reveal.heroglyphTitle', { dogName })}
               </motion.h1>
 
               <AnimatePresence mode="wait">
@@ -130,7 +132,7 @@ export function HeroglyphRevealScreen() {
                   }}
                   onClick={() => setShowVertical(!showVertical)}
                 >
-                  {showVertical ? '↔ HORIZONTAL DESIGN' : '↕ VERTICAL DESIGN'}
+                  {showVertical ? t('heroglyph.flow.reveal.horizontalDesign') : t('heroglyph.flow.reveal.verticalDesign')}
                 </Button>
               </motion.div>
             </div>
@@ -153,7 +155,7 @@ export function HeroglyphRevealScreen() {
               <button
                 className="absolute top-3 right-3 z-20 flex items-center justify-center"
                 style={{ width: 44, height: 44 }}
-                aria-label="Info"
+                aria-label={t('heroglyph.flow.reveal.infoAria')}
                 onClick={() => setShowInfo((p) => !p)}
               >
                 <span className="w-7 h-7 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
@@ -179,12 +181,12 @@ export function HeroglyphRevealScreen() {
                         className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        OUR VISION
+                        {t('heroglyph.flow.reveal.visionTitle')}
                       </h3>
                       <p
                         className="text-xs md:text-sm leading-relaxed text-center text-black"
                       >
-                        To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
+                        {t('heroglyph.flow.reveal.visionBody')}
                       </p>
                     </div>
                   </motion.div>
@@ -194,9 +196,9 @@ export function HeroglyphRevealScreen() {
               <div className="flex flex-col items-center gap-3 md:flex-row md:items-center md:gap-5">
                 <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-32 md:h-32 object-contain flex-shrink-0" />
                 <div className="text-white drop-shadow-sm text-center md:text-left" style={{ fontFamily: "'Cinzel', serif" }}>
-                  <p className="font-bold text-amber-300 text-lg md:text-xl">WELCOME TO DOGYPT!</p>
+                  <p className="font-bold text-amber-300 text-lg md:text-xl">{t('heroglyph.flow.reveal.welcome')}</p>
                   <p className="font-semibold text-sm md:text-base mt-1">
-                    This Heroglyph is your eternal bond.
+                    {t('heroglyph.flow.reveal.bond')}
                   </p>
                 </div>
               </div>
@@ -210,7 +212,7 @@ export function HeroglyphRevealScreen() {
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.4)',
                 }}
               >
-                GRAB MY HEROGLYPH
+                {t('heroglyph.flow.reveal.cta')}
               </Button>
             </div>
           </motion.div>
@@ -229,7 +231,7 @@ export function HeroglyphRevealScreen() {
               <button
                 className="absolute top-2 right-2 z-20 flex items-center justify-center"
                 style={{ width: 36, height: 36 }}
-                aria-label="Info"
+                aria-label={t('heroglyph.flow.reveal.infoAria')}
                 onClick={() => setShowInfo((p) => !p)}
               >
                 <span className="w-6 h-6 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
@@ -255,12 +257,12 @@ export function HeroglyphRevealScreen() {
                         className="text-center text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        OUR VISION
+                        {t('heroglyph.flow.reveal.visionTitle')}
                       </h3>
                       <p
                         className="text-[10px] md:text-xs leading-relaxed text-center text-black"
                       >
-                        To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!
+                        {t('heroglyph.flow.reveal.visionBody')}
                       </p>
                     </div>
                   </motion.div>
@@ -270,7 +272,7 @@ export function HeroglyphRevealScreen() {
               <div className="flex items-center gap-3">
                 <img src={hekthorImg} alt="HEKTHOR" className="w-10 h-10 object-contain flex-shrink-0" />
                 <p className="font-bold text-amber-300 text-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                  WELCOME TO DOGYPT!
+                  {t('heroglyph.flow.reveal.welcome')}
                 </p>
               </div>
               <Button
@@ -283,7 +285,7 @@ export function HeroglyphRevealScreen() {
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.4)',
                 }}
               >
-                GRAB MY HEROGLYPH
+                {t('heroglyph.flow.reveal.cta')}
               </Button>
             </div>
           </motion.div>

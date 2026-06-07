@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
@@ -28,6 +29,7 @@ const COUNTRIES = [
 
 export function CheckoutScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
   const dogPhotoUrl = useDogyptStore((s) => s.dogPhotoUrl);
   const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
@@ -81,7 +83,7 @@ export function CheckoutScreen() {
                 className="text-center text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Order Summary
+                {t('heroglyph.checkout.orderSummary')}
               </h2>
 
               {/* Dog photo + heroglyph preview */}
@@ -95,7 +97,7 @@ export function CheckoutScreen() {
                       boxShadow: '0 0 16px hsl(var(--gold) / 0.25)',
                     }}
                   >
-                    <img src={dogPhotoUrl} alt={dogName || 'Dog'} className="w-full h-full object-cover" />
+                    <img src={dogPhotoUrl} alt={dogName || t('heroglyph.checkout.dogFallback')} className="w-full h-full object-cover" />
                   </div>
                 )}
                 {/* Full heroglyph */}
@@ -119,10 +121,10 @@ export function CheckoutScreen() {
               >
                 <div className="flex flex-col">
                   <span className="text-[10px] tracking-widest uppercase text-foreground/50" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    {dogName || 'Your dog'}'s
+                    {t('heroglyph.checkout.dogPossessive', { dogName: dogName || t('heroglyph.checkout.yourDogFallback') })}
                   </span>
                   <span className="text-base md:text-lg font-bold tracking-[0.15em] uppercase text-primary" style={{ fontFamily: "'Cinzel', serif" }}>
-                    HEROGLYPH
+                    {t('heroglyph.checkout.heroglyph')}
                   </span>
                 </div>
                 <span className="text-lg md:text-xl font-bold text-primary" style={{ fontFamily: "'Cinzel', serif" }}>
@@ -144,19 +146,19 @@ export function CheckoutScreen() {
               className="text-center text-xs md:text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
               style={{ fontFamily: "'Cinzel', serif" }}
             >
-              Your Details
+              {t('heroglyph.checkout.yourDetails')}
             </h2>
 
             <div className="flex flex-col gap-1.5">
               <div className="flex gap-1.5">
-                <input type="text" placeholder="First Name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
-                <input type="text" placeholder="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+                <input type="text" placeholder={t('heroglyph.checkout.firstName')} value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+                <input type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               </div>
-              <input type="email" placeholder="Email" value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+              <input type="email" placeholder={t('heroglyph.checkout.email')} value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Country"
+                  placeholder={t('heroglyph.checkout.country')}
                   value={country}
                   onChange={(e) => { setCountry(e.target.value); setShowCountries(true); }}
                   onFocus={() => country && setShowCountries(true)}
@@ -194,13 +196,13 @@ export function CheckoutScreen() {
                   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                 }}
               >
-                CONTINUE TO PAYMENT →
+                {t('heroglyph.checkout.cta')}
               </Button>
             </div>
 
             {/* Disclaimer inside card */}
             <p className="text-primary/50 text-[10px] text-center leading-relaxed px-2 mt-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              After payment, we will send you a <span className="text-primary font-bold uppercase">DOGYPT Certificate</span> and place your photo on the website.
+              {t('heroglyph.checkout.disclaimerPrefix')}<span className="text-primary font-bold uppercase">{t('heroglyph.checkout.disclaimerHighlight')}</span>{t('heroglyph.checkout.disclaimerSuffix')}
             </p>
           </motion.div>
 
@@ -210,7 +212,7 @@ export function CheckoutScreen() {
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors py-2"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-3 w-3" /> Back
+            <ArrowLeft className="h-3 w-3" /> {t('heroglyph.checkout.back')}
           </button>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
@@ -10,7 +11,9 @@ const MAX_CHARS = 300;
 
 export function MessageScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
+  const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const storedMessage = useDogyptStore((s) => s.selections.dogMessage) || '';
 
@@ -76,11 +79,11 @@ export function MessageScreen() {
                 className="text-white text-center text-base md:text-xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Leave a eternal message for{' '}
-                <span className="font-bold text-amber-300">{dogName || 'YOUR DOG'}</span>.
+                {t('heroglyph.flow.message.promptPrefix')}
+                <span className="font-bold text-amber-300">{displayName}</span>{t('heroglyph.flow.message.promptMid')}
                 <br />
-                It will stay with them in{' '}
-                <span className="font-bold">dogypt</span> - forever.
+                {t('heroglyph.flow.message.promptStayPrefix')}
+                <span className="font-bold">{t('heroglyph.flow.message.promptStayWord')}</span>{t('heroglyph.flow.message.promptStaySuffix')}
               </p>
             </div>
           </div>
@@ -98,7 +101,7 @@ export function MessageScreen() {
                 className="text-xs uppercase tracking-widest text-muted-foreground text-center"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
-                Your Message
+                {t('heroglyph.flow.message.yourMessage')}
               </p>
 
               {/* Textarea */}
@@ -107,7 +110,7 @@ export function MessageScreen() {
                   ref={textareaRef}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder={`Dear ${dogName || 'YOUR DOG'}, thank you for every second I was lucky enough to spend by your side…`}
+                  placeholder={t('heroglyph.flow.message.placeholder', { dogName: displayName })}
                   maxLength={MAX_CHARS + 50}
                   rows={3}
                   className="w-full bg-card rounded-xl px-4 py-3 text-foreground text-sm leading-relaxed placeholder:text-muted-foreground/50 outline-none border-2 transition-colors resize-none"
@@ -143,8 +146,8 @@ export function MessageScreen() {
                 className="text-[10px] md:text-xs text-muted-foreground text-center leading-relaxed"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
-                This message will appear on your dog's profile in the{' '}
-                <span className="font-semibold text-foreground/70">DOGYPT.com</span>.
+                {t('heroglyph.flow.message.profileNotePrefix')}
+                <span className="font-semibold text-foreground/70">{t('heroglyph.flow.message.profileNoteSite')}</span>{t('heroglyph.flow.message.profileNoteSuffix')}
               </p>
 
               {/* Submit button */}
@@ -163,7 +166,7 @@ export function MessageScreen() {
                     : undefined,
                 }}
               >
-                SEAL THE MESSAGE →
+                {t('heroglyph.flow.message.cta')}
               </Button>
             </div>
           </motion.div>

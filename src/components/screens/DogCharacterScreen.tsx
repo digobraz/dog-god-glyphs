@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
@@ -17,22 +18,25 @@ import loverSvg from '@/assets/character/CHARACTER-LOVER.svg';
 import chillerSvg from '@/assets/character/CHARACTER-CHILLER.svg';
 
 // value === asset basename (lowercase) so HeroglyphFrame's glob map keys match.
+// labelKey → i18n; resolved via t() at render.
 const characters = [
-  { value: 'guardian', label: 'Guardian', img: guardianSvg, isCustom: false },
-  { value: 'player', label: 'Player', img: playerSvg, isCustom: false },
-  { value: 'energizer', label: 'Energizer', img: energizerSvg, isCustom: false },
-  { value: 'maverick', label: 'Maverick', img: maverickSvg, isCustom: false },
-  { value: 'waterlover', label: 'Waterlover', img: waterloverSvg, isCustom: false },
-  { value: 'gourmet', label: 'Gourmet', img: gourmetSvg, isCustom: false },
-  { value: 'lover', label: 'Lover', img: loverSvg, isCustom: false },
-  { value: 'chiller', label: 'Chiller', img: chillerSvg, isCustom: false },
+  { value: 'guardian', labelKey: 'heroglyph.flow.dogCharacter.trait.guardian', img: guardianSvg, isCustom: false },
+  { value: 'player', labelKey: 'heroglyph.flow.dogCharacter.trait.player', img: playerSvg, isCustom: false },
+  { value: 'energizer', labelKey: 'heroglyph.flow.dogCharacter.trait.energizer', img: energizerSvg, isCustom: false },
+  { value: 'maverick', labelKey: 'heroglyph.flow.dogCharacter.trait.maverick', img: maverickSvg, isCustom: false },
+  { value: 'waterlover', labelKey: 'heroglyph.flow.dogCharacter.trait.waterlover', img: waterloverSvg, isCustom: false },
+  { value: 'gourmet', labelKey: 'heroglyph.flow.dogCharacter.trait.gourmet', img: gourmetSvg, isCustom: false },
+  { value: 'lover', labelKey: 'heroglyph.flow.dogCharacter.trait.lover', img: loverSvg, isCustom: false },
+  { value: 'chiller', labelKey: 'heroglyph.flow.dogCharacter.trait.chiller', img: chillerSvg, isCustom: false },
 ];
 
 const tripleCharacters = [...characters, ...characters, ...characters];
 
 export function DogCharacterScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
+  const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string[]>([]);
   const [showInfo, setShowInfo] = useState(false);
@@ -96,7 +100,7 @@ export function DogCharacterScreen() {
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
+                {t('heroglyph.flow.dogHeroglyphTitle', { dogName: displayName })}
               </h2>
               <div className="px-2">
                 <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogCharacter" />
@@ -117,7 +121,7 @@ export function DogCharacterScreen() {
               <button
                 className="absolute top-3 right-3 z-20 flex items-center justify-center"
                 style={{ width: 44, height: 44 }}
-                aria-label="Info about Character"
+                aria-label={t('heroglyph.flow.dogCharacter.infoAria')}
                 onClick={() => setShowInfo((p) => !p)}
               >
                 <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
@@ -134,13 +138,13 @@ export function DogCharacterScreen() {
                     className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm"
                     style={{ fontFamily: "'Cinzel', serif" }}
                   >
-                    The Character
+                    {t('heroglyph.flow.dogCharacter.title')}
                   </h3>
                   <p className="text-white text-base md:text-lg leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                    What's your dog's <span className="font-bold text-amber-300">personality</span> like?
+                    {t('heroglyph.flow.dogCharacter.questionPrefix')}<span className="font-bold text-amber-300">{t('heroglyph.flow.dogCharacter.questionWord')}</span>{t('heroglyph.flow.dogCharacter.questionSuffix')}
                   </p>
                   <p className="text-xs md:text-sm text-amber-200/80" style={{ fontFamily: "'Cinzel', serif" }}>
-                    Choose two options.
+                    {t('heroglyph.flow.dogCharacter.chooseTwo')}
                   </p>
                 </div>
               </div>
@@ -160,13 +164,13 @@ export function DogCharacterScreen() {
                         className="text-sm md:text-base font-bold uppercase tracking-[0.15em] text-primary mb-3"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Pick your dog's vibe
+                        {t('heroglyph.flow.dogCharacter.infoTitle')}
                       </h4>
                       <p
                         className="text-foreground/70 text-xs md:text-sm leading-relaxed"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        Choose the two character traits that best describe your dog. These shape the symbols inside the Heroglyph.
+                        {t('heroglyph.flow.dogCharacter.infoBody')}
                       </p>
                     </div>
                   </motion.div>
@@ -214,9 +218,9 @@ export function DogCharacterScreen() {
                             {selectionIndex + 1}
                           </div>
                         )}
-                        <img src={char.img!} alt={char.label} className="h-14 md:h-16 object-contain" />
+                        <img src={char.img!} alt={t(char.labelKey)} className="h-14 md:h-16 object-contain" />
                         <span className="text-[9px] md:text-[10px] font-bold tracking-wider uppercase whitespace-nowrap">
-                          {char.label}
+                          {t(char.labelKey)}
                         </span>
                       </button>
                     );
@@ -232,7 +236,7 @@ export function DogCharacterScreen() {
               </div>
 
               <p className="text-center text-xs text-muted-foreground mt-3" style={{ fontFamily: "'Cinzel', serif" }}>
-                {selected.length}/2 selected
+                {t('heroglyph.flow.dogCharacter.selectedCount', { count: selected.length })}
               </p>
             </motion.div>
           </div>
@@ -243,7 +247,7 @@ export function DogCharacterScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pb-6"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.dogCharacter.back')}
           </button>
         </div>
       </div>

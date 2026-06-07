@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
@@ -11,7 +12,9 @@ import muttImg from '@/assets/bloodline/BLOODLINE-MUTT.svg';
 
 export function DogBloodlineScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
+  const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
@@ -42,7 +45,7 @@ export function DogBloodlineScreen() {
                 className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {dogName || 'YOUR DOG'}'S HEROGLYPH
+                {t('heroglyph.flow.dogHeroglyphTitle', { dogName: displayName })}
               </h2>
               <div className="px-2">
                 <HeroglyphFrame showOwner className="text-foreground" pulseSlot="dogBloodline" />
@@ -62,7 +65,7 @@ export function DogBloodlineScreen() {
             <button
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
-              aria-label="Info about Dog Bloodline"
+              aria-label={t('heroglyph.flow.dogBloodline.infoAria')}
               onClick={() => setShowInfo((p) => !p)}
             >
               <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
@@ -79,10 +82,10 @@ export function DogBloodlineScreen() {
                 className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                Dog Bloodline
+                {t('heroglyph.flow.dogBloodline.title')}
               </h3>
               <p className="text-white text-sm md:text-base leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                Is your dog <span className="font-bold text-amber-300">pure</span> or <span className="font-bold text-amber-300">wild</span>?
+                {t('heroglyph.flow.dogBloodline.questionPrefix')}<span className="font-bold text-amber-300">{t('heroglyph.flow.dogBloodline.questionPure')}</span>{t('heroglyph.flow.dogBloodline.questionOr')}<span className="font-bold text-amber-300">{t('heroglyph.flow.dogBloodline.questionWild')}</span>{t('heroglyph.flow.dogBloodline.questionSuffix')}
               </p>
             </div>
 
@@ -104,13 +107,13 @@ export function DogBloodlineScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Signed Papyrus
+                        {t('heroglyph.flow.dogBloodline.infoSignedTitle')}
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        Original with pure bloodline.
+                        {t('heroglyph.flow.dogBloodline.infoSignedBody')}
                       </p>
                     </div>
 
@@ -123,13 +126,13 @@ export function DogBloodlineScreen() {
                         className="text-sm md:text-base font-bold tracking-wider uppercase text-heading-on-light mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
-                        Empty Papyrus
+                        {t('heroglyph.flow.dogBloodline.infoEmptyTitle')}
                       </h4>
                       <p
                         className="text-foreground/70 text-[11px] md:text-xs leading-snug"
                         style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                       >
-                        Original without pure bloodline.
+                        {t('heroglyph.flow.dogBloodline.infoEmptyBody')}
                       </p>
                     </div>
                   </div>
@@ -155,8 +158,8 @@ export function DogBloodlineScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={aristocratImg} alt="Aristocrat" className="h-12 md:h-16 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Aristocrat</span>
+                <img src={aristocratImg} alt={t('heroglyph.flow.dogBloodline.aristocrat')} className="h-12 md:h-16 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogBloodline.aristocrat')}</span>
               </button>
 
               <button
@@ -168,8 +171,8 @@ export function DogBloodlineScreen() {
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                <img src={muttImg} alt="Mutt" className="h-12 md:h-16 object-contain" />
-                <span className="text-sm md:text-base font-bold tracking-wider uppercase">Mutt</span>
+                <img src={muttImg} alt={t('heroglyph.flow.dogBloodline.mutt')} className="h-12 md:h-16 object-contain" />
+                <span className="text-sm md:text-base font-bold tracking-wider uppercase">{t('heroglyph.flow.dogBloodline.mutt')}</span>
               </button>
             </div>
           </motion.div>
@@ -180,7 +183,7 @@ export function DogBloodlineScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('heroglyph.flow.dogBloodline.back')}
           </button>
         </div>
       </div>
