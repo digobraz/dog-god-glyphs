@@ -72,9 +72,11 @@ export const sk: Partial<Dict> = {
 
   // ── /heroglyph intro ──
   // hero title — case riadi CSS text-transform (rovnaký case ako EN)
-  'heroglyph.intro.title.line1': 'Symbol,',
-  'heroglyph.intro.title.line2': 'Ktorý',
-  'heroglyph.intro.title.desktop': 'Symbol,',
+  // „Ten" pridané (vs Matejov draft „Symbol,") aby veľký nadpis mal 2 slová na 2 riadky
+  // bez duplicity s sublinom „Ktorý Mení Históriu". Číta sa: „Ten symbol, ktorý mení históriu".
+  'heroglyph.intro.title.line1': 'Ten',
+  'heroglyph.intro.title.line2': 'Symbol,',
+  'heroglyph.intro.title.desktop': 'Ten Symbol,',
   'heroglyph.intro.title.sub': 'Ktorý Mení Históriu',
 
   // dictionary blok ("DOG is GOD" = MOTTO → ostáva EN)

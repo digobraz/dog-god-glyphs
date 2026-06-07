@@ -790,7 +790,7 @@ export default function Heroglyph() {
                       filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.4)) drop-shadow(0 0 5px rgba(230,158,26,0.5))',
                     }}
                   >
-                    Heroglyph
+                    {t('heroglyph.intro.word')}
                   </div>
                   <div
                     style={{
@@ -844,7 +844,7 @@ export default function Heroglyph() {
                 onClick={() => navigate('/heroglyph/name')}
                 className="heroglyph-cta"
               >
-                Become Dogyptian
+                {t('heroglyph.intro.cta')}
               </button>
               <div
                 style={{
@@ -858,10 +858,10 @@ export default function Heroglyph() {
                   textAlign: 'center',
                 }}
               >
-                Doglovers, assemble!
+                {t('heroglyph.intro.outro')}
               </div>
               <PillMarquee
-                pills={[...PILLS_ROW_1, ...PILLS_ROW_2]}
+                pills={[...pillsRow1, ...pillsRow2]}
                 reverse={false}
                 onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
                 onMove={(x, y) => setPillTooltipPos({ x, y })}
@@ -877,7 +877,7 @@ export default function Heroglyph() {
             <>
               {/* DESKTOP order LOCKED: pills (2 rows) → CTA → outro */}
               <PillMarquee
-                pills={PILLS_ROW_1}
+                pills={pillsRow1}
                 reverse={false}
                 onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
                 onMove={(x, y) => setPillTooltipPos({ x, y })}
@@ -885,7 +885,7 @@ export default function Heroglyph() {
                 marginTop={32}
               />
               <PillMarquee
-                pills={PILLS_ROW_2}
+                pills={pillsRow2}
                 reverse={true}
                 onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
                 onMove={(x, y) => setPillTooltipPos({ x, y })}
@@ -896,7 +896,7 @@ export default function Heroglyph() {
                 onClick={() => navigate('/heroglyph/name')}
                 className="heroglyph-cta"
               >
-                Become Dogyptian
+                {t('heroglyph.intro.cta')}
               </button>
               <div
                 style={{
@@ -910,14 +910,14 @@ export default function Heroglyph() {
                   textAlign: 'center',
                 }}
               >
-                Doglovers, assemble!
+                {t('heroglyph.intro.outro')}
               </div>
             </>
           )}
 
           {!svgMarkup && (
             <div style={{ padding: 40, color: 'rgba(201,154,63,0.6)', textAlign: 'center' }}>
-              Loading…
+              {t('heroglyph.intro.loading')}
             </div>
           )}
         </div>
