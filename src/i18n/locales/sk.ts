@@ -7,10 +7,10 @@ import type { Dict } from '../LanguageContext';
  * „doglover" = psíčkar (konzistentne s Matejovým tónom).
  *
  * Texty = Matejova ručná úprava 2026-06-07 (prvý strojový draft prepísaný).
- * FLAG-y pre Mateja (čakajú potvrdenie):
- *   - beat 1: „DOG" → SK „PES" (Matej zámerne). Pozn.: locked decision hovorila
- *     „DOG (jazyk lásky) ostáva EN brand-term" — toto je vedomá odchýlka, OK?
- *   - beat 3 telo: „dofriendly" — preklep? (mal byť „dog-friendly" / „psíčkarom prajný"?)
+ * PRAVIDLO (Matej 2026-06-07): „DOG" sa v bežnom texte PREKLADÁ (→ PES), ale MOTTO
+ *   sa nikdy nemení — „DOG IS GOD" / brand motto ostáva vždy EN naprieč jazykmi.
+ * Vyriešené: beat 1 „PES" OK (text, nie motto); beat 3 „dog-friendly" (bol preklep).
+ * OTVORENÉ (čakajú Mateja):
  *   - finále lead: „áno" ostáva malými (zlatá kurzíva už zvýrazňuje); Matej napísal „ÁNO".
  *   - finále CTA „Staň sa Dogypťanom" — Matej ešte nevybral (alt: „Pridaj sa" / nechať EN).
  */
@@ -48,7 +48,7 @@ export const sk: Partial<Dict> = {
   'vision.beat.temple.bigG': 'CHRÁM',
   'vision.beat.temple.tag': 'ONLINE CHRÁM',
   'vision.beat.temple.h':
-    'Jedna appka, <span class="wf-hl">len pre skutočných psíčkarov</span> — žiadni falošní ľudia. Prvý <span class="wf-hl">dofriendly digitálny svet</span> vytvorený len pre nás: sociálna sieť a ekosystém, ktorý naozaj pomáha — <span class="wf-hl">cestovanie, veterinári, služby, vzdelávanie</span> a <span class="wf-hl">zbierky</span> pre psy v núdzi na jednom mieste.',
+    'Jedna appka, <span class="wf-hl">len pre skutočných psíčkarov</span> — žiadni falošní ľudia. Prvý <span class="wf-hl">dog-friendly digitálny svet</span> vytvorený len pre nás: sociálna sieť a ekosystém, ktorý naozaj pomáha — <span class="wf-hl">cestovanie, veterinári, služby, vzdelávanie</span> a <span class="wf-hl">zbierky</span> pre psy v núdzi na jednom mieste.',
 
   // beat 4
   'vision.beat.centers.bigW': 'FUNKČNÉ',
