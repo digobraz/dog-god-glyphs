@@ -34,6 +34,7 @@ export function CheckoutScreen() {
   const dogPhotoUrl = useDogyptStore((s) => s.dogPhotoUrl);
   const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
   const setEmail = useDogyptStore((s) => s.setEmail);
+  const setSelection = useDogyptStore((s) => s.setSelection);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -52,6 +53,10 @@ export function CheckoutScreen() {
     if (!isValid) return;
     setSelectedAmount(11);
     setEmail(email);
+    // Persist country into selections so PaymentScreen's buildHeroglyphCode emits
+    // the real ISO3 (pos 15) instead of falling back to 'XXX'. Without this the
+    // country input was local-only and every purchased code lost its country.
+    setSelection('country', country.trim());
     navigate('/payment');
   };
 
