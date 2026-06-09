@@ -451,7 +451,12 @@ export default function About() {
            so the inner edge lands on 32vw / 68vw; the outer arm bleeds off.
            (NB: anchoring via right:68vw+width:auto clamped the box to 32vw and
            squished the photo + lifted it off the floor → use transform.) */
-        .fig-matej { left: 0; right: auto; transform: translateX(calc(50vw - 215px - 100%)); height: min(78vh, 806px); }
+        /* Matej = exact MIRROR of Hekthor (same height + mirrored anchor) so he
+           behaves identically at every width. A bigger figure shows a smaller
+           fraction of itself inside the fixed 32vw on-screen slice → his face
+           got cut at narrow widths while Hekthor (smaller) stayed whole. Equal
+           size → equal visible fraction → both read cleanly, symmetrically. */
+        .fig-matej { left: 0; right: auto; transform: translateX(calc(32vw - 100%)); height: min(59vh, 625px); }
         .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw)); height: min(59vh, 625px); }
 
         /* PC: lift the title block toward the upper third */
