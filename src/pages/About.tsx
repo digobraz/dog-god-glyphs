@@ -27,12 +27,34 @@ const ph = () => 'https://placehold.co/800x500/15100a/15100a?text=%20';
 function SlideReel({ images, alt }: { images: string[]; alt: string }) {
   const [i, setI] = useState(0);
   const n = images.length;
+  const startX = useRef<number | null>(null);
+  const wheelLock = useRef(0);
+  const step = (d: number) => setI((p) => (p + d + n) % n);
   const go = (d: number) => (e: React.MouseEvent) => {
     e.stopPropagation();
-    setI((p) => (p + d + n) % n);
+    step(d);
+  };
+  // Prst (mobil) — swipe cez pointer events
+  const onDown = (e: React.PointerEvent) => { startX.current = e.clientX; };
+  const onUp = (e: React.PointerEvent) => {
+    if (startX.current === null) return;
+    const dx = e.clientX - startX.current;
+    startX.current = null;
+    if (n < 2) return;
+    if (dx > 30) step(-1);
+    else if (dx < -30) step(1);
+  };
+  // Touchpad — horizontálny two-finger swipe = wheel deltaX (debounced 1 krok)
+  const onWheel = (e: React.WheelEvent) => {
+    if (n < 2) return;
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) || Math.abs(e.deltaX) < 16) return;
+    const now = Date.now();
+    if (now < wheelLock.current) return;
+    wheelLock.current = now + 420;
+    step(e.deltaX > 0 ? 1 : -1);
   };
   return (
-    <div className="reel">
+    <div className="reel" onPointerDown={onDown} onPointerUp={onUp} onPointerLeave={onUp} onWheel={onWheel} style={{ touchAction: 'pan-y' }}>
       <img src={images[i]} alt={alt}
         onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
       {n > 1 && (
@@ -229,6 +251,18 @@ export default function About() {
     const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
     const easeIO = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
+    // Cached layout metrics — re-measured on resize/settle, NEVER per frame.
+    // Reading getBoundingClientRect()/offsetHeight inside render() forces a full
+    // synchronous reflow each scroll frame (measured ~138ms layout on this DOM =
+    // the slide stutter). render() now reads only window.scrollY (no reflow).
+    let pinTop = 0, pinHeight = 0, cardW = 0;
+    const measure = () => {
+      pinTop = window.scrollY + wrap.getBoundingClientRect().top;
+      pinHeight = wrap.offsetHeight;
+      const first = stage.querySelector<HTMLElement>('.hcard');
+      cardW = first ? first.getBoundingClientRect().width : stage.offsetWidth;
+    };
+
     const render = () => {
       if (window.innerWidth < 768) {
         stage.style.opacity = '';
@@ -240,8 +274,8 @@ export default function About() {
       if (n === 0) return;
 
       const vh = window.innerHeight;
-      const total = wrap.offsetHeight - vh;
-      const scrolled = clamp(-wrap.getBoundingClientRect().top, 0, total);
+      const total = pinHeight - vh;
+      const scrolled = clamp(window.scrollY - pinTop, 0, total);
 
       // ── Intro — heading RISES IN by scroll, from BELOW the body text ──────
       //   Matej (2026-06-09): „ten nadpis daj ako keby prišiel scrolom teda bude
@@ -251,7 +285,7 @@ export default function About() {
       //   climbs up; it docks ~0.25vh into the pin (the "roll up a bit"), THEN the
       //   cards fade in. Driven by one progress `rp` that spans the pre-pin glide
       //   (approach 0→1) and continues into the pin (1→1.x via `scrolled`).
-      const wrapTop = wrap.getBoundingClientRect().top;
+      const wrapTop = pinTop - window.scrollY;
       const HEAD_SCALE = 0.92;          // fixed (narrower than the slide ≈ 72vw)
       const DOCK_TOP = 0.13;            // docked position (upper area) it settles at
       const padTop = 0.04 * vh;         // .hpin-head padding-top: 4vh
@@ -279,12 +313,15 @@ export default function About() {
       const advScroll = Math.max(0, scrolled - 0.9 * vh);
       const cardP = clamp(advScroll / Math.max(1, total - 0.9 * vh));
       const f = cardP * (n - 1);
-      const SPACING = 80; // vw between card centres → slight overlap, no centre gap
+      // Centre card stays centred; neighbours sit one card-width + 200px away so the
+      // next slide peeks in from the right (200px gap between card edges).
+      const GAP = 200;
+      const SPACING = (cardW || stage.offsetWidth) + GAP; // px between card centres
       cards.forEach((card, i) => {
         const d = f - i;            // 0 = centred/active, <0 next (right), >0 past (left)
         const ad = Math.abs(d);
         card.style.opacity = ad < 1.5 ? '1' : '0';   // solid slides, no crossfade
-        card.style.transform = `translate(-50%, -50%) translateX(${-d * SPACING}vw)`;
+        card.style.transform = `translate(-50%, -50%) translateX(${-d * SPACING}px)`;
         card.style.zIndex = String(Math.round(100 - ad * 10));
         card.style.pointerEvents = ad < 0.5 ? 'auto' : 'none';
       });
@@ -295,14 +332,15 @@ export default function About() {
     };
 
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
-    render();
-    const t = setTimeout(render, 200); // re-measure after fonts/layout
+    const onResize = () => { measure(); onScroll(); };
+    measure(); render();
+    const t = setTimeout(() => { measure(); render(); }, 200); // re-measure after fonts/layout
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
+    window.addEventListener('resize', onResize);
     return () => {
       clearTimeout(t);
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
+      window.removeEventListener('resize', onResize);
       cancelAnimationFrame(raf);
     };
   }, []);
@@ -404,8 +442,10 @@ export default function About() {
           border: 1px solid rgba(201,154,63,0.26); border-radius: 14px; overflow: hidden;
           box-shadow: 0 18px 48px rgba(0,0,0,0.45);
         }
-        .tl-img { position: relative; width: 100%; aspect-ratio: 16 / 10; background: #0a0705; }
+        .tl-img { position: relative; width: 100%; aspect-ratio: 1 / 1; background: #0a0705; }
         .tl-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* mobile story photos: square frame, whole photo visible (no crop) */
+        .tl-img .reel > img { object-fit: contain; }
         .tl-img::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%); }
 
         /* ── Image reel (carousel) — fills its parent photo frame ── */

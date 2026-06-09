@@ -407,28 +407,26 @@ export function TestimonialsSection() {
           transition={{ duration: 0.6 }}
           className="flex flex-col items-center text-center mb-12 md:mb-16"
         >
-          <span
-            className="text-xs md:text-sm tracking-[0.3em] uppercase mb-3"
-            style={{ fontFamily: "'Cinzel', serif", color: '#C49B42' }}
-          >
-            The Famous Agree
-          </span>
           <h2
             className="text-4xl md:text-5xl font-black tracking-wider"
             style={{
               fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, #A3782B, #C49B42, #A3782B)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.02em',
+              background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 40%, #E69E1A 70%, #F5C73D 100%)',
               WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.32))',
             }}
           >
-            IN DOG WE TRUST
+            EVEN LEGENDS KNELT
           </h2>
           <p
             className="mt-4 max-w-xl text-base md:text-lg"
-            style={{ color: 'rgba(250,244,236,0.7)', fontFamily: "'Cormorant Garamond', serif" }}
+            style={{ color: 'rgba(250,244,236,0.76)', fontFamily: "'Inter', sans-serif", lineHeight: 1.65 }}
           >
-            Icons, idols and legends — every one of them undone by a dog.
+            The most powerful humans who ever lived all bowed to the same quiet teacher — and they wrote it down.
           </p>
         </motion.div>
 

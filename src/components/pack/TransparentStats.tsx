@@ -11,17 +11,18 @@ const CUR = '€';
 // splits 5 development · 3 marketing · 2 direct help · 1 Hekthor. Switch the
 // period (per-month or all-time) and see where it went, plus the live balance.
 //
-// PLACEHOLDER DATA — illustrative until the finance ledger exists. Swap PERIODS
-// + BALANCE for an edge-fn fetch (get-pack-finance or similar); layout stays.
+// Starts at ZERO at launch — real figures arrive with the first heroglyphs.
+// Swap PERIODS + BALANCE for an edge-fn fetch (get-pack-finance or similar)
+// once the finance ledger exists; layout stays.
 // ─────────────────────────────────────────────────────────────────────────
 const PERIODS = [
-  { key: 'jun26', label: 'June 2026', short: 'Jun', heroglyphs: 128, affiliatePoints: 1240 },
-  { key: 'may26', label: 'May 2026', short: 'May', heroglyphs: 86, affiliatePoints: 720 },
-  { key: 'all', label: 'All time', short: 'All time', heroglyphs: 214, affiliatePoints: 1960 },
+  { key: 'jun26', label: 'June 2026', short: 'Jun', heroglyphs: 0, affiliatePoints: 0 },
+  { key: 'may26', label: 'May 2026', short: 'May', heroglyphs: 0, affiliatePoints: 0 },
+  { key: 'all', label: 'All time', short: 'All time', heroglyphs: 0, affiliatePoints: 0 },
 ] as const;
 
-// Current balance held in the public DOGYPT account (placeholder).
-const BALANCE = 1860;
+// Current balance held in the public DOGYPT account.
+const BALANCE = 0;
 
 const ALLOC = [
   {

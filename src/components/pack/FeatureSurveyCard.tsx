@@ -2,6 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
+import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
+import imgHealth from '@/assets/pack-survey/health.webp';
+import imgMerch from '@/assets/pack-survey/merch.webp';
 
 const T = PACK_THEME;
 
@@ -24,6 +27,7 @@ interface Feature {
   key: string;
   title: string;
   blurb: string;
+  image: string;
 }
 
 // v2 konsolidované buckety (swipe). ALLOWED_KEYS v toggle-feature-vote musí sedieť.
@@ -32,16 +36,19 @@ const FEATURES: Feature[] = [
     key: 'mobile_app',
     title: 'Mobile App',
     blurb: 'Social network, dog-friendly map & pack messaging — the pack in your pocket.',
+    image: imgMobileApp,
   },
   {
     key: 'health_ai',
     title: 'Health Protocol by AI',
     blurb: 'A longevity blueprint for your dog, powered by AI — plus a trusted vet network.',
+    image: imgHealth,
   },
   {
     key: 'merch',
     title: 'Merch',
     blurb: 'Heroglyph prints, collars, books & sacred accessories.',
+    image: imgMerch,
   },
 ];
 
@@ -90,35 +97,62 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
     [counts],
   );
 
+  // SINGLE CHOICE — môžeš hlasovať len za jednu možnosť. Hlas za novú najprv
+  // odhlasuje predošlú (toggle off → toggle on). Edge fn ostáva toggle, single
+  // choice je vynútené na FE. Re-klik na vlastnú možnosť = odhlasovanie.
   const toggle = async (key: string) => {
     if (busy) return;
     setBusy(key);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) return;
-      const res = await fetch(EDGE, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '',
-        },
-        body: JSON.stringify({ feature_key: key }),
-      });
-      const j = await res.json();
-      if (!res.ok) return;
 
-      setMyVotes((prev) => {
-        const next = new Set(prev);
-        if (j.voted) next.add(key);
-        else next.delete(key);
-        return next;
-      });
-      const nextCounts = { ...counts, [key]: j.count ?? 0 };
+      const apiToggle = async (k: string): Promise<{ voted: boolean; count: number } | null> => {
+        const res = await fetch(EDGE, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '',
+          },
+          body: JSON.stringify({ feature_key: k }),
+        });
+        if (!res.ok) return null;
+        const j = await res.json();
+        return { voted: !!j.voted, count: j.count ?? 0 };
+      };
+
+      const nextMine = new Set(myVotes);
+      const nextCounts = { ...counts };
+
+      if (myVotes.has(key)) {
+        // Re-klik na vlastnú možnosť → odhlasovať.
+        const j = await apiToggle(key);
+        if (!j) return;
+        if (!j.voted) nextMine.delete(key);
+        nextCounts[key] = j.count;
+      } else {
+        // Single choice: najprv zhoď všetky predošlé hlasy.
+        for (const prev of Array.from(myVotes)) {
+          const j = await apiToggle(prev);
+          if (j && !j.voted) {
+            nextMine.delete(prev);
+            nextCounts[prev] = j.count;
+          }
+        }
+        // Potom pridaj nový.
+        const j = await apiToggle(key);
+        if (!j) return;
+        if (j.voted) {
+          nextMine.add(key);
+          setShowResults(true);
+        }
+        nextCounts[key] = j.count;
+      }
+
+      setMyVotes(nextMine);
       setCounts(nextCounts);
       onVotesChange?.(nextCounts);
-      // Po prvej odpovedi odhalíme graf.
-      if (j.voted) setShowResults(true);
     } finally {
       setBusy(null);
     }
@@ -251,32 +285,31 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                 const isBusy = busy === f.key;
                 return (
                   <div key={f.key} className="shrink-0" style={{ width: '100%', padding: '0 1px' }}>
-                    {/* Image placeholder — šípky overlay na obrázku */}
+                    {/* Image — šípky overlay na obrázku */}
                     <div
                       style={{
                         position: 'relative',
                         aspectRatio: '16 / 9',
                         borderRadius: 14,
+                        overflow: 'hidden',
                         background: 'rgba(8,60,57,0.32)',
-                        border: '1px dashed rgba(250,244,236,0.32)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 4,
                       }}
                     >
-                      <span
+                      <img
+                        src={f.image}
+                        alt={f.title}
+                        loading="lazy"
+                        draggable={false}
                         style={{
-                          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                          fontSize: 9,
-                          letterSpacing: '0.28em',
-                          textTransform: 'uppercase',
-                          color: 'rgba(250,244,236,0.55)',
+                          position: 'absolute',
+                          inset: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          userSelect: 'none',
+                          pointerEvents: 'none',
                         }}
-                      >
-                        Image · placeholder
-                      </span>
+                      />
 
                       {/* navigačné šípky na obrázku */}
                       <div style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)' }}>
