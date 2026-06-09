@@ -3,6 +3,7 @@ import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
 import { Ranking } from './Ranking';
+import { TransparentStats } from './TransparentStats';
 import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
 import dogSilhouette from '@/assets/dogypt-logo-mobile.png';
 
@@ -606,6 +607,9 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
           />
         </div>
       </div>
+
+      {/* Transparent Stats — the money in the open (current month) */}
+      <TransparentStats />
     </section>
   );
 }

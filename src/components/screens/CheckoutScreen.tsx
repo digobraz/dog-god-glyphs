@@ -133,7 +133,7 @@ export function CheckoutScreen() {
                   </span>
                 </div>
                 <span className="text-lg md:text-xl font-bold text-primary" style={{ fontFamily: "'Cinzel', serif" }}>
-                  $11
+                  €11
                 </span>
               </div>
 

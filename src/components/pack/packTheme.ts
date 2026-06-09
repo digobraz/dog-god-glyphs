@@ -26,6 +26,14 @@ export const PACK_THEME = {
   border: 'rgba(31, 26, 14, 0.16)',
   accentGold: '#C99A3F',
   growGreen: '#3D7A4E',
+  // ── Canonical TRANSPARENCY MODEL part colors (LOCKED 2026-06-09) ──────────
+  // Jeden zdroj pravdy pre FounderInvite (back of block 5) + TransparentStats
+  // (block 3) — farby MUSIA sedieť v oboch. Rozvoj zlatožltá · marketing tyrkys
+  // · direct help červená · hektor fialová.
+  partDev: '#C99A3F', // rozvoj — zlatožltá (brand gold)
+  partMkt: '#1AA39A', // marketing — tyrkysová (brand faience core)
+  partHelp: '#C0453A', // direct help — červená
+  partHek: '#8B5FC0', // hektor — fialová
   growGreenSoft: 'rgba(61, 122, 78, 0.12)',
   alertRed: '#B25640',
   alertRedSoft: 'rgba(178, 86, 64, 0.12)',

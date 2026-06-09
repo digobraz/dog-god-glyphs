@@ -41,7 +41,7 @@ export function PayWallScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-32 h-32 md:w-40 md:h-40 object-contain" />
             <p className="text-white text-center text-xl md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">$11</span>.
+              Price for <span className="font-bold text-amber-300">GOD NAME</span> is <span className="font-bold text-amber-300">€11</span>.
             </p>
             <p className="text-white/70 text-xs md:text-sm leading-relaxed text-center drop-shadow-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               However you can pay more and help our vision. Every cent goes to a good cause.

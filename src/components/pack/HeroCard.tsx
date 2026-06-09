@@ -18,7 +18,7 @@ interface HeroCardProps {
   points?: number;
 }
 
-export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, points = 101842 }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, points = 1000000 }: HeroCardProps) {
   const initial = name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
