@@ -451,7 +451,7 @@ export default function About() {
            so the inner edge lands on 32vw / 68vw; the outer arm bleeds off.
            (NB: anchoring via right:68vw+width:auto clamped the box to 32vw and
            squished the photo + lifted it off the floor → use transform.) */
-        .fig-matej { left: 0; right: auto; transform: translateX(calc(32vw - 100%)); height: min(78vh, 806px); }
+        .fig-matej { left: 0; right: auto; transform: translateX(calc(50vw - 215px - 100%)); height: min(78vh, 806px); }
         .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw)); height: min(59vh, 625px); }
 
         /* PC: lift the title block toward the upper third */
