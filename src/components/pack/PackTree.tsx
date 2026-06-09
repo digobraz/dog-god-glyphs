@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Plus, ScrollText } from 'lucide-react';
-import { PACK_THEME } from './PackLayout';
+import { Plus, ScrollText, UserPlus } from 'lucide-react';
+import { PACK_THEME } from './packTheme';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
 
 const T = PACK_THEME;
@@ -454,10 +454,10 @@ function DogRow({ dog }: { dog: DogNode }) {
 
 function PackActions() {
   return (
-    <div className="w-full mt-5">
+    <div className="w-full mt-5 flex flex-col sm:flex-row gap-2.5">
       <Link
         to="/heroglyph"
-        className="w-full inline-flex items-center justify-center gap-2"
+        className="flex-1 inline-flex items-center justify-center gap-2"
         style={{
           // .btn-gold (brand manuál v3.2 — LOCKED)
           background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
@@ -478,6 +478,69 @@ function PackActions() {
         <Plus className="h-3.5 w-3.5" />
         Add dog
       </Link>
+
+      {/* Add human member — pack roles (Handler / Member) prídu s appkou; teraz disabled seed.
+          "Coming soon" = hover tooltip (group-hover), nie stály text. */}
+      <span className="group relative flex-1">
+        <button
+          type="button"
+          disabled
+          aria-disabled="true"
+          className="w-full inline-flex items-center justify-center gap-2"
+          style={{
+            border: `1px dashed ${T.border}`,
+            borderRadius: 8,
+            background: 'transparent',
+            color: T.inkDim,
+            padding: '13px 16px',
+            fontFamily: "'Cinzel', serif",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            cursor: 'not-allowed',
+            opacity: 0.65,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <UserPlus className="h-3.5 w-3.5" />
+          Add human member
+        </button>
+
+        {/* Tooltip — objaví sa keď naň ukážeš kurzorom */}
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute left-1/2 bottom-full mb-2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{
+            whiteSpace: 'nowrap',
+            background: 'hsl(28 22% 16%)',
+            color: 'hsl(45 60% 90%)',
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            letterSpacing: '0.02em',
+            padding: '6px 11px',
+            borderRadius: 7,
+            border: `1px solid ${T.hairline}`,
+            boxShadow: '0 8px 22px -8px rgba(31, 26, 14, 0.6)',
+            zIndex: 20,
+          }}
+        >
+          Coming soon — invite one human member
+          {/* šípka (caret) smerom k tlačidlu */}
+          <span
+            aria-hidden
+            className="absolute left-1/2 top-full -translate-x-1/2"
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: '5px solid transparent',
+              borderRight: '5px solid transparent',
+              borderTop: '5px solid hsl(28 22% 16%)',
+            }}
+          />
+        </span>
+      </span>
     </div>
   );
 }

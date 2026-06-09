@@ -1,6 +1,6 @@
 import { announcements, type Announcement } from '@/data/announcements';
 import { Megaphone, Shield, CalendarDays } from 'lucide-react';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
 

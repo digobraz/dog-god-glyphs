@@ -71,11 +71,35 @@ const MILESTONES: Milestone[] = [
   },
 ];
 
+// Star Wars opening-crawl copy (Matej OK 2026-06-08: full Hekthor story, EN master; SK saved for later i18n)
+const CRAWL_INTRO = 'Ten years ago, in a shelter in the heart of Europe….';
+const CRAWL_PARAS = [
+  'In 2016, eight black puppies arrived at the shelter, thrown away in a single box. Seven found a home. The biggest one nobody wanted — he waited a whole year. His name was Hekthor.',
+  'One day a couple came to the shelter to see Sindy, a small white female they wanted to adopt. By pure chance, Hekthor was in her kennel at the time — his own was just being cleaned. The man, who had only come along for the ride and never wanted a dog, fell in love with the black dog he was seeing for the very first time.',
+  'A week later the two of them were together, and a beautiful story began. The man’s whole life changed, and in time he understood one thing: only someone who has a dog, and knows what a dog’s love feels like, can truly help dogs in need.',
+  'And so the heroglyph was born — a symbol meant to unite doglovers everywhere into the largest community the world has ever known. A community that will stand for us, for our dogs, and for the generations to come — for people unafraid to admit that a dog is not just an animal, but a being that makes us better humans.',
+  'Right now, the journey to the first milestone begins — to create 1,000,000 heroglyphs. And you can be part of it. Because the only ones crazy enough to believe they can change the world are the ones who do.',
+  'In dog we trust.',
+];
+
 export default function About() {
   const tlRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const crawlRef = useRef<HTMLDivElement>(null);
+  const swDarkRef = useRef<HTMLDivElement>(null);
+  const swIntroRef = useRef<HTMLParagraphElement>(null);
+  const swLogoRef = useRef<HTMLImageElement>(null);
+  const swTextRef = useRef<HTMLDivElement>(null);
+
+  // Skip the cinematic crawl → land at the start of the story timeline.
+  const skipIntro = () => {
+    const wrap = crawlRef.current;
+    if (!wrap) return;
+    window.scrollTo({ top: wrap.offsetTop + wrap.offsetHeight, behavior: 'smooth' });
+  };
 
   // Scroll-reveal milestones (mobile vertical timeline)
   useEffect(() => {
@@ -89,48 +113,158 @@ export default function About() {
     return () => io.disconnect();
   }, []);
 
-  // Pinned horizontal carousel (desktop): vertical scroll → horizontal translate
+  // Star Wars opening crawl (scroll-linked): intro line fades → DOGYPT logo
+  // recedes into the distance → gold text crawls up a tilted 3D plane, fading
+  // into the distance at the top. Drives off the section's own scroll.
   useEffect(() => {
-    const wrap = pinRef.current, track = trackRef.current;
-    if (!wrap || !track) return;
-    let raf = 0, pitch = 0, maxShift = 0, count = 0;
-
-    const setup = () => {
-      const cards = track.querySelectorAll<HTMLElement>('.hcard');
-      count = cards.length;
-      if (window.innerWidth < 768 || count < 2) {
-        track.style.transform = '';
-        track.style.paddingLeft = track.style.paddingRight = '';
-        return false;
-      }
-      const pad = Math.max((window.innerWidth - cards[0].offsetWidth) / 2, 0);
-      track.style.paddingLeft = `${pad}px`;
-      track.style.paddingRight = `${pad}px`;
-      pitch = cards[1].offsetLeft - cards[0].offsetLeft;
-      maxShift = pitch * (count - 1);
-      return true;
-    };
+    const wrap = crawlRef.current;
+    const hero = heroRef.current;
+    const dark = swDarkRef.current;
+    const intro = swIntroRef.current;
+    const logo = swLogoRef.current;
+    const text = swTextRef.current;
+    if (!wrap || !text) return;
+    let raf = 0;
+    const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+    const band = (p: number, a: number, b: number) => clamp((p - a) / (b - a));
 
     const render = () => {
-      if (window.innerWidth < 768) return;
-      const total = wrap.offsetHeight - window.innerHeight;
-      const p = total > 0 ? Math.min(Math.max(-wrap.getBoundingClientRect().top / total, 0), 1) : 0;
-      track.style.transform = `translate3d(${-(p * maxShift)}px,0,0)`;
-      const active = Math.round(p * (count - 1));
+      const vh = window.innerHeight;
+      const total = wrap.offsetHeight - vh;
+      const p = total > 0 ? clamp(-wrap.getBoundingClientRect().top / total) : 0;
+
+      // 0) hero (nav + content + hint) dissolves IN PLACE — it's sticky-pinned,
+      //    so we only fade opacity + scale (NO counter-scroll → no jitter). The
+      //    whole screen darkens ~25% at the same time.
+      const hp = band(p, 0, 0.08);
+      if (hero) {
+        hero.style.opacity = String(1 - hp);
+        hero.style.transform = `scale(${lerp(1, 0.96, hp)})`;
+        hero.style.pointerEvents = hp > 0.98 ? 'none' : 'auto';
+      }
+      if (dark) dark.style.opacity = String(lerp(0, 0.25, hp));
+
+      // 1) purple intro line — appears after the hero is gone, holds, fades out
+      if (intro) intro.style.opacity = String(clamp(band(p, 0.1, 0.18) - band(p, 0.34, 0.4)));
+
+      // 2) DOGYPT logo — appears, then shrinks away into the distance.
+      //    Must be FULLY gone before the crawl text fades in (no overlap).
+      if (logo) {
+        const appear = band(p, 0.42, 0.5);
+        const recede = band(p, 0.5, 0.60);
+        logo.style.transform = `translate(-50%, -50%) scale(${lerp(1, 0.04, recede)})`;
+        logo.style.opacity = String(clamp(appear - recede * 1.1));
+      }
+
+      // 3) gold crawl text — stays fully BELOW the fold until its beat, then
+      //    rises and recedes up the tilted plane. Start offset = the block's
+      //    own height (+ margin) so even a long crawl begins off-screen at the
+      //    bottom and never pokes into the middle behind the logo. END offset =
+      //    just clear of the top fold (NOT -1.35*H — that overshoots far above
+      //    the viewport, so the last line vanishes long before p=1 and leaves a
+      //    huge empty tail). With -1.1*vh the last word leaves exactly as the
+      //    section ends → next section's heading appears on the very next scroll.
+      const H = text.offsetHeight || vh;
+      const ct = band(p, 0.56, 1);
+      const y = lerp(H + 0.12 * vh, -1.1 * vh, ct);
+      text.style.opacity = String(clamp(band(p, 0.55, 0.60)));
+      text.style.transform = `translateX(-50%) rotateX(28deg) translateY(${y}px)`;
+    };
+
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+    render();
+    const t = setTimeout(render, 200);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // Pinned cinematic reveal (desktop): heading locks to centre, then each card
+  // surfaces one-by-one in the centre as you scroll. Fully scroll-linked.
+  useEffect(() => {
+    const wrap = pinRef.current, stage = trackRef.current;
+    if (!wrap || !stage) return;
+    const head = wrap.querySelector<HTMLElement>('.hpin-head');
+    let raf = 0;
+
+    const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
+    const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+    const easeIO = (t: number) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+
+    const render = () => {
+      if (window.innerWidth < 768) {
+        stage.style.opacity = '';
+        if (head) { head.style.transform = ''; head.style.opacity = ''; }
+        return;
+      }
+      const cards = stage.querySelectorAll<HTMLElement>('.hcard');
+      const n = cards.length;
+      if (n === 0) return;
+
+      const vh = window.innerHeight;
+      const total = wrap.offsetHeight - vh;
+      const scrolled = clamp(-wrap.getBoundingClientRect().top, 0, total);
+
+      // ── Intro — heading EMERGES in place, RIGHT as the crawl ends ────────
+      //   Matej: „po dorolovaní textu sa sekcia fixne, zobrazí sa nadpis" —
+      //   vynorenie, NIE scroling od spodu. The reveal is driven by the section
+      //   APPROACHING the fold (wrapTop), NOT by `scrolled` (which stays 0 until
+      //   the section pins ~1vh later — that 1vh of invisible glide WAS the
+      //   empty gap). The heading is counter-translated by the section's own
+      //   pre-pin offset so it stays DOCKED and just fades in, instead of
+      //   sliding up from the bottom.
+      const wrapTop = wrap.getBoundingClientRect().top;
+      const HEAD_SCALE = 0.92;          // fixed (narrower than the slide ≈ 72vw)
+      const DOCK_TOP = 0.13;            // fixed docked position (upper area)
+      const padTop = 0.04 * vh;         // .hpin-head padding-top: 4vh
+      const dockedY = DOCK_TOP * vh - HEAD_SCALE * padTop;
+      // approach: 0 the moment the crawl section releases (wrapTop = vh) → 1 a
+      // little later. Heading is fully in well before the section finishes pinning.
+      const approach = clamp((vh - wrapTop) / (0.55 * vh));
+      const revealT = easeIO(approach);
+
+      if (head) {
+        const y = dockedY - Math.max(wrapTop, 0);   // hold docked during pre-pin glide
+        head.style.transform = `translateY(${y}px) scale(${HEAD_SCALE})`;
+        head.style.opacity = String(revealT);
+      }
+
+      // cards fade in once the section has actually pinned (scrolled > 0), so
+      // they never slide up from below behind the heading. Then they advance
+      // HORIZONTALLY (filmstrip — no crossfade).
+      stage.style.opacity = String(clamp(scrolled / (0.25 * vh)));
+      const cardP = total > 0 ? clamp(scrolled / total) : 0;
+      const f = cardP * (n - 1);
+      const SPACING = 80; // vw between card centres → slight overlap, no centre gap
+      cards.forEach((card, i) => {
+        const d = f - i;            // 0 = centred/active, <0 next (right), >0 past (left)
+        const ad = Math.abs(d);
+        card.style.opacity = ad < 1.5 ? '1' : '0';   // solid slides, no crossfade
+        card.style.transform = `translate(-50%, -50%) translateX(${-d * SPACING}vw)`;
+        card.style.zIndex = String(Math.round(100 - ad * 10));
+        card.style.pointerEvents = ad < 0.5 ? 'auto' : 'none';
+      });
+
+      const active = clamp(Math.round(f), 0, n - 1);
       const dots = dotsRef.current?.children;
       if (dots) for (let i = 0; i < dots.length; i++) dots[i].classList.toggle('on', i === active);
     };
 
     const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
-    const onResize = () => { if (setup()) render(); };
-    if (setup()) render();
-    const t = setTimeout(() => { if (setup()) render(); }, 200); // re-measure after fonts/layout
+    render();
+    const t = setTimeout(render, 200); // re-measure after fonts/layout
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onResize);
+    window.addEventListener('resize', onScroll);
     return () => {
       clearTimeout(t);
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', onScroll);
       cancelAnimationFrame(raf);
     };
   }, []);
@@ -165,6 +299,20 @@ export default function About() {
         }
         .hero-intro p { margin: 0; text-wrap: balance; }
         .hero-intro strong { font-weight: 700; color: #FAF4EC; }
+
+        /* ── Signature ── */
+        .about-signoff {
+          font-family: 'Cinzel', serif; font-weight: 700; margin: 0;
+          font-size: clamp(1.05rem, 1.5vw, 1.3rem); letter-spacing: 0.09em; text-transform: uppercase;
+          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          filter: drop-shadow(0 0 14px rgba(245,199,61,0.28));
+        }
+        .about-signoff .amp {
+          -webkit-text-fill-color: rgba(250,244,236,0.55); color: rgba(250,244,236,0.55);
+          font-weight: 400; text-transform: lowercase; font-size: 0.78em; letter-spacing: 0.04em; padding: 0 0.18em;
+          filter: none;
+        }
         @media (max-width: 767px) {
           .about-quote { font-size: clamp(2.3rem, 10.5vw, 3.1rem); }
           .about-sub { font-size: 1.05rem; }
@@ -253,21 +401,146 @@ export default function About() {
         /* mobile timeline hidden on desktop (PC uses pinned carousel below) */
         @media (min-width: 768px) { .tl-section { display: none; } }
 
-        /* ===== PC PINNED HORIZONTAL CAROUSEL ===== */
+        /* ===== PC PINNED CINEMATIC REVEAL ===== */
+        /* ── Star Wars opening crawl (all viewports) ── */
+        .swcrawl { position: relative; z-index: 2; }
+        .swcrawl-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+        .op-hero { position: absolute; inset: 0; display: flex; flex-direction: column; will-change: opacity, transform; }
+
+        /* ── Opening SCROLL cue (clean dark screen before the crawl) ── */
+        .scroll-intro {
+          flex: 1; min-height: 0; position: relative;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: clamp(8px, 1.4vh, 16px); text-align: center; padding: 0 24px;
+        }
+        .origin-title {
+          /* size matched to Religion .codex-headline (the larger hero heading) so
+             the main title is identical across pages. Mobile overridden below. */
+          font-family: 'Cinzel', serif; font-weight: 700; margin: 0; line-height: 1.02;
+          text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.1em;
+          font-size: clamp(2.85rem, 6.84vw, 5.32rem);
+          background: linear-gradient(135deg, #F5C73D 0%, #FFB840 38%, #E69E1A 70%, #F5C73D 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          filter: drop-shadow(0 0 26px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5));
+        }
+        .origin-sub {
+          font-family: 'Cinzel', serif; font-weight: 400; margin: 0; text-transform: uppercase;
+          font-size: clamp(0.8rem, 1.5vw, 1.05rem); letter-spacing: 0.34em; padding-left: 0.34em;
+          color: rgba(250,244,236,0.62);
+        }
+        .scroll-cue { display: flex; flex-direction: column; align-items: center; color: #E6B84A; margin-top: clamp(10px, 2.2vh, 22px); }
+        .scroll-cue svg { display: block; margin-top: -18px; opacity: 0.32; filter: drop-shadow(0 0 10px rgba(230,184,74,0.6)); animation: scrollCue 1.6s ease-in-out infinite; }
+
+        /* ── Flanking figures (Matej left, Hekthor right) with warm halo ── */
+        .about-fig {
+          position: absolute; bottom: 0; z-index: 1; pointer-events: none;
+          height: 64vh; display: flex; align-items: flex-end; justify-content: center;
+        }
+        .about-fig img { height: 100%; width: auto; object-fit: contain; display: block;
+          filter: drop-shadow(0 10px 44px rgba(0,0,0,0.75)); }
+        .about-fig::before {
+          content: ''; position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%);
+          width: 118%; aspect-ratio: 1 / 1; border-radius: 50%; z-index: -1;
+          background: radial-gradient(circle, rgba(201,154,63,0.30) 0%, rgba(201,154,63,0.10) 42%, transparent 70%);
+          filter: blur(6px);
+        }
+        .fig-matej { left: 200px; height: min(78vh, 806px); }
+        .fig-hekthor { right: 200px; height: min(59vh, 625px); }
+
+        /* PC: lift the title block toward the upper third */
+        @media (min-width: 768px) { .scroll-intro { padding-bottom: 18vh; } }
+
+        /* ── Clickable skip — 150px from the bottom edge ── */
+        .about-skip {
+          position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%);
+          z-index: 5; pointer-events: auto; cursor: pointer; background: none; border: none;
+          font-family: 'Cinzel', serif; font-weight: 400; text-transform: uppercase;
+          letter-spacing: 0.28em; padding-left: 0.28em;
+          font-size: clamp(0.66rem, 1.1vw, 0.78rem); color: rgba(250,244,236,0.42);
+          transition: color 0.25s ease;
+        }
+        .about-skip:hover { color: #E6B84A; }
+        .about-skip { text-shadow: 0 1px 8px rgba(0,0,0,0.8); }
+
+        @media (max-width: 767px) {
+          /* lift the whole text block (title+sub+arrows) to the same start
+             height as the Religion hero (~181px from top) instead of centering */
+          .scroll-intro { justify-content: flex-start; padding-top: 92px; }
+          /* skip flows under the arrows (visible) instead of behind the figures */
+          .about-skip { position: static; transform: none; left: auto; bottom: auto; margin-top: 14px; }
+          .origin-title { font-size: clamp(2.2rem, 11vw, 3.4rem); }
+          .fig-matej { height: 46vh; left: -58px; opacity: 0.92; }
+          .fig-hekthor { height: 30vh; right: 4px; opacity: 0.92; }
+        }
+        .scroll-cue svg:nth-child(1) { animation-delay: 0s; }
+        .scroll-cue svg:nth-child(2) { animation-delay: 0.18s; }
+        .scroll-cue svg:nth-child(3) { animation-delay: 0.36s; }
+        @keyframes scrollCue { 0%, 100% { opacity: 0.38; } 50% { opacity: 1; } }
+        @media (prefers-reduced-motion: reduce) { .scroll-cue svg { animation: none; opacity: 0.55; } }
+
+        /* ── Outro hero (moved to the very bottom of the page) ── */
+        .about-outro {
+          position: relative; z-index: 2;
+          display: flex; align-items: center; justify-content: center;
+          padding: clamp(56px, 12vh, 130px) 20px;
+        }
+
+        .sw-intro {
+          position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); pointer-events: none;
+          margin: 0; width: min(86vw, 760px); text-align: center; opacity: 0;
+          color: #D9A2FF; font-family: 'Cinzel', serif; font-weight: 700;
+          font-size: clamp(1.05rem, 2.2vw, 1.6rem); line-height: 1.5;
+          text-shadow: 0 0 7px #C77DFF, 0 0 18px rgba(188,92,255,0.85), 0 0 38px rgba(160,60,255,0.55);
+          will-change: opacity;
+        }
+        .sw-logo {
+          position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(1);
+          width: min(72vw, 720px); height: auto; opacity: 0; pointer-events: none;
+          filter: drop-shadow(0 0 50px rgba(201,154,63,0.45)); will-change: transform, opacity;
+        }
+        .sw-stage {
+          position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+          perspective: 320px; perspective-origin: 50% 0%;
+          -webkit-mask-image: linear-gradient(to top, #000 14%, rgba(0,0,0,0.92) 34%, transparent 76%);
+          mask-image: linear-gradient(to top, #000 14%, rgba(0,0,0,0.92) 34%, transparent 76%);
+        }
+        .sw-crawl-text {
+          position: absolute; left: 50%; bottom: 0; width: min(92vw, 720px);
+          transform-origin: 50% 100%;
+          transform: translateX(-50%) rotateX(28deg) translateY(92vh); opacity: 0;
+          color: #F5C73D; font-family: 'Cinzel', serif; text-align: justify;
+          text-shadow: 0 0 26px rgba(245,199,61,0.22); will-change: transform;
+        }
+        .sw-crawl-text .sw-episode {
+          text-align: center; text-transform: uppercase; letter-spacing: 0.4em;
+          font-size: clamp(0.9rem, 1.6vw, 1.15rem); margin: 0 0 0.4em; opacity: 0.85;
+        }
+        .sw-crawl-text .sw-ctitle {
+          text-align: center; text-transform: uppercase; font-weight: 700;
+          font-size: clamp(2.2rem, 6vw, 4rem); margin: 0 0 8vh; letter-spacing: 0.04em;
+        }
+        .sw-crawl-text p:not(.sw-episode) {
+          font-size: clamp(1.15rem, 2.3vw, 1.7rem); line-height: 1.55; font-weight: 700; margin: 0 0 4vh;
+        }
+
         .hpin { display: none; }
         @media (min-width: 768px) {
-          .hpin { display: block; position: relative; z-index: 2; }  /* height inline = N×100vh */
-          .hpin-sticky {
-            position: sticky; top: 0; height: 100vh; overflow: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+          .hpin { display: block; position: relative; z-index: 2; }  /* height inline = (N+1)×100vh */
+          .hpin-sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+
+          .hpin-head {
+            position: absolute; left: 0; right: 0; top: 0; padding-top: 4vh;
+            text-align: center; z-index: 50; pointer-events: none;
+            transform-origin: center top; will-change: transform;
           }
-          .hpin-head { position: relative; text-align: center; margin: 0 0 clamp(44px, 7.5vh, 88px); z-index: 4; pointer-events: none; }
           .hpin-head .tl-h2 { margin: 0; }
-          .hpin-stage { position: relative; width: 100%; display: flex; align-items: center; }
-          .hpin-track { display: flex; align-items: center; will-change: transform; }
+
+          /* stage fills the viewport; cards are stacked + centred, driven by JS */
+          .hpin-stage { position: absolute; inset: 0; opacity: 0; }
 
           .hcard {
-            flex: 0 0 auto; width: min(1120px, 88vw); margin-right: 48px;
+            position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
+            width: min(1040px, 86vw); will-change: transform, opacity;
             display: flex; align-items: center; gap: clamp(26px, 3vw, 50px);
             background:
               radial-gradient(125% 95% at 50% -12%, rgba(201,154,63,0.13) 0%, transparent 56%),
@@ -280,15 +553,21 @@ export default function About() {
             flex: 0 0 auto; width: min(42vh, 400px); aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
             background: #0a0705; box-shadow: 0 0 0 1px rgba(250,244,236,0.10) inset;
           }
-          .hcard-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+          .hcard-photo img {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+            animation: kenburns 16s ease-in-out infinite alternate;
+          }
+          @keyframes kenburns { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }
           .hcard-text { flex: 1 1 auto; min-width: 0; }
           .hcard-text .tl-year { font-size: 0.8rem; margin-bottom: 16px; }
           .hcard-text .tl-title { font-size: clamp(1.6rem, 2.7vw, 2.3rem); margin-bottom: 16px; }
           .hcard-text .tl-text { font-size: clamp(0.98rem, 1.2vw, 1.12rem); line-height: 1.7; max-width: 560px; }
 
-          .hpin-dots { position: relative; margin-top: clamp(18px, 3vh, 30px); display: flex; gap: 9px; z-index: 4; }
+          .hpin-dots { position: absolute; left: 0; right: 0; bottom: clamp(26px, 5vh, 52px); justify-content: center; display: flex; gap: 9px; z-index: 50; }
           .hpin-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(201,154,63,0.3); transition: width .35s ease, background .35s ease; }
           .hpin-dot.on { width: 26px; background: #C99A3F; }
+
+          @media (prefers-reduced-motion: reduce) { .hcard-photo img { animation: none; } }
         }
       `}</style>
 
@@ -302,59 +581,80 @@ export default function About() {
         }}
       />
 
-      {/* ───────────── HERO ───────────── */}
-      <section className="relative flex flex-col" style={{ minHeight: '100dvh' }}>
+      {/* Scroll-driven darken (covers the whole viewport, incl. hero) — fades the
+          hero into the dark before the Star Wars crawl begins. */}
+      <div
+        ref={swDarkRef}
+        aria-hidden
+        style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, zIndex: 1, pointerEvents: 'none' }}
+      />
+
+      {/* ───────── OPENING — hero dissolve → Star Wars crawl (single sticky pin) ───────── */}
+      <section className="swcrawl" ref={crawlRef} style={{ height: '560vh' }}>
+        <div className="swcrawl-sticky">
+          <div ref={heroRef} className="op-hero">
         <PageTopBar withNav />
 
-        <div className="flex-1 flex items-center justify-center px-5 md:px-10 py-8 relative min-h-0" style={{ zIndex: 2 }}>
-          <div className="hero-grid">
-            <div className="flex flex-col" style={{ gap: 'clamp(16px, 2.6vh, 24px)' }}>
-              <div className="flex flex-col" style={{ gap: '10px' }}>
-                <h1 className="about-quote"><span className="aq-white">It Was Never</span> “Just a Dog.”</h1>
-              </div>
-              <div className="hero-intro">
-                <p>You already know the feeling…</p>
-                <p>That a dog isn't something you own — it's <strong>someone you love</strong>. Now imagine that love organized. Connected. <strong>Powerful enough to change things.</strong></p>
-                <p>It's about us. <strong>The doglovers.</strong></p>
-              </div>
-            </div>
+        {/* Figures flank the opening (Religion-style bleed): Matej left, Hekthor
+            right. Both transparent cutouts on a warm gold halo so the (black) dog
+            reads against the dark page. They fade out with the hero on scroll. */}
+        <div className="about-fig fig-matej" aria-hidden>
+          <img src="/images/about-matej.png" alt="" />
+        </div>
+        <div className="about-fig fig-hekthor" aria-hidden>
+          <img src="/images/about-hekthor.png" alt="" />
+        </div>
 
-            <div className="hero-photo" aria-label="Matej and Hekthor">
-              <img src="/images/email-pic-matej-hektor.png" alt="Matej and Hekthor" />
+        {/* Opening = clean dark screen + a single SCROLL cue. Scrolling dissolves
+            this (handled by heroRef fade) → darken → purple intro → crawl. */}
+        {/* Centered, thin band: big title + small slide cue. No body copy. */}
+        <div className="scroll-intro" style={{ zIndex: 3 }}>
+          <h1 className="origin-title">The<br />Origin</h1>
+          <p className="origin-sub">Slide and read</p>
+          <div className="scroll-cue" aria-hidden>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+          </div>
+          {/* Clickable skip — desktop: low on screen (absolute); mobile: under the arrows (static). */}
+          <button type="button" className="about-skip" onClick={skipIntro}>
+            or skip
+          </button>
+        </div>
+          </div>
+
+          <p className="sw-intro" ref={swIntroRef}>{CRAWL_INTRO}</p>
+          <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.png" alt="DOGYPT" />
+          <div className="sw-stage">
+            <div className="sw-crawl-text" ref={swTextRef}>
+              <p className="sw-episode">Episode I</p>
+              <h2 className="sw-ctitle">A New Faith</h2>
+              {CRAWL_PARAS.map((para, i) => <p key={i}>{para}</p>)}
             </div>
           </div>
         </div>
-
-        {/* scroll hint */}
-        <div className="scroll-hint" style={{ position: 'relative', zIndex: 2, paddingBottom: 22 }}>
-          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
-        </div>
       </section>
 
-      {/* ───────────── TIMELINE — PC: pinned horizontal carousel ───────────── */}
-      <section className="hpin" style={{ height: `${MILESTONES.length * 100}vh` }} ref={pinRef}>
+      {/* ───────────── TIMELINE — PC: pinned cinematic reveal ───────────── */}
+      <section className="hpin" style={{ height: `${(MILESTONES.length + 1) * 100}vh` }} ref={pinRef}>
         <div className="hpin-sticky">
           <div className="hpin-head">
             <h2 className="tl-h2">The Story of Dogypt</h2>
           </div>
-          <div className="hpin-stage">
-            <div className="hpin-track" ref={trackRef}>
-              {MILESTONES.map((m) => (
-                <div key={m.id} className="hcard">
-                  <div className="hcard-photo">
-                    <img src={m.imageUrl} alt={m.tag}
-                      onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
-                  </div>
-                  <div className="hcard-text">
-                    <span className="tl-year">{m.year}</span>
-                    <h3 className="tl-title">{m.title}</h3>
-                    <p className="tl-text">{m.body}</p>
-                  </div>
+          <div className="hpin-stage" ref={trackRef}>
+            {MILESTONES.map((m) => (
+              <article key={m.id} className="hcard">
+                <div className="hcard-photo">
+                  <img src={m.imageUrl} alt={m.tag}
+                    onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
                 </div>
-              ))}
-            </div>
+                <div className="hcard-text">
+                  <span className="tl-year">{m.year}</span>
+                  <h3 className="tl-title">{m.title}</h3>
+                  <p className="tl-text">{m.body}</p>
+                </div>
+              </article>
+            ))}
           </div>
           <div className="hpin-dots" ref={dotsRef}>
             {MILESTONES.map((m, i) => (
@@ -393,6 +693,28 @@ export default function About() {
 
       {/* Testimonials — placeholder, nechané zatiaľ (Matej 2026-05-31) */}
       <TestimonialsSection />
+
+      {/* ───────── OUTRO HERO — moved to the very bottom (Matej 2026-06-09):
+          page opens on a clean SCROLL screen, the personal hero lands last. ───────── */}
+      <section className="about-outro">
+        <div className="hero-grid">
+          <div className="flex flex-col" style={{ gap: 'clamp(16px, 2.6vh, 24px)' }}>
+            <div className="flex flex-col" style={{ gap: '10px' }}>
+              <h1 className="about-quote"><span className="aq-white">It Was Never</span> “Just a Dog.”</h1>
+            </div>
+            <div className="hero-intro">
+              <p>You already know the feeling…</p>
+              <p>That a dog isn't something you own — it's <strong>someone you love</strong>. Now imagine that love organized. Connected. <strong>Powerful enough to change things.</strong></p>
+              <p>And that's why <strong>DOGYPT</strong> exists.</p>
+            </div>
+            <p className="about-signoff">Matej <span className="amp">and</span> Hekthor</p>
+          </div>
+
+          <div className="hero-photo" aria-label="Matej and Hekthor">
+            <img src="/images/email-pic-matej-hektor.png" alt="Matej and Hekthor" />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

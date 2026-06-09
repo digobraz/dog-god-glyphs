@@ -533,7 +533,7 @@ export function PhotoScreen() {
                       className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      {t('heroglyph.flow.photo.faceOfGodPrefix')} <span className="font-bold text-amber-300">{t('heroglyph.flow.photo.faceOfGodWord')}</span> {t('heroglyph.flow.photo.faceOfGodSuffix')}
+                      {t('heroglyph.flow.photo.faceOfGodPrefix') && <>{t('heroglyph.flow.photo.faceOfGodPrefix')} </>}<span className="font-bold text-amber-300">{t('heroglyph.flow.photo.faceOfGodWord')}</span> {t('heroglyph.flow.photo.faceOfGodSuffix')}
                     </p>
                     <p
                       className="text-white/70 text-sm text-center"

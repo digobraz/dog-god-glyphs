@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { en } from './locales/en';
 import { sk } from './locales/sk';
+import { cs } from './locales/cs';
 
 /**
  * DOGYPT i18n — ľahká vlastná vrstva (bez react-i18next, Lovable-friendly).
@@ -23,6 +24,7 @@ const STORAGE_KEY = 'dogypt_lang';
 const DICTS: Record<string, Partial<Dict>> = {
   en,
   sk,
+  cs,
 };
 
 // RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.

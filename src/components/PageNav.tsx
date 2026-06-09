@@ -31,7 +31,7 @@ const LANGS: { code: LangCode; flag: string; label: string; native: string; enab
   { code: 'ko', flag: '🇰🇷', label: 'KOR', native: '한국어',        enabled: false },
   // ── RIGHT column (EU + neighbors) ──
   { code: 'sk', flag: '🇸🇰', label: 'SVK', native: 'Slovenčina', enabled: true  },
-  { code: 'cs', flag: '🇨🇿', label: 'CZE', native: 'Čeština',    enabled: false },
+  { code: 'cs', flag: '🇨🇿', label: 'CZE', native: 'Čeština',    enabled: true  },
   { code: 'de', flag: '🇩🇪', label: 'DEU', native: 'Deutsch',    enabled: false },
   { code: 'nl', flag: '🇳🇱', label: 'NLD', native: 'Nederlands', enabled: false },
   { code: 'fr', flag: '🇫🇷', label: 'FRA', native: 'Français',   enabled: false },

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sparkles, Flame, Globe2 } from 'lucide-react';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
 

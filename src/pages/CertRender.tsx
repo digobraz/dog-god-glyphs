@@ -187,8 +187,9 @@ export default function CertRender() {
       country: dog.selections?.country || dog.selections?.ownerCountry,
       selections: dog.selections || undefined,
     });
+  // Cert # = plain number, NO leading zeros (Matej lock 2026-06-07): "# 1" not "#00001".
   const certNumber = dog.pack_number
-    ? `#${String(dog.pack_number).padStart(5, '0')}`
+    ? `#${dog.pack_number}`
     : `#${dog.id.slice(0, 8).toUpperCase()}`;
   const issuedDate = (() => {
     try {

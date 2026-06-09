@@ -1,35 +1,48 @@
-import { useEffect, useMemo, useState } from 'react';
-import {
-  Sparkles,
-  Stethoscope,
-  MapPin,
-  MessageCircle,
-  GraduationCap,
-  Hourglass,
-  ShoppingBag,
-  Check,
-} from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
 
 const EDGE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/toggle-feature-vote';
 
+// Brand Tier 05 · Ceremonial faience (manuál v3.2) — "moments that mark passage"
+const FAIENCE = {
+  light: '#5BD6D9',
+  core: '#1AA39A',
+  deep: '#0F7E78',
+};
+const CREAM = '#FAF4EC';
+// Výsekové farby koláča — kontrastné na tyrkysovom pozadí (cream / faience light / brand gold)
+const SLICE_COLORS = ['#FAF4EC', '#5BD6D9', '#C99A3F'];
+
+// Dáta sa zbierajú do konca tohto roku, potom sa stavia.
+const COLLECT_UNTIL = 'Dec 31, 2026';
+
 interface Feature {
   key: string;
   title: string;
   blurb: string;
-  Icon: React.ComponentType<{ className?: string }>;
 }
 
+// v2 konsolidované buckety (swipe). ALLOWED_KEYS v toggle-feature-vote musí sedieť.
 const FEATURES: Feature[] = [
-  { key: 'vet_network', title: 'Vet network', blurb: 'Trusted clinics, reviewed by the pack.', Icon: Stethoscope },
-  { key: 'dog_map', title: 'Dog-friendly map', blurb: 'Cafés, trails, beaches — verified.', Icon: MapPin },
-  { key: 'pack_chat', title: 'Pack messaging', blurb: 'Local packs, walks, meetups.', Icon: MessageCircle },
-  { key: 'training', title: 'Training', blurb: 'Bite-size guides from real trainers.', Icon: GraduationCap },
-  { key: 'eternal', title: 'Eternal blueprint', blurb: 'Plan your dog’s long life.', Icon: Hourglass },
-  { key: 'merch', title: 'Merch & accessoires', blurb: 'Heroglyph print, collars, books.', Icon: ShoppingBag },
+  {
+    key: 'mobile_app',
+    title: 'Mobile App',
+    blurb: 'Social network, dog-friendly map & pack messaging — the pack in your pocket.',
+  },
+  {
+    key: 'health_ai',
+    title: 'Health Protocol by AI',
+    blurb: 'A longevity blueprint for your dog, powered by AI — plus a trusted vet network.',
+  },
+  {
+    key: 'merch',
+    title: 'Merch',
+    blurb: 'Heroglyph prints, collars, books & sacred accessories.',
+  },
 ];
 
 interface FeatureSurveyCardProps {
@@ -41,6 +54,8 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>(votes ?? {});
+  const [idx, setIdx] = useState(0);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     setCounts(votes ?? {});
@@ -69,13 +84,9 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
     };
   }, []);
 
+  const hasVoted = myVotes.size > 0;
   const totalVotes = useMemo(
-    () => Object.values(counts).reduce((s, n) => s + n, 0),
-    [counts],
-  );
-
-  const maxCount = useMemo(
-    () => Math.max(1, ...Object.values(counts)),
+    () => FEATURES.reduce((s, f) => s + (counts[f.key] ?? 0), 0),
     [counts],
   );
 
@@ -106,215 +117,426 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
       const nextCounts = { ...counts, [key]: j.count ?? 0 };
       setCounts(nextCounts);
       onVotesChange?.(nextCounts);
+      // Po prvej odpovedi odhalíme graf.
+      if (j.voted) setShowResults(true);
     } finally {
       setBusy(null);
     }
+  };
+
+  // Swipe handling — pointer drag; klik na tlačidlo nesmie spustiť swipe (threshold).
+  const next = () => setIdx((i) => Math.min(FEATURES.length - 1, i + 1));
+  const prev = () => setIdx((i) => Math.max(0, i - 1));
+
+  const dragStart = useRef<number | null>(null);
+  const dragDelta = useRef(0);
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragStart.current = e.clientX;
+    dragDelta.current = 0;
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (dragStart.current !== null) dragDelta.current = e.clientX - dragStart.current;
+  };
+  const onPointerUp = () => {
+    const d = dragDelta.current;
+    if (Math.abs(d) > 45) {
+      if (d < 0) next();
+      else prev();
+    }
+    dragStart.current = null;
+    dragDelta.current = 0;
+  };
+
+  // Touchpad — horizontálny wheel (deltaX) listne medzi slajdami, s lockom proti preskakovaniu.
+  const wheelLock = useRef(0);
+  const onWheel = (e: React.WheelEvent) => {
+    const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : 0;
+    if (Math.abs(dx) < 14) return;
+    const now = e.timeStamp;
+    if (now - wheelLock.current < 450) return;
+    wheelLock.current = now;
+    if (dx > 0) next();
+    else prev();
   };
 
   return (
     <section
       className="pack-card-hover h-full"
       style={{
-        background: T.ink,
-        color: T.card,
+        background: `linear-gradient(150deg, ${FAIENCE.light} -12%, ${FAIENCE.core} 42%, ${FAIENCE.deep} 112%)`,
+        color: CREAM,
         borderRadius: 24,
-        padding: '0',
-        boxShadow: '0 25px 60px -20px rgba(31, 26, 14, 0.55)',
+        padding: '20px 20px 18px',
+        boxShadow: '0 25px 60px -20px rgba(15, 126, 120, 0.55)',
         overflow: 'hidden',
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* Hero strip — gradient + icon collage */}
-      <div
-        className="relative flex items-center justify-center"
-        style={{
-          padding: '28px 24px 22px',
-          background:
-            'radial-gradient(ellipse at top, rgba(201, 154, 63, 0.28) 0%, transparent 60%), linear-gradient(180deg, rgba(255,251,242,0.04) 0%, transparent 100%)',
-          borderBottom: `1px solid rgba(255, 251, 242, 0.08)`,
-        }}
-      >
-        <BrandStrip />
-      </div>
-
-      <div style={{ padding: '20px 22px 24px' }}>
-        <div className="text-center">
-          <div
-            className="inline-flex items-center gap-2"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: 'rgba(255, 251, 242, 0.7)',
-              marginBottom: 10,
-            }}
-          >
-            <Sparkles className="h-3 w-3" />
-            DOGYPT App · Coming soon
-          </div>
-          <h3
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              textTransform: 'uppercase',
-              lineHeight: 1.15,
-            }}
-          >
-            Tell us what you want first
-          </h3>
-          <p
-            className="mx-auto"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 13,
-              lineHeight: 1.55,
-              color: 'rgba(255, 251, 242, 0.7)',
-              marginTop: 8,
-              maxWidth: '40ch',
-            }}
-          >
-            Pick everything you'd actually use. Your votes shape what ships in v1.
-          </p>
+      {/* Header — centrovaný */}
+      <div className="relative text-center">
+        <h3
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 26,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            textTransform: 'uppercase',
+            lineHeight: 1.05,
+            textShadow: '0 1px 8px rgba(8,60,57,0.35)',
+          }}
+        >
+          Shape the app
+        </h3>
+        <div
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 12.5,
+            letterSpacing: '0.01em',
+            color: 'rgba(250,244,236,0.82)',
+            marginTop: 5,
+          }}
+        >
+          What should we build first?
         </div>
 
-        <ul className="mt-5 flex flex-col gap-2.5">
-          {FEATURES.map((f) => {
-            const c = counts[f.key] ?? 0;
-            const pct = maxCount > 0 ? (c / maxCount) * 100 : 0;
-            const isMine = myVotes.has(f.key);
-            const isBusy = busy === f.key;
-            return (
-              <li key={f.key}>
-                <button
-                  type="button"
-                  onClick={() => toggle(f.key)}
-                  disabled={isBusy}
-                  className="group relative w-full text-left"
-                  style={{
-                    background: 'rgba(255, 251, 242, 0.05)',
-                    border: `1px solid ${
-                      isMine ? 'rgba(201, 154, 63, 0.55)' : 'rgba(255, 251, 242, 0.1)'
-                    }`,
-                    borderRadius: 14,
-                    padding: '12px 14px',
-                    color: T.card,
-                    cursor: isBusy ? 'progress' : 'pointer',
-                    overflow: 'hidden',
-                    transition: 'border-color 0.2s, background 0.2s',
-                  }}
-                >
-                  {/* fill bar */}
-                  <div
-                    aria-hidden
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: `linear-gradient(90deg, ${
-                        isMine ? 'rgba(201, 154, 63, 0.18)' : 'rgba(255, 251, 242, 0.06)'
-                      } 0%, transparent 100%)`,
-                      clipPath: `inset(0 ${100 - pct}% 0 0)`,
-                      transition: 'clip-path 0.4s ease',
-                    }}
-                  />
-                  <div className="relative flex items-center gap-3">
-                    <span
-                      className="inline-flex items-center justify-center shrink-0"
+        {hasVoted && (
+          <button
+            type="button"
+            onClick={() => setShowResults((v) => !v)}
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              fontFamily: "'Cinzel', serif",
+              fontSize: 9.5,
+              fontWeight: 700,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              color: T.ink,
+              background: FAIENCE.light,
+              borderRadius: 999,
+              padding: '6px 12px',
+              boxShadow: '0 4px 12px -4px rgba(0,0,0,0.4)',
+            }}
+          >
+            {showResults ? 'Vote' : 'Results'}
+          </button>
+        )}
+      </div>
+
+      {/* Body — carousel drží výšku; results sa prekreslí cez neho (žiadny height jump) */}
+      <div className="mt-4 flex-1 relative">
+        {/* Swipe carousel — ostáva v toku (drží výšku), len skryté keď results */}
+        <div style={{ visibility: showResults ? 'hidden' : 'visible' }} aria-hidden={showResults}>
+          {/* Slides viewport */}
+          <div
+            style={{ overflow: 'hidden', borderRadius: 16, touchAction: 'pan-y' }}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerUp}
+            onWheel={onWheel}
+          >
+            <div
+              className="flex"
+              style={{
+                transform: `translateX(-${idx * 100}%)`,
+                transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)',
+              }}
+            >
+              {FEATURES.map((f) => {
+                const isMine = myVotes.has(f.key);
+                const isBusy = busy === f.key;
+                return (
+                  <div key={f.key} className="shrink-0" style={{ width: '100%', padding: '0 1px' }}>
+                    {/* Image placeholder — šípky overlay na obrázku */}
+                    <div
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 10,
-                        background: isMine ? T.accentGold : 'rgba(255, 251, 242, 0.08)',
-                        color: isMine ? T.ink : T.card,
+                        position: 'relative',
+                        aspectRatio: '16 / 9',
+                        borderRadius: 14,
+                        background: 'rgba(8,60,57,0.32)',
+                        border: '1px dashed rgba(250,244,236,0.32)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
                       }}
                     >
-                      {isMine ? <Check className="h-4 w-4" /> : <f.Icon className="h-4 w-4" />}
-                    </span>
-                    <div className="min-w-0 flex-1">
+                      <span
+                        style={{
+                          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                          fontSize: 9,
+                          letterSpacing: '0.28em',
+                          textTransform: 'uppercase',
+                          color: 'rgba(250,244,236,0.55)',
+                        }}
+                      >
+                        Image · placeholder
+                      </span>
+
+                      {/* navigačné šípky na obrázku */}
+                      <div style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)' }}>
+                        <NavArrow dir="left" disabled={idx === 0} onClick={prev} />
+                      </div>
+                      <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}>
+                        <NavArrow dir="right" disabled={idx === FEATURES.length - 1} onClick={next} />
+                      </div>
+                    </div>
+
+                    <div className="mt-3 text-center">
                       <div
                         style={{
                           fontFamily: "'Cinzel', serif",
-                          fontSize: 13,
+                          fontSize: 16,
                           fontWeight: 700,
-                          letterSpacing: '0.04em',
-                          color: T.card,
+                          letterSpacing: '0.03em',
+                          textShadow: '0 1px 8px rgba(8,60,57,0.35)',
                         }}
                       >
                         {f.title}
                       </div>
-                      <div
+                      <p
+                        className="mx-auto"
                         style={{
                           fontFamily: "'Space Grotesk', sans-serif",
-                          fontSize: 11,
-                          color: 'rgba(255, 251, 242, 0.6)',
-                          marginTop: 2,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
+                          fontSize: 12,
+                          lineHeight: 1.5,
+                          color: 'rgba(250,244,236,0.82)',
+                          marginTop: 5,
+                          maxWidth: '34ch',
+                          minHeight: 36,
                         }}
                       >
                         {f.blurb}
-                      </div>
-                    </div>
-                    <span
-                      className="shrink-0 inline-flex items-center"
-                      style={{
-                        fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                        fontSize: 12,
-                        color: isMine ? T.accentGold : 'rgba(255, 251, 242, 0.65)',
-                        minWidth: 30,
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      {c}
-                    </span>
-                  </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+                      </p>
 
-        <div
-          className="mt-5 text-center"
+                      <button
+                        type="button"
+                        onClick={() => toggle(f.key)}
+                        disabled={isBusy}
+                        className="mt-3 inline-flex items-center gap-2"
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: 11,
+                          fontWeight: 700,
+                          letterSpacing: '0.16em',
+                          textTransform: 'uppercase',
+                          padding: '9px 20px',
+                          borderRadius: 999,
+                          cursor: isBusy ? 'progress' : 'pointer',
+                          color: isMine ? T.ink : CREAM,
+                          background: isMine ? FAIENCE.light : 'rgba(250,244,236,0.10)',
+                          border: `1px solid ${isMine ? FAIENCE.light : 'rgba(250,244,236,0.35)'}`,
+                          boxShadow: isMine ? '0 5px 16px -5px rgba(0,0,0,0.45)' : 'none',
+                          transition: 'all 0.2s',
+                        }}
+                      >
+                        {isMine ? <Check className="h-3.5 w-3.5" /> : null}
+                        {isMine ? 'Voted' : 'I vote for this'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Dots */}
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            {FEATURES.map((f, i) => (
+              <button
+                key={f.key}
+                type="button"
+                aria-label={`Go to ${f.title}`}
+                onClick={() => setIdx(i)}
+                style={{
+                  width: i === idx ? 18 : 6,
+                  height: 6,
+                  borderRadius: 999,
+                  background: i === idx ? CREAM : 'rgba(250,244,236,0.4)',
+                  transition: 'width 0.3s, background 0.3s',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Results overlay — cez carousel, rovnaká výška */}
+        {showResults && (
+          <div style={{ position: 'absolute', inset: 0 }} className="flex flex-col items-center justify-center">
+            <ResultsGraph counts={counts} total={totalVotes} myVotes={myVotes} />
+          </div>
+        )}
+      </div>
+
+      {/* Footer — dátum zberu + total */}
+      <div
+        className="mt-4 pt-3 flex items-center justify-between"
+        style={{ borderTop: '1px solid rgba(250,244,236,0.15)' }}
+      >
+        <span
           style={{
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 10,
-            letterSpacing: '0.18em',
-            color: 'rgba(255, 251, 242, 0.5)',
-            textTransform: 'uppercase',
+            fontSize: 9.5,
+            letterSpacing: '0.1em',
+            color: 'rgba(250,244,236,0.7)',
           }}
         >
-          {totalVotes.toLocaleString('en-US')} total votes · multi-select
-        </div>
+          Collecting until {COLLECT_UNTIL} — then we build.
+        </span>
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 9.5,
+            letterSpacing: '0.1em',
+            color: 'rgba(250,244,236,0.55)',
+          }}
+        >
+          {totalVotes.toLocaleString('en-US')} votes
+        </span>
       </div>
     </section>
   );
 }
 
-function BrandStrip() {
-  const icons = [Stethoscope, MapPin, MessageCircle, GraduationCap, Hourglass, ShoppingBag];
+// Polárny bod na kruhu (0° = hore, po smere hod. ručičiek).
+function polar(cx: number, cy: number, r: number, deg: number) {
+  const a = ((deg - 90) * Math.PI) / 180;
+  return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+}
+// Path vyplneného výseku koláča.
+function wedge(cx: number, cy: number, r: number, startDeg: number, endDeg: number) {
+  const s = polar(cx, cy, r, endDeg);
+  const e = polar(cx, cy, r, startDeg);
+  const large = endDeg - startDeg <= 180 ? 0 : 1;
+  return `M ${cx} ${cy} L ${e.x} ${e.y} A ${r} ${r} 0 ${large} 0 ${s.x} ${s.y} Z`;
+}
+
+// Výsledkový koláč (plný) — viditeľný každému prihlásenému (counts sú globálne z get-pack-stats).
+function ResultsGraph({
+  counts,
+  total,
+  myVotes,
+}: {
+  counts: Record<string, number>;
+  total: number;
+  myVotes: Set<string>;
+}) {
+  const CX = 60;
+  const CY = 60;
+  const R = 56;
+  let acc = 0;
+  const segments = FEATURES.map((f, i) => {
+    const c = counts[f.key] ?? 0;
+    const frac = total > 0 ? c / total : 0;
+    const start = acc * 360;
+    acc += frac;
+    const end = acc * 360;
+    return { f, c, color: SLICE_COLORS[i % SLICE_COLORS.length], start, end, frac, pct: Math.round(frac * 100) };
+  });
+  const single = segments.find((s) => s.frac >= 0.999);
+
   return (
-    <div className="flex items-center gap-4 opacity-70">
-      {icons.map((I, i) => (
-        <span
-          key={i}
-          className="inline-flex items-center justify-center"
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            background: 'rgba(255, 251, 242, 0.06)',
-            color: 'rgba(255, 251, 242, 0.78)',
-          }}
-        >
-          <I className="h-4 w-4" />
-        </span>
-      ))}
+    <div className="flex flex-col items-center gap-4">
+      {/* Plný koláč */}
+      <div style={{ flexShrink: 0 }}>
+        <svg width={187} height={187} viewBox="0 0 120 120">
+          {total === 0 ? (
+            <circle cx={CX} cy={CY} r={R} fill="rgba(8,60,57,0.4)" />
+          ) : single ? (
+            <circle cx={CX} cy={CY} r={R} fill={single.color} />
+          ) : (
+            segments
+              .filter((s) => s.frac > 0)
+              .map((s) => (
+                <path
+                  key={s.f.key}
+                  d={wedge(CX, CY, R, s.start, s.end)}
+                  fill={s.color}
+                  stroke="rgba(8,60,57,0.45)"
+                  strokeWidth={1}
+                />
+              ))
+          )}
+        </svg>
+      </div>
+
+      {/* Legenda */}
+      <div className="flex flex-col gap-2.5">
+        {segments.map((s) => {
+          const isMine = myVotes.has(s.f.key);
+          return (
+            <div key={s.f.key} className="flex items-center gap-2.5">
+              <span
+                style={{
+                  width: 11,
+                  height: 11,
+                  borderRadius: 3,
+                  background: s.color,
+                  flexShrink: 0,
+                  boxShadow: isMine ? `0 0 0 2px rgba(250,244,236,0.5)` : 'none',
+                }}
+              />
+              <span
+                className="inline-flex items-center gap-1"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  color: CREAM,
+                }}
+              >
+                {s.f.title}
+                {isMine && <Check className="h-3 w-3" style={{ color: FAIENCE.light }} />}
+              </span>
+              <span
+                style={{
+                  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                  fontSize: 11,
+                  color: 'rgba(250,244,236,0.78)',
+                  marginLeft: 'auto',
+                  paddingLeft: 8,
+                }}
+              >
+                {s.pct}%
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
+  );
+}
+
+function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={dir === 'left' ? 'Previous' : 'Next'}
+      className="inline-flex items-center justify-center"
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: '50%',
+        background: 'rgba(8,60,57,0.55)',
+        border: '1px solid rgba(250,244,236,0.45)',
+        color: CREAM,
+        backdropFilter: 'blur(4px)',
+        WebkitBackdropFilter: 'blur(4px)',
+        opacity: disabled ? 0.25 : 1,
+        cursor: disabled ? 'default' : 'pointer',
+        boxShadow: '0 3px 10px -3px rgba(0,0,0,0.5)',
+        transition: 'opacity 0.2s',
+      }}
+    >
+      {dir === 'left' ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+    </button>
   );
 }

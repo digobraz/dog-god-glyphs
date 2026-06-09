@@ -31,3 +31,7 @@ dist-ssr
 
 # Claude Code local state (worktrees, agent logs)
 .claude/
+
+# local screenshot/tuning artifacts
+.tune/
+.about-*.png

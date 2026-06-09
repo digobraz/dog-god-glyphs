@@ -7,11 +7,12 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import { WheelDatePicker } from '@/components/WheelDatePicker';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 
 export function NameScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const { lang } = useLang();
   const setDogName = useDogyptStore((s) => s.setDogName);
   const storedDogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
@@ -130,7 +131,7 @@ export function NameScreen() {
                           className="text-base md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                         >
-                          {t('heroglyph.flow.name.whoTitle')}<br className="md:hidden" /> {t('heroglyph.flow.name.whoTitleName')}
+                          {t('heroglyph.flow.name.whoTitle')}{lang === 'en' && <br className="md:hidden" />} {t('heroglyph.flow.name.whoTitleName')}
                         </h3>
 
                         <p

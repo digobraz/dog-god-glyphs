@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 import { TrendingUp, Activity, Globe } from 'lucide-react';
 
 const T = PACK_THEME;

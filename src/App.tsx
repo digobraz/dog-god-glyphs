@@ -29,6 +29,7 @@ import Privacy from "./pages/Privacy.tsx";
 import Pack from "./pages/Pack.tsx";
 import PackDogDetail from "./pages/PackDogDetail.tsx";
 import PackEternal from "./pages/PackEternal.tsx";
+import PackGods from "./pages/PackGods.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
 import Vision from "./pages/Vision.tsx";
@@ -38,8 +39,21 @@ import About from "./pages/About.tsx";
 import Heroglyph from "./pages/Heroglyph.tsx";
 import CertRender from "./pages/CertRender.tsx";
 import { DevNav } from "@/components/DevNav";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { captureRefFromSearch } from "@/lib/refCapture";
 
 const queryClient = new QueryClient();
+
+// Capture ?ref=<code> on every navigation (first-touch wins). Must live inside
+// BrowserRouter to read the live location.
+function RefCapture() {
+  const location = useLocation();
+  useEffect(() => {
+    captureRefFromSearch(location.search);
+  }, [location.search]);
+  return null;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -48,6 +62,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <RefCapture />
         <DevNav />
         <Routes>
           <Route path="/" element={<SpiralLanding />} />
@@ -90,6 +105,7 @@ const App = () => (
           {/* /pack — buyer backoffice (auth-gated) */}
           <Route path="/pack" element={<Pack />} />
           <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
+          <Route path="/pack/gods" element={<PackGods />} />
           <Route path="/pack/eternal" element={<PackEternal />} />
           <Route path="/pack/profile" element={<PackProfile />} />
 

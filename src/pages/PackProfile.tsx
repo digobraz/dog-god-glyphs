@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { Camera, Loader2, Mail, Globe2, BellOff, ShieldOff, Check } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
+import { PackLayout } from '@/components/pack/PackLayout';
+import { PackNetwork } from '@/components/pack/PackNetwork';
+import { PACK_THEME } from '@/components/pack/packTheme';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -282,6 +284,9 @@ export default function PackProfile() {
             </button>
           </div>
         </section>
+
+        {/* Your Network — two-level apostle tree */}
+        <PackNetwork />
 
         {/* Account info (read-only) */}
         <section

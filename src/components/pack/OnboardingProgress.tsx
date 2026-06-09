@@ -1,5 +1,5 @@
 import { Check, Circle } from 'lucide-react';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
 

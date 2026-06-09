@@ -115,7 +115,7 @@ function BreedPicker({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
-                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                className="flex-1 bg-transparent outline-none text-base md:text-sm text-foreground placeholder:text-muted-foreground"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
             />
           )}

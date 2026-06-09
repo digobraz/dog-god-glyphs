@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PackLayout, PACK_THEME } from '@/components/pack/PackLayout';
+import { PackLayout } from '@/components/pack/PackLayout';
+import { PACK_THEME } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
 import { PackTree } from '@/components/pack/PackTree';
 import { FeatureSurveyCard } from '@/components/pack/FeatureSurveyCard';

@@ -1,8 +1,9 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, Sparkles, ScrollText, UserCircle2, ChevronDown } from 'lucide-react';
+import { LogOut, UserCircle2, ChevronDown } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { PACK_THEME } from './packTheme';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,47 +11,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+// Brand ikonky (hand-drawn set z brand manuálu — vstupy/vizualna-identita/Icons hand drawn).
+// VŽDY používať tieto, nie generické lucide. Čierne → prefarbené CSS filterom na svetlé.
+import iconHome from '@/assets/icons/nav-home.svg';
+import iconGods from '@/assets/icons/nav-gods.svg';
+import iconSettings from '@/assets/icons/nav-settings.svg';
 
-interface NavItem {
-  to: string;
-  label: string;
-  icon: ReactNode;
+interface PackDog {
+  id: string;
+  dog_name: string | null;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { to: '/pack', label: 'Pack', icon: <ScrollText className="h-5 w-5" /> },
-  { to: '/pack/eternal', label: 'Eternal', icon: <Sparkles className="h-5 w-5" /> },
-  { to: '/pack/profile', label: 'Profile', icon: <UserCircle2 className="h-5 w-5" /> },
-];
-
-// Soft sandy palette — bledé papyrusové bloky (karty) na ČIERNOM pozadí (web-konzistentné).
-// POZN: bgTop/bg/bgBottom = svetlé VÝPLNE VNÚTRI kariet (HeroCard/PackTree/skeletony), NIE page bg.
-export const PACK_THEME = {
-  // "Naše tmavé" — #050505 + bg-dark.png heroglyf textúra (ako GodsGrid / heroglyph flow)
-  pageBg: '#050505',
-  glass: 'rgba(5, 5, 5, 0.72)',
-  glassSoft: 'rgba(5, 5, 5, 0.55)',
-  onDark: 'rgba(245, 240, 228, 0.86)',
-  onDarkDim: 'rgba(245, 240, 228, 0.46)',
-  onDarkHair: 'rgba(245, 240, 228, 0.10)',
-  onDarkBorder: 'rgba(245, 240, 228, 0.18)',
-  // Light fills INSIDE cards (papyrus) — neslúžia ako page bg
-  bgTop: '#F2E5C7',
-  bgBottom: '#E5D5B3',
-  bg: '#EDDCBD',
-  card: '#FFFBF2',
-  cardSoft: '#FCF4DF',
-  ink: '#1F1A0E', // off-black, warm
-  inkDim: 'rgba(31, 26, 14, 0.62)',
-  inkFaint: 'rgba(31, 26, 14, 0.42)',
-  hairline: 'rgba(31, 26, 14, 0.08)',
-  border: 'rgba(31, 26, 14, 0.16)',
-  accentGold: '#C99A3F',
-  growGreen: '#3D7A4E',
-  growGreenSoft: 'rgba(61, 122, 78, 0.12)',
-  alertRed: '#B25640',
-  alertRedSoft: 'rgba(178, 86, 64, 0.12)',
-};
+// Brand ikonka v pille — čierny SVG → svetlý cez filter, intenzita podľa active.
+function BrandIcon({ src, active }: { src: string; active: boolean }) {
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden
+      className="h-5 w-5 shrink-0"
+      style={{
+        filter: 'brightness(0) invert(1)',
+        opacity: active ? 1 : 0.55,
+        transition: 'opacity 0.15s',
+      }}
+    />
+  );
+}
 
 const T = PACK_THEME;
 
@@ -67,6 +54,7 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dogs, setDogs] = useState<PackDog[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -77,6 +65,16 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
         // Trigger link_dogs_to_new_user beží len pri prvom signupe — toto pokryje zvyšok.
         // Await pred render detí, aby PackList fetchol psov až po napojení.
         try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
+        if (!mounted) return;
+        // Psy usera — pre Gods nav (1 pes → profil, viac → dropdown).
+        try {
+          const { data: dogRows } = await supabase
+            .from('dogs')
+            .select('id, dog_name, created_at')
+            .eq('user_id', s.user.id)
+            .order('created_at', { ascending: true });
+          if (mounted && dogRows) setDogs(dogRows.map((d) => ({ id: d.id, dog_name: d.dog_name })));
+        } catch { /* non-blocking */ }
         if (!mounted) return;
       }
       setSession(s);
@@ -194,9 +192,7 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
         </div>
       </header>
 
-      <div className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-28 md:pb-12`}>
-        {/* Desktop nav — 3 icon cards above the blocks (mobile uses bottom tab bar) */}
-        <DesktopTopNav />
+      <div className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-32`}>
         {(title || subtitle) && (
           <header className="mb-7 text-center">
             {subtitle && (
@@ -232,20 +228,30 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
         <main>{children}</main>
       </div>
 
-      {/* Bottom tab bar mobile */}
+      {/* Floating pill nav — oblý rámik s ikonkami, centrovaný dole (Instagram-style) */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+        className="fixed z-40"
         style={{
-          background: T.glass,
-          borderTop: `1px solid ${T.onDarkHair}`,
-          backdropFilter: 'blur(12px)',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
         }}
       >
-        <div className="flex items-stretch justify-around">
-          {NAV_ITEMS.map((item) => (
-            <BottomTabLink key={item.to} item={item} />
-          ))}
+        <div
+          className="flex items-center gap-1"
+          style={{
+            background: T.glass,
+            border: `1px solid ${T.onDarkBorder}`,
+            borderRadius: 999,
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            padding: 6,
+            boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+          }}
+        >
+          <FloatingNavLink to="/pack" label="Home" icon={iconHome} end />
+          <GodsNavItem dogs={dogs} navigate={navigate} />
+          <FloatingNavLink to="/pack/profile" label="Settings" icon={iconSettings} />
         </div>
       </nav>
 
@@ -287,76 +293,93 @@ function HieroglyphBg() {
   );
 }
 
-function BottomTabLink({ item }: { item: NavItem }) {
+// Pill item štýl (zdieľaný NavLinkom aj Gods dropdown triggerom).
+const pillStyle = (active: boolean): React.CSSProperties => ({
+  padding: '10px 16px',
+  borderRadius: 999,
+  color: active ? '#FFF6E6' : T.onDarkDim,
+  background: active
+    ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)'
+    : 'transparent',
+  boxShadow: active
+    ? '0 5px 16px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255,255,255,0.25)'
+    : 'none',
+  textDecoration: 'none',
+});
+
+const pillLabelStyle: React.CSSProperties = {
+  fontFamily: "'Cinzel', serif",
+  fontSize: 11,
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+  fontWeight: 700,
+};
+
+function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; icon: string; end?: boolean }) {
   return (
     <NavLink
-      to={item.to}
-      end={item.to === '/pack'}
-      className="flex-1 flex flex-col items-center justify-center gap-1 py-2.5"
-      style={({ isActive }) => ({
-        color: isActive ? T.accentGold : T.onDarkDim,
-        borderTop: isActive ? `2px solid ${T.accentGold}` : `2px solid transparent`,
-        marginTop: -1,
-        transition: 'color 0.15s',
-      })}
+      to={to}
+      end={end}
+      className="group flex items-center gap-2 transition-all"
+      style={({ isActive }) => pillStyle(isActive)}
     >
-      {item.icon}
-      <span
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 9,
-          letterSpacing: '0.22em',
-          textTransform: 'uppercase',
-        }}
-      >
-        {item.label}
-      </span>
+      {({ isActive }) => (
+        <>
+          <BrandIcon src={icon} active={isActive} />
+          <span className="hidden sm:inline" style={pillLabelStyle}>{label}</span>
+        </>
+      )}
     </NavLink>
   );
 }
 
-// Desktop nav = 3 papyrus icon cards above the blocks
-function DesktopTopNav() {
-  return (
-    <nav className="hidden md:flex items-stretch gap-3 md:gap-5 mb-6 w-full">
-      {NAV_ITEMS.map((item) => (
-        <TopNavCard key={item.to} item={item} />
-      ))}
-    </nav>
-  );
-}
+// Gods — 1 pes → priamo profil; viac psov → dropdown → klik na psa otvorí profil.
+function GodsNavItem({ dogs, navigate }: { dogs: PackDog[]; navigate: ReturnType<typeof useNavigate> }) {
+  const location = useLocation();
+  const active = location.pathname.startsWith('/pack/dogs') || location.pathname === '/pack/gods';
 
-function TopNavCard({ item }: { item: NavItem }) {
-  return (
-    <NavLink
-      to={item.to}
-      end={item.to === '/pack'}
-      className="pack-card-hover group flex flex-1 flex-col items-center justify-center gap-1.5 transition-all"
-      style={({ isActive }) => ({
-        padding: '14px 22px',
-        borderRadius: 16,
-        background: T.card,
-        border: `1px solid ${isActive ? T.accentGold : T.border}`,
-        boxShadow: isActive
-          ? '0 10px 30px -12px rgba(201,154,63,0.45)'
-          : '0 8px 24px -16px rgba(0,0,0,0.5)',
-        color: isActive ? T.accentGold : T.inkDim,
-        textDecoration: 'none',
-      })}
-    >
-      {item.icon}
-      <span
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 11,
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-          fontWeight: 700,
-          color: 'inherit',
-        }}
+  const content = (
+    <>
+      <BrandIcon src={iconGods} active={active} />
+      <span className="hidden sm:inline" style={pillLabelStyle}>Gods</span>
+    </>
+  );
+
+  // 0 psov → fallback placeholder; 1 pes → priamo jeho profil.
+  if (dogs.length <= 1) {
+    const to = dogs.length === 1 ? `/pack/dogs/${dogs[0].id}` : '/pack/gods';
+    return (
+      <button
+        type="button"
+        onClick={() => navigate(to)}
+        className="group flex items-center gap-2 transition-all"
+        style={pillStyle(active)}
       >
-        {item.label}
-      </span>
-    </NavLink>
+        {content}
+      </button>
+    );
+  }
+
+  // Viac psov → dropdown.
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="group flex items-center gap-2 transition-all"
+          style={pillStyle(active)}
+        >
+          {content}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center" side="top" sideOffset={10} className="min-w-[200px]">
+        {dogs.map((d) => (
+          <DropdownMenuItem key={d.id} onClick={() => navigate(`/pack/dogs/${d.id}`)}>
+            <img src={iconGods} alt="" aria-hidden className="mr-2 h-4 w-4" style={{ opacity: 0.7 }} />
+            {d.dog_name || 'Unnamed'}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

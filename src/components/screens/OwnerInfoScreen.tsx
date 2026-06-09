@@ -8,7 +8,7 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
@@ -49,6 +49,7 @@ const letterMap: Record<string, string> = {
 export function OwnerInfoScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const { lang } = useLang();
   const setOwnerName = useDogyptStore((s) => s.setOwnerName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const storedOwnerName = useDogyptStore((s) => s.ownerName);
@@ -85,7 +86,7 @@ export function OwnerInfoScreen() {
           >
             <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
             <p className="text-white text-center text-base md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-              {t('heroglyph.flow.ownerInfo.greetingPrefix')}<br />
+              {t('heroglyph.flow.ownerInfo.greetingPrefix')}{lang === 'en' ? <br /> : ' '}
               <span className="font-bold text-amber-300">{t('heroglyph.flow.ownerInfo.greetingWord')}</span>!
             </p>
           </motion.div>

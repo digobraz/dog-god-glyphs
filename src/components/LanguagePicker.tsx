@@ -26,7 +26,7 @@ const LANGS: LangEntry[] = [
   { code: 'KOR', label: 'kor', countries: ['kr'],             enabled: false },
   // ── RIGHT column (EU + neighbors) ──
   { code: 'SVK', label: 'sk',  countries: ['sk'],             enabled: true  },
-  { code: 'CZE', label: 'cze', countries: ['cz'],             enabled: false },
+  { code: 'CZE', label: 'cs',  countries: ['cz'],             enabled: true  },
   { code: 'DEU', label: 'deu', countries: ['de'],             enabled: false },
   { code: 'NLD', label: 'nld', countries: ['nl'],             enabled: false },
   { code: 'FRA', label: 'fra', countries: ['fr'],             enabled: false },

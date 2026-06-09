@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
 
 const T = PACK_THEME;

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
+import { getStoredRef } from '@/lib/refCapture';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
@@ -59,6 +60,7 @@ export function PaymentScreen() {
           patronSvg2,
           heroglyphCode,
           amount: selectedAmount ?? 11,
+          refCode: getStoredRef(),
         }),
       });
       const data = await res.json();

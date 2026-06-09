@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { PACK_THEME } from './PackLayout';
+import { PACK_THEME } from './packTheme';
 import { Ranking } from './Ranking';
 import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
 import dogSilhouette from '@/assets/dogypt-logo-mobile.png';

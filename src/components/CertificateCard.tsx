@@ -128,7 +128,7 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
 
           {/* Dog name */}
           <div style={{
-            font: `900 88px/1 'Cinzel', serif`,
+            font: `900 88px/1 'Cinzel Decorative', 'Cinzel', serif`,
             color: ink,
             letterSpacing: '.15em',
             textAlign: 'center',
@@ -210,7 +210,12 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
                 <span style={{ font: `400 12px/1 'IM Fell English', serif`, fontStyle: 'italic', color: goldDark, opacity: .75 }}>the first dogyptian</span>
                 <div style={{ width: 80, height: 1, background: `linear-gradient(90deg, transparent, ${goldDark}, transparent)` }} />
                 <span style={{ font: `700 15px/1 'Cinzel', serif`, letterSpacing: '.2em', color: ink }}>HEKTHOR I.</span>
-                <HeroglyphFrame showOwner={false} style={{ height: 36, width: 'auto', color: '#000' } as React.CSSProperties} />
+                {/* Founder signature glyph — ALWAYS Hekthor's heroglyph (permanent SVG, never the buyer's). */}
+                <img
+                  src="/heroglyph/hektor-horizontal.svg"
+                  alt="Hekthor's heroglyph"
+                  style={{ height: 36, width: 'auto' }}
+                />
               </div>
 
               {/* Right: seal */}
