@@ -444,8 +444,13 @@ export default function About() {
           background: radial-gradient(circle, rgba(201,154,63,0.30) 0%, rgba(201,154,63,0.10) 42%, transparent 70%);
           filter: blur(6px);
         }
-        .fig-matej { left: 200px; height: min(78vh, 806px); }
-        .fig-hekthor { right: 200px; height: min(59vh, 625px); }
+        /* Inner edge pinned to a fixed viewport fraction (NOT fixed px) so the
+           centre column (32vw–68vw) stays clear for the title at ANY width.
+           Matej grows leftward from 32vw, Hekthor rightward from 68vw →
+           outer arm bleeds off-screen on narrow windows instead of crowding
+           the title. (Fixed-px left/right only worked at ~1920px.) */
+        .fig-matej { right: 68vw; left: auto; height: min(78vh, 806px); }
+        .fig-hekthor { left: 68vw; right: auto; height: min(59vh, 625px); }
 
         /* PC: lift the title block toward the upper third */
         @media (min-width: 768px) { .scroll-intro { padding-bottom: 18vh; } }
@@ -469,8 +474,8 @@ export default function About() {
           /* skip flows under the arrows (visible) instead of behind the figures */
           .about-skip { position: static; transform: none; left: auto; bottom: auto; margin-top: 14px; }
           .origin-title { font-size: clamp(2.2rem, 11vw, 3.4rem); }
-          .fig-matej { height: 46vh; left: -58px; opacity: 0.92; }
-          .fig-hekthor { height: 30vh; right: 4px; opacity: 0.92; }
+          .fig-matej { height: 46vh; left: -58px; right: auto; opacity: 0.92; }
+          .fig-hekthor { height: 30vh; right: 4px; left: auto; opacity: 0.92; }
         }
         .scroll-cue svg:nth-child(1) { animation-delay: 0s; }
         .scroll-cue svg:nth-child(2) { animation-delay: 0.18s; }
