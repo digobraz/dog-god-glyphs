@@ -28,10 +28,10 @@ interface Affiliate {
 // 5 development · 3 marketing · 2 direct help · 1 Hekthor. Colors are CANONICAL
 // (packTheme partDev/Mkt/Help/Hek) — must match the TransparentStats block.
 const SPLIT = [
-  { share: 5, label: 'Development', color: T.partDev, note: 'Building the nation and paying the people behind it — programmers, caretakers, trainers — plus the tools and servers that keep DOGYPT alive and growing.' },
+  { share: 5, label: 'Development', color: T.partDev, note: 'Building the nation and paying the people behind it — programmers, caretakers, trainers — plus the tools and servers that keep DOGYPT alive and growing. Every expense will be published.' },
   { share: 3, label: 'Affiliate', color: T.partMkt, note: 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith (as points for now): spend them later or donate them to dogs in need. DOGYPT invests in the pack, not in expensive marketing — the pack spreads it far better.' },
-  { share: 2, label: 'Direct help', color: T.partHelp, note: 'Straight to dogs in need — shelters, food, vet bills, rescue — every cent documented and public. The dream stays simple: become a millionaire by helping dogs, not despite them.' },
-  { share: 1, label: "Hekthor's bowl", color: T.partHek, note: 'The founder dog who started it all. His share keeps the original promise alive.' },
+  { share: 2, label: 'Direct help', color: T.partHelp, note: 'Straight to dogs in need — shelters, food, vet bills, rescue — every cent documented and public.' },
+  { share: 1, label: "Hekthor's bowl", color: T.partHek, note: 'The founder dog who started it all. His share keeps the original promise alive — the dream stays simple: become a millionaire by helping dogs, not despite them.' },
 ] as const;
 
 export function FounderInvite() {
