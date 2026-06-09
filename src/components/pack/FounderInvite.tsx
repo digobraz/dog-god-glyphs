@@ -387,8 +387,11 @@ export function FounderInvite() {
               )}
             </div>
 
-            {/* 4 blocks, 2×2 — roztiahnuté; name visible, click reveals the detail */}
-            <div className="relative grid grid-cols-2 gap-2.5" style={{ zIndex: 1 }}>
+            {/* 4 blocks, 2×2 — vyplnia výšku karty; name visible, click reveals detail */}
+            <div
+              className="relative grid grid-cols-2 gap-2.5"
+              style={{ zIndex: 1, flex: 1, minHeight: 0, gridTemplateRows: '1fr 1fr' }}
+            >
               {SPLIT.map((s, si) => {
                 const open = openTile === si;
                 return (
@@ -396,24 +399,24 @@ export function FounderInvite() {
                     key={s.label}
                     type="button"
                     onClick={() => setOpenTile(open ? null : si)}
-                    className="text-left"
+                    className="text-left flex flex-col"
                     style={{
                       background: open ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.045)',
                       border: `1px solid ${open ? s.color : 'rgba(245,240,228,0.14)'}`,
                       borderRadius: 16,
-                      padding: '15px 14px 14px',
-                      minHeight: 96,
+                      padding: '16px 16px 15px',
                       cursor: 'pointer',
+                      overflow: 'hidden',
                       transition: 'border-color 0.2s ease, background 0.2s ease',
                     }}
                   >
-                    <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
-                      {/* mini parts dots */}
-                      <span className="flex gap-[3px]">
+                    {/* top — share dots + chevron */}
+                    <div className="flex items-center justify-between">
+                      <span className="flex gap-[4px]">
                         {Array.from({ length: s.share }).map((_, i) => (
                           <span
                             key={i}
-                            style={{ width: 6, height: 6, borderRadius: 999, background: s.color }}
+                            style={{ width: 7, height: 7, borderRadius: 999, background: s.color }}
                           />
                         ))}
                       </span>
@@ -426,50 +429,55 @@ export function FounderInvite() {
                         }}
                       />
                     </div>
-                    <div
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        fontSize: 23,
-                        fontWeight: 700,
-                        lineHeight: 1,
-                        color: s.color,
-                      }}
-                    >
-                      {s.share}<span style={{ fontSize: 12, opacity: 0.7 }}>/11</span>
+
+                    {/* bottom — big share + label (+ detail), anchored to floor */}
+                    <div style={{ marginTop: 'auto' }}>
+                      <div
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: 'clamp(30px, 6.6vw, 40px)',
+                          fontWeight: 700,
+                          lineHeight: 1,
+                          color: s.color,
+                        }}
+                      >
+                        {s.share}
+                        <span style={{ fontSize: '0.42em', opacity: 0.65 }}>/11</span>
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: 13.5,
+                          fontWeight: 700,
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          color: 'hsl(45 92% 90%)',
+                          marginTop: 7,
+                        }}
+                      >
+                        {s.label}
+                      </div>
+                      <AnimatePresence initial={false}>
+                        {open && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.22 }}
+                            style={{
+                              fontFamily: "'Space Grotesk', sans-serif",
+                              fontSize: 11.5,
+                              lineHeight: 1.5,
+                              color: 'hsl(45 25% 84% / 0.82)',
+                              margin: 0,
+                              overflow: 'hidden',
+                            }}
+                          >
+                            <span style={{ display: 'block', paddingTop: 9 }}>{s.note}</span>
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
                     </div>
-                    <div
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        letterSpacing: '0.04em',
-                        textTransform: 'uppercase',
-                        color: 'hsl(45 92% 90%)',
-                        marginTop: 5,
-                      }}
-                    >
-                      {s.label}
-                    </div>
-                    <AnimatePresence initial={false}>
-                      {open && (
-                        <motion.p
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.22 }}
-                          style={{
-                            fontFamily: "'Space Grotesk', sans-serif",
-                            fontSize: 10.5,
-                            lineHeight: 1.45,
-                            color: 'hsl(45 25% 84% / 0.8)',
-                            margin: 0,
-                            overflow: 'hidden',
-                          }}
-                        >
-                          <span style={{ display: 'block', paddingTop: 8 }}>{s.note}</span>
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
                   </button>
                 );
               })}
@@ -479,10 +487,10 @@ export function FounderInvite() {
               className="relative"
               style={{
                 fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 10,
+                fontSize: 10.5,
                 color: 'hsl(45 30% 84% / 0.55)',
                 textAlign: 'center',
-                marginTop: 12,
+                marginTop: 14,
                 zIndex: 1,
               }}
             >
