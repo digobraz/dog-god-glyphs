@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Camera, Crown } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
+import { PackNotifications } from './PackNotifications';
 
 const T = PACK_THEME;
 
@@ -16,9 +17,11 @@ interface HeroCardProps {
   genderPlaceholder?: 'man' | 'woman' | null;
   /** Devotion points — placeholder hodnota, point systém = ďalšia session */
   points?: number;
+  /** Pack pulse pre notifikačný bell (top-right). Nezobrazí sa kým nedôjdu stats. */
+  stats?: { last24h: number; last30d: number; total: number } | null;
 }
 
-export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, points = 1000000 }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, points = 1000000, stats = null }: HeroCardProps) {
   const initial = name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
@@ -65,6 +68,11 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, poi
           pointerEvents: 'none',
         }}
       />
+
+      {/* Notifikácie + správy (coming soon) — vpravo hore */}
+      {stats && (
+        <PackNotifications last24h={stats.last24h} last30d={stats.last30d} total={stats.total} />
+      )}
 
       <div className="flex flex-col items-center text-center flex-1 justify-center relative">
         {/* Avatar — Instagram-style fialový gradient ring (väčší rámik) */}

@@ -1,4 +1,4 @@
-import { Check, Circle } from 'lucide-react';
+import { Check, Circle, ListChecks, Sparkles } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
@@ -20,20 +20,35 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
         borderRadius: 16,
         padding: 20,
         boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+        height: '100%',
       }}
     >
+      <div
+        className="flex items-center gap-2 mb-2"
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 10,
+          letterSpacing: '0.32em',
+          textTransform: 'uppercase',
+          color: T.inkDim,
+        }}
+      >
+        <ListChecks className="h-3.5 w-3.5" />
+        Your Profile
+      </div>
+
       <div className="flex items-baseline justify-between mb-3">
-        <div
+        <h4
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 10,
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: T.inkDim,
+            fontSize: 20,
+            letterSpacing: '0.04em',
+            fontWeight: 700,
+            color: T.ink,
           }}
         >
-          Your Profile
-        </div>
+          First Steps
+        </h4>
         <div
           style={{
             fontFamily: "'Cinzel', serif",
@@ -87,6 +102,34 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
           </li>
         ))}
       </ul>
+
+      {/* Reward note — completing First Steps grants profile points.
+          Plný DOGYPT hodnotiaci systém = ďalšia session (zatiaľ len táto hláška). */}
+      <div
+        className="flex items-center gap-2.5"
+        style={{
+          marginTop: 16,
+          padding: '12px 14px',
+          borderRadius: 12,
+          background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+          border: '1px solid rgba(250,244,236,0.30)',
+          boxShadow: '0 6px 18px -6px rgba(201,154,63,0.6)',
+        }}
+      >
+        <Sparkles className="h-5 w-5 shrink-0" style={{ color: '#3A2A06' }} />
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 13.5,
+            fontWeight: 600,
+            lineHeight: 1.4,
+            color: '#3A2A06',
+          }}
+        >
+          Complete all First Steps ={' '}
+          <strong style={{ fontWeight: 800 }}>+10 points</strong> to your profile.
+        </span>
+      </div>
     </div>
   );
 }

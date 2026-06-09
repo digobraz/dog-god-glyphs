@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
+import { CouncilSection } from '@/components/landing/CouncilSection';
+import { Footer } from '@/components/landing/Footer';
 
 /**
  * /about — „A Dog Changed My Life." (So did yours.)
@@ -99,7 +101,7 @@ const MILESTONES: Milestone[] = [
     tag: 'The Journey',
     title: 'The Walk That Became a Book',
     body:
-      'Together we walked across Slovakia — 42 days, 800 kilometres, one quiet promise. That road became a book: „Cesta s Hrdinom“ — The Road with a Hero.',
+      'Together we walked across Slovakia — 42 days, 800 kilometres, one quiet promise. That road became a book: „Cesta s Hrdinom" — The Road with a Hero.',
     images: ['/images/about-slides/m3-1.webp', '/images/about-slides/m3-2.webp', '/images/about-slides/m3-3.webp'],
   },
   {
@@ -144,6 +146,15 @@ export default function About() {
   const swIntroRef = useRef<HTMLParagraphElement>(null);
   const swLogoRef = useRef<HTMLImageElement>(null);
   const swTextRef = useRef<HTMLDivElement>(null);
+
+  // Deep-link from /pack "Join the Council" → scroll to the Council form.
+  useEffect(() => {
+    if (window.location.hash !== '#council') return;
+    const t = setTimeout(() => {
+      document.getElementById('council')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 220);
+    return () => clearTimeout(t);
+  }, []);
 
   // Skip the cinematic crawl → land at the start of the story timeline.
   const skipIntro = () => {
@@ -554,7 +565,7 @@ export default function About() {
            got cut at narrow widths while Hekthor (smaller) stayed whole. Equal
            size → equal visible fraction → both read cleanly, symmetrically. */
         .fig-matej { left: 0; right: auto; transform: translateX(calc(32vw - 100% + 200px)); height: min(73.75vh, 781px); }
-        .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw - 80px)); height: min(59vh, 625px); }
+        .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw - 80px)); height: min(50.15vh, 531px); }
 
         /* PC: lift the title block toward the upper third */
         @media (min-width: 768px) { .scroll-intro { padding-bottom: 18vh; } }
@@ -587,9 +598,26 @@ export default function About() {
         @keyframes scrollCue { 0%, 100% { opacity: 0.38; } 50% { opacity: 1; } }
         @media (prefers-reduced-motion: reduce) { .scroll-cue svg { animation: none; opacity: 0.55; } }
 
+        /* ── Outro CTA button (btn-gold canonical, scoped locally) ── */
+        .about-outro .btn-gold {
+          padding: 14px 36px;
+          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+          border: 1px solid rgba(250,244,236,0.30);
+          border-radius: 8px; color: #000;
+          font-family: 'Cinzel', serif; font-size: 0.88rem; font-weight: 700;
+          letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap;
+          cursor: pointer; text-decoration: none; display: inline-block;
+          transition: transform 0.2s, box-shadow 0.22s;
+          box-shadow: 0 0 40px rgba(230,158,26,0.38), inset 0 1px 0 rgba(255,255,255,0.28);
+        }
+        .about-outro .btn-gold:hover {
+          transform: scale(1.04);
+          box-shadow: 0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.28);
+        }
+
         /* ── Outro hero (moved to the very bottom of the page) ── */
         .about-outro {
-          position: relative; z-index: 2;
+          position: relative; z-index: 2; background: #000;
           display: flex; align-items: center; justify-content: center;
           padding: clamp(56px, 12vh, 130px) 20px;
         }
@@ -803,27 +831,25 @@ export default function About() {
       {/* Testimonials — placeholder, nechané zatiaľ (Matej 2026-05-31) */}
       <TestimonialsSection />
 
-      {/* ───────── OUTRO HERO — moved to the very bottom (Matej 2026-06-09):
-          page opens on a clean SCROLL screen, the personal hero lands last. ───────── */}
-      <section className="about-outro">
-        <div className="hero-grid">
-          <div className="flex flex-col" style={{ gap: 'clamp(16px, 2.6vh, 24px)' }}>
-            <div className="flex flex-col" style={{ gap: '10px' }}>
-              <h1 className="about-quote"><span className="aq-white">It Was Never</span> “Just a Dog.”</h1>
-            </div>
-            <div className="hero-intro">
-              <p>You already know the feeling…</p>
-              <p>That a dog isn't something you own — it's <strong>someone you love</strong>. Now imagine that love organized. Connected. <strong>Powerful enough to change things.</strong></p>
-              <p>And that's why <strong>DOGYPT</strong> exists.</p>
-            </div>
-            <p className="about-signoff">Matej <span className="amp">and</span> Hekthor</p>
+      {/* ───────── OUTRO HERO ───────── */}
+      <section className="about-outro" style={{ textAlign: 'center' }}>
+        <div className="flex flex-col" style={{ alignItems: 'center', gap: 'clamp(16px, 2.6vh, 24px)', maxWidth: 820 }}>
+          <h1 className="about-quote"><span className="aq-white">It Was Never</span> "Just a Dog."</h1>
+          <div className="hero-intro" style={{ textAlign: 'center', alignItems: 'center', maxWidth: '100%' }}>
+            <p>You already know the feeling — that a dog isn't something you own, it's <strong>someone you love</strong>. Now imagine that love organized, connected, <strong>powerful enough to change things.</strong> And that's why <strong>DOGYPT</strong> exists.</p>
           </div>
-
-          <div className="hero-photo" aria-label="Matej and Hekthor">
-            <img src="/images/email-pic-matej-hektor.png" alt="Matej and Hekthor" />
-          </div>
+          <p className="about-signoff">Matej <span className="amp">and</span> Hekthor</p>
+          <a href="/heroglyph" className="btn-gold" style={{ marginTop: 8 }}>
+            Become Dogyptian
+          </a>
         </div>
       </section>
+
+      {/* Council — "We Need You." recruitment block */}
+      <CouncilSection />
+
+      {/* Footer — úplne posledná sekcia (email + sociálne siete) */}
+      <Footer />
     </div>
   );
 }

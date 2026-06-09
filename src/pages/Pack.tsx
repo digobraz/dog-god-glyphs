@@ -8,8 +8,9 @@ import { FeatureSurveyCard } from '@/components/pack/FeatureSurveyCard';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
 import { OnboardingProgress, type OnboardingStep } from '@/components/pack/OnboardingProgress';
-import { Announcements } from '@/components/pack/Announcements';
 import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
+import { BuildNotice } from '@/components/pack/BuildNotice';
+import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 
 const T = PACK_THEME;
 
@@ -63,6 +64,8 @@ export default function Pack() {
   const [stats, setStats] = useState<PackStats | null>(null);
   const [user, setUser] = useState<UserMeta | null>(null);
   const [featureVotes, setFeatureVotes] = useState<Record<string, number>>({});
+  const [hasVoted, setHasVoted] = useState(false);
+  const [hasReferral, setHasReferral] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -76,6 +79,28 @@ export default function Pack() {
       const avatarUrl = meta.avatar_url || meta.avatar || null;
       const display = firstNameFrom(u.email ?? '', fullName);
       if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null });
+
+      // First Steps — extra completion signals (best-effort, non-blocking).
+      // "Cast your vote in Shape" → any row in feature_votes for this user.
+      (supabase as unknown as {
+        from: (t: string) => {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => Promise<{ data: { feature_key: string }[] | null }>;
+          };
+        };
+      })
+        .from('feature_votes')
+        .select('feature_key')
+        .eq('user_id', u.id)
+        .then(({ data }) => { if (mounted) setHasVoted((data ?? []).length > 0); });
+
+      // "Invite your first dog person" → at least one referral on my affiliate.
+      supabase
+        .rpc('get_or_create_my_affiliate')
+        .then(({ data }) => {
+          const row = (data as { referral_count?: number }[] | null)?.[0];
+          if (mounted) setHasReferral((row?.referral_count ?? 0) > 0);
+        });
 
       const { data } = await (supabase as unknown as {
         from: (t: string) => {
@@ -137,14 +162,17 @@ export default function Pack() {
   const onboardingSteps: OnboardingStep[] = (() => {
     const list = dogs ?? [];
     const hasDog = list.length > 0;
-    const hasMessage = list.some((d) => (d.grid_message ?? '').trim().length > 0);
     const hasExtras = list.some((d) => (d.cloudinary_extras ?? []).length > 0);
     const hasAvatar = !!user?.avatarUrl;
+    let constitutionOpened = false;
+    try { constitutionOpened = localStorage.getItem('dogypt_constitution_opened') === '1'; } catch { /* ignore */ }
     return [
       { label: 'Forge your first heroglyph', done: hasDog },
       { label: 'Add your photo', done: hasAvatar },
-      { label: 'Write a message on the Grid', done: hasMessage },
       { label: 'Add extra photos of your dog', done: hasExtras },
+      { label: 'Cast your vote in Shape', done: hasVoted },
+      { label: 'Flip through the Constitution', done: constitutionOpened },
+      { label: 'Invite your first dog person', done: hasReferral },
     ];
   })();
 
@@ -193,6 +221,7 @@ export default function Pack() {
               email={user.email}
               avatarUrl={user.avatarUrl}
               genderPlaceholder={ownerGender}
+              stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
             />
           )}
 
@@ -208,6 +237,9 @@ export default function Pack() {
           )}
         </div>
 
+        {/* Sacred interlude — verse of the day from the Constitution (rotates daily) */}
+        <VerseOfTheDay />
+
         {/* Full-width — planéta + počítadlo + TOP krajiny */}
         <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
 
@@ -218,10 +250,12 @@ export default function Pack() {
           <FounderInvite />
         </div>
 
-        <OnboardingProgress steps={onboardingSteps} />
-
-        <ConstitutionCard />
-        <Announcements />
+        {/* Row 3 — First Steps | Constitution (DOGMA) | Build notice — rovnaké výšky */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-7 items-stretch">
+          <OnboardingProgress steps={onboardingSteps} />
+          <ConstitutionCard />
+          <BuildNotice ownerName={displayName} email={user?.email ?? null} />
+        </div>
 
         <div style={{ height: 32 }} />
       </div>

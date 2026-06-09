@@ -264,11 +264,18 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
 function HieroglyphBg() {
   return (
     <>
+      {/* Fixná výška 100lvh (NIE inset:0) — na mobile sa pri scrolle skrýva URL bar,
+          dynamická výška viewportu sa mení a inset:0 fixed vrstva by sa preškálovala
+          → backgroundSize:cover prepočíta obrázok = „jemná zmena pozadia". 100lvh je
+          konštanta (najväčší viewport), takže pozadie ostáva stabilné. */}
       <div
         aria-hidden
         style={{
           position: 'fixed',
-          inset: 0,
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100lvh',
           backgroundImage: "url('/images/bg-dark.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
@@ -282,7 +289,10 @@ function HieroglyphBg() {
         aria-hidden
         style={{
           position: 'fixed',
-          inset: 0,
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100lvh',
           background:
             'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
           zIndex: 0,

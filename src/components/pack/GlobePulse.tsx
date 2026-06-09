@@ -21,8 +21,10 @@ const MILESTONES = [
 const RING_R = 47;
 const CIRC = 2 * Math.PI * RING_R;
 const ARC_LEN = CIRC * 0.75; // 270° gauge — medzera dole, kde sedí % text
-const GOLD: [number, number, number] = [0.85, 0.6, 0.2]; // owner pin (amber, pops on beige)
+const GOLD: [number, number, number] = [0.85, 0.6, 0.2]; // markerColor fallback (cobe default)
+const PURPLE: [number, number, number] = [0.36, 0.10, 0.62]; // owner pin (deep violet #5B19A0, pulses)
 const PIN: [number, number, number] = [0.16, 0.13, 0.07]; // top-country pins (dark ink on beige)
+const OWNER_BASE = 0.13; // owner marker base size; render loop pulses it for visibility
 
 interface CountryRow {
   country: string;
@@ -87,7 +89,7 @@ function PackGlobe({
   const ownerISO = countryISO2(ownerCountry);
   const markers = useMemo(() => {
     const max = Math.max(1, ...topCountries.map((r) => r.count));
-    const out: { location: [number, number]; size: number; color: [number, number, number] }[] = [];
+    const out: { location: [number, number]; size: number; color: [number, number, number]; owner?: boolean }[] = [];
     for (const r of topCountries) {
       if (ownerISO && countryISO2(r.country) === ownerISO) continue; // owner drawn separately
       const c = countryCentroid(r.country);
@@ -95,7 +97,7 @@ function PackGlobe({
       out.push({ location: c, size: 0.04 + (r.count / max) * 0.05, color: PIN });
     }
     const oc = countryCentroid(ownerCountry);
-    if (oc) out.push({ location: oc, size: 0.11, color: GOLD });
+    if (oc) out.push({ location: oc, size: OWNER_BASE, color: PURPLE, owner: true });
     return out;
   }, [topCountries, ownerCountry, ownerISO]);
 
@@ -147,12 +149,20 @@ function PackGlobe({
       });
       globeRef.current = globe;
 
+      const ownerMarker = markers.find((m) => m.owner);
+
       if (reduceMotion) {
         globe.update({ phi: phiRef.current, theta: THETA }); // single static render
       } else {
+        let t = 0;
         const render = () => {
           if (pointerStart.current === null) phiRef.current += SPIN; // idle slow spin; paused while dragging
-          globe!.update({ phi: phiRef.current + dragPhi.current, theta: THETA });
+          // Pulse the owner pin (size + subtle) so it reads as "you are here".
+          if (ownerMarker) {
+            t += 1;
+            ownerMarker.size = OWNER_BASE + 0.045 * (0.5 + 0.5 * Math.sin(t * 0.07));
+          }
+          globe!.update({ phi: phiRef.current + dragPhi.current, theta: THETA, markers });
           raf = requestAnimationFrame(render);
         };
         raf = requestAnimationFrame(render);

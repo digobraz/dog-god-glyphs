@@ -213,7 +213,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
         <h3
           style={{
             fontFamily: "'Cinzel', serif",
-            fontSize: 26,
+            fontSize: 'clamp(20px, 5vw, 26px)',
             fontWeight: 700,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
@@ -235,14 +235,14 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
           What should we build first?
         </div>
 
+        {/* Results/Vote toggle — centrovaný pod podnadpisom (NIE absolute cez nadpis,
+            inak sa na mobile prekrýval so „Shape the app"). */}
         {hasVoted && (
           <button
             type="button"
             onClick={() => setShowResults((v) => !v)}
+            className="mt-3"
             style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
               fontFamily: "'Cinzel', serif",
               fontSize: 9.5,
               fontWeight: 700,
@@ -251,7 +251,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
               color: T.ink,
               background: FAIENCE.light,
               borderRadius: 999,
-              padding: '6px 12px',
+              padding: '6px 14px',
               boxShadow: '0 4px 12px -4px rgba(0,0,0,0.4)',
             }}
           >

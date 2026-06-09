@@ -99,3 +99,18 @@ async function uploadPngBlob(blob: Blob, folder: string, publicId: string): Prom
 
 export const uploadHeroglyphPng = (blob: Blob, sessionId: string) =>
   uploadPngBlob(blob, 'heroglyphs', sessionId);
+
+// Pack feedback "proof" photo — raw file, auto public_id, parked in feedback/.
+export async function uploadFeedbackPhoto(file: File): Promise<CloudinaryResult> {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', PRESET);
+  fd.append('folder', 'feedback');
+  const res = await fetch(UPLOAD_URL, { method: 'POST', body: fd });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Cloudinary feedback ${res.status}: ${err}`);
+  }
+  const json = await res.json();
+  return { publicId: json.public_id, secureUrl: json.secure_url };
+}

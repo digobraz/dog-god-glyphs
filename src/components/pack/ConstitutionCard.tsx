@@ -1,4 +1,3 @@
-import { ScrollText, ArrowUpRight } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
@@ -9,55 +8,86 @@ export function ConstitutionCard() {
       href="https://dogyptism.dogypt.com"
       target="_blank"
       rel="noopener noreferrer"
-      className="block w-full transition-all"
+      className="pack-card-hover cbc block w-full"
       style={{
         background: T.card,
         border: `1px solid ${T.hairline}`,
         borderRadius: 16,
-        padding: 20,
         boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
         color: T.ink,
         textDecoration: 'none',
+        height: '100%',
+        minHeight: 380,
+        position: 'relative',
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 18,
       }}
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div
-            className="flex items-center gap-2 mb-2"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: T.inkDim,
-            }}
-          >
-            <ScrollText className="h-3.5 w-3.5" />
-            Constitution
-          </div>
-          <h4
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 20,
-              letterSpacing: '0.04em',
-              fontWeight: 700,
-              marginBottom: 8,
-            }}
-          >
-            Read the Dogyptism
-          </h4>
-          <p
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 14,
-              lineHeight: 1.5,
-              color: 'rgba(10, 10, 10, 0.7)',
-            }}
-          >
-            The dog religion — synkretism, satire, and the sacred ordinary.
-          </p>
+      <style>{`
+        .cbc-img { transition: transform .45s ease; }
+        .cbc:hover .cbc-img { transform: scale(1.05); }
+        .cbc-ov {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 8px; text-align: center; padding: 28px;
+          background: radial-gradient(circle at center, rgba(8,6,3,0.80) 0%, rgba(8,6,3,0.58) 58%, rgba(8,6,3,0.34) 100%);
+          opacity: 0; transition: opacity .35s ease; pointer-events: none;
+        }
+        @media (hover: hover) { .cbc:hover .cbc-ov { opacity: 1; } }
+        /* touch devices have no hover → keep a soft bottom label always visible */
+        @media (hover: none) {
+          .cbc-ov {
+            opacity: 1; justify-content: flex-end; padding-bottom: 26px;
+            background: linear-gradient(0deg, rgba(8,6,3,0.78) 0%, rgba(8,6,3,0.32) 38%, transparent 62%);
+          }
+        }
+      `}</style>
+
+      {/* DOGMA — the sacred book, enlarged (same cover as the /religion flipbook) */}
+      <img
+        className="cbc-img"
+        src="/images/dogma-cover.png"
+        alt="DOGMA — the Dogyptian Constitution"
+        style={{
+          height: '100%',
+          width: 'auto',
+          maxWidth: '100%',
+          maxHeight: 440,
+          objectFit: 'contain',
+          filter: 'drop-shadow(0 18px 38px rgba(10,10,10,0.32))',
+        }}
+      />
+
+      {/* Hover reveal */}
+      <div className="cbc-ov">
+        <div
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 23,
+            fontWeight: 700,
+            letterSpacing: '0.14em',
+            textTransform: 'uppercase',
+            lineHeight: 1.1,
+            color: '#F5C73D',
+            textShadow: '0 2px 16px rgba(0,0,0,0.55)',
+          }}
+        >
+          Read the DOGMA
         </div>
-        <ArrowUpRight className="h-5 w-5 shrink-0" style={{ opacity: 0.7 }} />
+        <div
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 13.5,
+            lineHeight: 1.5,
+            color: 'rgba(250,244,236,0.88)',
+            maxWidth: 240,
+          }}
+        >
+          What DOGYPT is all about.
+        </div>
       </div>
     </a>
   );

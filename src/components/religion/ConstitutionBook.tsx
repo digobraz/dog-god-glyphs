@@ -68,6 +68,14 @@ export default function ConstitutionBook() {
   const [page, setPage] = useState(0);
   const [dims, setDims] = useState(calcDims);
 
+  // Mark the Constitution as opened — drives the "Flip through the Constitution"
+  // step in the /pack First Steps checklist (no DB signal for reading).
+  useEffect(() => {
+    if (opened) {
+      try { localStorage.setItem('dogypt_constitution_opened', '1'); } catch { /* ignore */ }
+    }
+  }, [opened]);
+
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
     const onResize = () => { clearTimeout(t); t = setTimeout(() => setDims(calcDims()), 180); };
