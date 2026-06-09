@@ -457,7 +457,7 @@ export default function About() {
            got cut at narrow widths while Hekthor (smaller) stayed whole. Equal
            size → equal visible fraction → both read cleanly, symmetrically. */
         .fig-matej { left: 0; right: auto; transform: translateX(calc(32vw - 100% + 200px)); height: min(73.75vh, 781px); }
-        .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw)); height: min(59vh, 625px); }
+        .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw - 80px)); height: min(59vh, 625px); }
 
         /* PC: lift the title block toward the upper third */
         @media (min-width: 768px) { .scroll-intro { padding-bottom: 18vh; } }
