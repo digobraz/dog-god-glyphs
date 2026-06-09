@@ -340,7 +340,7 @@ export function FounderInvite() {
                 src={dogyptLogoGold}
                 alt="DOGYPT"
                 style={{
-                  height: 'clamp(26px, 5.4vw, 34px)',
+                  height: 'clamp(29px, 5.9vw, 37px)',
                   width: 'auto',
                 }}
               />
