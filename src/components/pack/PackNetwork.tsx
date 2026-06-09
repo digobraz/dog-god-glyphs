@@ -25,6 +25,8 @@ interface Network {
   level2: Member[];
   level1_count: number;
   level2_count: number;
+  is_root?: boolean;
+  founder_points?: number;
 }
 
 export function PackNetwork() {
@@ -117,6 +119,55 @@ export function PackNetwork() {
         <strong style={{ color: T.ink }}>+2</strong>. <strong style={{ color: T.ink }}>Level 2</strong> —
         everyone <em>they</em> bring earns you <strong style={{ color: T.ink }}>+1</strong>.
       </p>
+
+      {/* Founder points — root only, separate from the affiliate network above */}
+      {net?.is_root && (
+        <div
+          className="flex items-center justify-between gap-3"
+          style={{
+            background: T.cardSoft,
+            border: `1px solid ${T.accentGold}33`,
+            borderRadius: 12,
+            padding: '12px 14px',
+            marginBottom: 18,
+          }}
+        >
+          <div className="flex flex-col">
+            <span
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 10,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: T.inkDim,
+              }}
+            >
+              Founder Points
+            </span>
+            <span
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: 11,
+                color: T.inkFaint,
+                marginTop: 2,
+              }}
+            >
+              1 for every heroglyph ever forged
+            </span>
+          </div>
+          <span
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 26,
+              fontWeight: 700,
+              lineHeight: 1,
+              color: T.accentGold,
+            }}
+          >
+            {(net.founder_points ?? 0).toLocaleString('sk-SK')}
+          </span>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center gap-2 py-4" style={{ color: T.inkFaint }}>
