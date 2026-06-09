@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 
@@ -18,10 +18,39 @@ type Milestone = {
   tag: string;
   title: string;
   body: string;
-  imageUrl: string;
+  images: string[];   // image reel — switch with arrows
 };
 
 const ph = () => 'https://placehold.co/800x500/15100a/15100a?text=%20';
+
+/** Image reel — one milestone's photos, switched with prev/next arrows + dots. */
+function SlideReel({ images, alt }: { images: string[]; alt: string }) {
+  const [i, setI] = useState(0);
+  const n = images.length;
+  const go = (d: number) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setI((p) => (p + d + n) % n);
+  };
+  return (
+    <div className="reel">
+      <img src={images[i]} alt={alt}
+        onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
+      {n > 1 && (
+        <>
+          <button type="button" className="reel-arrow reel-prev" onClick={go(-1)} aria-label="Previous photo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          </button>
+          <button type="button" className="reel-arrow reel-next" onClick={go(1)} aria-label="Next photo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+          </button>
+          <div className="reel-dots" aria-hidden>
+            {images.map((_, k) => <span key={k} className={`reel-dot${k === i ? ' on' : ''}`} />)}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 const MILESTONES: Milestone[] = [
   {
@@ -31,7 +60,7 @@ const MILESTONES: Milestone[] = [
     title: 'Treasure in the Shelter',
     body:
       'A black dog nobody wanted was waiting behind a shelter fence. His name became Hekthor. Adopting him wasn’t rescue — it was the beginning of everything.',
-    imageUrl: ph(),
+    images: ['/images/about-slides/m1-1.webp', '/images/about-slides/m1-2.webp', '/images/about-slides/m1-3.webp', '/images/about-slides/m1-4.webp'],
   },
   {
     id: 2,
@@ -40,7 +69,7 @@ const MILESTONES: Milestone[] = [
     title: 'A Forever Bond',
     body:
       'He pulled me through the hardest stretch of my life without saying a single word. Every dog person knows this — they carry you exactly when you’re falling.',
-    imageUrl: '/images/hektor-grid.jpg',
+    images: ['/images/about-slides/m2-1.webp', '/images/about-slides/m2-2.webp', '/images/about-slides/m2-3.webp', '/images/about-slides/m2-4.webp', '/images/about-slides/m2-5.webp'],
   },
   {
     id: 3,
@@ -49,7 +78,7 @@ const MILESTONES: Milestone[] = [
     title: 'The Walk That Became a Book',
     body:
       'Together we walked across Slovakia — 42 days, 800 kilometres, one quiet promise. That road became a book: „Cesta s Hrdinom“ — The Road with a Hero.',
-    imageUrl: ph(),
+    images: ['/images/about-slides/m3-1.webp', '/images/about-slides/m3-2.webp', '/images/about-slides/m3-3.webp'],
   },
   {
     id: 4,
@@ -58,7 +87,7 @@ const MILESTONES: Milestone[] = [
     title: 'A Nation of Dog People',
     body:
       'Somewhere on that road the story stopped being about one man and one dog. Dogs give us everything and ask for almost nothing — they deserve a louder voice.',
-    imageUrl: ph(),
+    images: ['/images/about-slides/m4-1.webp', '/images/about-slides/m4-2.webp', '/images/about-slides/m4-3.webp', '/images/about-slides/m4-4.webp', '/images/about-slides/m4-5.webp'],
   },
   {
     id: 5,
@@ -67,7 +96,7 @@ const MILESTONES: Milestone[] = [
     title: 'The Journey Starts With You',
     body:
       'DOGYPT is a movement for everyone whose life was changed by a dog. Built on the oldest, most honest bond on Earth. Hekthor is founder #1. You are next.',
-    imageUrl: '/images/email-pic-matej-hektor.png',
+    images: ['/images/about-slides/m5-1.webp'],
   },
 ];
 
@@ -377,7 +406,26 @@ export default function About() {
         }
         .tl-img { position: relative; width: 100%; aspect-ratio: 16 / 10; background: #0a0705; }
         .tl-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .tl-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%); }
+        .tl-img::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%); }
+
+        /* ── Image reel (carousel) — fills its parent photo frame ── */
+        .reel { position: absolute; inset: 0; }
+        .reel > img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .reel-arrow {
+          position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
+          width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+          border-radius: 999px; cursor: pointer; color: #FAF4EC;
+          background: rgba(10,7,5,0.5); border: 1px solid rgba(201,154,63,0.45);
+          backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+          opacity: 0.78; transition: opacity .2s ease, background .2s ease, color .2s ease;
+        }
+        .reel-arrow:hover { opacity: 1; color: #F5C73D; background: rgba(10,7,5,0.72); }
+        .reel-prev { left: 10px; }
+        .reel-next { right: 10px; }
+        .reel-dots { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 4; display: flex; justify-content: center; gap: 7px; pointer-events: none; }
+        .reel-dot { width: 7px; height: 7px; border-radius: 999px; background: rgba(250,244,236,0.4); box-shadow: 0 1px 4px rgba(0,0,0,0.6); transition: width .3s ease, background .3s ease; }
+        .reel-dot.on { width: 20px; background: #C99A3F; }
+        @media (max-width: 767px) { .reel-arrow { width: 34px; height: 34px; } }
         .tl-body-wrap { padding: clamp(16px, 2vw, 22px) clamp(18px, 2.2vw, 26px) clamp(18px, 2.4vw, 24px); }
         .tl-year {
           display: inline-block; font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.72rem;
@@ -572,6 +620,7 @@ export default function About() {
             box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 54px rgba(201,154,63,0.11), inset 0 1px 0 rgba(245,199,61,0.20);
           }
           .hcard-photo {
+            position: relative;
             flex: 0 0 auto; width: min(42vh, 400px); aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden;
             background: #0a0705; box-shadow: 0 0 0 1px rgba(250,244,236,0.10) inset;
           }
@@ -667,8 +716,7 @@ export default function About() {
             {MILESTONES.map((m) => (
               <article key={m.id} className="hcard">
                 <div className="hcard-photo">
-                  <img src={m.imageUrl} alt={m.tag}
-                    onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
+                  <SlideReel images={m.images} alt={m.tag} />
                 </div>
                 <div className="hcard-text">
                   <span className="tl-year">{m.year}</span>
@@ -699,8 +747,7 @@ export default function About() {
               <span className="tl-conn" />
               <article className="tl-card">
                 <div className="tl-img">
-                  <img src={m.imageUrl} alt={m.tag}
-                    onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
+                  <SlideReel images={m.images} alt={m.tag} />
                 </div>
                 <div className="tl-body-wrap">
                   <span className="tl-year">{m.year}</span>
