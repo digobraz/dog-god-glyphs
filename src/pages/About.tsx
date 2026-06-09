@@ -161,13 +161,16 @@ export default function About() {
       //    rises and recedes up the tilted plane. Start offset = the block's
       //    own height (+ margin) so even a long crawl begins off-screen at the
       //    bottom and never pokes into the middle behind the logo. END offset =
-      //    just clear of the top fold (NOT -1.35*H — that overshoots far above
-      //    the viewport, so the last line vanishes long before p=1 and leaves a
-      //    huge empty tail). With -1.1*vh the last word leaves exactly as the
-      //    section ends → next section's heading appears on the very next scroll.
+      //    -0.85*vh: the text recedes gradually up the tilted plane and fades
+      //    through the top mask (the classic crawl vanish). The last line clears
+      //    the visible zone at y≈-0.76*vh (bottom:0 → last line exits when
+      //    vh+y < 0.24*vh, independent of block height), so -0.85*vh lands the
+      //    full vanish right AT the section end (p=1) — gradual recede, then the
+      //    next section pins the instant the text is off the top edge. No dead
+      //    tail (-1.1*vh overshot into emptiness), no lingering (-0.1*vh).
       const H = text.offsetHeight || vh;
       const ct = band(p, 0.56, 1);
-      const y = lerp(H + 0.12 * vh, -1.1 * vh, ct);
+      const y = lerp(H + 0.12 * vh, -0.85 * vh, ct);
       text.style.opacity = String(clamp(band(p, 0.55, 0.60)));
       text.style.transform = `translateX(-50%) rotateX(28deg) translateY(${y}px)`;
     };
@@ -211,35 +214,41 @@ export default function About() {
       const total = wrap.offsetHeight - vh;
       const scrolled = clamp(-wrap.getBoundingClientRect().top, 0, total);
 
-      // ── Intro — heading EMERGES in place, RIGHT as the crawl ends ────────
-      //   Matej: „po dorolovaní textu sa sekcia fixne, zobrazí sa nadpis" —
-      //   vynorenie, NIE scroling od spodu. The reveal is driven by the section
-      //   APPROACHING the fold (wrapTop), NOT by `scrolled` (which stays 0 until
-      //   the section pins ~1vh later — that 1vh of invisible glide WAS the
-      //   empty gap). The heading is counter-translated by the section's own
-      //   pre-pin offset so it stays DOCKED and just fades in, instead of
-      //   sliding up from the bottom.
+      // ── Intro — heading RISES IN by scroll, from BELOW the body text ──────
+      //   Matej (2026-06-09): „ten nadpis daj ako keby prišiel scrolom teda bude
+      //   pod tým body textom a daj postupný fade in… následne sa zaroluje trochu
+      //   hore a zobrazia sa slajdy". So: while the crawl text recedes off the
+      //   TOP, the heading enters LOW (≈90% screen, below the text), fades in and
+      //   climbs up; it docks ~0.25vh into the pin (the "roll up a bit"), THEN the
+      //   cards fade in. Driven by one progress `rp` that spans the pre-pin glide
+      //   (approach 0→1) and continues into the pin (1→1.x via `scrolled`).
       const wrapTop = wrap.getBoundingClientRect().top;
       const HEAD_SCALE = 0.92;          // fixed (narrower than the slide ≈ 72vw)
-      const DOCK_TOP = 0.13;            // fixed docked position (upper area)
+      const DOCK_TOP = 0.13;            // docked position (upper area) it settles at
       const padTop = 0.04 * vh;         // .hpin-head padding-top: 4vh
-      const dockedY = DOCK_TOP * vh - HEAD_SCALE * padTop;
-      // approach: 0 the moment the crawl section releases (wrapTop = vh) → 1 a
-      // little later. Heading is fully in well before the section finishes pinning.
-      const approach = clamp((vh - wrapTop) / (0.55 * vh));
-      const revealT = easeIO(approach);
+      const approach = clamp((vh - wrapTop) / (1.0 * vh));   // 0 enter → 1 pin
+      // rp: 0..1 across the glide (text receding), then 1..2 across the first
+      // viewport of the pin (heading finishing its climb, then cards).
+      const rp = wrapTop > 0 ? approach : 1 + scrolled / vh;
 
       if (head) {
-        const y = dockedY - Math.max(wrapTop, 0);   // hold docked during pre-pin glide
+        const posT = easeIO(clamp((rp - 0.60) / 0.80));      // climb: low → dock
+        const headOp = easeIO(clamp((rp - 0.55) / 0.55));    // gradual fade-in
+        const targetY = lerp(0.90 * vh, DOCK_TOP * vh, posT); // screen-top target
+        const y = targetY - HEAD_SCALE * padTop - Math.max(wrapTop, 0);
         head.style.transform = `translateY(${y}px) scale(${HEAD_SCALE})`;
-        head.style.opacity = String(revealT);
+        head.style.opacity = String(headOp);
       }
 
-      // cards fade in once the section has actually pinned (scrolled > 0), so
-      // they never slide up from below behind the heading. Then they advance
-      // HORIZONTALLY (filmstrip — no crossfade).
-      stage.style.opacity = String(clamp(scrolled / (0.25 * vh)));
-      const cardP = total > 0 ? clamp(scrolled / total) : 0;
+      // cards fade in only AFTER the heading has rolled up and settled (~0.45vh
+      // into the pin), so they don't appear behind/under the still-climbing title.
+      const cardScroll = Math.max(0, scrolled - 0.45 * vh);
+      stage.style.opacity = String(clamp(cardScroll / (0.25 * vh)));
+      // card 0 fades in CENTRED at position 1 and DWELLS there (~0.45vh) before
+      // the filmstrip starts advancing — so the first slide visibly "fixes" in
+      // place once the heading has docked, rather than sliding the instant it shows.
+      const advScroll = Math.max(0, scrolled - 0.9 * vh);
+      const cardP = clamp(advScroll / Math.max(1, total - 0.9 * vh));
       const f = cardP * (n - 1);
       const SPACING = 80; // vw between card centres → slight overlap, no centre gap
       cards.forEach((card, i) => {
@@ -552,7 +561,8 @@ export default function About() {
 
           .hcard {
             position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
-            width: min(1040px, 86vw); will-change: transform, opacity;
+            /* shrink the block: always ≥160px breathing room each side on PC, capped 900px */
+            width: min(900px, calc(100vw - 320px)); will-change: transform, opacity;
             display: flex; align-items: center; gap: clamp(26px, 3vw, 50px);
             background:
               radial-gradient(125% 95% at 50% -12%, rgba(201,154,63,0.13) 0%, transparent 56%),
@@ -602,7 +612,7 @@ export default function About() {
       />
 
       {/* ───────── OPENING — hero dissolve → Star Wars crawl (single sticky pin) ───────── */}
-      <section className="swcrawl" ref={crawlRef} style={{ height: '560vh' }}>
+      <section className="swcrawl" ref={crawlRef} style={{ height: '340vh' }}>
         <div className="swcrawl-sticky">
           <div ref={heroRef} className="op-hero">
         <PageTopBar withNav />
@@ -648,7 +658,7 @@ export default function About() {
       </section>
 
       {/* ───────────── TIMELINE — PC: pinned cinematic reveal ───────────── */}
-      <section className="hpin" style={{ height: `${(MILESTONES.length + 1) * 100}vh` }} ref={pinRef}>
+      <section className="hpin" style={{ height: `${(MILESTONES.length + 1) * 100}vh`, marginTop: '-100vh' }} ref={pinRef}>
         <div className="hpin-sticky">
           <div className="hpin-head">
             <h2 className="tl-h2">The Story of Dogypt</h2>
