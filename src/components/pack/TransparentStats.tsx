@@ -31,7 +31,7 @@ const ALLOC = [
     color: T.partDev,
     detail: 'App build · servers · design tools — the road to the million.',
   },
-  { key: 'mkt', share: 3, label: 'Marketing', color: T.partMkt },
+  { key: 'mkt', share: 3, label: 'Affiliate', color: T.partMkt },
   { key: 'help', share: 2, label: 'Direct help', color: T.partHelp },
   { key: 'hek', share: 1, label: "Hekthor's bowl", color: T.partHek },
 ] as const;

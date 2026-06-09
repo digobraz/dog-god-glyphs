@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Copy, Check, Share2, Sparkles, Info, X, ChevronDown, Network } from 'lucide-react';
+import { Copy, Check, Share2, Sparkles, Info, X, Plus, Network } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,9 +28,9 @@ interface Affiliate {
 // 5 development · 3 marketing · 2 direct help · 1 Hekthor. Colors are CANONICAL
 // (packTheme partDev/Mkt/Help/Hek) — must match the TransparentStats block.
 const SPLIT = [
-  { share: 5, label: 'Development', color: T.partDev, note: 'App, tools, servers and the road ahead — everything that builds the nation and keeps it running.' },
-  { share: 3, label: 'Marketing', color: T.partMkt, note: 'Spreading the faith — videos, reach, the campaigns that bring the next million paws.' },
-  { share: 2, label: 'Direct help', color: T.partHelp, note: 'Straight to dogs in need — shelters, food, vet bills, rescue. The public account shows every cent.' },
+  { share: 5, label: 'Development', color: T.partDev, note: 'Building the nation and paying the people behind it — programmers, caretakers, trainers — plus the tools and servers that keep DOGYPT alive and growing.' },
+  { share: 3, label: 'Affiliate', color: T.partMkt, note: 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith (as points for now): spend them later or donate them to dogs in need. DOGYPT invests in the pack, not in expensive marketing — the pack spreads it far better.' },
+  { share: 2, label: 'Direct help', color: T.partHelp, note: 'Straight to dogs in need — shelters, food, vet bills, rescue — every cent documented and public. The dream stays simple: become a millionaire by helping dogs, not despite them.' },
   { share: 1, label: "Hekthor's bowl", color: T.partHek, note: 'The founder dog who started it all. His share keeps the original promise alive.' },
 ] as const;
 
@@ -127,7 +127,10 @@ export function FounderInvite() {
       {/* (i) — DOGYPT transparency model (same pattern as the heroglyph flow) */}
       <button
         type="button"
-        onClick={() => setShowInfo((p) => !p)}
+        onClick={() => {
+          setShowInfo((p) => !p);
+          setOpenTile(null);
+        }}
         aria-label={showInfo ? 'Close' : 'Where every euro goes'}
         className="absolute top-3 right-3 z-30 flex items-center justify-center"
         style={{ width: 40, height: 40 }}
@@ -398,7 +401,7 @@ export function FounderInvite() {
                   <button
                     key={s.label}
                     type="button"
-                    onClick={() => setOpenTile(open ? null : si)}
+                    onClick={() => setOpenTile(si)}
                     className="text-left flex flex-col"
                     style={{
                       background: open ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.045)',
@@ -410,7 +413,7 @@ export function FounderInvite() {
                       transition: 'border-color 0.2s ease, background 0.2s ease',
                     }}
                   >
-                    {/* top — share dots + chevron */}
+                    {/* top — share dots + tap affordance */}
                     <div className="flex items-center justify-between">
                       <span className="flex gap-[4px]">
                         {Array.from({ length: s.share }).map((_, i) => (
@@ -420,17 +423,21 @@ export function FounderInvite() {
                           />
                         ))}
                       </span>
-                      <ChevronDown
-                        className="h-4 w-4"
+                      <span
+                        className="flex items-center justify-center"
                         style={{
-                          color: 'hsl(45 40% 86% / 0.6)',
-                          transform: open ? 'rotate(180deg)' : 'none',
-                          transition: 'transform 0.2s ease',
+                          width: 20,
+                          height: 20,
+                          borderRadius: 999,
+                          border: `1px solid ${s.color}`,
+                          color: s.color,
                         }}
-                      />
+                      >
+                        <Plus className="h-3 w-3" />
+                      </span>
                     </div>
 
-                    {/* bottom — big share + label (+ detail), anchored to floor */}
+                    {/* bottom — big share + label, anchored to floor */}
                     <div style={{ marginTop: 'auto' }}>
                       <div
                         style={{
@@ -457,26 +464,6 @@ export function FounderInvite() {
                       >
                         {s.label}
                       </div>
-                      <AnimatePresence initial={false}>
-                        {open && (
-                          <motion.p
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.22 }}
-                            style={{
-                              fontFamily: "'Space Grotesk', sans-serif",
-                              fontSize: 11.5,
-                              lineHeight: 1.5,
-                              color: 'hsl(45 25% 84% / 0.82)',
-                              margin: 0,
-                              overflow: 'hidden',
-                            }}
-                          >
-                            <span style={{ display: 'block', paddingTop: 9 }}>{s.note}</span>
-                          </motion.p>
-                        )}
-                      </AnimatePresence>
                     </div>
                   </button>
                 );
@@ -496,6 +483,101 @@ export function FounderInvite() {
             >
               Tap a block to see where it goes.
             </div>
+
+            {/* Detail popup — full note, no scroll/clip regardless of length */}
+            <AnimatePresence>
+              {openTile !== null && (
+                <motion.div
+                  key="tile-popup"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                  onClick={() => setOpenTile(null)}
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{
+                    zIndex: 40,
+                    background: 'rgba(8, 6, 16, 0.74)',
+                    backdropFilter: 'blur(3px)',
+                    WebkitBackdropFilter: 'blur(3px)',
+                    padding: 22,
+                  }}
+                >
+                  <motion.div
+                    initial={{ scale: 0.92, y: 8 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.92, y: 8 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position: 'relative',
+                      width: '100%',
+                      maxWidth: 300,
+                      background: 'linear-gradient(160deg, #1b1530 0%, #241a3c 100%)',
+                      border: `1px solid ${SPLIT[openTile].color}`,
+                      borderRadius: 18,
+                      padding: '22px 20px 20px',
+                      boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7)',
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setOpenTile(null)}
+                      aria-label="Close"
+                      className="absolute flex items-center justify-center"
+                      style={{ top: 12, right: 12, width: 26, height: 26, borderRadius: 999, border: '1px solid rgba(245,240,228,0.25)', color: 'hsl(45 40% 86% / 0.8)' }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+
+                    <span className="flex gap-[5px]" style={{ marginBottom: 10 }}>
+                      {Array.from({ length: SPLIT[openTile].share }).map((_, i) => (
+                        <span
+                          key={i}
+                          style={{ width: 8, height: 8, borderRadius: 999, background: SPLIT[openTile].color }}
+                        />
+                      ))}
+                    </span>
+                    <div
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 30,
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        color: SPLIT[openTile].color,
+                      }}
+                    >
+                      {SPLIT[openTile].share}
+                      <span style={{ fontSize: '0.42em', opacity: 0.65 }}>/11</span>
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        color: 'hsl(45 95% 92%)',
+                        margin: '6px 0 10px',
+                      }}
+                    >
+                      {SPLIT[openTile].label}
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "'Space Grotesk', sans-serif",
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        color: 'hsl(45 28% 86% / 0.88)',
+                        margin: 0,
+                      }}
+                    >
+                      {SPLIT[openTile].note}
+                    </p>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
