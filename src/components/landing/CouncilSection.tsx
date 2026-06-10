@@ -213,7 +213,7 @@ export function CouncilSection() {
       <div className="council-inner">
         <div className="council-card">
         <div className="council-figure">
-          <img src="/images/council-pharaoh.png" alt="A pharaoh and Hekthor — Dogypt needs you" />
+          <img src="/images/council-pharaoh.png" alt="A pharaoh with Hekthor and his cats — Dogypt needs you" />
           <h2 className="council-headline">We Need You.</h2>
         </div>
 
