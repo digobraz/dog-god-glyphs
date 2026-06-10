@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.png';
+import { useT } from '@/i18n/LanguageContext';
 import { PageNav } from './PageNav';
 
 interface PageTopBarProps {
@@ -26,8 +27,10 @@ interface PageTopBarProps {
 export function PageTopBar({
   withNav = false,
   onBack,
-  backAriaLabel = 'Back',
+  backAriaLabel,
 }: PageTopBarProps) {
+  const t = useT();
+  const backLabel = backAriaLabel ?? t('nav.aria.back');
   const logo = (
     <>
       <img
@@ -63,7 +66,7 @@ export function PageTopBar({
         <button
           type="button"
           onClick={onBack}
-          aria-label={backAriaLabel}
+          aria-label={backLabel}
           className="absolute left-4 top-[15px] p-2 text-foreground/60 hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />

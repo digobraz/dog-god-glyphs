@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Link } from 'react-router-dom';
+import { useT } from '@/i18n/LanguageContext';
 import dogyptSeal from '@/assets/dogypt-seal.png';
 import { SACRED_INDEX } from '@/data/sacredIndex.generated';
 
@@ -63,6 +64,7 @@ function ChapterList({ rows }: { rows: typeof SACRED_INDEX }) {
 }
 
 export default function ConstitutionBook() {
+  const t = useT();
   const bookRef = useRef<{ pageFlip: () => { flipNext: () => void; flipPrev: () => void } } | null>(null);
   const [opened, setOpened] = useState(false);
   const [page, setPage] = useState(0);
@@ -166,7 +168,7 @@ export default function ConstitutionBook() {
             {/* 0 — SEAL (left) */}
             <div className="cb-page cb-left">
               <div className="cb-content cb-seal-page">
-                <img src={dogyptSeal} alt="The Dogyptian seal" className="cb-seal-big" />
+                <img src={dogyptSeal} alt={t('religion.book.sealAlt')} className="cb-seal-big" />
               </div>
             </div>
 
@@ -174,12 +176,12 @@ export default function ConstitutionBook() {
             <div className="cb-page cb-right">
               <div className="cb-content cb-title-page">
                 <h2 className="cb-title">
-                  <span>The</span>
-                  <span className="cb-title-brand">Dogypt</span>
-                  <span>Constitution</span>
+                  <span>{t('religion.book.titleThe')}</span>
+                  <span className="cb-title-brand">{t('religion.book.titleBrand')}</span>
+                  <span>{t('religion.book.titleConstitution')}</span>
                 </h2>
-                <p className="cb-trust">In Dog We Trust</p>
-                <p className="cb-sub">Required reading for every doglover to become a Dogyptian.</p>
+                <p className="cb-trust">{t('religion.book.trust')}</p>
+                <p className="cb-sub">{t('religion.book.sub')}</p>
               </div>
             </div>
 
@@ -196,20 +198,20 @@ export default function ConstitutionBook() {
             {/* 4 — CTA join (left) */}
             <div className="cb-page cb-left">
               <div className="cb-content cb-cta-page">
-                <p className="cb-cta-kicker">The Path Begins</p>
-                <h3 className="cb-cta-head">Join the<br />Religion</h3>
-                <p className="cb-cta-text">Sign up for the dog religion — take a heroglyph.</p>
-                <Link to="/heroglyph" className="cb-cta-btn">Become Dogyptian</Link>
+                <p className="cb-cta-kicker">{t('religion.book.cta1.kicker')}</p>
+                <h3 className="cb-cta-head" dangerouslySetInnerHTML={{ __html: t('religion.book.cta1.head') }} />
+                <p className="cb-cta-text">{t('religion.book.cta1.text')}</p>
+                <Link to="/heroglyph" className="cb-cta-btn">{t('religion.book.cta1.btn')}</Link>
               </div>
             </div>
 
             {/* 5 — CTA read full (right) */}
             <div className="cb-page cb-right">
               <div className="cb-content cb-cta-page">
-                <p className="cb-cta-kicker">The Whole Word</p>
-                <h3 className="cb-cta-head">Read the<br />Constitution</h3>
-                <p className="cb-cta-text">Every canon, credo and commandment — in full.</p>
-                <a href="https://dogyptism.dogypt.com" target="_blank" rel="noreferrer" className="cb-cta-btn cb-cta-ghost">Full Constitution</a>
+                <p className="cb-cta-kicker">{t('religion.book.cta2.kicker')}</p>
+                <h3 className="cb-cta-head" dangerouslySetInnerHTML={{ __html: t('religion.book.cta2.head') }} />
+                <p className="cb-cta-text">{t('religion.book.cta2.text')}</p>
+                <a href="https://dogyptism.dogypt.com" target="_blank" rel="noreferrer" className="cb-cta-btn cb-cta-ghost">{t('religion.book.cta2.btn')}</a>
               </div>
             </div>
           </Book>
@@ -220,11 +222,11 @@ export default function ConstitutionBook() {
           type="button"
           className="cb-cover-layer"
           onClick={() => !opened && setOpened(true)}
-          aria-label="Open the Constitution"
+          aria-label={t('religion.book.coverOpenAria')}
           tabIndex={opened ? -1 : 0}
         >
           <span className="cb-halo" aria-hidden />
-          <img src="/images/dogma-cover.png" alt="The Dogyptian Constitution" className="cb-cover-img" style={{ height: dims.h }} />
+          <img src="/images/dogma-cover.png" alt={t('religion.book.coverAlt')} className="cb-cover-img" style={{ height: dims.h }} />
           <span className="cb-shimmer" aria-hidden />
         </button>
       </div>
@@ -232,7 +234,7 @@ export default function ConstitutionBook() {
       {/* hint / nav */}
       {!opened ? (
         <button type="button" className="cb-hint" onClick={() => setOpened(true)}>
-          <span className="cb-hint-dot" /> Tap the book to open
+          <span className="cb-hint-dot" /> {t('religion.book.hint')}
         </button>
       ) : (
         <div className="cb-nav">
@@ -240,12 +242,12 @@ export default function ConstitutionBook() {
             type="button"
             className={`cb-arrow ${page === 0 ? 'cb-arrow-close' : ''}`}
             onClick={() => (page === 0 ? setOpened(false) : flip('prev'))}
-            aria-label={page === 0 ? 'Close book' : 'Previous page'}
-            title={page === 0 ? 'Close book' : 'Previous page'}
+            aria-label={page === 0 ? t('religion.book.close') : t('religion.book.prevPage')}
+            title={page === 0 ? t('religion.book.close') : t('religion.book.prevPage')}
           >
             {page === 0 ? '✕' : '‹'}
           </button>
-          <button type="button" className="cb-arrow" onClick={() => flip('next')} disabled={page >= 4} aria-label="Next page">›</button>
+          <button type="button" className="cb-arrow" onClick={() => flip('next')} disabled={page >= 4} aria-label={t('religion.book.nextPage')}>›</button>
         </div>
       )}
 
@@ -253,8 +255,8 @@ export default function ConstitutionBook() {
           In-page verzia je na mobile skrytá cez CSS (.cb-cta-page .cb-cta-btn). */}
       {dims.mobile && opened && page >= 4 && (
         <div className="cb-mobile-cta">
-          <Link to="/heroglyph" className="cb-cta-btn">Become Dogyptian</Link>
-          <a href="https://dogyptism.dogypt.com" target="_blank" rel="noreferrer" className="cb-cta-btn cb-cta-ghost">Full Constitution</a>
+          <Link to="/heroglyph" className="cb-cta-btn">{t('religion.book.cta1.btn')}</Link>
+          <a href="https://dogyptism.dogypt.com" target="_blank" rel="noreferrer" className="cb-cta-btn cb-cta-ghost">{t('religion.book.cta2.btn')}</a>
         </div>
       )}
     </div>
@@ -338,7 +340,7 @@ const CSS = `
 .cb-title em{font-style:italic;color:#9a6a16;}
 .cb-title-brand{font-size:1.5em;line-height:1;color:#9a6a16;letter-spacing:.01em;}
 .cb-trust{margin:0;font-size:clamp(12px,1.5vw,18px);letter-spacing:.22em;text-transform:uppercase;color:#7a531a;}
-.cb-sub{margin:0;font-family:'Inter',sans-serif;font-size:clamp(10px,1.15vw,14px);color:#6b4a18;max-width:26ch;line-height:1.45;}
+.cb-sub{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(10px,1.15vw,14px);color:#6b4a18;max-width:26ch;line-height:1.45;}
 
 /* ── strany 2-4: kapitoly — širšia zóna než titulná (dlhé názvy) ── */
 .cb-left .cb-index-page{padding:12% 11% 12% 22%;transform:translateX(15px);}
@@ -350,7 +352,7 @@ const CSS = `
 .cb-ch-num{flex:0 0 auto;min-width:2.4em;font-weight:700;color:#9a6a16;font-size:clamp(11px,1.35vw,17px);text-align:right;}
 .cb-ch-text{display:flex;flex-direction:column;line-height:1.14;align-items:flex-start;}
 .cb-ch-name{font-weight:700;letter-spacing:.05em;font-size:clamp(13px,1.55vw,20px);color:#3a2204;white-space:nowrap;}
-.cb-ch-desc{font-family:'Inter',sans-serif;font-style:italic;font-size:clamp(9px,1.05vw,13px);color:#6b4a18;text-align:left;}
+.cb-ch-desc{font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:clamp(9px,1.05vw,13px);color:#6b4a18;text-align:left;}
 
 /* ── strana 4-5: CTA, centrované — per-page nudge k stredu väzby ── */
 .cb-cta-page{align-items:center;justify-content:center;text-align:center;gap:4%;}
@@ -358,7 +360,7 @@ const CSS = `
 .cb-right .cb-cta-page{transform:translateX(-25px);}
 .cb-cta-kicker{margin:0;font-size:clamp(9px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:#9a6a16;}
 .cb-cta-head{margin:0;font-weight:700;line-height:1.05;font-size:clamp(18.7px,2.64vw,34px);color:#3a2204;}
-.cb-cta-text{margin:0;font-family:'Inter',sans-serif;font-size:clamp(10px,1.15vw,14px);color:#6b4a18;max-width:22ch;line-height:1.45;}
+.cb-cta-text{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(10px,1.15vw,14px);color:#6b4a18;max-width:22ch;line-height:1.45;}
 .cb-cta-btn{margin-top:3%;display:inline-block;padding:.62em 1.5em;border-radius:8px;font-family:'Cinzel',serif;font-weight:700;font-size:clamp(11px,1.25vw,16px);letter-spacing:.04em;text-decoration:none;color:#2a1a06;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,.30);box-shadow:0 4px 14px rgba(90,58,12,.35);transition:transform .18s ease,box-shadow .18s ease;}
 .cb-cta-btn:hover{transform:translateY(-2px);box-shadow:0 7px 20px rgba(90,58,12,.45);}
 .cb-cta-link{font-family:'Cinzel',serif;font-size:clamp(10px,1.1vw,13px);letter-spacing:.06em;text-transform:uppercase;color:#7a531a;text-decoration:none;border-bottom:1px solid rgba(122,83,26,.4);padding-bottom:1px;transition:color .18s ease,border-color .18s ease;}

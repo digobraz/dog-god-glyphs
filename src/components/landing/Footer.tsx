@@ -6,6 +6,7 @@
  * účty ešte nie sú v kóde potvrdené (TODO „DOGYPT official IG/FB/TikTok/YouTube
  * setup" v KONTEXT.md). Pred Republish over reálne handles nižšie.
  */
+import { useT } from '@/i18n/LanguageContext';
 
 const SOCIALS = [
   {
@@ -53,6 +54,7 @@ const SOCIALS = [
 ];
 
 export function Footer() {
+  const t = useT();
   return (
     <footer className="dogypt-footer">
       <style>{`
@@ -82,7 +84,7 @@ export function Footer() {
           color: rgba(201,154,63,0.88);
         }
         .footer-mission {
-          font-family: 'Inter', sans-serif; font-size: 0.82rem; line-height: 1.6; margin: 0;
+          font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem; line-height: 1.6; margin: 0;
           color: rgba(250,244,236,0.42); max-width: 260px;
         }
         /* ── Columns ── */
@@ -123,13 +125,13 @@ export function Footer() {
         .footer-email:hover { color: #FFD879; border-color: #F5C73D; text-shadow: 0 0 24px rgba(245,199,61,0.45); }
         .footer-links { display: flex; align-items: center; gap: 12px; }
         .footer-links a {
-          font-family: 'Inter', sans-serif; font-size: 0.82rem;
+          font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;
           color: rgba(250,244,236,0.55); text-decoration: none; transition: color .2s ease;
         }
         .footer-links a:hover { color: rgba(250,244,236,0.9); }
         .footer-links span { color: rgba(250,244,236,0.28); }
         .footer-copy {
-          font-family: 'Inter', sans-serif; font-size: 0.74rem; margin: 0;
+          font-family: 'Space Grotesk', sans-serif; font-size: 0.74rem; margin: 0;
           color: rgba(250,244,236,0.34); letter-spacing: 0.04em;
         }
         /* ── Bottom bar — mission + copyright ── */
@@ -159,7 +161,7 @@ export function Footer() {
       <div className="footer-inner">
         {/* Brand — seal + motto + mission */}
         <div className="footer-brand">
-          <img className="footer-seal" src="/images/peciat-dogypt.png" alt="DOGYPT seal" />
+          <img className="footer-seal" src="/images/peciat-dogypt.png" alt={t('about.footer.sealAlt')} />
         </div>
 
         {/* Follow — 2×2 (YT/IG · TT/FB) */}
@@ -191,14 +193,15 @@ export function Footer() {
       {/* Bottom bar — motto + mission + copyright */}
       <div className="footer-bar">
         <p className="footer-bar-text">
-          <span className="footer-tagline">In dog we trust.</span>{' '}
-          <span className="footer-mission">A movement for everyone whose life was changed by a dog.</span>
+          {/* motto = brand, ostáva EN naprieč jazykmi (EN-only kľúč, fallback) */}
+          <span className="footer-tagline">{t('about.footer.motto')}</span>{' '}
+          <span className="footer-mission">{t('about.footer.mission')}</span>
         </p>
         <div className="footer-bar-right">
           <div className="footer-links">
-            <a href="/privacy">Privacy</a>
+            <a href="/privacy">{t('about.footer.privacy')}</a>
             <span>·</span>
-            <a href="/terms">Terms</a>
+            <a href="/terms">{t('about.footer.terms')}</a>
           </div>
           <p className="footer-copy">© 2026 DOGYPT</p>
         </div>

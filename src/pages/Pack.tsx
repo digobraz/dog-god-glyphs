@@ -94,7 +94,7 @@ export default function Pack() {
         .eq('user_id', u.id)
         .then(({ data }) => { if (mounted) setHasVoted((data ?? []).length > 0); });
 
-      // "Invite your first dog person" → at least one referral on my affiliate.
+      // "Invite your first dog lover" → at least one referral on my affiliate.
       supabase
         .rpc('get_or_create_my_affiliate')
         .then(({ data }) => {
@@ -172,7 +172,7 @@ export default function Pack() {
       { label: 'Add extra photos of your dog', done: hasExtras },
       { label: 'Cast your vote in Shape', done: hasVoted },
       { label: 'Flip through the Constitution', done: constitutionOpened },
-      { label: 'Invite your first dog person', done: hasReferral },
+      { label: 'Invite your first dog lover', done: hasReferral },
     ];
   })();
 

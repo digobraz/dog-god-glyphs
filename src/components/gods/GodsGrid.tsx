@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 
@@ -50,16 +51,16 @@ const REVEAL_ROW = 1;
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
 
 const FLAG_NAMES: Record<string, string> = {
-  sk: 'Slovensko',
-  cz: 'Česko',
-  pl: 'Poľsko',
-  hu: 'Maďarsko',
-  at: 'Rakúsko',
-  de: 'Nemecko',
+  sk: 'Slovakia',
+  cz: 'Czechia',
+  pl: 'Poland',
+  hu: 'Hungary',
+  at: 'Austria',
+  de: 'Germany',
   us: 'USA',
-  gb: 'Veľká Británia',
-  fr: 'Francúzsko',
-  it: 'Taliansko',
+  gb: 'United Kingdom',
+  fr: 'France',
+  it: 'Italy',
 };
 
 function countryToISO2(country?: string | null): string {
@@ -125,6 +126,7 @@ function photoFor(col: number, row: number) {
 
 export function GodsGrid() {
   const navigate = useNavigate();
+  const t = useT();
   const appRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -277,9 +279,9 @@ export function GodsGrid() {
       el.style.transform = 'translate(-50%, -50%)';
       el.innerHTML = `
         <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
-        <p class="hero-tagline">The place where<br><span class="gold">Dog is God.</span></p>
-        <button class="join-btn" data-join>Become Dogyptian</button>
-        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">1 000 000</span> DOGS</span>
+        <p class="hero-tagline">${t('wall.hero.taglineLead')}<br><span class="gold">DOG is GOD.</span></p>
+        <button class="join-btn" data-join>${t('wall.hero.cta')}</button>
+        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${t('wall.hero.total')}</span><span class="hero-count-dogs">${t('wall.hero.dogs')}</span></span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', () => navigate('/heroglyph'));
@@ -297,12 +299,12 @@ export function GodsGrid() {
           <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
           <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
-          <div class="card-open-msg">The dog who started it all. Adopted 2017. Every journey begins with one step — his was a 42-day walk across Slovakia.</div>
+          <div class="card-open-msg">${t('wall.hektor.msg')}</div>
         </div>
         <div class="card-rank-top">#1</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
+        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
-          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hektor heroglyph" draggable="false">
+          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hekthor heroglyph" draggable="false">
         </div>
         <div class="card-name-block">
           <div class="card-label hektor-label">HEKTHOR</div>
@@ -406,7 +408,7 @@ export function GodsGrid() {
           <div class="card-open-name">${safeName}</div>
         </div>
         <div class="card-rank-top">#—</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovensko" title="Slovensko" loading="lazy" draggable="false">
+        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
         </div>
@@ -648,7 +650,7 @@ export function GodsGrid() {
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady]);
+  }, [navigate, dogsReady, t]);
 
   return (
     <>
@@ -1120,6 +1122,8 @@ export function GodsGrid() {
         }
         .hero-count-sep { color: rgba(255,255,255,0.55); margin: 0 4px; }
         .hero-count-total { color: rgba(255,255,255,0.7); }
+        /* inline-flex oseká holú medzeru pred „DOGS" → vlastná medzera cez margin */
+        .hero-count-dogs { margin-left: 0.45em; }
 
         /* ── Hektor — fixed founder card, gold frame + glow ── */
         .hektor-card {
@@ -1517,9 +1521,9 @@ export function GodsGrid() {
       <div className="gods-root">
         <div className="nav-left">
           <nav className="main-nav">
-            <a href="/vision">Vision</a>
-            <a href="/religion">Religion</a>
-            <a href="/about">About</a>
+            <a href="/vision">{t('nav.vision')}</a>
+            <a href="/religion">{t('nav.religion')}</a>
+            <a href="/about">{t('nav.about')}</a>
             <LanguagePicker />
           </nav>
         </div>
@@ -1527,15 +1531,15 @@ export function GodsGrid() {
         <div className={`info-overlay ${infoOpen ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setInfoOpen(false); }}>
           <button className="info-close" onClick={() => setInfoOpen(false)}>✕</button>
           <div className="info-content">
-            <h2>1,000,000 dogs.<br/>Will we make it?</h2>
-            <p>DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack. We're collecting one million heroes. Be among the first.</p>
+            <h2 dangerouslySetInnerHTML={{ __html: t('wall.info.title') }} />
+            <p>{t('wall.info.body')}</p>
           </div>
         </div>
 
         <button
           className={`filter-btn${filterOpen ? ' active' : ''}`}
           onClick={() => setFilterOpen(f => !f)}
-          aria-label="Find dog by number"
+          aria-label={t('wall.filter.find')}
         >
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="6.5" cy="6.5" r="4"/>
@@ -1543,7 +1547,7 @@ export function GodsGrid() {
           </svg>
         </button>
 
-        <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label="Center grid">
+        <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label={t('wall.filter.center')}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <circle cx="12" cy="12" r="9"/>
             <circle cx="12" cy="12" r="4"/>
@@ -1555,9 +1559,9 @@ export function GodsGrid() {
           className={`numpad-overlay${filterOpen ? ' open' : ''}`}
           onClick={(e) => { if (e.target === e.currentTarget) { setFilterOpen(false); setFilterValue(''); } }}
         >
-          <div className="numpad" role="dialog" aria-label="Find dog by number">
+          <div className="numpad" role="dialog" aria-label={t('wall.filter.find')}>
             <div className="numpad-display">
-              {filterValue ? `#${filterValue}` : <span className="ph">Dog #</span>}
+              {filterValue ? `#${filterValue}` : <span className="ph">{t('wall.filter.placeholder')}</span>}
             </div>
             <div className="numpad-grid">
               {['1','2','3','4','5','6','7','8','9'].map(d => (
@@ -1570,7 +1574,7 @@ export function GodsGrid() {
               <button
                 className="numpad-key numpad-key--cancel"
                 onClick={() => setFilterValue('')}
-                aria-label="Clear"
+                aria-label={t('wall.filter.clear')}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M7 5 H14.5 L20.5 12 L14.5 19 H7 A2 2 0 0 1 5 17 V7 A2 2 0 0 1 7 5 Z"/>
@@ -1584,7 +1588,7 @@ export function GodsGrid() {
               <button
                 className="numpad-key numpad-key--enter"
                 onClick={submitFilter}
-                aria-label="Confirm"
+                aria-label={t('wall.filter.confirm')}
               >
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="9"/>

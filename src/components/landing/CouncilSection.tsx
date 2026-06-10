@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useT } from '@/i18n/LanguageContext';
 import iconDogLover from '@/assets/icons/council-doglover.svg';
 import iconDeveloper from '@/assets/icons/council-developer.svg';
 import iconDogPro from '@/assets/icons/council-dogpro.svg';
@@ -9,18 +10,20 @@ import iconInvestor from '@/assets/icons/council-investor.svg';
 import iconCommunity from '@/assets/icons/council-community.svg';
 import iconBusiness from '@/assets/icons/council-business.svg';
 
+// label/desc = i18n kľúče (module-level dáta nemôžu volať t() — preloží sa pri renderi)
 const ROLES = [
-  { id: 'dog-lover', icon: iconDogLover,   label: 'Dog Lover & Tester',      desc: 'Early access & honest feedback' },
-  { id: 'developer', icon: iconDeveloper,  label: 'Developer / Designer',     desc: 'Build features, craft visuals' },
-  { id: 'dog-pro',   icon: iconDogPro,     label: 'Dog Professional',         desc: 'Vet, trainer, shelter, breeder' },
-  { id: 'creator',   icon: iconCreator,    label: 'Creator',                  desc: 'Video, photo, art for the pack' },
-  { id: 'media',     icon: iconMedia,      label: 'Media / Influencer',       desc: 'Audience & coverage' },
-  { id: 'investor',  icon: iconInvestor,   label: 'Investor',                 desc: 'Fund specific missions & shelters' },
-  { id: 'community', icon: iconCommunity,  label: 'Community Builder',        desc: 'Organise people locally' },
-  { id: 'business',  icon: iconBusiness,   label: 'Business & Partnerships',  desc: 'Open doors — brands, shelters, deals' },
+  { id: 'dog-lover', icon: iconDogLover },
+  { id: 'developer', icon: iconDeveloper },
+  { id: 'dog-pro',   icon: iconDogPro },
+  { id: 'creator',   icon: iconCreator },
+  { id: 'media',     icon: iconMedia },
+  { id: 'investor',  icon: iconInvestor },
+  { id: 'community', icon: iconCommunity },
+  { id: 'business',  icon: iconBusiness },
 ];
 
 export function CouncilSection() {
+  const t = useT();
   const [role, setRole] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -88,6 +91,8 @@ export function CouncilSection() {
         }
         .council-headline {
           font-family: 'Cinzel', serif; font-weight: 700; white-space: nowrap;
+          /* padding-top = headroom pre diakritiku nad verzálkami (background-clip:text ju inak osekne) */
+          padding-top: 0.15em;
           font-size: clamp(2.1rem, 4.6vw, 3.4rem); line-height: 1.05;
           letter-spacing: 0.02em; margin: 0;
           background: linear-gradient(135deg, #C99A3F 0%, #B5832B 50%, #9A6E1F 100%);
@@ -95,7 +100,7 @@ export function CouncilSection() {
           filter: drop-shadow(0 1px 1px rgba(31,26,14,0.22));
         }
         .council-sub {
-          font-family: 'Inter', sans-serif; font-size: clamp(0.95rem, 1.3vw, 1.1rem);
+          font-family: 'Space Grotesk', sans-serif; font-size: clamp(0.95rem, 1.3vw, 1.1rem);
           line-height: 1.65; color: rgba(31,26,14,0.66); margin: 0;
           max-width: 540px;
         }
@@ -143,7 +148,7 @@ export function CouncilSection() {
           position: absolute; inset: 0; z-index: 2;
           display: flex; align-items: center; justify-content: center;
           padding: 10px 12px; margin: 0;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-size: clamp(0.64rem, 0.85vw, 0.74rem); line-height: 1.4;
           color: #FAF4EC; text-align: center;
           background: linear-gradient(135deg, rgba(36,24,54,0.97) 0%, rgba(58,42,18,0.97) 100%);
@@ -169,7 +174,7 @@ export function CouncilSection() {
           width: 100%; padding: 14px 18px;
           background: rgba(255,255,255,0.62); border: 1.5px solid rgba(31,26,14,0.18);
           border-radius: 8px; outline: none;
-          font-family: 'Inter', sans-serif; font-size: 0.95rem;
+          font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem;
           color: #1F1A0E; transition: border-color .2s ease, background .2s ease;
           box-sizing: border-box;
         }
@@ -201,11 +206,11 @@ export function CouncilSection() {
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
         }
         .council-success-sub {
-          font-family: 'Inter', sans-serif; font-size: 1rem;
+          font-family: 'Space Grotesk', sans-serif; font-size: 1rem;
           color: rgba(31,26,14,0.62); margin: 0;
         }
         .council-error {
-          font-family: 'Inter', sans-serif; font-size: 0.85rem;
+          font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem;
           color: rgba(255,120,100,0.85); text-align: center; margin: 0;
         }
       `}</style>
@@ -213,25 +218,24 @@ export function CouncilSection() {
       <div className="council-inner">
         <div className="council-card">
         <div className="council-figure">
-          <img src="/images/council-pharaoh.png" alt="A pharaoh with Hekthor and his cats — Dogypt needs you" />
-          <h2 className="council-headline">We Need You.</h2>
+          <img src="/images/council-pharaoh.png" alt={t('about.council.imgAlt')} />
+          <h2 className="council-headline">{t('about.council.headline')}</h2>
         </div>
 
         <div className="council-content">
         <p className="council-sub">
-          DOGYPT is built by people who know what a dog means.
-          If you have something to bring — a skill, a voice, a vision — this is where it belongs.
+          {t('about.council.sub')}
         </p>
 
         {status === 'done' ? (
           <div className="council-success">
-            <h3 className="council-success-title">You're in the Council.</h3>
-            <p className="council-success-sub">We'll reach out when the time is right.</p>
+            <h3 className="council-success-title">{t('about.council.successTitle')}</h3>
+            <p className="council-success-sub">{t('about.council.successSub')}</p>
           </div>
         ) : (
           <form className="council-form" onSubmit={submit} noValidate>
             {/* Role selector */}
-            <div className="council-roles" role="group" aria-label="Choose your role">
+            <div className="council-roles" role="group" aria-label={t('about.council.rolesAria')}>
               {ROLES.map((r) => (
                 <button
                   key={r.id}
@@ -241,8 +245,8 @@ export function CouncilSection() {
                   aria-pressed={role === r.id}
                 >
                   <img src={r.icon} alt="" className="role-icon" aria-hidden />
-                  <p className="role-label">{r.label}</p>
-                  <p className="role-desc">{r.desc}</p>
+                  <p className="role-label">{t(`about.council.role.${r.id}.label`)}</p>
+                  <p className="role-desc">{t(`about.council.role.${r.id}.desc`)}</p>
                 </button>
               ))}
             </div>
@@ -252,7 +256,7 @@ export function CouncilSection() {
               <input
                 className="council-input"
                 type="text"
-                placeholder="Full name"
+                placeholder={t('about.council.fullName')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -261,7 +265,7 @@ export function CouncilSection() {
               <input
                 className="council-input"
                 type="email"
-                placeholder="Email"
+                placeholder={t('about.council.email')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -272,13 +276,13 @@ export function CouncilSection() {
             {/* Message */}
             <textarea
               className="council-input"
-              placeholder="Tell us what you bring to the table… (optional)"
+              placeholder={t('about.council.message')}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
 
             {status === 'error' && (
-              <p className="council-error">Something went wrong. Try again.</p>
+              <p className="council-error">{t('about.council.error')}</p>
             )}
 
             <button
@@ -286,7 +290,7 @@ export function CouncilSection() {
               className="council-submit"
               disabled={!role || !name.trim() || !email.trim() || status === 'loading'}
             >
-              {status === 'loading' ? 'Sending…' : 'Join the Council'}
+              {status === 'loading' ? t('about.council.sending') : t('about.council.submit')}
             </button>
           </form>
         )}

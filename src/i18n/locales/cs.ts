@@ -3,8 +3,8 @@ import type { Dict } from '../LanguageContext';
 /**
  * DOGYPT i18n — CS (čeština) slovník. Partial<Dict>: chýbajúci kľúč ticho padne na EN.
  *
- * ROZSAH = conversion-path / FLOW (heroglyph intro + 14 krokov + checkout + welcome +
- *   login + 404). Lore (/vision) zatiaľ NIE je preložené → padá na EN fallback.
+ * ROZSAH = conversion-path / FLOW + lore (/vision + /about + /religion + /wall + nav).
+ *   /vision pridané 2026-06-10 (preklad zo SK draftu). Zvyšok lore = about/religion/wall bloky nižšie.
  *
  * Preložené zo SK draftu (drží Matejove tónové rozhodnutia), overené proti EN masteru.
  * Brand termíny ostávajú EN: HEROGLYPH, Heroglyph, Dogypt, DOGYPT, Pack.
@@ -13,6 +13,56 @@ import type { Dict } from '../LanguageContext';
  * Status: machine-quality draft — čaká Matejov CZE review (CZE je v reviewovateľnom sete).
  */
 export const cs: Partial<Dict> = {
+  // ── /vision — hero ──
+  'vision.hero.title': 'Vize',
+  'vision.hero.watch': 'Podívej se na Dogypt intro film',
+  'vision.hero.videoTitle': 'DOGYPT intro film',
+  'vision.hero.playLabel': 'Přehrát Dogypt intro film',
+
+  // ── /vision — WHAT IF beaty ──
+  'vision.beat.dream.bigW': 'MĚL JSEM',
+  'vision.beat.dream.bigG': 'SEN',
+  'vision.beat.dream.tag': 'MĚL JSEM SEN',
+  'vision.intro.lead':
+    'V roce 2018 jsem měl <span class="wf-hl">vizi</span>, jak <span class="wf-hl">zachránit každého psa na Zemi</span>. Je to vlastně docela „jednoduché" — stačí, když se pejskaři <span class="wf-hl">spojí do jedné komunity</span>, takové, která vidí psa jako <span class="wf-hl">víc než jen zvíře</span>. A tak jsme tady…',
+
+  'vision.beat.symbol.bigW': 'NÁŠ',
+  'vision.beat.symbol.bigG': 'SYMBOL',
+  'vision.beat.symbol.tag': 'SYMBOL',
+  'vision.beat.symbol.h':
+    'Náš jazyk lásky je <span class="wf-hl">PES</span>. Ten kromě svého běžného jména nese i svůj vlastní <span class="wf-hl">jedinečný symbol</span> — <span class="wf-hl">HEROGLYPH</span>. Je to <span class="wf-hl">univerzální jazyk</span>, <span class="wf-hl">posvátný nástroj</span>, který má za cíl spojit každého pejskaře na Zemi.',
+
+  'vision.beat.nation.bigW': 'PSÍ',
+  'vision.beat.nation.bigG': 'NÁROD',
+  'vision.beat.nation.tag': 'PSÍ NÁROD',
+  'vision.beat.nation.h':
+    'Udělejme <span class="wf-hl">zázrak</span>. Náš první milník: spojit <span class="wf-hl">milion pejskařů</span>. Představ si tu <span class="wf-hl">čistou sílu</span>, kterou bychom spolu měli — co všechno bychom dokázali pro nás, naše psy a <span class="wf-hl">psy v nouzi</span>, a to nad rámec jakéhokoli státu. <span class="wf-hl">My bychom byli stát.</span>',
+
+  'vision.beat.temple.bigW': 'ONLINE',
+  'vision.beat.temple.bigG': 'CHRÁM',
+  'vision.beat.temple.tag': 'ONLINE CHRÁM',
+  'vision.beat.temple.h':
+    'Jedna apka, <span class="wf-hl">jen pro skutečné pejskaře</span> — žádní falešní lidé. První <span class="wf-hl">dog-friendly digitální svět</span> vytvořený jen pro nás: sociální síť a ekosystém, který opravdu pomáhá — <span class="wf-hl">cestování, veterináři, služby, vzdělávání</span> a <span class="wf-hl">sbírky</span> pro psy v nouzi na jednom místě.',
+
+  'vision.beat.centers.bigW': 'FUNKČNÍ',
+  'vision.beat.centers.bigG': 'STŘEDISKA',
+  'vision.beat.centers.tag': 'FUNKČNÍ STŘEDISKA',
+  'vision.beat.centers.h':
+    'Starý koncept útulků funguje jen velmi těžko… Představ si <span class="wf-hl">centra po celém světě</span>, kde by psi měli svou <span class="wf-hl">smysluplnou práci</span>, a lidé, kteří by se jim věnovali, by byli <span class="wf-hl">financováni námi</span> — péče, výcvik a výzkum.',
+
+  'vision.beat.era.bigW': 'NOVÁ',
+  'vision.beat.era.bigG': 'ÉRA',
+  'vision.beat.era.tag': 'NOVÁ ÉRA',
+  'vision.beat.era.h':
+    'Nad rámec státních hranic a politiky jsou pejskaři <span class="wf-hl">nejlaskavější skrytou silou</span> Země. Jen společně dokážeme <span class="wf-hl">přebudovat systém</span>, změnit svět — a zanechat něco, co <span class="wf-hl">ochrání naše psy navždy</span>.',
+
+  // ── /vision — finále CTA ──
+  'vision.finale.title': 'Co kdyby…',
+  'vision.finale.lead':
+    '…každý pejskař řekl <span style="color:#F5C73D;font-weight:700">ano</span> tomuto bláznivému nápadu?',
+  'vision.finale.cta': 'Staň se Dogypťanem',
+  'vision.finale.tagline': 'Od nové éry tě dělí jediný klik.',
+
   // ── /heroglyph intro ──
   // hero title — case riadi CSS text-transform. CS = iba „Symbol," (zrkadlí SK);
   // mobile = 1 riadok (line2 prázdny), desktop = „Symbol,". Číta sa s sublinom.
@@ -380,4 +430,355 @@ export const cs: Partial<Dict> = {
   'notFound.code': '404',
   'notFound.message': 'Jejda! Stránka nenalezena',
   'notFound.returnHome': 'Zpět na úvod',
+
+  // ── /about — opening (origin + Star Wars crawl) ──
+  'about.origin.title': 'Původ',
+  'about.origin.sub': 'Posuň a čti',
+  'about.origin.skip': 'nebo přeskočit',
+  'about.crawl.intro': 'Před deseti lety, v útulku v srdci Evropy….',
+  'about.crawl.episode': 'Epizoda I',
+  'about.crawl.faith': 'Nová víra',
+  'about.crawl.p1':
+    'V roce 2016 přijelo do útulku osm černých štěňat, pohozených v jedné krabici. Sedm si našlo domov. Toho největšího nikdo nechtěl — čekal celý rok. Jmenoval se Hekthor.',
+  'about.crawl.p2':
+    'Jednoho dne přišel do útulku pár podívat se na Sindy, malou bílou fenku, kterou si chtěli adoptovat. Čirou náhodou byl tehdy Hekthor v jejím kotci — ten jeho se právě uklízel. Muž, který přijel jen odvézt ostatní a psa nikdy nechtěl, se zamiloval do černého psa, kterého viděl úplně poprvé.',
+  'about.crawl.p3':
+    'O týden později byli spolu a začal se krásný příběh. Muži se změnil celý život a časem pochopil jedno: opravdu pomoct psům v nouzi dokáže jen ten, kdo psa má a ví, jaké to je cítit psí lásku.',
+  'about.crawl.p4':
+    'A tak se zrodil Heroglyph — symbol, který má sjednotit pejskaře všude na světě do největší komunity, jakou svět kdy poznal. Komunity, která se postaví za nás, za naše psy i za generace, co přijdou — za lidi, kteří se nebojí přiznat, že pes není jen zvíře, ale bytost, která z nás dělá lepší lidi.',
+  'about.crawl.p5':
+    'Právě teď začíná cesta k prvnímu milníku — vytvořit 1 000 000 Heroglyphů. A ty můžeš být u toho. Protože svět mění jedině ti, kdo jsou dost blázniví věřit, že to dokážou.',
+  'about.crawl.p6': 'IN DOG WE TRUST.',
+
+  // ── /about — timeline (5 milníků) ──
+  'about.timeline.heading': 'Příběh Dogyptu',
+  'about.milestone.1.year': '2017',
+  'about.milestone.1.tag': 'Útulek',
+  'about.milestone.1.title': 'Poklad v útulku',
+  'about.milestone.1.body':
+    'Za plotem útulku čekal černý pes, kterého nikdo nechtěl. Dostal jméno Hekthor. Adoptovat si ho nebyla záchrana — byl to začátek všeho.',
+  'about.milestone.2.year': '2018',
+  'about.milestone.2.tag': 'Pouto',
+  'about.milestone.2.title': 'Pouto navždy',
+  'about.milestone.2.body':
+    'Provedl mě nejtěžším úsekem mého života bez jediného slova. Každý pejskař to zná — podrží tě přesně tehdy, když padáš.',
+  'about.milestone.3.year': '2019',
+  'about.milestone.3.tag': 'Cesta',
+  'about.milestone.3.title': 'Cesta, ze které se stala kniha',
+  'about.milestone.3.body':
+    'Spolu jsme prošli celé Slovensko — 42 dní, 800 kilometrů, jeden tichý slib. Z té cesty vznikla kniha: „Cesta s Hrdinom".',
+  'about.milestone.4.year': '2022',
+  'about.milestone.4.tag': 'Jméno',
+  'about.milestone.4.title': 'Národ pejskařů',
+  'about.milestone.4.body':
+    'Pyramidy, mystika, věčná sláva Egypta — lidstvo to fascinuje už tisíciletí. Spoj to s nekonečnou psí láskou a vznikne DOGYPT. Nápad jsem si osobně odsouhlasil na Expo Dubai 2022 — oblečený jako faraon.',
+  'about.milestone.5.year': 'Nyní',
+  'about.milestone.5.tag': 'Dogypt',
+  'about.milestone.5.title': 'Cesta začíná tebou',
+  'about.milestone.5.body':
+    'DOGYPT je hnutí pro každého, komu pes změnil život. Postavené na nejstarším a nejupřímnějším poutu na Zemi. Hekthor je zakladatel #1. Ty jsi další.',
+
+  // ── /about — outro + reel ──
+  'about.outro.quoteLead': 'Nikdy to nebyl',
+  'about.outro.quoteTail': '„jen pes."',
+  'about.outro.body':
+    'Ten pocit už znáš — že pes není něco, co vlastníš, ale <strong>někdo, koho miluješ</strong>. A teď si představ tu lásku zorganizovanou, propojenou, <strong>dost silnou na to, aby měnila věci.</strong> A právě proto existuje <strong>DOGYPT</strong>.',
+  'about.outro.name1': 'Matej',
+  'about.outro.and': 'a',
+  'about.outro.name2': 'Hekthor',
+  'about.outro.cta': 'Staň se Dogypťanem',
+  'about.reel.prev': 'Předchozí fotka',
+  'about.reel.next': 'Další fotka',
+
+  // ── /religion — hero hook (kráva vs pes) ──
+  'religion.hook.number': '1,2',
+  'religion.hook.billion': 'MILIARDY',
+  'religion.hook.people': 'LIDÍ',
+  'religion.hook.note': '(15 % světa)',
+  'religion.hook.bow': 'se klaní krávě',
+  'religion.hook.doglovers': 'PEJSKAŘI?',
+  'religion.hook.worship': 'KLANĚJME SE SVÝM PSŮM.',
+  'religion.cta': 'Staň se Dogypťanem',
+  'religion.aria.question': 'Otázka',
+  'religion.aria.preamble': 'Preambule',
+  'religion.aria.sacredIndex': 'Posvátný index',
+  'religion.aria.scrollDown': 'Posunout dolů',
+
+  // ── /religion — preambule ──
+  'religion.preamble.text':
+    'My, národ pejskařů — vnímajíce <strong>nekonečnou oddanost</strong>, <strong>pravou lásku</strong> a <strong>čistou duši</strong> každého psa na světě — abychom upevnili postavení psů v lidské společnosti, vytvořili jim <strong>podpůrnou komunitu</strong>, <strong>zlepšili</strong> jim životy a <strong>změnili</strong> osud každého psa v nouzi, dáváme si tuto ústavu.',
+  'religion.preamble.oath': 'Přísaha smečky',
+
+  // ── /religion — sacred index ──
+  'religion.bookTitle': '„Bible" pro pejskaře',
+
+  // ── /religion — Constitution book ──
+  'religion.book.sealAlt': 'Dogyptská pečeť',
+  'religion.book.sub': 'Povinné čtení pro každého pejskaře, který se chce stát Dogypťanem.',
+  'religion.book.cta1.kicker': 'Cesta začíná',
+  'religion.book.cta1.head': 'Přidej se k<br />náboženství',
+  'religion.book.cta1.text': 'Přihlas se do psího náboženství — vezmi si Heroglyph.',
+  'religion.book.cta1.btn': 'Staň se Dogypťanem',
+  'religion.book.cta2.kicker': 'Celé slovo',
+  'religion.book.cta2.head': 'Přečti si<br />ústavu',
+  'religion.book.cta2.text': 'Každý kánon, krédo a přikázání — v plném znění.',
+  'religion.book.cta2.btn': 'Celá ústava',
+  'religion.book.coverOpenAria': 'Otevřít ústavu',
+  'religion.book.coverAlt': 'Dogyptská ústava',
+  'religion.book.hint': 'Klikni na knihu a otevři ji',
+  'religion.book.close': 'Zavřít knihu',
+  'religion.book.prevPage': 'Předchozí strana',
+  'religion.book.nextPage': 'Další strana',
+
+  // ── shared nav (PageNav top-bar + Wall) ──
+  'nav.wall': 'Zeď',
+  'nav.vision': 'Vize',
+  'nav.religion': 'Náboženství',
+  'nav.about': 'O nás',
+
+  // ── / (Wall / GodsGrid) ──
+  'wall.hero.taglineLead': 'Místo, kde',
+  'wall.hero.cta': 'Staň se Dogypťanem',
+  'wall.hero.total': '1 000 000',
+  'wall.hero.dogs': 'PSŮ',
+  'wall.hektor.msg': 'Pes, který to celé začal. Adoptovaný v roce 2017. Každá cesta začíná jedním krokem — ta jeho byla 42denní pouť přes Slovensko.',
+  'wall.info.title': '1 000 000 psů.<br/>Dáme to?',
+  'wall.info.body': 'DOGYPT je hnutí pro pejskaře. Každý pes dostane jedinečný Heroglyph — své trvalé místo v globální smečce. Sbíráme milion hrdinů. Buď mezi prvními.',
+  'wall.filter.find': 'Najít psa podle čísla',
+  'wall.filter.center': 'Vycentrovat mřížku',
+  'wall.filter.placeholder': 'Pes #',
+  'wall.filter.clear': 'Vymazat',
+  'wall.filter.confirm': 'Potvrdit',
+
+  // ── nav a11y ──
+  'nav.aria.back': 'Zpět',
+  'nav.aria.openMenu': 'Otevřít menu',
+  'nav.aria.menu': 'Menu',
+  'nav.aria.wallHome': 'WALL — domů',
+  'nav.aria.chooseLanguage': 'Vybrat jazyk',
+  'nav.langModal.title': 'Vyber si jazyk',
+  'nav.aria.close': 'Zavřít',
+
+  // ── /payment (PaymentScreen) — STROJOVÝ PŘEKLAD, čeká review ──
+  'payment.title': 'Bezpečná platba',
+  'payment.product': 'DOGYPT HEROGLYPH CERTIFIKÁT pro {dogName}',
+  'payment.yourDog': 'tvého psa',
+  'payment.sealing': 'PEČETÍME FOTKU...',
+  'payment.preparing': 'PŘIPRAVUJEME...',
+  'payment.pay': 'ZAPLATIT PŘES STRIPE',
+  'payment.secured': 'Zabezpečeno přes Stripe · Karta, Apple Pay, Google Pay',
+  'payment.back': 'Zpět',
+
+  // ── /terms + /privacy — STROJOVÝ PŘEKLAD (právní texty), čeká review ──
+  // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovat sem)
+  'legal.updated': 'Poslední aktualizace: 4. května 2026 · v1.0',
+  'legal.langNote':
+    'Tento dokument poskytujeme ve více jazycích pro pohodlí. V případě rozdílů mezi verzemi má přednost anglické znění.',
+
+  // ── /terms ──
+  'terms.title': 'Podmínky používání',
+  'terms.linkPrivacy': 'Zásady ochrany soukromí →',
+  'terms.s1.title': '1. Kdo jsme',
+  'terms.s1.body':
+    'DOGYPT s.r.o., slovenská společnost s ručením omezeným zapsaná v obchodním rejstříku (IČO 54 444 594), se sídlem Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. V těchto Podmínkách o sobě mluvíme jako „DOGYPT“, „my“ nebo „nás“ a o vás jako „vy“ nebo „Člen“. Používáním dogypt.com, HEROGLYPH procesu nebo jakékoli související služby (společně „Služba“) souhlasíte s těmito Podmínkami. Datum účinnosti: 4. května 2026.',
+  'terms.s2.title': '2. Kdo může Službu používat',
+  'terms.s2.body':
+    'Službu smíte používat, jen pokud je vám alespoň 16 let. Vytvořením účtu nebo dokončením nákupu potvrzujete, že je vám 16 a více let, že údaje, které poskytujete, jsou pravdivé, a že používání Služby je v zemi, kde žijete, legální.',
+  'terms.s3.title': '3. Účet a členství v Packu',
+  'terms.s3.body':
+    'Přístup se uděluje přes přihlašovací odkaz (magic link) zaslaný na váš e-mail; žádné heslo se neukládá. Účet je osobní — prosíme, nesdílejte přístup. Účty, které zneužívají Službu, obtěžují jiné Členy nebo porušují tyto Podmínky, můžeme pozastavit nebo zrušit. O smazání účtu můžete kdykoli požádat e-mailem na privacy@dogypt.com.',
+  'terms.s4.title': '4. Heroglyph a digitální zboží',
+  'terms.s4.body':
+    'Kupujete digitální zboží: osobní HEROGLYPH (jedinečný symbolický certifikát), jeho PDF verzi, záznam vašeho psa ve veřejném GodsGrid a trvalý přístup k vašemu Pack profilu. Udělujeme vám osobní, nepřenosnou a nevýhradní licenci k používání tohoto digitálního zboží pro nekomerční osobní účely. Nic fyzického se nezasílá. Reprodukce, další prodej nebo komerční využití HEROGLYPH grafiky či podkladů vyžaduje náš předchozí písemný souhlas.',
+  'terms.s5.title': '5. Platby',
+  'terms.s5.body':
+    'Platby zpracovává Stripe Payments Europe, Ltd. Vaše úplné údaje o kartě nikdy nevidíme ani neukládáme. Ceny se zobrazují v měně uvedené u pokladny (výchozí USD); případná DPH se vypočítá a zobrazí před zaplacením. Objednávka, kterou potvrdíte u pokladny, je objednávka, kterou doručíme — rozsah ani cenu dodatečně neměníme.',
+  'terms.s6.title': '6. Vrácení peněz a právo na odstoupení',
+  'terms.s6.body':
+    'Podle směrnice EU 2011/83/EU mají spotřebitelé zpravidla 14 dní na odstoupení od smlouvy uzavřené na dálku. Protože se HEROGLYPH dodává jako digitální obsah ihned po zaplacení, kliknutím na „Zaplatit“ udělujete výslovný předchozí souhlas se zahájením okamžitého plnění a berete na vědomí, že zahájením dodání ztrácíte právo na odstoupení (čl. 16 písm. m) směrnice). Pokud se něco pokazí na naší straně — poškozený soubor, duplicitní platba, zrušená objednávka — napište na support@dogypt.com do 14 dnů a peníze vrátíme nebo dodáme znovu, bez otázek.',
+  'terms.s7.title': '7. Přípustné používání',
+  'terms.s7.body':
+    'Nenahrávejte nic, k čemu nemáte práva. Patří sem fotografie jiných lidí, materiál chráněný autorským právem nebo obsah zobrazující týrání, nezákonnou činnost či sexuální obsah s nezletilými. Neobtěžujte jiné Členy, nevydávejte se za ně a nevyhrožujte jim. Nesbírejte data automatizovaně (scraping), hromadně nestahujte, neprovádějte zpětné inženýrství ani se nepokoušejte narušit provoz Služby. Obsah nebo účty porušující tato pravidla můžeme odstranit, s upozorněním i bez něj.',
+  'terms.s8.title': '8. Odpovědnost a prohlášení',
+  'terms.s8.body':
+    'HEROGLYPH je symbolický, ceremoniální produkt — není to veterinární, lékařské, behaviorální ani chovatelské poradenství. Služba se poskytuje „tak, jak je“. V maximálním rozsahu povoleném slovenským právem a právem EU je naše celková odpovědnost za jakýkoli nárok vyplývající ze Služby omezena na částku, kterou jste nám zaplatili za 12 měsíců před vznikem nároku. Nic v těchto Podmínkách neomezuje odpovědnost za podvod, hrubou nedbalost ani práva, kterých se podle platného práva nelze vzdát.',
+  'terms.s9.title': '9. Změny těchto Podmínek',
+  'terms.s9.body':
+    'Tyto Podmínky můžeme s růstem Služby aktualizovat. Podstatné změny oznámíme e-mailem nejméně 30 dní před nabytím účinnosti. Drobná upřesnění nabývají účinnosti zveřejněním. Pokračováním v používání Služby po datu účinnosti nové Podmínky přijímáte. Starší verze archivujeme a na vyžádání zpřístupníme.',
+  'terms.s10.title': '10. Rozhodné právo a spory',
+  'terms.s10.body':
+    'Tyto Podmínky se řídí právem Slovenské republiky s vyloučením kolizních norem. Spory, které se nepodaří vyřešit neformálně, spadají do pravomoci příslušných slovenských soudů podle našeho sídla. Spotřebitelé v EU mohou využít také evropskou platformu pro řešení sporů online na https://ec.europa.eu/consumers/odr.',
+  'terms.s11.title': '11. Kontakt',
+  'terms.s11.body':
+    'Obecné dotazy: info@dogypt.com · Soukromí a osobní údaje: privacy@dogypt.com · Refundace a podpora: support@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+
+  // ── /privacy ──
+  'privacy.title': 'Zásady ochrany soukromí',
+  'privacy.linkTerms': 'Podmínky používání →',
+  'privacy.s1.title': '1. Kdo jsme',
+  'privacy.s1.body':
+    'DOGYPT s.r.o., slovenská společnost s ručením omezeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Jsme správcem osobních údajů popsaných níže. S jakýmkoli dotazem ohledně soukromí nám pište na privacy@dogypt.com. Pověřence pro ochranu osobních údajů (DPO) jsme nejmenovali, protože naše zpracování nedosahuje prahových hodnot čl. 37 GDPR. Datum účinnosti: 4. května 2026.',
+  'privacy.s2.title': '2. Jaké údaje sbíráme',
+  'privacy.s2.body':
+    'Při používání HEROGLYPH procesu sbíráme: vaši e-mailovou adresu, jméno psa, nahranou fotografii psa (uloženou na Cloudinary), symbolické odpovědi, které vyberete (pohlaví, barva, osud, pokrevní linie, charakter, váš horoskop, vaše iniciála), a datum narození psa, pokud jej uvedete. Platební údaje sbírá přímo Stripe — my dostáváme jen potvrzení platby, poslední 4 číslice karty a zemi. Naše servery automaticky zaznamenávají technické údaje (IP adresa, user-agent, čas požadavku) pro účely bezpečnosti a prevence zneužití.',
+  'privacy.s3.title': '3. Jak je používáme',
+  'privacy.s3.body':
+    'Vaše údaje používáme k: vygenerování a doručení HEROGLYPH certifikátu; odeslání e-mailu s certifikátem a malého počtu navazujících Pack zpráv; zobrazení záznamu vašeho psa ve veřejném GodsGrid (veřejně se zobrazuje jen jméno psa, fotografie a HEROGLYPH symbol — nikdy ne váš e-mail, vaše jméno ani soukromý kód); provozu, zabezpečení a zlepšování Služby; plnění zákonných povinností, jako jsou účetnictví a ochrana spotřebitele.',
+  'privacy.s4.title': '4. Právní základ (GDPR)',
+  'privacy.s4.body':
+    'Opíráme se o čl. 6 odst. 1 písm. b) GDPR (plnění smlouvy) při dodání HEROGLYPHu a členství v Packu; čl. 6 odst. 1 písm. a) (souhlas) u marketingových e-mailů nad rámec servisních zpráv — souhlas můžete kdykoli odvolat; čl. 6 odst. 1 písm. f) (oprávněný zájem) u bezpečnostního logování, prevence zneužití a agregované analytiky; a čl. 6 odst. 1 písm. c) (zákonná povinnost) u daňových a účetních záznamů.',
+  'privacy.s5.title': '5. Sdílení a zpracovatelé',
+  'privacy.s5.body':
+    'Vaše údaje neprodáváme. Sdílíme je jen se zpracovateli, kteří nám pomáhají provozovat Službu: Stripe Payments Europe, Ltd. (platby) · Cloudinary Ltd. (ukládání a doručování fotografií) · Resend, Inc. (transakční e-maily) · Supabase, Inc. (databáze a autentizace) · WebSupport s.r.o. (webhosting) · GitHub, Inc. (nasazování). Každý zpracovatel je vázán vlastní smlouvou o zpracování údajů.',
+  'privacy.s6.title': '6. Cookies a sledování',
+  'privacy.s6.body':
+    'Používáme jen cookies a lokální úložiště, které Služba potřebuje k fungování (relace, jazyk, rozpracované HEROGLYPH volby). Nepoužíváme reklamu třetích stran ani sledovací pixely napříč weby. Pokud přidáme analytiku šetrnou k soukromí (například Plausible), tuto sekci před jejím zapnutím aktualizujeme.',
+  'privacy.s7.title': '7. Uchovávání údajů',
+  'privacy.s7.body':
+    'Váš HEROGLYPH a Pack profil uchováváme, dokud existuje váš účet, protože GodsGrid je doživotní registr každého člena Packu. Záznamy o transakčních e-mailech uchováváme 12 měsíců pro účely podpory a prevence podvodů. Účetní záznamy uchováváme 10 let, jak vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Když požádáte o smazání účtu, osobní identifikátory odstraníme do 30 dnů a ponecháme jen zákonem vyžadované minimum.',
+  'privacy.s8.title': '8. Vaše práva',
+  'privacy.s8.body':
+    'Podle GDPR máte právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování nebo námitku proti němu, přenositelnost údajů a kdykoli odvolat souhlas. Stížnost můžete podat také slovenskému dozorovému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. K uplatnění kteréhokoli z těchto práv pište na privacy@dogypt.com — odpovíme do 30 dnů.',
+  'privacy.s9.title': '9. Mezinárodní přenosy',
+  'privacy.s9.body':
+    'Někteří naši zpracovatelé (Stripe, Cloudinary, Resend, Supabase, GitHub) provozují servery mimo EU/EHP, většinou v USA. Tam, kde osobní údaje opouštějí EU/EHP, se opíráme o standardní smluvní doložky Evropské komise, rámec EU–USA Data Privacy Framework a dodatečné záruky podle kapitoly V GDPR.',
+  'privacy.s10.title': '10. Změny těchto zásad',
+  'privacy.s10.body':
+    'O podstatných změnách vás budeme informovat e-mailem nejméně 30 dní před nabytím účinnosti. Drobné úpravy — překlepy, změny názvů zpracovatelů, nové kontaktní adresy — nabývají účinnosti zveřejněním. Aktuální verze a datum jsou vždy v horní části této stránky; starší verze jsou k dispozici na vyžádání.',
+  'privacy.s11.title': '11. Kontakt',
+  'privacy.s11.body':
+    'Soukromí a osobní údaje: privacy@dogypt.com · Obecné dotazy: info@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+
+  // ── /about — Council (We Need You) — STROJOVÝ PŘEKLAD, čeká review ──
+  'about.council.imgAlt': 'Faraon s Hekthorem a svými kočkami — Dogypt tě potřebuje',
+  'about.council.headline': 'Potřebujeme tě.',
+  'about.council.sub':
+    'DOGYPT staví lidé, kteří vědí, co pes znamená. Pokud máš co přinést — dovednost, hlas, vizi — patří to sem.',
+  'about.council.rolesAria': 'Vyber si roli',
+  'about.council.role.dog-lover.label': 'Pejskař & tester',
+  'about.council.role.dog-lover.desc': 'Brzký přístup a upřímná zpětná vazba',
+  'about.council.role.developer.label': 'Vývojář / designér',
+  'about.council.role.developer.desc': 'Stavěj funkce, tvoř vizuály',
+  'about.council.role.dog-pro.label': 'Psí profesionál',
+  'about.council.role.dog-pro.desc': 'Veterinář, trenér, útulek, chovatel',
+  'about.council.role.creator.label': 'Tvůrce',
+  'about.council.role.creator.desc': 'Video, foto, umění pro smečku',
+  'about.council.role.media.label': 'Média / influencer',
+  'about.council.role.media.desc': 'Publikum a dosah',
+  'about.council.role.investor.label': 'Investor',
+  'about.council.role.investor.desc': 'Financuj konkrétní mise a útulky',
+  'about.council.role.community.label': 'Budovatel komunity',
+  'about.council.role.community.desc': 'Organizuj lidi ve svém okolí',
+  'about.council.role.business.label': 'Byznys & partnerství',
+  'about.council.role.business.desc': 'Otevírej dveře — značky, útulky, spolupráce',
+  'about.council.fullName': 'Jméno a příjmení',
+  'about.council.email': 'E-mail',
+  'about.council.message': 'Napiš nám, co přinášíš… (nepovinné)',
+  'about.council.error': 'Něco se pokazilo. Zkus to znovu.',
+  'about.council.sending': 'Odesílám…',
+  'about.council.submit': 'Přidej se do Rady',
+  'about.council.successTitle': 'Jsi v Radě.',
+  'about.council.successSub': 'Ozveme se, až přijde správný čas.',
+
+  // ── /about — Footer ── (motto = EN by design, nezapisovat sem)
+  'about.footer.sealAlt': 'Pečeť DOGYPT',
+  'about.footer.mission': 'Hnutí pro každého, komu pes změnil život.',
+  'about.footer.privacy': 'Soukromí',
+  'about.footer.terms': 'Podmínky',
+
+  // ── /about — Legends (citáty celebrit) — STROJOVÝ PŘEKLAD citátů, čeká review ──
+  'about.legends.title': 'I LEGENDY POKLEKLY',
+  'about.legends.sub':
+    'Nejmocnější lidé, kteří kdy žili, se klaněli stejnému tichému učiteli — a napsali to.',
+  'about.legends.creditsSummary': 'Citáty z veřejných rozhovorů · Autoři fotografií',
+  'about.legends.creditsIntro':
+    'Portréty přes Wikimedia Commons pod licencemi Creative Commons / public domain.',
+  'about.legends.q.oprah-winfrey.text': 'Nejopravdovější, nejčistší láska… je láska, která přichází od tvého psa.',
+  'about.legends.q.oprah-winfrey.role': 'Kulturní ikona',
+  'about.legends.q.chris-evans.text': 'Ten den jsem neměl v úmyslu adoptovat psa, ale v okamžiku, kdy jsem ho uviděl, jsem věděl, že jde domů se mnou.',
+  'about.legends.q.chris-evans.role': 'Herec · o svém psovi Dodgerovi',
+  'about.legends.q.tom-hardy.text': 'Byl to Anděl. A byl můj nejlepší přítel. Znal jen lásku.',
+  'about.legends.q.tom-hardy.role': 'Herec · o svém psovi Woodym',
+  'about.legends.q.dwayne-johnson.text': 'Vždycky tě budeme milovat. Navždy zůstaneš můj malý parťák.',
+  'about.legends.q.dwayne-johnson.role': 'Herec · o svém psovi Brutusovi',
+  'about.legends.q.miley-cyrus.text': 'Naučil jsi mě milovat beze strachu ze ztráty.',
+  'about.legends.q.miley-cyrus.role': 'Zpěvačka · o svém psovi Floydovi',
+  'about.legends.q.ariana-grande.text': 'Psi jsou ta nejneškodnější, nejsladší stvoření na světě. Nedávají nic jiného než bezpodmínečnou lásku.',
+  'about.legends.q.ariana-grande.role': 'Zpěvačka',
+  'about.legends.q.hugh-jackman.text': 'Vždycky, vždycky jsem mu říkal rocková hvězda. Protože jí byl!',
+  'about.legends.q.hugh-jackman.role': 'Herec · o svém psovi Dalim',
+  'about.legends.q.drew-barrymore.text': 'Myslím, že ani klišé o bezpodmínečné lásce nestačí.',
+  'about.legends.q.drew-barrymore.role': 'Herečka · o své fence Flossie',
+  'about.legends.q.henry-cavill.text': 'Nejednou mi zachránil emocionální i psychickou kůži.',
+  'about.legends.q.henry-cavill.role': 'Herec · o svém psovi Kalovi',
+  'about.legends.q.ryan-reynolds.text': 'Prostě jsem se do něj zamiloval. Neměl jsem to v plánu, jen jsem ho cestou vzal s sebou.',
+  'about.legends.q.ryan-reynolds.role': 'Herec · o svém psovi Baxterovi',
+  'about.legends.q.george-clooney.text': 'Miluje mě. Nemůžu udělat nic špatně. Chodí za mnou všude.',
+  'about.legends.q.george-clooney.role': 'Herec · o svém psovi Einsteinovi',
+  'about.legends.q.bradley-cooper.text': 'Charlotte mě miluje bezvýhradně. Jsou to moje děti.',
+  'about.legends.q.bradley-cooper.role': 'Herec · o své fence Charlotte',
+  'about.legends.q.channing-tatum.text': 'Prostě ti dávají bezpodmínečnou lásku. A nikdy nejsi sám, prostě jsou tu.',
+  'about.legends.q.channing-tatum.role': 'Herec · o své fence Lulu',
+  'about.legends.q.orlando-bloom.text': 'Byl víc než společník. Bylo to spojení duší, tím jsem si jistý.',
+  'about.legends.q.orlando-bloom.role': 'Herec · o svém psovi Mightym',
+  'about.legends.q.kevin-costner.text': 'Je jeden, který je psem celého života… a až odejde, budeš brečet jako malé dítě.',
+  'about.legends.q.kevin-costner.role': 'Herec · o svém psovi Wyattovi',
+  'about.legends.q.tom-holland.text': 'Je úžasná, moje nejlepší kamarádka.',
+  'about.legends.q.tom-holland.role': 'Herec · o své fence Tesse',
+  'about.legends.q.patrick-stewart.text': 'Už teď jsme do něj zamilovaní až po uši.',
+  'about.legends.q.patrick-stewart.role': 'Herec · o štěněti v dočasné péči',
+  'about.legends.q.jennifer-aniston.text': 'Psi jsou všechno. Jsou žijící, dýchající, čistá a dobrá láska.',
+  'about.legends.q.jennifer-aniston.role': 'Herečka',
+  'about.legends.q.salma-hayek.text': 'Nemám slova ani slzy, kterými bych popsala, kolik pro mě znamenala.',
+  'about.legends.q.salma-hayek.role': 'Herečka · o své fence Lupe',
+  'about.legends.q.eva-mendes.text': 'Ten pocit mě nikdy neopustil. Je to jedna z nejvzácnějších přítomností v mém životě.',
+  'about.legends.q.eva-mendes.role': 'Herečka · o svém psovi Hugovi',
+  'about.legends.q.chrissy-teigen.text': 'Pro ně jsi celá jejich kniha, celý jejich život.',
+  'about.legends.q.chrissy-teigen.role': 'Modelka / moderátorka · o své fence Penny',
+  'about.legends.q.hilary-duff.text': 'Dal jsi mi tolik útěchy a lásky, když jsem to nejvíc potřebovala!',
+  'about.legends.q.hilary-duff.role': 'Herečka / zpěvačka · o svém psovi Jakovi',
+  'about.legends.q.amanda-seyfried.text': 'Finn mi přinesl všechnu lásku, teplo a naprostou přítomnost, o jaké může holka jen snít.',
+  'about.legends.q.amanda-seyfried.role': 'Herečka · o svém psovi Finnovi',
+  'about.legends.q.kaley-cuoco.text': 'Bezpodmínečná láska mého milovaného, zábavného psa Normana mě inspirovala k založení této firmy.',
+  'about.legends.q.kaley-cuoco.role': 'Herečka · o svém psovi Normanovi',
+  'about.legends.q.mariah-carey.text': 'Není lepšího psa než Jack. Jak bys mohl udělat psa lepšího než Jack!',
+  'about.legends.q.mariah-carey.role': 'Zpěvačka · o svém psovi Jackovi',
+  'about.legends.q.billie-eilish.text': 'Je to takový hodný kluk. Kéž bych ho mohla vzít na celé turné po světě.',
+  'about.legends.q.billie-eilish.role': 'Zpěvačka · o svém psovi Sharkovi',
+  'about.legends.q.selena-gomez.text': 'Se svými psy si opravdu povídám. Naprosto věřím, že zvířata léčí.',
+  'about.legends.q.selena-gomez.role': 'Zpěvačka / herečka',
+  'about.legends.q.paul-mccartney.text': 'Byla mým drahým mazlíčkem. Pamatuji si, jak John žasl, když viděl, jak něžný ke zvířeti umím být.',
+  'about.legends.q.paul-mccartney.role': 'The Beatles · o své fence Martě',
+  'about.legends.q.john-legend.text': 'Deset let nám dávala tolik radosti. Milujeme tě, Pippo!',
+  'about.legends.q.john-legend.role': 'Zpěvák · o své fence Pippě',
+  'about.legends.q.dolly-parton.text': '„Puppy Love“ byla moje úplně první nahrávka a o šest desetiletí později je moje láska ke zvířatům silnější než kdy dřív.',
+  'about.legends.q.dolly-parton.role': 'Zpěvačka / skladatelka',
+  'about.legends.q.lady-gaga.text': 'Jmenuje se Asia. Je to BATPIG. Miluji ji, jsem její máma.',
+  'about.legends.q.lady-gaga.role': 'Zpěvačka · o své fence Asii',
+  'about.legends.q.conor-mcgregor.text': 'Byl se mnou celou cestu, můj nejbližší společník. Všechna ta láska a mazlení nám budou navždy chybět.',
+  'about.legends.q.conor-mcgregor.role': 'UFC bojovník · o svém psovi Hugovi',
+  'about.legends.q.lewis-hamilton.text': 'Vzít si Roscoea do života bylo nejlepší rozhodnutí, jaké jsem kdy udělal.',
+  'about.legends.q.lewis-hamilton.role': 'Pilot F1 · o svém psovi Roscoeovi',
+  'about.legends.q.serena-williams.text': 'Každý den mi přišla olíznout nohu a připomenout, jak moc mě miluje.',
+  'about.legends.q.serena-williams.role': 'Tenisová šampionka · o své fence Jackie',
+  'about.legends.q.tyson-fury.text': 'Nejlepší přítel člověka. Vždycky se těší, když tě vidí. Miluje tě bezpodmínečně.',
+  'about.legends.q.tyson-fury.role': 'Boxer těžké váhy · o svém psovi Cashovi',
+  'about.legends.q.michael-phelps.text': 'Jejich láska je bezpodmínečná a mně i mé rodině přinášejí do života spoustu radosti.',
+  'about.legends.q.michael-phelps.role': 'Olympijský plavec',
+  'about.legends.q.venus-williams.text': 'Harry je můj nejlepší přítel! Rozhodně nejlepší rozhodnutí, jaké jsem kdy udělala.',
+  'about.legends.q.venus-williams.role': 'Tenisová šampionka · o svém psovi Harrym',
+  'about.legends.q.roger-federer.text': 'Nemohli bychom být šťastnější. Vítej v rodině, Willow.',
+  'about.legends.q.roger-federer.role': 'Tenisový šampion · o své fence Willow',
+  'about.legends.q.john-steinbeck.text': 'Je to dobrý přítel a společník na cesty a cestování má radši než cokoli, co si dovede představit.',
+  'about.legends.q.john-steinbeck.role': 'Nobelovský spisovatel · o svém psovi Charleym',
+  'about.legends.q.elizabeth-taylor.text': 'Nikdy v životě jsem žádného psa nemilovala tak jako ji. Někdy si myslím, že je tam uvnitř člověk.',
+  'about.legends.q.elizabeth-taylor.role': 'Herečka · o své fence Sugar',
+  'about.legends.q.ricky-gervais.text': 'Kdyby nejlaskavější duše dostávaly nejdelší životy, psi by nás všechny přežili.',
+  'about.legends.q.ricky-gervais.role': 'Komik / herec',
+  'about.legends.q.gisele-bundchen.text': 'Náš anděl strážný odešel do nebe. Navždy bude žít v našich srdcích.',
+  'about.legends.q.gisele-bundchen.role': 'Supermodelka · o své fence Lua',
+  'about.legends.q.pablo-picasso.text': 'Lump není pes, není to malý člověk, je to někdo jiný.',
+  'about.legends.q.pablo-picasso.role': 'Malíř · o svém psovi Lumpovi',
+  'about.legends.q.mickey-rourke.text': 'Někdy, když je člověk sám, jediné, co má, je jeho pes. A pro mě znamenali celý svět.',
+  'about.legends.q.mickey-rourke.role': 'Herec',
 };

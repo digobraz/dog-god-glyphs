@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import ConstitutionBook from '@/components/religion/ConstitutionBook';
 
 export default function Religion() {
+  const t = useT();
   const [active, setActive] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
@@ -124,6 +126,8 @@ export default function Religion() {
           font-family: 'Cinzel', serif;
           font-weight: 700;
           font-size: clamp(1.05rem, 2.4vw, 1.9rem);
+          /* headroom pre diakritiku (Biblia/Bible/psíčkarov) — background-clip:text inak oseká accent */
+          line-height: 1.18; padding-top: 0.14em;
           letter-spacing: 0.05em;
           text-align: center;
           white-space: nowrap;
@@ -439,7 +443,7 @@ export default function Religion() {
           font-weight: 700;
         }
         .codex-paper-subtitle {
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 400;
           font-size: clamp(0.7rem, 0.92vw, 0.82rem);
           letter-spacing: 0.02em;
@@ -941,7 +945,7 @@ export default function Religion() {
         }
         /* Micro-copy pod CTA — body font (Inter), zúžená na šírku tlačítka */
         .codex-microcopy {
-          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-weight: 400;
           font-style: normal;
           font-size: clamp(0.68rem, 0.82vw, 0.78rem);
@@ -1086,7 +1090,7 @@ export default function Religion() {
         <section
           className="codex-section"
           data-idx={0}
-          aria-label="The Question"
+          aria-label={t('religion.aria.question')}
           ref={(el) => { sectionRefs.current[0] = el; }}
         >
           <div className="codex-slider">
@@ -1094,24 +1098,24 @@ export default function Religion() {
               <div className="codex-3-overlay">
                 <p className="codex-stat-number">
                   <span className="codex-stat-row">
-                    <span className="codex-stat-l1">1.2</span>
-                    <span className="codex-stat-l2">BILLION</span>
+                    <span className="codex-stat-l1">{t('religion.hook.number')}</span>
+                    <span className="codex-stat-l2">{t('religion.hook.billion')}</span>
                   </span>
                   <span className="codex-stat-row codex-stat-row-bottom">
-                    <span className="codex-stat-l3">PEOPLE</span>
-                    <span className="codex-stat-note">(15% worldwide)</span>
+                    <span className="codex-stat-l3">{t('religion.hook.people')}</span>
+                    <span className="codex-stat-note">{t('religion.hook.note')}</span>
                   </span>
                 </p>
-                <p className="codex-stat-sub">bow to the cow</p>
+                <p className="codex-stat-sub">{t('religion.hook.bow')}</p>
                 <p className="codex-question-big">
                   <span className="accent">
-                    <span className="q-call">DOGLOVERS?</span><br />
-                    <span className="q-action">LET'S WORSHIP OUR DOGS.</span>
+                    <span className="q-call">{t('religion.hook.doglovers')}</span><br />
+                    <span className="q-action">{t('religion.hook.worship')}</span>
                   </span>
                 </p>
                 <div className="codex-cta-cluster">
                   <Link to="/heroglyph" className="codex-cta">
-                    Become Dogyptian
+                    {t('religion.cta')}
                   </Link>
                 </div>
               </div>
@@ -1123,25 +1127,23 @@ export default function Religion() {
         <section
           className="codex-section"
           data-idx={1}
-          aria-label="Preamble"
+          aria-label={t('religion.aria.preamble')}
           ref={(el) => { sectionRefs.current[1] = el; }}
         >
           <div className="codex-slider">
             <div className="codex-slide">
               <h1 className="codex-headline">
-                <span className="grad">In Dog</span>
-                <span className="line">We Trust</span>
+                <span className="grad">{t('religion.preamble.headlineGrad')}</span>
+                <span className="line">{t('religion.preamble.headlineLine')}</span>
               </h1>
               <div className="codex-preamble-wrap">
                 <span className="codex-frame tl" aria-hidden />
                 <span className="codex-frame tr" aria-hidden />
                 <span className="codex-frame bl" aria-hidden />
                 <span className="codex-frame br" aria-hidden />
-                <p className="codex-preamble-text">
-                  We, the nation of doglovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.
-                </p>
+                <p className="codex-preamble-text" dangerouslySetInnerHTML={{ __html: t('religion.preamble.text') }} />
               </div>
-              <p className="codex-oath-label">The Oath of the Pack</p>
+              <p className="codex-oath-label">{t('religion.preamble.oath')}</p>
             </div>
           </div>
         </section>
@@ -1150,10 +1152,10 @@ export default function Religion() {
         <section
           className="codex-section"
           data-idx={2}
-          aria-label="Sacred Index"
+          aria-label={t('religion.aria.sacredIndex')}
           ref={(el) => { sectionRefs.current[2] = el; }}
         >
-          <h2 className="codex-book-title">The Bible for doglovers</h2>
+          <h2 className="codex-book-title">{t('religion.bookTitle')}</h2>
           <div className="codex-slider codex-slider-book">
             <div className="codex-slide">
               <ConstitutionBook />
@@ -1167,7 +1169,7 @@ export default function Religion() {
         type="button"
         className={`codex-scrollhint ${active === 0 ? 'show' : ''}`}
         onClick={() => go(1)}
-        aria-label="Scroll down"
+        aria-label={t('religion.aria.scrollDown')}
       >
         <span aria-hidden>▾</span>
       </button>

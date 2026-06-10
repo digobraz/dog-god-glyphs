@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
-import { useLang } from '@/i18n/LanguageContext';
+import { useLang, useT } from '@/i18n/LanguageContext';
 
 const NAV_ITEMS = [
-  { label: 'WALL', to: '/grid' },
-  { label: 'VISION', to: '/vision' },
-  { label: 'RELIGION', to: '/religion' },
-  { label: 'ABOUT', to: '/about' },
+  { key: 'nav.wall', to: '/grid' },
+  { key: 'nav.vision', to: '/vision' },
+  { key: 'nav.religion', to: '/religion' },
+  { key: 'nav.about', to: '/about' },
 ];
 
 type LangCode =
@@ -64,6 +64,7 @@ export function PageNav() {
 function DesktopNav() {
   const { pathname } = useLocation();
   const { lang, setLang } = useLang(); // i18n context — reálny swap obsahu
+  const t = useT();
   const [langOpen, setLangOpen] = useState(false);
 
   useEffect(() => {
@@ -98,7 +99,7 @@ function DesktopNav() {
         zIndex: 50,
       }}
     >
-      {NAV_ITEMS.map(({ label, to }) => {
+      {NAV_ITEMS.map(({ key, to }) => {
         const isActive =
           to === '/grid'
             ? pathname === '/grid' || pathname === '/'
@@ -130,7 +131,7 @@ function DesktopNav() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {label}
+              {t(key)}
             </Link>
             <span
               aria-hidden
@@ -183,6 +184,7 @@ function DesktopNav() {
 function MobileNav() {
   const [open, setOpen] = useState(false);
   const { lang, setLang } = useLang(); // i18n context — reálny swap obsahu
+  const t = useT();
 
   useEffect(() => {
     if (!open) return;
@@ -207,7 +209,7 @@ function MobileNav() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open menu"
+        aria-label={t('nav.aria.openMenu')}
         aria-haspopup="dialog"
         aria-expanded={open}
         style={{
@@ -285,13 +287,14 @@ function MobileMenuOverlay({
 }) {
   const { pathname } = useLocation();
   const [langOpen, setLangOpen] = useState(false);
+  const t = useT();
   const current = LANGS.find((l) => l.code === currentLang) ?? LANGS[0];
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Menu"
+      aria-label={t('nav.aria.menu')}
       onClick={onClose}
       style={{
         position: 'fixed',
@@ -347,7 +350,7 @@ function MobileMenuOverlay({
         <Link
           to="/grid"
           onClick={onClose}
-          aria-label="WALL — home"
+          aria-label={t('nav.aria.wallHome')}
           style={{
             display: 'inline-flex',
             transition: 'transform 0.32s ease, margin 0.32s ease',
@@ -382,7 +385,7 @@ function MobileMenuOverlay({
             />
           </div>
         </Link>
-        {NAV_ITEMS.map(({ label, to }) => {
+        {NAV_ITEMS.map(({ key, to }) => {
           const isActive =
             to === '/grid'
               ? pathname === '/grid' || pathname === '/gods' || pathname === '/'
@@ -408,7 +411,7 @@ function MobileMenuOverlay({
                 transition: 'font-size 0.32s ease',
               }}
             >
-              {label}
+              {t(key)}
             </Link>
           );
         })}
@@ -554,11 +557,12 @@ function LanguageModal({
   onSelect: (c: LangCode) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Choose language"
+      aria-label={t('nav.aria.chooseLanguage')}
       onClick={onClose}
       style={{
         position: 'fixed',
@@ -627,12 +631,12 @@ function LanguageModal({
               color: '#1a0a05',
             }}
           >
-            Choose language
+            {t('nav.langModal.title')}
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('nav.aria.close')}
             style={{
               background: 'transparent',
               border: 'none',
@@ -702,7 +706,7 @@ function LanguageModal({
                   </span>
                   <span
                     style={{
-                      fontFamily: "'Inter', sans-serif",
+                      fontFamily: "'Space Grotesk', sans-serif",
                       fontSize: 10,
                       color: '#5c3e10',
                       lineHeight: 1.2,

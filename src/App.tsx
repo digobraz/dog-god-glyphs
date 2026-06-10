@@ -32,6 +32,7 @@ import PackEternal from "./pages/PackEternal.tsx";
 import PackGods from "./pages/PackGods.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import Login from "./pages/Login.tsx";
+import Admin from "./pages/Admin.tsx";
 import Vision from "./pages/Vision.tsx";
 import BetaVision from "./pages/BetaVision.tsx";
 import Religion from "./pages/Religion.tsx";
@@ -110,6 +111,9 @@ const App = () => (
           <Route path="/pack/profile" element={<PackProfile />} />
 
           <Route path="/cert-render/:id" element={<CertRender />} />
+
+          {/* /admin — read-only backoffice (admin-email gated) */}
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

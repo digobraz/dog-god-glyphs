@@ -701,7 +701,7 @@ export default function Heroglyph() {
               {/* IPA + noun */}
               <div
                 style={{
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: '0.8rem',
                   color: 'rgba(250,244,236,0.78)',
                   marginTop: 6,
@@ -728,7 +728,7 @@ export default function Heroglyph() {
                 <div style={{ overflow: 'hidden' }}>
                   <p
                     style={{
-                      fontFamily: "'Inter', sans-serif",
+                      fontFamily: "'Space Grotesk', sans-serif",
                       fontSize: '0.92rem',
                       fontWeight: 400,
                       color: '#FAF4EC',
@@ -798,7 +798,7 @@ export default function Heroglyph() {
                   </div>
                   <div
                     style={{
-                      fontFamily: "'Inter', sans-serif",
+                      fontFamily: "'Space Grotesk', sans-serif",
                       fontSize: 'clamp(0.72rem, 1.2vw, 0.84rem)',
                       color: 'rgba(250,244,236,0.78)',
                       marginTop: 6,
@@ -814,7 +814,7 @@ export default function Heroglyph() {
                 <p
                   className="dict-right"
                   style={{
-                    fontFamily: "'Inter', sans-serif",
+                    fontFamily: "'Space Grotesk', sans-serif",
                     fontSize: 'clamp(0.85rem, 1.3vw, 0.98rem)',
                     fontWeight: 400,
                     color: '#FAF4EC',
@@ -852,7 +852,7 @@ export default function Heroglyph() {
               </button>
               <div
                 style={{
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: '0.7rem',
                   fontWeight: 500,
                   letterSpacing: '0.22em',
@@ -904,7 +904,7 @@ export default function Heroglyph() {
               </button>
               <div
                 style={{
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: 'clamp(0.7rem, 1.15vw, 0.8rem)',
                   fontWeight: 500,
                   letterSpacing: '0.24em',
@@ -1025,7 +1025,7 @@ export default function Heroglyph() {
                 </div>
                 <div
                   style={{
-                    fontFamily: "'Inter', sans-serif",
+                    fontFamily: "'Space Grotesk', sans-serif",
                     fontSize: '0.78rem',
                     fontWeight: 400,
                     letterSpacing: '0.005em',
@@ -1040,7 +1040,7 @@ export default function Heroglyph() {
             ) : (
               <div
                 style={{
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: '0.88rem',
                   fontWeight: 400,
                   letterSpacing: '0.005em',
@@ -1089,7 +1089,7 @@ export default function Heroglyph() {
               </div>
               <div
                 style={{
-                  fontFamily: "'Inter', sans-serif",
+                  fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: '0.74rem',
                   fontWeight: 400,
                   letterSpacing: '0.005em',
@@ -1104,7 +1104,7 @@ export default function Heroglyph() {
           ) : (
             <div
               style={{
-                fontFamily: "'Inter', sans-serif",
+                fontFamily: "'Space Grotesk', sans-serif",
                 fontSize: '0.86rem',
                 fontWeight: 400,
                 letterSpacing: '0.005em',

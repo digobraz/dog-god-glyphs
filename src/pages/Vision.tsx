@@ -515,7 +515,7 @@ export default function Vision() {
 
         /* Body paragraph */
         .mission-para {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-size: clamp(0.85rem, 1.15vw, 0.98rem);
           font-weight: 400;
           color: rgba(250,244,236,0.78);
@@ -613,7 +613,7 @@ export default function Vision() {
           .mission-bottom { align-self: flex-start; }
         }
         .mission-subline {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-size: clamp(0.6rem, 0.85vw, 0.72rem);
           font-weight: 500;
           letter-spacing: 0.24em;
@@ -734,7 +734,7 @@ export default function Vision() {
         .pill-connector {
           display: inline-flex;
           align-items: center;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-size: clamp(0.55rem, 0.85vw, 0.7rem);
           color: rgba(250, 244, 236, 0.30);
           letter-spacing: 0.22em;
@@ -754,7 +754,7 @@ export default function Vision() {
           border: 1.5px solid #C99A3F;
           border-radius: 10px;
           padding: 9px 13px;
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-size: 0.78rem;
           font-weight: 400;
           line-height: 1.45;
@@ -805,7 +805,7 @@ export default function Vision() {
           line-height: 1.25;
         }
         .pill-tooltip-text {
-          font-family: 'Inter', sans-serif;
+          font-family: 'Space Grotesk', sans-serif;
           font-size: 0.78rem;
           font-weight: 400;
           letter-spacing: 0.005em;

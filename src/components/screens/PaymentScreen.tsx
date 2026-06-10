@@ -6,6 +6,7 @@ import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
+import { useT } from '@/i18n/LanguageContext';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
@@ -24,6 +25,7 @@ async function waitForStablePhotoUrl(timeoutMs = PHOTO_TIMEOUT_MS): Promise<stri
 
 export function PaymentScreen() {
   const navigate = useNavigate();
+  const t = useT();
   const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2 } = useDogyptStore();
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
@@ -94,14 +96,14 @@ export function PaymentScreen() {
             transition={{ duration: 0.4 }}
           >
             <h3 className="text-sm font-bold tracking-[0.2em] uppercase text-primary text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-              Secure Payment
+              {t('payment.title')}
             </h3>
 
             <div className="text-center py-2">
               <p className="text-2xl font-bold text-amber-300" style={{ fontFamily: "'Cinzel', serif" }}>
                 ${selectedAmount ?? 11} USD
               </p>
-              <p className="text-xs text-muted-foreground mt-1">DOGYPT HEROGLYPH CERTIFICATE for {dogName || 'your dog'}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t('payment.product', { dogName: dogName || t('payment.yourDog') })}</p>
             </div>
 
             <Button
@@ -116,13 +118,13 @@ export function PaymentScreen() {
               }}
             >
               {loading
-                ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {waitingPhoto ? 'SEALING PHOTO...' : 'PREPARING...'}</span>
-                : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> PAY WITH STRIPE</span>
+                ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
+                : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> {t('payment.pay')}</span>
               }
             </Button>
 
             <p className="text-[10px] text-muted-foreground/60 text-center flex items-center justify-center gap-1">
-              <Lock className="h-3 w-3" /> Secured by Stripe · Card, Apple Pay, Google Pay
+              <Lock className="h-3 w-3" /> {t('payment.secured')}
             </p>
           </motion.div>
 
@@ -131,7 +133,7 @@ export function PaymentScreen() {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors pb-6"
             style={{ fontFamily: "'Cinzel', serif" }}
           >
-            <ArrowLeft className="h-4 w-4" /> Back
+            <ArrowLeft className="h-4 w-4" /> {t('payment.back')}
           </button>
         </div>
       </div>

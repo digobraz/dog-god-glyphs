@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { CouncilSection } from '@/components/landing/CouncilSection';
@@ -16,17 +17,14 @@ import { Footer } from '@/components/landing/Footer';
 
 type Milestone = {
   id: number;
-  year: string;       // placeholder — Matej upresní
-  tag: string;
-  title: string;
-  body: string;
-  images: string[];   // image reel — switch with arrows
+  images: string[];   // image reel — switch with arrows; text pulled from i18n by id (about.milestone.<id>.*)
 };
 
 const ph = () => 'https://placehold.co/800x500/15100a/15100a?text=%20';
 
 /** Image reel — one milestone's photos, switched with prev/next arrows + dots. */
 function SlideReel({ images, alt }: { images: string[]; alt: string }) {
+  const t = useT();
   const [i, setI] = useState(0);
   const n = images.length;
   const startX = useRef<number | null>(null);
@@ -61,10 +59,10 @@ function SlideReel({ images, alt }: { images: string[]; alt: string }) {
         onError={(e) => { const t = e.currentTarget; t.onerror = null; t.src = ph(); }} />
       {n > 1 && (
         <>
-          <button type="button" className="reel-arrow reel-prev" onClick={go(-1)} aria-label="Previous photo">
+          <button type="button" className="reel-arrow reel-prev" onClick={go(-1)} aria-label={t('about.reel.prev')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
           </button>
-          <button type="button" className="reel-arrow reel-next" onClick={go(1)} aria-label="Next photo">
+          <button type="button" className="reel-arrow reel-next" onClick={go(1)} aria-label={t('about.reel.next')}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
           </button>
           <div className="reel-dots" aria-hidden>
@@ -76,66 +74,20 @@ function SlideReel({ images, alt }: { images: string[]; alt: string }) {
   );
 }
 
+// Text (year/tag/title/body) sa ťahá z i18n cez `about.milestone.<id>.*`; tu len id + fotky.
 const MILESTONES: Milestone[] = [
-  {
-    id: 1,
-    year: '2017',
-    tag: 'The Shelter',
-    title: 'Treasure in the Shelter',
-    body:
-      'A black dog nobody wanted was waiting behind a shelter fence. His name became Hekthor. Adopting him wasn’t rescue — it was the beginning of everything.',
-    images: ['/images/about-slides/m1-1.webp', '/images/about-slides/m1-2.webp', '/images/about-slides/m1-3.webp', '/images/about-slides/m1-4.webp'],
-  },
-  {
-    id: 2,
-    year: '2018',
-    tag: 'The Bond',
-    title: 'A Forever Bond',
-    body:
-      'He pulled me through the hardest stretch of my life without saying a single word. Every dog person knows this — they carry you exactly when you’re falling.',
-    images: ['/images/about-slides/m2-1.webp', '/images/about-slides/m2-2.webp', '/images/about-slides/m2-3.webp', '/images/about-slides/m2-4.webp', '/images/about-slides/m2-5.webp'],
-  },
-  {
-    id: 3,
-    year: '2019',
-    tag: 'The Journey',
-    title: 'The Walk That Became a Book',
-    body:
-      'Together we walked across Slovakia — 42 days, 800 kilometres, one quiet promise. That road became a book: „Cesta s Hrdinom" — The Road with a Hero.',
-    images: ['/images/about-slides/m3-1.webp', '/images/about-slides/m3-2.webp', '/images/about-slides/m3-3.webp'],
-  },
-  {
-    id: 4,
-    year: '2023',
-    tag: 'The Voice',
-    title: 'A Nation of Dog People',
-    body:
-      'Somewhere on that road the story stopped being about one man and one dog. Dogs give us everything and ask for almost nothing — they deserve a louder voice.',
-    images: ['/images/about-slides/m4-1.webp', '/images/about-slides/m4-2.webp', '/images/about-slides/m4-3.webp', '/images/about-slides/m4-4.webp', '/images/about-slides/m4-5.webp'],
-  },
-  {
-    id: 5,
-    year: 'Now',
-    tag: 'Dogypt',
-    title: 'The Journey Starts With You',
-    body:
-      'DOGYPT is a movement for everyone whose life was changed by a dog. Built on the oldest, most honest bond on Earth. Hekthor is founder #1. You are next.',
-    images: ['/images/about-slides/m5-1.webp'],
-  },
+  { id: 1, images: ['/images/about-slides/m1-1.webp', '/images/about-slides/m1-2.webp', '/images/about-slides/m1-3.webp', '/images/about-slides/m1-4.webp'] },
+  { id: 2, images: ['/images/about-slides/m2-1.webp', '/images/about-slides/m2-2.webp', '/images/about-slides/m2-3.webp', '/images/about-slides/m2-4.webp', '/images/about-slides/m2-5.webp'] },
+  { id: 3, images: ['/images/about-slides/m3-1.webp', '/images/about-slides/m3-2.webp', '/images/about-slides/m3-3.webp'] },
+  { id: 4, images: ['/images/about-slides/m4-1.webp', '/images/about-slides/m4-2.webp', '/images/about-slides/m4-3.webp', '/images/about-slides/m4-4.webp', '/images/about-slides/m4-5.webp'] },
+  { id: 5, images: ['/images/about-slides/m5-1.webp'] },
 ];
 
-// Star Wars opening-crawl copy (Matej OK 2026-06-08: full Hekthor story, EN master; SK saved for later i18n)
-const CRAWL_INTRO = 'Ten years ago, in a shelter in the heart of Europe….';
-const CRAWL_PARAS = [
-  'In 2016, eight black puppies arrived at the shelter, thrown away in a single box. Seven found a home. The biggest one nobody wanted — he waited a whole year. His name was Hekthor.',
-  'One day a couple came to the shelter to see Sindy, a small white female they wanted to adopt. By pure chance, Hekthor was in her kennel at the time — his own was just being cleaned. The man, who had only come along for the ride and never wanted a dog, fell in love with the black dog he was seeing for the very first time.',
-  'A week later the two of them were together, and a beautiful story began. The man’s whole life changed, and in time he understood one thing: only someone who has a dog, and knows what a dog’s love feels like, can truly help dogs in need.',
-  'And so the heroglyph was born — a symbol meant to unite doglovers everywhere into the largest community the world has ever known. A community that will stand for us, for our dogs, and for the generations to come — for people unafraid to admit that a dog is not just an animal, but a being that makes us better humans.',
-  'Right now, the journey to the first milestone begins — to create 1,000,000 heroglyphs. And you can be part of it. Because the only ones crazy enough to believe they can change the world are the ones who do.',
-  'In dog we trust.',
-];
+// Star Wars opening-crawl — 6 odsekov, plný Hekthorov príbeh. Text v i18n (about.crawl.p1..p6).
+const CRAWL_PARA_KEYS = ['about.crawl.p1', 'about.crawl.p2', 'about.crawl.p3', 'about.crawl.p4', 'about.crawl.p5', 'about.crawl.p6'];
 
 export default function About() {
+  const t = useT();
   const tlRef = useRef<HTMLDivElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -146,14 +98,15 @@ export default function About() {
   const swIntroRef = useRef<HTMLParagraphElement>(null);
   const swLogoRef = useRef<HTMLImageElement>(null);
   const swTextRef = useRef<HTMLDivElement>(null);
+  const stickyNavRef = useRef<HTMLDivElement>(null);
 
   // Deep-link from /pack "Join the Council" → scroll to the Council form.
   useEffect(() => {
     if (window.location.hash !== '#council') return;
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       document.getElementById('council')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 220);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, []);
 
   // Skip the cinematic crawl → land at the start of the story timeline.
@@ -250,6 +203,39 @@ export default function About() {
     };
   }, []);
 
+  // Sticky nav: the hero's PageTopBar dissolves with the cinematic opening, so
+  // there's no nav through the crawl (intended). From the Story section onward
+  // (= where "skip" lands), a fixed top-bar fades in and stays sticky for the
+  // rest of the page. Driven off the crawl section's bottom; metrics cached.
+  useEffect(() => {
+    const navEl = stickyNavRef.current;
+    const wrap = crawlRef.current;
+    if (!navEl || !wrap) return;
+    let raf = 0;
+    let crawlBottom = 0, vh = window.innerHeight;
+    const clamp = (v: number, a = 0, b = 1) => Math.min(Math.max(v, a), b);
+    const measure = () => { vh = window.innerHeight; crawlBottom = wrap.offsetTop + wrap.offsetHeight; };
+    const render = () => {
+      // Fade in over the last ~0.6vh of the crawl → fully shown as Story pins.
+      const o = clamp((window.scrollY - (crawlBottom - vh)) / (0.6 * vh));
+      navEl.style.opacity = String(o);
+      navEl.style.pointerEvents = o > 0.5 ? 'auto' : 'none';
+      navEl.style.transform = `translateY(${(o - 1) * 8}px)`;
+    };
+    const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+    const onResize = () => { measure(); onScroll(); };
+    measure(); render();
+    const t = setTimeout(() => { measure(); render(); }, 200);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onResize);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   // Pinned cinematic reveal (desktop): heading locks to centre, then each card
   // surfaces one-by-one in the centre as you scroll. Fully scroll-linked.
   useEffect(() => {
@@ -299,6 +285,7 @@ export default function About() {
       const wrapTop = pinTop - window.scrollY;
       const HEAD_SCALE = 0.92;          // fixed (narrower than the slide ≈ 72vw)
       const DOCK_TOP = 0.13;            // docked position (upper area) it settles at
+      const NAV_CLEAR = 50;             // px the heading+cards drop to clear the sticky nav
       const padTop = 0.04 * vh;         // .hpin-head padding-top: 4vh
       const approach = clamp((vh - wrapTop) / (1.0 * vh));   // 0 enter → 1 pin
       // rp: 0..1 across the glide (text receding), then 1..2 across the first
@@ -308,7 +295,7 @@ export default function About() {
       if (head) {
         const posT = easeIO(clamp((rp - 0.60) / 0.80));      // climb: low → dock
         const headOp = easeIO(clamp((rp - 0.55) / 0.55));    // gradual fade-in
-        const targetY = lerp(0.90 * vh, DOCK_TOP * vh, posT); // screen-top target
+        const targetY = lerp(0.90 * vh, DOCK_TOP * vh + NAV_CLEAR, posT); // screen-top target (cleared under nav)
         const y = targetY - HEAD_SCALE * padTop - Math.max(wrapTop, 0);
         head.style.transform = `translateY(${y}px) scale(${HEAD_SCALE})`;
         head.style.opacity = String(headOp);
@@ -332,7 +319,7 @@ export default function About() {
         const d = f - i;            // 0 = centred/active, <0 next (right), >0 past (left)
         const ad = Math.abs(d);
         card.style.opacity = ad < 1.5 ? '1' : '0';   // solid slides, no crossfade
-        card.style.transform = `translate(-50%, -50%) translateX(${-d * SPACING}px)`;
+        card.style.transform = `translate(-50%, calc(-50% + ${NAV_CLEAR}px)) translateX(${-d * SPACING}px)`;
         card.style.zIndex = String(Math.round(100 - ad * 10));
         card.style.pointerEvents = ad < 0.5 ? 'auto' : 'none';
       });
@@ -380,7 +367,7 @@ export default function About() {
           color: rgba(250,244,236,0.92); letter-spacing: 0.04em; margin: 0;
         }
         .hero-intro {
-          font-family: 'Inter', sans-serif; font-size: clamp(1rem, 1.25vw, 1.15rem); font-weight: 400;
+          font-family: 'Space Grotesk', sans-serif; font-size: clamp(1rem, 1.25vw, 1.15rem); font-weight: 400;
           color: rgba(250,244,236,0.72); line-height: 1.7; margin: 0; max-width: 540px;
           display: flex; flex-direction: column; gap: 0.7em;
         }
@@ -441,7 +428,9 @@ export default function About() {
         }
         .tl-h2 {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(2.5rem, 6vw, 5rem);
-          margin: 0; text-transform: uppercase; letter-spacing: 0.02em;
+          /* line-height + padding-top = headroom pre verzálkovú diakritiku (PRÍBEH/PŘÍBĚH),
+             inak background-clip:text oseká í/ř/ě nad veľkým písmenom. */
+          margin: 0; text-transform: uppercase; letter-spacing: 0.02em; line-height: 1.12; padding-top: 0.18em;
           background: linear-gradient(135deg, #F5C73D 0%, #FFB840 40%, #E69E1A 70%, #F5C73D 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           filter: drop-shadow(0 0 16px rgba(245,199,61,0.32));
@@ -484,7 +473,7 @@ export default function About() {
           padding: 3px 12px; border-radius: 999px; margin-bottom: 12px;
         }
         .tl-title { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(1.1rem, 1.7vw, 1.35rem); color: #FAF4EC; margin: 0 0 9px; letter-spacing: 0.01em; }
-        .tl-text { font-family: 'Inter', sans-serif; font-size: clamp(0.85rem, 1vw, 0.95rem); line-height: 1.65; color: rgba(250,244,236,0.76); margin: 0; }
+        .tl-text { font-family: 'Space Grotesk', sans-serif; font-size: clamp(0.85rem, 1vw, 0.95rem); line-height: 1.65; color: rgba(250,244,236,0.76); margin: 0; }
 
         .tl-node {
           position: absolute; width: 15px; height: 15px; border-radius: 50%; z-index: 3;
@@ -509,6 +498,19 @@ export default function About() {
         /* mobile timeline hidden on desktop (PC uses pinned carousel below) */
         @media (min-width: 768px) { .tl-section { display: none; } }
 
+        /* ── Sticky nav (appears from Story section onward) ── */
+        .about-sticky-nav {
+          position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+          opacity: 0; pointer-events: none; will-change: opacity, transform;
+          padding-bottom: 52px;            /* fade runway below the nav content */
+          background: #000;                /* solid black top → masked to nothing */
+          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+          /* 100% black to 70%, then gradual fade to transparent (masks bg + blur,
+             so no hard seam). */
+          -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+        }
+
         /* ===== PC PINNED CINEMATIC REVEAL ===== */
         /* ── Star Wars opening crawl (all viewports) ── */
         .swcrawl { position: relative; z-index: 2; }
@@ -524,17 +526,23 @@ export default function About() {
         .origin-title {
           /* size matched to Religion .codex-headline (the larger hero heading) so
              the main title is identical across pages. Mobile overridden below. */
-          font-family: 'Cinzel', serif; font-weight: 700; margin: 0; line-height: 1.02;
-          text-transform: uppercase; letter-spacing: 0.1em; padding-left: 0.1em;
+          font-family: 'Cinzel', serif; font-weight: 700; margin: 0; line-height: 1.08;
+          /* padding-top dáva headroom pre diakritiku (Ů/ô) — background-clip:text inak
+             oseká krúžok/striešku nad veľkým písmenom (gradient nepokryje, fill=transparent). */
+          text-transform: uppercase; letter-spacing: 0.1em; padding: 0.2em 0 0 0.1em;
           font-size: clamp(2.85rem, 6.84vw, 5.32rem);
           background: linear-gradient(135deg, #F5C73D 0%, #FFB840 38%, #E69E1A 70%, #F5C73D 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           filter: drop-shadow(0 0 26px rgba(245,199,61,0.42)) drop-shadow(0 0 7px rgba(230,158,26,0.5));
         }
         .origin-sub {
-          font-family: 'Cinzel', serif; font-weight: 400; margin: 0; text-transform: uppercase;
-          font-size: clamp(0.8rem, 1.5vw, 1.05rem); letter-spacing: 0.34em; padding-left: 0.34em;
-          color: rgba(250,244,236,0.62);
+          /* Veta / scroll-cue, NIE nadpis → Space Grotesk (sekundárny font), nie Cinzel.
+             Symetrické tmavé halo drží tenkú diakritiku (ČÍTAJ/POSUŇ) čitateľnú proti
+             busy hieroglyf pozadiu — nie je to background-clip clip, len kontrast. */
+          font-family: 'Space Grotesk', sans-serif; font-weight: 500; margin: 0; text-transform: uppercase;
+          font-size: clamp(0.82rem, 1.5vw, 1.05rem); letter-spacing: 0.22em; padding-left: 0.22em;
+          color: rgba(250,244,236,0.92);
+          text-shadow: 0 0 3px rgba(0,0,0,0.95), 0 0 9px rgba(0,0,0,0.9), 0 1px 6px rgba(0,0,0,0.75);
         }
         .scroll-cue { display: flex; flex-direction: column; align-items: center; color: #E6B84A; margin-top: clamp(10px, 2.2vh, 22px); }
         .scroll-cue svg { display: block; margin-top: -18px; opacity: 0.32; filter: drop-shadow(0 0 10px rgba(230,184,74,0.6)); animation: scrollCue 1.6s ease-in-out infinite; }
@@ -574,13 +582,13 @@ export default function About() {
         .about-skip {
           position: absolute; left: 50%; bottom: 64px; transform: translateX(-50%);
           z-index: 5; pointer-events: auto; cursor: pointer; background: none; border: none;
-          font-family: 'Cinzel', serif; font-weight: 400; text-transform: uppercase;
-          letter-spacing: 0.28em; padding-left: 0.28em;
-          font-size: clamp(0.66rem, 1.1vw, 0.78rem); color: rgba(250,244,236,0.42);
+          font-family: 'Space Grotesk', sans-serif; font-weight: 500; text-transform: uppercase;
+          letter-spacing: 0.18em; padding-left: 0.18em;
+          font-size: clamp(0.66rem, 1.1vw, 0.78rem); color: rgba(250,244,236,0.62);
           transition: color 0.25s ease;
         }
         .about-skip:hover { color: #E6B84A; }
-        .about-skip { text-shadow: 0 1px 8px rgba(0,0,0,0.8); }
+        .about-skip { text-shadow: 0 0 3px rgba(0,0,0,0.9), 0 1px 8px rgba(0,0,0,0.8); }
 
         @media (max-width: 767px) {
           /* lift the whole text block (title+sub+arrows) to the same start
@@ -728,6 +736,11 @@ export default function About() {
         style={{ position: 'fixed', inset: 0, background: '#000', opacity: 0, zIndex: 1, pointerEvents: 'none' }}
       />
 
+      {/* Sticky nav — hidden during hero+crawl, fades in from the Story section on. */}
+      <div className="about-sticky-nav" ref={stickyNavRef}>
+        <PageTopBar withNav />
+      </div>
+
       {/* ───────── OPENING — hero dissolve → Star Wars crawl (single sticky pin) ───────── */}
       <section className="swcrawl" ref={crawlRef} style={{ height: '340vh' }}>
         <div className="swcrawl-sticky">
@@ -748,8 +761,8 @@ export default function About() {
             this (handled by heroRef fade) → darken → purple intro → crawl. */}
         {/* Centered, thin band: big title + small slide cue. No body copy. */}
         <div className="scroll-intro" style={{ zIndex: 3 }}>
-          <h1 className="origin-title">The<br />Origin</h1>
-          <p className="origin-sub">Slide and read</p>
+          <h1 className="origin-title" dangerouslySetInnerHTML={{ __html: t('about.origin.title') }} />
+          <p className="origin-sub">{t('about.origin.sub')}</p>
           <div className="scroll-cue" aria-hidden>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
@@ -757,18 +770,18 @@ export default function About() {
           </div>
           {/* Clickable skip — desktop: low on screen (absolute); mobile: under the arrows (static). */}
           <button type="button" className="about-skip" onClick={skipIntro}>
-            or skip
+            {t('about.origin.skip')}
           </button>
         </div>
           </div>
 
-          <p className="sw-intro" ref={swIntroRef}>{CRAWL_INTRO}</p>
+          <p className="sw-intro" ref={swIntroRef}>{t('about.crawl.intro')}</p>
           <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.png" alt="DOGYPT" />
           <div className="sw-stage">
             <div className="sw-crawl-text" ref={swTextRef}>
-              <p className="sw-episode">Episode I</p>
-              <h2 className="sw-ctitle">A New Faith</h2>
-              {CRAWL_PARAS.map((para, i) => <p key={i}>{para}</p>)}
+              <p className="sw-episode">{t('about.crawl.episode')}</p>
+              <h2 className="sw-ctitle">{t('about.crawl.faith')}</h2>
+              {CRAWL_PARA_KEYS.map((k) => <p key={k}>{t(k)}</p>)}
             </div>
           </div>
         </div>
@@ -778,18 +791,18 @@ export default function About() {
       <section className="hpin" style={{ height: `${(MILESTONES.length + 1) * 100}vh`, marginTop: '-100vh' }} ref={pinRef}>
         <div className="hpin-sticky">
           <div className="hpin-head">
-            <h2 className="tl-h2">The Story of Dogypt</h2>
+            <h2 className="tl-h2">{t('about.timeline.heading')}</h2>
           </div>
           <div className="hpin-stage" ref={trackRef}>
             {MILESTONES.map((m) => (
               <article key={m.id} className="hcard">
                 <div className="hcard-photo">
-                  <SlideReel images={m.images} alt={m.tag} />
+                  <SlideReel images={m.images} alt={t(`about.milestone.${m.id}.tag`)} />
                 </div>
                 <div className="hcard-text">
-                  <span className="tl-year">{m.year}</span>
-                  <h3 className="tl-title">{m.title}</h3>
-                  <p className="tl-text">{m.body}</p>
+                  <span className="tl-year">{t(`about.milestone.${m.id}.year`)}</span>
+                  <h3 className="tl-title">{t(`about.milestone.${m.id}.title`)}</h3>
+                  <p className="tl-text">{t(`about.milestone.${m.id}.body`)}</p>
                 </div>
               </article>
             ))}
@@ -805,7 +818,7 @@ export default function About() {
       {/* ───────────── TIMELINE — mobile: vertical ───────────── */}
       <section className="tl-section">
         <div className="tl-head">
-          <h2 className="tl-h2">The Story of Dogypt</h2>
+          <h2 className="tl-h2">{t('about.timeline.heading')}</h2>
         </div>
 
         <div className="tl" ref={tlRef}>
@@ -815,12 +828,12 @@ export default function About() {
               <span className="tl-conn" />
               <article className="tl-card">
                 <div className="tl-img">
-                  <SlideReel images={m.images} alt={m.tag} />
+                  <SlideReel images={m.images} alt={t(`about.milestone.${m.id}.tag`)} />
                 </div>
                 <div className="tl-body-wrap">
-                  <span className="tl-year">{m.year}</span>
-                  <h3 className="tl-title">{m.title}</h3>
-                  <p className="tl-text">{m.body}</p>
+                  <span className="tl-year">{t(`about.milestone.${m.id}.year`)}</span>
+                  <h3 className="tl-title">{t(`about.milestone.${m.id}.title`)}</h3>
+                  <p className="tl-text">{t(`about.milestone.${m.id}.body`)}</p>
                 </div>
               </article>
             </div>
@@ -834,13 +847,13 @@ export default function About() {
       {/* ───────── OUTRO HERO ───────── */}
       <section className="about-outro" style={{ textAlign: 'center' }}>
         <div className="flex flex-col" style={{ alignItems: 'center', gap: 'clamp(16px, 2.6vh, 24px)', maxWidth: 820 }}>
-          <h1 className="about-quote"><span className="aq-white">It Was Never</span> "Just a Dog."</h1>
+          <h1 className="about-quote"><span className="aq-white">{t('about.outro.quoteLead')}</span> {t('about.outro.quoteTail')}</h1>
           <div className="hero-intro" style={{ textAlign: 'center', alignItems: 'center', maxWidth: '100%' }}>
-            <p>You already know the feeling — that a dog isn't something you own, it's <strong>someone you love</strong>. Now imagine that love organized, connected, <strong>powerful enough to change things.</strong> And that's why <strong>DOGYPT</strong> exists.</p>
+            <p dangerouslySetInnerHTML={{ __html: t('about.outro.body') }} />
           </div>
-          <p className="about-signoff">Matej <span className="amp">and</span> Hekthor</p>
+          <p className="about-signoff">{t('about.outro.name1')} <span className="amp">{t('about.outro.and')}</span> {t('about.outro.name2')}</p>
           <a href="/heroglyph" className="btn-gold" style={{ marginTop: 8 }}>
-            Become Dogyptian
+            {t('about.outro.cta')}
           </a>
         </div>
       </section>

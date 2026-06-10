@@ -158,9 +158,9 @@ export function HeroglyphRevealScreen() {
                 aria-label={t('heroglyph.flow.reveal.infoAria')}
                 onClick={() => setShowInfo((p) => !p)}
               >
-                <span className="w-7 h-7 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
+                <span className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${showInfo ? 'border-foreground/40 hover:border-foreground/70' : 'border-white/40 hover:border-white/70'}`}>
                   {showInfo
-                    ? <X className="h-4 w-4 text-white/70" />
+                    ? <X className="h-4 w-4 text-foreground/70" />
                     : <Info className="h-4 w-4 text-white/80" />}
                 </span>
               </button>
@@ -234,9 +234,9 @@ export function HeroglyphRevealScreen() {
                 aria-label={t('heroglyph.flow.reveal.infoAria')}
                 onClick={() => setShowInfo((p) => !p)}
               >
-                <span className="w-6 h-6 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
+                <span className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${showInfo ? 'border-foreground/40 hover:border-foreground/70' : 'border-white/40 hover:border-white/70'}`}>
                   {showInfo
-                    ? <X className="h-3 w-3 text-white/70" />
+                    ? <X className="h-3 w-3 text-foreground/70" />
                     : <Info className="h-3 w-3 text-white/80" />}
                 </span>
               </button>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useT } from '@/i18n/LanguageContext';
 import { TestimonialsColumn, type Testimonial } from './TestimonialsColumn';
 
 /**
@@ -374,6 +375,11 @@ const POOL: CelebQuote[] = [
 
 const VISIBLE = 21; // random subset shown per page load (7 per column on desktop)
 
+// i18n kľúč citátu zo slugu mena (POOL je module-level → preklad až pri renderi).
+// EN text v POOL = canonical verbatim; preklady v locale slovníkoch sú preklady citátu.
+const quoteSlug = (name: string) =>
+  name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z]+/g, '-');
+
 function shuffle<T>(arr: readonly T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -384,6 +390,7 @@ function shuffle<T>(arr: readonly T[]): T[] {
 }
 
 export function TestimonialsSection() {
+  const t = useT();
   // Shuffle + pick a random subset once per mount → line-up changes each refresh.
   const { columns } = useMemo(() => {
     const picked = shuffle(POOL).slice(0, VISIBLE);
@@ -392,6 +399,13 @@ export function TestimonialsSection() {
       columns: [picked.slice(0, per), picked.slice(per, per * 2), picked.slice(per * 2)],
     };
   }, []);
+
+  // Preklad pri renderi (nie v useMemo) → reaguje na zmenu jazyka bez re-shuffle.
+  const localize = (q: CelebQuote): Testimonial => ({
+    ...q,
+    text: t(`about.legends.q.${quoteSlug(q.name)}.text`),
+    role: t(`about.legends.q.${quoteSlug(q.name)}.role`),
+  });
 
   return (
     <section
@@ -418,15 +432,17 @@ export function TestimonialsSection() {
               backgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.32))',
+              // headroom pre diakritiku nad verzálkami (background-clip:text by ju osekol)
+              paddingTop: '0.12em',
             }}
           >
-            EVEN LEGENDS KNELT
+            {t('about.legends.title')}
           </h2>
           <p
             className="mt-4 max-w-xl text-base md:text-lg"
-            style={{ color: 'rgba(250,244,236,0.76)', fontFamily: "'Inter', sans-serif", lineHeight: 1.65 }}
+            style={{ color: 'rgba(250,244,236,0.76)', fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.65 }}
           >
-            The most powerful humans who ever lived all bowed to the same quiet teacher — and they wrote it down.
+            {t('about.legends.sub')}
           </p>
         </motion.div>
 
@@ -434,24 +450,24 @@ export function TestimonialsSection() {
           className="flex justify-center gap-6 [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]"
           style={{ maxHeight: '640px', overflow: 'hidden' }}
         >
-          <TestimonialsColumn testimonials={columns[0]} duration={48} />
-          <TestimonialsColumn testimonials={columns[1]} className="hidden md:block" duration={56} />
-          <TestimonialsColumn testimonials={columns[2]} className="hidden lg:block" duration={52} />
+          <TestimonialsColumn testimonials={columns[0].map(localize)} duration={48} />
+          <TestimonialsColumn testimonials={columns[1].map(localize)} className="hidden md:block" duration={56} />
+          <TestimonialsColumn testimonials={columns[2].map(localize)} className="hidden lg:block" duration={52} />
         </div>
 
         {/* CC attribution — required for the Wikimedia Commons portraits (CC BY / BY-SA / public domain) */}
         <details className="mt-10 mx-auto max-w-2xl text-center">
           <summary
             className="cursor-pointer text-[11px] tracking-wide select-none"
-            style={{ color: 'rgba(250,244,236,0.4)', fontFamily: "'Inter', sans-serif" }}
+            style={{ color: 'rgba(250,244,236,0.4)', fontFamily: "'Space Grotesk', sans-serif" }}
           >
-            Quotes from public interviews · Photo credits
+            {t('about.legends.creditsSummary')}
           </summary>
           <p
             className="mt-3 text-[10px] leading-relaxed"
-            style={{ color: 'rgba(250,244,236,0.32)', fontFamily: "'Inter', sans-serif" }}
+            style={{ color: 'rgba(250,244,236,0.32)', fontFamily: "'Space Grotesk', sans-serif" }}
           >
-            Portraits via Wikimedia Commons under Creative Commons / public-domain licenses.{' '}
+            {t('about.legends.creditsIntro')}{' '}
             {POOL.map((q) => `${q.name} — ${q.credit}`).join(' · ')}
           </p>
         </details>
