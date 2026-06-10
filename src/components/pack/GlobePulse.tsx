@@ -15,7 +15,7 @@ const MILESTONES = [
   { name: 'The Founders', target: 1_000 },
   { name: 'The Pack', target: 10_000 },
   { name: 'The Nation', target: 100_000 },
-  { name: 'The Pantheon', target: 1_000_000 },
+  { name: 'The Dynasty', target: 1_000_000 }, // 1M Heroglyfov otvára II. dynastiu; každý ďalší milión = ďalšia dynastia (kánon: ústava čl. 1.3)
 ] as const;
 
 const RING_R = 47;

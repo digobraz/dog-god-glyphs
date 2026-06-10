@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Camera, Crown } from 'lucide-react';
+import { Camera, Crown, Bone, Lock } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 
@@ -9,19 +9,52 @@ const AVATAR_SIZE = 164;
 // Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
 const STORY_RING = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
 
+// DEVOTION ladder — PLACEHOLDER názvy + prahy (kánon = ďalšia session, treba potvrdiť Matejom).
+// 11 úrovní; Pharaoh (11) sa NEdosahuje bodmi — je menovaný.
+const DEVOTION_LEVELS = [
+  { name: 'Stray', at: 0 },      // nový člen štartuje na 100 = Lvl 1
+  { name: 'Pup', at: 250 },
+  { name: 'Follower', at: 750 },
+  { name: 'Disciple', at: 1750 },
+  { name: 'Devotee', at: 3500 },
+  { name: 'Acolyte', at: 6500 },
+  { name: 'Keeper', at: 12000 },
+  { name: 'Priest', at: 22000 },
+  { name: 'High Priest', at: 40000 },
+  { name: 'Vizier', at: 75000 },
+  { name: 'Pharaoh', at: Infinity }, // menovaný, nedá sa nabodovať
+] as const;
+
+function devotionLevel(d: number) {
+  let i = 0;
+  for (let k = 0; k < DEVOTION_LEVELS.length; k++) {
+    if (d >= DEVOTION_LEVELS[k].at) i = k;
+  }
+  const cur = DEVOTION_LEVELS[i];
+  const next = DEVOTION_LEVELS[i + 1] ?? null;
+  const span = next ? next.at - cur.at : 0;
+  const pct = next && span > 0 && isFinite(span)
+    ? Math.max(0, Math.min(100, ((d - cur.at) / span) * 100))
+    : 100;
+  const toNext = next && isFinite(next.at) ? Math.max(0, next.at - d) : 0;
+  return { index: i + 1, name: cur.name, next, pct, toNext };
+}
+
 interface HeroCardProps {
   name: string;
   email: string;
   avatarUrl: string | null;
   /** Faraón line-art placeholder podľa pohlavia majiteľa (selections.ownerGender) keď chýba reálna fotka */
   genderPlaceholder?: 'man' | 'woman' | null;
-  /** Devotion points — placeholder hodnota, point systém = ďalšia session */
-  points?: number;
+  /** DEVOTION — sakrálna mena ranku. Placeholder; plný systém = ďalšia session. */
+  devotion?: number;
+  /** $BONE balance — placeholder; ekonomika = ďalšia session. */
+  bones?: number;
   /** Pack pulse pre notifikačný bell (top-right). Nezobrazí sa kým nedôjdu stats. */
   stats?: { last24h: number; last30d: number; total: number } | null;
 }
 
-export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, points = 1000000, stats = null }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null }: HeroCardProps) {
   const initial = name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
@@ -177,14 +210,15 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, poi
         >
           {name}
         </div>
-        {/* Badge riadok — LEVEL (Pharaoh, filled zlato-fialový) + STATUS (Handler, outline).
-            Dve nezávislé osi profilu; level systém = brainstorm ďalšia session. */}
-        <div className="mt-3 flex items-center justify-center gap-2 flex-wrap">
+        {/* Badge riadok — STATUS (Pawtner) + LEVEL (Pharaoh) + BONES (minca).
+            grid-cols-3 = tri totožné stĺpce; každý badge w-full + centrovaný = rovnaká veľkosť.
+            Celé full width = šírka status baru pod ním. */}
+        <div className="mt-3 grid grid-cols-3 gap-2 w-full">
           {/* STATUS */}
           <div
-            className="inline-flex items-center gap-1.5"
+            className="flex w-full items-center justify-center gap-1.5"
             style={{
-              padding: '7px 14px',
+              padding: '7px 6px',
               borderRadius: 999,
               background: 'transparent',
               border: `1px solid ${T.border}`,
@@ -196,6 +230,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, poi
                 width: 5,
                 height: 5,
                 borderRadius: '50%',
+                flexShrink: 0,
                 background: T.accentGold ?? 'hsl(40 55% 50%)',
                 boxShadow: '0 0 6px rgba(201, 154, 63, 0.6)',
               }}
@@ -203,35 +238,35 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, poi
             <span
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: '0.26em',
+                letterSpacing: '0.16em',
                 textTransform: 'uppercase',
                 color: T.ink,
               }}
             >
-              Handler
+              Pawtner
             </span>
           </div>
 
           {/* LEVEL */}
           <div
-            className="inline-flex items-center gap-2"
+            className="flex w-full items-center justify-center gap-1.5"
             style={{
-              padding: '7px 16px',
+              padding: '7px 6px',
               borderRadius: 999,
               background: 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)',
               border: '1px solid rgba(201, 154, 63, 0.55)',
               boxShadow: '0 5px 18px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
             }}
           >
-            <Crown className="h-3.5 w-3.5" style={{ color: 'hsl(45 92% 82%)' }} />
+            <Crown className="h-3 w-3 shrink-0" style={{ color: 'hsl(45 92% 82%)' }} />
             <span
               style={{
                 fontFamily: "'Cinzel', serif",
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: 700,
-                letterSpacing: '0.26em',
+                letterSpacing: '0.16em',
                 textTransform: 'uppercase',
                 color: '#FFF6E6',
                 textShadow: '0 1px 4px rgba(0,0,0,0.35)',
@@ -240,35 +275,109 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, poi
               Pharaoh
             </span>
           </div>
+
+          {/* BONES — minca + kostička (presunuté hore vedľa Pharaoh) */}
+          <div
+            className="flex w-full items-center justify-center gap-1.5"
+            title="Bones"
+            aria-label={`${bones} bones`}
+            style={{
+              padding: '7px 6px',
+              borderRadius: 999,
+              background: 'transparent',
+              border: `1px solid ${T.border}`,
+            }}
+          >
+            <span
+              aria-hidden
+              style={{
+                width: 17, height: 17, borderRadius: '50%', flexShrink: 0,
+                background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
+                border: '1px solid rgba(120,90,30,0.7)',
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
+              }}
+            >
+              <Bone style={{ width: 9, height: 9, color: '#5A3F12' }} />
+            </span>
+            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: T.ink }}>
+              {bones.toLocaleString('sk-SK')}
+            </span>
+          </div>
         </div>
 
-        {/* Devotion points — pod badge. Placeholder; point systém = ďalšia session. */}
-        <div className="mt-4 flex items-baseline justify-center gap-1.5">
-          <span
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 22,
-              fontWeight: 700,
-              letterSpacing: '0.02em',
-              color: T.accentGold,
-              lineHeight: 1,
-            }}
-          >
-            {points.toLocaleString('sk-SK')}
-          </span>
-          <span
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.26em',
-              textTransform: 'uppercase',
-              color: T.inkDim,
-            }}
-          >
-            points
-          </span>
+        {/* 12 odznakov — PLACEHOLDER (locked), jeden rad vo veľkosti mince. Namapujú sa podľa
+            STAREJ ÚSTAVY (psie preteky, poslušnosť, krajiny…) — za ne sa zbierajú DEVOTION body. */}
+        <div className="mt-4 grid grid-cols-12 gap-1 w-full">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <span
+              key={i}
+              title="Coming soon"
+              aria-label={`Achievement ${i + 1} — locked`}
+              className="flex items-center justify-center"
+              style={{
+                width: '100%',
+                maxWidth: 20,
+                aspectRatio: '1 / 1',
+                marginInline: 'auto',
+                borderRadius: '50%',
+                border: `1px dashed ${T.border}`,
+                background: 'rgba(201,154,63,0.05)',
+                color: T.inkFaint,
+              }}
+            >
+              <Lock style={{ width: 9, height: 9 }} />
+            </span>
+          ))}
         </div>
+
+        {/* DEVOTION status bar + progress — pod badge.
+            PLACEHOLDER hodnoty + ladder; plný systém = ďalšia session. */}
+        {(() => {
+          const lv = devotionLevel(devotion);
+          return (
+            <div className="hc-dev mt-4 w-full">
+              <style>{`
+                .hc-bar { position: relative; cursor: default; outline: none; }
+                .hc-bar .hc-tip {
+                  position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
+                  white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s ease;
+                  background: rgba(20,16,8,0.96); color: #FAF4EC; z-index: 5;
+                  font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+                  padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(201,154,63,0.45);
+                  box-shadow: 0 8px 22px -8px rgba(0,0,0,0.6);
+                }
+                .hc-bar:hover .hc-tip, .hc-bar:focus-visible .hc-tip { opacity: 1; }
+              `}</style>
+
+              {/* DEVOTION status bar — full width (ako badge nad ním); vnútri vycentrované iba číslo + ankh.
+                  Hover = label „Devotion". Fill = progress na ďalšiu úroveň. */}
+              <div
+                className="hc-bar w-full"
+                tabIndex={0}
+                role="img"
+                aria-label={`Devotion ${devotion.toLocaleString('sk-SK')}, level ${lv.index} ${lv.name}`}
+                style={{ position: 'relative', height: 34, borderRadius: 999, overflow: 'hidden', background: T.hairline, border: `1px solid ${T.border}` }}
+              >
+                <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(270 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
+                <div className="relative h-full flex items-center justify-center gap-1.5">
+                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1, letterSpacing: '0.02em', textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>
+                    {devotion.toLocaleString('sk-SK')}
+                  </span>
+                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, color: T.ink, lineHeight: 1, textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>☥</span>
+                </div>
+                <span className="hc-tip">Devotion</span>
+              </div>
+
+              {/* body do ďalšej (2.) úrovne — vpravo pod barom, malým */}
+              <div style={{ textAlign: 'right', marginTop: 5 }}>
+                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>
+                  {lv.next ? <>{lv.toNext.toLocaleString('sk-SK')} ☥ to {lv.next.name}</> : 'Highest devotion reached'}
+                </span>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </section>
   );

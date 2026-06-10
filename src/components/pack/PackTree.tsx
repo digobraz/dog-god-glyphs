@@ -467,7 +467,7 @@ function PackActions() {
           padding: '13px 16px',
           fontFamily: "'Cinzel', serif",
           fontSize: 11,
-          fontWeight: 700,
+          fontWeight: 800,
           letterSpacing: '0.12em',
           textTransform: 'uppercase',
           textDecoration: 'none',
@@ -479,7 +479,7 @@ function PackActions() {
         Add dog
       </Link>
 
-      {/* Add human member — pack roles (Handler / Member) prídu s appkou; teraz disabled seed.
+      {/* Add human member — pack roles (Pawtner / Member) prídu s appkou; teraz disabled seed.
           "Coming soon" = hover tooltip (group-hover), nie stály text. */}
       <span className="group relative flex-1">
         <button

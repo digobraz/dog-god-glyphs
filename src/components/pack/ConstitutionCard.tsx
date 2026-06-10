@@ -86,7 +86,8 @@ export function ConstitutionCard() {
             maxWidth: 240,
           }}
         >
-          What DOGYPT is all about.
+          The foundation of the whole faith — every Dogyptian should read it.
+          The philosophy, the logic, and how devotion works all begin here.
         </div>
       </div>
     </a>

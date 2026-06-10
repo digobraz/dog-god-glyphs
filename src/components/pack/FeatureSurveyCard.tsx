@@ -159,8 +159,9 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
   };
 
   // Swipe handling — pointer drag; klik na tlačidlo nesmie spustiť swipe (threshold).
-  const next = () => setIdx((i) => Math.min(FEATURES.length - 1, i + 1));
-  const prev = () => setIdx((i) => Math.max(0, i - 1));
+  // Infinity scroll — wrap-around, aby sa človek nemusel vracať.
+  const next = () => setIdx((i) => (i + 1) % FEATURES.length);
+  const prev = () => setIdx((i) => (i - 1 + FEATURES.length) % FEATURES.length);
 
   const dragStart = useRef<number | null>(null);
   const dragDelta = useRef(0);
@@ -313,10 +314,10 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
 
                       {/* navigačné šípky na obrázku */}
                       <div style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)' }}>
-                        <NavArrow dir="left" disabled={idx === 0} onClick={prev} />
+                        <NavArrow dir="left" disabled={false} onClick={prev} />
                       </div>
                       <div style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)' }}>
-                        <NavArrow dir="right" disabled={idx === FEATURES.length - 1} onClick={next} />
+                        <NavArrow dir="right" disabled={false} onClick={next} />
                       </div>
                     </div>
 

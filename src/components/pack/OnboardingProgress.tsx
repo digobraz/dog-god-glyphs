@@ -127,7 +127,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
           }}
         >
           Complete all First Steps ={' '}
-          <strong style={{ fontWeight: 800 }}>+10 points</strong> to your profile.
+          <strong style={{ fontWeight: 800 }}>+10 ☥ Devotion</strong> to your profile.
         </span>
       </div>
     </div>

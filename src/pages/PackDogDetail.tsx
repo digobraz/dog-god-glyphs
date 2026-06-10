@@ -830,7 +830,7 @@ export default function PackDogDetail() {
         </div>
 
         {/* ============================================================= */}
-        {/* SECTIONS NAV — bottom launcher (replaces standalone album)      */}
+        {/* SECTIONS NAV — 5 dlaždíc v jednom bloku, bez nadpisu (3. v poradí) */}
         {/* ============================================================= */}
         <section
           style={{
@@ -841,7 +841,6 @@ export default function PackDogDetail() {
             boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
           }}
         >
-          <SectionHeading icon={<PawPrint className="h-3 w-3" />} label="Sections" />
           <div className="grid grid-cols-5 gap-2">
             <HubTile
               icon="paw"
