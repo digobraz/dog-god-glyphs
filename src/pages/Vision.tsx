@@ -4,7 +4,6 @@ import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-h
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
 import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
-import { VisionRoadmap } from '@/components/pack/VisionRoadmap';
 
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
 type PillData = { icon: string; label: string; tooltip: string; status: PillStatus };
@@ -1628,13 +1627,6 @@ export default function Vision() {
           >
             {t('vision.finale.tagline')}
           </p>
-        </div>
-      </section>
-
-      {/* Roadmap — the very last section. Voting persists for signed-in pack members. */}
-      <section style={{ background: '#050505', padding: '40px 16px 64px' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
-          <VisionRoadmap />
         </div>
       </section>
 
