@@ -1,0 +1,776 @@
+import type { Dict } from '../LanguageContext';
+/** DOGYPT i18n — RU dictionary (machine translation, pending human review). Partial<Dict>: missing key falls back to EN. */
+export const rus: Partial<Dict> = {
+  // ── /vision — hero ──
+  'vision.hero.title': 'Видение',
+  'vision.hero.watch': 'Смотреть интро-фильм Dogypt',
+  'vision.hero.videoTitle': 'Интро-фильм DOGYPT',
+  'vision.hero.playLabel': 'Воспроизвести интро-фильм Dogypt',
+
+  // ── /vision — WHAT IF beaty ──
+  // beat 0 (intro)
+  'vision.beat.dream.bigW': 'У МЕНЯ БЫЛА',
+  'vision.beat.dream.bigG': 'МЕЧТА',
+  'vision.beat.dream.tag': 'У МЕНЯ БЫЛА МЕЧТА',
+  'vision.intro.lead':
+    'В 2018 году у меня было <span class="wf-hl">видение</span>, как <span class="wf-hl">спасти каждую собаку на Земле</span>. И на самом деле всё просто — каждый, кто любит собак, <span class="wf-hl">объединяется в одно сообщество</span>, такое, которое видит в собаке <span class="wf-hl">нечто большее, чем просто животное</span>. И вот мы здесь…',
+
+  // beat 1
+  'vision.beat.symbol.bigW': 'ЭТОТ',
+  'vision.beat.symbol.bigG': 'СИМВОЛ',
+  'vision.beat.symbol.tag': 'СИМВОЛ',
+  'vision.beat.symbol.h':
+    'Наш язык любви — это <span class="wf-hl">пёс</span>. И помимо своего обычного имени, каждая собака несёт собственный <span class="wf-hl">уникальный символ</span> — <span class="wf-hl">HEROGLYPH</span>. Это <span class="wf-hl">универсальный язык</span>, <span class="wf-hl">священный инструмент</span>, чтобы объединить каждого любителя собак на Земле.',
+
+  // beat 2
+  'vision.beat.nation.bigW': 'СОБАЧЬЯ',
+  'vision.beat.nation.bigG': 'НАЦИЯ',
+  'vision.beat.nation.tag': 'СОБАЧЬЯ НАЦИЯ',
+  'vision.beat.nation.h':
+    'Давайте сотворим <span class="wf-hl">чудо</span>. Наша первая веха: объединить <span class="wf-hl">миллион любителей собак</span>. Представьте <span class="wf-hl">всю мощь</span>, которой мы обладали бы вместе — всё, что мы могли бы сделать для себя, наших собак и <span class="wf-hl">собак в беде</span>, превыше любого государства. <span class="wf-hl">Мы и были бы государством.</span>',
+
+  // beat 3
+  'vision.beat.temple.bigW': 'ЦИФРОВОЙ',
+  'vision.beat.temple.bigG': 'ХРАМ',
+  'vision.beat.temple.tag': 'ЦИФРОВОЙ ХРАМ',
+  'vision.beat.temple.h':
+    'Одно приложение, <span class="wf-hl">только для настоящих любителей собак</span> — никаких фальшивых людей. Первый <span class="wf-hl">дружелюбный к собакам цифровой мир</span>, созданный только для нас: социальный дом и экосистема, которая по-настоящему помогает — <span class="wf-hl">путешествия, ветеринары, услуги, образование</span> и <span class="wf-hl">сборы средств</span> для собак в беде.',
+
+  // beat 4
+  'vision.beat.centers.bigW': 'НАСТОЯЩИЕ',
+  'vision.beat.centers.bigG': 'ЦЕНТРЫ',
+  'vision.beat.centers.tag': 'НАСТОЯЩИЕ ЦЕНТРЫ',
+  'vision.beat.centers.h':
+    'Старый приют управлял страданием. <span class="wf-hl">Святилище</span> кладёт ему конец. Настоящие центры по всему миру для <span class="wf-hl">заботы, дрессировки и исследований</span> — финансируемые <span class="wf-hl">открыто</span>, каждый счёт на виду.',
+
+  // beat 5
+  'vision.beat.era.bigW': 'НОВАЯ',
+  'vision.beat.era.bigG': 'ЭРА',
+  'vision.beat.era.tag': 'НОВАЯ ЭРА',
+  'vision.beat.era.h':
+    'Превыше границ и политики, любители собак — это <span class="wf-hl">самая добрая скрытая сила</span> Земли. Только вместе мы можем <span class="wf-hl">перестроить систему</span> и изменить мир — и оставить после себя то, что защитит наших собак <span class="wf-hl">навсегда</span>.',
+
+  // ── /vision — finále CTA ──
+  'vision.finale.title': 'А что, если…',
+  'vision.finale.lead':
+    '…каждый любитель собак сказал бы <span style="color:#F5C73D;font-style:italic">да</span> одной безумной идее?',
+  'vision.finale.cta': 'Стать Dogyptian',
+  'vision.finale.tagline': 'Новая эра всего в одном клике.',
+
+  // ── /heroglyph intro ──
+  'heroglyph.intro.title.line1': 'Этот',
+  'heroglyph.intro.title.line2': 'Символ',
+  'heroglyph.intro.title.desktop': 'Этот Символ',
+  'heroglyph.intro.title.sub': 'Который Меняет Историю',
+
+  // dictionary blok ("DOG is GOD" = MOTTO → ostáva EN)
+  'heroglyph.intro.word': 'Heroglyph',
+  'heroglyph.intro.ipa': '[ˈhɪr-oʊ-ɡlɪf]',
+  'heroglyph.intro.noun': 'существительное',
+  'heroglyph.intro.definition':
+    'Уникальный символ, описывающий тебя и твою собаку, вашу вечную связь. А также билет в DOGYPT — место, где DOG is GOD.',
+
+  // Heroglyph slovo tooltip
+  'heroglyph.intro.wordTooltip': 'HERO = ПЁС · GLYPH = СИМВОЛ',
+  'heroglyph.intro.wordTooltipSub': 'Имя БОГА для каждого ПСА.',
+
+  // CTA + outro
+  'heroglyph.intro.cta': 'Стать Dogyptian',
+  'heroglyph.intro.outro': 'Любители собак, в строй!',
+  'heroglyph.intro.loading': 'Загрузка…',
+
+  // pills rad 1
+  'heroglyph.intro.pill.questions.label': '12 вопросов',
+  'heroglyph.intro.pill.questions.tooltip': 'Двенадцать быстрых ответов о твоей собаке.',
+  'heroglyph.intro.pill.minutes.label': '3 минуты',
+  'heroglyph.intro.pill.minutes.tooltip': 'Интерактивный квиз, полный веселья.',
+  'heroglyph.intro.pill.forever.label': 'Навсегда на DOGYPT.com',
+  'heroglyph.intro.pill.forever.tooltip':
+    'Имя твоей собаки навсегда в твоём сердце — и в цифровом мире.',
+
+  // pills rad 2 (MOTTO IN DOG WE TRUST ostáva EN)
+  'heroglyph.intro.pill.unique.label': 'Единственный в своём роде',
+  'heroglyph.intro.pill.unique.tooltip': 'Нет двух одинаковых heroglyph — каждый символ уникален!',
+  'heroglyph.intro.pill.vow.label': 'Клятва Веры',
+  'heroglyph.intro.pill.vow.tooltip': 'Твой знак верности пути Dogyptian — IN DOG WE TRUST!',
+  'heroglyph.intro.pill.bond.label': 'Вечная Связь',
+  'heroglyph.intro.pill.bond.tooltip': 'Символ вечной связи между тобой и твоей собакой.',
+  'heroglyph.intro.pill.payment.label': 'Один Символический Платёж',
+  'heroglyph.intro.pill.payment.tooltip':
+    '€11 один раз — без подписок. Все деньги остаются в DOGYPT — на развитие и системную помощь!',
+
+  // showcase symbol meanings (Hekthorov heroglyf) — vlastné mená NEPREKLADÁM
+  'heroglyph.intro.meaning.dog.label': 'Пёс',
+  'heroglyph.intro.meaning.dog.value': 'Hekthor',
+  'heroglyph.intro.meaning.owner.label': 'Владелец',
+  'heroglyph.intro.meaning.owner.value': 'Matej',
+  'heroglyph.intro.meaning.dogGender.label': 'Пол Собаки',
+  'heroglyph.intro.meaning.dogGender.value': 'Король',
+  'heroglyph.intro.meaning.dogColour.label': 'Окрас Собаки',
+  'heroglyph.intro.meaning.dogColour.value': 'Тёмная шерсть',
+  'heroglyph.intro.meaning.dogPatron.label': 'Покровитель Собаки',
+  'heroglyph.intro.meaning.dogPatron.value': 'Hekthor',
+  'heroglyph.intro.meaning.dogOrigin.label': 'Происхождение Собаки',
+  'heroglyph.intro.meaning.dogOrigin.value': 'Спасён',
+  'heroglyph.intro.meaning.dogBloodline.label': 'Родословная',
+  'heroglyph.intro.meaning.dogBloodline.value': 'Дворняга',
+  'heroglyph.intro.meaning.dogCharacter1.label': 'Характер Собаки I',
+  'heroglyph.intro.meaning.dogCharacter1.value': 'Любимое фрисби',
+  'heroglyph.intro.meaning.dogCharacter2.label': 'Характер Собаки II',
+  'heroglyph.intro.meaning.dogCharacter2.value': 'Любитель воды',
+  'heroglyph.intro.meaning.ownerGender.label': 'Пол Владельца',
+  'heroglyph.intro.meaning.ownerGender.value': 'Мужчина',
+  'heroglyph.intro.meaning.westernZodiac.label': 'Западный Зодиак',
+  'heroglyph.intro.meaning.westernZodiac.value': 'Лев',
+  'heroglyph.intro.meaning.chineseZodiac.label': 'Китайский Зодиак',
+  'heroglyph.intro.meaning.chineseZodiac.value': 'Петух',
+  'heroglyph.intro.meaning.ownerInitial.label': 'Инициал Владельца',
+  'heroglyph.intro.meaning.ownerInitial.value': 'Matej',
+  'heroglyph.intro.meaning.ranking.label': 'Ранг',
+  'heroglyph.intro.meaning.ranking.value': '#1 — Первый Пёс',
+
+  // ── /heroglyph flow — krok 1: meno ──
+  'heroglyph.flow.name.greetingPrefix': 'Привет, я',
+  'heroglyph.flow.name.greetingQuestion': 'Как зовут твою собаку?',
+  'heroglyph.flow.name.placeholder': 'Введи имя своей собаки...',
+  'heroglyph.flow.name.birthday': 'Когда родилась твоя собака?',
+  'heroglyph.flow.name.continue': 'Далее',
+  'heroglyph.flow.name.infoAria': 'Информация о Hekthor',
+  'heroglyph.flow.name.whoTitle': 'КТО ТАКОЙ',
+  'heroglyph.flow.name.whoTitleName': 'HEKTHOR?',
+  'heroglyph.flow.name.whoBody':
+    'Hekthor — первый Dogyptian. Спасённый с улицы и взятый из приюта, его верность вдохновила глобальное движение почитать собак как богов. Его миссия — выковать уникальный HEROGLYPH для каждой собаки на Земле, объединив крупнейшее в мире сообщество любителей собак, чтобы помочь миллионам собак в беде.',
+  'heroglyph.flow.name.born': 'Рождён',
+  'heroglyph.flow.name.adopted': 'Усыновлён',
+  'heroglyph.flow.name.location': 'Место',
+  'heroglyph.flow.name.locationValue': 'Словакия, ЕС',
+
+  // ── /heroglyph flow — krok 2: foto ──
+  'heroglyph.flow.photo.faceOfGodPrefix': '',
+  'heroglyph.flow.photo.faceOfGodWord': 'ЛИК',
+  'heroglyph.flow.photo.faceOfGodSuffix': 'БОГА',
+  'heroglyph.flow.photo.uploadHint': 'Загрузи чёткое фото {dogName} — оно навсегда будет запечатано в его Heroglyph.',
+  'heroglyph.flow.photo.yourDog': 'твоя собака',
+  'heroglyph.flow.photo.tapToUpload': 'Нажми, чтобы загрузить',
+  'heroglyph.flow.photo.changePhoto': 'Сменить фото',
+  'heroglyph.flow.photo.sealing': 'Запечатываем в вечность…',
+  'heroglyph.flow.photo.sealed': '✓ Запечатано',
+  'heroglyph.flow.photo.uploadFailed': 'Загрузка не удалась — повтори',
+  'heroglyph.flow.photo.tipForward': 'собака смотрит вперёд',
+  'heroglyph.flow.photo.tipSide': 'профиль / группа',
+  'heroglyph.flow.photo.tipBest': 'Лучший результат: морда хорошо видна, работает при обрезке в круг.',
+  'heroglyph.flow.photo.next': 'ДАЛЕЕ →',
+  'heroglyph.flow.photo.back': '← НАЗАД',
+  'heroglyph.flow.photo.adjustTitle': 'ПОДГОНИ СВОЙ ПОРТРЕТ',
+  'heroglyph.flow.photo.adjustHint': 'Перетащи, чтобы разместить собаку в рамке.',
+  'heroglyph.flow.photo.moreTitle': 'БОЛЬШЕ ЛИКОВ БОГА',
+  'heroglyph.flow.photo.moreHint': 'Добавь ещё 1–3 фото для сюрпризов позже. (необязательно)',
+  'heroglyph.flow.photo.saving': 'СОХРАНЕНИЕ...',
+
+  // ── /heroglyph flow — krok 3: rasa ──
+  'heroglyph.flow.breed.question': 'Скажи, какой породы твой герой?',
+  'heroglyph.flow.breed.searchPlaceholder': 'Поиск породы...',
+  'heroglyph.flow.breed.continue': 'Далее',
+  'heroglyph.flow.breed.cat.01': 'Пушистики',
+  'heroglyph.flow.breed.cat.02': 'Лохматики',
+  'heroglyph.flow.breed.cat.03': 'Антенны',
+  'heroglyph.flow.breed.cat.04': 'Спринтеры',
+  'heroglyph.flow.breed.cat.05': 'Носачи',
+  'heroglyph.flow.breed.cat.06': 'Аристократы',
+  'heroglyph.flow.breed.cat.07': 'Курносые',
+  'heroglyph.flow.breed.cat.08': 'Ныряльщики',
+  'heroglyph.flow.breed.cat.09': 'Волкоподобные',
+  'heroglyph.flow.breed.cat.10': 'Гиганты',
+
+  // ── /heroglyph flow — krok 4: poradie ──
+  'heroglyph.flow.ranking.question': '{dogName} — твоя первая в жизни собака?',
+  'heroglyph.flow.ranking.yourPup': 'твой щенок',
+  'heroglyph.flow.ranking.yesLabel': 'ДА, моя первая любовь',
+  'heroglyph.flow.ranking.noLabel': 'НЕТ, любитель собак навсегда!',
+  'heroglyph.flow.ranking.whichDog': 'Какая по счёту собака {dogName}?',
+  'heroglyph.flow.ranking.range': '11–50',
+  'heroglyph.flow.ranking.enterNumber': 'Введи номер собаки (11–50)',
+  'heroglyph.flow.ranking.continue': 'Далее',
+  'heroglyph.flow.ranking.back': 'Назад',
+
+  // ── /heroglyph flow — krok 5: majiteľ ──
+  'heroglyph.flow.ownerInfo.greetingPrefix': 'Хорошо, поговорим о тебе,',
+  'heroglyph.flow.ownerInfo.greetingWord': 'человек',
+  'heroglyph.flow.ownerInfo.placeholder': 'Имя владельца...',
+  'heroglyph.flow.ownerInfo.man': 'Мужчина',
+  'heroglyph.flow.ownerInfo.woman': 'Женщина',
+  'heroglyph.flow.ownerInfo.continue': 'Далее',
+  'heroglyph.flow.ownerInfo.back': 'Назад',
+
+  // ── /heroglyph flow — spoločné ──
+  'heroglyph.flow.yourDogFallback': 'ТВОЯ СОБАКА',
+  'heroglyph.flow.dogHeroglyphTitle': 'HEROGLYPH СОБАКИ {dogName}',
+
+  // ── /heroglyph flow — krok 6: zverokruh majiteľa ──
+  'heroglyph.flow.ownerZodiac.question': 'Что говорят о тебе звёзды?',
+  'heroglyph.flow.ownerZodiac.westernLabel': 'Знак Зодиака',
+  'heroglyph.flow.ownerZodiac.chineseLabel': 'Китайский Зодиак',
+  'heroglyph.flow.ownerZodiac.continue': 'Далее',
+  'heroglyph.flow.ownerZodiac.back': 'Назад',
+  // znamenia zverokruhu (iba label — hodnota enumu ostáva anglická)
+  'heroglyph.flow.ownerZodiac.sign.Aries': 'Овен',
+  'heroglyph.flow.ownerZodiac.sign.Taurus': 'Телец',
+  'heroglyph.flow.ownerZodiac.sign.Gemini': 'Близнецы',
+  'heroglyph.flow.ownerZodiac.sign.Cancer': 'Рак',
+  'heroglyph.flow.ownerZodiac.sign.Leo': 'Лев',
+  'heroglyph.flow.ownerZodiac.sign.Virgo': 'Дева',
+  'heroglyph.flow.ownerZodiac.sign.Libra': 'Весы',
+  'heroglyph.flow.ownerZodiac.sign.Scorpio': 'Скорпион',
+  'heroglyph.flow.ownerZodiac.sign.Sagittarius': 'Стрелец',
+  'heroglyph.flow.ownerZodiac.sign.Capricorn': 'Козерог',
+  'heroglyph.flow.ownerZodiac.sign.Aquarius': 'Водолей',
+  'heroglyph.flow.ownerZodiac.sign.Pisces': 'Рыбы',
+  // čínsky zverokruh (iba label — hodnota enumu ostáva anglická)
+  'heroglyph.flow.ownerZodiac.animal.Monkey': 'Обезьяна',
+  'heroglyph.flow.ownerZodiac.animal.Rooster': 'Петух',
+  'heroglyph.flow.ownerZodiac.animal.Dog': 'Собака',
+  'heroglyph.flow.ownerZodiac.animal.Pig': 'Свинья',
+  'heroglyph.flow.ownerZodiac.animal.Rat': 'Крыса',
+  'heroglyph.flow.ownerZodiac.animal.Ox': 'Бык',
+  'heroglyph.flow.ownerZodiac.animal.Tiger': 'Тигр',
+  'heroglyph.flow.ownerZodiac.animal.Rabbit': 'Кролик',
+  'heroglyph.flow.ownerZodiac.animal.Dragon': 'Дракон',
+  'heroglyph.flow.ownerZodiac.animal.Snake': 'Змея',
+  'heroglyph.flow.ownerZodiac.animal.Horse': 'Лошадь',
+  'heroglyph.flow.ownerZodiac.animal.Goat': 'Коза',
+
+  // ── /heroglyph flow — krok 7: finále majiteľa ──
+  'heroglyph.flow.ownerFinal.infoAria': 'Информация о Heroglyph',
+  'heroglyph.flow.ownerFinal.messageLine1': 'ЧЕЛОВЕК, твоя часть готова.',
+  'heroglyph.flow.ownerFinal.messageLine2': 'Эта маленькая рамка — это ты!',
+  'heroglyph.flow.ownerFinal.messageLine3Prefix': 'Теперь завершим HEROGLYPH частью',
+  'heroglyph.flow.ownerFinal.messageLine3Suffix': '.',
+  'heroglyph.flow.ownerFinal.cta': 'ПОЕХАЛИ',
+  'heroglyph.flow.ownerFinal.infoTitle': 'ВДОХНОВЛЕНО ДРЕВНИМ ЕГИПТОМ',
+  'heroglyph.flow.ownerFinal.infoBody':
+    'HEROGLYPH состоит из двух рамок, которые вместе образуют истинную личность твоей собаки. В Древнем Египте имена богов и фараонов записывали внутри похожих защитных овальных рамок, называемых картушами, чтобы сохранить их наследие на вечность.',
+  'heroglyph.flow.ownerFinal.cleopatraAlt': 'Картуш Клеопатры',
+  'heroglyph.flow.ownerFinal.cleopatraCaption': 'Этот иероглиф принадлежит Клеопатре.',
+  'heroglyph.flow.ownerFinal.back': 'Назад',
+
+  // ── /heroglyph flow — krok 8: pohlavie psa ──
+  'heroglyph.flow.dogGender.infoAria': 'Информация о поле собаки',
+  'heroglyph.flow.dogGender.title': 'Пол Собаки',
+  'heroglyph.flow.dogGender.questionPrefix': 'У тебя дома',
+  'heroglyph.flow.dogGender.questionKing': 'король',
+  'heroglyph.flow.dogGender.questionOr': 'или',
+  'heroglyph.flow.dogGender.questionQueen': 'королева',
+  'heroglyph.flow.dogGender.questionSuffix': '?',
+  'heroglyph.flow.dogGender.king': 'Король',
+  'heroglyph.flow.dogGender.queen': 'Королева',
+  'heroglyph.flow.dogGender.info3Title': 'Корона с 3 зубцами',
+  'heroglyph.flow.dogGender.info3Body':
+    'Для мальчиков, освоивших баланс на 3 лапах. Одна нога вверх, максимальная точность, абсолютная легенда.',
+  'heroglyph.flow.dogGender.info4Title': 'Корона с 4 зубцами',
+  'heroglyph.flow.dogGender.info4Body':
+    'Для девочек, предпочитающих устойчивость на 4 лапах. Максимальный комфорт, ноль беспорядка, полная элегантность.',
+  'heroglyph.flow.dogGender.back': 'Назад',
+
+  // ── /heroglyph flow — krok 9: osud psa ──
+  'heroglyph.flow.dogFate.infoAria': 'Информация о происхождении собаки',
+  'heroglyph.flow.dogFate.title': 'Происхождение',
+  'heroglyph.flow.dogFate.questionPrefix': 'Твоя собака родилась в',
+  'heroglyph.flow.dogFate.questionSafe': 'безопасном доме',
+  'heroglyph.flow.dogFate.questionOr': 'или получила',
+  'heroglyph.flow.dogFate.questionSecond': 'второй шанс',
+  'heroglyph.flow.dogFate.questionSuffix': ' в жизни?',
+  'heroglyph.flow.dogFate.raised': 'Выращен',
+  'heroglyph.flow.dogFate.rescued': 'Спасён',
+  'heroglyph.flow.dogFate.infoRaisedTitle': 'Соска',
+  'heroglyph.flow.dogFate.infoRaisedBody': 'Собака, рождённая в семье. Воспитанная с любовью с первого дня.',
+  'heroglyph.flow.dogFate.infoRescuedTitle': 'Спасательный круг',
+  'heroglyph.flow.dogFate.infoRescuedBody': 'Спасённая или найденная собака. Получила второй шанс в жизни.',
+  'heroglyph.flow.dogFate.back': 'Назад',
+
+  // ── /heroglyph flow — krok 10: farba psa ──
+  'heroglyph.flow.dogColour.title': 'Окрас Собаки',
+  'heroglyph.flow.dogColour.questionPrefix': 'Какую',
+  'heroglyph.flow.dogColour.questionCoat': 'шерсть',
+  'heroglyph.flow.dogColour.questionSuffix': ' носит твоя собака?',
+  'heroglyph.flow.dogColour.bright': 'Светлая',
+  'heroglyph.flow.dogColour.brightSub': 'Солнце',
+  'heroglyph.flow.dogColour.dark': 'Тёмная',
+  'heroglyph.flow.dogColour.darkSub': 'Луна',
+  'heroglyph.flow.dogColour.mix': 'Микс',
+  'heroglyph.flow.dogColour.mixSub': 'Радуга',
+  'heroglyph.flow.dogColour.back': 'Назад',
+
+  // ── /heroglyph flow — step 11: dog-bloodline ──
+  'heroglyph.flow.dogBloodline.infoAria': 'Информация о родословной собаки',
+  'heroglyph.flow.dogBloodline.title': 'Родословная',
+  'heroglyph.flow.dogBloodline.questionPrefix': 'Твоя собака ',
+  'heroglyph.flow.dogBloodline.questionPure': 'чистокровная',
+  'heroglyph.flow.dogBloodline.questionOr': ' или ',
+  'heroglyph.flow.dogBloodline.questionWild': 'дикая',
+  'heroglyph.flow.dogBloodline.questionSuffix': '?',
+  'heroglyph.flow.dogBloodline.aristocrat': 'Аристократ',
+  'heroglyph.flow.dogBloodline.mutt': 'Дворняга',
+  'heroglyph.flow.dogBloodline.infoSignedTitle': 'Подписанный папирус',
+  'heroglyph.flow.dogBloodline.infoSignedBody': 'Оригинал с чистой родословной.',
+  'heroglyph.flow.dogBloodline.infoEmptyTitle': 'Пустой папирус',
+  'heroglyph.flow.dogBloodline.infoEmptyBody': 'Оригинал без чистой родословной.',
+  'heroglyph.flow.dogBloodline.back': 'Назад',
+
+  // ── /heroglyph flow — step 12: dog-character ──
+  'heroglyph.flow.dogCharacter.infoAria': 'Информация о характере',
+  'heroglyph.flow.dogCharacter.title': 'Характер',
+  'heroglyph.flow.dogCharacter.questionPrefix': 'Какой ',
+  'heroglyph.flow.dogCharacter.questionWord': 'характер',
+  'heroglyph.flow.dogCharacter.questionSuffix': ' у твоей собаки?',
+  'heroglyph.flow.dogCharacter.chooseTwo': 'Выбери два варианта.',
+  'heroglyph.flow.dogCharacter.infoTitle': 'Выбери вайб своей собаки',
+  'heroglyph.flow.dogCharacter.infoBody':
+    'Выбери две черты характера, которые лучше всего описывают твою собаку. Они формируют символы внутри Heroglyph.',
+  'heroglyph.flow.dogCharacter.selectedCount': 'Выбрано {count}/2',
+  'heroglyph.flow.dogCharacter.back': 'Назад',
+  'heroglyph.flow.dogCharacter.trait.guardian': 'Страж',
+  'heroglyph.flow.dogCharacter.trait.player': 'Игрок',
+  'heroglyph.flow.dogCharacter.trait.energizer': 'Энерджайзер',
+  'heroglyph.flow.dogCharacter.trait.maverick': 'Бунтарь',
+  'heroglyph.flow.dogCharacter.trait.waterlover': 'Водохлёб',
+  'heroglyph.flow.dogCharacter.trait.gourmet': 'Гурман',
+  'heroglyph.flow.dogCharacter.trait.lover': 'Обнимашка',
+  'heroglyph.flow.dogCharacter.trait.chiller': 'Лежебока',
+
+  // ── /heroglyph flow — step 13: reveal ──
+  'heroglyph.flow.reveal.heroglyphTitle': 'Heroglyph собаки {dogName}',
+  'heroglyph.flow.reveal.horizontalDesign': '↔ ГОРИЗОНТАЛЬНЫЙ ДИЗАЙН',
+  'heroglyph.flow.reveal.verticalDesign': '↕ ВЕРТИКАЛЬНЫЙ ДИЗАЙН',
+  'heroglyph.flow.reveal.infoAria': 'Инфо',
+  'heroglyph.flow.reveal.visionTitle': 'НАШЕ ВИДЕНИЕ',
+  'heroglyph.flow.reveal.visionBody':
+    'Чтобы заявить права на свой официальный символ, мы просим символическую дань. Наш великий план прост: Heroglyph для каждой собаки на Земле. Ведь чем больше становится наша глобальная стая, тем больше героев мы можем спасти с улиц и из приютов. Присоединяйся к династии!',
+  'heroglyph.flow.reveal.welcome': 'ДОБРО ПОЖАЛОВАТЬ В DOGYPT!',
+  'heroglyph.flow.reveal.bond': 'Этот Heroglyph — твоя вечная связь.',
+  'heroglyph.flow.reveal.cta': 'ПОЛУЧИТЬ МОЙ HEROGLYPH',
+
+  // ── /heroglyph flow — step 14: message ──
+  'heroglyph.flow.message.promptPrefix': 'Оставь вечное послание для ',
+  'heroglyph.flow.message.promptMid': '.',
+  'heroglyph.flow.message.promptStayPrefix': 'Оно останется с ним в ',
+  'heroglyph.flow.message.promptStayWord': 'dogypt',
+  'heroglyph.flow.message.promptStaySuffix': ' - навсегда.',
+  'heroglyph.flow.message.yourMessage': 'Твоё Послание',
+  'heroglyph.flow.message.placeholder':
+    'Дорогой {dogName}, спасибо за каждый день с тобой — и я не могу дождаться всех прекрасных моментов, что ещё впереди…',
+  'heroglyph.flow.message.profileNotePrefix': 'Это послание появится в профиле твоей собаки на ',
+  'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
+  'heroglyph.flow.message.profileNoteSuffix': '.',
+  'heroglyph.flow.message.cta': 'ЗАПЕЧАТАТЬ ПОСЛАНИЕ →',
+
+  // ── /heroglyph flow — checkout ──
+  'heroglyph.checkout.orderSummary': 'Сводка Заказа',
+  'heroglyph.checkout.dogPossessive': 'собаки {dogName}',
+  'heroglyph.checkout.heroglyph': 'HEROGLYPH',
+  'heroglyph.checkout.yourDogFallback': 'Твоя собака',
+  'heroglyph.checkout.yourDetails': 'Твои Данные',
+  'heroglyph.checkout.firstName': 'Имя',
+  'heroglyph.checkout.lastName': 'Фамилия',
+  'heroglyph.checkout.email': 'Эл. почта',
+  'heroglyph.checkout.country': 'Страна',
+  'heroglyph.checkout.cta': 'ПЕРЕЙТИ К ОПЛАТЕ →',
+  'heroglyph.checkout.disclaimerPrefix': 'После оплаты мы разместим фото твоей собаки на сайте, а твой ',
+  'heroglyph.checkout.disclaimerHighlight': 'Сертификат DOGYPT',
+  'heroglyph.checkout.disclaimerSuffix': ' в твоём профиле.',
+  'heroglyph.checkout.back': 'Назад',
+  'heroglyph.checkout.dogFallback': 'Собака',
+
+  // ── /welcome — post-payment (WelcomeScreen) ──
+  'welcome.record.title': 'ЗАПИШИ ЭТОТ МОМЕНТ',
+  'welcome.record.subtitle': 'Запечатлей официальное приветствие своей собаки',
+  'welcome.goal.label': 'Наша Цель 🎯',
+  'welcome.goal.target': '1 000 000 Heroglyph',
+  'welcome.congratsPrefix': 'Поздравляем, ',
+  'welcome.congratsName': '{name}.',
+  'welcome.ownerFallback': 'Друг',
+  'welcome.officiallyA': 'официально',
+  // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka ostáva EN.
+  'welcome.missionLine1': 'Ты только что изменил историю — по одной собаке за раз.',
+  'welcome.missionSpread': 'Разнеси весть о стае. ',
+  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.cta.preparing': 'ГОТОВИМ ТВОЁ МЕСТО...',
+  'welcome.cta.forging': 'КУЁМ ТВОЙ HEROGLYPH...',
+  'welcome.cta.enter': 'ВОЙТИ К БОГАМ →',
+  'welcome.emailHint': 'Твой сертификат уже в пути — проверь почту.',
+
+  // ── /login — magic-link callback (Login.tsx) ──
+  'login.eyebrow': 'DOGYPT · Доступ к Pack',
+  'login.verifying.title': 'Открываем Врата',
+  'login.verifying.body': 'Проверяем твою магическую ссылку…',
+  'login.success.title': 'С возвращением',
+  'login.success.body': 'Перенаправляем тебя к твоей стае…',
+  'login.expired.title': 'Ссылка истекла',
+  'login.expired.body': 'Магические ссылки живут недолго. Запроси новую, и мы пришлём её на твою почту.',
+  'login.invalid.title': 'Ссылка не распознана',
+  'login.invalid.body': 'Мы не смогли проверить эту ссылку. Возможно, она уже использована или скопирована неверно.',
+  'login.network.title': 'Сбой соединения',
+  'login.network.body': 'Мы не смогли связаться с храмом. Проверь соединение и попробуй снова.',
+  'login.missing.title': 'Токен не найден',
+  'login.missing.body': 'Эта страница ожидает магическую ссылку из твоей почты. Проверь входящие и найди самую свежую.',
+  'login.resend.idle': 'Отправить новую магическую ссылку',
+  'login.resend.sending': 'Отправка…',
+  'login.resend.sent': 'Магическая ссылка отправлена',
+  'login.backHome': 'На главную',
+  'login.homeAria': 'Главная страница DOGYPT',
+
+  // ── 404 — NotFound.tsx ──
+  'notFound.code': '404',
+  'notFound.message': 'Упс! Страница не найдена',
+  'notFound.returnHome': 'Вернуться на главную',
+
+  // ── /about — opening (origin + Star Wars crawl) ──
+  'about.origin.title': 'Истоки',
+  'about.origin.sub': 'Листай и читай',
+  'about.origin.skip': 'или пропусти',
+  'about.crawl.intro': 'Десять лет назад, в приюте в сердце Европы….',
+  'about.crawl.episode': 'Эпизод I',
+  'about.crawl.faith': 'Новая вера',
+  'about.crawl.p1':
+    'В 2016 году в приют попали восемь чёрных щенков, выброшенных в одной коробке. Семеро нашли дом. Самого большого никто не хотел — он ждал целый год. Его звали Hekthor.',
+  'about.crawl.p2':
+    'Однажды пара пришла в приют посмотреть на Синди, маленькую белую самку, которую хотели взять. По чистой случайности Hekthor был тогда в её вольере — его собственный как раз убирали. Мужчина, который приехал лишь за компанию и никогда не хотел собаку, влюбился в чёрного пса, которого видел впервые в жизни.',
+  'about.crawl.p3':
+    'Неделю спустя они были уже вместе, и началась прекрасная история. Вся жизнь мужчины изменилась, и со временем он понял одно: по-настоящему помочь собакам в беде может лишь тот, у кого есть собака и кто знает, каково это — собачья любовь.',
+  'about.crawl.p4':
+    'Так родился Heroglyph — символ, призванный объединить любителей собак по всему миру в крупнейшее сообщество, какое когда-либо знал мир. Сообщество, которое встанет за нас, за наших собак и за грядущие поколения — за людей, не боящихся признать, что собака — не просто животное, а существо, делающее нас лучшими людьми.',
+  'about.crawl.p5':
+    'Прямо сейчас начинается путь к первой вехе — создать 1 000 000 Heroglyph. И ты можешь стать его частью. Ведь изменить мир способны лишь те, кто достаточно безумен, чтобы верить, что им это под силу.',
+  'about.crawl.p6': 'IN DOG WE TRUST.',
+
+  // ── /about — timeline (5 míľnikov) ──
+  'about.timeline.heading': 'История Dogypt',
+  'about.milestone.1.year': '2017',
+  'about.milestone.1.tag': 'Приют',
+  'about.milestone.1.title': 'Сокровище в приюте',
+  'about.milestone.1.body':
+    'За забором приюта ждал чёрный пёс, которого никто не хотел. Его назвали Hekthor. Взять его было не спасением — это было началом всего.',
+  'about.milestone.2.year': '2018',
+  'about.milestone.2.tag': 'Связь',
+  'about.milestone.2.title': 'Связь навсегда',
+  'about.milestone.2.body':
+    'Он провёл меня через самый тяжёлый отрезок моей жизни, не сказав ни единого слова. Каждый любитель собак это знает — они держат тебя именно тогда, когда ты падаешь.',
+  'about.milestone.3.year': '2019',
+  'about.milestone.3.tag': 'Путешествие',
+  'about.milestone.3.title': 'Прогулка, ставшая книгой',
+  'about.milestone.3.body':
+    'Вместе мы прошли всю Словакию — 42 дня, 800 километров, одно тихое обещание. Эта дорога стала книгой: „Cesta s Hrdinom" — Путь с Героем.',
+  'about.milestone.4.year': '2022',
+  'about.milestone.4.tag': 'Имя',
+  'about.milestone.4.title': 'Нация любителей собак',
+  'about.milestone.4.body':
+    'Пирамиды, мистика, вечная слава Египта — человечество завораживает это тысячелетиями. Свяжи это с бесконечной любовью собаки — и получишь DOGYPT. Я скрепил эту идею на Expo Dubai 2022, одетый как фараон.',
+  'about.milestone.5.year': 'Сейчас',
+  'about.milestone.5.tag': 'Dogypt',
+  'about.milestone.5.title': 'Путешествие начинается с тебя',
+  'about.milestone.5.body':
+    'DOGYPT — это движение для всех, чью жизнь изменила собака. Построено на древнейшей и самой честной связи на Земле. Hekthor — основатель #1. Ты следующий.',
+
+  // ── /about — outro + reel ──
+  'about.outro.quoteLead': 'Это никогда не было',
+  'about.outro.quoteTail': '«просто собакой».',
+  'about.outro.body':
+    'Ты уже знаешь это чувство — что собака не то, чем ты владеешь, а <strong>тот, кого ты любишь</strong>. А теперь представь эту любовь организованной, связанной, <strong>достаточно сильной, чтобы менять мир.</strong> Именно поэтому существует <strong>DOGYPT</strong>.',
+  'about.outro.name1': 'Matej',
+  'about.outro.and': 'и',
+  'about.outro.name2': 'Hekthor',
+  'about.outro.cta': 'Стать Dogyptian',
+  'about.reel.prev': 'Предыдущее фото',
+  'about.reel.next': 'Следующее фото',
+
+  // ── /religion — hero hook (krava vs pes) ──
+  'religion.hook.number': '1,2',
+  'religion.hook.billion': 'МИЛЛИАРДА',
+  'religion.hook.people': 'ЛЮДЕЙ',
+  'religion.hook.note': '(15% мира)',
+  'religion.hook.bow': 'кланяются корове',
+  'religion.hook.doglovers': 'ЛЮБИТЕЛИ СОБАК?',
+  'religion.hook.worship': 'ДАВАЙТЕ ПОЧИТАТЬ НАШИХ СОБАК.',
+  'religion.cta': 'Стать Dogyptian',
+  'religion.aria.question': 'Вопрос',
+  'religion.aria.preamble': 'Преамбула',
+  'religion.aria.sacredIndex': 'Священный указатель',
+  'religion.aria.scrollDown': 'Прокрутить вниз',
+
+  // ── /religion — preambula ──
+  'religion.preamble.text':
+    'Мы, нация любителей собак — зная <strong>бесконечную преданность</strong>, <strong>истинную любовь</strong> и <strong>чистую душу</strong> каждой собаки на Земле — дабы возвысить положение собак в человеческом обществе, построить им <strong>сообщество</strong>, <strong>улучшить</strong> их жизнь и <strong>переписать</strong> судьбу каждой собаки в беде, даём себе эту конституцию.',
+  'religion.preamble.oath': 'Клятва Стаи',
+
+  // ── /religion — sacred index ──
+  'religion.bookTitle': '«Библия» для любителей собак',
+
+  // ── /religion — Constitution book ──
+  'religion.book.sealAlt': 'Печать Dogyptian',
+  'religion.book.sub': 'Обязательное чтение для каждого любителя собак, чтобы стать Dogyptian.',
+  'religion.book.cta1.kicker': 'Путь начинается',
+  'religion.book.cta1.head': 'Вступи в<br />Религию',
+  'religion.book.cta1.text': 'Запишись в собачью религию — возьми Heroglyph.',
+  'religion.book.cta1.btn': 'Стать Dogyptian',
+  'religion.book.cta2.kicker': 'Всё слово целиком',
+  'religion.book.cta2.head': 'Прочти<br />Конституцию',
+  'religion.book.cta2.text': 'Каждый канон, кредо и заповедь — полностью.',
+  'religion.book.cta2.btn': 'Полная Конституция',
+  'religion.book.coverOpenAria': 'Открыть Конституцию',
+  'religion.book.coverAlt': 'Конституция Dogyptian',
+  'religion.book.hint': 'Нажми на книгу, чтобы открыть',
+  'religion.book.close': 'Закрыть книгу',
+  'religion.book.prevPage': 'Предыдущая страница',
+  'religion.book.nextPage': 'Следующая страница',
+
+  // ── shared nav (PageNav top-bar + Wall) ──
+  'nav.wall': 'Стена',
+  'nav.vision': 'Видение',
+  'nav.religion': 'Религия',
+  'nav.about': 'О нас',
+
+  // ── / (Wall / GodsGrid) ──
+  'wall.hero.taglineLead': 'Место, где',
+  'wall.hero.cta': 'Стать Dogyptian',
+  'wall.hero.total': '1 000 000',
+  'wall.hero.dogs': 'СОБАК',
+  'wall.hektor.msg': 'Пёс, с которого всё началось. Усыновлён в 2017. Каждое путешествие начинается с одного шага — его шагом стала 42-дневная прогулка через Словакию.',
+  'wall.info.title': '1 000 000 собак.<br/>Справимся ли мы?',
+  'wall.info.body': 'DOGYPT — это движение для любителей собак. Каждая собака получает уникальный Heroglyph — своё постоянное место в глобальной стае. Мы собираем миллион героев. Будь среди первых.',
+  'wall.filter.find': 'Найти собаку по номеру',
+  'wall.filter.center': 'Центрировать сетку',
+  'wall.filter.placeholder': 'Собака №',
+  'wall.filter.clear': 'Очистить',
+  'wall.filter.confirm': 'Подтвердить',
+
+  // ── nav a11y ──
+  'nav.aria.back': 'Назад',
+  'nav.aria.openMenu': 'Открыть меню',
+  'nav.aria.menu': 'Меню',
+  'nav.aria.wallHome': 'WALL — главная',
+  'nav.aria.chooseLanguage': 'Выбрать язык',
+  'nav.langModal.title': 'Выбрать язык',
+  'nav.aria.close': 'Закрыть',
+
+  // ── /payment (PaymentScreen) — STROJOVÝ PREKLAD, čaká review ──
+  'payment.title': 'Безопасная оплата',
+  'payment.product': 'СЕРТИФИКАТ DOGYPT HEROGLYPH для {dogName}',
+  'payment.yourDog': 'твоей собаки',
+  'payment.sealing': 'ЗАПЕЧАТЫВАЕМ ФОТО...',
+  'payment.preparing': 'ГОТОВИМ...',
+  'payment.pay': 'ОПЛАТИТЬ ЧЕРЕЗ STRIPE',
+  'payment.secured': 'Защищено Stripe · Карта, Apple Pay, Google Pay',
+  'payment.back': 'Назад',
+
+  // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
+  // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)
+  'legal.updated': 'Последнее обновление: 4 мая 2026 · v1.0',
+  'legal.langNote':
+    'Этот документ предоставляется на нескольких языках для удобства. В случае расхождений между версиями преимущественную силу имеет английская версия.',
+
+  // ── /terms ──
+  'terms.title': 'Условия использования',
+  'terms.linkPrivacy': 'Политика конфиденциальности →',
+  'terms.s1.title': '1. Кто мы',
+  'terms.s1.body':
+    'DOGYPT s.r.o., словацкое общество с ограниченной ответственностью, зарегистрированное в Торговом реестре (IČO 54 444 594), с юридическим адресом Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Словакия. В настоящих Условиях мы именуем себя «DOGYPT», «мы» или «нас», а тебя — «ты» или «Участник». Используя dogypt.com, процесс HEROGLYPH или любую связанную услугу (вместе — «Услуга»), ты соглашаешься с этими Условиями. Дата вступления в силу: 4 мая 2026.',
+  'terms.s2.title': '2. Кто может пользоваться',
+  'terms.s2.body':
+    'Тебе должно быть не менее 16 лет, чтобы пользоваться Услугой. Создавая аккаунт или совершая покупку, ты подтверждаешь, что тебе 16 лет или больше, что предоставленные тобой данные верны и что твоё использование Услуги законно в стране, где ты проживаешь.',
+  'terms.s3.title': '3. Аккаунт и членство в Pack',
+  'terms.s3.body':
+    'Доступ предоставляется через магическую ссылку, отправленную на твою почту; пароль не хранится. Твой аккаунт является личным — пожалуйста, не передавай доступ. Мы можем приостановить или закрыть аккаунты, которые злоупотребляют Услугой, преследуют других Участников или нарушают эти Условия. Ты можешь запросить удаление аккаунта в любой момент, написав на privacy@dogypt.com.',
+  'terms.s4.title': '4. Heroglyph и цифровые товары',
+  'terms.s4.body':
+    'Ты покупаешь цифровой товар: личный HEROGLYPH (уникальный символический сертификат), его PDF-версию, запись твоей собаки в публичном GodsGrid и постоянный доступ к твоему профилю Pack. Мы предоставляем тебе личную, непередаваемую, неисключительную лицензию на использование этих цифровых товаров для некоммерческого личного использования. Ничего физического не отправляется. Воспроизведение, перепродажа или коммерческое использование графики или ресурсов HEROGLYPH требует нашего предварительного письменного согласия.',
+  'terms.s5.title': '5. Платежи',
+  'terms.s5.body':
+    'Платежи обрабатывает Stripe Payments Europe, Ltd. Мы никогда не видим и не храним полные данные твоей карты. Цены отображаются в валюте на этапе оплаты (по умолчанию USD); применимый НДС рассчитывается и отображается до оплаты. Заказ, который ты подтверждаешь при оформлении, — это заказ, который мы доставляем; мы не меняем объём или цену задним числом.',
+  'terms.s6.title': '6. Возвраты и право на отказ',
+  'terms.s6.body':
+    'Согласно Директиве ЕС 2011/83/EU потребители обычно имеют 14 дней на отказ от договора, заключённого дистанционно. Поскольку HEROGLYPH предоставляется как цифровой контент сразу после оплаты, нажимая «Оплатить», ты даёшь явное предварительное согласие на немедленное исполнение и признаёшь, что тем самым теряешь право на отказ с момента начала доставки (ст. 16(m) Директивы). Если что-то с нашей стороны пойдёт не так — повреждённый файл, двойное списание, отменённый заказ — напиши на support@dogypt.com в течение 14 дней, и мы вернём деньги или доставим повторно, без лишних вопросов.',
+  'terms.s7.title': '7. Допустимое использование',
+  'terms.s7.body':
+    'Не загружай ничего, на что у тебя нет прав. Это касается чужих фотографий, материалов, защищённых авторским правом, или контента, изображающего жестокость, незаконную деятельность или сексуальный контент с участием несовершеннолетних. Не преследуй, не выдавай себя за других Участников и не угрожай им. Не собирай данные автоматически (scraping), не скачивай массово, не подвергай обратной разработке и не пытайся нарушить работу Услуги. Мы можем удалить контент или аккаунты, нарушающие эти правила, с уведомлением или без него.',
+  'terms.s8.title': '8. Ответственность и оговорки',
+  'terms.s8.body':
+    'HEROGLYPH — это символический, церемониальный продукт; он не является ветеринарной, медицинской, поведенческой или племенной рекомендацией. Услуга предоставляется «как есть». В максимальной степени, разрешённой словацким и европейским правом, наша совокупная ответственность по любому требованию, возникающему из Услуги, ограничена суммой, которую ты заплатил нам за 12 месяцев до возникновения требования. Ничто здесь не ограничивает ответственность за мошенничество, грубую небрежность или права, от которых нельзя отказаться согласно применимому праву.',
+  'terms.s9.title': '9. Изменения настоящих Условий',
+  'terms.s9.body':
+    'Мы можем обновлять эти Условия по мере роста Услуги. О существенных изменениях мы сообщим по электронной почте не менее чем за 30 дней до их вступления в силу. Незначительные уточнения вступают в силу с момента публикации. Продолжение использования Услуги после даты вступления в силу означает, что ты принимаешь новые Условия. Более старые версии хранятся в архиве и доступны по запросу.',
+  'terms.s10.title': '10. Применимое право и споры',
+  'terms.s10.body':
+    'Настоящие Условия регулируются законами Словацкой Республики, за исключением коллизионных норм. Споры, которые не удаётся разрешить неформально, подпадают под юрисдикцию компетентных словацких судов по месту нашего юридического адреса. Потребители из ЕС также могут воспользоваться европейской платформой онлайн-урегулирования споров по адресу https://ec.europa.eu/consumers/odr.',
+  'terms.s11.title': '11. Контакты',
+  'terms.s11.body':
+    'Общие вопросы: info@dogypt.com · Конфиденциальность и данные: privacy@dogypt.com · Возвраты и поддержка: support@dogypt.com · Почта: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Словакия.',
+
+  // ── /privacy ──
+  'privacy.title': 'Политика конфиденциальности',
+  'privacy.linkTerms': 'Условия использования →',
+  'privacy.s1.title': '1. Кто мы',
+  'privacy.s1.body':
+    'DOGYPT s.r.o., словацкое общество с ограниченной ответственностью (IČO 54 444 594), юридический адрес Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Словакия. Мы являемся контролёром персональных данных, описанных ниже. По любому вопросу о конфиденциальности пиши на privacy@dogypt.com. Мы не назначали ответственного за защиту данных (DPO), поскольку наша обработка не достигает порогов ст. 37 GDPR. Дата вступления в силу: 4 мая 2026.',
+  'privacy.s2.title': '2. Какие данные мы собираем',
+  'privacy.s2.body':
+    'При использовании процесса HEROGLYPH мы собираем: твой адрес электронной почты, имя твоей собаки, загруженное тобой фото собаки (хранится на Cloudinary), выбранные тобой символические ответы (пол, окрас, судьба, родословная, характер, твой знак зодиака, твой инициал) и дату рождения собаки, если она указана. Платёжные данные собирает напрямую Stripe — мы получаем только подтверждение платежа, последние 4 цифры карты и страну. Наши серверы автоматически записывают технические данные (IP-адрес, user-agent, время запроса) в целях безопасности и предотвращения злоупотреблений.',
+  'privacy.s3.title': '3. Как мы их используем',
+  'privacy.s3.body':
+    'Мы используем твои данные для: создания и доставки твоего сертификата HEROGLYPH; отправки письма с сертификатом и небольшого числа последующих сообщений Pack; отображения записи твоей собаки в публичном GodsGrid (публично отображаются только имя собаки, фото и символ HEROGLYPH — никогда твоя почта, твоё имя или твой приватный код); работы, защиты и улучшения Услуги; соблюдения юридических обязательств, таких как бухгалтерия и защита прав потребителей.',
+  'privacy.s4.title': '4. Правовое основание (GDPR)',
+  'privacy.s4.body':
+    'Мы опираемся на ст. 6(1)(b) GDPR (исполнение договора) для доставки HEROGLYPH и членства в Pack; ст. 6(1)(a) (согласие) для любых маркетинговых писем сверх сервисных сообщений — ты можешь отозвать согласие в любой момент; ст. 6(1)(f) (законный интерес) для логирования безопасности, предотвращения злоупотреблений и агрегированной аналитики; и ст. 6(1)(c) (юридическая обязанность) для налоговых и бухгалтерских записей.',
+  'privacy.s5.title': '5. Передача и субподрядчики',
+  'privacy.s5.body':
+    'Мы не продаём твои данные. Мы передаём их только субподрядчикам обработки, которые помогают нам управлять Услугой: Stripe Payments Europe, Ltd. (платежи) · Cloudinary Ltd. (хранение и доставка фото) · Resend, Inc. (транзакционные письма) · Supabase, Inc. (база данных и аутентификация) · WebSupport s.r.o. (веб-хостинг) · GitHub, Inc. (конвейер развёртывания). Каждый субподрядчик связан собственным соглашением об обработке данных.',
+  'privacy.s6.title': '6. Cookies и отслеживание',
+  'privacy.s6.body':
+    'Мы используем только те cookies и локальное хранилище, которые нужны для работы Услуги (сессия, язык, твои незавершённые выборы HEROGLYPH). Мы не запускаем стороннюю рекламу или межсайтовые пиксели отслеживания. Если мы добавим дружественную к конфиденциальности продуктовую аналитику (например, Plausible), мы обновим этот раздел перед её включением.',
+  'privacy.s7.title': '7. Хранение данных',
+  'privacy.s7.body':
+    'Твой HEROGLYPH и профиль Pack хранятся столько, сколько существует твой аккаунт, поскольку GodsGrid является пожизненным реестром каждого члена Pack. Логи транзакционных писем хранятся 12 месяцев для поддержки и предотвращения мошенничества. Бухгалтерские записи хранятся 10 лет в соответствии с требованиями словацкого права (Закон 431/2002 Сб.). Когда ты попросишь удалить аккаунт, мы удаляем персональные идентификаторы в течение 30 дней и сохраняем только юридически необходимый минимум.',
+  'privacy.s8.title': '8. Твои права',
+  'privacy.s8.body':
+    'Согласно GDPR у тебя есть право на доступ к своим данным, их исправление, удаление, ограничение или возражение против обработки, переносимость данных и отзыв согласия в любой момент. Ты также можешь подать жалобу в словацкий надзорный орган — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Чтобы воспользоваться любым из этих прав, напиши на privacy@dogypt.com — мы отвечаем в течение 30 дней.',
+  'privacy.s9.title': '9. Международная передача',
+  'privacy.s9.body':
+    'Некоторые наши субподрядчики (Stripe, Cloudinary, Resend, Supabase, GitHub) используют серверы за пределами ЕС/ЕЭП, в основном в США. Там, где персональные данные покидают ЕС/ЕЭП, мы опираемся на Стандартные договорные положения Европейской комиссии, рамки EU–US Data Privacy Framework и дополнительные гарантии, требуемые Главой V GDPR.',
+  'privacy.s10.title': '10. Изменения этой политики',
+  'privacy.s10.body':
+    'О существенных изменениях мы сообщим тебе по электронной почте не менее чем за 30 дней до их вступления в силу. Незначительные правки — опечатки, обновления названий субподрядчиков, новые контактные адреса — вступают в силу с момента публикации. Текущая версия и дата всегда вверху этой страницы; более старые версии доступны по запросу.',
+  'privacy.s11.title': '11. Контакты',
+  'privacy.s11.body':
+    'Конфиденциальность и данные: privacy@dogypt.com · Общие вопросы: info@dogypt.com · Почта: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Словакия.',
+
+  // ── /about — Council (We Need You) — STROJOVÝ PREKLAD, čaká review ──
+  'about.council.imgAlt': 'Фараон с Hekthor и своими котами — Dogypt нуждается в тебе',
+  'about.council.headline': 'Ты нам нужен.',
+  'about.council.sub':
+    'DOGYPT строят люди, которые знают, что значит собака. Если тебе есть что привнести — навык, голос, видение — это твоё место.',
+  'about.council.rolesAria': 'Выбери свою роль',
+  'about.council.role.dog-lover.label': 'Любитель собак и тестировщик',
+  'about.council.role.dog-lover.desc': 'Ранний доступ и честный отзыв',
+  'about.council.role.developer.label': 'Разработчик / дизайнер',
+  'about.council.role.developer.desc': 'Создавай функции, твори визуал',
+  'about.council.role.dog-pro.label': 'Профессионал по собакам',
+  'about.council.role.dog-pro.desc': 'Ветеринар, кинолог, приют, заводчик',
+  'about.council.role.creator.label': 'Креатор',
+  'about.council.role.creator.desc': 'Видео, фото, искусство для стаи',
+  'about.council.role.media.label': 'Медиа / инфлюенсер',
+  'about.council.role.media.desc': 'Аудитория и охват',
+  'about.council.role.investor.label': 'Инвестор',
+  'about.council.role.investor.desc': 'Финансируй конкретные миссии и приюты',
+  'about.council.role.community.label': 'Создатель сообщества',
+  'about.council.role.community.desc': 'Объединяй людей на местах',
+  'about.council.role.business.label': 'Бизнес и партнёрства',
+  'about.council.role.business.desc': 'Открывай двери — бренды, приюты, сделки',
+  'about.council.fullName': 'Полное имя',
+  'about.council.email': 'Эл. почта',
+  'about.council.message': 'Расскажи, что ты привносишь… (необязательно)',
+  'about.council.error': 'Что-то пошло не так. Попробуй снова.',
+  'about.council.sending': 'Отправка…',
+  'about.council.submit': 'Вступить в Совет',
+  'about.council.successTitle': 'Ты в Совете.',
+  'about.council.successSub': 'Мы свяжемся, когда придёт время.',
+
+  // ── /about — Footer ── (motto = EN by design, nezapisovať sem)
+  'about.footer.sealAlt': 'Печать DOGYPT',
+  'about.footer.mission': 'Движение для всех, чью жизнь изменила собака.',
+  'about.footer.privacy': 'Конфиденциальность',
+  'about.footer.terms': 'Условия',
+
+  // ── /about — Legends (citáty celebrít) — STROJOVÝ PREKLAD citátov, čaká review ──
+  'about.legends.title': 'ДАЖЕ ЛЕГЕНДЫ ПРЕКЛОНЯЛИСЬ',
+  'about.legends.sub':
+    'Самые могущественные люди, когда-либо жившие на свете, все склонялись перед одним и тем же тихим учителем — и записали это.',
+  'about.legends.creditsSummary': 'Цитаты из публичных интервью · Авторы фото',
+  'about.legends.creditsIntro':
+    'Портреты через Wikimedia Commons по лицензиям Creative Commons / общественное достояние.',
+  'about.legends.q.oprah-winfrey.text': 'Самая истинная, самая чистая любовь… это любовь, что исходит от твоей собаки.',
+  'about.legends.q.oprah-winfrey.role': 'Культурная икона',
+  'about.legends.q.chris-evans.text': 'В тот день я вовсе не собирался спасать собаку, но в ту минуту, когда я его увидел, я понял, что он едет со мной домой.',
+  'about.legends.q.chris-evans.role': 'Актёр · о своём псе Dodger',
+  'about.legends.q.tom-hardy.text': 'Он был Ангелом. И он был моим лучшим другом. Он знал только любовь.',
+  'about.legends.q.tom-hardy.role': 'Актёр · о своём псе Woody',
+  'about.legends.q.dwayne-johnson.text': 'Мы всегда будем тебя любить. Ты навсегда останешься моим маленьким главным дружком.',
+  'about.legends.q.dwayne-johnson.role': 'Актёр · о своём псе Brutus',
+  'about.legends.q.miley-cyrus.text': 'Ты научил меня любить без страха потери.',
+  'about.legends.q.miley-cyrus.role': 'Певица · о своём псе Floyd',
+  'about.legends.q.ariana-grande.text': 'Собаки — самые безобидные, самые милые создания в мире. Они дают лишь безусловную любовь.',
+  'about.legends.q.ariana-grande.role': 'Певица',
+  'about.legends.q.hugh-jackman.text': 'Я всегда, всегда называл его рок-звездой. Потому что он ею и был!',
+  'about.legends.q.hugh-jackman.role': 'Актёр · о своём псе Dali',
+  'about.legends.q.drew-barrymore.text': 'Думаю, даже клише о безусловной любви недостаточно.',
+  'about.legends.q.drew-barrymore.role': 'Актриса · о своей собаке Flossie',
+  'about.legends.q.henry-cavill.text': 'Он не раз спасал мою эмоциональную и психологическую шкуру.',
+  'about.legends.q.henry-cavill.role': 'Актёр · о своём псе Kal',
+  'about.legends.q.ryan-reynolds.text': 'Я просто в него влюбился. Я не собирался, я просто подобрал его по дороге.',
+  'about.legends.q.ryan-reynolds.role': 'Актёр · о своём псе Baxter',
+  'about.legends.q.george-clooney.text': 'Он меня любит. Я не могу сделать ничего плохого. Он ходит за мной повсюду.',
+  'about.legends.q.george-clooney.role': 'Актёр · о своём псе Einstein',
+  'about.legends.q.bradley-cooper.text': 'Charlotte любит меня беззаветно. Они мои дети.',
+  'about.legends.q.bradley-cooper.role': 'Актёр · о своей собаке Charlotte',
+  'about.legends.q.channing-tatum.text': 'Они просто дарят тебе безусловную любовь. И ты никогда не один, они просто рядом.',
+  'about.legends.q.channing-tatum.role': 'Актёр · о своей собаке Lulu',
+  'about.legends.q.orlando-bloom.text': 'Он был больше, чем спутник. Это была связь душ, точно.',
+  'about.legends.q.orlando-bloom.role': 'Актёр · о своём псе Mighty',
+  'about.legends.q.kevin-costner.text': 'Есть один такой, пёс всей жизни… и ты будешь плакать как маленький ребёнок, когда он уйдёт.',
+  'about.legends.q.kevin-costner.role': 'Актёр · о своём псе Wyatt',
+  'about.legends.q.tom-holland.text': 'Она замечательная, моя лучшая подруга.',
+  'about.legends.q.tom-holland.role': 'Актёр · о своей собаке Tessa',
+  'about.legends.q.patrick-stewart.text': 'Мы уже влюбляемся по уши.',
+  'about.legends.q.patrick-stewart.role': 'Актёр · о своём приёмном щенке',
+  'about.legends.q.jennifer-aniston.text': 'Собаки — это всё. Они — живая, дышащая, чистая, добрая любовь.',
+  'about.legends.q.jennifer-aniston.role': 'Актриса',
+  'about.legends.q.salma-hayek.text': 'У меня нет ни слов, ни слёз, чтобы описать, как много она для меня значила.',
+  'about.legends.q.salma-hayek.role': 'Актриса · о своей собаке Lupe',
+  'about.legends.q.eva-mendes.text': 'Это чувство никогда меня не покидало. Это одно из самых особенных присутствий в моей жизни.',
+  'about.legends.q.eva-mendes.role': 'Актриса · о своём псе Hugo',
+  'about.legends.q.chrissy-teigen.text': 'Для них ты вся их книга, вся их жизнь.',
+  'about.legends.q.chrissy-teigen.role': 'Модель / телеведущая · о своей собаке Penny',
+  'about.legends.q.hilary-duff.text': 'Ты подарил мне столько утешения и любви, когда я нуждалась в этом больше всего!',
+  'about.legends.q.hilary-duff.role': 'Актриса / певица · о своём псе Jak',
+  'about.legends.q.amanda-seyfried.text': 'Finn принёс всю любовь, тепло и полное присутствие, о каких девушка может только мечтать.',
+  'about.legends.q.amanda-seyfried.role': 'Актриса · о своём псе Finn',
+  'about.legends.q.kaley-cuoco.text': 'Безусловная любовь моего любимого, забавного пса Norman вдохновила меня создать эту компанию.',
+  'about.legends.q.kaley-cuoco.role': 'Актриса · о своём псе Norman',
+  'about.legends.q.mariah-carey.text': 'Нет пса лучше, чем Jack. Как можно сделать пса лучше, чем Jack!',
+  'about.legends.q.mariah-carey.role': 'Певица · о своём псе Jack',
+  'about.legends.q.billie-eilish.text': 'Он такой хороший мальчик. Хотела бы я взять его с собой в мировое турне.',
+  'about.legends.q.billie-eilish.role': 'Певица · о своём псе Shark',
+  'about.legends.q.selena-gomez.text': 'Я правда разговариваю со своими собаками. Я полностью верю, что животные исцеляют.',
+  'about.legends.q.selena-gomez.role': 'Певица / актриса',
+  'about.legends.q.paul-mccartney.text': 'Она была моим дорогим питомцем. Помню, как John удивлялся, видя, как нежен я с животным.',
+  'about.legends.q.paul-mccartney.role': 'The Beatles · о своей собаке Martha',
+  'about.legends.q.john-legend.text': 'Она дарила нам столько радости 10 лет. Мы любим тебя, Pippa!',
+  'about.legends.q.john-legend.role': 'Певец · о своей собаке Pippa',
+  'about.legends.q.dolly-parton.text': '«Puppy Love» была моей самой первой пластинкой, и шесть десятилетий спустя моя любовь к питомцам сильна как никогда.',
+  'about.legends.q.dolly-parton.role': 'Певица / автор песен',
+  'about.legends.q.lady-gaga.text': 'Её зовут Asia. Она BATPIG. Я люблю её, я её мама.',
+  'about.legends.q.lady-gaga.role': 'Певица · о своей собаке Asia',
+  'about.legends.q.conor-mcgregor.text': 'Он был со мной на всём пути, мой ближайший спутник. Всей этой любви и обнимашек нам будет не хватать вечно.',
+  'about.legends.q.conor-mcgregor.role': 'Боец UFC · о своём псе Hugo',
+  'about.legends.q.lewis-hamilton.text': 'Взять Roscoe в свою жизнь было лучшим решением, что я когда-либо принимал.',
+  'about.legends.q.lewis-hamilton.role': 'Гонщик F1 · о своём псе Roscoe',
+  'about.legends.q.serena-williams.text': 'Каждый день она приходила лизнуть мою ногу и напомнить, как сильно меня любит.',
+  'about.legends.q.serena-williams.role': 'Чемпионка по теннису · о своей собаке Jackie',
+  'about.legends.q.tyson-fury.text': 'Лучший друг человека. Всегда рад тебя видеть. Любит тебя безусловно.',
+  'about.legends.q.tyson-fury.role': 'Боксёр-тяжеловес · о своём псе Cash',
+  'about.legends.q.michael-phelps.text': 'Их любовь безусловна, и они дарят мне и моей семье море радости в нашей жизни.',
+  'about.legends.q.michael-phelps.role': 'Олимпийский пловец',
+  'about.legends.q.venus-williams.text': 'Harry — мой лучший друг! Определённо лучшее решение, что я когда-либо принимала.',
+  'about.legends.q.venus-williams.role': 'Чемпионка по теннису · о своём псе Harry',
+  'about.legends.q.roger-federer.text': 'Мы не могли бы быть счастливее. Добро пожаловать в семью, Willow.',
+  'about.legends.q.roger-federer.role': 'Чемпион по теннису · о своей собаке Willow',
+  'about.legends.q.john-steinbeck.text': 'Он хороший друг и спутник в путешествиях, и предпочитает странствия всему, что только может вообразить.',
+  'about.legends.q.john-steinbeck.role': 'Нобелевский лауреат · о своём псе Charley',
+  'about.legends.q.elizabeth-taylor.text': 'Я никогда в жизни не любила собаку так, как её. Иногда мне кажется, что там внутри живёт человек.',
+  'about.legends.q.elizabeth-taylor.role': 'Актриса · о своей собаке Sugar',
+  'about.legends.q.ricky-gervais.text': 'Если бы самые добрые души награждались самой долгой жизнью, собаки пережили бы нас всех.',
+  'about.legends.q.ricky-gervais.role': 'Комик / актёр',
+  'about.legends.q.gisele-bundchen.text': 'Наш ангел-хранитель ушёл на небеса. Она навсегда будет жить в наших сердцах.',
+  'about.legends.q.gisele-bundchen.role': 'Супермодель · о своей собаке Lua',
+  'about.legends.q.pablo-picasso.text': 'Lump — он не пёс, он не маленький человек, он кто-то другой.',
+  'about.legends.q.pablo-picasso.role': 'Художник · о своём псе Lump',
+  'about.legends.q.mickey-rourke.text': 'Иногда, когда человек один, всё, что у тебя есть, — это твоя собака. И они значили для меня целый мир.',
+  'about.legends.q.mickey-rourke.role': 'Актёр',
+};

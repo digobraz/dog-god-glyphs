@@ -16,23 +16,23 @@ type LangEntry = {
 const LANGS: LangEntry[] = [
   // ── LEFT column (world / Asian / global) ──
   { code: 'ENG', label: 'en',  countries: ['gb', 'us', 'ca'], enabled: true  },
-  { code: 'ESP', label: 'esp', countries: ['es', 'mx', 'ar'], enabled: false },
-  { code: 'PRT', label: 'prt', countries: ['pt', 'br'],       enabled: false },
+  { code: 'ESP', label: 'esp', countries: ['es', 'mx', 'ar'], enabled: true  },
+  { code: 'PRT', label: 'prt', countries: ['pt', 'br'],       enabled: true  },
   { code: 'CHN', label: 'chn', countries: ['cn'],             enabled: false },
   { code: 'JPN', label: 'jpn', countries: ['jp'],             enabled: false },
   { code: 'IND', label: 'ind', countries: ['in'],             enabled: false },
   { code: 'ARA', label: 'ara', countries: ['sa', 'ae', 'eg'], enabled: false },
-  { code: 'RUS', label: 'rus', countries: ['ru'],             enabled: false },
+  { code: 'RUS', label: 'rus', countries: ['ru'],             enabled: true  },
   { code: 'KOR', label: 'kor', countries: ['kr'],             enabled: false },
   // ── RIGHT column (EU + neighbors) ──
   { code: 'SVK', label: 'sk',  countries: ['sk'],             enabled: true  },
   { code: 'CZE', label: 'cs',  countries: ['cz'],             enabled: true  },
-  { code: 'DEU', label: 'deu', countries: ['de'],             enabled: false },
+  { code: 'DEU', label: 'deu', countries: ['de'],             enabled: true  },
   { code: 'NLD', label: 'nld', countries: ['nl'],             enabled: false },
-  { code: 'FRA', label: 'fra', countries: ['fr'],             enabled: false },
-  { code: 'ITA', label: 'ita', countries: ['it'],             enabled: false },
-  { code: 'POL', label: 'pol', countries: ['pl'],             enabled: false },
-  { code: 'UKR', label: 'ukr', countries: ['ua'],             enabled: false },
+  { code: 'FRA', label: 'fra', countries: ['fr'],             enabled: true  },
+  { code: 'ITA', label: 'ita', countries: ['it'],             enabled: true  },
+  { code: 'POL', label: 'pol', countries: ['pl'],             enabled: true  },
+  { code: 'UKR', label: 'ukr', countries: ['ua'],             enabled: true  },
   { code: 'TUR', label: 'tur', countries: ['tr'],             enabled: false },
 ];
 

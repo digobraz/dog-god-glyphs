@@ -1,0 +1,796 @@
+import type { Dict } from '../LanguageContext';
+/** DOGYPT i18n — FR dictionary (machine translation, pending human review). Partial<Dict>: missing key falls back to EN. */
+export const fra: Partial<Dict> = {
+  // ── /vision — hero ──
+  'vision.hero.title': 'La Vision',
+  'vision.hero.watch': 'Regarder le film d’intro Dogypt',
+  'vision.hero.videoTitle': 'Film d’intro DOGYPT',
+  'vision.hero.playLabel': 'Lire le film d’intro Dogypt',
+
+  // ── /vision — WHAT IF beats ──
+  // beat 0 (intro)
+  'vision.beat.dream.bigW': 'J’AI FAIT',
+  'vision.beat.dream.bigG': 'UN RÊVE',
+  'vision.beat.dream.tag': 'J’AI FAIT UN RÊVE',
+  'vision.intro.lead':
+    'En 2018, j’ai eu une <span class="wf-hl">vision</span> de la manière de <span class="wf-hl">sauver chaque chien sur Terre</span>. Et c’est en fait simple — chaque amoureux des chiens <span class="wf-hl">s’unit en une seule communauté</span>, une communauté qui voit le chien comme <span class="wf-hl">bien plus qu’un simple animal</span>. Et nous voici…',
+
+  // beat 1
+  'vision.beat.symbol.bigW': 'LE',
+  'vision.beat.symbol.bigG': 'SYMBOLE',
+  'vision.beat.symbol.tag': 'LE SYMBOLE',
+  'vision.beat.symbol.h':
+    'Notre langage d’amour, c’est le <span class="wf-hl">CHIEN</span>. Et au-delà de son nom ordinaire, chaque chien porte son propre <span class="wf-hl">symbole unique</span> — le <span class="wf-hl">HEROGLYPH</span>. C’est un <span class="wf-hl">langage universel</span>, un <span class="wf-hl">outil sacré</span> pour unir chaque amoureux des chiens sur Terre.',
+
+  // beat 2
+  'vision.beat.nation.bigW': 'UNE NATION',
+  'vision.beat.nation.bigG': 'CANINE',
+  'vision.beat.nation.tag': 'UNE NATION CANINE',
+  'vision.beat.nation.h':
+    'Réalisons un <span class="wf-hl">miracle</span>. Notre premier jalon : unir <span class="wf-hl">un million d’amoureux des chiens</span>. Imagine la <span class="wf-hl">puissance pure</span> que nous aurions ensemble — tout ce que nous pourrions faire pour nous-mêmes, nos chiens et <span class="wf-hl">les chiens dans le besoin</span>, au-delà de tout État. <span class="wf-hl">Nous serions l’État.</span>',
+
+  // beat 3
+  'vision.beat.temple.bigW': 'TEMPLE',
+  'vision.beat.temple.bigG': 'NUMÉRIQUE',
+  'vision.beat.temple.tag': 'TEMPLE NUMÉRIQUE',
+  'vision.beat.temple.h':
+    'Une seule application, <span class="wf-hl">réservée aux vrais amoureux des chiens</span> — aucun faux profil. Le premier <span class="wf-hl">monde numérique pensé pour les chiens</span>, conçu rien que pour nous : un foyer social et un écosystème qui aide vraiment — <span class="wf-hl">voyages, vétérinaires, services, éducation</span> et <span class="wf-hl">collectes</span> pour les chiens dans le besoin.',
+
+  // beat 4
+  'vision.beat.centers.bigW': 'CENTRES',
+  'vision.beat.centers.bigG': 'RÉELS',
+  'vision.beat.centers.tag': 'CENTRES RÉELS',
+  'vision.beat.centers.h':
+    'L’ancien refuge gérait la misère. Le <span class="wf-hl">sanctuaire</span> y met fin. De vrais centres partout dans le monde pour <span class="wf-hl">les soins, l’éducation et la recherche</span> — financés <span class="wf-hl">en toute transparence</span>, chaque compte sur la table.',
+
+  // beat 5
+  'vision.beat.era.bigW': 'UNE NOUVELLE',
+  'vision.beat.era.bigG': 'ÈRE',
+  'vision.beat.era.tag': 'UNE NOUVELLE ÈRE',
+  'vision.beat.era.h':
+    'Par-delà les frontières et la politique, les amoureux des chiens sont la <span class="wf-hl">force cachée la plus douce</span> de la Terre. Ce n’est qu’ensemble que nous pourrons <span class="wf-hl">reconstruire le système</span> et changer le monde — et laisser derrière nous quelque chose qui protège nos chiens <span class="wf-hl">pour toujours</span>.',
+
+  // ── /vision — finale CTA ──
+  'vision.finale.title': 'Et si…',
+  'vision.finale.lead':
+    '…chaque amoureux des chiens disait <span style="color:#F5C73D;font-style:italic">oui</span> à une idée folle ?',
+  'vision.finale.cta': 'Devenir Dogyptian',
+  'vision.finale.tagline': 'Une nouvelle ère n’est qu’à un clic.',
+
+  // ── /heroglyph intro ──
+  // hero title (mobile = 2 riadky "The"/"Symbol"; desktop = "The Symbol") — case riadi CSS text-transform
+  'heroglyph.intro.title.line1': 'Le',
+  'heroglyph.intro.title.line2': 'Symbole',
+  'heroglyph.intro.title.desktop': 'Le Symbole',
+  'heroglyph.intro.title.sub': 'Qui Change l’Histoire',
+
+  // dictionary blok
+  'heroglyph.intro.word': 'Heroglyph',
+  'heroglyph.intro.ipa': '[ˈhɪr-oʊ-ɡlɪf]',
+  'heroglyph.intro.noun': 'nom',
+  'heroglyph.intro.definition':
+    'Un symbole unique qui te décrit, toi et ton chien, votre lien éternel. Aussi un billet pour DOGYPT — l’endroit où DOG is GOD.',
+
+  // Heroglyph slovo tooltip (desktop hover)
+  'heroglyph.intro.wordTooltip': 'HERO = CHIEN · GLYPH = SYMBOLE',
+  'heroglyph.intro.wordTooltipSub': 'Un nom divin pour chaque CHIEN.',
+
+  // CTA + outro
+  'heroglyph.intro.cta': 'Devenir Dogyptian',
+  'heroglyph.intro.outro': 'Amoureux des chiens, rassemblement !',
+  'heroglyph.intro.loading': 'Chargement…',
+
+  // pills rad 1
+  'heroglyph.intro.pill.questions.label': '12 questions',
+  'heroglyph.intro.pill.questions.tooltip': 'Douze réponses rapides sur ton chien.',
+  'heroglyph.intro.pill.minutes.label': '3 minutes',
+  'heroglyph.intro.pill.minutes.tooltip': 'Un quiz interactif plein de fun.',
+  'heroglyph.intro.pill.forever.label': 'Pour toujours sur DOGYPT.com',
+  'heroglyph.intro.pill.forever.tooltip':
+    'Le nom de ton chien pour toujours dans ton cœur — et dans le monde numérique.',
+
+  // pills rad 2
+  'heroglyph.intro.pill.unique.label': 'Unique en son genre',
+  'heroglyph.intro.pill.unique.tooltip': 'Deux heroglyphs ne se ressemblent jamais — chaque symbole est unique !',
+  'heroglyph.intro.pill.vow.label': 'Serment de Foi',
+  'heroglyph.intro.pill.vow.tooltip': 'Ton signe d’allégeance à la voie Dogyptian — IN DOG WE TRUST !',
+  'heroglyph.intro.pill.bond.label': 'Lien Éternel',
+  'heroglyph.intro.pill.bond.tooltip': 'Un symbole du lien éternel entre toi et ton chien.',
+  'heroglyph.intro.pill.payment.label': 'Un Paiement Symbolique',
+  'heroglyph.intro.pill.payment.tooltip':
+    '11 € une seule fois — sans abonnement. Tout l’argent reste dans DOGYPT — pour le développement et l’aide systématique !',
+
+  // showcase symbol meanings (Hekthorov heroglyf) — label + value
+  'heroglyph.intro.meaning.dog.label': 'Chien',
+  'heroglyph.intro.meaning.dog.value': 'Hekthor',
+  'heroglyph.intro.meaning.owner.label': 'Propriétaire',
+  'heroglyph.intro.meaning.owner.value': 'Matej',
+  'heroglyph.intro.meaning.dogGender.label': 'Sexe du chien',
+  'heroglyph.intro.meaning.dogGender.value': 'Roi',
+  'heroglyph.intro.meaning.dogColour.label': 'Couleur du chien',
+  'heroglyph.intro.meaning.dogColour.value': 'Pelage sombre',
+  'heroglyph.intro.meaning.dogPatron.label': 'Patron du chien',
+  'heroglyph.intro.meaning.dogPatron.value': 'Hekthor',
+  'heroglyph.intro.meaning.dogOrigin.label': 'Origine du chien',
+  'heroglyph.intro.meaning.dogOrigin.value': 'Sauvé',
+  'heroglyph.intro.meaning.dogBloodline.label': 'Lignée du chien',
+  'heroglyph.intro.meaning.dogBloodline.value': 'Bâtard',
+  'heroglyph.intro.meaning.dogCharacter1.label': 'Caractère du chien I',
+  'heroglyph.intro.meaning.dogCharacter1.value': 'Frisbee préféré',
+  'heroglyph.intro.meaning.dogCharacter2.label': 'Caractère du chien II',
+  'heroglyph.intro.meaning.dogCharacter2.value': 'Amoureux de l’eau',
+  'heroglyph.intro.meaning.ownerGender.label': 'Sexe du propriétaire',
+  'heroglyph.intro.meaning.ownerGender.value': 'Homme',
+  'heroglyph.intro.meaning.westernZodiac.label': 'Zodiaque occidental',
+  'heroglyph.intro.meaning.westernZodiac.value': 'Lion',
+  'heroglyph.intro.meaning.chineseZodiac.label': 'Zodiaque chinois',
+  'heroglyph.intro.meaning.chineseZodiac.value': 'Coq',
+  'heroglyph.intro.meaning.ownerInitial.label': 'Initiale du propriétaire',
+  'heroglyph.intro.meaning.ownerInitial.value': 'Matej',
+  'heroglyph.intro.meaning.ranking.label': 'Classement',
+  'heroglyph.intro.meaning.ranking.value': '#1 — Premier Chien',
+
+  // ── /heroglyph flow — step 1: name ──
+  'heroglyph.flow.name.greetingPrefix': 'Salut, je suis',
+  'heroglyph.flow.name.greetingQuestion': 'Comment s’appelle ton chien ?',
+  'heroglyph.flow.name.placeholder': 'Saisis le nom de ton chien...',
+  'heroglyph.flow.name.birthday': 'Quand ton chien est-il né ?',
+  'heroglyph.flow.name.continue': 'Continuer',
+  'heroglyph.flow.name.infoAria': 'Informations sur Hekthor',
+  'heroglyph.flow.name.whoTitle': 'QUI EST',
+  'heroglyph.flow.name.whoTitleName': 'HEKTHOR ?',
+  'heroglyph.flow.name.whoBody':
+    'Hekthor est le premier Dogyptian. Sauvé de la rue et adopté dans un refuge, sa loyauté a inspiré un mouvement mondial qui honore les chiens comme des dieux. Sa mission : forger un HEROGLYPH unique pour chaque chien sur Terre, en réunissant la plus grande communauté d’amoureux des chiens au monde pour aider des millions de chiens dans le besoin.',
+  'heroglyph.flow.name.born': 'Né',
+  'heroglyph.flow.name.adopted': 'Adopté',
+  'heroglyph.flow.name.location': 'Lieu',
+  'heroglyph.flow.name.locationValue': 'Slovaquie, UE',
+
+  // ── /heroglyph flow — step 2: photo ──
+  'heroglyph.flow.photo.faceOfGodPrefix': 'UN',
+  'heroglyph.flow.photo.faceOfGodWord': 'VISAGE',
+  'heroglyph.flow.photo.faceOfGodSuffix': 'DE DIEU',
+  'heroglyph.flow.photo.uploadHint': 'Téléverse une photo nette de {dogName} — elle sera scellée à jamais dans son Heroglyph.',
+  'heroglyph.flow.photo.yourDog': 'ton chien',
+  'heroglyph.flow.photo.tapToUpload': 'Appuie pour téléverser',
+  'heroglyph.flow.photo.changePhoto': 'Changer de photo',
+  'heroglyph.flow.photo.sealing': 'Scellement dans l’éternité…',
+  'heroglyph.flow.photo.sealed': '✓ Scellé',
+  'heroglyph.flow.photo.uploadFailed': 'Échec du téléversement — réessaie',
+  'heroglyph.flow.photo.tipForward': 'chien de face',
+  'heroglyph.flow.photo.tipSide': 'profil / groupe',
+  'heroglyph.flow.photo.tipBest': 'Meilleur résultat : visage bien visible, fonctionne recadré en cercle.',
+  'heroglyph.flow.photo.next': 'SUIVANT →',
+  'heroglyph.flow.photo.back': '← RETOUR',
+  'heroglyph.flow.photo.adjustTitle': 'AJUSTE TON PORTRAIT',
+  'heroglyph.flow.photo.adjustHint': 'Fais glisser pour positionner ton chien dans le cadre.',
+  'heroglyph.flow.photo.moreTitle': 'PLUS DE VISAGES DU DIEU',
+  'heroglyph.flow.photo.moreHint': 'Ajoute 1 à 3 photos de plus pour des surprises plus tard. (facultatif)',
+  'heroglyph.flow.photo.saving': 'ENREGISTREMENT...',
+
+  // ── /heroglyph flow — step 3: breed ──
+  'heroglyph.flow.breed.question': 'Dis-moi, de quelle race est ton héros ?',
+  'heroglyph.flow.breed.searchPlaceholder': 'Rechercher une race...',
+  'heroglyph.flow.breed.continue': 'Continuer',
+  'heroglyph.flow.breed.cat.01': 'Boules de poils',
+  'heroglyph.flow.breed.cat.02': 'Laineux',
+  'heroglyph.flow.breed.cat.03': 'Antennes',
+  'heroglyph.flow.breed.cat.04': 'Sprinteurs',
+  'heroglyph.flow.breed.cat.05': 'Truffes',
+  'heroglyph.flow.breed.cat.06': 'Aristocrates',
+  'heroglyph.flow.breed.cat.07': 'Museaux plats',
+  'heroglyph.flow.breed.cat.08': 'Éclabousseurs',
+  'heroglyph.flow.breed.cat.09': 'Loups',
+  'heroglyph.flow.breed.cat.10': 'Géants',
+
+  // ── /heroglyph flow — step 4: ranking ──
+  'heroglyph.flow.ranking.question': '{dogName} est-il le premier chien que tu aies jamais eu ?',
+  'heroglyph.flow.ranking.yourPup': 'ton toutou',
+  'heroglyph.flow.ranking.yesLabel': 'OUI, mon premier amour',
+  'heroglyph.flow.ranking.noLabel': 'NON, amoureux des chiens depuis toujours !',
+  'heroglyph.flow.ranking.whichDog': 'Le combien de chien est {dogName} ?',
+  'heroglyph.flow.ranking.range': '11–50',
+  'heroglyph.flow.ranking.enterNumber': 'Saisis le numéro du chien (11–50)',
+  'heroglyph.flow.ranking.continue': 'Continuer',
+  'heroglyph.flow.ranking.back': 'Retour',
+
+  // ── /heroglyph flow — step 5: owner-info ──
+  'heroglyph.flow.ownerInfo.greetingPrefix': 'Bon, parlons un peu de toi,',
+  'heroglyph.flow.ownerInfo.greetingWord': 'humain',
+  'heroglyph.flow.ownerInfo.placeholder': 'Prénom du propriétaire...',
+  'heroglyph.flow.ownerInfo.man': 'Homme',
+  'heroglyph.flow.ownerInfo.woman': 'Femme',
+  'heroglyph.flow.ownerInfo.continue': 'Continuer',
+  'heroglyph.flow.ownerInfo.back': 'Retour',
+
+  // ── /heroglyph flow — shared ──
+  'heroglyph.flow.yourDogFallback': 'TON CHIEN',
+  'heroglyph.flow.dogHeroglyphTitle': 'LE HEROGLYPH DE {dogName}',
+
+  // ── /heroglyph flow — step 6: owner-zodiac ──
+  'heroglyph.flow.ownerZodiac.question': 'Que disent les étoiles à ton sujet ?',
+  'heroglyph.flow.ownerZodiac.westernLabel': 'Signe du zodiaque',
+  'heroglyph.flow.ownerZodiac.chineseLabel': 'Zodiaque chinois',
+  'heroglyph.flow.ownerZodiac.continue': 'Continuer',
+  'heroglyph.flow.ownerZodiac.back': 'Retour',
+  // western sign labels (display only — enum values stay English)
+  'heroglyph.flow.ownerZodiac.sign.Aries': 'Bélier',
+  'heroglyph.flow.ownerZodiac.sign.Taurus': 'Taureau',
+  'heroglyph.flow.ownerZodiac.sign.Gemini': 'Gémeaux',
+  'heroglyph.flow.ownerZodiac.sign.Cancer': 'Cancer',
+  'heroglyph.flow.ownerZodiac.sign.Leo': 'Lion',
+  'heroglyph.flow.ownerZodiac.sign.Virgo': 'Vierge',
+  'heroglyph.flow.ownerZodiac.sign.Libra': 'Balance',
+  'heroglyph.flow.ownerZodiac.sign.Scorpio': 'Scorpion',
+  'heroglyph.flow.ownerZodiac.sign.Sagittarius': 'Sagittaire',
+  'heroglyph.flow.ownerZodiac.sign.Capricorn': 'Capricorne',
+  'heroglyph.flow.ownerZodiac.sign.Aquarius': 'Verseau',
+  'heroglyph.flow.ownerZodiac.sign.Pisces': 'Poissons',
+  // chinese animal labels (display only — enum values stay English)
+  'heroglyph.flow.ownerZodiac.animal.Monkey': 'Singe',
+  'heroglyph.flow.ownerZodiac.animal.Rooster': 'Coq',
+  'heroglyph.flow.ownerZodiac.animal.Dog': 'Chien',
+  'heroglyph.flow.ownerZodiac.animal.Pig': 'Cochon',
+  'heroglyph.flow.ownerZodiac.animal.Rat': 'Rat',
+  'heroglyph.flow.ownerZodiac.animal.Ox': 'Buffle',
+  'heroglyph.flow.ownerZodiac.animal.Tiger': 'Tigre',
+  'heroglyph.flow.ownerZodiac.animal.Rabbit': 'Lapin',
+  'heroglyph.flow.ownerZodiac.animal.Dragon': 'Dragon',
+  'heroglyph.flow.ownerZodiac.animal.Snake': 'Serpent',
+  'heroglyph.flow.ownerZodiac.animal.Horse': 'Cheval',
+  'heroglyph.flow.ownerZodiac.animal.Goat': 'Chèvre',
+
+  // ── /heroglyph flow — step 7: owner-final ──
+  'heroglyph.flow.ownerFinal.infoAria': 'Informations sur le Heroglyph',
+  'heroglyph.flow.ownerFinal.messageLine1': 'HUMAIN, ta partie est terminée.',
+  'heroglyph.flow.ownerFinal.messageLine2': 'Ce petit cadre — c’est toi !',
+  'heroglyph.flow.ownerFinal.messageLine3Prefix': 'Maintenant, terminons le HEROGLYPH avec',
+  'heroglyph.flow.ownerFinal.messageLine3Suffix': '.',
+  'heroglyph.flow.ownerFinal.cta': 'C’EST PARTI',
+  'heroglyph.flow.ownerFinal.infoTitle': 'INSPIRÉ DE L’ÉGYPTE ANCIENNE',
+  'heroglyph.flow.ownerFinal.infoBody':
+    'Le HEROGLYPH se compose de deux cadres qui forment ensemble la véritable identité de ton chien. Dans l’Égypte ancienne, les noms des dieux et des pharaons étaient inscrits dans des cadres ovales protecteurs similaires, appelés cartouches, afin de préserver leur héritage pour l’éternité.',
+  'heroglyph.flow.ownerFinal.cleopatraAlt': 'Le cartouche de Cléopâtre',
+  'heroglyph.flow.ownerFinal.cleopatraCaption': 'Ce hiéroglyphe appartient à Cléopâtre.',
+  'heroglyph.flow.ownerFinal.back': 'Retour',
+
+  // ── /heroglyph flow — step 8: dog-gender ──
+  'heroglyph.flow.dogGender.infoAria': 'Informations sur le sexe du chien',
+  'heroglyph.flow.dogGender.title': 'Sexe du chien',
+  'heroglyph.flow.dogGender.questionPrefix': 'As-tu un',
+  'heroglyph.flow.dogGender.questionKing': 'roi',
+  'heroglyph.flow.dogGender.questionOr': 'ou une',
+  'heroglyph.flow.dogGender.questionQueen': 'reine',
+  'heroglyph.flow.dogGender.questionSuffix': ' à la maison ?',
+  'heroglyph.flow.dogGender.king': 'Roi',
+  'heroglyph.flow.dogGender.queen': 'Reine',
+  'heroglyph.flow.dogGender.info3Title': 'Couronne à 3 pointes',
+  'heroglyph.flow.dogGender.info3Body':
+    'Pour les garçons qui ont maîtrisé l’équilibre sur 3 pattes. Une patte en l’air, visée maximale, légende absolue.',
+  'heroglyph.flow.dogGender.info4Title': 'Couronne à 4 pointes',
+  'heroglyph.flow.dogGender.info4Body':
+    'Pour les filles qui préfèrent la stabilité sur 4 pattes. Confort maximal, zéro dégât, élégance totale.',
+  'heroglyph.flow.dogGender.back': 'Retour',
+
+  // ── /heroglyph flow — step 9: dog-fate ──
+  'heroglyph.flow.dogFate.infoAria': 'Informations sur l’origine du chien',
+  'heroglyph.flow.dogFate.title': 'L’Origine',
+  'heroglyph.flow.dogFate.questionPrefix': 'Ton chien est-il né dans un',
+  'heroglyph.flow.dogFate.questionSafe': 'foyer sûr',
+  'heroglyph.flow.dogFate.questionOr': 'ou a-t-il reçu une',
+  'heroglyph.flow.dogFate.questionSecond': 'seconde chance',
+  'heroglyph.flow.dogFate.questionSuffix': ' dans la vie ?',
+  'heroglyph.flow.dogFate.raised': 'Élevé',
+  'heroglyph.flow.dogFate.rescued': 'Sauvé',
+  'heroglyph.flow.dogFate.infoRaisedTitle': 'Tétine de bébé',
+  'heroglyph.flow.dogFate.infoRaisedBody': 'Un chien né dans la famille. Élevé avec amour dès le premier jour.',
+  'heroglyph.flow.dogFate.infoRescuedTitle': 'Bouée de sauvetage',
+  'heroglyph.flow.dogFate.infoRescuedBody': 'Un chien sauvé ou trouvé. Une seconde chance dans la vie.',
+  'heroglyph.flow.dogFate.back': 'Retour',
+
+  // ── /heroglyph flow — step 10: dog-colour ──
+  'heroglyph.flow.dogColour.title': 'Couleur du chien',
+  'heroglyph.flow.dogColour.questionPrefix': 'Quel',
+  'heroglyph.flow.dogColour.questionCoat': 'pelage',
+  'heroglyph.flow.dogColour.questionSuffix': ' porte ton chien ?',
+  'heroglyph.flow.dogColour.bright': 'Clair',
+  'heroglyph.flow.dogColour.brightSub': 'Soleil',
+  'heroglyph.flow.dogColour.dark': 'Sombre',
+  'heroglyph.flow.dogColour.darkSub': 'Lune',
+  'heroglyph.flow.dogColour.mix': 'Mixte',
+  'heroglyph.flow.dogColour.mixSub': 'Arc-en-ciel',
+  'heroglyph.flow.dogColour.back': 'Retour',
+
+  // ── /heroglyph flow — step 11: dog-bloodline ──
+  'heroglyph.flow.dogBloodline.infoAria': 'Informations sur la lignée du chien',
+  'heroglyph.flow.dogBloodline.title': 'Lignée du chien',
+  'heroglyph.flow.dogBloodline.questionPrefix': 'Ton chien est-il ',
+  'heroglyph.flow.dogBloodline.questionPure': 'pur',
+  'heroglyph.flow.dogBloodline.questionOr': ' ou ',
+  'heroglyph.flow.dogBloodline.questionWild': 'sauvage',
+  'heroglyph.flow.dogBloodline.questionSuffix': ' ?',
+  'heroglyph.flow.dogBloodline.aristocrat': 'Aristocrate',
+  'heroglyph.flow.dogBloodline.mutt': 'Bâtard',
+  'heroglyph.flow.dogBloodline.infoSignedTitle': 'Papyrus signé',
+  'heroglyph.flow.dogBloodline.infoSignedBody': 'Original avec lignée pure.',
+  'heroglyph.flow.dogBloodline.infoEmptyTitle': 'Papyrus vierge',
+  'heroglyph.flow.dogBloodline.infoEmptyBody': 'Original sans lignée pure.',
+  'heroglyph.flow.dogBloodline.back': 'Retour',
+
+  // ── /heroglyph flow — step 12: dog-character ──
+  'heroglyph.flow.dogCharacter.infoAria': 'Informations sur le caractère',
+  'heroglyph.flow.dogCharacter.title': 'Le Caractère',
+  'heroglyph.flow.dogCharacter.questionPrefix': 'Quelle est la ',
+  'heroglyph.flow.dogCharacter.questionWord': 'personnalité',
+  'heroglyph.flow.dogCharacter.questionSuffix': ' de ton chien ?',
+  'heroglyph.flow.dogCharacter.chooseTwo': 'Choisis deux options.',
+  'heroglyph.flow.dogCharacter.infoTitle': 'Choisis le vibe de ton chien',
+  'heroglyph.flow.dogCharacter.infoBody':
+    'Choisis les deux traits de caractère qui décrivent le mieux ton chien. Ils façonnent les symboles à l’intérieur du Heroglyph.',
+  'heroglyph.flow.dogCharacter.selectedCount': '{count}/2 sélectionnés',
+  'heroglyph.flow.dogCharacter.back': 'Retour',
+  'heroglyph.flow.dogCharacter.trait.guardian': 'Gardien',
+  'heroglyph.flow.dogCharacter.trait.player': 'Joueur',
+  'heroglyph.flow.dogCharacter.trait.energizer': 'Pile électrique',
+  'heroglyph.flow.dogCharacter.trait.maverick': 'Rebelle',
+  'heroglyph.flow.dogCharacter.trait.waterlover': 'Amoureux de l’eau',
+  'heroglyph.flow.dogCharacter.trait.gourmet': 'Gourmet',
+  'heroglyph.flow.dogCharacter.trait.lover': 'Câlin',
+  'heroglyph.flow.dogCharacter.trait.chiller': 'Cool',
+
+  // ── /heroglyph flow — step 13: reveal ──
+  'heroglyph.flow.reveal.heroglyphTitle': 'Le Heroglyph de {dogName}',
+  'heroglyph.flow.reveal.horizontalDesign': '↔ DESIGN HORIZONTAL',
+  'heroglyph.flow.reveal.verticalDesign': '↕ DESIGN VERTICAL',
+  'heroglyph.flow.reveal.infoAria': 'Info',
+  'heroglyph.flow.reveal.visionTitle': 'NOTRE VISION',
+  'heroglyph.flow.reveal.visionBody':
+    'Pour revendiquer ton symbole officiel, nous demandons un tribut symbolique. Notre grand plan est simple : un Heroglyph pour chaque chien sur Terre. Car plus notre meute mondiale grandit, plus nous pouvons sauver de héros des rues et des refuges. Rejoins la dynastie !',
+  'heroglyph.flow.reveal.welcome': 'BIENVENUE DANS DOGYPT !',
+  'heroglyph.flow.reveal.bond': 'Ce Heroglyph est ton lien éternel.',
+  'heroglyph.flow.reveal.cta': 'OBTENIR MON HEROGLYPH',
+
+  // ── /heroglyph flow — step 14: message ──
+  'heroglyph.flow.message.promptPrefix': 'Laisse un message éternel pour ',
+  'heroglyph.flow.message.promptMid': '.',
+  'heroglyph.flow.message.promptStayPrefix': 'Il restera avec lui dans ',
+  'heroglyph.flow.message.promptStayWord': 'dogypt',
+  'heroglyph.flow.message.promptStaySuffix': ' - pour toujours.',
+  'heroglyph.flow.message.yourMessage': 'Ton Message',
+  'heroglyph.flow.message.placeholder':
+    'Cher {dogName}, merci pour chaque jour passé avec toi — et j’ai hâte de vivre tous les beaux moments qui nous attendent encore…',
+  'heroglyph.flow.message.profileNotePrefix': 'Ce message apparaîtra sur le profil de ton chien sur ',
+  'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
+  'heroglyph.flow.message.profileNoteSuffix': '.',
+  'heroglyph.flow.message.cta': 'SCELLER LE MESSAGE →',
+
+  // ── /heroglyph flow — checkout ──
+  'heroglyph.checkout.orderSummary': 'Récapitulatif de la commande',
+  'heroglyph.checkout.dogPossessive': 'de {dogName}',
+  'heroglyph.checkout.heroglyph': 'HEROGLYPH',
+  'heroglyph.checkout.yourDogFallback': 'Ton chien',
+  'heroglyph.checkout.yourDetails': 'Tes coordonnées',
+  'heroglyph.checkout.firstName': 'Prénom',
+  'heroglyph.checkout.lastName': 'Nom',
+  'heroglyph.checkout.email': 'E-mail',
+  'heroglyph.checkout.country': 'Pays',
+  'heroglyph.checkout.cta': 'CONTINUER VERS LE PAIEMENT →',
+  'heroglyph.checkout.disclaimerPrefix': 'Après le paiement, nous placerons la photo de ton chien sur le site web et ton ',
+  'heroglyph.checkout.disclaimerHighlight': 'Certificat DOGYPT',
+  'heroglyph.checkout.disclaimerSuffix': ' dans ton profil.',
+  'heroglyph.checkout.back': 'Retour',
+  'heroglyph.checkout.dogFallback': 'Chien',
+
+  // ── /welcome — post-payment (WelcomeScreen) ──
+  // record-moment overlay
+  'welcome.record.title': 'IMMORTALISE CE MOMENT',
+  'welcome.record.subtitle': 'Capture l’accueil officiel de ton chien',
+  // goal tracker
+  'welcome.goal.label': 'Notre Objectif 🎯',
+  'welcome.goal.target': '1 000 000 de Heroglyphs',
+  // congrats + name
+  'welcome.congratsPrefix': 'Félicitations, ',
+  'welcome.congratsName': '{name}.',
+  'welcome.ownerFallback': 'Ami',
+  'welcome.officiallyA': 'est officiellement un',
+  // mission text (code source of truth — renders identically)
+  'welcome.missionLine1': 'Tu viens de changer l’histoire — un chien à la fois.',
+  'welcome.missionSpread': 'Élargis la meute. ',
+  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  // CTA states (PREPARING → FORGING → ENTER)
+  'welcome.cta.preparing': 'PRÉPARATION DE TA PLACE...',
+  'welcome.cta.forging': 'FORGE DE TON HEROGLYPH...',
+  'welcome.cta.enter': 'ENTRER PARMI LES DIEUX →',
+  'welcome.emailHint': 'Ton certificat est en route — vérifie ta boîte mail.',
+
+  // ── /login — magic-link callback (Login.tsx) ──
+  'login.eyebrow': 'DOGYPT · Accès au Pack',
+  // status: verifying
+  'login.verifying.title': 'Ouverture de la Porte',
+  'login.verifying.body': 'Vérification de ton lien magique…',
+  // status: success
+  'login.success.title': 'Bon retour',
+  'login.success.body': 'Redirection vers ton pack…',
+  // status: expired
+  'login.expired.title': 'Lien expiré',
+  'login.expired.body': 'Les liens magiques ont une courte durée de vie. Demandes-en un nouveau et nous l’enverrons dans ta boîte de réception.',
+  // status: invalid
+  'login.invalid.title': 'Lien non reconnu',
+  'login.invalid.body': 'Nous n’avons pas pu vérifier ce lien. Il a peut-être déjà été utilisé ou copié de manière incorrecte.',
+  // status: network
+  'login.network.title': 'Problème de connexion',
+  'login.network.body': 'Nous n’avons pas pu joindre le temple. Vérifie ta connexion et réessaie.',
+  // status: missing
+  'login.missing.title': 'Aucun jeton trouvé',
+  'login.missing.body': 'Cette page attend un lien magique provenant de ton e-mail. Vérifie ta boîte de réception pour le plus récent.',
+  // resend button states
+  'login.resend.idle': 'Renvoyer le lien magique',
+  'login.resend.sending': 'Envoi…',
+  'login.resend.sent': 'Lien magique envoyé',
+  'login.backHome': 'Retour à l’accueil',
+  'login.homeAria': 'Accueil DOGYPT',
+
+  // ── 404 — NotFound.tsx ──
+  'notFound.code': '404',
+  'notFound.message': 'Oups ! Page introuvable',
+  'notFound.returnHome': 'Retour à l’accueil',
+
+  // ── /about — opening (origin + Star Wars crawl) ──
+  // origin-title renders as HTML (EN baked <br/> for the two-line stack; other langs = single word)
+  'about.origin.title': 'L’Origine',
+  'about.origin.sub': 'Fais glisser et lis',
+  'about.origin.skip': 'ou passe',
+  'about.crawl.intro': 'Il y a dix ans, dans un refuge au cœur de l’Europe….',
+  'about.crawl.episode': 'Épisode I',
+  'about.crawl.faith': 'Une Nouvelle Foi',
+  'about.crawl.p1':
+    'En 2016, huit chiots noirs sont arrivés au refuge, jetés dans une seule boîte. Sept ont trouvé un foyer. Le plus grand, personne n’en voulait — il a attendu une année entière. Il s’appelait Hekthor.',
+  'about.crawl.p2':
+    'Un jour, un couple est venu au refuge pour voir Sindy, une petite femelle blanche qu’ils voulaient adopter. Par pur hasard, Hekthor se trouvait alors dans son box — le sien était justement en train d’être nettoyé. L’homme, qui n’était venu que pour accompagner et n’avait jamais voulu de chien, est tombé amoureux du chien noir qu’il voyait pour la toute première fois.',
+  'about.crawl.p3':
+    'Une semaine plus tard, ils étaient ensemble, et une belle histoire commençait. Toute la vie de l’homme a changé, et avec le temps il a compris une chose : seul celui qui a un chien, et qui sait ce que l’on ressent face à l’amour d’un chien, peut vraiment aider les chiens dans le besoin.',
+  'about.crawl.p4':
+    'Et c’est ainsi qu’est né le Heroglyph — un symbole destiné à unir les amoureux des chiens du monde entier dans la plus grande communauté que le monde ait jamais connue. Une communauté qui se dressera pour nous, pour nos chiens et pour les générations à venir — pour ceux qui n’ont pas peur d’admettre qu’un chien n’est pas seulement un animal, mais un être qui nous rend meilleurs.',
+  'about.crawl.p5':
+    'En ce moment même, le voyage vers le premier jalon commence — créer 1 000 000 de Heroglyphs. Et tu peux en faire partie. Car les seuls assez fous pour croire qu’ils peuvent changer le monde sont ceux qui le font.',
+  'about.crawl.p6': 'IN DOG WE TRUST.',
+
+  // ── /about — timeline (5 milestones) ──
+  'about.timeline.heading': 'L’Histoire de Dogypt',
+  'about.milestone.1.year': '2017',
+  'about.milestone.1.tag': 'Le Refuge',
+  'about.milestone.1.title': 'Un trésor au refuge',
+  'about.milestone.1.body':
+    'Un chien noir dont personne ne voulait attendait derrière la clôture d’un refuge. Son nom est devenu Hekthor. L’adopter n’était pas un sauvetage — c’était le début de tout.',
+  'about.milestone.2.year': '2018',
+  'about.milestone.2.tag': 'Le Lien',
+  'about.milestone.2.title': 'Un lien éternel',
+  'about.milestone.2.body':
+    'Il m’a porté à travers la période la plus dure de ma vie sans dire un seul mot. Chaque amoureux des chiens le sait — ils te soutiennent précisément au moment où tu tombes.',
+  'about.milestone.3.year': '2019',
+  'about.milestone.3.tag': 'Le Voyage',
+  'about.milestone.3.title': 'La marche devenue un livre',
+  'about.milestone.3.body':
+    'Ensemble, nous avons traversé la Slovaquie — 42 jours, 800 kilomètres, une promesse silencieuse. Cette route est devenue un livre : « Cesta s Hrdinom » — La Route avec un Héros.',
+  'about.milestone.4.year': '2022',
+  'about.milestone.4.tag': 'Le Nom',
+  'about.milestone.4.title': 'Une nation d’amoureux des chiens',
+  'about.milestone.4.body':
+    'Pyramides, mysticisme, la gloire éternelle de l’Égypte — l’humanité en est envoûtée depuis des millénaires. Lie cela à l’amour infini d’un chien et tu obtiens DOGYPT. J’ai scellé l’idée à l’Expo Dubaï 2022, habillé en pharaon.',
+  'about.milestone.5.year': 'Maintenant',
+  'about.milestone.5.tag': 'Dogypt',
+  'about.milestone.5.title': 'Le voyage commence avec toi',
+  'about.milestone.5.body':
+    'DOGYPT est un mouvement pour tous ceux dont la vie a été changée par un chien. Bâti sur le lien le plus ancien et le plus sincère sur Terre. Hekthor est le fondateur n° 1. C’est toi le prochain.',
+
+  // ── /about — outro + reel ──
+  'about.outro.quoteLead': 'Ce n’était jamais',
+  'about.outro.quoteTail': '« juste un chien ».',
+  'about.outro.body':
+    'Tu connais déjà ce sentiment — qu’un chien n’est pas quelque chose que l’on possède, c’est <strong>quelqu’un que l’on aime</strong>. Maintenant, imagine cet amour organisé, connecté, <strong>assez puissant pour changer les choses.</strong> Et c’est pour cela qu’existe <strong>DOGYPT</strong>.',
+  'about.outro.name1': 'Matej',
+  'about.outro.and': 'et',
+  'about.outro.name2': 'Hekthor',
+  'about.outro.cta': 'Devenir Dogyptian',
+  'about.reel.prev': 'Photo précédente',
+  'about.reel.next': 'Photo suivante',
+
+  // ── /religion — hero hook (cow vs dog) ──
+  'religion.hook.number': '1,2',
+  'religion.hook.billion': 'MILLIARD',
+  'religion.hook.people': 'DE PERSONNES',
+  'religion.hook.note': '(15 % dans le monde)',
+  'religion.hook.bow': 's’inclinent devant la vache',
+  'religion.hook.doglovers': 'AMOUREUX DES CHIENS ?',
+  'religion.hook.worship': 'VÉNÉRONS NOS CHIENS.',
+  'religion.cta': 'Devenir Dogyptian',
+  'religion.aria.question': 'La Question',
+  'religion.aria.preamble': 'Préambule',
+  'religion.aria.sacredIndex': 'Index Sacré',
+  'religion.aria.scrollDown': 'Faire défiler vers le bas',
+
+  // ── /religion — preamble (In Dog We Trust) ──
+  'religion.preamble.text':
+    'Nous, la nation des amoureux des chiens — connaissant la <strong>loyauté infinie</strong>, le <strong>véritable amour</strong> et l’<strong>âme pure</strong> de chaque chien sur Terre — afin d’élever le statut des chiens dans la société humaine, de leur bâtir une <strong>communauté</strong>, d’<strong>améliorer</strong> leur vie et de <strong>réécrire</strong> le destin de chaque chien dans le besoin, nous nous donnons cette constitution.',
+  'religion.preamble.oath': 'Le Serment de la Meute',
+
+  // ── /religion — sacred index ──
+  'religion.bookTitle': 'La « Bible » des amoureux des chiens',
+
+  // ── /religion — Constitution book (ConstitutionBook.tsx) ──
+  'religion.book.sealAlt': 'Le sceau Dogyptian',
+  'religion.book.sub': 'Lecture obligatoire pour tout amoureux des chiens qui veut devenir Dogyptian.',
+  'religion.book.cta1.kicker': 'La Voie Commence',
+  'religion.book.cta1.head': 'Rejoindre la<br />Religion',
+  'religion.book.cta1.text': 'Inscris-toi à la religion canine — prends un Heroglyph.',
+  'religion.book.cta1.btn': 'Devenir Dogyptian',
+  'religion.book.cta2.kicker': 'La Parole Entière',
+  'religion.book.cta2.head': 'Lire la<br />Constitution',
+  'religion.book.cta2.text': 'Chaque canon, chaque credo et chaque commandement — en entier.',
+  'religion.book.cta2.btn': 'Constitution complète',
+  'religion.book.coverOpenAria': 'Ouvrir la Constitution',
+  'religion.book.coverAlt': 'La Constitution Dogyptian',
+  'religion.book.hint': 'Appuie sur le livre pour l’ouvrir',
+  'religion.book.close': 'Fermer le livre',
+  'religion.book.prevPage': 'Page précédente',
+  'religion.book.nextPage': 'Page suivante',
+
+  // ── shared nav (PageNav top-bar + Wall) — CSS uppercases for display ──
+  'nav.wall': 'Mur',
+  'nav.vision': 'Vision',
+  'nav.religion': 'Religion',
+  'nav.about': 'À propos',
+
+  // ── / (Wall / GodsGrid) ──
+  // hero card — "DOG is GOD." motto stays EN inline (not keyed)
+  'wall.hero.taglineLead': 'L’endroit où',
+  'wall.hero.cta': 'Devenir Dogyptian',
+  'wall.hero.total': '1 000 000',
+  'wall.hero.dogs': 'CHIENS',
+  // Hekthor founder card
+  'wall.hektor.msg': 'Le chien par qui tout a commencé. Adopté en 2017. Chaque voyage commence par un pas — le sien fut une marche de 42 jours à travers la Slovaquie.',
+  // info overlay
+  'wall.info.title': '1 000 000 de chiens.<br/>Y arriverons-nous ?',
+  'wall.info.body': 'DOGYPT est un mouvement pour les amoureux des chiens. Chaque chien reçoit un Heroglyph unique — sa place permanente dans la meute mondiale. Nous rassemblons un million de héros. Sois parmi les premiers.',
+  // filter / numpad
+  'wall.filter.find': 'Trouver un chien par numéro',
+  'wall.filter.center': 'Centrer la grille',
+  'wall.filter.placeholder': 'Chien n°',
+  'wall.filter.clear': 'Effacer',
+  'wall.filter.confirm': 'Confirmer',
+
+  // ── nav a11y (PageNav aria-labels + language modal) ──
+  'nav.aria.back': 'Retour',
+  'nav.aria.openMenu': 'Ouvrir le menu',
+  'nav.aria.menu': 'Menu',
+  'nav.aria.wallHome': 'WALL — accueil',
+  'nav.aria.chooseLanguage': 'Choisir la langue',
+  'nav.langModal.title': 'Choisir la langue',
+  'nav.aria.close': 'Fermer',
+
+  // ── /payment (PaymentScreen) ──
+  'payment.title': 'Paiement sécurisé',
+  'payment.product': 'CERTIFICAT DOGYPT HEROGLYPH pour {dogName}',
+  'payment.yourDog': 'ton chien',
+  'payment.sealing': 'SCELLEMENT DE LA PHOTO...',
+  'payment.preparing': 'PRÉPARATION...',
+  'payment.pay': 'PAYER AVEC STRIPE',
+  'payment.secured': 'Sécurisé par Stripe · Carte, Apple Pay, Google Pay',
+  'payment.back': 'Retour',
+
+  // ── /terms + /privacy — shared legal chrome ──
+  // legal.eyebrow + legal.motto = brand → EN fallback by design
+  'legal.updated': 'Dernière mise à jour : 4 mai 2026 · v1.0',
+  // legally binding version = EN; translations are convenience (rendered in all langs)
+  'legal.langNote':
+    'Ce document est fourni en plusieurs langues par commodité. En cas de divergence entre les versions, la version anglaise prévaut.',
+
+  // ── /terms ──
+  'terms.title': 'Conditions d’utilisation',
+  'terms.linkPrivacy': 'Politique de confidentialité →',
+  'terms.s1.title': '1. Qui nous sommes',
+  'terms.s1.body':
+    'DOGYPT s.r.o., une société à responsabilité limitée slovaque immatriculée au Registre du commerce (IČO 54 444 594), dont le siège est situé Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovaquie. Tout au long de ces Conditions, nous nous désignons par « DOGYPT », « nous » ou « notre », et nous vous désignons par « vous » ou « Membre ». En utilisant dogypt.com, le parcours HEROGLYPH ou tout service connexe (ensemble, le « Service »), vous acceptez ces Conditions. Date d’entrée en vigueur : 4 mai 2026.',
+  'terms.s2.title': '2. Conditions d’éligibilité',
+  'terms.s2.body':
+    'Vous devez avoir au moins 16 ans pour utiliser le Service. En créant un compte ou en finalisant un achat, vous confirmez que vous avez 16 ans ou plus, que toutes les informations que vous fournissez sont véridiques et que votre utilisation du Service est licite dans le pays où vous résidez.',
+  'terms.s3.title': '3. Compte et adhésion au Pack',
+  'terms.s3.body':
+    'L’accès est accordé via un lien magique envoyé à votre adresse e-mail ; aucun mot de passe n’est conservé. Votre compte vous est personnel — merci de ne pas partager l’accès. Nous pouvons suspendre ou fermer les comptes qui abusent du Service, harcèlent d’autres Membres ou enfreignent ces Conditions. Vous pouvez demander la suppression de votre compte à tout moment en écrivant à privacy@dogypt.com.',
+  'terms.s4.title': '4. Heroglyph et biens numériques',
+  'terms.s4.body':
+    'Ce que vous achetez est un bien numérique : un HEROGLYPH personnel (un certificat symbolique unique), une version PDF de ce certificat, l’inscription de votre chien dans le GodsGrid public et un accès continu à votre profil Pack. Nous vous accordons une licence personnelle, non transférable et non exclusive d’utilisation de ces biens numériques à des fins personnelles non commerciales. Rien de physique n’est expédié. La reproduction, la revente ou l’exploitation commerciale des illustrations ou ressources HEROGLYPH nécessite notre consentement écrit préalable.',
+  'terms.s5.title': '5. Paiements',
+  'terms.s5.body':
+    'Les paiements sont traités par Stripe Payments Europe, Ltd. Nous ne voyons ni ne stockons jamais les détails complets de votre carte. Les prix sont affichés dans la devise au moment du paiement (USD par défaut) ; toute TVA applicable est calculée et affichée avant que vous ne payiez. La commande que vous confirmez au moment du paiement est celle que nous livrons — nous ne modifierons ni l’étendue ni le prix après coup.',
+  'terms.s6.title': '6. Remboursements et droit de rétractation',
+  'terms.s6.body':
+    'En vertu de la directive UE 2011/83/UE, les consommateurs disposent normalement de 14 jours pour se rétracter d’un contrat à distance. Comme le HEROGLYPH est fourni sous forme de contenu numérique immédiatement après le paiement, en cliquant sur « Payer » vous donnez votre consentement préalable exprès à l’exécution immédiate et reconnaissez que vous perdez ainsi votre droit de rétractation dès le début de la livraison (art. 16, m) de la directive). Si quelque chose ne va pas de notre côté — un fichier corrompu, un double prélèvement, une commande annulée — écrivez à support@dogypt.com sous 14 jours et nous procéderons à un remboursement ou à une nouvelle livraison, sans poser de questions.',
+  'terms.s7.title': '7. Utilisation acceptable',
+  'terms.s7.body':
+    'Ne téléversez rien que vous n’ayez pas le droit de téléverser. Cela inclut les photos d’autrui, les contenus protégés par le droit d’auteur ou les contenus représentant de la cruauté, des activités illégales ou des contenus sexuels impliquant des mineurs. Ne harcelez pas, n’usurpez pas l’identité et ne menacez pas d’autres Membres. Ne procédez pas à de l’extraction de données (scraping), au téléchargement massif, à de la rétro-ingénierie et ne tentez pas de perturber le Service. Nous pouvons supprimer les contenus ou comptes qui enfreignent ces règles, avec ou sans préavis.',
+  'terms.s8.title': '8. Responsabilité et avertissements',
+  'terms.s8.body':
+    'Le HEROGLYPH est un produit symbolique et cérémoniel — il ne constitue pas un conseil vétérinaire, médical, comportemental ou d’élevage. Le Service est fourni « en l’état ». Dans la mesure maximale autorisée par le droit slovaque et le droit de l’UE, notre responsabilité totale pour toute réclamation découlant du Service est limitée au montant que vous nous avez payé au cours des 12 mois précédant la réclamation. Rien ici ne limite la responsabilité en cas de fraude, de faute lourde ou pour les droits auxquels il ne peut être renoncé en vertu du droit applicable.',
+  'terms.s9.title': '9. Modifications de ces Conditions',
+  'terms.s9.body':
+    'Nous pouvons mettre à jour ces Conditions à mesure que le Service se développe. Les modifications importantes seront annoncées par e-mail au moins 30 jours avant leur entrée en vigueur. Les clarifications mineures prennent effet dès leur publication. La poursuite de l’utilisation du Service après la date d’entrée en vigueur signifie que vous acceptez les nouvelles Conditions. Les versions antérieures sont conservées en archive et disponibles sur demande.',
+  'terms.s10.title': '10. Droit applicable et litiges',
+  'terms.s10.body':
+    'Ces Conditions sont régies par le droit de la République slovaque, à l’exclusion de ses règles de conflit de lois. Les litiges qui ne peuvent être résolus à l’amiable relèvent de la compétence des tribunaux slovaques compétents du lieu de notre siège social. Les consommateurs de l’UE peuvent également utiliser la plateforme européenne de règlement en ligne des litiges à l’adresse https://ec.europa.eu/consumers/odr.',
+  'terms.s11.title': '11. Contact',
+  'terms.s11.body':
+    'Questions générales : info@dogypt.com · Confidentialité et données : privacy@dogypt.com · Remboursements et assistance : support@dogypt.com · Courrier : DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovaquie.',
+
+  // ── /privacy ──
+  'privacy.title': 'Politique de confidentialité',
+  'privacy.linkTerms': 'Conditions d’utilisation →',
+  'privacy.s1.title': '1. Qui nous sommes',
+  'privacy.s1.body':
+    'DOGYPT s.r.o., une société à responsabilité limitée slovaque (IČO 54 444 594), siège social Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovaquie. Nous sommes le responsable du traitement des données personnelles décrites ci-dessous. Pour toute question relative à la confidentialité, écrivez à privacy@dogypt.com. Nous n’avons pas désigné de délégué à la protection des données, car notre traitement n’atteint pas les seuils de l’art. 37 du RGPD. Date d’entrée en vigueur : 4 mai 2026.',
+  'privacy.s2.title': '2. Données que nous collectons',
+  'privacy.s2.body':
+    'Lorsque vous utilisez le parcours HEROGLYPH, nous collectons : votre adresse e-mail, le nom de votre chien, la photo de votre chien que vous téléversez (stockée sur Cloudinary), les réponses symboliques que vous sélectionnez (sexe, couleur, destin, lignée, caractère, votre signe astrologique, votre initiale) et la date de naissance de votre chien si elle est fournie. Stripe collecte vos coordonnées de paiement directement — nous ne recevons qu’une confirmation de paiement, les 4 derniers chiffres de la carte et le pays. Nos serveurs enregistrent automatiquement des données techniques (adresse IP, agent utilisateur, heure de la requête) à des fins de sécurité et de prévention des abus.',
+  'privacy.s3.title': '3. Comment nous les utilisons',
+  'privacy.s3.body':
+    'Nous utilisons vos données pour : générer et livrer votre certificat HEROGLYPH ; vous envoyer l’e-mail du certificat ainsi qu’un petit nombre de messages de suivi du Pack ; afficher l’inscription de votre chien dans le GodsGrid public (seuls le nom du chien, la photo et le symbole HEROGLYPH apparaissent publiquement — jamais votre e-mail, votre nom ni votre code privé) ; exploiter, sécuriser et améliorer le Service ; respecter les obligations légales telles que la comptabilité et la protection des consommateurs.',
+  'privacy.s4.title': '4. Base juridique (RGPD)',
+  'privacy.s4.body':
+    'Nous nous appuyons sur l’art. 6, par. 1, point b) du RGPD (exécution d’un contrat) pour la livraison du HEROGLYPH et l’adhésion au Pack ; sur l’art. 6, par. 1, point a) (consentement) pour tout e-mail marketing au-delà des messages de service — que vous pouvez retirer à tout moment ; sur l’art. 6, par. 1, point f) (intérêt légitime) pour la journalisation de sécurité, la prévention des abus et les analyses agrégées ; et sur l’art. 6, par. 1, point c) (obligation légale) pour les registres fiscaux et comptables.',
+  'privacy.s5.title': '5. Partage et sous-traitants',
+  'privacy.s5.body':
+    'Nous ne vendons pas vos données. Nous ne les partageons qu’avec des sous-traitants qui nous aident à faire fonctionner le Service : Stripe Payments Europe, Ltd. (paiements) · Cloudinary Ltd. (stockage et diffusion des photos) · Resend, Inc. (e-mails transactionnels) · Supabase, Inc. (base de données et authentification) · WebSupport s.r.o. (hébergement web) · GitHub, Inc. (pipeline de déploiement). Chaque sous-traitant est lié par son propre accord de traitement des données.',
+  'privacy.s6.title': '6. Cookies et suivi',
+  'privacy.s6.body':
+    'Nous n’utilisons que les cookies et le stockage local nécessaires au fonctionnement du Service (session, langue, vos sélections HEROGLYPH en cours). Nous n’utilisons pas de publicité tierce ni de pixels de suivi inter-sites. Si nous ajoutons des analyses produit respectueuses de la vie privée (comme Plausible), nous mettrons à jour cette section avant de les activer.',
+  'privacy.s7.title': '7. Conservation',
+  'privacy.s7.body':
+    'Votre HEROGLYPH et votre profil Pack sont conservés aussi longtemps que votre compte existe, car le GodsGrid est le registre à vie de chaque membre du Pack. Les journaux des e-mails transactionnels sont conservés 12 mois à des fins d’assistance et de prévention de la fraude. Les registres comptables sont conservés 10 ans, comme l’exige le droit slovaque (loi 431/2002 Rec.). Lorsque vous nous demandez de supprimer votre compte, nous supprimons les identifiants personnels dans les 30 jours et ne conservons que le minimum légalement requis.',
+  'privacy.s8.title': '8. Vos droits',
+  'privacy.s8.body':
+    'En vertu du RGPD, vous avez le droit d’accéder à vos données, de les rectifier, de les faire effacer, de limiter le traitement ou de vous y opposer, à la portabilité des données et de retirer votre consentement à tout moment. Vous pouvez également déposer une plainte auprès de l’autorité de contrôle slovaque — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Pour exercer l’un de ces droits, écrivez à privacy@dogypt.com — nous répondons sous 30 jours.',
+  'privacy.s9.title': '9. Transferts internationaux',
+  'privacy.s9.body':
+    'Certains de nos sous-traitants (Stripe, Cloudinary, Resend, Supabase, GitHub) exploitent des serveurs en dehors de l’UE/EEE, principalement aux États-Unis. Lorsque des données personnelles quittent l’UE/EEE, nous nous appuyons sur les clauses contractuelles types de la Commission européenne, sur le cadre de protection des données UE–États-Unis et sur les garanties supplémentaires exigées par le chapitre V du RGPD.',
+  'privacy.s10.title': '10. Modifications de cette politique',
+  'privacy.s10.body':
+    'Nous vous informerons des modifications importantes par e-mail au moins 30 jours avant leur entrée en vigueur. Les modifications mineures — fautes de frappe, mises à jour de noms de sous-traitants, nouvelles adresses de contact — prennent effet dès leur publication. La version et la date actuelles figurent toujours en haut de cette page ; les versions antérieures sont disponibles sur demande.',
+  'privacy.s11.title': '11. Contact',
+  'privacy.s11.body':
+    'Confidentialité et données : privacy@dogypt.com · Questions générales : info@dogypt.com · Courrier : DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovaquie.',
+
+  // ── /about — Council (We Need You) ──
+  'about.council.imgAlt': 'Un pharaon avec Hekthor et ses chats — Dogypt a besoin de toi',
+  'about.council.headline': 'Nous avons besoin de toi.',
+  'about.council.sub':
+    'DOGYPT est bâti par des gens qui savent ce qu’un chien représente. Si tu as quelque chose à apporter — une compétence, une voix, une vision — c’est ici que cela a sa place.',
+  'about.council.rolesAria': 'Choisis ton rôle',
+  'about.council.role.dog-lover.label': 'Amoureux des chiens et testeur',
+  'about.council.role.dog-lover.desc': 'Accès anticipé et retours sincères',
+  'about.council.role.developer.label': 'Développeur / Designer',
+  'about.council.role.developer.desc': 'Construire des fonctionnalités, créer des visuels',
+  'about.council.role.dog-pro.label': 'Professionnel canin',
+  'about.council.role.dog-pro.desc': 'Vétérinaire, éducateur, refuge, éleveur',
+  'about.council.role.creator.label': 'Créateur',
+  'about.council.role.creator.desc': 'Vidéo, photo, art pour la meute',
+  'about.council.role.media.label': 'Média / Influenceur',
+  'about.council.role.media.desc': 'Audience et couverture',
+  'about.council.role.investor.label': 'Investisseur',
+  'about.council.role.investor.desc': 'Financer des missions et refuges précis',
+  'about.council.role.community.label': 'Bâtisseur de communauté',
+  'about.council.role.community.desc': 'Organiser les gens localement',
+  'about.council.role.business.label': 'Business et partenariats',
+  'about.council.role.business.desc': 'Ouvrir des portes — marques, refuges, accords',
+  'about.council.fullName': 'Nom complet',
+  'about.council.email': 'E-mail',
+  'about.council.message': 'Dis-nous ce que tu apportes… (facultatif)',
+  'about.council.error': 'Une erreur est survenue. Réessaie.',
+  'about.council.sending': 'Envoi…',
+  'about.council.submit': 'Rejoindre le Conseil',
+  'about.council.successTitle': 'Tu es dans le Conseil.',
+  'about.council.successSub': 'Nous te contacterons le moment venu.',
+
+  // ── /about — Footer ──
+  'about.footer.sealAlt': 'Sceau DOGYPT',
+  // motto = brand → EN fallback by design (about.footer.motto omitted)
+  'about.footer.mission': 'Un mouvement pour tous ceux dont la vie a été changée par un chien.',
+  'about.footer.privacy': 'Confidentialité',
+  'about.footer.terms': 'Conditions',
+
+  // ── /about — Legends (testimonials) ──
+  'about.legends.title': 'MÊME LES LÉGENDES SE SONT AGENOUILLÉES',
+  'about.legends.sub':
+    'Les humains les plus puissants ayant jamais vécu se sont tous inclinés devant le même maître silencieux — et ils l’ont écrit.',
+  'about.legends.creditsSummary': 'Citations d’interviews publiques · Crédits photo',
+  'about.legends.creditsIntro':
+    'Portraits via Wikimedia Commons sous licences Creative Commons / domaine public.',
+  // citáty: EN = canonical verbatim; preklady = preklad citátu, NIKDY parafráza
+  'about.legends.q.oprah-winfrey.text': 'L’amour le plus vrai, le plus pur… c’est l’amour qui vient de ton chien.',
+  'about.legends.q.oprah-winfrey.role': 'Icône culturelle',
+  'about.legends.q.chris-evans.text': 'Je n’avais aucune intention de sauver un chien ce jour-là, mais à la minute où je l’ai vu, j’ai su qu’il rentrait à la maison avec moi.',
+  'about.legends.q.chris-evans.role': 'Acteur · à propos de son chien Dodger',
+  'about.legends.q.tom-hardy.text': 'C’était un Ange. Et c’était mon meilleur ami. Il ne connaissait que l’amour.',
+  'about.legends.q.tom-hardy.role': 'Acteur · à propos de son chien Woody',
+  'about.legends.q.dwayne-johnson.text': 'Nous t’aimerons toujours. Tu seras toujours mon petit acolyte.',
+  'about.legends.q.dwayne-johnson.role': 'Acteur · à propos de son chien Brutus',
+  'about.legends.q.miley-cyrus.text': 'Tu m’as appris à aimer sans la peur de perdre.',
+  'about.legends.q.miley-cyrus.role': 'Chanteuse · à propos de son chien Floyd',
+  'about.legends.q.ariana-grande.text': 'Les chiens sont les êtres les plus inoffensifs et les plus doux du monde. Ils n’offrent rien d’autre qu’un amour inconditionnel.',
+  'about.legends.q.ariana-grande.role': 'Chanteuse',
+  'about.legends.q.hugh-jackman.text': 'Je l’ai toujours, toujours appelé la rockstar. Parce qu’il l’était !',
+  'about.legends.q.hugh-jackman.role': 'Acteur · à propos de son chien Dali',
+  'about.legends.q.drew-barrymore.text': 'Je crois que même le cliché de l’amour inconditionnel ne suffit pas.',
+  'about.legends.q.drew-barrymore.role': 'Actrice · à propos de sa chienne Flossie',
+  'about.legends.q.henry-cavill.text': 'Il m’a sauvé la mise émotionnelle et psychologique bien des fois.',
+  'about.legends.q.henry-cavill.role': 'Acteur · à propos de son chien Kal',
+  'about.legends.q.ryan-reynolds.text': 'Je suis simplement tombé amoureux de lui. Je ne l’avais pas prévu, je l’ai juste ramassé en chemin.',
+  'about.legends.q.ryan-reynolds.role': 'Acteur · à propos de son chien Baxter',
+  'about.legends.q.george-clooney.text': 'Il m’aime. Je ne peux rien faire de mal à ses yeux. Il me suit partout.',
+  'about.legends.q.george-clooney.role': 'Acteur · à propos de son chien Einstein',
+  'about.legends.q.bradley-cooper.text': 'Charlotte m’aime à la folie. Ce sont mes enfants.',
+  'about.legends.q.bradley-cooper.role': 'Acteur · à propos de sa chienne Charlotte',
+  'about.legends.q.channing-tatum.text': 'Ils te donnent juste un amour inconditionnel. Et tu n’es jamais seul, ils sont simplement là.',
+  'about.legends.q.channing-tatum.role': 'Acteur · à propos de sa chienne Lulu',
+  'about.legends.q.orlando-bloom.text': 'C’était plus qu’un compagnon. C’était une connexion d’âmes, c’est certain.',
+  'about.legends.q.orlando-bloom.role': 'Acteur · à propos de son chien Mighty',
+  'about.legends.q.kevin-costner.text': 'Il y en a un qui est le chien d’une vie… et tu vas pleurer comme un bébé quand il sera parti.',
+  'about.legends.q.kevin-costner.role': 'Acteur · à propos de son chien Wyatt',
+  'about.legends.q.tom-holland.text': 'Elle est brillante, ma meilleure amie.',
+  'about.legends.q.tom-holland.role': 'Acteur · à propos de sa chienne Tessa',
+  'about.legends.q.patrick-stewart.text': 'Nous tombons déjà éperdument amoureux.',
+  'about.legends.q.patrick-stewart.role': 'Acteur · à propos de son chiot en famille d’accueil',
+  'about.legends.q.jennifer-aniston.text': 'Les chiens sont tout. Ils sont un amour vivant, qui respire, pur et bon.',
+  'about.legends.q.jennifer-aniston.role': 'Actrice',
+  'about.legends.q.salma-hayek.text': 'Je n’ai ni les mots ni les larmes pour décrire à quel point elle comptait pour moi.',
+  'about.legends.q.salma-hayek.role': 'Actrice · à propos de sa chienne Lupe',
+  'about.legends.q.eva-mendes.text': 'Ce sentiment ne m’a jamais quittée. C’est l’une des présences les plus précieuses de ma vie.',
+  'about.legends.q.eva-mendes.role': 'Actrice · à propos de son chien Hugo',
+  'about.legends.q.chrissy-teigen.text': 'Pour eux, tu es leur livre entier, leur vie entière.',
+  'about.legends.q.chrissy-teigen.role': 'Mannequin / présentatrice · à propos de sa chienne Penny',
+  'about.legends.q.hilary-duff.text': 'Tu m’as vraiment donné beaucoup de réconfort et d’amour quand j’en avais le plus besoin !',
+  'about.legends.q.hilary-duff.role': 'Actrice / chanteuse · à propos de son chien Jak',
+  'about.legends.q.amanda-seyfried.text': 'Finn a apporté tout l’amour, la chaleur et la présence totale dont une fille pouvait seulement rêver.',
+  'about.legends.q.amanda-seyfried.role': 'Actrice · à propos de son chien Finn',
+  'about.legends.q.kaley-cuoco.text': 'L’amour inconditionnel de mon bien-aimé et hilarant chien Norman m’a inspiré à créer cette entreprise.',
+  'about.legends.q.kaley-cuoco.role': 'Actrice · à propos de son chien Norman',
+  'about.legends.q.mariah-carey.text': 'Il n’y a pas de meilleur chien que Jack. Comment pourrait-on faire un chien meilleur que Jack !',
+  'about.legends.q.mariah-carey.role': 'Chanteuse · à propos de son chien Jack',
+  'about.legends.q.billie-eilish.text': 'C’est un si bon garçon. J’aimerais pouvoir l’emmener sur toute ma tournée à travers le monde.',
+  'about.legends.q.billie-eilish.role': 'Chanteuse · à propos de son chien Shark',
+  'about.legends.q.selena-gomez.text': 'Je parle sincèrement à mes chiens. Je crois totalement que les animaux soignent.',
+  'about.legends.q.selena-gomez.role': 'Chanteuse / actrice',
+  'about.legends.q.paul-mccartney.text': 'C’était une chère compagne à moi. Je me souviens que John était stupéfait de me voir si affectueux envers un animal.',
+  'about.legends.q.paul-mccartney.role': 'The Beatles · à propos de sa chienne Martha',
+  'about.legends.q.john-legend.text': 'Elle nous a donné tant de joie pendant 10 ans. On t’aime, Pippa !',
+  'about.legends.q.john-legend.role': 'Chanteur · à propos de sa chienne Pippa',
+  'about.legends.q.dolly-parton.text': '« Puppy Love » était mon tout premier disque, et six décennies plus tard, mon amour pour les animaux est plus fort que jamais.',
+  'about.legends.q.dolly-parton.role': 'Chanteuse / autrice-compositrice',
+  'about.legends.q.lady-gaga.text': 'Elle s’appelle Asia. C’est une BATPIG. Je l’aime, je suis sa maman.',
+  'about.legends.q.lady-gaga.role': 'Chanteuse · à propos de sa chienne Asia',
+  'about.legends.q.conor-mcgregor.text': 'Il a été avec moi du début à la fin, mon plus proche compagnon. Tout cet amour et ces câlins nous manqueront pour toujours.',
+  'about.legends.q.conor-mcgregor.role': 'Combattant UFC · à propos de son chien Hugo',
+  'about.legends.q.lewis-hamilton.text': 'Faire entrer Roscoe dans ma vie a été la meilleure décision que j’aie jamais prise.',
+  'about.legends.q.lewis-hamilton.role': 'Pilote de F1 · à propos de son chien Roscoe',
+  'about.legends.q.serena-williams.text': 'Elle était là chaque jour pour me lécher la jambe et me rappeler combien elle m’aimait.',
+  'about.legends.q.serena-williams.role': 'Championne de tennis · à propos de sa chienne Jackie',
+  'about.legends.q.tyson-fury.text': 'Le meilleur ami de l’homme. Toujours content de te voir. T’aime sans condition.',
+  'about.legends.q.tyson-fury.role': 'Boxeur poids lourd · à propos de son chien Cash',
+  'about.legends.q.michael-phelps.text': 'Leur amour est inconditionnel et ils m’apportent, à moi et à ma famille, beaucoup de joie dans nos vies.',
+  'about.legends.q.michael-phelps.role': 'Nageur olympique',
+  'about.legends.q.venus-williams.text': 'Harry est mon meilleur ami ! Sans aucun doute la meilleure décision que j’aie jamais prise.',
+  'about.legends.q.venus-williams.role': 'Championne de tennis · à propos de son chien Harry',
+  'about.legends.q.roger-federer.text': 'Nous ne pourrions pas être plus heureux. Bienvenue dans la famille, Willow.',
+  'about.legends.q.roger-federer.role': 'Champion de tennis · à propos de sa chienne Willow',
+  'about.legends.q.john-steinbeck.text': 'C’est un bon ami et compagnon de voyage, et il préfère voyager à tout ce qu’il peut imaginer.',
+  'about.legends.q.john-steinbeck.role': 'Auteur nobélisé · à propos de son chien Charley',
+  'about.legends.q.elizabeth-taylor.text': 'Je n’ai jamais aimé un chien comme celui-ci de toute ma vie. Parfois je crois qu’il y a une personne là-dedans.',
+  'about.legends.q.elizabeth-taylor.role': 'Actrice · à propos de sa chienne Sugar',
+  'about.legends.q.ricky-gervais.text': 'Si les âmes les plus douces étaient récompensées par les vies les plus longues, les chiens nous survivraient à tous.',
+  'about.legends.q.ricky-gervais.role': 'Humoriste / acteur',
+  'about.legends.q.gisele-bundchen.text': 'Notre ange gardien est parti au paradis. Elle vivra à jamais dans nos cœurs.',
+  'about.legends.q.gisele-bundchen.role': 'Top-modèle · à propos de sa chienne Lua',
+  'about.legends.q.pablo-picasso.text': 'Lump, ce n’est pas un chien, ce n’est pas un petit homme, c’est quelqu’un d’autre.',
+  'about.legends.q.pablo-picasso.role': 'Peintre · à propos de son chien Lump',
+  'about.legends.q.mickey-rourke.text': 'Parfois, quand un homme est seul, tout ce qu’il a, c’est son chien. Et ils ont compté énormément pour moi.',
+  'about.legends.q.mickey-rourke.role': 'Acteur',
+};

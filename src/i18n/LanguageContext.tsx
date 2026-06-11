@@ -2,6 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { en } from './locales/en';
 import { sk } from './locales/sk';
 import { cs } from './locales/cs';
+import { pol } from './locales/pol';
+import { ukr } from './locales/ukr';
+import { deu } from './locales/deu';
+import { esp } from './locales/esp';
+import { fra } from './locales/fra';
+import { prt } from './locales/prt';
+import { rus } from './locales/rus';
+import { ita } from './locales/ita';
 
 /**
  * DOGYPT i18n — ľahká vlastná vrstva (bez react-i18next, Lovable-friendly).
@@ -25,6 +33,16 @@ const DICTS: Record<string, Partial<Dict>> = {
   en,
   sk,
   cs,
+  // Launch-set strojové preklady (machine, pending human review cez review-prekladov.html).
+  // Kľúče musia matchovať LanguagePicker `label` kódy.
+  pol,
+  ukr,
+  deu,
+  esp,
+  fra,
+  prt,
+  rus,
+  ita,
 };
 
 // RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.

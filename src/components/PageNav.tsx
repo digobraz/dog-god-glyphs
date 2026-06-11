@@ -11,34 +11,37 @@ const NAV_ITEMS = [
   { key: 'nav.about', to: '/about' },
 ];
 
+// POZOR: kódy MUSIA matchovať LanguagePicker `label` + DICTS kľúče v LanguageContext
+// (label-scheme: 'esp'/'deu'/'pol'…, NIE ISO 'es'/'de'/'pl'). useLang() je zdieľaný cez
+// context — keď tu zapíšeš iný kód než má DICTS, obsah sa neprepne (fallback na EN).
 type LangCode =
-  | 'en' | 'sk' | 'cs' | 'pt' | 'zh' | 'ru' | 'de' | 'es'
-  | 'fr' | 'it' | 'pl' | 'nl' | 'uk' | 'ja' | 'tr' | 'hi'
-  | 'ar' | 'ko';
-// 18 jazykov — poradie matchuje LanguagePicker.tsx (canonical zdroj pravdy).
+  | 'en' | 'sk' | 'cs' | 'prt' | 'chn' | 'rus' | 'deu' | 'esp'
+  | 'fra' | 'ita' | 'pol' | 'nld' | 'ukr' | 'jpn' | 'tur' | 'ind'
+  | 'ara' | 'kor';
+// 18 jazykov — poradie + kódy matchujú LanguagePicker.tsx (canonical zdroj pravdy).
 // Layout = 2-col 9-row column-major: LEFT col (world) prvých 9, RIGHT col (EU) druhých 9.
-// `enabled` = je k dispozícii preklad. Iba en + sk zatiaľ, ostatné disabled (visual dim).
+// `enabled` = je k dispozícii preklad (en/sk/cs + launch-set strojové). CJK/RTL ešte disabled.
 const LANGS: { code: LangCode; flag: string; label: string; native: string; enabled: boolean }[] = [
   // ── LEFT column (world / Asian / global) ──
-  { code: 'en', flag: '🇺🇸', label: 'ENG', native: 'English',    enabled: true  },
-  { code: 'es', flag: '🇪🇸', label: 'ESP', native: 'Español',    enabled: false },
-  { code: 'pt', flag: '🇵🇹', label: 'PRT', native: 'Português',  enabled: false },
-  { code: 'zh', flag: '🇨🇳', label: 'CHN', native: '中文',         enabled: false },
-  { code: 'ja', flag: '🇯🇵', label: 'JPN', native: '日本語',        enabled: false },
-  { code: 'hi', flag: '🇮🇳', label: 'IND', native: 'हिन्दी',      enabled: false },
-  { code: 'ar', flag: '🇸🇦', label: 'ARA', native: 'العربية',    enabled: false },
-  { code: 'ru', flag: '🇷🇺', label: 'RUS', native: 'Русский',    enabled: false },
-  { code: 'ko', flag: '🇰🇷', label: 'KOR', native: '한국어',        enabled: false },
+  { code: 'en',  flag: '🇺🇸', label: 'ENG', native: 'English',    enabled: true  },
+  { code: 'esp', flag: '🇪🇸', label: 'ESP', native: 'Español',    enabled: true  },
+  { code: 'prt', flag: '🇵🇹', label: 'PRT', native: 'Português',  enabled: true  },
+  { code: 'chn', flag: '🇨🇳', label: 'CHN', native: '中文',         enabled: false },
+  { code: 'jpn', flag: '🇯🇵', label: 'JPN', native: '日本語',        enabled: false },
+  { code: 'ind', flag: '🇮🇳', label: 'IND', native: 'हिन्दी',      enabled: false },
+  { code: 'ara', flag: '🇸🇦', label: 'ARA', native: 'العربية',    enabled: false },
+  { code: 'rus', flag: '🇷🇺', label: 'RUS', native: 'Русский',    enabled: true  },
+  { code: 'kor', flag: '🇰🇷', label: 'KOR', native: '한국어',        enabled: false },
   // ── RIGHT column (EU + neighbors) ──
-  { code: 'sk', flag: '🇸🇰', label: 'SVK', native: 'Slovenčina', enabled: true  },
-  { code: 'cs', flag: '🇨🇿', label: 'CZE', native: 'Čeština',    enabled: true  },
-  { code: 'de', flag: '🇩🇪', label: 'DEU', native: 'Deutsch',    enabled: false },
-  { code: 'nl', flag: '🇳🇱', label: 'NLD', native: 'Nederlands', enabled: false },
-  { code: 'fr', flag: '🇫🇷', label: 'FRA', native: 'Français',   enabled: false },
-  { code: 'it', flag: '🇮🇹', label: 'ITA', native: 'Italiano',   enabled: false },
-  { code: 'pl', flag: '🇵🇱', label: 'POL', native: 'Polski',     enabled: false },
-  { code: 'uk', flag: '🇺🇦', label: 'UKR', native: 'Українська', enabled: false },
-  { code: 'tr', flag: '🇹🇷', label: 'TUR', native: 'Türkçe',     enabled: false },
+  { code: 'sk',  flag: '🇸🇰', label: 'SVK', native: 'Slovenčina', enabled: true  },
+  { code: 'cs',  flag: '🇨🇿', label: 'CZE', native: 'Čeština',    enabled: true  },
+  { code: 'deu', flag: '🇩🇪', label: 'DEU', native: 'Deutsch',    enabled: true  },
+  { code: 'nld', flag: '🇳🇱', label: 'NLD', native: 'Nederlands', enabled: false },
+  { code: 'fra', flag: '🇫🇷', label: 'FRA', native: 'Français',   enabled: true  },
+  { code: 'ita', flag: '🇮🇹', label: 'ITA', native: 'Italiano',   enabled: true  },
+  { code: 'pol', flag: '🇵🇱', label: 'POL', native: 'Polski',     enabled: true  },
+  { code: 'ukr', flag: '🇺🇦', label: 'UKR', native: 'Українська', enabled: true  },
+  { code: 'tur', flag: '🇹🇷', label: 'TUR', native: 'Türkçe',     enabled: false },
 ];
 
 function useIsMobile() {
