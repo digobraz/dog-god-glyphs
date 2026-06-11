@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { StickyDevotionBar } from '@/components/pack/StickyDevotionBar';
 import {
   ArrowLeft,
   Download,
@@ -214,7 +215,32 @@ export default function PackDogDetail() {
   // roll up into the owner's stats post-launch.
   const [presenceDone, setPresenceDone] = useState(false);
   const [walkHours, setWalkHours] = useState<number | null>(null); // 0..5, 0 = under 1 h, null = untouched
-  const [prayersSubmitted, setPrayersSubmitted] = useState(false); // locks the block once logged (placeholder)
+  const [prayersSubmitted, setPrayersSubmitted] = useState(false); // locks the block once logged
+  // Owner devotion summary for the sticky bar (from user_metadata; new member = 100 Stray).
+  const [me, setMe] = useState<{ devotion: number; bones: number; avatarUrl: string | null }>({
+    devotion: 100, bones: 0, avatarUrl: null,
+  });
+
+  // Log today's prayer → grant-devotion (idempotent: one credit per dog per day).
+  const submitPrayers = async () => {
+    setPrayersSubmitted(true); // optimistic lock
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token ?? ''}`,
+          apikey: (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ?? '',
+        },
+        body: JSON.stringify({ kind: 'prayer', dog_id: id, presence: presenceDone, walk_hours: walkHours }),
+      });
+      if (res.ok) {
+        const j = await res.json();
+        if (typeof j.total === 'number') setMe((m) => ({ ...m, devotion: j.total }));
+      }
+    } catch { /* keep optimistic lock; will reconcile on reload */ }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -226,6 +252,13 @@ export default function PackDogDetail() {
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      const uMeta = (user.user_metadata ?? {}) as Record<string, unknown>;
+      if (mounted) setMe({
+        devotion: Number(uMeta.devotion) || 100,
+        bones: Number(uMeta.bones) || 0,
+        avatarUrl: (uMeta.avatar_url || uMeta.avatar || null) as string | null,
+      });
 
       const { data, error } = await (supabase as unknown as {
         from: (t: string) => {
@@ -600,6 +633,13 @@ export default function PackDogDetail() {
 
   return (
     <PackLayout wide>
+      <StickyDevotionBar
+        ownerName={ownerName}
+        avatarUrl={me.avatarUrl}
+        dogName={dogName}
+        devotion={me.devotion}
+        bones={me.bones}
+      />
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           to="/pack"
@@ -1181,7 +1221,7 @@ export default function PackDogDetail() {
                 {!prayersSubmitted && (
                   <button
                     type="button"
-                    onClick={() => setPrayersSubmitted(true)}
+                    onClick={submitPrayers}
                     className="inline-flex items-center gap-1.5"
                     style={{
                       background: '#22C55E',

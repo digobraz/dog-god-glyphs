@@ -2,45 +2,13 @@ import { Link } from 'react-router-dom';
 import { Camera, Crown, Bone, Lock } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
+import { devotionLevel } from '@/lib/devotion';
 
 const T = PACK_THEME;
 
 const AVATAR_SIZE = 164;
 // Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
 const STORY_RING = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
-
-// DEVOTION ladder — PLACEHOLDER prahy stredných úrovní (kánon = ďalšia session, treba potvrdiť Matejom).
-// Vrchol = Demigod (poloboh) @ 2M; Pharaoh @ 1M = zakladateľský tier (Matej štartuje tu za vznik
-// Dogyptu — „som pharaoh a cielim na poloboha"). Nad polobohom sú už len psy = bohovia.
-const DEVOTION_LEVELS = [
-  { name: 'Stray', at: 0 },      // nový člen štartuje na 100 = Lvl 1
-  { name: 'Pup', at: 250 },
-  { name: 'Follower', at: 750 },
-  { name: 'Disciple', at: 1750 },
-  { name: 'Devotee', at: 3500 },
-  { name: 'Acolyte', at: 6500 },
-  { name: 'Keeper', at: 12000 },
-  { name: 'Priest', at: 22000 },
-  { name: 'High Priest', at: 40000 },
-  { name: 'Vizier', at: 75000 },
-  { name: 'Pharaoh', at: 1000000 },   // founder tier — 1M grant za vznik Dogyptu
-  { name: 'Demigod', at: 2000000 },   // poloboh — vrchol cesty (cieľ)
-] as const;
-
-function devotionLevel(d: number) {
-  let i = 0;
-  for (let k = 0; k < DEVOTION_LEVELS.length; k++) {
-    if (d >= DEVOTION_LEVELS[k].at) i = k;
-  }
-  const cur = DEVOTION_LEVELS[i];
-  const next = DEVOTION_LEVELS[i + 1] ?? null;
-  const span = next ? next.at - cur.at : 0;
-  const pct = next && span > 0 && isFinite(span)
-    ? Math.max(0, Math.min(100, ((d - cur.at) / span) * 100))
-    : 100;
-  const toNext = next && isFinite(next.at) ? Math.max(0, next.at - d) : 0;
-  return { index: i + 1, name: cur.name, next, pct, toNext };
-}
 
 interface HeroCardProps {
   name: string;

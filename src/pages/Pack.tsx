@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME } from '@/components/pack/packTheme';
@@ -11,6 +11,7 @@ import { OnboardingProgress, type OnboardingStep } from '@/components/pack/Onboa
 import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
 import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
+import { VisionRoadmap } from '@/components/pack/VisionRoadmap';
 
 const T = PACK_THEME;
 
@@ -68,6 +69,7 @@ export default function Pack() {
   const [featureVotes, setFeatureVotes] = useState<Record<string, number>>({});
   const [hasVoted, setHasVoted] = useState(false);
   const [hasReferral, setHasReferral] = useState(false);
+  const [visionVoted, setVisionVoted] = useState(0); // how many of the 6 roadmap projects voted
 
   useEffect(() => {
     let mounted = true;
@@ -178,8 +180,31 @@ export default function Pack() {
       { label: 'Cast your vote in Shape', done: hasVoted },
       { label: 'Flip through the Constitution', done: constitutionOpened },
       { label: 'Invite your first dog lover', done: hasReferral },
+      { label: 'Discover the vision', done: visionVoted >= 6 },
     ];
   })();
+
+  // When every First Step is done, credit the one-time +10 ☥ (idempotent server-side).
+  const allStepsDone = onboardingSteps.every((s) => s.done);
+  const firstStepsGranted = useRef(false);
+  useEffect(() => {
+    if (!allStepsDone || firstStepsGranted.current) return;
+    firstStepsGranted.current = true;
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        await fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token ?? ''}`,
+            apikey: (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ?? '',
+          },
+          body: JSON.stringify({ kind: 'first_steps' }),
+        });
+      } catch { /* non-blocking */ }
+    })();
+  }, [allStepsDone]);
 
   const ownerInitial = (user?.name?.[0] || user?.email?.[0] || 'D').toUpperCase();
   const treeDogs = (dogs ?? []).map((d) => ({
@@ -263,6 +288,9 @@ export default function Pack() {
           <ConstitutionCard />
           <BuildNotice ownerName={displayName} email={user?.email ?? null} />
         </div>
+
+        {/* Row 4 — Vision / roadmap: the last block. Voting persists to DB. */}
+        <VisionRoadmap onVotedCountChange={setVisionVoted} />
 
         <div style={{ height: 32 }} />
       </div>

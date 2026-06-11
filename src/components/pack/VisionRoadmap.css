@@ -1,0 +1,55 @@
+/* VisionRoadmap — last block. Dark on the #050505 page, gold accents. */
+.vroad {
+  background: linear-gradient(180deg, #0d0b07, #0a0805);
+  border: 1px solid rgba(201, 154, 63, 0.30);
+  border-radius: 20px;
+  padding: 22px 18px;
+}
+.vroad-head { text-align: center; margin-bottom: 16px; }
+.vroad-head h3 {
+  font-family: 'Cinzel', serif; font-weight: 700; color: #C99A3F;
+  font-size: 19px; letter-spacing: 0.5px; margin: 0 0 6px;
+}
+.vroad-head p { color: rgba(245, 240, 228, 0.55); font-size: 13px; line-height: 1.5; margin: 0 auto; max-width: 30rem; }
+
+.vroad-tiles { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 720px) { .vroad-tiles { grid-template-columns: 1fr 1fr; } }
+
+.vtile {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(180deg, #15100a, #0c0a06);
+  border: 1px solid rgba(201, 154, 63, 0.32);
+  border-radius: 14px; padding: 12px;
+}
+.vtile-icon { font-size: 30px; flex: 0 0 auto; width: 46px; text-align: center; }
+.vtile-body { flex: 1; min-width: 0; }
+.vtile-name {
+  font-family: 'Cinzel', serif; font-size: 14px; color: rgba(245, 240, 228, 0.92);
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+.vtile-status {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+  padding: 2px 7px; border-radius: 6px; background: #2a2317; color: #C99A3F;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.vtile-desc { font-size: 11.5px; color: rgba(245, 240, 228, 0.50); margin-top: 3px; line-height: 1.4; }
+.vtile-tally { font-size: 10px; color: rgba(201, 154, 63, 0.70); margin-top: 4px; }
+
+.vtile-vote { display: flex; flex-direction: column; gap: 6px; flex: 0 0 auto; }
+.vbtn {
+  width: 40px; height: 32px; border-radius: 8px;
+  border: 1px solid #3a3320; background: #0c0a06; cursor: pointer;
+  font-size: 15px; line-height: 1; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s; color: rgba(245, 240, 228, 0.7);
+}
+.vbtn:hover { border-color: rgba(201, 154, 63, 0.6); }
+.vbtn:active { transform: translateY(1px); }
+.vbtn:disabled { opacity: 0.5; cursor: default; }
+.vbtn.want.sel { background: linear-gradient(135deg, #F5C73D, #E69E1A); border-color: transparent; color: #1c160c; }
+.vbtn.no.sel { background: #3a2a2a; border-color: #6a4a4a; color: #f0d8d8; }
+
+.vroad-foot {
+  text-align: center; margin-top: 14px;
+  font-size: 12px; color: rgba(245, 240, 228, 0.55);
+}
+.vroad-foot.done b { color: #C99A3F; }

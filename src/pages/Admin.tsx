@@ -20,6 +20,7 @@ type AuthState = 'loading' | 'anon' | 'denied' | 'ok';
 
 interface Dog {
   id: string;
+  user_id: string | null;
   created_at: string;
   dog_name: string | null;
   owner_name: string | null;
@@ -53,9 +54,20 @@ interface PackMember {
   email: string | null;
   pack_number: number | null;
 }
+interface VisionVote {
+  user_id: string;
+  vision_key: string;
+  vote: string;
+  voted_at: string;
+}
+
+const VISION_LABELS: Record<string, string> = {
+  dogyptland: 'Dogyptland', longevity: 'Longevity', shelters: 'Shelters',
+  map: 'Living Map', collar: 'Heroglyph Collar', firstaid: 'First Aid',
+};
 
 const GOLD = '#C99A3F';
-type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs';
+type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision';
 
 // amount je integer v centoch (Stripe). null = tester / nezaplatené.
 const fmtAmount = (a: number | null) =>
@@ -79,6 +91,7 @@ export default function Admin() {
   const [dogs, setDogs] = useState<Dog[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [packMembers, setPackMembers] = useState<PackMember[]>([]);
+  const [visionVotes, setVisionVotes] = useState<VisionVote[]>([]);
   const [dataErr, setDataErr] = useState('');
   const [loadingData, setLoadingData] = useState(false);
 
@@ -106,17 +119,19 @@ export default function Admin() {
     setLoadingData(true);
     setDataErr('');
     (async () => {
-      const [d, c, p] = await Promise.all([
+      const [d, c, p, v] = await Promise.all([
         supabase.from('dogs').select('*').order('created_at', { ascending: false }),
         supabase.from('contacts').select('*').order('created_at', { ascending: false }),
         supabase.from('pack_members').select('*').order('created_at', { ascending: false }),
+        supabase.from('vision_votes').select('*').order('voted_at', { ascending: false }),
       ]);
       if (cancelled) return;
-      const err = d.error || c.error || p.error;
+      const err = d.error || c.error || p.error || v.error;
       if (err) setDataErr(err.message);
       setDogs((d.data as Dog[]) ?? []);
       setContacts((c.data as Contact[]) ?? []);
       setPackMembers((p.data as PackMember[]) ?? []);
+      setVisionVotes((v.data as VisionVote[]) ?? []);
       setLoadingData(false);
     })();
     return () => { cancelled = true; };
@@ -204,8 +219,17 @@ export default function Admin() {
     ['Emails', contacts.length],
   ];
   const tabs: [Tab, string][] = [
-    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Emails'], ['bugs', 'Bugs'],
+    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Emails'], ['vision', 'Vision'], ['bugs', 'Bugs'],
   ];
+
+  // user_id → owner label (from dogs) for the vision-votes list.
+  const ownerByUser = new Map<string, string>();
+  dogs.forEach((d) => { if (d.user_id) ownerByUser.set(d.user_id, d.owner_name || d.email || d.dog_name || ''); });
+  const visionTally = Object.keys(VISION_LABELS).map((k) => {
+    const want = visionVotes.filter((v) => v.vision_key === k && v.vote === 'want').length;
+    const no = visionVotes.filter((v) => v.vision_key === k && v.vote === 'no').length;
+    return { k, want, no };
+  });
 
   return shell(
     <>
@@ -285,6 +309,33 @@ export default function Admin() {
           ])}
           empty="No council / contact submissions yet."
         />
+      )}
+
+      {!loadingData && tab === 'vision' && (
+        <>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+            {visionTally.map(({ k, want, no }) => (
+              <div key={k} style={{ background: '#0e0e0e', border: '1px solid #222', borderRadius: 8, padding: '10px 14px', minWidth: 120 }}>
+                <div style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>{VISION_LABELS[k]}</div>
+                <div style={{ fontSize: 13, marginTop: 4 }}>
+                  <span style={{ color: '#7ED99B' }}>♥ {want}</span>
+                  <span style={{ opacity: 0.4 }}> · </span>
+                  <span style={{ color: '#e0a3a3' }}>✕ {no}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <DataTable
+            cols={['Date', 'Voter', 'Project', 'Vote']}
+            rows={visionVotes.map((v) => [
+              fmtDate(v.voted_at),
+              ownerByUser.get(v.user_id) || short(v.user_id, 10),
+              VISION_LABELS[v.vision_key] ?? v.vision_key,
+              <Pill key="v" ok={v.vote === 'want'}>{v.vote}</Pill>,
+            ])}
+            empty="No vision votes yet."
+          />
+        </>
       )}
 
       {!loadingData && tab === 'bugs' && (
