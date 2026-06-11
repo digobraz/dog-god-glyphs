@@ -48,6 +48,8 @@ interface UserMeta {
   name: string;
   email: string;
   avatarUrl: string | null;
+  devotion: number;
+  bones: number;
 }
 
 function firstNameFrom(email: string, fullName?: string): string {
@@ -74,11 +76,14 @@ export default function Pack() {
       const { data: { user: u } } = await supabase.auth.getUser();
       if (!u) return;
 
-      const meta = (u.user_metadata ?? {}) as Record<string, string | undefined>;
-      const fullName = meta.full_name || meta.name;
-      const avatarUrl = meta.avatar_url || meta.avatar || null;
+      const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
+      const fullName = (meta.full_name || meta.name) as string | undefined;
+      const avatarUrl = (meta.avatar_url || meta.avatar || null) as string | null;
+      // DEVOTION + BONES per-user (uložené v user_metadata, set adminom/service). Nový člen = 100 (Stray).
+      const devotion = Number(meta.devotion) || 100;
+      const bones = Number(meta.bones) || 0;
       const display = firstNameFrom(u.email ?? '', fullName);
-      if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null });
+      if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones });
 
       // First Steps — extra completion signals (best-effort, non-blocking).
       // "Cast your vote in Shape" → any row in feature_votes for this user.
@@ -221,6 +226,8 @@ export default function Pack() {
               email={user.email}
               avatarUrl={user.avatarUrl}
               genderPlaceholder={ownerGender}
+              devotion={user.devotion}
+              bones={user.bones}
               stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
             />
           )}

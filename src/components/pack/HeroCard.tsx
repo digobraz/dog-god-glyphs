@@ -9,8 +9,9 @@ const AVATAR_SIZE = 164;
 // Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
 const STORY_RING = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
 
-// DEVOTION ladder — PLACEHOLDER názvy + prahy (kánon = ďalšia session, treba potvrdiť Matejom).
-// 11 úrovní; Pharaoh (11) sa NEdosahuje bodmi — je menovaný.
+// DEVOTION ladder — PLACEHOLDER prahy stredných úrovní (kánon = ďalšia session, treba potvrdiť Matejom).
+// Vrchol = Demigod (poloboh) @ 2M; Pharaoh @ 1M = zakladateľský tier (Matej štartuje tu za vznik
+// Dogyptu — „som pharaoh a cielim na poloboha"). Nad polobohom sú už len psy = bohovia.
 const DEVOTION_LEVELS = [
   { name: 'Stray', at: 0 },      // nový člen štartuje na 100 = Lvl 1
   { name: 'Pup', at: 250 },
@@ -22,7 +23,8 @@ const DEVOTION_LEVELS = [
   { name: 'Priest', at: 22000 },
   { name: 'High Priest', at: 40000 },
   { name: 'Vizier', at: 75000 },
-  { name: 'Pharaoh', at: Infinity }, // menovaný, nedá sa nabodovať
+  { name: 'Pharaoh', at: 1000000 },   // founder tier — 1M grant za vznik Dogyptu
+  { name: 'Demigod', at: 2000000 },   // poloboh — vrchol cesty (cieľ)
 ] as const;
 
 function devotionLevel(d: number) {
@@ -58,6 +60,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   const initial = name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
+  // DEVOTION úroveň počítaná z bodov → poháňa LEVEL badge (žiadny hardcode „Pharaoh" pre všetkých).
+  const lv = devotionLevel(devotion);
+  const topTier = lv.name === 'Pharaoh' || lv.name === 'Demigod';
 
   return (
     <section
@@ -249,18 +254,23 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             </span>
           </div>
 
-          {/* LEVEL */}
+          {/* LEVEL — počítaný z DEVOTION (nie natvrdo). Top tier (Pharaoh/Demigod) = zlato-fialový
+              gradient + Crown; nižšie úrovne = jemný outline bez koruny. */}
           <div
             className="flex w-full items-center justify-center gap-1.5"
             style={{
               padding: '7px 6px',
               borderRadius: 999,
-              background: 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)',
-              border: '1px solid rgba(201, 154, 63, 0.55)',
-              boxShadow: '0 5px 18px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
+              background: topTier
+                ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)'
+                : 'transparent',
+              border: topTier ? '1px solid rgba(201, 154, 63, 0.55)' : `1px solid ${T.border}`,
+              boxShadow: topTier
+                ? '0 5px 18px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
+                : 'none',
             }}
           >
-            <Crown className="h-3 w-3 shrink-0" style={{ color: 'hsl(45 92% 82%)' }} />
+            {topTier && <Crown className="h-3 w-3 shrink-0" style={{ color: 'hsl(45 92% 82%)' }} />}
             <span
               style={{
                 fontFamily: "'Cinzel', serif",
@@ -268,11 +278,11 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 fontWeight: 700,
                 letterSpacing: '0.16em',
                 textTransform: 'uppercase',
-                color: '#FFF6E6',
-                textShadow: '0 1px 4px rgba(0,0,0,0.35)',
+                color: topTier ? '#FFF6E6' : T.ink,
+                textShadow: topTier ? '0 1px 4px rgba(0,0,0,0.35)' : 'none',
               }}
             >
-              Pharaoh
+              {lv.name}
             </span>
           </div>
 
@@ -334,7 +344,6 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         {/* DEVOTION status bar + progress — pod badge.
             PLACEHOLDER hodnoty + ladder; plný systém = ďalšia session. */}
         {(() => {
-          const lv = devotionLevel(devotion);
           return (
             <div className="hc-dev mt-4 w-full">
               <style>{`
