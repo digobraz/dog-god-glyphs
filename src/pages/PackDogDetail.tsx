@@ -22,6 +22,25 @@ import {
   Images,
   BarChart3,
   Check,
+  QrCode,
+  AlertTriangle,
+  Camera,
+  Syringe,
+  Bone,
+  Award,
+  ClipboardList,
+  Share2,
+  HeartPulse,
+  Pill,
+  Flame,
+  Fingerprint,
+  Pencil,
+  ShieldPlus,
+  Shield,
+  Bug,
+  Mic,
+  ScrollText,
+  X,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -31,6 +50,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
+import { countryISO2 } from '@/lib/countryGeo';
 
 const T = PACK_THEME;
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
@@ -105,6 +125,26 @@ function getTemperament(): Temperament {
   };
 }
 
+// "labrador retriever" → "Labrador Retriever"
+function capWords(s: string): string {
+  return s
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
+// Health protection shields — illustrative states (PREVIEW; real schedule + DB
+// post-launch). state: 'active' (green) · 'due' (amber, time is near) · 'off' (grey).
+type ShieldState = 'active' | 'due' | 'off';
+const HEALTH_SHIELDS: { key: string; label: string; state: ShieldState; note: string; lucide: React.ReactNode }[] = [
+  { key: 'parasites', label: 'Parasites', state: 'active', note: 'Next anti-parasite dose and reminders.', lucide: <Bug className="h-5 w-5" /> },
+  { key: 'vaccine', label: 'Vaccination', state: 'due', note: 'Booster window and the full vaccination record.', lucide: <Syringe className="h-5 w-5" /> },
+  { key: 'immunity', label: 'Immunity', state: 'active', note: 'Overall immune readiness.', lucide: <ShieldPlus className="h-5 w-5" /> },
+  { key: 'joints', label: 'Joint care', state: 'off', note: 'Joint-support supplements and timing.', lucide: <Bone className="h-5 w-5" /> },
+];
+
 interface DogRow {
   id: string;
   user_id: string | null;
@@ -149,7 +189,25 @@ export default function PackDogDetail() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showCert, setShowCert] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [albumOpen, setAlbumOpen] = useState(false);
+  // SECTIONS NAV — jedna otvorená dlaždica naraz (Health/Training/Journal). accordion.
+  const [openTile, setOpenTile] = useState<null | 'health' | 'training' | 'journal'>(null);
+  const toggleTile = (t: 'health' | 'training' | 'journal') =>
+    setOpenTile((cur) => (cur === t ? null : t));
+
+  // Profile panel ref — po otvorení smooth-scroll naň (najmä mobile, kde je pod Prayers).
+
+  // Hlavné foto (avatar) — zmena updatuje cloudinary_main_url; grid/cert re-bake = coming soon.
+  const mainPhotoInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingMain, setUploadingMain] = useState(false);
+
+  // HEALTH STATUS — v1 placeholder: lokálny stav, NEodosiela sa. Vízia (liečitelia +
+  // AI outreach, globálna first-aid sieť = severka fáza „1M+ First Aid") cez vysvetlivku.
+  const [healthStatus, setHealthStatus] = useState<HealthKey>('healthy');
+  const [healthOpen, setHealthOpen] = useState(false);
+  // Weight — editable, will log each change to DB (placeholder: local state for now).
+  const [weightKg, setWeightKg] = useState('26');
+  const [weightEditing, setWeightEditing] = useState(false);
+  const [weightDraft, setWeightDraft] = useState('26');
   // DAILY PRAYERS — the three acts of devotion from the Constitution (Part IV).
   // v1 placeholder: local state only, point values provisional. Will persist to a
   // `dog_activities` table (dog_id, type, date, note, photos[], dogs_present[]) and
@@ -285,7 +343,7 @@ export default function PackDogDetail() {
       if (upErr) throw new Error(upErr.message);
       setDog({ ...dog, grid_message: next || null });
       setMessageDirty(false);
-      toast({ title: 'Message saved', description: 'Visible on your GRID card.' });
+      toast({ title: 'Message saved', description: 'Visible on your WALL card.' });
     } catch (err) {
       toast({
         title: 'Could not save',
@@ -354,6 +412,41 @@ export default function PackDogDetail() {
         description: err instanceof Error ? err.message : 'Unknown error',
         variant: 'destructive',
       });
+    }
+  };
+
+  const handleChangeMainPhoto = () => mainPhotoInputRef.current?.click();
+
+  const handleMainPhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !dog?.id) return;
+    setUploadingMain(true);
+    try {
+      const sessionFolder = dog.stripe_session_id || dog.id;
+      const result = await uploadExtraPhoto(file, sessionFolder, 0);
+      const { error: upErr } = await (supabase as unknown as {
+        from: (t: string) => {
+          update: (vals: { cloudinary_main_url: string }) => {
+            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+          };
+        };
+      })
+        .from('dogs')
+        .update({ cloudinary_main_url: result.secureUrl })
+        .eq('id', dog.id);
+      if (upErr) throw new Error(upErr.message);
+      setDog({ ...dog, cloudinary_main_url: result.secureUrl });
+      useDogyptStore.getState().setDogPhotoUrl(result.secureUrl);
+      toast({ title: 'Photo updated', description: 'Wall & certificate refresh — coming soon.' });
+    } catch (err) {
+      toast({
+        title: 'Upload failed',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setUploadingMain(false);
     }
   };
 
@@ -463,7 +556,6 @@ export default function PackDogDetail() {
   const ownerName = dog.owner_name || '';
   const heroglyphCode = dog.heroglyph_code || 'H-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX';
   const age = computeAge(dog.selections, dog.birth_year);
-  const temperament = getTemperament();
 
   // Daily-prayers header + provisional points (placeholder; rolls up to stats later).
   const todayLabel = new Date()
@@ -476,6 +568,35 @@ export default function PackDogDetail() {
   const sel = (dog.selections ?? {}) as Record<string, unknown>;
   const birthMonth = Number(sel.birthdayMonth) || null;
   const birthDay = Number(sel.birthdayDay) || null;
+  const birthYear = Number(sel.birthdayYear) || dog.birth_year || null;
+
+  // Health overview — real facts where we have them, the rest is a styled preview.
+  const breed = (dog.breed || (typeof sel.breed === 'string' ? sel.breed : '') || '').trim();
+  const birthDateLabel =
+    birthYear && birthMonth && birthDay
+      ? new Date(birthYear, birthMonth - 1, birthDay).toLocaleDateString('en-US', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : null;
+
+  // Pronouns — derived from dog gender (king=he / queen=she); neutral they/their
+  // when unknown. dogGender values: 'king' | 'queen' (see heroglyphSymbols).
+  const dogGender = typeof sel.dogGender === 'string' ? sel.dogGender : '';
+  const P =
+    dogGender === 'queen'
+      ? { subj: 'she', poss: 'her' }
+      : dogGender === 'king'
+        ? { subj: 'he', poss: 'his' }
+        : { subj: 'they', poss: 'their' };
+  const Poss = P.poss.charAt(0).toUpperCase() + P.poss.slice(1); // sentence-start
+
+  // Vlajka — rovnaká ako na GRIDE (flagcdn ISO2 krúžok), default SK.
+  const origin = dog.country || (typeof sel.country === 'string' ? sel.country : '');
+  const flagIso = countryISO2(origin) || 'sk';
+  // w160 (nie w40) — 28px krúžok na retine potrebuje 2–3× hustotu, inak rozmazané.
+  const flagUrl = `https://flagcdn.com/w160/${flagIso}.png`;
 
   return (
     <PackLayout wide>
@@ -511,7 +632,7 @@ export default function PackDogDetail() {
               textDecoration: 'none',
             }}
           >
-            View on Grid {certNumber}
+            View on Wall {certNumber}
             <ExternalLink className="h-3 w-3" />
           </Link>
         )}
@@ -526,66 +647,59 @@ export default function PackDogDetail() {
 
           {/* — BLOCK 1: Identita + vek (kopíruje /pack handler blok, centrované) — */}
           <section
-            className="relative flex flex-col items-center justify-center text-center"
+            className="relative"
             style={{
               background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
               border: `1px solid rgba(201, 154, 63, 0.30)`,
               borderRadius: 22,
               padding: '20px 20px',
               boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+              overflow: 'hidden',
             }}
           >
-            {/* # badge — ľavý horný roh */}
-            <span
-              className="absolute"
-              style={{
-                top: 14,
-                left: 14,
-                padding: '5px 12px',
-                borderRadius: 999,
-                background: 'rgba(201, 154, 63, 0.14)',
-                border: '1px solid rgba(201, 154, 63, 0.50)',
-                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                fontSize: 13,
-                fontWeight: 700,
-                color: T.accentGold,
-                lineHeight: 1,
-              }}
-            >
-              {certNumber}
-            </span>
-            {/* Status — pravý horný roh */}
-            <span
-              className="absolute inline-flex items-center gap-1.5"
-              style={{
-                top: 14,
-                right: 14,
-                padding: '5px 11px',
-                borderRadius: 999,
-                background: T.growGreenSoft,
-                border: `1px solid ${T.growGreen}`,
-                fontFamily: "'Cinzel', serif",
-                fontSize: 9,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                color: T.growGreen,
-              }}
-            >
-              <Heart className="h-3 w-3" />
-              Alive
-            </span>
+            {/* FRONT — identity (always rendered; defines the block height) */}
+            <div className="flex flex-col items-center justify-center text-center" style={{ height: '100%' }}>
+            {/* — Inaktívne (Pass · Lost) vľavo hore — */}
+            <div className="absolute flex items-center gap-2" style={{ top: 16, left: 16, zIndex: 4 }}>
+              <IconBtn
+                icon={<QrCode className="h-4 w-4" />}
+                label="Your dog's passport — a global database. Coming soon."
+                soon
+              />
+              <IconBtn
+                icon={<AlertTriangle className="h-4 w-4" />}
+                label="Lost dog — declare a search, alert the pack. Coming soon."
+                soon
+                danger
+              />
+            </div>
+            {/* — Papyrus (profil & dokumenty) vpravo hore — */}
+            <div className="absolute flex items-center gap-2" style={{ top: 16, right: 16, zIndex: 4 }}>
+              <IconBtn
+                icon={<ScrollText className="h-4 w-4" />}
+                label="Profile & documents"
+                active={profileOpen}
+                onClick={() => setProfileOpen((v) => !v)}
+              />
+            </div>
 
-            {/* Foto — kruh, zlatý prsteň */}
-            <div
+            {/* Foto — kruh, zlatý prsteň; hover (PC) / tap (mobile) = zmena, ako avatar majiteľa */}
+            <button
+              type="button"
+              onClick={handleChangeMainPhoto}
+              disabled={uploadingMain}
+              aria-label="Change photo"
+              className="relative group"
               style={{
                 width: 125,
                 height: 125,
                 borderRadius: '50%',
                 background: T.bg,
                 overflow: 'hidden',
+                padding: 0,
                 border: `2px solid ${T.accentGold}`,
                 boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px rgba(201, 154, 63, 0.28)',
+                cursor: uploadingMain ? 'progress' : 'pointer',
               }}
             >
               {dog.cloudinary_main_url ? (
@@ -598,54 +712,308 @@ export default function PackDogDetail() {
                   NO PHOTO
                 </div>
               )}
+              <span
+                className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: 'rgba(10,10,10,0.55)', color: T.card, borderRadius: '50%' }}
+              >
+                {uploadingMain ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+              </span>
+            </button>
+            <input
+              ref={mainPhotoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleMainPhotoChange}
+              style={{ display: 'none' }}
+            />
+
+            {/* Meno + pulzujúca „alive" bodka vľavo */}
+            <div className="flex items-center justify-center" style={{ marginTop: 12, gap: 10 }}>
+              <AliveDot />
+              <h1
+                style={{
+                  fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+                  fontSize: 28,
+                  letterSpacing: '0.03em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: T.ink,
+                  lineHeight: 1.05,
+                }}
+              >
+                {dogName}
+              </h1>
             </div>
 
-            {/* Meno */}
-            <h1
-              style={{
-                fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-                fontSize: 28,
-                letterSpacing: '0.03em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                color: T.ink,
-                marginTop: 12,
-                lineHeight: 1.05,
-              }}
-            >
-              {dogName}
-            </h1>
+            {/* — Badges + heroglyf zdieľajú jednu šírku → badges = presne šírka heroglyfu — */}
+            <div style={{ width: '100%', maxWidth: 320, marginInline: 'auto' }}>
+            {/* Badge riadok: # · vlajka (krúžok ako na GRIDE) · Health */}
+            <div className="mt-3 grid items-center gap-2 w-full" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
+              {/* # */}
+              <div
+                className="flex w-full items-center justify-center"
+                style={{
+                  padding: '7px 6px',
+                  borderRadius: 999,
+                  background: 'transparent',
+                  border: `1px solid ${T.border}`,
+                }}
+              >
+                <span
+                  style={{
+                    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: T.accentGold,
+                    letterSpacing: '0.02em',
+                    lineHeight: 1,
+                  }}
+                >
+                  {certNumber}
+                </span>
+              </div>
+              {/* Vlajka — krúžok ako na GRIDE (flagcdn), bez badge rámu */}
+              <img
+                src={flagUrl}
+                alt={origin || 'Slovakia'}
+                title={origin || 'Slovakia'}
+                loading="lazy"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  justifySelf: 'center',
+                  border: '1.5px solid rgba(201, 154, 63, 0.55)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+                  background: '#1a1a1a',
+                }}
+              />
+              {/* Health */}
+              <HealthBadge
+                status={healthStatus}
+                open={healthOpen}
+                onToggle={() => setHealthOpen((v) => !v)}
+                onSelect={(k) => {
+                  setHealthStatus(k);
+                  setHealthOpen(false);
+                }}
+              />
+            </div>
 
-            {/* Heroglyf — čierny */}
+            {/* Heroglyf — čierny (vyplní spoločný wrapper, takže = šírka badge riadku) */}
             <div className="flex items-center justify-center w-full" style={{ marginTop: 12 }}>
               <HeroglyphFrame
                 showOwner
-                style={{ width: '100%', maxWidth: 300, height: 'auto', color: T.ink } as React.CSSProperties}
+                style={{ width: '100%', maxWidth: '100%', height: 'auto', color: T.ink } as React.CSSProperties}
               />
+            </div>
             </div>
 
             {/* "Living my best life" — hlavný údaj = dni (badge, podčiarknuté); roky+ľudské roky v tooltipe (hover PC / tap mobile) */}
             {age ? (
-              <div className="flex flex-col items-center" style={{ marginTop: 14 }}>
-                <div
+              <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1" style={{ marginTop: 12 }}>
+                <span
                   className="inline-flex items-center gap-1.5"
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 11,
-                    letterSpacing: '0.16em',
+                    fontSize: 10,
+                    letterSpacing: '0.14em',
                     textTransform: 'uppercase',
                     color: T.inkDim,
                   }}
                 >
                   <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
                   Living my best life
-                </div>
+                </span>
                 <BestLifeBadge age={age} />
               </div>
             ) : (
               <div style={{ marginTop: 18, fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
                 Birthday unknown.
               </div>
+            )}
+            </div>
+
+            {/* BACK — documents + Wall word; absolute overlay = block keeps its height */}
+            {profileOpen && (
+            <div
+              className="flex flex-col text-left"
+              style={{
+                position: 'absolute',
+                inset: 0,
+                zIndex: 6,
+                background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+                borderRadius: 22,
+                padding: 18,
+                overflowY: 'auto',
+              }}
+            >
+              <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+                <SectionHeading icon={<ScrollText className="h-3 w-3" />} label="Profile & documents" inline />
+                <button
+                  type="button"
+                  onClick={() => setProfileOpen(false)}
+                  aria-label="Back to profile"
+                  className="inline-flex items-center justify-center"
+                  style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(31,26,14,0.06)', border: `1px solid ${T.hairline}`, color: T.ink, cursor: 'pointer' }}
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Documents — first (header above already says it) */}
+              <div className="flex flex-col gap-2">
+                <DownloadButton label="Certificate" href={dog.pdf_cert_url} filename={`${dogName}-certificate.pdf`} primary />
+                <div className="grid grid-cols-2 gap-2">
+                  <DownloadButton label="Vertical" href={dog.pdf_vertical_url} filename={`${dogName}-vertical.pdf`} />
+                  <DownloadButton label="Horizontal" href={dog.pdf_horizontal_url} filename={`${dogName}-horizontal.pdf`} />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCert((v) => !v)}
+                className="inline-flex items-center justify-center gap-2 w-full"
+                style={{
+                  marginTop: 8,
+                  background: 'rgba(201, 154, 63, 0.07)',
+                  border: '1px solid rgba(201, 154, 63, 0.30)',
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 9.5,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: T.ink,
+                  cursor: 'pointer',
+                }}
+              >
+                <FileText className="h-3 w-3" style={{ color: T.accentGold }} />
+                {showCert ? 'Hide certificate' : 'View certificate'}
+                <ChevronDown
+                  className="h-3.5 w-3.5"
+                  style={{ color: T.accentGold, transform: showCert ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+                />
+              </button>
+              {showCert && (
+                <div
+                  className="relative w-full mx-auto overflow-hidden"
+                  style={{ marginTop: 12, aspectRatio: '1080 / 1527', maxWidth: 230, borderRadius: 12, border: `1px solid ${T.hairline}` }}
+                >
+                  <div
+                    style={{ position: 'absolute', inset: 0, transformOrigin: 'top left', width: 1080, height: 1527 }}
+                    ref={(el) => {
+                      if (!el) return;
+                      const wrapper = el.parentElement;
+                      if (!wrapper) return;
+                      const apply = () => {
+                        const w = wrapper.clientWidth;
+                        el.style.transform = `scale(${w / 1080})`;
+                      };
+                      apply();
+                      const ro = new ResizeObserver(apply);
+                      ro.observe(wrapper);
+                    }}
+                  >
+                    <CertificateCard
+                      dogName={dogName}
+                      ownerName={ownerName}
+                      photoUrl={dog.cloudinary_main_url || undefined}
+                      heroglyphCode={heroglyphCode}
+                      certNumber={certNumber}
+                      issuedDate={issuedDate}
+                    />
+                  </div>
+                </div>
+              )}
+              {(() => {
+                const hasPdfs = !!(dog.pdf_cert_url && dog.pdf_vertical_url && dog.pdf_horizontal_url);
+                return (
+                  <button
+                    type="button"
+                    onClick={handleRegenerate}
+                    disabled={regenerating}
+                    className="inline-flex items-center justify-center gap-2 w-full"
+                    style={{
+                      marginTop: 8,
+                      background: 'transparent',
+                      border: 'none',
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: 8.5,
+                      letterSpacing: '0.2em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      color: hasPdfs ? T.inkFaint : T.accentGold,
+                      cursor: regenerating ? 'progress' : 'pointer',
+                      opacity: regenerating ? 0.6 : 1,
+                    }}
+                  >
+                    {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                    {regenerating ? 'Generating…' : hasPdfs ? 'Regenerate PDFs' : 'Generate PDFs'}
+                  </button>
+                );
+              })()}
+
+              {/* A word on the Wall — second (pre-filled with the dog's current message; Save persists) */}
+              <div style={{ marginTop: 14 }}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <SectionHeading icon={<Heart className="h-3 w-3" />} label="A word on the Wall" inline />
+                  <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: T.inkDim }}>
+                    {messageDraft.length}/{MESSAGE_MAX}
+                  </span>
+                </div>
+                <textarea
+                  value={messageDraft}
+                  onChange={(e) => {
+                    setMessageDraft(e.target.value.slice(0, MESSAGE_MAX));
+                    setMessageDirty(true);
+                  }}
+                  placeholder="A few words shown on your WALL card — a tribute, a memory, a hello to the pack."
+                  rows={2}
+                  style={{
+                    minHeight: 64,
+                    width: '100%',
+                    background: T.bg,
+                    border: `1px solid ${T.hairline}`,
+                    borderRadius: 10,
+                    padding: 11,
+                    color: T.ink,
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 13,
+                    lineHeight: 1.45,
+                    resize: 'none',
+                    outline: 'none',
+                  }}
+                />
+                <div className="mt-2 flex items-center justify-end">
+                  <button
+                    type="button"
+                    onClick={handleSaveMessage}
+                    disabled={!messageDirty || messageSaving}
+                    className="inline-flex items-center gap-2"
+                    style={{
+                      background: messageDirty ? T.ink : 'transparent',
+                      color: messageDirty ? T.card : T.inkFaint,
+                      border: messageDirty ? 'none' : `1px solid ${T.hairline}`,
+                      padding: '8px 14px',
+                      borderRadius: 9,
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: 10,
+                      letterSpacing: '0.22em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      cursor: messageDirty ? 'pointer' : 'default',
+                      opacity: messageSaving ? 0.6 : 1,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {messageSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                    {messageSaving ? 'Saving' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            </div>
             )}
           </section>
 
@@ -716,23 +1084,43 @@ export default function PackDogDetail() {
               <PrayerRow
                 checked={walkHours !== null}
                 disabled={prayersSubmitted}
-                title="Prayer of the Path"
-                hint="Drag from a short round to an all-day journey. Under an hour earns 0.5 — then 1 point per hour, up to 5."
+                title="Walk"
+                hint="Slide how long you walked. Under an hour earns 0.5 — then 1 point per hour, up to 5 for an all-day journey."
                 right={
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <input
-                      type="range"
-                      min={0}
-                      max={5}
-                      step={1}
-                      value={walkHours ?? 0}
-                      disabled={prayersSubmitted}
-                      onChange={(e) => setWalkHours(Number(e.target.value))}
-                      style={{ width: 80, accentColor: '#F5C73D', cursor: prayersSubmitted ? 'default' : 'pointer' }}
-                    />
-                    <span style={{ ...PTS_PILL, width: 96, textAlign: 'center', overflow: 'hidden' }}>
-                      {walkHours !== null ? `${walkLabel(walkHours)} · +${walkPointsFor(walkHours)}` : 'to all day'}
-                    </span>
+                  <div className="w-[180px] md:w-[272px]" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input
+                        type="range"
+                        min={0}
+                        max={5}
+                        step={1}
+                        value={walkHours ?? 0}
+                        disabled={prayersSubmitted}
+                        onChange={(e) => setWalkHours(Number(e.target.value))}
+                        style={{ flex: 1, minWidth: 0, accentColor: '#F5C73D', cursor: prayersSubmitted ? 'default' : 'pointer' }}
+                      />
+                      <span style={{ ...PTS_PILL, minWidth: 44, textAlign: 'center' }}>
+                        {walkHours !== null ? `+${walkPointsFor(walkHours)}` : '+0'}
+                      </span>
+                    </div>
+                    {/* Mierka */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        paddingRight: 52,
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 7.5,
+                        letterSpacing: '0.02em',
+                        color: 'rgba(250,244,236,0.62)',
+                      }}
+                    >
+                      {WALK_LEVELS.map((lv) => (
+                        <span key={lv.h} style={{ color: walkHours === lv.h ? '#FAF4EC' : undefined }}>
+                          {lv.label}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 }
               />
@@ -741,7 +1129,7 @@ export default function PackDogDetail() {
               <PrayerRow
                 checked
                 disabled={prayersSubmitted}
-                title="Prayer of Care"
+                title="Nutrition"
                 hint="Fresh, real food is devotion — not ultra-processed kibble. Set your dog's diet for daily care points."
                 right={<span style={PTS_PILL}>Fresh food · 5/day</span>}
               />
@@ -749,6 +1137,7 @@ export default function PackDogDetail() {
               {/* 4 — Open Ritual (dropdown, coming soon) */}
               <PrayerRow
                 locked
+                faded
                 disabled={prayersSubmitted}
                 title="Open Ritual"
                 hint="Add your own acts of devotion — choose from more rituals or create a custom one."
@@ -768,7 +1157,7 @@ export default function PackDogDetail() {
 
             {/* Today's devotion — summary badge + Submit; once submitted the block locks for the day */}
             <div className="flex flex-col items-center" style={{ marginTop: 18 }}>
-              <div className="inline-flex items-center gap-2.5">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5">
                 <span
                   className="inline-flex items-center gap-2"
                   style={{
@@ -829,304 +1218,474 @@ export default function PackDogDetail() {
 
         </div>
 
-        {/* ============================================================= */}
-        {/* SECTIONS NAV — 5 dlaždíc v jednom bloku, bez nadpisu (3. v poradí) */}
-        {/* ============================================================= */}
-        <section
-          style={{
-            background: T.card,
-            border: `1px solid ${T.hairline}`,
-            borderRadius: 20,
-            padding: 18,
-            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-          }}
-        >
-          <div className="grid grid-cols-5 gap-2">
-            <HubTile
-              icon="paw"
-              label="Profile"
-              active
-              open={profileOpen}
-              onClick={() => setProfileOpen((v) => !v)}
-            />
-            <HubTile icon="ankh" label="Protocol" soon />
-            <HubTile icon="vet" label="Records" soon />
-            <HubTile icon="feather" label="Journal" soon />
-            <HubTile
-              icon="frame"
-              label="Album"
-              active
-              open={albumOpen}
-              onClick={() => setAlbumOpen((v) => !v)}
-            />
-          </div>
-        </section>
 
         {/* ============================================================= */}
-        {/* DOG PROFILE — accordion panel (cert+PDF · level · grid message) */}
-        {/* Opens from the PROFILE nav tile above.                          */}
+        {/* SECTIONS NAV — 3 dlaždice: Health/Training/Journal. Profile = v  */}
+        {/* bloku 1 (📄 ikona). Health pohltí Protocol+Records(vet), Journal  */}
+        {/* pohltí Album. Renderujú sa POD profil panelom.                   */}
         {/* ============================================================= */}
-        {profileOpen && (
-          <section
-            style={{
-              background: T.card,
-              border: `1px solid ${T.hairline}`,
-              borderRadius: 20,
-              padding: 20,
-              boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-            }}
+        <div className="grid grid-cols-3 gap-4 md:gap-6">
+          <HubTile
+            icon="heartpaw"
+            label="Health"
+            sub="Vaccines · Vet · Food"
+            active
+            open={openTile === 'health'}
+            onClick={() => toggleTile('health')}
+          />
+          <HubTile
+            icon="star"
+            label="Training"
+            sub="Commands · Badges"
+            active
+            open={openTile === 'training'}
+            onClick={() => toggleTile('training')}
+          />
+          <HubTile
+            icon="feather"
+            label="Journal"
+            sub="Stories · Photos"
+            active
+            open={openTile === 'journal'}
+            onClick={() => toggleTile('journal')}
+          />
+        </div>
+
+        {/* HEALTH — living health profile: vet quick-reference + vet centre + food */}
+        {openTile === 'health' && (
+          <TilePanel
+            icon="heartpaw"
+            title="Health"
+            tagline="The whole health record in one place — nothing lost, nothing missing."
           >
-            {/* — Sacred Record: certificate + PDFs — */}
-            <SectionHeading icon={<FileText className="h-3 w-3" />} label="The Sacred Record" />
-
-            {/* Toggle — certificate hidden by default */}
-            <button
-              type="button"
-              onClick={() => setShowCert((v) => !v)}
-              className="inline-flex items-center justify-center gap-2 w-full"
+            {/* OVERVIEW — quick reference for owner & vet */}
+            <div
               style={{
-                background: 'transparent',
-                border: `1px solid ${T.border}`,
-                padding: '13px 14px',
-                borderRadius: 12,
-                fontFamily: "'Cinzel', serif",
-                fontSize: 11,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                color: T.ink,
-                cursor: 'pointer',
+                background: T.cardSoft,
+                border: `1px solid ${T.hairline}`,
+                borderRadius: 16,
+                padding: 18,
               }}
             >
-              <FileText className="h-3 w-3" />
-              {showCert ? 'Hide certificate' : 'View certificate'}
-            </button>
-
-            {/* Certificate preview (collapsible) */}
-            {showCert && (
-              <div
-                className="relative w-full mx-auto overflow-hidden"
-                style={{
-                  marginTop: 16,
-                  aspectRatio: '1080 / 1350',
-                  maxWidth: 480,
-                  borderRadius: 14,
-                  border: `1px solid ${T.hairline}`,
-                }}
-              >
-                <div
-                  style={{ position: 'absolute', inset: 0, transformOrigin: 'top left', width: 1080, height: 1350 }}
-                  ref={(el) => {
-                    if (!el) return;
-                    const wrapper = el.parentElement;
-                    if (!wrapper) return;
-                    const apply = () => {
-                      const w = wrapper.clientWidth;
-                      el.style.transform = `scale(${w / 1080})`;
-                    };
-                    apply();
-                    const ro = new ResizeObserver(apply);
-                    ro.observe(wrapper);
-                  }}
-                >
-                  <CertificateCard
-                    dogName={dogName}
-                    ownerName={ownerName}
-                    photoUrl={dog.cloudinary_main_url || undefined}
-                    heroglyphCode={heroglyphCode}
-                    certNumber={certNumber}
-                    issuedDate={issuedDate}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Downloads */}
-            <div className="flex flex-col gap-3" style={{ marginTop: 16 }}>
-              <DownloadButton
-                label="Certificate PDF"
-                href={dog.pdf_cert_url}
-                filename={`${dogName}-certificate.pdf`}
-                primary
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <DownloadButton label="Vertical" href={dog.pdf_vertical_url} filename={`${dogName}-vertical.pdf`} />
-                <DownloadButton label="Horizontal" href={dog.pdf_horizontal_url} filename={`${dogName}-horizontal.pdf`} />
-              </div>
-              {(() => {
-                const hasPdfs = !!(dog.pdf_cert_url && dog.pdf_vertical_url && dog.pdf_horizontal_url);
-                return (
-                  <button
-                    type="button"
-                    onClick={handleRegenerate}
-                    disabled={regenerating}
-                    className="inline-flex items-center justify-center gap-2"
-                    style={{
-                      background: hasPdfs ? 'transparent' : T.ink,
-                      border: hasPdfs ? `1px solid ${T.border}` : 'none',
-                      padding: '13px 14px',
-                      borderRadius: 12,
-                      fontFamily: "'Cinzel', serif",
-                      fontSize: 11,
-                      letterSpacing: '0.22em',
-                      textTransform: 'uppercase',
-                      fontWeight: 700,
-                      color: hasPdfs ? T.ink : T.card,
-                      cursor: regenerating ? 'progress' : 'pointer',
-                      opacity: regenerating ? 0.6 : 1,
-                    }}
-                  >
-                    {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                    {regenerating ? 'Generating…' : hasPdfs ? 'Regenerate PDFs' : 'Generate certificate PDFs'}
-                  </button>
-                );
-              })()}
-            </div>
-
-            {/* — Nature & Path: dog level — */}
-            <div style={{ marginTop: 22, paddingTop: 20, borderTop: `1px solid ${T.hairline}` }}>
-              <SectionHeading icon={<PawPrint className="h-3 w-3" />} label="Nature & Path" />
-              <div className="flex flex-col gap-4">
-                <LevelMeter
-                  title="Obedience"
-                  pct={temperament.obedience}
-                  label={levelLabel(OBEDIENCE_LABELS, temperament.obedience)}
-                />
-                <LevelMeter
-                  title="Socialisation"
-                  pct={temperament.social}
-                  label={levelLabel(SOCIAL_LABELS, temperament.social)}
-                />
-              </div>
-              {temperament.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2" style={{ marginTop: 16 }}>
-                  {temperament.tags.map((t) => (
-                    <NatureChip key={t} label={t} />
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* — Grid Message — */}
-            <div style={{ marginTop: 22, paddingTop: 20, borderTop: `1px solid ${T.hairline}` }}>
-              <div className="flex items-center justify-between mb-3">
-                <SectionHeading icon={<Heart className="h-3 w-3" />} label="Grid Message" inline />
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: T.inkDim }}>
-                  {messageDraft.length}/{MESSAGE_MAX}
-                </span>
-              </div>
-              <textarea
-                value={messageDraft}
-                onChange={(e) => {
-                  setMessageDraft(e.target.value.slice(0, MESSAGE_MAX));
-                  setMessageDirty(true);
-                }}
-                placeholder="A few words shown on your GRID card — a tribute, a memory, a hello to the pack."
-                rows={3}
-                style={{
-                  width: '100%',
-                  background: T.bg,
-                  border: `1px solid ${T.hairline}`,
-                  borderRadius: 12,
-                  padding: 14,
-                  color: T.ink,
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  resize: 'vertical',
-                  outline: 'none',
-                }}
-              />
-              <div className="mt-3 flex items-center justify-end">
+              <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+                <SectionHeading icon={<ClipboardList className="h-3 w-3" />} label="Overview" inline />
                 <button
                   type="button"
-                  onClick={handleSaveMessage}
-                  disabled={!messageDirty || messageSaving}
-                  className="inline-flex items-center gap-2"
+                  onClick={() => toast({ title: 'Coming soon', description: 'Share a read-only health profile with your vet.' })}
+                  className="inline-flex items-center gap-1.5"
                   style={{
-                    background: messageDirty ? T.ink : 'transparent',
-                    color: messageDirty ? T.card : T.inkFaint,
-                    border: messageDirty ? 'none' : `1px solid ${T.hairline}`,
-                    padding: '11px 16px',
-                    borderRadius: 10,
+                    padding: '8px 16px',
+                    borderRadius: 999,
+                    background: `linear-gradient(180deg, ${T.partMkt} 0%, #0F7E78 100%)`,
+                    border: '1px solid rgba(91, 214, 217, 0.55)',
+                    boxShadow: '0 6px 18px -6px rgba(26, 163, 154, 0.6)',
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 11,
-                    letterSpacing: '0.24em',
-                    textTransform: 'uppercase',
+                    fontSize: 10,
                     fontWeight: 700,
-                    cursor: messageDirty ? 'pointer' : 'default',
-                    opacity: messageSaving ? 0.6 : 1,
-                    transition: 'all 0.15s',
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                    color: '#F4FBFA',
+                    cursor: 'pointer',
                   }}
                 >
-                  {messageSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                  {messageSaving ? 'Saving' : 'Save'}
+                  <Share2 className="h-3.5 w-3.5" />
+                  Share with vet
                 </button>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Facts */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5" style={{ alignContent: 'start' }}>
+                  <OverviewFact label="Breed" value={breed ? capWords(breed) : '—'} />
+                  <OverviewFact
+                    label="Born"
+                    value={birthDateLabel ?? '—'}
+                    hint={age ? `${age.years}y ${age.months}m` : undefined}
+                  />
+                  {/* Weight — editable, logs on save */}
+                  <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
+                    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint }}>
+                      Weight
+                    </span>
+                    {weightEditing ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <input
+                          autoFocus
+                          inputMode="decimal"
+                          value={weightDraft}
+                          onChange={(e) => setWeightDraft(e.target.value.replace(/[^0-9.,]/g, ''))}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const v = weightDraft.replace(',', '.').trim();
+                              if (v) { setWeightKg(v); toast({ title: 'Weight logged', description: `${v} kg saved to the record.` }); }
+                              setWeightEditing(false);
+                            }
+                            if (e.key === 'Escape') { setWeightDraft(weightKg); setWeightEditing(false); }
+                          }}
+                          style={{
+                            width: 54, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600,
+                            color: T.ink, background: T.card, border: `1px solid ${T.border}`, borderRadius: 6, padding: '1px 6px',
+                          }}
+                        />
+                        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>kg</span>
+                        <button
+                          type="button"
+                          aria-label="Save weight"
+                          onClick={() => {
+                            const v = weightDraft.replace(',', '.').trim();
+                            if (v) { setWeightKg(v); toast({ title: 'Weight logged', description: `${v} kg saved to the record.` }); }
+                            setWeightEditing(false);
+                          }}
+                          style={{ display: 'inline-flex', color: T.growGreen, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => { setWeightDraft(weightKg); setWeightEditing(true); }}
+                        className="inline-flex items-center gap-1.5 group"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                      >
+                        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: T.ink }}>
+                          {weightKg} kg
+                        </span>
+                        <Pencil className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: T.accentGold }} />
+                      </button>
+                    )}
+                  </div>
+                  <OverviewFact label="Feeding" value="Fresh food (BARF)" />
+                </div>
+
+                {/* Shields */}
+                <div>
+                  <div className="flex items-center justify-between" style={{ marginBottom: 9 }}>
+                    <span
+                      className="inline-flex items-center gap-2"
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 9,
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        color: T.inkDim,
+                      }}
+                    >
+                      <Shield className="h-3 w-3" style={{ color: T.accentGold }} />
+                      Protection
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 8,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: T.inkFaint,
+                      }}
+                    >
+                      Preview
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+                    {HEALTH_SHIELDS.map((s) => (
+                      <ShieldBadge
+                        key={s.key}
+                        lucide={s.lucide}
+                        label={s.label}
+                        state={s.state}
+                        onClick={() =>
+                          toast({ title: `${s.label} — coming soon`, description: s.note })
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Critical strip — the first thing a vet needs */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5" style={{ marginTop: 14 }}>
+                <CriticalChip lucide={<AlertTriangle className="h-3.5 w-3.5" />} label="Allergies" value="None recorded" />
+                <CriticalChip lucide={<HeartPulse className="h-3.5 w-3.5" />} label="Conditions" value="None recorded" />
+                <CriticalChip lucide={<Pill className="h-3.5 w-3.5" />} label="Medication" value="None recorded" />
+              </div>
+
+              {/* Tests — Personality (TCM) + Identity, each a "Make test" CTA (soon) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" style={{ marginTop: 12 }}>
+                <TestChip
+                  lucide={<Flame className="h-4 w-4" />}
+                  label="Personality"
+                  cta="Make test"
+                  sub="TCM elements — fire, metal, wood…"
+                  onClick={() => toast({ title: 'Personality test — coming soon', description: 'A short quiz maps your dog onto the five elements.' })}
+                />
+                <TestChip
+                  lucide={<Fingerprint className="h-4 w-4" />}
+                  label="Identity"
+                  cta="Make test"
+                  sub={`Find ${P.poss} character type`}
+                  onClick={() => toast({ title: 'Identity test — coming soon', description: `Click through a few questions to place ${P.poss} character type.` })}
+                />
+              </div>
             </div>
-          </section>
+
+            {/* VET CENTRE + FOOD PROTOCOL */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <SubCard
+                lucide={<Stethoscope className="h-4 w-4" />}
+                title="Vet centre"
+                desc="Vaccinations and visits — planned and past — in one timeline you can share with any vet."
+              />
+              <SubCard
+                lucide={<Bone className="h-4 w-4" />}
+                title="Food protocol"
+                desc="Brand, portions and allergies — the diet the whole pack can trust."
+              />
+            </div>
+
+            <VisionCallout
+              tone="purple"
+              title="Health Protocol by AI + a vet network you trust"
+              body="A longevity blueprint for your dog, powered by AI — and a First-Aid network of vets across the nation. The whole point of a million Dogyptians."
+            />
+          </TilePanel>
         )}
 
-        {/* ALBUM — accordion (opens from the Album nav tile) */}
-        {albumOpen && (
-        <section
-          style={{
-            background: T.card,
-            border: `1px solid ${T.hairline}`,
-            borderRadius: 20,
-            padding: 20,
-            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-          }}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <SectionHeading icon={<Images className="h-3 w-3" />} label="Photo Album" inline />
-            <button
-              type="button"
-              onClick={handleAddPhoto}
-              disabled={uploading}
-              className="inline-flex items-center gap-2"
+        {/* TRAINING — coming-soon preview panel */}
+        {openTile === 'training' && (
+          <TilePanel
+            icon="star"
+            title="Training"
+            tagline="Every command learned, every trial won — written down."
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <PreviewRow
+                lucide={<Sparkles className="h-4 w-4" />}
+                label="Commands"
+                desc={`Sit, stay, recall, heel… tick them off as ${P.subj} masters each one.`}
+              />
+              <PreviewRow
+                lucide={<Award className="h-4 w-4" />}
+                label="Sacred badges"
+                desc="Shows, races, obedience trials, countries visited — earned, never bought."
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4" style={{ marginTop: 4 }}>
+              <LevelMeter title="Obedience" pct={0} label="Soon" />
+              <LevelMeter title="Agility" pct={0} label="Soon" />
+            </div>
+            <VisionCallout
+              title="Badges feed your Devotion"
+              body="Trials and milestones become sacred badges on your profile — and Devotion in the pack. The canon is being written."
+            />
+          </TilePanel>
+        )}
+
+        {/* JOURNAL — Instant Story (voice + photos, logged by date) + archive + album */}
+        {openTile === 'journal' && (
+          <TilePanel icon="feather" title="Journal" tagline={`Every story, every photo — ${P.poss} whole life, kept.`}>
+            {/* Top row — Instant Story (left) + Story archive (right) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
+            {/* INSTANT STORY — the capture hero */}
+            <div
               style={{
-                background: T.ink,
-                color: T.card,
-                border: 'none',
-                padding: '8px 14px',
-                borderRadius: 999,
-                fontFamily: "'Cinzel', serif",
-                fontSize: 10,
-                letterSpacing: '0.22em',
-                textTransform: 'uppercase',
-                cursor: uploading ? 'progress' : 'pointer',
-                opacity: uploading ? 0.6 : 1,
+                position: 'relative',
+                overflow: 'hidden',
+                height: '100%',
+                borderRadius: 16,
+                padding: 18,
+                background: `linear-gradient(135deg, hsl(270 40% 22%) 0%, hsl(45 80% 42%) 100%)`,
+                border: '1px solid rgba(250, 244, 236, 0.22)',
               }}
             >
-              {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
-              Add photo
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
-          </div>
-          <div className="grid grid-cols-3 gap-2.5">
-            {dog.cloudinary_main_url && <PhotoTile url={dog.cloudinary_main_url} primary />}
-            {extras.map((u) => (
-              <PhotoTile key={u} url={u} onRemove={() => handleRemovePhoto(u)} />
-            ))}
-            {extras.length === 0 && !dog.cloudinary_main_url && (
-              <div
-                className="col-span-3"
+              <span
+                className="absolute inline-flex items-center gap-1"
                 style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 13,
-                  color: T.inkDim,
-                  padding: 18,
-                  border: `1px dashed ${T.border}`,
-                  borderRadius: 12,
-                  textAlign: 'center',
+                  top: 12,
+                  right: 12,
+                  padding: '3px 8px',
+                  borderRadius: 999,
+                  background: 'rgba(0, 0, 0, 0.22)',
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 8,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(250, 244, 236, 0.85)',
                 }}
               >
-                No photos yet.
+                <Lock className="h-2.5 w-2.5" />
+                Soon
+              </span>
+              <div className="flex items-center gap-2" style={{ marginBottom: 7 }}>
+                <Mic className="h-4 w-4" style={{ color: '#FAF4EC' }} />
+                <span
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    color: '#FAF4EC',
+                  }}
+                >
+                  Instant Story
+                </span>
               </div>
-            )}
-          </div>
-        </section>
+              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: 'rgba(250, 244, 236, 0.86)', lineHeight: 1.4 }}>
+                Just speak the moment — a quick voice note that logs under today's date and turns into text, one day maybe a page of {P.poss} book. Add a few photos and the day is saved forever.
+              </span>
+              <div className="flex flex-wrap items-center gap-2.5" style={{ marginTop: 13 }}>
+                <button
+                  type="button"
+                  onClick={() => toast({ title: 'Instant Story — coming soon', description: 'Record a voice note and it logs under today’s date.' })}
+                  className="inline-flex items-center gap-2"
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: 999,
+                    background: '#FAF4EC',
+                    border: 'none',
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: '#2A1A40',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Mic className="h-3.5 w-3.5" />
+                  Record a story
+                </button>
+                <button
+                  type="button"
+                  onClick={() => toast({ title: 'Coming soon', description: 'Attach photos to the moment.' })}
+                  className="inline-flex items-center gap-2"
+                  style={{
+                    padding: '9px 14px',
+                    borderRadius: 999,
+                    background: 'rgba(250, 244, 236, 0.12)',
+                    border: '1px solid rgba(250, 244, 236, 0.34)',
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
+                    color: '#FAF4EC',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Images className="h-3.5 w-3.5" />
+                  Add photos
+                </button>
+              </div>
+              <div
+                className="flex items-center gap-2"
+                style={{
+                  marginTop: 13,
+                  paddingTop: 12,
+                  borderTop: '1px solid rgba(250, 244, 236, 0.18)',
+                }}
+              >
+                <Sparkles className="h-3.5 w-3.5 shrink-0" style={{ color: '#FAF4EC' }} />
+                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, color: 'rgba(250, 244, 236, 0.82)', lineHeight: 1.4 }}>
+                  Every story earns Devotion.
+                </span>
+              </div>
+            </div>
+
+            {/* STORY ARCHIVE — empty state with a faint book watermark */}
+            <div
+              className="relative flex flex-col"
+              style={{
+                overflow: 'hidden',
+                height: '100%',
+                minHeight: 150,
+                borderRadius: 16,
+                padding: 18,
+                background: T.cardSoft,
+                border: `1px dashed ${T.border}`,
+              }}
+            >
+              {/* Book watermark */}
+              <BookOpen
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  right: -14,
+                  bottom: -14,
+                  width: 132,
+                  height: 132,
+                  color: T.accentGold,
+                  opacity: 0.08,
+                  pointerEvents: 'none',
+                }}
+              />
+              <SectionHeading icon={<BookOpen className="h-3 w-3" />} label="Story archive" />
+              <div
+                className="flex-1 flex items-center"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 12.5,
+                  color: T.inkDim,
+                  lineHeight: 1.45,
+                }}
+              >
+                {Poss} stories will live here — newest first, every voice note and photo by date.
+              </div>
+            </div>
+            </div>
+
+            {/* PHOTO ALBUM — functional */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <SectionHeading icon={<Images className="h-3 w-3" />} label="Photo Album" inline />
+                <button
+                  type="button"
+                  onClick={handleAddPhoto}
+                  disabled={uploading}
+                  className="inline-flex items-center gap-2"
+                  style={{
+                    background: T.ink,
+                    color: T.card,
+                    border: 'none',
+                    padding: '8px 14px',
+                    borderRadius: 999,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 10,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    cursor: uploading ? 'progress' : 'pointer',
+                    opacity: uploading ? 0.6 : 1,
+                  }}
+                >
+                  {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                  Add photo
+                </button>
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
+              </div>
+              <div className="grid grid-cols-3 gap-2.5">
+                {dog.cloudinary_main_url && <PhotoTile url={dog.cloudinary_main_url} primary />}
+                {extras.map((u) => (
+                  <PhotoTile key={u} url={u} onRemove={() => handleRemovePhoto(u)} />
+                ))}
+                {extras.length === 0 && !dog.cloudinary_main_url && (
+                  <div
+                    className="col-span-3"
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontSize: 13,
+                      color: T.inkDim,
+                      padding: 18,
+                      border: `1px dashed ${T.border}`,
+                      borderRadius: 12,
+                      textAlign: 'center',
+                    }}
+                  >
+                    No photos yet.
+                  </div>
+                )}
+              </div>
+            </div>
+          </TilePanel>
         )}
 
         {/* ============================================================= */}
@@ -1249,12 +1808,12 @@ const GOLD_FILTER =
   'brightness(0) saturate(100%) invert(58%) sepia(56%) saturate(481%) hue-rotate(2deg) brightness(91%) contrast(86%)';
 
 const STAT_LEGEND = [
-  { label: 'All-day', desc: 'A long trip into the wild', color: '#2E7D4F', icon: 'forest' },
+  { label: 'Trip', desc: 'A long day into the wild', color: '#2E7D4F', icon: 'forest' },
   { label: 'Walk', desc: 'A proper daily walk', color: '#7FB04A', icon: 'paw' },
-  { label: 'Short', desc: 'A quick round', color: '#E6B23A', icon: 'walk' },
+  { label: 'Stroll', desc: 'A quick round the block', color: '#E6B23A', icon: 'walk' },
   { label: 'Vet', desc: 'Health & check-ups', color: '#3B82C4', icon: 'vet' },
   { label: 'Birthday', desc: 'The real one', color: '#8B5CF6', icon: 'star' },
-  { label: 'Human year', desc: '1 of his 7 — plan something', color: '#EC6FA6', icon: 'sun' },
+  { label: 'Human year', desc: '1 of 7 — plan something', color: '#EC6FA6', icon: 'sun' },
 ];
 
 const BIRTHDAY_PURPLE = '#8B5CF6';
@@ -1426,7 +1985,6 @@ function BestLifeBadge({ age }: { age: DogAge }) {
   return (
     <div
       className="relative inline-flex flex-col items-center"
-      style={{ marginTop: 10 }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
@@ -1435,20 +1993,18 @@ function BestLifeBadge({ age }: { age: DogAge }) {
         onClick={() => setOpen((v) => !v)}
         aria-label="Show age detail"
         style={{
-          padding: '9px 22px',
+          padding: '5px 14px',
           borderRadius: 999,
           background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
           color: '#3d1f00',
           fontFamily: "'Cinzel', serif",
-          fontSize: 24,
+          fontSize: 15,
           fontWeight: 700,
           letterSpacing: '0.02em',
-          textDecoration: 'underline',
-          textUnderlineOffset: 5,
-          textDecorationThickness: 2,
           cursor: 'pointer',
-          boxShadow: '0 8px 22px -6px rgba(201, 154, 63, 0.65)',
+          boxShadow: '0 6px 16px -6px rgba(201, 154, 63, 0.6)',
           lineHeight: 1.1,
+          whiteSpace: 'nowrap',
         }}
       >
         {age.totalDays.toLocaleString('en-US')} days
@@ -1539,6 +2095,61 @@ function LevelMeter({ title, pct, label }: { title: string; pct: number; label: 
   );
 }
 
+function InfoFact({ label, value, symbol, flag }: { label: string; value: string; symbol?: string; flag?: string }) {
+  return (
+    <div className="flex items-center gap-2.5" style={{ minWidth: 0 }}>
+      <span
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 32,
+          height: 32,
+          flexShrink: 0,
+          borderRadius: 9,
+          background: 'rgba(201, 154, 63, 0.08)',
+          border: '1px solid rgba(201, 154, 63, 0.20)',
+        }}
+      >
+        {symbol ? (
+          <img src={symbol} alt="" style={{ width: 22, height: 22, objectFit: 'contain', filter: GOLD_FILTER }} />
+        ) : flag ? (
+          <span style={{ fontSize: 18, lineHeight: 1 }}>{flag}</span>
+        ) : (
+          <PawPrint className="h-3.5 w-3.5" style={{ color: T.inkFaint }} />
+        )}
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 8,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            color: T.inkFaint,
+            lineHeight: 1,
+            marginBottom: 2,
+          }}
+        >
+          {label}
+        </div>
+        <div
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: T.ink,
+            lineHeight: 1.2,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {value}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function NatureChip({ label }: { label: string }) {
   return (
     <span
@@ -1566,11 +2177,16 @@ function NatureChip({ label }: { label: string }) {
 function walkPointsFor(h: number): number {
   return h <= 0 ? 0.5 : Math.min(5, h);
 }
-function walkLabel(h: number): string {
-  if (h <= 0) return '< 1 h';
-  if (h >= 5) return 'all day';
-  return `${h} h`;
-}
+// Walk picker buttons — h-value 0..5 (0 = under an hour, 5 = all-day). Same on
+// every screen size, no slider.
+const WALK_LEVELS: { h: number; label: string }[] = [
+  { h: 0, label: '<1h' },
+  { h: 1, label: '1h' },
+  { h: 2, label: '2h' },
+  { h: 3, label: '3h' },
+  { h: 4, label: '4h' },
+  { h: 5, label: 'Day' },
+];
 
 // Purple→gold gradient — matches FounderInvite (brand milestone card).
 const PRAYER_GRADIENT = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
@@ -1595,6 +2211,7 @@ function PrayerRow({
   onRowClick,
   locked,
   disabled,
+  faded,
   eyebrow,
   title,
   sub,
@@ -1606,6 +2223,7 @@ function PrayerRow({
   onRowClick?: () => void;
   locked?: boolean;
   disabled?: boolean;
+  faded?: boolean;
   eyebrow?: string;
   title: string;
   sub?: string;
@@ -1631,7 +2249,7 @@ function PrayerRow({
           minHeight: 58,
           boxShadow: '0 10px 28px -16px rgba(40, 16, 70, 0.6)',
           cursor: rowClickable ? 'pointer' : 'default',
-          opacity: disabled ? 0.82 : 1,
+          opacity: disabled ? 0.82 : faded ? 0.55 : 1,
           transition: 'opacity 0.15s',
         }}
       >
@@ -1718,9 +2336,728 @@ function PrayerRow({
   );
 }
 
+// ---------------------------------------------------------------------------
+// HEALTH STATUS — meniteľný badge (v1 placeholder, neodosiela sa). Vízia cez
+// vysvetlivku: liečitelia + AI outreach = severka fáza „1M+ First Aid".
+// ---------------------------------------------------------------------------
+type HealthKey = 'healthy' | 'injury' | 'gastro' | 'allergy' | 'other';
+
+const HEALTH_OPTIONS: { key: HealthKey; label: string; color: string }[] = [
+  { key: 'healthy', label: 'Healthy', color: '#22A35E' },
+  { key: 'injury', label: 'Injury', color: '#E0892B' },
+  { key: 'gastro', label: 'Gastro', color: '#C2683B' },
+  { key: 'allergy', label: 'Allergy', color: '#B5573E' },
+  { key: 'other', label: 'Other', color: '#7A6A52' },
+];
+
+function HealthBadge({
+  status,
+  open,
+  onToggle,
+  onSelect,
+}: {
+  status: HealthKey;
+  open: boolean;
+  onToggle: () => void;
+  onSelect: (k: HealthKey) => void;
+}) {
+  const current = HEALTH_OPTIONS.find((o) => o.key === status) ?? HEALTH_OPTIONS[0];
+  const isHealthy = status === 'healthy';
+  return (
+    <div className="relative w-full">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center justify-center gap-1.5"
+        style={{
+          padding: '7px 6px',
+          borderRadius: 999,
+          background: `${current.color}1F`,
+          border: `1px solid ${current.color}`,
+          fontFamily: "'Cinzel', serif",
+          fontSize: 9,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          fontWeight: 700,
+          color: current.color,
+          cursor: 'pointer',
+          lineHeight: 1,
+        }}
+      >
+        {isHealthy ? <Heart className="h-3 w-3 shrink-0" /> : <AlertTriangle className="h-3 w-3 shrink-0" />}
+        {current.label}
+        <ChevronDown
+          className="h-3 w-3 shrink-0"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute"
+          style={{
+            top: 'calc(100% + 8px)',
+            right: 0,
+            width: 250,
+            zIndex: 20,
+            background: T.card,
+            border: `1px solid ${T.border}`,
+            borderRadius: 14,
+            padding: 12,
+            boxShadow: '0 18px 44px -16px rgba(20,8,40,0.5)',
+          }}
+        >
+          <div className="flex flex-col gap-1.5">
+            {HEALTH_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                type="button"
+                onClick={() => onSelect(o.key)}
+                className="flex items-center gap-2.5 w-full"
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 9,
+                  background: o.key === status ? `${o.color}14` : 'transparent',
+                  border: o.key === status ? `1px solid ${o.color}66` : '1px solid transparent',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                }}
+              >
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: o.color, flexShrink: 0 }} />
+                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, fontWeight: 600, color: T.ink }}>
+                  {o.label}
+                </span>
+                {o.key === status && <Check className="h-3.5 w-3.5" style={{ marginLeft: 'auto', color: o.color }} />}
+              </button>
+            ))}
+          </div>
+          {/* Vízia — vysvetlivka (pozvánka, nie funkčné) */}
+          <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.hairline}` }}>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, lineHeight: 1.5, color: T.inkDim }}>
+              One day, marking your dog unwell will alert DOGYPT healers near you — and our AI will reach out
+              to help. A global first-aid network for dogs.
+            </p>
+            <span
+              style={{
+                display: 'inline-block',
+                marginTop: 6,
+                fontFamily: "'Cinzel', serif",
+                fontSize: 8,
+                letterSpacing: '0.18em',
+                textTransform: 'uppercase',
+                color: T.inkFaint,
+              }}
+            >
+              Vision · not live yet
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Pulzujúca svietiaca zelená bodka vľavo od mena = pes žije. Hover → odkaz.
+function AliveDot() {
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      className="relative inline-flex items-center"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <style>{`@keyframes alive-pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55), 0 0 7px 2px rgba(34,197,94,0.55); }
+        50% { box-shadow: 0 0 0 5px rgba(34,197,94,0), 0 0 13px 4px rgba(34,197,94,0.85); }
+      }`}</style>
+      <span
+        aria-label="Still alive"
+        style={{
+          width: 11,
+          height: 11,
+          borderRadius: '50%',
+          flexShrink: 0,
+          background: 'radial-gradient(circle at 35% 30%, #7EF0AC 0%, #22C55E 70%)',
+          animation: 'alive-pulse 2.4s ease-in-out infinite',
+        }}
+      />
+      {hover && (
+        <span
+          className="absolute"
+          style={{
+            bottom: 'calc(100% + 9px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            zIndex: 8,
+            background: T.ink,
+            color: T.card,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            padding: '7px 12px',
+            borderRadius: 9,
+            boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
+          }}
+        >
+          Still alive, ready to have fun
+        </span>
+      )}
+    </span>
+  );
+}
+
+// Ikonové tlačítko v rohu bloku 1 (Document / Passport / Lost) + tooltip vľavo.
+function IconBtn({
+  icon,
+  label,
+  active,
+  soon,
+  danger,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  active?: boolean;
+  soon?: boolean;
+  danger?: boolean;
+  onClick?: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  const clickable = !soon && !!onClick;
+  // Farebné rozlíšenie: klikateľné = zlaté plné · soon = vyblednuté (svetlé, nízka opacita).
+  let bg: string;
+  let border: string;
+  let iconColor: string;
+  let op = 1;
+  if (soon) {
+    op = 0.5;
+    if (danger) {
+      bg = 'rgba(192, 57, 43, 0.05)';
+      border = 'rgba(192, 57, 43, 0.22)';
+      iconColor = '#C0392B';
+    } else {
+      bg = 'rgba(201, 154, 63, 0.04)';
+      border = T.hairline;
+      iconColor = T.inkFaint;
+    }
+  } else {
+    bg = active ? 'rgba(201, 154, 63, 0.22)' : 'rgba(201, 154, 63, 0.12)';
+    border = active ? 'rgba(201, 154, 63, 0.65)' : 'rgba(201, 154, 63, 0.50)';
+    iconColor = T.accentGold;
+  }
+  return (
+    <div className="relative" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <button
+        type="button"
+        onClick={() => (clickable ? onClick?.() : setHover((v) => !v))}
+        aria-label={label}
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 11,
+          background: bg,
+          border: `1px solid ${border}`,
+          color: iconColor,
+          cursor: clickable ? 'pointer' : 'help',
+          opacity: op,
+          transition: 'all 0.15s',
+        }}
+      >
+        {icon}
+      </button>
+      {hover && (
+        <span
+          className="absolute"
+          style={{
+            top: '50%',
+            right: 'calc(100% + 8px)',
+            transform: 'translateY(-50%)',
+            width: 184,
+            zIndex: 20,
+            background: T.ink,
+            color: T.card,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 10.5,
+            lineHeight: 1.4,
+            padding: '8px 10px',
+            borderRadius: 10,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.28)',
+            textAlign: 'left',
+          }}
+        >
+          {label}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// TilePanel — accordion panel opened from a HubTile (Health/Training).
+// Papyrus card with a gold halo icon + title + tagline, then children.
+// ---------------------------------------------------------------------------
+function TilePanel({
+  icon,
+  title,
+  tagline,
+  children,
+}: {
+  icon: string;
+  title: string;
+  tagline: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section
+      style={{
+        background: T.card,
+        border: `1px solid rgba(201, 154, 63, 0.30)`,
+        borderRadius: 20,
+        padding: 22,
+        boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+      }}
+    >
+      <div className="flex items-center gap-3" style={{ marginBottom: 18 }}>
+        <span
+          className="inline-flex items-center justify-center"
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            flexShrink: 0,
+            background: 'rgba(201, 154, 63, 0.10)',
+            border: '1px solid rgba(201, 154, 63, 0.34)',
+          }}
+        >
+          <img src={`/icons/pack/${icon}.svg`} alt="" style={{ width: 24, height: 24, filter: GOLD_FILTER }} />
+        </span>
+        <div className="flex flex-col" style={{ gap: 3 }}>
+          <h3
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 18,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: T.ink,
+              lineHeight: 1,
+            }}
+          >
+            {title}
+          </h3>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkDim }}>
+            {tagline}
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col" style={{ gap: 14 }}>{children}</div>
+    </section>
+  );
+}
+
+// PreviewRow — one feature line inside a TilePanel. `live` = active green dot,
+// otherwise a "soon" chip (never red — CLAUDE.md guilt ban).
+function PreviewRow({
+  lucide,
+  label,
+  desc,
+  live,
+}: {
+  lucide: React.ReactNode;
+  label: string;
+  desc: string;
+  live?: boolean;
+}) {
+  return (
+    <div
+      className="flex items-start gap-3"
+      style={{
+        padding: '13px 15px',
+        borderRadius: 14,
+        background: live ? 'rgba(61, 122, 78, 0.07)' : T.cardSoft,
+        border: `1px solid ${live ? 'rgba(61, 122, 78, 0.28)' : T.hairline}`,
+      }}
+    >
+      <span
+        className="inline-flex items-center justify-center shrink-0"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 9,
+          background: 'rgba(201, 154, 63, 0.10)',
+          color: T.accentGold,
+        }}
+      >
+        {lucide}
+      </span>
+      <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
+        <div className="flex items-center gap-2">
+          <span
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontSize: 12.5,
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: T.ink,
+            }}
+          >
+            {label}
+          </span>
+          {live ? (
+            <span
+              className="inline-flex items-center gap-1"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 8,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: T.growGreen,
+              }}
+            >
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.growGreen }} />
+              Live
+            </span>
+          ) : (
+            <span
+              className="inline-flex items-center gap-1"
+              style={{
+                padding: '2px 7px',
+                borderRadius: 999,
+                background: 'rgba(31, 26, 14, 0.06)',
+                fontFamily: "'Cinzel', serif",
+                fontSize: 8,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: T.inkFaint,
+              }}
+            >
+              <Lock className="h-2.5 w-2.5" />
+              Soon
+            </span>
+          )}
+        </div>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, color: T.inkDim, lineHeight: 1.35 }}>
+          {desc}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// VisionCallout — note tying a tile to the bigger mission. tone gold (default)
+// or purple (Hektor accent) so it stands out against a gold card above it.
+function VisionCallout({ title, body, tone = 'gold' }: { title: string; body: string; tone?: 'gold' | 'purple' }) {
+  const purple = tone === 'purple';
+  const accent = purple ? T.partHek : T.accentGold;
+  return (
+    <div
+      style={{
+        marginTop: 4,
+        padding: '14px 16px',
+        borderRadius: 14,
+        background: purple ? 'rgba(139, 95, 192, 0.10)' : 'rgba(201, 154, 63, 0.07)',
+        border: `1px solid ${purple ? 'rgba(139, 95, 192, 0.34)' : 'rgba(201, 154, 63, 0.26)'}`,
+      }}
+    >
+      <div className="flex items-center gap-2" style={{ marginBottom: 5 }}>
+        <Sparkles className="h-3.5 w-3.5" style={{ color: accent }} />
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: T.ink,
+          }}
+        >
+          {title}
+        </span>
+      </div>
+      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim, lineHeight: 1.45 }}>
+        {body}
+      </span>
+    </div>
+  );
+}
+
+// OverviewFact — one labelled fact in the Health overview. `live` = green value,
+// `soon` = muted value + tiny lock; `hint` = small secondary value.
+function OverviewFact({
+  label,
+  value,
+  hint,
+  live,
+  soon,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  live?: boolean;
+  soon?: boolean;
+}) {
+  return (
+    <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
+      <span
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 8.5,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: T.inkFaint,
+        }}
+      >
+        {label}
+      </span>
+      <span className="inline-flex items-center gap-1.5" style={{ minWidth: 0 }}>
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 14,
+            fontWeight: 600,
+            color: live ? T.growGreen : soon ? T.inkFaint : T.ink,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {value}
+        </span>
+        {live && <span style={{ width: 7, height: 7, borderRadius: '50%', background: T.growGreen, flexShrink: 0 }} />}
+        {soon && <Lock className="h-2.5 w-2.5 shrink-0" style={{ color: T.inkFaint }} />}
+        {hint && (
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: T.inkDim }}>· {hint}</span>
+        )}
+      </span>
+    </div>
+  );
+}
+
+// ShieldBadge — one protection shield. active=green glow · due=amber · off=grey.
+function ShieldBadge({
+  lucide,
+  label,
+  state,
+  onClick,
+}: {
+  lucide: React.ReactNode;
+  label: string;
+  state: ShieldState;
+  onClick?: () => void;
+}) {
+  const palette =
+    state === 'active'
+      ? { fg: '#3D7A4E', bg: 'rgba(61, 122, 78, 0.12)', bd: 'rgba(61, 122, 78, 0.40)' }
+      : state === 'due'
+        ? { fg: '#B8862F', bg: 'rgba(201, 154, 63, 0.14)', bd: 'rgba(201, 154, 63, 0.45)' }
+        : { fg: T.inkFaint, bg: 'rgba(31, 26, 14, 0.05)', bd: T.hairline };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex flex-col items-center justify-center text-center"
+      style={{
+        padding: '14px 6px',
+        minHeight: 74,
+        borderRadius: 14,
+        background: palette.bg,
+        border: `1px solid ${palette.bd}`,
+        gap: 7,
+        cursor: 'pointer',
+        boxShadow: state === 'active' ? '0 0 0 3px rgba(61, 122, 78, 0.07)' : 'none',
+      }}
+    >
+      <span style={{ color: palette.fg, display: 'inline-flex' }}>{lucide}</span>
+      <span
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 8.5,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          color: palette.fg,
+          lineHeight: 1.1,
+          fontWeight: 700,
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
+// CriticalChip — the vital lines a vet reads first (allergies / conditions / meds).
+function CriticalChip({ lucide, label, value }: { lucide: React.ReactNode; label: string; value: string }) {
+  return (
+    <div
+      className="flex items-center gap-2.5"
+      style={{ padding: '10px 12px', borderRadius: 12, background: T.card, border: `1px solid ${T.hairline}` }}
+    >
+      <span style={{ color: T.accentGold, display: 'inline-flex' }}>{lucide}</span>
+      <div className="flex flex-col" style={{ gap: 1, minWidth: 0 }}>
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 8.5,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: T.inkFaint,
+          }}
+        >
+          {label}
+        </span>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim }}>{value}</span>
+      </div>
+    </div>
+  );
+}
+
+// TestChip — a test entry with a "Make test" CTA pill (coming soon).
+function TestChip({
+  lucide,
+  label,
+  sub,
+  cta = 'Make test',
+  onClick,
+}: {
+  lucide: React.ReactNode;
+  label: string;
+  sub: string;
+  cta?: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex items-center gap-3 text-left"
+      style={{
+        padding: '12px 14px',
+        borderRadius: 14,
+        background: 'rgba(139, 95, 192, 0.09)',
+        border: '1px solid rgba(139, 95, 192, 0.30)',
+        cursor: 'pointer',
+      }}
+    >
+      <span
+        className="inline-flex items-center justify-center shrink-0"
+        style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(139, 95, 192, 0.14)', color: T.partHek }}
+      >
+        {lucide}
+      </span>
+      <div className="flex flex-col" style={{ gap: 2, minWidth: 0, flex: 1 }}>
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: T.ink,
+          }}
+        >
+          {label}
+        </span>
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: T.inkDim, lineHeight: 1.3 }}>
+          {sub}
+        </span>
+      </div>
+      <span
+        className="inline-flex items-center gap-1.5 shrink-0"
+        style={{
+          padding: '7px 11px',
+          borderRadius: 999,
+          background: 'rgba(139, 95, 192, 0.16)',
+          border: '1px solid rgba(139, 95, 192, 0.42)',
+          fontFamily: "'Cinzel', serif",
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: T.partHek,
+        }}
+      >
+        <Lock className="h-2.5 w-2.5" />
+        {cta}
+      </span>
+    </button>
+  );
+}
+
+// SubCard — a bigger coming-soon block (Vet centre / Food protocol).
+function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: string; desc: string }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        position: 'relative',
+        padding: '16px 16px',
+        borderRadius: 16,
+        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+        border: `1px solid rgba(201, 154, 63, ${hover ? 0.4 : 0.22})`,
+        transition: 'border-color 0.2s',
+      }}
+    >
+      <span
+        className="absolute inline-flex items-center gap-1"
+        style={{
+          top: 12,
+          right: 12,
+          padding: '3px 8px',
+          borderRadius: 999,
+          background: 'rgba(31, 26, 14, 0.06)',
+          fontFamily: "'Cinzel', serif",
+          fontSize: 8,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: T.inkFaint,
+        }}
+      >
+        <Lock className="h-2.5 w-2.5" />
+        Soon
+      </span>
+      <span
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          background: 'rgba(201, 154, 63, 0.10)',
+          border: '1px solid rgba(201, 154, 63, 0.30)',
+          color: T.accentGold,
+          marginBottom: 10,
+        }}
+      >
+        {lucide}
+      </span>
+      <h4
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 14,
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: T.ink,
+          marginBottom: 5,
+        }}
+      >
+        {title}
+      </h4>
+      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: T.inkDim, lineHeight: 1.4 }}>
+        {desc}
+      </span>
+    </div>
+  );
+}
+
 function HubTile({
   icon,
   label,
+  sub,
   active,
   open,
   soon,
@@ -1728,42 +3065,51 @@ function HubTile({
 }: {
   icon: string;
   label: string;
+  sub?: string;
   active?: boolean;
   open?: boolean;
   soon?: boolean;
   onClick?: () => void;
 }) {
   const clickable = !!active && !soon;
+  const [hover, setHover] = useState(false);
+  const lift = clickable && hover;
   return (
     <button
       type="button"
       onClick={clickable ? onClick : undefined}
       disabled={!clickable}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
       className="relative flex flex-col items-center justify-center text-center"
       style={{
-        padding: '18px 10px',
-        borderRadius: 14,
-        background: active ? 'rgba(201, 154, 63, 0.10)' : T.bg,
-        border: active ? '1px solid rgba(201, 154, 63, 0.45)' : `1px dashed ${T.border}`,
-        gap: 9,
-        minHeight: 100,
+        padding: '28px 14px',
+        borderRadius: 22,
+        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+        border: `1px solid rgba(201, 154, 63, ${active ? (lift ? 0.55 : 0.34) : 0.18})`,
+        boxShadow: lift
+          ? '0 24px 50px -18px rgba(201, 154, 63, 0.5)'
+          : '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+        gap: 13,
+        minHeight: 158,
         width: '100%',
         cursor: clickable ? 'pointer' : 'default',
-        transition: 'all 0.15s',
+        transform: lift ? 'translateY(-4px)' : 'translateY(0)',
+        transition: 'all 0.2s ease',
       }}
     >
       {soon && (
         <span
           className="absolute inline-flex items-center gap-1"
           style={{
-            top: 7,
-            right: 7,
-            padding: '2px 6px',
+            top: 11,
+            right: 11,
+            padding: '3px 8px',
             borderRadius: 999,
             background: 'rgba(31, 26, 14, 0.06)',
             fontFamily: "'Cinzel', serif",
-            fontSize: 7,
-            letterSpacing: '0.12em',
+            fontSize: 8,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
             color: T.inkFaint,
           }}
@@ -1774,32 +3120,67 @@ function HubTile({
       )}
       {active && (
         <ChevronDown
-          className="absolute h-3.5 w-3.5"
+          className="absolute h-4 w-4"
           style={{
-            top: 9,
-            right: 9,
+            top: 12,
+            right: 12,
             color: T.accentGold,
             transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
             transition: 'transform 0.2s',
           }}
         />
       )}
-      <img
-        src={`/icons/pack/${icon}.svg`}
-        alt=""
-        style={{ width: 28, height: 28, filter: GOLD_FILTER, opacity: active ? 1 : 0.4 }}
-      />
+
+      {/* Ikona v zlatom kruhovom halo */}
       <span
+        className="inline-flex items-center justify-center"
         style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 11,
-          letterSpacing: '0.08em',
-          color: active ? T.ink : T.inkDim,
-          fontWeight: active ? 700 : 400,
+          width: 64,
+          height: 64,
+          borderRadius: '50%',
+          flexShrink: 0,
+          background: active ? 'rgba(201, 154, 63, 0.12)' : 'rgba(201, 154, 63, 0.05)',
+          border: `1px solid rgba(201, 154, 63, ${active ? 0.42 : 0.2})`,
+          boxShadow: lift ? '0 0 0 6px rgba(201, 154, 63, 0.10)' : 'none',
+          transition: 'box-shadow 0.2s ease',
         }}
       >
-        {label}
+        <img
+          src={`/icons/pack/${icon}.svg`}
+          alt=""
+          style={{ width: 36, height: 36, filter: GOLD_FILTER, opacity: active ? 1 : 0.45 }}
+        />
       </span>
+
+      {/* Label + teaser */}
+      <div className="flex flex-col items-center" style={{ gap: 4 }}>
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 15,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            color: active ? T.ink : T.inkDim,
+            fontWeight: 700,
+            lineHeight: 1,
+          }}
+        >
+          {label}
+        </span>
+        {sub && (
+          <span
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 10.5,
+              letterSpacing: '0.02em',
+              color: active ? T.inkDim : T.inkFaint,
+              lineHeight: 1.2,
+            }}
+          >
+            {sub}
+          </span>
+        )}
+      </div>
     </button>
   );
 }
@@ -1877,59 +3258,81 @@ function DownloadButton({
   primary?: boolean;
 }) {
   const enabled = !!href;
-  const Icon = primary ? FileText : Download;
 
-  const baseStyle: React.CSSProperties = {
-    fontFamily: "'Cinzel', serif",
-    fontSize: 11,
-    letterSpacing: '0.22em',
-    textTransform: 'uppercase',
-    fontWeight: 700,
-    borderRadius: 12,
-    padding: '14px 14px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  };
-
-  if (!enabled) {
-    return (
-      <button
-        type="button"
-        disabled
-        title="Generating…"
-        style={{
-          ...baseStyle,
-          background: primary ? T.hairline : 'transparent',
-          border: primary ? 'none' : `1px solid ${T.hairline}`,
-          color: T.inkFaint,
-          cursor: 'not-allowed',
-        }}
-      >
-        <Loader2 className="h-3 w-3 animate-spin" />
-        {label}
-      </button>
+  // PRIMARY — zlatý card: ikona v kruhu + eyebrow/„Certificate" + PDF ↓
+  if (primary) {
+    const style: React.CSSProperties = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      width: '100%',
+      padding: '13px 15px',
+      borderRadius: 14,
+      textDecoration: 'none',
+      background: enabled ? 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)' : 'rgba(201,154,63,0.12)',
+      color: enabled ? '#3d1f00' : T.inkFaint,
+      boxShadow: enabled ? '0 10px 24px -12px rgba(201,154,63,0.75)' : 'none',
+      cursor: enabled ? 'pointer' : 'not-allowed',
+    };
+    const inner = (
+      <>
+        <span
+          className="inline-flex items-center justify-center"
+          style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: 'rgba(61,31,0,0.16)' }}
+        >
+          {enabled ? <FileText className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
+        </span>
+        <span className="flex flex-col" style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, lineHeight: 1 }}>
+            The official record
+          </span>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.25 }}>
+            Certificate
+          </span>
+        </span>
+        <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
+          {enabled ? 'PDF' : '…'}
+          <Download className="h-4 w-4" />
+        </span>
+      </>
+    );
+    return enabled ? (
+      <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
+    ) : (
+      <div style={style} title="Generating…">{inner}</div>
     );
   }
 
-  return (
-    <a
-      href={href}
-      download={filename}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        ...baseStyle,
-        background: primary ? T.ink : 'transparent',
-        border: primary ? 'none' : `1px solid ${T.border}`,
-        color: primary ? T.card : T.ink,
-        textDecoration: 'none',
-      }}
-    >
-      <Icon className="h-3 w-3" />
+  // SECONDARY — zlato-tónovaný mini card (Vertical / Horizontal)
+  const style: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7,
+    width: '100%',
+    padding: '11px 10px',
+    borderRadius: 12,
+    textDecoration: 'none',
+    background: 'rgba(201,154,63,0.06)',
+    border: `1px solid ${enabled ? 'rgba(201,154,63,0.32)' : T.hairline}`,
+    color: enabled ? T.ink : T.inkFaint,
+    fontFamily: "'Cinzel', serif",
+    fontSize: 10,
+    letterSpacing: '0.18em',
+    textTransform: 'uppercase',
+    fontWeight: 700,
+    cursor: enabled ? 'pointer' : 'not-allowed',
+  };
+  const inner = (
+    <>
+      {enabled ? <Download className="h-3.5 w-3.5" style={{ color: T.accentGold }} /> : <Loader2 className="h-3.5 w-3.5 animate-spin" />}
       {label}
-    </a>
+    </>
+  );
+  return enabled ? (
+    <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
+  ) : (
+    <div style={style} title="Generating…">{inner}</div>
   );
 }
 
