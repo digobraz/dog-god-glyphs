@@ -431,7 +431,7 @@ export const en = {
   'login.network.body': 'We could not reach the temple. Check your connection and try again.',
   // status: missing
   'login.missing.title': 'No Token Found',
-  'login.missing.body': 'This page expects a magic link from your email. Check your inbox for the latest one.',
+  'login.missing.body': 'Enter your email and we\'ll send you a magic link to get in.',
   // resend button states
   'login.resend.idle': 'Resend magic link',
   'login.resend.sending': 'Sending…',

@@ -17,6 +17,9 @@ export default function Login() {
   const [errorDetail, setErrorDetail] = useState<string>("");
   const [resending, setResending] = useState(false);
   const [resendSent, setResendSent] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   // Supabase magic link callbacks may arrive in two shapes:
   //   1) Hash fragment: #access_token=...&refresh_token=...&type=magiclink
@@ -111,6 +114,22 @@ export default function Login() {
     };
   }, [params, navigate]);
 
+  async function handleEmailLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const email = emailInput.trim();
+    if (!email) return;
+    setEmailSending(true);
+    try {
+      await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/login` },
+      });
+      setEmailSent(true);
+    } finally {
+      setEmailSending(false);
+    }
+  }
+
   async function handleResend() {
     const dogId = params.get("dogId") ?? "";
     if (!dogId) {
@@ -183,6 +202,53 @@ export default function Login() {
               className="inline-block h-3 w-3 rounded-full animate-pulse"
               style={{ background: "#A07423" }}
             />
+          </div>
+        )}
+
+        {status === "missing" && !dogIdPresent && (
+          <div className="mt-7">
+            {emailSent ? (
+              <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14 }}>
+                Magic link sent — check your inbox.
+              </p>
+            ) : (
+              <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
+                <input
+                  type="email"
+                  value={emailInput}
+                  onChange={e => setEmailInput(e.target.value)}
+                  placeholder="your@email.com"
+                  required
+                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    color: "#0E0E0E",
+                    background: "rgba(255,255,255,0.6)",
+                    borderColor: "rgba(160,116,35,0.4)",
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={emailSending}
+                  className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
+                    color: "#0E0E0E",
+                    boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
+                  }}
+                >
+                  {emailSending ? "Sending…" : "Send magic link"}
+                </button>
+              </form>
+            )}
+            <Link
+              to="/"
+              className="block mt-4 text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
+              style={{ fontFamily: "'Cinzel', serif", color: "#A07423" }}
+            >
+              {t('login.backHome')}
+            </Link>
           </div>
         )}
 
