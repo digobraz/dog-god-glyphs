@@ -286,7 +286,7 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
             fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 13,
             letterSpacing: '0.03em', color: 'rgba(120,200,120,0.9)', whiteSpace: 'nowrap',
           }}>
-            +{packToday ?? 0} /24h
+            +{packToday ?? 0}/d
           </span>
         </div>
       </div>
