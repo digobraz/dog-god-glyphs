@@ -1,81 +1,82 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { LogOut, UserCircle2, ChevronDown } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
+import { Bone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-// Brand ikonky (hand-drawn set z brand manuálu — vstupy/vizualna-identita/Icons hand drawn).
-// VŽDY používať tieto, nie generické lucide. Čierne → prefarbené CSS filterom na svetlé.
+import { devotionLevel } from '@/lib/devotion';
 import iconHome from '@/assets/icons/nav-home.svg';
-import iconGods from '@/assets/icons/nav-gods.svg';
-import iconSettings from '@/assets/icons/nav-settings.svg';
+import iconPortal from '@/assets/icons/nav-portal.svg';
+import statBadge from '@/assets/icons/stat-badge.svg';
+import statBars from '@/assets/icons/stat-bars.svg';
 
 interface PackDog {
   id: string;
   dog_name: string | null;
-}
-
-// Brand ikonka v pille — čierny SVG → svetlý cez filter, intenzita podľa active.
-function BrandIcon({ src, active }: { src: string; active: boolean }) {
-  return (
-    <img
-      src={src}
-      alt=""
-      aria-hidden
-      className="h-5 w-5 shrink-0"
-      style={{
-        filter: 'brightness(0) invert(1)',
-        opacity: active ? 1 : 0.55,
-        transition: 'opacity 0.15s',
-      }}
-    />
-  );
+  cloudinary_main_url: string | null;
 }
 
 const T = PACK_THEME;
+const STATS_EDGE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-pack-stats';
 
 interface PackLayoutProps {
   children: ReactNode;
   title?: string;
   subtitle?: string;
-  topStrip?: ReactNode;
   wide?: boolean;
 }
 
-export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLayoutProps) {
+export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [dogs, setDogs] = useState<PackDog[]>([]);
+  const [devotion, setDevotion] = useState(100);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [packTotal, setPackTotal] = useState<number | null>(null);
+  const [packToday, setPackToday] = useState<number | null>(null);
+
+  // Empire stats — identical header on every tab so the member always sees live state.
+  useEffect(() => {
+    let alive = true;
+    fetch(STATS_EDGE)
+      .then((r) => r.json())
+      .then((j) => {
+        if (!alive) return;
+        setPackTotal(typeof j?.total === 'number' ? j.total : null);
+        setPackToday(typeof j?.last24h === 'number' ? j.last24h : null);
+      })
+      .catch(() => { /* best-effort */ });
+    return () => { alive = false; };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(async ({ data: { session: s } }) => {
       if (!mounted) return;
       if (s) {
-        // Dolinkuj psov kúpených pred signupom / 2. psa existujúceho usera.
-        // Trigger link_dogs_to_new_user beží len pri prvom signupe — toto pokryje zvyšok.
-        // Await pred render detí, aby PackList fetchol psov až po napojení.
         try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
         if (!mounted) return;
-        // Psy usera — pre Gods nav (1 pes → profil, viac → dropdown).
         try {
-          const { data: dogRows } = await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: dogRows } = await (supabase as any)
             .from('dogs')
-            .select('id, dog_name, created_at')
+            .select('id, dog_name, cloudinary_main_url, created_at')
             .eq('user_id', s.user.id)
-            .order('created_at', { ascending: true });
-          if (mounted && dogRows) setDogs(dogRows.map((d) => ({ id: d.id, dog_name: d.dog_name })));
+            .order('created_at', { ascending: true }) as { data: PackDog[] | null };
+          if (mounted && dogRows) setDogs(dogRows.map(d => ({
+            id: d.id,
+            dog_name: d.dog_name ?? null,
+            cloudinary_main_url: d.cloudinary_main_url ?? null,
+          })));
         } catch { /* non-blocking */ }
         if (!mounted) return;
+        const meta = (s.user.user_metadata ?? {}) as Record<string, unknown>;
+        if (mounted) {
+          setDevotion(Number(meta.devotion) || 100);
+          setAvatarUrl((meta.avatar_url || meta.avatar || null) as string | null);
+        }
       }
       setSession(s);
       setLoading(false);
@@ -99,28 +100,14 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const email = session?.user?.email ?? '';
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/', { replace: true });
-  };
-
   if (loading) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
         <HieroglyphBg />
         <div className="relative" style={{ zIndex: 1 }}>
-        <div
-          style={{
-            fontFamily: "'Cinzel', serif",
-            letterSpacing: '0.3em',
-            fontSize: 12,
-            color: T.onDarkDim,
-          }}
-        >
-          LOADING…
-        </div>
+          <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.onDarkDim }}>
+            LOADING…
+          </div>
         </div>
       </div>
     );
@@ -128,98 +115,45 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
 
   if (!session) return null;
 
+  const avatarInitial = (session.user?.email?.[0] ?? 'D').toUpperCase();
+
   return (
     <div className="min-h-[100dvh] relative" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
       <HieroglyphBg />
-      {/* Top strip (e.g. live stats ticker) — sits above the sticky header */}
-      {topStrip && (
-        <div
-          style={{
-            borderBottom: `1px solid ${T.onDarkHair}`,
-            background: T.glassSoft,
-            backdropFilter: 'blur(8px)',
-            padding: '8px 14px',
-          }}
-        >
-          {topStrip}
-        </div>
-      )}
 
-      {/* Header — email-as-account (logo dropped; members are already "inside") */}
-      <header
-        className="sticky top-0 z-30"
-        style={{
-          padding: '12px 18px',
-          borderBottom: `1px solid ${T.onDarkHair}`,
-          background: T.glass,
-          backdropFilter: 'blur(10px)',
-        }}
+      {/* FLOATING STATUS HUB — fixed top, slim single-row pill */}
+      <DevotionHeader
+        avatarUrl={avatarUrl}
+        avatarInitial={avatarInitial}
+        devotion={devotion}
+        bones={0}
+        packTotal={packTotal}
+        packToday={packToday}
+        dogs={dogs}
+        wide={wide}
+        onProfile={() => navigate('/pack/profile')}
+        onDog={(id) => navigate(`/pack/dogs/${id}`)}
+      />
+
+      <div
+        className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 pb-32`}
+        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 106px)' }}
       >
-        <div className="flex items-center justify-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex items-center gap-2 transition-opacity hover:opacity-80"
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 12.5,
-                  letterSpacing: '0.03em',
-                  color: T.onDark,
-                  padding: '6px 14px',
-                  borderRadius: 999,
-                  border: `1px solid ${T.onDarkBorder}`,
-                  background: 'rgba(245, 240, 228, 0.04)',
-                  maxWidth: '86vw',
-                }}
-              >
-                <span className="truncate">{email || 'Account'}</span>
-                <ChevronDown className="h-3.5 w-3.5 shrink-0" style={{ opacity: 0.7 }} />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center" className="min-w-[200px]">
-              <DropdownMenuItem onClick={() => navigate('/pack/profile')}>
-                <UserCircle2 className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      <div className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 py-6 pb-32`}>
         {(title || subtitle) && (
           <header className="mb-7 text-center">
             {subtitle && (
-              <div
-                className="mb-2"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  letterSpacing: '0.32em',
-                  fontSize: 10,
-                  textTransform: 'uppercase',
-                  color: T.onDarkDim,
-                }}
-              >
+              <div className="mb-2" style={{
+                fontFamily: "'Cinzel', serif", letterSpacing: '0.32em',
+                fontSize: 10, textTransform: 'uppercase', color: T.onDarkDim,
+              }}>
                 {subtitle}
               </div>
             )}
             {title && (
-              <h1
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  letterSpacing: '0.1em',
-                  fontSize: 28,
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  color: T.onDark,
-                }}
-              >
+              <h1 style={{
+                fontFamily: "'Cinzel', serif", letterSpacing: '0.1em',
+                fontSize: 28, textTransform: 'uppercase', fontWeight: 700, color: T.onDark,
+              }}>
                 {title}
               </h1>
             )}
@@ -228,14 +162,10 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
         <main>{children}</main>
       </div>
 
-      {/* Floating pill nav — oblý rámik s ikonkami, centrovaný dole (Instagram-style) */}
+      {/* Floating pill nav — dolný (Portal nahrádza Settings) */}
       <nav
         className="fixed z-40"
-        style={{
-          left: '50%',
-          transform: 'translateX(-50%)',
-          bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
-        }}
+        style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
         <div
           className="flex items-center gap-1"
@@ -250,60 +180,252 @@ export function PackLayout({ children, title, subtitle, topStrip, wide }: PackLa
           }}
         >
           <FloatingNavLink to="/pack" label="Home" icon={iconHome} end />
-          <GodsNavItem dogs={dogs} navigate={navigate} />
-          <FloatingNavLink to="/pack/profile" label="Settings" icon={iconSettings} />
+          <FloatingNavLink to="/pack/portal" label="Portal" icon={iconPortal} />
         </div>
       </nav>
-
     </div>
   );
 }
 
-// "Naše tmavé" pozadie — bg-dark.png heroglyf textúra (blur) + jemný radial overlay.
-// Mirror GodsGrid (.gods-root::before) + Heroglyph flow (.dark-bg + radial). zIndex 0.
+// ── Floating devotion header ────────────────────────────────────────────────
+
+interface DevotionHeaderProps {
+  avatarUrl: string | null;
+  avatarInitial: string;
+  devotion: number;
+  bones: number;
+  packTotal: number | null;
+  packToday: number | null;
+  dogs: PackDog[];
+  wide?: boolean;
+  onProfile: () => void;
+  onDog: (id: string) => void;
+}
+
+function VDivider() {
+  return <div aria-hidden style={{ width: 1, height: 20, background: 'rgba(245,240,228,0.18)', flexShrink: 0 }} />;
+}
+
+function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, wide, onProfile, onDog }: DevotionHeaderProps) {
+  const glassPill: React.CSSProperties = {
+    background: T.glass,
+    border: `1px solid ${T.onDarkBorder}`,
+    borderRadius: 999,
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+    padding: '13px 14px',
+    display: 'flex',
+    alignItems: 'center',
+  };
+  return (
+    <header
+      style={{
+        position: 'fixed',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        top: 'calc(env(safe-area-inset-top, 0px) + 24px)',
+        width: 'calc(100% - 32px)',
+        maxWidth: wide ? 1024 : 672,
+        zIndex: 40,
+        display: 'flex',
+        alignItems: 'stretch',
+        gap: 8,
+      }}
+    >
+      {/* ── LEFT block 60%: member identity ── */}
+      <div style={{ ...glassPill, flex: '3 1 0', minWidth: 0, gap: 10, width: '100%' }}>
+        <button type="button" onClick={onProfile} style={{ flexShrink: 0, lineHeight: 0 }} aria-label="Profile">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Your avatar"
+              style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(201,154,63,0.45)', display: 'block' }}
+            />
+          ) : (
+            <div style={{
+              width: 36, height: 36, borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15, color: '#1c160c',
+              border: '2px solid rgba(201,154,63,0.45)',
+            }}>
+              {avatarInitial}
+            </div>
+          )}
+        </button>
+        <DogSvorka dogs={dogs} onDog={onDog} />
+        <DevotionBarCompact devotion={devotion} />
+        <BonesChip bones={bones} />
+      </div>
+
+      {/* ── RIGHT block 40%: DOGYPT global stats ── */}
+      <div style={{ ...glassPill, flex: '2 1 0', minWidth: 0, justifyContent: 'space-around', width: '100%' }}>
+        {/* PART A: badge icon + total count (gold number + pale zeros → 1M frame) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <img src={statBadge} alt="" aria-hidden style={{ height: 28, width: 'auto', objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
+          {packTotal == null ? (
+            <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 17, color: 'rgba(245,240,228,0.4)', whiteSpace: 'nowrap' }}>—</span>
+          ) : (
+            <span style={{ display: 'inline-flex', alignItems: 'baseline', whiteSpace: 'nowrap' }}>
+              <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 17, color: '#C99A3F', letterSpacing: '0.01em' }}>
+                {String(packTotal)}
+              </span>
+              <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: Math.round(17 * 0.8), color: 'rgba(245,240,228,0.2)', letterSpacing: '0.01em' }}>
+                {'0'.repeat(Math.max(0, 6 - String(packTotal).length))}
+              </span>
+            </span>
+          )}
+        </div>
+        <VDivider />
+        {/* PART B: bars icon + new members 24h */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <img src={statBars} alt="" aria-hidden style={{ height: 22, width: 'auto', objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
+          <span style={{
+            fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 13,
+            letterSpacing: '0.03em', color: 'rgba(120,200,120,0.9)', whiteSpace: 'nowrap',
+          }}>
+            +{packToday ?? 0} /24h
+          </span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function BonesChip({ bones }: { bones: number }) {
+  return (
+    <div
+      title="Bones"
+      aria-label={`${bones} bones`}
+      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}
+    >
+      <span aria-hidden style={{
+        width: 17, height: 17, borderRadius: '50%', flexShrink: 0,
+        background: 'radial-gradient(circle at 35% 30%, #F7DD92 0%, #C99A3F 68%, #9A742B 100%)',
+        border: '1px solid rgba(120,90,30,0.7)',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
+      }}>
+        <Bone style={{ width: 9, height: 9, color: '#5A3F12' }} />
+      </span>
+      <span style={{
+        fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 11,
+        color: 'rgba(245,240,228,0.92)',
+      }}>
+        {bones.toLocaleString('en-US')}
+      </span>
+    </div>
+  );
+}
+
+
+function DevotionBarCompact({ devotion }: { devotion: number }) {
+  const lv = devotionLevel(devotion);
+  return (
+    <div style={{
+      flex: '1 1 auto',
+      minWidth: 56,
+      position: 'relative',
+      height: 22,
+      borderRadius: 999,
+      overflow: 'hidden',
+      background: 'rgba(245, 240, 228, 0.07)',
+      border: '1px solid rgba(245, 240, 228, 0.14)',
+      display: 'flex',
+      alignItems: 'center',
+    }}>
+      <div style={{
+        position: 'absolute', top: 0, left: 0, bottom: 0,
+        width: `${lv.pct}%`,
+        background: 'linear-gradient(90deg, hsl(270 42% 42%), hsl(45 82% 55%))',
+        transition: 'width 0.5s ease',
+      }} />
+      <span style={{
+        position: 'absolute', left: '50%', top: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 3, display: 'inline-flex', alignItems: 'baseline', gap: 2,
+        pointerEvents: 'none',
+        fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 11,
+        color: 'rgba(245, 240, 228, 0.92)', letterSpacing: '0.01em',
+        textShadow: '0 1px 3px rgba(0,0,0,0.6)',
+      }}>
+        {Math.round(devotion).toLocaleString('en-US')}
+        <i style={{ fontStyle: 'normal', fontSize: 10 }}>☥</i>
+      </span>
+    </div>
+  );
+}
+
+function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => void }) {
+  const scrollable = dogs.length >= 5;
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,
+      overflowX: scrollable ? 'auto' : 'visible',
+      maxWidth: scrollable ? 112 : undefined,
+      // hide scrollbar
+      scrollbarWidth: 'none',
+      msOverflowStyle: 'none',
+    } as React.CSSProperties}>
+      {dogs.map((dog) => (
+        <button
+          key={dog.id}
+          type="button"
+          onClick={() => onDog(dog.id)}
+          style={{ flexShrink: 0, lineHeight: 0 }}
+          aria-label={dog.dog_name || 'Dog'}
+        >
+          {dog.cloudinary_main_url ? (
+            <img
+              src={dog.cloudinary_main_url}
+              alt={dog.dog_name || ''}
+              style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(201,154,63,0.40)', display: 'block' }}
+            />
+          ) : (
+            <div style={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'rgba(201, 154, 63, 0.22)',
+              border: '1.5px solid rgba(201,154,63,0.40)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 13,
+            }}>🐕</div>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Shared background ───────────────────────────────────────────────────────
+
 function HieroglyphBg() {
   return (
     <>
-      {/* Fixná výška 100lvh (NIE inset:0) — na mobile sa pri scrolle skrýva URL bar,
-          dynamická výška viewportu sa mení a inset:0 fixed vrstva by sa preškálovala
-          → backgroundSize:cover prepočíta obrázok = „jemná zmena pozadia". 100lvh je
-          konštanta (najväčší viewport), takže pozadie ostáva stabilné. */}
+      {/* 100lvh (nie inset:0) — na mobile stabilné pozadie pri scroll (URL bar zmena viewportu) */}
       <div
         aria-hidden
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100lvh',
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
           backgroundImage: "url('/images/bg-dark.png')",
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          filter: 'blur(3px)',
-          zIndex: 0,
-          pointerEvents: 'none',
+          backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
+          filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
         }}
       />
       <div
         aria-hidden
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100lvh',
-          background:
-            'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
-          zIndex: 0,
-          pointerEvents: 'none',
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
+          background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.45) 60%, rgba(5,5,5,0.6) 100%)',
+          zIndex: 0, pointerEvents: 'none',
         }}
       />
     </>
   );
 }
 
-// Pill item štýl (zdieľaný NavLinkom aj Gods dropdown triggerom).
+// ── Bottom pill nav ─────────────────────────────────────────────────────────
+
 const pillStyle = (active: boolean): React.CSSProperties => ({
   padding: '10px 16px',
   borderRadius: 999,
@@ -325,6 +447,18 @@ const pillLabelStyle: React.CSSProperties = {
   fontWeight: 700,
 };
 
+function BrandIcon({ src, active }: { src: string; active: boolean }) {
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden
+      className="h-5 w-5 shrink-0"
+      style={{ filter: 'brightness(0) invert(1)', opacity: active ? 1 : 0.55, transition: 'opacity 0.15s' }}
+    />
+  );
+}
+
 function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; icon: string; end?: boolean }) {
   return (
     <NavLink
@@ -343,53 +477,4 @@ function FloatingNavLink({ to, label, icon, end }: { to: string; label: string; 
   );
 }
 
-// Gods — 1 pes → priamo profil; viac psov → dropdown → klik na psa otvorí profil.
-function GodsNavItem({ dogs, navigate }: { dogs: PackDog[]; navigate: ReturnType<typeof useNavigate> }) {
-  const location = useLocation();
-  const active = location.pathname.startsWith('/pack/dogs') || location.pathname === '/pack/gods';
 
-  const content = (
-    <>
-      <BrandIcon src={iconGods} active={active} />
-      <span className="hidden sm:inline" style={pillLabelStyle}>Gods</span>
-    </>
-  );
-
-  // 0 psov → fallback placeholder; 1 pes → priamo jeho profil.
-  if (dogs.length <= 1) {
-    const to = dogs.length === 1 ? `/pack/dogs/${dogs[0].id}` : '/pack/gods';
-    return (
-      <button
-        type="button"
-        onClick={() => navigate(to)}
-        className="group flex items-center gap-2 transition-all"
-        style={pillStyle(active)}
-      >
-        {content}
-      </button>
-    );
-  }
-
-  // Viac psov → dropdown.
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="group flex items-center gap-2 transition-all"
-          style={pillStyle(active)}
-        >
-          {content}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" side="top" sideOffset={10} className="min-w-[200px]">
-        {dogs.map((d) => (
-          <DropdownMenuItem key={d.id} onClick={() => navigate(`/pack/dogs/${d.id}`)}>
-            <img src={iconGods} alt="" aria-hidden className="mr-2 h-4 w-4" style={{ opacity: 0.7 }} />
-            {d.dog_name || 'Unnamed'}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
