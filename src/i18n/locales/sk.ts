@@ -413,6 +413,17 @@ export const sk: Partial<Dict> = {
   'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',
   'welcome.cta.enter': 'VSTÚP MEDZI BOHOV →',
   'welcome.emailHint': 'Tvoj certifikát je na ceste — skontroluj si e-mail.',
+  // password step (set-pack-password flow)
+  'welcome.password.title': 'Tvoje konto: {email}',
+  'welcome.password.placeholder': 'Heslo (min. 8 znakov)',
+  'welcome.password.confirm': 'Potvrď heslo',
+  'welcome.password.submit': 'Nastaviť heslo & vstúpiť',
+  'welcome.password.processing': 'Nastavujem heslo…',
+  'welcome.password.mismatch': 'Heslá sa nezhodujú.',
+  'welcome.password.tooShort': 'Heslo musí mať aspoň 8 znakov.',
+  'welcome.password.notPaid': 'Platba sa ešte spracováva — skús za chvíľu.',
+  'welcome.password.error': 'Niečo sa nepodarilo. Skús znova.',
+  'welcome.password.altLink': 'Radšej link? Je v tvojom e-maile.',
 
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'DOGYPT · Prístup do Svorky',
@@ -426,13 +437,41 @@ export const sk: Partial<Dict> = {
   'login.invalid.body': 'Nedokázali sme overiť tento link. Možno bol už použitý alebo skopírovaný nesprávne.',
   'login.network.title': 'Problém so spojením',
   'login.network.body': 'Nedostali sme sa do chrámu. Skontroluj si pripojenie a skús znova.',
-  'login.missing.title': 'Token nenájdený',
-  'login.missing.body': 'Táto stránka očakáva magic link z e-mailu. Skontroluj si schránku a nájdi najnovší.',
+  'login.missing.title': 'Prihlásenie',
+  'login.missing.body': 'Prihlás sa e-mailom a heslom, alebo si nechaj poslať magic link.',
+  // status: recovery
+  'login.recovery.title': 'Nastaviť nové heslo',
+  'login.recovery.body': 'Vyber nové heslo pre svoje konto.',
   'login.resend.idle': 'Poslať nový magic link',
   'login.resend.sending': 'Odosielam…',
   'login.resend.sent': 'Magic link odoslaný',
   'login.backHome': 'Späť domov',
   'login.homeAria': 'DOGYPT domov',
+  // password login form
+  'login.password.placeholder': 'Heslo',
+  'login.password.submit': 'Prihlásiť sa',
+  'login.password.submitting': 'Prihlasujem…',
+  'login.password.error': 'Nesprávny e-mail alebo heslo.',
+  'login.password.networkError': 'Chyba spojenia. Skús znova.',
+  'login.password.forgotPassword': 'Zabudol/a si heslo?',
+  'login.password.magicLinkAlt': 'Radšej pošli mi link',
+  // magic link form (secondary)
+  'login.magicLink.placeholder': 'tvoj@email.com',
+  'login.magicLink.submit': 'Poslať magic link',
+  'login.magicLink.submitting': 'Odosielam…',
+  'login.magicLink.sent': 'Magic link odoslaný — skontroluj schránku.',
+  // forgot password
+  'login.forgot.prompt': 'Zadaj e-mail na resetovanie hesla.',
+  'login.forgot.placeholder': 'tvoj@email.com',
+  'login.forgot.submit': 'Poslať reset link',
+  'login.forgot.submitting': 'Odosielam…',
+  'login.forgot.sent': 'Skontroluj schránku pre reset.',
+  'login.forgot.back': 'Späť na prihlásenie',
+  // recovery form
+  'login.recovery.newPasswordPlaceholder': 'Nové heslo (min. 8 znakov)',
+  'login.recovery.submit': 'Nastaviť nové heslo',
+  'login.recovery.submitting': 'Ukladám…',
+  'login.recovery.success': 'Heslo aktualizované — prihlasujem ťa…',
 
   // ── 404 — NotFound.tsx ──
   'notFound.code': '404',

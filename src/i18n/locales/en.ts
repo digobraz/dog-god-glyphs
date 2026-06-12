@@ -411,6 +411,17 @@ export const en = {
   'welcome.cta.forging': 'FORGING YOUR HEROGLYPH...',
   'welcome.cta.enter': 'ENTER THE GODS →',
   'welcome.emailHint': 'Your certificate is on its way — check your email.',
+  // password step (set-pack-password flow)
+  'welcome.password.title': 'Your account: {email}',
+  'welcome.password.placeholder': 'Password (min 8 characters)',
+  'welcome.password.confirm': 'Confirm password',
+  'welcome.password.submit': 'Set password & enter',
+  'welcome.password.processing': 'Setting password…',
+  'welcome.password.mismatch': 'Passwords do not match.',
+  'welcome.password.tooShort': 'Password must be at least 8 characters.',
+  'welcome.password.notPaid': 'Payment still processing — try again in a few seconds.',
+  'welcome.password.error': 'Something went wrong. Try again.',
+  'welcome.password.altLink': 'Prefer a link instead? It\'s in your email.',
 
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'DOGYPT · Pack Access',
@@ -430,14 +441,42 @@ export const en = {
   'login.network.title': 'Connection Hiccup',
   'login.network.body': 'We could not reach the temple. Check your connection and try again.',
   // status: missing
-  'login.missing.title': 'No Token Found',
-  'login.missing.body': 'Enter your email and we\'ll send you a magic link to get in.',
+  'login.missing.title': 'Sign In',
+  'login.missing.body': 'Sign in with your email and password, or get a magic link.',
+  // status: recovery
+  'login.recovery.title': 'Set New Password',
+  'login.recovery.body': 'Choose a new password for your account.',
   // resend button states
   'login.resend.idle': 'Resend magic link',
   'login.resend.sending': 'Sending…',
   'login.resend.sent': 'Magic link sent',
   'login.backHome': 'Back home',
   'login.homeAria': 'DOGYPT home',
+  // password login form
+  'login.password.placeholder': 'Password',
+  'login.password.submit': 'Sign in',
+  'login.password.submitting': 'Signing in…',
+  'login.password.error': 'Incorrect email or password.',
+  'login.password.networkError': 'Connection error. Try again.',
+  'login.password.forgotPassword': 'Forgot password?',
+  'login.password.magicLinkAlt': 'Email me a link instead',
+  // magic link form (secondary)
+  'login.magicLink.placeholder': 'your@email.com',
+  'login.magicLink.submit': 'Send magic link',
+  'login.magicLink.submitting': 'Sending…',
+  'login.magicLink.sent': 'Magic link sent — check your inbox.',
+  // forgot password
+  'login.forgot.prompt': 'Enter your email to reset your password.',
+  'login.forgot.placeholder': 'your@email.com',
+  'login.forgot.submit': 'Send reset link',
+  'login.forgot.submitting': 'Sending…',
+  'login.forgot.sent': 'Check your inbox to reset.',
+  'login.forgot.back': 'Back to sign in',
+  // recovery form
+  'login.recovery.newPasswordPlaceholder': 'New password (min 8 characters)',
+  'login.recovery.submit': 'Set new password',
+  'login.recovery.submitting': 'Saving…',
+  'login.recovery.success': 'Password updated — signing you in…',
 
   // ── 404 — NotFound.tsx ──
   'notFound.code': '404',

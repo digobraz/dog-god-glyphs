@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useT } from "@/i18n/LanguageContext";
 import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 
-type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing";
+type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing" | "recovery";
 
 const isExpired = (msg: string) =>
   /expired|otp_expired|invalid_token|token has expired/i.test(msg);
@@ -20,6 +20,22 @@ export default function Login() {
   const [emailInput, setEmailInput] = useState("");
   const [emailSending, setEmailSending] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+
+  // password login
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordSending, setPasswordSending] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+
+  // forgot password
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSending, setForgotSending] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
+
+  // recovery (password reset)
+  const [recoveryPassword, setRecoveryPassword] = useState("");
+  const [recoverySending, setRecoverySending] = useState(false);
+  const [recoverySuccess, setRecoverySuccess] = useState(false);
 
   // Supabase magic link callbacks may arrive in two shapes:
   //   1) Hash fragment: #access_token=...&refresh_token=...&type=magiclink
@@ -37,6 +53,10 @@ export default function Login() {
     // so getSession() may return null even with a valid token in the URL.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (cancelled) return;
+      if (event === "PASSWORD_RECOVERY") {
+        setStatus("recovery");
+        return;
+      }
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         setStatus("success");
         navigate(targetAfter, { replace: true });
@@ -60,9 +80,15 @@ export default function Login() {
         }
 
         const tokenHash = params.get("token_hash") ?? params.get("token") ?? "";
-        const typeParam = (params.get("type") ?? "magiclink") as "magiclink" | "email";
+        const typeParam = (params.get("type") ?? "magiclink") as "magiclink" | "email" | "recovery";
         const hasHashToken = window.location.hash.includes("access_token=");
         const hasHashError = window.location.hash.includes("error=");
+
+        // Recovery link: ?type=recovery — show set-new-password form.
+        if (typeParam === "recovery" && !tokenHash && !hasHashToken) {
+          if (!cancelled) setStatus("recovery");
+          return;
+        }
 
         if (!tokenHash && !hasHashToken) {
           if (hasHashError) {
@@ -114,22 +140,6 @@ export default function Login() {
     };
   }, [params, navigate]);
 
-  async function handleEmailLogin(e: React.FormEvent) {
-    e.preventDefault();
-    const email = emailInput.trim();
-    if (!email) return;
-    setEmailSending(true);
-    try {
-      await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: `${window.location.origin}/login` },
-      });
-      setEmailSent(true);
-    } finally {
-      setEmailSending(false);
-    }
-  }
-
   async function handleResend() {
     const dogId = params.get("dogId") ?? "";
     if (!dogId) {
@@ -150,6 +160,59 @@ export default function Login() {
       setErrorDetail(err instanceof Error ? err.message : String(err));
     } finally {
       setResending(false);
+    }
+  }
+
+  async function handlePasswordLogin(e: React.FormEvent) {
+    e.preventDefault();
+    const email = emailInput.trim();
+    if (!email || !passwordInput) return;
+    setPasswordError("");
+    setPasswordSending(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password: passwordInput });
+      if (error) {
+        setPasswordError(
+          error.message?.toLowerCase().includes("network")
+            ? t("login.password.networkError")
+            : t("login.password.error")
+        );
+      }
+      // onAuthStateChange handles SIGNED_IN → navigate
+    } catch {
+      setPasswordError(t("login.password.networkError"));
+    } finally {
+      setPasswordSending(false);
+    }
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    const email = forgotEmail.trim();
+    if (!email) return;
+    setForgotSending(true);
+    try {
+      await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login?type=recovery`,
+      });
+      setForgotSent(true);
+    } finally {
+      setForgotSending(false);
+    }
+  }
+
+  async function handleRecoverySubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (recoveryPassword.length < 8) return;
+    setRecoverySending(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: recoveryPassword });
+      if (!error) {
+        setRecoverySuccess(true);
+        setTimeout(() => navigate("/pack", { replace: true }), 1500);
+      }
+    } finally {
+      setRecoverySending(false);
     }
   }
 
@@ -207,18 +270,166 @@ export default function Login() {
 
         {status === "missing" && !dogIdPresent && (
           <div className="mt-7">
-            {emailSent ? (
-              <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14 }}>
-                Magic link sent — check your inbox.
+            {showForgot ? (
+              /* ── Forgot password sub-form ── */
+              <div className="flex flex-col gap-3">
+                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: "rgba(14,14,14,0.7)", textAlign: "center" }}>
+                  {t('login.forgot.prompt')}
+                </p>
+                {forgotSent ? (
+                  <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14, textAlign: "center" }}>
+                    {t('login.forgot.sent')}
+                  </p>
+                ) : (
+                  <form onSubmit={handleForgotPassword} className="flex flex-col gap-3">
+                    <input
+                      type="email"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      placeholder={t('login.forgot.placeholder')}
+                      required
+                      className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
+                      style={{
+                        fontFamily: "'Space Grotesk', sans-serif",
+                        color: "#0E0E0E",
+                        background: "rgba(255,255,255,0.6)",
+                        borderColor: "rgba(160,116,35,0.4)",
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={forgotSending}
+                      className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
+                      style={{
+                        fontFamily: "'Cinzel', serif",
+                        background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
+                        color: "#0E0E0E",
+                        boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
+                      }}
+                    >
+                      {forgotSending ? t('login.forgot.submitting') : t('login.forgot.submit')}
+                    </button>
+                  </form>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(false)}
+                  className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
+                  style={{ fontFamily: "'Cinzel', serif", color: "#A07423", background: "none", border: "none", cursor: "pointer" }}
+                >
+                  {t('login.forgot.back')}
+                </button>
+              </div>
+            ) : emailSent ? (
+              <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14, textAlign: "center" }}>
+                {t('login.magicLink.sent')}
               </p>
             ) : (
-              <form onSubmit={handleEmailLogin} className="flex flex-col gap-3">
+              /* ── Primary: email + password form ── */
+              <form onSubmit={handlePasswordLogin} className="flex flex-col gap-3">
                 <input
                   type="email"
                   value={emailInput}
-                  onChange={e => setEmailInput(e.target.value)}
+                  onChange={e => { setEmailInput(e.target.value); setPasswordError(""); }}
                   placeholder="your@email.com"
                   required
+                  autoComplete="email"
+                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    color: "#0E0E0E",
+                    background: "rgba(255,255,255,0.6)",
+                    borderColor: "rgba(160,116,35,0.4)",
+                  }}
+                />
+                <input
+                  type="password"
+                  value={passwordInput}
+                  onChange={e => { setPasswordInput(e.target.value); setPasswordError(""); }}
+                  placeholder={t('login.password.placeholder')}
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    color: "#0E0E0E",
+                    background: "rgba(255,255,255,0.6)",
+                    borderColor: "rgba(160,116,35,0.4)",
+                  }}
+                />
+                {passwordError && (
+                  <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: "#b91c1c", textAlign: "center" }}>
+                    {passwordError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={passwordSending}
+                  className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    background: "linear-gradient(180deg,#E5C16E 0%,#C99A3F 48%,#A07423 100%)",
+                    color: "#0E0E0E",
+                    boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
+                  }}
+                >
+                  {passwordSending ? t('login.password.submitting') : t('login.password.submit')}
+                </button>
+
+                {/* Secondary links */}
+                <div className="flex flex-col items-center gap-2 mt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgot(true)}
+                    className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
+                    style={{ fontFamily: "'Cinzel', serif", color: "#A07423", background: "none", border: "none", cursor: "pointer" }}
+                  >
+                    {t('login.password.forgotPassword')}
+                  </button>
+                  <button
+                    type="button"
+                    className="text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
+                    style={{ fontFamily: "'Cinzel', serif", color: "rgba(14,14,14,0.45)", background: "none", border: "none", cursor: "pointer" }}
+                    onClick={() => {
+                      if (!emailInput.trim()) return;
+                      setEmailSending(true);
+                      supabase.auth.signInWithOtp({
+                        email: emailInput.trim(),
+                        options: { emailRedirectTo: `${window.location.origin}/login` },
+                      }).then(() => { setEmailSent(true); }).finally(() => setEmailSending(false));
+                    }}
+                  >
+                    {emailSending ? t('login.magicLink.submitting') : t('login.password.magicLinkAlt')}
+                  </button>
+                </div>
+              </form>
+            )}
+            <Link
+              to="/"
+              className="block mt-4 text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
+              style={{ fontFamily: "'Cinzel', serif", color: "#A07423" }}
+            >
+              {t('login.backHome')}
+            </Link>
+          </div>
+        )}
+
+        {status === "recovery" && (
+          <div className="mt-7">
+            {recoverySuccess ? (
+              <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#A07423", fontSize: 14, textAlign: "center" }}>
+                {t('login.recovery.success')}
+              </p>
+            ) : (
+              <form onSubmit={handleRecoverySubmit} className="flex flex-col gap-3">
+                <input
+                  type="password"
+                  value={recoveryPassword}
+                  onChange={e => setRecoveryPassword(e.target.value)}
+                  placeholder={t('login.recovery.newPasswordPlaceholder')}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
                   className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
@@ -229,7 +440,7 @@ export default function Login() {
                 />
                 <button
                   type="submit"
-                  disabled={emailSending}
+                  disabled={recoverySending || recoveryPassword.length < 8}
                   className="px-6 py-3 rounded-[8px] uppercase text-xs tracking-[0.22em] font-bold disabled:opacity-50"
                   style={{
                     fontFamily: "'Cinzel', serif",
@@ -238,17 +449,10 @@ export default function Login() {
                     boxShadow: "0 6px 18px rgba(160,116,35,0.4)",
                   }}
                 >
-                  {emailSending ? "Sending…" : "Send magic link"}
+                  {recoverySending ? t('login.recovery.submitting') : t('login.recovery.submit')}
                 </button>
               </form>
             )}
-            <Link
-              to="/"
-              className="block mt-4 text-xs uppercase tracking-[0.22em] underline-offset-4 hover:underline"
-              style={{ fontFamily: "'Cinzel', serif", color: "#A07423" }}
-            >
-              {t('login.backHome')}
-            </Link>
           </div>
         )}
 
