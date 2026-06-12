@@ -7,12 +7,11 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import { WheelDatePicker } from '@/components/WheelDatePicker';
-import { useT, useLang } from '@/i18n/LanguageContext';
+import { useT } from '@/i18n/LanguageContext';
 
 export function NameScreen() {
   const navigate = useNavigate();
   const t = useT();
-  const { lang } = useLang();
   const setDogName = useDogyptStore((s) => s.setDogName);
   const storedDogName = useDogyptStore((s) => s.dogName);
   const setSelection = useDogyptStore((s) => s.setSelection);
@@ -110,7 +109,7 @@ export function NameScreen() {
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
                   {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="relative z-10 p-4 pt-12 pb-4 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col min-h-0">
+                  <div className="relative z-10 p-4 pt-10 pb-3 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col min-h-0">
                     {/* Two-column layout */}
                     <div className="flex gap-3 md:gap-4 flex-1 min-h-0 items-center overflow-hidden">
                       {/* Left column – video, fixed aspect ratio centered against right text */}
@@ -128,23 +127,23 @@ export function NameScreen() {
                       {/* Right column */}
                       <div className="flex-1 flex flex-col gap-1.5 md:gap-3 min-w-0 min-h-0 md:justify-center">
                         <h3
-                          className="text-base md:text-xl font-bold leading-tight"
+                          className="text-sm md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
                         >
-                          {t('heroglyph.flow.name.whoTitle')}{lang === 'en' && <br className="md:hidden" />} {t('heroglyph.flow.name.whoTitleName')}
+                          {t('heroglyph.flow.name.whoTitle')} {t('heroglyph.flow.name.whoTitleName')}
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-relaxed line-clamp-5 md:line-clamp-none"
+                          className="text-foreground/80 text-[10px] md:text-sm leading-snug md:leading-relaxed line-clamp-6 md:line-clamp-none"
                           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                         >
                           {t('heroglyph.flow.name.whoBody')}
                         </p>
 
                         {/* Stats – stacked on mobile, decorative table on desktop */}
-                        <div className="flex flex-col md:flex-row md:gap-0 gap-1.5 pt-2 flex-shrink-0">
+                        <div className="flex flex-col md:flex-row md:gap-0 gap-1 pt-1.5 md:pt-1 flex-shrink-0">
                           {/* Mobile: simple stacked */}
-                          <div className="flex flex-col gap-1.5 md:hidden">
+                          <div className="flex flex-col gap-1 md:hidden">
                             <div className="flex items-center gap-1.5">
                               <p className="text-xs font-bold uppercase tracking-wider" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}:</p>
                               <p className="text-foreground text-sm font-semibold">2016</p>
@@ -161,16 +160,16 @@ export function NameScreen() {
 
                           {/* Desktop: decorative open-table style */}
                           <div className="hidden md:flex md:gap-0 w-full rounded-lg border-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
-                            <div className="flex-1 flex flex-col items-center py-2.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}</p>
+                            <div className="flex-1 flex flex-col items-center py-1.5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.born')}</p>
                               <p className="text-foreground text-sm font-semibold">2016</p>
                             </div>
-                            <div className="flex-1 flex flex-col items-center py-2.5 border-l-2 border-r-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.adopted')}</p>
+                            <div className="flex-1 flex flex-col items-center py-1.5 border-l-2 border-r-2" style={{ borderColor: 'hsl(var(--gold-dark) / 0.35)' }}>
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.adopted')}</p>
                               <p className="text-foreground text-sm font-semibold">2017</p>
                             </div>
-                            <div className="flex-1 flex flex-col items-center py-2.5">
-                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.location')}</p>
+                            <div className="flex-1 flex flex-col items-center py-1.5">
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-0" style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}>{t('heroglyph.flow.name.location')}</p>
                               <p className="text-foreground text-sm font-semibold">{t('heroglyph.flow.name.locationValue')}</p>
                             </div>
                           </div>
