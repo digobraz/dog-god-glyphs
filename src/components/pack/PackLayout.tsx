@@ -268,11 +268,12 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
             <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 17, color: 'rgba(245,240,228,0.4)', whiteSpace: 'nowrap' }}>—</span>
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'baseline', whiteSpace: 'nowrap' }}>
+              {/* leading zeros — hidden on mobile, visible sm+ */}
+              <span className="hidden sm:inline" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: Math.round(17 * 0.8), color: 'rgba(245,240,228,0.2)', letterSpacing: '0.01em' }}>
+                {'0'.repeat(Math.max(0, 7 - String(packTotal).length))}
+              </span>
               <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 17, color: '#C99A3F', letterSpacing: '0.01em' }}>
                 {String(packTotal)}
-              </span>
-              <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: Math.round(17 * 0.8), color: 'rgba(245,240,228,0.2)', letterSpacing: '0.01em' }}>
-                {'0'.repeat(Math.max(0, 6 - String(packTotal).length))}
               </span>
             </span>
           )}
