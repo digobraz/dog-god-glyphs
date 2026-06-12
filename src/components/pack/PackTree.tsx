@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Plus, ScrollText, UserPlus } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
+import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
 
 const T = PACK_THEME;
@@ -124,7 +124,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
             textDecoration: 'none',
           }}
         >
-          <ScrollText className="h-4 w-4" />
+          <BrandIcon name="document" size={16} tint="gold" />
         </Link>
 
         {/* Foto — kruh, zlatý prsteň */}
@@ -447,7 +447,7 @@ function DogRow({ dog }: { dog: DogNode }) {
       )}
 
       {/* Profil ikonka — rozklik celého psieho profilu */}
-      <ScrollText className="h-4 w-4 shrink-0" style={{ color: T.accentGold, marginLeft: 2 }} />
+      <BrandIcon name="document" size={16} tint="gold" className="shrink-0" style={{ marginLeft: 2 }} />
     </Link>
   );
 }
@@ -475,7 +475,7 @@ function PackActions() {
           whiteSpace: 'nowrap',
         }}
       >
-        <Plus className="h-3.5 w-3.5" />
+        <BrandIcon name="plus" size={14} tint="dark" />
         Add dog
       </Link>
 
@@ -503,7 +503,7 @@ function PackActions() {
             whiteSpace: 'nowrap',
           }}
         >
-          <UserPlus className="h-3.5 w-3.5" />
+          <BrandIcon name="add-user" size={14} tint="dim" />
           Add human member
         </button>
 

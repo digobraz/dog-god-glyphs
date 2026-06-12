@@ -12,6 +12,7 @@ import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
 import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { VisionRoadmap } from '@/components/pack/VisionRoadmap';
+import { PackWizard } from '@/components/pack/PackWizard';
 
 const T = PACK_THEME;
 
@@ -235,9 +236,16 @@ export default function Pack() {
     .map((d) => (d.country ?? '').trim())
     .find((c) => c.length > 0) ?? null;
 
+  // Primary dog for wizard navigation (lowest pack_number, else first loaded).
+  const primaryDog = (dogs ?? []).reduce<DogRow | null>((best, d) => {
+    if (!best) return d;
+    return (d.pack_number ?? Infinity) < (best.pack_number ?? Infinity) ? d : best;
+  }, null);
+
   return (
     <PackLayout wide>
       <PackAnimations />
+      <PackWizard primaryDogId={primaryDog?.id ?? null} primaryDogName={primaryDog?.dog_name ?? null} />
 
       <div className="relative flex flex-col gap-6">
         {/* Ambient drifting orbs */}
@@ -245,35 +253,41 @@ export default function Pack() {
 
         {/* Row 1 — Owner LEFT, Pack RIGHT — equal heights */}
         <div className="relative grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-stretch">
-          {user && (
-            <HeroCard
-              name={displayName}
-              email={user.email}
-              avatarUrl={user.avatarUrl}
-              genderPlaceholder={ownerGender}
-              devotion={user.devotion}
-              bones={user.bones}
-              stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
-            />
-          )}
+          <div id="wiz-hero" style={{ display: 'flex', flexDirection: 'column' }}>
+            {user && (
+              <HeroCard
+                name={displayName}
+                email={user.email}
+                avatarUrl={user.avatarUrl}
+                genderPlaceholder={ownerGender}
+                devotion={user.devotion}
+                bones={user.bones}
+                stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
+              />
+            )}
+          </div>
 
-          {dogs === null ? (
-            <TreeSkeleton />
-          ) : (
-            <PackTree
-              ownerAvatarUrl={user?.avatarUrl ?? null}
-              ownerInitial={ownerInitial}
-              dogs={treeDogs}
-              hideOwner
-            />
-          )}
+          <div id="wiz-pack" style={{ display: 'flex', flexDirection: 'column' }}>
+            {dogs === null ? (
+              <TreeSkeleton />
+            ) : (
+              <PackTree
+                ownerAvatarUrl={user?.avatarUrl ?? null}
+                ownerInitial={ownerInitial}
+                dogs={treeDogs}
+                hideOwner
+              />
+            )}
+          </div>
         </div>
 
         {/* Sacred interlude — verse of the day from the Constitution (rotates daily) */}
         <VerseOfTheDay />
 
         {/* Full-width — planéta + počítadlo + TOP krajiny */}
-        <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
+        <div id="wiz-globe">
+          <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
+        </div>
 
         {/* Row 2 — dotazník (blok 4) LEFT | Hekthor pozvánka (blok 5) RIGHT.
             Mobile: survey nad Hekthorom. */}
@@ -284,7 +298,9 @@ export default function Pack() {
 
         {/* Row 3 — First Steps | Constitution (DOGMA) | Build notice — rovnaké výšky */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-7 items-stretch">
-          <OnboardingProgress steps={onboardingSteps} />
+          <div id="wiz-steps" style={{ display: 'flex', flexDirection: 'column' }}>
+            <OnboardingProgress steps={onboardingSteps} />
+          </div>
           <ConstitutionCard />
           <BuildNotice ownerName={displayName} email={user?.email ?? null} />
         </div>

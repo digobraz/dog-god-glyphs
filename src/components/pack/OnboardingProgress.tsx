@@ -1,4 +1,5 @@
-import { Check, Circle, ListChecks, Sparkles } from 'lucide-react';
+import { Check, Circle, Sparkles } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
@@ -33,7 +34,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
           color: T.inkDim,
         }}
       >
-        <ListChecks className="h-3.5 w-3.5" />
+        <BrandIcon name="clipboard" size={14} tint="gold" />
         Your Profile
       </div>
 

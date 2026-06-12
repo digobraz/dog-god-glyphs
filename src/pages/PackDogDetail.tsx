@@ -1,48 +1,32 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { StickyDevotionBar } from '@/components/pack/StickyDevotionBar';
+import { PackDogWizard } from '@/components/pack/PackWizard';
 import {
   ArrowLeft,
   Download,
-  FileText,
   Loader2,
   Mail,
   ExternalLink,
   Save,
-  Plus,
   Trash2,
   RefreshCw,
-  Heart,
   Sparkles,
   BookOpen,
-  Stethoscope,
   Lock,
-  PawPrint,
   ChevronDown,
-  ListChecks,
   Images,
-  BarChart3,
   Check,
   QrCode,
-  AlertTriangle,
   Camera,
   Syringe,
-  Bone,
-  Award,
-  ClipboardList,
-  Share2,
-  HeartPulse,
-  Pill,
-  Flame,
-  Fingerprint,
-  Pencil,
-  ShieldPlus,
   Shield,
+  ShieldPlus,
+  Bone,
   Bug,
   Mic,
-  ScrollText,
   X,
 } from 'lucide-react';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME } from '@/components/pack/packTheme';
@@ -633,13 +617,7 @@ export default function PackDogDetail() {
 
   return (
     <PackLayout wide>
-      <StickyDevotionBar
-        ownerName={ownerName}
-        avatarUrl={me.avatarUrl}
-        dogName={dogName}
-        devotion={me.devotion}
-        bones={me.bones}
-      />
+      <PackDogWizard />
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           to="/pack"
@@ -694,7 +672,6 @@ export default function PackDogDetail() {
               borderRadius: 22,
               padding: '20px 20px',
               boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
-              overflow: 'hidden',
             }}
           >
             {/* FRONT — identity (always rendered; defines the block height) */}
@@ -704,11 +681,13 @@ export default function PackDogDetail() {
               <IconBtn
                 icon={<QrCode className="h-4 w-4" />}
                 label="Your dog's passport — a global database. Coming soon."
+                tooltipSide="right"
                 soon
               />
               <IconBtn
-                icon={<AlertTriangle className="h-4 w-4" />}
+                icon={<BrandIcon name="alert" size={16} tint="danger" />}
                 label="Lost dog — declare a search, alert the pack. Coming soon."
+                tooltipSide="right"
                 soon
                 danger
               />
@@ -716,7 +695,7 @@ export default function PackDogDetail() {
             {/* — Papyrus (profil & dokumenty) vpravo hore — */}
             <div className="absolute flex items-center gap-2" style={{ top: 16, right: 16, zIndex: 4 }}>
               <IconBtn
-                icon={<ScrollText className="h-4 w-4" />}
+                icon={<BrandIcon name="document" size={16} tint="gold" />}
                 label="Profile & documents"
                 active={profileOpen}
                 onClick={() => setProfileOpen((v) => !v)}
@@ -890,7 +869,7 @@ export default function PackDogDetail() {
               }}
             >
               <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-                <SectionHeading icon={<ScrollText className="h-3 w-3" />} label="Profile & documents" inline />
+                <SectionHeading icon={<BrandIcon name="document" size={12} tint="gold" />} label="Profile & documents" inline />
                 <button
                   type="button"
                   onClick={() => setProfileOpen(false)}
@@ -929,7 +908,7 @@ export default function PackDogDetail() {
                   cursor: 'pointer',
                 }}
               >
-                <FileText className="h-3 w-3" style={{ color: T.accentGold }} />
+                <BrandIcon name="document" size={12} tint="gold" />
                 {showCert ? 'Hide certificate' : 'View certificate'}
                 <ChevronDown
                   className="h-3.5 w-3.5"
@@ -998,7 +977,7 @@ export default function PackDogDetail() {
               {/* A word on the Wall — second (pre-filled with the dog's current message; Save persists) */}
               <div style={{ marginTop: 14 }}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <SectionHeading icon={<Heart className="h-3 w-3" />} label="A word on the Wall" inline />
+                  <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label="A word on the Wall" inline />
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: T.inkDim }}>
                     {messageDraft.length}/{MESSAGE_MAX}
                   </span>
@@ -1010,9 +989,9 @@ export default function PackDogDetail() {
                     setMessageDirty(true);
                   }}
                   placeholder="A few words shown on your WALL card — a tribute, a memory, a hello to the pack."
-                  rows={2}
+                  rows={5}
                   style={{
-                    minHeight: 64,
+                    minHeight: 110,
                     width: '100%',
                     background: T.bg,
                     border: `1px solid ${T.hairline}`,
@@ -1165,9 +1144,10 @@ export default function PackDogDetail() {
                 }
               />
 
-              {/* 3 — Prayer of Care (placeholder: already set) */}
+              {/* 3 — Prayer of Care (coming soon) */}
               <PrayerRow
-                checked
+                locked
+                faded
                 disabled={prayersSubmitted}
                 title="Nutrition"
                 hint="Fresh, real food is devotion — not ultra-processed kibble. Set your dog's diet for daily care points."
@@ -1274,7 +1254,7 @@ export default function PackDogDetail() {
             onClick={() => toggleTile('health')}
           />
           <HubTile
-            icon="star"
+            icon="trophy"
             label="Training"
             sub="Commands · Badges"
             active
@@ -1308,7 +1288,7 @@ export default function PackDogDetail() {
               }}
             >
               <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-                <SectionHeading icon={<ClipboardList className="h-3 w-3" />} label="Overview" inline />
+                <SectionHeading icon={<BrandIcon name="clipboard" size={12} tint="gold" />} label="Overview" inline />
                 <button
                   type="button"
                   onClick={() => toast({ title: 'Coming soon', description: 'Share a read-only health profile with your vet.' })}
@@ -1328,7 +1308,7 @@ export default function PackDogDetail() {
                     cursor: 'pointer',
                   }}
                 >
-                  <Share2 className="h-3.5 w-3.5" />
+                  <BrandIcon name="link" size={14} tint="white" />
                   Share with vet
                 </button>
               </div>
@@ -1391,7 +1371,7 @@ export default function PackDogDetail() {
                         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: T.ink }}>
                           {weightKg} kg
                         </span>
-                        <Pencil className="h-3 w-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: T.accentGold }} />
+                        <BrandIcon name="pencil" size={12} tint="gold" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                     )}
                   </div>
@@ -1444,22 +1424,22 @@ export default function PackDogDetail() {
 
               {/* Critical strip — the first thing a vet needs */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5" style={{ marginTop: 14 }}>
-                <CriticalChip lucide={<AlertTriangle className="h-3.5 w-3.5" />} label="Allergies" value="None recorded" />
-                <CriticalChip lucide={<HeartPulse className="h-3.5 w-3.5" />} label="Conditions" value="None recorded" />
-                <CriticalChip lucide={<Pill className="h-3.5 w-3.5" />} label="Medication" value="None recorded" />
+                <CriticalChip lucide={<BrandIcon name="alert" size={14} tint="gold" />} label="Allergies" value="None recorded" />
+                <CriticalChip lucide={<BrandIcon name="clipboard" size={14} tint="gold" />} label="Conditions" value="None recorded" />
+                <CriticalChip lucide={<BrandIcon name="chemical" size={14} tint="gold" />} label="Medication" value="None recorded" />
               </div>
 
               {/* Tests — Personality (TCM) + Identity, each a "Make test" CTA (soon) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" style={{ marginTop: 12 }}>
                 <TestChip
-                  lucide={<Flame className="h-4 w-4" />}
+                  lucide={<BrandIcon name="yinyang" size={16} tint="violet" />}
                   label="Personality"
                   cta="Make test"
                   sub="TCM elements — fire, metal, wood…"
                   onClick={() => toast({ title: 'Personality test — coming soon', description: 'A short quiz maps your dog onto the five elements.' })}
                 />
                 <TestChip
-                  lucide={<Fingerprint className="h-4 w-4" />}
+                  lucide={<BrandIcon name="nose" size={16} tint="violet" />}
                   label="Identity"
                   cta="Make test"
                   sub={`Find ${P.poss} character type`}
@@ -1471,12 +1451,12 @@ export default function PackDogDetail() {
             {/* VET CENTRE + FOOD PROTOCOL */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <SubCard
-                lucide={<Stethoscope className="h-4 w-4" />}
+                lucide={<BrandIcon name="vet" size={16} tint="gold" />}
                 title="Vet centre"
                 desc="Vaccinations and visits — planned and past — in one timeline you can share with any vet."
               />
               <SubCard
-                lucide={<Bone className="h-4 w-4" />}
+                lucide={<BrandIcon name="bow" size={16} tint="gold" />}
                 title="Food protocol"
                 desc="Brand, portions and allergies — the diet the whole pack can trust."
               />
@@ -1493,18 +1473,18 @@ export default function PackDogDetail() {
         {/* TRAINING — coming-soon preview panel */}
         {openTile === 'training' && (
           <TilePanel
-            icon="star"
+            icon="trophy"
             title="Training"
             tagline="Every command learned, every trial won — written down."
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <PreviewRow
-                lucide={<Sparkles className="h-4 w-4" />}
+                lucide={<BrandIcon name="graduate" size={16} tint="gold" />}
                 label="Commands"
                 desc={`Sit, stay, recall, heel… tick them off as ${P.subj} masters each one.`}
               />
               <PreviewRow
-                lucide={<Award className="h-4 w-4" />}
+                lucide={<BrandIcon name="badge" size={16} tint="gold" />}
                 label="Sacred badges"
                 desc="Shows, races, obedience trials, countries visited — earned, never bought."
               />
@@ -1697,7 +1677,7 @@ export default function PackDogDetail() {
                     opacity: uploading ? 0.6 : 1,
                   }}
                 >
-                  {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                  {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrandIcon name="plus" size={12} tint="gold" />}
                   Add photo
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
@@ -1747,7 +1727,7 @@ export default function PackDogDetail() {
           <div aria-hidden style={{ opacity: 0.38, filter: 'grayscale(0.4)', pointerEvents: 'none', userSelect: 'none' }}>
           {/* Big heading */}
           <div className="flex items-center gap-2.5" style={{ marginBottom: 4 }}>
-            <BarChart3 className="h-6 w-6" style={{ color: T.accentGold }} />
+            <BrandIcon name="bars" size={24} tint="gold" />
             <h2
               style={{
                 fontFamily: "'Cinzel', serif",
@@ -2154,7 +2134,7 @@ function InfoFact({ label, value, symbol, flag }: { label: string; value: string
         ) : flag ? (
           <span style={{ fontSize: 18, lineHeight: 1 }}>{flag}</span>
         ) : (
-          <PawPrint className="h-3.5 w-3.5" style={{ color: T.inkFaint }} />
+          <BrandIcon name="paw" size={14} tint="gold" />
         )}
       </span>
       <div style={{ minWidth: 0 }}>
@@ -2424,7 +2404,7 @@ function HealthBadge({
           lineHeight: 1,
         }}
       >
-        {isHealthy ? <Heart className="h-3 w-3 shrink-0" /> : <AlertTriangle className="h-3 w-3 shrink-0" />}
+        {isHealthy ? <BrandIcon name="heart" size={12} tint="good" /> : <BrandIcon name="alert" size={12} tint="danger" />}
         {current.label}
         <ChevronDown
           className="h-3 w-3 shrink-0"
@@ -2554,6 +2534,7 @@ function IconBtn({
   active,
   soon,
   danger,
+  tooltipSide = 'left',
   onClick,
 }: {
   icon: React.ReactNode;
@@ -2561,6 +2542,7 @@ function IconBtn({
   active?: boolean;
   soon?: boolean;
   danger?: boolean;
+  tooltipSide?: 'left' | 'right';
   onClick?: () => void;
 }) {
   const [hover, setHover] = useState(false);
@@ -2612,7 +2594,9 @@ function IconBtn({
           className="absolute"
           style={{
             top: '50%',
-            right: 'calc(100% + 8px)',
+            ...(tooltipSide === 'right'
+              ? { left: 'calc(100% + 8px)' }
+              : { right: 'calc(100% + 8px)' }),
             transform: 'translateY(-50%)',
             width: 184,
             zIndex: 20,
@@ -3316,12 +3300,10 @@ function DownloadButton({
     };
     const inner = (
       <>
-        <span
-          className="inline-flex items-center justify-center"
-          style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: 'rgba(61,31,0,0.16)' }}
-        >
-          {enabled ? <FileText className="h-4 w-4" /> : <Loader2 className="h-4 w-4 animate-spin" />}
-        </span>
+        {enabled
+          ? <BrandIcon name="dogposter" size={30} tint="dark" style={{ flexShrink: 0 }} />
+          : <Loader2 className="h-5 w-5 animate-spin" style={{ flexShrink: 0, color: '#3d1f00' }} />
+        }
         <span className="flex flex-col" style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, lineHeight: 1 }}>
             The official record

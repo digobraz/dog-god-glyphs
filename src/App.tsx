@@ -31,6 +31,7 @@ import PackDogDetail from "./pages/PackDogDetail.tsx";
 import PackEternal from "./pages/PackEternal.tsx";
 import PackGods from "./pages/PackGods.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
+import PackPortal from "./pages/PackPortal.tsx";
 import Login from "./pages/Login.tsx";
 import Admin from "./pages/Admin.tsx";
 import Vision from "./pages/Vision.tsx";
@@ -109,6 +110,7 @@ const App = () => (
           <Route path="/pack/gods" element={<PackGods />} />
           <Route path="/pack/eternal" element={<PackEternal />} />
           <Route path="/pack/profile" element={<PackProfile />} />
+          <Route path="/pack/portal" element={<PackPortal />} />
 
           <Route path="/cert-render/:id" element={<CertRender />} />
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Loader2, Share2, Users } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from '@/components/pack/packTheme';
 
@@ -68,7 +69,7 @@ export function PackNetwork() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3 mb-1">
         <div className="flex items-center gap-2.5" style={{ color: T.inkDim }}>
-          <Users className="h-4 w-4" />
+          <BrandIcon name="people" size={16} tint="gold" />
           <span
             style={{
               fontFamily: "'Cinzel', serif",
@@ -179,7 +180,7 @@ export function PackNetwork() {
           className="flex flex-col items-center text-center gap-2 py-6"
           style={{ color: T.inkFaint }}
         >
-          <Share2 className="h-5 w-5" />
+          <BrandIcon name="link" size={20} tint="gold" />
           <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5 }}>
             No apostles yet. Share your link from the Home tab —
             <br />

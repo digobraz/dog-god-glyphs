@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Camera, Crown, Bone, Lock } from 'lucide-react';
+import { Camera, Lock } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { devotionLevel } from '@/lib/devotion';
@@ -238,7 +239,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 : 'none',
             }}
           >
-            {topTier && <Crown className="h-3 w-3 shrink-0" style={{ color: 'hsl(45 92% 82%)' }} />}
+            {topTier && <BrandIcon name="trophy" size={12} tint="gold" className="shrink-0" />}
             <span
               style={{
                 fontFamily: "'Cinzel', serif",
@@ -276,7 +277,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
               }}
             >
-              <Bone style={{ width: 9, height: 9, color: '#5A3F12' }} />
+              <BrandIcon name="bone" size={9} tint="dark" />
             </span>
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: T.ink }}>
               {bones.toLocaleString('sk-SK')}

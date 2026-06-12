@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PACK_THEME } from './packTheme';
-import { TrendingUp, Activity, Globe } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 
 const T = PACK_THEME;
 
@@ -44,25 +44,25 @@ export function StatTicker({ stats }: { stats?: Stats | null }) {
 
   const pills = [
     {
-      icon: <Activity className="h-3 w-3" />,
+      icon: <BrandIcon name="bars" size={12} tint="gold" />,
       label: 'The Pack',
       value: show.total.toLocaleString('en-US'),
       tone: 'neutral' as const,
     },
     {
-      icon: <TrendingUp className="h-3 w-3" />,
+      icon: <BrandIcon name="bars" size={12} tint="gold" />,
       label: 'Last 24h',
       value: `+${show.last24h.toLocaleString('en-US')}`,
       tone: 'up' as const,
     },
     {
-      icon: <TrendingUp className="h-3 w-3" />,
+      icon: <BrandIcon name="bars" size={12} tint="gold" />,
       label: '30 days',
       value: `+${show.last30d.toLocaleString('en-US')}`,
       tone: show.last30d > 0 ? ('up' as const) : ('down' as const),
     },
     {
-      icon: <Globe className="h-3 w-3" />,
+      icon: <BrandIcon name="globe" size={12} tint="gold" />,
       label: 'Top region',
       value: show.topCountry || '—',
       tone: 'neutral' as const,

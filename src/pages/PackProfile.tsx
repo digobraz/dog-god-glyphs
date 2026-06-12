@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Camera, Loader2, Mail, Globe2, BellOff, ShieldOff, Check } from 'lucide-react';
+import { Camera, Loader2, Mail, BellOff, ShieldOff, Check } from 'lucide-react';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -303,7 +304,7 @@ export default function PackProfile() {
               {email}
             </span>
           </Field>
-          <Field icon={<Globe2 className="h-4 w-4" />} label="Language">
+          <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label="Language">
             <div className="flex items-center gap-2">
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>
                 English

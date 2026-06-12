@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Bell, MessageCircle, UserPlus, Globe2 } from 'lucide-react';
+import { Bell, UserPlus } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
@@ -25,9 +26,9 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
   }, [open]);
 
   const items = [
-    { icon: UserPlus, text: last24h > 0 ? `${last24h} new Dogyptian${last24h === 1 ? '' : 's'} today` : 'No new members today — yet' },
-    { icon: UserPlus, text: `${last30d} joined in the last 30 days` },
-    { icon: Globe2, text: `${total.toLocaleString('sk-SK')} Dogyptians worldwide` },
+    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? `${last24h} new Dogyptian${last24h === 1 ? '' : 's'} today` : 'No new members today — yet' },
+    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: `${last30d} joined in the last 30 days` },
+    { iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: `${total.toLocaleString('sk-SK')} Dogyptians worldwide` },
   ];
 
   return (
@@ -50,7 +51,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
           cursor: 'default',
         }}
       >
-        <MessageCircle className="h-4 w-4" />
+        <BrandIcon name="chat" size={16} tint="gold" />
         <span
           style={{
             position: 'absolute',
@@ -145,24 +146,21 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
             The Pack pulse
           </div>
           <ul className="flex flex-col gap-2.5">
-            {items.map((it, i) => {
-              const Icon = it.icon;
-              return (
-                <li key={i} className="flex items-start gap-2.5">
-                  <Icon className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />
-                  <span
-                    style={{
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      fontSize: 12.5,
-                      lineHeight: 1.4,
-                      color: T.ink,
-                    }}
-                  >
-                    {it.text}
-                  </span>
-                </li>
-              );
-            })}
+            {items.map((it, i) => (
+              <li key={i} className="flex items-start gap-2.5">
+                {it.iconNode}
+                <span
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 12.5,
+                    lineHeight: 1.4,
+                    color: T.ink,
+                  }}
+                >
+                  {it.text}
+                </span>
+              </li>
+            ))}
           </ul>
           <div
             style={{

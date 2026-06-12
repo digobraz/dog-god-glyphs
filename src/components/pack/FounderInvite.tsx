@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Copy, Check, Share2, Sparkles, Info, X, Plus, Network } from 'lucide-react';
+import { Copy, Check, Sparkles, X } from 'lucide-react';
+import { BrandIcon } from './BrandIcon';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -145,7 +146,7 @@ export function FounderInvite() {
             color: 'hsl(45 95% 88%)',
           }}
         >
-          {showInfo ? <X className="h-4 w-4" /> : <Info className="h-4 w-4" />}
+          {showInfo ? <X className="h-4 w-4" /> : <BrandIcon name="question" size={16} tint="gold" />}
         </span>
       </button>
 
@@ -235,7 +236,7 @@ export function FounderInvite() {
             cursor: 'default',
           }}
         >
-          <Network className="h-3.5 w-3.5" />
+          <BrandIcon name="cycle" size={14} tint="gold" />
           View your network · soon
         </button>
 
@@ -303,7 +304,7 @@ export function FounderInvite() {
               opacity: link ? 1 : 0.5,
             }}
           >
-            <Share2 className="h-4 w-4" />
+            <BrandIcon name="link" size={16} tint="gold" />
             Share your link
           </button>
         </div>
@@ -433,7 +434,7 @@ export function FounderInvite() {
                           color: s.color,
                         }}
                       >
-                        <Plus className="h-3 w-3" />
+                        <BrandIcon name="plus" size={12} tint="gold" />
                       </span>
                     </div>
 

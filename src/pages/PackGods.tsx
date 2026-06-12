@@ -1,5 +1,5 @@
-import { PawPrint } from 'lucide-react';
 import { PackLayout } from '@/components/pack/PackLayout';
+import { BrandIcon } from '@/components/pack/BrandIcon';
 
 // Placeholder — obsah „Gods" sa dolaďuje v ďalšom kroku.
 // Zámer (TBD s Matejom): zobrazenie tvojich psov ako bohov / pantheon.
@@ -16,7 +16,7 @@ export default function PackGods() {
           }}
         >
           <div className="mx-auto mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full border border-[#C99A3F]/40 bg-[#C99A3F]/10">
-            <PawPrint className="h-7 w-7 text-[#A07423]" />
+            <BrandIcon name="paw" size={28} tint="gold" />
           </div>
 
           <p className="font-cinzel text-[10px] uppercase tracking-[0.42em] text-[#A07423]">

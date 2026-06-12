@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import { Bone } from 'lucide-react';
+import { BrandIcon as PackBrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
@@ -308,7 +308,7 @@ function BonesChip({ bones }: { bones: number }) {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
         boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.55), 0 1px 3px rgba(0,0,0,0.2)',
       }}>
-        <Bone style={{ width: 9, height: 9, color: '#5A3F12' }} />
+        <PackBrandIcon name="bone" size={9} tint="dark" />
       </span>
       <span style={{
         fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 11,
