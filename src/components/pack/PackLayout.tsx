@@ -33,6 +33,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
   const [loading, setLoading] = useState(true);
   const [dogs, setDogs] = useState<PackDog[]>([]);
   const [devotion, setDevotion] = useState(100);
+  const [bones, setBones] = useState(0);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [packTotal, setPackTotal] = useState<number | null>(null);
   const [packToday, setPackToday] = useState<number | null>(null);
@@ -77,6 +78,13 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
           setDevotion(Number(meta.devotion) || 100);
           setAvatarUrl((meta.avatar_url || meta.avatar || null) as string | null);
         }
+        // BONES = affiliate currency (affiliates.points). Single source of truth
+        // for the header chip — NOT user_metadata.bones (legacy, always 0).
+        try {
+          const { data: aff } = await supabase.rpc('get_or_create_my_affiliate');
+          const row = (aff as { points?: number }[] | null)?.[0];
+          if (mounted && row) setBones(Number(row.points) || 0);
+        } catch { /* non-blocking */ }
       }
       setSession(s);
       setLoading(false);
@@ -126,7 +134,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         avatarUrl={avatarUrl}
         avatarInitial={avatarInitial}
         devotion={devotion}
-        bones={0}
+        bones={bones}
         packTotal={packTotal}
         packToday={packToday}
         dogs={dogs}

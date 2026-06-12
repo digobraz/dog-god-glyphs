@@ -82,11 +82,11 @@ export default function Pack() {
       const meta = (u.user_metadata ?? {}) as Record<string, unknown>;
       const fullName = (meta.full_name || meta.name) as string | undefined;
       const avatarUrl = (meta.avatar_url || meta.avatar || null) as string | null;
-      // DEVOTION + BONES per-user (uložené v user_metadata, set adminom/service). Nový člen = 100 (Stray).
+      // DEVOTION per-user (user_metadata, set adminom/service). Nový člen = 100 (Stray).
+      // BONES = affiliate currency (affiliates.points) — fetched below, not metadata.
       const devotion = Number(meta.devotion) || 100;
-      const bones = Number(meta.bones) || 0;
       const display = firstNameFrom(u.email ?? '', fullName);
-      if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones });
+      if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones: 0 });
 
       // First Steps — extra completion signals (best-effort, non-blocking).
       // "Cast your vote in Shape" → any row in feature_votes for this user.
@@ -102,12 +102,14 @@ export default function Pack() {
         .eq('user_id', u.id)
         .then(({ data }) => { if (mounted) setHasVoted((data ?? []).length > 0); });
 
-      // "Invite your first dog lover" → at least one referral on my affiliate.
+      // Affiliate → referral signal + BONES balance (affiliates.points).
       supabase
         .rpc('get_or_create_my_affiliate')
         .then(({ data }) => {
-          const row = (data as { referral_count?: number }[] | null)?.[0];
-          if (mounted) setHasReferral((row?.referral_count ?? 0) > 0);
+          const row = (data as { referral_count?: number; points?: number }[] | null)?.[0];
+          if (!mounted) return;
+          setHasReferral((row?.referral_count ?? 0) > 0);
+          setUser((u) => (u ? { ...u, bones: Number(row?.points) || 0 } : u));
         });
 
       const { data } = await (supabase as unknown as {

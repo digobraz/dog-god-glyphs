@@ -240,8 +240,13 @@ export default function PackDogDetail() {
       const uMeta = (user.user_metadata ?? {}) as Record<string, unknown>;
       if (mounted) setMe({
         devotion: Number(uMeta.devotion) || 100,
-        bones: Number(uMeta.bones) || 0,
+        bones: 0, // BONES = affiliate currency (affiliates.points), patched below
         avatarUrl: (uMeta.avatar_url || uMeta.avatar || null) as string | null,
+      });
+      // BONES from affiliate balance, not user_metadata.
+      supabase.rpc('get_or_create_my_affiliate').then(({ data }) => {
+        const row = (data as { points?: number }[] | null)?.[0];
+        if (mounted && row) setMe((m) => ({ ...m, bones: Number(row.points) || 0 }));
       });
 
       const { data, error } = await (supabase as unknown as {

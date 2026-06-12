@@ -6,6 +6,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PackNetwork } from '@/components/pack/PackNetwork';
+import { DevotionPanel } from '@/components/pack/DevotionPanel';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +16,7 @@ const T = PACK_THEME;
 export default function PackProfile() {
   const [session, setSession] = useState<Session | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [devotion, setDevotion] = useState(100);
   const [fullName, setFullName] = useState('');
   const [nameDirty, setNameDirty] = useState(false);
   const [nameSaving, setNameSaving] = useState(false);
@@ -30,6 +32,7 @@ export default function PackProfile() {
       setSession(data.session);
       const meta = (data.session?.user.user_metadata ?? {}) as Record<string, string | undefined>;
       setAvatarUrl(meta.avatar_url || meta.avatar || null);
+      setDevotion(Number(meta.devotion) || 100);
       setFullName(meta.full_name || meta.name || '');
     });
     return () => {
@@ -98,28 +101,29 @@ export default function PackProfile() {
   const hasAvatar = !!avatarUrl;
 
   return (
-    <PackLayout title="Profile" subtitle="The Pack · Account">
+    <PackLayout wide>
       <div className="flex flex-col gap-5">
-        {/* Avatar */}
+        {/* Identity — avatar + name merged */}
         <section
           style={{
             background: T.card,
             border: `1px solid ${T.hairline}`,
             borderRadius: 20,
-            padding: 22,
+            padding: 26,
             boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
           }}
         >
-          <div className="flex items-center gap-5">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
+            {/* Avatar */}
             <button
               type="button"
               onClick={handleAvatarClick}
               disabled={uploading}
               aria-label="Change avatar"
-              className="relative shrink-0 group"
+              className="relative shrink-0 group self-center sm:self-auto"
               style={{
-                width: 96,
-                height: 96,
+                width: 104,
+                height: 104,
                 borderRadius: '50%',
                 border: hasAvatar ? `1px solid ${T.hairline}` : `2px dashed ${T.border}`,
                 background: hasAvatar
@@ -143,7 +147,7 @@ export default function PackProfile() {
                 <span
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 36,
+                    fontSize: 38,
                     fontWeight: 700,
                     color: T.inkDim,
                   }}
@@ -166,127 +170,85 @@ export default function PackProfile() {
               style={{ display: 'none' }}
             />
 
-            <div className="min-w-0 flex-1">
-              <div
+            {/* Name + actions */}
+            <div className="min-w-0 flex-1 w-full">
+              <label
                 style={{
                   fontFamily: "'Cinzel', serif",
                   fontSize: 10,
                   letterSpacing: '0.32em',
                   textTransform: 'uppercase',
                   color: T.inkDim,
-                  marginBottom: 4,
+                  display: 'block',
+                  marginBottom: 8,
                 }}
               >
-                Photo
-              </div>
-              <div
+                Your Name
+              </label>
+              <input
+                type="text"
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  setNameDirty(true);
+                }}
+                placeholder="How should we call you?"
                 style={{
+                  width: '100%',
+                  background: T.bg,
+                  border: `1px solid ${T.hairline}`,
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  color: T.ink,
                   fontFamily: "'Space Grotesk', sans-serif",
                   fontSize: 14,
-                  color: T.ink,
-                  lineHeight: 1.45,
+                  outline: 'none',
                 }}
-              >
-                {hasAvatar ? 'Tap your photo to change it.' : 'Add a photo of yourself.'}
-              </div>
-              {!hasAvatar && (
-                <button
-                  type="button"
-                  onClick={handleAvatarClick}
-                  className="mt-3 inline-flex items-center gap-2"
+              />
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <span
                   style={{
-                    background: T.ink,
-                    color: T.card,
-                    padding: '10px 14px',
-                    borderRadius: 10,
-                    border: 'none',
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 11,
-                    letterSpacing: '0.22em',
-                    textTransform: 'uppercase',
-                    fontWeight: 700,
-                    cursor: 'pointer',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 13,
+                    color: T.inkDim,
                   }}
                 >
-                  <Camera className="h-3 w-3" />
-                  Upload
+                  {hasAvatar ? 'Tap your photo to change it.' : 'Add a photo of yourself.'}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleSaveName}
+                  disabled={!nameDirty || nameSaving}
+                  className="inline-flex items-center gap-2 shrink-0"
+                  style={{
+                    background: nameDirty ? T.ink : 'transparent',
+                    color: nameDirty ? T.card : T.inkFaint,
+                    border: nameDirty ? 'none' : `1px solid ${T.hairline}`,
+                    padding: '10px 14px',
+                    borderRadius: 10,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 11,
+                    letterSpacing: '0.24em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    cursor: nameDirty ? 'pointer' : 'default',
+                    opacity: nameSaving ? 0.6 : 1,
+                  }}
+                >
+                  {nameSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                  Save
                 </button>
-              )}
+              </div>
             </div>
           </div>
-        </section>
 
-        {/* Name */}
-        <section
-          style={{
-            background: T.card,
-            border: `1px solid ${T.hairline}`,
-            borderRadius: 20,
-            padding: 22,
-            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-          }}
-        >
-          <label
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: T.inkDim,
-              display: 'block',
-              marginBottom: 8,
-            }}
-          >
-            Your Name
-          </label>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => {
-              setFullName(e.target.value);
-              setNameDirty(true);
-            }}
-            placeholder="How should we call you?"
-            style={{
-              width: '100%',
-              background: T.bg,
-              border: `1px solid ${T.hairline}`,
-              borderRadius: 10,
-              padding: '12px 14px',
-              color: T.ink,
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 14,
-              outline: 'none',
-            }}
-          />
-          <div className="mt-3 flex items-center justify-end">
-            <button
-              type="button"
-              onClick={handleSaveName}
-              disabled={!nameDirty || nameSaving}
-              className="inline-flex items-center gap-2"
-              style={{
-                background: nameDirty ? T.ink : 'transparent',
-                color: nameDirty ? T.card : T.inkFaint,
-                border: nameDirty ? 'none' : `1px solid ${T.hairline}`,
-                padding: '10px 14px',
-                borderRadius: 10,
-                fontFamily: "'Cinzel', serif",
-                fontSize: 11,
-                letterSpacing: '0.24em',
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                cursor: nameDirty ? 'pointer' : 'default',
-                opacity: nameSaving ? 0.6 : 1,
-              }}
-            >
-              {nameSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
-              Save
-            </button>
+          {/* Devotion — level, progress, browseable badges */}
+          <div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 22, paddingTop: 22 }}>
+            <DevotionPanel devotion={devotion} />
           </div>
         </section>
 
-        {/* Your Network — two-level apostle tree */}
+        {/* Bones + your network — split two-column block */}
         <PackNetwork />
 
         {/* Account info (read-only) */}

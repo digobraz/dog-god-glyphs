@@ -30,7 +30,7 @@ interface Affiliate {
 // (packTheme partDev/Mkt/Help/Hek) — must match the TransparentStats block.
 const SPLIT = [
   { share: 5, label: 'Development', color: T.partDev, note: 'Building the nation and paying the people behind it — programmers, caretakers, trainers — plus the tools and servers that keep DOGYPT alive and growing. Every expense will be published.' },
-  { share: 3, label: 'Affiliate', color: T.partMkt, note: 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith (as points for now): spend them later or donate them to dogs in need. DOGYPT invests in the pack, not in expensive marketing — the pack spreads it far better.' },
+  { share: 3, label: 'Affiliate', color: T.partMkt, note: 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith (as bones): spend them later inside DOGYPT or donate them to dogs in need. DOGYPT invests in the pack, not in expensive marketing — the pack spreads it far better.' },
   { share: 2, label: 'Direct help', color: T.partHelp, note: 'Straight to dogs in need — shelters, food, vet bills, rescue — every cent documented and public.' },
   { share: 1, label: "Hekthor's bowl", color: T.partHek, note: 'The founder dog who started it all. His share keeps the original promise alive — the dream stays simple: become a millionaire by helping dogs, not despite them.' },
 ] as const;
@@ -201,7 +201,7 @@ export function FounderInvite() {
             }}
           >
             Every Dogyptian you bring earns you{' '}
-            <strong style={{ color: 'hsl(45 95% 88%)' }}>Apostle Points</strong> — and so does everyone
+            <strong style={{ color: 'hsl(45 95% 88%)' }}>bones</strong> — and so does everyone
             they bring after. Paw to paw, we reach the million.
           </p>
         </div>
@@ -210,7 +210,7 @@ export function FounderInvite() {
         <div className="grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 340 }}>
           <StatTile
             value={loading ? '—' : (aff?.points ?? 0).toLocaleString('sk-SK')}
-            label="Apostle Points"
+            label="Bones"
             highlight
           />
           <StatTile value={loading ? '—' : String(level1)} label="Level 1" sub="direct" />
