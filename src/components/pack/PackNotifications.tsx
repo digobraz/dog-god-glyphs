@@ -28,7 +28,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
   const items = [
     { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? `${last24h} new Dogyptian${last24h === 1 ? '' : 's'} today` : 'No new members today — yet' },
     { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: `${last30d} joined in the last 30 days` },
-    { iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: `${total.toLocaleString('sk-SK')} Dogyptians worldwide` },
+    { iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: `${total.toLocaleString('en-US')} Dogyptians worldwide` },
   ];
 
   return (

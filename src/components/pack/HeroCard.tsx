@@ -280,7 +280,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
               <BrandIcon name="bone" size={9} tint="dark" />
             </span>
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: T.ink }}>
-              {bones.toLocaleString('sk-SK')}
+              {bones.toLocaleString('en-US')}
             </span>
           </div>
         </div>
@@ -334,13 +334,13 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 className="hc-bar w-full"
                 tabIndex={0}
                 role="img"
-                aria-label={`Devotion ${devotion.toLocaleString('sk-SK')}, level ${lv.index} ${lv.name}`}
+                aria-label={`Devotion ${devotion.toLocaleString('en-US')}, level ${lv.index} ${lv.name}`}
                 style={{ position: 'relative', height: 34, borderRadius: 999, overflow: 'hidden', background: T.hairline, border: `1px solid ${T.border}` }}
               >
                 <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(270 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
                 <div className="relative h-full flex items-center justify-center gap-1.5">
                   <span style={{ fontFamily: "'Cinzel', serif", fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1, letterSpacing: '0.02em', textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>
-                    {devotion.toLocaleString('sk-SK')}
+                    {devotion.toLocaleString('en-US')}
                   </span>
                   <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, color: T.ink, lineHeight: 1, textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>☥</span>
                 </div>
@@ -350,7 +350,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
               {/* body do ďalšej (2.) úrovne — vpravo pod barom, malým */}
               <div style={{ textAlign: 'right', marginTop: 5 }}>
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>
-                  {lv.next ? <>{lv.toNext.toLocaleString('sk-SK')} ☥ to {lv.next.name}</> : 'Highest devotion reached'}
+                  {lv.next ? <>{lv.toNext.toLocaleString('en-US')} ☥ to {lv.next.name}</> : 'Highest devotion reached'}
                 </span>
               </div>
             </div>

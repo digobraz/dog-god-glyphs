@@ -209,7 +209,7 @@ export function FounderInvite() {
         {/* Network stats — Points · Level 1 · Level 2 (your whole tree) */}
         <div className="grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 340 }}>
           <StatTile
-            value={loading ? '—' : (aff?.points ?? 0).toLocaleString('sk-SK')}
+            value={loading ? '—' : (aff?.points ?? 0).toLocaleString('en-US')}
             label="Bones"
             highlight
           />

@@ -5,9 +5,14 @@ const T = PACK_THEME;
 export function ConstitutionCard() {
   return (
     <a
-      href="https://dogyptism.dogypt.com"
+      href="https://dogma.dogypt.com"
       target="_blank"
       rel="noopener noreferrer"
+      // Opening the DOGMA from the dashboard counts as the "Flip through the
+      // Constitution" First Step (Pack.tsx reads this flag). Without this, the
+      // step — and the +10 ☥ for 100% completion — was only reachable via the
+      // /religion flipbook, which /pack members have no link to.
+      onClick={() => { try { localStorage.setItem('dogypt_constitution_opened', '1'); } catch { /* ignore */ } }}
       className="pack-card-hover cbc block w-full"
       style={{
         background: T.card,

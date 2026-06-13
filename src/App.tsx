@@ -28,8 +28,6 @@ import Terms from "./pages/Terms.tsx";
 import Privacy from "./pages/Privacy.tsx";
 import Pack from "./pages/Pack.tsx";
 import PackDogDetail from "./pages/PackDogDetail.tsx";
-import PackEternal from "./pages/PackEternal.tsx";
-import PackGods from "./pages/PackGods.tsx";
 import PackProfile from "./pages/PackProfile.tsx";
 import PackPortal from "./pages/PackPortal.tsx";
 import Login from "./pages/Login.tsx";
@@ -107,8 +105,6 @@ const App = () => (
           {/* /pack — buyer backoffice (auth-gated) */}
           <Route path="/pack" element={<Pack />} />
           <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
-          <Route path="/pack/gods" element={<PackGods />} />
-          <Route path="/pack/eternal" element={<PackEternal />} />
           <Route path="/pack/profile" element={<PackProfile />} />
           <Route path="/pack/portal" element={<PackPortal />} />
 

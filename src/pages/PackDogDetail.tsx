@@ -80,36 +80,6 @@ function computeAge(
   return { years, months, days, totalDays, humanYears };
 }
 
-// ---------------------------------------------------------------------------
-// Temperament — PLACEHOLDER values (predpriprav). Real per-dog data + an
-// owner self-assessment editor land post-launch (DB columns: obedience_level,
-// social_level, temperament_tags). For now the structure is wired with golden
-// defaults so the block reads right; tweak per Matej before launch.
-// ---------------------------------------------------------------------------
-const OBEDIENCE_LABELS = ['Untamed', 'Spirited', 'Learning', 'Disciplined', 'Well-trained'];
-const SOCIAL_LABELS = ['Lone wolf', 'Selective', 'Warming up', 'Friendly', 'Social butterfly'];
-
-function levelLabel(labels: string[], pct: number): string {
-  const i = Math.min(labels.length - 1, Math.max(0, Math.floor((pct / 100) * labels.length)));
-  return labels[i];
-}
-
-interface Temperament {
-  obedience: number; // 0–100
-  social: number; // 0–100
-  tags: string[];
-}
-
-function getTemperament(): Temperament {
-  // TODO(matej): read from DB once the self-assessment editor exists.
-  // Hektor's golden case: "well-trained, well-raised — asocial".
-  return {
-    obedience: 85,
-    social: 15,
-    tags: ['Well-trained', 'Well-raised', 'Asocial'],
-  };
-}
-
 // "labrador retriever" → "Labrador Retriever"
 function capWords(s: string): string {
   return s
@@ -151,6 +121,12 @@ interface DogRow {
   stripe_session_id?: string | null;
   pack_number?: number | null;
   owner_name?: string | null;
+  weight_kg?: number | null;
+  health_status?: string | null;
+  allergies?: string | null;
+  conditions?: string | null;
+  medication?: string | null;
+  diet?: string | null;
 }
 
 type Status = 'loading' | 'ready' | 'not-found' | 'error';
@@ -185,28 +161,30 @@ export default function PackDogDetail() {
   const mainPhotoInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingMain, setUploadingMain] = useState(false);
 
-  // HEALTH STATUS — v1 placeholder: lokálny stav, NEodosiela sa. Vízia (liečitelia +
-  // AI outreach, globálna first-aid sieť = severka fáza „1M+ First Aid") cez vysvetlivku.
+  // HEALTH STATUS — meniteľný badge; persists to DB via healthStatus field.
   const [healthStatus, setHealthStatus] = useState<HealthKey>('healthy');
   const [healthOpen, setHealthOpen] = useState(false);
-  // Weight — editable, will log each change to DB (placeholder: local state for now).
-  const [weightKg, setWeightKg] = useState('26');
+  // Weight — editable inline, saves to DB via weightKgDb.
   const [weightEditing, setWeightEditing] = useState(false);
-  const [weightDraft, setWeightDraft] = useState('26');
+  const [weightDraft, setWeightDraft] = useState('');
   // DAILY PRAYERS — the three acts of devotion from the Constitution (Part IV).
-  // v1 placeholder: local state only, point values provisional. Will persist to a
-  // `dog_activities` table (dog_id, type, date, note, photos[], dogs_present[]) and
-  // roll up into the owner's stats post-launch.
   const [presenceDone, setPresenceDone] = useState(false);
   const [walkHours, setWalkHours] = useState<number | null>(null); // 0..5, 0 = under 1 h, null = untouched
   const [prayersSubmitted, setPrayersSubmitted] = useState(false); // locks the block once logged
-  // Owner devotion summary for the sticky bar (from user_metadata; new member = 100 Stray).
-  const [me, setMe] = useState<{ devotion: number; bones: number; avatarUrl: string | null }>({
-    devotion: 100, bones: 0, avatarUrl: null,
-  });
+  const [prayerLockedPoints, setPrayerLockedPoints] = useState<number | null>(null); // points credited when locked
+  const [showPrayerConfirm, setShowPrayerConfirm] = useState(false);
+  // HEALTH — editable fields from DB
+  const [weightKgDb, setWeightKgDb] = useState<string>('');
+  const [allergiesDb, setAllergiesDb] = useState<string>('');
+  const [conditionsDb, setConditionsDb] = useState<string>('');
+  const [medicationDb, setMedicationDb] = useState<string>('');
+  const [dietDb, setDietDb] = useState<string>('');
+  const [healthSaving, setHealthSaving] = useState(false);
 
   // Log today's prayer → grant-devotion (idempotent: one credit per dog per day).
-  const submitPrayers = async () => {
+  const confirmAndSubmitPrayers = async () => {
+    setShowPrayerConfirm(false);
+    const pts = (presenceDone ? 3 : 0) + (walkHours !== null ? walkPointsFor(walkHours) : 0);
     setPrayersSubmitted(true); // optimistic lock
     try {
       const { data: { session } } = await supabase.auth.getSession();
@@ -221,9 +199,48 @@ export default function PackDogDetail() {
       });
       if (res.ok) {
         const j = await res.json();
-        if (typeof j.total === 'number') setMe((m) => ({ ...m, devotion: j.total }));
+        setPrayerLockedPoints(j.points ?? pts);
+        if (typeof j.total === 'number') {
+          window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: j.total } }));
+        }
+      } else {
+        // Revert optimistic lock on failure
+        setPrayersSubmitted(false);
+        toast({ title: "Couldn't log — try again", variant: 'destructive' });
       }
-    } catch { /* keep optimistic lock; will reconcile on reload */ }
+    } catch {
+      // Revert optimistic lock on network error
+      setPrayersSubmitted(false);
+      toast({ title: "Couldn't log — try again", variant: 'destructive' });
+    }
+  };
+
+  // Save one or more health fields to DB.
+  const saveHealthFields = async (fields: Partial<Record<'weight_kg' | 'allergies' | 'conditions' | 'medication' | 'diet' | 'health_status', string | number | null>>) => {
+    if (!dog?.id) return;
+    setHealthSaving(true);
+    try {
+      const { error: upErr } = await (supabase as unknown as {
+        from: (t: string) => {
+          update: (vals: Record<string, unknown>) => {
+            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+          };
+        };
+      })
+        .from('dogs')
+        .update(fields)
+        .eq('id', dog.id);
+      if (upErr) throw new Error(upErr.message);
+      toast({ title: 'Saved' });
+    } catch (err) {
+      toast({
+        title: 'Could not save',
+        description: err instanceof Error ? err.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    } finally {
+      setHealthSaving(false);
+    }
   };
 
   useEffect(() => {
@@ -236,18 +253,6 @@ export default function PackDogDetail() {
       }
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      const uMeta = (user.user_metadata ?? {}) as Record<string, unknown>;
-      if (mounted) setMe({
-        devotion: Number(uMeta.devotion) || 100,
-        bones: 0, // BONES = affiliate currency (affiliates.points), patched below
-        avatarUrl: (uMeta.avatar_url || uMeta.avatar || null) as string | null,
-      });
-      // BONES from affiliate balance, not user_metadata.
-      supabase.rpc('get_or_create_my_affiliate').then(({ data }) => {
-        const row = (data as { points?: number }[] | null)?.[0];
-        if (mounted && row) setMe((m) => ({ ...m, bones: Number(row.points) || 0 }));
-      });
 
       const { data, error } = await (supabase as unknown as {
         from: (t: string) => {
@@ -262,7 +267,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, owner_name',
+          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -282,7 +287,43 @@ export default function PackDogDetail() {
       // Fallback for dogs bought before grid_message column was populated (message lived in selections.dogMessage).
       setMessageDraft(data.grid_message ?? data.selections?.dogMessage ?? '');
       setExtras(Array.isArray(data.cloudinary_extras) ? data.cloudinary_extras : []);
+      // Populate health fields from DB
+      if (mounted) {
+        setWeightKgDb(data.weight_kg != null ? String(data.weight_kg) : '');
+        setAllergiesDb(data.allergies ?? '');
+        setConditionsDb(data.conditions ?? '');
+        setMedicationDb(data.medication ?? '');
+        setDietDb(data.diet ?? '');
+        // Pre-fill healthStatus from DB if set
+        if (data.health_status) {
+          const validKeys: HealthKey[] = ['healthy', 'injury', 'gastro', 'allergy', 'other'];
+          if (validKeys.includes(data.health_status as HealthKey)) {
+            setHealthStatus(data.health_status as HealthKey);
+          }
+        }
+      }
       setStatus('ready');
+
+      // Check if today's prayer is already logged (lock the block if so).
+      const todayUTC = new Date().toISOString().slice(0, 10);
+      const idemKey = `prayer:${id}:${todayUTC}`;
+      const { data: existingPrayer } = await (supabase as unknown as {
+        from: (t: string) => {
+          select: (cols: string) => {
+            eq: (col: string, val: string) => {
+              maybeSingle: () => Promise<{ data: { points?: number } | null }>;
+            };
+          };
+        };
+      })
+        .from('devotion_events')
+        .select('points')
+        .eq('idem_key', idemKey)
+        .maybeSingle();
+      if (mounted && existingPrayer) {
+        setPrayersSubmitted(true);
+        setPrayerLockedPoints(existingPrayer.points ?? null);
+      }
 
       if (data.stripe_session_id) {
         const { data: pm } = await (supabase as unknown as {
@@ -584,7 +625,7 @@ export default function PackDogDetail() {
     .toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
     .toUpperCase();
   const walkPts = walkHours !== null ? walkPointsFor(walkHours) : 0;
-  const todayPoints = (presenceDone ? 3 : 0) + walkPts + 5; // +5 = feeding (set placeholder)
+  const todayPoints = (presenceDone ? 3 : 0) + walkPts;
 
   // Birthday for the STATS calendar markers (real birthday + 6 human-year birthdays).
   const sel = (dog.selections ?? {}) as Record<string, unknown>;
@@ -821,6 +862,7 @@ export default function PackDogDetail() {
                 onSelect={(k) => {
                   setHealthStatus(k);
                   setHealthOpen(false);
+                  void saveHealthFields({ health_status: k });
                 }}
               />
             </div>
@@ -1091,7 +1133,7 @@ export default function PackDogDetail() {
               Today's prayers — small acts of devotion to {dogName}.
             </p>
 
-            {/* Prayer checklist — 4 rows stacked, purple→gold gradient, big green check.
+            {/* Prayer checklist — rows stacked, purple→gold gradient, big green check.
                 Single-line rows of equal height; status/value sits next to the row. */}
             <div className="flex flex-col gap-2.5">
               {/* 1 — Prayer of Presence (tap to check) */}
@@ -1149,17 +1191,7 @@ export default function PackDogDetail() {
                 }
               />
 
-              {/* 3 — Prayer of Care (coming soon) */}
-              <PrayerRow
-                locked
-                faded
-                disabled={prayersSubmitted}
-                title="Nutrition"
-                hint="Fresh, real food is devotion — not ultra-processed kibble. Set your dog's diet for daily care points."
-                right={<span style={PTS_PILL}>Fresh food · 5/day</span>}
-              />
-
-              {/* 4 — Open Ritual (dropdown, coming soon) */}
+              {/* Open Ritual (dropdown, coming soon) */}
               <PrayerRow
                 locked
                 faded
@@ -1200,16 +1232,19 @@ export default function PackDogDetail() {
                   }}
                 >
                   {prayersSubmitted ? <Check className="h-4 w-4" strokeWidth={3} /> : <Sparkles className="h-4 w-4" />}
-                  {prayersSubmitted ? `+${todayPoints} Devotion credited` : `${todayPoints} Devotion today`}
+                  {prayersSubmitted
+                    ? `Logged for today ✓ +${prayerLockedPoints ?? todayPoints} ☥`
+                    : `${todayPoints} Devotion today`}
                 </span>
 
                 {!prayersSubmitted && (
                   <button
                     type="button"
-                    onClick={submitPrayers}
+                    onClick={() => setShowPrayerConfirm(true)}
+                    disabled={!presenceDone && walkHours === null}
                     className="inline-flex items-center gap-1.5"
                     style={{
-                      background: '#22C55E',
+                      background: (presenceDone || walkHours !== null) ? '#22C55E' : 'rgba(34,197,94,0.35)',
                       color: '#fff',
                       fontFamily: "'Cinzel', serif",
                       fontWeight: 700,
@@ -1217,8 +1252,8 @@ export default function PackDogDetail() {
                       letterSpacing: '0.04em',
                       padding: '9px 18px',
                       borderRadius: 999,
-                      cursor: 'pointer',
-                      boxShadow: '0 10px 24px -10px rgba(34, 197, 94, 0.7)',
+                      cursor: (presenceDone || walkHours !== null) ? 'pointer' : 'not-allowed',
+                      boxShadow: (presenceDone || walkHours !== null) ? '0 10px 24px -10px rgba(34, 197, 94, 0.7)' : 'none',
                     }}
                   >
                     <Check className="h-4 w-4" strokeWidth={3} />
@@ -1239,6 +1274,92 @@ export default function PackDogDetail() {
                 {prayersSubmitted ? 'Locked for today · resets tomorrow' : 'Adds to your stats'}
               </span>
             </div>
+
+            {/* Confirm dialog — modal overlay */}
+            {showPrayerConfirm && (
+              <div
+                className="fixed inset-0 flex items-center justify-center"
+                style={{ zIndex: 50, background: 'rgba(10,8,20,0.72)', backdropFilter: 'blur(3px)' }}
+                onClick={() => setShowPrayerConfirm(false)}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+                    border: `1px solid rgba(201, 154, 63, 0.40)`,
+                    borderRadius: 20,
+                    padding: '28px 26px',
+                    maxWidth: 360,
+                    width: '90vw',
+                    boxShadow: '0 28px 60px -18px rgba(20,8,40,0.6)',
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: 16,
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      color: T.ink,
+                      marginBottom: 10,
+                    }}
+                  >
+                    Log today's prayers?
+                  </h3>
+                  <p
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      color: T.inkDim,
+                      marginBottom: 22,
+                    }}
+                  >
+                    This is final — today's devotion can't be changed.
+                  </p>
+                  <div className="flex items-center gap-3 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowPrayerConfirm(false)}
+                      style={{
+                        padding: '9px 18px',
+                        borderRadius: 10,
+                        background: 'transparent',
+                        border: `1px solid ${T.border}`,
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 11,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        color: T.inkDim,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={confirmAndSubmitPrayers}
+                      style={{
+                        padding: '9px 20px',
+                        borderRadius: 10,
+                        background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                        border: '1px solid rgba(250, 244, 236, 0.30)',
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 11,
+                        letterSpacing: '0.14em',
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                        color: '#3d1f00',
+                        cursor: 'pointer',
+                        boxShadow: '0 8px 20px -8px rgba(201, 154, 63, 0.65)',
+                      }}
+                    >
+                      Log prayers
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </section>
 
         </div>
@@ -1327,7 +1448,7 @@ export default function PackDogDetail() {
                     value={birthDateLabel ?? '—'}
                     hint={age ? `${age.years}y ${age.months}m` : undefined}
                   />
-                  {/* Weight — editable, logs on save */}
+                  {/* Weight — editable, saves to DB */}
                   <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
                     <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint }}>
                       Weight
@@ -1339,13 +1460,16 @@ export default function PackDogDetail() {
                           inputMode="decimal"
                           value={weightDraft}
                           onChange={(e) => setWeightDraft(e.target.value.replace(/[^0-9.,]/g, ''))}
-                          onKeyDown={(e) => {
+                          onKeyDown={async (e) => {
                             if (e.key === 'Enter') {
                               const v = weightDraft.replace(',', '.').trim();
-                              if (v) { setWeightKg(v); toast({ title: 'Weight logged', description: `${v} kg saved to the record.` }); }
                               setWeightEditing(false);
+                              if (v) {
+                                setWeightKgDb(v);
+                                await saveHealthFields({ weight_kg: parseFloat(v) });
+                              }
                             }
-                            if (e.key === 'Escape') { setWeightDraft(weightKg); setWeightEditing(false); }
+                            if (e.key === 'Escape') { setWeightDraft(weightKgDb); setWeightEditing(false); }
                           }}
                           style={{
                             width: 54, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600,
@@ -1356,10 +1480,13 @@ export default function PackDogDetail() {
                         <button
                           type="button"
                           aria-label="Save weight"
-                          onClick={() => {
+                          onClick={async () => {
                             const v = weightDraft.replace(',', '.').trim();
-                            if (v) { setWeightKg(v); toast({ title: 'Weight logged', description: `${v} kg saved to the record.` }); }
                             setWeightEditing(false);
+                            if (v) {
+                              setWeightKgDb(v);
+                              await saveHealthFields({ weight_kg: parseFloat(v) });
+                            }
                           }}
                           style={{ display: 'inline-flex', color: T.growGreen, cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
                         >
@@ -1369,18 +1496,28 @@ export default function PackDogDetail() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => { setWeightDraft(weightKg); setWeightEditing(true); }}
+                        onClick={() => { setWeightDraft(weightKgDb); setWeightEditing(true); }}
                         className="inline-flex items-center gap-1.5 group"
                         style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                       >
                         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: T.ink }}>
-                          {weightKg} kg
+                          {weightKgDb ? `${weightKgDb} kg` : '— Add weight'}
                         </span>
                         <BrandIcon name="pencil" size={12} tint="gold" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                     )}
                   </div>
-                  <OverviewFact label="Feeding" value="Fresh food (BARF)" />
+                  {/* Diet — editable text input, saves to DB */}
+                  <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
+                    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint }}>
+                      Diet
+                    </span>
+                    <EditableHealthText
+                      value={dietDb}
+                      placeholder="Add diet…"
+                      onSave={async (v) => { setDietDb(v); await saveHealthFields({ diet: v || null }); }}
+                    />
+                  </div>
                 </div>
 
                 {/* Shields */}
@@ -1427,11 +1564,29 @@ export default function PackDogDetail() {
                 </div>
               </div>
 
-              {/* Critical strip — the first thing a vet needs */}
+              {/* Critical strip — the first thing a vet needs (editable, saves to DB) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5" style={{ marginTop: 14 }}>
-                <CriticalChip lucide={<BrandIcon name="alert" size={14} tint="gold" />} label="Allergies" value="None recorded" />
-                <CriticalChip lucide={<BrandIcon name="clipboard" size={14} tint="gold" />} label="Conditions" value="None recorded" />
-                <CriticalChip lucide={<BrandIcon name="chemical" size={14} tint="gold" />} label="Medication" value="None recorded" />
+                <EditableCriticalChip
+                  lucide={<BrandIcon name="alert" size={14} tint="gold" />}
+                  label="Allergies"
+                  value={allergiesDb}
+                  placeholder="—"
+                  onSave={async (v) => { setAllergiesDb(v); await saveHealthFields({ allergies: v || null }); }}
+                />
+                <EditableCriticalChip
+                  lucide={<BrandIcon name="clipboard" size={14} tint="gold" />}
+                  label="Conditions"
+                  value={conditionsDb}
+                  placeholder="—"
+                  onSave={async (v) => { setConditionsDb(v); await saveHealthFields({ conditions: v || null }); }}
+                />
+                <EditableCriticalChip
+                  lucide={<BrandIcon name="chemical" size={14} tint="gold" />}
+                  label="Medication"
+                  value={medicationDb}
+                  placeholder="—"
+                  onSave={async (v) => { setMedicationDb(v); await saveHealthFields({ medication: v || null }); }}
+                />
               </div>
 
               {/* Tests — Personality (TCM) + Identity, each a "Make test" CTA (soon) */}
@@ -2120,77 +2275,109 @@ function LevelMeter({ title, pct, label }: { title: string; pct: number; label: 
   );
 }
 
-function InfoFact({ label, value, symbol, flag }: { label: string; value: string; symbol?: string; flag?: string }) {
-  return (
-    <div className="flex items-center gap-2.5" style={{ minWidth: 0 }}>
-      <span
-        className="inline-flex items-center justify-center"
-        style={{
-          width: 32,
-          height: 32,
-          flexShrink: 0,
-          borderRadius: 9,
-          background: 'rgba(201, 154, 63, 0.08)',
-          border: '1px solid rgba(201, 154, 63, 0.20)',
-        }}
-      >
-        {symbol ? (
-          <img src={symbol} alt="" style={{ width: 22, height: 22, objectFit: 'contain', filter: GOLD_FILTER }} />
-        ) : flag ? (
-          <span style={{ fontSize: 18, lineHeight: 1 }}>{flag}</span>
-        ) : (
-          <BrandIcon name="paw" size={14} tint="gold" />
-        )}
+// EditableHealthText — single-line text field that shows value (or placeholder) and
+// enters edit mode on click; saves on blur or Enter.
+function EditableHealthText({ value, placeholder, onSave }: { value: string; placeholder: string; onSave: (v: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  // Sync when parent updates
+  if (!editing && draft !== value) setDraft(value);
+  return editing ? (
+    <input
+      autoFocus
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => { setEditing(false); onSave(draft.trim()); }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') { setEditing(false); onSave(draft.trim()); }
+        if (e.key === 'Escape') { setEditing(false); setDraft(value); }
+      }}
+      style={{
+        width: '100%',
+        fontFamily: "'Space Grotesk', sans-serif",
+        fontSize: 14,
+        fontWeight: 600,
+        color: T.ink,
+        background: T.card,
+        border: `1px solid ${T.border}`,
+        borderRadius: 6,
+        padding: '2px 6px',
+      }}
+    />
+  ) : (
+    <button
+      type="button"
+      onClick={() => { setDraft(value); setEditing(true); }}
+      className="inline-flex items-center gap-1.5 group"
+      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+    >
+      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: value ? T.ink : T.inkFaint }}>
+        {value || placeholder}
       </span>
-      <div style={{ minWidth: 0 }}>
-        <div
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 8,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: T.inkFaint,
-            lineHeight: 1,
-            marginBottom: 2,
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 13.5,
-            fontWeight: 600,
-            color: T.ink,
-            lineHeight: 1.2,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {value}
-        </div>
-      </div>
-    </div>
+      <BrandIcon name="pencil" size={12} tint="gold" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+    </button>
   );
 }
 
-function NatureChip({ label }: { label: string }) {
+// EditableCriticalChip — vet-critical field (allergies/conditions/medication) with inline edit.
+function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { lucide: React.ReactNode; label: string; value: string; placeholder: string; onSave: (v: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  if (!editing && draft !== value) setDraft(value);
   return (
-    <span
-      style={{
-        padding: '6px 12px',
-        borderRadius: 999,
-        background: 'rgba(201, 154, 63, 0.10)',
-        border: `1px solid rgba(201, 154, 63, 0.35)`,
-        fontFamily: "'Space Grotesk', sans-serif",
-        fontSize: 12,
-        fontWeight: 500,
-        color: T.ink,
-      }}
+    <div
+      className="flex items-start gap-2.5"
+      style={{ padding: '10px 12px', borderRadius: 12, background: T.card, border: `1px solid ${T.hairline}` }}
     >
-      {label}
-    </span>
+      <span style={{ color: T.accentGold, display: 'inline-flex', paddingTop: 2 }}>{lucide}</span>
+      <div className="flex flex-col" style={{ gap: 1, minWidth: 0, flex: 1 }}>
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 8.5,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: T.inkFaint,
+          }}
+        >
+          {label}
+        </span>
+        {editing ? (
+          <input
+            autoFocus
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => { setEditing(false); onSave(draft.trim()); }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { setEditing(false); onSave(draft.trim()); }
+              if (e.key === 'Escape') { setEditing(false); setDraft(value); }
+            }}
+            style={{
+              width: '100%',
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 12,
+              color: T.ink,
+              background: T.bg,
+              border: `1px solid ${T.border}`,
+              borderRadius: 5,
+              padding: '2px 5px',
+            }}
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setDraft(value); setEditing(true); }}
+            className="inline-flex items-center gap-1 group"
+            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+          >
+            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: value ? T.inkDim : T.inkFaint }}>
+              {value || placeholder}
+            </span>
+            <BrandIcon name="pencil" size={10} tint="gold" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -58,7 +58,6 @@ const GROUPS: RouteGroup[] = [
     routes: [
       { path: "/login", name: "Login" },
       { path: "/pack", name: "Pack" },
-      { path: "/pack/eternal", name: "Pack eternal" },
       { path: "/pack/profile", name: "Pack profile" },
     ],
   },

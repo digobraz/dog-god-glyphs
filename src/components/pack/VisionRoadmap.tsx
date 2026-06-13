@@ -73,7 +73,13 @@ export function VisionRoadmap({ onVotedCountChange }: Props) {
     if (bonusDone.v) return;
     bonusDone.v = true;
     try {
-      await fetch(GRANT, { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ kind: 'vision_bonus' }) });
+      const res = await fetch(GRANT, { method: 'POST', headers: await authHeaders(), body: JSON.stringify({ kind: 'vision_bonus' }) });
+      if (res.ok) {
+        const json = await res.json();
+        if (typeof json?.total === 'number') {
+          window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: json.total } }));
+        }
+      }
     } catch { /* non-blocking */ }
   }
 

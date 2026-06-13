@@ -196,7 +196,7 @@ export default function Pack() {
     (async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        await fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion', {
+        const res = await fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -205,6 +205,12 @@ export default function Pack() {
           },
           body: JSON.stringify({ kind: 'first_steps' }),
         });
+        if (res.ok) {
+          const json = await res.json();
+          if (typeof json?.total === 'number') {
+            window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: json.total } }));
+          }
+        }
       } catch { /* non-blocking */ }
     })();
   }, [allStepsDone]);

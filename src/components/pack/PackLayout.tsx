@@ -52,9 +52,40 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
     return () => { alive = false; };
   }, []);
 
+  // Live devotion refresh — listens for grant events dispatched by Pack.tsx / VisionRoadmap.tsx.
+  useEffect(() => {
+    function handler(e: Event) {
+      const total = (e as CustomEvent<{ total: number }>).detail?.total;
+      if (typeof total === 'number') setDevotion(total);
+    }
+    window.addEventListener('dogypt:devotion', handler);
+    return () => { window.removeEventListener('dogypt:devotion', handler); };
+  }, []);
+
   useEffect(() => {
     let mounted = true;
-    supabase.auth.getSession().then(async ({ data: { session: s } }) => {
+
+    // DEV-ONLY auto sign-in for local /pack review. Guarded by import.meta.env.DEV,
+    // which is FALSE in any production build (Lovable publish) → this branch is dead code
+    // in prod. Opt-in via VITE_DEV_AUTH=1 + creds in .env.local (gitignored). Never ships.
+    const DEV_AUTH =
+      import.meta.env.DEV &&
+      import.meta.env.VITE_DEV_AUTH === '1' &&
+      !!import.meta.env.VITE_DEV_AUTH_EMAIL &&
+      !!import.meta.env.VITE_DEV_AUTH_PASSWORD;
+
+    async function ensureSession(): Promise<Session | null> {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      if (s || !DEV_AUTH) return s;
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: import.meta.env.VITE_DEV_AUTH_EMAIL as string,
+        password: import.meta.env.VITE_DEV_AUTH_PASSWORD as string,
+      });
+      if (error) console.warn('[DEV_AUTH] auto sign-in failed:', error.message);
+      return data.session;
+    }
+
+    ensureSession().then(async (s) => {
       if (!mounted) return;
       if (s) {
         try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
