@@ -38,6 +38,7 @@ import Religion from "./pages/Religion.tsx";
 import About from "./pages/About.tsx";
 import Heroglyph from "./pages/Heroglyph.tsx";
 import CertRender from "./pages/CertRender.tsx";
+import InvoiceRender from "./pages/InvoiceRender.tsx";
 import { DevNav } from "@/components/DevNav";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
@@ -109,6 +110,7 @@ const App = () => (
           <Route path="/pack/portal" element={<PackPortal />} />
 
           <Route path="/cert-render/:id" element={<CertRender />} />
+          <Route path="/invoice-render/:id" element={<InvoiceRender />} />
 
           {/* /admin — read-only backoffice (admin-email gated) */}
           <Route path="/admin" element={<Admin />} />
