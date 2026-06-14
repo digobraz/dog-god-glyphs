@@ -2,73 +2,122 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 /**
- * Headless render target for beta invoice PDF generation (Cloudflare Browser
- * Rendering). Renders an A4 invoice with DOGYPT brand (papyrus/gold, Cinzel).
+ * Headless render target for invoice PDF generation (Cloudflare Browser Rendering).
+ * Renders an A4 invoice with DOGYPT brand (papyrus/gold/ink, Cinzel + Space Grotesk).
  *
  * URL: /invoice-render/:id?key=<RENDER_KEY>&lang=en|sk|cs
  *
  * The page sets data-render-ready="1" on <html> once data is loaded and fonts
  * are decoded — Cloudflare waits for that selector before printing.
- *
- * NOTE: This is a BETA invoice — clearly labelled as non-final, no IČO/DIČ.
  */
 
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
 
-// i18n labels for the invoice
+// i18n labels — ALL 3 languages complete, no missing keys
 const LABELS: Record<string, Record<string, string>> = {
-  en: {
-    title: 'Invoice',
-    beta: 'BETA · NOT A LEGAL TAX DOCUMENT',
-    invoiceNumber: 'Invoice No.',
-    date: 'Date',
-    billTo: 'Bill To',
-    description: 'Description',
-    heroglyph: 'Heroglyph — Unique Sacred Symbol',
-    quantity: 'Qty',
-    unit: 'Unit Price',
-    total: 'Total',
-    currency: 'EUR',
-    betaNote: 'This is a BETA confirmation receipt. Official invoicing will be issued from a registered entity. No IČO/DIČ/VAT registration applicable at this stage.',
-    footer: 'In Dog We Trust.',
-    seller: 'DOGYPT',
-    country: 'Slovakia',
-  },
   sk: {
     title: 'Faktúra',
-    beta: 'BETA · TOTO NIE JE DAŇOVÝ DOKLAD',
     invoiceNumber: 'Číslo faktúry',
-    date: 'Dátum',
-    billTo: 'Odberateľ',
-    description: 'Popis',
-    heroglyph: 'Heroglyf — Unikátny posvätný symbol',
-    quantity: 'Mn.',
-    unit: 'Jedn. cena',
-    total: 'Spolu',
-    currency: 'EUR',
-    betaNote: 'Toto je BETA potvrdenie o úhrade. Oficálne faktúry budú vydávané po registrácii subjektu. Zatiaľ bez IČO/DIČ.',
-    footer: 'In Dog We Trust.',
-    seller: 'DOGYPT',
-    country: 'Slovensko',
+    seller: 'Dodávateľ',
+    buyer: 'Odberateľ',
+    description: 'Popis položky',
+    qty: 'Množ.',
+    unit: 'MJ',
+    unitVal: 'ks',
+    price: 'Cena',
+    subtotal: 'Spolu',
+    issued: 'Dátum vystavenia',
+    delivered: 'Dátum dodania',
+    payMethod: 'Karta · Stripe',
+    payMethodLabel: 'Forma úhrady',
+    status: 'Stav',
+    statusVal: 'Uhradené',
+    toPay: 'K úhrade',
+    paidByCard: 'Uhradené kartou',
+    paidStamp: 'Uhradené',
+    paidSmall: 'Paid · ',
+    inWords11: 'slovom: jedenásť eur',
+    vatNote: 'Dodávateľ nie je platiteľom dane z pridanej hodnoty; ceny sú konečné.',
+    orNote: 'Spoločnosť zapísaná v OR Okresného súdu Trnava, oddiel Sro, vložka č. 51029/T.',
+    paidNote: 'Faktúra bola uhradená online kartou cez Stripe — neslúži ako výzva na úhradu.',
+    footer: 'In Dog We Trust',
+    heroglyph: 'Heroglyph — unikátny posvätný symbol',
+    icoLabel: 'IČO',
+    dphLabel: 'DPH',
+    dphVal: 'Neplatiteľ DPH',
+    webLabel: 'Web',
+    mailLabel: 'Mail',
+    subtotalLabel: 'Medzisúčet',
   },
   cs: {
     title: 'Faktura',
-    beta: 'BETA · TOTO NENÍ DAŇOVÝ DOKLAD',
     invoiceNumber: 'Číslo faktury',
-    date: 'Datum',
-    billTo: 'Odběratel',
-    description: 'Popis',
-    heroglyph: 'Hieroglyf — Unikátní posvátný symbol',
-    quantity: 'Mn.',
-    unit: 'Jedn. cena',
-    total: 'Celkem',
-    currency: 'EUR',
-    betaNote: 'Toto je BETA potvrzení o úhradě. Oficiální faktury budou vydávány po registraci subjektu. Zatím bez IČO/DIČ.',
-    footer: 'In Dog We Trust.',
-    seller: 'DOGYPT',
-    country: 'Slovensko',
+    seller: 'Dodavatel',
+    buyer: 'Odběratel',
+    description: 'Popis položky',
+    qty: 'Množ.',
+    unit: 'MJ',
+    unitVal: 'ks',
+    price: 'Cena',
+    subtotal: 'Celkem',
+    issued: 'Datum vystavení',
+    delivered: 'Datum dodání',
+    payMethod: 'Karta · Stripe',
+    payMethodLabel: 'Forma úhrady',
+    status: 'Stav',
+    statusVal: 'Uhrazeno',
+    toPay: 'K úhradě',
+    paidByCard: 'Uhrazeno kartou',
+    paidStamp: 'Uhrazeno',
+    paidSmall: 'Paid · ',
+    inWords11: 'slovy: jedenáct eur',
+    vatNote: 'Dodavatel není plátcem daně z přidané hodnoty; ceny jsou konečné.',
+    orNote: 'Společnost zapsaná v OR Okresního soudu Trnava, oddíl Sro, vložka č. 51029/T.',
+    paidNote: 'Faktura byla uhrazena online kartou přes Stripe — neslouží jako výzva k úhradě.',
+    footer: 'In Dog We Trust',
+    heroglyph: 'Heroglyph — unikátní posvátný symbol',
+    icoLabel: 'IČO',
+    dphLabel: 'DPH',
+    dphVal: 'Neplátce DPH',
+    webLabel: 'Web',
+    mailLabel: 'Mail',
+    subtotalLabel: 'Mezisoučet',
+  },
+  en: {
+    title: 'Invoice',
+    invoiceNumber: 'Invoice No.',
+    seller: 'Supplier',
+    buyer: 'Bill To',
+    description: 'Description',
+    qty: 'Qty',
+    unit: 'Unit',
+    unitVal: 'pcs',
+    price: 'Price',
+    subtotal: 'Total',
+    issued: 'Issue Date',
+    delivered: 'Delivery Date',
+    payMethod: 'Card · Stripe',
+    payMethodLabel: 'Payment',
+    status: 'Status',
+    statusVal: 'Paid',
+    toPay: 'Amount Due',
+    paidByCard: 'Paid by card',
+    paidStamp: 'Paid',
+    paidSmall: 'Paid · ',
+    inWords11: 'in words: eleven euro',
+    vatNote: 'The supplier is not registered for VAT; prices are final.',
+    orNote: 'Company registered at District Court Trnava, section Sro, file no. 51029/T.',
+    paidNote: 'This invoice was paid online by card via Stripe — not a demand for payment.',
+    footer: 'In Dog We Trust',
+    heroglyph: 'Heroglyph — unique sacred symbol',
+    icoLabel: 'Reg. No.',
+    dphLabel: 'VAT',
+    dphVal: 'Not a VAT payer',
+    webLabel: 'Web',
+    mailLabel: 'Mail',
+    subtotalLabel: 'Subtotal',
   },
 };
 
@@ -77,6 +126,25 @@ function detectLang(country?: string | null, paramLang?: string | null): string 
   if (country === 'SVK') return 'sk';
   if (country === 'CZE') return 'cs';
   return 'en';
+}
+
+/** Format date as dd. mm. yyyy */
+function fmtDate(iso?: string | null): string {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}. ${mm}. ${yyyy}`;
+  } catch {
+    return '—';
+  }
+}
+
+/** Format amount as "11,00 €" */
+function fmtAmount(amount: number): string {
+  return amount.toFixed(2).replace('.', ',') + ' €';
 }
 
 interface InvoiceDog {
@@ -89,6 +157,8 @@ interface InvoiceDog {
   stripe_session_id: string | null;
   created_at: string;
   pack_number?: number | null;
+  invoice_number?: string | null;
+  invoice_issued_at?: string | null;
 }
 
 export default function InvoiceRender() {
@@ -149,266 +219,289 @@ export default function InvoiceRender() {
   const dogName = dog.dog_name || 'Unnamed';
   const ownerName = dog.owner_name || '';
   const amount = dog.amount ?? 11;
+  const amountStr = fmtAmount(amount);
 
-  // Invoice number: DGP-BETA-{pack_number} or DGP-BETA-{id prefix}
-  const invoiceNumber = dog.pack_number
-    ? `DGP-BETA-${String(dog.pack_number).padStart(5, '0')}`
-    : `DGP-BETA-${dog.id.slice(0, 8).toUpperCase()}`;
+  // Invoice number — use real invoice_number; fallback '—' (never DGP-BETA)
+  const invoiceNumber = dog.invoice_number || '—';
 
-  const issuedDate = (() => {
-    try {
-      return new Date(dog.created_at).toLocaleDateString('en-GB', {
-        day: '2-digit', month: 'short', year: 'numeric',
-      });
-    } catch { return ''; }
-  })();
+  // Dates — issued_at preferred, fallback created_at
+  const issuedRaw = dog.invoice_issued_at || dog.created_at;
+  const issuedDate = fmtDate(issuedRaw);
 
-  const gold = '#C99A3F';
-  const darkGold = '#A07423';
-  const papyrus = '#f0e3c4';
-  const papyrusDark = '#ecdbb8';
-  const textDark = '#1a0900';
+  // inWords: known for 11, else numeric fallback
+  const inWords = amount === 11 ? L.inWords11 : `${amount} EUR`;
+
+  // CSS vars as inline style on sheet
+  const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+    :root {
+      --ink: #1a1310;
+      --ink-soft: #5a4b3a;
+      --ink-faint: #9c8a72;
+      --gold: #C99A3F;
+      --gold-deep: #9a7325;
+      --papyrus: #f6efdd;
+      --papyrus-2: #f1e7cf;
+      --line: rgba(154,115,37,0.28);
+      --line-soft: rgba(90,75,58,0.16);
+    }
+    * { box-sizing: border-box; }
+    html, body, #root { margin: 0; background: #2a2620; }
+    body {
+      font-family: 'Space Grotesk', Arial, sans-serif;
+      color: var(--ink);
+      padding: 32px 16px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    #invoice-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto;
+      background:
+        radial-gradient(ellipse 120% 80% at 50% -10%, rgba(201,154,63,0.06), transparent 60%),
+        linear-gradient(168deg, #f8f2e1 0%, var(--papyrus) 30%, var(--papyrus-2) 70%, #f8f2e1 100%);
+      position: relative;
+      box-shadow: 0 24px 70px rgba(0,0,0,.45);
+      overflow: hidden;
+    }
+    .frame {
+      position: absolute; inset: 10mm;
+      border: 1px solid var(--line-soft);
+      pointer-events: none;
+    }
+    .frame::before {
+      content: ""; position: absolute; inset: 2.5mm;
+      border: 1px solid rgba(201,154,63,0.18);
+    }
+    .pad { position: relative; z-index: 2; padding: 22mm 20mm 18mm; }
+    .top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .brand .logo { display: block; width: 44mm; height: auto; }
+    .brand .tag {
+      font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: .42em;
+      text-transform: uppercase; color: var(--gold-deep); margin-top: 4mm; padding-left: 1mm;
+    }
+    .doc { text-align: right; }
+    .doc .word {
+      font-family: 'Cinzel', serif; font-weight: 600; font-size: 13px;
+      letter-spacing: .4em; text-transform: uppercase; color: var(--ink-soft);
+    }
+    .doc .num {
+      font-family: 'Cinzel', serif; font-weight: 600; font-size: 21px;
+      letter-spacing: .10em; color: var(--ink); margin-top: 4px;
+    }
+    .rule { height: 1px; background: linear-gradient(90deg,transparent,var(--line),transparent); margin: 9mm 0; }
+    .rule.tight { margin: 5mm 0; }
+    .parties { display: flex; gap: 14mm; }
+    .party { flex: 1; }
+    .plabel {
+      font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: .30em;
+      text-transform: uppercase; color: var(--gold-deep); margin-bottom: 6px;
+    }
+    .party .name { font-size: 13px; font-weight: 600; letter-spacing: .01em; }
+    .party .lines { font-size: 10.5px; line-height: 1.65; color: var(--ink-soft); margin-top: 3px; }
+    .party .lines b { color: var(--ink); font-weight: 500; }
+    .kv { margin-top: 6px; font-size: 10px; line-height: 1.6; color: var(--ink-soft); }
+    .kv span { display: inline-block; min-width: 42px; color: var(--ink-faint); }
+    .meta { display: flex; gap: 0; margin-top: 2mm; }
+    .meta .cell { flex: 1; padding: 4mm 4mm 4mm 0; }
+    .meta .cell + .cell { padding-left: 6mm; border-left: 1px solid var(--line-soft); }
+    .meta .mlabel { font-size: 8.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); }
+    .meta .mval { font-size: 12px; margin-top: 4px; color: var(--ink); font-weight: 500; }
+    table.items { width: 100%; border-collapse: collapse; margin-top: 2mm; font-size: 11px; }
+    table.items th {
+      font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--gold-deep); font-weight: 600;
+      text-align: left; padding: 0 4mm 4mm 0; border-bottom: 1px solid var(--line);
+    }
+    table.items th.r, table.items td.r { text-align: right; padding-right: 0; }
+    table.items th.c, table.items td.c { text-align: center; }
+    table.items td { padding: 5mm 4mm 5mm 0; vertical-align: top; border-bottom: 1px solid var(--line-soft); }
+    .it-title { font-weight: 600; }
+    .it-sub { color: var(--ink-faint); font-size: 10px; font-family: 'Cinzel', serif; letter-spacing: .05em; margin-top: 2px; }
+    .totals { display: flex; justify-content: space-between; align-items: flex-end; gap: 12mm; margin-top: 8mm; }
+    .tbox { min-width: 78mm; }
+    .trow { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-soft); padding: 2.5mm 0; }
+    .trow.grand {
+      margin-top: 3mm; padding-top: 4mm; border-top: 1.5px solid var(--gold);
+      align-items: baseline;
+    }
+    .trow.grand .lbl { font-family: 'Cinzel', serif; letter-spacing: .16em; text-transform: uppercase; font-size: 11px; color: var(--ink); }
+    .trow.grand .val { font-family: 'Cinzel', serif; font-weight: 700; font-size: 24px; letter-spacing: .04em; color: var(--ink); }
+    .words { text-align: right; font-size: 9.5px; color: var(--ink-faint); font-style: italic; margin-top: 3mm; }
+    .paid-stamp {
+      display: inline-block; margin-top: 7mm;
+      padding: 2.5mm 7mm;
+      border: 2.5px solid #0f8a7e; border-radius: 3px;
+      font-family: 'Cinzel', serif; font-weight: 700;
+      font-size: 15px; letter-spacing: .30em; text-transform: uppercase;
+      color: #0f8a7e;
+      transform: rotate(-8deg); opacity: .82;
+      box-shadow: inset 0 0 0 1.5px rgba(15,138,126,.30);
+    }
+    .paid-stamp small { display: block; font-size: 8px; letter-spacing: .34em; font-weight: 500; margin-top: 1.5mm; opacity: .85; }
+    .seal {
+      position: absolute; left: 50%; bottom: 24mm;
+      transform: translateX(-50%) rotate(-5deg);
+      width: 34mm; height: 34mm; z-index: 3;
+    }
+    .seal img {
+      width: 100%; height: 100%; object-fit: contain;
+      filter: sepia(.4) saturate(1.2) hue-rotate(-6deg) opacity(.92);
+      mix-blend-mode: multiply;
+    }
+    .note { margin: 0; font-size: 9px; line-height: 1.7; color: var(--ink-faint); flex: 0 1 92mm; }
+    .note b { color: var(--ink-soft); font-weight: 600; }
+    .foot {
+      position: absolute; left: 0; right: 0; bottom: 14mm; text-align: center;
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: .4em;
+      text-transform: uppercase; color: var(--gold-deep);
+    }
+    @media print {
+      body { padding: 0; background: #fff; }
+      #invoice-page { box-shadow: none; margin: 0; }
+    }
+    @page { size: A4 portrait; margin: 0; }
+  `;
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Space+Grotesk:wght@400;500;600&display=swap');
-        @page { size: A4 portrait; margin: 0; }
-        html, body, #root { margin: 0; padding: 0; background: ${papyrus}; }
-        * { box-sizing: border-box; }
-        #invoice-page { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      `}</style>
-      <div
-        id="invoice-page"
-        style={{
-          width: '210mm',
-          minHeight: '297mm',
-          background: `
-            radial-gradient(ellipse 90% 100% at 50% 50%, transparent 52%, rgba(80,45,5,0.12) 100%),
-            linear-gradient(170deg, #f6edd8 0%, ${papyrus} 25%, ${papyrusDark} 55%, #f2e4c8 80%, #f6edd8 100%)
-          `,
-          padding: '0',
-          fontFamily: "'Space Grotesk', Arial, sans-serif",
-          color: textDark,
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Top gold stripe */}
-        <div style={{
-          height: '14px',
-          background: `linear-gradient(90deg, #3a2a0a 0%, #6b4d18 30%, ${gold} 50%, #6b4d18 70%, #3a2a0a 100%)`,
-        }} />
+      <style>{css}</style>
+      <div id="invoice-page">
+        <div className="frame" />
 
-        {/* BETA watermark diagonal */}
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%) rotate(-35deg)',
-          fontSize: '120px',
-          fontFamily: "'Cinzel', serif",
-          fontWeight: 700,
-          color: 'rgba(201,154,63,0.07)',
-          letterSpacing: '0.3em',
-          whiteSpace: 'nowrap',
-          pointerEvents: 'none',
-          userSelect: 'none',
-          zIndex: 0,
-        }}>BETA</div>
+        <div className="pad">
 
-        {/* Content */}
-        <div style={{ padding: '24mm 22mm 16mm', position: 'relative', zIndex: 1 }}>
-
-          {/* Header row: logo + title */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10mm' }}>
-            {/* Left: logo block */}
-            <div>
+          {/* masthead */}
+          <div className="top">
+            <div className="brand">
               <img
-                src="https://dogypt.com/images/peciat-dogypt.png"
+                className="logo"
+                src="https://dogypt.com/images/dogypt-logo-black-w.png"
                 alt="DOGYPT"
-                width="64"
-                height="64"
-                style={{ display: 'block', marginBottom: '8px' }}
               />
-              <div style={{
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: '18px',
-                letterSpacing: '0.22em',
-                color: textDark,
-                textTransform: 'uppercase',
-              }}>DOGYPT</div>
-              <div style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: '9px',
-                letterSpacing: '0.3em',
-                color: darkGold,
-                textTransform: 'uppercase',
-                marginTop: '2px',
-              }}>In Dog We Trust</div>
-              <div style={{
-                fontSize: '10px',
-                color: 'rgba(80,50,10,0.5)',
-                marginTop: '8px',
-                lineHeight: 1.5,
-              }}>
-                dogypt.com<br />
-                heroglyph@dogypt.com<br />
-                {L.country}
+              <div className="tag">In Dog We Trust</div>
+            </div>
+            <div className="doc">
+              <div className="word">{L.title}</div>
+              <div className="num">{invoiceNumber}</div>
+            </div>
+          </div>
+
+          <div className="rule" />
+
+          {/* parties */}
+          <div className="parties">
+            <div className="party">
+              <div className="plabel">{L.seller}</div>
+              <div className="name">DOGYPT s. r. o.</div>
+              <div className="lines">
+                Sídlisko 335/20<br />
+                91930 Jaslovské Bohunice, Slovensko
+              </div>
+              <div className="kv">
+                <div><span>{L.icoLabel}</span>54444594</div>
+                <div><span>{L.dphLabel}</span>{L.dphVal}</div>
+                <div><span>{L.webLabel}</span>dogypt.com</div>
+                <div><span>{L.mailLabel}</span>heroglyph@dogypt.com</div>
               </div>
             </div>
-
-            {/* Right: invoice meta */}
-            <div style={{ textAlign: 'right' }}>
-              <div style={{
-                fontFamily: "'Cinzel', serif",
-                fontWeight: 700,
-                fontSize: '28px',
-                letterSpacing: '0.08em',
-                color: textDark,
-                textTransform: 'uppercase',
-                marginBottom: '4px',
-              }}>{L.title}</div>
-
-              {/* BETA badge */}
-              <div style={{
-                display: 'inline-block',
-                background: `linear-gradient(135deg, rgba(201,154,63,0.18), rgba(201,154,63,0.08))`,
-                border: `1.5px solid ${gold}`,
-                borderRadius: '6px',
-                padding: '3px 10px',
-                fontFamily: "'Cinzel', serif",
-                fontSize: '9px',
-                fontWeight: 700,
-                letterSpacing: '0.22em',
-                color: darkGold,
-                textTransform: 'uppercase',
-                marginBottom: '12px',
-              }}>{L.beta}</div>
-
-              <table style={{ marginLeft: 'auto', borderCollapse: 'collapse', fontSize: '11px', color: textDark }}>
-                <tbody>
-                  <tr>
-                    <td style={{ padding: '3px 12px 3px 0', color: 'rgba(80,50,10,0.55)', fontWeight: 500, textAlign: 'right', whiteSpace: 'nowrap' }}>{L.invoiceNumber}:</td>
-                    <td style={{ padding: '3px 0', fontFamily: "'Cinzel', serif", fontWeight: 600, letterSpacing: '0.06em' }}>{invoiceNumber}</td>
-                  </tr>
-                  <tr>
-                    <td style={{ padding: '3px 12px 3px 0', color: 'rgba(80,50,10,0.55)', fontWeight: 500, textAlign: 'right' }}>{L.date}:</td>
-                    <td style={{ padding: '3px 0' }}>{issuedDate}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="party">
+              <div className="plabel">{L.buyer}</div>
+              <div className="name">{ownerName || '—'}</div>
+              <div className="lines">
+                {dog.email && <><b>{dog.email}</b><br /></>}
+                {dog.country && <>{dog.country}</>}
+              </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${gold}, transparent)`, marginBottom: '10mm' }} />
+          <div className="rule tight" />
 
-          {/* Bill To */}
-          <div style={{ marginBottom: '10mm' }}>
-            <div style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: '10px',
-              letterSpacing: '0.28em',
-              color: darkGold,
-              textTransform: 'uppercase',
-              marginBottom: '8px',
-            }}>{L.billTo}</div>
-            <div style={{ fontSize: '13px', fontWeight: 500, lineHeight: 1.7 }}>
-              {ownerName && <div>{ownerName}</div>}
-              {dog.email && <div style={{ color: 'rgba(80,50,10,0.65)', fontSize: '11px' }}>{dog.email}</div>}
-              {dog.country && <div style={{ color: 'rgba(80,50,10,0.5)', fontSize: '11px' }}>{dog.country}</div>}
+          {/* dates / payment */}
+          <div className="meta">
+            <div className="cell">
+              <div className="mlabel">{L.issued}</div>
+              <div className="mval">{issuedDate}</div>
+            </div>
+            <div className="cell">
+              <div className="mlabel">{L.delivered}</div>
+              <div className="mval">{issuedDate}</div>
+            </div>
+            <div className="cell">
+              <div className="mlabel">{L.payMethodLabel}</div>
+              <div className="mval">{L.payMethod}</div>
+            </div>
+            <div className="cell">
+              <div className="mlabel">{L.status}</div>
+              <div className="mval">{L.statusVal}</div>
             </div>
           </div>
 
-          {/* Line items table */}
-          <table style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            marginBottom: '10mm',
-            fontSize: '11px',
-          }}>
+          {/* items */}
+          <table className="items">
             <thead>
-              <tr style={{
-                background: `linear-gradient(90deg, rgba(201,154,63,0.15), rgba(201,154,63,0.06))`,
-                borderBottom: `1.5px solid ${gold}`,
-              }}>
-                <th style={{ padding: '8px 10px', textAlign: 'left', fontFamily: "'Cinzel', serif", fontSize: '9px', letterSpacing: '0.2em', color: darkGold, textTransform: 'uppercase', fontWeight: 600 }}>{L.description}</th>
-                <th style={{ padding: '8px 10px', textAlign: 'center', fontFamily: "'Cinzel', serif", fontSize: '9px', letterSpacing: '0.2em', color: darkGold, textTransform: 'uppercase', fontWeight: 600, width: '50px' }}>{L.quantity}</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right', fontFamily: "'Cinzel', serif", fontSize: '9px', letterSpacing: '0.2em', color: darkGold, textTransform: 'uppercase', fontWeight: 600, width: '80px' }}>{L.unit}</th>
-                <th style={{ padding: '8px 10px', textAlign: 'right', fontFamily: "'Cinzel', serif", fontSize: '9px', letterSpacing: '0.2em', color: darkGold, textTransform: 'uppercase', fontWeight: 600, width: '80px' }}>{L.total}</th>
+              <tr>
+                <th>{L.description}</th>
+                <th className="c" style={{ width: '16mm' }}>{L.qty}</th>
+                <th className="c" style={{ width: '14mm' }}>{L.unit}</th>
+                <th className="r" style={{ width: '28mm' }}>{L.price}</th>
+                <th className="r" style={{ width: '28mm' }}>{L.subtotal}</th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: `1px solid rgba(201,154,63,0.2)` }}>
-                <td style={{ padding: '12px 10px' }}>
-                  <div style={{ fontWeight: 500, marginBottom: '2px' }}>{L.heroglyph}</div>
-                  <div style={{ color: 'rgba(80,50,10,0.55)', fontSize: '10px', fontFamily: "'Cinzel', serif", letterSpacing: '0.04em' }}>{dogName}</div>
+              <tr>
+                <td>
+                  <div className="it-title">{L.heroglyph}</div>
+                  <div className="it-sub">{dogName}</div>
                 </td>
-                <td style={{ padding: '12px 10px', textAlign: 'center' }}>1</td>
-                <td style={{ padding: '12px 10px', textAlign: 'right' }}>{amount.toFixed(2)} {L.currency}</td>
-                <td style={{ padding: '12px 10px', textAlign: 'right', fontWeight: 600 }}>{amount.toFixed(2)} {L.currency}</td>
+                <td className="c">1</td>
+                <td className="c">{L.unitVal}</td>
+                <td className="r">{amountStr}</td>
+                <td className="r">{amountStr}</td>
               </tr>
             </tbody>
           </table>
 
-          {/* Total box */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '10mm' }}>
-            <div style={{
-              border: `1.5px solid ${gold}`,
-              borderRadius: '8px',
-              background: `linear-gradient(135deg, rgba(201,154,63,0.15), rgba(201,154,63,0.05))`,
-              padding: '12px 24px',
-              minWidth: '160px',
-              textAlign: 'right',
-            }}>
-              <div style={{ fontSize: '10px', letterSpacing: '0.22em', color: darkGold, textTransform: 'uppercase', fontFamily: "'Cinzel', serif", marginBottom: '6px' }}>{L.total}</div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: '22px', letterSpacing: '0.06em', color: textDark }}>
-                {amount.toFixed(2)} <span style={{ fontSize: '14px' }}>{L.currency}</span>
+          {/* totals + legal note */}
+          <div className="totals">
+            <p className="note">
+              <b>{L.dphVal}.</b>{' '}
+              {L.vatNote}{' '}
+              {L.orNote}{' '}
+              {L.paidNote}
+            </p>
+            <div className="tbox">
+              <div className="trow">
+                <span>{L.subtotalLabel}</span>
+                <span>{amountStr}</span>
+              </div>
+              <div className="trow">
+                <span>{L.paidByCard}</span>
+                <span>− {amountStr}</span>
+              </div>
+              <div className="trow grand">
+                <span className="lbl">{L.toPay}</span>
+                <span className="val">0,00 €</span>
+              </div>
+              <div className="words">{inWords}</div>
+              <div style={{ textAlign: 'right' }}>
+                <span className="paid-stamp">
+                  {L.paidStamp}
+                  <small>{L.paidSmall}{issuedDate}</small>
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${gold}, transparent)`, marginBottom: '8mm' }} />
-
-          {/* BETA note */}
-          <div style={{
-            background: `linear-gradient(135deg, rgba(201,154,63,0.1), rgba(201,154,63,0.04))`,
-            border: `1px solid rgba(201,154,63,0.3)`,
-            borderRadius: '6px',
-            padding: '10px 14px',
-            fontSize: '9px',
-            color: 'rgba(80,50,10,0.6)',
-            lineHeight: 1.6,
-            marginBottom: '8mm',
-          }}>
-            ⚠ {L.betaNote}
-          </div>
-
-          {/* Footer */}
-          <div style={{
-            textAlign: 'center',
-            fontFamily: "'Cinzel', serif",
-            fontSize: '10px',
-            letterSpacing: '0.35em',
-            color: darkGold,
-            textTransform: 'uppercase',
-            marginTop: '4mm',
-          }}>{L.footer}</div>
-
         </div>
 
-        {/* Bottom gold stripe */}
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '14px',
-          background: `linear-gradient(90deg, #3a2a0a 0%, #6b4d18 30%, ${gold} 50%, #6b4d18 70%, #3a2a0a 100%)`,
-        }} />
+        {/* pečať — stred dole, nad motto */}
+        <div className="seal">
+          <img src="https://dogypt.com/images/peciat-dogypt.png" alt="DOGYPT seal" />
+        </div>
+
+        <div className="foot">{L.footer}</div>
       </div>
     </>
   );
