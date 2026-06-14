@@ -75,7 +75,7 @@ export const pol: Partial<Dict> = {
   'heroglyph.intro.wordTooltipSub': 'BOSKIE imię dla każdego PSA.',
 
   // CTA + outro
-  'heroglyph.intro.cta': 'Zostań Dogyptianinem',
+  'heroglyph.intro.cta': 'Stwórz swój Heroglyph',
   'heroglyph.intro.outro': 'Miłośnicy psów, do broni!',
   'heroglyph.intro.loading': 'Wczytywanie…',
 

@@ -85,7 +85,7 @@ export const en = {
   'heroglyph.intro.wordTooltipSub': 'GOD name for every DOG.',
 
   // CTA + outro
-  'heroglyph.intro.cta': 'Become Dogyptian',
+  'heroglyph.intro.cta': 'Create Your Heroglyph',
   'heroglyph.intro.outro': 'Doglovers, assemble!',
   'heroglyph.intro.loading': 'Loading…',
 

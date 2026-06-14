@@ -83,7 +83,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.intro.wordTooltipSub': 'BOŽSKÉ jméno pro každého PSA.',
 
   // CTA + outro
-  'heroglyph.intro.cta': 'Staň se Dogypťanem',
+  'heroglyph.intro.cta': 'Vytvoř svůj Heroglyph',
   'heroglyph.intro.outro': 'Pejskaři, do zbraně!',
   'heroglyph.intro.loading': 'Načítá se…',
 

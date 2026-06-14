@@ -75,7 +75,7 @@ export const ita: Partial<Dict> = {
   'heroglyph.intro.wordTooltipSub': 'Nome di DIO per ogni CANE.',
 
   // CTA + outro
-  'heroglyph.intro.cta': 'Diventa Dogyptian',
+  'heroglyph.intro.cta': 'Crea il tuo Heroglyph',
   'heroglyph.intro.outro': 'Amanti dei cani, all\'adunata!',
   'heroglyph.intro.loading': 'Caricamento…',
 

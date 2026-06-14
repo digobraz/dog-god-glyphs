@@ -75,7 +75,7 @@ export const ukr: Partial<Dict> = {
   'heroglyph.intro.wordTooltipSub': 'БОЖЕСТВЕННЕ ім\'я для кожного ПСА.',
 
   // CTA + outro
-  'heroglyph.intro.cta': 'Стань Dogyptian',
+  'heroglyph.intro.cta': 'Створи свій Heroglyph',
   'heroglyph.intro.outro': 'Любителі собак, гуртуймося!',
   'heroglyph.intro.loading': 'Завантаження…',
 

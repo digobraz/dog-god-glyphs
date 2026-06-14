@@ -61,7 +61,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.intro.title.line1': 'Das',
   'heroglyph.intro.title.line2': 'Symbol',
   'heroglyph.intro.title.desktop': 'Das Symbol',
-  'heroglyph.intro.title.sub': 'Das Geschichte schreibt',
+  'heroglyph.intro.title.sub': 'Die Geschichte schreibt',
 
   // dictionary blok ("DOG is GOD" = MOTTO → bleibt EN)
   'heroglyph.intro.word': 'Heroglyph',
@@ -75,7 +75,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.intro.wordTooltipSub': 'GOTT-Name für jeden DOG.',
 
   // CTA + outro
-  'heroglyph.intro.cta': 'Werde Dogyptian',
+  'heroglyph.intro.cta': 'Erstelle deinen Heroglyph',
   'heroglyph.intro.outro': 'Hundeliebhaber, formiert euch!',
   'heroglyph.intro.loading': 'Wird geladen…',
 
