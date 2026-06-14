@@ -140,10 +140,13 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
       .catch(() => {/* use fallback store */});
   }, [sessionId]);
 
-  // Mirror live store when no session OR when session fetch hasn't resolved yet
-  // (Zustand persist hydrates async, so initial fallback can be empty.)
+  // Mirror live store ONLY when there is no payment session.
+  // When a session_id is present, identity fields (name/owner/email/selections)
+  // MUST come from the real payment via get-session-data — never from the
+  // Zustand-persisted localStorage store, which can hold a previous buyer's
+  // name on a shared device/browser (stale-name bug). We still defer to session.
   useEffect(() => {
-    if (sessionResolved.current) return;
+    if (sessionId || sessionResolved.current) return;
     setData(prev => ({
       dogName: fallbackStore.dogName || prev.dogName,
       ownerName: fallbackStore.ownerName || prev.ownerName,
@@ -153,7 +156,7 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
       patronSvg: fallbackStore.patronSvg || prev.patronSvg,
       patronSvg2: fallbackStore.patronSvg2 || prev.patronSvg2,
     }));
-  }, [fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections, fallbackStore.patronSvg, fallbackStore.patronSvg2]);
+  }, [sessionId, fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections, fallbackStore.patronSvg, fallbackStore.patronSvg2]);
 
   return data;
 }

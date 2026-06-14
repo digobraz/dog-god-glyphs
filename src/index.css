@@ -10,8 +10,8 @@
 
 @font-face {
   font-family: 'Dogyptian';
-  src: url('/fonts/Dogyptian Bold.woff2') format('woff2'),
-       url('/fonts/Dogyptian Bold.woff') format('woff');
+  src: url('/fonts/DogyptianBold.woff2') format('woff2'),
+       url('/fonts/DogyptianBold.woff') format('woff');
   font-weight: 700;
   font-display: swap;
 }
