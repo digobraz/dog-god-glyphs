@@ -525,7 +525,7 @@ export function PhotoScreen() {
                 {/* BLOCK 1 — dark gradient speech bubble */}
                 <div
                   className="w-full rounded-2xl flex-shrink overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
                     <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
@@ -641,7 +641,7 @@ export function PhotoScreen() {
                 {/* BLOCK 1 — dark gradient card */}
                 <div
                   className="w-full rounded-2xl flex-shrink overflow-hidden"
-                  style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+                  style={{ background: 'var(--brand-gradient)' }}
                 >
                   <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-2">
                     <img src={hekthorImg} alt="HEKTHOR" className="w-20 h-20 md:w-28 md:h-28 object-contain" />

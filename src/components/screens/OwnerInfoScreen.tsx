@@ -79,7 +79,7 @@ export function OwnerInfoScreen() {
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">
           <motion.div
             className="w-full rounded-2xl px-4 py-3 md:p-5 flex flex-col items-center gap-2 md:gap-3 flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+            style={{ background: 'var(--brand-gradient)' }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}

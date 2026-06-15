@@ -113,7 +113,7 @@ export function DogCharacterScreen() {
             {/* 2. BLOCK - Hekthor question */}
             <motion.div
               className="w-full rounded-2xl relative overflow-hidden min-h-[180px]"
-              style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+              style={{ background: 'var(--brand-gradient)' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}

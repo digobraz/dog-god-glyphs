@@ -2401,7 +2401,7 @@ const WALK_LEVELS: { h: number; label: string }[] = [
 ];
 
 // Purple→gold gradient — matches FounderInvite (brand milestone card).
-const PRAYER_GRADIENT = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
+const PRAYER_GRADIENT = 'var(--brand-gradient)';
 // Points pill — light text on the gradient row.
 const PTS_PILL: React.CSSProperties = {
   fontFamily: "'JetBrains Mono', ui-monospace, monospace",

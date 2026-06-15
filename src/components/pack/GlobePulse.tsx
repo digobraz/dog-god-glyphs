@@ -309,7 +309,7 @@ function MilestoneSwiper({
         style={{
           borderRadius: 16,
           padding: '11px 12px',
-          background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+          background: 'var(--brand-gradient)',
           border: '1px solid hsl(45 80% 60% / 0.25)',
           boxShadow: '0 16px 36px -20px rgba(124,58,237,0.6)',
           touchAction: 'pan-y',

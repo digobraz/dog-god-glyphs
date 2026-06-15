@@ -70,7 +70,7 @@ export function MessageScreen() {
           <div
             className="w-full rounded-2xl relative overflow-hidden flex-shrink"
             style={{
-              background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+              background: 'var(--brand-gradient)',
             }}
           >
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">

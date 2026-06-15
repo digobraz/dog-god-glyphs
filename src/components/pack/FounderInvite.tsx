@@ -103,7 +103,7 @@ export function FounderInvite() {
     <section
       className="pack-card-hover w-full h-full"
       style={{
-        background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+        background: 'var(--brand-gradient)',
         border: '1px solid hsl(45 80% 60% / 0.22)',
         borderRadius: 24,
         padding: '28px 24px',

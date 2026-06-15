@@ -28,7 +28,7 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
       className="pack-card-hover h-full"
       style={{
         // Hekthor fialovo-zlatá (paywall/welcome gradient) — psy = posvätné
-        background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+        background: 'var(--brand-gradient)',
         borderRadius: 24,
         padding: '26px 22px 22px',
         border: '1px solid hsl(45 80% 60% / 0.28)',

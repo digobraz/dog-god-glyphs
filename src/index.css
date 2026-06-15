@@ -74,6 +74,13 @@
     --papyrus-light: 36 43% 95%;
     --radius-cta: 0.5rem;       /* 8px cartouche — buttons */
 
+    /* Brand gradient — secondary (manual 2026). Egyptian Blue #1034A6 + gold,
+       cez čiernu = „sarkofág v tme". Modrá = psie dichromatické videnie + Tutanchamón.
+       Toto je JEDINÝ zdroj — nemeniť inline, swap len tu.
+       Alternatíva (A · čistá diagonála): linear-gradient(135deg, #1034A6 0%, #C99A3F 100%) */
+    --brand-blue: #1034A6;      /* Egyptian Blue — secondary canonical */
+    --brand-gradient: linear-gradient(135deg, #1034A6 0%, #0a0805 52%, #C99A3F 100%);
+
     --sidebar-background: 36 33% 91%;
     --sidebar-foreground: 0 0% 0%;
     --sidebar-primary: 40 56% 52%;

@@ -223,7 +223,7 @@ function DogToGod({ style }: { style?: React.CSSProperties }) {
 
 /** Purple-to-gold gradient matching the paywall card */
 const GRADIENT_CARD: React.CSSProperties = {
-  background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))',
+  background: 'var(--brand-gradient)',
   border: '1px solid hsl(45 80% 60% / 0.2)',
 };
 
@@ -419,7 +419,7 @@ export function WelcomeScreen() {
       >
         {/* Goal tracker — samostatne, gradient len tu (foto ide pod) */}
         <div className="w-full max-w-sm mx-auto rounded-2xl flex flex-col items-center flex-shrink-0 overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}>
+          style={{ background: 'var(--brand-gradient)' }}>
 
           {/* Stats section */}
           <div className="w-full flex flex-col items-center gap-2.5 px-4 pt-3 pb-3">

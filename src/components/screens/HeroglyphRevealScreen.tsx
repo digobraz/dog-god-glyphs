@@ -149,7 +149,7 @@ export function HeroglyphRevealScreen() {
           >
             <div
               className="w-full rounded-2xl p-5 flex flex-col gap-4 relative"
-              style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               {/* Info button */}
               <button
@@ -225,7 +225,7 @@ export function HeroglyphRevealScreen() {
           >
             <div
               className="w-full rounded-xl px-4 py-3 flex flex-col gap-3 relative"
-              style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+              style={{ background: 'var(--brand-gradient)' }}
             >
               {/* Info button compact */}
               <button

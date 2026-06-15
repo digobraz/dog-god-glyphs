@@ -34,7 +34,7 @@ export function PayWallScreen() {
           {/* Large Hekthor bubble like /name */}
           <motion.div
             className="w-full rounded-2xl p-6 flex flex-col items-center gap-4"
-            style={{ background: 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))' }}
+            style={{ background: 'var(--brand-gradient)' }}
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}

@@ -9,7 +9,7 @@ const T = PACK_THEME;
 
 const AVATAR_SIZE = 164;
 // Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
-const STORY_RING = 'linear-gradient(135deg, hsl(270 40% 25%), hsl(45 80% 45%))';
+const STORY_RING = 'var(--brand-gradient)';
 
 interface HeroCardProps {
   name: string;
