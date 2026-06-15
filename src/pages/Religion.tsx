@@ -60,6 +60,12 @@ export default function Religion() {
       </div>
 
       <style>{`
+        /* Religion-only pozadie: wallnew.png (jemné modré heroglyfy) namiesto globálneho gold bg-dark.png.
+           Vyššia špecificita (.codex-page.dark-bg) prebije globálny .dark-bg::before; ostatné props (cover, blur) dedí. */
+        .codex-page.dark-bg::before {
+          background-image: url('/images/wallnew.png');
+        }
+
         /* Vertikálny scroll-snap kontajner — klasický scroll, fix obrazovka per sekcia.
            Stránka ostáva 100dvh + overflow-hidden → pozadie sa NEzväčšuje; scrolluje len toto. */
         .codex-scroll {
