@@ -764,7 +764,9 @@ export default function Religion() {
           height: 100%;
           pointer-events: none;
           opacity: 1;
-          z-index: 1;
+          /* z-index 1→3: krava/Hektor do popredia NAD header scrim, nech je svätožiara vidno na PC
+             (header PageTopBar = z-index 2). Pozície (left/bottom/scale) LOCKED — nedotknuté. */
+          z-index: 3;
         }
         /* ╔══════════════════════════════════════════════════════════════════╗
            ║  🔒 LOCKED 2026-05-24 (hektor posunutý o 50px nižšie na PC)       ║
