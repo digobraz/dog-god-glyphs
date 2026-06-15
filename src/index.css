@@ -165,10 +165,9 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  /* Stmavenie 40% tmavomodrou (Matej: 10%→25%→40%) — pozadie nekričí, modrá ostáva */
-  background-image:
-    linear-gradient(rgba(7,18,52,0.40), rgba(7,18,52,0.40)),
-    url('/images/bg-dark.png');
+  /* hero2 pozadie (royal modrá + zlaté heroglyfy) — globálny .dark-bg = flow + Vision/About/pack.
+     WALL (.gods-root) a Religion (.codex-page) majú vlastný override. Bez washu (ako WALL/Religion). */
+  background-image: url('/images/hero2.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
