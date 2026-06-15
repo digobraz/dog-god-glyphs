@@ -808,11 +808,11 @@ export function GodsGrid() {
 
         /* 🔒 LOCKED 2026-06-02 (Matej schválil grid vzhľad po smoke teste ZEUS):
            Placeholder dogs = farebné ale priesvitné (nie pietne); photo 60%, popisky 100%.
-           NEMENIŤ brightness/opacity/grayscale bez výslovného OK. */
+           NEMENIŤ brightness/opacity/grayscale bez výslovného OK.
+           ✏️ 2026-06-15 Matej OK: fotky na 100% viditeľné (priesvitné → plné). */
         .dog-card--placeholder { cursor: default; }
         .dog-card--placeholder .card-img {
-          filter: brightness(0.92) contrast(0.97);
-          opacity: 0.6;
+          opacity: 1;
         }
         .dog-card--placeholder .card-label {
           font-size: 0.7rem !important;
