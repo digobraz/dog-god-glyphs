@@ -36,8 +36,9 @@ export function PageTopBar({
   // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
   // Solid od vrchu (nepresvitavý), ostrá tmavomodrá z flow brand gradientu (#1034A6 → tmavá),
   // fade až v spodnej časti. Matej: „od vrchu musí byť solid + viac modrej ako vo flow gradiente."
+  // Solid od vrchu (#0d2150 — viditeľná dark navy), potom POSTUPNÝ viacstupňový fade (nie prudký).
   const headerScrim =
-    'linear-gradient(to bottom, #070f26 0%, #070f26 60%, rgba(7,15,38,0) 100%)';
+    'linear-gradient(to bottom, #0d2150 0%, #0d2150 14%, rgba(13,33,80,0.62) 44%, rgba(13,33,80,0.26) 72%, rgba(13,33,80,0) 100%)';
   const logo = (
     <>
       <img
@@ -57,8 +58,14 @@ export function PageTopBar({
     return (
       <div
         className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-2 md:pb-3 pt-[15px] md:pt-[34px]"
-        style={{ zIndex: 2, background: headerScrim }}
+        style={{ zIndex: 2 }}
       >
+        {/* Samostatný vyšší scrim element → postupný fade ďaleko pod nav (nie len v rámci headeru) */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-0 right-0 top-0"
+          style={{ height: '230px', background: headerScrim, zIndex: -1 }}
+        />
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
           {logo}
         </Link>
