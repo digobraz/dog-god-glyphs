@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import { useT, useLang } from '@/i18n/LanguageContext';
 
@@ -189,9 +189,7 @@ export function RankingScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-3 md:pt-6">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </div>
+      <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col items-center gap-6">

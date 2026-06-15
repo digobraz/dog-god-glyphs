@@ -61,7 +61,7 @@ export function PageTopBar({
   }
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-5">
+    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[34px]">
       {onBack && (
         <button
           type="button"

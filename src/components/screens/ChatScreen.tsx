@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Send, X, Plus, ArrowLeft } from 'lucide-react';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { Send, X, Plus } from 'lucide-react';
+import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 
 export function ChatScreen() {
@@ -134,17 +134,7 @@ export function ChatScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Header: back + logo */}
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-4">
-        {step > 0 && (
-          <button
-            onClick={goBack}
-            className="absolute left-4 top-4 p-2 text-foreground/60 hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-        )}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </div>
+      <PageTopBar onBack={step > 0 ? goBack : undefined} />
 
       {/* Main content — centered */}
       <div className="flex-1 flex flex-col items-center justify-center px-4">

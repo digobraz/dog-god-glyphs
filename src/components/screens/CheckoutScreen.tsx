@@ -5,7 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 
 const COUNTRIES = [
@@ -66,9 +66,7 @@ export function CheckoutScreen() {
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       {/* Logo */}
-      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-1 md:pt-2">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </div>
+      <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-hidden">
         <div className="w-full max-w-xl flex flex-col items-center gap-1.5">
