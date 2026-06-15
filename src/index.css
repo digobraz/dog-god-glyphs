@@ -165,29 +165,17 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  /* Tmavomodrý wash NAD heroglyfmi — čo najtmavšie ale NIE čierne (modrý nádych) */
-  background-image:
-    linear-gradient(rgba(7,16,42,0.82), rgba(7,16,42,0.82)),
-    url('/images/bg-dark.png');
+  /* Bez washu — čisté modré heroglyf pozadie (Matej: odobrať stmavenie celkom) */
+  background-image: url('/images/bg-dark.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   filter: blur(3px);
   z-index: 0;
 }
-/* Top scrim — header sa zatmaví a plynulo prejde do obsahu. Viditeľne Egyptian Blue (NIE skoro-čierna) */
-.dark-bg::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 200px;
-  /* Tmavá skoro-čierna s modrým nádychom (NIE jasná modrá, NIE čierna) */
-  background: linear-gradient(to bottom, rgba(13,28,72,0.96) 0%, rgba(10,22,56,0.55) 46%, rgba(8,16,42,0) 100%);
-  z-index: 0;
-  pointer-events: none;
-}
+/* Header stmavenie NIE je tu — je v <PageTopBar> komponente (background headerScrim),
+   nech je konzistentné na každej stránke vrátane About crawl-hero (page-level fixed scrim
+   sa tam nedostal kvôli transformom). */
 .dark-bg > * {
   position: relative;
   z-index: 1;

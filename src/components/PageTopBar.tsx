@@ -31,6 +31,11 @@ export function PageTopBar({
 }: PageTopBarProps) {
   const t = useT();
   const backLabel = backAriaLabel ?? t('nav.aria.back');
+  // Jednotné stmavenie headeru — Egyptian-modré, fade do obsahu. Je súčasťou KOMPONENTU
+  // (nie page-level scrim), takže každý header vyzerá rovnako nezávisle od page transformov
+  // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
+  const headerScrim =
+    'linear-gradient(to bottom, rgba(11,30,84,0.96) 0%, rgba(11,30,84,0.72) 60%, rgba(11,30,84,0) 100%)';
   const logo = (
     <>
       <img
@@ -49,8 +54,8 @@ export function PageTopBar({
   if (withNav) {
     return (
       <div
-        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[34px]"
-        style={{ zIndex: 2 }}
+        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-2 md:pb-3 pt-[15px] md:pt-[34px]"
+        style={{ zIndex: 2, background: headerScrim }}
       >
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
           {logo}
@@ -61,7 +66,7 @@ export function PageTopBar({
   }
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-5">
+    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-3 px-4 md:pt-5" style={{ background: headerScrim }}>
       {onBack && (
         <button
           type="button"
