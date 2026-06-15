@@ -172,6 +172,18 @@ body {
   filter: blur(3px);
   z-index: 0;
 }
+/* Top scrim — header sa zatmaví a plynulo prejde do obsahu (Egyptian Blue, predtým to robilo tmavé bg-dark.png hore) */
+.dark-bg::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  background: linear-gradient(to bottom, rgba(0,8,30,0.95) 0%, rgba(0,8,30,0.6) 45%, rgba(0,8,30,0) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
 .dark-bg > * {
   position: relative;
   z-index: 1;

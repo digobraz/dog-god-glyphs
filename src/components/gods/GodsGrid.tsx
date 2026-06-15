@@ -660,7 +660,7 @@ export function GodsGrid() {
         .gods-root {
           position: fixed;
           inset: 0;
-          background-color: #050505;
+          background-color: #00081e;
           font-family: system-ui, -apple-system, sans-serif;
           letter-spacing: -0.02em;
           user-select: none;
