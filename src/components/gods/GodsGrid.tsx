@@ -1008,7 +1008,7 @@ export function GodsGrid() {
           content: '';
           position: absolute;
           inset: -200px -320px;
-          background: radial-gradient(ellipse at center, rgba(6,22,64,0.92) 20%, transparent 68%);
+          background: radial-gradient(ellipse at center, rgba(20,35,63,0.92) 20%, transparent 68%);
           z-index: -1;
           pointer-events: none;
         }
