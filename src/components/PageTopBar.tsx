@@ -36,9 +36,9 @@ export function PageTopBar({
   // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
   // Solid od vrchu (nepresvitavý), ostrá tmavomodrá z flow brand gradientu (#1034A6 → tmavá),
   // fade až v spodnej časti. Matej: „od vrchu musí byť solid + viac modrej ako vo flow gradiente."
-  // Solid od vrchu (#0d2150 — viditeľná dark navy), potom POSTUPNÝ viacstupňový fade (nie prudký).
+  // Tmavšia royal navy (sedí s wallnew hue, ako spodok), firmer = solid dlhšie pred postupným fade.
   const headerScrim =
-    'linear-gradient(to bottom, #0d2150 0%, #0d2150 14%, rgba(13,33,80,0.62) 44%, rgba(13,33,80,0.26) 72%, rgba(13,33,80,0) 100%)';
+    'linear-gradient(to bottom, #061640 0%, #061640 35%, rgba(6,22,64,0.80) 62%, rgba(6,22,64,0.32) 84%, rgba(6,22,64,0) 100%)';
   const logo = (
     <>
       <img
