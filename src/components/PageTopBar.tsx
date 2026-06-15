@@ -36,10 +36,10 @@ export function PageTopBar({
   // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
   // Solid od vrchu (nepresvitavý), ostrá tmavomodrá z flow brand gradientu (#1034A6 → tmavá),
   // fade až v spodnej časti. Matej: „od vrchu musí byť solid + viac modrej ako vo flow gradiente."
-  // Egyptská INK — tlmená tmavá slate-navy (NIE náš náhodný mix). Solid hore, postupný fade.
-  // TODO: nahradiť presným Canva ink hexom keď ho Matej pošle.
+  // Egyptian Blue #1034A6 — ROVNAKÁ farba ako pozadie stránky (--brand-blue), nech je header súrodý.
+  // Solid hore (kryje heroglyfy za logom/nav), postupný fade do pozadia.
   const headerScrim =
-    'linear-gradient(to bottom, #14233f 0%, #14233f 35%, rgba(20,35,63,0.80) 62%, rgba(20,35,63,0.32) 84%, rgba(20,35,63,0) 100%)';
+    'linear-gradient(to bottom, #1034a6 0%, #1034a6 35%, rgba(16,52,166,0.80) 62%, rgba(16,52,166,0.32) 84%, rgba(16,52,166,0) 100%)';
   const logo = (
     <>
       <img
