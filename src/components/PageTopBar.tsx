@@ -35,7 +35,7 @@ export function PageTopBar({
   // (nie page-level scrim), takže každý header vyzerá rovnako nezávisle od page transformov
   // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
   const headerScrim =
-    'linear-gradient(to bottom, rgba(11,30,84,0.96) 0%, rgba(11,30,84,0.72) 60%, rgba(11,30,84,0) 100%)';
+    'linear-gradient(to bottom, rgba(5,10,28,0.99) 0%, rgba(5,10,28,0.94) 62%, rgba(5,10,28,0) 100%)';
   const logo = (
     <>
       <img
