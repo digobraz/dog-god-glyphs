@@ -183,7 +183,8 @@ body {
   left: 0;
   right: 0;
   height: 200px;
-  background: linear-gradient(to bottom, rgba(13,34,92,0.97) 0%, rgba(11,27,74,0.78) 48%, rgba(8,18,52,0) 100%);
+  /* Reálna brand Egyptian Blue #1034A6 — predošlé tmavé navy sa čítali ako čierne */
+  background: linear-gradient(to bottom, rgba(16,52,166,0.92) 0%, rgba(15,44,134,0.62) 46%, rgba(10,28,80,0) 100%);
   z-index: 0;
   pointer-events: none;
 }
