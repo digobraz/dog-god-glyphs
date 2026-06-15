@@ -34,8 +34,10 @@ export function PageTopBar({
   // Jednotné stmavenie headeru — Egyptian-modré, fade do obsahu. Je súčasťou KOMPONENTU
   // (nie page-level scrim), takže každý header vyzerá rovnako nezávisle od page transformov
   // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
+  // Solid od vrchu (nepresvitavý), ostrá tmavomodrá z flow brand gradientu (#1034A6 → tmavá),
+  // fade až v spodnej časti. Matej: „od vrchu musí byť solid + viac modrej ako vo flow gradiente."
   const headerScrim =
-    'linear-gradient(to bottom, rgba(5,10,28,0.99) 0%, rgba(5,10,28,0.94) 62%, rgba(5,10,28,0) 100%)';
+    'linear-gradient(to bottom, #14296e 0%, #14296e 60%, rgba(20,41,110,0) 100%)';
   const logo = (
     <>
       <img
