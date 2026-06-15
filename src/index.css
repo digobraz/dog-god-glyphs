@@ -165,9 +165,9 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  /* Egyptian-dark wash NAD heroglyfmi — stlmí jas zlatých symbolov (predtým „moc kričali") */
+  /* Tmavomodrý wash NAD heroglyfmi — čo najtmavšie ale NIE čierne (modrý nádych) */
   background-image:
-    linear-gradient(rgba(5,12,34,0.62), rgba(5,12,34,0.62)),
+    linear-gradient(rgba(7,16,42,0.82), rgba(7,16,42,0.82)),
     url('/images/bg-dark.png');
   background-size: cover;
   background-position: center;
@@ -183,8 +183,8 @@ body {
   left: 0;
   right: 0;
   height: 200px;
-  /* Reálna brand Egyptian Blue #1034A6 — predošlé tmavé navy sa čítali ako čierne */
-  background: linear-gradient(to bottom, rgba(16,52,166,0.92) 0%, rgba(15,44,134,0.62) 46%, rgba(10,28,80,0) 100%);
+  /* Tmavá skoro-čierna s modrým nádychom (NIE jasná modrá, NIE čierna) */
+  background: linear-gradient(to bottom, rgba(13,28,72,0.96) 0%, rgba(10,22,56,0.55) 46%, rgba(8,16,42,0) 100%);
   z-index: 0;
   pointer-events: none;
 }

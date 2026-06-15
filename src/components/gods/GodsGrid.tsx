@@ -671,7 +671,7 @@ export function GodsGrid() {
           position: absolute;
           inset: 0;
           background-image:
-            linear-gradient(rgba(5,12,34,0.62), rgba(5,12,34,0.62)),
+            linear-gradient(rgba(7,16,42,0.82), rgba(7,16,42,0.82)),
             url('/images/bg-dark.png');
           background-size: cover;
           background-position: center;

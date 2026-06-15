@@ -7,7 +7,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
 import { useT } from '@/i18n/LanguageContext';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { PageTopBar } from '@/components/PageTopBar';
 
 const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
 
@@ -83,9 +83,7 @@ export function PaymentScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-3 md:pt-6">
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </div>
+      <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">

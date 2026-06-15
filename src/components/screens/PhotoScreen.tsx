@@ -1,12 +1,12 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Plus, X, Loader2 } from 'lucide-react';
+import { Plus, X, Loader2 } from 'lucide-react';
 import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Checkbox } from '@/components/ui/checkbox';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
+import { PageTopBar } from '@/components/PageTopBar';
 import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
 import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
@@ -496,16 +496,7 @@ export function PhotoScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4">
-        <button
-          onClick={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))}
-          className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-      </div>
+      <PageTopBar onBack={() => (sub > 0 ? goTo(sub - 1) : navigate('/heroglyph/name'))} />
 
       {/* Content */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
