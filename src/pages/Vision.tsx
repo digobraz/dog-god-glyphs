@@ -602,9 +602,7 @@ export default function Vision() {
            * the dark heroglyph page isn't hard-masked behind the logo + nav. */
           .topbar-wrap {
             position: sticky; top: 0; z-index: 60;
-            /* Header stmavenie rieši jednotný .dark-bg::after (fixed) — žiadny vlastný čierny gradient,
-               nech Vision header sedí s Religion/About (predtým čierny ≠ modrý) */
-            background: transparent;
+            background: linear-gradient(180deg, rgba(0,0,0,0.94) 58%, rgba(0,0,0,0));
             padding-bottom: 14px;
           }
         }

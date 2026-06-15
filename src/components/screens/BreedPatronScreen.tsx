@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, PawPrint } from 'lucide-react';
+import { ArrowLeft, Search, X, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { Button } from '@/components/ui/button';
-import { PageTopBar } from '@/components/PageTopBar';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import breedsData from '@/data/breeds.json';
 import { useT } from '@/i18n/LanguageContext';
@@ -270,7 +270,16 @@ export function BreedPatronScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar onBack={() => navigate('/heroglyph/photo')} />
+      <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4">
+        <button
+          onClick={() => navigate('/heroglyph/photo')}
+          className="absolute left-4 top-3 p-2 text-foreground/60 hover:text-foreground transition-colors"
+          aria-label="Back"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
+      </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3 overflow-hidden">
         <div className="w-full max-w-xl flex-1 flex flex-col gap-3 md:gap-4 justify-center min-h-0 overflow-hidden">

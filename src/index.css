@@ -165,18 +165,13 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  /* hero2 pozadie (royal modrá + zlaté heroglyfy) — globálny .dark-bg = flow + Vision/About/pack.
-     WALL (.gods-root) a Religion (.codex-page) majú vlastný override. Bez washu (ako WALL/Religion). */
-  background-image: url('/images/hero2.png');
+  background-image: url('/images/bg-dark.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   filter: blur(3px);
   z-index: 0;
 }
-/* Header stmavenie NIE je tu — je v <PageTopBar> komponente (background headerScrim),
-   nech je konzistentné na každej stránke vrátane About crawl-hero (page-level fixed scrim
-   sa tam nedostal kvôli transformom). */
 .dark-bg > * {
   position: relative;
   z-index: 1;

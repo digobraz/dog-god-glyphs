@@ -31,15 +31,6 @@ export function PageTopBar({
 }: PageTopBarProps) {
   const t = useT();
   const backLabel = backAriaLabel ?? t('nav.aria.back');
-  // Jednotné stmavenie headeru — Egyptian-modré, fade do obsahu. Je súčasťou KOMPONENTU
-  // (nie page-level scrim), takže každý header vyzerá rovnako nezávisle od page transformov
-  // (Vision/Religion/About vrátane absolútneho crawl-hero + všetky flow screens).
-  // Solid od vrchu (nepresvitavý), ostrá tmavomodrá z flow brand gradientu (#1034A6 → tmavá),
-  // fade až v spodnej časti. Matej: „od vrchu musí byť solid + viac modrej ako vo flow gradiente."
-  // Egyptian Blue #1034A6 — ROVNAKÁ farba ako pozadie stránky (--brand-blue), nech je header súrodý.
-  // Solid hore (kryje heroglyfy za logom/nav), postupný fade do pozadia.
-  const headerScrim =
-    'linear-gradient(to bottom, #1034a6 0%, #1034a6 35%, rgba(16,52,166,0.80) 62%, rgba(16,52,166,0.32) 84%, rgba(16,52,166,0) 100%)';
   const logo = (
     <>
       <img
@@ -58,15 +49,9 @@ export function PageTopBar({
   if (withNav) {
     return (
       <div
-        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-2 md:pb-3 pt-[15px] md:pt-[34px]"
+        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[34px]"
         style={{ zIndex: 2 }}
       >
-        {/* Samostatný vyšší scrim element → postupný fade ďaleko pod nav (nie len v rámci headeru) */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 right-0 top-0"
-          style={{ height: '230px', background: headerScrim, zIndex: -1 }}
-        />
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
           {logo}
         </Link>
@@ -76,7 +61,7 @@ export function PageTopBar({
   }
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-3 px-4 md:pt-5" style={{ background: headerScrim }}>
+    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-5">
       {onBack && (
         <button
           type="button"

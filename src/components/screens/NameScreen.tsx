@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { PageTopBar } from '@/components/PageTopBar';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import { WheelDatePicker } from '@/components/WheelDatePicker';
 import { useT } from '@/i18n/LanguageContext';
@@ -60,7 +60,9 @@ export function NameScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar />
+      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-2 md:pt-5">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
+      </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">

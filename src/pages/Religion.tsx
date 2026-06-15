@@ -47,7 +47,7 @@ export default function Religion() {
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.12) 62%, rgba(0,0,0,0.28) 100%)',
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
           zIndex: 0,
           pointerEvents: 'none',
         }}
@@ -60,12 +60,6 @@ export default function Religion() {
       </div>
 
       <style>{`
-        /* Religion-only pozadie: wallnew.png (jemné modré heroglyfy) namiesto globálneho gold bg-dark.png.
-           Vyššia špecificita (.codex-page.dark-bg) prebije globálny .dark-bg::before; ostatné props (cover, blur) dedí. */
-        .codex-page.dark-bg::before {
-          background-image: url('/images/hero2.png');
-        }
-
         /* Vertikálny scroll-snap kontajner — klasický scroll, fix obrazovka per sekcia.
            Stránka ostáva 100dvh + overflow-hidden → pozadie sa NEzväčšuje; scrolluje len toto. */
         .codex-scroll {
@@ -770,9 +764,7 @@ export default function Religion() {
           height: 100%;
           pointer-events: none;
           opacity: 1;
-          /* z-index 1→3: krava/Hektor do popredia NAD header scrim, nech je svätožiara vidno na PC
-             (header PageTopBar = z-index 2). Pozície (left/bottom/scale) LOCKED — nedotknuté. */
-          z-index: 3;
+          z-index: 1;
         }
         /* ╔══════════════════════════════════════════════════════════════════╗
            ║  🔒 LOCKED 2026-05-24 (hektor posunutý o 50px nižšie na PC)       ║

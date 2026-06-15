@@ -9,7 +9,7 @@ import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { useT } from '@/i18n/LanguageContext';
-import { PageTopBar } from '@/components/PageTopBar';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 
 /** iOS-style screen record button with tap ripple animation */
 function ScreenRecordTapAnimation() {
@@ -404,7 +404,9 @@ export function WelcomeScreen() {
         transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {/* 1. Logo — on dark bg */}
-        <PageTopBar />
+        <div className="flex-shrink-0 flex justify-center pt-[15px] pb-2 md:pt-3">
+          <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
+        </div>
 
         {/* Outer centering container */}
         <div className="flex-1 flex items-center justify-center px-4 pb-4 pt-2">

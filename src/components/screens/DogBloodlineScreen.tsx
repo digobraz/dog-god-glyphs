@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
-import { PageTopBar } from '@/components/PageTopBar';
+import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import hekthorImg from '@/assets/hekthor.png';
 import aristocratImg from '@/assets/bloodline/BLOODLINE-ARISTOCRAT.svg';
 import muttImg from '@/assets/bloodline/BLOODLINE-MUTT.svg';
@@ -27,7 +27,9 @@ export function DogBloodlineScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar />
+      <div className="flex-shrink-0 flex justify-center pt-[15px] pb-1 md:pt-2">
+        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
+      </div>
 
       <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 py-2 my-auto">

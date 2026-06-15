@@ -660,7 +660,7 @@ export function GodsGrid() {
         .gods-root {
           position: fixed;
           inset: 0;
-          background-color: #00081e;
+          background-color: #050505;
           font-family: system-ui, -apple-system, sans-serif;
           letter-spacing: -0.02em;
           user-select: none;
@@ -670,7 +670,7 @@ export function GodsGrid() {
           content: '';
           position: absolute;
           inset: 0;
-          background-image: url('/images/hero2.png');
+          background-image: url('/images/bg-dark.png');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
@@ -806,11 +806,11 @@ export function GodsGrid() {
 
         /* 🔒 LOCKED 2026-06-02 (Matej schválil grid vzhľad po smoke teste ZEUS):
            Placeholder dogs = farebné ale priesvitné (nie pietne); photo 60%, popisky 100%.
-           NEMENIŤ brightness/opacity/grayscale bez výslovného OK.
-           ✏️ 2026-06-15 Matej OK: fotky na 100% viditeľné (priesvitné → plné). */
+           NEMENIŤ brightness/opacity/grayscale bez výslovného OK. */
         .dog-card--placeholder { cursor: default; }
         .dog-card--placeholder .card-img {
-          opacity: 1;
+          filter: brightness(0.92) contrast(0.97);
+          opacity: 0.6;
         }
         .dog-card--placeholder .card-label {
           font-size: 0.7rem !important;
@@ -1008,7 +1008,7 @@ export function GodsGrid() {
           content: '';
           position: absolute;
           inset: -200px -320px;
-          background: radial-gradient(ellipse at center, rgba(16,52,166,0.92) 20%, transparent 68%);
+          background: radial-gradient(ellipse at center, rgba(8,8,8,0.92) 20%, transparent 68%);
           z-index: -1;
           pointer-events: none;
         }
