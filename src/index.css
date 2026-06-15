@@ -165,22 +165,25 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: url('/images/bg-dark.png');
+  /* Egyptian-dark wash NAD heroglyfmi — stlmí jas zlatých symbolov (predtým „moc kričali") */
+  background-image:
+    linear-gradient(rgba(5,12,34,0.62), rgba(5,12,34,0.62)),
+    url('/images/bg-dark.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   filter: blur(3px);
   z-index: 0;
 }
-/* Top scrim — header sa zatmaví a plynulo prejde do obsahu (Egyptian Blue, predtým to robilo tmavé bg-dark.png hore) */
+/* Top scrim — header sa zatmaví a plynulo prejde do obsahu. Viditeľne Egyptian Blue (NIE skoro-čierna) */
 .dark-bg::after {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 180px;
-  background: linear-gradient(to bottom, rgba(0,8,30,0.95) 0%, rgba(0,8,30,0.6) 45%, rgba(0,8,30,0) 100%);
+  height: 200px;
+  background: linear-gradient(to bottom, rgba(13,34,92,0.97) 0%, rgba(11,27,74,0.78) 48%, rgba(8,18,52,0) 100%);
   z-index: 0;
   pointer-events: none;
 }
