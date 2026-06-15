@@ -49,7 +49,7 @@ export function PageTopBar({
   if (withNav) {
     return (
       <div
-        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[34px]"
+        className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[25px]"
         style={{ zIndex: 2 }}
       >
         <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
@@ -61,7 +61,7 @@ export function PageTopBar({
   }
 
   return (
-    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[34px]">
+    <div className="flex-shrink-0 flex items-center justify-center relative pt-[15px] pb-2 px-4 md:pt-[25px]">
       {onBack && (
         <button
           type="button"
