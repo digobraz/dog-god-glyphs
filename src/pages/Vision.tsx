@@ -707,8 +707,8 @@ export default function Vision() {
           opacity: 0.75;
         }
         .pill-status-dot.goal {
-          background: #8B5CF6;
-          box-shadow: 0 0 7px rgba(139, 92, 246, 0.75);
+          background: #2E5FD0;
+          box-shadow: 0 0 7px rgba(46, 95, 208, 0.75);
         }
         @keyframes dotPulse {
           0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 7px rgba(245, 158, 11, 0.85); }

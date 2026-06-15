@@ -462,7 +462,7 @@ export function WelcomeScreen() {
             <div className="w-full h-3 rounded-full overflow-hidden"
               style={{ background: 'rgba(0,0,0,0.25)' }}>
               <motion.div className="h-full rounded-full"
-                style={{ background: 'linear-gradient(to right, hsl(270 65% 65%), hsl(45 90% 65%))' }}
+                style={{ background: 'linear-gradient(to right, hsl(224 65% 65%), hsl(45 90% 65%))' }}
                 initial={{ width: '0%' }}
                 animate={{ width: packNumber ? `${Math.max(2.5, (packNumber / 1000000) * 100)}%` : '0%' }}
                 transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}

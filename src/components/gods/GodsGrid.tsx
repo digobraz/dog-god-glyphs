@@ -1232,7 +1232,7 @@ export function GodsGrid() {
           transition: opacity 800ms ease;
         }
         .reveal-card-fallback {
-          background: linear-gradient(135deg, hsl(270 40% 18%), hsl(45 60% 30%));
+          background: linear-gradient(135deg, hsl(224 40% 18%), hsl(45 60% 30%));
           display: flex;
           align-items: center;
           justify-content: center;

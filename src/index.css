@@ -36,9 +36,9 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   .is-selected-purple {
-    border-color: hsl(270 60% 45%);
-    background-color: hsl(270 60% 45% / 0.18);
-    box-shadow: 0 0 0 1px hsl(270 60% 45% / 0.5), inset 0 0 12px hsl(270 70% 50% / 0.2);
+    border-color: hsl(224 60% 45%);
+    background-color: hsl(224 60% 45% / 0.18);
+    box-shadow: 0 0 0 1px hsl(224 60% 45% / 0.5), inset 0 0 12px hsl(224 70% 50% / 0.2);
   }
 }
 

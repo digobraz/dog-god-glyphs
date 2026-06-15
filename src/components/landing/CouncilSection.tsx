@@ -115,7 +115,7 @@ export function CouncilSection() {
           position: relative; overflow: hidden;
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           gap: 8px; padding: clamp(11px, 1.6vw, 15px) 8px; min-height: 92px;
-          background: linear-gradient(135deg, hsl(270 40% 18%), hsl(45 70% 28%));
+          background: linear-gradient(135deg, hsl(224 40% 18%), hsl(45 70% 28%));
           border: 1.5px solid rgba(201,154,63,0.25);
           border-radius: 12px; cursor: pointer;
           transition: filter .2s ease, box-shadow .2s ease, border-color .2s ease;
@@ -128,7 +128,7 @@ export function CouncilSection() {
         .role-card.selected {
           filter: brightness(1.14);
           border-color: #B98BE8;
-          box-shadow: 0 0 0 2px rgba(139,95,192,0.95), 0 0 24px 5px rgba(139,95,192,0.70);
+          box-shadow: 0 0 0 2px rgba(46,95,208,0.95), 0 0 24px 5px rgba(46,95,208,0.70);
         }
         .role-icon {
           width: 30px; height: 30px; object-fit: contain;

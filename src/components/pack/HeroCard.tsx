@@ -231,7 +231,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
               padding: '7px 6px',
               borderRadius: 999,
               background: topTier
-                ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)'
+                ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(224 50% 42%) 100%)'
                 : 'transparent',
               border: topTier ? '1px solid rgba(201, 154, 63, 0.55)' : `1px solid ${T.border}`,
               boxShadow: topTier
@@ -337,7 +337,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 aria-label={`Devotion ${devotion.toLocaleString('en-US')}, level ${lv.index} ${lv.name}`}
                 style={{ position: 'relative', height: 34, borderRadius: 999, overflow: 'hidden', background: T.hairline, border: `1px solid ${T.border}` }}
               >
-                <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(270 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
+                <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
                 <div className="relative h-full flex items-center justify-center gap-1.5">
                   <span style={{ fontFamily: "'Cinzel', serif", fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1, letterSpacing: '0.02em', textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>
                     {devotion.toLocaleString('en-US')}

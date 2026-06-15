@@ -1673,7 +1673,7 @@ export default function PackDogDetail() {
                 height: '100%',
                 borderRadius: 16,
                 padding: 18,
-                background: `linear-gradient(135deg, hsl(270 40% 22%) 0%, hsl(45 80% 42%) 100%)`,
+                background: `linear-gradient(135deg, hsl(224 40% 22%) 0%, hsl(45 80% 42%) 100%)`,
                 border: '1px solid rgba(250, 244, 236, 0.22)',
               }}
             >
@@ -2974,8 +2974,8 @@ function VisionCallout({ title, body, tone = 'gold' }: { title: string; body: st
         marginTop: 4,
         padding: '14px 16px',
         borderRadius: 14,
-        background: purple ? 'rgba(139, 95, 192, 0.10)' : 'rgba(201, 154, 63, 0.07)',
-        border: `1px solid ${purple ? 'rgba(139, 95, 192, 0.34)' : 'rgba(201, 154, 63, 0.26)'}`,
+        background: purple ? 'rgba(46, 95, 208, 0.10)' : 'rgba(201, 154, 63, 0.07)',
+        border: `1px solid ${purple ? 'rgba(46, 95, 208, 0.34)' : 'rgba(201, 154, 63, 0.26)'}`,
       }}
     >
       <div className="flex items-center gap-2" style={{ marginBottom: 5 }}>
@@ -3152,14 +3152,14 @@ function TestChip({
       style={{
         padding: '12px 14px',
         borderRadius: 14,
-        background: 'rgba(139, 95, 192, 0.09)',
-        border: '1px solid rgba(139, 95, 192, 0.30)',
+        background: 'rgba(46, 95, 208, 0.09)',
+        border: '1px solid rgba(46, 95, 208, 0.30)',
         cursor: 'pointer',
       }}
     >
       <span
         className="inline-flex items-center justify-center shrink-0"
-        style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(139, 95, 192, 0.14)', color: T.partHek }}
+        style={{ width: 32, height: 32, borderRadius: 9, background: 'rgba(46, 95, 208, 0.14)', color: T.partHek }}
       >
         {lucide}
       </span>
@@ -3185,8 +3185,8 @@ function TestChip({
         style={{
           padding: '7px 11px',
           borderRadius: 999,
-          background: 'rgba(139, 95, 192, 0.16)',
-          border: '1px solid rgba(139, 95, 192, 0.42)',
+          background: 'rgba(46, 95, 208, 0.16)',
+          border: '1px solid rgba(46, 95, 208, 0.42)',
           fontFamily: "'Cinzel', serif",
           fontSize: 9,
           fontWeight: 700,

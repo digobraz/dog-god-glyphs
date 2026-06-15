@@ -378,7 +378,7 @@ function DevotionBarCompact({ devotion }: { devotion: number }) {
       <div style={{
         position: 'absolute', top: 0, left: 0, bottom: 0,
         width: `${lv.pct}%`,
-        background: 'linear-gradient(90deg, hsl(270 42% 42%), hsl(45 82% 55%))',
+        background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))',
         transition: 'width 0.5s ease',
       }} />
       <span style={{
@@ -471,7 +471,7 @@ const pillStyle = (active: boolean): React.CSSProperties => ({
   borderRadius: 999,
   color: active ? '#FFF6E6' : T.onDarkDim,
   background: active
-    ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)'
+    ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(224 50% 42%) 100%)'
     : 'transparent',
   boxShadow: active
     ? '0 5px 16px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255,255,255,0.25)'

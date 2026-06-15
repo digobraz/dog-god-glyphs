@@ -22,7 +22,7 @@ const RING_R = 47;
 const CIRC = 2 * Math.PI * RING_R;
 const ARC_LEN = CIRC * 0.75; // 270° gauge — medzera dole, kde sedí % text
 const GOLD: [number, number, number] = [0.85, 0.6, 0.2]; // markerColor fallback (cobe default)
-const PURPLE: [number, number, number] = [0.36, 0.10, 0.62]; // owner pin (deep violet #5B19A0, pulses)
+const PURPLE: [number, number, number] = [0.06, 0.20, 0.65]; // owner pin (Egyptian blue #1034A6, pulses)
 const PIN: [number, number, number] = [0.16, 0.13, 0.07]; // top-country pins (dark ink on beige)
 const OWNER_BASE = 0.13; // owner marker base size; render loop pulses it for visibility
 

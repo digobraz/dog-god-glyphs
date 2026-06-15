@@ -190,7 +190,7 @@ export function WheelYearPicker({ year, minYear = 1930, maxYear = new Date().get
 
   return (
     <div className="relative w-full overflow-hidden">
-      <div aria-hidden className="absolute left-0 right-0 pointer-events-none" style={{ top: `calc(50% - ${ITEM_H / 2}px)`, height: ITEM_H, borderTop: '1px solid hsl(270 60% 45% / 0.7)', borderBottom: '1px solid hsl(270 60% 45% / 0.7)', background: 'linear-gradient(180deg, hsl(270 60% 45% / 0.08), hsl(270 60% 45% / 0.22), hsl(270 60% 45% / 0.08))' }} />
+      <div aria-hidden className="absolute left-0 right-0 pointer-events-none" style={{ top: `calc(50% - ${ITEM_H / 2}px)`, height: ITEM_H, borderTop: '1px solid hsl(224 60% 45% / 0.7)', borderBottom: '1px solid hsl(224 60% 45% / 0.7)', background: 'linear-gradient(180deg, hsl(224 60% 45% / 0.08), hsl(224 60% 45% / 0.22), hsl(224 60% 45% / 0.08))' }} />
       <div aria-hidden className="absolute inset-x-0 top-0 pointer-events-none z-10" style={{ height: ITEM_H, background: 'linear-gradient(180deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 25%, hsl(var(--papyrus) / 0) 100%)' }} />
       <div aria-hidden className="absolute inset-x-0 bottom-0 pointer-events-none z-10" style={{ height: ITEM_H, background: 'linear-gradient(0deg, hsl(var(--papyrus)) 0%, hsl(var(--papyrus) / 0.85) 25%, hsl(var(--papyrus) / 0) 100%)' }} />
       <div className="relative">

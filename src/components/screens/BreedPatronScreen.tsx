@@ -185,14 +185,14 @@ function BreedPicker({
               onClick={() => onSelectSvg(svg)}
               className={`relative flex-shrink-0 w-20 h-20 rounded-xl flex items-center justify-center transition-all border-2 ${
                 isSel
-                  ? 'border-[hsl(270_60%_45%)] bg-[hsl(270_60%_45%/0.18)] scale-105 z-10'
+                  ? 'border-[hsl(224_60%_45%)] bg-[hsl(224_60%_45%/0.18)] scale-105 z-10'
                   : 'border-border/60 hover:border-primary/50 bg-card/50'
               }`}
               style={
                 isSel
                   ? {
                       boxShadow:
-                        '0 0 0 2px hsl(270 60% 45% / 0.5), inset 0 0 12px hsl(270 70% 50% / 0.2)',
+                        '0 0 0 2px hsl(224 60% 45% / 0.5), inset 0 0 12px hsl(224 70% 50% / 0.2)',
                     }
                   : undefined
               }

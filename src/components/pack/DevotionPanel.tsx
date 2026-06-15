@@ -39,7 +39,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
           style={{
             padding: '5px 12px',
             borderRadius: 999,
-            background: 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(270 50% 42%) 100%)',
+            background: 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(224 50% 42%) 100%)',
             border: '1px solid rgba(201,154,63,0.55)',
             boxShadow: '0 5px 18px -6px rgba(124,58,237,0.5)',
           }}
@@ -87,7 +87,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
             position: 'absolute',
             inset: 0,
             width: `${lv.pct}%`,
-            background: 'linear-gradient(90deg, hsl(270 42% 42%), hsl(45 82% 55%))',
+            background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))',
             transition: 'width .5s ease',
           }}
         />

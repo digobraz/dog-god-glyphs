@@ -33,7 +33,7 @@ export const PACK_THEME = {
   partDev: '#C99A3F', // rozvoj — zlatožltá (brand gold)
   partMkt: '#1AA39A', // marketing — tyrkysová (brand faience core)
   partHelp: '#C0453A', // direct help — červená
-  partHek: '#8B5FC0', // hektor — fialová
+  partHek: '#2E5FD0', // hektor — Egyptian blue accent (bývalá fialová, 2026-06-15)
   growGreenSoft: 'rgba(61, 122, 78, 0.12)',
   alertRed: '#B25640',
   alertRedSoft: 'rgba(178, 86, 64, 0.12)',
