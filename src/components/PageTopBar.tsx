@@ -37,7 +37,7 @@ export function PageTopBar({
   // Solid od vrchu (nepresvitavý), ostrá tmavomodrá z flow brand gradientu (#1034A6 → tmavá),
   // fade až v spodnej časti. Matej: „od vrchu musí byť solid + viac modrej ako vo flow gradiente."
   const headerScrim =
-    'linear-gradient(to bottom, #0b1838 0%, #0b1838 60%, rgba(11,24,56,0) 100%)';
+    'linear-gradient(to bottom, #070f26 0%, #070f26 60%, rgba(7,15,38,0) 100%)';
   const logo = (
     <>
       <img
