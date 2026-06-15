@@ -165,9 +165,9 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  /* Jemné stmavenie 10% tmavomodrou (Matej) — nech pozadie nekričí ale modrá ostáva */
+  /* Stmavenie 25% tmavomodrou (Matej: 10% +15%) — pozadie nekričí, modrá ostáva */
   background-image:
-    linear-gradient(rgba(7,18,52,0.10), rgba(7,18,52,0.10)),
+    linear-gradient(rgba(7,18,52,0.25), rgba(7,18,52,0.25)),
     url('/images/bg-dark.png');
   background-size: cover;
   background-position: center;
