@@ -670,9 +670,7 @@ export function GodsGrid() {
           content: '';
           position: absolute;
           inset: 0;
-          background-image:
-            linear-gradient(rgba(7,18,52,0.40), rgba(7,18,52,0.40)),
-            url('/images/bg-dark.png');
+          background-image: url('/images/wallnew.png');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;
