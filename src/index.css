@@ -165,8 +165,10 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  /* Bez washu — čisté modré heroglyf pozadie (Matej: odobrať stmavenie celkom) */
-  background-image: url('/images/bg-dark.png');
+  /* Jemné stmavenie 10% tmavomodrou (Matej) — nech pozadie nekričí ale modrá ostáva */
+  background-image:
+    linear-gradient(rgba(7,18,52,0.10), rgba(7,18,52,0.10)),
+    url('/images/bg-dark.png');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
