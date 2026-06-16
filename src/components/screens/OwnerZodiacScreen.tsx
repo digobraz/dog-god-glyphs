@@ -98,7 +98,7 @@ function ScrollableStrip({
       </button>
       <div
         ref={scrollRef}
-        className="flex-1 flex gap-2 overflow-x-auto py-1"
+        className="flex-1 flex gap-2 overflow-x-auto py-1 px-1"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
       >
         {children}
@@ -190,7 +190,7 @@ export function OwnerZodiacScreen() {
                     onClick={(e) => { handleSelectZodiac(sign); e.currentTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }}
                     className={`flex-shrink-0 flex flex-col items-center gap-1 p-2 rounded-xl transition-all w-14 border-2 ${
                       selectedZodiac === sign.name
-                        ? 'is-selected-purple scale-105'
+                        ? 'is-selected-purple'
                         : 'border-border/30 hover:bg-card/80 hover:border-border/60'
                     }`}
                   >
@@ -243,23 +243,22 @@ export function OwnerZodiacScreen() {
             </motion.div>
           </div>
 
-          {/* Continue button */}
-          {canContinue && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-              <Button
-                onClick={handleContinue}
-                className="w-full rounded-xl h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                  color: '#000',
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-                }}
-              >
-                {t('heroglyph.flow.ownerZodiac.continue')}
-              </Button>
-            </motion.div>
-          )}
+          {/* Continue button — always visible, disabled until both selections made */}
+          <div className="w-full">
+            <Button
+              onClick={handleContinue}
+              disabled={!canContinue}
+              className="w-full rounded-xl h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                color: '#000',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+              }}
+            >
+              {t('heroglyph.flow.ownerZodiac.continue')}
+            </Button>
+          </div>
 
           {/* Back button */}
           <button

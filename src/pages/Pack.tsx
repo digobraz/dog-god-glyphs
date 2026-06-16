@@ -11,7 +11,6 @@ import { OnboardingProgress, type OnboardingStep } from '@/components/pack/Onboa
 import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
 import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
-import { VisionRoadmap } from '@/components/pack/VisionRoadmap';
 import { PackWizard } from '@/components/pack/PackWizard';
 
 const T = PACK_THEME;
@@ -70,7 +69,6 @@ export default function Pack() {
   const [featureVotes, setFeatureVotes] = useState<Record<string, number>>({});
   const [hasVoted, setHasVoted] = useState(false);
   const [hasReferral, setHasReferral] = useState(false);
-  const [visionVoted, setVisionVoted] = useState(0); // how many of the 6 roadmap projects voted
 
   useEffect(() => {
     let mounted = true;
@@ -183,7 +181,6 @@ export default function Pack() {
       { label: 'Cast your vote in Shape', done: hasVoted },
       { label: 'Flip through the Constitution', done: constitutionOpened },
       { label: 'Invite your first dog lover', done: hasReferral },
-      { label: 'Discover the vision', done: visionVoted >= 6 },
     ];
   })();
 
@@ -312,9 +309,6 @@ export default function Pack() {
           <ConstitutionCard />
           <BuildNotice ownerName={displayName} email={user?.email ?? null} />
         </div>
-
-        {/* Row 4 — Vision / roadmap: the last block. Voting persists to DB. */}
-        <VisionRoadmap onVotedCountChange={setVisionVoted} />
 
         <div style={{ height: 32 }} />
       </div>

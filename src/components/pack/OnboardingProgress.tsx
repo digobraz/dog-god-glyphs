@@ -15,6 +15,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
 
   return (
     <div
+      className="pack-card-hover"
       style={{
         background: T.card,
         border: `1px solid ${T.hairline}`,
@@ -91,11 +92,24 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 14,
-              color: s.done ? T.ink : T.inkDim,
+              fontWeight: s.done ? 600 : 400,
+              color: s.done ? T.accentGold : T.inkDim,
+              transition: 'color 0.25s ease',
             }}
           >
             {s.done ? (
-              <Check className="h-4 w-4 shrink-0" style={{ color: T.ink }} />
+              <span
+                className="shrink-0 flex items-center justify-center"
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+                  boxShadow: '0 2px 6px -1px rgba(201,154,63,0.55)',
+                }}
+              >
+                <Check className="h-3 w-3" strokeWidth={3} style={{ color: '#3A2A06' }} />
+              </span>
             ) : (
               <Circle className="h-4 w-4 shrink-0" style={{ color: T.inkFaint }} />
             )}

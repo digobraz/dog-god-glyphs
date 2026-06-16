@@ -10,11 +10,12 @@ const T = PACK_THEME;
 // ─────────────────────────────────────────────────────────────────────────
 // "Bones & Network" — profile block 2, split two columns:
 //   LEFT  = bones balance (affiliates.points) + what bones are + referral link
-//   RIGHT = how levels reward you + Hekthor's Bowl (root) + the people in your line
+//   RIGHT = how levels reward you + the people in your line
 // BONES = affiliate currency. 10 bones = €1.
 //   You bring a dog lover (L1) → +20 bones (+30 if you're root/orphan)
 //   They bring someone (L2)    → +10 bones
-// Founder (root) also gets HEKTHOR'S BOWL: €1 per heroglyph ever forged → dogs.
+// NOTE: Hekthor's Bowl (root-only €-counter) PARKED 2026-06-16 — odstránené z UI,
+//   data (net.founder_points / is_root) ostávajú. Re-add keď bude pripravené.
 // Data: get_my_network() + get_or_create_my_affiliate().
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -336,59 +337,6 @@ export function PackNetwork() {
               Bring a dog lover and you earn <strong style={{ color: T.ink }}>+20 bones</strong>. When{' '}
               <em>they</em> bring someone, you earn <strong style={{ color: T.ink }}>+10</strong> more.
             </p>
-
-            {/* Hekthor's Bowl — root only, in euros (NOT bones) */}
-            {net?.is_root && (
-              <div
-                className="flex items-center justify-between gap-3"
-                style={{
-                  background: T.cardSoft,
-                  border: `1px solid ${T.accentGold}33`,
-                  borderRadius: 12,
-                  padding: '12px 14px',
-                  marginBottom: 16,
-                }}
-              >
-                <div className="flex items-center gap-2.5">
-                  <BrandIcon name="bone" size={16} tint="gold" />
-                  <div className="flex flex-col">
-                    <span
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        fontSize: 10,
-                        letterSpacing: '0.24em',
-                        textTransform: 'uppercase',
-                        color: T.inkDim,
-                      }}
-                    >
-                      Hekthor's Bowl
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "'Space Grotesk', sans-serif",
-                        fontSize: 11,
-                        color: T.inkFaint,
-                        marginTop: 2,
-                      }}
-                    >
-                      €1 from every heroglyph → dogs in need
-                    </span>
-                  </div>
-                </div>
-                <span
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 22,
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    color: T.accentGold,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  €{(net.founder_points ?? 0).toLocaleString('en-US')}
-                </span>
-              </div>
-            )}
 
             {/* Your line */}
             <div className="flex items-center gap-2.5 mb-3" style={{ color: T.inkDim }}>
