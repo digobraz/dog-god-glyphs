@@ -485,15 +485,20 @@ export default function Heroglyph() {
         @media (prefers-reduced-motion: reduce) {
           .heroglyph-cta { animation: none; }
         }
-        /* Mobile compact CTA — smaller margins/padding so /heroglyph fits 100vh,
-           with extra horizontal breathing room (wider button, side gaps). */
+        /* Mobile compact CTA — width matches the heroglyph (SVG max-width 342px),
+           reduced padding so it's a tidy block, wraps if text is tight. */
         @media (max-width: 639px) {
           .heroglyph-cta {
             margin-top: 18px;
-            padding: 14px 52px;
-            font-size: 0.95rem;
-            letter-spacing: 0.13em;
-            min-width: 260px;
+            padding: 13px 18px;
+            font-size: 0.9rem;
+            letter-spacing: 0.12em;
+            width: 100%;
+            max-width: 342px;
+            min-width: 0;
+            box-sizing: border-box;
+            white-space: normal;
+            line-height: 1.25;
           }
         }
       `}</style>
