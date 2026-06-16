@@ -360,7 +360,7 @@ export const en = {
   'heroglyph.flow.dogCharacter.slide.gourmet.desc':
     'Food is the mission. Full commitment, zero hesitation — and he\'ll eat whatever you didn\'t.',
   'heroglyph.flow.dogCharacter.slide.lover.desc':
-    'Personal space is a human myth. Will love you until you\'re soggy.',
+    'Has never met a stranger. Treats the postman like a long-lost soulmate. Every time.',
   'heroglyph.flow.dogCharacter.slide.chiller.desc':
     'Has mastered the ancient art of doing absolutely nothing, beautifully.',
   'heroglyph.flow.dogCharacter.selectedCount': '{count}/2 selected',
