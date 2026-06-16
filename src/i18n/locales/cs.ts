@@ -333,7 +333,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.dogCharacter.chooseTwo': 'Vyber dvě možnosti.',
   'heroglyph.flow.dogCharacter.infoTitle': 'Vyber vibe svého psa',
   'heroglyph.flow.dogCharacter.infoBody':
-    'Vyber dvě charakterové vlastnosti, které nejlépe popisují tvého psa. Ty formují symboly uvnitř Heroglyphu.',
+    'Vyber dvě charakterové vlastnosti, které nejlépe popisují tvého psa.',
   'heroglyph.flow.dogCharacter.selectedCount': '{count}/2 vybráno',
   'heroglyph.flow.dogCharacter.back': 'Zpět',
   'heroglyph.flow.dogCharacter.trait.guardian': 'Strážce',
@@ -606,6 +606,14 @@ export const cs: Partial<Dict> = {
   'payment.pay': 'ZAPLATIT PŘES STRIPE',
   'payment.secured': 'Zabezpečeno přes Stripe · Karta, Apple Pay, Google Pay',
   'payment.back': 'Zpět',
+  // transparency treasury block
+  'payment.transparency.title': '100% Transparentnost',
+
+  // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
+  'transparency.part.development': 'Rozvoj',
+  'transparency.part.affiliate': 'Affiliate',
+  'transparency.part.directHelp': 'Přímá pomoc',
+  'transparency.part.hekthorBowl': 'Hekthorova miska',
 
   // ── /terms + /privacy — STROJOVÝ PŘEKLAD (právní texty), čeká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovat sem)

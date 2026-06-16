@@ -75,7 +75,7 @@ export function DogFateScreen() {
 
             {/* Default content */}
             <div className="px-4 py-4 flex flex-col items-center gap-2 text-center">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-28 h-28 md:w-36 md:h-36 object-contain" />
+              <img src={hekthorImg} alt="HEKTHOR" className="w-[101px] h-[101px] md:w-[130px] md:h-[130px] object-contain" />
               <h3
                 className="text-base md:text-lg font-bold tracking-[0.2em] uppercase text-amber-300 pb-1.5 border-b border-white/20 drop-shadow-sm w-full"
                 style={{ fontFamily: "'Cinzel', serif" }}

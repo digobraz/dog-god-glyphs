@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -18,21 +18,10 @@ export function MessageScreen() {
   const storedMessage = useDogyptStore((s) => s.selections.dogMessage) || '';
 
   const [message, setMessage] = useState(storedMessage);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const charCount = message.length;
   const isOverLimit = charCount > MAX_CHARS;
   const canSubmit = charCount > 0 && !isOverLimit;
-
-  // Auto-resize textarea
-  useEffect(() => {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = 'auto';
-    const maxH = 5 * 24; // ~5 lines
-    el.style.height = Math.min(el.scrollHeight, maxH) + 'px';
-    el.style.overflowY = el.scrollHeight > maxH ? 'auto' : 'hidden';
-  }, [message]);
 
   const handleSubmit = () => {
     if (!canSubmit) return;
@@ -105,15 +94,17 @@ export function MessageScreen() {
               {/* Textarea */}
               <div className="relative">
                 <textarea
-                  ref={textareaRef}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder={t('heroglyph.flow.message.placeholder', { dogName: displayName })}
                   maxLength={MAX_CHARS + 50}
                   rows={3}
-                  className="w-full bg-card rounded-xl px-4 py-3 text-foreground text-sm leading-relaxed placeholder:text-muted-foreground/50 outline-none border-2 transition-colors resize-none"
+                  className="w-full bg-card rounded-xl px-4 py-3 text-foreground leading-relaxed placeholder:text-muted-foreground/50 outline-none border-2 transition-colors resize-none"
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: '16px',
+                    height: '88px',
+                    overflowY: 'auto',
                     borderColor: message.length > 0
                       ? 'hsl(var(--gold))'
                       : 'hsl(var(--border) / 0.3)',

@@ -335,7 +335,25 @@ export const en = {
   'heroglyph.flow.dogCharacter.chooseTwo': 'Choose two options.',
   'heroglyph.flow.dogCharacter.infoTitle': "Pick your dog's vibe",
   'heroglyph.flow.dogCharacter.infoBody':
-    'Choose the two character traits that best describe your dog. These shape the symbols inside the Heroglyph.',
+    'Choose the two character traits that best describe your dog.',
+  'heroglyph.flow.dogCharacter.slideLabel': 'SLIDE',
+  'heroglyph.flow.dogCharacter.slideAriaLabel': 'Next character slide',
+  'heroglyph.flow.dogCharacter.slide.guardian.desc':
+    'Watches the door like it\'s the gates of the afterlife. Barks first, asks questions never.',
+  'heroglyph.flow.dogCharacter.slide.player.desc':
+    'Will trade his soul for one more throw of the ball. Recess is a religion.',
+  'heroglyph.flow.dogCharacter.slide.energizer.desc':
+    'Batteries sold separately — and they never came. Powered by pure zoomies.',
+  'heroglyph.flow.dogCharacter.slide.maverick.desc':
+    'Rules are for leashed dogs. Selective hearing is a lifestyle, not a flaw.',
+  'heroglyph.flow.dogCharacter.slide.waterlover.desc':
+    'Sees a puddle, sees a baptism. Dry fur is a temporary condition.',
+  'heroglyph.flow.dogCharacter.slide.gourmet.desc':
+    'A nose that finds a crumb three rooms away. Every meal is sacred.',
+  'heroglyph.flow.dogCharacter.slide.lover.desc':
+    'Personal space is a human myth. Will love you until you\'re soggy.',
+  'heroglyph.flow.dogCharacter.slide.chiller.desc':
+    'Has mastered the ancient art of doing absolutely nothing, beautifully.',
   'heroglyph.flow.dogCharacter.selectedCount': '{count}/2 selected',
   'heroglyph.flow.dogCharacter.back': 'Back',
   'heroglyph.flow.dogCharacter.trait.guardian': 'Guardian',
@@ -633,6 +651,14 @@ export const en = {
   'payment.pay': 'PAY WITH STRIPE',
   'payment.secured': 'Secured by Stripe · Card, Apple Pay, Google Pay',
   'payment.back': 'Back',
+  // transparency treasury block
+  'payment.transparency.title': '100% Transparency',
+
+  // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
+  'transparency.part.development': 'Development',
+  'transparency.part.affiliate': 'Affiliate',
+  'transparency.part.directHelp': 'Direct help',
+  'transparency.part.hekthorBowl': "Hekthor's bowl",
 
   // ── /terms + /privacy — shared legal chrome ──
   // eyebrow + motto = brand → stay EN across locales (sk/cs fall back here by design)

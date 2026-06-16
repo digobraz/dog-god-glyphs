@@ -6,9 +6,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogoGold from '@/assets/dogypt-logo-gold.png';
-import { PACK_THEME } from './packTheme';
-
-const T = PACK_THEME;
+import { useT } from '@/i18n/LanguageContext';
+import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 
 const APP_ORIGIN = 'https://dogypt.com';
 
@@ -25,17 +24,8 @@ interface Affiliate {
   referral_count_l2?: number;
 }
 
-// Where every €11 heroglyph goes — the Constitution's covenant, in 11 parts.
-// 5 development · 3 marketing · 2 direct help · 1 Hekthor. Colors are CANONICAL
-// (packTheme partDev/Mkt/Help/Hek) — must match the TransparentStats block.
-const SPLIT = [
-  { share: 5, label: 'Development', color: T.partDev, note: 'Building the nation and paying the people behind it — programmers, caretakers, trainers — plus the tools and servers that keep DOGYPT alive and growing. Every expense will be published.' },
-  { share: 3, label: 'Affiliate', color: T.partMkt, note: 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith (as bones): spend them later inside DOGYPT or donate them to dogs in need. DOGYPT invests in the pack, not in expensive marketing — the pack spreads it far better.' },
-  { share: 2, label: 'Direct help', color: T.partHelp, note: 'Straight to dogs in need — shelters, food, vet bills, rescue — every cent documented and public.' },
-  { share: 1, label: "Hekthor's bowl", color: T.partHek, note: 'The founder dog who started it all. His share keeps the original promise alive — the dream stays simple: become a millionaire by helping dogs, not despite them.' },
-] as const;
-
 export function FounderInvite() {
+  const t = useT();
   const [aff, setAff] = useState<Affiliate | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -381,7 +371,7 @@ export function FounderInvite() {
 
             {/* 11-segment share bar — the parts, graphically */}
             <div className="relative flex w-full gap-[3px]" style={{ marginBottom: 14, zIndex: 1 }}>
-              {SPLIT.flatMap((s, si) =>
+              {TRANSPARENCY_SPLIT.flatMap((s, si) =>
                 Array.from({ length: s.share }).map((_, i) => (
                   <span
                     key={`${si}-${i}`}
@@ -396,11 +386,11 @@ export function FounderInvite() {
               className="relative grid grid-cols-2 gap-2.5"
               style={{ zIndex: 1, flex: 1, minHeight: 0, gridTemplateRows: '1fr 1fr' }}
             >
-              {SPLIT.map((s, si) => {
+              {TRANSPARENCY_SPLIT.map((s, si) => {
                 const open = openTile === si;
                 return (
                   <button
-                    key={s.label}
+                    key={s.labelKey}
                     type="button"
                     onClick={() => setOpenTile(si)}
                     className="text-left flex flex-col"
@@ -463,7 +453,7 @@ export function FounderInvite() {
                           marginTop: 7,
                         }}
                       >
-                        {s.label}
+                        {t(s.labelKey)}
                       </div>
                     </div>
                   </button>
@@ -515,7 +505,7 @@ export function FounderInvite() {
                       width: '100%',
                       maxWidth: 300,
                       background: 'linear-gradient(160deg, #1b1530 0%, #241a3c 100%)',
-                      border: `1px solid ${SPLIT[openTile].color}`,
+                      border: `1px solid ${TRANSPARENCY_SPLIT[openTile].color}`,
                       borderRadius: 18,
                       padding: '22px 20px 20px',
                       boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7)',
@@ -532,10 +522,10 @@ export function FounderInvite() {
                     </button>
 
                     <span className="flex gap-[5px]" style={{ marginBottom: 10 }}>
-                      {Array.from({ length: SPLIT[openTile].share }).map((_, i) => (
+                      {Array.from({ length: TRANSPARENCY_SPLIT[openTile].share }).map((_, i) => (
                         <span
                           key={i}
-                          style={{ width: 8, height: 8, borderRadius: 999, background: SPLIT[openTile].color }}
+                          style={{ width: 8, height: 8, borderRadius: 999, background: TRANSPARENCY_SPLIT[openTile].color }}
                         />
                       ))}
                     </span>
@@ -545,10 +535,10 @@ export function FounderInvite() {
                         fontSize: 30,
                         fontWeight: 700,
                         lineHeight: 1,
-                        color: SPLIT[openTile].color,
+                        color: TRANSPARENCY_SPLIT[openTile].color,
                       }}
                     >
-                      {SPLIT[openTile].share}
+                      {TRANSPARENCY_SPLIT[openTile].share}
                       <span style={{ fontSize: '0.42em', opacity: 0.65 }}>/11</span>
                     </div>
                     <div
@@ -562,7 +552,7 @@ export function FounderInvite() {
                         margin: '6px 0 10px',
                       }}
                     >
-                      {SPLIT[openTile].label}
+                      {t(TRANSPARENCY_SPLIT[openTile].labelKey)}
                     </div>
                     <p
                       style={{
@@ -573,7 +563,7 @@ export function FounderInvite() {
                         margin: 0,
                       }}
                     >
-                      {SPLIT[openTile].note}
+                      {TRANSPARENCY_SPLIT[openTile].note}
                     </p>
                   </motion.div>
                 </motion.div>

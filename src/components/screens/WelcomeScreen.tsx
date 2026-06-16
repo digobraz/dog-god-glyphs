@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,56 +11,6 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
-
-/** iOS-style screen record button with tap ripple animation */
-function ScreenRecordTapAnimation() {
-  return (
-    <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
-      {/* Glow halo behind everything */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 72, height: 72, background: 'radial-gradient(circle, rgba(220,38,38,0.35) 0%, transparent 70%)' }}
-        animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.8, 0.4] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* Outer ring — breathes */}
-      <motion.div
-        className="absolute rounded-full border-[3.5px]"
-        style={{ width: 56, height: 56, borderColor: '#dc2626' }}
-        animate={{ scale: [1, 1.08, 1], borderColor: ['#dc2626', '#ff4444', '#dc2626'] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* Inner red dot — strong pulse */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 28, height: 28, backgroundColor: '#dc2626', boxShadow: '0 0 20px rgba(220,38,38,0.6)' }}
-        animate={{
-          scale: [1, 0.7, 1],
-          boxShadow: [
-            '0 0 15px rgba(220,38,38,0.4)',
-            '0 0 35px rgba(220,38,38,0.9)',
-            '0 0 15px rgba(220,38,38,0.4)',
-          ],
-        }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* Ripple 1 */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 56, height: 56, border: '2px solid rgba(220,38,38,0.3)' }}
-        animate={{ scale: [1, 1.6], opacity: [0.6, 0] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut' }}
-      />
-      {/* Ripple 2 — delayed */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 56, height: 56, border: '2px solid rgba(220,38,38,0.2)' }}
-        animate={{ scale: [1, 1.8], opacity: [0.4, 0] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeOut', delay: 0.6 }}
-      />
-    </div>
-  );
-}
 
 // Direct REST — bypasses supabase-js client which Lovable may overwrite with zombie project.
 const PM_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/rest/v1/pack_members';
@@ -193,34 +144,6 @@ function useAnimatedCounter(target: number, reduced: boolean | null) {
   return { display, landed };
 }
 
-const DOG_GOD_WORDS = ['DOG', 'GOD'] as const;
-
-function DogToGod({ style }: { style?: React.CSSProperties }) {
-  const [index, setIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const INTERVAL = 3000;
-    const FADE_OUT = INTERVAL - 700;
-
-    const fadeOut = setInterval(() => setVisible(false), FADE_OUT);
-    const swap = setInterval(() => {
-      setIndex(i => (i + 1) % DOG_GOD_WORDS.length);
-      setVisible(true);
-    }, INTERVAL);
-
-    return () => { clearInterval(fadeOut); clearInterval(swap); };
-  }, []);
-
-  return (
-    <motion.span style={style}
-      animate={{ opacity: visible ? 1 : 0 }}
-      transition={{ duration: 0.5, ease: 'easeInOut' }}>
-      {DOG_GOD_WORDS[index]}
-    </motion.span>
-  );
-}
-
 /** Purple-to-gold gradient matching the paywall card */
 const GRADIENT_CARD: React.CSSProperties = {
   background: 'var(--brand-gradient)',
@@ -319,6 +242,7 @@ export function WelcomeScreen() {
   const [pwError, setPwError] = useState('');
   const [pwLoading, setPwLoading] = useState(false);
   const [pwDone, setPwDone] = useState(false);
+  const [pwModalOpen, setPwModalOpen] = useState(false);
 
   async function handleSetPassword(e: React.FormEvent) {
     e.preventDefault();
@@ -348,6 +272,7 @@ export function WelcomeScreen() {
         return;
       }
       setPwDone(true);
+      setPwModalOpen(false);
       handleEnterPack();
     } catch {
       setPwError(t('welcome.password.error'));
@@ -356,47 +281,112 @@ export function WelcomeScreen() {
     }
   }
 
-  const [showOverlay, setShowOverlay] = useState(true);
-
-  useEffect(() => {
-    const t = setTimeout(() => setShowOverlay(false), 3000);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Counter only starts after overlay dismisses
   const { display: packDisplay, landed } = useAnimatedCounter(
-    !showOverlay ? (packNumber ?? 0) : 0,
+    packNumber ?? 0,
     reduced
+  );
+
+  // Password modal portal
+  const pwModal = pwModalOpen && createPortal(
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(0,0,0,0.75)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '0 16px',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) setPwModalOpen(false); }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 16 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        style={{
+          background: 'rgba(245,235,210,0.97)',
+          borderRadius: 16,
+          padding: '28px 24px',
+          width: '100%',
+          maxWidth: 360,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          border: '1px solid rgba(160,116,35,0.3)',
+        }}
+      >
+        <form onSubmit={handleSetPassword} className="flex flex-col gap-3">
+          <p style={{ fontFamily: "'Cinzel', serif", fontSize: 11, color: '#555', letterSpacing: '0.08em', textAlign: 'center', textTransform: 'uppercase', marginBottom: 4 }}>
+            {t('welcome.password.title', { email: email || '…' })}
+          </p>
+          <input
+            type="password"
+            value={pwValue}
+            onChange={e => setPwValue(e.target.value)}
+            placeholder={t('welcome.password.placeholder')}
+            required
+            autoComplete="new-password"
+            className="w-full px-4 py-3 rounded-[8px] border outline-none"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 16,
+              color: '#0E0E0E',
+              background: 'rgba(255,255,255,0.7)',
+              borderColor: 'rgba(160,116,35,0.4)',
+            }}
+          />
+          <input
+            type="password"
+            value={pwConfirm}
+            onChange={e => setPwConfirm(e.target.value)}
+            placeholder={t('welcome.password.confirm')}
+            required
+            autoComplete="new-password"
+            className="w-full px-4 py-3 rounded-[8px] border outline-none"
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 16,
+              color: '#0E0E0E',
+              background: 'rgba(255,255,255,0.7)',
+              borderColor: 'rgba(160,116,35,0.4)',
+            }}
+          />
+          {pwError && (
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: '#b91c1c', textAlign: 'center' }}>
+              {pwError}
+            </p>
+          )}
+          <motion.button
+            type="submit"
+            disabled={packNumber === null || !heroglyphPngUrl || pwLoading}
+            className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
+              color: '#1a1200',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
+            }}
+            animate={!pwLoading && packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            {packNumber === null
+              ? t('welcome.cta.preparing')
+              : !heroglyphPngUrl
+                ? t('welcome.cta.forging')
+                : pwLoading
+                  ? t('welcome.password.processing')
+                  : t('welcome.password.submit')}
+          </motion.button>
+          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em', textAlign: 'center' }}>
+            {t('welcome.password.altLink')}
+          </p>
+        </form>
+      </motion.div>
+    </div>,
+    document.body
   );
 
   return (
     <div className="dark-bg min-h-[100dvh] overflow-y-auto overflow-x-hidden relative">
-      <AnimatePresence>
-        {showOverlay && (
-          <motion.div
-            className="z-50 dark-bg"
-            style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            initial={{ opacity: 1 }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
-          >
-            <div className="flex flex-col items-center text-center gap-3"
-              style={{ background: 'rgba(245,235,210,0.97)', borderRadius: 16, padding: '32px 40px', maxWidth: 300, boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-              {/* iOS-style screen record tap animation with REC label */}
-              <ScreenRecordTapAnimation />
+      {pwModal}
 
-              <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700, color: '#1a1a1a', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                {t('welcome.record.title')}
-              </h2>
-              <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: '#888' }}>
-                {t('welcome.record.subtitle')}
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {!showOverlay && (
       <motion.div
         className="flex flex-col min-h-[100dvh]"
         initial={{ opacity: 0 }}
@@ -512,63 +502,30 @@ export function WelcomeScreen() {
               <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.75rem, 3vw, 0.9rem)', fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#555' }}>
                 {t('welcome.officiallyA')}
               </span>
-              <DogToGod style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)', display: 'inline-block', minWidth: '2.6em', textAlign: 'left' }} />
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)' }}>
+                GOD
+              </span>
             </div>
           </div>
 
-          {/* Mission text */}
-          <p className="leading-relaxed text-center"
-            style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: '#888', letterSpacing: '0.01em' }}>
-            {t('welcome.missionLine1')}<br />
-            {t('welcome.missionSpread')}<strong style={{ color: '#555', letterSpacing: '0.08em' }}>{t('welcome.missionMotto')}</strong>
-          </p>
+          {/* Mission text — line1 + spread as one unit, motto on its own line */}
+          <div className="text-center" style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.01em' }}>
+            <p style={{ fontSize: 10, color: '#888', lineHeight: 1.5, margin: 0 }}>
+              {t('welcome.missionLine1')} {t('welcome.missionSpread')}
+            </p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'hsl(39 80% 35%)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>
+              {t('welcome.missionMotto')}
+            </p>
+          </div>
 
-          {/* Set-password form + CTA */}
+          {/* CTA area */}
           <div className="w-full flex flex-col items-center gap-2">
-            {/* Password form — shown when sessionId present and password not yet set */}
+            {/* sessionId present + password not yet set: CTA opens modal */}
             {sessionId && !pwDone && (
-              <form onSubmit={handleSetPassword} className="w-full flex flex-col gap-2">
-                <p style={{ fontFamily: "'Cinzel', serif", fontSize: 11, color: '#555', letterSpacing: '0.08em', textAlign: 'center', textTransform: 'uppercase' }}>
-                  {t('welcome.password.title', { email: email || '…' })}
-                </p>
-                <input
-                  type="password"
-                  value={pwValue}
-                  onChange={e => setPwValue(e.target.value)}
-                  placeholder={t('welcome.password.placeholder')}
-                  required
-                  autoComplete="new-password"
-                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: '#0E0E0E',
-                    background: 'rgba(255,255,255,0.6)',
-                    borderColor: 'rgba(160,116,35,0.4)',
-                  }}
-                />
-                <input
-                  type="password"
-                  value={pwConfirm}
-                  onChange={e => setPwConfirm(e.target.value)}
-                  placeholder={t('welcome.password.confirm')}
-                  required
-                  autoComplete="new-password"
-                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: '#0E0E0E',
-                    background: 'rgba(255,255,255,0.6)',
-                    borderColor: 'rgba(160,116,35,0.4)',
-                  }}
-                />
-                {pwError && (
-                  <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: '#b91c1c', textAlign: 'center' }}>
-                    {pwError}
-                  </p>
-                )}
+              <>
                 <motion.button
-                  type="submit"
-                  disabled={packNumber === null || !heroglyphPngUrl || pwLoading}
+                  onClick={() => setPwModalOpen(true)}
+                  disabled={packNumber === null || !heroglyphPngUrl}
                   className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                   style={{
                     fontFamily: "'Cinzel', serif",
@@ -576,24 +533,22 @@ export function WelcomeScreen() {
                     color: '#1a1200',
                     boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
                   }}
-                  animate={!pwLoading && packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
+                  animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                 >
                   {packNumber === null
                     ? t('welcome.cta.preparing')
                     : !heroglyphPngUrl
                       ? t('welcome.cta.forging')
-                      : pwLoading
-                        ? t('welcome.password.processing')
-                        : t('welcome.password.submit')}
+                      : t('welcome.password.submit')}
                 </motion.button>
                 <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em', textAlign: 'center' }}>
                   {t('welcome.password.altLink')}
                 </p>
-              </form>
+              </>
             )}
 
-            {/* Fallback / no-session: original enter button */}
+            {/* Fallback / no-session or pwDone: original enter button */}
             {(!sessionId || pwDone) && (
               <>
                 <motion.button
@@ -625,7 +580,6 @@ export function WelcomeScreen() {
       </motion.div>
       </div>
       </motion.div>
-      )}
 
       {/* Hidden PDF render targets — off-screen, rendered for html-to-image */}
       <div aria-hidden="true" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>

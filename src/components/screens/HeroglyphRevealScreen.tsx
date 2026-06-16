@@ -8,6 +8,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
+import LanguagePicker from '@/components/LanguagePicker';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
@@ -29,6 +30,11 @@ export function HeroglyphRevealScreen() {
   return (
     <div className="dark-bg min-h-[100dvh] flex flex-col items-center relative overflow-hidden">
       <GoldParticles count={30} />
+
+      {/* Language picker — mirrors PageTopBar positioning (no logo/back arrow per Matej OK) */}
+      <div className="absolute right-5 top-[12px] md:top-[20px] z-20">
+        <LanguagePicker variant="flow" />
+      </div>
 
       {/* Intro flash */}
       <AnimatePresence>
