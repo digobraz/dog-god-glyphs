@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -36,6 +37,8 @@ export function CheckoutScreen() {
   const setEmail = useDogyptStore((s) => s.setEmail);
   const setSelection = useDogyptStore((s) => s.setSelection);
 
+  useFlowKeyboardFix();
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setLocalEmail] = useState('');
@@ -61,7 +64,7 @@ export function CheckoutScreen() {
   };
 
   const inputClass =
-    'w-full rounded-xl border-2 border-border/60 bg-background/50 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors';
+    'w-full rounded-xl border-2 border-border/60 bg-background/50 px-3 py-2 text-base text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors';
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

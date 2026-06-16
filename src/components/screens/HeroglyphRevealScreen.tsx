@@ -30,7 +30,9 @@ export function HeroglyphRevealScreen() {
     <div className="dark-bg h-[100dvh] flex flex-col items-center relative overflow-hidden">
       <GoldParticles count={30} />
 
-      <PageTopBar />
+      <div className="w-full flex-shrink-0">
+        <PageTopBar />
+      </div>
 
       {/* Intro flash */}
       <AnimatePresence>

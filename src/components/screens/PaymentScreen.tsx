@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
@@ -88,53 +88,125 @@ export function PaymentScreen() {
       <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-5 py-4">
+        <div className="w-full max-w-xl flex flex-col items-center gap-4 py-4">
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-6 flex flex-col gap-4"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg flex flex-col overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <h3 className="text-sm font-bold tracking-[0.2em] uppercase text-primary text-center" style={{ fontFamily: "'Cinzel', serif" }}>
-              {t('payment.title')}
-            </h3>
-
-            <div className="text-center py-2">
-              <p className="text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif", color: 'var(--brand-blue)' }}>
-                €{selectedAmount ?? 11}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">{t('payment.product', { dogName: dogName || t('payment.yourDog') })}</p>
+            {/* ── 1. SECURE PAYMENT title ── */}
+            <div className="px-6 pt-5 pb-0">
+              <h3
+                className="text-sm font-bold tracking-[0.2em] uppercase text-primary text-center"
+                style={{ fontFamily: "'Cinzel', serif" }}
+              >
+                {t('payment.title')}
+              </h3>
             </div>
 
-            <Button
-              onClick={handlePay}
-              disabled={loading}
-              className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform mt-2 disabled:opacity-60 disabled:scale-100"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                color: '#000',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-              }}
-            >
-              {loading
-                ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
-                : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> {t('payment.pay')}</span>
-              }
-            </Button>
-
-            <p className="text-[10px] text-muted-foreground/60 text-center flex items-center justify-center gap-1">
-              <Lock className="h-3 w-3" /> {t('payment.secured')}
-            </p>
-
-            {/* ── 100% Transparency treasury ── */}
+            {/* ── 2. GRADIENT PRICE BLOCK ── */}
             <div
               style={{
-                marginTop: 4,
-                borderTop: '1px solid rgba(245,240,228,0.12)',
-                paddingTop: 16,
+                background: 'var(--brand-gradient)',
+                margin: '14px 20px 0',
+                borderRadius: 16,
+                padding: '18px 20px 16px',
+                textAlign: 'center',
               }}
             >
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 40,
+                  fontWeight: 700,
+                  lineHeight: 1,
+                  color: '#fff',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.45)',
+                  letterSpacing: '0.02em',
+                  margin: 0,
+                }}
+              >
+                €{selectedAmount ?? 11}
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.82)',
+                  marginTop: 6,
+                  marginBottom: 0,
+                }}
+              >
+                {t('payment.product', { dogName: dogName || t('payment.yourDog') })}
+              </p>
+            </div>
+
+            {/* ── 3. PAY BUTTON + SECURED ── */}
+            <div className="px-6 pt-4 pb-1">
+              <Button
+                onClick={handlePay}
+                disabled={loading}
+                className="w-full rounded-xl py-6 text-lg font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-60 disabled:scale-100"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                }}
+              >
+                {loading
+                  ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {waitingPhoto ? t('payment.sealing') : t('payment.preparing')}</span>
+                  : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> {t('payment.pay')}</span>
+                }
+              </Button>
+
+              <p className="text-[10px] text-muted-foreground/60 text-center flex items-center justify-center gap-1 mt-2">
+                <Lock className="h-3 w-3" /> {t('payment.secured')}
+              </p>
+            </div>
+
+            {/* ── 4. 100% TRANSPARENCY — PILLS + WATERMARK ── */}
+            <div
+              style={{
+                position: 'relative',
+                marginTop: 10,
+                borderTop: '1px solid rgba(31,26,14,0.12)',
+                paddingTop: 14,
+                paddingBottom: 20,
+                paddingLeft: 20,
+                paddingRight: 20,
+                overflow: 'hidden',
+              }}
+            >
+              {/* Watermark: faint proportional treasury bar at bottom */}
+              <div
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 48,
+                  display: 'flex',
+                  pointerEvents: 'none',
+                }}
+              >
+                {TRANSPARENCY_SPLIT.map((s) => (
+                  <div
+                    key={s.labelKey}
+                    style={{
+                      flex: s.share,
+                      background: s.color,
+                      opacity: 0.10,
+                    }}
+                  />
+                ))}
+              </div>
+
               {/* Section heading */}
               <p
                 style={{
@@ -145,83 +217,67 @@ export function PaymentScreen() {
                   textTransform: 'uppercase',
                   color: 'var(--brand-blue)',
                   textAlign: 'center',
-                  marginBottom: 10,
+                  marginBottom: 12,
+                  position: 'relative',
                 }}
               >
                 {t('payment.transparency.title')}
               </p>
 
-              {/* 11-segment bar */}
-              <div className="flex w-full gap-[3px]" style={{ marginBottom: 12 }}>
-                {TRANSPARENCY_SPLIT.flatMap((s, si) =>
-                  Array.from({ length: s.share }).map((_, i) => (
-                    <span
-                      key={`${si}-${i}`}
-                      style={{ flex: 1, height: 6, borderRadius: 2, background: s.color }}
-                    />
-                  )),
-                )}
-              </div>
-
-              {/* Legend rows */}
-              <div className="flex flex-col gap-[6px]">
+              {/* Pills row */}
+              <div
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  justifyContent: 'center',
+                  position: 'relative',
+                }}
+              >
                 {TRANSPARENCY_SPLIT.map((s, si) => (
-                  <div key={s.labelKey} className="flex items-center justify-between gap-2">
-                    {/* left: colour dot + label */}
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span
-                        style={{ width: 8, height: 8, borderRadius: 999, background: s.color, flexShrink: 0 }}
-                      />
-                      <span
-                        style={{
-                          fontFamily: "'Cinzel', serif",
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          letterSpacing: '0.06em',
-                          textTransform: 'uppercase',
-                          color: 'hsl(30 20% 20%)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {t(s.labelKey)}
-                      </span>
-                    </div>
-
-                    {/* right: euro amount + (i) */}
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span
-                        style={{
-                          fontFamily: "'Cinzel', serif",
-                          fontSize: 10.5,
-                          fontWeight: 700,
-                          color: s.color,
-                        }}
-                      >
-                        €{s.share}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label={`Info about ${t(s.labelKey)}`}
-                        onClick={() => setOpenTooltip(openTooltip === si ? null : si)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 18,
-                          height: 18,
-                          borderRadius: 999,
-                          border: `1px solid ${s.color}`,
-                          background: 'transparent',
-                          color: s.color,
-                          cursor: 'pointer',
-                          padding: 0,
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Info style={{ width: 10, height: 10 }} />
-                      </button>
-                    </div>
-                  </div>
+                  <button
+                    key={s.labelKey}
+                    type="button"
+                    aria-label={`Info about ${t(s.labelKey)}`}
+                    onClick={() => setOpenTooltip(openTooltip === si ? null : si)}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      paddingTop: 5,
+                      paddingBottom: 5,
+                      paddingLeft: 10,
+                      paddingRight: 10,
+                      borderRadius: 999,
+                      background: `${s.color}18`,
+                      border: `1.5px solid ${s.color}`,
+                      cursor: 'pointer',
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: 9.5,
+                      fontWeight: 700,
+                      letterSpacing: '0.07em',
+                      textTransform: 'uppercase',
+                      color: s.color,
+                      whiteSpace: 'nowrap',
+                      outline: openTooltip === si ? `2px solid ${s.color}` : 'none',
+                      outlineOffset: 2,
+                    }}
+                  >
+                    {t(s.labelKey)}
+                    <span
+                      style={{
+                        background: s.color,
+                        color: '#fff',
+                        borderRadius: 999,
+                        fontSize: 9,
+                        fontWeight: 800,
+                        padding: '1px 5px',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      €{s.share}
+                    </span>
+                  </button>
                 ))}
               </div>
 
@@ -235,10 +291,11 @@ export function PaymentScreen() {
                   transition={{ duration: 0.18 }}
                   style={{
                     marginTop: 10,
-                    background: 'rgba(0,0,0,0.06)',
+                    background: `${TRANSPARENCY_SPLIT[openTooltip].color}12`,
                     border: `1px solid ${TRANSPARENCY_SPLIT[openTooltip].color}`,
                     borderRadius: 10,
                     padding: '10px 12px',
+                    position: 'relative',
                   }}
                 >
                   <p

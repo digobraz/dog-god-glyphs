@@ -137,10 +137,10 @@ export function DogCharacterScreen() {
 
           {/* Wrapper for blocks 2+3 — modal overlays this */}
           <div className="w-full relative">
-            {/* 2. BLOCK - Hekthor question (gradient) */}
+            {/* 2. BLOCK - Hekthor question (gradient) — back side = slideshow */}
             <motion.div
               className="w-full rounded-2xl relative overflow-hidden"
-              style={{ background: 'var(--brand-gradient)' }}
+              style={{ background: 'var(--brand-gradient)', minHeight: '160px' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
@@ -178,126 +178,103 @@ export function DogCharacterScreen() {
                 </div>
               </div>
 
-              {/* Info overlay */}
+              {/* Info overlay — back side = slideshow */}
               <AnimatePresence>
                 {showInfo && (
                   <motion.div
-                    className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl overflow-hidden"
+                    className="absolute inset-0 z-10 rounded-2xl overflow-hidden"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.35 }}
                     style={{ backgroundColor: 'hsl(var(--papyrus))' }}
+                    onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+                    onTouchEnd={(e) => {
+                      if (touchStartX.current === null) return;
+                      const dx = e.changedTouches[0].clientX - touchStartX.current;
+                      if (Math.abs(dx) > 40) goSlide(dx < 0 ? 1 : -1);
+                      touchStartX.current = null;
+                    }}
                   >
-                    <div className="p-6 pt-12 md:pt-6 text-center max-w-sm">
-                      <h4
-                        className="text-sm md:text-base font-bold uppercase tracking-[0.15em] text-primary mb-3"
-                        style={{ fontFamily: "'Cinzel', serif" }}
+                    {/* Watermark SVG — gold-tinted, tuned for papyrus */}
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={`wm-${slideIndex}`}
+                        src={currentSlide.img}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                        style={{
+                          opacity: 0.13,
+                          filter: 'brightness(0) sepia(1) saturate(4) hue-rotate(5deg)',
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.13 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                      />
+                    </AnimatePresence>
+
+                    {/* Slide content */}
+                    <AnimatePresence mode="wait" custom={slideDir}>
+                      <motion.div
+                        key={`slide-${slideIndex}`}
+                        custom={slideDir}
+                        variants={{
+                          enter: (dir: number) => ({ x: dir * 40, opacity: 0 }),
+                          center: { x: 0, opacity: 1 },
+                          exit: (dir: number) => ({ x: dir * -40, opacity: 0 }),
+                        }}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: 0.22, ease: 'easeOut' }}
+                        className="relative z-10 px-5 pt-10 pb-10"
                       >
-                        {t('heroglyph.flow.dogCharacter.infoTitle')}
-                      </h4>
-                      <p
-                        className="text-foreground/70 text-xs md:text-sm leading-relaxed"
-                        style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                        <p
+                          className="text-[10px] uppercase tracking-[0.18em] mb-0.5"
+                          style={{ fontFamily: "'Cinzel', serif", color: '#C99A3F' }}
+                        >
+                          {slideIndex + 1} / {slides.length}
+                        </p>
+                        <p
+                          className="text-sm md:text-base font-bold uppercase tracking-[0.15em] mb-1"
+                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(35 60% 30%)' }}
+                        >
+                          {t(traitLabelKey[currentSlide.value])}
+                        </p>
+                        <p
+                          className="text-xs md:text-sm leading-relaxed"
+                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--foreground) / 0.75)' }}
+                        >
+                          {t(currentSlide.descKey)}
+                        </p>
+                      </motion.div>
+                    </AnimatePresence>
+
+                    {/* Next arrow — gold, pulse */}
+                    <button
+                      onClick={() => goSlide(1)}
+                      aria-label={t('heroglyph.flow.dogCharacter.slideAriaLabel')}
+                      className="absolute right-3 bottom-2 z-20 flex items-center gap-1"
+                    >
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-[0.15em]"
+                        style={{ fontFamily: "'Cinzel', serif", color: '#C99A3F' }}
                       >
-                        {t('heroglyph.flow.dogCharacter.infoBody')}
-                      </p>
-                    </div>
+                        {t('heroglyph.flow.dogCharacter.slideLabel')}
+                      </span>
+                      <motion.span
+                        animate={{ x: [0, 4, 0] }}
+                        transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
+                        className="flex items-center"
+                      >
+                        <SlideArrow className="h-5 w-5" style={{ color: '#C99A3F' }} />
+                      </motion.span>
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
-
-            {/* 2b. BLOCK - Character Slideshow (explainer) — PAPYRUS */}
-            <motion.div
-              className="w-full rounded-2xl border-2 border-border/40 papyrus-bg mt-3 relative overflow-hidden"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.28 }}
-              onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
-              onTouchEnd={(e) => {
-                if (touchStartX.current === null) return;
-                const dx = e.changedTouches[0].clientX - touchStartX.current;
-                if (Math.abs(dx) > 40) goSlide(dx < 0 ? 1 : -1);
-                touchStartX.current = null;
-              }}
-            >
-              {/* Watermark SVG — gold-tinted, tuned for papyrus */}
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={`wm-${slideIndex}`}
-                  src={currentSlide.img}
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
-                  style={{
-                    opacity: 0.14,
-                    filter: 'brightness(0) sepia(1) saturate(4) hue-rotate(5deg)',
-                  }}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.14 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.25 }}
-                />
-              </AnimatePresence>
-
-              {/* Slide content */}
-              <AnimatePresence mode="wait" custom={slideDir}>
-                <motion.div
-                  key={`slide-${slideIndex}`}
-                  custom={slideDir}
-                  variants={{
-                    enter: (dir: number) => ({ x: dir * 40, opacity: 0 }),
-                    center: { x: 0, opacity: 1 },
-                    exit: (dir: number) => ({ x: dir * -40, opacity: 0 }),
-                  }}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.22, ease: 'easeOut' }}
-                  className="relative z-10 px-5 pt-3 pb-9"
-                >
-                  <p
-                    className="text-[10px] uppercase tracking-[0.18em] mb-0.5"
-                    style={{ fontFamily: "'Cinzel', serif", color: '#C99A3F' }}
-                  >
-                    {slideIndex + 1} / {slides.length}
-                  </p>
-                  <p
-                    className="text-sm md:text-base font-bold uppercase tracking-[0.15em] mb-1"
-                    style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark, 35 60% 30%))' }}
-                  >
-                    {t(traitLabelKey[currentSlide.value])}
-                  </p>
-                  <p
-                    className="text-xs md:text-sm text-foreground/80 leading-relaxed"
-                    style={{ fontFamily: "'Cinzel', serif" }}
-                  >
-                    {t(currentSlide.descKey)}
-                  </p>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Next arrow — gold, pulse */}
-              <button
-                onClick={() => goSlide(1)}
-                aria-label={t('heroglyph.flow.dogCharacter.slideAriaLabel')}
-                className="absolute right-3 bottom-2 z-20 flex items-center gap-1"
-              >
-                <span
-                  className="text-[10px] font-bold uppercase tracking-[0.15em]"
-                  style={{ fontFamily: "'Cinzel', serif", color: '#C99A3F' }}
-                >
-                  {t('heroglyph.flow.dogCharacter.slideLabel')}
-                </span>
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
-                  className="flex items-center"
-                >
-                  <SlideArrow className="h-5 w-5" style={{ color: '#C99A3F' }} />
-                </motion.span>
-              </button>
             </motion.div>
 
             {/* 3. BLOCK - Horizontal slider */}

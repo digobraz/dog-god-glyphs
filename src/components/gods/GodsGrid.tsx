@@ -542,6 +542,9 @@ export function GodsGrid() {
         const t = e.changedTouches[0];
         const dist = Math.hypot(t.clientX - touchDownX, t.clientY - touchDownY);
         if (dist < 12) {
+          // Prevent the browser from firing synthetic mouse events (mousedown/mouseup/click)
+          // after this touch tap — those would re-open a card we just closed.
+          e.preventDefault();
           // Tap: close open card if tapping outside, or toggle tapped card
           if (openCardEl) {
             const el = document.elementFromPoint(t.clientX, t.clientY);
