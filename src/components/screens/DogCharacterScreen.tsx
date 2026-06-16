@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ChevronLeft, ChevronRight, ChevronRight as SlideArrow, Info, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
@@ -152,9 +152,14 @@ export function DogCharacterScreen() {
                 aria-label={t('heroglyph.flow.dogCharacter.infoAria')}
                 onClick={() => setShowInfo((p) => !p)}
               >
-                <span className="w-7 h-7 rounded-full border-2 border-white/40 flex items-center justify-center transition-colors hover:border-white/70">
+                <span
+                  className="w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors"
+                  style={showInfo
+                    ? { borderColor: 'hsl(35 60% 30% / 0.5)' }
+                    : { borderColor: 'rgba(255,255,255,0.4)' }}
+                >
                   {showInfo
-                    ? <X className="h-4 w-4 text-white/70" />
+                    ? <X className="h-4 w-4" style={{ color: 'hsl(35 60% 25%)' }} />
                     : <Info className="h-4 w-4 text-white/80" />}
                 </span>
               </button>
@@ -203,7 +208,7 @@ export function DogCharacterScreen() {
                         src={currentSlide.img}
                         alt=""
                         aria-hidden="true"
-                        className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] object-contain pointer-events-none select-none"
                         style={{
                           opacity: 0.13,
                           filter: 'brightness(0) sepia(1) saturate(4) hue-rotate(5deg)',
@@ -232,16 +237,10 @@ export function DogCharacterScreen() {
                         className="relative z-10 px-5 pt-10 pb-10"
                       >
                         <p
-                          className="text-[10px] uppercase tracking-[0.18em] mb-0.5"
-                          style={{ fontFamily: "'Cinzel', serif", color: '#C99A3F' }}
+                          className="text-base md:text-lg font-bold uppercase tracking-[0.15em] mb-1"
+                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(35 65% 20%)' }}
                         >
-                          {slideIndex + 1} / {slides.length}
-                        </p>
-                        <p
-                          className="text-sm md:text-base font-bold uppercase tracking-[0.15em] mb-1"
-                          style={{ fontFamily: "'Cinzel', serif", color: 'hsl(35 60% 30%)' }}
-                        >
-                          {t(traitLabelKey[currentSlide.value])}
+                          {t(`heroglyph.flow.dogCharacter.slide.${currentSlide.value}.title`)}
                         </p>
                         <p
                           className="text-xs md:text-sm leading-relaxed"
@@ -252,25 +251,18 @@ export function DogCharacterScreen() {
                       </motion.div>
                     </AnimatePresence>
 
-                    {/* Next arrow — gold, pulse */}
+                    {/* Pagination counter — tap to advance */}
                     <button
                       onClick={() => goSlide(1)}
                       aria-label={t('heroglyph.flow.dogCharacter.slideAriaLabel')}
-                      className="absolute right-3 bottom-2 z-20 flex items-center gap-1"
+                      className="absolute right-3 bottom-2 z-20"
                     >
                       <span
-                        className="text-[10px] font-bold uppercase tracking-[0.15em]"
-                        style={{ fontFamily: "'Cinzel', serif", color: '#C99A3F' }}
+                        className="text-sm font-bold tracking-[0.1em]"
+                        style={{ fontFamily: "'Cinzel', serif", color: 'hsl(35 65% 22%)' }}
                       >
-                        {t('heroglyph.flow.dogCharacter.slideLabel')}
+                        {slideIndex + 1}/{slides.length}
                       </span>
-                      <motion.span
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ repeat: Infinity, duration: 1.2, ease: 'easeInOut' }}
-                        className="flex items-center"
-                      >
-                        <SlideArrow className="h-5 w-5" style={{ color: '#C99A3F' }} />
-                      </motion.span>
                     </button>
                   </motion.div>
                 )}

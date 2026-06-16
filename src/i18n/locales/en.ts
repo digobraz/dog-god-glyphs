@@ -339,18 +339,26 @@ export const en = {
     'Choose the two character traits that best describe your dog.',
   'heroglyph.flow.dogCharacter.slideLabel': 'SLIDE',
   'heroglyph.flow.dogCharacter.slideAriaLabel': 'Next character slide',
+  'heroglyph.flow.dogCharacter.slide.guardian.title': 'Guardian (Eye of Dogo)',
+  'heroglyph.flow.dogCharacter.slide.player.title': 'Player (Winged Ball)',
+  'heroglyph.flow.dogCharacter.slide.energizer.title': 'Energizer (Full Battery)',
+  'heroglyph.flow.dogCharacter.slide.maverick.title': 'Maverick (Pirate Sign)',
+  'heroglyph.flow.dogCharacter.slide.waterlover.title': 'Waterlover (Waves)',
+  'heroglyph.flow.dogCharacter.slide.gourmet.title': 'Gourmet (Infinity Bowl)',
+  'heroglyph.flow.dogCharacter.slide.lover.title': 'Lover (Amor)',
+  'heroglyph.flow.dogCharacter.slide.chiller.title': 'Chiller (Sofa)',
   'heroglyph.flow.dogCharacter.slide.guardian.desc':
     'Watches the door like it\'s the gates of the afterlife. Barks first, asks questions never.',
   'heroglyph.flow.dogCharacter.slide.player.desc':
-    'Will trade his soul for one more throw of the ball. Recess is a religion.',
+    'Will trade his soul for one more throw of the ball. Greatest joy: favourite toy.',
   'heroglyph.flow.dogCharacter.slide.energizer.desc':
-    'Batteries sold separately — and they never came. Powered by pure zoomies.',
+    'No off switch. No battery required. Most asked question: what drugs is your dog on?',
   'heroglyph.flow.dogCharacter.slide.maverick.desc':
-    'Rules are for leashed dogs. Selective hearing is a lifestyle, not a flaw.',
+    'Modern-day pirate with his own world and his own rules. Selective hearing is his first law.',
   'heroglyph.flow.dogCharacter.slide.waterlover.desc':
-    'Sees a puddle, sees a baptism. Dry fur is a temporary condition.',
+    'Two types of dogs exist — and one can be mistaken for a fish. Wet fur: 100% happiness.',
   'heroglyph.flow.dogCharacter.slide.gourmet.desc':
-    'A nose that finds a crumb three rooms away. Every meal is sacred.',
+    'Food is the mission. Full commitment, zero hesitation — and he\'ll eat whatever you didn\'t.',
   'heroglyph.flow.dogCharacter.slide.lover.desc':
     'Personal space is a human myth. Will love you until you\'re soggy.',
   'heroglyph.flow.dogCharacter.slide.chiller.desc':
