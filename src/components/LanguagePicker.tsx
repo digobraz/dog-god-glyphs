@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useLang } from '@/i18n/LanguageContext';
 
 type LangCode = 'en' | 'sk' | string;
@@ -53,14 +54,23 @@ function FlagStack({ countries }: { countries: string[] }) {
   );
 }
 
-export default function LanguagePicker() {
+/**
+ * variant:
+ *  - 'nav' (default): light pill-nav usage (GodsGrid). Black trigger, panel binds
+ *    left:0/right:0 to fixed-width nav ancestor.
+ *  - 'flow': dark-bg heroglyph flow (PageTopBar). Papyrus-cream trigger, panel is
+ *    self-anchored to the trigger's right edge with its own width (drops down-left).
+ */
+export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 'flow' } = {}) {
   const [open, setOpen] = useState(false);
   const { lang, setLang } = useLang();
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
+    // 'flow' = modal s backdropom → zatvára sa klikom na scrim, nie outside-detekciou.
     const onDown = (e: MouseEvent | TouchEvent) => {
+      if (variant === 'flow') return;
       const target = e.target as Node;
       if (wrapRef.current && !wrapRef.current.contains(target)) setOpen(false);
     };
@@ -73,7 +83,7 @@ export default function LanguagePicker() {
       window.removeEventListener('touchstart', onDown);
       window.removeEventListener('keydown', onKey);
     };
-  }, [open]);
+  }, [open, variant]);
 
   const current = LANGS.find(l => l.label === lang) ?? LANGS[0];
 
@@ -83,8 +93,31 @@ export default function LanguagePicker() {
     setOpen(false);
   };
 
+  const grid = (
+    <div className="lang-grid">
+      {LANGS.map(entry => {
+        const isActive = entry.label === lang;
+        const cls = `lang-btn${isActive ? ' is-active' : ''}${entry.enabled ? '' : ' is-disabled'}`;
+        return (
+          <button
+            key={entry.code}
+            type="button"
+            className={cls}
+            role="option"
+            aria-selected={isActive}
+            aria-disabled={!entry.enabled}
+            onClick={() => pick(entry)}
+          >
+            <FlagStack countries={entry.countries} />
+            <span className="lang-btn__code">{entry.code}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className="lang-picker" ref={wrapRef}>
+    <div className={`lang-picker${variant === 'flow' ? ' lang-picker--flow' : ''}`} ref={wrapRef}>
       <button
         type="button"
         className="lang-trigger"
@@ -99,29 +132,19 @@ export default function LanguagePicker() {
         </svg>
       </button>
 
-      {open && (
-        <div className="lang-panel" role="listbox">
-          <div className="lang-grid">
-            {LANGS.map(entry => {
-              const isActive = entry.label === lang;
-              const cls = `lang-btn${isActive ? ' is-active' : ''}${entry.enabled ? '' : ' is-disabled'}`;
-              return (
-                <button
-                  key={entry.code}
-                  type="button"
-                  className={cls}
-                  role="option"
-                  aria-selected={isActive}
-                  aria-disabled={!entry.enabled}
-                  onClick={() => pick(entry)}
-                >
-                  <FlagStack countries={entry.countries} />
-                  <span className="lang-btn__code">{entry.code}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      {/* nav variant = dropdown anchored to nav pill */}
+      {open && variant === 'nav' && (
+        <div className="lang-panel" role="listbox">{grid}</div>
+      )}
+
+      {/* flow variant = centered modal popup with dark scrim (portaled to body so it
+          escapes the flow's stacking context — fixes "opens under Hektor block"). */}
+      {open && variant === 'flow' && createPortal(
+        <div className="lang-modal-root">
+          <div className="lang-modal-backdrop" onClick={() => setOpen(false)} />
+          <div className="lang-modal" role="listbox" aria-modal="true">{grid}</div>
+        </div>,
+        document.body,
       )}
 
       <style>{`
@@ -239,6 +262,44 @@ export default function LanguagePicker() {
           cursor: not-allowed;
         }
         .lang-btn__code { flex-shrink: 0; }
+
+        /* FLOW variant — dark-bg heroglyph flow. Papyrus-cream trigger (+ tap padding)
+           and a centered MODAL popup with dark scrim (portaled to <body>). */
+        .lang-picker--flow .lang-trigger { color: rgba(250,244,236,0.92); padding: 4px; }
+        .lang-picker--flow .lang-trigger:hover { opacity: 0.7; }
+        .lang-picker--flow .lang-trigger__chev { color: rgba(250,244,236,0.7); }
+        .lang-picker--flow .lang-flag-stack { border-color: rgba(250,244,236,0.35); }
+
+        .lang-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 2000;
+          background: rgba(0, 0, 0, 0.72);
+          -webkit-backdrop-filter: blur(2px);
+          backdrop-filter: blur(2px);
+          animation: langModalFade 160ms ease-out;
+        }
+        .lang-modal {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          z-index: 2001;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201, 154, 63, 0.55);
+          border-radius: 14px;
+          padding: 16px;
+          box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
+          max-width: min(420px, 88vw);
+          max-height: 84dvh;
+          overflow-y: auto;
+          animation: langModalPop 200ms cubic-bezier(0.2, 0.8, 0.3, 1.15);
+        }
+        @keyframes langModalFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes langModalPop {
+          from { opacity: 0; transform: translate(-50%, -46%) scale(0.96); }
+          to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
       `}</style>
     </div>
   );

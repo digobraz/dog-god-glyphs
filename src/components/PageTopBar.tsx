@@ -4,6 +4,7 @@ import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptLogoMobile from '@/assets/dogypt-logo-mobile.png';
 import { useT } from '@/i18n/LanguageContext';
 import { PageNav } from './PageNav';
+import LanguagePicker from './LanguagePicker';
 
 interface PageTopBarProps {
   /**
@@ -73,6 +74,12 @@ export function PageTopBar({
         </button>
       )}
       {logo}
+
+      {/* Language picker — top-right (mirrors the back-arrow), off the edge. Whole flow
+          inherits it (every flow screen uses this plain PageTopBar). */}
+      <div className="absolute right-5 top-[12px] md:top-[20px]">
+        <LanguagePicker variant="flow" />
+      </div>
     </div>
   );
 }
