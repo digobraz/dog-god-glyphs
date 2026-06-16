@@ -234,6 +234,11 @@ function BreedPicker({
 
   const svgs = svgsFor(activeCategory);
 
+  const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
+  const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // Search modal (iOS keyboard-safe) — same pattern as NameScreen
   const [modalOpen, setModalOpen] = useState(false);
   const modalRootRef = useRef<HTMLDivElement>(null);
@@ -254,7 +259,20 @@ function BreedPicker({
   const handlePick = (name: string, cat: string) => {
     onSelectBreed(name, cat);
     closeModal();
+    setDesktopDropdownOpen(false);
+    setSearch('');
   };
+
+  useEffect(() => {
+    if (!desktopDropdownOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (!dropdownRef.current?.contains(e.target as Node) && !desktopInputRef.current?.contains(e.target as Node)) {
+        setDesktopDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [desktopDropdownOpen]);
 
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -271,17 +289,43 @@ function BreedPicker({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Search field — tap opens a keyboard-safe modal (input + live matches),
-          a decent blue glow slowly orbits the frame to invite the tap. */}
+      {/* Search field — mobile: tap opens keyboard-safe modal; desktop: inline input + dropdown. */}
       <div className="flex items-center gap-2">
-        <div className={`breed-field-wrap flex-1${selectedBreed ? ' is-filled' : ''}`}>
-          <button
-            type="button"
-            className="breed-field-btn flex items-center gap-2 w-full rounded-xl px-4 h-11 bg-card"
-            onClick={openModal}
-          >
-            <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-            {selectedBreed ? (
+        <div className={`breed-field-wrap flex-1${selectedBreed ? ' is-filled' : ''}`} style={{ position: 'relative' }}>
+          {isMobile ? (
+            <button
+              type="button"
+              className="breed-field-btn flex items-center gap-2 w-full rounded-xl px-4 h-11 bg-card"
+              onClick={openModal}
+            >
+              <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+              {selectedBreed ? (
+                <span
+                  className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
+                  style={{ fontFamily: "'Cinzel', serif" }}
+                >
+                  {selectedBreed}
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => { e.stopPropagation(); onClearBreed(); }}
+                    className="text-foreground/60 hover:text-foreground inline-flex"
+                  >
+                    <X className="h-3 w-3" />
+                  </span>
+                </span>
+              ) : (
+                <span
+                  className="flex-1 text-left text-base md:text-sm text-muted-foreground"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  {placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
+                </span>
+              )}
+            </button>
+          ) : selectedBreed ? (
+            <div className="breed-field-btn flex items-center gap-2 w-full rounded-xl px-4 h-11 bg-card">
+              <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
               <span
                 className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
                 style={{ fontFamily: "'Cinzel', serif" }}
@@ -290,26 +334,58 @@ function BreedPicker({
                 <span
                   role="button"
                   tabIndex={0}
-                  onClick={(e) => { e.stopPropagation(); onClearBreed(); }}
+                  onClick={() => { onClearBreed(); desktopInputRef.current?.focus(); }}
                   className="text-foreground/60 hover:text-foreground inline-flex"
                 >
                   <X className="h-3 w-3" />
                 </span>
               </span>
-            ) : (
-              <span
-                className="flex-1 text-left text-base md:text-sm text-muted-foreground"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
-                {placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
-              </span>
-            )}
-          </button>
+            </div>
+          ) : (
+            <>
+              <div className="breed-field-btn flex items-center gap-2 w-full rounded-xl px-4 h-11 bg-card" style={{ padding: 0 }}>
+                <div className="flex items-center gap-2 w-full h-full px-4">
+                  <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                  <input
+                    ref={desktopInputRef}
+                    value={search}
+                    onChange={(e) => { handleSearchChange(e.target.value); setDesktopDropdownOpen(true); }}
+                    onFocus={() => { if (matches.length > 0) setDesktopDropdownOpen(true); }}
+                    placeholder={placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
+                    autoComplete="off"
+                    spellCheck={false}
+                    className="flex-1 bg-transparent outline-none text-sm text-foreground"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  />
+                </div>
+              </div>
+              {desktopDropdownOpen && matches.length > 0 && (
+                <div
+                  ref={dropdownRef}
+                  className="absolute left-0 right-0 z-50 rounded-xl border border-border/40 bg-card shadow-lg overflow-hidden"
+                  style={{ top: '100%', marginTop: 4 }}
+                >
+                  {matches.map((b) => (
+                    <button
+                      key={b.name}
+                      type="button"
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-primary/10 transition-colors"
+                      style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                      onMouseDown={(e) => { e.preventDefault(); handlePick(b.name, b.category); }}
+                    >
+                      <span>{b.name}</span>
+                      <img src={patronUrl(b.patron)} alt="" className="h-6 w-6 object-contain opacity-90" />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
         {trailing}
       </div>
 
-      <BreedSearchModal
+      {isMobile && <BreedSearchModal
         open={modalOpen}
         search={search}
         matches={matches}
@@ -323,7 +399,7 @@ function BreedPicker({
         onClear={onClearBreed}
         onSelect={handlePick}
         onClose={closeModal}
-      />
+      />}
 
       <style>{`
         @property --breed-glow-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }

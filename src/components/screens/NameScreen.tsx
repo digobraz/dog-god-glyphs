@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -181,6 +181,7 @@ export function NameScreen() {
   const [year, setYear] = useState<number>(hasStored ? stored.y : currentYear - 5);
   const [touched, setTouched] = useState<boolean>(!!hasStored);
   const [showInfo, setShowInfo] = useState(false);
+  const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const nameModalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -349,28 +350,55 @@ export function NameScreen() {
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-2 md:gap-3">
-            {/* Read-only preview — tap opens the name modal (keeps the iOS keyboard
-                from covering the field; the modal sits near the top of the screen).
-                A decent blue glow slowly orbits the frame to invite the tap. */}
+            {/* Name input — modal on mobile (keeps field above iOS keyboard),
+                inline input on desktop (direct keyboard typing). */}
             <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`}>
-              <button
-                type="button"
-                onClick={openNameModal}
-                className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: '16px',
-                  textAlign: 'center',
-                  textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
-                  letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
-                  background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
-                  borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
-                  color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
-                  cursor: 'text',
-                }}
-              >
-                {trimmed.length > 0 ? input : t('heroglyph.flow.name.placeholder')}
-              </button>
+              {isMobile ? (
+                <button
+                  type="button"
+                  onClick={openNameModal}
+                  className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: '16px',
+                    textAlign: 'center',
+                    textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
+                    letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
+                    background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+                    borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
+                    color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+                    cursor: 'text',
+                  }}
+                >
+                  {trimmed.length > 0 ? input : t('heroglyph.flow.name.placeholder')}
+                </button>
+              ) : (
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
+                  placeholder={t('heroglyph.flow.name.placeholder')}
+                  maxLength={30}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  data-1p-ignore
+                  data-lpignore="true"
+                  className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: '16px',
+                    textAlign: 'center',
+                    textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
+                    letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
+                    background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+                    borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
+                    color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+                    outline: 'none',
+                  }}
+                />
+              )}
               <style>{`
                 @property --name-prev-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
                 .name-preview-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47, 107, 255, 0.14); }
@@ -431,9 +459,8 @@ export function NameScreen() {
         </div>
       </div>
 
-      {/* Name entry modal — ALWAYS mounted (so iOS can focus the input inside the
-          tap gesture and open the keyboard); visibility toggled via the open prop. */}
-      <NameModal
+      {/* Name entry modal — only on mobile (iOS keyboard-safe); desktop types inline. */}
+      {isMobile && <NameModal
         open={nameModalOpen}
         value={input}
         placeholder={t('heroglyph.flow.name.placeholder')}
@@ -445,7 +472,7 @@ export function NameScreen() {
         onChange={setInput}
         onDone={closeNameModal}
         onClose={closeNameModal}
-      />
+      />}
     </div>
   );
 }

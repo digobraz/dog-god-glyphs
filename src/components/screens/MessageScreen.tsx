@@ -19,7 +19,6 @@ interface MessageModalProps {
   value: string;
   placeholder: string;
   doneLabel: string;
-  closeLabel: string;
   isOverLimit: boolean;
   charCount: number;
   maxChars: number;
@@ -32,7 +31,6 @@ function MessageModal({
   value,
   placeholder,
   doneLabel,
-  closeLabel,
   isOverLimit,
   charCount,
   maxChars,
@@ -40,15 +38,9 @@ function MessageModal({
   onDone,
   onClose,
 }: MessageModalProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Auto-focus when modal mounts
+  // Auto-focus: keyboard is already open (hidden input grabbed it), transfer immediately
   const handleMount = useCallback((node: HTMLTextAreaElement | null) => {
-    (textareaRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
-    if (node) {
-      // Small delay so the portal is fully painted before focusing
-      setTimeout(() => node.focus(), 60);
-    }
+    if (node) node.focus();
   }, []);
 
   return createPortal(
@@ -58,16 +50,6 @@ function MessageModal({
 
       {/* Card */}
       <div className="msg-modal-card">
-        {/* Close X */}
-        <button
-          type="button"
-          className="msg-modal-close"
-          aria-label={closeLabel}
-          onClick={onClose}
-        >
-          ✕
-        </button>
-
         {/* Textarea */}
         <div className="relative mt-1">
           <textarea
@@ -146,20 +128,6 @@ function MessageModal({
           flex-direction: column;
           gap: 12px;
         }
-        .msg-modal-close {
-          position: absolute;
-          top: 12px;
-          right: 14px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 14px;
-          color: rgba(0, 0, 0, 0.4);
-          line-height: 1;
-          padding: 4px;
-          transition: color 150ms ease;
-        }
-        .msg-modal-close:hover { color: rgba(0, 0, 0, 0.75); }
         .msg-modal-textarea {
           width: 100%;
           background: rgba(255, 255, 255, 0.6);
@@ -230,7 +198,14 @@ export function MessageScreen() {
   const isOverLimit = charCount > MAX_CHARS;
   const canSubmit = charCount > 0 && !isOverLimit;
 
-  const openModal = () => setModalOpen(true);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
+
+  const openModal = () => {
+    // iOS requires focus() called synchronously inside a user gesture to open the keyboard.
+    // We grab focus with a hidden input here, then transfer to the textarea when it mounts.
+    hiddenInputRef.current?.focus();
+    setModalOpen(true);
+  };
 
   const closeModal = () => {
     setModalOpen(false);
@@ -270,6 +245,14 @@ export function MessageScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
+      {/* Hidden input — iOS keyboard trick: focused synchronously in user gesture */}
+      <input
+        ref={hiddenInputRef}
+        type="text"
+        aria-hidden="true"
+        readOnly
+        style={{ position: 'fixed', top: 0, left: 0, width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+      />
       <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
@@ -385,7 +368,6 @@ export function MessageScreen() {
           value={message}
           placeholder={placeholder}
           doneLabel={t('heroglyph.flow.message.done')}
-          closeLabel={t('nav.aria.close')}
           isOverLimit={isOverLimit}
           charCount={charCount}
           maxChars={MAX_CHARS}

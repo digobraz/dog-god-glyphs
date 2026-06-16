@@ -237,10 +237,22 @@ export function DogCharacterScreen() {
                         className="relative z-10 px-5 pt-10 pb-10"
                       >
                         <p
-                          className="text-base md:text-lg font-bold uppercase tracking-[0.15em] mb-1"
+                          className="text-base md:text-lg font-bold uppercase tracking-[0.15em] mb-1 leading-snug"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(35 65% 20%)' }}
                         >
-                          {t(`heroglyph.flow.dogCharacter.slide.${currentSlide.value}.title`)}
+                          {(() => {
+                            const full = t(`heroglyph.flow.dogCharacter.slide.${currentSlide.value}.title`);
+                            const match = full.match(/^(.*?)\s*(\(.*\))$/);
+                            if (!match) return full;
+                            return (
+                              <>
+                                {match[1]}
+                                <span className="text-[0.6em] font-normal tracking-[0.1em] ml-1.5 opacity-70">
+                                  {match[2]}
+                                </span>
+                              </>
+                            );
+                          })()}
                         </p>
                         <p
                           className="text-xs md:text-sm leading-relaxed"
