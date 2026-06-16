@@ -170,6 +170,7 @@ export const ukr: Partial<Dict> = {
   // ── /heroglyph flow — step 3: breed ──
   'heroglyph.flow.breed.question': 'Скажи, якої породи твій герой?',
   'heroglyph.flow.breed.searchPlaceholder': 'Шукати породу...',
+  'heroglyph.flow.breed.enHint': 'Введіть породу англійською',
   'heroglyph.flow.breed.continue': 'Продовжити',
   'heroglyph.flow.breed.cat.01': 'Пухнастики',
   'heroglyph.flow.breed.cat.02': 'Кудлаї',

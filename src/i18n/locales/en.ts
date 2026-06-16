@@ -180,6 +180,7 @@ export const en = {
   // ── /heroglyph flow — step 3: breed ──
   'heroglyph.flow.breed.question': 'Tell me, what breed is your hero?',
   'heroglyph.flow.breed.searchPlaceholder': 'Search breed...',
+  'heroglyph.flow.breed.enHint': '',
   'heroglyph.flow.breed.continue': 'Continue',
   'heroglyph.flow.breed.cat.01': 'Furballs',
   'heroglyph.flow.breed.cat.02': 'Wooligans',

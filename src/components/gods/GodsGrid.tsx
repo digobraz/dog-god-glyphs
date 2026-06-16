@@ -469,7 +469,7 @@ export function GodsGrid() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.numpad-overlay')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -542,6 +542,12 @@ export function GodsGrid() {
         const t = e.changedTouches[0];
         const dist = Math.hypot(t.clientX - touchDownX, t.clientY - touchDownY);
         if (dist < 12) {
+          // Interactive UI controls (join CTA, nav, lang, filter, numpad…) need their
+          // native click — don't preventDefault, or the synthetic click never fires.
+          const tapped = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
+          if (tapped?.closest('.center-hero, .center-btn, .main-nav, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay')) {
+            return;
+          }
           // Prevent the browser from firing synthetic mouse events (mousedown/mouseup/click)
           // after this touch tap — those would re-open a card we just closed.
           e.preventDefault();
@@ -695,11 +701,20 @@ export function GodsGrid() {
         .main-nav {
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 14px;
+          white-space: nowrap;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1px solid rgba(201,154,63,0.45);
           padding: 7px 20px;
           border-radius: 999px;
+        }
+        /* Vertical divider between menu words (matches public web PageNav) */
+        .main-nav-sep {
+          display: inline-block;
+          width: 1px;
+          height: 12px;
+          background: rgba(0,0,0,0.22);
+          flex-shrink: 0;
         }
         .main-nav a, .main-nav button {
           font-family: 'Cinzel', serif;
@@ -1328,13 +1343,10 @@ export function GodsGrid() {
 
         /* ── Filter / find dog by number ── */
         .filter-btn {
-          position: fixed;
-          bottom: 16px;
-          left: calc(50% - 4px);
-          transform: translateX(-100%);
           z-index: 50;
           width: 40px; height: 40px;
           border-radius: 50%;
+          flex-shrink: 0;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1px solid rgba(201,154,63,0.45);
           color: rgba(0,0,0,0.7);
@@ -1429,18 +1441,26 @@ export function GodsGrid() {
           background: rgba(46,158,79,0.10);
         }
 
-        /* ── Center grid button (terč) — side-by-side with filter at bottom ── */
+        /* ── Bottom bar: filter + center (+ flag on mobile), centered as a row ── */
+        .gods-bottom-bar {
+          position: fixed;
+          bottom: 16px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
         .center-btn-mobile {
           display: flex;
           align-items: center;
           justify-content: center;
-          position: fixed;
-          bottom: 16px;
-          left: calc(50% + 4px);
           z-index: 50;
           width: 40px;
           height: 40px;
           border-radius: 50%;
+          flex-shrink: 0;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1px solid rgba(201,154,63,0.45);
           color: rgba(0,0,0,0.7);
@@ -1450,11 +1470,34 @@ export function GodsGrid() {
         }
         .center-btn-mobile:hover { opacity: 0.85; }
 
+        /* Flag pill — bottom bar, mobile only (desktop keeps it in the top nav) */
+        .lang-btn-mobile {
+          display: none;
+          align-items: center;
+          justify-content: center;
+          height: 40px;
+          padding: 0 10px;
+          border-radius: 999px;
+          flex-shrink: 0;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.45);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        }
+        .lang-btn-mobile .lang-picker--flow .lang-trigger { color: rgba(0,0,0,0.72); padding: 0; }
+        .lang-btn-mobile .lang-picker--flow .lang-trigger__chev { color: rgba(0,0,0,0.5); }
+
         @media (max-width: 768px) {
           .nav-left {
             left: 50%;
             transform: translateX(-50%);
           }
+
+          /* Top nav: 3 names only (flag moves to the bottom bar), tighter so the
+             longest labels (SK/CZ NÁBOŽENSTVO) never wrap. */
+          .nav-lang-desktop { display: none; }
+          .lang-btn-mobile { display: flex; }
+          .main-nav { gap: 9px; padding: 6px 13px; }
+          .main-nav a { font-size: 0.7rem; letter-spacing: 0.07em; }
 
           /* Mobil center hero: zmenšené logo + CTA, zvýraznený počet psov */
           .center-hero { gap: 13px; }
@@ -1525,9 +1568,13 @@ export function GodsGrid() {
         <div className="nav-left">
           <nav className="main-nav">
             <a href="/vision">{t('nav.vision')}</a>
+            <span className="main-nav-sep" aria-hidden="true" />
             <a href="/religion">{t('nav.religion')}</a>
+            <span className="main-nav-sep" aria-hidden="true" />
             <a href="/about">{t('nav.about')}</a>
-            <LanguagePicker />
+            {/* Flag stays in the top pill on desktop; on mobile it moves to the
+                bottom bar next to the center button (see .lang-btn-mobile). */}
+            <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
 
@@ -1539,24 +1586,29 @@ export function GodsGrid() {
           </div>
         </div>
 
-        <button
-          className={`filter-btn${filterOpen ? ' active' : ''}`}
-          onClick={() => setFilterOpen(f => !f)}
-          aria-label={t('wall.filter.find')}
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="6.5" cy="6.5" r="4"/>
-            <path d="M10 10L14 14"/>
-          </svg>
-        </button>
+        <div className="gods-bottom-bar">
+          <button
+            className={`filter-btn${filterOpen ? ' active' : ''}`}
+            onClick={() => setFilterOpen(f => !f)}
+            aria-label={t('wall.filter.find')}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="6.5" cy="6.5" r="4"/>
+              <path d="M10 10L14 14"/>
+            </svg>
+          </button>
 
-        <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label={t('wall.filter.center')}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <circle cx="12" cy="12" r="9"/>
-            <circle cx="12" cy="12" r="4"/>
-            <circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none"/>
-          </svg>
-        </button>
+          <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label={t('wall.filter.center')}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="4"/>
+              <circle cx="12" cy="12" r="0.6" fill="currentColor" stroke="none"/>
+            </svg>
+          </button>
+
+          {/* Mobile-only: language flag pill, next to the center button */}
+          <div className="lang-btn-mobile"><LanguagePicker variant="flow" /></div>
+        </div>
 
         <div
           className={`numpad-overlay${filterOpen ? ' open' : ''}`}

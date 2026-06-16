@@ -170,6 +170,7 @@ export const pol: Partial<Dict> = {
   // ── /heroglyph flow — krok 3: rasa ──
   'heroglyph.flow.breed.question': 'Powiedz, jakiej rasy jest twój bohater?',
   'heroglyph.flow.breed.searchPlaceholder': 'Szukaj rasy...',
+  'heroglyph.flow.breed.enHint': 'Wpisz rasę po angielsku',
   'heroglyph.flow.breed.continue': 'Dalej',
   'heroglyph.flow.breed.cat.01': 'Futrzaki',
   'heroglyph.flow.breed.cat.02': 'Wełniaki',

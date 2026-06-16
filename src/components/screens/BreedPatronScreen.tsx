@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, PawPrint } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -47,6 +48,163 @@ const svgsFor = (cat: string): string[] => {
 
 const patronUrl = (svg: string) => `/patrons/${svg}`;
 
+// ── Breed search modal ───────────────────────────────────────────────────────
+// Same iOS-safe pattern as NameScreen: always-mounted modal portaled to body,
+// input focused synchronously on tap (so the keyboard opens), card kept above
+// the keyboard via visualViewport. Live matches render INSIDE the card so the
+// keyboard never covers them. See feedback_ios_input_modal_pattern.
+interface BreedSearchModalProps {
+  open: boolean;
+  search: string;
+  matches: { name: string; category: string; patron: string }[];
+  title: string;
+  placeholder: string;
+  enHint: string;
+  closeLabel: string;
+  rootRef: React.RefObject<HTMLDivElement>;
+  inputRef: React.RefObject<HTMLInputElement>;
+  onSearchChange: (v: string) => void;
+  onClear: () => void;
+  onSelect: (name: string, cat: string) => void;
+  onClose: () => void;
+}
+
+function BreedSearchModal({
+  open, search, matches, title, placeholder, enHint, closeLabel,
+  rootRef, inputRef, onSearchChange, onClear, onSelect, onClose,
+}: BreedSearchModalProps) {
+  const [vp, setVp] = useState<{ top: number; height: number }>({ top: 0, height: 0 });
+  useEffect(() => {
+    const v = window.visualViewport;
+    const update = () => {
+      if (v) setVp({ top: v.offsetTop, height: v.height });
+      else setVp({ top: 0, height: window.innerHeight });
+    };
+    update();
+    v?.addEventListener('resize', update);
+    v?.addEventListener('scroll', update);
+    return () => {
+      v?.removeEventListener('resize', update);
+      v?.removeEventListener('scroll', update);
+    };
+  }, []);
+
+  return createPortal(
+    <div
+      ref={rootRef}
+      className={`breed-modal-root ${open ? 'is-open' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      style={{ top: vp.top, height: vp.height || undefined, paddingTop: vp.height ? Math.round(vp.height * 0.07) : undefined }}
+    >
+      <div className="breed-modal-backdrop" onClick={onClose} />
+      <div className="breed-modal-card">
+        <button type="button" className="breed-modal-close" aria-label={closeLabel} onClick={onClose}>✕</button>
+        <p className="breed-modal-title">{title}</p>
+        <div className="breed-modal-search">
+          <Search className="h-4 w-4 flex-shrink-0" style={{ color: 'rgba(0,0,0,0.45)' }} />
+          <input
+            ref={inputRef}
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={placeholder}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="words"
+            spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
+            className="breed-modal-input"
+          />
+          {search && (
+            <button type="button" onClick={onClear} aria-label={closeLabel} style={{ color: 'rgba(0,0,0,0.4)' }}>
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        {enHint && <p className="breed-modal-hint">{enHint}</p>}
+        {matches.length > 0 && (
+          <div className="breed-modal-matches">
+            {matches.map((m) => (
+              <button
+                key={`${m.category}-${m.name}`}
+                type="button"
+                className="breed-modal-match"
+                onClick={() => onSelect(m.name, m.category)}
+              >
+                <span>{m.name}</span>
+                <img src={patronUrl(m.patron)} alt="" className="h-6 w-6 object-contain opacity-90" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <style>{`
+        .breed-modal-root {
+          position: fixed; left: 0; right: 0; z-index: 2100;
+          display: flex; flex-direction: column; align-items: center;
+          padding-left: 16px; padding-right: 16px;
+          opacity: 0; pointer-events: none; transition: opacity 160ms ease;
+        }
+        .breed-modal-root.is-open { opacity: 1; pointer-events: auto; }
+        .breed-modal-backdrop {
+          position: fixed; inset: 0;
+          background: rgba(0,0,0,0.78);
+          -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+        }
+        .breed-modal-card {
+          position: relative; z-index: 1; width: 100%; max-width: 520px;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1.5px solid rgba(201,154,63,0.55); border-radius: 16px;
+          padding: 22px 16px 16px; box-shadow: 0 20px 64px rgba(0,0,0,0.65);
+          display: flex; flex-direction: column; gap: 12px;
+          transform: translateY(8px) scale(0.97); transition: transform 220ms cubic-bezier(0.2,0.8,0.3,1.1);
+        }
+        .breed-modal-root.is-open .breed-modal-card { transform: translateY(0) scale(1); }
+        .breed-modal-close {
+          position: absolute; top: 12px; right: 14px; background: none; border: none;
+          cursor: pointer; font-size: 14px; color: rgba(0,0,0,0.4); line-height: 1; padding: 4px;
+        }
+        .breed-modal-title {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 1rem;
+          text-align: center; color: hsl(var(--gold-dark)); margin: 0; padding: 0 20px;
+        }
+        .breed-modal-search {
+          display: flex; align-items: center; gap: 8px;
+          background: #FFFDF7; border-radius: 12px; padding: 12px 14px;
+          border: 2px solid rgba(47,107,255,0.45);
+          box-shadow: 0 0 12px rgba(47,107,255,0.28);
+        }
+        .breed-modal-input {
+          flex: 1; background: transparent; outline: none; border: none;
+          color: #1a1208; font-size: 16px; font-family: 'Space Grotesk', sans-serif;
+        }
+        .breed-modal-input::placeholder { color: rgba(0,0,0,0.35); }
+        .breed-modal-hint {
+          margin: -2px 2px 0; font-family: 'Space Grotesk', sans-serif;
+          font-size: 12px; color: rgba(0,0,0,0.5); text-align: center;
+        }
+        .breed-modal-matches {
+          display: flex; flex-direction: column;
+          border: 1px solid rgba(201,154,63,0.4); border-radius: 12px; overflow: hidden;
+          max-height: 46vh; overflow-y: auto;
+        }
+        .breed-modal-match {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 11px 14px; background: rgba(255,255,255,0.4);
+          border: none; border-bottom: 1px solid rgba(201,154,63,0.2); cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif; font-size: 15px; color: #1a1208;
+          text-align: left;
+        }
+        .breed-modal-match:last-child { border-bottom: none; }
+        .breed-modal-match:active { background: rgba(201,154,63,0.18); }
+      `}</style>
+    </div>,
+    document.body,
+  );
+}
+
 interface BreedPickerProps {
   search: string;
   setSearch: (v: string) => void;
@@ -76,6 +234,28 @@ function BreedPicker({
 
   const svgs = svgsFor(activeCategory);
 
+  // Search modal (iOS keyboard-safe) — same pattern as NameScreen
+  const [modalOpen, setModalOpen] = useState(false);
+  const modalRootRef = useRef<HTMLDivElement>(null);
+  const breedInputRef = useRef<HTMLInputElement>(null);
+  const openModal = () => {
+    modalRootRef.current?.classList.add('is-open');
+    breedInputRef.current?.focus();
+    setModalOpen(true);
+  };
+  const closeModal = () => {
+    breedInputRef.current?.blur();
+    setModalOpen(false);
+  };
+  const handleSearchChange = (v: string) => {
+    if (selectedBreed) onClearBreed();
+    setSearch(v);
+  };
+  const handlePick = (name: string, cat: string) => {
+    onSelectBreed(name, cat);
+    closeModal();
+  };
+
   const tabsContainerRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
@@ -91,63 +271,83 @@ function BreedPicker({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Search row */}
+      {/* Search field — tap opens a keyboard-safe modal (input + live matches),
+          a decent blue glow slowly orbits the frame to invite the tap. */}
       <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <div
-            className="flex items-center gap-2 rounded-xl px-4 h-11 bg-card border border-border/40"
+        <div className={`breed-field-wrap flex-1${selectedBreed ? ' is-filled' : ''}`}>
+          <button
+            type="button"
+            className="breed-field-btn flex items-center gap-2 w-full rounded-xl px-4 h-11 bg-card"
+            onClick={openModal}
           >
             <Search className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-          {selectedBreed ? (
-            <div className="flex-1 flex items-center">
+            {selectedBreed ? (
               <span
-                  className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
-                  style={{ fontFamily: "'Cinzel', serif" }}
+                className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
+                style={{ fontFamily: "'Cinzel', serif" }}
               >
                 {selectedBreed}
-                  <button onClick={onClearBreed} className="text-foreground/60 hover:text-foreground">
-                  <X className="h-3 w-3" />
-                </button>
-              </span>
-            </div>
-          ) : (
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
-                className="flex-1 bg-transparent outline-none text-base md:text-sm text-foreground placeholder:text-muted-foreground"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-            />
-          )}
-          {!selectedBreed && search && (
-              <button onClick={() => setSearch('')} className="text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-          </div>
-          {matches.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 border border-border/40 rounded-xl overflow-hidden z-50 shadow-xl bg-card">
-              {matches.map((m) => (
-                <button
-                  key={`${m.category}-${m.name}`}
-                  onClick={() => onSelectBreed(m.name, m.category)}
-                  className="w-full flex items-center justify-between px-3 py-2 transition-colors border-b border-border/20 last:border-0 hover:bg-primary/10 text-foreground"
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => { e.stopPropagation(); onClearBreed(); }}
+                  className="text-foreground/60 hover:text-foreground inline-flex"
                 >
-                  <span className="text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    {m.name}
-                  </span>
-                  <img
-                    src={patronUrl(breedToPatron[`${m.category}|${m.name}`] ?? `${m.category}-01.svg`)}
-                    alt=""
-                    className="h-6 w-6 object-contain opacity-90"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+                  <X className="h-3 w-3" />
+                </span>
+              </span>
+            ) : (
+              <span
+                className="flex-1 text-left text-base md:text-sm text-muted-foreground"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
+              </span>
+            )}
+          </button>
         </div>
         {trailing}
       </div>
+
+      <BreedSearchModal
+        open={modalOpen}
+        search={search}
+        matches={matches}
+        title={placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
+        placeholder={placeholder ?? t('heroglyph.flow.breed.searchPlaceholder')}
+        enHint={t('heroglyph.flow.breed.enHint')}
+        closeLabel={t('nav.aria.close')}
+        rootRef={modalRootRef}
+        inputRef={breedInputRef}
+        onSearchChange={handleSearchChange}
+        onClear={onClearBreed}
+        onSelect={handlePick}
+        onClose={closeModal}
+      />
+
+      <style>{`
+        @property --breed-glow-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+        .breed-field-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47,107,255,0.14); }
+        .breed-field-btn { position: relative; z-index: 1; border: 2px solid rgba(47,107,255,0.30); cursor: text; }
+        .breed-field-wrap::before {
+          content: ''; position: absolute; inset: -2px; border-radius: 14px; z-index: 0;
+          pointer-events: none; padding: 2px;
+          background: conic-gradient(from var(--breed-glow-ang),
+            transparent 0deg, transparent 250deg,
+            rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
+            rgba(47,107,255,0.85) 352deg, transparent 360deg);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          filter: blur(1px);
+          animation: breedGlowSpin 3.8s linear infinite;
+        }
+        @keyframes breedGlowSpin { to { --breed-glow-ang: 360deg; } }
+        @media (prefers-reduced-motion: reduce) { .breed-field-wrap::before { animation: none; } }
+        /* Filled = no animation, static "selected" highlight (like flow options) */
+        .breed-field-wrap.is-filled::before { animation: none; opacity: 0; }
+        .breed-field-wrap.is-filled { box-shadow: 0 0 0 2px hsl(224 60% 45% / 0.45), 0 0 14px hsl(224 60% 45% / 0.22); }
+        .breed-field-wrap.is-filled .breed-field-btn { border-color: hsl(224 60% 45%); background: hsl(224 60% 45% / 0.10); }
+      `}</style>
 
       {/* Tabs */}
       <div
@@ -314,23 +514,21 @@ export function BreedPatronScreen() {
                 placeholder={t('heroglyph.flow.breed.searchPlaceholder')}
               />
 
-              {/* Continue button — appears after a silhouette is chosen */}
-              {canContinue && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  <Button
-                    onClick={handleContinue}
-                    className="w-full rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                      color: '#000',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-                    }}
-                  >
-                    {t('heroglyph.flow.breed.continue')}
-                  </Button>
-                </motion.div>
-              )}
+              {/* Continue button — always visible (faded/disabled until valid), for
+                  consistency with NameScreen. */}
+              <Button
+                onClick={handleContinue}
+                disabled={!canContinue}
+                className="w-full rounded-xl gap-2 h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-40 disabled:hover:scale-100"
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                  color: '#000',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+                }}
+              >
+                {t('heroglyph.flow.breed.continue')}
+              </Button>
             </motion.div>
           </div>
         </div>

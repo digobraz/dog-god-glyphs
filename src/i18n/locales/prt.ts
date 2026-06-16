@@ -170,6 +170,7 @@ export const prt: Partial<Dict> = {
   // ── /heroglyph flow — step 3: breed ──
   'heroglyph.flow.breed.question': 'Diz-me, de que raça é o teu herói?',
   'heroglyph.flow.breed.searchPlaceholder': 'Procurar raça...',
+  'heroglyph.flow.breed.enHint': 'Escreve a raça em inglês',
   'heroglyph.flow.breed.continue': 'Continuar',
   'heroglyph.flow.breed.cat.01': 'Bolas de Pelo',
   'heroglyph.flow.breed.cat.02': 'Lanudos',

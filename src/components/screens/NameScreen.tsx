@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Info, X } from 'lucide-react';
@@ -9,6 +10,148 @@ import hekthorImg from '@/assets/hekthor.png';
 import { WheelDatePicker } from '@/components/WheelDatePicker';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+
+// ── Name Entry Modal ─────────────────────────────────────────────────────────
+// Always mounted & portaled to document.body. Two things matter on iOS:
+//  1) The keyboard only opens if input.focus() runs synchronously inside the
+//     tap gesture on an element ALREADY in the DOM — so the input is kept mounted
+//     and the trigger focuses it via ref (see NameScreen preview button).
+//  2) The card is vertically centered inside the *visual viewport* (the area left
+//     above the keyboard), so it's never glued to the top nor hidden behind the
+//     keyboard.
+interface NameModalProps {
+  open: boolean;
+  value: string;
+  placeholder: string;
+  title: string;
+  doneLabel: string;
+  closeLabel: string;
+  rootRef: React.RefObject<HTMLDivElement>;
+  inputRef: React.RefObject<HTMLInputElement>;
+  onChange: (v: string) => void;
+  onDone: () => void;
+  onClose: () => void;
+}
+
+function NameModal({ open, value, placeholder, title, doneLabel, closeLabel, rootRef, inputRef, onChange, onDone, onClose }: NameModalProps) {
+  // Track the visual viewport so the card stays centered above the soft keyboard.
+  const [vp, setVp] = useState<{ top: number; height: number }>({ top: 0, height: 0 });
+  useEffect(() => {
+    const v = window.visualViewport;
+    const update = () => {
+      if (v) setVp({ top: v.offsetTop, height: v.height });
+      else setVp({ top: 0, height: window.innerHeight });
+    };
+    update();
+    v?.addEventListener('resize', update);
+    v?.addEventListener('scroll', update);
+    return () => {
+      v?.removeEventListener('resize', update);
+      v?.removeEventListener('scroll', update);
+    };
+  }, []);
+
+  const canDone = value.trim().length >= 1;
+
+  return createPortal(
+    <div
+      ref={rootRef}
+      className={`name-modal-root ${open ? 'is-open' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      style={{ top: vp.top, height: vp.height || undefined }}
+    >
+      <div className="name-modal-backdrop" onClick={onClose} />
+      <div className="name-modal-card">
+        <button type="button" className="name-modal-close" aria-label={closeLabel} onClick={onClose}>✕</button>
+        <p className="name-modal-title">{title}</p>
+        <div className="name-modal-inputwrap">
+          <input
+            ref={inputRef}
+            value={value}
+            onChange={(e) => onChange(e.target.value.toUpperCase().slice(0, 30))}
+            onKeyDown={(e) => { if (e.key === 'Enter' && canDone) onDone(); }}
+            placeholder={placeholder}
+            maxLength={30}
+            enterKeyHint="done"
+            /* No browser/iOS contact autofill suggestions for a dog's name. */
+            name="dogName"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            data-1p-ignore
+            data-lpignore="true"
+            className="name-modal-input"
+          />
+        </div>
+        <button type="button" className="name-modal-done" onClick={onDone} disabled={!canDone}>{doneLabel}</button>
+      </div>
+
+      <style>{`
+        .name-modal-root {
+          position: fixed; left: 0; right: 0; z-index: 2100;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          padding-left: 16px; padding-right: 16px;
+          opacity: 0; pointer-events: none;
+          transition: opacity 160ms ease;
+        }
+        .name-modal-root.is-open { opacity: 1; pointer-events: auto; }
+        .name-modal-backdrop {
+          position: fixed; inset: 0;
+          background: rgba(0, 0, 0, 0.78);
+          -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+        }
+        .name-modal-card {
+          position: relative; z-index: 1; width: 100%; max-width: 520px;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1.5px solid rgba(201, 154, 63, 0.55); border-radius: 16px;
+          padding: 22px 16px 16px; box-shadow: 0 20px 64px rgba(0, 0, 0, 0.65);
+          display: flex; flex-direction: column; gap: 14px;
+          transition: transform 220ms cubic-bezier(0.2, 0.8, 0.3, 1.1);
+          transform: translateY(8px) scale(0.97);
+        }
+        .name-modal-root.is-open .name-modal-card { transform: translateY(0) scale(1); }
+        .name-modal-close {
+          position: absolute; top: 12px; right: 14px;
+          background: none; border: none; cursor: pointer; font-size: 14px;
+          color: rgba(0, 0, 0, 0.4); line-height: 1; padding: 4px;
+          transition: color 150ms ease;
+        }
+        .name-modal-close:hover { color: rgba(0, 0, 0, 0.75); }
+        .name-modal-title {
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 1rem;
+          text-align: center; color: hsl(var(--gold-dark)); margin: 0; padding: 0 20px;
+        }
+        /* Static blue backlit frame — popup (and later flow inputs). No motion. */
+        .name-modal-inputwrap { position: relative; border-radius: 12px; }
+        .name-modal-input {
+          position: relative; z-index: 1;
+          width: 100%; background: #FFFDF7; border-radius: 12px;
+          padding: 14px 16px; color: #1a1208; outline: none;
+          border: 2px solid rgba(47, 107, 255, 0.45);
+          box-shadow: 0 0 12px rgba(47, 107, 255, 0.28);
+          /* 16px prevents iOS auto-zoom */
+          font-size: 16px; font-family: 'Space Grotesk', sans-serif;
+          text-transform: uppercase; text-align: center; letter-spacing: 0.05em;
+        }
+        .name-modal-input::placeholder { text-transform: none; letter-spacing: normal; color: rgba(0, 0, 0, 0.35); }
+        .name-modal-done {
+          width: 100%; height: 46px; border: none; border-radius: 12px; cursor: pointer;
+          font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.85rem;
+          letter-spacing: 0.12em; text-transform: uppercase; color: #000;
+          /* Identical to the main flow CTA (NameScreen "Continue") — gold, not orange. */
+          background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35);
+          transition: opacity 150ms ease, transform 150ms ease;
+        }
+        .name-modal-done:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+        .name-modal-done:not(:disabled):active { transform: scale(0.97); }
+      `}</style>
+    </div>,
+    document.body,
+  );
+}
 
 export function NameScreen() {
   useFlowKeyboardFix();
@@ -38,6 +181,22 @@ export function NameScreen() {
   const [year, setYear] = useState<number>(hasStored ? stored.y : currentYear - 5);
   const [touched, setTouched] = useState<boolean>(!!hasStored);
   const [showInfo, setShowInfo] = useState(false);
+  const [nameModalOpen, setNameModalOpen] = useState(false);
+  const nameModalRef = useRef<HTMLDivElement>(null);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  // iOS opens the soft keyboard only when focus() runs synchronously inside the
+  // tap gesture on an already-mounted input. So we reveal the (always-mounted)
+  // modal imperatively and focus its input in the same tick, then sync React state.
+  const openNameModal = () => {
+    nameModalRef.current?.classList.add('is-open');
+    nameInputRef.current?.focus();
+    setNameModalOpen(true);
+  };
+  const closeNameModal = () => {
+    nameInputRef.current?.blur();
+    setNameModalOpen(false);
+  };
 
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
@@ -92,8 +251,8 @@ export function NameScreen() {
             <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
               <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
               <p className="text-white text-center text-[15px] md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                {t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.<br />
-                {t('heroglyph.flow.name.greetingQuestion')}
+                <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
+                <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
               </p>
             </div>
 
@@ -190,16 +349,51 @@ export function NameScreen() {
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-2 md:gap-3">
-            <div className="flex items-center gap-2 bg-card rounded-xl px-4 py-2 border border-border/30">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
-                onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}
-                placeholder={t('heroglyph.flow.name.placeholder')}
-                className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                maxLength={30}
-              />
+            {/* Read-only preview — tap opens the name modal (keeps the iOS keyboard
+                from covering the field; the modal sits near the top of the screen).
+                A decent blue glow slowly orbits the frame to invite the tap. */}
+            <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`}>
+              <button
+                type="button"
+                onClick={openNameModal}
+                className="name-preview-btn w-full rounded-xl px-4 py-3 border-2 transition-colors"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: '16px',
+                  textAlign: 'center',
+                  textTransform: trimmed.length > 0 ? 'uppercase' : 'none',
+                  letterSpacing: trimmed.length > 0 ? '0.05em' : 'normal',
+                  background: trimmed.length > 0 ? 'hsl(224 60% 45% / 0.10)' : 'hsl(var(--card))',
+                  borderColor: trimmed.length > 0 ? 'hsl(224 60% 45%)' : 'rgba(47, 107, 255, 0.30)',
+                  color: trimmed.length > 0 ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+                  cursor: 'text',
+                }}
+              >
+                {trimmed.length > 0 ? input : t('heroglyph.flow.name.placeholder')}
+              </button>
+              <style>{`
+                @property --name-prev-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+                .name-preview-wrap { position: relative; border-radius: 0.75rem; box-shadow: 0 0 10px rgba(47, 107, 255, 0.14); }
+                .name-preview-btn { position: relative; z-index: 1; }
+                .name-preview-wrap::before {
+                  content: ''; position: absolute; inset: -2px; border-radius: 14px; z-index: 0;
+                  pointer-events: none; padding: 2px;
+                  background: conic-gradient(from var(--name-prev-ang),
+                    transparent 0deg, transparent 250deg,
+                    rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
+                    rgba(47,107,255,0.85) 352deg, transparent 360deg);
+                  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                  -webkit-mask-composite: xor;
+                          mask-composite: exclude;
+                  filter: blur(1px);
+                  animation: namePrevSpin 3.8s linear infinite;
+                }
+                @keyframes namePrevSpin { to { --name-prev-ang: 360deg; } }
+                @media (prefers-reduced-motion: reduce) { .name-preview-wrap::before { animation: none; } }
+                /* Filled = no animation, static "selected" highlight (like flow options) */
+                .name-preview-wrap.is-filled::before { animation: none; opacity: 0; }
+                .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px hsl(224 60% 45% / 0.45), 0 0 14px hsl(224 60% 45% / 0.22); }
+              `}</style>
             </div>
 
             {/* Birthday — inline iOS-style 3-wheel picker */}
@@ -236,6 +430,22 @@ export function NameScreen() {
           </motion.div>
         </div>
       </div>
+
+      {/* Name entry modal — ALWAYS mounted (so iOS can focus the input inside the
+          tap gesture and open the keyboard); visibility toggled via the open prop. */}
+      <NameModal
+        open={nameModalOpen}
+        value={input}
+        placeholder={t('heroglyph.flow.name.placeholder')}
+        title={t('heroglyph.flow.name.greetingQuestion')}
+        doneLabel={t('heroglyph.flow.message.done')}
+        closeLabel={t('nav.aria.close')}
+        rootRef={nameModalRef}
+        inputRef={nameInputRef}
+        onChange={setInput}
+        onDone={closeNameModal}
+        onClose={closeNameModal}
+      />
     </div>
   );
 }

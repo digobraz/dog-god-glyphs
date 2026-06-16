@@ -147,7 +147,7 @@ export const sk: Partial<Dict> = {
 
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, ja som',
-  'heroglyph.flow.name.greetingQuestion': 'Ako sa volá tvoj pes?',
+  'heroglyph.flow.name.greetingQuestion': 'Ako sa volá tvoj psík?',
   'heroglyph.flow.name.placeholder': 'Napíš meno svojho psa…',
   'heroglyph.flow.name.birthday': 'Kedy sa tvoj pes narodil?',
   'heroglyph.flow.name.continue': 'Pokračovať',
@@ -186,6 +186,7 @@ export const sk: Partial<Dict> = {
   // ── /heroglyph flow — krok 3: rasa ──
   'heroglyph.flow.breed.question': 'Povedz, akej rasy je tvoj hrdina?',
   'heroglyph.flow.breed.searchPlaceholder': 'Hľadaj rasu…',
+  'heroglyph.flow.breed.enHint': 'Začni písať rasu po anglicky',
   'heroglyph.flow.breed.continue': 'Pokračovať',
   'heroglyph.flow.breed.cat.01': 'Chlpáči',
   'heroglyph.flow.breed.cat.02': 'Vlnáči',

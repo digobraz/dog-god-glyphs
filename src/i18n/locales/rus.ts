@@ -170,6 +170,7 @@ export const rus: Partial<Dict> = {
   // ── /heroglyph flow — krok 3: rasa ──
   'heroglyph.flow.breed.question': 'Скажи, какой породы твой герой?',
   'heroglyph.flow.breed.searchPlaceholder': 'Поиск породы...',
+  'heroglyph.flow.breed.enHint': 'Введите породу по-английски',
   'heroglyph.flow.breed.continue': 'Далее',
   'heroglyph.flow.breed.cat.01': 'Пушистики',
   'heroglyph.flow.breed.cat.02': 'Лохматики',
