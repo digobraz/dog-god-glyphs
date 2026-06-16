@@ -414,7 +414,7 @@ export const sk: Partial<Dict> = {
   'welcome.cta.preparing': 'PRIPRAVUJEM TVOJE MIESTO…',
   'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',
   'welcome.cta.enter': 'VSTÚP MEDZI BOHOV →',
-  'welcome.emailHint': 'Tvoj certifikát je na ceste — skontroluj si e-mail.',
+  'welcome.emailHint': 'Ďakujeme, vďaka tebe je DOGYPT o chlp lepší.',
   // password step (set-pack-password flow)
   'welcome.password.title': 'Tvoje konto: {email}',
   'welcome.password.placeholder': 'Heslo (min. 8 znakov)',

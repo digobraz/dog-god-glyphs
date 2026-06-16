@@ -438,7 +438,7 @@ export const en = {
   'welcome.cta.preparing': 'PREPARING YOUR PLACE...',
   'welcome.cta.forging': 'FORGING YOUR HEROGLYPH...',
   'welcome.cta.enter': 'ENTER THE GODS →',
-  'welcome.emailHint': 'Your certificate is on its way — check your email.',
+  'welcome.emailHint': 'Thank you — because of you, DOGYPT is fur better.',
   // password step (set-pack-password flow)
   'welcome.password.title': 'Your account: {email}',
   'welcome.password.placeholder': 'Password (min 8 characters)',

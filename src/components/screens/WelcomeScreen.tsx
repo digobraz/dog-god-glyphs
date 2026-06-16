@@ -359,9 +359,9 @@ export function WelcomeScreen() {
             className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
             style={{
               fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-              color: '#1a1200',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
+              background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+              color: '#000',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
             }}
             animate={!pwLoading && packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
             transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -524,9 +524,9 @@ export function WelcomeScreen() {
                   className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                    color: '#1a1200',
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                    color: '#000',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                   }}
                   animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
@@ -552,9 +552,9 @@ export function WelcomeScreen() {
                   className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(45 90% 60%), hsl(39 80% 50%))',
-                    color: '#1a1200',
-                    boxShadow: '0 4px 14px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                    color: '#000',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
                   }}
                   animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
                   transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
