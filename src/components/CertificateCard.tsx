@@ -111,10 +111,11 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
               padding: 5,
               boxShadow: `0 4px 18px rgba(100,60,10,.22)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              overflow: 'hidden',
             }}>
-              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#f0e0b0', padding: 4, overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#f0e0b0', padding: 4, overflow: 'hidden', boxSizing: 'border-box' }}>
                 {photoUrl ? (
-                  <img src={photoUrl} alt={dogName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', objectPosition: 'center top', filter: 'sepia(.1) contrast(1.08) brightness(1.02)' }} />
+                  <img src={photoUrl} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top', filter: 'sepia(.1) contrast(1.08) brightness(1.02)', clipPath: 'circle(50%)', display: 'block' }} />
                 ) : (
                   <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'linear-gradient(135deg, #d4a94a, #8a5c10)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontSize: 72, color: '#f0e0b0', fontFamily: "'Cinzel', serif", fontWeight: 700 }}>
