@@ -164,7 +164,7 @@ export function OwnerZodiacScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
+            <img src={hekthorImg} alt="HEKTHOR" className="w-[122px] h-[122px] md:w-[190px] md:h-[190px] object-contain" />
             <p className="text-white text-center text-base md:text-2xl leading-relaxed drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
               {t('heroglyph.flow.ownerZodiac.question')}
             </p>
