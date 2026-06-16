@@ -431,7 +431,7 @@ export const en = {
   'welcome.ownerFallback': 'Friend',
   'welcome.officiallyA': 'is officially a',
   // mission text (code source of truth — renders identically)
-  'welcome.missionLine1': 'You just changed history — one dog at a time.',
+  'welcome.missionLine1': 'Your dog is in the registry. Your profile lives here.',
   'welcome.missionSpread': 'Spread the pack. ',
   'welcome.missionMotto': 'IN DOG WE TRUST.',
   // CTA states (PREPARING → FORGING → ENTER)

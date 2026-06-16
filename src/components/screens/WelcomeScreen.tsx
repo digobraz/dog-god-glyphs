@@ -508,15 +508,10 @@ export function WelcomeScreen() {
             </div>
           </div>
 
-          {/* Mission text — line1 + spread as one unit, motto on its own line */}
-          <div className="text-center" style={{ fontFamily: "'Space Grotesk', sans-serif", letterSpacing: '0.01em' }}>
-            <p style={{ fontSize: 10, color: '#888', lineHeight: 1.5, margin: 0 }}>
-              {t('welcome.missionLine1')} {t('welcome.missionSpread')}
-            </p>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'hsl(39 80% 35%)', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4 }}>
-              {t('welcome.missionMotto')}
-            </p>
-          </div>
+          {/* Mission text */}
+          <p className="text-center" style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#888', lineHeight: 1.5, letterSpacing: '0.01em', margin: 0 }}>
+            {t('welcome.missionLine1')}
+          </p>
 
           {/* CTA area */}
           <div className="w-full flex flex-col items-center gap-2">
