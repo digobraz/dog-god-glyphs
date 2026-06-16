@@ -8,8 +8,10 @@ import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import { WheelDatePicker } from '@/components/WheelDatePicker';
 import { useT } from '@/i18n/LanguageContext';
+import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 
 export function NameScreen() {
+  useFlowKeyboardFix();
   const navigate = useNavigate();
   const t = useT();
   const setDogName = useDogyptStore((s) => s.setDogName);
@@ -196,7 +198,6 @@ export function NameScreen() {
                 placeholder={t('heroglyph.flow.name.placeholder')}
                 className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                autoFocus
                 maxLength={30}
               />
             </div>

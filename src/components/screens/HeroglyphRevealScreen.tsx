@@ -8,10 +8,9 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { GoldParticles } from '@/components/GoldParticles';
 import { Button } from '@/components/ui/button';
-import LanguagePicker from '@/components/LanguagePicker';
 import hekthorImg from '@/assets/hekthor.png';
-import dogyptLogo from '@/assets/dogypt-logo-gold.png';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
+import { PageTopBar } from '@/components/PageTopBar';
 
 export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
@@ -28,13 +27,10 @@ export function HeroglyphRevealScreen() {
   }, []);
 
   return (
-    <div className="dark-bg min-h-[100dvh] flex flex-col items-center relative overflow-hidden">
+    <div className="dark-bg h-[100dvh] flex flex-col items-center relative overflow-hidden">
       <GoldParticles count={30} />
 
-      {/* Language picker — mirrors PageTopBar positioning (no logo/back arrow per Matej OK) */}
-      <div className="absolute right-5 top-[12px] md:top-[20px] z-20">
-        <LanguagePicker variant="flow" />
-      </div>
+      <PageTopBar />
 
       {/* Intro flash */}
       <AnimatePresence>
@@ -67,9 +63,6 @@ export function HeroglyphRevealScreen() {
         animate={{ opacity: phase !== 'intro' ? 1 : 0 }}
         transition={{ duration: 1 }}
       >
-        {/* Logo */}
-        <img src={dogyptLogo} alt="DOGYPT" className="h-9 md:h-12 object-contain" />
-
         {/* 1. BLOCK - Ornamental frame with heroglyph */}
         <motion.div
           className="w-full relative"
@@ -200,7 +193,7 @@ export function HeroglyphRevealScreen() {
               </AnimatePresence>
 
               <div className="flex flex-col items-center gap-3 md:flex-row md:items-center md:gap-5">
-                <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-32 md:h-32 object-contain flex-shrink-0" />
+                <img src={hekthorImg} alt="HEKTHOR" className="w-[123px] h-[123px] md:w-[109px] md:h-[109px] object-contain flex-shrink-0" />
                 <div className="text-white drop-shadow-sm text-center md:text-left" style={{ fontFamily: "'Cinzel', serif" }}>
                   <p className="font-bold text-amber-300 text-lg md:text-xl">{t('heroglyph.flow.reveal.welcome')}</p>
                   <p className="font-semibold text-sm md:text-base mt-1">

@@ -9,6 +9,7 @@ import hekthorImg from '@/assets/hekthor.png';
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
 import { useT } from '@/i18n/LanguageContext';
+import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
@@ -47,6 +48,7 @@ const letterMap: Record<string, string> = {
 };
 
 export function OwnerInfoScreen() {
+  useFlowKeyboardFix();
   const navigate = useNavigate();
   const t = useT();
   const setOwnerName = useDogyptStore((s) => s.setOwnerName);
@@ -104,7 +106,6 @@ export function OwnerInfoScreen() {
                     placeholder={t('heroglyph.flow.ownerInfo.placeholder')}
                     className="flex-1 min-w-0 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-base md:text-lg uppercase"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                    autoFocus
                   />
                 </div>
 

@@ -100,8 +100,8 @@ export function PaymentScreen() {
             </h3>
 
             <div className="text-center py-2">
-              <p className="text-2xl font-bold text-amber-300" style={{ fontFamily: "'Cinzel', serif" }}>
-                ${selectedAmount ?? 11} USD
+              <p className="text-2xl font-bold" style={{ fontFamily: "'Cinzel', serif", color: 'var(--brand-blue)' }}>
+                €{selectedAmount ?? 11}
               </p>
               <p className="text-xs text-muted-foreground mt-1">{t('payment.product', { dogName: dogName || t('payment.yourDog') })}</p>
             </div>
@@ -143,7 +143,7 @@ export function PaymentScreen() {
                   fontWeight: 700,
                   letterSpacing: '0.18em',
                   textTransform: 'uppercase',
-                  color: 'hsl(45 60% 80% / 0.7)',
+                  color: 'var(--brand-blue)',
                   textAlign: 'center',
                   marginBottom: 10,
                 }}
@@ -179,7 +179,7 @@ export function PaymentScreen() {
                           fontWeight: 700,
                           letterSpacing: '0.06em',
                           textTransform: 'uppercase',
-                          color: 'hsl(45 80% 92%)',
+                          color: 'hsl(30 20% 20%)',
                           whiteSpace: 'nowrap',
                         }}
                       >
@@ -235,7 +235,7 @@ export function PaymentScreen() {
                   transition={{ duration: 0.18 }}
                   style={{
                     marginTop: 10,
-                    background: 'rgba(0,0,0,0.30)',
+                    background: 'rgba(0,0,0,0.06)',
                     border: `1px solid ${TRANSPARENCY_SPLIT[openTooltip].color}`,
                     borderRadius: 10,
                     padding: '10px 12px',
@@ -246,7 +246,7 @@ export function PaymentScreen() {
                       fontFamily: "'Space Grotesk', sans-serif",
                       fontSize: 11,
                       lineHeight: 1.55,
-                      color: 'hsl(45 28% 90% / 0.88)',
+                      color: 'hsl(30 20% 20%)',
                       margin: 0,
                     }}
                   >

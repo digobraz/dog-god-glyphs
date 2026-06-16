@@ -390,6 +390,7 @@ export const en = {
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
   'heroglyph.flow.message.cta': 'SEAL THE MESSAGE →',
+  'heroglyph.flow.message.done': 'Done',
 
   // ── /heroglyph flow — checkout ──
   'heroglyph.checkout.orderSummary': 'Order Summary',

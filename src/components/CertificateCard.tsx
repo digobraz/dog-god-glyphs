@@ -109,7 +109,7 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
               width: 264, height: 264, borderRadius: '50%',
               background: `conic-gradient(${gold} 0deg, #f5d97a 60deg, #8a5c10 120deg, #f0cc60 180deg, #7a4c08 240deg, #e8c060 300deg, ${gold} 360deg)`,
               padding: 5,
-              boxShadow: `0 0 80px rgba(180,120,20,.4), 0 0 160px rgba(180,120,20,.12)`,
+              boxShadow: `0 4px 18px rgba(100,60,10,.22)`,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
               <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: '#f0e0b0', padding: 4, overflow: 'hidden' }}>
@@ -132,7 +132,7 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
             color: ink,
             letterSpacing: '.15em',
             textAlign: 'center',
-            textShadow: `2px 3px 0 rgba(120,70,0,.16), 0 0 60px rgba(180,120,20,.12)`,
+            textShadow: `2px 3px 0 rgba(120,70,0,.16)`,
             margin: '4px 0 18px',
           }}>
             {dogName.toUpperCase()}

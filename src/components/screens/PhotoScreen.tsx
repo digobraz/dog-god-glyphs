@@ -431,7 +431,7 @@ export function PhotoScreen() {
   const renderCrop = () => (
     <>
       {photoUrl && (
-        <CropArea src={photoUrl} shape="square" overlayCircle value={certCrop} onChange={setCertCrop} />
+        <CropArea src={photoUrl} shape="circle" value={certCrop} onChange={setCertCrop} />
       )}
       <BackNextButtons
         onBack={() => goTo(0)}

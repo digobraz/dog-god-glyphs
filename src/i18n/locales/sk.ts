@@ -378,6 +378,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
   'heroglyph.flow.message.cta': 'ZAPEČATIŤ ODKAZ →',
+  'heroglyph.flow.message.done': 'Hotovo',
 
   // ── /heroglyph flow — checkout ──
   'heroglyph.checkout.orderSummary': 'Súhrn Objednávky',
