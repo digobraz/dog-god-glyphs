@@ -1,15 +1,23 @@
 /**
- * /admin — read-only v0 (issue #10).
+ * /admin — read-only v0 (issue #10), redesigned "Mission Control".
  *
  * Iba na čítanie. Žiadne edit/delete/mutácie. Prístup gated na admin e-mail
  * cez existujúcu Supabase magic-link session + RLS policy "Admin read all"
  * (gated na auth.jwt()->>'email'); bez admin e-mailu Postgres aj tak nevráti
  * cudzie riadky, takže UI gate je len UX vrstva nad DB-level ochranou.
  *
- * Taby: Orders · Dogs · Photos · Emails · Bugs.
+ * Taby: Orders · Dogs · Photos · Council · Vision · Bugs.
  */
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import iconDogLover from '@/assets/icons/council-doglover.svg';
+import iconDeveloper from '@/assets/icons/council-developer.svg';
+import iconDogPro from '@/assets/icons/council-dogpro.svg';
+import iconCreator from '@/assets/icons/council-creator.svg';
+import iconMedia from '@/assets/icons/council-media.svg';
+import iconInvestor from '@/assets/icons/council-investor.svg';
+import iconCommunity from '@/assets/icons/council-community.svg';
+import iconBusiness from '@/assets/icons/council-business.svg';
 
 // Admin e-maily — kto sa smie prihlásiť. Drží sa to v synchronizácii s RLS
 // policy "Admin read all" v Supabase (gated na rovnaký e-mail). Pridať admina
@@ -67,7 +75,37 @@ const VISION_LABELS: Record<string, string> = {
 };
 
 const GOLD = '#C99A3F';
+const GOLD_LIGHT = '#F5C73D';
+const GOAL = 1_000_000;
+const SEAL = '/images/peciat-dogypt.png';
+const CINZEL = "'Cinzel', serif";
+const GROTESK = "'Space Grotesk', sans-serif";
+const PAPYRUS = 'linear-gradient(165deg,#FFFBF2 0%,#F4E8CC 52%,#E7D8B8 100%)';
+const INK = '#1F1A0E';
+
 type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision';
+
+// role id → council ikona (mapovanie podľa CouncilSection prihlášky)
+const ROLE_ICONS: Record<string, string> = {
+  'dog-lover': iconDogLover,
+  developer: iconDeveloper,
+  'dog-pro': iconDogPro,
+  creator: iconCreator,
+  media: iconMedia,
+  investor: iconInvestor,
+  community: iconCommunity,
+  business: iconBusiness,
+};
+const ROLE_LABELS: Record<string, string> = {
+  'dog-lover': 'Dog lover',
+  developer: 'Developer',
+  'dog-pro': 'Dog pro',
+  creator: 'Creator',
+  media: 'Media',
+  investor: 'Investor',
+  community: 'Community',
+  business: 'Business',
+};
 
 // amount je integer v centoch (Stripe). null = tester / nezaplatené.
 const fmtAmount = (a: number | null) =>
@@ -76,6 +114,8 @@ const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleString('sk-SK', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 const short = (s: string | null, n = 14) =>
   !s ? '—' : s.length > n ? s.slice(0, n) + '…' : s;
+
+const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 export default function Admin() {
   const [auth, setAuth] = useState<AuthState>('loading');
@@ -153,53 +193,74 @@ export default function Admin() {
 
   // ── shell ────────────────────────────────────────────────────────────────
   const shell = (children: React.ReactNode) => (
-    <div style={{ minHeight: '100vh', background: '#000', color: 'rgba(250,244,236,0.92)' }}>
+    <div style={{ minHeight: '100vh', background: '#000', color: 'rgba(250,244,236,0.92)', fontFamily: GROTESK }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '28px 18px 80px' }}>
-        <header style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 22 }}>
-          <h1 style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, color: GOLD, fontSize: 24, letterSpacing: '0.04em', margin: 0 }}>
-            DOGYPT · ADMIN
-          </h1>
-          {auth === 'ok' && (
-            <button onClick={logout}
-              style={{ background: 'none', border: `1px solid ${GOLD}55`, color: GOLD, borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}>
-              {sessionEmail} · log out
-            </button>
-          )}
+        <header style={{ marginBottom: 26 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <img src={SEAL} alt="DOGYPT seal" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(201,154,63,0.35))' }} />
+              <div>
+                <h1 style={{ fontFamily: CINZEL, fontWeight: 700, color: GOLD, fontSize: 26, letterSpacing: '0.05em', margin: 0, lineHeight: 1 }}>
+                  DOGYPT
+                </h1>
+                <div style={{ fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', opacity: 0.5, marginTop: 4 }}>
+                  Mission Control
+                </div>
+              </div>
+            </div>
+            {auth === 'ok' && (
+              <button onClick={logout}
+                style={{ background: 'none', border: `1px solid ${GOLD}66`, color: GOLD, borderRadius: 8, padding: '7px 14px', fontSize: 12, cursor: 'pointer', fontFamily: GROTESK, letterSpacing: '0.02em' }}>
+                {sessionEmail} · log out
+              </button>
+            )}
+          </div>
+          <div style={{ height: 2, marginTop: 18, borderRadius: 2, background: 'var(--brand-gradient)', opacity: 0.85 }} />
         </header>
         {children}
       </div>
     </div>
   );
 
-  if (auth === 'loading') return shell(<p style={{ opacity: 0.6 }}>Loading…</p>);
+  if (auth === 'loading') return shell(
+    <p style={{ opacity: 0.6, fontSize: 14, letterSpacing: '0.06em' }}>Loading…</p>
+  );
 
   if (auth === 'denied') return shell(
-    <div style={{ marginTop: 40 }}>
-      <p style={{ color: '#e0a3a3', fontSize: 15 }}>Access denied.</p>
-      <p style={{ opacity: 0.6, fontSize: 13, marginTop: 6 }}>
-        Logged in as <b>{sessionEmail}</b> — not an admin account.
+    <div style={{ marginTop: 48, maxWidth: 420 }}>
+      <h2 style={{ fontFamily: CINZEL, color: '#e0a3a3', fontSize: 20, letterSpacing: '0.04em', textTransform: 'uppercase', margin: 0 }}>
+        Access denied
+      </h2>
+      <p style={{ opacity: 0.6, fontSize: 13, marginTop: 10 }}>
+        Logged in as <b style={{ color: GOLD }}>{sessionEmail}</b> — not an admin account.
       </p>
-      <button onClick={logout} style={{ marginTop: 14, background: GOLD, border: 'none', color: '#000', borderRadius: 6, padding: '8px 16px', fontWeight: 600, cursor: 'pointer' }}>
-        Log out
-      </button>
+      <button onClick={logout} style={brandBtn}>Log out</button>
     </div>
   );
 
   if (auth === 'anon') return shell(
-    <div style={{ marginTop: 40, maxWidth: 380 }}>
-      <p style={{ opacity: 0.78, fontSize: 14, marginBottom: 14 }}>Admin sign-in — magic link.</p>
+    <div style={{ marginTop: 56, maxWidth: 400 }}>
+      <h2 style={{ fontFamily: CINZEL, color: GOLD, fontSize: 22, letterSpacing: '0.05em', textTransform: 'uppercase', margin: 0 }}>
+        Admin sign-in
+      </h2>
+      <p style={{ opacity: 0.62, fontSize: 13, marginTop: 8, marginBottom: 18 }}>
+        Magic link — sent to your inbox.
+      </p>
       {loginSent ? (
-        <p style={{ color: GOLD, fontSize: 14 }}>Check <b>{loginEmail}</b> — a sign-in link is on its way. Open it on this device.</p>
+        <div style={{ background: 'rgba(201,154,63,0.08)', border: `1px solid ${GOLD}44`, borderRadius: 10, padding: '16px 18px' }}>
+          <p style={{ color: GOLD, fontSize: 14, margin: 0, lineHeight: 1.6 }}>
+            Check <b>{loginEmail}</b> — a sign-in link is on its way. Open it on this device.
+          </p>
+        </div>
       ) : (
         <>
           <input
             type="email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
             placeholder="admin@email" autoComplete="email"
             onKeyDown={(e) => e.key === 'Enter' && sendMagicLink()}
-            style={{ width: '100%', background: '#111', border: '1px solid #333', color: '#fff', borderRadius: 6, padding: '10px 12px', fontSize: 16 }}
+            style={{ width: '100%', background: '#0e0e0e', border: '1px solid rgba(201,154,63,0.3)', color: '#fff', borderRadius: 10, padding: '12px 14px', fontSize: 16, fontFamily: GROTESK, boxSizing: 'border-box' }}
           />
-          <button onClick={sendMagicLink}
-            style={{ marginTop: 10, background: GOLD, border: 'none', color: '#000', borderRadius: 6, padding: '10px 16px', fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={sendMagicLink} style={{ ...brandBtn, marginTop: 12, width: '100%' }}>
             Send magic link
           </button>
           {loginErr && <p style={{ color: '#e0a3a3', fontSize: 12, marginTop: 8 }}>{loginErr}</p>}
@@ -211,15 +272,17 @@ export default function Admin() {
   // ── authorized ─────────────────────────────────────────────────────────────
   const paid = dogs.filter((d) => d.payment_status === 'paid' && !d.is_tester);
   const testers = dogs.filter((d) => d.is_tester);
-  const stats: [string, number | string][] = [
-    ['Dogs', dogs.length],
-    ['Paid', paid.length],
-    ['Testers', testers.length],
-    ['Pack', packMembers.length],
-    ['Emails', contacts.length],
+  const progressPct = Math.min(100, (paid.length / GOAL) * 100);
+
+  const kpis: { label: string; value: number }[] = [
+    { label: 'Dogyptians', value: paid.length },
+    { label: 'Council', value: contacts.length },
+    { label: 'Pack', value: packMembers.length },
+    { label: 'Testers', value: testers.length },
   ];
+
   const tabs: [Tab, string][] = [
-    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Emails'], ['vision', 'Vision'], ['bugs', 'Bugs'],
+    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'],
   ];
 
   // user_id → owner label (from dogs) for the vision-votes list.
@@ -233,24 +296,40 @@ export default function Admin() {
 
   return shell(
     <>
-      {/* stats */}
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
-        {stats.map(([label, n]) => (
-          <div key={label} style={{ background: '#0e0e0e', border: '1px solid #222', borderRadius: 8, padding: '10px 16px', minWidth: 86 }}>
-            <div style={{ fontSize: 22, fontWeight: 700, color: GOLD }}>{n}</div>
-            <div style={{ fontSize: 11, opacity: 0.55, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+      {/* KPI hero */}
+      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
+        {kpis.map((k) => (
+          <div key={k.label} style={kpiCard}>
+            <div style={kpiValue}>{k.value.toLocaleString('en-US')}</div>
+            <div style={kpiLabel}>{k.label}</div>
           </div>
         ))}
       </div>
 
+      {/* Progress toward 1,000,000 */}
+      <div style={{ ...kpiCard, width: '100%', boxSizing: 'border-box', marginBottom: 24, display: 'block' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <div style={kpiLabel}>Toward 1,000,000 Dogyptians</div>
+          <div style={{ fontFamily: GROTESK, fontSize: 13, color: 'rgba(250,244,236,0.6)' }}>
+            <span style={{ color: GOLD_LIGHT, fontWeight: 600 }}>{paid.length.toLocaleString('en-US')}</span>
+            {' / '}{GOAL.toLocaleString('en-US')}
+            <span style={{ marginLeft: 10, color: GOLD }}>{progressPct.toFixed(progressPct < 1 ? 4 : 2)}%</span>
+          </div>
+        </div>
+        <div style={{ marginTop: 12, height: 10, borderRadius: 999, background: 'rgba(250,244,236,0.06)', overflow: 'hidden', border: '1px solid rgba(201,154,63,0.18)' }}>
+          <div style={{ height: '100%', width: `${Math.max(progressPct, 0.6)}%`, borderRadius: 999, background: `linear-gradient(90deg, ${GOLD}, ${GOLD_LIGHT})`, boxShadow: '0 0 12px rgba(245,199,61,0.5)' }} />
+        </div>
+      </div>
+
       {/* tabs */}
-      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid #222', marginBottom: 16, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 4, borderBottom: '1px solid rgba(201,154,63,0.18)', marginBottom: 20, flexWrap: 'wrap' }}>
         {tabs.map(([id, label]) => (
           <button key={id} onClick={() => setTab(id)}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: '8px 14px', fontSize: 13,
-              color: tab === id ? GOLD : 'rgba(250,244,236,0.55)',
-              borderBottom: tab === id ? `2px solid ${GOLD}` : '2px solid transparent', marginBottom: -1, fontWeight: tab === id ? 600 : 400,
+              background: 'none', border: 'none', cursor: 'pointer', padding: '9px 16px', fontSize: 13,
+              fontFamily: CINZEL, letterSpacing: '0.06em', textTransform: 'uppercase',
+              color: tab === id ? GOLD : 'rgba(250,244,236,0.5)',
+              borderBottom: tab === id ? `2px solid ${GOLD}` : '2px solid transparent', marginBottom: -1, fontWeight: tab === id ? 700 : 500,
             }}>
             {label}
           </button>
@@ -267,7 +346,9 @@ export default function Admin() {
             fmtDate(d.created_at), d.dog_name ?? '—', d.owner_name ?? '—', d.email ?? '—',
             fmtAmount(d.amount),
             <Pill key="s" ok={d.payment_status === 'paid'}>{d.payment_status ?? '—'}</Pill>,
-            d.country ?? '—', d.is_tester ? '✓' : '', d.referred_by_code ?? '—', short(d.stripe_session_id, 12),
+            d.country ?? '—', d.is_tester ? '✓' : '',
+            <span key="r" style={{ fontFamily: MONO }}>{d.referred_by_code ?? '—'}</span>,
+            <span key="st" style={{ fontFamily: MONO, opacity: 0.7 }}>{short(d.stripe_session_id, 12)}</span>,
           ])}
         />
       )}
@@ -277,7 +358,7 @@ export default function Admin() {
           cols={['Date', 'Dog', 'Breed', 'Year', 'Heroglyph code', 'Country', 'Grid message', 'Cert PDF']}
           rows={dogs.map((d) => [
             fmtDate(d.created_at), d.dog_name ?? '—', d.breed ?? '—', d.birth_year ?? '—',
-            <code key="h" style={{ fontSize: 11, color: GOLD }}>{d.heroglyph_code ?? '—'}</code>,
+            <code key="h" style={{ fontSize: 11, color: GOLD, fontFamily: MONO }}>{d.heroglyph_code ?? '—'}</code>,
             d.country ?? '—', short(d.grid_message, 30),
             d.pdf_cert_url ? <a key="p" href={d.pdf_cert_url} target="_blank" rel="noreferrer" style={{ color: GOLD }}>PDF</a> : '—',
           ])}
@@ -288,10 +369,10 @@ export default function Admin() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 12 }}>
           {dogs.filter((d) => d.cloudinary_main_url).map((d) => (
             <a key={d.id} href={d.cloudinary_main_url!} target="_blank" rel="noreferrer"
-              style={{ display: 'block', border: '1px solid #222', borderRadius: 8, overflow: 'hidden', background: '#0e0e0e' }}>
+              style={{ display: 'block', border: '1px solid rgba(201,154,63,0.2)', borderRadius: 10, overflow: 'hidden', background: '#0e0e0e' }}>
               <img src={d.cloudinary_main_url!} alt={d.dog_name ?? ''} loading="lazy"
                 style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block' }} />
-              <div style={{ padding: '6px 8px', fontSize: 12 }}>
+              <div style={{ padding: '7px 9px', fontSize: 12 }}>
                 {d.dog_name ?? '—'}
                 {d.cloudinary_extras?.length ? <span style={{ opacity: 0.5 }}> +{d.cloudinary_extras.length}</span> : null}
               </div>
@@ -302,22 +383,56 @@ export default function Admin() {
       )}
 
       {!loadingData && tab === 'emails' && (
-        <DataTable
-          cols={['Date', 'Name', 'Email', 'Role', 'Message']}
-          rows={contacts.map((c) => [
-            fmtDate(c.created_at), c.name ?? '—', c.email ?? '—', c.role ?? '—', short(c.message, 60),
-          ])}
-          empty="No council / contact submissions yet."
-        />
+        contacts.length === 0 ? (
+          <p style={{ opacity: 0.6 }}>No council applications yet.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+            {contacts.map((c) => {
+              const roleKey = (c.role ?? '').toLowerCase();
+              const icon = ROLE_ICONS[roleKey];
+              const roleLabel = ROLE_LABELS[roleKey] ?? c.role ?? '—';
+              return (
+                <div key={c.id} style={councilCard}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    {icon && (
+                      <div style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 10, background: 'rgba(31,26,14,0.06)', border: `1px solid ${INK}22`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src={icon} alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                      </div>
+                    )}
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontFamily: CINZEL, fontWeight: 700, color: INK, fontSize: 16, lineHeight: 1.2 }}>
+                        {c.name ?? '—'}
+                      </div>
+                      {c.email ? (
+                        <a href={`mailto:${c.email}`} style={{ color: '#8a6d1f', fontSize: 13, textDecoration: 'underline', wordBreak: 'break-all' }}>
+                          {c.email}
+                        </a>
+                      ) : (
+                        <span style={{ color: INK, opacity: 0.5, fontSize: 13 }}>—</span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                    <span style={councilBadge}>{roleLabel}</span>
+                    <span style={{ color: INK, opacity: 0.45, fontSize: 12 }}>{fmtDate(c.created_at)}</span>
+                  </div>
+                  <p style={{ color: INK, opacity: 0.82, fontSize: 13, lineHeight: 1.55, marginTop: 12, marginBottom: 0, whiteSpace: 'pre-wrap' }}>
+                    {c.message?.trim() ? c.message : '—'}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )
       )}
 
       {!loadingData && tab === 'vision' && (
         <>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
             {visionTally.map(({ k, want, no }) => (
-              <div key={k} style={{ background: '#0e0e0e', border: '1px solid #222', borderRadius: 8, padding: '10px 14px', minWidth: 120 }}>
-                <div style={{ fontSize: 12, color: GOLD, fontWeight: 600 }}>{VISION_LABELS[k]}</div>
-                <div style={{ fontSize: 13, marginTop: 4 }}>
+              <div key={k} style={{ background: '#0e0e0e', border: '1px solid rgba(201,154,63,0.2)', borderRadius: 10, padding: '12px 16px', minWidth: 130 }}>
+                <div style={{ fontFamily: CINZEL, fontSize: 12, color: GOLD, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>{VISION_LABELS[k]}</div>
+                <div style={{ fontSize: 13, marginTop: 6 }}>
                   <span style={{ color: '#7ED99B' }}>♥ {want}</span>
                   <span style={{ opacity: 0.4 }}> · </span>
                   <span style={{ color: '#e0a3a3' }}>✕ {no}</span>
@@ -342,7 +457,7 @@ export default function Admin() {
         <div style={{ opacity: 0.6, fontSize: 14, lineHeight: 1.6, maxWidth: 520 }}>
           <p>No bug-tracking table in Supabase yet.</p>
           <p style={{ fontSize: 13, marginTop: 8 }}>
-            Bug reports currently arrive by e-mail / manually. When a <code>bug_reports</code> table
+            Bug reports currently arrive by e-mail / manually. When a <code style={{ fontFamily: MONO, color: GOLD }}>bug_reports</code> table
             is added, this tab will render it read-only like the others.
           </p>
         </div>
@@ -351,11 +466,76 @@ export default function Admin() {
   );
 }
 
+// ── shared inline style objects ───────────────────────────────────────────────
+const brandBtn: React.CSSProperties = {
+  background: 'var(--brand-gradient, linear-gradient(135deg,#F5C73D,#E69E1A))',
+  border: '1px solid rgba(250,244,236,0.30)',
+  color: '#000',
+  borderRadius: 8,
+  padding: '10px 18px',
+  fontWeight: 700,
+  fontFamily: CINZEL,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  fontSize: 13,
+  cursor: 'pointer',
+};
+
+const kpiCard: React.CSSProperties = {
+  flex: '1 1 160px',
+  minWidth: 150,
+  background: 'linear-gradient(165deg, #131210 0%, #0b0b0a 100%)',
+  border: '1px solid rgba(201,154,63,0.28)',
+  borderRadius: 14,
+  padding: '18px 20px',
+  boxShadow: '0 0 24px rgba(201,154,63,0.06) inset',
+};
+
+const kpiValue: React.CSSProperties = {
+  fontFamily: CINZEL,
+  fontWeight: 700,
+  fontSize: 40,
+  lineHeight: 1.05,
+  background: `linear-gradient(180deg, ${GOLD_LIGHT}, ${GOLD})`,
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+};
+
+const kpiLabel: React.CSSProperties = {
+  fontSize: 11,
+  opacity: 0.55,
+  textTransform: 'uppercase',
+  letterSpacing: '0.16em',
+  marginTop: 8,
+  fontFamily: GROTESK,
+};
+
+const councilCard: React.CSSProperties = {
+  background: PAPYRUS,
+  borderRadius: 14,
+  padding: '18px 18px 16px',
+  border: '1px solid rgba(201,154,63,0.4)',
+  boxShadow: '0 6px 20px rgba(0,0,0,0.35)',
+};
+
+const councilBadge: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  padding: '3px 10px',
+  borderRadius: 999,
+  background: 'rgba(31,26,14,0.08)',
+  border: `1px solid ${INK}33`,
+  color: INK,
+  fontFamily: GROTESK,
+  letterSpacing: '0.02em',
+};
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 function Pill({ ok, children }: { ok: boolean; children: React.ReactNode }) {
   return (
     <span style={{
-      fontSize: 11, padding: '2px 8px', borderRadius: 999,
+      fontSize: 11, padding: '2px 8px', borderRadius: 999, fontWeight: 600,
       background: ok ? 'rgba(90,214,140,0.14)' : 'rgba(224,163,163,0.14)',
       color: ok ? '#5ad68c' : '#e0a3a3',
     }}>{children}</span>
@@ -365,13 +545,13 @@ function Pill({ ok, children }: { ok: boolean; children: React.ReactNode }) {
 function DataTable({ cols, rows, empty }: { cols: string[]; rows: React.ReactNode[][]; empty?: string }) {
   if (rows.length === 0) return <p style={{ opacity: 0.6 }}>{empty ?? 'No rows.'}</p>;
   return (
-    <div style={{ overflowX: 'auto', border: '1px solid #1c1c1c', borderRadius: 8 }}>
+    <div style={{ overflowX: 'auto', border: '1px solid rgba(201,154,63,0.2)', borderRadius: 12 }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr>
             {cols.map((c) => (
-              <th key={c} style={{ textAlign: 'left', padding: '10px 12px', background: '#0e0e0e', color: 'rgba(250,244,236,0.5)',
-                fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap', borderBottom: '1px solid #222' }}>
+              <th key={c} style={{ textAlign: 'left', padding: '11px 13px', background: '#0e0e0e', color: GOLD,
+                fontFamily: CINZEL, fontWeight: 700, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(201,154,63,0.25)' }}>
                 {c}
               </th>
             ))}
@@ -379,9 +559,9 @@ function DataTable({ cols, rows, empty }: { cols: string[]; rows: React.ReactNod
         </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} style={{ borderBottom: '1px solid #161616' }}>
+            <tr key={i} style={{ borderBottom: '1px solid #161616', background: i % 2 ? 'rgba(255,255,255,0.02)' : 'transparent' }}>
               {r.map((cell, j) => (
-                <td key={j} style={{ padding: '9px 12px', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <td key={j} style={{ padding: '10px 13px', whiteSpace: 'nowrap', maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {cell}
                 </td>
               ))}

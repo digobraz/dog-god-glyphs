@@ -659,7 +659,7 @@ export const ukr: Partial<Dict> = {
 
   // ── /about — Council (We Need You) ──
   'about.council.imgAlt': 'Фараон із Hekthor та його котами — Dogypt потребує тебе',
-  'about.council.headline': 'Ти нам потрібен.',
+  'about.council.headline': 'Потребує тебе.',
   'about.council.sub':
     'DOGYPT будують люди, які знають, що означає пес. Якщо тобі є що принести — навичка, голос, візія — саме тут їй місце.',
   'about.council.rolesAria': 'Вибери свою роль',

@@ -689,7 +689,8 @@ export const cs: Partial<Dict> = {
 
   // ── /about — Council (We Need You) — STROJOVÝ PŘEKLAD, čeká review ──
   'about.council.imgAlt': 'Faraon s Hekthorem a svými kočkami — Dogypt tě potřebuje',
-  'about.council.headline': 'Potřebujeme tě.',
+  'about.council.headline': 'Tě potřebuje.',
+  'about.council.formTitle': 'Přidej se k misi',
   'about.council.sub':
     'DOGYPT staví lidé, kteří vědí, co pes znamená. Pokud máš co přinést — dovednost, hlas, vizi — patří to sem.',
   'about.council.rolesAria': 'Vyber si roli',
@@ -714,6 +715,7 @@ export const cs: Partial<Dict> = {
   'about.council.message': 'Napiš nám, co přinášíš… (nepovinné)',
   'about.council.error': 'Něco se pokazilo. Zkus to znovu.',
   'about.council.sending': 'Odesílám…',
+  'about.council.consent': 'Odesláním souhlasím se zasíláním e-mailů od DOGYPT — žádná reklama, jen mobilizace a komunikace s packem.',
   'about.council.submit': 'Přidej se do Rady',
   'about.council.successTitle': 'Jsi v Radě.',
   'about.council.successSub': 'Ozveme se, až přijde správný čas.',

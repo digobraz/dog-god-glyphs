@@ -28,11 +28,12 @@ export function CouncilSection() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
+  const [consent, setConsent] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!role || !name.trim() || !email.trim()) return;
+    if (!role || !name.trim() || !email.trim() || !consent) return;
     setStatus('loading');
     const { error } = await supabase.from('contacts').insert({
       name: name.trim(),
@@ -89,6 +90,14 @@ export function CouncilSection() {
           display: flex; flex-direction: column; justify-content: center; align-items: center;
           gap: clamp(20px, 3vh, 30px); min-width: 0;
         }
+        .council-headline-wrap {
+          display: flex; flex-direction: column; align-items: center;
+          gap: clamp(6px, 1.2vh, 12px);
+        }
+        .council-headline-wrap .council-logo {
+          width: clamp(178px, 22vw, 267px); max-width: 267px; height: auto; display: block;
+          filter: drop-shadow(0 2px 3px rgba(31,26,14,0.18));
+        }
         .council-headline {
           font-family: 'Cinzel', serif; font-weight: 700; white-space: nowrap;
           /* padding-top = headroom pre diakritiku nad verzálkami (background-clip:text ju inak osekne) */
@@ -98,6 +107,13 @@ export function CouncilSection() {
           background: linear-gradient(135deg, #C99A3F 0%, #B5832B 50%, #9A6E1F 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
           filter: drop-shadow(0 1px 1px rgba(31,26,14,0.22));
+        }
+        .council-form-title {
+          font-family: 'Cinzel', serif; font-weight: 700; margin: 0 0 -6px;
+          font-size: clamp(1.4rem, 2.4vw, 1.85rem); letter-spacing: 0.02em; line-height: 1.1;
+          background: linear-gradient(135deg, #C99A3F 0%, #B5832B 50%, #9A6E1F 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+          filter: drop-shadow(0 1px 1px rgba(31,26,14,0.18));
         }
         .council-sub {
           font-family: 'Space Grotesk', sans-serif; font-size: clamp(0.95rem, 1.3vw, 1.1rem);
@@ -180,20 +196,62 @@ export function CouncilSection() {
         }
         .council-input::placeholder { color: rgba(31,26,14,0.42); }
         .council-input:focus { border-color: rgba(201,154,63,0.75); background: rgba(255,255,255,0.85); }
-        textarea.council-input { resize: vertical; min-height: 100px; }
-        /* ── Submit ── */
+        textarea.council-input { resize: vertical; min-height: 78px; }
+        /* ── Consent checkbox (above submit) ── */
+        .council-consent {
+          display: flex; align-items: flex-start; gap: 10px;
+          text-align: left; cursor: pointer; user-select: none;
+        }
+        .council-consent input {
+          flex: 0 0 auto; appearance: none; -webkit-appearance: none;
+          width: 18px; height: 18px; margin-top: 1px;
+          border: 1.5px solid rgba(31,26,14,0.35); border-radius: 5px;
+          background: rgba(255,255,255,0.62); cursor: pointer;
+          transition: background .2s ease, border-color .2s ease;
+          position: relative;
+        }
+        .council-consent input:checked {
+          background: linear-gradient(135deg, #C99A3F 0%, #9A6E1F 100%);
+          border-color: rgba(154,110,31,0.75);
+        }
+        .council-consent input:checked::after {
+          content: ''; position: absolute; left: 5px; top: 1px;
+          width: 5px; height: 10px; border: solid #FFF8EC;
+          border-width: 0 2px 2px 0; transform: rotate(45deg);
+        }
+        .council-consent span {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(0.72rem, 0.95vw, 0.82rem); line-height: 1.45;
+          color: rgba(31,26,14,0.62);
+        }
+        /* ── Submit (papyrus deep gold — matches card headline/title gradient) ── */
         .council-submit {
           align-self: center;
           padding: 14px 44px;
-          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-          border: 1.5px solid rgba(250,244,236,0.30);
+          background: linear-gradient(135deg, #C99A3F 0%, #B5832B 50%, #9A6E1F 100%);
+          border: 1px solid rgba(154,110,31,0.55);
           border-radius: 8px; cursor: pointer;
           font-family: 'Cinzel', serif; font-weight: 700;
-          font-size: clamp(0.82rem, 1.1vw, 0.95rem); letter-spacing: 0.14em; text-transform: uppercase;
-          color: #000; transition: filter .2s ease, transform .15s ease;
+          font-size: clamp(0.82rem, 1.1vw, 0.95rem); letter-spacing: 0.12em; text-transform: uppercase;
+          color: #FFF8EC; white-space: nowrap;
+          box-shadow: 0 8px 22px rgba(31,26,14,0.30), inset 0 1px 0 rgba(255,248,236,0.30);
+          transition: transform 0.2s, box-shadow 0.22s, filter 0.22s;
         }
-        .council-submit:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
-        .council-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+        .council-submit:hover:not(:disabled) { transform: scale(1.03); filter: brightness(1.08); box-shadow: 0 10px 28px rgba(31,26,14,0.38), inset 0 1px 0 rgba(255,248,236,0.30); }
+        .council-submit:active:not(:disabled) { transform: scale(0.98); }
+        .council-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; box-shadow: inset 0 1px 0 rgba(255,248,236,0.30); }
+        /* ── Desktop: form fills the column so the textarea grows and the button
+           drops to the bottom (its lower edge level with "NEEDS YOU." on the left).
+           Button = full width of the textarea/form. ── */
+        @media (min-width: 880px) {
+          /* push the whole right block to the bottom — button stays level with
+             "NEEDS YOU.", textarea shrinks, empty space lands at the TOP (top
+             edge no longer aligned with the left column). */
+          .council-content { justify-content: flex-end; }
+          .council-form { flex: 0 0 auto; }
+          textarea.council-input { flex: 0 0 auto; height: 92px; }
+          .council-submit { align-self: stretch; width: 100%; }
+        }
         /* ── Success ── */
         .council-success {
           display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -219,10 +277,14 @@ export function CouncilSection() {
         <div className="council-card">
         <div className="council-figure">
           <img src="/images/council-pharaoh.png" alt={t('about.council.imgAlt')} />
-          <h2 className="council-headline">{t('about.council.headline')}</h2>
+          <div className="council-headline-wrap">
+            <img className="council-logo" src="/images/dogypt-logo-black-w.png" alt="DOGYPT" />
+            <h2 className="council-headline">{t('about.council.headline')}</h2>
+          </div>
         </div>
 
         <div className="council-content">
+        <h3 className="council-form-title">{t('about.council.formTitle')}</h3>
         <p className="council-sub">
           {t('about.council.sub')}
         </p>
@@ -285,10 +347,19 @@ export function CouncilSection() {
               <p className="council-error">{t('about.council.error')}</p>
             )}
 
+            <label className="council-consent">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+              />
+              <span>{t('about.council.consent')}</span>
+            </label>
+
             <button
               type="submit"
               className="council-submit"
-              disabled={!role || !name.trim() || !email.trim() || status === 'loading'}
+              disabled={!role || !name.trim() || !email.trim() || !consent || status === 'loading'}
             >
               {status === 'loading' ? t('about.council.sending') : t('about.council.submit')}
             </button>

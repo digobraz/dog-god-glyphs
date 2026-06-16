@@ -661,7 +661,7 @@ export const fra: Partial<Dict> = {
 
   // ── /about — Council (We Need You) ──
   'about.council.imgAlt': 'Un pharaon avec Hekthor et ses chats — Dogypt a besoin de toi',
-  'about.council.headline': 'Nous avons besoin de toi.',
+  'about.council.headline': 'A besoin de toi.',
   'about.council.sub':
     'DOGYPT est bâti par des gens qui savent ce qu’un chien représente. Si tu as quelque chose à apporter — une compétence, une voix, une vision — c’est ici que cela a sa place.',
   'about.council.rolesAria': 'Choisis ton rôle',

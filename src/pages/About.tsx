@@ -633,9 +633,9 @@ export default function About() {
         .sw-intro {
           position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%); pointer-events: none;
           margin: 0; width: min(86vw, 760px); text-align: center; opacity: 0;
-          color: #D9A2FF; font-family: 'Cinzel', serif; font-weight: 700;
+          color: #AFC4FF; font-family: 'Cinzel', serif; font-weight: 700;
           font-size: clamp(1.05rem, 2.2vw, 1.6rem); line-height: 1.5;
-          text-shadow: 0 0 7px #C77DFF, 0 0 18px rgba(188,92,255,0.85), 0 0 38px rgba(160,60,255,0.55);
+          text-shadow: 0 0 7px #2E5FD0, 0 0 18px rgba(16,52,166,0.9), 0 0 38px rgba(16,52,166,0.6);
           will-change: opacity;
         }
         .sw-logo {
@@ -844,6 +844,9 @@ export default function About() {
       {/* Testimonials — placeholder, nechané zatiaľ (Matej 2026-05-31) */}
       <TestimonialsSection />
 
+      {/* Council — "We Need You." recruitment block */}
+      <CouncilSection />
+
       {/* ───────── OUTRO HERO ───────── */}
       <section className="about-outro" style={{ textAlign: 'center' }}>
         <div className="flex flex-col" style={{ alignItems: 'center', gap: 'clamp(16px, 2.6vh, 24px)', maxWidth: 820 }}>
@@ -852,14 +855,11 @@ export default function About() {
             <p dangerouslySetInnerHTML={{ __html: t('about.outro.body') }} />
           </div>
           <p className="about-signoff">{t('about.outro.name1')} <span className="amp">{t('about.outro.and')}</span> {t('about.outro.name2')}</p>
-          <a href="/heroglyph" className="btn-gold" style={{ marginTop: 8 }}>
+          <a href="/heroglyph" className="btn-gold" style={{ marginTop: 8, marginBottom: 100 }}>
             {t('about.outro.cta')}
           </a>
         </div>
       </section>
-
-      {/* Council — "We Need You." recruitment block */}
-      <CouncilSection />
 
       {/* Footer — úplne posledná sekcia (email + sociálne siete) */}
       <Footer />

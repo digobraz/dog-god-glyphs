@@ -75,8 +75,8 @@ export function Footer() {
             gap: clamp(34px, 5vw, 64px); align-items: center;
           }
         }
-        /* ── Brand: seal + motto + mission (centered) ── */
-        .footer-brand { display: flex; flex-direction: column; align-items: center; text-align: center; gap: clamp(14px, 2vh, 18px); }
+        /* ── Brand: seal (centre column) ── */
+        .footer-brand { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: clamp(14px, 2vh, 18px); }
         .footer-seal { height: clamp(118px, 15vw, 158px); width: auto; display: block; }
         .footer-tagline {
           font-family: 'Cinzel', serif; font-weight: 700; margin: 0;
@@ -111,9 +111,12 @@ export function Footer() {
         /* ── Email (emphasized) + legal ── */
         .footer-col-email { justify-content: center; align-items: center; }
         @media (min-width: 760px) {
+          /* social left · seal centre · email right */
+          .footer-col-social { align-items: flex-start; padding-left: 50px; }
           .footer-col-email { padding-top: 0; align-items: flex-end; padding-right: 50px; }
-          .footer-brand { align-items: flex-start; padding-left: 50px; }
         }
+        /* mobile stack: seal on top, then social, then email */
+        @media (max-width: 759px) { .footer-brand { order: -1; } }
         .footer-email {
           font-family: 'Cinzel', serif; font-weight: 700;
           font-size: clamp(0.98rem, 1.5vw, 1.22rem); letter-spacing: 0.03em;
@@ -159,13 +162,8 @@ export function Footer() {
       `}</style>
 
       <div className="footer-inner">
-        {/* Brand — seal + motto + mission */}
-        <div className="footer-brand">
-          <img className="footer-seal" src="/images/peciat-dogypt.png" alt={t('about.footer.sealAlt')} />
-        </div>
-
-        {/* Follow — 2×2 (YT/IG · TT/FB) */}
-        <div className="footer-col">
+        {/* Follow — left: social row */}
+        <div className="footer-col footer-col-social">
           <div className="footer-socials">
             {SOCIALS.map((s) => (
               <a
@@ -182,10 +180,15 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Contact — just the email, emphasized */}
+        {/* Brand — center: seal */}
+        <div className="footer-brand">
+          <img className="footer-seal" src="/images/peciat-dogypt.png" alt={t('about.footer.sealAlt')} />
+        </div>
+
+        {/* Contact — right: email, emphasized */}
         <div className="footer-col footer-col-email">
-          <a className="footer-email" href="mailto:stachoman@dogypt.com">
-            stachoman@dogypt.com
+          <a className="footer-email" href="mailto:woof@dogypt.com">
+            woof@dogypt.com
           </a>
         </div>
       </div>

@@ -719,7 +719,8 @@ export const en = {
 
   // ── /about — Council (We Need You) ──
   'about.council.imgAlt': 'A pharaoh with Hekthor and his cats — Dogypt needs you',
-  'about.council.headline': 'We Need You.',
+  'about.council.headline': 'Needs You.',
+  'about.council.formTitle': 'Join the Mission',
   'about.council.sub':
     'DOGYPT is built by people who know what a dog means. If you have something to bring — a skill, a voice, a vision — this is where it belongs.',
   'about.council.rolesAria': 'Choose your role',
@@ -744,6 +745,7 @@ export const en = {
   'about.council.message': 'Tell us what you bring to the table… (optional)',
   'about.council.error': 'Something went wrong. Try again.',
   'about.council.sending': 'Sending…',
+  'about.council.consent': 'By submitting, I agree to receive emails from DOGYPT — no ads, just pack mobilisation and communication.',
   'about.council.submit': 'Join the Council',
   'about.council.successTitle': "You're in the Council.",
   'about.council.successSub': "We'll reach out when the time is right.",

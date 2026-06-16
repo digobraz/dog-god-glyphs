@@ -643,7 +643,7 @@ export const pol: Partial<Dict> = {
 
   // ── /about — Council (We Need You) — STROJOVÝ PREKLAD, čaká review ──
   'about.council.imgAlt': 'Faraon z Hekthorem i swoimi kotami — Dogypt cię potrzebuje',
-  'about.council.headline': 'Potrzebujemy cię.',
+  'about.council.headline': 'Potrzebuje cię.',
   'about.council.sub':
     'DOGYPT budują ludzie, którzy wiedzą, czym jest pies. Jeśli masz coś do wniesienia — umiejętność, głos, wizję — to twoje miejsce.',
   'about.council.rolesAria': 'Wybierz swoją rolę',
