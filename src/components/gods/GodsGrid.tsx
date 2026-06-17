@@ -246,7 +246,7 @@ export function GodsGrid() {
       : vw / 2 - W / 2;
     let oy = revealData.active
       ? vh / 2 - REVEAL_ROW * GY - H / 2
-      : vh / 2 - H / 2;
+      : 30 + 1.5 * GY - H / 2;
     let dragging = false;
     let startX = 0, startY = 0;
     let prevX = 0, prevY = 0, prevT = 0;
