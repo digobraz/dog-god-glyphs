@@ -168,8 +168,10 @@ export const pol: Partial<Dict> = {
   'heroglyph.flow.photo.saving': 'ZAPISYWANIE...',
 
   // ── /heroglyph flow — krok 3: rasa ──
-  'heroglyph.flow.breed.question': 'Powiedz, jakiej rasy jest twój bohater?',
-  'heroglyph.flow.breed.searchPlaceholder': 'Szukaj rasy...',
+  'heroglyph.flow.breed.question': 'Wybierz patrona dla {name}.',
+  'heroglyph.flow.breed.subtitle': 'Wybierz sylwetkę pasującą do twojego psa. Rasa może pomóc — ale wybór należy do ciebie.',
+  'heroglyph.flow.breed.fallbackHero': 'swojego bohatera',
+  'heroglyph.flow.breed.searchPlaceholder': 'Szukaj rasy (orientacyjnie)',
   'heroglyph.flow.breed.enHint': 'Wpisz rasę po angielsku',
   'heroglyph.flow.breed.continue': 'Dalej',
   'heroglyph.flow.breed.cat.01': 'Futrzaki',
@@ -344,8 +346,8 @@ export const pol: Partial<Dict> = {
   'heroglyph.flow.reveal.verticalDesign': '↕ PROJEKT PIONOWY',
   'heroglyph.flow.reveal.infoAria': 'Info',
   'heroglyph.flow.reveal.visionTitle': 'NASZA WIZJA',
-  'heroglyph.flow.reveal.visionBody':
-    'Aby zgłosić prawo do swojego oficjalnego symbolu, prosimy o symboliczny datek. Nasz wielki plan jest prosty: Heroglyph dla każdego psa na Ziemi. Bo im większa staje się nasza globalna sfora, tym więcej bohaterów możemy uratować z ulic i schronisk. Dołącz do dynastii!',
+  'heroglyph.flow.reveal.visionBody': 'Nasz plan: zjednoczyć miłośników psów dzięki Heroglifom. Projekt z duszą — taki, który pomaga nam, naszym psom i psom w potrzebie.',
+  'heroglyph.flow.reveal.visionTribute': 'Dziękujemy za twój symboliczny wkład. Nawet niewiele wystarczy, gdy jest nas wielu — a dzięki tobie świat jest odrobinę lepszy.',
   'heroglyph.flow.reveal.welcome': 'WITAJ W DOGYPT!',
   'heroglyph.flow.reveal.bond': 'Ten Heroglyph to twoja wieczna więź.',
   'heroglyph.flow.reveal.cta': 'CHCĘ SWÓJ HEROGLYPH',

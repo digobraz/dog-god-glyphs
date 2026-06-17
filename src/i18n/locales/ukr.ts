@@ -168,8 +168,10 @@ export const ukr: Partial<Dict> = {
   'heroglyph.flow.photo.saving': 'ЗБЕРІГАЄМО...',
 
   // ── /heroglyph flow — step 3: breed ──
-  'heroglyph.flow.breed.question': 'Скажи, якої породи твій герой?',
-  'heroglyph.flow.breed.searchPlaceholder': 'Шукати породу...',
+  'heroglyph.flow.breed.question': 'Обери покровителя для {name}.',
+  'heroglyph.flow.breed.subtitle': 'Обери силует, що пасує твоєму псу. Порода допоможе — але вибір за тобою.',
+  'heroglyph.flow.breed.fallbackHero': 'свого героя',
+  'heroglyph.flow.breed.searchPlaceholder': 'Пошук породи (орієнтовно)',
   'heroglyph.flow.breed.enHint': 'Введіть породу англійською',
   'heroglyph.flow.breed.continue': 'Продовжити',
   'heroglyph.flow.breed.cat.01': 'Пухнастики',
@@ -344,8 +346,8 @@ export const ukr: Partial<Dict> = {
   'heroglyph.flow.reveal.verticalDesign': '↕ ВЕРТИКАЛЬНИЙ ДИЗАЙН',
   'heroglyph.flow.reveal.infoAria': 'Інформація',
   'heroglyph.flow.reveal.visionTitle': 'НАША ВІЗІЯ',
-  'heroglyph.flow.reveal.visionBody':
-    'Щоб отримати свій офіційний символ, ми просимо символічну пожертву. Наш великий план простий: Heroglyph для кожного пса на Землі. Бо чим більшою стає наша глобальна зграя, тим більше героїв ми можемо врятувати з вулиць і притулків. Долучайся до династії!',
+  'heroglyph.flow.reveal.visionBody': 'Наш план: об\'єднати любителів собак через Герогліфи. Проєкт із душею — той, що допомагає нам, нашим собакам і собакам у біді.',
+  'heroglyph.flow.reveal.visionTribute': 'Дякуємо за твій символічний внесок. Навіть малого досить, коли нас багато — і завдяки тобі світ став трохи кращим.',
   'heroglyph.flow.reveal.welcome': 'ЛАСКАВО ПРОСИМО ДО DOGYPT!',
   'heroglyph.flow.reveal.bond': 'Цей Heroglyph — твій вічний зв\'язок.',
   'heroglyph.flow.reveal.cta': 'ХОЧУ СВІЙ HEROGLYPH',

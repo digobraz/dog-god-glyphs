@@ -178,8 +178,10 @@ export const en = {
   'heroglyph.flow.photo.saving': 'SAVING...',
 
   // ── /heroglyph flow — step 3: breed ──
-  'heroglyph.flow.breed.question': 'Tell me, what breed is your hero?',
-  'heroglyph.flow.breed.searchPlaceholder': 'Search breed...',
+  'heroglyph.flow.breed.question': "Choose {name}'s patron.",
+  'heroglyph.flow.breed.fallbackHero': 'your hero',
+  'heroglyph.flow.breed.subtitle': 'Pick the silhouette that matches your dog. Breed can guide you — but the choice is yours.',
+  'heroglyph.flow.breed.searchPlaceholder': 'Search breed (optional guide)',
   'heroglyph.flow.breed.enHint': '',
   'heroglyph.flow.breed.continue': 'Continue',
   'heroglyph.flow.breed.cat.01': 'Furballs',
@@ -381,7 +383,9 @@ export const en = {
   'heroglyph.flow.reveal.infoAria': 'Info',
   'heroglyph.flow.reveal.visionTitle': 'OUR VISION',
   'heroglyph.flow.reveal.visionBody':
-    'To claim your official symbol, we ask for a symbolic tribute. Our grand plan is simple: a Heroglyph for every dog on Earth. Because the bigger our global pack becomes, the more heroes we can rescue from the streets and shelters. Join the dynasty!',
+    'Our plan: unite dog lovers through Heroglyphs. A project with soul — one that helps us, our dogs, and the dogs in need.',
+  'heroglyph.flow.reveal.visionTribute':
+    'Thank you for your symbolic contribution. A little is enough when there are many of us — and thanks to you, the world is now a fur better place.',
   'heroglyph.flow.reveal.welcome': 'WELCOME TO DOGYPT!',
   'heroglyph.flow.reveal.bond': 'This Heroglyph is your eternal bond.',
   'heroglyph.flow.reveal.cta': 'GRAB MY HEROGLYPH',

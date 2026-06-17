@@ -168,8 +168,10 @@ export const deu: Partial<Dict> = {
   'heroglyph.flow.photo.saving': 'SPEICHERN...',
 
   // ── /heroglyph flow — step 3: breed ──
-  'heroglyph.flow.breed.question': 'Sag mir, welche Rasse ist dein Held?',
-  'heroglyph.flow.breed.searchPlaceholder': 'Rasse suchen...',
+  'heroglyph.flow.breed.question': 'Wähle den Patron für {name}.',
+  'heroglyph.flow.breed.subtitle': 'Wähle die Silhouette, die zu deinem Hund passt. Die Rasse kann helfen — aber die Wahl liegt bei dir.',
+  'heroglyph.flow.breed.fallbackHero': 'deinen Helden',
+  'heroglyph.flow.breed.searchPlaceholder': 'Rasse suchen (optionale Hilfe)',
   'heroglyph.flow.breed.enHint': 'Rasse auf Englisch eingeben',
   'heroglyph.flow.breed.continue': 'Weiter',
   'heroglyph.flow.breed.cat.01': 'Fellknäuel',
@@ -344,8 +346,8 @@ export const deu: Partial<Dict> = {
   'heroglyph.flow.reveal.verticalDesign': '↕ VERTIKALES DESIGN',
   'heroglyph.flow.reveal.infoAria': 'Info',
   'heroglyph.flow.reveal.visionTitle': 'UNSERE VISION',
-  'heroglyph.flow.reveal.visionBody':
-    'Um dein offizielles Symbol zu beanspruchen, bitten wir um einen symbolischen Tribut. Unser großer Plan ist einfach: ein Heroglyph für jeden Hund auf der Erde. Denn je größer unser globales Rudel wird, desto mehr Helden können wir von den Straßen und aus den Tierheimen retten. Tritt der Dynastie bei!',
+  'heroglyph.flow.reveal.visionBody': 'Unser Plan: Hundefreunde durch Heroglyphen vereinen. Ein Projekt mit Seele — eines, das uns hilft, unseren Hunden und den Hunden in Not.',
+  'heroglyph.flow.reveal.visionTribute': 'Danke für deinen symbolischen Beitrag. Wenig genügt, wenn wir viele sind — und dank dir ist die Welt ein Stückchen besser.',
   'heroglyph.flow.reveal.welcome': 'WILLKOMMEN IN DOGYPT!',
   'heroglyph.flow.reveal.bond': 'Dieser Heroglyph ist deine ewige Verbindung.',
   'heroglyph.flow.reveal.cta': 'ICH WILL MEINEN HEROGLYPH',

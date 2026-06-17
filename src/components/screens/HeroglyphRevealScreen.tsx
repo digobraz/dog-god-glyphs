@@ -177,9 +177,16 @@ export function HeroglyphRevealScreen() {
                     transition={{ duration: 0.35 }}
                     style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                   >
+                    <img
+                      src="/images/vision/vision-unity.png"
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                      style={{ opacity: 0.22, mixBlendMode: 'multiply' }}
+                    />
                     <div className="relative z-10 flex-1 p-5 pt-12 md:pt-5 flex flex-col justify-center">
                       <h3
-                        className="text-center text-base md:text-lg font-bold tracking-[0.2em] uppercase text-primary mb-3"
+                        className="text-center text-xl md:text-3xl font-extrabold tracking-[0.2em] uppercase text-primary mb-3"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
                         {t('heroglyph.flow.reveal.visionTitle')}
@@ -189,6 +196,17 @@ export function HeroglyphRevealScreen() {
                       >
                         {t('heroglyph.flow.reveal.visionBody')}
                       </p>
+                      <div
+                        className="mt-3 rounded-xl px-3 py-2"
+                        style={{ border: '1.5px solid rgba(47,107,255,0.55)', background: 'rgba(47,107,255,0.08)' }}
+                      >
+                        <p
+                          className="text-[11px] md:text-xs leading-snug text-center font-semibold"
+                          style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#16306e' }}
+                        >
+                          {t('heroglyph.flow.reveal.visionTribute')}
+                        </p>
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -253,9 +271,16 @@ export function HeroglyphRevealScreen() {
                     transition={{ duration: 0.35 }}
                     style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                   >
+                    <img
+                      src="/images/vision/vision-unity.png"
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                      style={{ opacity: 0.22, mixBlendMode: 'multiply' }}
+                    />
                     <div className="relative z-10 flex-1 p-4 pt-10 md:pt-4 flex flex-col justify-center">
                       <h3
-                        className="text-center text-sm font-bold tracking-[0.2em] uppercase text-primary mb-2"
+                        className="text-center text-lg md:text-xl font-extrabold tracking-[0.2em] uppercase text-primary mb-2"
                         style={{ fontFamily: "'Cinzel', serif" }}
                       >
                         {t('heroglyph.flow.reveal.visionTitle')}
@@ -265,6 +290,17 @@ export function HeroglyphRevealScreen() {
                       >
                         {t('heroglyph.flow.reveal.visionBody')}
                       </p>
+                      <div
+                        className="mt-2 rounded-xl px-3 py-1.5"
+                        style={{ border: '1.5px solid rgba(47,107,255,0.55)', background: 'rgba(47,107,255,0.08)' }}
+                      >
+                      <p
+                        className="text-[10px] md:text-xs leading-snug text-center font-semibold"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", color: '#16306e' }}
+                      >
+                        {t('heroglyph.flow.reveal.visionTribute')}
+                      </p>
+                      </div>
                     </div>
                   </motion.div>
                 )}

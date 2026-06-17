@@ -184,8 +184,10 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.photo.saving': 'UKLADÁM…',
 
   // ── /heroglyph flow — krok 3: rasa ──
-  'heroglyph.flow.breed.question': 'Povedz, akej rasy je tvoj hrdina?',
-  'heroglyph.flow.breed.searchPlaceholder': 'Hľadaj rasu…',
+  'heroglyph.flow.breed.question': 'Vyber patróna pre {name}.',
+  'heroglyph.flow.breed.subtitle': 'Vyber siluetu, ktorá sedí tvojmu psovi. Rasa ti pomôže — ale rozhodnutie je na tebe.',
+  'heroglyph.flow.breed.fallbackHero': 'tvojho hrdinu',
+  'heroglyph.flow.breed.searchPlaceholder': 'Hľadať rasu (orientačne)',
   'heroglyph.flow.breed.enHint': 'Začni písať rasu po anglicky',
   'heroglyph.flow.breed.continue': 'Pokračovať',
   'heroglyph.flow.breed.cat.01': 'Chlpáči',
@@ -360,8 +362,8 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.reveal.verticalDesign': '↕ VERTIKÁLNY DIZAJN',
   'heroglyph.flow.reveal.infoAria': 'Info',
   'heroglyph.flow.reveal.visionTitle': 'NAŠA VÍZIA',
-  'heroglyph.flow.reveal.visionBody':
-    'Aby si si nárokoval svoj oficiálny symbol, žiadame symbolický príspevok. Náš plán je jednoduchý: Heroglyph pre každého psa na Zemi. Pretože čím väčšia bude naša globálna svorka, tým viac hrdinov dokážeme zachrániť z ulíc a útulkov. Pripoj sa k dynastii!',
+  'heroglyph.flow.reveal.visionBody': 'Náš plán: spojiť psíčkarov cez Heroglyfy. Projekt s dušou — taký, čo pomôže nám, našim psom aj psom v núdzi.',
+  'heroglyph.flow.reveal.visionTribute': 'Ďakujeme za tvoj symbolický príspevok. Aj málo stačí, keď je nás veľa — a vďaka tebe je svet o chlp lepší.',
   'heroglyph.flow.reveal.welcome': 'VITAJ V DOGYPTE!',
   'heroglyph.flow.reveal.bond': 'Tento Heroglyph je tvoje večné puto.',
   'heroglyph.flow.reveal.cta': 'CHCEM SVOJ HEROGLYPH',

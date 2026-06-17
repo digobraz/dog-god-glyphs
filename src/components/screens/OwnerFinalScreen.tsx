@@ -15,10 +15,41 @@ export function OwnerFinalScreen() {
   const t = useT();
   const dogName = useDogyptStore((s) => s.dogName);
   const [showInfo, setShowInfo] = useState(false);
+  const [infoSeen, setInfoSeen] = useState(false);
+  const openInfo = () => { setInfoSeen(true); setShowInfo((p) => !p); };
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
+      <style>{`
+        .info-dot { position: relative; }
+        .info-dot--pulse {
+          border-color: #ffffff !important;
+          background: linear-gradient(135deg, #F5C73D, #E69E1A) !important;
+          color: #1a1208 !important;
+          animation: infoDotPulse 1.3s ease-in-out infinite;
+        }
+        .info-dot--pulse svg { color: #1a1208 !important; opacity: 1 !important; }
+        .info-dot--pulse::after {
+          content: ''; position: absolute; inset: -2px; border-radius: 9999px;
+          box-shadow: 0 0 0 0 rgba(255,255,255,0.9);
+          animation: infoDotRing 1.3s ease-out infinite;
+          pointer-events: none;
+        }
+        @keyframes infoDotPulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 8px 1px rgba(245,199,61,0.6); }
+          50% { transform: scale(1.22); box-shadow: 0 0 16px 4px rgba(245,199,61,0.95); }
+        }
+        @keyframes infoDotRing {
+          0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.85); }
+          70% { box-shadow: 0 0 0 14px rgba(255,255,255,0); }
+          100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .info-dot--pulse, .info-dot--pulse::after { animation: none; }
+          .info-dot--pulse { box-shadow: 0 0 0 2px rgba(255,255,255,0.85); }
+        }
+      `}</style>
       <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
@@ -56,9 +87,9 @@ export function OwnerFinalScreen() {
               className="absolute top-3 right-3 z-20 flex items-center justify-center"
               style={{ width: 44, height: 44 }}
               aria-label={t('heroglyph.flow.ownerFinal.infoAria')}
-              onClick={() => setShowInfo((p) => !p)}
+              onClick={openInfo}
             >
-              <span className="w-7 h-7 rounded-full border-2 border-foreground/40 flex items-center justify-center transition-colors hover:border-foreground/70">
+              <span className={`info-dot w-7 h-7 rounded-full border-2 flex items-center justify-center transition-colors ${showInfo ? 'border-foreground/40 hover:border-foreground/70' : 'border-white/40 hover:border-white/70'} ${!infoSeen ? 'info-dot--pulse' : ''}`}>
                 {showInfo
                   ? <X className="h-4 w-4 text-foreground/70" />
                   : <Info className="h-4 w-4 text-white/80" />}

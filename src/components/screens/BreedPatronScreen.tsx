@@ -287,6 +287,20 @@ function BreedPicker({
     container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
   }, [activeCategory]);
 
+  // Center the selected silhouette in the row — so a breed picked via the search
+  // field (which jumps category + selects a shape) lands in view, not off-screen.
+  const svgRowRef = useRef<HTMLDivElement>(null);
+  const svgRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  useEffect(() => {
+    if (!selectedSvg) return;
+    const container = svgRowRef.current;
+    const btn = svgRefs.current[selectedSvg];
+    if (!container || !btn) return;
+    const target =
+      btn.offsetLeft - container.clientWidth / 2 + btn.clientWidth / 2;
+    container.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+  }, [selectedSvg, activeCategory]);
+
   return (
     <div className="flex flex-col gap-3">
       {/* Search field — mobile: tap opens keyboard-safe modal; desktop: inline input + dropdown. */}
@@ -452,12 +466,13 @@ function BreedPicker({
       </div>
 
       {/* Silhouette row */}
-      <div className="flex gap-3 overflow-x-auto overflow-y-visible scrollbar-hide py-5 -mx-2 px-2" style={{ scrollbarWidth: 'none' }}>
+      <div ref={svgRowRef} className="flex gap-3 overflow-x-auto overflow-y-visible scrollbar-hide py-5 -mx-2 px-2" style={{ scrollbarWidth: 'none' }}>
         {svgs.map((svg) => {
           const isSel = svg === selectedSvg;
           return (
             <button
               key={svg}
+              ref={(el) => { svgRefs.current[svg] = el; }}
               onClick={() => onSelectSvg(svg)}
               className={`relative flex-shrink-0 w-20 h-20 rounded-xl flex items-center justify-center transition-all border-2 ${
                 isSel
@@ -564,7 +579,27 @@ export function BreedPatronScreen() {
                 className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {t('heroglyph.flow.breed.question')}
+                {(() => {
+                  const heroName = dogName?.trim() || t('heroglyph.flow.breed.fallbackHero');
+                  const tmpl = t('heroglyph.flow.breed.question');
+                  if (!tmpl.includes('{name}')) {
+                    return t('heroglyph.flow.breed.question', { name: heroName });
+                  }
+                  const [before, after = ''] = tmpl.split('{name}');
+                  return (
+                    <>
+                      {before}
+                      <span className="font-bold text-amber-300">{heroName}</span>
+                      {after}
+                    </>
+                  );
+                })()}
+              </p>
+              <p
+                className="text-white/85 text-center text-sm md:text-base leading-snug -mt-1 md:-mt-2 max-w-md"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {t('heroglyph.flow.breed.subtitle')}
               </p>
             </div>
           </motion.div>

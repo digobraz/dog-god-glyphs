@@ -168,8 +168,10 @@ export const prt: Partial<Dict> = {
   'heroglyph.flow.photo.saving': 'A GUARDAR...',
 
   // ── /heroglyph flow — step 3: breed ──
-  'heroglyph.flow.breed.question': 'Diz-me, de que raça é o teu herói?',
-  'heroglyph.flow.breed.searchPlaceholder': 'Procurar raça...',
+  'heroglyph.flow.breed.question': 'Escolhe o patrono de {name}.',
+  'heroglyph.flow.breed.subtitle': 'Escolhe a silhueta que combina com o teu cão. A raça pode ajudar — mas a escolha é tua.',
+  'heroglyph.flow.breed.fallbackHero': 'o teu herói',
+  'heroglyph.flow.breed.searchPlaceholder': 'Procurar raça (orientativo)',
   'heroglyph.flow.breed.enHint': 'Escreve a raça em inglês',
   'heroglyph.flow.breed.continue': 'Continuar',
   'heroglyph.flow.breed.cat.01': 'Bolas de Pelo',
@@ -344,8 +346,8 @@ export const prt: Partial<Dict> = {
   'heroglyph.flow.reveal.verticalDesign': '↕ DESIGN VERTICAL',
   'heroglyph.flow.reveal.infoAria': 'Info',
   'heroglyph.flow.reveal.visionTitle': 'A NOSSA VISÃO',
-  'heroglyph.flow.reveal.visionBody':
-    'Para reclamares o teu símbolo oficial, pedimos um tributo simbólico. O nosso grande plano é simples: um Heroglyph para cada cão da Terra. Porque quanto maior se torna a nossa matilha global, mais heróis podemos resgatar das ruas e dos abrigos. Junta-te à dinastia!',
+  'heroglyph.flow.reveal.visionBody': 'O nosso plano: unir os amantes de cães através dos Heroglifos. Um projeto com alma — um que ajuda a nós, aos nossos cães e aos cães necessitados.',
+  'heroglyph.flow.reveal.visionTribute': 'Obrigado pela tua contribuição simbólica. Pouco basta quando somos muitos — e graças a ti, o mundo ficou um pouco melhor.',
   'heroglyph.flow.reveal.welcome': 'BEM-VINDO À DOGYPT!',
   'heroglyph.flow.reveal.bond': 'Este Heroglyph é o teu laço eterno.',
   'heroglyph.flow.reveal.cta': 'QUERO O MEU HEROGLYPH',
