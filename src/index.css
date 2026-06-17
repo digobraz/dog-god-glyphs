@@ -30,6 +30,16 @@
   p, li, label, span, .text-wrap-pretty {
     text-wrap: pretty;
   }
+
+  /* Non-Latin font fallback (system-only, no webfont import) — 2026-06-17 i18n.
+     LanguageContext sets html[lang] to the app code (chn/jpn/ind/ara/kor).
+     Cinzel/Space Grotesk lack these glyphs; native stack first keeps headings + body legible.
+     Latin brand words (DOGYPT/Heroglyph) still fall back fine within the stack. */
+  html[lang="chn"] { font-family: 'PingFang SC', 'Noto Sans SC', 'Microsoft YaHei', 'Songti SC', sans-serif; }
+  html[lang="jpn"] { font-family: 'Hiragino Sans', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif; }
+  html[lang="kor"] { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif; }
+  html[lang="ind"] { font-family: 'Kohinoor Devanagari', 'Noto Sans Devanagari', 'Mangal', sans-serif; }
+  html[lang="ara"] { font-family: 'Geeza Pro', 'Noto Naskh Arabic', 'Tahoma', 'Amiri', sans-serif; }
 }
 
 @layer utilities {

@@ -10,6 +10,13 @@ import { fra } from './locales/fra';
 import { prt } from './locales/prt';
 import { rus } from './locales/rus';
 import { ita } from './locales/ita';
+import { chn } from './locales/chn';
+import { jpn } from './locales/jpn';
+import { ind } from './locales/ind';
+import { ara } from './locales/ara';
+import { kor } from './locales/kor';
+import { nld } from './locales/nld';
+import { tur } from './locales/tur';
 
 /**
  * DOGYPT i18n — ľahká vlastná vrstva (bez react-i18next, Lovable-friendly).
@@ -43,6 +50,14 @@ const DICTS: Record<string, Partial<Dict>> = {
   prt,
   rus,
   ita,
+  // Full machine translations 2026-06-17 (680 keys each), pending human review.
+  chn,
+  jpn,
+  ind,
+  ara,
+  kor,
+  nld,
+  tur,
 };
 
 // RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.
