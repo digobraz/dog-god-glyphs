@@ -401,8 +401,6 @@ export const sk: Partial<Dict> = {
   'heroglyph.checkout.dogFallback': 'Pes',
 
   // ── /welcome — post-payment (WelcomeScreen) ──
-  'welcome.record.title': 'NAHRAJ TENTO MOMENT',
-  'welcome.record.subtitle': 'Zachyť oficiálne privítanie tvojho psa',
   'welcome.goal.label': 'Náš Cieľ 🎯',
   'welcome.goal.target': '1 000 000 Heroglyphov',
   'welcome.congratsPrefix': 'Gratulujeme, ',
@@ -410,9 +408,7 @@ export const sk: Partial<Dict> = {
   'welcome.ownerFallback': 'Priateľu',
   'welcome.officiallyA': 'je oficiálne',
   // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka ostáva EN.
-  'welcome.missionLine1': 'Práve si zmenil/a históriu — sme o chlp lepší!',
-  'welcome.missionSpread': 'Rozšír svorku. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'Svorka narástla o jedného boha. Priveď ďalšieho.',
   'welcome.cta.preparing': 'PRIPRAVUJEM TVOJE MIESTO…',
   'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',
   'welcome.cta.enter': 'VSTÚP MEDZI BOHOV →',

@@ -78,17 +78,7 @@ import letterY from '@/assets/letters/NAME-Y.svg';
 import letterZ from '@/assets/letters/NAME-Z.svg';
 
 // Number assets
-import num1 from '@/assets/numbers/NUMBER-1.svg';
-import num2 from '@/assets/numbers/NUMBER-2.svg';
-import num3 from '@/assets/numbers/NUMBER-3.svg';
-import num4 from '@/assets/numbers/NUMBER-4.svg';
-import num5 from '@/assets/numbers/NUMBER-5.svg';
-import num6 from '@/assets/numbers/NUMBER-6.svg';
-import num7 from '@/assets/numbers/NUMBER-7.svg';
-import num8 from '@/assets/numbers/NUMBER-8.svg';
-import num9 from '@/assets/numbers/NUMBER-9.svg';
-import num10 from '@/assets/numbers/NUMBER-10.svg';
-import num11 from '@/assets/numbers/NUMBER-11.svg';
+import { RankingSlot } from '@/components/RankingSlot';
 
 const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
 const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
@@ -170,11 +160,6 @@ const letterMap: Record<string, string> = {
   Z: letterZ,
 };
 
-const numberMap: Record<string, string> = {
-  '1': num1, '2': num2, '3': num3, '4': num4, '5': num5,
-  '6': num6, '7': num7, '8': num8, '9': num9, '10': num10, '11': num11,
-};
-
 // No padding - symbols fill exact slot boundaries
 const PAD = 0;
 
@@ -228,7 +213,11 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
   const westernZodiacSrc = showOwner ? zodiacMap[selections.ownerZodiac] : undefined;
   const ownerInitial = ownerName?.charAt(0)?.toUpperCase();
   const ownerInitialSrc = showOwner && ownerInitial ? letterMap[ownerInitial] : undefined;
-  const rankingSrc = showOwner ? numberMap[selections.ranking] : undefined;
+  const rankingValue = showOwner ? selections.ranking : undefined;
+  const hasRanking = (() => {
+    const n = parseInt(rankingValue ?? '', 10);
+    return Number.isFinite(n) && n >= 1;
+  })();
 
   const dogGenderSrc = dogGenderMap[selections.dogGender];
   const dogFateSrc = dogFateMap[selections.dogFate];
@@ -299,8 +288,8 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
       {!ownerInitialSrc && <rect x="8977" y="2895" width="975" height="936" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Ranking (bottom right in inner frame) */}
-      <SlotImage x={10049} y={2898} w={723} h={933} src={rankingSrc} />
-      {!rankingSrc && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
+      <RankingSlot x={10049} y={2898} w={723} h={933} value={rankingValue} />
+      {!hasRanking && <rect x="10049" y="2898" width="723" height="933" fill="none" stroke="currentColor" strokeWidth="8" strokeDasharray="40,20" opacity="0.2" />}
 
       {/* Pulsing slot indicators - only show when slot not filled */}
       {(pulseSlot === 'dogGender' || pulseAllEmpty) && !dogGenderSrc && (

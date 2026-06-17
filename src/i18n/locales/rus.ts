@@ -384,8 +384,6 @@ export const rus: Partial<Dict> = {
   'heroglyph.checkout.dogFallback': 'Собака',
 
   // ── /welcome — post-payment (WelcomeScreen) ──
-  'welcome.record.title': 'ЗАПИШИ ЭТОТ МОМЕНТ',
-  'welcome.record.subtitle': 'Запечатлей официальное приветствие своей собаки',
   'welcome.goal.label': 'Наша Цель 🎯',
   'welcome.goal.target': '1 000 000 Heroglyph',
   'welcome.congratsPrefix': 'Поздравляем, ',
@@ -393,9 +391,7 @@ export const rus: Partial<Dict> = {
   'welcome.ownerFallback': 'Друг',
   'welcome.officiallyA': 'официально',
   // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka ostáva EN.
-  'welcome.missionLine1': 'Ты только что изменил историю — по одной собаке за раз.',
-  'welcome.missionSpread': 'Разнеси весть о стае. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'Стая выросла на одного бога. Теперь приведи следующего.',
   'welcome.cta.preparing': 'ГОТОВИМ ТВОЁ МЕСТО...',
   'welcome.cta.forging': 'КУЁМ ТВОЙ HEROGLYPH...',
   'welcome.cta.enter': 'ВОЙТИ К БОГАМ →',

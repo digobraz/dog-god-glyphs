@@ -62,17 +62,7 @@ import letterW from '@/assets/letters/NAME-W.svg';
 import letterX from '@/assets/letters/NAME-X.svg';
 import letterY from '@/assets/letters/NAME-Y.svg';
 import letterZ from '@/assets/letters/NAME-Z.svg';
-import num1 from '@/assets/numbers/NUMBER-1.svg';
-import num2 from '@/assets/numbers/NUMBER-2.svg';
-import num3 from '@/assets/numbers/NUMBER-3.svg';
-import num4 from '@/assets/numbers/NUMBER-4.svg';
-import num5 from '@/assets/numbers/NUMBER-5.svg';
-import num6 from '@/assets/numbers/NUMBER-6.svg';
-import num7 from '@/assets/numbers/NUMBER-7.svg';
-import num8 from '@/assets/numbers/NUMBER-8.svg';
-import num9 from '@/assets/numbers/NUMBER-9.svg';
-import num10 from '@/assets/numbers/NUMBER-10.svg';
-import num11 from '@/assets/numbers/NUMBER-11.svg';
+import { RankingSlot } from '@/components/RankingSlot';
 
 const genderMap: Record<string, string> = { man: manSvg, woman: womanSvg };
 const dogGenderMap: Record<string, string> = { king: dogKingSvg, queen: dogQueenSvg };
@@ -152,11 +142,6 @@ const letterMap: Record<string, string> = {
   Z: letterZ,
 };
 
-const numberMap: Record<string, string> = {
-  '1': num1, '2': num2, '3': num3, '4': num4, '5': num5,
-  '6': num6, '7': num7, '8': num8, '9': num9, '10': num10, '11': num11,
-};
-
 function SlotImage({ x, y, w, h, src }: { x: number; y: number; w: number; h: number; src?: string }) {
   if (!src) return null;
   return (
@@ -190,7 +175,6 @@ export function VerticalHeroglyphFrame({ className = '', data }: VerticalHerogly
   const westernZodiacSrc = zodiacMap[selections.ownerZodiac];
   const ownerInitial = ownerName?.charAt(0)?.toUpperCase();
   const ownerInitialSrc = ownerInitial ? letterMap[ownerInitial] : undefined;
-  const rankingSrc = numberMap[selections.ranking];
 
   const dogGenderSrc = dogGenderMap[selections.dogGender];
   const dogFateSrc = dogFateMap[selections.dogFate];
@@ -244,7 +228,7 @@ export function VerticalHeroglyphFrame({ className = '', data }: VerticalHerogly
       {/* Owner initial - bottom middle */}
       <SlotImage x={1157.51} y={1970.04} w={202.91} h={194.803} src={ownerInitialSrc} />
       {/* Ranking - bottom right */}
-      <SlotImage x={1380.51} y={1970.62} w={150.407} h={193.055} src={rankingSrc} />
+      <RankingSlot x={1380.51} y={1970.62} w={150.407} h={193.055} value={selections.ranking} />
 
       {/* Character 1 - bottom area */}
       <SlotImage x={898.459} y={2268.7} w={683.547} h={353.512} src={dogChar1Src} />

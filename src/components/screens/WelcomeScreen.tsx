@@ -12,60 +12,10 @@ import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 
-// Direct REST — bypasses supabase-js client which Lovable may overwrite with zombie project.
-const PM_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/rest/v1/pack_members';
-const PM_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
-const PM_HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${PM_KEY}`, 'apikey': PM_KEY };
-
-function usePackNumber(dogName: string, email: string, sessionId: string | null) {
-  const [packNumber, setPackNumber] = useState<number | null>(null);
-  const ran = useRef(false);
-
-  useEffect(() => {
-    if (ran.current) return;
-    ran.current = true;
-
-    async function registerAndFetch() {
-      // Try INSERT first — succeeds if we beat the webhook.
-      try {
-        const res = await fetch(`${PM_URL}?select=pack_number`, {
-          method: 'POST',
-          headers: { ...PM_HEADERS, 'Prefer': 'return=representation' },
-          body: JSON.stringify({ dog_name: dogName || 'Unknown', email: email || null, stripe_session_id: sessionId || null }),
-        });
-        if (res.ok) {
-          const rows = await res.json();
-          if (rows?.[0]?.pack_number) { setPackNumber(rows[0].pack_number); return; }
-        }
-      } catch { /* fall through to poll */ }
-
-      // INSERT failed (duplicate or webhook race). Poll until the webhook inserts the row.
-      // Stripe webhook can take 30-45s on slow infra; 15 × 3s = 45s window.
-      if (!sessionId) return;
-      for (let i = 0; i < 15; i++) {
-        if (i > 0) await new Promise(r => setTimeout(r, 3000));
-        try {
-          const res = await fetch(`${PM_URL}?select=pack_number&stripe_session_id=eq.${encodeURIComponent(sessionId)}`, {
-            headers: PM_HEADERS,
-          });
-          if (res.ok) {
-            const rows = await res.json();
-            if (rows?.[0]?.pack_number) { setPackNumber(rows[0].pack_number); return; }
-          }
-        } catch { /* continue */ }
-      }
-    }
-
-    registerAndFetch();
-  }, [dogName, email, sessionId]);
-
-  return packNumber;
-}
-
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
-  const [data, setData] = useState(fallbackStore);
+  const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null }>({ ...fallbackStore, packNumber: null });
   const fetched = useRef(false);
   const sessionResolved = useRef(false);
 
@@ -85,6 +35,7 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
             dogPhotoUrl: d.dogPhotoUrl,
             patronSvg: d.patronSvg ?? '',
             patronSvg2: d.patronSvg2 ?? '',
+            packNumber: typeof d.packNumber === 'number' ? d.packNumber : null,
           });
         }
       })
@@ -106,6 +57,7 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
       dogPhotoUrl: fallbackStore.dogPhotoUrl || prev.dogPhotoUrl,
       patronSvg: fallbackStore.patronSvg || prev.patronSvg,
       patronSvg2: fallbackStore.patronSvg2 || prev.patronSvg2,
+      packNumber: prev.packNumber,
     }));
   }, [sessionId, fallbackStore.dogName, fallbackStore.ownerName, fallbackStore.email, fallbackStore.dogPhotoUrl, fallbackStore.selections, fallbackStore.patronSvg, fallbackStore.patronSvg2]);
 
@@ -176,7 +128,9 @@ export function WelcomeScreen() {
   const [heroglyphPngUrl, setHeroglyphPngUrl] = useState('');
   useEffect(() => { setPhotoFailed(false); }, [photoUrl]);
 
-  const packNumber = usePackNumber(dogName, email, sessionId);
+  // Single source of truth: the dog's WALL position, computed server-side in
+  // get-session-data (same logic as get-grid-dogs) so /welcome and /grid match.
+  const packNumber = certData.packNumber;
 
   // Rehydrate store from session data so hidden HeroglyphFrame/VerticalHeroglyphFrame render correctly
   useEffect(() => {
@@ -503,7 +457,7 @@ export function WelcomeScreen() {
                 {t('welcome.officiallyA')}
               </span>
               <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)' }}>
-                GOD
+                “GOD”
               </span>
             </div>
           </div>

@@ -385,8 +385,6 @@ export const deu: Partial<Dict> = {
 
   // ── /welcome — post-payment (WelcomeScreen) ──
   // record-moment overlay
-  'welcome.record.title': 'HALTE DIESEN MOMENT FEST',
-  'welcome.record.subtitle': 'Filme den offiziellen Empfang deines Hundes',
   // goal tracker
   'welcome.goal.label': 'Unser Ziel 🎯',
   'welcome.goal.target': '1 000 000 Heroglyphs',
@@ -396,9 +394,7 @@ export const deu: Partial<Dict> = {
   'welcome.ownerFallback': 'Freund',
   'welcome.officiallyA': 'ist offiziell ein',
   // mission text (MOTTO „IN DOG WE TRUST" bleibt EN)
-  'welcome.missionLine1': 'Du hast gerade Geschichte verändert — ein Hund nach dem anderen.',
-  'welcome.missionSpread': 'Verbreite das Rudel. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'Das Rudel ist um einen Gott gewachsen. Jetzt bring den Nächsten.',
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'DEIN PLATZ WIRD VORBEREITET...',
   'welcome.cta.forging': 'DEIN HEROGLYPH WIRD GESCHMIEDET...',

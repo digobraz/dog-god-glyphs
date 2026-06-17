@@ -424,8 +424,6 @@ export const en = {
 
   // ── /welcome — post-payment (WelcomeScreen) ──
   // record-moment overlay
-  'welcome.record.title': 'RECORD THIS MOMENT',
-  'welcome.record.subtitle': "Capture your dog's official welcome",
   // goal tracker
   'welcome.goal.label': 'Our Goal 🎯',
   'welcome.goal.target': '1,000,000 Heroglyphs',
@@ -435,9 +433,7 @@ export const en = {
   'welcome.ownerFallback': 'Friend',
   'welcome.officiallyA': 'is officially a',
   // mission text (code source of truth — renders identically)
-  'welcome.missionLine1': 'Your dog is in the registry. Your profile lives here.',
-  'welcome.missionSpread': 'Spread the pack. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'The pack just grew by one god. Now bring the next.',
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'PREPARING YOUR PLACE...',
   'welcome.cta.forging': 'FORGING YOUR HEROGLYPH...',

@@ -385,8 +385,6 @@ export const ukr: Partial<Dict> = {
 
   // ── /welcome — post-payment (WelcomeScreen) ──
   // record-moment overlay
-  'welcome.record.title': 'ЗАПИШИ ЦЕЙ МОМЕНТ',
-  'welcome.record.subtitle': 'Зафіксуй офіційне вітання твого пса',
   // goal tracker
   'welcome.goal.label': 'Наша Ціль 🎯',
   'welcome.goal.target': '1 000 000 Heroglyph',
@@ -396,9 +394,7 @@ export const ukr: Partial<Dict> = {
   'welcome.ownerFallback': 'Друже',
   'welcome.officiallyA': 'тепер офіційно',
   // mission text (code source of truth — renders identically)
-  'welcome.missionLine1': 'Ти щойно змінив історію — по одному псу за раз.',
-  'welcome.missionSpread': 'Розширюй зграю. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'Зграя зросла на одного бога. Тепер приведи наступного.',
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'ГОТУЄМО ТВОЄ МІСЦЕ...',
   'welcome.cta.forging': 'КУЄМО ТВІЙ HEROGLYPH...',

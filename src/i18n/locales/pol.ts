@@ -384,8 +384,6 @@ export const pol: Partial<Dict> = {
   'heroglyph.checkout.dogFallback': 'Pies',
 
   // ── /welcome — post-payment (WelcomeScreen) ──
-  'welcome.record.title': 'NAGRAJ TĘ CHWILĘ',
-  'welcome.record.subtitle': 'Uchwyć oficjalne powitanie swojego psa',
   'welcome.goal.label': 'Nasz Cel 🎯',
   'welcome.goal.target': '1 000 000 Heroglyphów',
   'welcome.congratsPrefix': 'Gratulacje, ',
@@ -393,9 +391,7 @@ export const pol: Partial<Dict> = {
   'welcome.ownerFallback': 'Przyjacielu',
   'welcome.officiallyA': 'jest oficjalnie',
   // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka ostáva EN.
-  'welcome.missionLine1': 'Właśnie zmieniłeś/aś historię — jeden pies na raz.',
-  'welcome.missionSpread': 'Rozszerz sforę. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'Wataha urosła o jednego boga. Teraz przyprowadź następnego.',
   'welcome.cta.preparing': 'PRZYGOTOWUJEMY TWOJE MIEJSCE...',
   'welcome.cta.forging': 'KUJEMY TWÓJ HEROGLYPH...',
   'welcome.cta.enter': 'WEJDŹ MIĘDZY BOGÓW →',

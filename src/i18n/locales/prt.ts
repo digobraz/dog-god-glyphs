@@ -385,8 +385,6 @@ export const prt: Partial<Dict> = {
 
   // ── /welcome — post-payment (WelcomeScreen) ──
   // record-moment overlay
-  'welcome.record.title': 'GRAVA ESTE MOMENTO',
-  'welcome.record.subtitle': 'Capta as boas-vindas oficiais do teu cão',
   // goal tracker
   'welcome.goal.label': 'O Nosso Objetivo 🎯',
   'welcome.goal.target': '1 000 000 de Heroglyphs',
@@ -396,9 +394,7 @@ export const prt: Partial<Dict> = {
   'welcome.ownerFallback': 'Amigo',
   'welcome.officiallyA': 'é oficialmente um',
   // mission text (code source of truth — renders identically)
-  'welcome.missionLine1': 'Acabaste de mudar a história — um cão de cada vez.',
-  'welcome.missionSpread': 'Espalha a matilha. ',
-  'welcome.missionMotto': 'IN DOG WE TRUST.',
+  'welcome.missionLine1': 'A matilha cresceu um deus. Agora traz o próximo.',
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'A PREPARAR O TEU LUGAR...',
   'welcome.cta.forging': 'A FORJAR O TEU HEROGLYPH...',
