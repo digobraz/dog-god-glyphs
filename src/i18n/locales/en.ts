@@ -398,7 +398,7 @@ export const en = {
   'heroglyph.flow.message.promptStaySuffix': ' - forever.',
   'heroglyph.flow.message.yourMessage': 'Your Message',
   'heroglyph.flow.message.placeholder':
-    "Dear {dogName}, thank you for every day with you — and I can't wait for all the beautiful moments still ahead of us…",
+    "Dear {dogName}, thank you for every single day with you (for everything we've lived through together)…",
   'heroglyph.flow.message.profileNotePrefix': "This message will appear on your dog's profile in the ",
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',

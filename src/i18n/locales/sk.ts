@@ -376,7 +376,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.message.promptStaySuffix': ' - navždy.',
   'heroglyph.flow.message.yourMessage': 'Tvoj Odkaz',
   'heroglyph.flow.message.placeholder':
-    'Milý/Milá {dogName}, ďakujem za každý deň s tebou — a teším sa na všetky krásne chvíle, čo nás ešte čakajú…',
+    'Milý/Milá {dogName}, ďakujem za každý jeden deň s tebou (za všetko, čo sme spolu prežili)…',
   'heroglyph.flow.message.profileNotePrefix': 'Tento odkaz sa zobrazí na profile tvojho psa na ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',

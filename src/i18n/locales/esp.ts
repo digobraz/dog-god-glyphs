@@ -360,7 +360,7 @@ export const esp: Partial<Dict> = {
   'heroglyph.flow.message.promptStaySuffix': ' - para siempre.',
   'heroglyph.flow.message.yourMessage': 'Tu Mensaje',
   'heroglyph.flow.message.placeholder':
-    'Querido {dogName}, gracias por cada día contigo — y no puedo esperar a todos los hermosos momentos que aún nos quedan por vivir…',
+    'Querido {dogName}, gracias por cada día contigo (por todo lo que hemos vivido juntos)…',
   'heroglyph.flow.message.profileNotePrefix': 'Este mensaje aparecerá en el perfil de tu perro en ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',

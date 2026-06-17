@@ -300,7 +300,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.message.promptStayWord": "dogypt",
   "heroglyph.flow.message.promptStaySuffix": "'te onlarla birlikte kalacak - sonsuza dek.",
   "heroglyph.flow.message.yourMessage": "Mesajınız",
-  "heroglyph.flow.message.placeholder": "Sevgili {dogName}, seninle geçirdiğim her gün için teşekkür ederim — ve önümüzdeki tüm güzel anlara dört gözle bekliyorum…",
+  "heroglyph.flow.message.placeholder": "Sevgili {dogName}, seninle geçirdiğim her gün için teşekkür ederim (birlikte yaşadığımız her şey için)…",
   "heroglyph.flow.message.profileNotePrefix": "Bu mesaj köpeğinizin ",
   "heroglyph.flow.message.profileNoteSite": "DOGYPT.com",
   "heroglyph.flow.message.profileNoteSuffix": " profilinde görünecektir.",

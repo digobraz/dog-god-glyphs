@@ -300,7 +300,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.message.promptStayWord": "dogypt",
   "heroglyph.flow.message.promptStaySuffix": "에 영원히 남습니다.",
   "heroglyph.flow.message.yourMessage": "당신의 메시지",
-  "heroglyph.flow.message.placeholder": "사랑하는 {dogName}에게, 함께한 모든 날에 감사해요 — 그리고 앞으로 펼쳐질 아름다운 순간들이 기대됩니다…",
+  "heroglyph.flow.message.placeholder": "사랑하는 {dogName}에게, 함께한 모든 날에 감사해요 (우리가 함께 겪어온 모든 순간에)…",
   "heroglyph.flow.message.profileNotePrefix": "이 메시지는 ",
   "heroglyph.flow.message.profileNoteSite": "DOGYPT.com",
   "heroglyph.flow.message.profileNoteSuffix": "의 당신의 개 프로필에 표시됩니다.",

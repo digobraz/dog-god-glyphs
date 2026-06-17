@@ -300,7 +300,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.message.promptStayWord": "dogypt",
   "heroglyph.flow.message.promptStaySuffix": "で永遠に残ります。",
   "heroglyph.flow.message.yourMessage": "あなたのメッセージ",
-  "heroglyph.flow.message.placeholder": "親愛なる{dogName}へ、ともに過ごしたすべての日に感謝します — そしてこれからの美しい瞬間を心待ちにしています…",
+  "heroglyph.flow.message.placeholder": "親愛なる{dogName}へ、ともに過ごしたすべての日に感謝します（一緒に過ごしたすべての時間に）…",
   "heroglyph.flow.message.profileNotePrefix": "このメッセージは",
   "heroglyph.flow.message.profileNoteSite": "DOGYPT.com",
   "heroglyph.flow.message.profileNoteSuffix": "のあなたの犬のプロフィールに表示されます。",

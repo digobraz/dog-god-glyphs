@@ -300,7 +300,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.message.promptStayWord": "dogypt",
   "heroglyph.flow.message.promptStaySuffix": " - إلى الأبد.",
   "heroglyph.flow.message.yourMessage": "رسالتك",
-  "heroglyph.flow.message.placeholder": "عزيزي {dogName}، شكراً لك على كل يوم معك — ولا أستطيع الانتظار لكل اللحظات الجميلة القادمة…",
+  "heroglyph.flow.message.placeholder": "عزيزي {dogName}، شكراً لك على كل يوم معك (على كل ما عشناه معاً)…",
   "heroglyph.flow.message.profileNotePrefix": "ستظهر هذه الرسالة على صفحة كلبك في",
   "heroglyph.flow.message.profileNoteSite": "DOGYPT.com",
   "heroglyph.flow.message.profileNoteSuffix": ".",

@@ -300,7 +300,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.message.promptStayWord": "dogypt",
   "heroglyph.flow.message.promptStaySuffix": " - voor altijd.",
   "heroglyph.flow.message.yourMessage": "Jouw Bericht",
-  "heroglyph.flow.message.placeholder": "Lieve {dogName}, bedankt voor elke dag met jou — en ik kan niet wachten op alle mooie momenten die nog voor ons liggen…",
+  "heroglyph.flow.message.placeholder": "Lieve {dogName}, bedankt voor elke dag met jou (voor alles wat we samen hebben meegemaakt)…",
   "heroglyph.flow.message.profileNotePrefix": "Dit bericht verschijnt op het profiel van jouw hond in ",
   "heroglyph.flow.message.profileNoteSite": "DOGYPT.com",
   "heroglyph.flow.message.profileNoteSuffix": ".",

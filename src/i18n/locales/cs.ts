@@ -368,7 +368,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.message.promptStaySuffix': ' - navždy.',
   'heroglyph.flow.message.yourMessage': 'Tvůj Vzkaz',
   'heroglyph.flow.message.placeholder':
-    'Milý/Milá {dogName}, děkuji za každý den s tebou — a těším se na všechny krásné chvíle, co nás ještě čekají…',
+    'Milý/Milá {dogName}, děkuji za každý jediný den s tebou (za všechno, co jsme spolu prožili)…',
   'heroglyph.flow.message.profileNotePrefix': 'Tento vzkaz se zobrazí na profilu tvého psa na ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',

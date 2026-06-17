@@ -300,7 +300,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.message.promptStayWord": "dogypt",
   "heroglyph.flow.message.promptStaySuffix": " 中——永远。",
   "heroglyph.flow.message.yourMessage": "你的留言",
-  "heroglyph.flow.message.placeholder": "亲爱的 {dogName}，谢谢你陪伴的每一天——我迫不及待与你共度未来所有美好的时光……",
+  "heroglyph.flow.message.placeholder": "亲爱的 {dogName}，谢谢你陪伴的每一天（谢谢我们一起走过的所有时光）……",
   "heroglyph.flow.message.profileNotePrefix": "这条留言将出现在你的狗在 ",
   "heroglyph.flow.message.profileNoteSite": "DOGYPT.com",
   "heroglyph.flow.message.profileNoteSuffix": " 上的档案页中。",
