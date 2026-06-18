@@ -173,7 +173,7 @@ export const CertificateCard = forwardRef<HTMLDivElement, CertificateCardProps>(
           {/* Meta 3 cols */}
           <div style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1px 1fr 1px 1fr', alignItems: 'center', margin: '10px 0 14px' }}>
             {[
-              { lbl: 'Guardian', val: ownerName || 'Unknown' },
+              { lbl: 'Pawtner', val: ownerName || 'Unknown' },
               null,
               { lbl: 'Certificate', val: certNumber },
               null,
