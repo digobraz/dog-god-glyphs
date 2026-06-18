@@ -46,7 +46,11 @@ export default function Login() {
   useEffect(() => {
     let cancelled = false;
     const dogId = params.get("dogId") ?? "";
-    const targetAfter = dogId ? `/pack/dogs/${dogId}` : "/pack";
+    // Email "Open My Profile" passes ?next=/pack/profile so first login lands on
+    // the profile (set-password) screen. Guard to in-app /pack paths only.
+    const nextParam = params.get("next");
+    const safeNext = nextParam && nextParam.startsWith("/pack") ? nextParam : null;
+    const targetAfter = safeNext ?? (dogId ? `/pack/dogs/${dogId}` : "/pack");
 
     // Listen for supabase auto-processing #access_token from hash fragment.
     // supabase-js processes the hash asynchronously after createClient(),

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { supabase } from '@/integrations/supabase/client';
 import { CertificateCard } from '@/components/CertificateCard';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
@@ -190,156 +188,14 @@ export function WelcomeScreen() {
     navigate(`/grid?${params.toString()}`);
   }, [navigate, dogName, packNumber, photoUrl, heroglyphPngUrl]);
 
-  // ── Set-password state ──
-  const [pwValue, setPwValue] = useState('');
-  const [pwConfirm, setPwConfirm] = useState('');
-  const [pwError, setPwError] = useState('');
-  const [pwLoading, setPwLoading] = useState(false);
-  const [pwDone, setPwDone] = useState(false);
-  const [pwModalOpen, setPwModalOpen] = useState(false);
-
-  async function handleSetPassword(e: React.FormEvent) {
-    e.preventDefault();
-    setPwError('');
-    if (pwValue.length < 8) { setPwError(t('welcome.password.tooShort')); return; }
-    if (pwValue !== pwConfirm) { setPwError(t('welcome.password.mismatch')); return; }
-    setPwLoading(true);
-    try {
-      const { error: fnError } = await supabase.functions.invoke('set-pack-password', {
-        body: { sessionId, password: pwValue },
-      });
-      if (fnError) {
-        const msg = (fnError as { message?: string }).message ?? '';
-        if (msg.includes('not_paid') || msg.includes('402')) {
-          setPwError(t('welcome.password.notPaid'));
-        } else {
-          setPwError(t('welcome.password.error'));
-        }
-        return;
-      }
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password: pwValue,
-      });
-      if (signInError) {
-        setPwError(t('welcome.password.error'));
-        return;
-      }
-      setPwDone(true);
-      setPwModalOpen(false);
-      handleEnterPack();
-    } catch {
-      setPwError(t('welcome.password.error'));
-    } finally {
-      setPwLoading(false);
-    }
-  }
-
   const { display: packDisplay, landed } = useAnimatedCounter(
     packNumber ?? 0,
     reduced
   );
 
-  // Password modal portal
-  const pwModal = pwModalOpen && createPortal(
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.75)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '0 16px',
-      }}
-      onClick={e => { if (e.target === e.currentTarget) setPwModalOpen(false); }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 16 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
-        style={{
-          background: 'rgba(245,235,210,0.97)',
-          borderRadius: 16,
-          padding: '28px 24px',
-          width: '100%',
-          maxWidth: 360,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-          border: '1px solid rgba(160,116,35,0.3)',
-        }}
-      >
-        <form onSubmit={handleSetPassword} className="flex flex-col gap-3">
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: 11, color: '#555', letterSpacing: '0.08em', textAlign: 'center', textTransform: 'uppercase', marginBottom: 4 }}>
-            {t('welcome.password.title', { email: email || '…' })}
-          </p>
-          <input
-            type="password"
-            value={pwValue}
-            onChange={e => setPwValue(e.target.value)}
-            placeholder={t('welcome.password.placeholder')}
-            required
-            autoComplete="new-password"
-            className="w-full px-4 py-3 rounded-[8px] border outline-none"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 16,
-              color: '#0E0E0E',
-              background: 'rgba(255,255,255,0.7)',
-              borderColor: 'rgba(160,116,35,0.4)',
-            }}
-          />
-          <input
-            type="password"
-            value={pwConfirm}
-            onChange={e => setPwConfirm(e.target.value)}
-            placeholder={t('welcome.password.confirm')}
-            required
-            autoComplete="new-password"
-            className="w-full px-4 py-3 rounded-[8px] border outline-none"
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 16,
-              color: '#0E0E0E',
-              background: 'rgba(255,255,255,0.7)',
-              borderColor: 'rgba(160,116,35,0.4)',
-            }}
-          />
-          {pwError && (
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: '#b91c1c', textAlign: 'center' }}>
-              {pwError}
-            </p>
-          )}
-          <motion.button
-            type="submit"
-            disabled={packNumber === null || !heroglyphPngUrl || pwLoading}
-            className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
-            style={{
-              fontFamily: "'Cinzel', serif",
-              background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-              color: '#000',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-            }}
-            animate={!pwLoading && packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
-            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {packNumber === null
-              ? t('welcome.cta.preparing')
-              : !heroglyphPngUrl
-                ? t('welcome.cta.forging')
-                : pwLoading
-                  ? t('welcome.password.processing')
-                  : t('welcome.password.submit')}
-          </motion.button>
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em', textAlign: 'center' }}>
-            {t('welcome.password.altLink')}
-          </p>
-        </form>
-      </motion.div>
-    </div>,
-    document.body
-  );
 
   return (
     <div className="dark-bg min-h-[100dvh] overflow-y-auto overflow-x-hidden relative">
-      {pwModal}
 
       <motion.div
         className="flex flex-col min-h-[100dvh]"
@@ -474,63 +330,30 @@ export function WelcomeScreen() {
             {t('welcome.missionLine1')}
           </p>
 
-          {/* CTA area */}
+          {/* CTA area — clean reveal entry; no password here (set later in /pack/profile) */}
           <div className="w-full flex flex-col items-center gap-2">
-            {/* sessionId present + password not yet set: CTA opens modal */}
-            {sessionId && !pwDone && (
-              <>
-                <motion.button
-                  onClick={() => setPwModalOpen(true)}
-                  disabled={packNumber === null || !heroglyphPngUrl}
-                  className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                    color: '#000',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-                  }}
-                  animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  {packNumber === null
-                    ? t('welcome.cta.preparing')
-                    : !heroglyphPngUrl
-                      ? t('welcome.cta.forging')
-                      : t('welcome.password.submit')}
-                </motion.button>
-                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em', textAlign: 'center' }}>
-                  {t('welcome.password.altLink')}
-                </p>
-              </>
-            )}
-
-            {/* Fallback / no-session or pwDone: original enter button */}
-            {(!sessionId || pwDone) && (
-              <>
-                <motion.button
-                  onClick={handleEnterPack}
-                  disabled={packNumber === null || !heroglyphPngUrl}
-                  className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
-                    color: '#000',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
-                  }}
-                  animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
-                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  {packNumber === null
-                    ? t('welcome.cta.preparing')
-                    : !heroglyphPngUrl
-                      ? t('welcome.cta.forging')
-                      : t('welcome.cta.enter')}
-                </motion.button>
-                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
-                  {t('welcome.emailHint')}
-                </p>
-              </>
-            )}
+            <motion.button
+              onClick={handleEnterPack}
+              disabled={packNumber === null || !heroglyphPngUrl}
+              className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                color: '#000',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+              }}
+              animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
+              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              {packNumber === null
+                ? t('welcome.cta.preparing')
+                : !heroglyphPngUrl
+                  ? t('welcome.cta.forging')
+                  : t('welcome.cta.enter')}
+            </motion.button>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: '#666', letterSpacing: '0.01em' }}>
+              {t('welcome.emailHint')}
+            </p>
           </div>
         </div>
       </motion.div>
