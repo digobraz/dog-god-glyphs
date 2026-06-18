@@ -5,6 +5,7 @@ import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
+import { decodeRenderData } from '@/lib/renderData';
 
 /**
  * Headless render target for server-side PDF generation (Cloudflare Browser
@@ -69,13 +70,21 @@ export default function CertRender() {
   const [params] = useSearchParams();
   const type = (params.get('type') || 'cert') as ArtifactType;
   const key = params.get('key') || '';
+  const dataParam = params.get('data');
 
   const [dog, setDog] = useState<RenderDog | null>(null);
   const [error, setError] = useState<string>('');
 
-  // Fetch the dog via the key-gated render-data edge fn (no auth session here).
+  // Prefer render data injected in the URL (?data=) by generate-pdfs — the
+  // headless CF browser can't fetch get-render-data ("Failed to fetch"). Fall
+  // back to the cross-origin fetch for manual/dev use without ?data.
   useEffect(() => {
     let alive = true;
+    const injected = decodeRenderData<RenderDog>(dataParam);
+    if (injected) {
+      setDog(injected);
+      return;
+    }
     (async () => {
       if (!id) {
         setError('missing id');
@@ -99,7 +108,7 @@ export default function CertRender() {
     return () => {
       alive = false;
     };
-  }, [id, key]);
+  }, [id, key, dataParam]);
 
   // Rehydrate the store so HeroglyphFrame / VerticalHeroglyphFrame (which read
   // selections/ownerName/patronSvg from the store, not props) draw THIS dog.

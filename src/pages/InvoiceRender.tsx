@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
+import { decodeRenderData } from '@/lib/renderData';
 
 /**
  * Headless render target for invoice PDF generation (Cloudflare Browser Rendering).
@@ -166,12 +167,21 @@ export default function InvoiceRender() {
   const [params] = useSearchParams();
   const key = params.get('key') || '';
   const langParam = params.get('lang');
+  const dataParam = params.get('data');
 
   const [dog, setDog] = useState<InvoiceDog | null>(null);
   const [error, setError] = useState<string>('');
 
+  // Prefer render data injected in the URL (?data=) by generate-pdfs — the
+  // headless CF browser can't fetch get-render-data ("Failed to fetch"). Fall
+  // back to the cross-origin fetch for manual/dev use without ?data.
   useEffect(() => {
     let alive = true;
+    const injected = decodeRenderData<InvoiceDog>(dataParam);
+    if (injected) {
+      setDog(injected);
+      return;
+    }
     (async () => {
       if (!id) { setError('missing id'); return; }
       try {
@@ -187,7 +197,7 @@ export default function InvoiceRender() {
       }
     })();
     return () => { alive = false; };
-  }, [id, key]);
+  }, [id, key, dataParam]);
 
   // Signal ready once data is loaded and fonts decoded
   useEffect(() => {
