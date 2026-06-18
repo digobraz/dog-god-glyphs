@@ -39,7 +39,7 @@ import { countryISO2 } from '@/lib/countryGeo';
 
 const T = PACK_THEME;
 const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
-const MESSAGE_MAX = 240;
+const MESSAGE_MAX = 150;
 
 // ---------------------------------------------------------------------------
 // "Living my best life" — age since birth

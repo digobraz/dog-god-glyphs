@@ -452,13 +452,20 @@ export function WelcomeScreen() {
 
             <div style={{ width: '100%', height: 1, background: 'linear-gradient(90deg, transparent, hsl(45 80% 60% / 0.4), transparent)', margin: '4px 0' }} />
 
-            <div className="flex items-center gap-1.5 justify-center flex-wrap">
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.75rem, 3vw, 0.9rem)', fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#555' }}>
-                {t('welcome.officiallyA')}
-              </span>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)' }}>
-                “GOD”
-              </span>
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="flex items-center gap-1.5 justify-center flex-wrap">
+                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.75rem, 3vw, 0.9rem)', fontWeight: 400, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#555' }}>
+                  {t('welcome.officiallyA')}
+                </span>
+                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.85rem, 3.5vw, 1rem)', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'hsl(39 80% 35%)' }}>
+                  “{t('welcome.godWord')}”
+                </span>
+              </div>
+              {t('welcome.godPun') && (
+                <span style={{ fontFamily: "'Cinzel', serif", fontSize: 'clamp(0.6rem, 2.4vw, 0.7rem)', fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'hsl(39 60% 45% / 0.8)' }}>
+                  {t('welcome.godPun')}
+                </span>
+              )}
             </div>
           </div>
 

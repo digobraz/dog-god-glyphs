@@ -432,6 +432,8 @@ export const en = {
   'welcome.congratsName': '{name}.',
   'welcome.ownerFallback': 'Friend',
   'welcome.officiallyA': 'is officially a',
+  'welcome.godWord': 'GOD',
+  'welcome.godPun': '',
   // mission text (code source of truth — renders identically)
   'welcome.missionLine1': 'The pack just grew by one god. Now bring the next.',
   // CTA states (PREPARING → FORGING → ENTER)

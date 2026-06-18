@@ -407,7 +407,9 @@ export const sk: Partial<Dict> = {
   'welcome.congratsName': '{name}.',
   'welcome.ownerFallback': 'Priateľu',
   'welcome.officiallyA': 'je oficiálne',
-  // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka ostáva EN.
+  'welcome.godWord': 'BOH',
+  'welcome.godPun': '(GOD)',
+  // MOTTO „IN DOG WE TRUST" ostáva EN; DOG/GOD slovná hračka prejde do „(GOD)" pod BOH.
   'welcome.missionLine1': 'Svorka narástla o jedného boha. Priveď ďalšieho.',
   'welcome.cta.preparing': 'PRIPRAVUJEM TVOJE MIESTO…',
   'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',

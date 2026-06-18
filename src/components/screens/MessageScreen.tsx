@@ -9,7 +9,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import hekthorImg from '@/assets/hekthor.png';
 
-const MAX_CHARS = 300;
+const MAX_CHARS = 150;
 
 // ── Message Compose Modal ────────────────────────────────────────────────────
 // Portaled to document.body so the underlying screen never reflows when the
