@@ -43,6 +43,7 @@ import { DevNav } from "@/components/DevNav";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { captureRefFromSearch } from "@/lib/refCapture";
+import { trackPageview } from "@/lib/analytics";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,9 @@ function RefCapture() {
   useEffect(() => {
     captureRefFromSearch(location.search);
   }, [location.search]);
+  useEffect(() => {
+    trackPageview(location.pathname);
+  }, [location.pathname]);
   return null;
 }
 

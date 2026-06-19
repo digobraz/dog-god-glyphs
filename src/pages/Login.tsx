@@ -47,8 +47,9 @@ export default function Login() {
     let cancelled = false;
     const dogId = params.get("dogId") ?? "";
     // Email "Open My Profile" passes ?next=/pack/profile so first login lands on
-    // the profile (set-password) screen. Guard to in-app /pack paths only.
-    const nextParam = params.get("next");
+    // the profile (set-password) screen. PackLayout deep-links use ?return=<path>.
+    // Guard to in-app /pack paths only — never allow open redirects to external URLs.
+    const nextParam = params.get("next") ?? params.get("return");
     const safeNext = nextParam && nextParam.startsWith("/pack") ? nextParam : null;
     const targetAfter = safeNext ?? (dogId ? `/pack/dogs/${dogId}` : "/pack");
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,15 @@ export function PaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
+
+  // Route guard — deep-link / stale localStorage ochrana
+  useEffect(() => {
+    if (!dogName || !email) {
+      navigate('/heroglyph', { replace: true });
+    }
+  }, [dogName, email, navigate]);
+
+  if (!dogName || !email) return null;
 
   const handlePay = async () => {
     setLoading(true);

@@ -99,7 +99,8 @@ export const useDogyptStore = create<DogyptState>()(
     {
       name: 'dogypt-store',
       version: 3,
-      migrate: () => freshState(),
+      // merge uložený stav s defaultmi — nemazať rozrobený flow pri version bumpe
+      migrate: (persisted: any) => ({ ...freshState(), ...(persisted ?? {}) }),
     }
   )
 );
