@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { decodeRenderData } from '@/lib/renderData';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
 /**
  * Headless render target for invoice PDF generation (Cloudflare Browser Rendering).
@@ -11,10 +12,6 @@ import { decodeRenderData } from '@/lib/renderData';
  * The page sets data-render-ready="1" on <html> once data is loaded and fonts
  * are decoded — Cloudflare waits for that selector before printing.
  */
-
-const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
 
 // i18n labels — ALL 3 languages complete, no missing keys
 const LABELS: Record<string, Record<string, string>> = {

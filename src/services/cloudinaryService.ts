@@ -1,3 +1,5 @@
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/env';
+
 const CLOUD = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME as string;
 const PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET as string;
 const BASE_URL = `https://res.cloudinary.com/${CLOUD}/image/upload`;
@@ -45,8 +47,6 @@ export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
 
 // PDF storage moved to Supabase Storage (Cloudinary free tier blocks PDF delivery, returns 401).
-const SUPABASE_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
 const PDF_BUCKET = 'pdfs';
 
 async function uploadPdfBlob(blob: Blob, folder: string, publicId: string): Promise<CloudinaryResult> {

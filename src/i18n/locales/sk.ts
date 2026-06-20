@@ -625,6 +625,11 @@ export const sk: Partial<Dict> = {
   'transparency.part.affiliate': 'Affiliate',
   'transparency.part.directHelp': 'Priama pomoc',
   'transparency.part.hekthorBowl': 'Hekthorova miska',
+  // ── Transparency model part notes (pill tooltips: PaymentScreen + FounderInvite) ──
+  'transparency.part.development.note': 'Budovanie národa a financovanie všetkého, na čom stojí — ľudí, ktorí udržiavajú DOGYPT v pohybe, služieb, nástrojov a serverov za nimi. Toto je motor hnutia a každý jediný výdavok bude zdokumentovaný a zverejnený.',
+  'transparency.part.affiliate.note': 'Nie reklamy — ľudia. Toto ide priamo na účty Dogypťanov, ktorí šíria vieru, vyplatené v kostiach: minú ich neskôr v DOGYPTE alebo darujú psom v núdzi. Investujeme do svorky, nie do drahého marketingu — svorka nesie posolstvo oveľa ďalej.',
+  'transparency.part.directHelp.note': 'Priamo psom v núdzi — útulky, krmivo, veterinárne účty a záchranné akcie. Žiadni sprostredkovatelia, žiadna réžia: tento podiel ide tam, kde je utrpenie, a každý cent je zdokumentovaný, podložený dokladmi a verejný pre celú svorku.',
+  'transparency.part.hekthorBowl.note': 'Zakladajúci pes, ktorý to celé začal. Jeho podiel udržiava pôvodný sľub pri živote a sen ostáva nádherne jednoduchý: stať sa milionárom tým, že pomáhaš psom, nie napriek nim. Hekthor je prvý pri miske, aby zvyšok svorky nikdy nehladoval.',
 
   // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)

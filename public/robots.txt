@@ -12,3 +12,14 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /heroglyph/
+Disallow: /checkout
+Disallow: /payment
+Disallow: /welcome
+Disallow: /pack
+Disallow: /admin
+Disallow: /login
+Disallow: /cert-render/
+Disallow: /invoice-render/
+
+Sitemap: https://dogypt.com/sitemap.xml

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Camera, Loader2, Mail, BellOff, ShieldOff, Check } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Camera, Loader2, LogOut, Mail, BellOff, ShieldOff, Check } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,8 +26,10 @@ export default function PackProfile() {
   const [pwSaving, setPwSaving] = useState(false);
   const [pwError, setPwError] = useState('');
   const [pwDone, setPwDone] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,6 +101,17 @@ export default function PackProfile() {
       });
     } finally {
       setNameSaving(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      navigate('/login');
+    } catch {
+      setSigningOut(false);
     }
   };
 
@@ -364,6 +377,32 @@ export default function PackProfile() {
           </Field>
           <Field icon={<BellOff className="h-4 w-4" />} label="Notifications">
             <Badge label="Coming soon" />
+          </Field>
+          <Field icon={<LogOut className="h-4 w-4" />} label="Sign out">
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              style={{
+                background: 'none',
+                border: `1px solid ${T.hairline}`,
+                borderRadius: 8,
+                padding: '6px 14px',
+                fontFamily: "'Cinzel', serif",
+                fontSize: 10,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: T.inkDim,
+                cursor: signingOut ? 'default' : 'pointer',
+                opacity: signingOut ? 0.5 : 1,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              {signingOut && <Loader2 className="h-3 w-3 animate-spin" />}
+              Sign out
+            </button>
           </Field>
           <Field icon={<ShieldOff className="h-4 w-4" />} label="Delete account" last>
             <Badge label="Coming soon" danger />

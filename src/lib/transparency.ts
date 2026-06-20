@@ -17,25 +17,25 @@ export const TRANSPARENCY_SPLIT = [
     share: 5,
     labelKey: 'transparency.part.development' as const,
     color: T.partDev,
-    note: 'Building the nation and paying the people behind it — programmers, caretakers, trainers — plus the tools and servers that keep DOGYPT alive and growing. Every expense will be published.',
+    noteKey: 'transparency.part.development.note' as const,
   },
   {
     share: 3,
     labelKey: 'transparency.part.affiliate' as const,
     color: T.partMkt,
-    note: "Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith (as bones): spend them later inside DOGYPT or donate them to dogs in need. DOGYPT invests in the pack, not in expensive marketing — the pack spreads it far better.",
+    noteKey: 'transparency.part.affiliate.note' as const,
   },
   {
     share: 2,
     labelKey: 'transparency.part.directHelp' as const,
     color: T.partHelp,
-    note: 'Straight to dogs in need — shelters, food, vet bills, rescue — every cent documented and public.',
+    noteKey: 'transparency.part.directHelp.note' as const,
   },
   {
     share: 1,
     labelKey: 'transparency.part.hekthorBowl' as const,
     color: T.partHek,
-    note: "The founder dog who started it all. His share keeps the original promise alive — the dream stays simple: become a millionaire by helping dogs, not despite them.",
+    noteKey: 'transparency.part.hekthorBowl.note' as const,
   },
 ] as const;
 

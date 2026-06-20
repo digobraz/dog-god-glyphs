@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +39,13 @@ export function CheckoutScreen() {
 
   useFlowKeyboardFix();
 
+  // Route guard — bez dogName (rozrobený flow nebol dokončený) → reset na začiatok
+  useEffect(() => {
+    if (!dogName) {
+      navigate('/heroglyph', { replace: true });
+    }
+  }, [dogName, navigate]);
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setLocalEmail] = useState('');
@@ -50,7 +57,9 @@ export function CheckoutScreen() {
     return COUNTRIES.filter((c) => c.toLowerCase().includes(country.toLowerCase())).slice(0, 5);
   }, [country]);
 
-  const isValid = firstName.trim() && lastName.trim() && email.trim() && country.trim();
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const isEmailValid = EMAIL_RE.test(email.trim());
+  const isValid = firstName.trim() && lastName.trim() && isEmailValid && country.trim();
 
   const handleContinue = () => {
     if (!isValid) return;
@@ -65,6 +74,8 @@ export function CheckoutScreen() {
 
   const inputClass =
     'w-full rounded-xl border-2 border-border/60 bg-background/50 px-3 py-2 text-base text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors';
+
+  if (!dogName) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
@@ -161,6 +172,11 @@ export function CheckoutScreen() {
                 <input type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               </div>
               <input type="email" placeholder={t('heroglyph.checkout.email')} value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+              {email.trim() && !isEmailValid && (
+                <p className="text-[11px] text-red-400/80 px-1 -mt-0.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  Enter a valid email address
+                </p>
+              )}
               <div className="relative">
                 <input
                   type="text"

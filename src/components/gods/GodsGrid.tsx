@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
+import { EDGE_BASE } from '@/lib/env';
 
-const GRID_DOGS_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-grid-dogs';
+const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
 
 interface RealDog {
   id: string;

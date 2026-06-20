@@ -5,10 +5,11 @@ import { PACK_THEME } from './packTheme';
 import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
+import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
 
-const EDGE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/toggle-feature-vote';
+const EDGE = `${EDGE_BASE}/toggle-feature-vote`;
 
 // Brand Tier 05 · Ceremonial faience (manuál v3.2) — "moments that mark passage"
 const FAIENCE = {

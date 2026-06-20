@@ -563,7 +563,7 @@ export function FounderInvite() {
                         margin: 0,
                       }}
                     >
-                      {TRANSPARENCY_SPLIT[openTile].note}
+                      {t(TRANSPARENCY_SPLIT[openTile].noteKey)}
                     </p>
                   </motion.div>
                 </motion.div>

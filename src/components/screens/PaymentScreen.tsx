@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,9 @@ import { getStoredRef } from '@/lib/refCapture';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { EDGE_BASE } from '@/lib/env';
 
-const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
+const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 
 const PHOTO_TIMEOUT_MS = 12_000;
 
@@ -31,6 +32,15 @@ export function PaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
+
+  // Route guard — deep-link / stale localStorage ochrana
+  useEffect(() => {
+    if (!dogName || !email) {
+      navigate('/heroglyph', { replace: true });
+    }
+  }, [dogName, email, navigate]);
+
+  if (!dogName || !email) return null;
 
   const handlePay = async () => {
     setLoading(true);
@@ -179,34 +189,8 @@ export function PaymentScreen() {
                 paddingBottom: 20,
                 paddingLeft: 20,
                 paddingRight: 20,
-                overflow: 'hidden',
               }}
             >
-              {/* Watermark: faint proportional treasury bar at bottom */}
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 48,
-                  display: 'flex',
-                  pointerEvents: 'none',
-                }}
-              >
-                {TRANSPARENCY_SPLIT.map((s) => (
-                  <div
-                    key={s.labelKey}
-                    style={{
-                      flex: s.share,
-                      background: s.color,
-                      opacity: 0.10,
-                    }}
-                  />
-                ))}
-              </div>
-
               {/* Section heading */}
               <p
                 style={{
@@ -307,7 +291,7 @@ export function PaymentScreen() {
                       margin: 0,
                     }}
                   >
-                    {TRANSPARENCY_SPLIT[openTooltip].note}
+                    {t(TRANSPARENCY_SPLIT[openTooltip].noteKey)}
                   </p>
                 </motion.div>
               )}
