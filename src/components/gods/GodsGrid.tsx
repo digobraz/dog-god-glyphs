@@ -297,8 +297,8 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-name">HEKTHOR</div>
           <div class="card-open-rank">#1</div>
+          <div class="card-open-name">HEKTHOR</div>
           <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
           <div class="card-open-msg">${t('wall.hektor.msg')}</div>
         </div>
@@ -339,8 +339,8 @@ export function GodsGrid() {
       el.innerHTML = `
         ${inner}
         <div class="card-open-overlay">
-          <div class="card-open-name">${safeName}</div>
           <div class="card-open-rank">#${revealData.packNumber}</div>
+          <div class="card-open-name">${safeName}</div>
           <img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
           ${revealOwnerMessage ? `<div class="card-open-msg">${revealOwnerMessage}</div>` : ''}
         </div>
@@ -381,8 +381,8 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-name">${safeName}</div>
           <div class="card-open-rank">#${packNum}</div>
+          <div class="card-open-name">${safeName}</div>
           ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
         </div>
@@ -965,16 +965,21 @@ export function GodsGrid() {
           color: rgba(255,255,255,0.92);
           letter-spacing: 0.08em;
           text-align: center;
-          margin-bottom: -4px;
+          margin-bottom: 4px;
         }
         .card-open-rank {
+          display: inline-block;
+          align-self: center;
           font-family: 'Cinzel', serif;
           font-size: 0.7rem;
           font-weight: 700;
-          color: #C99A3F;
-          letter-spacing: 0.12em;
-          text-align: center;
-          margin-bottom: 2px;
+          color: #3a2c10;
+          letter-spacing: 0.1em;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.55);
+          border-radius: 999px;
+          padding: 2px 11px;
+          margin-bottom: 7px;
         }
         .card-open-msg {
           font-size: 0.7rem;
