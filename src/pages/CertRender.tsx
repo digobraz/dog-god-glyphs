@@ -6,6 +6,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { decodeRenderData } from '@/lib/renderData';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
 /**
  * Headless render target for server-side PDF generation (Cloudflare Browser
@@ -19,10 +20,6 @@ import { decodeRenderData } from '@/lib/renderData';
  * is rehydrated, and all images have decoded — Cloudflare waits for that
  * selector before printing.
  */
-
-const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxuenVyd21kZ3Z6bHFoc2JocnZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3MDAxMzIsImV4cCI6MjA5MjI3NjEzMn0.oMdBisx_0Mla4PI1JtUT4lM1vgZVvbpcORfA8kbdWQY';
 
 const FRAME_BG = '#F5EDE0';
 

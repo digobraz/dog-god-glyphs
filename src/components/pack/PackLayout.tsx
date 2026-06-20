@@ -9,6 +9,7 @@ import iconHome from '@/assets/icons/nav-home.svg';
 import iconPortal from '@/assets/icons/nav-portal.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
+import { EDGE_BASE } from '@/lib/env';
 
 interface PackDog {
   id: string;
@@ -17,7 +18,7 @@ interface PackDog {
 }
 
 const T = PACK_THEME;
-const STATS_EDGE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-pack-stats';
+const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
 
 interface PackLayoutProps {
   children: ReactNode;

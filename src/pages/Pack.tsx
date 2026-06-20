@@ -12,10 +12,11 @@ import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
 import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
+import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
 
-const STATS_EDGE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/get-pack-stats';
+const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
 
 interface DogRow {
   id: string;
@@ -193,7 +194,7 @@ export default function Pack() {
     (async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        const res = await fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion', {
+        const res = await fetch(`${EDGE_BASE}/grant-devotion`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

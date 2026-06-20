@@ -36,9 +36,9 @@ import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { countryISO2 } from '@/lib/countryGeo';
+import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
-const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
 const MESSAGE_MAX = 150;
 
 // ---------------------------------------------------------------------------
@@ -188,7 +188,7 @@ export default function PackDogDetail() {
     setPrayersSubmitted(true); // optimistic lock
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch('https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion', {
+      const res = await fetch(`${EDGE_BASE}/grant-devotion`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

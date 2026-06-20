@@ -189,34 +189,8 @@ export function PaymentScreen() {
                 paddingBottom: 20,
                 paddingLeft: 20,
                 paddingRight: 20,
-                overflow: 'hidden',
               }}
             >
-              {/* Watermark: faint proportional treasury bar at bottom */}
-              <div
-                aria-hidden="true"
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 48,
-                  display: 'flex',
-                  pointerEvents: 'none',
-                }}
-              >
-                {TRANSPARENCY_SPLIT.map((s) => (
-                  <div
-                    key={s.labelKey}
-                    style={{
-                      flex: s.share,
-                      background: s.color,
-                      opacity: 0.10,
-                    }}
-                  />
-                ))}
-              </div>
-
               {/* Section heading */}
               <p
                 style={{

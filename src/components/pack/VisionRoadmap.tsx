@@ -10,10 +10,11 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import './VisionRoadmap.css';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
-const SAVE_VOTE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/save-vision-vote';
-const GRANT = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/grant-devotion';
-const APIKEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ?? '';
+const SAVE_VOTE = `${EDGE_BASE}/save-vision-vote`;
+const GRANT = `${EDGE_BASE}/grant-devotion`;
+const APIKEY = SUPABASE_ANON_KEY;
 
 interface Tile { key: string; icon: string; name: string; status: string; desc: string; }
 

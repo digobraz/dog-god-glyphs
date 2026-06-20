@@ -9,8 +9,7 @@ import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
-
-const EDGE_BASE = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1';
+import { EDGE_BASE } from '@/lib/env';
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
   const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null }>({ ...fallbackStore, packNumber: null });
