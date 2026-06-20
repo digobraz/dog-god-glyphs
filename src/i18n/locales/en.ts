@@ -671,6 +671,11 @@ export const en = {
   'transparency.part.affiliate': 'Affiliate',
   'transparency.part.directHelp': 'Direct help',
   'transparency.part.hekthorBowl': "Hekthor's bowl",
+  // ── Transparency model part notes (pill tooltips: PaymentScreen + FounderInvite) ──
+  'transparency.part.development.note': 'Building the nation and funding everything it runs on — the people who keep DOGYPT moving, the services, tools and servers behind them. This is the engine of the movement, and every single expense will be documented and published openly.',
+  'transparency.part.affiliate.note': 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith, paid in bones: spend them later inside DOGYPT or donate them to dogs in need. We invest in the pack, never in expensive marketing — the pack carries the word far better.',
+  'transparency.part.directHelp.note': 'Straight to dogs in need — shelters, food, vet bills and rescue missions. No middlemen, no overhead: this share goes where the suffering is, and every single cent is documented, receipted and made public for the whole pack to see.',
+  'transparency.part.hekthorBowl.note': "The founder dog who started it all. His share keeps the original promise alive and the dream stays gloriously simple: become a millionaire by helping dogs, not despite them. Hekthor eats first, so the rest of the pack never goes hungry.",
 
   // ── /terms + /privacy — shared legal chrome ──
   // eyebrow + motto = brand → stay EN across locales (sk/cs fall back here by design)

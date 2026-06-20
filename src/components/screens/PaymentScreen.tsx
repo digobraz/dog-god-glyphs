@@ -9,8 +9,9 @@ import { getStoredRef } from '@/lib/refCapture';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { EDGE_BASE } from '@/lib/env';
 
-const CREATE_CHECKOUT_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co/functions/v1/create-checkout';
+const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 
 const PHOTO_TIMEOUT_MS = 12_000;
 
@@ -316,7 +317,7 @@ export function PaymentScreen() {
                       margin: 0,
                     }}
                   >
-                    {TRANSPARENCY_SPLIT[openTooltip].note}
+                    {t(TRANSPARENCY_SPLIT[openTooltip].noteKey)}
                   </p>
                 </motion.div>
               )}
