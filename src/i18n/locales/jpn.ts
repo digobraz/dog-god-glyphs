@@ -502,7 +502,7 @@ export const jpn: Partial<Dict> = {
   "transparency.part.directHelp": "直接支援",
   "transparency.part.hekthorBowl": "Hekthorのボウル",
   "transparency.part.development.note": "国家を築き、それを動かすすべての資金に充てられます — DOGYPTを前進させる人々、その背後にあるサービス、ツール、サーバー。これはムーブメントのエンジンであり、すべての支出はもれなく記録され、公開されます。",
-  "transparency.part.affiliate.note": "広告ではなく、人へ。これは信仰を広めるDogyptianの口座に直接、ボーンで支払われます。後でDOGYPT内で使うことも、困っている犬たちに寄付することもできます。私たちは高額なマーケティングではなく群れに投資します — 群れのほうがずっと遠くまで言葉を運んでくれるのです。",
+  "transparency.part.affiliate.note": "広告ではなく、人へ。これは信仰を広めるDogyptianの口座に直接、BONES で支払われます。後でDOGYPT内で使うことも、困っている犬たちに寄付することもできます。私たちは高額なマーケティングではなく群れに投資します — 群れのほうがずっと遠くまで言葉を運んでくれるのです。",
   "transparency.part.directHelp.note": "困っている犬たちへまっすぐに — シェルター、食料、動物病院の費用、そしてレスキュー活動へ。仲介者も諸経費もなし。この分は苦しみのある場所へ届き、すべての一円までが記録され、領収書が残され、群れ全員が見られるよう公開されます。",
   "transparency.part.hekthorBowl.note": "すべてを始めた創設者の犬。彼の取り分は最初の約束を生かし続け、夢は誇り高くシンプルなままです — 犬を助けて億万長者になる、犬を犠牲にしてではなく。Hekthorが最初に食べる、だから群れの残りが飢えることは決してありません。",
   "legal.eyebrow": "DOGYPT · 法律",

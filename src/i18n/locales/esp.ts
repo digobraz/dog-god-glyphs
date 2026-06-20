@@ -858,7 +858,7 @@ export const esp: Partial<Dict> = {
   "transparency.part.directHelp": "Ayuda directa",
   "transparency.part.hekthorBowl": "El cuenco de Hekthor",
   "transparency.part.development.note": "Construir la nación y financiar todo lo que la mantiene en marcha — las personas que hacen avanzar DOGYPT, los servicios, las herramientas y los servidores detrás de ellas. Este es el motor del movimiento, y cada gasto quedará documentado y publicado abiertamente.",
-  "transparency.part.affiliate.note": "No son anuncios — son personas. Esto va directo a las cuentas de los Dogyptians que difunden la fe, pagado en huesos: gástalos luego dentro de DOGYPT o dónalos a perros necesitados. Invertimos en la manada, nunca en marketing caro — la manada lleva la palabra mucho más lejos.",
+  "transparency.part.affiliate.note": "No son anuncios — son personas. Esto va directo a las cuentas de los Dogyptians que difunden la fe, pagado en BONES: gástalos luego dentro de DOGYPT o dónalos a perros necesitados. Invertimos en la manada, nunca en marketing caro — la manada lleva la palabra mucho más lejos.",
   "transparency.part.directHelp.note": "Directo a los perros necesitados — refugios, comida, facturas del veterinario y misiones de rescate. Sin intermediarios, sin gastos extra: esta parte va donde está el sufrimiento, y cada céntimo queda documentado, con recibo y hecho público para toda la manada.",
   "transparency.part.hekthorBowl.note": "El perro fundador que lo empezó todo. Su parte mantiene viva la promesa original y el sueño sigue siendo gloriosamente simple: hazte millonario ayudando a los perros, no a su costa. Hekthor come primero, para que el resto de la manada nunca pase hambre.",
   "legal.eyebrow": "DOGYPT · Legal",

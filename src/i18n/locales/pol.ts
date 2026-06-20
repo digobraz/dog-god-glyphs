@@ -838,7 +838,7 @@ export const pol: Partial<Dict> = {
   "transparency.part.directHelp": "Bezpośrednia pomoc",
   "transparency.part.hekthorBowl": "Miska Hekthor'a",
   "transparency.part.development.note": "Budowa narodu i finansowanie wszystkiego, co go napędza — ludzi, którzy poruszają DOGYPT, oraz usług, narzędzi i serwerów za nimi. To silnik ruchu, a każdy wydatek, co do grosza, będzie udokumentowany i jawnie opublikowany.",
-  "transparency.part.affiliate.note": "Nie reklamy — ludzie. To trafia prosto na konta Dogyptian, którzy szerzą wiarę, wypłacane w kościach: wydaj je później w DOGYPT albo przekaż psom w potrzebie. Inwestujemy w watahę, nigdy w drogi marketing — wataha niesie słowo o wiele dalej.",
+  "transparency.part.affiliate.note": "Nie reklamy — ludzie. To trafia prosto na konta Dogyptian, którzy szerzą wiarę, wypłacane w BONES: wydaj je później w DOGYPT albo przekaż psom w potrzebie. Inwestujemy w watahę, nigdy w drogi marketing — wataha niesie słowo o wiele dalej.",
   "transparency.part.directHelp.note": "Prosto do psów w potrzebie — schroniska, karma, rachunki u weterynarza i misje ratunkowe. Bez pośredników, bez kosztów ogólnych: ta część idzie tam, gdzie jest cierpienie, a każdy grosz jest udokumentowany, potwierdzony rachunkiem i jawny dla całej watahy.",
   "transparency.part.hekthorBowl.note": "Pies-założyciel, od którego wszystko się zaczęło. Jego część podtrzymuje pierwotną obietnicę, a marzenie pozostaje wspaniale proste: zostać milionerem, pomagając psom, a nie wbrew nim. Hekthor je pierwszy, by reszcie watahy nigdy nie zabrakło jedzenia.",
   "legal.eyebrow": "DOGYPT · Legal",

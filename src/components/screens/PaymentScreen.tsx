@@ -6,7 +6,7 @@ import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { EDGE_BASE } from '@/lib/env';
@@ -28,10 +28,13 @@ async function waitForStablePhotoUrl(timeoutMs = PHOTO_TIMEOUT_MS): Promise<stri
 export function PaymentScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const { lang } = useLang();
   const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2 } = useDogyptStore();
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
 
   // Route guard — deep-link / stale localStorage ochrana
   useEffect(() => {
@@ -75,9 +78,12 @@ export function PaymentScreen() {
           heroglyphCode,
           amount: selectedAmount ?? 11,
           refCode: getStoredRef(),
+          promoCode: promoCode.trim() || undefined,
+          language: lang,
         }),
       });
       const data = await res.json();
+      if (data.promoApplied) setPromoApplied(true);
       if (data.url) {
         window.open(data.url, '_top');
         // fallback: ak _top navigation zlyha (iframe sandbox), otvor novu zalozku
@@ -155,7 +161,49 @@ export function PaymentScreen() {
               </p>
             </div>
 
-            {/* ── 3. PAY BUTTON + SECURED ── */}
+            {/* ── 3a. PROMO CODE FIELD ── */}
+            <div className="px-6 pt-4">
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => { setPromoCode(e.target.value); setPromoApplied(false); }}
+                  placeholder="Promo code"
+                  maxLength={32}
+                  style={{
+                    flex: 1,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    background: 'rgba(255,255,255,0.07)',
+                    border: promoApplied
+                      ? '1.5px solid #C99A3F'
+                      : '1.5px solid rgba(31,26,14,0.22)',
+                    borderRadius: 8,
+                    padding: '10px 12px',
+                    color: 'hsl(30 20% 20%)',
+                    outline: 'none',
+                  }}
+                />
+              </div>
+              {promoApplied && (
+                <p style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: '#C99A3F',
+                  marginTop: 5,
+                  marginBottom: 0,
+                }}>
+                  Promo applied
+                </p>
+              )}
+            </div>
+
+            {/* ── 3b. PAY BUTTON + SECURED ── */}
             <div className="px-6 pt-4 pb-1">
               <Button
                 onClick={handlePay}

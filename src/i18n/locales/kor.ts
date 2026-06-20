@@ -502,7 +502,7 @@ export const kor: Partial<Dict> = {
   "transparency.part.directHelp": "직접 지원",
   "transparency.part.hekthorBowl": "Hekthor의 그릇",
   "transparency.part.development.note": "나라를 세우고, 그것을 움직이는 모든 것에 자금을 댑니다 — DOGYPT를 굴러가게 하는 사람들, 그 뒤의 서비스와 도구와 서버. 이것이 운동의 엔진이며, 단 하나의 지출까지도 모두 기록하고 투명하게 공개합니다.",
-  "transparency.part.affiliate.note": "광고가 아니라 사람입니다. 이 몫은 신앙을 퍼뜨리는 Dogyptian들의 계정으로 곧장 들어가며, 뼈다귀로 지급됩니다: 나중에 DOGYPT 안에서 쓰거나 도움이 필요한 개들에게 기부할 수 있습니다. 우리는 비싼 마케팅이 아니라 Pack에 투자합니다 — Pack이 그 소식을 훨씬 더 멀리 전합니다.",
+  "transparency.part.affiliate.note": "광고가 아니라 사람입니다. 이 몫은 신앙을 퍼뜨리는 Dogyptian들의 계정으로 곧장 들어가며, BONES (으)로 지급됩니다: 나중에 DOGYPT 안에서 쓰거나 도움이 필요한 개들에게 기부할 수 있습니다. 우리는 비싼 마케팅이 아니라 Pack에 투자합니다 — Pack이 그 소식을 훨씬 더 멀리 전합니다.",
   "transparency.part.directHelp.note": "도움이 필요한 개들에게 곧장 — 보호소, 사료, 수의사 비용, 그리고 구조 활동으로. 중간 상인도, 부대 비용도 없이: 이 몫은 고통이 있는 곳으로 향하며, 단 한 푼까지도 기록되고 영수증으로 증빙되어 온 Pack이 볼 수 있도록 공개됩니다.",
   "transparency.part.hekthorBowl.note": "모든 것을 시작한 창립견. 그의 몫은 최초의 약속을 살아 있게 하고, 그 꿈은 더없이 단순하게 지켜집니다: 개들을 외면하는 것이 아니라 개들을 도움으로써 백만장자가 되는 것. Hekthor가 먼저 먹어야, 나머지 Pack이 결코 굶지 않습니다.",
   "legal.eyebrow": "DOGYPT · 법적 정보",

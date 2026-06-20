@@ -297,9 +297,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
-          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
-          <div class="card-open-rank">#1</div>
           <div class="card-open-name">HEKTHOR</div>
+          <div class="card-open-rank">#1</div>
+          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
           <div class="card-open-msg">${t('wall.hektor.msg')}</div>
         </div>
         <div class="card-rank-top">#1</div>
@@ -323,17 +323,29 @@ export function GodsGrid() {
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const packNumInt = parseInt(revealData.packNumber, 10);
       let cc = 'sk';
+      let revealOwnerMessage = '';
       for (const dog of realDogMapRef.current.values()) {
-        if (dog.pack_number === packNumInt) { cc = countryToISO2(dog.country); break; }
+        if (dog.pack_number === packNumInt) {
+          cc = countryToISO2(dog.country);
+          revealOwnerMessage = dog.owner_message ? esc(dog.owner_message) : '';
+          break;
+        }
       }
       const flagName = FLAG_NAMES[cc] || cc;
+      const overlayHeroSrc = esc(revealSymbol);
       const inner = revealData.photoUrl
         ? `<div class="reveal-card-inner" style="background-image:url('${revealData.photoUrl}')"></div>`
         : `<div class="reveal-card-inner reveal-card-fallback"><span class="cartouche">${safeName}</span></div>`;
       el.innerHTML = `
         ${inner}
+        <div class="card-open-overlay">
+          <div class="card-open-name">${safeName}</div>
+          <div class="card-open-rank">#${revealData.packNumber}</div>
+          <img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
+          ${revealOwnerMessage ? `<div class="card-open-msg">${revealOwnerMessage}</div>` : ''}
+        </div>
         <div class="dog-heroglyph-wrap">
-          <img class="dog-heroglyph" src="${esc(revealSymbol)}" alt="${safeName} heroglyph" draggable="false">
+          <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
         </div>
         <div class="card-rank-top">#${revealData.packNumber}</div>
         <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
@@ -369,9 +381,9 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
-          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
-          <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
+          <div class="card-open-rank">#${packNum}</div>
+          ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
         </div>
         <div class="card-rank-top">#${packNum}</div>
@@ -953,6 +965,16 @@ export function GodsGrid() {
           color: rgba(255,255,255,0.92);
           letter-spacing: 0.08em;
           text-align: center;
+          margin-bottom: -4px;
+        }
+        .card-open-rank {
+          font-family: 'Cinzel', serif;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #C99A3F;
+          letter-spacing: 0.12em;
+          text-align: center;
+          margin-bottom: 2px;
         }
         .card-open-msg {
           font-size: 0.7rem;

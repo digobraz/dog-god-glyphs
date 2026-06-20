@@ -617,7 +617,7 @@ export const cs: Partial<Dict> = {
   'transparency.part.development.note':
     'Budujeme národ a financujeme všechno, na čem stojí — lidi, kteří DOGYPT ženou kupředu, i služby, nástroje a servery za nimi. To je motor celého hnutí a každý jednotlivý výdaj bude doložený a zveřejněný úplně otevřeně.',
   'transparency.part.affiliate.note':
-    'Žádné reklamy — lidi. Tohle jde rovnou na účty Dogypťanů, kteří šíří víru, vyplacené v kostech: utrať je později uvnitř DOGYPT, nebo je daruj psům v nouzi. Investujeme do smečky, nikdy do drahého marketingu — smečka roznese slovo mnohem dál.',
+    'Žádné reklamy — lidi. Tohle jde rovnou na účty Dogypťanů, kteří šíří víru, vyplacené v BONES: utrať je později uvnitř DOGYPT, nebo je daruj psům v nouzi. Investujeme do smečky, nikdy do drahého marketingu — smečka roznese slovo mnohem dál.',
   'transparency.part.directHelp.note':
     'Rovnou psům v nouzi — útulkům, na žrádlo, veterinu a záchranné mise. Žádní prostředníci, žádná režie: tenhle podíl jde tam, kde se trpí, a každý jediný haléř je doložený, doklady k němu existují a vidí ho celá smečka.',
   'transparency.part.hekthorBowl.note':
