@@ -98,9 +98,18 @@ export const useDogyptStore = create<DogyptState>()(
     }),
     {
       name: 'dogypt-store',
-      version: 3,
-      // merge uložený stav s defaultmi — nemazať rozrobený flow pri version bumpe
-      migrate: (persisted: any) => ({ ...freshState(), ...(persisted ?? {}) }),
+      version: 4,
+      // NEPERSISTOVAŤ buyer-špecifické dáta (foto, meno, email, selections, patron…).
+      // Flow beží v pamäti (React Router nereloaduje medzi krokmi), /welcome ťahá
+      // dáta zo servera (get-session-data). Persistencia týchto polí spôsobovala
+      // leak medzi testami / kupcami na zdieľanom zariadení (stale foto + stale meno).
+      // Ukladáme len neidentifikujúce preferencie.
+      partialize: (state) => ({
+        selectedTier: state.selectedTier,
+        selectedAmount: state.selectedAmount,
+      }),
+      // v4: zahodiť starý plný persistovaný stav (vrátane stale foto/mena) z v≤3.
+      migrate: () => ({ ...freshState() }),
     }
   )
 );

@@ -192,6 +192,17 @@ export function WelcomeScreen() {
     reduced
   );
 
+  // Fallback: ak heroglyph PNG nikdy nedokončí (Cloudinary/render hiccup),
+  // nezamknúť kupca na /welcome navždy — po grace perióde povoliť Enter.
+  // heroglyphUrl sa do /grid pošle len ak existuje (handleEnterPack to už rieši).
+  const [forgeTimedOut, setForgeTimedOut] = useState(false);
+  useEffect(() => {
+    if (heroglyphPngUrl || packNumber === null) return;
+    const id = setTimeout(() => setForgeTimedOut(true), 8000);
+    return () => clearTimeout(id);
+  }, [heroglyphPngUrl, packNumber]);
+  const canEnter = packNumber !== null && (!!heroglyphPngUrl || forgeTimedOut);
+
 
   return (
     <div className="dark-bg min-h-[100dvh] overflow-y-auto overflow-x-hidden relative">
@@ -333,7 +344,7 @@ export function WelcomeScreen() {
           <div className="w-full flex flex-col items-center gap-2">
             <motion.button
               onClick={handleEnterPack}
-              disabled={packNumber === null || !heroglyphPngUrl}
+              disabled={!canEnter}
               className="relative w-full py-3.5 rounded-xl text-sm font-bold tracking-widest uppercase cursor-pointer disabled:opacity-50 disabled:cursor-wait"
               style={{
                 fontFamily: "'Cinzel', serif",
@@ -341,12 +352,12 @@ export function WelcomeScreen() {
                 color: '#000',
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
               }}
-              animate={packNumber !== null && heroglyphPngUrl ? { scale: [1, 1.025, 1] } : {}}
+              animate={canEnter ? { scale: [1, 1.025, 1] } : {}}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
             >
               {packNumber === null
                 ? t('welcome.cta.preparing')
-                : !heroglyphPngUrl
+                : (!heroglyphPngUrl && !forgeTimedOut)
                   ? t('welcome.cta.forging')
                   : t('welcome.cta.enter')}
             </motion.button>
