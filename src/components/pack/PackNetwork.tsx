@@ -138,7 +138,7 @@ export function PackNetwork() {
                   textTransform: 'uppercase',
                 }}
               >
-                Your Bones
+                Your BONES
               </span>
             </div>
             <div className="text-right">
@@ -162,7 +162,7 @@ export function PackNetwork() {
                     marginLeft: 7,
                   }}
                 >
-                  bones
+                  BONES
                 </span>
               </span>
               {bones != null && bones > 0 && (
@@ -216,7 +216,7 @@ export function PackNetwork() {
                 margin: 0,
               }}
             >
-              Bones are your DOGYPT currency — <strong style={{ color: T.ink }}>10 bones = €1</strong>.
+              BONES are your DOGYPT currency — <strong style={{ color: T.ink }}>10 BONES = €1</strong>.
               Soon you'll spend them <em>inside DOGYPT only</em> — help dogs in need, claim merch, and more.
             </p>
           </div>
@@ -334,7 +334,7 @@ export function PackNetwork() {
                 margin: '0 0 14px',
               }}
             >
-              Bring a dog lover and you earn <strong style={{ color: T.ink }}>+20 bones</strong>. When{' '}
+              Bring a dog lover and you earn <strong style={{ color: T.ink }}>+20 BONES</strong>. When{' '}
               <em>they</em> bring someone, you earn <strong style={{ color: T.ink }}>+10</strong> more.
             </p>
 
@@ -367,20 +367,20 @@ export function PackNetwork() {
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5 }}>
                   No one in your line yet. Share your link —
                   <br />
-                  every dog lover you bring earns you bones.
+                  every dog lover you bring earns you BONES.
                 </span>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
                 <Tier
                   label="Level 1"
-                  sub={`${net?.level1_count ?? l1.length} direct · +20 bones`}
+                  sub={`${net?.level1_count ?? l1.length} direct · +20 BONES`}
                   members={l1}
                 />
                 {l2.length > 0 && (
                   <Tier
                     label="Level 2"
-                    sub={`${net?.level2_count ?? l2.length} extended · +10 bones`}
+                    sub={`${net?.level2_count ?? l2.length} extended · +10 BONES`}
                     members={l2}
                     indented
                   />

@@ -258,8 +258,8 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           {/* BONES — minca + kostička (presunuté hore vedľa Pharaoh) */}
           <div
             className="flex w-full items-center justify-center gap-1.5"
-            title="Bones"
-            aria-label={`${bones} bones`}
+            title="BONES"
+            aria-label={`${bones} BONES`}
             style={{
               padding: '7px 6px',
               borderRadius: 999,

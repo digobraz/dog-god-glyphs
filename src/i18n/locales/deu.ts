@@ -858,7 +858,7 @@ export const deu: Partial<Dict> = {
   "transparency.part.directHelp": "Direkte Hilfe",
   "transparency.part.hekthorBowl": "Hekthors Napf",
   "transparency.part.development.note": "Die Nation aufbauen und alles finanzieren, worauf sie läuft — die Menschen, die DOGYPT in Bewegung halten, die Dienste, Werkzeuge und Server dahinter. Das ist der Motor der Bewegung, und jede einzelne Ausgabe wird dokumentiert und offen veröffentlicht.",
-  "transparency.part.affiliate.note": "Keine Werbung — Menschen. Das geht direkt auf die Konten der Dogyptians, die den Glauben verbreiten, ausgezahlt in Knochen: gib sie später innerhalb von DOGYPT aus oder spende sie an Hunde in Not. Wir investieren in den Pack, nie in teures Marketing — der Pack trägt das Wort weit besser.",
+  "transparency.part.affiliate.note": "Keine Werbung — Menschen. Das geht direkt auf die Konten der Dogyptians, die den Glauben verbreiten, ausgezahlt in BONES: gib sie später innerhalb von DOGYPT aus oder spende sie an Hunde in Not. Wir investieren in den Pack, nie in teures Marketing — der Pack trägt das Wort weit besser.",
   "transparency.part.directHelp.note": "Direkt zu Hunden in Not — Tierheime, Futter, Tierarztrechnungen und Rettungsmissionen. Keine Mittelsmänner, kein Overhead: dieser Anteil geht dorthin, wo das Leid ist, und jeder einzelne Cent wird dokumentiert, belegt und für den ganzen Pack öffentlich gemacht.",
   "transparency.part.hekthorBowl.note": "Der Gründerhund, der alles begann. Sein Anteil hält das ursprüngliche Versprechen am Leben und der Traum bleibt herrlich einfach: Millionär werden, indem man Hunden hilft, nicht ihnen zum Trotz. Hekthor frisst zuerst, damit der Rest des Packs nie hungert.",
   "legal.eyebrow": "DOGYPT · Legal",

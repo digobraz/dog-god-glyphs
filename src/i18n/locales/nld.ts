@@ -502,7 +502,7 @@ export const nld: Partial<Dict> = {
   "transparency.part.directHelp": "Directe hulp",
   "transparency.part.hekthorBowl": "Hekthor's bak",
   "transparency.part.development.note": "De natie bouwen en alles bekostigen waarop ze draait — de mensen die DOGYPT in beweging houden, de diensten, tools en servers daarachter. Dit is de motor van de beweging, en elke uitgave wordt gedocumenteerd en openlijk gepubliceerd.",
-  "transparency.part.affiliate.note": "Geen advertenties — mensen. Dit gaat rechtstreeks naar de rekeningen van Dogyptians die het geloof verspreiden, uitbetaald in botten: geef ze later uit binnen DOGYPT of doneer ze aan honden in nood. We investeren in de pack, nooit in dure marketing — de pack draagt het woord veel verder.",
+  "transparency.part.affiliate.note": "Geen advertenties — mensen. Dit gaat rechtstreeks naar de rekeningen van Dogyptians die het geloof verspreiden, uitbetaald in BONES: geef ze later uit binnen DOGYPT of doneer ze aan honden in nood. We investeren in de pack, nooit in dure marketing — de pack draagt het woord veel verder.",
   "transparency.part.directHelp.note": "Rechtstreeks naar honden in nood — asielen, voer, dierenartskosten en reddingsmissies. Geen tussenpersonen, geen overhead: dit deel gaat waar het leed is, en elke cent wordt gedocumenteerd, gekwiteerd en openbaar gemaakt voor de hele pack.",
   "transparency.part.hekthorBowl.note": "De stichtershond die alles begon. Zijn deel houdt de oorspronkelijke belofte levend en de droom blijft glorieus eenvoudig: miljonair worden door honden te helpen, niet ondanks hen. Hekthor eet eerst, zodat de rest van de pack nooit honger lijdt.",
   "legal.eyebrow": "DOGYPT · Juridisch",

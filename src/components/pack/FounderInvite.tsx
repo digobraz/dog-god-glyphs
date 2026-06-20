@@ -191,7 +191,7 @@ export function FounderInvite() {
             }}
           >
             Every Dogyptian you bring earns you{' '}
-            <strong style={{ color: 'hsl(45 95% 88%)' }}>bones</strong> — and so does everyone
+            <strong style={{ color: 'hsl(45 95% 88%)' }}>BONES</strong> — and so does everyone
             they bring after. Paw to paw, we reach the million.
           </p>
         </div>
@@ -200,7 +200,7 @@ export function FounderInvite() {
         <div className="grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 340 }}>
           <StatTile
             value={loading ? '—' : (aff?.points ?? 0).toLocaleString('en-US')}
-            label="Bones"
+            label="BONES"
             highlight
           />
           <StatTile value={loading ? '—' : String(level1)} label="Level 1" sub="direct" />

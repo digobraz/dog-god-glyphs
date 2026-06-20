@@ -502,7 +502,7 @@ export const tur: Partial<Dict> = {
   "transparency.part.directHelp": "Doğrudan yardım",
   "transparency.part.hekthorBowl": "Hekthor'un kasesi",
   "transparency.part.development.note": "Ulusu inşa etmek ve onu ayakta tutan her şeyi finanse etmek — DOGYPT'i ilerleten insanlar, onların ardındaki hizmetler, araçlar ve sunucular. Bu, hareketin motoru ve her bir harcama belgelenip açıkça yayımlanacak.",
-  "transparency.part.affiliate.note": "Reklam değil — insanlar. Bu doğrudan inancı yayan Dogyptian'ların hesaplarına gider, kemiklerle ödenir: onları daha sonra DOGYPT içinde harca ya da ihtiyaç içindeki köpeklere bağışla. Pahalı pazarlamaya değil, Pack'e yatırım yaparız — sözü en uzağa Pack taşır.",
+  "transparency.part.affiliate.note": "Reklam değil — insanlar. Bu doğrudan inancı yayan Dogyptian'ların hesaplarına gider, BONES ile ödenir: onları daha sonra DOGYPT içinde harca ya da ihtiyaç içindeki köpeklere bağışla. Pahalı pazarlamaya değil, Pack'e yatırım yaparız — sözü en uzağa Pack taşır.",
   "transparency.part.directHelp.note": "Doğrudan ihtiyaç içindeki köpeklere — barınaklar, mama, veteriner masrafları ve kurtarma görevleri. Aracı yok, ek masraf yok: bu pay acının olduğu yere gider ve her bir kuruş belgelenir, makbuzlanır ve tüm Pack'in görmesi için kamuya açılır.",
   "transparency.part.hekthorBowl.note": "Her şeyi başlatan kurucu köpek. Onun payı ilk verilen sözü yaşatır ve hayal görkemli biçimde sade kalır: köpeklere rağmen değil, onlara yardım ederek milyoner ol. Hekthor ilk yer, böylece Pack'in geri kalanı asla aç kalmaz.",
   "legal.eyebrow": "DOGYPT · Hukuki",

@@ -337,8 +337,8 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
 function BonesChip({ bones }: { bones: number }) {
   return (
     <div
-      title="Bones"
-      aria-label={`${bones} bones`}
+      title="BONES"
+      aria-label={`${bones} BONES`}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}
     >
       <span aria-hidden style={{
