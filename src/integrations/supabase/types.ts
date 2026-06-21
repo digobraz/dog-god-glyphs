@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      dogs: {
+        Row: {
+          id: string
+          user_id: string | null
+          dog_name: string | null
+          owner_name: string | null
+          email: string | null
+          payment_status: string | null
+          is_tester: boolean | null
+          pack_number: number | null
+          stripe_session_id: string | null
+          cloudinary_main_url: string | null
+          heroglyph_png_url: string | null
+          patron_svg: string | null
+          patron_svg2: string | null
+          selections: Json | null
+          grid_message: string | null
+          country: string | null
+          breed: string | null
+          birth_year: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          dog_name?: string | null
+          owner_name?: string | null
+          email?: string | null
+          payment_status?: string | null
+          is_tester?: boolean | null
+          pack_number?: number | null
+          stripe_session_id?: string | null
+          cloudinary_main_url?: string | null
+          heroglyph_png_url?: string | null
+          patron_svg?: string | null
+          patron_svg2?: string | null
+          selections?: Json | null
+          grid_message?: string | null
+          country?: string | null
+          breed?: string | null
+          birth_year?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          dog_name?: string | null
+          owner_name?: string | null
+          email?: string | null
+          payment_status?: string | null
+          is_tester?: boolean | null
+          pack_number?: number | null
+          stripe_session_id?: string | null
+          cloudinary_main_url?: string | null
+          heroglyph_png_url?: string | null
+          patron_svg?: string | null
+          patron_svg2?: string | null
+          selections?: Json | null
+          grid_message?: string | null
+          country?: string | null
+          breed?: string | null
+          birth_year?: number | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       pack_members: {
         Row: {
           created_at: string

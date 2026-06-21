@@ -267,7 +267,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
+          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -325,22 +325,8 @@ export default function PackDogDetail() {
         setPrayerLockedPoints(existingPrayer.points ?? null);
       }
 
-      if (data.stripe_session_id) {
-        const { data: pm } = await (supabase as unknown as {
-          from: (t: string) => {
-            select: (cols: string) => {
-              eq: (col: string, val: string) => {
-                maybeSingle: () => Promise<{ data: { pack_number: number } | null }>;
-              };
-            };
-          };
-        })
-          .from('pack_members')
-          .select('pack_number')
-          .eq('stripe_session_id', data.stripe_session_id)
-          .maybeSingle();
-        if (mounted && pm?.pack_number) setPackNumber(pm.pack_number);
-      }
+      // pack_number is stored directly on dogs row (set by seal_pack_number at payment).
+      if (mounted && data.pack_number != null) setPackNumber(data.pack_number);
     }
 
     load();

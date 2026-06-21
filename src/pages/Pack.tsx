@@ -121,32 +121,14 @@ export default function Pack() {
         };
       })
         .from('dogs')
-        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, breed, country, grid_message, stripe_session_id, created_at, selections')
+        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections')
         .eq('user_id', u.id)
         .order('created_at', { ascending: false });
 
       if (!mounted) return;
-      const list = (data ?? []) as DogRow[];
-      const sids = list.map((d) => d.stripe_session_id).filter(Boolean) as string[];
-      if (sids.length) {
-        const { data: pm } = await (supabase as unknown as {
-          from: (t: string) => {
-            select: (cols: string) => {
-              in: (col: string, vals: string[]) => Promise<{ data: { stripe_session_id: string; pack_number: number }[] | null }>;
-            };
-          };
-        })
-          .from('pack_members')
-          .select('stripe_session_id, pack_number')
-          .in('stripe_session_id', sids);
-        if (pm && mounted) {
-          const map = new Map(pm.map((r) => [r.stripe_session_id, r.pack_number]));
-          for (const d of list) {
-            if (d.stripe_session_id) d.pack_number = map.get(d.stripe_session_id) ?? null;
-          }
-        }
-      }
-      setDogs(list);
+      // pack_number is stored directly on dogs row (seal_pack_number at payment time).
+      // No pack_members lookup needed.
+      setDogs((data ?? []) as DogRow[]);
     }
 
     async function loadStats() {
