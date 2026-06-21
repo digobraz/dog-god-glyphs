@@ -496,7 +496,16 @@ export const tur: Partial<Dict> = {
   "payment.pay": "STRIPE İLE ÖDE",
   "payment.secured": "Stripe tarafından güvence altında · Kart, Apple Pay, Google Pay",
   "payment.back": "Geri",
+
+  // promo code — tester perk callout
+  "payment.promo.placeholder": "Promosyon kodu",
+  "payment.promo.applied": "Promosyon kodu uygulandı",
+  "payment.promo.apply": "Uygula",
+  "payment.promo.note":
+    "Köpek dostu, test etmemize yardım ettiğin için teşekkürler. Bir test eden olarak promosyon kodunu girip yalnızca €1 ödeyebilirsin. Ama dilersen tam tutarı bırakabilirsin; her euro iyi bir amaca gider ve bunu içtenlikle takdir ediyoruz. 🐾",
+
   "payment.transparency.title": "%100 Şeffaflık",
+  "payment.transparency.eyebrow": "Para nereye gidiyor?",
   "transparency.part.development": "Geliştirme",
   "transparency.part.affiliate": "Satış Ortaklığı",
   "transparency.part.directHelp": "Doğrudan yardım",

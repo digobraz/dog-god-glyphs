@@ -576,6 +576,12 @@ export const fra: Partial<Dict> = {
   'payment.pay': 'PAYER AVEC STRIPE',
   'payment.secured': 'Sécurisé par Stripe · Carte, Apple Pay, Google Pay',
   'payment.back': 'Retour',
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Code promo',
+  'payment.promo.applied': 'Code promo appliqué',
+  'payment.promo.apply': 'Appliquer',
+  'payment.promo.note':
+    'Ami des chiens, merci de nous aider à tester. En tant que testeur, tu peux appliquer ton code promo et ne payer qu’1 €. Mais si tu préfères laisser le montant complet, chaque euro va à une bonne cause et nous t’en sommes sincèrement reconnaissants. 🐾',
 
   // ── /terms + /privacy — shared legal chrome ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design
@@ -853,6 +859,7 @@ export const fra: Partial<Dict> = {
   "religion.book.titleConstitution": "Constitution",
   "religion.book.trust": "En Chien Nous Faisons Confiance",
   "payment.transparency.title": "100 % Transparence",
+  "payment.transparency.eyebrow": "Où va l’argent ?",
   "transparency.part.development": "Développement",
   "transparency.part.affiliate": "Affiliation",
   "transparency.part.directHelp": "Aide directe",

@@ -496,7 +496,14 @@ export const jpn: Partial<Dict> = {
   "payment.pay": "STRIPEで支払う",
   "payment.secured": "Stripeで保護 · カード、Apple Pay、Google Pay",
   "payment.back": "戻る",
+  // promo code — tester perk callout
+  "payment.promo.placeholder": "プロモコード",
+  "payment.promo.applied": "プロモを適用しました",
+  "payment.promo.apply": "適用",
+  "payment.promo.note":
+    "犬好きのあなたへ、テストにご協力いただきありがとうございます。テスターとしてプロモコードを使えば、お支払いはたった€1で済みます。でも、もし満額を残してくださるなら、その一ユーロ一ユーロがよい目的に使われ、私たちは心から感謝します。🐾",
   "payment.transparency.title": "100%透明性",
+  "payment.transparency.eyebrow": "お金はどこへ行くの？",
   "transparency.part.development": "開発",
   "transparency.part.affiliate": "アフィリエイト",
   "transparency.part.directHelp": "直接支援",

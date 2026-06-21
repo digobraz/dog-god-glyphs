@@ -663,8 +663,15 @@ export const en = {
   'payment.pay': 'PAY WITH STRIPE',
   'payment.secured': 'Secured by Stripe · Card, Apple Pay, Google Pay',
   'payment.back': 'Back',
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Promo code',
+  'payment.promo.applied': 'Promo applied',
+  'payment.promo.apply': 'Apply',
+  'payment.promo.note':
+    'Dog lover, thanks for helping us test. As a tester you can apply your promo code and pay just €1. But if you’d like to leave the full amount, every euro goes to a good cause and we truly appreciate it. 🐾',
   // transparency treasury block
   'payment.transparency.title': '100% Transparency',
+  'payment.transparency.eyebrow': 'Where does the money go?',
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Development',

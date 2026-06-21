@@ -559,6 +559,12 @@ export const pol: Partial<Dict> = {
   'payment.pay': 'ZAPŁAĆ PRZEZ STRIPE',
   'payment.secured': 'Zabezpieczone przez Stripe · Karta, Apple Pay, Google Pay',
   'payment.back': 'Wstecz',
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Kod promocyjny',
+  'payment.promo.applied': 'Kod promocyjny zastosowany',
+  'payment.promo.apply': 'Zastosuj',
+  'payment.promo.note':
+    'Miłośniku psów, dziękujemy, że pomagasz nam testować. Jako tester możesz użyć swojego kodu promocyjnego i zapłacić tylko 1 €. Ale jeśli zechcesz zostawić pełną kwotę, każde euro trafia na dobry cel i naprawdę to doceniamy. 🐾',
 
   // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)
@@ -833,6 +839,7 @@ export const pol: Partial<Dict> = {
   "religion.book.titleConstitution": "Constitution",
   "religion.book.trust": "W Psie Ufamy",
   "payment.transparency.title": "100% Przejrzystości",
+  "payment.transparency.eyebrow": "Gdzie trafiają pieniądze?",
   "transparency.part.development": "Rozwój",
   "transparency.part.affiliate": "Affiliate",
   "transparency.part.directHelp": "Bezpośrednia pomoc",

@@ -576,6 +576,12 @@ export const ita: Partial<Dict> = {
   'payment.pay': 'PAGA CON STRIPE',
   'payment.secured': 'Protetto da Stripe · Carta, Apple Pay, Google Pay',
   'payment.back': 'Indietro',
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Codice promozionale',
+  'payment.promo.applied': 'Codice applicato',
+  'payment.promo.apply': 'Applica',
+  'payment.promo.note':
+    'Amante dei cani, grazie per aiutarci a testare. Come tester puoi applicare il tuo codice promozionale e pagare solo 1 €. Ma se preferisci lasciare l’intero importo, ogni euro va a una buona causa e te ne siamo davvero grati. 🐾',
 
   // ── /terms + /privacy — shared legal chrome ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (NOT written here)
@@ -852,6 +858,7 @@ export const ita: Partial<Dict> = {
   "religion.book.titleConstitution": "Costituzione",
   "religion.book.trust": "In Cane Noi Confidiamo",
   "payment.transparency.title": "100% Trasparenza",
+  "payment.transparency.eyebrow": "Dove vanno i soldi?",
   "transparency.part.development": "Sviluppo",
   "transparency.part.affiliate": "Affiliate",
   "transparency.part.directHelp": "Aiuto diretto",

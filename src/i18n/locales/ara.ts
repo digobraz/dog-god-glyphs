@@ -496,7 +496,14 @@ export const ara: Partial<Dict> = {
   "payment.pay": "الدفع عبر STRIPE",
   "payment.secured": "مؤمَّن بواسطة Stripe · بطاقة، Apple Pay، Google Pay",
   "payment.back": "رجوع",
+  // promo code — tester perk callout
+  "payment.promo.placeholder": "رمز ترويجي",
+  "payment.promo.applied": "تم تطبيق الرمز",
+  "payment.promo.apply": "تطبيق",
+  "payment.promo.note":
+    "يا محبّ الكلاب، شكرًا لمساعدتك لنا في الاختبار. بصفتك مختبِرًا يمكنك تطبيق رمزك الترويجي ودفع €1 فقط. لكن إن أردت ترك المبلغ كاملًا، فكل يورو يذهب لقضية نبيلة ونحن نقدّر ذلك من القلب. 🐾",
   "payment.transparency.title": "شفافية 100%",
+  "payment.transparency.eyebrow": "إلى أين تذهب الأموال؟",
   "transparency.part.development": "التطوير",
   "transparency.part.affiliate": "الشراكات",
   "transparency.part.directHelp": "المساعدة المباشرة",

@@ -560,6 +560,13 @@ export const rus: Partial<Dict> = {
   'payment.secured': 'Защищено Stripe · Карта, Apple Pay, Google Pay',
   'payment.back': 'Назад',
 
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Промокод',
+  'payment.promo.applied': 'Промокод применён',
+  'payment.promo.apply': 'Применить',
+  'payment.promo.note':
+    'Друг собак, спасибо, что помогаешь нам с тестированием. Как тестировщик ты можешь ввести свой промокод и заплатить всего €1. Но если захочешь оставить полную сумму — каждый евро идёт на доброе дело, и мы искренне это ценим. 🐾',
+
   // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)
   'legal.updated': 'Последнее обновление: 4 мая 2026 · v1.0',
@@ -833,6 +840,7 @@ export const rus: Partial<Dict> = {
   "religion.book.titleConstitution": "Constitution",
   "religion.book.trust": "На Пса уповаем",
   "payment.transparency.title": "100% Прозрачность",
+  "payment.transparency.eyebrow": "Куда идут деньги?",
   "transparency.part.development": "Развитие",
   "transparency.part.affiliate": "Affiliate",
   "transparency.part.directHelp": "Прямая помощь",

@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock, Loader2 } from 'lucide-react';
+import { ArrowLeft, Lock, Loader2, Check } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
@@ -33,7 +33,11 @@ export function PaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
-  const [promoCode, setPromoCode] = useState('');
+  // Pre-vyplnený tester kód — user nezadáva, len klikne Apply. Reálna Stripe
+  // validácia ostáva v create-checkout; tu len UI potvrdenie.
+  // Hodnota = lowercase 'tester' (presný Stripe promotion code, overený na dev);
+  // input ho cez textTransform:uppercase ZOBRAZÍ ako TESTER. Value musí matchnúť Stripe.
+  const [promoCode, setPromoCode] = useState('tester');
   const [promoApplied, setPromoApplied] = useState(false);
 
   // Route guard — deep-link / stale localStorage ochrana
@@ -99,6 +103,31 @@ export function PaymentScreen() {
     }
   };
 
+  const basePrice = selectedAmount ?? 11;
+  const isPromoValid = promoCode.trim().length > 0;
+  // TESTER zľava = fixne €1. Pri ďalších promo kódoch sem príde mapovanie.
+  const effectivePrice = promoApplied ? 1 : basePrice;
+
+  // Zdieľaný box pre promo tlačidlo → rovnaká veľkosť pred aj po klику.
+  const promoBtnBox: CSSProperties = {
+    minWidth: 92,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    whiteSpace: 'nowrap',
+    fontFamily: "'Cinzel', serif",
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase',
+    padding: '0 16px',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderStyle: 'solid',
+    borderColor: 'var(--brand-blue)',
+  };
+
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <PageTopBar />
@@ -143,7 +172,20 @@ export function PaymentScreen() {
                   margin: 0,
                 }}
               >
-                €{selectedAmount ?? 11}
+                {promoApplied && (
+                  <span
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 600,
+                      textDecoration: 'line-through',
+                      opacity: 0.65,
+                      marginRight: 10,
+                    }}
+                  >
+                    €{basePrice}
+                  </span>
+                )}
+                €{effectivePrice}
               </p>
               <p
                 style={{
@@ -161,46 +203,100 @@ export function PaymentScreen() {
               </p>
             </div>
 
-            {/* ── 3a. PROMO CODE FIELD ── */}
+            {/* ── 3a. PROMO CODE FIELD — tester perk callout ── */}
             <div className="px-6 pt-4">
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  type="text"
-                  value={promoCode}
-                  onChange={(e) => { setPromoCode(e.target.value); setPromoApplied(false); }}
-                  placeholder="Promo code"
-                  maxLength={32}
+              <div
+                style={{
+                  background: 'rgba(201,154,63,0.10)',
+                  border: '1.5px solid rgba(201,154,63,0.45)',
+                  borderRadius: 12,
+                  padding: '12px 14px',
+                }}
+              >
+                <p
                   style={{
-                    flex: 1,
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    background: 'rgba(255,255,255,0.07)',
-                    border: promoApplied
-                      ? '1.5px solid #C99A3F'
-                      : '1.5px solid rgba(31,26,14,0.22)',
-                    borderRadius: 8,
-                    padding: '10px 12px',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 12,
+                    lineHeight: 1.5,
                     color: 'hsl(30 20% 20%)',
-                    outline: 'none',
+                    margin: '0 0 10px',
                   }}
-                />
-              </div>
-              {promoApplied && (
-                <p style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: '#C99A3F',
-                  marginTop: 5,
-                  marginBottom: 0,
-                }}>
-                  Promo applied
+                >
+                  {t('payment.promo.note')}
                 </p>
-              )}
+                <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
+                  {/* ĽAVO — predvyplnený kód + ✓ validácia */}
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <input
+                      type="text"
+                      value={promoCode}
+                      onChange={(e) => { setPromoCode(e.target.value); setPromoApplied(false); }}
+                      placeholder={t('payment.promo.placeholder')}
+                      maxLength={32}
+                      readOnly={promoApplied}
+                      style={{
+                        width: '100%',
+                        fontFamily: "'Cinzel', serif",
+                        fontSize: 16, // ≥16px → blokuje iOS Safari auto-zoom pri focuse
+                        fontWeight: 700,
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        background: promoApplied ? 'rgba(201,154,63,0.12)' : 'rgba(255,255,255,0.55)',
+                        border: isPromoValid ? '1.5px solid #C99A3F' : '1.5px solid rgba(31,26,14,0.22)',
+                        borderRadius: 8,
+                        padding: '10px 34px 10px 12px',
+                        color: 'hsl(30 20% 20%)',
+                        outline: 'none',
+                        opacity: promoApplied ? 0.7 : 1,
+                        cursor: promoApplied ? 'default' : 'text',
+                      }}
+                    />
+                    {isPromoValid && (
+                      <Check
+                        className="h-4 w-4"
+                        style={{
+                          position: 'absolute',
+                          right: 11,
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          color: '#C99A3F',
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  {/* PRAVO — Apply tlačidlo (outlined modré) → po klику filled modré + ✓.
+                      Rovnaká veľkosť cez zdieľaný promoBtnBox. */}
+                  {promoApplied ? (
+                    <div
+                      aria-label={t('payment.promo.applied')}
+                      style={{
+                        ...promoBtnBox,
+                        background: 'var(--brand-blue)',
+                        color: '#fff',
+                      }}
+                    >
+                      <Check className="h-5 w-5" />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPromoApplied(true)}
+                      disabled={!isPromoValid}
+                      style={{
+                        ...promoBtnBox,
+                        background: 'transparent',
+                        color: 'var(--brand-blue)',
+                        cursor: isPromoValid ? 'pointer' : 'not-allowed',
+                        opacity: isPromoValid ? 1 : 0.4,
+                      }}
+                    >
+                      {t('payment.promo.apply')}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* ── 3b. PAY BUTTON + SECURED ── */}
@@ -239,16 +335,32 @@ export function PaymentScreen() {
                 paddingRight: 20,
               }}
             >
-              {/* Section heading */}
+              {/* Section heading — eyebrow otázka + zväčšený titul */}
               <p
                 style={{
                   fontFamily: "'Cinzel', serif",
-                  fontSize: 10,
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'hsl(30 20% 20% / 0.5)',
+                  textAlign: 'center',
+                  marginBottom: 4,
+                  position: 'relative',
+                }}
+              >
+                {t('payment.transparency.eyebrow')}
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 17,
                   fontWeight: 700,
-                  letterSpacing: '0.18em',
+                  letterSpacing: '0.16em',
                   textTransform: 'uppercase',
                   color: 'var(--brand-blue)',
                   textAlign: 'center',
+                  marginTop: 0,
                   marginBottom: 12,
                   position: 'relative',
                 }}

@@ -166,7 +166,16 @@ export function CheckoutScreen() {
               {t('heroglyph.checkout.yourDetails')}
             </h2>
 
-            <div className="flex flex-col gap-1.5">
+            <div
+              className="flex flex-col gap-1.5"
+              style={{
+                position: 'relative',
+                // .papyrus-bg > * dáva každému dieťaťu z-index:1 → inputs aj button = súrodenecké
+                // stacking contexty, button je v DOM neskôr a prekreslí dropdown. Keď je dropdown
+                // otvorený, zdvihni CELÝ inputs container nad button container.
+                zIndex: showCountries && filteredCountries.length > 0 ? 5 : undefined,
+              }}
+            >
               <div className="flex gap-1.5">
                 <input type="text" placeholder={t('heroglyph.checkout.firstName')} value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
                 <input type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
@@ -189,7 +198,7 @@ export function CheckoutScreen() {
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 />
                 {showCountries && filteredCountries.length > 0 && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-1 rounded-xl border-2 border-border/40 bg-background shadow-lg max-h-32 overflow-y-auto">
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-xl border-2 border-border/40 bg-background shadow-lg max-h-32 overflow-y-auto">
                     {filteredCountries.map((c) => (
                       <button
                         key={c}

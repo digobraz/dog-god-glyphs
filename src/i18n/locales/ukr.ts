@@ -575,6 +575,13 @@ export const ukr: Partial<Dict> = {
   'payment.secured': 'Захищено через Stripe · Картка, Apple Pay, Google Pay',
   'payment.back': 'Назад',
 
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Промокод',
+  'payment.promo.applied': 'Промокод застосовано',
+  'payment.promo.apply': 'Застосувати',
+  'payment.promo.note':
+    'Друже собак, дякуємо, що допомагаєш нам із тестуванням. Як тестувальник ти можеш ввести свій промокод і заплатити лише €1. Але якщо захочеш залишити повну суму — кожен євро йде на добру справу, і ми щиро це цінуємо. 🐾',
+
   // ── /terms + /privacy — shared legal chrome ──
   // eyebrow + motto = brand → stay EN across locales (sk/cs fall back here by design)
   'legal.updated': 'Останнє оновлення: 4 травня 2026 · v1.0',
@@ -851,6 +858,7 @@ export const ukr: Partial<Dict> = {
   "religion.book.titleConstitution": "Constitution",
   "religion.book.trust": "На Пса Уповаємо",
   "payment.transparency.title": "100% Прозорість",
+  "payment.transparency.eyebrow": "Куди йдуть гроші?",
   "transparency.part.development": "Розвиток",
   "transparency.part.affiliate": "Affiliate",
   "transparency.part.directHelp": "Пряма допомога",

@@ -496,7 +496,14 @@ export const chn: Partial<Dict> = {
   "payment.pay": "通过 STRIPE 付款",
   "payment.secured": "由 Stripe 保障 · 银行卡、Apple Pay、Google Pay",
   "payment.back": "返回",
+  // promo code — tester perk callout
+  "payment.promo.placeholder": "优惠码",
+  "payment.promo.applied": "已应用优惠码",
+  "payment.promo.apply": "应用",
+  "payment.promo.note":
+    "亲爱的爱狗人，谢谢你帮我们一起测试。作为测试者，你可以使用你的优惠码，只付 €1。不过，如果你愿意付足全款，每一欧元都会用于善举，我们由衷地感激。🐾",
   "payment.transparency.title": "100% 透明",
+  "payment.transparency.eyebrow": "钱去哪儿了？",
   "transparency.part.development": "开发",
   "transparency.part.affiliate": "联盟推广",
   "transparency.part.directHelp": "直接帮助",

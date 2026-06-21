@@ -606,8 +606,15 @@ export const cs: Partial<Dict> = {
   'payment.pay': 'ZAPLATIT PŘES STRIPE',
   'payment.secured': 'Zabezpečeno přes Stripe · Karta, Apple Pay, Google Pay',
   'payment.back': 'Zpět',
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Promo kód',
+  'payment.promo.applied': 'Promo kód použit',
+  'payment.promo.apply': 'Použít',
+  'payment.promo.note':
+    'Pejskaři, díky, že nám pomáháte testovat. Jako tester můžete uplatnit svůj promo kód a zaplatit jen 1 €. Ale pokud byste rádi nechali plnou částku, každé euro jde na dobrou věc a my si toho upřímně vážíme. 🐾',
   // transparency treasury block
   'payment.transparency.title': '100% Transparentnost',
+  'payment.transparency.eyebrow': 'Kam jdou peníze?',
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Rozvoj',

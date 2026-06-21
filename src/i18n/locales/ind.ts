@@ -496,7 +496,16 @@ export const ind: Partial<Dict> = {
   "payment.pay": "STRIPE से भुगतान करें",
   "payment.secured": "Stripe द्वारा सुरक्षित · कार्ड, Apple Pay, Google Pay",
   "payment.back": "वापस",
+
+  // promo code — tester perk callout
+  "payment.promo.placeholder": "प्रोमो कोड",
+  "payment.promo.applied": "प्रोमो लागू हो गया",
+  "payment.promo.apply": "लागू करें",
+  "payment.promo.note":
+    "डॉग लवर, हमें परखने में मदद करने के लिए धन्यवाद। एक टेस्टर के रूप में आप अपना प्रोमो कोड लगाकर सिर्फ़ €1 चुका सकते हैं। पर अगर आप पूरी रकम छोड़ना चाहें, तो हर यूरो एक अच्छे काम में जाता है और हम इसकी सच्चे दिल से कद्र करते हैं। 🐾",
+
   "payment.transparency.title": "100% पारदर्शिता",
+  "payment.transparency.eyebrow": "पैसा कहाँ जाता है?",
   "transparency.part.development": "विकास",
   "transparency.part.affiliate": "Affiliate",
   "transparency.part.directHelp": "सीधी मदद",

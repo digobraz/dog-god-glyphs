@@ -576,6 +576,12 @@ export const prt: Partial<Dict> = {
   'payment.pay': 'PAGAR COM STRIPE',
   'payment.secured': 'Protegido pela Stripe · Cartão, Apple Pay, Google Pay',
   'payment.back': 'Voltar',
+  // promo code — tester perk callout
+  'payment.promo.placeholder': 'Código promocional',
+  'payment.promo.applied': 'Código aplicado',
+  'payment.promo.apply': 'Aplicar',
+  'payment.promo.note':
+    'Amante dos cães, obrigado por nos ajudares a testar. Como tester podes aplicar o teu código promocional e pagar apenas 1 €. Mas se preferires deixar o valor completo, cada euro vai para uma boa causa e ficamos sinceramente gratos. 🐾',
 
   // ── /terms + /privacy — shared legal chrome ──
   // eyebrow + motto = brand → stay EN across locales (PT falls back here by design)
@@ -853,6 +859,7 @@ export const prt: Partial<Dict> = {
   "religion.book.titleConstitution": "Constituição",
   "religion.book.trust": "Em Cão Confiamos",
   "payment.transparency.title": "100% Transparência",
+  "payment.transparency.eyebrow": "Para onde vai o dinheiro?",
   "transparency.part.development": "Desenvolvimento",
   "transparency.part.affiliate": "Afiliado",
   "transparency.part.directHelp": "Ajuda direta",

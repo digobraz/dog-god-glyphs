@@ -496,7 +496,14 @@ export const nld: Partial<Dict> = {
   "payment.pay": "BETALEN MET STRIPE",
   "payment.secured": "Beveiligd door Stripe · Kaart, Apple Pay, Google Pay",
   "payment.back": "Terug",
+  // promo code — tester perk callout
+  "payment.promo.placeholder": "Promocode",
+  "payment.promo.applied": "Promocode toegepast",
+  "payment.promo.apply": "Toepassen",
+  "payment.promo.note":
+    "Hondenliefhebber, bedankt dat je ons helpt testen. Als tester kun je je promocode toepassen en slechts € 1 betalen. Maar als je het volledige bedrag wilt laten staan, gaat elke euro naar een goed doel en daar zijn we echt dankbaar voor. 🐾",
   "payment.transparency.title": "100% Transparantie",
+  "payment.transparency.eyebrow": "Waar gaat het geld heen?",
   "transparency.part.development": "Ontwikkeling",
   "transparency.part.affiliate": "Affiliate",
   "transparency.part.directHelp": "Directe hulp",
