@@ -300,34 +300,62 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
       </div>
 
       {/* ── RIGHT block 40%: DOGYPT global stats ── */}
-      <div style={{ ...glassPill, flex: '2 1 0', minWidth: 0, justifyContent: 'space-around', width: '100%' }}>
+      {/* Mobile: flex-[1_1_0] + smaller padding/icons. Desktop sm+: flex-[2_1_0] + full size. */}
+      <div
+        className="flex-[1_1_0] sm:flex-[2_1_0] px-2 py-2 sm:px-[14px] sm:py-[13px]"
+        style={{
+          ...glassPill,
+          padding: undefined, // overridden by Tailwind px/py above
+          flex: undefined,    // overridden by Tailwind flex above
+          minWidth: 0,
+          justifyContent: 'space-around',
+          width: '100%',
+          cursor: 'pointer',
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label="Jump to Nation stats"
+        onClick={() => document.getElementById('wiz-globe')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            document.getElementById('wiz-globe')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }}
+      >
         {/* PART A: badge icon + total count (gold number + pale zeros → 1M frame) */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-          <img src={statBadge} alt="" aria-hidden style={{ height: 28, width: 'auto', objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
+          {/* Mobile: ikona 20px, desktop: 28px */}
+          <img src={statBadge} alt="" aria-hidden className="h-5 w-auto sm:h-7" style={{ objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
           {packTotal == null ? (
-            <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 17, color: 'rgba(245,240,228,0.4)', whiteSpace: 'nowrap' }}>—</span>
+            <span className="text-sm sm:text-[17px]" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, color: 'rgba(245,240,228,0.4)', whiteSpace: 'nowrap' }}>—</span>
           ) : (
             <span style={{ display: 'inline-flex', alignItems: 'baseline', whiteSpace: 'nowrap' }}>
               {/* leading zeros — hidden on mobile, visible sm+ */}
               <span className="hidden sm:inline" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: Math.round(17 * 0.8), color: 'rgba(245,240,228,0.2)', letterSpacing: '0.01em' }}>
                 {'0'.repeat(Math.max(0, 7 - String(packTotal).length))}
               </span>
-              <span style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 17, color: '#C99A3F', letterSpacing: '0.01em' }}>
+              {/* Mobile: 13px, desktop: 17px */}
+              <span className="text-[13px] sm:text-[17px]" style={{ fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, color: '#C99A3F', letterSpacing: '0.01em' }}>
                 {String(packTotal)}
               </span>
             </span>
           )}
         </div>
-        <VDivider />
-        {/* PART B: bars icon + new members 24h */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <img src={statBars} alt="" aria-hidden style={{ height: 22, width: 'auto', objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
-          <span style={{
-            fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 13,
-            letterSpacing: '0.03em', color: 'rgba(120,200,120,0.9)', whiteSpace: 'nowrap',
-          }}>
-            +{packToday ?? 0}/d
-          </span>
+        {/* PART B: bars icon + new members 24h — schované na mobile (tam ostáva
+            v pravej pilulke len celkový počet psov v DOGYPTe). sm:contents → na
+            desktope divider + PART B participujú priamo v space-around layoute. */}
+        <div className="hidden sm:contents">
+          <VDivider />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <img src={statBars} alt="" aria-hidden style={{ height: 22, width: 'auto', objectFit: 'contain', flexShrink: 0, display: 'block', filter: 'saturate(0.1) brightness(1.8) opacity(0.45)' }} />
+            <span style={{
+              fontFamily: 'system-ui,-apple-system,Arial,sans-serif', fontWeight: 700, fontSize: 13,
+              letterSpacing: '0.03em', color: 'rgba(120,200,120,0.9)', whiteSpace: 'nowrap',
+            }}>
+              +{packToday ?? 0}/d
+            </span>
+          </div>
         </div>
       </div>
     </header>
@@ -399,7 +427,9 @@ function DevotionBarCompact({ devotion }: { devotion: number }) {
 }
 
 function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => void }) {
-  const scrollable = dogs.length >= 5;
+  // Slajdovateľná svorka od 3 psov — pevný maxWidth, takže psy scrollujú horizontálne
+  // a nikdy netlačia devotion bar / bones v header pilulke (najmä mobil).
+  const scrollable = dogs.length >= 3;
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0,

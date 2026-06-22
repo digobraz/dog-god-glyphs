@@ -233,7 +233,11 @@ export default function Pack() {
   return (
     <PackLayout wide>
       <PackAnimations />
-      <PackWizard primaryDogId={primaryDog?.id ?? null} primaryDogName={primaryDog?.dog_name ?? null} />
+      {/* PackWizard PARKED z launchu (2026-06-22) — DEV-only, v produkčnom Lovable builde
+          sa nevykreslí. NEMAZAŤ: po launchi sa vráti (možno upravený). Návrat = zmaž import.meta.env.DEV gate. */}
+      {import.meta.env.DEV && (
+        <PackWizard primaryDogId={primaryDog?.id ?? null} primaryDogName={primaryDog?.dog_name ?? null} />
+      )}
 
       <div className="relative flex flex-col gap-6">
         {/* Ambient drifting orbs */}

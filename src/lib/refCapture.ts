@@ -2,7 +2,7 @@
 // Affiliate referral capture. A visitor arriving via dogypt.com/?ref=<code>
 // gets the code stored locally (FIRST-TOUCH: the first link that brought them
 // wins). It's read again at checkout (PaymentScreen) and sent to create-checkout
-// so the referrer earns Apostle Points when the purchase completes.
+// so the referrer earns BONES when the purchase completes.
 // ─────────────────────────────────────────────────────────────────────────
 
 const REF_KEY = 'dogypt_ref';

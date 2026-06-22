@@ -1,18 +1,10 @@
-import { VERSES } from '@/data/verses';
+import { quoteForDay } from '@/data/dailyQuotes';
 
 const GOLD = '#C99A3F';
 
-// Deterministic per calendar day — same verse all day, rotates at midnight.
-function verseForToday() {
-  if (VERSES.length === 0) return null;
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
-  return VERSES[dayOfYear % VERSES.length];
-}
-
 export function VerseOfTheDay() {
-  const verse = verseForToday();
+  // 365-day curated calendar — same quote all day, rotates at midnight, holiday-anchored.
+  const verse = quoteForDay();
   if (!verse) return null;
 
   return (
@@ -83,7 +75,7 @@ export function VerseOfTheDay() {
             color: 'rgba(250,244,236,0.62)',
           }}
         >
-          The Constitution · {verse.ref}
+          {verse.author || 'Unknown'}
         </span>
         <span aria-hidden style={{ width: 28, height: 1, background: GOLD, opacity: 0.55 }} />
       </div>

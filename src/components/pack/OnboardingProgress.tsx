@@ -119,32 +119,44 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
       </ul>
 
       {/* Reward note — completing First Steps grants profile points.
-          Plný DOGYPT hodnotiaci systém = ďalšia session (zatiaľ len táto hláška). */}
-      <div
-        className="flex items-center gap-2.5"
-        style={{
-          marginTop: 16,
-          padding: '12px 14px',
-          borderRadius: 12,
-          background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
-          border: '1px solid rgba(250,244,236,0.30)',
-          boxShadow: '0 6px 18px -6px rgba(201,154,63,0.6)',
-        }}
-      >
-        <Sparkles className="h-5 w-5 shrink-0" style={{ color: '#3A2A06' }} />
-        <span
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 13.5,
-            fontWeight: 600,
-            lineHeight: 1.4,
-            color: '#3A2A06',
-          }}
-        >
-          Complete all First Steps ={' '}
-          <strong style={{ fontWeight: 800 }}>+10 ☥ Devotion</strong> to your profile.
-        </span>
-      </div>
+          Plný DOGYPT hodnotiaci systém = ďalšia session (zatiaľ len táto hláška).
+          allDone = všetky kroky splnené → prepneme text na "next chapter" hlášku. */}
+      {(() => {
+        const allDone = done === steps.length && steps.length > 0;
+        return (
+          <div
+            className="flex items-center gap-2.5"
+            style={{
+              marginTop: 16,
+              padding: '12px 14px',
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+              border: '1px solid rgba(250,244,236,0.30)',
+              boxShadow: '0 6px 18px -6px rgba(201,154,63,0.6)',
+            }}
+          >
+            <Sparkles className="h-5 w-5 shrink-0" style={{ color: '#3A2A06' }} />
+            <span
+              style={{
+                fontFamily: "'Space Grotesk', sans-serif",
+                fontSize: 13.5,
+                fontWeight: 600,
+                lineHeight: 1.4,
+                color: '#3A2A06',
+              }}
+            >
+              {allDone ? (
+                'First Steps complete — the next chapter of the app is coming soon.'
+              ) : (
+                <>
+                  Complete all First Steps ={' '}
+                  <strong style={{ fontWeight: 800 }}>+10 ☥ Devotion</strong> to your profile.
+                </>
+              )}
+            </span>
+          </div>
+        );
+      })()}
     </div>
   );
 }

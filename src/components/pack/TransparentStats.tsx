@@ -9,32 +9,22 @@ const CUR = '€';
 // ─────────────────────────────────────────────────────────────────────────
 // TRANSPARENT STATS — the money, in the open, Stripe-style. Every €11 heroglyph
 // splits 5 development · 3 marketing · 2 direct help · 1 Hekthor. Switch the
-// period (per-month or all-time) and see where it went, plus the live balance.
+// period (per-month) and see where it went.
 //
 // Starts at ZERO at launch — real figures arrive with the first heroglyphs.
-// Swap PERIODS + BALANCE for an edge-fn fetch (get-pack-finance or similar)
+// Swap PERIODS for an edge-fn fetch (get-pack-finance or similar)
 // once the finance ledger exists; layout stays.
 // ─────────────────────────────────────────────────────────────────────────
 const PERIODS = [
   { key: 'jun26', label: 'June 2026', short: 'Jun', heroglyphs: 0, affiliatePoints: 0 },
   { key: 'may26', label: 'May 2026', short: 'May', heroglyphs: 0, affiliatePoints: 0 },
-  { key: 'all', label: 'All time', short: 'All time', heroglyphs: 0, affiliatePoints: 0 },
 ] as const;
 
-// Current balance held in the public DOGYPT account.
-const BALANCE = 0;
-
 const ALLOC = [
-  {
-    key: 'dev',
-    share: 5,
-    label: 'Development',
-    color: T.partDev,
-    detail: 'App build · servers · design tools — the road to the million.',
-  },
-  { key: 'mkt', share: 3, label: 'Affiliate', color: T.partMkt },
-  { key: 'help', share: 2, label: 'Direct help', color: T.partHelp },
-  { key: 'hek', share: 1, label: "Hekthor's bowl", color: T.partHek },
+  { key: 'dev',  share: 5, label: 'Development',    color: T.partDev  },
+  { key: 'mkt',  share: 3, label: 'Affiliate',       color: T.partMkt  },
+  { key: 'help', share: 2, label: 'Direct help',     color: T.partHelp },
+  { key: 'hek',  share: 1, label: "Hekthor's bowl",  color: T.partHek  },
 ] as const;
 
 function money(n: number): string {
@@ -101,92 +91,45 @@ export function TransparentStats() {
         </div>
       </div>
 
-      {/* Top row — account balance + heroglyphs forged (this period) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" style={{ marginBottom: 14 }}>
-        {/* Live account balance */}
-        <div
+      {/* Top row — heroglyphs forged this period (full width) */}
+      <div
+        className="flex items-center justify-center gap-4"
+        style={{
+          background: T.cardSoft,
+          border: `1px solid ${T.hairline}`,
+          borderRadius: 14,
+          padding: '18px 24px',
+          marginBottom: 14,
+        }}
+      >
+        <span
           style={{
-            background: `linear-gradient(135deg, ${T.ink} 0%, #2b2410 100%)`,
-            borderRadius: 14,
-            padding: '14px 18px',
-            position: 'relative',
-            overflow: 'hidden',
+            fontFamily: "'Cinzel', serif",
+            fontSize: 'clamp(32px, 7vw, 44px)',
+            fontWeight: 700,
+            lineHeight: 1,
+            color: T.ink,
           }}
         >
-          <div className="flex items-center gap-1.5" style={{ marginBottom: 5 }}>
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: 999,
-                background: T.growGreen,
-                boxShadow: `0 0 0 3px ${T.growGreenSoft}`,
-              }}
-            />
-            <span
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 9,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: 'rgba(245,240,228,0.7)',
-              }}
-            >
-              On the account now
-            </span>
-          </div>
-          <div
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(26px, 6vw, 34px)',
-              fontWeight: 700,
-              lineHeight: 1,
-              color: '#FCF4DF',
-            }}
-          >
-            {money(BALANCE)}
-          </div>
-        </div>
-
-        {/* Heroglyphs forged this period */}
-        <div
-          className="flex items-baseline gap-3"
+          {period.heroglyphs}
+        </span>
+        <span
           style={{
-            background: T.cardSoft,
-            border: `1px solid ${T.hairline}`,
-            borderRadius: 14,
-            padding: '14px 18px',
+            fontFamily: "'Cinzel', serif",
+            fontSize: 11,
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: T.inkDim,
           }}
         >
-          <span
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(26px, 6vw, 34px)',
-              fontWeight: 700,
-              lineHeight: 1,
-              color: T.ink,
-            }}
-          >
-            {period.heroglyphs}
-          </span>
-          <span
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10.5,
-              letterSpacing: '0.16em',
-              textTransform: 'uppercase',
-              color: T.inkDim,
-            }}
-          >
-            heroglyphs
-            <br />
-            {period.key === 'all' ? 'all time' : 'this month'}
-          </span>
-        </div>
+          heroglyphs
+          <br />
+          this month
+        </span>
       </div>
 
       {/* Allocation tiles — where the money went (this period) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-2 gap-2.5">
         {ALLOC.map((a) => (
           <div
             key={a.key}
@@ -240,30 +183,37 @@ export function TransparentStats() {
             >
               {money(period.heroglyphs * a.share)}
             </div>
-            {'detail' in a && a.detail && (
-              <p
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 10,
-                  lineHeight: 1.4,
-                  color: T.inkFaint,
-                  margin: '7px 0 0',
-                }}
-              >
-                {a.detail}
-              </p>
-            )}
           </div>
         ))}
       </div>
 
-      {/* Footer — apostle points + total raised (this period) */}
+      {/* Constitution link — Money is an Energy chapter */}
+      <div style={{ marginTop: 12, textAlign: 'center' }}>
+        <a
+          href="https://dogma.dogypt.com/en/#address"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 11,
+            color: T.inkDim,
+            textDecoration: 'none',
+            transition: 'color 0.2s ease',
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = T.accentGold)}
+          onMouseLeave={e => (e.currentTarget.style.color = T.inkDim)}
+        >
+          Why this split? Read &lsquo;Money is an Energy&rsquo; in the Constitution →
+        </a>
+      </div>
+
+      {/* Footer — BONES distributed (affiliate currency) + total raised (this period) */}
       <div className="flex flex-wrap items-center justify-between gap-2" style={{ marginTop: 14 }}>
         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, color: T.inkDim }}>
           <strong style={{ color: T.accentGold, fontWeight: 700 }}>
             {period.affiliatePoints.toLocaleString('en-US')}
           </strong>{' '}
-          Apostle Points distributed to the pack
+          BONES distributed to the pack
         </span>
         <span
           style={{

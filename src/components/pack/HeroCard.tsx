@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Camera, Lock } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
@@ -285,32 +285,10 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           </div>
         </div>
 
-        {/* 12 odznakov — PLACEHOLDER (locked), jeden rad vo veľkosti mince. Namapujú sa podľa
-            STAREJ ÚSTAVY (psie preteky, poslušnosť, krajiny…) — za ne sa zbierajú DEVOTION body. */}
-        <div className="mt-4 grid grid-cols-12 gap-1 w-full">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <span
-              key={i}
-              title="Coming soon"
-              aria-label={`Achievement ${i + 1} — locked`}
-              className="flex items-center justify-center"
-              style={{
-                width: '100%',
-                maxWidth: 20,
-                aspectRatio: '1 / 1',
-                marginInline: 'auto',
-                borderRadius: '50%',
-                border: `1px dashed ${T.border}`,
-                background: 'rgba(201,154,63,0.05)',
-                color: T.inkFaint,
-              }}
-            >
-              <Lock style={{ width: 9, height: 9 }} />
-            </span>
-          ))}
-        </div>
+        {/* 12-badge placeholder rad ODSTRÁNENÝ (2026-06-22) — badge ekonomika sa
+            stavia odznova na DEV podľa nového ranking sim (3 cesty). Do produkcie ide bez badges. */}
 
-        {/* DEVOTION status bar + progress — pod badge.
+        {/* DEVOTION status bar + progress.
             PLACEHOLDER hodnoty + ladder; plný systém = ďalšia session. */}
         {(() => {
           return (
