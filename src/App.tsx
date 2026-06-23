@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { DEV_FULL } from "@/lib/packFlags";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -110,7 +111,8 @@ const App = () => (
           {/* /pack — buyer backoffice (auth-gated) */}
           <Route path="/pack" element={<Pack />} />
           <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
-          <Route path="/pack/profile" element={<PackProfile />} />
+          {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
+          <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
           <Route path="/pack/portal" element={<PackPortal />} />
 
           <Route path="/cert-render/:id" element={<CertRender />} />

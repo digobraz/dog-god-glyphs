@@ -5,6 +5,7 @@ import { BrandIcon as PackBrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
+import { DEV_FULL } from '@/lib/packFlags';
 import iconHome from '@/assets/icons/nav-home.svg';
 import iconPortal from '@/assets/icons/nav-portal.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
@@ -171,7 +172,13 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         packToday={packToday}
         dogs={dogs}
         wide={wide}
-        onProfile={() => navigate('/pack/profile')}
+        onProfile={() => {
+          // LIVE: profil zrušený → avatar skroluje na settings blok dole na homepage.
+          // DEV_FULL: plný profil ostáva.
+          if (DEV_FULL) { navigate('/pack/profile'); return; }
+          navigate('/pack');
+          setTimeout(() => document.getElementById('pack-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+        }}
         onDog={(id) => navigate(`/pack/dogs/${id}`)}
       />
 
@@ -202,27 +209,30 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         <main>{children}</main>
       </div>
 
-      {/* Floating pill nav — dolný (Portal nahrádza Settings) */}
-      <nav
-        className="fixed z-40"
-        style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
-      >
-        <div
-          className="flex items-center gap-1"
-          style={{
-            background: T.glass,
-            border: `1px solid ${T.onDarkBorder}`,
-            borderRadius: 999,
-            backdropFilter: 'blur(14px)',
-            WebkitBackdropFilter: 'blur(14px)',
-            padding: 6,
-            boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
-          }}
+      {/* Floating pill nav — dolný (Home + Portal). LIVE: skryté (orezaný pack).
+          DEV_FULL: ostáva = plná dev verzia zamrznutá v tomto stave. */}
+      {DEV_FULL && (
+        <nav
+          className="fixed z-40"
+          style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
         >
-          <FloatingNavLink to="/pack" label="Home" icon={iconHome} end />
-          <FloatingNavLink to="/pack/portal" label="Portal" icon={iconPortal} />
-        </div>
-      </nav>
+          <div
+            className="flex items-center gap-1"
+            style={{
+              background: T.glass,
+              border: `1px solid ${T.onDarkBorder}`,
+              borderRadius: 999,
+              backdropFilter: 'blur(14px)',
+              WebkitBackdropFilter: 'blur(14px)',
+              padding: 6,
+              boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+            }}
+          >
+            <FloatingNavLink to="/pack" label="Home" icon={iconHome} end />
+            <FloatingNavLink to="/pack/portal" label="Portal" icon={iconPortal} />
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

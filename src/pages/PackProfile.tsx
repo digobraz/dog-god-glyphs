@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Camera, Loader2, LogOut, Mail, BellOff, ShieldOff, Check } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Camera, Loader2, LogOut, Mail, BellOff, Check, KeyRound, X } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { DevotionPanel } from '@/components/pack/DevotionPanel';
+import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
@@ -27,10 +28,12 @@ export default function PackProfile() {
   const [pwError, setPwError] = useState('');
   const [pwDone, setPwDone] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [pwModalOpen, setPwModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { dogs, loading: dogsLoading } = usePackUser(session?.user?.id ?? null);
 
   useEffect(() => {
     let mounted = true;
@@ -53,6 +56,11 @@ export default function PackProfile() {
       const t = setTimeout(() => fileInputRef.current?.click(), 200);
       return () => clearTimeout(t);
     }
+  }, [searchParams]);
+
+  // Welcome deep-link (?welcome=1) invites password setup → auto-open the modal.
+  useEffect(() => {
+    if (searchParams.get('welcome') === '1') setPwModalOpen(true);
   }, [searchParams]);
 
   const email = session?.user?.email ?? '—';
@@ -129,6 +137,7 @@ export default function PackProfile() {
       setPwDone(true);
       setPwValue('');
       setPwConfirm('');
+      setPwModalOpen(false);
       toast({ title: 'Password set', description: 'You can now log in with email + password.' });
     } catch (err) {
       setPwError(err instanceof Error ? err.message : 'Could not set password.');
@@ -143,6 +152,22 @@ export default function PackProfile() {
   return (
     <PackLayout wide>
       <div className="flex flex-col gap-5">
+        {/* Back to Home — bottom nav is hidden on LIVE, so profile needs its own way back */}
+        <Link
+          to="/pack"
+          className="inline-flex items-center gap-2"
+          style={{
+            fontFamily: "'Cinzel', serif",
+            letterSpacing: '0.22em',
+            fontSize: 11,
+            textTransform: 'uppercase',
+            color: T.inkDim,
+            textDecoration: 'none',
+          }}
+        >
+          <ArrowLeft className="h-3 w-3" />
+          Pack
+        </Link>
         {/* Identity — avatar + name merged */}
         <section
           style={{
@@ -153,7 +178,12 @@ export default function PackProfile() {
             boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
           }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
+          {/* Zlúčené: LEFT = majiteľ (foto + meno + level) · RIGHT = My Gods (psy) */}
+          <style>{`@media (min-width:768px){.profile-gods-right{border-top:none !important;padding-top:0 !important;border-left:1px solid ${T.hairline};padding-left:2rem;}}`}</style>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+          {/* ── LEFT — majiteľ ── */}
+          <div>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             {/* Avatar */}
             <button
               type="button"
@@ -282,75 +312,23 @@ export default function PackProfile() {
             </div>
           </div>
 
-          {/* Devotion — level, progress, browseable badges */}
-          <div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 22, paddingTop: 22 }}>
+          {/* level — pod foto+meno, v ľavej (majiteľ) časti */}
+          <div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 18, paddingTop: 18 }}>
             <DevotionPanel devotion={devotion} />
+          </div>
+          </div>
+
+          {/* ── RIGHT — My Gods (psy) ── */}
+          <div className="profile-gods-right" style={{ borderTop: `1px solid ${T.hairline}`, paddingTop: 18 }}>
+            <MyGodsContent dogs={dogs} loading={dogsLoading} />
+          </div>
           </div>
         </section>
 
         {/* Bones + your network — split two-column block */}
         <PackNetwork />
 
-        {/* Password — set/change for email + password login (moved off /welcome) */}
-        <section
-          style={{
-            background: T.card,
-            border: `1px solid ${fromWelcome && !pwDone ? 'rgba(201,154,63,0.55)' : T.hairline}`,
-            borderRadius: 20,
-            padding: 22,
-            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-          }}
-        >
-          <label
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 10,
-              letterSpacing: '0.32em',
-              textTransform: 'uppercase',
-              color: T.inkDim,
-              display: 'block',
-              marginBottom: 8,
-            }}
-          >
-            Password
-          </label>
-          <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim, margin: '0 0 16px' }}>
-            {fromWelcome
-              ? 'Finish your account — set a password to log in any time without the email link.'
-              : 'Set or change your password for email + password login.'}
-          </p>
-          <div className="flex flex-col gap-3" style={{ maxWidth: 360 }}>
-            <input
-              type="password"
-              autoComplete="new-password"
-              value={pwValue}
-              onChange={(e) => { setPwValue(e.target.value); setPwDone(false); }}
-              placeholder="New password (min 8 characters)"
-              style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
-            />
-            <input
-              type="password"
-              autoComplete="new-password"
-              value={pwConfirm}
-              onChange={(e) => setPwConfirm(e.target.value)}
-              placeholder="Confirm password"
-              style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
-            />
-            {pwError && (
-              <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: '#A04040' }}>{pwError}</span>
-            )}
-            <button
-              type="button"
-              onClick={handleSetPassword}
-              disabled={pwSaving || pwValue.length === 0}
-              className="inline-flex items-center gap-2 self-start"
-              style={{ background: T.ink, color: T.card, border: 'none', padding: '11px 16px', borderRadius: 10, fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
-            >
-              {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <Check className="h-3 w-3" /> : null}
-              {pwDone ? 'Saved' : 'Set password'}
-            </button>
-          </div>
-        </section>
+        {/* Password block presunutý do Account info bloku → modal (pwModalOpen) */}
 
         {/* Account info (read-only) */}
         <section
@@ -367,6 +345,26 @@ export default function PackProfile() {
               {email}
             </span>
           </Field>
+          <Field icon={<KeyRound className="h-4 w-4" />} label="Password">
+            <button
+              type="button"
+              onClick={() => setPwModalOpen(true)}
+              style={{
+                background: 'none',
+                border: `1px solid ${T.hairline}`,
+                borderRadius: 8,
+                padding: '6px 14px',
+                fontFamily: "'Cinzel', serif",
+                fontSize: 10,
+                letterSpacing: '0.28em',
+                textTransform: 'uppercase',
+                color: T.inkDim,
+                cursor: 'pointer',
+              }}
+            >
+              Set / Change
+            </button>
+          </Field>
           <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label="Language">
             <div className="flex items-center gap-2">
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>
@@ -378,7 +376,7 @@ export default function PackProfile() {
           <Field icon={<BellOff className="h-4 w-4" />} label="Notifications">
             <Badge label="Coming soon" />
           </Field>
-          <Field icon={<LogOut className="h-4 w-4" />} label="Sign out">
+          <Field icon={<LogOut className="h-4 w-4" />} label="Sign out" last>
             <button
               type="button"
               onClick={handleSignOut}
@@ -404,14 +402,179 @@ export default function PackProfile() {
               Sign out
             </button>
           </Field>
-          <Field icon={<ShieldOff className="h-4 w-4" />} label="Delete account" last>
-            <Badge label="Coming soon" danger />
-          </Field>
         </section>
 
         <div style={{ height: 24 }} />
       </div>
+
+      {/* Password modal — set/change credentials (otvára sa z Account info riadku alebo ?welcome=1) */}
+      {pwModalOpen && (
+        <div
+          className="fixed inset-0 flex items-center justify-center"
+          style={{ zIndex: 60, background: 'rgba(20,16,8,0.55)', backdropFilter: 'blur(4px)', padding: 20 }}
+          onClick={() => setPwModalOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 420,
+              background: T.card,
+              border: `1px solid ${T.hairline}`,
+              borderRadius: 20,
+              padding: 24,
+              boxShadow: '0 40px 90px -30px rgba(0,0,0,0.6)',
+            }}
+          >
+            <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim }}>
+                Password
+              </span>
+              <button
+                type="button"
+                onClick={() => setPwModalOpen(false)}
+                aria-label="Close"
+                className="inline-flex items-center justify-center"
+                style={{ width: 30, height: 30, borderRadius: 999, background: 'rgba(31,26,14,0.06)', border: 'none', cursor: 'pointer', color: T.inkDim }}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim, margin: '0 0 16px' }}>
+              {fromWelcome
+                ? 'Finish your account — set a password to log in any time without the email link.'
+                : 'Set or change your password for email + password login.'}
+            </p>
+            <div className="flex flex-col gap-3">
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={pwValue}
+                onChange={(e) => { setPwValue(e.target.value); setPwDone(false); }}
+                placeholder="New password (min 8 characters)"
+                style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
+              />
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={pwConfirm}
+                onChange={(e) => setPwConfirm(e.target.value)}
+                placeholder="Confirm password"
+                style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
+              />
+              {pwError && (
+                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: '#A04040' }}>{pwError}</span>
+              )}
+              <button
+                type="button"
+                onClick={handleSetPassword}
+                disabled={pwSaving || pwValue.length === 0}
+                className="inline-flex items-center justify-center gap-2"
+                style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
+              >
+                {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                Set password
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PackLayout>
+  );
+}
+
+// My Gods — riadok psov používateľa (+ „Add a god"). Inner obsah (bez karty),
+// sedí v pravej časti zlúčeného Identity bloku.
+function MyGodsContent({ dogs, loading }: { dogs: PackDogFull[]; loading: boolean }) {
+  return (
+    <>
+      <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+        <div className="flex items-center gap-2.5" style={{ color: T.inkDim }}>
+          <BrandIcon name="heartpaw" size={16} tint="gold" />
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+            My Gods
+          </span>
+        </div>
+        {!loading && dogs.length > 0 && (
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: T.inkFaint }}>
+            {dogs.length}
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex items-center gap-2 py-2" style={{ color: T.inkFaint }}>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13 }}>Loading your gods…</span>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-start gap-5">
+          {dogs.map((d) => (
+            <Link
+              key={d.id}
+              to={`/pack/dogs/${d.id}`}
+              className="flex flex-col items-center gap-2 group"
+              style={{ textDecoration: 'none', width: 84 }}
+            >
+              <span
+                className="inline-flex items-center justify-center overflow-hidden"
+                style={{
+                  width: 72,
+                  height: 72,
+                  borderRadius: '50%',
+                  background: T.bg,
+                  border: `2px solid ${T.accentGold}`,
+                  boxShadow: '0 0 0 1px rgba(201,154,63,0.35), 0 6px 18px rgba(201,154,63,0.22)',
+                }}
+              >
+                {d.cloudinary_main_url ? (
+                  <img src={d.cloudinary_main_url} alt={d.dog_name ?? 'Dog'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <span style={{ fontFamily: "'Cinzel', serif", fontSize: 24, fontWeight: 700, color: T.inkDim }}>
+                    {(d.dog_name?.[0] || '?').toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <span
+                className="truncate w-full text-center"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, fontWeight: 600, color: T.ink }}
+              >
+                {d.dog_name || 'Unnamed'}
+              </span>
+            </Link>
+          ))}
+
+          {/* Add a god — priestor pre ďalších psov */}
+          <Link
+            to="/heroglyph"
+            className="flex flex-col items-center gap-2"
+            style={{ textDecoration: 'none', width: 84 }}
+          >
+            <span
+              className="inline-flex items-center justify-center"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                background: 'transparent',
+                border: `2px dashed ${T.border}`,
+                color: T.inkFaint,
+                fontSize: 30,
+                lineHeight: 1,
+              }}
+            >
+              +
+            </span>
+            <span
+              className="w-full text-center"
+              style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkFaint }}
+            >
+              Add a god
+            </span>
+          </Link>
+        </div>
+      )}
+    </>
   );
 }
 

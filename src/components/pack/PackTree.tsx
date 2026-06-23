@@ -399,9 +399,11 @@ function DogRow({ dog }: { dog: DogNode }) {
         )}
       </div>
 
-      {/* Meno + # pod menom */}
+      {/* Meno + # pod menom. Mobile = bez mena (škaredý ellipsis „SK…"), len # badge
+          + väčší heroglyf. Desktop drží plné meno. */}
       <div className="flex-1 min-w-0">
         <div
+          className="hidden sm:block"
           style={{
             fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
             fontSize: 19,
@@ -418,9 +420,8 @@ function DogRow({ dog }: { dog: DogNode }) {
         </div>
         {founder && (
           <span
-            className="inline-flex items-center"
+            className="inline-flex items-center mt-0 sm:mt-[7px]"
             style={{
-              marginTop: 7,
               padding: '2px 9px',
               borderRadius: 999,
               background: 'rgba(201, 154, 63, 0.14)',
@@ -437,12 +438,13 @@ function DogRow({ dog }: { dog: DogNode }) {
         )}
       </div>
 
-      {/* Heroglyf — väčší, posunutý doľava (miesto pre profil ikonku vpravo) */}
+      {/* Heroglyf — na mobile dostane uvoľnené miesto po mene (väčší), desktop drží 40px */}
       {dog.heroglyph_png_url && (
         <img
           src={dog.heroglyph_png_url}
           alt={`${name} heroglyph`}
-          style={{ height: 40, width: 'auto', maxWidth: 132, objectFit: 'contain', display: 'block', flexShrink: 0 }}
+          className="h-12 max-w-[170px] sm:h-10 sm:max-w-[132px]"
+          style={{ width: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }}
         />
       )}
 

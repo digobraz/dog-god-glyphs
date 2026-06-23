@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
+import { PackSettings } from '@/components/pack/PackSettings';
 import { PackTree } from '@/components/pack/PackTree';
 import { FeatureSurveyCard } from '@/components/pack/FeatureSurveyCard';
 import { GlobePulse } from '@/components/pack/GlobePulse';
@@ -296,6 +297,9 @@ export default function Pack() {
           <ConstitutionCard />
           <BuildNotice ownerName={displayName} email={user?.email ?? null} />
         </div>
+
+        {/* Account / settings — celý profil presunutý sem (profil stránka zrušená z live) */}
+        <PackSettings />
 
         <div style={{ height: 32 }} />
       </div>

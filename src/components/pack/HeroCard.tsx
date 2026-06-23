@@ -1,9 +1,12 @@
-import { Link } from 'react-router-dom';
-import { Camera } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Camera, Pencil, Check, Loader2 } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { devotionLevel } from '@/lib/devotion';
+import { supabase } from '@/integrations/supabase/client';
+import { uploadExtraPhoto } from '@/services/cloudinaryService';
+import { useToast } from '@/hooks/use-toast';
 
 const T = PACK_THEME;
 
@@ -26,8 +29,56 @@ interface HeroCardProps {
 }
 
 export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null }: HeroCardProps) {
-  const initial = name?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
-  const hasAvatar = !!avatarUrl;
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(avatarUrl);
+  const [uploading, setUploading] = useState(false);
+  const [localName, setLocalName] = useState(name);
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(name);
+  const [nameSaving, setNameSaving] = useState(false);
+
+  const displayName = localName || name;
+  const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
+  const hasAvatar = !!localAvatar;
+
+  // Avatar — in-place upload (profil zrušený z live, takže edit musí byť tu).
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not signed in');
+      const result = await uploadExtraPhoto(file, `avatars/${user.id}`, 1);
+      const { error: upErr } = await supabase.auth.updateUser({ data: { avatar_url: result.secureUrl } });
+      if (upErr) throw new Error(upErr.message);
+      setLocalAvatar(result.secureUrl);
+      toast({ title: 'Photo updated' });
+    } catch (err) {
+      toast({ title: 'Upload failed', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Meno — inline edit (ceruzka), uloží do auth user_metadata.full_name.
+  const handleSaveName = async () => {
+    const next = nameDraft.trim();
+    setNameSaving(true);
+    try {
+      const { error: upErr } = await supabase.auth.updateUser({ data: { full_name: next || null } });
+      if (upErr) throw new Error(upErr.message);
+      setLocalName(next);
+      setEditingName(false);
+      toast({ title: 'Name updated' });
+    } catch (err) {
+      toast({ title: 'Could not save', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
+    } finally {
+      setNameSaving(false);
+    }
+  };
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
   // DEVOTION úroveň počítaná z bodov → poháňa LEVEL badge (žiadny hardcode „Pharaoh" pre všetkých).
   const lv = devotionLevel(devotion);
@@ -100,8 +151,10 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           >
             {/* gap ring (papyrus) */}
             <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
-              <Link
-                to="/pack/profile?edit=avatar"
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
                 aria-label="Edit avatar"
                 className="relative group block h-full w-full"
                 style={{
@@ -110,20 +163,22 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                     ? 'transparent'
                     : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
                   overflow: 'hidden',
-                  textDecoration: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: uploading ? 'progress' : 'pointer',
                 }}
               >
                 {hasAvatar ? (
                   <img
-                    src={avatarUrl!}
-                    alt={name}
+                    src={localAvatar!}
+                    alt={displayName}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                 ) : placeholderSrc ? (
                   <span className="flex items-center justify-center h-full w-full" style={{ padding: 20 }}>
                     <img
                       src={placeholderSrc}
-                      alt={name}
+                      alt={displayName}
                       style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                     />
                   </span>
@@ -148,9 +203,16 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                     color: T.card,
                   }}
                 >
-                  <Camera className="h-5 w-5" />
+                  {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
                 </span>
-              </Link>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                style={{ display: 'none' }}
+              />
             </div>
           </div>
         </div>
@@ -168,22 +230,71 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         >
           Welcome back
         </div>
-        <div
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 28,
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            color: T.ink,
-            lineHeight: 1.1,
-            maxWidth: '90%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {name}
-        </div>
+        {editingName ? (
+          <div className="flex items-center justify-center gap-2 w-full" style={{ maxWidth: '92%' }}>
+            <input
+              autoFocus
+              value={nameDraft}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void handleSaveName();
+                if (e.key === 'Escape') { setNameDraft(displayName); setEditingName(false); }
+              }}
+              placeholder="Your name"
+              style={{
+                flex: 1,
+                minWidth: 0,
+                textAlign: 'center',
+                fontFamily: "'Cinzel', serif",
+                fontSize: 22,
+                fontWeight: 700,
+                color: T.ink,
+                background: T.bg,
+                border: `1px solid ${T.border}`,
+                borderRadius: 10,
+                padding: '6px 12px',
+                outline: 'none',
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleSaveName}
+              disabled={nameSaving}
+              aria-label="Save name"
+              className="inline-flex items-center justify-center shrink-0"
+              style={{ width: 34, height: 34, borderRadius: 9, background: T.ink, color: T.card, border: 'none', cursor: 'pointer', opacity: nameSaving ? 0.6 : 1 }}
+            >
+              {nameSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2" style={{ maxWidth: '92%' }}>
+            <div
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 28,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: T.ink,
+                lineHeight: 1.1,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {displayName}
+            </div>
+            <button
+              type="button"
+              onClick={() => { setNameDraft(displayName); setEditingName(true); }}
+              aria-label="Edit name"
+              className="inline-flex items-center justify-center shrink-0 opacity-50 hover:opacity-100 transition-opacity"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.inkDim, padding: 2 }}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
         {/* Badge riadok — STATUS (Pawtner) + LEVEL (Pharaoh) + BONES (minca).
             grid-cols-3 = tri totožné stĺpce; každý badge w-full + centrovaný = rovnaká veľkosť.
             Celé full width = šírka status baru pod ním. */}

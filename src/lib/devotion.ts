@@ -2,23 +2,33 @@
 // Devotion ladder — shared between HeroCard (/pack) and StickyDevotionBar
 // (dog profile). Single source of truth for level math.
 //
-// ⚠️ PLACEHOLDER thresholds for the middle tiers — economy canon is still in
-// design (KONTEXT "level canon"), to be confirmed with Matej. Top = Demigod
-// (poloboh) @ 2M; Pharaoh @ 1M = founder tier.
+// Canonical 22-tier ladder from the devotion sim (devotion-sim/zivot-v-dogypte.html).
+// Path 1 of 3 (Devotion). Thresholds 1–20 are sim canon; Pharaoh (★) and Demigod
+// (☼) are symbolic in the sim — kept at 1M / 2M so the level math has numbers.
 // ============================================================================
 export const DEVOTION_LEVELS = [
-  { name: 'Stray', at: 0 },      // new member starts at 100 = Lvl 1
-  { name: 'Pup', at: 250 },
-  { name: 'Follower', at: 750 },
-  { name: 'Disciple', at: 1750 },
-  { name: 'Devotee', at: 3500 },
-  { name: 'Acolyte', at: 6500 },
-  { name: 'Keeper', at: 12000 },
-  { name: 'Priest', at: 22000 },
-  { name: 'High Priest', at: 40000 },
-  { name: 'Vizier', at: 75000 },
-  { name: 'Pharaoh', at: 1000000 },   // founder tier
-  { name: 'Demigod', at: 2000000 },   // poloboh — top of the path
+  { name: 'Novice', at: 0 },          // new member starts here
+  { name: 'Wanderer', at: 200 },
+  { name: 'Follower', at: 500 },
+  { name: 'Believer', at: 1000 },
+  { name: 'Servant', at: 2000 },
+  { name: 'Aspirant', at: 3500 },
+  { name: 'Mentor', at: 6000 },
+  { name: 'Steward', at: 10000 },
+  { name: 'Shepherd', at: 16000 },
+  { name: 'Sentinel', at: 25000 },
+  { name: 'Elder', at: 38000 },
+  { name: 'Sage', at: 55000 },
+  { name: 'Cleric', at: 80000 },
+  { name: 'Mystic', at: 120000 },
+  { name: 'Priest', at: 160000 },
+  { name: 'Paladin', at: 200000 },
+  { name: 'Magus', at: 260000 },
+  { name: 'Prophet', at: 340000 },
+  { name: 'Nomarch', at: 480000 },
+  { name: 'Vizier', at: 700000 },
+  { name: 'Pharaoh', at: 1000000 },   // ★ founder tier
+  { name: 'Demigod', at: 2000000 },   // ☼ poloboh — top of the path
 ] as const;
 
 export interface DevotionLevel {

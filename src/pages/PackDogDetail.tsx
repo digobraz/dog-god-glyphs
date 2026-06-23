@@ -37,6 +37,7 @@ import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { countryISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE } from '@/lib/env';
+import { DEV_FULL } from '@/lib/packFlags';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
@@ -1069,7 +1070,8 @@ export default function PackDogDetail() {
             )}
           </section>
 
-          {/* — BLOCK 2 (right): Daily Prayers — the three acts of devotion (Constitution, Part IV) — */}
+          {/* — BLOCK 2 (right): Daily Prayers. LIVE = coming-soon karta; DEV_FULL = plný blok. — */}
+          {DEV_FULL ? (
           <section
             id="prayers"
             className="flex flex-col"
@@ -1347,6 +1349,9 @@ export default function PackDogDetail() {
               </div>
             )}
           </section>
+          ) : (
+            <PrayersComingSoon dogName={dogName} />
+          )}
 
         </div>
 
@@ -1361,7 +1366,8 @@ export default function PackDogDetail() {
             icon="heartpaw"
             label="Health"
             sub="Vaccines · Vet · Food"
-            active
+            active={DEV_FULL}
+            soon={!DEV_FULL}
             open={openTile === 'health'}
             onClick={() => toggleTile('health')}
           />
@@ -1369,7 +1375,8 @@ export default function PackDogDetail() {
             icon="trophy"
             label="Training"
             sub="Commands · Badges"
-            active
+            active={DEV_FULL}
+            soon={!DEV_FULL}
             open={openTile === 'training'}
             onClick={() => toggleTile('training')}
           />
@@ -1377,7 +1384,8 @@ export default function PackDogDetail() {
             icon="feather"
             label="Journal"
             sub="Stories · Photos"
-            active
+            active={DEV_FULL}
+            soon={!DEV_FULL}
             open={openTile === 'journal'}
             onClick={() => toggleTile('journal')}
           />
@@ -3253,6 +3261,52 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
         {desc}
       </span>
     </div>
+  );
+}
+
+// LIVE coming-soon karta na mieste Daily Prayers (Block 2). DEV_FULL = plný blok.
+function PrayersComingSoon({ dogName }: { dogName: string }) {
+  return (
+    <section
+      className="flex flex-col items-center justify-center text-center"
+      style={{
+        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+        border: '1px solid rgba(201, 154, 63, 0.18)',
+        borderRadius: 22,
+        padding: '32px 24px',
+        boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+        gap: 14,
+      }}
+    >
+      <span
+        className="inline-flex items-center justify-center"
+        style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(201,154,63,0.08)', border: '1px solid rgba(201,154,63,0.28)' }}
+      >
+        <Lock className="h-6 w-6" style={{ color: T.accentGold }} />
+      </span>
+      <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
+        Daily Prayers
+      </h2>
+      <span
+        className="inline-flex items-center gap-1.5"
+        style={{
+          padding: '4px 12px',
+          borderRadius: 999,
+          background: 'rgba(31,26,14,0.06)',
+          fontFamily: "'Cinzel', serif",
+          fontSize: 9,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: T.inkDim,
+        }}
+      >
+        <Lock className="h-2.5 w-2.5" />
+        Coming soon
+      </span>
+      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
+        The daily acts of devotion to {dogName} — presence, the walk, and ritual — are on the way.
+      </p>
+    </section>
   );
 }
 
