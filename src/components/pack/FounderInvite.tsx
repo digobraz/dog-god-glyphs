@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Copy, Check, Sparkles, X } from 'lucide-react';
+import { Copy, Check, Sparkles, X, Info } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -30,6 +30,7 @@ export function FounderInvite() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [showLevels, setShowLevels] = useState(false);
   const [openTile, setOpenTile] = useState<number | null>(null);
 
   useEffect(() => {
@@ -115,11 +116,38 @@ export function FounderInvite() {
         }}
       />
 
-      {/* (i) — DOGYPT transparency model (same pattern as the heroglyph flow) */}
+      {/* (i) — ako rastie tvoja línia (levely) · ľavý horný roh */}
+      <button
+        type="button"
+        onClick={() => {
+          setShowLevels((p) => !p);
+          setShowInfo(false);
+          setOpenTile(null);
+        }}
+        aria-label={showLevels ? 'Close' : 'How your line works'}
+        className="absolute top-3 left-3 z-30 flex items-center justify-center"
+        style={{ width: 40, height: 40 }}
+      >
+        <span
+          className="flex items-center justify-center transition-colors"
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            border: '1.5px solid rgba(245,199,61,0.55)',
+            color: 'hsl(45 95% 88%)',
+          }}
+        >
+          {showLevels ? <X className="h-4 w-4" /> : <Info className="h-4 w-4" />}
+        </span>
+      </button>
+
+      {/* (?) — DOGYPT transparency model (same pattern as the heroglyph flow) */}
       <button
         type="button"
         onClick={() => {
           setShowInfo((p) => !p);
+          setShowLevels(false);
           setOpenTile(null);
         }}
         aria-label={showInfo ? 'Close' : 'Where every euro goes'}
@@ -572,7 +600,107 @@ export function FounderInvite() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── (i) BACK: ako rastie tvoja línia — trojuholník levelov ── */}
+      <AnimatePresence>
+        {showLevels && (
+          <motion.div
+            key="levels-explainer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.32 }}
+            className="absolute inset-0 z-20 flex flex-col"
+            style={{ background: 'linear-gradient(160deg, #14101f 0%, #1d1530 100%)', padding: '24px 22px 18px', overflow: 'hidden' }}
+          >
+            {/* Header */}
+            <div className="flex flex-col items-center" style={{ marginBottom: 12 }}>
+              <img src={dogyptLogoGold} alt="DOGYPT" style={{ height: 'clamp(27px, 5.6vw, 34px)', width: 'auto' }} />
+              <span style={{ fontFamily: "'Cinzel', serif", fontStyle: 'italic', fontSize: 'clamp(15px, 3.2vw, 19px)', fontWeight: 600, letterSpacing: '0.06em', color: 'hsl(45 90% 80%)', marginTop: 6, lineHeight: 1 }}>
+                Your line
+              </span>
+              <div aria-hidden style={{ width: 48, height: 1, background: 'hsl(45 80% 60%)', opacity: 0.5, margin: '10px auto 0' }} />
+              <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'hsl(45 35% 88% / 0.82)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.45 }}>
+                Bring a dog lover — and earn from everyone they bring after.
+              </p>
+            </div>
+
+            {/* Rad vedľa seba: TY → kamoš (L1, +20) → jeho kamoš (L2, +10), farebne odlíšené */}
+            <div className="flex-1 flex flex-col items-center justify-center" style={{ minHeight: 0, gap: 16 }}>
+              <div className="flex items-start justify-center" style={{ gap: 2 }}>
+                <LineNode icon="star" label="You" accent="#C99A3F" tint="dark" solid />
+                <Arrow />
+                <LineNode icon="add-user" label="Friend" sub="Level 1" reward="+20" accent="#2E5FD0" tint="violet" />
+                <Arrow />
+                <LineNode icon="add-user" label="Their friend" sub="Level 2" reward="+10" accent="#C0392B" tint="danger" />
+              </div>
+
+              {/* Textový príklad */}
+              <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,240,228,0.14)', borderRadius: 14, padding: '13px 15px', maxWidth: 304 }}>
+                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.6, color: 'hsl(45 35% 90% / 0.92)', margin: 0 }}>
+                  You bring <strong style={{ color: '#7FA8FF' }}>Mia</strong> → you earn <strong style={{ color: '#7FA8FF' }}>+20 BONES</strong>.
+                  Mia brings <strong style={{ color: '#E8836F' }}>Jakub</strong> → you earn <strong style={{ color: '#E8836F' }}>+10</strong> more.
+                  Your line keeps paying you — paw to paw.
+                </p>
+              </div>
+            </div>
+
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: 'hsl(45 30% 84% / 0.6)', textAlign: 'center', marginTop: 10 }}>
+              10 BONES = €1 — spend them inside DOGYPT.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
+  );
+}
+
+function Arrow() {
+  return (
+    <div className="flex flex-col items-center" style={{ marginTop: 16, gap: 2, width: 26 }}>
+      <span aria-hidden style={{ color: 'hsl(45 80% 70%)', fontSize: 18, lineHeight: 1 }}>→</span>
+      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 7.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'hsl(45 35% 84% / 0.5)' }}>brings</span>
+    </div>
+  );
+}
+
+function LineNode({ icon, label, sub, reward, accent, tint, solid }: {
+  icon: string; label: string; sub?: string; reward?: string; accent: string; tint: 'gold' | 'violet' | 'danger' | 'dark'; solid?: boolean;
+}) {
+  const d = solid ? 56 : 50;
+  return (
+    <div className="flex flex-col items-center" style={{ gap: 5, width: 74 }}>
+      <span
+        style={{
+          width: d,
+          height: d,
+          borderRadius: '50%',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          background: solid ? `radial-gradient(circle at 35% 30%, #F7DD92 0%, ${accent} 72%, #8A6520 100%)` : `${accent}26`,
+          border: `1.5px solid ${solid ? 'rgba(120,90,30,0.7)' : accent}`,
+          boxShadow: solid ? `0 6px 18px -6px ${accent}b3` : 'none',
+        }}
+      >
+        <BrandIcon name={icon} size={solid ? 26 : 22} tint={tint} />
+      </span>
+      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'hsl(45 55% 90% / 0.95)', textAlign: 'center', lineHeight: 1.1 }}>
+        {label}
+      </span>
+      {sub && (
+        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 8, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'hsl(45 35% 84% / 0.55)' }}>
+          {sub}
+        </span>
+      )}
+      {reward && (
+        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10.5, fontWeight: 700, color: '#fff', background: accent, borderRadius: 999, padding: '2px 9px', display: 'inline-flex', alignItems: 'center', gap: 3, boxShadow: `0 3px 10px -4px ${accent}` }}>
+          {reward}
+          <BrandIcon name="bone" size={9} tint="white" />
+        </span>
+      )}
+    </div>
   );
 }
 
