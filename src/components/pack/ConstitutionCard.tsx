@@ -1,8 +1,10 @@
 import { PACK_THEME } from './packTheme';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
 export function ConstitutionCard() {
+  const t = useT();
   return (
     <a
       href="https://dogma.dogypt.com"
@@ -55,7 +57,7 @@ export function ConstitutionCard() {
       <img
         className="cbc-img"
         src="/images/dogma-cover.png"
-        alt="DOGMA — the Dogyptian Constitution"
+        alt={t('pack.constitution.coverAlt')}
         style={{
           height: '100%',
           width: 'auto',
@@ -80,7 +82,7 @@ export function ConstitutionCard() {
             textShadow: '0 2px 16px rgba(0,0,0,0.55)',
           }}
         >
-          Read the DOGMA
+          {t('pack.constitution.readCta')}
         </div>
         <div
           style={{
@@ -91,8 +93,7 @@ export function ConstitutionCard() {
             maxWidth: 240,
           }}
         >
-          The foundation of the whole faith — every Dogyptian should read it.
-          The philosophy, the logic, and how devotion works all begin here.
+          {t('pack.constitution.description')}
         </div>
       </div>
     </a>

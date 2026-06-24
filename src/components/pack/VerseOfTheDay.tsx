@@ -1,15 +1,17 @@
 import { quoteForDay } from '@/data/dailyQuotes';
+import { useT } from '@/i18n/LanguageContext';
 
 const GOLD = '#C99A3F';
 
 export function VerseOfTheDay() {
+  const t = useT();
   // 365-day curated calendar — same quote all day, rotates at midnight, holiday-anchored.
   const verse = quoteForDay();
   if (!verse) return null;
 
   return (
     <section
-      aria-label="Verse of the day"
+      aria-label={t('pack.verse.ariaLabel')}
       className="relative flex flex-col items-center text-center"
       style={{ padding: 'clamp(8px, 1.8vw, 18px) 16px' }}
     >
@@ -24,7 +26,7 @@ export function VerseOfTheDay() {
           opacity: 0.9,
         }}
       >
-        Verse of the day
+        {t('pack.verse.eyebrow')}
       </span>
 
       {/* gold quotation glyph */}
@@ -75,7 +77,7 @@ export function VerseOfTheDay() {
             color: 'rgba(250,244,236,0.62)',
           }}
         >
-          {verse.author || 'Unknown'}
+          {verse.author || t('pack.verse.unknownAuthor')}
         </span>
         <span aria-hidden style={{ width: 28, height: 1, background: GOLD, opacity: 0.55 }} />
       </div>

@@ -1,6 +1,7 @@
 import { Check, Circle, Sparkles } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -10,6 +11,7 @@ export interface OnboardingStep {
 }
 
 export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
+  const t = useT();
   const done = steps.filter((s) => s.done).length;
   const pct = steps.length > 0 ? Math.round((done / steps.length) * 100) : 0;
 
@@ -36,7 +38,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
         }}
       >
         <BrandIcon name="clipboard" size={14} tint="gold" />
-        Your Profile
+        {t('pack.steps.eyebrow')}
       </div>
 
       <div className="flex items-baseline justify-between mb-3">
@@ -49,7 +51,7 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
             color: T.ink,
           }}
         >
-          First Steps
+          {t('pack.steps.title')}
         </h4>
         <div
           style={{
@@ -146,12 +148,9 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
               }}
             >
               {allDone ? (
-                'First Steps complete — the next chapter of the app is coming soon.'
+                t('pack.steps.rewardComplete')
               ) : (
-                <>
-                  Complete all First Steps ={' '}
-                  <strong style={{ fontWeight: 800 }}>+10 ☥ Devotion</strong> to your profile.
-                </>
+                <span dangerouslySetInnerHTML={{ __html: t('pack.steps.rewardPending') }} />
               )}
             </span>
           </div>

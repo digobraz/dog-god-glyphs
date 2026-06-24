@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Send, Check, Paperclip, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadFeedbackPhoto } from '@/services/cloudinaryService';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
@@ -17,6 +18,7 @@ interface BuildNoticeProps {
 }
 
 export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
+  const t = useT();
   const [message, setMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -87,7 +89,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
           className="bn-dot"
           style={{ width: 6, height: 6, borderRadius: 999, background: '#FFD9CC', display: 'inline-block' }}
         />
-        Work in progress
+        {t('pack.build.badge')}
       </span>
 
       <h4
@@ -100,7 +102,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
           margin: '14px 0 6px',
         }}
       >
-        Thank you for your patience
+        {t('pack.build.heading')}
       </h4>
       <p
         style={{
@@ -111,7 +113,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
           margin: 0,
         }}
       >
-        Still being built by one human and his AI agents. Every bug or idea helps.
+        {t('pack.build.body')}
       </p>
 
       {/* actions — pinned to the bottom so the card lines up with its neighbours */}
@@ -127,14 +129,14 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
             }}
           >
             <Check className="h-4 w-4 shrink-0" style={{ color: BRICK }} />
-            Got it — thank you. We read every word.
+            {t('pack.build.thanks')}
           </div>
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-2">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="A bug or an idea… for bugs, add your device & browser."
+              placeholder={t('pack.build.placeholder')}
               style={{
                 width: '100%',
                 minHeight: 84,
@@ -171,7 +173,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
               >
                 <img
                   src={preview}
-                  alt="attachment preview"
+                  alt={t('pack.build.previewAlt')}
                   style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover' }}
                 />
                 <span
@@ -183,7 +185,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 <button
                   type="button"
                   onClick={() => pickFile(null)}
-                  aria-label="Remove photo"
+                  aria-label={t('pack.build.removePhoto')}
                   className="inline-flex items-center justify-center shrink-0"
                   style={{ width: 26, height: 26, borderRadius: 999, border: `1px solid ${T.hairline}`, color: T.inkDim }}
                 >
@@ -206,13 +208,13 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 }}
               >
                 <Paperclip className="h-3.5 w-3.5" />
-                Attach a photo as proof
+                {t('pack.build.attach')}
               </button>
             )}
 
             {status === 'error' && (
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: BRICK }}>
-                Something went wrong. Try again.
+                {t('pack.build.error')}
               </span>
             )}
             <button
@@ -235,7 +237,11 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
               }}
             >
               <Send className="h-3.5 w-3.5" />
-              {status === 'loading' ? (file ? 'Uploading…' : 'Sending…') : 'Send feedback'}
+              {status === 'loading'
+                ? file
+                  ? t('pack.build.uploading')
+                  : t('pack.build.sending')
+                : t('pack.build.send')}
             </button>
           </form>
         )}
@@ -251,7 +257,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
             textDecoration: 'none',
           }}
         >
-          Want to help shape it? <strong style={{ color: BRICK }}>Join the Council</strong>
+          {t('pack.build.councilPrompt')} <strong style={{ color: BRICK }}>{t('pack.build.councilCta')}</strong>
           <ArrowUpRight className="h-3.5 w-3.5" />
         </Link>
       </div>

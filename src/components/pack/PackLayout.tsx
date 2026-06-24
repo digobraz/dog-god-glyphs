@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useT } from '@/i18n/LanguageContext';
 import type { Session } from '@supabase/supabase-js';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +30,7 @@ interface PackLayoutProps {
 }
 
 export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps) {
+  const t = useT();
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
@@ -147,7 +149,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         <HieroglyphBg />
         <div className="relative" style={{ zIndex: 1 }}>
           <div style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.3em', fontSize: 12, color: T.onDarkDim }}>
-            LOADING…
+            {t('pack.nav.loading')}
           </div>
         </div>
       </div>
@@ -228,8 +230,8 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
               boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
             }}
           >
-            <FloatingNavLink to="/pack" label="Home" icon={iconHome} end />
-            <FloatingNavLink to="/pack/portal" label="Portal" icon={iconPortal} />
+            <FloatingNavLink to="/pack" label={t('pack.nav.home')} icon={iconHome} end />
+            <FloatingNavLink to="/pack/portal" label={t('pack.nav.portal')} icon={iconPortal} />
           </div>
         </nav>
       )}
@@ -257,6 +259,7 @@ function VDivider() {
 }
 
 function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, wide, onProfile, onDog }: DevotionHeaderProps) {
+  const t = useT();
   const glassPill: React.CSSProperties = {
     background: T.glass,
     border: `1px solid ${T.onDarkBorder}`,
@@ -285,11 +288,11 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
     >
       {/* ── LEFT block 60%: member identity ── */}
       <div style={{ ...glassPill, flex: '3 1 0', minWidth: 0, gap: 10, width: '100%' }}>
-        <button type="button" onClick={onProfile} style={{ flexShrink: 0, lineHeight: 0 }} aria-label="Profile">
+        <button type="button" onClick={onProfile} style={{ flexShrink: 0, lineHeight: 0 }} aria-label={t('pack.nav.profile')}>
           {avatarUrl ? (
             <img
               src={avatarUrl}
-              alt="Your avatar"
+              alt={t('pack.nav.yourAvatar')}
               style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(201,154,63,0.45)', display: 'block' }}
             />
           ) : (
@@ -324,7 +327,7 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
         }}
         role="button"
         tabIndex={0}
-        aria-label="Jump to Nation stats"
+        aria-label={t('pack.nav.jumpToNationStats')}
         onClick={() => document.getElementById('wiz-globe')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -373,10 +376,11 @@ function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, 
 }
 
 function BonesChip({ bones }: { bones: number }) {
+  const t = useT();
   return (
     <div
       title="BONES"
-      aria-label={`${bones} BONES`}
+      aria-label={t('pack.nav.bonesCount', { count: bones })}
       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}
     >
       <span aria-hidden style={{
@@ -437,6 +441,7 @@ function DevotionBarCompact({ devotion }: { devotion: number }) {
 }
 
 function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => void }) {
+  const t = useT();
   // Slajdovateľná svorka od 3 psov — pevný maxWidth, takže psy scrollujú horizontálne
   // a nikdy netlačia devotion bar / bones v header pilulke (najmä mobil).
   const scrollable = dogs.length >= 3;
@@ -455,7 +460,7 @@ function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => vo
           type="button"
           onClick={() => onDog(dog.id)}
           style={{ flexShrink: 0, lineHeight: 0 }}
-          aria-label={dog.dog_name || 'Dog'}
+          aria-label={dog.dog_name || t('pack.nav.dog')}
         >
           {dog.cloudinary_main_url ? (
             <img

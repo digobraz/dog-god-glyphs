@@ -14,6 +14,7 @@ import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { EDGE_BASE } from '@/lib/env';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -65,6 +66,7 @@ function firstNameFrom(email: string, fullName?: string): string {
 }
 
 export default function Pack() {
+  const t = useT();
   const [dogs, setDogs] = useState<DogRow[] | null>(null);
   const [stats, setStats] = useState<PackStats | null>(null);
   const [user, setUser] = useState<UserMeta | null>(null);
@@ -159,12 +161,12 @@ export default function Pack() {
     let constitutionOpened = false;
     try { constitutionOpened = localStorage.getItem('dogypt_constitution_opened') === '1'; } catch { /* ignore */ }
     return [
-      { label: 'Forge your first heroglyph', done: hasDog },
-      { label: 'Add your photo', done: hasAvatar },
-      { label: 'Add extra photos of your dog', done: hasExtras },
-      { label: 'Cast your vote in Shape', done: hasVoted },
-      { label: 'Flip through the Constitution', done: constitutionOpened },
-      { label: 'Invite your first dog lover', done: hasReferral },
+      { label: t('pack.page.steps.forge'), done: hasDog },
+      { label: t('pack.page.steps.photo'), done: hasAvatar },
+      { label: t('pack.page.steps.extras'), done: hasExtras },
+      { label: t('pack.page.steps.vote'), done: hasVoted },
+      { label: t('pack.page.steps.constitution'), done: constitutionOpened },
+      { label: t('pack.page.steps.invite'), done: hasReferral },
     ];
   })();
 

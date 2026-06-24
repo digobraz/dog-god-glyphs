@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from './packTheme';
 import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
@@ -23,6 +24,7 @@ interface PackTreeProps {
 }
 
 export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: PackTreeProps) {
+  const t = useT();
   return (
     <section
       className="pack-card-hover h-full"
@@ -50,7 +52,7 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
           marginBottom: 20,
         }}
       >
-        My Pack
+        {t('pack.tree.title')}
       </div>
 
       <div className="flex flex-col items-center flex-1 justify-center">
@@ -68,7 +70,8 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
 }
 
 function PrimaryDog({ dog }: { dog: DogNode }) {
-  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const t = useT();
+  const name = (dog.dog_name || t('pack.tree.unnamed')).toUpperCase();
   const founder = dog.pack_number ? `#${dog.pack_number}` : null;
 
   // Bledá karta vo fialovom bloku — foto + meno(+#) + čierny horizontálny heroglyf
@@ -109,8 +112,8 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
         {/* Profil link — ikonka vpravo hore (certifikáty / PDF / foto / protokol) */}
         <Link
           to={`/pack/dogs/${dog.id}`}
-          title="Open dog profile — certificates, PDFs, photos"
-          aria-label="Open dog profile"
+          title={t('pack.tree.profileLink.title')}
+          aria-label={t('pack.tree.profileLink.ariaLabel')}
           className="absolute inline-flex items-center justify-center"
           style={{
             top: 14,
@@ -151,7 +154,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
               className="flex items-center justify-center h-full"
               style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.2em' }}
             >
-              NO PHOTO
+              {t('pack.tree.noPhoto')}
             </div>
           )}
         </div>
@@ -176,7 +179,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
           {dog.heroglyph_png_url ? (
             <img
               src={dog.heroglyph_png_url}
-              alt={`${name} heroglyph`}
+              alt={t('pack.tree.heroglyphAlt', { name })}
               style={{ width: '100%', maxWidth: 260, height: 'auto', objectFit: 'contain', display: 'block' }}
             />
           ) : (
@@ -193,6 +196,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
 
 // Adaptívna hustota podľa počtu psov — všetko v jednom rámci bez scrollu.
 function DogCollection({ dogs }: { dogs: DogNode[] }) {
+  const t = useT();
   if (dogs.length === 0) {
     return (
       <div
@@ -206,7 +210,7 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
           padding: '18px 8px',
         }}
       >
-        No heroglyphs yet
+        {t('pack.tree.empty')}
       </div>
     );
   }
@@ -256,7 +260,8 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
 
 // 5–12 psov: štvorcová karta — foto + meno + malé #
 function DogGridCard({ dog }: { dog: DogNode }) {
-  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const t = useT();
+  const name = (dog.dog_name || t('pack.tree.unnamed')).toUpperCase();
   const founder = dog.pack_number ? `#${dog.pack_number}` : null;
   return (
     <Link
@@ -286,7 +291,7 @@ function DogGridCard({ dog }: { dog: DogNode }) {
           <img src={dog.cloudinary_main_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 7, letterSpacing: '0.14em' }}>
-            NO PHOTO
+            {t('pack.tree.noPhoto')}
           </div>
         )}
       </div>
@@ -325,7 +330,8 @@ function DogGridCard({ dog }: { dog: DogNode }) {
 
 // 13+ psov: stena — IBA foto (kruh). Bez #, bez mena. Tap = profil.
 function DogAvatar({ dog }: { dog: DogNode }) {
-  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const t = useT();
+  const name = (dog.dog_name || t('pack.tree.unnamed')).toUpperCase();
   return (
     <Link
       to={`/pack/dogs/${dog.id}`}
@@ -345,7 +351,7 @@ function DogAvatar({ dog }: { dog: DogNode }) {
         <img src={dog.cloudinary_main_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         <div className="flex items-center justify-center h-full" style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 6, letterSpacing: '0.1em' }}>
-          NO PHOTO
+          {t('pack.tree.noPhoto')}
         </div>
       )}
     </Link>
@@ -353,7 +359,8 @@ function DogAvatar({ dog }: { dog: DogNode }) {
 }
 
 function DogRow({ dog }: { dog: DogNode }) {
-  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const t = useT();
+  const name = (dog.dog_name || t('pack.tree.unnamed')).toUpperCase();
   const founder = dog.pack_number ? `#${dog.pack_number}` : null;
 
   // Kompaktná bledá karta — foto + meno(+#) + heroglyf thumb + profil link. Celý riadok = link.
@@ -394,7 +401,7 @@ function DogRow({ dog }: { dog: DogNode }) {
             className="flex items-center justify-center h-full"
             style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.16em' }}
           >
-            NO PHOTO
+            {t('pack.tree.noPhoto')}
           </div>
         )}
       </div>
@@ -442,7 +449,7 @@ function DogRow({ dog }: { dog: DogNode }) {
       {dog.heroglyph_png_url && (
         <img
           src={dog.heroglyph_png_url}
-          alt={`${name} heroglyph`}
+          alt={t('pack.tree.heroglyphAlt', { name })}
           className="h-12 max-w-[170px] sm:h-10 sm:max-w-[132px]"
           style={{ width: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }}
         />
@@ -455,6 +462,7 @@ function DogRow({ dog }: { dog: DogNode }) {
 }
 
 function PackActions() {
+  const t = useT();
   return (
     <div className="w-full mt-5 flex flex-col sm:flex-row gap-2.5">
       <Link
@@ -478,7 +486,7 @@ function PackActions() {
         }}
       >
         <BrandIcon name="plus" size={14} tint="dark" />
-        Add dog
+        {t('pack.tree.addDog')}
       </Link>
 
       {/* Add human member — pack roles (Pawtner / Member) prídu s appkou; teraz disabled seed.
@@ -506,7 +514,7 @@ function PackActions() {
           }}
         >
           <BrandIcon name="add-user" size={14} tint="dim" />
-          Add human member
+          {t('pack.tree.addHumanMember')}
         </button>
 
         {/* Tooltip — objaví sa keď naň ukážeš kurzorom */}
@@ -528,7 +536,7 @@ function PackActions() {
             zIndex: 20,
           }}
         >
-          Coming soon — invite one human member
+          {t('pack.tree.comingSoonTooltip')}
           {/* šípka (caret) smerom k tlačidlu */}
           <span
             aria-hidden
@@ -548,6 +556,7 @@ function PackActions() {
 }
 
 function OwnerNode({ avatarUrl, initial }: { avatarUrl: string | null; initial: string }) {
+  const t = useT();
   const hasAvatar = !!avatarUrl;
   return (
     <div
@@ -567,7 +576,7 @@ function OwnerNode({ avatarUrl, initial }: { avatarUrl: string | null; initial: 
       }}
     >
       {hasAvatar ? (
-        <img src={avatarUrl!} alt="owner" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={avatarUrl!} alt={t('pack.tree.ownerAvatarAlt')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         <span
           style={{

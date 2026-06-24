@@ -63,10 +63,10 @@ export function FounderInvite() {
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
-      toast('Link copied', { description: 'Share it and grow the pack.' });
+      toast(t('pack.invite.copied'), { description: t('pack.invite.copiedDesc') });
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      toast('Could not copy', { description: link });
+      toast(t('pack.invite.copyError'), { description: link });
     }
   };
 
@@ -74,7 +74,7 @@ export function FounderInvite() {
     if (!link) return;
     const shareData = {
       title: 'DOGYPT',
-      text: 'Join the pack. Become Dogyptian.',
+      text: t('pack.invite.shareText'),
       url: link,
     };
     // Native share sheet on mobile (Instagram, WhatsApp, Facebook, Messages…);
@@ -124,7 +124,7 @@ export function FounderInvite() {
           setShowInfo(false);
           setOpenTile(null);
         }}
-        aria-label={showLevels ? 'Close' : 'How your line works'}
+        aria-label={showLevels ? t('pack.invite.close') : t('pack.invite.howLineWorks')}
         className="absolute top-3 left-3 z-30 flex items-center justify-center"
         style={{ width: 40, height: 40 }}
       >
@@ -150,7 +150,7 @@ export function FounderInvite() {
           setShowLevels(false);
           setOpenTile(null);
         }}
-        aria-label={showInfo ? 'Close' : 'Where every euro goes'}
+        aria-label={showInfo ? t('pack.invite.close') : t('pack.invite.whereEuroGoes')}
         className="absolute top-3 right-3 z-30 flex items-center justify-center"
         style={{ width: 40, height: 40 }}
       >
@@ -182,7 +182,7 @@ export function FounderInvite() {
         >
           <img
             src={hekthorImg}
-            alt="Hekthor — founder #1"
+            alt={t('pack.invite.hekthorAlt')}
             style={{
               width: '100%',
               height: '100%',
@@ -207,7 +207,7 @@ export function FounderInvite() {
               marginBottom: 8,
             }}
           >
-            Grow the pack.
+            {t('pack.invite.growHeading')}
           </h3>
           <p
             style={{
@@ -217,11 +217,8 @@ export function FounderInvite() {
               color: 'hsl(45 40% 90% / 0.9)',
               marginBottom: 4,
             }}
-          >
-            Every Dogyptian you bring earns you{' '}
-            <strong style={{ color: 'hsl(45 95% 88%)' }}>BONES</strong> — and so does everyone
-            they bring after. Paw to paw, we reach the million.
-          </p>
+            dangerouslySetInnerHTML={{ __html: t('pack.invite.growBody') }}
+          />
         </div>
 
         {/* Network stats — Points · Level 1 · Level 2 (your whole tree) */}
@@ -231,15 +228,15 @@ export function FounderInvite() {
             label="BONES"
             highlight
           />
-          <StatTile value={loading ? '—' : String(level1)} label="Level 1" sub="direct" />
-          <StatTile value={loading ? '—' : String(level2)} label="Level 2" sub="their brings" />
+          <StatTile value={loading ? '—' : String(level1)} label={t('pack.invite.level1')} sub={t('pack.invite.level1Sub')} />
+          <StatTile value={loading ? '—' : String(level2)} label={t('pack.invite.level2')} sub={t('pack.invite.level2Sub')} />
         </div>
 
         {/* View network — prepared hook for the future people+dogs map (not yet live) */}
         <button
           type="button"
           disabled
-          aria-label="View your network — coming soon"
+          aria-label={t('pack.invite.viewNetworkAria')}
           className="inline-flex items-center justify-center gap-1.5"
           style={{
             background: 'transparent',
@@ -255,7 +252,7 @@ export function FounderInvite() {
           }}
         >
           <BrandIcon name="cycle" size={14} tint="gold" />
-          View your network · soon
+          {t('pack.invite.viewNetwork')}
         </button>
 
         {/* Referral link box */}
@@ -278,13 +275,13 @@ export function FounderInvite() {
                 letterSpacing: '0.01em',
               }}
             >
-              {loading ? 'Generating your link…' : link.replace(/^https?:\/\//, '')}
+              {loading ? t('pack.invite.generatingLink') : link.replace(/^https?:\/\//, '')}
             </span>
             <button
               type="button"
               onClick={handleCopy}
               disabled={!link}
-              aria-label="Copy invite link"
+              aria-label={t('pack.invite.copyLinkAria')}
               className="inline-flex items-center justify-center shrink-0"
               style={{
                 background: 'linear-gradient(to right, hsl(45 92% 62%), hsl(45 96% 52%))',
@@ -323,7 +320,7 @@ export function FounderInvite() {
             }}
           >
             <BrandIcon name="link" size={16} tint="gold" />
-            Share your link
+            {t('pack.invite.shareLink')}
           </button>
         </div>
 
@@ -336,7 +333,7 @@ export function FounderInvite() {
           }}
         >
           <Sparkles className="h-3 w-3" />
-          Rewards for top apostles unlock as the religion grows.
+          {t('pack.invite.apostlesRewards')}
         </div>
       </div>
 
@@ -378,7 +375,7 @@ export function FounderInvite() {
                   lineHeight: 1,
                 }}
               >
-                Transparency
+                {t('pack.invite.transparency')}
               </span>
               <div
                 aria-hidden
@@ -393,7 +390,7 @@ export function FounderInvite() {
                   margin: '10px 0 0',
                 }}
               >
-                Where every {PRICE} goes?
+                {t('pack.invite.whereEveryGoes', { price: PRICE })}
               </p>
             </div>
 
@@ -500,7 +497,7 @@ export function FounderInvite() {
                 zIndex: 1,
               }}
             >
-              Tap a block to see where it goes.
+              {t('pack.invite.tapBlock')}
             </div>
 
             {/* Detail popup — full note, no scroll/clip regardless of length */}
@@ -542,7 +539,7 @@ export function FounderInvite() {
                     <button
                       type="button"
                       onClick={() => setOpenTile(null)}
-                      aria-label="Close"
+                      aria-label={t('pack.invite.close')}
                       className="absolute flex items-center justify-center"
                       style={{ top: 12, right: 12, width: 26, height: 26, borderRadius: 999, border: '1px solid rgba(245,240,228,0.25)', color: 'hsl(45 40% 86% / 0.8)' }}
                     >
@@ -617,36 +614,35 @@ export function FounderInvite() {
             <div className="flex flex-col items-center" style={{ marginBottom: 12 }}>
               <img src={dogyptLogoGold} alt="DOGYPT" style={{ height: 'clamp(27px, 5.6vw, 34px)', width: 'auto' }} />
               <span style={{ fontFamily: "'Cinzel', serif", fontStyle: 'italic', fontSize: 'clamp(15px, 3.2vw, 19px)', fontWeight: 600, letterSpacing: '0.06em', color: 'hsl(45 90% 80%)', marginTop: 6, lineHeight: 1 }}>
-                Your line
+                {t('pack.invite.yourLine')}
               </span>
               <div aria-hidden style={{ width: 48, height: 1, background: 'hsl(45 80% 60%)', opacity: 0.5, margin: '10px auto 0' }} />
               <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'hsl(45 35% 88% / 0.82)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.45 }}>
-                Bring a dog lover — and earn from everyone they bring after.
+                {t('pack.invite.lineIntro')}
               </p>
             </div>
 
             {/* Rad vedľa seba: TY → kamoš (L1, +20) → jeho kamoš (L2, +10), farebne odlíšené */}
             <div className="flex-1 flex flex-col items-center justify-center" style={{ minHeight: 0, gap: 16 }}>
               <div className="flex items-start justify-center" style={{ gap: 2 }}>
-                <LineNode icon="star" label="You" accent="#C99A3F" tint="dark" solid />
-                <Arrow />
-                <LineNode icon="add-user" label="Friend" sub="Level 1" reward="+20" accent="#2E5FD0" tint="violet" />
-                <Arrow />
-                <LineNode icon="add-user" label="Their friend" sub="Level 2" reward="+10" accent="#C0392B" tint="danger" />
+                <LineNode icon="star" label={t('pack.invite.nodeYou')} accent="#C99A3F" tint="dark" solid />
+                <Arrow t={t} />
+                <LineNode icon="add-user" label={t('pack.invite.nodeFriend')} sub={t('pack.invite.level1')} reward="+20" accent="#2E5FD0" tint="violet" />
+                <Arrow t={t} />
+                <LineNode icon="add-user" label={t('pack.invite.nodeTheirFriend')} sub={t('pack.invite.level2')} reward="+10" accent="#C0392B" tint="danger" />
               </div>
 
               {/* Textový príklad */}
               <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,240,228,0.14)', borderRadius: 14, padding: '13px 15px', maxWidth: 304 }}>
-                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.6, color: 'hsl(45 35% 90% / 0.92)', margin: 0 }}>
-                  You bring <strong style={{ color: '#7FA8FF' }}>Mia</strong> → you earn <strong style={{ color: '#7FA8FF' }}>+20 BONES</strong>.
-                  Mia brings <strong style={{ color: '#E8836F' }}>Jakub</strong> → you earn <strong style={{ color: '#E8836F' }}>+10</strong> more.
-                  Your line keeps paying you — paw to paw.
-                </p>
+                <p
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.6, color: 'hsl(45 35% 90% / 0.92)', margin: 0 }}
+                  dangerouslySetInnerHTML={{ __html: t('pack.invite.lineExample') }}
+                />
               </div>
             </div>
 
             <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: 'hsl(45 30% 84% / 0.6)', textAlign: 'center', marginTop: 10 }}>
-              10 BONES = €1 — spend them inside DOGYPT.
+              {t('pack.invite.bonesValue')}
             </p>
           </motion.div>
         )}
@@ -655,11 +651,11 @@ export function FounderInvite() {
   );
 }
 
-function Arrow() {
+function Arrow({ t }: { t: (key: string, vars?: Record<string, string | number>) => string }) {
   return (
     <div className="flex flex-col items-center" style={{ marginTop: 16, gap: 2, width: 26 }}>
       <span aria-hidden style={{ color: 'hsl(45 80% 70%)', fontSize: 18, lineHeight: 1 }}>→</span>
-      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 7.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'hsl(45 35% 84% / 0.5)' }}>brings</span>
+      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 7.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'hsl(45 35% 84% / 0.5)' }}>{t('pack.invite.brings')}</span>
     </div>
   );
 }

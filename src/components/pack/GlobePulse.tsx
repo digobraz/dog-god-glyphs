@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from './packTheme';
 import { Ranking } from './Ranking';
 import { TransparentStats } from './TransparentStats';
@@ -12,10 +13,10 @@ const T = PACK_THEME;
 // Severka pyramída (zdroj: plany/severka.md) — swajpovateľné míľniky pod guľou.
 // Veľké číslo členov je fixné, swajp mení len názov + cieľ + % (a prstenec sa sync-ne).
 const MILESTONES = [
-  { name: 'The Founders', target: 1_000 },
-  { name: 'The Pack', target: 10_000 },
-  { name: 'The Nation', target: 100_000 },
-  { name: 'The Dynasty', target: 1_000_000 }, // 1M Heroglyfov otvára II. dynastiu; každý ďalší milión = ďalšia dynastia (kánon: ústava čl. 1.3)
+  { nameKey: 'pack.globe.milestone.founders', target: 1_000 },
+  { nameKey: 'pack.globe.milestone.pack', target: 10_000 },
+  { nameKey: 'pack.globe.milestone.nation', target: 100_000 },
+  { nameKey: 'pack.globe.milestone.dynasty', target: 1_000_000 }, // 1M Heroglyfov otvára II. dynastiu; každý ďalší milión = ďalšia dynastia (kánon: ústava čl. 1.3)
 ] as const;
 
 const RING_R = 47;
@@ -79,6 +80,7 @@ function PackGlobe({
   topCountries: CountryRow[];
   ownerCountry?: string | null;
 }) {
+  const t = useT();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const globeRef = useRef<ReturnType<typeof createGlobe> | null>(null);
   const pointerStart = useRef<number | null>(null);
@@ -207,7 +209,7 @@ function PackGlobe({
         contain: 'layout paint size',
         touchAction: 'pan-y',
       }}
-      aria-label="The pack worldwide"
+      aria-label={t('pack.globe.canvasLabel')}
     />
   );
 }
@@ -227,6 +229,7 @@ function MilestoneSwiper({
   pct: number;
   onGo: (i: number) => void;
 }) {
+  const t = useT();
   const startX = useRef<number | null>(null);
   const wheelLock = useRef(0);
   const m = MILESTONES[idx];
@@ -275,7 +278,7 @@ function MilestoneSwiper({
           marginBottom: 9,
         }}
       >
-        The road to a million
+        {t('pack.globe.roadToMillion')}
       </div>
 
       {/* Bodky — NAD rámikom (na béžovej) */}
@@ -284,7 +287,7 @@ function MilestoneSwiper({
           <button
             key={i}
             type="button"
-            aria-label={`Milestone ${i + 1}`}
+            aria-label={t('pack.globe.milestoneDot', { num: i + 1 })}
             onClick={() => onGo(i)}
             style={{
               width: i === idx ? 18 : 6,
@@ -318,7 +321,7 @@ function MilestoneSwiper({
         <div className="flex items-center justify-center gap-2">
           <button
             type="button"
-            aria-label="Previous milestone"
+            aria-label={t('pack.globe.prevMilestone')}
             onClick={() => onGo(idx - 1)}
             disabled={idx === 0}
             className="inline-flex items-center justify-center shrink-0"
@@ -338,7 +341,7 @@ function MilestoneSwiper({
                 marginBottom: 4,
               }}
             >
-              {m.name}
+              {t(m.nameKey)}
             </div>
 
             <div key={idx} style={{ animation: 'ms-fade 0.35s ease' }}>
@@ -354,7 +357,7 @@ function MilestoneSwiper({
                   }}
                 >
                   <Check className="h-5 w-5" style={{ color: 'hsl(45 96% 88%)' }} />
-                  ACHIEVED
+                  {t('pack.globe.achieved')}
                 </div>
               ) : (
                 <div
@@ -386,7 +389,7 @@ function MilestoneSwiper({
 
           <button
             type="button"
-            aria-label="Next milestone"
+            aria-label={t('pack.globe.nextMilestone')}
             onClick={() => onGo(idx + 1)}
             disabled={idx === last}
             className="inline-flex items-center justify-center shrink-0"
@@ -401,6 +404,7 @@ function MilestoneSwiper({
 }
 
 export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }: GlobePulseProps) {
+  const t = useT();
   const animated = useCountUp(total);
 
   // Swajpovateľný míľnik — default = prvý nesplnený. Sync-uje prstenec aj % dole.
@@ -467,7 +471,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
               lineHeight: 1,
             }}
           >
-            nation
+            {t('pack.globe.nation')}
           </span>
         </h2>
         <div
@@ -574,11 +578,8 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
                     lineHeight: 1.35,
                     textShadow: '0 1px 6px rgba(252,245,226,0.95)',
                   }}
-                >
-                  Dogyptians
-                  <br />
-                  worldwide
-                </div>
+                  dangerouslySetInnerHTML={{ __html: t('pack.globe.dogyptiansWorldwide') }}
+                />
                 <div
                   style={{
                     fontFamily: "'Cinzel', serif",
@@ -604,13 +605,13 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
         {/* RIGHT — dva rebríčky: krajiny (5) + plemená (3) → výška ≈ ľavý stĺpec */}
         <div className="flex flex-col gap-6">
           <Ranking
-            title="Top countries"
+            title={t('pack.globe.topCountries')}
             rows={topCountries.map((r) => ({ label: r.country, count: r.count }))}
             slots={5}
             kind="country"
           />
           <Ranking
-            title="Top breeds"
+            title={t('pack.globe.topBreeds')}
             rows={topBreeds.map((r) => ({ label: r.breed, count: r.count }))}
             slots={3}
             kind="breed"
