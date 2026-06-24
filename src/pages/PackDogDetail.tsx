@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { Link, useParams } from 'react-router-dom';
 import { PackDogWizard } from '@/components/pack/PackWizard';
 import {
@@ -94,12 +95,14 @@ function capWords(s: string): string {
 // Health protection shields — illustrative states (PREVIEW; real schedule + DB
 // post-launch). state: 'active' (green) · 'due' (amber, time is near) · 'off' (grey).
 type ShieldState = 'active' | 'due' | 'off';
-const HEALTH_SHIELDS: { key: string; label: string; state: ShieldState; note: string; lucide: React.ReactNode }[] = [
-  { key: 'parasites', label: 'Parasites', state: 'active', note: 'Next anti-parasite dose and reminders.', lucide: <Bug className="h-5 w-5" /> },
-  { key: 'vaccine', label: 'Vaccination', state: 'due', note: 'Booster window and the full vaccination record.', lucide: <Syringe className="h-5 w-5" /> },
-  { key: 'immunity', label: 'Immunity', state: 'active', note: 'Overall immune readiness.', lucide: <ShieldPlus className="h-5 w-5" /> },
-  { key: 'joints', label: 'Joint care', state: 'off', note: 'Joint-support supplements and timing.', lucide: <Bone className="h-5 w-5" /> },
-];
+function getHealthShields(t: ReturnType<typeof useT>): { key: string; label: string; state: ShieldState; note: string; lucide: React.ReactNode }[] {
+  return [
+    { key: 'parasites', label: t('pack.dog.shieldParasites'), state: 'active', note: t('pack.dog.shieldParasitesNote'), lucide: <Bug className="h-5 w-5" /> },
+    { key: 'vaccine', label: t('pack.dog.shieldVaccination'), state: 'due', note: t('pack.dog.shieldVaccinationNote'), lucide: <Syringe className="h-5 w-5" /> },
+    { key: 'immunity', label: t('pack.dog.shieldImmunity'), state: 'active', note: t('pack.dog.shieldImmunityNote'), lucide: <ShieldPlus className="h-5 w-5" /> },
+    { key: 'joints', label: t('pack.dog.shieldJoints'), state: 'off', note: t('pack.dog.shieldJointsNote'), lucide: <Bone className="h-5 w-5" /> },
+  ];
+}
 
 interface DogRow {
   id: string;
@@ -133,6 +136,7 @@ interface DogRow {
 type Status = 'loading' | 'ready' | 'not-found' | 'error';
 
 export default function PackDogDetail() {
+  const t = useT();
   const { id } = useParams<{ id: string }>();
   const [dog, setDog] = useState<DogRow | null>(null);
   const [status, setStatus] = useState<Status>('loading');
@@ -207,12 +211,12 @@ export default function PackDogDetail() {
       } else {
         // Revert optimistic lock on failure
         setPrayersSubmitted(false);
-        toast({ title: "Couldn't log — try again", variant: 'destructive' });
+        toast({ title: t('pack.dog.toastCouldntLog'), variant: 'destructive' });
       }
     } catch {
       // Revert optimistic lock on network error
       setPrayersSubmitted(false);
-      toast({ title: "Couldn't log — try again", variant: 'destructive' });
+      toast({ title: t('pack.dog.toastCouldntLog'), variant: 'destructive' });
     }
   };
 
@@ -232,11 +236,11 @@ export default function PackDogDetail() {
         .update(fields)
         .eq('id', dog.id);
       if (upErr) throw new Error(upErr.message);
-      toast({ title: 'Saved' });
+      toast({ title: t('pack.dog.toastSaved') });
     } catch (err) {
       toast({
-        title: 'Could not save',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastCouldNotSave'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     } finally {
@@ -393,11 +397,11 @@ export default function PackDogDetail() {
       if (upErr) throw new Error(upErr.message);
       setDog({ ...dog, grid_message: next || null });
       setMessageDirty(false);
-      toast({ title: 'Message saved', description: 'Visible on your WALL card.' });
+      toast({ title: t('pack.dog.toastMessageSaved'), description: t('pack.dog.toastMessageSavedDesc') });
     } catch (err) {
       toast({
-        title: 'Could not save',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastCouldNotSave'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     } finally {
@@ -428,11 +432,11 @@ export default function PackDogDetail() {
         .eq('id', dog.id);
       if (upErr) throw new Error(upErr.message);
       setExtras(next);
-      toast({ title: 'Photo added' });
+      toast({ title: t('pack.dog.toastPhotoAdded') });
     } catch (err) {
       toast({
-        title: 'Upload failed',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastUploadFailed'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     } finally {
@@ -458,8 +462,8 @@ export default function PackDogDetail() {
       setExtras(next);
     } catch (err) {
       toast({
-        title: 'Could not remove',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastCouldNotRemove'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     }
@@ -488,11 +492,11 @@ export default function PackDogDetail() {
       if (upErr) throw new Error(upErr.message);
       setDog({ ...dog, cloudinary_main_url: result.secureUrl });
       useDogyptStore.getState().setDogPhotoUrl(result.secureUrl);
-      toast({ title: 'Photo updated', description: 'Wall & certificate refresh — coming soon.' });
+      toast({ title: t('pack.dog.toastPhotoUpdated'), description: t('pack.dog.toastPhotoUpdatedDesc') });
     } catch (err) {
       toast({
-        title: 'Upload failed',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastUploadFailed'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     } finally {
@@ -521,11 +525,11 @@ export default function PackDogDetail() {
         pdf_vertical_url: urls.vertical ?? dog.pdf_vertical_url,
         pdf_horizontal_url: urls.horizontal ?? dog.pdf_horizontal_url,
       });
-      toast({ title: 'Certificate ready', description: 'Your PDFs have been generated.' });
+      toast({ title: t('pack.dog.toastCertReady'), description: t('pack.dog.toastCertReadyDesc') });
     } catch (err) {
       toast({
-        title: 'Could not generate PDFs',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastCouldNotGenerate'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     } finally {
@@ -561,11 +565,11 @@ export default function PackDogDetail() {
         body: JSON.stringify({ dogId: dog.id, force: true }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      toast({ title: 'Email re-sent', description: 'Check your inbox in a moment.' });
+      toast({ title: t('pack.dog.toastEmailResent'), description: t('pack.dog.toastEmailResentDesc') });
     } catch (err) {
       toast({
-        title: 'Could not re-send',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        title: t('pack.dog.toastCouldNotResend'),
+        description: err instanceof Error ? err.message : t('pack.dog.toastUnknownError'),
         variant: 'destructive',
       });
     } finally {
@@ -579,7 +583,7 @@ export default function PackDogDetail() {
         <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
           <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 11 }}>
-            LOADING
+            {t('pack.dog.loading')}
           </span>
         </div>
       </PackLayout>
@@ -602,10 +606,12 @@ export default function PackDogDetail() {
     );
   }
 
-  const dogName = dog.dog_name || 'Unnamed';
+  const dogName = dog.dog_name || t('pack.dog.unnamed');
   const ownerName = dog.owner_name || '';
   const heroglyphCode = dog.heroglyph_code || 'H-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX';
   const age = computeAge(dog.selections, dog.birth_year);
+  const WALK_LEVELS = getWalkLevels(t);
+  const HEALTH_SHIELDS = getHealthShields(t);
 
   // Daily-prayers header + provisional points (placeholder; rolls up to stats later).
   const todayLabel = new Date()
@@ -683,7 +689,7 @@ export default function PackDogDetail() {
               textDecoration: 'none',
             }}
           >
-            View on Wall {certNumber}
+            {t('pack.dog.viewOnWall', { certNumber })}
             <ExternalLink className="h-3 w-3" />
           </Link>
         )}
@@ -713,13 +719,13 @@ export default function PackDogDetail() {
             <div className="absolute flex items-center gap-2" style={{ top: 16, left: 16, zIndex: 4 }}>
               <IconBtn
                 icon={<QrCode className="h-4 w-4" />}
-                label="Your dog's passport — a global database. Coming soon."
+                label={t('pack.dog.passportTooltip')}
                 tooltipSide="right"
                 soon
               />
               <IconBtn
                 icon={<BrandIcon name="alert" size={16} tint="danger" />}
-                label="Lost dog — declare a search, alert the pack. Coming soon."
+                label={t('pack.dog.lostDogTooltip')}
                 tooltipSide="right"
                 soon
                 danger
@@ -729,7 +735,7 @@ export default function PackDogDetail() {
             <div className="absolute flex items-center gap-2" style={{ top: 16, right: 16, zIndex: 4 }}>
               <IconBtn
                 icon={<BrandIcon name="document" size={16} tint="gold" />}
-                label="Profile & documents"
+                label={t('pack.dog.profileDocumentsTooltip')}
                 active={profileOpen}
                 onClick={() => setProfileOpen((v) => !v)}
               />
@@ -740,7 +746,7 @@ export default function PackDogDetail() {
               type="button"
               onClick={handleChangeMainPhoto}
               disabled={uploadingMain}
-              aria-label="Change photo"
+              aria-label={t('pack.dog.ariaChangePhoto')}
               className="relative group"
               style={{
                 width: 125,
@@ -761,7 +767,7 @@ export default function PackDogDetail() {
                   className="flex items-center justify-center h-full"
                   style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.2em' }}
                 >
-                  NO PHOTO
+                  {t('pack.dog.noPhoto')}
                 </div>
               )}
               <span
@@ -827,8 +833,8 @@ export default function PackDogDetail() {
               {/* Vlajka — krúžok ako na GRIDE (flagcdn), bez badge rámu */}
               <img
                 src={flagUrl}
-                alt={origin || 'Slovakia'}
-                title={origin || 'Slovakia'}
+                alt={origin || t('pack.dog.defaultCountry')}
+                title={origin || t('pack.dog.defaultCountry')}
                 loading="lazy"
                 style={{
                   width: 28,
@@ -877,13 +883,13 @@ export default function PackDogDetail() {
                   }}
                 >
                   <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
-                  Living my best life
+                  {t('pack.dog.livingBestLife')}
                 </span>
                 <BestLifeBadge age={age} />
               </div>
             ) : (
               <div style={{ marginTop: 18, fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
-                Birthday unknown.
+                {t('pack.dog.birthdayUnknown')}
               </div>
             )}
             </div>
@@ -903,11 +909,11 @@ export default function PackDogDetail() {
               }}
             >
               <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-                <SectionHeading icon={<BrandIcon name="document" size={12} tint="gold" />} label="Profile & documents" inline />
+                <SectionHeading icon={<BrandIcon name="document" size={12} tint="gold" />} label={t('pack.dog.profileDocuments')} inline />
                 <button
                   type="button"
                   onClick={() => setProfileOpen(false)}
-                  aria-label="Back to profile"
+                  aria-label={t('pack.dog.ariaBackToProfile')}
                   className="inline-flex items-center justify-center"
                   style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(31,26,14,0.06)', border: `1px solid ${T.hairline}`, color: T.ink, cursor: 'pointer' }}
                 >
@@ -917,10 +923,10 @@ export default function PackDogDetail() {
 
               {/* Documents — first (header above already says it) */}
               <div className="flex flex-col gap-2">
-                <DownloadButton label="Certificate" href={dog.pdf_cert_url} filename={`${dogName}-certificate.pdf`} primary />
+                <DownloadButton label={t('pack.dog.docCertificate')} href={dog.pdf_cert_url} filename={`${dogName}-certificate.pdf`} primary />
                 <div className="grid grid-cols-2 gap-2">
-                  <DownloadButton label="Vertical" href={dog.pdf_vertical_url} filename={`${dogName}-vertical.pdf`} />
-                  <DownloadButton label="Horizontal" href={dog.pdf_horizontal_url} filename={`${dogName}-horizontal.pdf`} />
+                  <DownloadButton label={t('pack.dog.docVertical')} href={dog.pdf_vertical_url} filename={`${dogName}-vertical.pdf`} />
+                  <DownloadButton label={t('pack.dog.docHorizontal')} href={dog.pdf_horizontal_url} filename={`${dogName}-horizontal.pdf`} />
                 </div>
               </div>
               <button
@@ -943,7 +949,7 @@ export default function PackDogDetail() {
                 }}
               >
                 <BrandIcon name="document" size={12} tint="gold" />
-                {showCert ? 'Hide certificate' : 'View certificate'}
+                {showCert ? t('pack.dog.hideCertificate') : t('pack.dog.viewCertificate')}
                 <ChevronDown
                   className="h-3.5 w-3.5"
                   style={{ color: T.accentGold, transform: showCert ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
@@ -1003,7 +1009,7 @@ export default function PackDogDetail() {
                     }}
                   >
                     {regenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                    {regenerating ? 'Generating…' : hasPdfs ? 'Regenerate PDFs' : 'Generate PDFs'}
+                    {regenerating ? t('pack.dog.generating') : hasPdfs ? t('pack.dog.regeneratePdfs') : t('pack.dog.generatePdfs')}
                   </button>
                 );
               })()}
@@ -1011,7 +1017,7 @@ export default function PackDogDetail() {
               {/* A word on the Wall — second (pre-filled with the dog's current message; Save persists) */}
               <div style={{ marginTop: 14 }}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label="A word on the Wall" inline />
+                  <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label={t('pack.dog.wordOnWall')} inline />
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: T.inkDim }}>
                     {messageDraft.length}/{MESSAGE_MAX}
                   </span>
@@ -1022,7 +1028,7 @@ export default function PackDogDetail() {
                     setMessageDraft(e.target.value.slice(0, MESSAGE_MAX));
                     setMessageDirty(true);
                   }}
-                  placeholder="A few words shown on your WALL card — a tribute, a memory, a hello to the pack."
+                  placeholder={t('pack.dog.wallPlaceholder')}
                   rows={5}
                   style={{
                     minHeight: 110,
@@ -1062,7 +1068,7 @@ export default function PackDogDetail() {
                     }}
                   >
                     {messageSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                    {messageSaving ? 'Saving' : 'Save'}
+                    {messageSaving ? t('pack.dog.saving') : t('pack.dog.save')}
                   </button>
                 </div>
               </div>
@@ -1107,7 +1113,7 @@ export default function PackDogDetail() {
                 marginBottom: 6,
               }}
             >
-              What a wonderful time to be alive.
+              {t('pack.dog.prayersTitle')}
             </h2>
             <p
               style={{
@@ -1118,7 +1124,7 @@ export default function PackDogDetail() {
                 marginBottom: 16,
               }}
             >
-              Today's prayers — small acts of devotion to {dogName}.
+              {t('pack.dog.prayersSubtitle', { dogName })}
             </p>
 
             {/* Prayer checklist — rows stacked, purple→gold gradient, big green check.
@@ -1129,8 +1135,8 @@ export default function PackDogDetail() {
                 checked={presenceDone}
                 onToggle={() => setPresenceDone((v) => !v)}
                 disabled={prayersSubmitted}
-                title="Prayer of Presence"
-                hint="10 minutes of full attention — play, train, just be. No phone. This is the Prayer of Presence."
+                title={t('pack.dog.prayerPresenceTitle')}
+                hint={t('pack.dog.prayerPresenceHint')}
                 right={<span style={PTS_PILL}>+3</span>}
               />
 
@@ -1138,8 +1144,8 @@ export default function PackDogDetail() {
               <PrayerRow
                 checked={walkHours !== null}
                 disabled={prayersSubmitted}
-                title="Walk"
-                hint="Slide how long you walked. Under an hour earns 0.5 — then 1 point per hour, up to 5 for an all-day journey."
+                title={t('pack.dog.prayerWalkTitle')}
+                hint={t('pack.dog.prayerWalkHint')}
                 right={
                   <div className="w-[180px] md:w-[272px]" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1184,17 +1190,17 @@ export default function PackDogDetail() {
                 locked
                 faded
                 disabled={prayersSubmitted}
-                title="Open Ritual"
-                hint="Add your own acts of devotion — choose from more rituals or create a custom one."
+                title={t('pack.dog.prayerOpenRitualTitle')}
+                hint={t('pack.dog.prayerOpenRitualHint')}
                 onRowClick={() =>
                   toast({
-                    title: 'Coming soon',
-                    description: 'More rituals — and your own custom ones — are on the way.',
+                    title: t('pack.dog.comingSoon'),
+                    description: t('pack.dog.prayerOpenRitualComingSoon'),
                   })
                 }
                 right={
                   <span style={{ ...PTS_PILL, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                    Choose <ChevronDown className="h-3.5 w-3.5" />
+                    {t('pack.dog.prayerChoose')} <ChevronDown className="h-3.5 w-3.5" />
                   </span>
                 }
               />
@@ -1221,8 +1227,8 @@ export default function PackDogDetail() {
                 >
                   {prayersSubmitted ? <Check className="h-4 w-4" strokeWidth={3} /> : <Sparkles className="h-4 w-4" />}
                   {prayersSubmitted
-                    ? `Logged for today ✓ +${prayerLockedPoints ?? todayPoints} ☥`
-                    : `${todayPoints} Devotion today`}
+                    ? t('pack.dog.prayersLogged', { points: String(prayerLockedPoints ?? todayPoints) })
+                    : t('pack.dog.prayersTotal', { points: String(todayPoints) })}
                 </span>
 
                 {!prayersSubmitted && (
@@ -1245,7 +1251,7 @@ export default function PackDogDetail() {
                     }}
                   >
                     <Check className="h-4 w-4" strokeWidth={3} />
-                    Submit
+                    {t('pack.dog.submit')}
                   </button>
                 )}
               </div>
@@ -1259,7 +1265,7 @@ export default function PackDogDetail() {
                   color: T.inkFaint,
                 }}
               >
-                {prayersSubmitted ? 'Locked for today · resets tomorrow' : 'Adds to your stats'}
+                {prayersSubmitted ? t('pack.dog.prayersLockedDesc') : t('pack.dog.prayersAddsStats')}
               </span>
             </div>
 
@@ -1292,7 +1298,7 @@ export default function PackDogDetail() {
                       marginBottom: 10,
                     }}
                   >
-                    Log today's prayers?
+                    {t('pack.dog.confirmPrayersTitle')}
                   </h3>
                   <p
                     style={{
@@ -1303,7 +1309,7 @@ export default function PackDogDetail() {
                       marginBottom: 22,
                     }}
                   >
-                    This is final — today's devotion can't be changed.
+                    {t('pack.dog.confirmPrayersBody')}
                   </p>
                   <div className="flex items-center gap-3 justify-end">
                     <button
@@ -1322,7 +1328,7 @@ export default function PackDogDetail() {
                         cursor: 'pointer',
                       }}
                     >
-                      Cancel
+                      {t('pack.dog.cancel')}
                     </button>
                     <button
                       type="button"
@@ -1342,7 +1348,7 @@ export default function PackDogDetail() {
                         boxShadow: '0 8px 20px -8px rgba(201, 154, 63, 0.65)',
                       }}
                     >
-                      Log prayers
+                      {t('pack.dog.logPrayers')}
                     </button>
                   </div>
                 </div>
@@ -1364,8 +1370,8 @@ export default function PackDogDetail() {
         <div className="grid grid-cols-3 gap-4 md:gap-6">
           <HubTile
             icon="heartpaw"
-            label="Health"
-            sub="Vaccines · Vet · Food"
+            label={t('pack.dog.tileHealth')}
+            sub={t('pack.dog.tileHealthSub')}
             active={DEV_FULL}
             soon={!DEV_FULL}
             open={openTile === 'health'}
@@ -1373,8 +1379,8 @@ export default function PackDogDetail() {
           />
           <HubTile
             icon="trophy"
-            label="Training"
-            sub="Commands · Badges"
+            label={t('pack.dog.tileTraining')}
+            sub={t('pack.dog.tileTrainingSub')}
             active={DEV_FULL}
             soon={!DEV_FULL}
             open={openTile === 'training'}
@@ -1382,8 +1388,8 @@ export default function PackDogDetail() {
           />
           <HubTile
             icon="feather"
-            label="Journal"
-            sub="Stories · Photos"
+            label={t('pack.dog.tileJournal')}
+            sub={t('pack.dog.tileJournalSub')}
             active={DEV_FULL}
             soon={!DEV_FULL}
             open={openTile === 'journal'}
@@ -1395,8 +1401,8 @@ export default function PackDogDetail() {
         {openTile === 'health' && (
           <TilePanel
             icon="heartpaw"
-            title="Health"
-            tagline="The whole health record in one place — nothing lost, nothing missing."
+            title={t('pack.dog.tileHealth')}
+            tagline={t('pack.dog.healthTagline')}
           >
             {/* OVERVIEW — quick reference for owner & vet */}
             <div
@@ -1408,10 +1414,10 @@ export default function PackDogDetail() {
               }}
             >
               <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-                <SectionHeading icon={<BrandIcon name="clipboard" size={12} tint="gold" />} label="Overview" inline />
+                <SectionHeading icon={<BrandIcon name="clipboard" size={12} tint="gold" />} label={t('pack.dog.healthOverview')} inline />
                 <button
                   type="button"
-                  onClick={() => toast({ title: 'Coming soon', description: 'Share a read-only health profile with your vet.' })}
+                  onClick={() => toast({ title: t('pack.dog.comingSoon'), description: t('pack.dog.shareVetDesc') })}
                   className="inline-flex items-center gap-1.5"
                   style={{
                     padding: '8px 16px',
@@ -1429,23 +1435,23 @@ export default function PackDogDetail() {
                   }}
                 >
                   <BrandIcon name="link" size={14} tint="white" />
-                  Share with vet
+                  {t('pack.dog.shareWithVet')}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Facts */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5" style={{ alignContent: 'start' }}>
-                  <OverviewFact label="Breed" value={breed ? capWords(breed) : '—'} />
+                  <OverviewFact label={t('pack.dog.factBreed')} value={breed ? capWords(breed) : '—'} />
                   <OverviewFact
-                    label="Born"
+                    label={t('pack.dog.factBorn')}
                     value={birthDateLabel ?? '—'}
                     hint={age ? `${age.years}y ${age.months}m` : undefined}
                   />
                   {/* Weight — editable, saves to DB */}
                   <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
                     <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint }}>
-                      Weight
+                      {t('pack.dog.factWeight')}
                     </span>
                     {weightEditing ? (
                       <span className="inline-flex items-center gap-1.5">
@@ -1473,7 +1479,7 @@ export default function PackDogDetail() {
                         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>kg</span>
                         <button
                           type="button"
-                          aria-label="Save weight"
+                          aria-label={t('pack.dog.ariaSaveWeight')}
                           onClick={async () => {
                             const v = weightDraft.replace(',', '.').trim();
                             setWeightEditing(false);
@@ -1495,7 +1501,7 @@ export default function PackDogDetail() {
                         style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
                       >
                         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: T.ink }}>
-                          {weightKgDb ? `${weightKgDb} kg` : '— Add weight'}
+                          {weightKgDb ? `${weightKgDb} kg` : t('pack.dog.addWeight')}
                         </span>
                         <BrandIcon name="pencil" size={12} tint="gold" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
@@ -1504,11 +1510,11 @@ export default function PackDogDetail() {
                   {/* Diet — editable text input, saves to DB */}
                   <div className="flex flex-col" style={{ gap: 2, minWidth: 0 }}>
                     <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint }}>
-                      Diet
+                      {t('pack.dog.factDiet')}
                     </span>
                     <EditableHealthText
                       value={dietDb}
-                      placeholder="Add diet…"
+                      placeholder={t('pack.dog.addDiet')}
                       onSave={async (v) => { setDietDb(v); await saveHealthFields({ diet: v || null }); }}
                     />
                   </div>
@@ -1528,7 +1534,7 @@ export default function PackDogDetail() {
                       }}
                     >
                       <Shield className="h-3 w-3" style={{ color: T.accentGold }} />
-                      Protection
+                      {t('pack.dog.protection')}
                     </span>
                     <span
                       style={{
@@ -1539,7 +1545,7 @@ export default function PackDogDetail() {
                         color: T.inkFaint,
                       }}
                     >
-                      Preview
+                      {t('pack.dog.preview')}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -1562,21 +1568,21 @@ export default function PackDogDetail() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5" style={{ marginTop: 14 }}>
                 <EditableCriticalChip
                   lucide={<BrandIcon name="alert" size={14} tint="gold" />}
-                  label="Allergies"
+                  label={t('pack.dog.allergies')}
                   value={allergiesDb}
                   placeholder="—"
                   onSave={async (v) => { setAllergiesDb(v); await saveHealthFields({ allergies: v || null }); }}
                 />
                 <EditableCriticalChip
                   lucide={<BrandIcon name="clipboard" size={14} tint="gold" />}
-                  label="Conditions"
+                  label={t('pack.dog.conditions')}
                   value={conditionsDb}
                   placeholder="—"
                   onSave={async (v) => { setConditionsDb(v); await saveHealthFields({ conditions: v || null }); }}
                 />
                 <EditableCriticalChip
                   lucide={<BrandIcon name="chemical" size={14} tint="gold" />}
-                  label="Medication"
+                  label={t('pack.dog.medication')}
                   value={medicationDb}
                   placeholder="—"
                   onSave={async (v) => { setMedicationDb(v); await saveHealthFields({ medication: v || null }); }}
@@ -1587,17 +1593,17 @@ export default function PackDogDetail() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" style={{ marginTop: 12 }}>
                 <TestChip
                   lucide={<BrandIcon name="yinyang" size={16} tint="violet" />}
-                  label="Personality"
-                  cta="Make test"
-                  sub="TCM elements — fire, metal, wood…"
-                  onClick={() => toast({ title: 'Personality test — coming soon', description: 'A short quiz maps your dog onto the five elements.' })}
+                  label={t('pack.dog.testPersonality')}
+                  cta={t('pack.dog.testCta')}
+                  sub={t('pack.dog.testPersonalitySub')}
+                  onClick={() => toast({ title: t('pack.dog.testPersonalityComingSoon'), description: t('pack.dog.testPersonalityDesc') })}
                 />
                 <TestChip
                   lucide={<BrandIcon name="nose" size={16} tint="violet" />}
-                  label="Identity"
-                  cta="Make test"
-                  sub={`Find ${P.poss} character type`}
-                  onClick={() => toast({ title: 'Identity test — coming soon', description: `Click through a few questions to place ${P.poss} character type.` })}
+                  label={t('pack.dog.testIdentity')}
+                  cta={t('pack.dog.testCta')}
+                  sub={t('pack.dog.testIdentitySub', { poss: P.poss })}
+                  onClick={() => toast({ title: t('pack.dog.testIdentityComingSoon'), description: t('pack.dog.testIdentityDesc', { poss: P.poss }) })}
                 />
               </div>
             </div>
@@ -1606,20 +1612,20 @@ export default function PackDogDetail() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <SubCard
                 lucide={<BrandIcon name="vet" size={16} tint="gold" />}
-                title="Vet centre"
-                desc="Vaccinations and visits — planned and past — in one timeline you can share with any vet."
+                title={t('pack.dog.vetCentre')}
+                desc={t('pack.dog.vetCentreDesc')}
               />
               <SubCard
                 lucide={<BrandIcon name="bow" size={16} tint="gold" />}
-                title="Food protocol"
-                desc="Brand, portions and allergies — the diet the whole pack can trust."
+                title={t('pack.dog.foodProtocol')}
+                desc={t('pack.dog.foodProtocolDesc')}
               />
             </div>
 
             <VisionCallout
               tone="purple"
-              title="Health Protocol by AI + a vet network you trust"
-              body="A longevity blueprint for your dog, powered by AI — and a First-Aid network of vets across the nation. The whole point of a million Dogyptians."
+              title={t('pack.dog.visionHealthTitle')}
+              body={t('pack.dog.visionHealthBody')}
             />
           </TilePanel>
         )}
@@ -1628,35 +1634,35 @@ export default function PackDogDetail() {
         {openTile === 'training' && (
           <TilePanel
             icon="trophy"
-            title="Training"
-            tagline="Every command learned, every trial won — written down."
+            title={t('pack.dog.tileTraining')}
+            tagline={t('pack.dog.trainingTagline')}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <PreviewRow
                 lucide={<BrandIcon name="graduate" size={16} tint="gold" />}
-                label="Commands"
-                desc={`Sit, stay, recall, heel… tick them off as ${P.subj} masters each one.`}
+                label={t('pack.dog.trainingCommands')}
+                desc={t('pack.dog.trainingCommandsDesc', { subj: P.subj })}
               />
               <PreviewRow
                 lucide={<BrandIcon name="badge" size={16} tint="gold" />}
-                label="Sacred badges"
-                desc="Shows, races, obedience trials, countries visited — earned, never bought."
+                label={t('pack.dog.trainingSacredBadges')}
+                desc={t('pack.dog.trainingSacredBadgesDesc')}
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4" style={{ marginTop: 4 }}>
-              <LevelMeter title="Obedience" pct={0} label="Soon" />
-              <LevelMeter title="Agility" pct={0} label="Soon" />
+              <LevelMeter title={t('pack.dog.trainingObedience')} pct={0} label={t('pack.dog.soon')} />
+              <LevelMeter title={t('pack.dog.trainingAgility')} pct={0} label={t('pack.dog.soon')} />
             </div>
             <VisionCallout
-              title="Badges feed your Devotion"
-              body="Trials and milestones become sacred badges on your profile — and Devotion in the pack. The canon is being written."
+              title={t('pack.dog.visionTrainingTitle')}
+              body={t('pack.dog.visionTrainingBody')}
             />
           </TilePanel>
         )}
 
         {/* JOURNAL — Instant Story (voice + photos, logged by date) + archive + album */}
         {openTile === 'journal' && (
-          <TilePanel icon="feather" title="Journal" tagline={`Every story, every photo — ${P.poss} whole life, kept.`}>
+          <TilePanel icon="feather" title={t('pack.dog.tileJournal')} tagline={t('pack.dog.journalTagline', { poss: P.poss })}>
             {/* Top row — Instant Story (left) + Story archive (right) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
             {/* INSTANT STORY — the capture hero */}
@@ -1687,7 +1693,7 @@ export default function PackDogDetail() {
                 }}
               >
                 <Lock className="h-2.5 w-2.5" />
-                Soon
+                {t('pack.dog.soon')}
               </span>
               <div className="flex items-center gap-2" style={{ marginBottom: 7 }}>
                 <Mic className="h-4 w-4" style={{ color: '#FAF4EC' }} />
@@ -1701,16 +1707,16 @@ export default function PackDogDetail() {
                     color: '#FAF4EC',
                   }}
                 >
-                  Instant Story
+                  {t('pack.dog.instantStory')}
                 </span>
               </div>
               <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: 'rgba(250, 244, 236, 0.86)', lineHeight: 1.4 }}>
-                Just speak the moment — a quick voice note that logs under today's date and turns into text, one day maybe a page of {P.poss} book. Add a few photos and the day is saved forever.
+                {t('pack.dog.instantStoryDesc', { poss: P.poss })}
               </span>
               <div className="flex flex-wrap items-center gap-2.5" style={{ marginTop: 13 }}>
                 <button
                   type="button"
-                  onClick={() => toast({ title: 'Instant Story — coming soon', description: 'Record a voice note and it logs under today’s date.' })}
+                  onClick={() => toast({ title: t('pack.dog.instantStoryComingSoon'), description: t('pack.dog.instantStoryToastDesc') })}
                   className="inline-flex items-center gap-2"
                   style={{
                     padding: '9px 16px',
@@ -1727,11 +1733,11 @@ export default function PackDogDetail() {
                   }}
                 >
                   <Mic className="h-3.5 w-3.5" />
-                  Record a story
+                  {t('pack.dog.recordStory')}
                 </button>
                 <button
                   type="button"
-                  onClick={() => toast({ title: 'Coming soon', description: 'Attach photos to the moment.' })}
+                  onClick={() => toast({ title: t('pack.dog.comingSoon'), description: t('pack.dog.attachPhotosDesc') })}
                   className="inline-flex items-center gap-2"
                   style={{
                     padding: '9px 14px',
@@ -1748,7 +1754,7 @@ export default function PackDogDetail() {
                   }}
                 >
                   <Images className="h-3.5 w-3.5" />
-                  Add photos
+                  {t('pack.dog.addPhotos')}
                 </button>
               </div>
               <div
@@ -1761,7 +1767,7 @@ export default function PackDogDetail() {
               >
                 <Sparkles className="h-3.5 w-3.5 shrink-0" style={{ color: '#FAF4EC' }} />
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, color: 'rgba(250, 244, 236, 0.82)', lineHeight: 1.4 }}>
-                  Every story earns Devotion.
+                  {t('pack.dog.storyEarnsDevotion')}
                 </span>
               </div>
             </div>
@@ -1793,7 +1799,7 @@ export default function PackDogDetail() {
                   pointerEvents: 'none',
                 }}
               />
-              <SectionHeading icon={<BookOpen className="h-3 w-3" />} label="Story archive" />
+              <SectionHeading icon={<BookOpen className="h-3 w-3" />} label={t('pack.dog.storyArchive')} />
               <div
                 className="flex-1 flex items-center"
                 style={{
@@ -1803,7 +1809,7 @@ export default function PackDogDetail() {
                   lineHeight: 1.45,
                 }}
               >
-                {Poss} stories will live here — newest first, every voice note and photo by date.
+                {t('pack.dog.storyArchiveEmpty', { poss: Poss })}
               </div>
             </div>
             </div>
@@ -1811,7 +1817,7 @@ export default function PackDogDetail() {
             {/* PHOTO ALBUM — functional */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <SectionHeading icon={<Images className="h-3 w-3" />} label="Photo Album" inline />
+                <SectionHeading icon={<Images className="h-3 w-3" />} label={t('pack.dog.photoAlbum')} inline />
                 <button
                   type="button"
                   onClick={handleAddPhoto}
@@ -1832,7 +1838,7 @@ export default function PackDogDetail() {
                   }}
                 >
                   {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <BrandIcon name="plus" size={12} tint="gold" />}
-                  Add photo
+                  {t('pack.dog.addPhoto')}
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoChange} style={{ display: 'none' }} />
               </div>
@@ -1854,7 +1860,7 @@ export default function PackDogDetail() {
                       textAlign: 'center',
                     }}
                   >
-                    No photos yet.
+                    {t('pack.dog.noPhotosYet')}
                   </div>
                 )}
               </div>
@@ -1892,7 +1898,7 @@ export default function PackDogDetail() {
                 lineHeight: 1.05,
               }}
             >
-              STATS
+              {t('pack.dog.statsTitle')}
             </h2>
           </div>
           <p
@@ -1903,7 +1909,7 @@ export default function PackDogDetail() {
               marginBottom: 18,
             }}
           >
-            Every day you log glows — a living calendar of your devotion.
+            {t('pack.dog.statsDesc')}
           </p>
 
           {/* 67 / 33 split: calendar (left) · legend (right) */}
@@ -1935,7 +1941,7 @@ export default function PackDogDetail() {
                 boxShadow: '0 10px 30px -10px rgba(20, 8, 40, 0.35)',
               }}
             >
-              Coming soon
+              {t('pack.dog.comingSoon')}
             </span>
           </div>
         </section>
@@ -1961,7 +1967,7 @@ export default function PackDogDetail() {
           }}
         >
           {resending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Mail className="h-3 w-3" />}
-          Re-send email
+          {t('pack.dog.resendEmail')}
         </button>
 
         <div style={{ height: 24 }} />
@@ -1981,14 +1987,16 @@ export default function PackDogDetail() {
 const GOLD_FILTER =
   'brightness(0) saturate(100%) invert(58%) sepia(56%) saturate(481%) hue-rotate(2deg) brightness(91%) contrast(86%)';
 
-const STAT_LEGEND = [
-  { label: 'Trip', desc: 'A long day into the wild', color: '#2E7D4F', icon: 'forest' },
-  { label: 'Walk', desc: 'A proper daily walk', color: '#7FB04A', icon: 'paw' },
-  { label: 'Stroll', desc: 'A quick round the block', color: '#E6B23A', icon: 'walk' },
-  { label: 'Vet', desc: 'Health & check-ups', color: '#3B82C4', icon: 'vet' },
-  { label: 'Birthday', desc: 'The real one', color: '#8B5CF6', icon: 'star' },
-  { label: 'Human year', desc: '1 of 7 — plan something', color: '#EC6FA6', icon: 'sun' },
-];
+function getStatLegend(t: ReturnType<typeof useT>) {
+  return [
+    { label: t('pack.dog.legendTrip'), desc: t('pack.dog.legendTripDesc'), color: '#2E7D4F', icon: 'forest' },
+    { label: t('pack.dog.legendWalk'), desc: t('pack.dog.legendWalkDesc'), color: '#7FB04A', icon: 'paw' },
+    { label: t('pack.dog.legendStroll'), desc: t('pack.dog.legendStrollDesc'), color: '#E6B23A', icon: 'walk' },
+    { label: t('pack.dog.legendVet'), desc: t('pack.dog.legendVetDesc'), color: '#3B82C4', icon: 'vet' },
+    { label: t('pack.dog.legendBirthday'), desc: t('pack.dog.legendBirthdayDesc'), color: '#8B5CF6', icon: 'star' },
+    { label: t('pack.dog.legendHumanYear'), desc: t('pack.dog.legendHumanYearDesc'), color: '#EC6FA6', icon: 'sun' },
+  ];
+}
 
 const BIRTHDAY_PURPLE = '#8B5CF6';
 const HUMAN_YEAR_PINK = '#EC6FA6';
@@ -2002,12 +2010,18 @@ function statDemoColor(i: number): string {
   return 'rgba(31, 26, 14, 0.06)'; // rest day — neutral, never red
 }
 
-const STAT_MONTHS: [string, number][] = [
-  ['Jan', 31], ['Feb', 28], ['Mar', 31], ['Apr', 30], ['May', 31], ['Jun', 30],
-  ['Jul', 31], ['Aug', 31], ['Sep', 30], ['Oct', 31], ['Nov', 30], ['Dec', 31],
-];
+function getStatMonths(t: ReturnType<typeof useT>): [string, number][] {
+  return [
+    [t('pack.dog.monthJan'), 31], [t('pack.dog.monthFeb'), 28], [t('pack.dog.monthMar'), 31],
+    [t('pack.dog.monthApr'), 30], [t('pack.dog.monthMay'), 31], [t('pack.dog.monthJun'), 30],
+    [t('pack.dog.monthJul'), 31], [t('pack.dog.monthAug'), 31], [t('pack.dog.monthSep'), 30],
+    [t('pack.dog.monthOct'), 31], [t('pack.dog.monthNov'), 30], [t('pack.dog.monthDec'), 31],
+  ];
+}
 
 function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; birthDay: number | null }) {
+  const t = useT();
+  const STAT_MONTHS = getStatMonths(t);
   let offset = 0;
   const rows = STAT_MONTHS.map(([name, days]) => {
     const base = offset;
@@ -2093,6 +2107,8 @@ function StatsCalendar({ birthMonth, birthDay }: { birthMonth: number | null; bi
 }
 
 function StatsLegend({ onAdd }: { onAdd: () => void }) {
+  const t = useT();
+  const STAT_LEGEND = getStatLegend(t);
   return (
     <div className="flex flex-col gap-2">
       <div
@@ -2105,7 +2121,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
           marginBottom: 2,
         }}
       >
-        Legend
+        {t('pack.dog.legend')}
       </div>
 
       {STAT_LEGEND.map((l) => (
@@ -2143,10 +2159,10 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         </span>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.1 }}>
-            Add activity
+            {t('pack.dog.addActivity')}
           </div>
           <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkFaint }}>
-            Name, colour &amp; icon — coming soon
+            {t('pack.dog.addActivityDesc')}
           </div>
         </div>
       </button>
@@ -2155,6 +2171,7 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
 }
 
 function BestLifeBadge({ age }: { age: DogAge }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <div
@@ -2165,7 +2182,7 @@ function BestLifeBadge({ age }: { age: DogAge }) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Show age detail"
+        aria-label={t('pack.dog.ariaShowAgeDetail')}
         style={{
           padding: '5px 14px',
           borderRadius: 999,
@@ -2202,7 +2219,7 @@ function BestLifeBadge({ age }: { age: DogAge }) {
             zIndex: 5,
           }}
         >
-          {age.years}y {age.months}m {age.days}d&nbsp;·&nbsp;≈ {age.humanYears} human years
+          {t('pack.dog.ageDetail', { years: String(age.years), months: String(age.months), days: String(age.days), humanYears: String(age.humanYears) })}
         </div>
       )}
     </div>
@@ -2385,14 +2402,16 @@ function walkPointsFor(h: number): number {
 }
 // Walk picker buttons — h-value 0..5 (0 = under an hour, 5 = all-day). Same on
 // every screen size, no slider.
-const WALK_LEVELS: { h: number; label: string }[] = [
-  { h: 0, label: '<1h' },
-  { h: 1, label: '1h' },
-  { h: 2, label: '2h' },
-  { h: 3, label: '3h' },
-  { h: 4, label: '4h' },
-  { h: 5, label: 'Day' },
-];
+function getWalkLevels(t: ReturnType<typeof useT>): { h: number; label: string }[] {
+  return [
+    { h: 0, label: t('pack.dog.walkLevelUnder1h') },
+    { h: 1, label: t('pack.dog.walkLevel1h') },
+    { h: 2, label: t('pack.dog.walkLevel2h') },
+    { h: 3, label: t('pack.dog.walkLevel3h') },
+    { h: 4, label: t('pack.dog.walkLevel4h') },
+    { h: 5, label: t('pack.dog.walkLevelDay') },
+  ];
+}
 
 // Purple→gold gradient — matches FounderInvite (brand milestone card).
 const PRAYER_GRADIENT = 'var(--brand-gradient)';
@@ -2548,13 +2567,15 @@ function PrayerRow({
 // ---------------------------------------------------------------------------
 type HealthKey = 'healthy' | 'injury' | 'gastro' | 'allergy' | 'other';
 
-const HEALTH_OPTIONS: { key: HealthKey; label: string; color: string }[] = [
-  { key: 'healthy', label: 'Healthy', color: '#22A35E' },
-  { key: 'injury', label: 'Injury', color: '#E0892B' },
-  { key: 'gastro', label: 'Gastro', color: '#C2683B' },
-  { key: 'allergy', label: 'Allergy', color: '#B5573E' },
-  { key: 'other', label: 'Other', color: '#7A6A52' },
-];
+function getHealthOptions(t: ReturnType<typeof useT>): { key: HealthKey; label: string; color: string }[] {
+  return [
+    { key: 'healthy', label: t('pack.dog.healthHealthy'), color: '#22A35E' },
+    { key: 'injury', label: t('pack.dog.healthInjury'), color: '#E0892B' },
+    { key: 'gastro', label: t('pack.dog.healthGastro'), color: '#C2683B' },
+    { key: 'allergy', label: t('pack.dog.healthAllergy'), color: '#B5573E' },
+    { key: 'other', label: t('pack.dog.healthOther'), color: '#7A6A52' },
+  ];
+}
 
 function HealthBadge({
   status,
@@ -2567,6 +2588,8 @@ function HealthBadge({
   onToggle: () => void;
   onSelect: (k: HealthKey) => void;
 }) {
+  const t = useT();
+  const HEALTH_OPTIONS = getHealthOptions(t);
   const current = HEALTH_OPTIONS.find((o) => o.key === status) ?? HEALTH_OPTIONS[0];
   const isHealthy = status === 'healthy';
   return (
@@ -2640,8 +2663,7 @@ function HealthBadge({
           {/* Vízia — vysvetlivka (pozvánka, nie funkčné) */}
           <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${T.hairline}` }}>
             <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, lineHeight: 1.5, color: T.inkDim }}>
-              One day, marking your dog unwell will alert DOGYPT healers near you — and our AI will reach out
-              to help. A global first-aid network for dogs.
+              {t('pack.dog.healthVision')}
             </p>
             <span
               style={{
@@ -2654,7 +2676,7 @@ function HealthBadge({
                 color: T.inkFaint,
               }}
             >
-              Vision · not live yet
+              {t('pack.dog.visionNotLive')}
             </span>
           </div>
         </div>
@@ -2665,6 +2687,7 @@ function HealthBadge({
 
 // Pulzujúca svietiaca zelená bodka vľavo od mena = pes žije. Hover → odkaz.
 function AliveDot() {
+  const t = useT();
   const [hover, setHover] = useState(false);
   return (
     <span
@@ -2677,7 +2700,7 @@ function AliveDot() {
         50% { box-shadow: 0 0 0 5px rgba(34,197,94,0), 0 0 13px 4px rgba(34,197,94,0.85); }
       }`}</style>
       <span
-        aria-label="Still alive"
+        aria-label={t('pack.dog.ariaStillAlive')}
         style={{
           width: 11,
           height: 11,
@@ -2706,7 +2729,7 @@ function AliveDot() {
             boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
           }}
         >
-          Still alive, ready to have fun
+          {t('pack.dog.stillAliveTooltip')}
         </span>
       )}
     </span>
@@ -2880,6 +2903,7 @@ function PreviewRow({
   desc: string;
   live?: boolean;
 }) {
+  const t = useT();
   return (
     <div
       className="flex items-start gap-3"
@@ -2928,7 +2952,7 @@ function PreviewRow({
               }}
             >
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: T.growGreen }} />
-              Live
+              {t('pack.dog.statusLive')}
             </span>
           ) : (
             <span
@@ -2945,7 +2969,7 @@ function PreviewRow({
               }}
             >
               <Lock className="h-2.5 w-2.5" />
-              Soon
+              {t('pack.dog.soon')}
             </span>
           )}
         </div>
@@ -3198,6 +3222,7 @@ function TestChip({
 
 // SubCard — a bigger coming-soon block (Vet centre / Food protocol).
 function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: string; desc: string }) {
+  const t = useT();
   const [hover, setHover] = useState(false);
   return (
     <div
@@ -3228,7 +3253,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
         }}
       >
         <Lock className="h-2.5 w-2.5" />
-        Soon
+        {t('pack.dog.soon')}
       </span>
       <span
         className="inline-flex items-center justify-center"
@@ -3266,6 +3291,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
 
 // LIVE coming-soon karta na mieste Daily Prayers (Block 2). DEV_FULL = plný blok.
 function PrayersComingSoon({ dogName }: { dogName: string }) {
+  const t = useT();
   return (
     <section
       className="flex flex-col items-center justify-center text-center"
@@ -3285,7 +3311,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         <Lock className="h-6 w-6" style={{ color: T.accentGold }} />
       </span>
       <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 19, fontWeight: 700, color: T.ink, lineHeight: 1.2 }}>
-        Daily Prayers
+        {t('pack.dog.dailyPrayers')}
       </h2>
       <span
         className="inline-flex items-center gap-1.5"
@@ -3301,10 +3327,10 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         }}
       >
         <Lock className="h-2.5 w-2.5" />
-        Coming soon
+        {t('pack.dog.comingSoon')}
       </span>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, maxWidth: 280 }}>
-        The daily acts of devotion to {dogName} — presence, the walk, and ritual — are on the way.
+        {t('pack.dog.prayersComingSoonDesc', { dogName })}
       </p>
     </section>
   );
@@ -3327,6 +3353,7 @@ function HubTile({
   soon?: boolean;
   onClick?: () => void;
 }) {
+  const t = useT();
   const clickable = !!active && !soon;
   const [hover, setHover] = useState(false);
   const lift = clickable && hover;
@@ -3371,7 +3398,7 @@ function HubTile({
           }}
         >
           <Lock className="h-2.5 w-2.5" />
-          Soon
+          {t('pack.dog.soon')}
         </span>
       )}
       {active && (
@@ -3442,6 +3469,7 @@ function HubTile({
 }
 
 function PhotoTile({ url, primary, onRemove }: { url: string; primary?: boolean; onRemove?: () => void }) {
+  const t = useT();
   return (
     <div
       className="relative group"
@@ -3470,14 +3498,14 @@ function PhotoTile({ url, primary, onRemove }: { url: string; primary?: boolean;
             fontWeight: 700,
           }}
         >
-          MAIN
+          {t('pack.dog.mainBadge')}
         </div>
       )}
       {onRemove && (
         <button
           type="button"
           onClick={onRemove}
-          aria-label="Remove photo"
+          aria-label={t('pack.dog.ariaRemovePhoto')}
           className="opacity-0 group-hover:opacity-100 transition-opacity"
           style={{
             position: 'absolute',
@@ -3513,6 +3541,7 @@ function DownloadButton({
   filename: string;
   primary?: boolean;
 }) {
+  const t = useT();
   const enabled = !!href;
 
   // PRIMARY — zlatý card: ikona v kruhu + eyebrow/„Certificate" + PDF ↓
@@ -3538,10 +3567,10 @@ function DownloadButton({
         }
         <span className="flex flex-col" style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 8, letterSpacing: '0.22em', textTransform: 'uppercase', opacity: 0.7, lineHeight: 1 }}>
-            The official record
+            {t('pack.dog.certOfficialRecord')}
           </span>
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.04em', lineHeight: 1.25 }}>
-            Certificate
+            {t('pack.dog.docCertificate')}
           </span>
         </span>
         <span className="inline-flex items-center gap-1.5" style={{ fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 11, fontWeight: 700, flexShrink: 0 }}>
@@ -3553,7 +3582,7 @@ function DownloadButton({
     return enabled ? (
       <a href={href!} download={filename} target="_blank" rel="noopener noreferrer" style={style}>{inner}</a>
     ) : (
-      <div style={style} title="Generating…">{inner}</div>
+      <div style={style} title={t('pack.dog.generating')}>{inner}</div>
     );
   }
 
@@ -3591,6 +3620,7 @@ function DownloadButton({
 }
 
 function NotFoundBox() {
+  const t = useT();
   return (
     <div
       style={{
@@ -3613,10 +3643,10 @@ function NotFoundBox() {
           marginBottom: 10,
         }}
       >
-        Not Found
+        {t('pack.dog.notFound')}
       </h2>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.inkDim, fontSize: 14, marginBottom: 20 }}>
-        This heroglyph is either not yours or no longer exists.
+        {t('pack.dog.notFoundDesc')}
       </p>
       <Link
         to="/pack"
@@ -3635,17 +3665,18 @@ function NotFoundBox() {
         }}
       >
         <ArrowLeft className="h-3 w-3" />
-        Back to Pack
+        {t('pack.dog.backToPack')}
       </Link>
     </div>
   );
 }
 
 function ErrorBox({ message }: { message: string }) {
+  const t = useT();
   return (
     <div style={{ background: T.card, borderRadius: 16, padding: 20, maxWidth: 480, margin: '0 auto' }}>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.ink }}>
-        Something went wrong while loading this heroglyph.
+        {t('pack.dog.errorLoading')}
       </p>
       <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.inkDim, marginTop: 6 }}>
         {message}

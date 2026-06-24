@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { PACK_THEME } from './packTheme';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -21,10 +22,10 @@ const PERIODS = [
 ] as const;
 
 const ALLOC = [
-  { key: 'dev',  share: 5, label: 'Development',    color: T.partDev  },
-  { key: 'mkt',  share: 3, label: 'Affiliate',       color: T.partMkt  },
-  { key: 'help', share: 2, label: 'Direct help',     color: T.partHelp },
-  { key: 'hek',  share: 1, label: "Hekthor's bowl",  color: T.partHek  },
+  { key: 'dev',  share: 5, labelKey: 'pack.stats.development', color: T.partDev  },
+  { key: 'mkt',  share: 3, labelKey: 'pack.stats.affiliate',   color: T.partMkt  },
+  { key: 'help', share: 2, labelKey: 'pack.stats.directHelp',  color: T.partHelp },
+  { key: 'hek',  share: 1, labelKey: 'pack.stats.hekthorBowl', color: T.partHek  },
 ] as const;
 
 function money(n: number): string {
@@ -32,6 +33,7 @@ function money(n: number): string {
 }
 
 export function TransparentStats() {
+  const t = useT();
   const [pIdx, setPIdx] = useState(0);
   const period = PERIODS[pIdx];
 
@@ -50,7 +52,7 @@ export function TransparentStats() {
             margin: 0,
           }}
         >
-          Transparent Stats
+          {t('pack.stats.title')}
         </h3>
 
         <div
@@ -84,7 +86,7 @@ export function TransparentStats() {
                   transition: 'background 0.2s ease, color 0.2s ease',
                 }}
               >
-                {p.short}
+                {t('pack.stats.short.' + p.key)}
               </button>
             );
           })}
@@ -124,7 +126,7 @@ export function TransparentStats() {
         >
           heroglyphs
           <br />
-          this month
+          {t('pack.stats.thisMonth')}
         </span>
       </div>
 
@@ -156,7 +158,7 @@ export function TransparentStats() {
                   color: T.inkDim,
                 }}
               >
-                {a.label}
+                {t(a.labelKey)}
               </span>
               <span
                 style={{
@@ -203,7 +205,7 @@ export function TransparentStats() {
           onMouseEnter={e => (e.currentTarget.style.color = T.accentGold)}
           onMouseLeave={e => (e.currentTarget.style.color = T.inkDim)}
         >
-          Why this split? Read &lsquo;Money is an Energy&rsquo; in the Constitution →
+          {t('pack.stats.split')}
         </a>
       </div>
 
@@ -213,7 +215,7 @@ export function TransparentStats() {
           <strong style={{ color: T.accentGold, fontWeight: 700 }}>
             {period.affiliatePoints.toLocaleString('en-US')}
           </strong>{' '}
-          BONES distributed to the pack
+          {t('pack.stats.bonesDistributed')}
         </span>
         <span
           style={{
@@ -222,7 +224,7 @@ export function TransparentStats() {
             color: T.inkDim,
           }}
         >
-          {money(period.heroglyphs * 11)} raised
+          {t('pack.stats.raised', { amount: money(period.heroglyphs * 11) })}
         </span>
       </div>
     </div>

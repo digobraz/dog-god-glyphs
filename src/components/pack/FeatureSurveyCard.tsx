@@ -6,6 +6,7 @@ import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
 import { EDGE_BASE } from '@/lib/env';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -32,26 +33,29 @@ interface Feature {
 }
 
 // v2 konsolidované buckety (swipe). ALLOWED_KEYS v toggle-feature-vote musí sedieť.
-const FEATURES: Feature[] = [
-  {
-    key: 'mobile_app',
-    title: 'Mobile App',
-    blurb: 'Social network, dog-friendly map & pack messaging — the pack in your pocket.',
-    image: imgMobileApp,
-  },
-  {
-    key: 'health_ai',
-    title: 'Health Protocol by AI',
-    blurb: 'A longevity blueprint for your dog, powered by AI — plus a trusted vet network.',
-    image: imgHealth,
-  },
-  {
-    key: 'merch',
-    title: 'Merch',
-    blurb: 'Heroglyph prints, collars, books & sacred accessories.',
-    image: imgMerch,
-  },
-];
+// Funkcia berie `t` aby sa title/blurb dali preložiť (SPEC: module-scope pole → funkcia).
+function getFeatures(t: (key: string) => string): Feature[] {
+  return [
+    {
+      key: 'mobile_app',
+      title: t('pack.survey.featureMobileAppTitle'),
+      blurb: t('pack.survey.featureMobileAppBlurb'),
+      image: imgMobileApp,
+    },
+    {
+      key: 'health_ai',
+      title: t('pack.survey.featureHealthAiTitle'),
+      blurb: t('pack.survey.featureHealthAiBlurb'),
+      image: imgHealth,
+    },
+    {
+      key: 'merch',
+      title: t('pack.survey.featureMerchTitle'),
+      blurb: t('pack.survey.featureMerchBlurb'),
+      image: imgMerch,
+    },
+  ];
+}
 
 interface FeatureSurveyCardProps {
   votes: Record<string, number>;
@@ -59,6 +63,8 @@ interface FeatureSurveyCardProps {
 }
 
 export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardProps) {
+  const t = useT();
+  const FEATURES = getFeatures(t);
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<string, number>>(votes ?? {});
@@ -223,7 +229,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             textShadow: '0 1px 8px rgba(8,60,57,0.35)',
           }}
         >
-          Shape the app
+          {t('pack.survey.heading')}
         </h3>
         <div
           style={{
@@ -234,7 +240,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             marginTop: 5,
           }}
         >
-          What should we build first?
+          {t('pack.survey.subheading')}
         </div>
 
         {/* Results/Vote toggle — centrovaný pod podnadpisom (NIE absolute cez nadpis,
@@ -257,7 +263,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
               boxShadow: '0 4px 12px -4px rgba(0,0,0,0.4)',
             }}
           >
-            {showResults ? 'Vote' : 'Results'}
+            {showResults ? t('pack.survey.toggleVote') : t('pack.survey.toggleResults')}
           </button>
         )}
       </div>
@@ -371,7 +377,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
                         }}
                       >
                         {isMine ? <Check className="h-3.5 w-3.5" /> : null}
-                        {isMine ? 'Voted' : 'I vote for this'}
+                        {isMine ? t('pack.survey.voted') : t('pack.survey.voteForThis')}
                       </button>
                     </div>
                   </div>
@@ -386,7 +392,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
               <button
                 key={f.key}
                 type="button"
-                aria-label={`Go to ${f.title}`}
+                aria-label={t('pack.survey.dotAriaLabel', { title: f.title })}
                 onClick={() => setIdx(i)}
                 style={{
                   width: i === idx ? 18 : 6,
@@ -421,7 +427,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             color: 'rgba(250,244,236,0.7)',
           }}
         >
-          Collecting until {COLLECT_UNTIL} — then we build.
+          {t('pack.survey.collectingUntil', { date: COLLECT_UNTIL })}
         </span>
         <span
           style={{
@@ -431,7 +437,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
             color: 'rgba(250,244,236,0.55)',
           }}
         >
-          {totalVotes.toLocaleString('en-US')} votes
+          {t('pack.survey.totalVotes', { count: totalVotes.toLocaleString('en-US') })}
         </span>
       </div>
     </section>
@@ -461,6 +467,8 @@ function ResultsGraph({
   total: number;
   myVotes: Set<string>;
 }) {
+  const t = useT();
+  const FEATURES = getFeatures(t);
   const CX = 60;
   const CY = 60;
   const R = 56;
@@ -549,12 +557,13 @@ function ResultsGraph({
 }
 
 function NavArrow({ dir, disabled, onClick }: { dir: 'left' | 'right'; disabled: boolean; onClick: () => void }) {
+  const t = useT();
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label={dir === 'left' ? 'Previous' : 'Next'}
+      aria-label={dir === 'left' ? t('pack.survey.navPrevious') : t('pack.survey.navNext')}
       className="inline-flex items-center justify-center"
       style={{
         width: 30,

@@ -5,6 +5,8 @@ import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/i18n/LanguageContext';
+import LanguagePicker from '@/components/LanguagePicker';
 
 const T = PACK_THEME;
 
@@ -22,6 +24,7 @@ export function PackSettings() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const t = useT();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -37,8 +40,8 @@ export function PackSettings() {
 
   const handleSetPassword = async () => {
     setPwError('');
-    if (pwValue.length < 8) { setPwError('Password must be at least 8 characters.'); return; }
-    if (pwValue !== pwConfirm) { setPwError('Passwords do not match.'); return; }
+    if (pwValue.length < 8) { setPwError(t('pack.settings.errPwShort')); return; }
+    if (pwValue !== pwConfirm) { setPwError(t('pack.settings.errPwMismatch')); return; }
     setPwSaving(true);
     try {
       const { error: upErr } = await supabase.auth.updateUser({ password: pwValue });
@@ -47,9 +50,9 @@ export function PackSettings() {
       setPwValue('');
       setPwConfirm('');
       setPwModalOpen(false);
-      toast({ title: 'Password set', description: 'You can now log in with email + password.' });
+      toast({ title: t('pack.settings.toastTitle'), description: t('pack.settings.toastDesc') });
     } catch (err) {
-      setPwError(err instanceof Error ? err.message : 'Could not set password.');
+      setPwError(err instanceof Error ? err.message : t('pack.settings.errPwGeneric'));
     } finally {
       setPwSaving(false);
     }
@@ -87,15 +90,15 @@ export function PackSettings() {
           marginBottom: 6,
         }}
       >
-        Account
+        {t('pack.settings.account')}
       </div>
 
-      <Field icon={<Mail className="h-4 w-4" />} label="Email">
+      <Field icon={<Mail className="h-4 w-4" />} label={t('pack.settings.email')}>
         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>
           {email}
         </span>
       </Field>
-      <Field icon={<KeyRound className="h-4 w-4" />} label="Password">
+      <Field icon={<KeyRound className="h-4 w-4" />} label={t('pack.settings.password')}>
         <button
           type="button"
           onClick={() => setPwModalOpen(true)}
@@ -112,19 +115,16 @@ export function PackSettings() {
             cursor: 'pointer',
           }}
         >
-          Set / Change
+          {t('pack.settings.setChange')}
         </button>
       </Field>
-      <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label="Language">
-        <div className="flex items-center gap-2">
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>English</span>
-          <Badge label="Locked v0" />
-        </div>
+      <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label={t('pack.settings.language')}>
+        <LanguagePicker variant="settings" />
       </Field>
-      <Field icon={<BellOff className="h-4 w-4" />} label="Notifications">
-        <Badge label="Coming soon" />
+      <Field icon={<BellOff className="h-4 w-4" />} label={t('pack.settings.notifications')}>
+        <Badge label={t('pack.settings.comingSoon')} />
       </Field>
-      <Field icon={<LogOut className="h-4 w-4" />} label="Sign out" last>
+      <Field icon={<LogOut className="h-4 w-4" />} label={t('pack.settings.signOut')} last>
         <button
           type="button"
           onClick={handleSignOut}
@@ -147,7 +147,7 @@ export function PackSettings() {
           }}
         >
           {signingOut && <Loader2 className="h-3 w-3 animate-spin" />}
-          Sign out
+          {t('pack.settings.signOut')}
         </button>
       </Field>
 
@@ -172,12 +172,12 @@ export function PackSettings() {
           >
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
               <span style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim }}>
-                Password
+                {t('pack.settings.password')}
               </span>
               <button
                 type="button"
                 onClick={() => setPwModalOpen(false)}
-                aria-label="Close"
+                aria-label={t('pack.settings.close')}
                 className="inline-flex items-center justify-center"
                 style={{ width: 30, height: 30, borderRadius: 999, background: 'rgba(31,26,14,0.06)', border: 'none', cursor: 'pointer', color: T.inkDim }}
               >
@@ -186,8 +186,8 @@ export function PackSettings() {
             </div>
             <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim, margin: '0 0 16px' }}>
               {fromWelcome
-                ? 'Finish your account — set a password to log in any time without the email link.'
-                : 'Set or change your password for email + password login.'}
+                ? t('pack.settings.pwDescWelcome')
+                : t('pack.settings.pwDesc')}
             </p>
             <div className="flex flex-col gap-3">
               <input
@@ -195,7 +195,7 @@ export function PackSettings() {
                 autoComplete="new-password"
                 value={pwValue}
                 onChange={(e) => { setPwValue(e.target.value); setPwDone(false); }}
-                placeholder="New password (min 8 characters)"
+                placeholder={t('pack.settings.pwNewPlaceholder')}
                 style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
               />
               <input
@@ -203,7 +203,7 @@ export function PackSettings() {
                 autoComplete="new-password"
                 value={pwConfirm}
                 onChange={(e) => setPwConfirm(e.target.value)}
-                placeholder="Confirm password"
+                placeholder={t('pack.settings.pwConfirmPlaceholder')}
                 style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
               />
               {pwError && (
@@ -217,7 +217,7 @@ export function PackSettings() {
                 style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
               >
                 {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <Check className="h-3 w-3" /> : null}
-                Set password
+                {t('pack.settings.pwSubmit')}
               </button>
             </div>
           </div>

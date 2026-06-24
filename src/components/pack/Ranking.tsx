@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { PACK_THEME } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -29,6 +30,7 @@ export function Ranking({
   slots?: number;
   kind: 'country' | 'breed';
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const all = rows ?? [];
   const filled = all.slice(0, slots);
@@ -65,7 +67,7 @@ export function Ranking({
             padding: 0,
           }}
         >
-          View all →
+          {t('pack.rank.viewAll')}
         </button>
       </div>
 
@@ -209,6 +211,7 @@ function RankingModal({
   kind: 'country' | 'breed';
   onClose: () => void;
 }) {
+  const t = useT();
   const max = Math.max(1, ...rows.map((r) => r.count));
   return (
     <div
@@ -259,7 +262,7 @@ function RankingModal({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('pack.rank.ariaClose')}
             className="inline-flex items-center justify-center"
             style={{
               width: 30,
@@ -286,7 +289,7 @@ function RankingModal({
                 color: T.inkDim,
               }}
             >
-              No data yet — the board fills as the pack grows.
+              {t('pack.rank.noData')}
             </div>
           ) : (
             rows.map((r, i) => <RankRowView key={i} rank={i + 1} row={r} max={max} kind={kind} first={i === 0} />)

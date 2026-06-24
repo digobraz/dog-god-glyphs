@@ -7,6 +7,7 @@ import { devotionLevel } from '@/lib/devotion';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -30,6 +31,7 @@ interface HeroCardProps {
 
 export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null }: HeroCardProps) {
   const { toast } = useToast();
+  const t = useT();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [localAvatar, setLocalAvatar] = useState<string | null>(avatarUrl);
   const [uploading, setUploading] = useState(false);
@@ -55,9 +57,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       const { error: upErr } = await supabase.auth.updateUser({ data: { avatar_url: result.secureUrl } });
       if (upErr) throw new Error(upErr.message);
       setLocalAvatar(result.secureUrl);
-      toast({ title: 'Photo updated' });
+      toast({ title: t('pack.hero.toastPhotoUpdated') });
     } catch (err) {
-      toast({ title: 'Upload failed', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
+      toast({ title: t('pack.hero.toastUploadFailed'), description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -72,9 +74,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       if (upErr) throw new Error(upErr.message);
       setLocalName(next);
       setEditingName(false);
-      toast({ title: 'Name updated' });
+      toast({ title: t('pack.hero.toastNameUpdated') });
     } catch (err) {
-      toast({ title: 'Could not save', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
+      toast({ title: t('pack.hero.toastCouldNotSave'), description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
     } finally {
       setNameSaving(false);
     }
@@ -155,7 +157,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                aria-label="Edit avatar"
+                aria-label={t('pack.hero.ariaEditAvatar')}
                 className="relative group block h-full w-full"
                 style={{
                   borderRadius: '50%',
@@ -228,7 +230,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             marginBottom: 4,
           }}
         >
-          Welcome back
+          {t('pack.hero.welcomeBack')}
         </div>
         {editingName ? (
           <div className="flex items-center justify-center gap-2 w-full" style={{ maxWidth: '92%' }}>
@@ -240,7 +242,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 if (e.key === 'Enter') void handleSaveName();
                 if (e.key === 'Escape') { setNameDraft(displayName); setEditingName(false); }
               }}
-              placeholder="Your name"
+              placeholder={t('pack.hero.namePlaceholder')}
               style={{
                 flex: 1,
                 minWidth: 0,
@@ -260,7 +262,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
               type="button"
               onClick={handleSaveName}
               disabled={nameSaving}
-              aria-label="Save name"
+              aria-label={t('pack.hero.ariaSaveName')}
               className="inline-flex items-center justify-center shrink-0"
               style={{ width: 34, height: 34, borderRadius: 9, background: T.ink, color: T.card, border: 'none', cursor: 'pointer', opacity: nameSaving ? 0.6 : 1 }}
             >
@@ -287,7 +289,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             <button
               type="button"
               onClick={() => { setNameDraft(displayName); setEditingName(true); }}
-              aria-label="Edit name"
+              aria-label={t('pack.hero.ariaEditName')}
               className="inline-flex items-center justify-center shrink-0 opacity-50 hover:opacity-100 transition-opacity"
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.inkDim, padding: 2 }}
             >
@@ -423,7 +425,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 className="hc-bar w-full"
                 tabIndex={0}
                 role="img"
-                aria-label={`Devotion ${devotion.toLocaleString('en-US')}, level ${lv.index} ${lv.name}`}
+                aria-label={t('pack.hero.ariaDevotionBar', { points: devotion.toLocaleString('en-US'), index: lv.index, name: lv.name })}
                 style={{ position: 'relative', height: 34, borderRadius: 999, overflow: 'hidden', background: T.hairline, border: `1px solid ${T.border}` }}
               >
                 <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
@@ -439,7 +441,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
               {/* body do ďalšej (2.) úrovne — vpravo pod barom, malým */}
               <div style={{ textAlign: 'right', marginTop: 5 }}>
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>
-                  {lv.next ? <>{lv.toNext.toLocaleString('en-US')} ☥ to {lv.next.name}</> : 'Highest devotion reached'}
+                  {lv.next ? <>{t('pack.hero.devotionToNext', { toNext: lv.toNext.toLocaleString('en-US'), nextName: lv.next.name })}</> : t('pack.hero.devotionMaxReached')}
                 </span>
               </div>
             </div>

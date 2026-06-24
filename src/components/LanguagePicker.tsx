@@ -61,7 +61,7 @@ function FlagStack({ countries }: { countries: string[] }) {
  *  - 'flow': dark-bg heroglyph flow (PageTopBar). Papyrus-cream trigger, panel is
  *    self-anchored to the trigger's right edge with its own width (drops down-left).
  */
-export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 'flow' } = {}) {
+export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 'flow' | 'settings' } = {}) {
   const [open, setOpen] = useState(false);
   const { lang, setLang } = useLang();
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -70,7 +70,7 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
     if (!open) return;
     // 'flow' = modal s backdropom → zatvára sa klikom na scrim, nie outside-detekciou.
     const onDown = (e: MouseEvent | TouchEvent) => {
-      if (variant === 'flow') return;
+      if (variant === 'flow' || variant === 'settings') return;
       const target = e.target as Node;
       if (wrapRef.current && !wrapRef.current.contains(target)) setOpen(false);
     };
@@ -116,8 +116,10 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
     </div>
   );
 
+  const variantClass = variant === 'flow' ? ' lang-picker--flow' : variant === 'settings' ? ' lang-picker--settings' : '';
+
   return (
-    <div className={`lang-picker${variant === 'flow' ? ' lang-picker--flow' : ''}`} ref={wrapRef}>
+    <div className={`lang-picker${variantClass}`} ref={wrapRef}>
       <button
         type="button"
         className="lang-trigger"
@@ -127,6 +129,7 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
         onClick={() => setOpen(o => !o)}
       >
         <FlagStack countries={current.countries} />
+        {variant === 'settings' && <span className="lang-trigger__code">{current.code}</span>}
         <svg className={`lang-trigger__chev${open ? ' is-open' : ''}`} width="9" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
           <path d="M1 1 L5 5 L9 1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
@@ -137,9 +140,9 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
         <div className="lang-panel" role="listbox">{grid}</div>
       )}
 
-      {/* flow variant = centered modal popup with dark scrim (portaled to body so it
-          escapes the flow's stacking context — fixes "opens under Hektor block"). */}
-      {open && variant === 'flow' && createPortal(
+      {/* flow + settings variants = centered modal popup with dark scrim (portaled to body
+          so it escapes the local stacking context — fixes "opens under block" / clipping). */}
+      {open && (variant === 'flow' || variant === 'settings') && createPortal(
         <div className="lang-modal-root">
           <div className="lang-modal-backdrop" onClick={() => setOpen(false)} />
           <div className="lang-modal" role="listbox" aria-modal="true">{grid}</div>
@@ -269,6 +272,23 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
         .lang-picker--flow .lang-trigger:hover { opacity: 0.7; }
         .lang-picker--flow .lang-trigger__chev { color: rgba(250,244,236,0.7); }
         .lang-picker--flow .lang-flag-stack { border-color: rgba(250,244,236,0.35); }
+
+        /* SETTINGS variant — light papyrus /pack account row. Dark ink trigger with
+           flag + 3-letter code; reuses the centered modal (portaled) so it never clips
+           inside the narrow settings field. */
+        .lang-picker--settings .lang-trigger {
+          color: #1f1a0e;
+          gap: 7px;
+          border: 1px solid rgba(31,26,14,0.16);
+          border-radius: 8px;
+          padding: 6px 12px;
+          font-size: 0.72rem;
+          letter-spacing: 0.22em;
+        }
+        .lang-picker--settings .lang-trigger:hover { opacity: 1; background: rgba(201,154,63,0.10); }
+        .lang-picker--settings .lang-trigger__code { font-weight: 700; }
+        .lang-picker--settings .lang-trigger__chev { color: rgba(31,26,14,0.5); }
+        .lang-picker--settings .lang-flag-stack { border-color: rgba(31,26,14,0.2); }
 
         .lang-modal-backdrop {
           position: fixed;

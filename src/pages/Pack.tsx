@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME } from '@/components/pack/packTheme';
@@ -65,6 +66,7 @@ function firstNameFrom(email: string, fullName?: string): string {
 }
 
 export default function Pack() {
+  const t = useT();
   const [dogs, setDogs] = useState<DogRow[] | null>(null);
   const [stats, setStats] = useState<PackStats | null>(null);
   const [user, setUser] = useState<UserMeta | null>(null);
@@ -159,12 +161,12 @@ export default function Pack() {
     let constitutionOpened = false;
     try { constitutionOpened = localStorage.getItem('dogypt_constitution_opened') === '1'; } catch { /* ignore */ }
     return [
-      { label: 'Forge your first heroglyph', done: hasDog },
-      { label: 'Add your photo', done: hasAvatar },
-      { label: 'Add extra photos of your dog', done: hasExtras },
-      { label: 'Cast your vote in Shape', done: hasVoted },
-      { label: 'Flip through the Constitution', done: constitutionOpened },
-      { label: 'Invite your first dog lover', done: hasReferral },
+      { label: t('pack.steps.forgeHeroglyph'), done: hasDog },
+      { label: t('pack.steps.addPhoto'), done: hasAvatar },
+      { label: t('pack.steps.addExtraPhotos'), done: hasExtras },
+      { label: t('pack.steps.castVote'), done: hasVoted },
+      { label: t('pack.steps.flipConstitution'), done: constitutionOpened },
+      { label: t('pack.steps.inviteDogLover'), done: hasReferral },
     ];
   })();
 

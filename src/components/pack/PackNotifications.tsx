@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Bell, UserPlus } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
@@ -12,6 +13,7 @@ interface PackNotificationsProps {
 }
 
 export function PackNotifications({ last24h, last30d, total }: PackNotificationsProps) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -26,9 +28,9 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
   }, [open]);
 
   const items = [
-    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? `${last24h} new Dogyptian${last24h === 1 ? '' : 's'} today` : 'No new members today — yet' },
-    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: `${last30d} joined in the last 30 days` },
-    { iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: `${total.toLocaleString('en-US')} Dogyptians worldwide` },
+    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? t(last24h === 1 ? 'pack.notif.newMemberToday' : 'pack.notif.newMembersToday', { count: last24h }) : t('pack.notif.noNewMembersToday') },
+    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) },
+    { iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.totalWorldwide', { count: total.toLocaleString('en-US') }) },
   ];
 
   return (
@@ -37,8 +39,8 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
       <button
         type="button"
         disabled
-        aria-label="Messages — coming soon"
-        title="Messages — coming soon"
+        aria-label={t('pack.notif.ariaMessages')}
+        title={t('pack.notif.ariaMessages')}
         className="relative inline-flex items-center justify-center"
         style={{
           width: 38,
@@ -69,7 +71,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
             lineHeight: 1,
           }}
         >
-          soon
+          {t('pack.notif.soon')}
         </span>
       </button>
 
@@ -77,7 +79,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        aria-label="Notifications"
+        aria-label={t('pack.notif.ariaNotifications')}
         className="relative inline-flex items-center justify-center"
         style={{
           width: 38,
@@ -143,7 +145,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
               marginBottom: 10,
             }}
           >
-            The Pack pulse
+            {t('pack.notif.dropdownTitle')}
           </div>
           <ul className="flex flex-col gap-2.5">
             {items.map((it, i) => (
@@ -173,7 +175,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
               textAlign: 'center',
             }}
           >
-            Personal notifications coming soon
+            {t('pack.notif.personalComingSoon')}
           </div>
         </div>
       )}
