@@ -1237,7 +1237,7 @@ export const sk: Partial<Dict> = {
   "pack.survey.featureMobileAppBlurb": "Sociálna sieť, mapa miest priateľských k psom a mnoho ďalšieho vo tvojom vrecku.",
   "pack.survey.featureHealthAiTitle": "Zdravotný protokol od AI",
   "pack.survey.featureHealthAiBlurb": "Plán dlhovekosti pre tvojho psa poháňaný AI — plus dôveryhodná sieť veterinárov.",
-  "pack.survey.featureMerchTitle": "Merch",
+  "pack.survey.featureMerchTitle": "Merch: O chlp lepší",
   "pack.survey.featureMerchBlurb": "Heroglyph tlače, obojky, knihy a posvätné doplnky.",
   "pack.survey.voteForThis": "Hlasujem za toto",
   "pack.survey.voted": "Zahlasované",

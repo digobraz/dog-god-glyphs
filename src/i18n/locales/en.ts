@@ -1016,7 +1016,7 @@ export const en = {
   'pack.survey.featureHealthAiBlurb': "A longevity blueprint for your dog, powered by AI — plus a trusted vet network.",
   'pack.survey.featureHealthAiTitle': "Health Protocol by AI",
   'pack.survey.featureMerchBlurb': "Heroglyph prints, collars, books & sacred accessories.",
-  'pack.survey.featureMerchTitle': "Merch",
+  'pack.survey.featureMerchTitle': "Merch: A fur better",
   'pack.survey.featureMobileAppBlurb': "Social network, dog-friendly map & much more — in your pocket.",
   'pack.survey.featureMobileAppTitle': "Mobile App",
   'pack.survey.heading': "Shape the app",
