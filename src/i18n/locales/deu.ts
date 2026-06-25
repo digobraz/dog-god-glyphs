@@ -54,7 +54,7 @@ export const deu: Partial<Dict> = {
   'vision.finale.title': 'Was wäre, wenn…',
   'vision.finale.lead':
     '…jeder Hundeliebhaber <span style="color:#F5C73D;font-style:italic">ja</span> zu einer verrückten Idee sagen würde?',
-  'vision.finale.cta': 'Werde Dogyptian',
+  'vision.finale.cta': 'Werde Dogyptier',
   'vision.finale.tagline': 'Eine neue Ära ist nur einen Klick entfernt.',
 
   // ── /heroglyph intro ──
@@ -92,7 +92,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.intro.pill.unique.label': 'Einzigartig',
   'heroglyph.intro.pill.unique.tooltip': 'Keine zwei Heroglyphs sind gleich — jedes Symbol ist einzigartig!',
   'heroglyph.intro.pill.vow.label': 'Glaubensgelübde',
-  'heroglyph.intro.pill.vow.tooltip': 'Dein Zeichen der Treue zum Dogyptian-Weg — IN DOG WE TRUST!',
+  'heroglyph.intro.pill.vow.tooltip': 'Dein Zeichen der Treue zum Weg der Dogyptier — Wir glauben an den Hund!',
   'heroglyph.intro.pill.bond.label': 'Ewige Verbindung',
   'heroglyph.intro.pill.bond.tooltip': 'Ein Symbol der ewigen Verbindung zwischen dir und deinem Hund.',
   'heroglyph.intro.pill.payment.label': 'Eine symbolische Zahlung',
@@ -139,7 +139,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.flow.name.whoTitle': 'WER IST',
   'heroglyph.flow.name.whoTitleName': 'HEKTHOR?',
   'heroglyph.flow.name.whoBody':
-    'Hekthor ist der erste Dogyptian. Von der Straße gerettet und aus einem Tierheim adoptiert, inspirierte seine Treue eine weltweite Bewegung, Hunde als Götter zu ehren. Seine Mission ist es, für jeden Hund auf der Erde einen einzigartigen HEROGLYPH zu schmieden und die größte Gemeinschaft von Hundeliebhabern der Welt zu vereinen, um Millionen von Hunden in Not zu helfen.',
+    'Hekthor ist der erste Dogyptier. Von der Straße gerettet und aus einem Tierheim adoptiert, inspirierte seine Treue eine weltweite Bewegung, Hunde als Götter zu ehren. Seine Mission ist es, für jeden Hund auf der Erde einen einzigartigen HEROGLYPH zu schmieden und die größte Gemeinschaft von Hundeliebhabern der Welt zu vereinen, um Millionen von Hunden in Not zu helfen.',
   'heroglyph.flow.name.born': 'Geboren',
   'heroglyph.flow.name.adopted': 'Adoptiert',
   'heroglyph.flow.name.location': 'Ort',
@@ -402,13 +402,13 @@ export const deu: Partial<Dict> = {
   'welcome.emailHint': 'Dein Zertifikat ist unterwegs — schau in deine E-Mails.',
 
   // ── /login — magic-link callback (Login.tsx) ──
-  'login.eyebrow': 'DOGYPT · Pack-Zugang',
+  'login.eyebrow': 'DOGYPT · Zugang zum Rudel',
   // status: verifying
   'login.verifying.title': 'Das Tor wird geöffnet',
   'login.verifying.body': 'Dein Magic Link wird überprüft…',
   // status: success
   'login.success.title': 'Willkommen zurück',
-  'login.success.body': 'Du wirst zu deinem Pack weitergeleitet…',
+  'login.success.body': 'Du wirst zu deinem Rudel weitergeleitet…',
   // status: expired
   'login.expired.title': 'Link abgelaufen',
   'login.expired.body': 'Magic Links sind kurzlebig. Fordere einen neuen an und wir senden ihn in dein Postfach.',
@@ -450,7 +450,7 @@ export const deu: Partial<Dict> = {
     'Und so wurde der Heroglyph geboren — ein Symbol, das Hundeliebhaber überall zur größten Gemeinschaft vereinen soll, die die Welt je gekannt hat. Eine Gemeinschaft, die für uns, für unsere Hunde und für die kommenden Generationen einsteht — für Menschen, die sich nicht scheuen zuzugeben, dass ein Hund nicht nur ein Tier ist, sondern ein Wesen, das uns zu besseren Menschen macht.',
   'about.crawl.p5':
     'Genau jetzt beginnt die Reise zum ersten Meilenstein — 1 000 000 Heroglyphs zu erschaffen. Und du kannst ein Teil davon sein. Denn die Einzigen, die verrückt genug sind zu glauben, sie könnten die Welt verändern, sind diejenigen, die es tun.',
-  'about.crawl.p6': 'IN DOG WE TRUST.',
+  'about.crawl.p6': 'Wir glauben an den Hund.',
 
   // ── /about — timeline (5 milestones) ──
   'about.timeline.heading': 'Die Geschichte von Dogypt',
@@ -488,7 +488,7 @@ export const deu: Partial<Dict> = {
   'about.outro.name1': 'Matej',
   'about.outro.and': 'und',
   'about.outro.name2': 'Hekthor',
-  'about.outro.cta': 'Werde Dogyptian',
+  'about.outro.cta': 'Werde Dogyptier',
   'about.reel.prev': 'Vorheriges Foto',
   'about.reel.next': 'Nächstes Foto',
 
@@ -500,7 +500,7 @@ export const deu: Partial<Dict> = {
   'religion.hook.bow': 'verneigen sich vor der Kuh',
   'religion.hook.doglovers': 'HUNDELIEBHABER?',
   'religion.hook.worship': 'VEREHREN WIR UNSERE HUNDE.',
-  'religion.cta': 'Werde Dogyptian',
+  'religion.cta': 'Werde Dogyptier',
   'religion.aria.question': 'Die Frage',
   'religion.aria.preamble': 'Präambel',
   'religion.aria.sacredIndex': 'Heiliger Index',
@@ -518,11 +518,11 @@ export const deu: Partial<Dict> = {
   // ── /religion — Constitution book (ConstitutionBook.tsx) ──
   'religion.book.sealAlt': 'Das dogyptische Siegel',
   // title page = brand document title → bleibt EN (de fällt hier auf EN zurück)
-  'religion.book.sub': 'Pflichtlektüre für jeden Hundeliebhaber, um ein Dogyptian zu werden.',
+  'religion.book.sub': 'Pflichtlektüre für jeden Hundeliebhaber, um ein Dogyptier zu werden.',
   'religion.book.cta1.kicker': 'Der Weg beginnt',
   'religion.book.cta1.head': 'Tritt der<br />Religion bei',
   'religion.book.cta1.text': 'Melde dich für die Hundereligion an — nimm einen Heroglyph.',
-  'religion.book.cta1.btn': 'Werde Dogyptian',
+  'religion.book.cta1.btn': 'Werde Dogyptier',
   'religion.book.cta2.kicker': 'Das ganze Wort',
   'religion.book.cta2.head': 'Lies die<br />Verfassung',
   'religion.book.cta2.text': 'Jeder Kanon, jedes Credo und jedes Gebot — in voller Länge.',
@@ -543,7 +543,7 @@ export const deu: Partial<Dict> = {
   // ── / (Wall / GodsGrid) ──
   // hero card — "DOG is GOD." motto bleibt EN inline (nicht keyed)
   'wall.hero.taglineLead': 'Der Ort, an dem',
-  'wall.hero.cta': 'Werde Dogyptian',
+  'wall.hero.cta': 'Werde Dogyptier',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'HUNDE',
   // Hekthor founder card
@@ -599,12 +599,12 @@ export const deu: Partial<Dict> = {
   'terms.s2.title': '2. Voraussetzungen',
   'terms.s2.body':
     'Du musst mindestens 16 Jahre alt sein, um den Dienst zu nutzen. Mit dem Erstellen eines Kontos oder dem Abschluss eines Kaufs bestätigst du, dass du 16 Jahre oder älter bist, dass alle von dir angegebenen Informationen wahr sind und dass deine Nutzung des Dienstes in dem Land, in dem du lebst, rechtmäßig ist.',
-  'terms.s3.title': '3. Konto & Pack-Mitgliedschaft',
+  'terms.s3.title': '3. Konto & Rudel-Mitgliedschaft',
   'terms.s3.body':
     'Der Zugang wird über einen Magic Link gewährt, der an deine E-Mail gesendet wird; es wird kein Passwort gespeichert. Dein Konto ist persönlich — bitte teile den Zugang nicht. Wir können Konten sperren oder schließen, die den Dienst missbrauchen, andere Mitglieder belästigen oder gegen diese Bedingungen verstoßen. Du kannst jederzeit die Löschung deines Kontos beantragen, indem du eine E-Mail an privacy@dogypt.com sendest.',
   'terms.s4.title': '4. Heroglyph & digitale Güter',
   'terms.s4.body':
-    'Was du kaufst, ist ein digitales Gut: ein persönlicher HEROGLYPH (ein einzigartiges symbolisches Zertifikat), eine PDF-Version dieses Zertifikats, der Eintrag deines Hundes im öffentlichen GodsGrid und der laufende Zugang zu deinem Pack-Profil. Wir gewähren dir eine persönliche, nicht übertragbare, nicht exklusive Lizenz zur Nutzung dieser digitalen Güter für den nichtkommerziellen persönlichen Gebrauch. Es wird nichts Physisches versandt. Die Reproduktion, der Weiterverkauf oder die kommerzielle Verwertung von HEROGLYPH-Grafiken oder -Inhalten bedarf unserer vorherigen schriftlichen Zustimmung.',
+    'Was du kaufst, ist ein digitales Gut: ein persönlicher HEROGLYPH (ein einzigartiges symbolisches Zertifikat), eine PDF-Version dieses Zertifikats, der Eintrag deines Hundes im öffentlichen GodsGrid und der laufende Zugang zu deinem Rudel-Profil. Wir gewähren dir eine persönliche, nicht übertragbare, nicht exklusive Lizenz zur Nutzung dieser digitalen Güter für den nichtkommerziellen persönlichen Gebrauch. Es wird nichts Physisches versandt. Die Reproduktion, der Weiterverkauf oder die kommerzielle Verwertung von HEROGLYPH-Grafiken oder -Inhalten bedarf unserer vorherigen schriftlichen Zustimmung.',
   'terms.s5.title': '5. Zahlungen',
   'terms.s5.body':
     'Zahlungen werden von Stripe Payments Europe, Ltd. abgewickelt. Wir sehen oder speichern niemals deine vollständigen Kartendaten. Die Preise werden in der Währung an der Kasse angezeigt (standardmäßig USD); etwaige anfallende Mehrwertsteuer wird vor der Zahlung berechnet und angezeigt. Die Bestellung, die du an der Kasse bestätigst, ist die Bestellung, die wir liefern — wir ändern weder Umfang noch Preis nachträglich.',
@@ -638,10 +638,10 @@ export const deu: Partial<Dict> = {
     'Wenn du den HEROGLYPH-Ablauf nutzt, erheben wir: deine E-Mail-Adresse, den Namen deines Hundes, das Foto deines Hundes, das du hochlädst (gespeichert bei Cloudinary), die von dir ausgewählten symbolischen Antworten (Geschlecht, Farbe, Schicksal, Blutlinie, Charakter, dein Sternzeichen, deine Initiale) und das Geburtsdatum deines Hundes, falls angegeben. Stripe erhebt deine Zahlungsdaten direkt — wir erhalten nur eine Zahlungsbestätigung, die letzten 4 Ziffern der Karte und das Land. Unsere Server protokollieren automatisch technische Daten (IP-Adresse, User-Agent, Anfragezeit) zur Sicherheit und Missbrauchsprävention.',
   'privacy.s3.title': '3. Wie wir sie verwenden',
   'privacy.s3.body':
-    'Wir verwenden deine Daten, um: dein HEROGLYPH-Zertifikat zu erstellen und zu liefern; dir die Zertifikats-E-Mail und eine kleine Anzahl von Pack-Folgenachrichten zu senden; den Eintrag deines Hundes im öffentlichen GodsGrid anzuzeigen (öffentlich erscheinen nur der Name des Hundes, das Foto und das HEROGLYPH-Symbol — niemals deine E-Mail, dein Name oder dein privater Code); den Dienst zu betreiben, abzusichern und zu verbessern; rechtliche Verpflichtungen wie Buchhaltung und Verbraucherschutz zu erfüllen.',
+    'Wir verwenden deine Daten, um: dein HEROGLYPH-Zertifikat zu erstellen und zu liefern; dir die Zertifikats-E-Mail und eine kleine Anzahl von Rudel-Folgenachrichten zu senden; den Eintrag deines Hundes im öffentlichen GodsGrid anzuzeigen (öffentlich erscheinen nur der Name des Hundes, das Foto und das HEROGLYPH-Symbol — niemals deine E-Mail, dein Name oder dein privater Code); den Dienst zu betreiben, abzusichern und zu verbessern; rechtliche Verpflichtungen wie Buchhaltung und Verbraucherschutz zu erfüllen.',
   'privacy.s4.title': '4. Rechtsgrundlage (DSGVO)',
   'privacy.s4.body':
-    'Wir stützen uns auf Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) für die HEROGLYPH-Lieferung und die Pack-Mitgliedschaft; Art. 6 Abs. 1 lit. a (Einwilligung) für jede Marketing-E-Mail, die über Servicenachrichten hinausgeht — du kannst sie jederzeit widerrufen; Art. 6 Abs. 1 lit. f (berechtigtes Interesse) für Sicherheitsprotokollierung, Missbrauchsprävention und aggregierte Analysen; sowie Art. 6 Abs. 1 lit. c (rechtliche Verpflichtung) für Steuer- und Buchhaltungsunterlagen.',
+    'Wir stützen uns auf Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) für die HEROGLYPH-Lieferung und die Rudel-Mitgliedschaft; Art. 6 Abs. 1 lit. a (Einwilligung) für jede Marketing-E-Mail, die über Servicenachrichten hinausgeht — du kannst sie jederzeit widerrufen; Art. 6 Abs. 1 lit. f (berechtigtes Interesse) für Sicherheitsprotokollierung, Missbrauchsprävention und aggregierte Analysen; sowie Art. 6 Abs. 1 lit. c (rechtliche Verpflichtung) für Steuer- und Buchhaltungsunterlagen.',
   'privacy.s5.title': '5. Weitergabe & Auftragsverarbeiter',
   'privacy.s5.body':
     'Wir verkaufen deine Daten nicht. Wir geben sie nur an Auftragsverarbeiter weiter, die uns beim Betrieb des Dienstes helfen: Stripe Payments Europe, Ltd. (Zahlungen) · Cloudinary Ltd. (Fotospeicherung und -bereitstellung) · Resend, Inc. (Transaktions-E-Mails) · Supabase, Inc. (Datenbank und Authentifizierung) · WebSupport s.r.o. (Webhosting) · GitHub, Inc. (Deployment-Pipeline). Jeder Auftragsverarbeiter ist durch seinen eigenen Auftragsverarbeitungsvertrag gebunden.',
@@ -650,7 +650,7 @@ export const deu: Partial<Dict> = {
     'Wir verwenden nur die Cookies und den lokalen Speicher, die wir benötigen, damit der Dienst funktioniert (Sitzung, Sprache, deine laufenden HEROGLYPH-Auswahlen). Wir betreiben keine Werbung von Drittanbietern und keine seitenübergreifenden Tracking-Pixel. Falls wir datenschutzfreundliche Produktanalysen (wie Plausible) hinzufügen, werden wir diesen Abschnitt aktualisieren, bevor wir sie aktivieren.',
   'privacy.s7.title': '7. Aufbewahrung',
   'privacy.s7.body':
-    'Dein HEROGLYPH und dein Pack-Profil werden so lange aufbewahrt, wie dein Konto besteht, denn das GodsGrid ist das lebenslange Register jedes Mitglieds des Packs. Protokolle von Transaktions-E-Mails werden 12 Monate lang für Support und Betrugsprävention aufbewahrt. Buchhaltungsunterlagen werden gemäß slowakischem Recht (Gesetz Nr. 431/2002 Slg.) 10 Jahre lang aufbewahrt. Wenn du uns bittest, dein Konto zu löschen, entfernen wir personenbezogene Kennungen innerhalb von 30 Tagen und behalten nur das gesetzlich erforderliche Minimum.',
+    'Dein HEROGLYPH und dein Rudel-Profil werden so lange aufbewahrt, wie dein Konto besteht, denn das GodsGrid ist das lebenslange Register jedes Mitglieds des Rudels. Protokolle von Transaktions-E-Mails werden 12 Monate lang für Support und Betrugsprävention aufbewahrt. Buchhaltungsunterlagen werden gemäß slowakischem Recht (Gesetz Nr. 431/2002 Slg.) 10 Jahre lang aufbewahrt. Wenn du uns bittest, dein Konto zu löschen, entfernen wir personenbezogene Kennungen innerhalb von 30 Tagen und behalten nur das gesetzlich erforderliche Minimum.',
   'privacy.s8.title': '8. Deine Rechte',
   'privacy.s8.body':
     'Nach der DSGVO hast du das Recht, auf deine Daten zuzugreifen, sie zu berichtigen, sie löschen zu lassen, die Verarbeitung einzuschränken oder ihr zu widersprechen, auf Datenübertragbarkeit und auf den jederzeitigen Widerruf deiner Einwilligung. Du kannst auch eine Beschwerde bei der slowakischen Aufsichtsbehörde einreichen — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Um eines dieser Rechte auszuüben, schreibe an privacy@dogypt.com — wir antworten innerhalb von 30 Tagen.',
@@ -677,7 +677,7 @@ export const deu: Partial<Dict> = {
   'about.council.role.dog-pro.label': 'Hunde-Profi',
   'about.council.role.dog-pro.desc': 'Tierarzt, Trainer, Tierheim, Züchter',
   'about.council.role.creator.label': 'Creator',
-  'about.council.role.creator.desc': 'Video, Foto, Kunst fürs Rudel',
+  'about.council.role.creator.desc': 'Video, Foto, Kunst für das Rudel',
   'about.council.role.media.label': 'Medien / Influencer',
   'about.council.role.media.desc': 'Publikum & Berichterstattung',
   'about.council.role.investor.label': 'Investor',
@@ -852,12 +852,12 @@ export const deu: Partial<Dict> = {
   "login.recovery.submit": "Neues Passwort festlegen",
   "login.recovery.submitting": "Wird gespeichert…",
   "login.recovery.success": "Passwort aktualisiert — du wirst angemeldet…",
-  "religion.preamble.headlineGrad": "Auf Hund",
-  "religion.preamble.headlineLine": "vertrauen wir",
+  "religion.preamble.headlineGrad": "Wir glauben",
+  "religion.preamble.headlineLine": "an den Hund",
   "religion.book.titleThe": "Die",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Verfassung",
-  "religion.book.trust": "Auf Hund vertrauen wir",
+  "religion.book.trust": "Wir glauben an den Hund",
   "payment.transparency.title": "100% Transparenz",
   "payment.transparency.eyebrow": "Wohin geht das Geld?",
   "transparency.part.development": "Entwicklung",
@@ -865,14 +865,14 @@ export const deu: Partial<Dict> = {
   "transparency.part.directHelp": "Direkte Hilfe",
   "transparency.part.hekthorBowl": "Hekthors Napf",
   "transparency.part.development.note": "Die Nation aufbauen und alles finanzieren, worauf sie läuft — die Menschen, die DOGYPT in Bewegung halten, die Dienste, Werkzeuge und Server dahinter. Das ist der Motor der Bewegung, und jede einzelne Ausgabe wird dokumentiert und offen veröffentlicht.",
-  "transparency.part.affiliate.note": "Keine Werbung — Menschen. Das geht direkt auf die Konten der Dogyptians, die den Glauben verbreiten, ausgezahlt in BONES: gib sie später innerhalb von DOGYPT aus oder spende sie an Hunde in Not. Wir investieren in den Pack, nie in teures Marketing — der Pack trägt das Wort weit besser.",
-  "transparency.part.directHelp.note": "Direkt zu Hunden in Not — Tierheime, Futter, Tierarztrechnungen und Rettungsmissionen. Keine Mittelsmänner, kein Overhead: dieser Anteil geht dorthin, wo das Leid ist, und jeder einzelne Cent wird dokumentiert, belegt und für den ganzen Pack öffentlich gemacht.",
-  "transparency.part.hekthorBowl.note": "Der Gründerhund, der alles begann. Sein Anteil hält das ursprüngliche Versprechen am Leben und der Traum bleibt herrlich einfach: Millionär werden, indem man Hunden hilft, nicht ihnen zum Trotz. Hekthor frisst zuerst, damit der Rest des Packs nie hungert.",
+  "transparency.part.affiliate.note": "Keine Werbung — Menschen. Das geht direkt auf die Konten der Dogyptier, die den Glauben verbreiten, ausgezahlt in BONES: gib sie später innerhalb von DOGYPT aus oder spende sie an Hunde in Not. Wir investieren in das Rudel, nie in teures Marketing — das Rudel trägt das Wort weit besser.",
+  "transparency.part.directHelp.note": "Direkt zu Hunden in Not — Tierheime, Futter, Tierarztrechnungen und Rettungsmissionen. Keine Mittelsmänner, kein Overhead: dieser Anteil geht dorthin, wo das Leid ist, und jeder einzelne Cent wird dokumentiert, belegt und für das ganze Rudel öffentlich gemacht.",
+  "transparency.part.hekthorBowl.note": "Der Gründerhund, der alles begann. Sein Anteil hält das ursprüngliche Versprechen am Leben und der Traum bleibt herrlich einfach: Millionär werden, indem man Hunden hilft, nicht ihnen zum Trotz. Hekthor frisst zuerst, damit der Rest des Rudels nie hungert.",
   "legal.eyebrow": "DOGYPT · Legal",
-  "legal.motto": "DOGYPT · Auf Hund vertrauen wir",
+  "legal.motto": "DOGYPT · Wir glauben an den Hund",
   "about.council.formTitle": "Teil der Mission werden",
-  "about.council.consent": "Mit dem Absenden stimme ich zu, E-Mails von DOGYPT zu erhalten — keine Werbung, nur Pack-Mobilisierung und Kommunikation.",
-  "about.footer.motto": "Auf Hund vertrauen wir.",
+  "about.council.consent": "Mit dem Absenden stimme ich zu, E-Mails von DOGYPT zu erhalten — keine Werbung, nur Mobilisierung des Rudels und Kommunikation.",
+  "about.footer.motto": "Wir glauben an den Hund.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog
@@ -880,7 +880,7 @@ export const deu: Partial<Dict> = {
   "pack.dog.unnamed": "Unbenannt",
   "pack.dog.viewOnWall": "Auf der Wall ansehen {certNumber}",
   "pack.dog.passportTooltip": "Der Pass deines Hundes — eine globale Datenbank. Demnächst verfügbar.",
-  "pack.dog.lostDogTooltip": "Vermisster Hund — eine Suche ausrufen, den Pack alarmieren. Demnächst verfügbar.",
+  "pack.dog.lostDogTooltip": "Vermisster Hund — eine Suche ausrufen, das Rudel alarmieren. Demnächst verfügbar.",
   "pack.dog.profileDocumentsTooltip": "Profil & Dokumente",
   "pack.dog.ariaChangePhoto": "Foto ändern",
   "pack.dog.noPhoto": "KEIN FOTO",
@@ -898,7 +898,7 @@ export const deu: Partial<Dict> = {
   "pack.dog.regeneratePdfs": "PDFs neu erstellen",
   "pack.dog.generatePdfs": "PDFs erstellen",
   "pack.dog.wordOnWall": "Ein Wort auf der Wall",
-  "pack.dog.wallPlaceholder": "Ein paar Worte auf deiner WALL-Karte — eine Hommage, eine Erinnerung, ein Hallo an den Pack.",
+  "pack.dog.wallPlaceholder": "Ein paar Worte auf deiner WALL-Karte — eine Hommage, eine Erinnerung, ein Hallo an das Rudel.",
   "pack.dog.saving": "Wird gespeichert",
   "pack.dog.save": "Speichern",
   "pack.dog.prayersTitle": "Was für eine wunderbare Zeit, am Leben zu sein.",
@@ -955,9 +955,9 @@ export const deu: Partial<Dict> = {
   "pack.dog.vetCentre": "Tierarzt-Zentrum",
   "pack.dog.vetCentreDesc": "Impfungen und Besuche — geplant und vergangen — in einer Zeitleiste, die du mit jedem Tierarzt teilen kannst.",
   "pack.dog.foodProtocol": "Futter-Protokoll",
-  "pack.dog.foodProtocolDesc": "Marke, Portionen und Allergien — die Ernährung, der der ganze Pack vertrauen kann.",
+  "pack.dog.foodProtocolDesc": "Marke, Portionen und Allergien — die Ernährung, der das ganze Rudel vertrauen kann.",
   "pack.dog.visionHealthTitle": "Gesundheits-Protokoll per KI + ein Tierarzt-Netzwerk, dem du vertraust",
-  "pack.dog.visionHealthBody": "Ein Langlebigkeits-Plan für deinen Hund, angetrieben von KI — und ein Erste-Hilfe-Netzwerk von Tierärzten im ganzen Land. Genau darum geht es bei einer Million Dogyptians.",
+  "pack.dog.visionHealthBody": "Ein Langlebigkeits-Plan für deinen Hund, angetrieben von KI — und ein Erste-Hilfe-Netzwerk von Tierärzten im ganzen Land. Genau darum geht es bei einer Million Dogyptier.",
   "pack.dog.trainingTagline": "Jedes erlernte Kommando, jede gewonnene Prüfung — aufgeschrieben.",
   "pack.dog.trainingCommands": "Kommandos",
   "pack.dog.trainingCommandsDesc": "Sitz, Bleib, Hier, Fuß… hake sie ab, sobald {subj} jedes meistert.",
@@ -967,7 +967,7 @@ export const deu: Partial<Dict> = {
   "pack.dog.trainingAgility": "Agility",
   "pack.dog.soon": "Bald",
   "pack.dog.visionTrainingTitle": "Abzeichen nähren deine Devotion",
-  "pack.dog.visionTrainingBody": "Prüfungen und Meilensteine werden zu heiligen Abzeichen auf deinem Profil — und zu Devotion im Pack. Der Kanon wird gerade geschrieben.",
+  "pack.dog.visionTrainingBody": "Prüfungen und Meilensteine werden zu heiligen Abzeichen auf deinem Profil — und zu Devotion im Rudel. Der Kanon wird gerade geschrieben.",
   "pack.dog.journalTagline": "{poss} ganzes Leben, bewahrt.",
   "pack.dog.instantStory": "Sofort-Geschichte",
   "pack.dog.instantStoryDesc": "Sprich einfach den Moment ein — eine kurze Sprachnotiz, die unter dem heutigen Datum erfasst und in Text verwandelt wird, vielleicht eines Tages eine Seite in {poss} Buch. Füge ein paar Fotos hinzu und der Tag ist für immer bewahrt.",
@@ -1049,7 +1049,7 @@ export const deu: Partial<Dict> = {
   "pack.dog.certOfficialRecord": "Der offizielle Eintrag",
   "pack.dog.notFound": "Nicht gefunden",
   "pack.dog.notFoundDesc": "Dieser Heroglyph gehört entweder nicht dir oder existiert nicht mehr.",
-  "pack.dog.backToPack": "Zurück zum Pack",
+  "pack.dog.backToPack": "Zurück zum Rudel",
   "pack.dog.errorLoading": "Beim Laden dieses Heroglyph ist etwas schiefgelaufen.",
   "pack.dog.monthJan": "Jan",
   "pack.dog.monthFeb": "Feb",
@@ -1064,20 +1064,20 @@ export const deu: Partial<Dict> = {
   "pack.dog.monthNov": "Nov",
   "pack.dog.monthDec": "Dez",
   // pack.globe
-  "pack.globe.ariaGlobe": "Der Pack weltweit",
+  "pack.globe.ariaGlobe": "Das Rudel weltweit",
   "pack.globe.roadToMillion": "Der Weg zur Million",
   "pack.globe.ariaMilestone": "Meilenstein {n}",
   "pack.globe.ariaPrev": "Vorheriger Meilenstein",
   "pack.globe.ariaNext": "Nächster Meilenstein",
   "pack.globe.achieved": "ERREICHT",
-  "pack.globe.counterDogyptians": "Dogyptians",
+  "pack.globe.counterDogyptians": "Dogyptier",
   "pack.globe.counterWorldwide": "weltweit",
   "pack.globe.topCountries": "Top-Länder",
   "pack.globe.topBreeds": "Top-Rassen",
   // pack.rank
   "pack.rank.viewAll": "Alle ansehen →",
   "pack.rank.ariaClose": "Schließen",
-  "pack.rank.noData": "Noch keine Daten — das Board füllt sich, während der Pack wächst.",
+  "pack.rank.noData": "Noch keine Daten — das Board füllt sich, während das Rudel wächst.",
   // pack.hero
   "pack.hero.ariaEditAvatar": "Avatar bearbeiten",
   "pack.hero.ariaEditName": "Namen bearbeiten",
@@ -1095,20 +1095,20 @@ export const deu: Partial<Dict> = {
   "pack.notif.ariaMessages": "Nachrichten — demnächst verfügbar",
   "pack.notif.ariaNotifications": "Benachrichtigungen",
   "pack.notif.soon": "bald",
-  "pack.notif.dropdownTitle": "Der Puls des Pack",
-  "pack.notif.newMemberToday": "{count} neuer Dogyptian heute",
-  "pack.notif.newMembersToday": "{count} neue Dogyptians heute",
+  "pack.notif.dropdownTitle": "Der Puls des Rudels",
+  "pack.notif.newMemberToday": "{count} neuer Dogyptier heute",
+  "pack.notif.newMembersToday": "{count} neue Dogyptier heute",
   "pack.notif.noNewMembersToday": "Heute noch keine neuen Mitglieder",
   "pack.notif.joinedLast30d": "{count} in den letzten 30 Tagen beigetreten",
-  "pack.notif.totalWorldwide": "{count} Dogyptians weltweit",
+  "pack.notif.totalWorldwide": "{count} Dogyptier weltweit",
   "pack.notif.personalComingSoon": "Persönliche Benachrichtigungen demnächst verfügbar",
   // pack.invite
   "pack.invite.close": "Schließen",
   "pack.invite.ariaHowLineWorks": "Wie deine Linie funktioniert",
   "pack.invite.ariaWhereMoneyGoes": "Wohin jeder Euro fließt",
   "pack.invite.hekthorAlt": "Hekthor — Gründer #1",
-  "pack.invite.heading": "Lass den Pack wachsen.",
-  "pack.invite.bodyPart1": "Jeder Dogyptian, den du bringst, bringt dir",
+  "pack.invite.heading": "Lass das Rudel wachsen.",
+  "pack.invite.bodyPart1": "Jeder Dogyptier, den du bringst, bringt dir",
   "pack.invite.bodyPart2": " — und ebenso jeder, den sie danach bringen. Pfote für Pfote erreichen wir die Million.",
   "pack.invite.statLevel1": "Stufe 1",
   "pack.invite.statLevel1Sub": "direkt",
@@ -1120,9 +1120,9 @@ export const deu: Partial<Dict> = {
   "pack.invite.ariaCopyLink": "Einladungslink kopieren",
   "pack.invite.shareLink": "Teile deinen Link",
   "pack.invite.rewardsNote": "Belohnungen für die Top-Apostel werden freigeschaltet, während die Religion wächst.",
-  "pack.invite.shareNativeText": "Tritt dem Pack bei. Werde Dogyptian.",
+  "pack.invite.shareNativeText": "Tritt dem Rudel bei. Werde Dogyptier.",
   "pack.invite.toastLinkCopied": "Link kopiert",
-  "pack.invite.toastLinkCopiedDesc": "Teile ihn und lass den Pack wachsen.",
+  "pack.invite.toastLinkCopiedDesc": "Teile ihn und lass das Rudel wachsen.",
   "pack.invite.toastCouldNotCopy": "Konnte nicht kopiert werden",
   "pack.invite.transparencyTitle": "Transparenz",
   "pack.invite.transparencySubtitle": "Wohin fließt jeder {price}?",
@@ -1161,11 +1161,11 @@ export const deu: Partial<Dict> = {
   "pack.settings.toastTitle": "Passwort gesetzt",
   "pack.settings.toastDesc": "Du kannst dich jetzt mit E-Mail + Passwort anmelden.",
   // pack.steps
-  "pack.steps.forgeHeroglyph": "Schmiede deinen ersten Heroglyph",
+  "pack.steps.forgeHeroglyph": "Erstelle deinen ersten Heroglyph",
   "pack.steps.addPhoto": "Füge dein Foto hinzu",
   "pack.steps.addExtraPhotos": "Füge weitere Fotos deines Hundes hinzu",
-  "pack.steps.castVote": "Gib deine Stimme bei Shape ab",
-  "pack.steps.flipConstitution": "Blättere durch die Constitution",
+  "pack.steps.castVote": "Stimm ab, was als Nächstes kommt",
+  "pack.steps.flipConstitution": "Blättere durch die DOGMA",
   "pack.steps.inviteDogLover": "Lade deinen ersten Hundefreund ein",
   "pack.steps.sectionLabel": "Dein Profil",
   "pack.steps.heading": "Erste Schritte",
@@ -1173,7 +1173,7 @@ export const deu: Partial<Dict> = {
   "pack.steps.rewardPending": "Schließe alle Ersten Schritte ab =",
   "pack.steps.rewardPendingSuffix": "auf deinem Profil.",
   // pack.tree
-  "pack.tree.title": "Mein Pack",
+  "pack.tree.title": "Mein Rudel",
   "pack.tree.emptyState": "Noch keine Heroglyphs",
   "pack.tree.noPhoto": "KEIN FOTO",
   "pack.tree.openDogProfileTitle": "Hundeprofil öffnen — Zertifikate, PDFs, Fotos",
@@ -1196,7 +1196,7 @@ export const deu: Partial<Dict> = {
   "pack.survey.toggleVote": "Abstimmen",
   "pack.survey.toggleResults": "Ergebnisse",
   "pack.survey.featureMobileAppTitle": "Mobile App",
-  "pack.survey.featureMobileAppBlurb": "Soziales Netzwerk, hundefreundliche Karte & Pack-Nachrichten — der Pack in deiner Tasche.",
+  "pack.survey.featureMobileAppBlurb": "Soziales Netzwerk, hundefreundliche Karte und vieles mehr — in deiner Tasche.",
   "pack.survey.featureHealthAiTitle": "Gesundheits-Protokoll per KI",
   "pack.survey.featureHealthAiBlurb": "Ein Langlebigkeits-Plan für deinen Hund, angetrieben von KI — plus ein vertrauenswürdiges Tierarzt-Netzwerk.",
   "pack.survey.featureMerchTitle": "Merch",
@@ -1213,9 +1213,9 @@ export const deu: Partial<Dict> = {
   "pack.verse.eyebrow": "Vers des Tages",
   "pack.verse.unknownAuthor": "Unbekannt",
   // pack.dogma
-  "pack.dogma.imgAlt": "DOGMA — die Constitution der Dogyptians",
+  "pack.dogma.imgAlt": "DOGMA — die heilige Schrift der Dogyptier",
   "pack.dogma.cta": "Lies die DOGMA",
-  "pack.dogma.description": "Das Fundament des ganzen Glaubens — jeder Dogyptian sollte sie lesen. Die Philosophie, die Logik und wie Devotion funktioniert — alles beginnt hier.",
+  "pack.dogma.description": "Das Fundament des ganzen Glaubens — jeder Dogyptier sollte sie lesen. Die Philosophie, die Logik und wie Devotion funktioniert — alles beginnt hier.",
   // pack.build
   "pack.build.badge": "In Arbeit",
   "pack.build.heading": "Danke für deine Geduld",
@@ -1229,7 +1229,7 @@ export const deu: Partial<Dict> = {
   "pack.build.uploading": "Wird hochgeladen…",
   "pack.build.sending": "Wird gesendet…",
   "pack.build.sendBtn": "Feedback senden",
-  "pack.build.councilPrompt": "Möchtest du mitgestalten?",
+  "pack.build.councilPrompt": "Willst du mit uns daran arbeiten?",
   "pack.build.councilCta": "Tritt dem Council bei",
 
   // pack.stats — TransparentStats 2026-06-24
@@ -1241,8 +1241,8 @@ export const deu: Partial<Dict> = {
   "pack.stats.affiliate": "Affiliate",
   "pack.stats.directHelp": "Direkte Hilfe",
   "pack.stats.hekthorBowl": "Hekthors Napf",
-  "pack.stats.split": "Warum diese Aufteilung? Lies „Money is an Energy“ in der Constitution →",
-  "pack.stats.bonesDistributed": "BONES an den Pack verteilt",
+  "pack.stats.split": "Warum diese Aufteilung? Lies „Money is an Energy“ in der DOGMA →",
+  "pack.stats.bonesDistributed": "BONES an das Rudel verteilt",
   "pack.stats.raised": "{amount} gesammelt",
   "pack.dog.statsTitle": "STATISTIK",
 };
