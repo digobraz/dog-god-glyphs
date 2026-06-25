@@ -1,12 +1,13 @@
 import { quoteForDay } from '@/data/dailyQuotes';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 
 const GOLD = '#C99A3F';
 
 export function VerseOfTheDay() {
   const t = useT();
+  const { lang } = useLang();
   // 365-day curated calendar — same quote all day, rotates at midnight, holiday-anchored.
-  const verse = quoteForDay();
+  const verse = quoteForDay(new Date(), lang);
   if (!verse) return null;
 
   return (

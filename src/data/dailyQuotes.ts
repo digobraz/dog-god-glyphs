@@ -3,6 +3,8 @@
 // Keyed "MM-DD". Holiday/season-anchored DRAFT — Matej review pending (plany/quotes-365-calendar-draft.md).
 // Regenerate from plany/quotes-365-clean.json; do not hand-edit individual rows before review.
 
+import { DAILY_QUOTES_SK } from './dailyQuotes.sk';
+
 export type DailyQuote = { text: string; author: string; anchor?: string };
 
 export const DAILY_QUOTES: Record<string, DailyQuote> = {
@@ -375,14 +377,27 @@ export const DAILY_QUOTES: Record<string, DailyQuote> = {
 
 function pad(n: number): string { return n < 10 ? `0${n}` : `${n}`; }
 
+// Per-language text overlay. Author + anchor always come from the base (EN) entry;
+// only `text` is localized. SK = 365 translations (dailyQuotes.sk.ts); other langs fall back to EN.
+const TEXT_OVERLAYS: Record<string, Record<string, string>> = {
+  sk: DAILY_QUOTES_SK,
+};
+
+function localize(base: DailyQuote, key: string, lang?: string): DailyQuote {
+  const overlay = lang ? TEXT_OVERLAYS[lang] : undefined;
+  const text = overlay?.[key];
+  return text ? { ...base, text } : base;
+}
+
 // Deterministic quote for a given calendar day; rotates at midnight, same all day.
 // Fallback (e.g. 02-29 in a leap year, or a missing key) → deterministic day-of-year pick.
-export function quoteForDay(d: Date = new Date()): DailyQuote {
+export function quoteForDay(d: Date = new Date(), lang?: string): DailyQuote {
   const key = `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const hit = DAILY_QUOTES[key];
-  if (hit) return hit;
-  const values = Object.values(DAILY_QUOTES);
+  if (hit) return localize(hit, key, lang);
+  const keys = Object.keys(DAILY_QUOTES);
   const start = new Date(d.getFullYear(), 0, 0);
   const dayOfYear = Math.floor((d.getTime() - start.getTime()) / 86400000);
-  return values[dayOfYear % values.length];
+  const fbKey = keys[dayOfYear % keys.length];
+  return localize(DAILY_QUOTES[fbKey], fbKey, lang);
 }
