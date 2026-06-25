@@ -12,11 +12,12 @@ const T = PACK_THEME;
 
 // Severka pyramída (zdroj: plany/severka.md) — swajpovateľné míľniky pod guľou.
 // Veľké číslo členov je fixné, swajp mení len názov + cieľ + % (a prstenec sa sync-ne).
+// nameKey → `t('pack.globe.milestone<X>')` (preklad pri renderi). Prahy = kánon, nemenné.
 const MILESTONES = [
-  { name: 'The Founders', target: 1_000 },
-  { name: 'The Pack', target: 10_000 },
-  { name: 'The Nation', target: 100_000 },
-  { name: 'The Dynasty', target: 1_000_000 }, // 1M Heroglyfov otvára II. dynastiu; každý ďalší milión = ďalšia dynastia (kánon: ústava čl. 1.3)
+  { nameKey: 'pack.globe.milestoneFounders', target: 1_000 },
+  { nameKey: 'pack.globe.milestonePack', target: 10_000 },
+  { nameKey: 'pack.globe.milestoneNation', target: 100_000 },
+  { nameKey: 'pack.globe.milestoneDynasty', target: 1_000_000 }, // 1M Heroglyfov otvára II. dynastiu; každý ďalší milión = ďalšia dynastia (kánon: ústava čl. 1.3)
 ] as const;
 
 const RING_R = 47;
@@ -341,7 +342,7 @@ function MilestoneSwiper({
                 marginBottom: 4,
               }}
             >
-              {m.name}
+              {t(m.nameKey)}
             </div>
 
             <div key={idx} style={{ animation: 'ms-fade 0.35s ease' }}>
@@ -471,7 +472,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
               lineHeight: 1,
             }}
           >
-            nation
+            {t('pack.globe.nationLockup')}
           </span>
         </h2>
         <div

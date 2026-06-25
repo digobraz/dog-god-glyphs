@@ -1,4 +1,5 @@
 import { devotionLevel } from '@/lib/devotion';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from './packTheme';
 
 const T = PACK_THEME;
@@ -10,6 +11,7 @@ const T = PACK_THEME;
 // ─────────────────────────────────────────────────────────────────────────
 
 export function DevotionPanel({ devotion }: { devotion: number }) {
+  const t = useT();
   const lv = devotionLevel(devotion);
 
   return (
@@ -25,7 +27,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
             color: T.inkDim,
           }}
         >
-          Devotion
+          {t('pack.devotion.heading')}
         </span>
         <span
           className="inline-flex items-center gap-1.5"
@@ -59,7 +61,7 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
               textShadow: '0 1px 4px rgba(0,0,0,0.35)',
             }}
           >
-            {lv.name}
+            {t('pack.ladder.' + lv.key)}
           </span>
         </span>
       </div>
@@ -114,9 +116,9 @@ export function DevotionPanel({ devotion }: { devotion: number }) {
       <div style={{ textAlign: 'right', marginTop: 5 }}>
         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkDim }}>
           {lv.next ? (
-            <>{lv.toNext.toLocaleString('en-US')} ☥ to {lv.next.name}</>
+            t('pack.hero.devotionToNext', { toNext: lv.toNext.toLocaleString('en-US'), nextName: t('pack.ladder.' + lv.next.key) })
           ) : (
-            'Highest devotion reached'
+            t('pack.hero.devotionMaxReached')
           )}
         </span>
       </div>

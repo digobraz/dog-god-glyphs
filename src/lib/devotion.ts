@@ -6,35 +6,38 @@
 // Path 1 of 3 (Devotion). Thresholds 1–20 are sim canon; Pharaoh (★) and Demigod
 // (☼) are symbolic in the sim — kept at 1M / 2M so the level math has numbers.
 // ============================================================================
+// `key` = stabilný i18n kľúč (`pack.ladder.<key>`). `name` = EN fallback / kánon.
+// Komponenty rendrujú `t('pack.ladder.' + lv.key)` — názov sa prekladá, prahy nie.
 export const DEVOTION_LEVELS = [
-  { name: 'Novice', at: 0 },          // new member starts here
-  { name: 'Wanderer', at: 200 },
-  { name: 'Follower', at: 500 },
-  { name: 'Believer', at: 1000 },
-  { name: 'Servant', at: 2000 },
-  { name: 'Aspirant', at: 3500 },
-  { name: 'Mentor', at: 6000 },
-  { name: 'Steward', at: 10000 },
-  { name: 'Shepherd', at: 16000 },
-  { name: 'Sentinel', at: 25000 },
-  { name: 'Elder', at: 38000 },
-  { name: 'Sage', at: 55000 },
-  { name: 'Cleric', at: 80000 },
-  { name: 'Mystic', at: 120000 },
-  { name: 'Priest', at: 160000 },
-  { name: 'Paladin', at: 200000 },
-  { name: 'Magus', at: 260000 },
-  { name: 'Prophet', at: 340000 },
-  { name: 'Nomarch', at: 480000 },
-  { name: 'Vizier', at: 700000 },
-  { name: 'Pharaoh', at: 1000000 },   // ★ founder tier
-  { name: 'Demigod', at: 2000000 },   // ☼ poloboh — top of the path
+  { key: 'novice',   name: 'Novice', at: 0 },          // new member starts here
+  { key: 'wanderer', name: 'Wanderer', at: 200 },
+  { key: 'follower', name: 'Follower', at: 500 },
+  { key: 'believer', name: 'Believer', at: 1000 },
+  { key: 'servant',  name: 'Servant', at: 2000 },
+  { key: 'aspirant', name: 'Aspirant', at: 3500 },
+  { key: 'mentor',   name: 'Mentor', at: 6000 },
+  { key: 'steward',  name: 'Steward', at: 10000 },
+  { key: 'shepherd', name: 'Shepherd', at: 16000 },
+  { key: 'sentinel', name: 'Sentinel', at: 25000 },
+  { key: 'elder',    name: 'Elder', at: 38000 },
+  { key: 'sage',     name: 'Sage', at: 55000 },
+  { key: 'cleric',   name: 'Cleric', at: 80000 },
+  { key: 'mystic',   name: 'Mystic', at: 120000 },
+  { key: 'priest',   name: 'Priest', at: 160000 },
+  { key: 'paladin',  name: 'Paladin', at: 200000 },
+  { key: 'magus',    name: 'Magus', at: 260000 },
+  { key: 'prophet',  name: 'Prophet', at: 340000 },
+  { key: 'nomarch',  name: 'Nomarch', at: 480000 },
+  { key: 'vizier',   name: 'Vizier', at: 700000 },
+  { key: 'pharaoh',  name: 'Pharaoh', at: 1000000 },   // ★ founder tier
+  { key: 'demigod',  name: 'Demigod', at: 2000000 },   // ☼ poloboh — top of the path
 ] as const;
 
 export interface DevotionLevel {
   index: number;
+  key: string;
   name: string;
-  next: { name: string; at: number } | null;
+  next: { key: string; name: string; at: number } | null;
   pct: number;
   toNext: number;
 }
@@ -51,5 +54,5 @@ export function devotionLevel(d: number): DevotionLevel {
     ? Math.max(0, Math.min(100, ((d - cur.at) / span) * 100))
     : 100;
   const toNext = next && isFinite(next.at) ? Math.max(0, next.at - d) : 0;
-  return { index: i + 1, name: cur.name, next, pct, toNext };
+  return { index: i + 1, key: cur.key, name: cur.name, next, pct, toNext };
 }

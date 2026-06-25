@@ -84,7 +84,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
   // DEVOTION úroveň počítaná z bodov → poháňa LEVEL badge (žiadny hardcode „Pharaoh" pre všetkých).
   const lv = devotionLevel(devotion);
-  const topTier = lv.name === 'Pharaoh' || lv.name === 'Demigod';
+  const topTier = lv.key === 'pharaoh' || lv.key === 'demigod';
 
   return (
     <section
@@ -364,7 +364,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 textShadow: topTier ? '0 1px 4px rgba(0,0,0,0.35)' : 'none',
               }}
             >
-              {lv.name}
+              {t('pack.ladder.' + lv.key)}
             </span>
           </div>
 
@@ -425,7 +425,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 className="hc-bar w-full"
                 tabIndex={0}
                 role="img"
-                aria-label={t('pack.hero.ariaDevotionBar', { points: devotion.toLocaleString('en-US'), index: lv.index, name: lv.name })}
+                aria-label={t('pack.hero.ariaDevotionBar', { points: devotion.toLocaleString('en-US'), index: lv.index, name: t('pack.ladder.' + lv.key) })}
                 style={{ position: 'relative', height: 34, borderRadius: 999, overflow: 'hidden', background: T.hairline, border: `1px solid ${T.border}` }}
               >
                 <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
@@ -441,7 +441,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
               {/* body do ďalšej (2.) úrovne — vpravo pod barom, malým */}
               <div style={{ textAlign: 'right', marginTop: 5 }}>
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>
-                  {lv.next ? <>{t('pack.hero.devotionToNext', { toNext: lv.toNext.toLocaleString('en-US'), nextName: lv.next.name })}</> : t('pack.hero.devotionMaxReached')}
+                  {lv.next ? <>{t('pack.hero.devotionToNext', { toNext: lv.toNext.toLocaleString('en-US'), nextName: t('pack.ladder.' + lv.next.key) })}</> : t('pack.hero.devotionMaxReached')}
                 </span>
               </div>
             </div>
