@@ -572,8 +572,11 @@ export default function About() {
            fraction of itself inside the fixed 32vw on-screen slice → his face
            got cut at narrow widths while Hekthor (smaller) stayed whole. Equal
            size → equal visible fraction → both read cleanly, symmetrically. */
-        .fig-matej { left: 0; right: auto; transform: translateX(calc(32vw - 100% + 200px)); height: min(73.75vh, 781px); }
-        .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - 32vw - 80px)); height: min(50.15vh, 531px); }
+        /* Size blends vh+vw (max) so wide-short windows don't shrink the figures;
+           inner anchor capped (min 32vw, 460px) so very wide windows don't fling
+           them into the far corners. 16"/mobile land in the same band as before. */
+        .fig-matej { left: 0; right: auto; transform: translateX(calc(min(32vw, 460px) - 100% + 200px)); height: clamp(440px, max(70vh, 38vw), 820px); }
+        .fig-hekthor { right: 0; left: auto; transform: translateX(calc(100% - min(32vw, 460px) - 80px)); height: clamp(300px, max(48vh, 26vw), 560px); }
 
         /* PC: lift the title block toward the upper third */
         @media (min-width: 768px) { .scroll-intro { padding-bottom: 18vh; } }

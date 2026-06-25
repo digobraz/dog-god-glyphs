@@ -282,7 +282,7 @@ export function GodsGrid() {
         <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
         <p class="hero-tagline">${t('wall.hero.taglineLead')}<br><span class="gold">DOG is GOD.</span></p>
         <button class="join-btn" data-join>${t('wall.hero.cta')}</button>
-        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${photos.length}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${t('wall.hero.total')}</span><span class="hero-count-dogs">${t('wall.hero.dogs')}</span></span>
+        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${t('wall.hero.total')}</span><span class="hero-count-dogs">${t('wall.hero.dogs')}</span></span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', () => navigate('/heroglyph'));
