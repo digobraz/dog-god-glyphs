@@ -979,11 +979,11 @@ export const chn: Partial<Dict> = {
   "pack.settings.toastTitle": "密码已设置",
   "pack.settings.toastDesc": "现在你可以用邮箱 + 密码登录了。",
   // pack.steps
-  "pack.steps.forgeHeroglyph": "铸造你的第一枚 heroglyph",
+  "pack.steps.forgeHeroglyph": "创建你的第一个 Heroglyph",
   "pack.steps.addPhoto": "添加你的照片",
   "pack.steps.addExtraPhotos": "为你的爱犬添加更多照片",
   "pack.steps.castVote": "在 Shape 中投出你的一票",
-  "pack.steps.flipConstitution": "翻阅 Constitution",
+  "pack.steps.flipConstitution": "翻阅 DOGMA",
   "pack.steps.inviteDogLover": "邀请你的第一位 dog lover",
   "pack.steps.sectionLabel": "你的资料",
   "pack.steps.heading": "第一步",
@@ -1031,7 +1031,7 @@ export const chn: Partial<Dict> = {
   "pack.verse.eyebrow": "每日箴言",
   "pack.verse.unknownAuthor": "佚名",
   // pack.dogma
-  "pack.dogma.imgAlt": "DOGMA——Dogyptian Constitution",
+  "pack.dogma.imgAlt": "DOGMA——多吉普特人的圣典",
   "pack.dogma.cta": "阅读 DOGMA",
   "pack.dogma.description": "整个信仰的根基——每一位多吉普特人都应当一读。哲学、逻辑，以及虔诚如何运作，皆始于此。",
   // pack.build
@@ -1059,7 +1059,7 @@ export const chn: Partial<Dict> = {
   "pack.stats.affiliate": "Affiliate",
   "pack.stats.directHelp": "直接援助",
   "pack.stats.hekthorBowl": "Hekthor 的食盆",
-  "pack.stats.split": "为何这样分配？请阅读 Constitution 中的「Money is an Energy」→",
+  "pack.stats.split": "为何这样分配？请阅读 DOGMA 中的「Money is an Energy」→",
   "pack.stats.bonesDistributed": "已分配给狗群的 BONES",
   "pack.stats.raised": "已筹集 {amount}",
   "pack.dog.statsTitle": "数据",

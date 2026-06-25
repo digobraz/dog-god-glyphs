@@ -1161,11 +1161,11 @@ export const fra: Partial<Dict> = {
   "pack.settings.toastTitle": "Mot de passe défini",
   "pack.settings.toastDesc": "Tu peux maintenant te connecter avec e-mail + mot de passe.",
   // pack.steps
-  "pack.steps.forgeHeroglyph": "Forge ton premier heroglyph",
+  "pack.steps.forgeHeroglyph": "CrÃ©e ton premier Heroglyph",
   "pack.steps.addPhoto": "Ajoute ta photo",
   "pack.steps.addExtraPhotos": "Ajoute d'autres photos de ton chien",
   "pack.steps.castVote": "Donne ta voix dans Shape",
-  "pack.steps.flipConstitution": "Feuillette la Constitution",
+  "pack.steps.flipConstitution": "Feuillette la DOGMA",
   "pack.steps.inviteDogLover": "Invite ton premier amoureux des chiens",
   "pack.steps.sectionLabel": "Ton profil",
   "pack.steps.heading": "Premiers pas",
@@ -1213,7 +1213,7 @@ export const fra: Partial<Dict> = {
   "pack.verse.eyebrow": "Verset du jour",
   "pack.verse.unknownAuthor": "Inconnu",
   // pack.dogma
-  "pack.dogma.imgAlt": "DOGMA — la Constitution sacrée des Dogyptiens",
+  "pack.dogma.imgAlt": "DOGMA — le texte sacré des Dogyptiens",
   "pack.dogma.cta": "Lire la DOGMA",
   "pack.dogma.description": "Le fondement de toute la foi — chaque Dogyptien devrait la lire. La philosophie, la logique et le fonctionnement de la dévotion commencent tous ici.",
   // pack.build
@@ -1241,7 +1241,7 @@ export const fra: Partial<Dict> = {
   "pack.stats.affiliate": "Affiliate",
   "pack.stats.directHelp": "Aide directe",
   "pack.stats.hekthorBowl": "La gamelle de Hekthor",
-  "pack.stats.split": "Pourquoi ce partage ? Lis « Money is an Energy » dans la Constitution →",
+  "pack.stats.split": "Pourquoi ce partage ? Lis « Money is an Energy » dans la DOGMA →",
   "pack.stats.bonesDistributed": "BONES distribués à la meute",
   "pack.stats.raised": "{amount} récolté",
   "pack.dog.statsTitle": "STATS",

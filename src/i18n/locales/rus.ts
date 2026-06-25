@@ -1194,9 +1194,9 @@ export const rus: Partial<Dict> = {
   "pack.verse.eyebrow": "Стих дня",
   "pack.verse.unknownAuthor": "Неизвестен",
   // pack.dogma
-  "pack.dogma.imgAlt": "DOGMA — Constitution Dogyptian",
+  "pack.dogma.imgAlt": "DOGMA — священное писание догиптян",
   "pack.dogma.cta": "Прочитать DOGMA",
-  "pack.dogma.description": "Основа всей веры — каждый Dogyptian должен её прочитать. Философия, логика и то, как работает преданность, — всё начинается здесь.",
+  "pack.dogma.description": "Основа всей веры — каждый догиптянин должен её прочитать. Философия, логика и то, как работает преданность, — всё начинается здесь.",
   // pack.build
   "pack.build.badge": "В работе",
   "pack.build.heading": "Спасибо за ваше терпение",
@@ -1222,7 +1222,7 @@ export const rus: Partial<Dict> = {
   "pack.stats.affiliate": "Affiliate",
   "pack.stats.directHelp": "Прямая помощь",
   "pack.stats.hekthorBowl": "Миска Hekthor",
-  "pack.stats.split": "Почему именно так делим? Прочти «Money is an Energy» в Constitution →",
+  "pack.stats.split": "Почему именно так делим? Прочти «Money is an Energy» в DOGMA →",
   "pack.stats.bonesDistributed": "BONES, розданные Pack",
   "pack.stats.raised": "Собрано {amount}",
   "pack.dog.statsTitle": "СТАТИСТИКА",

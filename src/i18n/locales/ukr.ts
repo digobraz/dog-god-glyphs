@@ -1240,7 +1240,7 @@ export const ukr: Partial<Dict> = {
   "pack.stats.affiliate": "Affiliate",
   "pack.stats.directHelp": "Пряма допомога",
   "pack.stats.hekthorBowl": "Миска Hekthor",
-  "pack.stats.split": "Чому саме такий поділ? Прочитай «Money is an Energy» у Constitution →",
+  "pack.stats.split": "Чому саме такий поділ? Прочитай «Money is an Energy» у DOGMA →",
   "pack.stats.bonesDistributed": "BONES розподілені серед Pack",
   "pack.stats.raised": "Зібрано {amount}",
   "pack.dog.statsTitle": "СТАТИСТИКА",
