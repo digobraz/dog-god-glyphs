@@ -159,8 +159,8 @@ export const rus: Partial<Dict> = {
   'heroglyph.flow.photo.tipForward': 'собака смотрит вперёд',
   'heroglyph.flow.photo.tipSide': 'профиль / группа',
   'heroglyph.flow.photo.tipBest': 'Лучший результат: морда хорошо видна, работает при обрезке в круг.',
-  'heroglyph.flow.photo.next': 'ДАЛЕЕ →',
-  'heroglyph.flow.photo.back': '← НАЗАД',
+  'heroglyph.flow.photo.next': 'ДАЛЕЕ',
+  'heroglyph.flow.photo.back': 'НАЗАД',
   'heroglyph.flow.photo.adjustTitle': 'ПОДГОНИ СВОЙ ПОРТРЕТ',
   'heroglyph.flow.photo.adjustHint': 'Перетащи, чтобы разместить собаку в рамке.',
   'heroglyph.flow.photo.moreTitle': 'БОЛЬШЕ ЛИКОВ БОГА',
@@ -184,6 +184,15 @@ export const rus: Partial<Dict> = {
   'heroglyph.flow.breed.cat.08': 'Ныряльщики',
   'heroglyph.flow.breed.cat.09': 'Волкоподобные',
   'heroglyph.flow.breed.cat.10': 'Гиганты',
+  'heroglyph.flow.breed.q1.title': 'Какой породы {name}?',
+  'heroglyph.flow.breed.q1.subtitle': 'Это только для нашей статистики пород — покровителя выберешь дальше.',
+  'heroglyph.flow.breed.type.one': 'Одна порода',
+  'heroglyph.flow.breed.type.mix': 'Метис',
+  'heroglyph.flow.breed.one.placeholder': 'Поиск породы',
+  'heroglyph.flow.breed.mix.placeholder1': 'Первая порода',
+  'heroglyph.flow.breed.mix.placeholder2': 'Вторая порода',
+  'heroglyph.flow.breed.mix.dontKnow': 'Не знаю',
+  'heroglyph.flow.breed.patron.subtitle': 'Выбери силуэт, который лучше всего подходит {name} — он может быть любой формы.',
 
   // ── /heroglyph flow — krok 4: poradie ──
   'heroglyph.flow.ranking.question': '{dogName} — твоя первая в жизни собака?',
@@ -364,7 +373,7 @@ export const rus: Partial<Dict> = {
   'heroglyph.flow.message.profileNotePrefix': 'Это послание появится в профиле твоей собаки на ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
-  'heroglyph.flow.message.cta': 'ЗАПЕЧАТАТЬ ПОСЛАНИЕ →',
+  'heroglyph.flow.message.cta': 'ЗАПЕЧАТАТЬ ПОСЛАНИЕ',
 
   // ── /heroglyph flow — checkout ──
   'heroglyph.checkout.orderSummary': 'Сводка Заказа',
@@ -376,7 +385,7 @@ export const rus: Partial<Dict> = {
   'heroglyph.checkout.lastName': 'Фамилия',
   'heroglyph.checkout.email': 'Эл. почта',
   'heroglyph.checkout.country': 'Страна',
-  'heroglyph.checkout.cta': 'ПЕРЕЙТИ К ОПЛАТЕ →',
+  'heroglyph.checkout.cta': 'ПЕРЕЙТИ К ОПЛАТЕ',
   'heroglyph.checkout.disclaimerPrefix': 'После оплаты мы разместим фото твоей собаки на сайте, а твой ',
   'heroglyph.checkout.disclaimerHighlight': 'Сертификат DOGYPT',
   'heroglyph.checkout.disclaimerSuffix': ' в твоём профиле.',
@@ -394,7 +403,7 @@ export const rus: Partial<Dict> = {
   'welcome.missionLine1': 'Стая выросла на одного бога. Теперь приведи следующего.',
   'welcome.cta.preparing': 'ГОТОВИМ ТВОЁ МЕСТО...',
   'welcome.cta.forging': 'КУЁМ ТВОЙ HEROGLYPH...',
-  'welcome.cta.enter': 'ВОЙТИ К БОГАМ →',
+  'welcome.cta.enter': 'ВОЙТИ К БОГАМ',
   'welcome.emailHint': 'Твой сертификат уже в пути — проверь почту.',
 
   // ── /login — magic-link callback (Login.tsx) ──

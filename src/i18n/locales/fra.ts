@@ -160,8 +160,8 @@ export const fra: Partial<Dict> = {
   'heroglyph.flow.photo.tipForward': 'chien de face',
   'heroglyph.flow.photo.tipSide': 'profil / groupe',
   'heroglyph.flow.photo.tipBest': 'Meilleur résultat : visage bien visible, fonctionne recadré en cercle.',
-  'heroglyph.flow.photo.next': 'SUIVANT →',
-  'heroglyph.flow.photo.back': '← RETOUR',
+  'heroglyph.flow.photo.next': 'SUIVANT',
+  'heroglyph.flow.photo.back': 'RETOUR',
   'heroglyph.flow.photo.adjustTitle': 'AJUSTE TON PORTRAIT',
   'heroglyph.flow.photo.adjustHint': 'Fais glisser pour positionner ton chien dans le cadre.',
   'heroglyph.flow.photo.moreTitle': 'PLUS DE VISAGES DU DIEU',
@@ -185,6 +185,15 @@ export const fra: Partial<Dict> = {
   'heroglyph.flow.breed.cat.08': 'Éclabousseurs',
   'heroglyph.flow.breed.cat.09': 'Loups',
   'heroglyph.flow.breed.cat.10': 'Géants',
+  'heroglyph.flow.breed.q1.title': 'Quelle est la race de {name} ?',
+  'heroglyph.flow.breed.q1.subtitle': "C'est juste pour nos stats de races — tu choisiras ton patron juste après.",
+  'heroglyph.flow.breed.type.one': 'Une seule race',
+  'heroglyph.flow.breed.type.mix': 'Race croisée',
+  'heroglyph.flow.breed.one.placeholder': 'Rechercher une race',
+  'heroglyph.flow.breed.mix.placeholder1': 'Première race',
+  'heroglyph.flow.breed.mix.placeholder2': 'Deuxième race',
+  'heroglyph.flow.breed.mix.dontKnow': 'Je ne sais pas',
+  'heroglyph.flow.breed.patron.subtitle': 'Choisis la silhouette qui correspond le mieux à {name} — elle peut avoir n\'importe quelle forme.',
 
   // ── /heroglyph flow — step 4: ranking ──
   'heroglyph.flow.ranking.question': '{dogName} est-il le premier chien que tu aies jamais eu ?',
@@ -365,7 +374,7 @@ export const fra: Partial<Dict> = {
   'heroglyph.flow.message.profileNotePrefix': 'Ce message apparaîtra sur le profil de ton chien sur ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
-  'heroglyph.flow.message.cta': 'SCELLER LE MESSAGE →',
+  'heroglyph.flow.message.cta': 'SCELLER LE MESSAGE',
 
   // ── /heroglyph flow — checkout ──
   'heroglyph.checkout.orderSummary': 'Récapitulatif de la commande',
@@ -377,7 +386,7 @@ export const fra: Partial<Dict> = {
   'heroglyph.checkout.lastName': 'Nom',
   'heroglyph.checkout.email': 'E-mail',
   'heroglyph.checkout.country': 'Pays',
-  'heroglyph.checkout.cta': 'CONTINUER VERS LE PAIEMENT →',
+  'heroglyph.checkout.cta': 'CONTINUER VERS LE PAIEMENT',
   'heroglyph.checkout.disclaimerPrefix': 'Après le paiement, nous placerons la photo de ton chien sur le site web et ton ',
   'heroglyph.checkout.disclaimerHighlight': 'Certificat DOGYPT',
   'heroglyph.checkout.disclaimerSuffix': ' dans ton profil.',
@@ -399,7 +408,7 @@ export const fra: Partial<Dict> = {
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'PRÉPARATION DE TA PLACE...',
   'welcome.cta.forging': 'FORGE DE TON HEROGLYPH...',
-  'welcome.cta.enter': 'ENTRER PARMI LES DIEUX →',
+  'welcome.cta.enter': 'ENTRER PARMI LES DIEUX',
   'welcome.emailHint': 'Ton certificat est en route — vérifie ta boîte mail.',
 
   // ── /login — magic-link callback (Login.tsx) ──

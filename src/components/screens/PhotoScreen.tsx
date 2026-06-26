@@ -267,8 +267,8 @@ function BackNextButtons({
   onNext,
   backDisabled,
   nextDisabled,
-  backLabel = '← BACK',
-  nextLabel = 'NEXT →',
+  backLabel = 'BACK',
+  nextLabel = 'NEXT',
 }: {
   onBack: () => void;
   onNext: () => void;

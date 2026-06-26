@@ -175,8 +175,8 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.photo.tipForward': 'pes čelom',
   'heroglyph.flow.photo.tipSide': 'z profilu / skupina',
   'heroglyph.flow.photo.tipBest': 'Najlepší výsledok: tvár jasne viditeľná, funguje orezaná do kruhu.',
-  'heroglyph.flow.photo.next': 'ĎALEJ →',
-  'heroglyph.flow.photo.back': '← SPÄŤ',
+  'heroglyph.flow.photo.next': 'ĎALEJ',
+  'heroglyph.flow.photo.back': 'SPÄŤ',
   'heroglyph.flow.photo.adjustTitle': 'UPRAV SVOJ PORTRÉT',
   'heroglyph.flow.photo.adjustHint': 'Ťahaním umiestni psa do rámu.',
   'heroglyph.flow.photo.moreTitle': 'VIAC TVÁRÍ BOHA',
@@ -200,6 +200,15 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.breed.cat.08': 'Špliechači',
   'heroglyph.flow.breed.cat.09': 'Vĺčkovia',
   'heroglyph.flow.breed.cat.10': 'Obri',
+  'heroglyph.flow.breed.q1.title': 'Aké plemeno je {name}?',
+  'heroglyph.flow.breed.q1.subtitle': 'Toto je len pre našu štatistiku plemien — patróna si vyberieš v ďalšom kroku.',
+  'heroglyph.flow.breed.type.one': 'Jedno plemeno',
+  'heroglyph.flow.breed.type.mix': 'Kríženec',
+  'heroglyph.flow.breed.one.placeholder': 'Hľadať plemeno',
+  'heroglyph.flow.breed.mix.placeholder1': 'Prvé plemeno',
+  'heroglyph.flow.breed.mix.placeholder2': 'Druhé plemeno',
+  'heroglyph.flow.breed.mix.dontKnow': 'Neviem',
+  'heroglyph.flow.breed.patron.subtitle': 'Vyber siluetu, ktorá najviac sedí {name} — môže byť hocijaká.',
 
   // ── /heroglyph flow — krok 4: poradie ──
   'heroglyph.flow.ranking.question': 'Je {dogName} tvoj prvý pes?',
@@ -380,7 +389,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.message.profileNotePrefix': 'Tento odkaz sa zobrazí na profile tvojho psa na ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
-  'heroglyph.flow.message.cta': 'ZAPEČATIŤ ODKAZ →',
+  'heroglyph.flow.message.cta': 'ZAPEČATIŤ ODKAZ',
   'heroglyph.flow.message.done': 'Hotovo',
 
   // ── /heroglyph flow — checkout ──
@@ -393,7 +402,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.checkout.lastName': 'Priezvisko',
   'heroglyph.checkout.email': 'E-mail',
   'heroglyph.checkout.country': 'Krajina',
-  'heroglyph.checkout.cta': 'POKRAČOVAŤ NA PLATBU →',
+  'heroglyph.checkout.cta': 'POKRAČOVAŤ NA PLATBU',
   'heroglyph.checkout.disclaimerPrefix': 'Po platbe umiestnime fotku tvojho psa na web a tvoj ',
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certifikát',
   'heroglyph.checkout.disclaimerSuffix': ' do tvojho profilu.',
@@ -413,7 +422,7 @@ export const sk: Partial<Dict> = {
   'welcome.missionLine1': 'Svorka narástla o jedného boha. Priveď ďalšieho.',
   'welcome.cta.preparing': 'PRIPRAVUJEM TVOJE MIESTO…',
   'welcome.cta.forging': 'KUJEM TVOJ HEROGLYPH…',
-  'welcome.cta.enter': 'VSTÚP MEDZI BOHOV →',
+  'welcome.cta.enter': 'VSTÚP MEDZI BOHOV',
   'welcome.emailHint': 'Ďakujeme, vďaka tebe je DOGYPT o chlp lepší.',
   // password step (set-pack-password flow)
   'welcome.password.title': 'Tvoje konto: {email}',

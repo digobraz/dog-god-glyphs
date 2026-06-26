@@ -169,8 +169,8 @@ export const en = {
   'heroglyph.flow.photo.tipForward': 'dog facing forward',
   'heroglyph.flow.photo.tipSide': 'side profile / group',
   'heroglyph.flow.photo.tipBest': 'Best results: face clearly visible, works cropped into a circle.',
-  'heroglyph.flow.photo.next': 'NEXT →',
-  'heroglyph.flow.photo.back': '← BACK',
+  'heroglyph.flow.photo.next': 'NEXT',
+  'heroglyph.flow.photo.back': 'BACK',
   'heroglyph.flow.photo.adjustTitle': 'ADJUST YOUR PORTRAIT',
   'heroglyph.flow.photo.adjustHint': 'Drag to position your dog within the frame.',
   'heroglyph.flow.photo.moreTitle': 'MORE FACES OF THE GOD',
@@ -194,6 +194,18 @@ export const en = {
   'heroglyph.flow.breed.cat.08': 'Splashers',
   'heroglyph.flow.breed.cat.09': 'Wolflikes',
   'heroglyph.flow.breed.cat.10': 'Giants',
+
+  // ── breed step 1 (type + search) ──
+  'heroglyph.flow.breed.q1.title': 'What breed is {name}?',
+  'heroglyph.flow.breed.q1.subtitle': "This is just for our breed stats — you'll choose your patron next.",
+  'heroglyph.flow.breed.type.one': 'One breed',
+  'heroglyph.flow.breed.type.mix': 'Mix breed',
+  'heroglyph.flow.breed.one.placeholder': 'Search breed',
+  'heroglyph.flow.breed.mix.placeholder1': 'First breed',
+  'heroglyph.flow.breed.mix.placeholder2': 'Second breed',
+  'heroglyph.flow.breed.mix.dontKnow': "I don't know",
+  // ── breed step 2 (patron) ──
+  'heroglyph.flow.breed.patron.subtitle': 'Pick the silhouette that fits {name} best — it can be any shape.',
 
   // ── /heroglyph flow — step 4: ranking ──
   'heroglyph.flow.ranking.question': "Is {dogName} the first dog you've ever had?",
@@ -402,7 +414,7 @@ export const en = {
   'heroglyph.flow.message.profileNotePrefix': "This message will appear on your dog's profile in the ",
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
-  'heroglyph.flow.message.cta': 'SEAL THE MESSAGE →',
+  'heroglyph.flow.message.cta': 'SEAL THE MESSAGE',
   'heroglyph.flow.message.done': 'Done',
 
   // ── /heroglyph flow — checkout ──
@@ -415,7 +427,7 @@ export const en = {
   'heroglyph.checkout.lastName': 'Last Name',
   'heroglyph.checkout.email': 'Email',
   'heroglyph.checkout.country': 'Country',
-  'heroglyph.checkout.cta': 'CONTINUE TO PAYMENT →',
+  'heroglyph.checkout.cta': 'CONTINUE TO PAYMENT',
   'heroglyph.checkout.disclaimerPrefix': "After payment, we'll place your dog's photo on the website and your ",
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certificate',
   'heroglyph.checkout.disclaimerSuffix': ' in your profile.',
@@ -439,7 +451,7 @@ export const en = {
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'PREPARING YOUR PLACE...',
   'welcome.cta.forging': 'FORGING YOUR HEROGLYPH...',
-  'welcome.cta.enter': 'ENTER THE GODS →',
+  'welcome.cta.enter': 'ENTER THE GODS',
   'welcome.emailHint': 'Thank you — because of you, DOGYPT is fur better.',
   // password step (set-pack-password flow)
   'welcome.password.title': 'Your account: {email}',
@@ -634,7 +646,7 @@ export const en = {
   'wall.hero.total': '1,000,000',
   'wall.hero.dogs': 'DOGS',
   // Hekthor founder card
-  'wall.hektor.msg': 'The dog who started it all. Adopted 2017. Every journey begins with one step — his was a 42-day walk across Slovakia.',
+  'wall.hektor.msg': 'You completely changed my life, buddy. Out of gratitude to dogkind, I now want to give a million dogs a second chance to find home and spread love the way you did. Thank you for our best life together. I love you.',
   // info overlay
   'wall.info.title': '1,000,000 dogs.<br/>Will we make it?',
   'wall.info.body': "DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack. We're collecting one million heroes. Be among the first.",

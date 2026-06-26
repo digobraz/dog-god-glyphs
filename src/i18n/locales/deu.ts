@@ -159,8 +159,8 @@ export const deu: Partial<Dict> = {
   'heroglyph.flow.photo.tipForward': 'Hund von vorne',
   'heroglyph.flow.photo.tipSide': 'Seitenprofil / Gruppe',
   'heroglyph.flow.photo.tipBest': 'Beste Ergebnisse: Gesicht klar sichtbar, funktioniert kreisförmig zugeschnitten.',
-  'heroglyph.flow.photo.next': 'WEITER →',
-  'heroglyph.flow.photo.back': '← ZURÜCK',
+  'heroglyph.flow.photo.next': 'WEITER',
+  'heroglyph.flow.photo.back': 'ZURÜCK',
   'heroglyph.flow.photo.adjustTitle': 'PASSE DEIN PORTRÄT AN',
   'heroglyph.flow.photo.adjustHint': 'Ziehe, um deinen Hund im Rahmen zu positionieren.',
   'heroglyph.flow.photo.moreTitle': 'MEHR ANTLITZE DES GOTTES',
@@ -184,6 +184,15 @@ export const deu: Partial<Dict> = {
   'heroglyph.flow.breed.cat.08': 'Plantscher',
   'heroglyph.flow.breed.cat.09': 'Wolfsartige',
   'heroglyph.flow.breed.cat.10': 'Giganten',
+  'heroglyph.flow.breed.q1.title': 'Welche Rasse ist {name}?',
+  'heroglyph.flow.breed.q1.subtitle': 'Das ist nur für unsere Rassen-Statistik — deinen Patron wählst du als Nächstes.',
+  'heroglyph.flow.breed.type.one': 'Eine Rasse',
+  'heroglyph.flow.breed.type.mix': 'Mischling',
+  'heroglyph.flow.breed.one.placeholder': 'Rasse suchen',
+  'heroglyph.flow.breed.mix.placeholder1': 'Erste Rasse',
+  'heroglyph.flow.breed.mix.placeholder2': 'Zweite Rasse',
+  'heroglyph.flow.breed.mix.dontKnow': 'Ich weiß es nicht',
+  'heroglyph.flow.breed.patron.subtitle': 'Wähle die Silhouette, die am besten zu {name} passt — es kann jede Form sein.',
 
   // ── /heroglyph flow — step 4: ranking ──
   'heroglyph.flow.ranking.question': 'Ist {dogName} der erste Hund, den du je hattest?',
@@ -364,7 +373,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.flow.message.profileNotePrefix': 'Diese Botschaft erscheint im Profil deines Hundes auf ',
   'heroglyph.flow.message.profileNoteSite': 'DOGYPT.com',
   'heroglyph.flow.message.profileNoteSuffix': '.',
-  'heroglyph.flow.message.cta': 'BOTSCHAFT VERSIEGELN →',
+  'heroglyph.flow.message.cta': 'BOTSCHAFT VERSIEGELN',
 
   // ── /heroglyph flow — checkout ──
   'heroglyph.checkout.orderSummary': 'Bestellübersicht',
@@ -376,7 +385,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.checkout.lastName': 'Nachname',
   'heroglyph.checkout.email': 'E-Mail',
   'heroglyph.checkout.country': 'Land',
-  'heroglyph.checkout.cta': 'WEITER ZUR ZAHLUNG →',
+  'heroglyph.checkout.cta': 'WEITER ZUR ZAHLUNG',
   'heroglyph.checkout.disclaimerPrefix': 'Nach der Zahlung platzieren wir das Foto deines Hundes auf der Website und dein ',
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT-Zertifikat',
   'heroglyph.checkout.disclaimerSuffix': ' in deinem Profil.',
@@ -398,7 +407,7 @@ export const deu: Partial<Dict> = {
   // CTA states (PREPARING → FORGING → ENTER)
   'welcome.cta.preparing': 'DEIN PLATZ WIRD VORBEREITET...',
   'welcome.cta.forging': 'DEIN HEROGLYPH WIRD GESCHMIEDET...',
-  'welcome.cta.enter': 'TRITT EIN ZU DEN GÖTTERN →',
+  'welcome.cta.enter': 'TRITT EIN ZU DEN GÖTTERN',
   'welcome.emailHint': 'Dein Zertifikat ist unterwegs — schau in deine E-Mails.',
 
   // ── /login — magic-link callback (Login.tsx) ──

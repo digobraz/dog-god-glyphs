@@ -297,8 +297,10 @@ export function GodsGrid() {
       el.innerHTML = `
         <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
         <div class="card-open-overlay">
-          <div class="card-open-rank">#1</div>
-          <div class="card-open-name">HEKTHOR</div>
+          <div class="card-open-titlerow">
+            <span class="card-open-rank">#1</span>
+            <span class="card-open-name">HEKTHOR</span>
+          </div>
           <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
           <div class="card-open-msg">${t('wall.hektor.msg')}</div>
         </div>
@@ -949,9 +951,9 @@ export function GodsGrid() {
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          gap: 10px;
+          gap: 8px;
           padding: 16px;
-          overflow: hidden;
+          overflow-y: auto;
         }
         .dog-card.is-open .card-open-overlay { opacity: 1; pointer-events: auto; }
         .dog-card.is-open { z-index: 8; }
@@ -959,6 +961,14 @@ export function GodsGrid() {
         .dog-card.is-open .card-flag,
         .dog-card.is-open .card-name-block { opacity: 0; }
 
+        .card-open-titlerow {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          flex-shrink: 0;
+          margin-bottom: 2px;
+        }
         .card-open-name {
           font-family: 'Cinzel Decorative', 'Cinzel', serif;
           font-size: 0.95rem;
@@ -966,11 +976,9 @@ export function GodsGrid() {
           color: rgba(255,255,255,0.92);
           letter-spacing: 0.08em;
           text-align: center;
-          margin-bottom: 4px;
         }
         .card-open-rank {
           display: inline-block;
-          align-self: center;
           font-family: 'Cinzel', serif;
           font-size: 0.7rem;
           font-weight: 700;
@@ -980,7 +988,6 @@ export function GodsGrid() {
           border: 1px solid rgba(201,154,63,0.55);
           border-radius: 999px;
           padding: 2px 11px;
-          margin-bottom: 7px;
         }
         .card-open-msg {
           font-size: 0.7rem;
@@ -992,9 +999,10 @@ export function GodsGrid() {
           margin-top: 2px;
         }
         .card-open-heroglyph {
-          width: 64%;
+          width: 48%;
           height: auto;
           display: block;
+          flex-shrink: 0;
           pointer-events: none;
           filter:
             brightness(0) invert(1)
@@ -1542,6 +1550,13 @@ export function GodsGrid() {
             padding: 5px 14px;
           }
           .hero-count-num { font-size: 1.05rem; }
+
+          /* Hekthor open overlay: menšia karta → menší heroglyf + tesnejší text,
+             aby sa dlhá osobná správa zmestila bez orezania. */
+          .card-open-overlay { padding: 12px; gap: 6px; }
+          .card-open-heroglyph { width: 34%; }
+          .card-open-name { font-size: 0.82rem; }
+          .card-open-msg { font-size: 0.62rem; line-height: 1.45; }
         }
         .hero-count-globe {
           width: 15px; height: 15px;
