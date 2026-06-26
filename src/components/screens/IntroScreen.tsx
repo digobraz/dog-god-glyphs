@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
-import matejFounderImg from '@/assets/matej-founder.png';
+import introMedallionImg from '@/assets/intro-medallion.png';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';
 
 // ── /heroglyph/intro — dedikačný predkrok (nepočítaný)
-// Misijné intro s Matejovou fotkou + výber živý / mŕtvy psa → uloží lifeStatus do store.
+// Misijné intro (medailón + 2-col header + body2 rámik) + výber živý/mŕtvy psa.
 // Route: /heroglyph/intro
 // Back: /heroglyph (sales)  ·  Continue: /heroglyph/name
 export function IntroScreen() {
@@ -38,45 +38,60 @@ export function IntroScreen() {
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <PageTopBar onBack={() => navigate('/heroglyph')} />
 
-      {/* Mierne skrolovateľné — intro má viac obsahu ako bežný krok */}
-      <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 py-3 my-auto">
+      {/* justify-center vertikálne centruje na väčších obrazovkách;
+          overflow-y-auto je záchrana pre extrémne malé zariadenia */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
+        <div className="w-full max-w-xl flex flex-col gap-2.5 py-2">
 
-          {/* Block 1 — papyrus karta: Matej founder foto + eyebrow + title + body ×2 */}
+          {/* Block 1 — papyrus karta: 2-col header + body2 rámik */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 md:p-6 flex flex-col items-center gap-3"
-            initial={{ opacity: 0, y: -20 }}
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex flex-col gap-2.5"
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.45 }}
           >
-            {/* Matej founder photo — transparent PNG, papyrus background presvitá */}
-            <img
-              src={matejFounderImg}
-              alt="Matej — DOGYPT founder"
-              className="w-36 h-44 md:w-44 md:h-56 object-contain object-top"
-            />
+            {/* Horný riadok: medailón VĽAVO, eyebrow/title/body VPRAVO */}
+            <div className="flex gap-3 items-start">
+              {/* Medailón — vlastný kruhový rám, žiadny ďalší wrapper */}
+              <img
+                src={introMedallionImg}
+                alt="DOGYPT — Matej a pes"
+                className="w-[110px] h-[110px] md:w-[132px] md:h-[132px] object-contain flex-shrink-0"
+              />
 
-            <div className="flex flex-col items-center gap-2 text-center">
+              {/* Pravý stĺpec: eyebrow + title + body (1. odsek) */}
+              <div className="flex-1 flex flex-col gap-1.5">
+                <p
+                  className="text-[10px] uppercase tracking-[0.22em] font-semibold"
+                  style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                >
+                  {t('intro.eyebrow')}
+                </p>
+                <h2
+                  className="text-[13px] md:text-sm font-bold leading-snug"
+                  style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                >
+                  {t('intro.title')}
+                </h2>
+                <p
+                  className="text-[12px] md:text-[13px] leading-snug text-foreground/80"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  {t('intro.body')}
+                </p>
+              </div>
+            </div>
+
+            {/* body2 — ohraničený rámik (brand cartouche, radius 8px, gold border) */}
+            <div
+              style={{
+                border: '1px solid rgba(160,116,35,0.35)',
+                borderRadius: 8,
+                padding: '8px 10px',
+              }}
+            >
               <p
-                className="text-[11px] md:text-xs uppercase tracking-[0.22em] font-semibold"
-                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-              >
-                {t('intro.eyebrow')}
-              </p>
-              <h2
-                className="text-base md:text-xl font-bold leading-snug"
-                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
-              >
-                {t('intro.title')}
-              </h2>
-              <p
-                className="text-foreground/80 text-sm md:text-base leading-relaxed"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-              >
-                {t('intro.body')}
-              </p>
-              <p
-                className="text-foreground/65 text-sm md:text-base leading-relaxed"
+                className="text-[11px] md:text-[12px] leading-snug text-foreground/70"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 {t('intro.body2')}
@@ -86,24 +101,24 @@ export function IntroScreen() {
 
           {/* Block 2 — papyrus karta: otázka + voľby + Continue */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 md:p-6 flex flex-col gap-4"
-            initial={{ opacity: 0, y: 20 }}
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex flex-col gap-3"
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.18 }}
           >
             <p
-              className="text-center text-sm md:text-base font-bold uppercase tracking-wider"
+              className="text-center text-[11px] md:text-xs font-bold uppercase tracking-wider"
               style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
             >
               {t('intro.question')}
             </p>
 
-            {/* Voľby — brand hand-drawn SVG ikonky + selected štýl z DogBloodlineScreen */}
-            <div className="flex gap-3 w-full">
+            {/* Voľby — brand hand-drawn SVG ikonky, selected štýl z DogBloodlineScreen */}
+            <div className="flex gap-2.5 w-full">
               {/* alive → Legend.svg */}
               <button
                 onClick={() => handleSelect('alive')}
-                className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all font-bold text-sm uppercase tracking-wider ${
+                className={`flex-1 flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
                   selected === 'alive'
                     ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
@@ -114,20 +129,24 @@ export function IntroScreen() {
                   src={legendIconUrl}
                   alt=""
                   aria-hidden="true"
-                  className="h-10 w-10 object-contain flex-shrink-0"
+                  className="h-8 w-8 object-contain flex-shrink-0"
                   style={{
                     filter: selected === 'alive'
                       ? 'brightness(0) invert(1)'
                       : 'brightness(0)',
                   }}
                 />
-                <span>{t('intro.alive')}</span>
+                <span
+                  className="text-[11px] font-bold uppercase tracking-wider leading-tight text-center"
+                >
+                  {t('intro.alive')}
+                </span>
               </button>
 
               {/* deceased → Angel.svg */}
               <button
                 onClick={() => handleSelect('deceased')}
-                className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all font-bold text-sm uppercase tracking-wider ${
+                className={`flex-1 flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
                   selected === 'deceased'
                     ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
@@ -138,21 +157,25 @@ export function IntroScreen() {
                   src={angelIconUrl}
                   alt=""
                   aria-hidden="true"
-                  className="h-10 w-10 object-contain flex-shrink-0"
+                  className="h-8 w-8 object-contain flex-shrink-0"
                   style={{
                     filter: selected === 'deceased'
                       ? 'brightness(0) invert(1)'
                       : 'brightness(0)',
                   }}
                 />
-                <span>{t('intro.deceased')}</span>
+                <span
+                  className="text-[11px] font-bold uppercase tracking-wider leading-tight text-center"
+                >
+                  {t('intro.deceased')}
+                </span>
               </button>
             </div>
 
-            {/* Continue — vždy aktívny (alive je predvolené) */}
+            {/* Continue — vždy aktívny, gold gradient ako ostatné flow kroky */}
             <Button
               onClick={handleContinue}
-              className="w-full rounded-xl gap-2 h-10 md:h-11 font-bold tracking-wider hover:scale-[1.02] transition-transform"
+              className="w-full rounded-xl gap-2 h-9 md:h-10 font-bold tracking-wider hover:scale-[1.02] transition-transform"
               style={{
                 fontFamily: "'Cinzel', serif",
                 background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
