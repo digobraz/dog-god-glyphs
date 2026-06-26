@@ -248,32 +248,40 @@ export function NameScreen() {
               </span>
             </button>
 
-            {/* Default front content */}
-            <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
-              <p className="text-white text-center text-[15px] md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
-                <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
-                <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
-              </p>
-            </div>
-
-            {/* Info overlay – papyrus light bg */}
-            <AnimatePresence>
-              {showInfo && (
+            {/* Front + info share one AnimatePresence (mode="wait") so the bubble
+                height fits whichever is shown — nothing gets clipped. */}
+            <AnimatePresence mode="wait" initial={false}>
+              {!showInfo ? (
                 <motion.div
-                  className="absolute inset-0 z-10 flex flex-col rounded-2xl overflow-hidden"
+                  key="front"
+                  className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.35 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <img src={hekthorImg} alt="HEKTHOR" className="hek-lg w-36 h-36 md:w-56 md:h-56 object-contain" />
+                  <p className="text-white text-center text-[15px] md:text-2xl leading-snug drop-shadow-sm" style={{ fontFamily: "'Cinzel', serif" }}>
+                    <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingPrefix')} <span className="font-bold text-amber-300">HEKTHOR</span>.</span><br />
+                    <span className="whitespace-nowrap">{t('heroglyph.flow.name.greetingQuestion')}</span>
+                  </p>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="info"
+                  className="rounded-2xl"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
                   style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                 >
-                  {/* Content – equal padding all around, pt accounts for X button */}
-                  <div className="relative z-10 p-4 pt-10 pb-3 md:p-5 md:pt-14 md:pb-5 flex-1 flex flex-col min-h-0">
+                  {/* pt accounts for the X button */}
+                  <div className="p-4 pt-11 pb-4 md:p-5 md:pt-14 md:pb-5">
                     {/* Two-column layout */}
-                    <div className="flex gap-3 md:gap-4 flex-1 min-h-0 items-center overflow-hidden">
-                      {/* Left column – video, fixed aspect ratio centered against right text */}
-                      <div className="w-[38%] md:w-[35%] flex-shrink-0 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div className="flex gap-3 md:gap-4 items-start">
+                      {/* Left column – video */}
+                      <div className="w-[40%] md:w-[34%] flex-shrink-0 rounded-2xl overflow-hidden aspect-[4/5]">
                         <video
                           src="/videos/WHO_IS_HEKTHOR.mp4"
                           autoPlay
@@ -285,7 +293,7 @@ export function NameScreen() {
                       </div>
 
                       {/* Right column */}
-                      <div className="flex-1 flex flex-col gap-1.5 md:gap-3 min-w-0 min-h-0 md:justify-center">
+                      <div className="flex-1 flex flex-col gap-1.5 md:gap-2.5 min-w-0">
                         <h3
                           className="text-sm md:text-xl font-bold leading-tight"
                           style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
@@ -294,7 +302,7 @@ export function NameScreen() {
                         </h3>
 
                         <p
-                          className="text-foreground/80 text-[10px] md:text-sm leading-snug md:leading-relaxed line-clamp-6 md:line-clamp-none"
+                          className="text-foreground/80 text-[11px] md:text-[13px] leading-snug line-clamp-6 md:line-clamp-none"
                           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                         >
                           {t('heroglyph.flow.name.whoBody')}
