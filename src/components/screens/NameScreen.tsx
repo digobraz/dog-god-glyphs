@@ -222,7 +222,7 @@ export function NameScreen() {
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
-      <PageTopBar />
+      <PageTopBar onBack={() => navigate('/heroglyph/intro')} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 pb-3">
         <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 min-h-0">

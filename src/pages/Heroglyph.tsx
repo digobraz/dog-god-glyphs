@@ -850,7 +850,7 @@ export default function Heroglyph() {
             <>
               {/* MOBILE order: CTA → outro → pills last (CTA above the fold) */}
               <button
-                onClick={() => navigate('/heroglyph/name')}
+                onClick={() => navigate('/heroglyph/intro')}
                 className="heroglyph-cta"
               >
                 {t('heroglyph.intro.cta')}
@@ -902,7 +902,7 @@ export default function Heroglyph() {
                 marginTop={12}
               />
               <button
-                onClick={() => navigate('/heroglyph/name')}
+                onClick={() => navigate('/heroglyph/intro')}
                 className="heroglyph-cta"
               >
                 {t('heroglyph.intro.cta')}

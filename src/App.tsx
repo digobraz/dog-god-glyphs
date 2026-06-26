@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { SpiralLanding } from "@/components/landing/SpiralLanding";
 import { GodsGrid } from "@/components/gods/GodsGrid";
+import { IntroScreen } from "@/components/screens/IntroScreen";
 import { NameScreen } from "@/components/screens/NameScreen";
 import { PhotoScreen } from "@/components/screens/PhotoScreen";
 import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
@@ -75,8 +76,9 @@ const App = () => (
           <Route path="/spiral" element={<SpiralLanding />} />
           <Route path="/grid" element={<GodsGrid />} />
 
-          {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov) */}
+          {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok) */}
           <Route path="/heroglyph" element={<Heroglyph />} />
+          <Route path="/heroglyph/intro" element={<IntroScreen />} />
           <Route path="/heroglyph/name" element={<NameScreen />} />
           <Route path="/heroglyph/photo" element={<PhotoScreen />} />
           <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />

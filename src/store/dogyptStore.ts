@@ -23,6 +23,7 @@ export interface DogyptState {
   gridCropData: { x: number; y: number; zoom: number } | null;
   extraPhotos: string[];
   gdprConsent: boolean;
+  lifeStatus: 'alive' | 'deceased';
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
@@ -43,6 +44,7 @@ export interface DogyptState {
   setGridCropData: (v: { x: number; y: number; zoom: number } | null) => void;
   setExtraPhotos: (v: string[]) => void;
   setGdprConsent: (v: boolean) => void;
+  setLifeStatus: (v: 'alive' | 'deceased') => void;
   reset: () => void;
 }
 
@@ -68,6 +70,7 @@ const freshState = () => ({
   gridCropData: null,
   extraPhotos: [] as string[],
   gdprConsent: false,
+  lifeStatus: 'alive' as 'alive' | 'deceased',
 });
 
 export const useDogyptStore = create<DogyptState>()(
@@ -94,6 +97,7 @@ export const useDogyptStore = create<DogyptState>()(
       setGridCropData: (v) => set({ gridCropData: v }),
       setExtraPhotos: (v) => set({ extraPhotos: v }),
       setGdprConsent: (v) => set({ gdprConsent: v }),
+      setLifeStatus: (v) => set({ lifeStatus: v }),
       reset: () => set(freshState()),
     }),
     {

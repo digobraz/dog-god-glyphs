@@ -139,6 +139,15 @@ export const en = {
   'heroglyph.intro.meaning.ranking.label': 'Ranking',
   'heroglyph.intro.meaning.ranking.value': '#1 — First Dog',
 
+  // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
+  'intro.eyebrow': 'BEFORE YOU BEGIN',
+  'intro.title': 'This takes a few minutes. Take them.',
+  'intro.body': "You're not buying a product. You're carving your dog's mark into the eternal pack — and helping dogs who have none. Give it your attention.",
+  'intro.question': 'Is your dog still by your side?',
+  'intro.alive': 'By my side',
+  'intro.deceased': 'Watching over me',
+  'intro.continue': 'Continue',
+
   // ── /heroglyph flow — step 1: name ──
   'heroglyph.flow.name.greetingPrefix': "Hi, I'm",
   'heroglyph.flow.name.greetingQuestion': "What's your dog's name?",

@@ -29,6 +29,7 @@ const GROUPS: RouteGroup[] = [
   {
     label: "Heroglyph wizard",
     routes: [
+      { path: "/heroglyph/intro", name: "0. Intro" },
       { path: "/heroglyph/name", name: "1. Name" },
       { path: "/heroglyph/photo", name: "2. Photo" },
       { path: "/heroglyph/breed", name: "3. Breed / Patron" },

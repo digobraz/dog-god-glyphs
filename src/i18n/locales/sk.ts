@@ -145,6 +145,15 @@ export const sk: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.label': 'Poradie',
   'heroglyph.intro.meaning.ranking.value': '#1 — Prvý pes',
 
+  // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
+  'intro.eyebrow': 'PRED ZAČATÍM',
+  'intro.title': 'Pár minút. Venuj im ich.',
+  'intro.body': 'Nekupuješ produkt. Vrúbíš značku svojho psa do večnej svorky — a pomáhaš psom, ktoré žiadnu nemajú. Venuj tomu pozornosť.',
+  'intro.question': 'Je tvoj pes stále pri tebe?',
+  'intro.alive': 'Pri mne',
+  'intro.deceased': 'Stráži ma zhora',
+  'intro.continue': 'Pokračovať',
+
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, ja som',
   'heroglyph.flow.name.greetingQuestion': 'Ako sa volá tvoj psík?',

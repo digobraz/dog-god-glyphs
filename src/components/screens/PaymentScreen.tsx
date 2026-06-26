@@ -29,7 +29,7 @@ export function PaymentScreen() {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
-  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2 } = useDogyptStore();
+  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2, lifeStatus } = useDogyptStore();
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
@@ -93,6 +93,7 @@ export function PaymentScreen() {
           refCode: getStoredRef(),
           promoCode: promoCode.trim() || undefined,
           language: lang,
+          lifeStatus,
         }),
       });
       const data = await res.json();
