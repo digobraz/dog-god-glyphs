@@ -482,7 +482,7 @@ export const ind: Partial<Dict> = {
   "wall.hero.cta": "डॉगिप्तवासी बनें",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "कुत्ते",
-  "wall.hektor.msg": "वह कुत्ता जिसने सब कुछ शुरू किया। 2017 में गोद लिया। हर यात्रा एक कदम से शुरू होती है — उसका था Slovakia में 42 दिन की पैदल यात्रा।",
+  "wall.hektor.msg": "तुमने मेरी ज़िंदगी पूरी तरह बदल दी, दोस्त। कुत्तों के प्रति कृतज्ञता के कारण, अब मैं दस लाख कुत्तों को घर पाने और तुम्हारी तरह प्यार फैलाने का दूसरा मौका देना चाहता हूँ। हमारे साथ बिताए सबसे अच्छे जीवन के लिए धन्यवाद। मैं तुमसे प्यार करता हूँ।",
   "wall.info.title": "1,000,000 कुत्ते।<br/>क्या हम कर पाएंगे?",
   "wall.info.body": "DOGYPT कुत्ता प्रेमियों के लिए एक आंदोलन है। हर कुत्ते को एक अनूठा Heroglyph मिलता है — वैश्विक झुंड में उनकी स्थायी जगह। हम दस लाख नायकों को जमा कर रहे हैं। पहलों में शामिल हों।",
   "wall.filter.find": "नंबर से कुत्ता खोजें",
@@ -1072,6 +1072,8 @@ export const ind: Partial<Dict> = {
   "pack.stats.hekthorBowl": "Hekthor का कटोरा",
   "pack.stats.split": "यह बँटवारा क्यों? DOGMA में «Money is an Energy» पढ़ो →",
   "pack.stats.bonesDistributed": "झुंड में बाँटे गए BONES",
+  "pack.stats.allTime": "Sepanjang waktu",
+  "pack.stats.forged": "ditempa",
   "pack.stats.raised": "{amount} जुटाए गए",
   "pack.dog.statsTitle": "आँकड़े",
 };

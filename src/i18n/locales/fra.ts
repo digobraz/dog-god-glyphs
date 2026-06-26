@@ -556,7 +556,7 @@ export const fra: Partial<Dict> = {
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'CHIENS',
   // Hekthor founder card
-  'wall.hektor.msg': 'Le chien par qui tout a commencé. Adopté en 2017. Chaque voyage commence par un pas — le sien fut une marche de 42 jours à travers la Slovaquie.',
+  'wall.hektor.msg': 'Tu as complètement changé ma vie, mon pote. Par gratitude envers les chiens, je veux maintenant offrir à un million de chiens une seconde chance de trouver un foyer et de répandre l\'amour comme tu l\'as fait. Merci pour notre plus belle vie ensemble. Je t\'aime.',
   // info overlay
   'wall.info.title': '1 000 000 de chiens.<br/>Y arriverons-nous ?',
   'wall.info.body': 'DOGYPT est un mouvement pour les amoureux des chiens. Chaque chien reçoit un Heroglyph unique — sa place permanente dans la meute mondiale. Nous rassemblons un million de héros. Sois parmi les premiers.',
@@ -1252,6 +1252,8 @@ export const fra: Partial<Dict> = {
   "pack.stats.hekthorBowl": "La gamelle de Hekthor",
   "pack.stats.split": "Pourquoi ce partage ? Lis « Money is an Energy » dans la DOGMA →",
   "pack.stats.bonesDistributed": "BONES distribués à la meute",
+  "pack.stats.allTime": "Depuis le début",
+  "pack.stats.forged": "forgés",
   "pack.stats.raised": "{amount} récolté",
   "pack.dog.statsTitle": "STATS",
 };

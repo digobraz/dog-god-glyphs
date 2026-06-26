@@ -541,7 +541,7 @@ export const pol: Partial<Dict> = {
   'wall.hero.cta': 'Zostań Dogiptianinem',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PSÓW',
-  'wall.hektor.msg': 'Pies, który to wszystko zaczął. Adoptowany w 2017. Każda wędrówka zaczyna się jednym krokiem — jego była 42-dniową pielgrzymką przez Słowację.',
+  'wall.hektor.msg': 'Całkowicie odmieniłeś moje życie, przyjacielu. Z wdzięczności wobec psiego rodu chcę teraz dać milionowi psów drugą szansę na znalezienie domu i szerzenie miłości tak, jak ty to robiłeś. Dziękuję za nasze najlepsze wspólne życie. Kocham cię.',
   'wall.info.title': '1 000 000 psów.<br/>Damy radę?',
   'wall.info.body': 'DOGYPT to ruch dla miłośników psów. Każdy pies dostaje unikalny Heroglyph — swoje trwałe miejsce w globalnej sforze. Zbieramy milion bohaterów. Bądź wśród pierwszych.',
   'wall.filter.find': 'Znajdź psa po numerze',
@@ -1232,6 +1232,8 @@ export const pol: Partial<Dict> = {
   "pack.stats.hekthorBowl": "Miska Hekthora",
   "pack.stats.split": "Dlaczego taki podział? Przeczytaj „Money is an Energy” w DOGMIE →",
   "pack.stats.bonesDistributed": "BONES rozdane wśród sfory",
+  "pack.stats.allTime": "Łącznie",
+  "pack.stats.forged": "wykutych",
   "pack.stats.raised": "Zebrano {amount}",
   "pack.dog.statsTitle": "STATYSTYKI",
 };

@@ -482,7 +482,7 @@ export const tur: Partial<Dict> = {
   "wall.hero.cta": "Dogiptli Ol",
   "wall.hero.total": "1.000.000",
   "wall.hero.dogs": "KÖPEKLER",
-  "wall.hektor.msg": "Her şeyi başlatan köpek. 2017'de evlat edinildi. Her yolculuk bir adımla başlar — onunki 42 günlük Slovakya yürüyüşüydü.",
+  "wall.hektor.msg": "Hayatımı tamamen değiştirdin, dostum. Köpeklere duyduğum minnetle, şimdi bir milyon köpeğe yuva bulması için ikinci bir şans vermek ve senin yaptığın gibi sevgiyi yaymak istiyorum. Birlikte geçirdiğimiz en güzel hayat için teşekkür ederim. Seni seviyorum.",
   "wall.info.title": "1.000.000 köpek.<br/>Başaracak mıyız?",
   "wall.info.body": "DOGYPT, köpek severler için bir harekettir. Her köpek eşsiz bir Heroglyph alır — küresel sürüdeki kalıcı yeri. Bir milyon kahraman topluyoruz. İlkler arasında ol.",
   "wall.filter.find": "Köpeği numarayla bul",
@@ -1072,6 +1072,8 @@ export const tur: Partial<Dict> = {
   "pack.stats.hekthorBowl": "Hekthor'un kâsesi",
   "pack.stats.split": "Neden bu paylaşım? DOGMA'daki «Money is an Energy» yazısını oku →",
   "pack.stats.bonesDistributed": "Sürüye dağıtılan BONES",
+  "pack.stats.allTime": "Tüm zamanlar",
+  "pack.stats.forged": "dövüldü",
   "pack.stats.raised": "{amount} toplandı",
   "pack.dog.statsTitle": "İSTATİSTİK",
 };

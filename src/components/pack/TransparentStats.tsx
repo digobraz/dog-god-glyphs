@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PACK_THEME } from './packTheme';
+import { EDGE_BASE } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -8,38 +9,55 @@ const T = PACK_THEME;
 const CUR = '€';
 
 // ─────────────────────────────────────────────────────────────────────────
-// TRANSPARENT STATS — the money, in the open, Stripe-style. Every €11 heroglyph
-// splits 5 development · 3 marketing · 2 direct help · 1 Hekthor. Switch the
-// period (per-month) and see where it went.
+// TRANSPARENT STATS — the money, in the open, Stripe-style. Same numbers as the
+// HQ dashboard: both read the SAME edge fn (get-dashboard-stats), so a member
+// sees the real treasury state 1:1 with what we see internally.
 //
-// Starts at ZERO at launch — real figures arrive with the first heroglyphs.
-// Swap PERIODS for an edge-fn fetch (get-pack-finance or similar)
-// once the finance ledger exists; layout stays.
+// €11 heroglyph splits 5 development · 3 affiliate · 2 direct help · 1 Hekthor.
+// Discounted/tester payments (€1 promo) go ENTIRELY into Hekthor's bowl — the
+// server does the split (incl. that exception); we just render treasuries.*.
 // ─────────────────────────────────────────────────────────────────────────
-const PERIODS = [
-  { key: 'jun26', label: 'June 2026', short: 'Jun', heroglyphs: 0, affiliatePoints: 0 },
-  { key: 'may26', label: 'May 2026', short: 'May', heroglyphs: 0, affiliatePoints: 0 },
+
+// share = policy ratio badge (×5/×3/×2/×1); field = key in API treasuries{}.
+const ALLOC = [
+  { key: 'dev',  share: 5, field: 'dev',       labelKey: 'pack.stats.development', color: T.partDev  },
+  { key: 'mkt',  share: 3, field: 'affiliate', labelKey: 'pack.stats.affiliate',   color: T.partMkt  },
+  { key: 'help', share: 2, field: 'help',      labelKey: 'pack.stats.directHelp',  color: T.partHelp },
+  { key: 'hek',  share: 1, field: 'hektor',    labelKey: 'pack.stats.hekthorBowl', color: T.partHek  },
 ] as const;
 
-const ALLOC = [
-  { key: 'dev',  share: 5, labelKey: 'pack.stats.development', color: T.partDev  },
-  { key: 'mkt',  share: 3, labelKey: 'pack.stats.affiliate',   color: T.partMkt  },
-  { key: 'help', share: 2, labelKey: 'pack.stats.directHelp',  color: T.partHelp },
-  { key: 'hek',  share: 1, labelKey: 'pack.stats.hekthorBowl', color: T.partHek  },
-] as const;
+type Treasuries = { dev: number; affiliate: number; help: number; hektor: number };
+type Stats = { dogyptians: number; revenue_total: number; treasuries: Treasuries };
 
 function money(n: number): string {
-  return `${CUR}${n.toLocaleString('en-US')}`;
+  return `${CUR}${(n ?? 0).toLocaleString('en-US')}`;
 }
 
 export function TransparentStats() {
   const t = useT();
-  const [pIdx, setPIdx] = useState(0);
-  const period = PERIODS[pIdx];
+  const [stats, setStats] = useState<Stats | null>(null);
+
+  // Live treasury state — SAME source as dashboard.dogypt.com (get-dashboard-stats).
+  useEffect(() => {
+    let active = true;
+    fetch(`${EDGE_BASE}/get-dashboard-stats`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active && d && !d.error) setStats(d as Stats);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const heroglyphs = stats?.dogyptians ?? 0;
+  const revenue = stats?.revenue_total ?? 0;
+  const treasuries: Treasuries = stats?.treasuries ?? { dev: 0, affiliate: 0, help: 0, hektor: 0 };
 
   return (
     <div style={{ marginTop: 26, paddingTop: 24, borderTop: `1px solid ${T.hairline}` }}>
-      {/* Header — title + period switcher (Stripe-style segmented control) */}
+      {/* Header — title */}
       <div className="flex flex-wrap items-center justify-between gap-3" style={{ marginBottom: 16 }}>
         <h3
           style={{
@@ -54,46 +72,24 @@ export function TransparentStats() {
         >
           {t('pack.stats.title')}
         </h3>
-
-        <div
-          className="flex items-center"
+        <span
           style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 10.5,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: T.inkDim,
             background: T.cardSoft,
             border: `1px solid ${T.hairline}`,
             borderRadius: 999,
-            padding: 3,
-            gap: 2,
+            padding: '4px 11px',
           }}
         >
-          {PERIODS.map((p, i) => {
-            const active = i === pIdx;
-            return (
-              <button
-                key={p.key}
-                type="button"
-                onClick={() => setPIdx(i)}
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 11,
-                  fontWeight: active ? 700 : 500,
-                  letterSpacing: '0.02em',
-                  color: active ? T.card : T.inkDim,
-                  background: active ? T.ink : 'transparent',
-                  border: 'none',
-                  borderRadius: 999,
-                  padding: '5px 12px',
-                  cursor: 'pointer',
-                  transition: 'background 0.2s ease, color 0.2s ease',
-                }}
-              >
-                {t('pack.stats.short.' + p.key)}
-              </button>
-            );
-          })}
-        </div>
+          {t('pack.stats.allTime')}
+        </span>
       </div>
 
-      {/* Top row — heroglyphs forged this period (full width) */}
+      {/* Top row — heroglyphs forged so far (full width) */}
       <div
         className="flex items-center justify-center gap-4"
         style={{
@@ -113,7 +109,7 @@ export function TransparentStats() {
             color: T.ink,
           }}
         >
-          {period.heroglyphs}
+          {heroglyphs.toLocaleString('en-US')}
         </span>
         <span
           style={{
@@ -126,11 +122,11 @@ export function TransparentStats() {
         >
           heroglyphs
           <br />
-          {t('pack.stats.thisMonth')}
+          {t('pack.stats.forged')}
         </span>
       </div>
 
-      {/* Allocation tiles — where the money went (this period) */}
+      {/* Allocation tiles — where the money went (live treasuries) */}
       <div className="grid grid-cols-2 gap-2.5">
         {ALLOC.map((a) => (
           <div
@@ -183,7 +179,7 @@ export function TransparentStats() {
                 color: T.ink,
               }}
             >
-              {money(period.heroglyphs * a.share)}
+              {money(treasuries[a.field])}
             </div>
           </div>
         ))}
@@ -209,14 +205,8 @@ export function TransparentStats() {
         </a>
       </div>
 
-      {/* Footer — BONES distributed (affiliate currency) + total raised (this period) */}
-      <div className="flex flex-wrap items-center justify-between gap-2" style={{ marginTop: 14 }}>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, color: T.inkDim }}>
-          <strong style={{ color: T.accentGold, fontWeight: 700 }}>
-            {period.affiliatePoints.toLocaleString('en-US')}
-          </strong>{' '}
-          {t('pack.stats.bonesDistributed')}
-        </span>
+      {/* Footer — total raised so far (live) */}
+      <div className="flex items-center justify-center" style={{ marginTop: 14 }}>
         <span
           style={{
             fontFamily: "'JetBrains Mono', ui-monospace, monospace",
@@ -224,7 +214,7 @@ export function TransparentStats() {
             color: T.inkDim,
           }}
         >
-          {t('pack.stats.raised', { amount: money(period.heroglyphs * 11) })}
+          {t('pack.stats.raised', { amount: money(revenue) })}
         </span>
       </div>
     </div>

@@ -482,7 +482,7 @@ export const chn: Partial<Dict> = {
   "wall.hero.cta": "成为多吉普特人",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "只狗",
-  "wall.hektor.msg": "那只引发这一切的狗。2017 年被领养。每段旅程始于一步——他的一步是横贯斯洛伐克 42 天的徒步。",
+  "wall.hektor.msg": "你彻底改变了我的人生，伙计。出于对狗族的感恩，我现在想给一百万只狗第二次机会，让它们找到家、像你一样传播爱。谢谢你陪我度过最美好的一生。我爱你。",
   "wall.info.title": "1,000,000 只狗。<br/>我们能做到吗？",
   "wall.info.body": "DOGYPT 是爱犬人士的运动。每只狗都获得一枚独一无二的 Heroglyph——在全球犬群中永久占据一席之地。我们正在收集一百万个英雄。成为第一批。",
   "wall.filter.find": "按编号查找狗",
@@ -1070,6 +1070,8 @@ export const chn: Partial<Dict> = {
   "pack.stats.hekthorBowl": "Hekthor 的食盆",
   "pack.stats.split": "为何这样分配？请阅读 DOGMA 中的「Money is an Energy」→",
   "pack.stats.bonesDistributed": "已分配给狗群的 BONES",
+  "pack.stats.allTime": "全部",
+  "pack.stats.forged": "已铸造",
   "pack.stats.raised": "已筹集 {amount}",
   "pack.dog.statsTitle": "数据",
 };

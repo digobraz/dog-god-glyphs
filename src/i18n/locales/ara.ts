@@ -482,7 +482,7 @@ export const ara: Partial<Dict> = {
   "wall.hero.cta": "كن دوغبتيًا",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "كلب",
-  "wall.hektor.msg": "الكلب الذي بدأ كل شيء. تبنّاه عام 2017. كل رحلة تبدأ بخطوة — خطوته كانت مشياً 42 يوماً عبر سلوفاكيا.",
+  "wall.hektor.msg": "لقد غيّرت حياتي تمامًا يا صديقي. عرفانًا لجنس الكلاب، أريد الآن أن أمنح مليون كلب فرصة ثانية لإيجاد بيت ونشر المحبة كما فعلت أنت. شكرًا لك على أفضل حياة عشناها معًا. أحبك.",
   "wall.info.title": "1,000,000 كلب.<br/>هل سننجح؟",
   "wall.info.body": "DOGYPT حركة لمحبّي الكلاب. كل كلب يحصل على Heroglyph فريد — مكانه الدائم في القطيع العالمي. نجمع مليون بطل. كن من الأوائل.",
   "wall.filter.find": "ابحث عن كلب برقمه",
@@ -1070,6 +1070,8 @@ export const ara: Partial<Dict> = {
   "pack.stats.hekthorBowl": "وعاء Hekthor",
   "pack.stats.split": "لماذا هذا التقسيم؟ اقرأ «Money is an Energy» في DOGMA →",
   "pack.stats.bonesDistributed": "BONES الموزّعة على Pack",
+  "pack.stats.allTime": "الإجمالي",
+  "pack.stats.forged": "مصكوكة",
   "pack.stats.raised": "تم جمع {amount}",
   "pack.dog.statsTitle": "الإحصاءات",
 };

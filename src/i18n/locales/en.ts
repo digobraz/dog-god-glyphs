@@ -142,8 +142,9 @@ export const en = {
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
   'intro.eyebrow': 'BEFORE YOU BEGIN',
   'intro.title': 'This is a special moment.',
-  'intro.body': "You're carving your dog's mark into the eternal pack — the largest community of dogs in the world. This is how you show your love for dogs and help those in need. Our goal: one million dogs in one network. Thank you for being part of it.",
-  'intro.body2': 'A few questions about your dog will follow — it would be wonderful to have them by you right now. You can begin with any dog: the one with you today, or the one already across the rainbow bridge.',
+  'intro.body': "You're about to carve your dog's mark into the eternal pack — the largest in the world. This is how you show your love for dogs and help those in need. Thank you for being part of this mission.",
+  'intro.body2': 'A few questions about your dog will follow — ideally have them by your side now. It can be any dog: the one with you today, or the one already across the rainbow bridge. Every paw counts!',
+  'intro.counter.label': 'dogs',
   'intro.question': 'Is your dog still by your side?',
   'intro.alive': 'Yes, a living legend',
   'intro.deceased': 'Waiting for me, up there',
@@ -1327,6 +1328,8 @@ export const en = {
   "pack.stats.hekthorBowl": "Hekthor's bowl",
   "pack.stats.split": "Why this split? Read 'Money is an Energy' in the DOGMA →",
   "pack.stats.bonesDistributed": "BONES distributed to the pack",
+  "pack.stats.allTime": "All time",
+  "pack.stats.forged": "forged",
   "pack.stats.raised": "{amount} raised",
   "pack.dog.statsTitle": "STATS",
 } as const;

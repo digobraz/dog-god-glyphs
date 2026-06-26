@@ -482,7 +482,7 @@ export const jpn: Partial<Dict> = {
   "wall.hero.cta": "ドギプト人になる",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "犬",
-  "wall.hektor.msg": "すべての始まりとなった犬。2017年に引き取られた。すべての旅は一歩から始まる — 彼の一歩はスロバキアを42日かけて歩くことだった。",
+  "wall.hektor.msg": "君は僕の人生を完全に変えてくれたんだ、相棒。犬たちへの感謝として、僕は今、百万匹の犬に家を見つける第二のチャンスを与え、君がそうしたように愛を広めたい。最高の時間を一緒に過ごしてくれてありがとう。愛してるよ。",
   "wall.info.title": "1,000,000匹の犬。<br/>達成できるか？",
   "wall.info.body": "DOGYPTは犬好きのためのムーブメントです。すべての犬にユニークなHeroglyph — グローバルPackの永続的な場所。私たちは百万人のヒーローを集めています。最初の一人になってください。",
   "wall.filter.find": "番号で犬を探す",
@@ -1070,6 +1070,8 @@ export const jpn: Partial<Dict> = {
   "pack.stats.hekthorBowl": "Hekthor の器",
   "pack.stats.split": "なぜこの配分なのか？DOGMA の「Money is an Energy」を読もう →",
   "pack.stats.bonesDistributed": "群れに分配された BONES",
+  "pack.stats.allTime": "全期間",
+  "pack.stats.forged": "鋳造済み",
   "pack.stats.raised": "{amount} 集まりました",
   "pack.dog.statsTitle": "統計",
 };

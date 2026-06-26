@@ -482,7 +482,7 @@ export const kor: Partial<Dict> = {
   "wall.hero.cta": "도깁트인 되기",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "개",
-  "wall.hektor.msg": "모든 것을 시작한 개. 2017년 입양됨. 모든 여정은 한 걸음으로 시작됩니다 — 그의 걸음은 슬로바키아를 42일 동안 걷는 것이었습니다.",
+  "wall.hektor.msg": "넌 내 인생을 완전히 바꿔놨어, 친구야. 개들에게 받은 고마움으로, 이제 나는 백만 마리의 개에게 집을 찾을 두 번째 기회를 주고, 네가 그랬던 것처럼 사랑을 전하고 싶어. 우리가 함께한 최고의 삶에 고마워. 사랑해.",
   "wall.info.title": "백만 마리의 개.<br/>우리가 해낼 수 있을까요?",
   "wall.info.body": "DOGYPT는 반려인들을 위한 운동입니다. 모든 개는 고유한 Heroglyph를 얻습니다 — 글로벌 무리 안에서의 영구적인 자리. 우리는 백만 마리의 영웅을 모으고 있습니다. 가장 먼저 함께하세요.",
   "wall.filter.find": "번호로 개 찾기",
@@ -1070,6 +1070,8 @@ export const kor: Partial<Dict> = {
   "pack.stats.hekthorBowl": "Hekthor의 밥그릇",
   "pack.stats.split": "왜 이렇게 나눌까요? DOGMA의 「Money is an Energy」를 읽어 보세요 →",
   "pack.stats.bonesDistributed": "무리에 분배된 BONES",
+  "pack.stats.allTime": "전체",
+  "pack.stats.forged": "제작됨",
   "pack.stats.raised": "{amount} 모금됨",
   "pack.dog.statsTitle": "통계",
 };
