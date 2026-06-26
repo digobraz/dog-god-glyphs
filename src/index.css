@@ -146,6 +146,62 @@ body {
 }
 
 /*
+ * Compact-laptop fit (2026-06-26).
+ * On short laptop viewports (e.g. 13.6" ~915×712) the heroglyph flow steps
+ * overflow 100dvh and force scroll. The 13.6" vs 16" difference is HEIGHT,
+ * not width (both above all breakpoints) — so we gate on max-height. min-width
+ * excludes phones (which already fit). Taller 16" screens are above the
+ * threshold and untouched; phone landscape ≤600px handled above.
+ * Levers: shrink the Hekthor guide avatar + heroglyph frame + choice icons,
+ * and tighten the vertical rhythm of each step's content column.
+ */
+@media (max-height: 820px) and (min-width: 768px) {
+  /* Hekthor guide avatar — biggest vertical chunk of the message block.
+     .dark-bg img[alt] (0,1,1) outranks Tailwind w-* (0,1,0), no !important. */
+  .dark-bg img[alt="HEKTHOR"] {
+    width: clamp(56px, 11vh, 100px);
+    height: clamp(56px, 11vh, 100px);
+  }
+  /* Roomier steps (intro / ranking / zodiac) carry a larger guide avatar. */
+  .dark-bg img.hek-lg[alt="HEKTHOR"] {
+    width: clamp(88px, 17vh, 132px);
+    height: clamp(88px, 17vh, 132px);
+  }
+  /* Tighten the per-step content column (overrides gap-3 / py-2). */
+  .dark-bg .max-w-xl {
+    gap: 0.4rem;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+  }
+  /* Trim the papyrus heroglyph-card padding (Block 1). */
+  .dark-bg .papyrus-bg {
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+  }
+  /* DogCharacter block 3 uses mt-5 (20px) while block 1↔2 use the column gap —
+     align it so the vertical spacing reads evenly. (unique to that screen) */
+  .dark-bg .papyrus-bg.mt-5 {
+    margin-top: 0.4rem;
+  }
+  /* Shrink the heroglyph frame ~10% to reclaim vertical space (overrides the
+     SVG's inline width:100%, so !important is required). */
+  .dark-bg svg[viewBox="800 1100 13100 3500"] {
+    width: 90% !important;
+    display: block;
+    margin-inline: auto;
+  }
+  /* Lower the message-block min-height floor (gradient card). */
+  .dark-bg .min-h-\[180px\] {
+    min-height: 9rem;
+  }
+  /* Shrink choice icons (gender / colour / fate / shape SVGs). */
+  .dark-bg button img,
+  .dark-bg label img {
+    max-height: 3rem;
+  }
+}
+
+/*
  * Safari iOS theme-color sampling — note for /codex slide 3.
  * PNGs s baked alpha halo (cow/Hekthor) bleed into bottom edge → Safari
  * môže sampling-om dostať light pixely → chrome flip. Fix nepatrí sem

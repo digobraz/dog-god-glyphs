@@ -198,6 +198,12 @@ export function MessageScreen() {
   const isOverLimit = charCount > MAX_CHARS;
   const canSubmit = charCount > 0 && !isOverLimit;
 
+  // Desktop has a hardware keyboard → edit the message inline. The compose modal
+  // exists only to keep the textarea above the soft keyboard on touch devices.
+  const [isTouchDevice] = useState(() =>
+    window.matchMedia('(hover: none) and (pointer: coarse)').matches
+  );
+
   const hiddenInputRef = useRef<HTMLInputElement>(null);
 
   const openModal = () => {
@@ -294,41 +300,80 @@ export function MessageScreen() {
                 {t('heroglyph.flow.message.yourMessage')}
               </p>
 
-              {/* Read-only preview — tap to open compose modal */}
-              <button
-                type="button"
-                onClick={openModal}
-                className="w-full text-left rounded-xl px-4 py-3 leading-relaxed border-2 transition-colors relative"
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: '16px',
-                  minHeight: '88px',
-                  borderColor: message.length > 0
-                    ? 'hsl(var(--gold))'
-                    : 'hsl(var(--border) / 0.3)',
-                  background: 'hsl(var(--card))',
-                  color: message.length > 0
-                    ? 'hsl(var(--foreground))'
-                    : 'hsl(var(--muted-foreground) / 0.5)',
-                  cursor: 'text',
-                  wordBreak: 'break-word',
-                  whiteSpace: 'pre-wrap',
-                }}
-              >
-                {message.length > 0 ? message : placeholder}
-                {/* Char counter shown in preview too */}
-                {message.length > 0 && (
-                  <span
-                    className="absolute bottom-2 right-3 text-xs font-medium"
+              {/* Touch: read-only preview that opens the keyboard-safe modal.
+                  Desktop: edit directly inline — no modal needed. */}
+              {isTouchDevice ? (
+                <button
+                  type="button"
+                  onClick={openModal}
+                  className="w-full text-left rounded-xl px-4 py-3 leading-relaxed border-2 transition-colors relative"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: '16px',
+                    minHeight: '88px',
+                    borderColor: message.length > 0
+                      ? 'hsl(var(--gold))'
+                      : 'hsl(var(--border) / 0.3)',
+                    background: 'hsl(var(--card))',
+                    color: message.length > 0
+                      ? 'hsl(var(--foreground))'
+                      : 'hsl(var(--muted-foreground) / 0.5)',
+                    cursor: 'text',
+                    wordBreak: 'break-word',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {message.length > 0 ? message : placeholder}
+                  {/* Char counter shown in preview too */}
+                  {message.length > 0 && (
+                    <span
+                      className="absolute bottom-2 right-3 text-xs font-medium"
+                      style={{
+                        fontFamily: "'Space Grotesk', sans-serif",
+                        color: isOverLimit ? 'hsl(0 70% 55%)' : 'hsl(var(--gold))',
+                      }}
+                    >
+                      {charCount} / {MAX_CHARS}
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <div className="relative">
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    onBlur={() => setSelection('dogMessage', message.trim())}
+                    placeholder={placeholder}
+                    maxLength={MAX_CHARS + 50}
+                    rows={3}
+                    className="w-full text-left rounded-xl leading-relaxed border-2 transition-colors resize-none outline-none"
                     style={{
                       fontFamily: "'Space Grotesk', sans-serif",
-                      color: isOverLimit ? 'hsl(0 70% 55%)' : 'hsl(var(--gold))',
+                      fontSize: '16px',
+                      minHeight: '88px',
+                      padding: '12px 16px 28px 16px',
+                      borderColor: isOverLimit
+                        ? 'hsl(0 70% 55%)'
+                        : message.length > 0
+                          ? 'hsl(var(--gold))'
+                          : 'hsl(var(--border) / 0.3)',
+                      background: 'hsl(var(--card))',
+                      color: 'hsl(var(--foreground))',
                     }}
-                  >
-                    {charCount} / {MAX_CHARS}
-                  </span>
-                )}
-              </button>
+                  />
+                  {message.length > 0 && (
+                    <span
+                      className="absolute bottom-2 right-3 text-xs font-medium pointer-events-none"
+                      style={{
+                        fontFamily: "'Space Grotesk', sans-serif",
+                        color: isOverLimit ? 'hsl(0 70% 55%)' : 'hsl(var(--gold))',
+                      }}
+                    >
+                      {charCount} / {MAX_CHARS}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Info line */}
               <p

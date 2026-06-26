@@ -60,7 +60,7 @@ export function HeroglyphRevealScreen() {
 
       {/* Main content */}
       <motion.div
-        className={`flex flex-col items-center w-full max-w-xl px-4 z-10 ${showVertical ? 'py-4 gap-4' : 'py-8 gap-8'}`}
+        className={`flex flex-col items-center w-full max-w-xl px-4 z-10 my-auto ${showVertical ? 'py-4 gap-4' : 'py-8 gap-8'}`}
         initial={{ opacity: 0 }}
         animate={{ opacity: phase !== 'intro' ? 1 : 0 }}
         transition={{ duration: 1 }}
