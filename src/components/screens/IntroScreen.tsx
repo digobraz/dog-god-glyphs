@@ -44,7 +44,9 @@ export function IntroScreen() {
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (active && Array.isArray(d)) setPackCount(d.length);
+        // +1 = Hekthor, founder card #1 (hardcoded na WALLe, je is_tester →
+        // get-grid-dogs ho vynecháva). Vždy sa počíta, aby pill = počet na WALLe.
+        if (active && Array.isArray(d)) setPackCount(d.length + 1);
       })
       .catch(() => {});
     return () => {
