@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Lock, Loader2, Check } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { buildHeroglyphCode } from '@/lib/heroglyphCode';
+import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
 import { getStoredRef } from '@/lib/refCapture';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -68,6 +68,13 @@ export function PaymentScreen() {
         country: selections?.country || selections?.ownerCountry,
         selections,
       });
+      // Top-level breed + country columns power the Nation stats breakdown
+      // (get-pack-stats reads them, NOT the selections JSON). country is
+      // normalized to ISO3 (e.g. "SVK") to match the invoice-language check
+      // and the heroglyph code. Without these, every customer is missing from
+      // the by-country / by-breed breakdown.
+      const rawCountry = selections?.country || selections?.ownerCountry;
+      const iso3 = countryISO3(rawCountry);
       const res = await fetch(CREATE_CHECKOUT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,6 +86,8 @@ export function PaymentScreen() {
           dogPhotoUrl: stablePhotoUrl,
           patronSvg,
           patronSvg2,
+          breed: selections?.breed || undefined,
+          country: iso3 !== 'XXX' ? iso3 : undefined,
           heroglyphCode,
           amount: selectedAmount ?? 11,
           refCode: getStoredRef(),

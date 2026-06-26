@@ -269,7 +269,7 @@ function patronCC_PP(input: HeroglyphCodeInput): { cc: string; pp: string } {
   return { cc: 'XX', pp: 'XX' };
 }
 
-function countryISO3(country: string | undefined): string {
+export function countryISO3(country: string | undefined): string {
   if (!country) return 'XXX';
   const key = country.trim().toLowerCase();
   if (COUNTRY_TO_ISO3[key]) return COUNTRY_TO_ISO3[key];
