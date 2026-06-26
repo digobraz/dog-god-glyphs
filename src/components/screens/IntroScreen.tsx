@@ -43,12 +43,12 @@ export function IntroScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col gap-2.5 py-2">
 
-          {/* Block 1 — kráľovský zlatý gradient: 2-col header + body2 rámik */}
+          {/* Block 1 — brand modro-zlatý gradient (tmavý → svetlý text) */}
           <motion.div
             className="w-full rounded-2xl p-4 md:p-5 flex flex-col gap-3"
             style={{
-              background: 'linear-gradient(155deg, #F7EBC8 0%, #EAD296 50%, #D9B566 100%)',
-              border: '2px solid rgba(160,116,35,0.45)',
+              background: 'var(--brand-gradient)',
+              border: '2px solid rgba(160,116,35,0.55)',
             }}
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -63,41 +63,51 @@ export function IntroScreen() {
                 className="w-[140px] h-[140px] md:w-[170px] md:h-[170px] object-contain flex-shrink-0"
               />
 
-              {/* Pravý stĺpec: eyebrow + title + body (1. odsek) */}
+              {/* Pravý stĺpec: eyebrow + title + body (1. odsek) — svetlý text na tmavom */}
               <div className="flex-1 flex flex-col gap-2">
                 <p
                   className="text-[10px] uppercase tracking-[0.22em] font-semibold"
-                  style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                  style={{ fontFamily: "'Cinzel', serif", color: '#E5C16E' }}
                 >
                   {t('intro.eyebrow')}
                 </p>
                 <h2
                   className="text-xl md:text-2xl font-bold leading-snug"
-                  style={{ fontFamily: "'Cinzel', serif", color: '#0E0E0E' }}
+                  style={{
+                    fontFamily: "'Cinzel', serif",
+                    color: '#FAF4EC',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+                  }}
                 >
                   {t('intro.title')}
                 </h2>
                 <p
-                  className="text-sm md:text-base leading-snug"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(0,0,0,0.72)' }}
+                  className="text-xs md:text-sm leading-snug"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    color: 'rgba(250,244,236,0.92)',
+                  }}
                 >
                   {t('intro.body')}
                 </p>
               </div>
             </div>
 
-            {/* body2 — ohraničený rámik, translucent fill pre čitateľnosť na zlatom */}
+            {/* body2 — rámik na tmavom: gold border, presvitavá výplň, krémový text */}
             <div
               style={{
-                border: '1px solid rgba(160,116,35,0.35)',
+                border: '1px solid rgba(229,193,110,0.4)',
                 borderRadius: 8,
                 padding: '8px 10px',
-                background: 'rgba(255,250,240,0.45)',
+                background: 'rgba(255,250,240,0.10)',
               }}
             >
               <p
-                className="text-xs md:text-sm leading-snug"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(0,0,0,0.65)' }}
+                className="text-[11px] md:text-xs leading-snug"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: 'rgba(250,244,236,0.85)',
+                }}
               >
                 {t('intro.body2')}
               </p>
