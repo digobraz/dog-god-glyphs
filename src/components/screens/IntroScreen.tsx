@@ -43,24 +43,28 @@ export function IntroScreen() {
       <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col gap-2.5 py-2">
 
-          {/* Block 1 — papyrus karta: 2-col header + body2 rámik */}
+          {/* Block 1 — kráľovský zlatý gradient: 2-col header + body2 rámik */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex flex-col gap-2.5"
+            className="w-full rounded-2xl p-4 md:p-5 flex flex-col gap-3"
+            style={{
+              background: 'linear-gradient(155deg, #F7EBC8 0%, #EAD296 50%, #D9B566 100%)',
+              border: '2px solid rgba(160,116,35,0.45)',
+            }}
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
           >
             {/* Horný riadok: medailón VĽAVO, eyebrow/title/body VPRAVO */}
-            <div className="flex gap-3 items-start">
+            <div className="flex gap-4 items-start">
               {/* Medailón — vlastný kruhový rám, žiadny ďalší wrapper */}
               <img
                 src={introMedallionImg}
                 alt="DOGYPT — Matej a pes"
-                className="w-[110px] h-[110px] md:w-[132px] md:h-[132px] object-contain flex-shrink-0"
+                className="w-[140px] h-[140px] md:w-[170px] md:h-[170px] object-contain flex-shrink-0"
               />
 
               {/* Pravý stĺpec: eyebrow + title + body (1. odsek) */}
-              <div className="flex-1 flex flex-col gap-1.5">
+              <div className="flex-1 flex flex-col gap-2">
                 <p
                   className="text-[10px] uppercase tracking-[0.22em] font-semibold"
                   style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
@@ -68,31 +72,32 @@ export function IntroScreen() {
                   {t('intro.eyebrow')}
                 </p>
                 <h2
-                  className="text-[13px] md:text-sm font-bold leading-snug"
-                  style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+                  className="text-xl md:text-2xl font-bold leading-snug"
+                  style={{ fontFamily: "'Cinzel', serif", color: '#0E0E0E' }}
                 >
                   {t('intro.title')}
                 </h2>
                 <p
-                  className="text-[12px] md:text-[13px] leading-snug text-foreground/80"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                  className="text-sm md:text-base leading-snug"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(0,0,0,0.72)' }}
                 >
                   {t('intro.body')}
                 </p>
               </div>
             </div>
 
-            {/* body2 — ohraničený rámik (brand cartouche, radius 8px, gold border) */}
+            {/* body2 — ohraničený rámik, translucent fill pre čitateľnosť na zlatom */}
             <div
               style={{
                 border: '1px solid rgba(160,116,35,0.35)',
                 borderRadius: 8,
                 padding: '8px 10px',
+                background: 'rgba(255,250,240,0.45)',
               }}
             >
               <p
-                className="text-[11px] md:text-[12px] leading-snug text-foreground/70"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                className="text-xs md:text-sm leading-snug"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(0,0,0,0.65)' }}
               >
                 {t('intro.body2')}
               </p>
@@ -130,11 +135,7 @@ export function IntroScreen() {
                   alt=""
                   aria-hidden="true"
                   className="h-8 w-8 object-contain flex-shrink-0"
-                  style={{
-                    filter: selected === 'alive'
-                      ? 'brightness(0) invert(1)'
-                      : 'brightness(0)',
-                  }}
+                  style={{ filter: 'brightness(0)' }}
                 />
                 <span
                   className="text-[11px] font-bold uppercase tracking-wider leading-tight text-center"
