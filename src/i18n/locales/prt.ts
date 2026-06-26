@@ -556,7 +556,7 @@ export const prt: Partial<Dict> = {
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'CÃES',
   // Hekthor founder card
-  'wall.hektor.msg': 'Mudaste completamente a minha vida, amigo. Em gratidão aos cães, quero agora dar a um milhão de cães uma segunda oportunidade de encontrar um lar e espalhar amor como tu fizeste. Obrigado pela nossa melhor vida juntos. Amo-te.',
+  'wall.hektor.msg': 'Hekthor, és o meu maior herói, o meu melhor amigo, o meu fiel companheiro, o meu mentor implacável — és a história mais bela da minha vida. Foi por ti que fundei uma religião canina e percebi que o meu amor não tem nada de especial — todo aquele que alguma vez amou um cão sente exatamente o mesmo no coração. Obrigado pela nossa melhor vida juntos. Amo-te.',
   // info overlay
   'wall.info.title': '1 000 000 de cães.<br/>Será que conseguimos?',
   'wall.info.body': 'A DOGYPT é um movimento para amantes de cães. Cada cão recebe um Heroglyph único — o seu lugar permanente na matilha global. Estamos a reunir um milhão de heróis. Sê dos primeiros.',

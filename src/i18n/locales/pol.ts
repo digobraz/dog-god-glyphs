@@ -541,7 +541,7 @@ export const pol: Partial<Dict> = {
   'wall.hero.cta': 'Zostań Dogiptianinem',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PSÓW',
-  'wall.hektor.msg': 'Całkowicie odmieniłeś moje życie, przyjacielu. Z wdzięczności wobec psiego rodu chcę teraz dać milionowi psów drugą szansę na znalezienie domu i szerzenie miłości tak, jak ty to robiłeś. Dziękuję za nasze najlepsze wspólne życie. Kocham cię.',
+  'wall.hektor.msg': 'Hekthorku, jesteś moim największym bohaterem, najlepszym przyjacielem, wiernym towarzyszem, bezlitosnym mentorem — jesteś najpiękniejszą historią mojego życia. To dzięki tobie założyłem psią religię i zrozumiałem, że moja miłość nie jest niczym wyjątkowym — każdy, kto kiedykolwiek pokochał psa, czuje w sercu dokładnie to samo. Dziękuję ci za nasze najlepsze wspólne życie. Kocham cię.',
   'wall.info.title': '1 000 000 psów.<br/>Damy radę?',
   'wall.info.body': 'DOGYPT to ruch dla miłośników psów. Każdy pies dostaje unikalny Heroglyph — swoje trwałe miejsce w globalnej sforze. Zbieramy milion bohaterów. Bądź wśród pierwszych.',
   'wall.filter.find': 'Znajdź psa po numerze',

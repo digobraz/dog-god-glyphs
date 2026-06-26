@@ -657,7 +657,7 @@ export const en = {
   'wall.hero.total': '1,000,000',
   'wall.hero.dogs': 'DOGS',
   // Hekthor founder card
-  'wall.hektor.msg': 'You completely changed my life, buddy. Out of gratitude to dogkind, I now want to give a million dogs a second chance to find home and spread love the way you did. Thank you for our best life together. I love you.',
+  'wall.hektor.msg': 'Hekthor, you are my greatest hero, my best friend, my loyal companion, my merciless mentor — you are the most beautiful story of my life. Because of you I founded a dog religion, and I realised that my love is nothing special — everyone who has ever loved a dog feels the very same thing in their heart. Thank you for our best life together. I love you.',
   // info overlay
   'wall.info.title': '1,000,000 dogs.<br/>Will we make it?',
   'wall.info.body': "DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack. We're collecting one million heroes. Be among the first.",

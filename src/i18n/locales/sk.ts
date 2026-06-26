@@ -610,7 +610,7 @@ export const sk: Partial<Dict> = {
   'wall.hero.cta': 'Staň sa Dogypťanom',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PSOV',
-  'wall.hektor.msg': 'Úplne si mi zmenil život, kamoš. Z vďaky psiemu pokoleniu chcem teraz dať miliónu psov druhú šancu nájsť domov a šíriť lásku tak, ako si to robil ty. Ďakujem za náš najlepší spoločný život. Ľúbim ťa.',
+  'wall.hektor.msg': 'Hekthorko, si môj najväčší hrdina, najlepší kamarát, verný parťák, nemilosrdný mentor — si môj najkrajší životný príbeh. Kvôli tebe som založil psie náboženstvo a zistil som, že moja láska nie je ničím výnimočná — každý, kto kedy miloval psa, zažíva v srdci to isté. Ďakujem ti za náš najlepší spoločný život. Milujem ťa.',
   'wall.info.title': '1 000 000 psov.<br/>Dáme to?',
   'wall.info.body': 'DOGYPT je hnutie pre psíčkarov. Každý pes dostane jedinečný Heroglyph — svoje trvalé miesto v globálnej svorke. Zbierame milión hrdinov. Buď medzi prvými.',
   'wall.filter.find': 'Nájsť psa podľa čísla',

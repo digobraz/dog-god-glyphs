@@ -482,7 +482,7 @@ export const tur: Partial<Dict> = {
   "wall.hero.cta": "Dogiptli Ol",
   "wall.hero.total": "1.000.000",
   "wall.hero.dogs": "KÖPEKLER",
-  "wall.hektor.msg": "Hayatımı tamamen değiştirdin, dostum. Köpeklere duyduğum minnetle, şimdi bir milyon köpeğe yuva bulması için ikinci bir şans vermek ve senin yaptığın gibi sevgiyi yaymak istiyorum. Birlikte geçirdiğimiz en güzel hayat için teşekkür ederim. Seni seviyorum.",
+  "wall.hektor.msg": "Hekthor, sen benim en büyük kahramanımsın, en iyi arkadaşım, sadık yoldaşım, acımasız akıl hocamsın — sen hayatımın en güzel hikâyesisin. Senin sayende bir köpek dini kurdum ve sevgimin hiç de özel olmadığını anladım — bir köpeği bir kez olsun sevmiş olan herkes, yüreğinde tıpatıp aynısını hisseder. Birlikte geçirdiğimiz en güzel hayat için teşekkür ederim. Seni seviyorum.",
   "wall.info.title": "1.000.000 köpek.<br/>Başaracak mıyız?",
   "wall.info.body": "DOGYPT, köpek severler için bir harekettir. Her köpek eşsiz bir Heroglyph alır — küresel sürüdeki kalıcı yeri. Bir milyon kahraman topluyoruz. İlkler arasında ol.",
   "wall.filter.find": "Köpeği numarayla bul",

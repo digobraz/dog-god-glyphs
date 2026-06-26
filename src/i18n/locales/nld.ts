@@ -482,7 +482,7 @@ export const nld: Partial<Dict> = {
   "wall.hero.cta": "Word Dogyptiër",
   "wall.hero.total": "1.000.000",
   "wall.hero.dogs": "HONDEN",
-  "wall.hektor.msg": "Je hebt mijn leven volledig veranderd, maatje. Uit dankbaarheid aan alle honden wil ik nu een miljoen honden een tweede kans geven om een thuis te vinden en liefde te verspreiden zoals jij dat deed. Dank je voor ons mooiste leven samen. Ik hou van je.",
+  "wall.hektor.msg": "Hekthor, jij bent mijn grootste held, mijn beste vriend, mijn trouwe metgezel, mijn meedogenloze mentor — jij bent het mooiste verhaal van mijn leven. Dankzij jou heb ik een hondenreligie gesticht en besefte ik dat mijn liefde niets bijzonders is — iedereen die ooit van een hond heeft gehouden, voelt in zijn hart precies hetzelfde. Dank je voor ons mooiste leven samen. Ik hou van je.",
   "wall.info.title": "1.000.000 honden.<br/>Gaan we het halen?",
   "wall.info.body": "DOGYPT is een beweging voor hondenliefhebbers. Elke hond krijgt een unieke Heroglyph — hun vaste plek in de wereldwijde roedel. We verzamelen één miljoen helden. Wees een van de eersten.",
   "wall.filter.find": "Zoek hond op nummer",

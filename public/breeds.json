@@ -4,7 +4,7 @@
     {
       "id": 1,
       "en": "Affenpinscher",
-      "sk": "Affenpinčiar",
+      "sk": "Opičí pinč",
       "patron": "02-03",
       "group": "02"
     },
@@ -39,7 +39,7 @@
     {
       "id": 6,
       "en": "Chinese Crested",
-      "sk": "Čínsky chocholatý",
+      "sk": "Čínsky chocholatý pes",
       "patron": "03-03",
       "group": "03"
     },
@@ -74,7 +74,7 @@
     {
       "id": 11,
       "en": "Japanese Chin",
-      "sk": "Japonský čin",
+      "sk": "Japonský chin",
       "patron": "01-01",
       "group": "01"
     },
@@ -228,7 +228,7 @@
     {
       "id": 33,
       "en": "Alpine Dachsbracke",
-      "sk": "Alpská jazvečia brakka",
+      "sk": "Alpský jazvečíkovitý durič",
       "patron": "05-04",
       "group": "05"
     },
@@ -277,7 +277,7 @@
     {
       "id": 40,
       "en": "Bichon Frise",
-      "sk": "Bišón",
+      "sk": "Bišon",
       "patron": "02-02",
       "group": "02"
     },
@@ -326,7 +326,7 @@
     {
       "id": 47,
       "en": "Cavalier King Charles Spaniel",
-      "sk": "Kavalier King Charles",
+      "sk": "Kavalier king charles španiel",
       "patron": "06-01",
       "group": "06"
     },
@@ -431,7 +431,7 @@
     {
       "id": 62,
       "en": "Grand Basset Griffon Vendéen",
-      "sk": "GBGV",
+      "sk": "Veľký hrubosrstý vendéensky baset",
       "patron": "05-05",
       "group": "05"
     },
@@ -508,7 +508,7 @@
     {
       "id": 73,
       "en": "Miniature Bull Terrier",
-      "sk": "Bull teriér mini",
+      "sk": "Miniatúrny bullteriér",
       "patron": "07-04",
       "group": "07"
     },
@@ -529,7 +529,7 @@
     {
       "id": 76,
       "en": "Miniature Schnauzer",
-      "sk": "Bradáč trpaslíčí",
+      "sk": "Bradáč malý",
       "patron": "02-10",
       "group": "02"
     },
@@ -578,7 +578,7 @@
     {
       "id": 83,
       "en": "Petit Basset Griffon Vendéen",
-      "sk": "PBGV",
+      "sk": "Malý hrubosrstý vendéensky baset",
       "patron": "05-05",
       "group": "05"
     },
@@ -683,7 +683,7 @@
     {
       "id": 98,
       "en": "Shih Tzu",
-      "sk": "Ši-cu",
+      "sk": "Shih-tzu",
       "patron": "01-01",
       "group": "01"
     },
@@ -767,7 +767,7 @@
     {
       "id": 110,
       "en": "West Highland White Terrier",
-      "sk": "Westík",
+      "sk": "West highland white teriér",
       "patron": "02-06",
       "group": "02"
     },
@@ -823,35 +823,35 @@
     {
       "id": 118,
       "en": "American English Coonhound",
-      "sk": "Am. English Coonhound",
+      "sk": "Americký anglický coonhound",
       "patron": "06-03",
       "group": "06"
     },
     {
       "id": 119,
       "en": "American Foxhound",
-      "sk": "Am. foxhound",
+      "sk": "Americký foxhound",
       "patron": "06-05",
       "group": "06"
     },
     {
       "id": 120,
       "en": "American Pit Bull Terrier",
-      "sk": "Am. pit bull teriér",
+      "sk": "Americký pit bull teriér",
       "patron": "07-05",
       "group": "07"
     },
     {
       "id": 121,
       "en": "American Staffordshire Terrier",
-      "sk": "Am. stafordšírsky teriér",
+      "sk": "Americký stafordšírsky teriér",
       "patron": "07-05",
       "group": "07"
     },
     {
       "id": 122,
       "en": "American Water Spaniel",
-      "sk": "Am. vodný španiel",
+      "sk": "Americký vodný španiel",
       "patron": "08-07",
       "group": "08"
     },
@@ -1222,7 +1222,7 @@
     {
       "id": 175,
       "en": "English Foxhound",
-      "sk": "Angl. foxhound",
+      "sk": "Anglický foxhound",
       "patron": "06-05",
       "group": "06"
     },
@@ -1334,7 +1334,7 @@
     {
       "id": 191,
       "en": "Gonczy Polski",
-      "sk": "Poľský durič",
+      "sk": "Poľský gończy",
       "patron": "06-05",
       "group": "06"
     },
@@ -1537,7 +1537,7 @@
     {
       "id": 220,
       "en": "Nova Scotia Duck Tolling Retriever",
-      "sk": "NS Duck Tolling retr.",
+      "sk": "Retríver z Nového Škótska",
       "patron": "08-03",
       "group": "08"
     },
@@ -1586,7 +1586,7 @@
     {
       "id": 227,
       "en": "Polish Hound",
-      "sk": "Poľský chrt",
+      "sk": "Poľský durič",
       "patron": "06-05",
       "group": "06"
     },
@@ -1768,7 +1768,7 @@
     {
       "id": 253,
       "en": "Soft Coated Wheaten Terrier",
-      "sk": "Wheaten teriér",
+      "sk": "Írsky jemnosrstý pšeničný teriér",
       "patron": "02-08",
       "group": "02"
     },
@@ -2027,7 +2027,7 @@
     {
       "id": 290,
       "en": "Cane Corso",
-      "sk": "Talianske cane corso",
+      "sk": "Cane corso",
       "patron": "10-08",
       "group": "10"
     },
@@ -2097,7 +2097,7 @@
     {
       "id": 300,
       "en": "Estrela Mountain Dog",
-      "sk": "Estrela pes",
+      "sk": "Estrelský pastiersky pes",
       "patron": "10-02",
       "group": "10"
     },
@@ -2153,14 +2153,14 @@
     {
       "id": 308,
       "en": "Grand Griffon Vendéen",
-      "sk": "Veľký grifonský vendéenský",
+      "sk": "Veľký vendéenský grifón",
       "patron": "01-08",
       "group": "01"
     },
     {
       "id": 309,
       "en": "Greater Swiss Mountain Dog",
-      "sk": "Veľký švajč. salašný pes",
+      "sk": "Veľký švajčiarsky salašný pes",
       "patron": "10-01",
       "group": "10"
     },
@@ -2195,7 +2195,7 @@
     {
       "id": 314,
       "en": "Irish Red and White Setter",
-      "sk": "Írsky čer.-biely seter",
+      "sk": "Írsky červeno-biely seter",
       "patron": "08-04",
       "group": "08"
     },
@@ -2251,7 +2251,7 @@
     {
       "id": 322,
       "en": "Lapinporokoira",
-      "sk": "Laponský pasnícky pes",
+      "sk": "Laponský pastiersky pes",
       "patron": "09-05",
       "group": "09"
     },
@@ -2349,7 +2349,7 @@
     {
       "id": 336,
       "en": "Saint Bernard",
-      "sk": "Svätý Bernard",
+      "sk": "Bernardín",
       "patron": "10-01",
       "group": "10"
     },

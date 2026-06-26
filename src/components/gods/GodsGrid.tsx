@@ -634,9 +634,17 @@ export function GodsGrid() {
     function navigateTo(n: number) {
       if (n < 1) return;
       if (raf) cancelAnimationFrame(raf);
-      const positions = generatePackPositions(n + 5);
-      if (n - 1 >= positions.length) return;
-      const { col, row } = positions[n - 1];
+      let col: number, row: number;
+      if (n === 1) {
+        // #1 = Hekthor, the founder card. Hardcoded at (0,-1) and skipped by
+        // generatePackPositions, so it is NOT in the spiral — jump there directly.
+        // (Without this, "#1" landed on positions[0], an empty placeholder cell.)
+        col = 0; row = -1;
+      } else {
+        const positions = generatePackPositions(n + 5);
+        if (n - 1 >= positions.length) return;
+        ({ col, row } = positions[n - 1]);
+      }
       const tx = vw / 2 - col * GX - W / 2;
       const ty = vh / 2 - row * GY - H / 2;
       const sx = ox, sy = oy;
