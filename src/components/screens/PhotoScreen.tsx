@@ -435,9 +435,10 @@ export function PhotoScreen() {
       )}
       <BackNextButtons
         onBack={() => goTo(0)}
-        onNext={() => goTo(2)}
+        onNext={finish}
+        nextDisabled={finishing}
         backLabel={t('heroglyph.flow.photo.back')}
-        nextLabel={t('heroglyph.flow.photo.next')}
+        nextLabel={finishing ? t('heroglyph.flow.photo.saving') : t('heroglyph.flow.photo.next')}
       />
     </>
   );
@@ -492,7 +493,7 @@ export function PhotoScreen() {
     </>
   );
 
-  const screens = [renderUpload, renderCrop, renderExtras];
+  const screens = [renderUpload, renderCrop];
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
@@ -537,7 +538,7 @@ export function PhotoScreen() {
                 </div>
 
                 {/* Dots nav */}
-                <Dots total={3} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+                <Dots total={2} current={0} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
 
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div
@@ -619,7 +620,7 @@ export function PhotoScreen() {
                 {/* file input */}
                 {renderUpload()}
               </motion.div>
-            ) : sub >= 1 && sub <= 2 ? (
+            ) : sub === 1 ? (
               <motion.div
                 key={sub}
                 custom={dir}
@@ -641,21 +642,19 @@ export function PhotoScreen() {
                       className="text-lg md:text-2xl font-bold uppercase tracking-wider text-center text-white drop-shadow-sm"
                       style={{ fontFamily: "'Cinzel', serif" }}
                     >
-                      {sub === 1 ? t('heroglyph.flow.photo.adjustTitle') : t('heroglyph.flow.photo.moreTitle')}
+                      {t('heroglyph.flow.photo.adjustTitle')}
                     </h2>
                     <p
                       className="text-white/70 text-sm text-center"
                       style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     >
-                      {sub === 1
-                        ? t('heroglyph.flow.photo.adjustHint')
-                        : t('heroglyph.flow.photo.moreHint')}
+                      {t('heroglyph.flow.photo.adjustHint')}
                     </p>
                   </div>
                 </div>
 
                 {/* Dots nav */}
-                <Dots total={3} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
+                <Dots total={2} current={sub} onDot={(i) => { if (i === 0 || (i > 0 && photoUrl)) goTo(i); }} />
 
                 {/* BLOCK 2 — cream/papyrus card */}
                 <motion.div

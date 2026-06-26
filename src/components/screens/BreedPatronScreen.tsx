@@ -573,8 +573,8 @@ export function BreedPatronScreen() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35 }}
           >
-            <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img src={hekthorImg} alt="HEKTHOR" className="w-36 h-36 md:w-56 md:h-56 object-contain" />
+            <div className="px-4 py-3 md:py-4 flex flex-col items-center gap-2 md:gap-3">
+              <img src={hekthorImg} alt="HEKTHOR" className="w-24 h-24 md:w-40 md:h-40 object-contain" />
               <p
                 className="text-white text-center text-lg md:text-2xl leading-snug drop-shadow-sm"
                 style={{ fontFamily: "'Cinzel', serif" }}
