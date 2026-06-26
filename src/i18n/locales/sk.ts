@@ -146,13 +146,14 @@ export const sk: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.value': '#1 — Prvý pes',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'PRED ZAČATÍM',
-  'intro.title': 'Pár minút. Venuj im ich.',
-  'intro.body': 'Nekupuješ produkt. Vrúbíš značku svojho psa do večnej svorky — a pomáhaš psom, ktoré žiadnu nemajú. Venuj tomu pozornosť.',
-  'intro.question': 'Je tvoj pes stále pri tebe?',
-  'intro.alive': 'Pri mne',
-  'intro.deceased': 'Stráži ma zhora',
-  'intro.continue': 'Pokračovať',
+  'intro.eyebrow': 'SKÔR NEŽ ZAČNEŠ',
+  'intro.title': 'Toto je výnimočný okamih.',
+  'intro.body': 'Vpisuješ stopu svojho psíka do večnej svorky — najväčšieho psieho spoločenstva na svete. Týmto gestom dávaš najavo svoju lásku k psej rase a pomáhaš psíkom v núdzi. Náš cieľ je milión psíkov v jednej sieti. Ďakujeme, že si jej súčasťou!',
+  'intro.body2': 'Bude nasledovať pár otázok o tvojom psíkovi — bolo by super, keby bol teraz pri tebe. Začať môžeš s akýmkoľvek psíkom: tým aktuálnym, aj tým, ktorý už je za dúhovým mostom.',
+  'intro.question': 'Je tvoj psík stále pri tebe?',
+  'intro.alive': 'Áno, žijúca legenda',
+  'intro.deceased': 'Čaká na mňa, tam hore',
+  'intro.continue': 'Začať',
 
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, ja som',

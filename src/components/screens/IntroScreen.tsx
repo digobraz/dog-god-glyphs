@@ -4,11 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
-import hekthorImg from '@/assets/hekthor.png';
+import matejFounderImg from '@/assets/matej-founder.png';
+import legendIconUrl from '@/assets/legend-icon.svg';
+import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';
 
 // ── /heroglyph/intro — dedikačný predkrok (nepočítaný)
-// Misijné intro + výber živý / mŕtvy psa → uloží lifeStatus do store.
+// Misijné intro s Matejovou fotkou + výber živý / mŕtvy psa → uloží lifeStatus do store.
 // Route: /heroglyph/intro
 // Back: /heroglyph (sales)  ·  Continue: /heroglyph/name
 export function IntroScreen() {
@@ -36,43 +38,49 @@ export function IntroScreen() {
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">
       <PageTopBar onBack={() => navigate('/heroglyph')} />
 
+      {/* Mierne skrolovateľné — intro má viac obsahu ako bežný krok */}
       <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
-        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 py-2 my-auto">
+        <div className="w-full max-w-xl flex flex-col items-center gap-3 md:gap-4 py-3 my-auto">
 
-          {/* Block 1 — brand-gradient bubble: Hekthor + eyebrow + title + body */}
+          {/* Block 1 — papyrus karta: Matej founder foto + eyebrow + title + body ×2 */}
           <motion.div
-            className="w-full rounded-2xl relative overflow-hidden"
-            style={{ background: 'var(--brand-gradient)' }}
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-4 md:p-6 flex flex-col items-center gap-3"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="px-4 py-5 md:p-6 flex flex-col items-center gap-3 md:gap-4">
-              <img
-                src={hekthorImg}
-                alt="HEKTHOR"
-                className="hek-lg w-28 h-28 md:w-44 md:h-44 object-contain"
-              />
-              <div className="flex flex-col items-center gap-1.5 text-center">
-                <p
-                  className="text-[11px] md:text-xs uppercase tracking-[0.22em] font-semibold"
-                  style={{ fontFamily: "'Cinzel', serif", color: 'rgba(245,199,61,0.75)' }}
-                >
-                  {t('intro.eyebrow')}
-                </p>
-                <h2
-                  className="text-base md:text-xl font-bold text-white drop-shadow-sm leading-snug"
-                  style={{ fontFamily: "'Cinzel', serif" }}
-                >
-                  {t('intro.title')}
-                </h2>
-                <p
-                  className="text-white/75 text-sm md:text-base leading-relaxed"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                >
-                  {t('intro.body')}
-                </p>
-              </div>
+            {/* Matej founder photo — transparent PNG, papyrus background presvitá */}
+            <img
+              src={matejFounderImg}
+              alt="Matej — DOGYPT founder"
+              className="w-36 h-44 md:w-44 md:h-56 object-contain object-top"
+            />
+
+            <div className="flex flex-col items-center gap-2 text-center">
+              <p
+                className="text-[11px] md:text-xs uppercase tracking-[0.22em] font-semibold"
+                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+              >
+                {t('intro.eyebrow')}
+              </p>
+              <h2
+                className="text-base md:text-xl font-bold leading-snug"
+                style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+              >
+                {t('intro.title')}
+              </h2>
+              <p
+                className="text-foreground/80 text-sm md:text-base leading-relaxed"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {t('intro.body')}
+              </p>
+              <p
+                className="text-foreground/65 text-sm md:text-base leading-relaxed"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {t('intro.body2')}
+              </p>
             </div>
           </motion.div>
 
@@ -90,29 +98,54 @@ export function IntroScreen() {
               {t('intro.question')}
             </p>
 
-            {/* Voľby — selected štýl z DogBloodlineScreen */}
+            {/* Voľby — brand hand-drawn SVG ikonky + selected štýl z DogBloodlineScreen */}
             <div className="flex gap-3 w-full">
+              {/* alive → Legend.svg */}
               <button
                 onClick={() => handleSelect('alive')}
-                className={`flex-1 p-4 rounded-xl border-2 transition-all font-bold text-sm md:text-base uppercase tracking-wider ${
+                className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all font-bold text-sm uppercase tracking-wider ${
                   selected === 'alive'
                     ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {t('intro.alive')}
+                <img
+                  src={legendIconUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-10 w-10 object-contain flex-shrink-0"
+                  style={{
+                    filter: selected === 'alive'
+                      ? 'brightness(0) invert(1)'
+                      : 'brightness(0)',
+                  }}
+                />
+                <span>{t('intro.alive')}</span>
               </button>
+
+              {/* deceased → Angel.svg */}
               <button
                 onClick={() => handleSelect('deceased')}
-                className={`flex-1 p-4 rounded-xl border-2 transition-all font-bold text-sm md:text-base uppercase tracking-wider ${
+                className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all font-bold text-sm uppercase tracking-wider ${
                   selected === 'deceased'
                     ? 'is-selected-purple'
                     : 'border-border/60 hover:border-primary/50'
                 }`}
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {t('intro.deceased')}
+                <img
+                  src={angelIconUrl}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-10 w-10 object-contain flex-shrink-0"
+                  style={{
+                    filter: selected === 'deceased'
+                      ? 'brightness(0) invert(1)'
+                      : 'brightness(0)',
+                  }}
+                />
+                <span>{t('intro.deceased')}</span>
               </button>
             </div>
 

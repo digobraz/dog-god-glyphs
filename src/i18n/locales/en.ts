@@ -141,12 +141,13 @@ export const en = {
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
   'intro.eyebrow': 'BEFORE YOU BEGIN',
-  'intro.title': 'This takes a few minutes. Take them.',
-  'intro.body': "You're not buying a product. You're carving your dog's mark into the eternal pack — and helping dogs who have none. Give it your attention.",
+  'intro.title': 'This is a special moment.',
+  'intro.body': "You're carving your dog's mark into the eternal pack — the largest community of dogs in the world. This is how you show your love for dogs and help those in need. Our goal: one million dogs in one network. Thank you for being part of it.",
+  'intro.body2': 'A few questions about your dog will follow — it would be wonderful to have them by you right now. You can begin with any dog: the one with you today, or the one already across the rainbow bridge.',
   'intro.question': 'Is your dog still by your side?',
-  'intro.alive': 'By my side',
-  'intro.deceased': 'Watching over me',
-  'intro.continue': 'Continue',
+  'intro.alive': 'Yes, a living legend',
+  'intro.deceased': 'Waiting for me, up there',
+  'intro.continue': 'Begin',
 
   // ── /heroglyph flow — step 1: name ──
   'heroglyph.flow.name.greetingPrefix': "Hi, I'm",
