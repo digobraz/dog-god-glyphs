@@ -147,7 +147,7 @@ export const sk: Partial<Dict> = {
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
   'intro.eyebrow': 'SKÔR NEŽ ZAČNEŠ',
-  'intro.title': 'Toto je výnimočný okamih.',
+  'intro.title': 'Výnimočný okamih.',
   'intro.body': 'Práve sa chystáš vpísať stopu svojho psíka do večnej svorky — najväčšej na svete. Dávaš tým najavo lásku k psej rase a pomáhaš psíkom v núdzi. Ďakujeme, že si súčasťou tejto misie.',
   'intro.body2': 'Nasleduje pár otázok o tvojom psíkovi — ideálne ho maj teraz pri sebe. Môže to byť ktorýkoľvek: ten dnešný, aj ten za dúhovým mostom. Každá labka sa počíta!',
   'intro.counter.label': 'psov',

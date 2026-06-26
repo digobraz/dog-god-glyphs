@@ -141,7 +141,7 @@ export const en = {
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
   'intro.eyebrow': 'BEFORE YOU BEGIN',
-  'intro.title': 'This is a special moment.',
+  'intro.title': 'A special moment.',
   'intro.body': "You're about to carve your dog's mark into the eternal pack — the largest in the world. This is how you show your love for dogs and help those in need. Thank you for being part of this mission.",
   'intro.body2': 'A few questions about your dog will follow — ideally have them by your side now. It can be any dog: the one with you today, or the one already across the rainbow bridge. Every paw counts!',
   'intro.counter.label': 'dogs',

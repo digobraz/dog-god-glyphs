@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,13 @@ import introMedallionImg from '@/assets/intro-medallion.png';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+
+// Cieľ severky — 1M psíkov v jednej sieti (CLAUDE.md)
+const PACK_GOAL = 1_000_000;
+// Zoskupenie číslic úzkou medzerou (jazykovo neutrálne, sedí SK aj EN)
+const groupNum = (n: number) =>
+  n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 // ── /heroglyph/intro — dedikačný predkrok (nepočítaný)
 // Misijné intro (medailón + 2-col header + body2 rámik) + výber živý/mŕtvy psa.
@@ -23,6 +30,27 @@ export function IntroScreen() {
   const [selected, setSelected] = useState<'alive' | 'deceased'>(
     storedLifeStatus ?? 'alive',
   );
+
+  // Živý počet psov vo svorke — TEN ISTÝ zdroj ako WALL/grid (get-grid-dogs),
+  // aby pill sedel 1:1 s gridom. .length = reálne psy (paid, bez testerov).
+  // null = ešte nenačítané / chyba → pill sa nezobrazí (radšej nič než „0").
+  const [packCount, setPackCount] = useState<number | null>(null);
+  useEffect(() => {
+    let active = true;
+    // Len Authorization (NIE apikey) — get-grid-dogs cors Allow-Headers
+    // povoľuje len `content-type, authorization`; apikey by zhodil CORS preflight.
+    fetch(`${EDGE_BASE}/get-grid-dogs`, {
+      headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (active && Array.isArray(d)) setPackCount(d.length);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleSelect = (v: 'alive' | 'deceased') => {
     setSelected(v);
@@ -63,8 +91,37 @@ export function IntroScreen() {
                 className="w-[140px] h-[140px] md:w-[170px] md:h-[170px] object-contain flex-shrink-0"
               />
 
-              {/* Pravý stĺpec: eyebrow + title + body (1. odsek) — svetlý text na tmavom */}
+              {/* Pravý stĺpec: pill + eyebrow + title + body (1. odsek) — svetlý text na tmavom */}
               <div className="flex-1 flex flex-col gap-2">
+                {/* Živé počítadlo — pulzujúci pill: {count} / 1 000 000 psov.
+                    self-start = zarovnané vľavo s eyebrow/nadpisom. */}
+                {packCount !== null && (
+                  <motion.div
+                    className="self-start flex items-center gap-2 px-3.5 py-1.5 rounded-full"
+                    style={{
+                      background: 'rgba(0,0,0,0.28)',
+                      border: '1px solid rgba(229,193,110,0.45)',
+                    }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <motion.span
+                      className="inline-block rounded-full flex-shrink-0"
+                      style={{ width: 6, height: 6, background: '#E5C16E' }}
+                      animate={{ opacity: [1, 0.25, 1], scale: [1, 1.35, 1] }}
+                      transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <span
+                      className="text-sm tracking-wide tabular-nums leading-none"
+                      style={{ fontFamily: "'Cinzel', serif" }}
+                    >
+                      <span className="font-bold" style={{ color: '#FAF4EC' }}>{groupNum(packCount)}</span>
+                      <span style={{ color: 'rgba(250,244,236,0.5)' }}> / {groupNum(PACK_GOAL)} </span>
+                      <span style={{ color: '#E5C16E' }}>{t('intro.counter.label')}</span>
+                    </span>
+                  </motion.div>
+                )}
                 <p
                   className="text-[10px] uppercase tracking-[0.22em] font-semibold"
                   style={{ fontFamily: "'Cinzel', serif", color: '#E5C16E' }}
@@ -72,7 +129,7 @@ export function IntroScreen() {
                   {t('intro.eyebrow')}
                 </p>
                 <h2
-                  className="text-xl md:text-2xl font-bold leading-snug"
+                  className="text-xl md:text-2xl font-bold leading-snug md:whitespace-nowrap"
                   style={{
                     fontFamily: "'Cinzel', serif",
                     color: '#FAF4EC',
@@ -144,7 +201,7 @@ export function IntroScreen() {
                   src={legendIconUrl}
                   alt=""
                   aria-hidden="true"
-                  className="h-8 w-8 object-contain flex-shrink-0"
+                  className="h-11 w-11 object-contain flex-shrink-0"
                   style={{ filter: 'brightness(0)' }}
                 />
                 <span
@@ -168,12 +225,8 @@ export function IntroScreen() {
                   src={angelIconUrl}
                   alt=""
                   aria-hidden="true"
-                  className="h-8 w-8 object-contain flex-shrink-0"
-                  style={{
-                    filter: selected === 'deceased'
-                      ? 'brightness(0) invert(1)'
-                      : 'brightness(0)',
-                  }}
+                  className="h-11 w-11 object-contain flex-shrink-0"
+                  style={{ filter: 'brightness(0)' }}
                 />
                 <span
                   className="text-[11px] font-bold uppercase tracking-wider leading-tight text-center"
