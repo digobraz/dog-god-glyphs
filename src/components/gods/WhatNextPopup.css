@@ -83,11 +83,13 @@
 
 /* číselné počítadlo v rámiku vedľa nadpisu */
 .wn-counter{
-  font-family:'Cinzel',serif; font-size:11px; font-weight:700; letter-spacing:1.5px;
-  color:var(--wn-gold-deep); border:1.5px solid rgba(160,116,35,0.55);
-  border-radius:6px; padding:3px 8px; line-height:1; white-space:nowrap;
+  font-family:'Cinzel',serif; font-size:12px; font-weight:700; letter-spacing:1.5px;
+  color:rgba(255,255,255,0.78);
+  background:linear-gradient(120deg, var(--wn-gold) 0%, var(--wn-gold-deep) 100%);
+  border:none; border-radius:7px; padding:4px 10px; line-height:1; white-space:nowrap;
+  box-shadow:0 2px 7px rgba(160,116,35,0.34), inset 0 1px 0 rgba(255,255,255,0.30);
 }
-.wn-counter .wn-cur{ color:var(--wn-ink); }
+.wn-counter .wn-cur{ color:#fff; font-size:13px; }
 
 /* ---------- carousel ---------- */
 .wn-slider{ position:relative; overflow:hidden; }
@@ -147,15 +149,28 @@
 .wn-cta:hover{ filter:brightness(1.05); box-shadow:0 6px 20px rgba(160,116,35,0.55), inset 0 1px 0 rgba(255,255,255,0.5); transform:translateY(-1px); }
 .wn-cta:active{ transform:translateY(0); }
 
-/* šípky */
+/* šípky — kruhové papyrus tlačidlá, jasne klikateľné */
 .wn-arrow{
   position:absolute; top:50%; transform:translateY(-50%);
-  width:30px; height:30px; border:none; background:transparent; cursor:pointer;
-  color:var(--wn-gold-deep); opacity:.5; transition:opacity .15s; z-index:3;
+  width:34px; height:34px; cursor:pointer; z-index:3;
+  border:1.5px solid rgba(160,116,35,0.45); border-radius:50%;
+  background:rgba(255,250,240,0.74);
+  color:var(--wn-gold-deep); opacity:.92;
   display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(160,116,35,0.22), inset 0 1px 0 rgba(255,255,255,0.55);
+  transition:opacity .15s, background .15s, box-shadow .15s, border-color .15s;
 }
-.wn-arrow:hover{ opacity:1; }
+.wn-arrow:hover{ opacity:1; background:#fff; border-color:var(--wn-gold);
+  box-shadow:0 4px 14px rgba(160,116,35,0.36), inset 0 1px 0 rgba(255,255,255,0.6); }
 .wn-arrow.wn-prev{ left:2px; } .wn-arrow.wn-next{ right:2px; }
+
+/* jemný nudge — hint že sa sliduje (zastaví pri hoveri) */
+.wn-arrow.wn-prev{ animation:wn-nudge-l 1.9s ease-in-out infinite; }
+.wn-arrow.wn-next{ animation:wn-nudge-r 1.9s ease-in-out infinite; }
+.wn-arrow:hover{ animation:none; }
+@keyframes wn-nudge-r{ 0%,72%,100%{ transform:translateY(-50%) translateX(0);} 86%{ transform:translateY(-50%) translateX(3px);} }
+@keyframes wn-nudge-l{ 0%,72%,100%{ transform:translateY(-50%) translateX(0);} 86%{ transform:translateY(-50%) translateX(-3px);} }
+@media (prefers-reduced-motion: reduce){ .wn-arrow{ animation:none !important; } }
 
 /* pätka: pečať + motto (natrvalo, mimo carouselu) */
 .wn-footer{ display:flex; align-items:center; justify-content:center; gap:13px; margin-top:18px; }
