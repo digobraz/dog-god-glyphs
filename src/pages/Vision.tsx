@@ -2,8 +2,17 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-horizontal';
 import { PageTopBar } from '@/components/PageTopBar';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
+
+/* Web jazykový kód (useLang) → YouTube caption BCP-47 kód.
+ * Tých 18 caption trackov je nahraných na INTRO videu; cez cc_lang_pref
+ * sa správny zapne sám podľa jazyka stránky. Chýbajúci kód → EN fallback. */
+const YT_CAPTION_LANG: Record<string, string> = {
+  ara: 'ar', chn: 'zh-Hans', cs: 'cs', deu: 'de', en: 'en', esp: 'es',
+  fra: 'fr', ind: 'hi', ita: 'it', jpn: 'ja', kor: 'ko', nld: 'nl',
+  pol: 'pl', prt: 'pt', rus: 'ru', sk: 'sk', tur: 'tr', ukr: 'uk',
+};
 
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
 type PillData = { icon: string; label: string; tooltip: string; status: PillStatus };
@@ -301,6 +310,8 @@ const WF_VIDEOS: (string | null)[] = WF_BEATS.map((b) => b.video ?? null);
 export default function Vision() {
   const navigate = useNavigate();
   const t = useT();
+  const { lang } = useLang();
+  const ytCaptionLang = YT_CAPTION_LANG[lang] ?? 'en';
   const [activePill, setActivePill] = useState<number | null>(null);
   const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
   const [isMobile, setIsMobile] = useState<boolean>(
@@ -1455,7 +1466,7 @@ export default function Vision() {
         <div className={`video-embed-frame${videoPlaying ? ' is-playing' : ''}`}>
           {videoPlaying ? (
             <iframe
-              src="https://www.youtube-nocookie.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white"
+              src={`https://www.youtube-nocookie.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white&cc_load_policy=1&cc_lang_pref=${ytCaptionLang}`}
               title={t('vision.hero.videoTitle')}
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
