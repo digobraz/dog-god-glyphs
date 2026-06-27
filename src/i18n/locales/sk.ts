@@ -649,8 +649,8 @@ export const sk: Partial<Dict> = {
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Rozvoj',
-  'transparency.part.affiliate': 'Affiliate',
-  'transparency.part.directHelp': 'Priama pomoc',
+  'transparency.part.affiliate': 'Komunita',
+  'transparency.part.directHelp': 'Záchrana',
   'transparency.part.hekthorBowl': 'Hekthorova miska',
   // ── Transparency model part notes (pill tooltips: PaymentScreen + FounderInvite) ──
   'transparency.part.development.note': 'Budovanie národa a financovanie všetkého, na čom stojí — ľudí, ktorí udržiavajú DOGYPT v pohybe, služieb, nástrojov a serverov za nimi. Toto je motor hnutia a každý jediný výdavok bude zdokumentovaný a zverejnený.',
@@ -1296,8 +1296,8 @@ export const sk: Partial<Dict> = {
   "pack.stats.short.may26": "Máj",
   "pack.stats.thisMonth": "tento mesiac",
   "pack.stats.development": "Vývoj",
-  "pack.stats.affiliate": "Affiliate",
-  "pack.stats.directHelp": "Priama pomoc",
+  "pack.stats.affiliate": "Komunita",
+  "pack.stats.directHelp": "Záchrana",
   "pack.stats.hekthorBowl": "Hekthorova miska",
   "pack.stats.split": "Prečo toto rozdelenie? Prečítaj si 'Money is an Energy' v DOGME →",
   "pack.stats.bonesDistributed": "BONES rozdelených svorke",

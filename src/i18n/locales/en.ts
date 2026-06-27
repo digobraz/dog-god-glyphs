@@ -698,8 +698,8 @@ export const en = {
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Development',
-  'transparency.part.affiliate': 'Affiliate',
-  'transparency.part.directHelp': 'Direct help',
+  'transparency.part.affiliate': 'Community',
+  'transparency.part.directHelp': 'Rescue',
   'transparency.part.hekthorBowl': "Hekthor's bowl",
   // ── Transparency model part notes (pill tooltips: PaymentScreen + FounderInvite) ──
   'transparency.part.development.note': 'Building the nation and funding everything it runs on — the people who keep DOGYPT moving, the services, tools and servers behind them. This is the engine of the movement, and every single expense will be documented and published openly.',
@@ -1323,8 +1323,8 @@ export const en = {
   "pack.stats.short.may26": "May",
   "pack.stats.thisMonth": "this month",
   "pack.stats.development": "Development",
-  "pack.stats.affiliate": "Affiliate",
-  "pack.stats.directHelp": "Direct help",
+  "pack.stats.affiliate": "Community",
+  "pack.stats.directHelp": "Rescue",
   "pack.stats.hekthorBowl": "Hekthor's bowl",
   "pack.stats.split": "Why this split? Read 'Money is an Energy' in the DOGMA →",
   "pack.stats.bonesDistributed": "BONES distributed to the pack",
