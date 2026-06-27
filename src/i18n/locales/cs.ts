@@ -137,6 +137,17 @@ export const cs: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.label': 'Pořadí',
   'heroglyph.intro.meaning.ranking.value': '#1 — První pes',
 
+  // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
+  'intro.eyebrow': 'NEŽ ZAČNEŠ',
+  'intro.title': 'Výjimečný okamžik.',
+  'intro.body': 'Chystáš se vepsat stopu svého psa do věčné smečky — té největší na světě. Takhle dáváš najevo lásku ke psům a pomáháš těm, kdo to potřebují. Děkujeme, že jsi součástí téhle mise.',
+  'intro.body2': 'Bude následovat pár otázek o tvém psovi — ideálně ho měj teď u sebe. Může to být kterýkoli pes: ten, co je dnes s tebou, nebo ten, který už je za duhovým mostem. Každá tlapka se počítá!',
+  'intro.counter.label': 'psů',
+  'intro.question': 'Je tvůj pejsek stále u tebe?',
+  'intro.alive': 'Ano, žijící legenda',
+  'intro.deceased': 'Čeká na mě, tam nahoře',
+  'intro.continue': 'Začít',
+
   // ── /heroglyph flow — krok 1: meno ──
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, já jsem',
   'heroglyph.flow.name.greetingQuestion': 'Jak se jmenuje tvůj pejsek?',
@@ -627,8 +638,8 @@ export const cs: Partial<Dict> = {
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
   'transparency.part.development': 'Rozvoj',
-  'transparency.part.affiliate': 'Affiliate',
-  'transparency.part.directHelp': 'Přímá pomoc',
+  'transparency.part.affiliate': 'Komunita',
+  'transparency.part.directHelp': 'Záchrana',
   'transparency.part.hekthorBowl': 'Hekthorova miska',
   'transparency.part.development.note':
     'Budujeme národ a financujeme všechno, na čem stojí — lidi, kteří DOGYPT ženou kupředu, i služby, nástroje a servery za nimi. To je motor celého hnutí a každý jednotlivý výdaj bude doložený a zveřejněný úplně otevřeně.',
@@ -1247,8 +1258,8 @@ export const cs: Partial<Dict> = {
   "pack.stats.short.may26": "kvě",
   "pack.stats.thisMonth": "tento měsíc",
   "pack.stats.development": "Vývoj",
-  "pack.stats.affiliate": "Affiliate",
-  "pack.stats.directHelp": "Přímá pomoc",
+  "pack.stats.affiliate": "Komunita",
+  "pack.stats.directHelp": "Záchrana",
   "pack.stats.hekthorBowl": "Hekthorova miska",
   "pack.stats.split": "Proč právě toto dělení? Přečti si „Money is an Energy“ v DOGMĚ →",
   "pack.stats.bonesDistributed": "BONES rozdělené mezi smečku",
