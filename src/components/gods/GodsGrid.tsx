@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
-import { GoldParticles } from '../GoldParticles';
 import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
 import './WhatNextPopup.css';
@@ -156,12 +155,6 @@ export function GodsGrid() {
       heroglyphUrl: params.get('heroglyphUrl') || '',
     };
   }, []);
-
-  // Skutočné meno psa pre personalizáciu WHAT NEXT? popupu (prázdne = generický fallback → greeting sa nezobrazí)
-  const wnDogName = (() => {
-    const n = (revealData.dogName || '').trim();
-    return n && !['Your Dog', 'DOGYPTIAN'].includes(n) ? n : '';
-  })();
 
   // Load real dogs for the grid
   useEffect(() => {
@@ -1810,9 +1803,6 @@ export function GodsGrid() {
           <div className="wn-root">
             <div className="wn-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowWhatNext(false); }}>
               <div className="wn-card" role="dialog" aria-label={t('whatNext.title')}>
-                <div className="wn-dust" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', borderRadius: 'var(--wn-radius)', overflow: 'hidden' }}>
-                  <GoldParticles count={12} />
-                </div>
                 <button className="wn-close" aria-label={t('whatNext.close')} onClick={() => setShowWhatNext(false)}>&times;</button>
                 <div className="wn-stamp">{t('whatNext.stamp')}</div>
 
@@ -1834,9 +1824,6 @@ export function GodsGrid() {
                     <div className="wn-track">
                       <div className="wn-slide wn-in">
                         <span className="wn-ic wn-ic-paw" />
-                        {wnDogName && (
-                          <p className="wn-greet">{t('whatNext.greet', { name: wnDogName })}<span className="wn-num">#{revealData.packNumber}</span></p>
-                        )}
                         <h2>{t('whatNext.s1.title')}</h2>
                         <p className="wn-ital">{t('whatNext.s1.hook')}</p>
                         <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s1.body') }} />

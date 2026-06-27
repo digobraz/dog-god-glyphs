@@ -106,20 +106,6 @@
   mask-position:center; mask-repeat:no-repeat; mask-size:contain;
 }
 
-/* personalizácia — pozdrav menom + poradové číslo */
-.wn-greet{
-  display:flex; align-items:center; justify-content:center; gap:9px;
-  font-family:'Cinzel',serif; font-weight:700; font-size:12px;
-  letter-spacing:1.5px; text-transform:uppercase; color:var(--wn-gold-deep);
-  margin-bottom:9px;
-}
-.wn-greet .wn-num{
-  font-size:11px; letter-spacing:0.5px; color:#2a1c05;
-  background:linear-gradient(120deg, #F5C73D 0%, #E69E1A 100%);
-  border-radius:999px; padding:2px 9px;
-  box-shadow:0 2px 6px rgba(160,116,35,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
-}
-
 .wn-slide h2{
   font-family:'Cinzel',serif; font-weight:700; font-size:14.5px;
   letter-spacing:2.5px; text-transform:uppercase; color:var(--wn-ink);
@@ -147,9 +133,6 @@
 @media (prefers-reduced-motion: reduce){
   .wn-slide.wn-in > *{ animation:none; }
 }
-
-/* zlatý prach (brand GoldParticles) — jemne tmavšie zlato nech je vidno na papyruse */
-.wn-dust .gold-particle{ background-color:var(--wn-gold) !important; opacity:0; }
 
 /* CTA na poslednej karte (brand gold, zatvára popup) */
 .wn-cta{
