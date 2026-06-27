@@ -669,12 +669,13 @@ export const en = {
   'wall.filter.confirm': 'Confirm',
 
   // ── WHAT NEXT? popup (post-payment, shown once after reveal) ──
+  'whatNext.greet': 'Welcome, {name}',
   'whatNext.stamp': 'Important',
   'whatNext.title': 'What Next?',
   'whatNext.close': 'Close',
   'whatNext.prev': 'Previous',
   'whatNext.next': 'Next',
-  'whatNext.motto': 'In dogs we trust.',
+  'whatNext.motto': 'In dog we trust.',
   'whatNext.s1.title': 'The First Step',
   'whatNext.s1.hook': 'One small step for a human — one giant leap for dogkind.',
   'whatNext.s1.body': 'Your heroglyph just declared you part of a movement that honors dogs across the world. <b>The first step is done.</b>',
@@ -687,6 +688,7 @@ export const en = {
   'whatNext.s4.title': 'Keep in Touch',
   'whatNext.s4.hook': 'The door is open. The pack is waiting.',
   'whatNext.s4.body': "Check your email and sign in to your profile — that's where we'll keep in touch. <b>A lifetime app for our dogs is on its way.</b>",
+  'whatNext.s4.cta': 'May the dog be with you',
 
   // ── nav a11y (PageNav aria-labels + language modal) ──
   'nav.aria.back': 'Back',

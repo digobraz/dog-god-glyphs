@@ -519,6 +519,8 @@ export const tur: Partial<Dict> = {
   "whatNext.s4.title": "İletişimde Kal",
   "whatNext.s4.hook": "Kapı açık. Pack bekliyor.",
   "whatNext.s4.body": "E-postanı kontrol et ve profiline giriş yap — iletişimimizi orada sürdüreceğiz. <b>Köpeklerimiz için ömür boyu bir uygulama yolda.</b>",
+  "whatNext.greet": "Hoş geldin, {name}",
+  "whatNext.s4.cta": "Köpek seninle olsun",
   "nav.aria.back": "Geri",
   "nav.aria.openMenu": "Menüyü aç",
   "nav.aria.menu": "Menü",

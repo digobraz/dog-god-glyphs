@@ -519,6 +519,8 @@ export const chn: Partial<Dict> = {
   "whatNext.s4.title": "保持联系",
   "whatNext.s4.hook": "门是敞开的。Pack 在等你。",
   "whatNext.s4.body": "查看你的邮件并登录你的档案——那是我们保持联系的地方。<b>一款为我们的狗而生的终身应用正在路上。</b>",
+  "whatNext.greet": "欢迎，{name}",
+  "whatNext.s4.cta": "愿犬与你同在",
   "nav.aria.back": "返回",
   "nav.aria.openMenu": "打开菜单",
   "nav.aria.menu": "菜单",

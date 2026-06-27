@@ -519,6 +519,8 @@ export const jpn: Partial<Dict> = {
   "whatNext.s4.title": "つながり続けよう",
   "whatNext.s4.hook": "扉は開いている。Packが待っている。",
   "whatNext.s4.body": "メールを確認してプロフィールにサインインしよう — そこで私たちはつながり続ける。<b>私たちの犬のための生涯アプリが、もうすぐ届く。</b>",
+  "whatNext.greet": "ようこそ、{name}",
+  "whatNext.s4.cta": "犬とともにあらんことを",
   "nav.aria.back": "戻る",
   "nav.aria.openMenu": "メニューを開く",
   "nav.aria.menu": "メニュー",

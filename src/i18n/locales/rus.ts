@@ -567,7 +567,7 @@ export const rus: Partial<Dict> = {
   'whatNext.close': 'Закрыть',
   'whatNext.prev': 'Назад',
   'whatNext.next': 'Далее',
-  'whatNext.motto': 'Верим в пса.',
+  'whatNext.motto': "Верим в пса.",
   'whatNext.s1.title': 'Первый Шаг',
   'whatNext.s1.hook': 'Один маленький шаг для человека — один гигантский скачок для собачьего рода.',
   'whatNext.s1.body': 'Твой Heroglyph только что объявил тебя частью движения, которое чтит собак по всему миру. <b>Первый шаг сделан.</b>',
@@ -580,6 +580,8 @@ export const rus: Partial<Dict> = {
   'whatNext.s4.title': 'Оставайся на связи',
   'whatNext.s4.hook': 'Дверь открыта. Pack ждёт.',
   'whatNext.s4.body': "Проверь почту и войди в профиль — там мы будем на связи. <b>Приложение на всю жизнь для наших собак уже в пути.</b>",
+  'whatNext.greet': 'Добро пожаловать, {name}',
+  'whatNext.s4.cta': 'Да пребудет с тобой пёс',
 
   // ── nav a11y ──
   'nav.aria.back': 'Назад',

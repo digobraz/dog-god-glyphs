@@ -106,6 +106,20 @@
   mask-position:center; mask-repeat:no-repeat; mask-size:contain;
 }
 
+/* personalizácia — pozdrav menom + poradové číslo */
+.wn-greet{
+  display:flex; align-items:center; justify-content:center; gap:9px;
+  font-family:'Cinzel',serif; font-weight:700; font-size:12px;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--wn-gold-deep);
+  margin-bottom:9px;
+}
+.wn-greet .wn-num{
+  font-size:11px; letter-spacing:0.5px; color:#2a1c05;
+  background:linear-gradient(120deg, #F5C73D 0%, #E69E1A 100%);
+  border-radius:999px; padding:2px 9px;
+  box-shadow:0 2px 6px rgba(160,116,35,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
 .wn-slide h2{
   font-family:'Cinzel',serif; font-weight:700; font-size:14.5px;
   letter-spacing:2.5px; text-transform:uppercase; color:var(--wn-ink);
@@ -120,6 +134,35 @@
 .wn-slide p.wn-lead{ color:var(--wn-ink-soft); }
 .wn-slide p.wn-ital{ font-style:italic; }
 .wn-slide p b{ font-weight:700; color:var(--wn-ink); }
+
+/* postupný nábeh obsahu aktívnej karty (stagger) */
+.wn-slide.wn-in > *{ animation:wn-stagger .52s cubic-bezier(.2,.8,.2,1) both; }
+.wn-slide.wn-in > *:nth-child(1){ animation-delay:.02s; }
+.wn-slide.wn-in > *:nth-child(2){ animation-delay:.09s; }
+.wn-slide.wn-in > *:nth-child(3){ animation-delay:.16s; }
+.wn-slide.wn-in > *:nth-child(4){ animation-delay:.23s; }
+.wn-slide.wn-in > *:nth-child(5){ animation-delay:.30s; }
+.wn-slide.wn-in > *:nth-child(6){ animation-delay:.37s; }
+@keyframes wn-stagger{ from{ opacity:0; transform:translateY(11px); } to{ opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce){
+  .wn-slide.wn-in > *{ animation:none; }
+}
+
+/* zlatý prach (brand GoldParticles) — jemne tmavšie zlato nech je vidno na papyruse */
+.wn-dust .gold-particle{ background-color:var(--wn-gold) !important; opacity:0; }
+
+/* CTA na poslednej karte (brand gold, zatvára popup) */
+.wn-cta{
+  margin-top:18px; border:none; cursor:pointer;
+  font-family:'Cinzel',serif; font-weight:700; font-size:12.5px;
+  letter-spacing:2px; text-transform:uppercase; color:#2a1c05;
+  padding:11px 26px; border-radius:8px;
+  background:linear-gradient(120deg, #F5C73D 0%, #E69E1A 100%);
+  box-shadow:0 4px 14px rgba(160,116,35,0.40), inset 0 1px 0 rgba(255,255,255,0.45);
+  transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.wn-cta:hover{ filter:brightness(1.05); box-shadow:0 6px 20px rgba(160,116,35,0.55), inset 0 1px 0 rgba(255,255,255,0.5); transform:translateY(-1px); }
+.wn-cta:active{ transform:translateY(0); }
 
 /* šípky */
 .wn-arrow{

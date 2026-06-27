@@ -584,7 +584,7 @@ export const esp: Partial<Dict> = {
   'whatNext.close': 'Cerrar',
   'whatNext.prev': 'Anterior',
   'whatNext.next': 'Siguiente',
-  'whatNext.motto': 'En los perros confiamos.',
+  'whatNext.motto': "En perro confiamos.",
   'whatNext.s1.title': 'El Primer Paso',
   'whatNext.s1.hook': 'Un pequeño paso para un humano — un salto gigante para la especie canina.',
   'whatNext.s1.body': 'Tu Heroglyph te ha declarado parte de un movimiento que honra a los perros en todo el mundo. <b>El primer paso está hecho.</b>',
@@ -597,6 +597,8 @@ export const esp: Partial<Dict> = {
   'whatNext.s4.title': 'Mantente en Contacto',
   'whatNext.s4.hook': 'La puerta está abierta. La jauría espera.',
   'whatNext.s4.body': "Revisa tu correo e inicia sesión en tu perfil — ahí es donde estaremos en contacto. <b>Una app para toda la vida, para nuestros perros, está en camino.</b>",
+  'whatNext.greet': 'Bienvenido, {name}',
+  'whatNext.s4.cta': 'Que el perro te acompañe',
 
   // ── nav a11y (PageNav aria-labels + language modal) ──
   'nav.aria.back': 'Atrás',

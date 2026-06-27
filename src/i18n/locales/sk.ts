@@ -625,7 +625,7 @@ export const sk: Partial<Dict> = {
   'whatNext.close': 'Zavrieť',
   'whatNext.prev': 'Predošlý',
   'whatNext.next': 'Ďalší',
-  'whatNext.motto': 'Veríme v psa.',
+  'whatNext.motto': "V psa veríme.",
   'whatNext.s1.title': 'Prvý Krok',
   'whatNext.s1.hook': 'Jeden malý krok pre človeka — jeden obrovský skok pre psí rod.',
   'whatNext.s1.body': 'Tvoj Heroglyph práve vyhlásil, že si súčasťou hnutia, ktoré uctíva psy na celom svete. <b>Prvý krok je za tebou.</b>',
@@ -638,6 +638,8 @@ export const sk: Partial<Dict> = {
   'whatNext.s4.title': 'Ostaňme v Kontakte',
   'whatNext.s4.hook': 'Dvere sú otvorené. Pack čaká.',
   'whatNext.s4.body': 'Skontroluj email a prihlás sa do svojho profilu — tam budeme v kontakte. <b>Celoživotná appka pre našich psov je na ceste.</b>',
+  'whatNext.greet': 'Vitaj, {name}',
+  'whatNext.s4.cta': 'Nech je pes s tebou.',
 
   // ── nav a11y ──
   'nav.aria.back': 'Späť',

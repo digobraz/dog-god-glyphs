@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
+import { GoldParticles } from '../GoldParticles';
 import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
 import './WhatNextPopup.css';
@@ -156,6 +157,12 @@ export function GodsGrid() {
     };
   }, []);
 
+  // Skutočné meno psa pre personalizáciu WHAT NEXT? popupu (prázdne = generický fallback → greeting sa nezobrazí)
+  const wnDogName = (() => {
+    const n = (revealData.dogName || '').trim();
+    return n && !['Your Dog', 'DOGYPTIAN'].includes(n) ? n : '';
+  })();
+
   // Load real dogs for the grid
   useEffect(() => {
     fetch(GRID_DOGS_URL)
@@ -270,11 +277,20 @@ export function GodsGrid() {
     if (!track || !cur || slides.length === 0) return;
     const N = slides.length;
     let i = 0;
+    // Postupný nábeh obsahu aktívnej karty (stagger). Re-trigger cez reflow.
+    const animateIn = (idx: number) => {
+      slides.forEach(s => s.classList.remove('wn-in'));
+      const el = slides[idx] as HTMLElement;
+      void el.offsetWidth;
+      el.classList.add('wn-in');
+    };
     const go = (n: number) => {
       i = (n + N) % N;
       track.style.transform = `translateX(-${i * 100}%)`;
       cur.textContent = String(i + 1);
+      animateIn(i);
     };
+    // prvá karta má .wn-in už z prvého renderu (žiadny flash)
     const prev = root.querySelector('.wn-arrow.wn-prev');
     const next = root.querySelector('.wn-arrow.wn-next');
     const onPrev = () => go(i - 1);
@@ -1794,6 +1810,9 @@ export function GodsGrid() {
           <div className="wn-root">
             <div className="wn-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowWhatNext(false); }}>
               <div className="wn-card" role="dialog" aria-label={t('whatNext.title')}>
+                <div className="wn-dust" style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', borderRadius: 'var(--wn-radius)', overflow: 'hidden' }}>
+                  <GoldParticles count={12} />
+                </div>
                 <button className="wn-close" aria-label={t('whatNext.close')} onClick={() => setShowWhatNext(false)}>&times;</button>
                 <div className="wn-stamp">{t('whatNext.stamp')}</div>
 
@@ -1813,8 +1832,11 @@ export function GodsGrid() {
                     </button>
 
                     <div className="wn-track">
-                      <div className="wn-slide">
+                      <div className="wn-slide wn-in">
                         <span className="wn-ic wn-ic-paw" />
+                        {wnDogName && (
+                          <p className="wn-greet">{t('whatNext.greet', { name: wnDogName })}<span className="wn-num">#{revealData.packNumber}</span></p>
+                        )}
                         <h2>{t('whatNext.s1.title')}</h2>
                         <p className="wn-ital">{t('whatNext.s1.hook')}</p>
                         <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s1.body') }} />
@@ -1836,6 +1858,7 @@ export function GodsGrid() {
                         <h2>{t('whatNext.s4.title')}</h2>
                         <p className="wn-ital">{t('whatNext.s4.hook')}</p>
                         <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s4.body') }} />
+                        <button className="wn-cta" onClick={() => setShowWhatNext(false)}>{t('whatNext.s4.cta')}</button>
                       </div>
                     </div>
                   </div>

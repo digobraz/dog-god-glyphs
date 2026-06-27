@@ -519,6 +519,8 @@ export const kor: Partial<Dict> = {
   "whatNext.s4.title": "연락하며 지내요",
   "whatNext.s4.hook": "문은 열려 있습니다. Pack이 기다리고 있습니다.",
   "whatNext.s4.body": "이메일을 확인하고 프로필에 로그인하세요 — 그곳에서 연락을 이어가겠습니다. <b>우리 개들을 위한 평생 앱이 곧 찾아옵니다.</b>",
+  "whatNext.greet": "환영합니다, {name}",
+  "whatNext.s4.cta": "개가 당신과 함께하기를",
   "nav.aria.back": "뒤로",
   "nav.aria.openMenu": "메뉴 열기",
   "nav.aria.menu": "메뉴",
