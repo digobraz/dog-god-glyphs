@@ -6,7 +6,8 @@ import { Ranking } from './Ranking';
 import { TransparentStats } from './TransparentStats';
 import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
 import dogSilhouette from '@/assets/dogypt-logo-mobile.png';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { localizeBreed } from '@/lib/breedDisplay';
 
 const T = PACK_THEME;
 
@@ -406,6 +407,7 @@ function MilestoneSwiper({
 
 export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }: GlobePulseProps) {
   const t = useT();
+  const { lang } = useLang();
   const animated = useCountUp(total);
 
   // Swajpovateľný míľnik — default = prvý nesplnený. Sync-uje prstenec aj % dole.
@@ -616,7 +618,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
           />
           <Ranking
             title={t('pack.globe.topBreeds')}
-            rows={topBreeds.map((r) => ({ label: r.breed, count: r.count }))}
+            rows={topBreeds.map((r) => ({ label: localizeBreed(r.breed, lang), count: r.count }))}
             slots={3}
             kind="breed"
           />
