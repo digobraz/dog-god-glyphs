@@ -608,6 +608,26 @@ export const cs: Partial<Dict> = {
   'wall.filter.clear': 'Vymazat',
   'wall.filter.confirm': 'Potvrdit',
 
+  // ── WHAT NEXT? popup ──
+  'whatNext.stamp': 'Důležité',
+  'whatNext.title': 'Co dál?',
+  'whatNext.close': 'Zavřít',
+  'whatNext.prev': 'Předchozí',
+  'whatNext.next': 'Dál',
+  'whatNext.motto': 'In dogs we trust.',
+  'whatNext.s1.title': 'První krok',
+  'whatNext.s1.hook': 'Malý krok pro člověka — obrovský skok pro psí rod.',
+  'whatNext.s1.body': 'Tvůj Heroglyph tě právě prohlásil součástí hnutí, které ctí psy po celém světě. <b>První krok je hotový.</b>',
+  'whatNext.s2.title': 'Teď jsi Dogyptian',
+  'whatNext.s2.hook': 'Nejsi jen pejskař — jsi věřící s vodítkem.',
+  'whatNext.s2.body': 'Zapsaný do WALL, navždy. Každý z nás dá trochu — a <b>společně psům dáme dost.</b>',
+  'whatNext.s3.title': 'Buď součástí změny',
+  'whatNext.s3.hook': 'Jediná tlapka zanechá stopu. Milion jich vytvoří cestu.',
+  'whatNext.s3.body': "Pomoz nám dosáhnout milionu heroglyphů — pozvi přátele, ať se přidají. <b>Víc heroglyphů = víc dobra pro každého psa.</b>",
+  'whatNext.s4.title': 'Zůstaň v kontaktu',
+  'whatNext.s4.hook': 'Dveře jsou otevřené. Pack čeká.',
+  'whatNext.s4.body': 'Zkontroluj e-mail a přihlas se do svého profilu — tak zůstaneme v kontaktu. <b>Celoživotní apka pro naše psy je na cestě.</b>',
+
   // ── nav a11y ──
   'nav.aria.back': 'Zpět',
   'nav.aria.openMenu': 'Otevřít menu',

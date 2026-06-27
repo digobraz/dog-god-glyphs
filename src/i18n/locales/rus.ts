@@ -561,6 +561,26 @@ export const rus: Partial<Dict> = {
   'wall.filter.clear': 'Очистить',
   'wall.filter.confirm': 'Подтвердить',
 
+  // ── whatNext popup ──
+  'whatNext.stamp': 'Важно',
+  'whatNext.title': 'Что дальше?',
+  'whatNext.close': 'Закрыть',
+  'whatNext.prev': 'Назад',
+  'whatNext.next': 'Далее',
+  'whatNext.motto': 'Верим в пса.',
+  'whatNext.s1.title': 'Первый Шаг',
+  'whatNext.s1.hook': 'Один маленький шаг для человека — один гигантский скачок для собачьего рода.',
+  'whatNext.s1.body': 'Твой Heroglyph только что объявил тебя частью движения, которое чтит собак по всему миру. <b>Первый шаг сделан.</b>',
+  'whatNext.s2.title': 'Ты теперь Dogyptian',
+  'whatNext.s2.hook': 'Ты не просто любитель собак — ты верующий с поводком.',
+  'whatNext.s2.body': 'Вписан в WALL навсегда. Каждый из нас даёт понемногу — и <b>вместе мы даём собакам достаточно.</b>',
+  'whatNext.s3.title': 'Будь частью перемен',
+  'whatNext.s3.hook': 'Одна лапа оставляет след. Миллион — путь.',
+  'whatNext.s3.body': 'Помоги нам собрать миллион heroglyphs — пригласи своих друзей. <b>Больше heroglyphs = больше добра для каждой собаки.</b>',
+  'whatNext.s4.title': 'Оставайся на связи',
+  'whatNext.s4.hook': 'Дверь открыта. Pack ждёт.',
+  'whatNext.s4.body': "Проверь почту и войди в профиль — там мы будем на связи. <b>Приложение на всю жизнь для наших собак уже в пути.</b>",
+
   // ── nav a11y ──
   'nav.aria.back': 'Назад',
   'nav.aria.openMenu': 'Открыть меню',

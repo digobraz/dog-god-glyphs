@@ -578,6 +578,26 @@ export const deu: Partial<Dict> = {
   'wall.filter.clear': 'Löschen',
   'wall.filter.confirm': 'Bestätigen',
 
+  // ── WHAT NEXT? popup ──
+  'whatNext.stamp': 'Wichtig',
+  'whatNext.title': 'Was nun?',
+  'whatNext.close': 'Schließen',
+  'whatNext.prev': 'Zurück',
+  'whatNext.next': 'Weiter',
+  'whatNext.motto': 'Wir vertrauen den Hunden.',
+  'whatNext.s1.title': 'Der erste Schritt',
+  'whatNext.s1.hook': 'Ein kleiner Schritt für einen Menschen — ein riesiger Sprung für die Hundheit.',
+  'whatNext.s1.body': 'Dein Heroglyph hat dich soeben als Teil einer Bewegung erklärt, die Hunde auf der ganzen Welt ehrt. <b>Der erste Schritt ist getan.</b>',
+  'whatNext.s2.title': 'Du bist jetzt ein Dogyptian',
+  'whatNext.s2.hook': 'Du bist kein Hundeliebhaber — du bist ein Gläubiger mit einer Leine.',
+  'whatNext.s2.body': 'In die WALL eingeschrieben, für immer. Jeder von uns gibt ein wenig — und <b>gemeinsam geben wir Hunden genug.</b>',
+  'whatNext.s3.title': 'Sei Teil der Veränderung',
+  'whatNext.s3.hook': 'Eine einzige Pfote hinterlässt einen Abdruck. Eine Million hinterlässt einen Weg.',
+  'whatNext.s3.body': 'Hilf uns, eine Million Heroglyphs zu erreichen — lade deine Freunde ein, beizutreten. <b>Mehr Heroglyphs = mehr Gutes für jeden Hund.</b>',
+  'whatNext.s4.title': 'Bleib in Kontakt',
+  'whatNext.s4.hook': 'Die Tür ist offen. Das Pack wartet.',
+  'whatNext.s4.body': 'Schau in deine E-Mails und melde dich in deinem Profil an — dort bleiben wir in Kontakt. <b>Eine lebenslange App für unsere Hunde ist unterwegs.</b>',
+
   // ── nav a11y (PageNav aria-labels + language modal) ──
   'nav.aria.back': 'Zurück',
   'nav.aria.openMenu': 'Menü öffnen',

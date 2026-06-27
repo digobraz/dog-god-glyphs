@@ -576,6 +576,26 @@ export const ukr: Partial<Dict> = {
   'wall.filter.clear': 'Очистити',
   'wall.filter.confirm': 'Підтвердити',
 
+  // ── whatNext popup ──
+  'whatNext.stamp': 'Важливо',
+  'whatNext.title': 'Що далі?',
+  'whatNext.close': 'Закрити',
+  'whatNext.prev': 'Назад',
+  'whatNext.next': 'Далі',
+  'whatNext.motto': 'Віримо в пса.',
+  'whatNext.s1.title': 'Перший Крок',
+  'whatNext.s1.hook': 'Один малий крок для людини — один гігантський стрибок для псячого роду.',
+  'whatNext.s1.body': 'Твій Heroglyph щойно проголосив тебе частиною руху, що шанує псів по всьому світу. <b>Перший крок зроблено.</b>',
+  'whatNext.s2.title': 'Тепер ти Dogyptian',
+  'whatNext.s2.hook': 'Ти не просто любитель собак — ти вірянин із повідком.',
+  'whatNext.s2.body': 'Вписаний у WALL назавжди. Кожен дає трохи — і <b>разом ми даємо псам достатньо.</b>',
+  'whatNext.s3.title': 'Будь частиною змін',
+  'whatNext.s3.hook': 'Одна лапа залишає слід. Мільйон — прокладає шлях.',
+  'whatNext.s3.body': 'Допоможи нам досягти мільйона heroglyphs — запроси друзів приєднатися. <b>Більше heroglyphs = більше добра для кожного пса.</b>',
+  'whatNext.s4.title': "Залишайся на зв'язку",
+  'whatNext.s4.hook': 'Двері відчинені. Pack чекає.',
+  'whatNext.s4.body': "Перевір пошту та увійди до свого профілю — там ми будемо на зв'язку. <b>Застосунок на все життя для наших псів уже в дорозі.</b>",
+
   // ── nav a11y (PageNav aria-labels + language modal) ──
   'nav.aria.back': 'Назад',
   'nav.aria.openMenu': 'Відкрити меню',

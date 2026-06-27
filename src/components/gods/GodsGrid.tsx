@@ -5,6 +5,7 @@ import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
+import './WhatNextPopup.css';
 
 const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
 
@@ -131,6 +132,8 @@ export function GodsGrid() {
   const appRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [showWhatNext, setShowWhatNext] = useState(false);
+  const whatNextShownRef = useRef(false);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
   const [revealSymbol, setRevealSymbol] = useState(() => new URLSearchParams(window.location.search).get('heroglyphUrl') || REVEAL_SYMBOL);
   const [dogsReady, setDogsReady] = useState(false);
@@ -233,6 +236,76 @@ export function GodsGrid() {
       card?.classList.add('reveal-active');
     }
   }, [revealStep]);
+
+  // WHAT NEXT? popup — len pre nového člena (revealData.active), raz, po dobehnutí
+  // reveal animácie (step 4). Spustí sa 2s po dokončení, ALEBO hneď pri prvom
+  // pohybe myšou / dotyku po reveale — podľa toho čo nastane skôr.
+  useEffect(() => {
+    if (revealStep !== 4 || !revealData.active) return;
+    if (whatNextShownRef.current) return;
+
+    const open = () => {
+      if (whatNextShownRef.current) return;
+      whatNextShownRef.current = true;
+      setShowWhatNext(true);
+    };
+    const t = setTimeout(open, 2000);
+    window.addEventListener('mousemove', open, { once: true, passive: true });
+    window.addEventListener('touchstart', open, { once: true, passive: true });
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener('mousemove', open);
+      window.removeEventListener('touchstart', open);
+    };
+  }, [revealStep, revealData.active]);
+
+  // Carousel pre WHAT NEXT? popup (vanilla DOM, port z prototypu 1:1).
+  useEffect(() => {
+    if (!showWhatNext) return;
+    const root = document.querySelector('.wn-card');
+    if (!root) return;
+    const track = root.querySelector('.wn-track') as HTMLElement | null;
+    const slides = root.querySelectorAll('.wn-slide');
+    const cur = root.querySelector('.wn-counter .wn-cur') as HTMLElement | null;
+    if (!track || !cur || slides.length === 0) return;
+    const N = slides.length;
+    let i = 0;
+    const go = (n: number) => {
+      i = (n + N) % N;
+      track.style.transform = `translateX(-${i * 100}%)`;
+      cur.textContent = String(i + 1);
+    };
+    const prev = root.querySelector('.wn-arrow.wn-prev');
+    const next = root.querySelector('.wn-arrow.wn-next');
+    const onPrev = () => go(i - 1);
+    const onNext = () => go(i + 1);
+    prev?.addEventListener('click', onPrev);
+    next?.addEventListener('click', onNext);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') go(i - 1);
+      if (e.key === 'ArrowRight') go(i + 1);
+      if (e.key === 'Escape') setShowWhatNext(false);
+    };
+    window.addEventListener('keydown', onKey);
+    let x0: number | null = null;
+    const sl = root.querySelector('.wn-slider') as HTMLElement | null;
+    const onTouchStart = (e: TouchEvent) => { x0 = e.touches[0].clientX; };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 40) go(dx < 0 ? i + 1 : i - 1);
+      x0 = null;
+    };
+    sl?.addEventListener('touchstart', onTouchStart, { passive: true });
+    sl?.addEventListener('touchend', onTouchEnd, { passive: true });
+    return () => {
+      prev?.removeEventListener('click', onPrev);
+      next?.removeEventListener('click', onNext);
+      window.removeEventListener('keydown', onKey);
+      sl?.removeEventListener('touchstart', onTouchStart);
+      sl?.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [showWhatNext]);
 
   useEffect(() => {
     if (!dogsReady) return;
@@ -1714,6 +1787,66 @@ export function GodsGrid() {
           <div className={`rev-overlay step-${revealStep}`}>
             <div className="rev-spotlight" />
             <img className="rev-big-symbol" src={revealSymbol} alt={revealData.dogName} />
+          </div>
+        )}
+
+        {showWhatNext && (
+          <div className="wn-root">
+            <div className="wn-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setShowWhatNext(false); }}>
+              <div className="wn-card" role="dialog" aria-label={t('whatNext.title')}>
+                <button className="wn-close" aria-label={t('whatNext.close')} onClick={() => setShowWhatNext(false)}>&times;</button>
+                <div className="wn-stamp">{t('whatNext.stamp')}</div>
+
+                <div className="wn-main">
+                  <div className="wn-head-row">
+                    <h1>{t('whatNext.title')}</h1>
+                    <span className="wn-counter"><span className="wn-cur">1</span>/4</span>
+                  </div>
+                  <div className="wn-divider" />
+
+                  <div className="wn-slider">
+                    <button className="wn-arrow wn-prev" aria-label={t('whatNext.prev')}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                    </button>
+                    <button className="wn-arrow wn-next" aria-label={t('whatNext.next')}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                    </button>
+
+                    <div className="wn-track">
+                      <div className="wn-slide">
+                        <span className="wn-ic wn-ic-paw" />
+                        <h2>{t('whatNext.s1.title')}</h2>
+                        <p className="wn-ital">{t('whatNext.s1.hook')}</p>
+                        <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s1.body') }} />
+                      </div>
+                      <div className="wn-slide">
+                        <span className="wn-ic wn-ic-sphinx" />
+                        <h2>{t('whatNext.s2.title')}</h2>
+                        <p className="wn-ital">{t('whatNext.s2.hook')}</p>
+                        <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s2.body') }} />
+                      </div>
+                      <div className="wn-slide">
+                        <span className="wn-ic wn-ic-people" />
+                        <h2>{t('whatNext.s3.title')}</h2>
+                        <p className="wn-ital">{t('whatNext.s3.hook')}</p>
+                        <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s3.body') }} />
+                      </div>
+                      <div className="wn-slide">
+                        <span className="wn-ic wn-ic-chat" />
+                        <h2>{t('whatNext.s4.title')}</h2>
+                        <p className="wn-ital">{t('whatNext.s4.hook')}</p>
+                        <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s4.body') }} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="wn-footer">
+                  <img className="wn-seal" src="/images/peciat-dogypt.png" alt="DOGYPT seal" />
+                  <span className="wn-motto-side">{t('whatNext.motto')}</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

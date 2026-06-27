@@ -668,6 +668,26 @@ export const en = {
   'wall.filter.clear': 'Clear',
   'wall.filter.confirm': 'Confirm',
 
+  // ── WHAT NEXT? popup (post-payment, shown once after reveal) ──
+  'whatNext.stamp': 'Important',
+  'whatNext.title': 'What Next?',
+  'whatNext.close': 'Close',
+  'whatNext.prev': 'Previous',
+  'whatNext.next': 'Next',
+  'whatNext.motto': 'In dogs we trust.',
+  'whatNext.s1.title': 'The First Step',
+  'whatNext.s1.hook': 'One small step for a human — one giant leap for dogkind.',
+  'whatNext.s1.body': 'Your heroglyph just declared you part of a movement that honors dogs across the world. <b>The first step is done.</b>',
+  'whatNext.s2.title': 'You Are a Dogyptian Now',
+  'whatNext.s2.hook': 'You are not a dog lover — you are a believer with a leash.',
+  'whatNext.s2.body': 'Written into the WALL, forever. Each of us gives a little — and <b>together, we give dogs enough.</b>',
+  'whatNext.s3.title': 'Be Part of the Change',
+  'whatNext.s3.hook': 'A single paw leaves a print. A million leave a path.',
+  'whatNext.s3.body': 'Help us reach one million heroglyphs — invite your friends to join. <b>More heroglyphs = more good for every dog.</b>',
+  'whatNext.s4.title': 'Keep in Touch',
+  'whatNext.s4.hook': 'The door is open. The pack is waiting.',
+  'whatNext.s4.body': "Check your email and sign in to your profile — that's where we'll keep in touch. <b>A lifetime app for our dogs is on its way.</b>",
+
   // ── nav a11y (PageNav aria-labels + language modal) ──
   'nav.aria.back': 'Back',
   'nav.aria.openMenu': 'Open menu',
