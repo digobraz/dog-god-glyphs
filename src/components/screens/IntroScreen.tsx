@@ -175,14 +175,14 @@ export function IntroScreen() {
 
           {/* Block 2 — papyrus karta: otázka + voľby + Continue */}
           <motion.div
-            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex flex-col gap-3"
+            className="w-full rounded-2xl border-2 border-border/40 papyrus-bg p-3 md:p-4 flex flex-col gap-3 text-[#0E0E0E]"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.18 }}
           >
             <p
               className="text-center text-[11px] md:text-xs font-bold uppercase tracking-wider"
-              style={{ fontFamily: "'Cinzel', serif", color: 'hsl(var(--gold-dark))' }}
+              style={{ fontFamily: "'Cinzel', serif" }}
             >
               {t('intro.question')}
             </p>
