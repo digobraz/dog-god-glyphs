@@ -16,7 +16,8 @@ import { useT } from '@/i18n/LanguageContext';
 
 async function compressFile(file: File): Promise<{ url: string; blob: Blob }> {
   const compressed = await imageCompression(file, {
-    maxWidthOrHeight: 1600,
+    maxSizeMB: 0.4,
+    maxWidthOrHeight: 1200,
     fileType: 'image/webp',
     initialQuality: 0.85,
     useWebWorker: true,
