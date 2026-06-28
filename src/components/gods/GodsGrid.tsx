@@ -50,6 +50,13 @@ const GY = H + Math.round(64 * MScale);
 const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
 
+// Pevné pozície vybraných psov mimo špirály (kľúč = pack_number).
+// ELLIE (#9) má miesto vpravo od stredu — tam kde bola pôvodne placeholder karta (Kevin).
+// (1,0) = positions[0] = slot pre #1, ktorý je ale Hektor na (0,-1), takže je voľný.
+const PINNED_POSITIONS: Record<number, { col: number; row: number }> = {
+  9: { col: 1, row: 0 },
+};
+
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
 
 const FLAG_NAMES: Record<string, string> = {
@@ -125,6 +132,16 @@ function photoFor(col: number, row: number) {
   return photos[photoIndex(col, row)];
 }
 
+// Deterministická dlaždica (col,row) → index do poľa dĺžky `len`. Rovnaké primes
+// ako photoIndex → susedné bunky v rade/stĺpci dostanú iný prvok (žiadne vedľa seba
+// rovnaké). Slúži na nekonečné opakovanie reálnych psov cez prázdne bunky WALL.
+function tileIndex(col: number, row: number, len: number): number {
+  if (len <= 0) return 0;
+  const n = ((col % len) + len) % len;
+  const m = ((row % len) + len) % len;
+  return (n * 7 + m * 11 + 31) % len;
+}
+
 
 export function GodsGrid() {
   const navigate = useNavigate();
@@ -140,6 +157,8 @@ export function GodsGrid() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterValue, setFilterValue] = useState('');
   const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
+  // Reálni psi (zákazníci, bez Hektora) opakovaní cez prázdne bunky → nekonečný WALL.
+  const fillerDogsRef = useRef<RealDog[]>([]);
   const navigateToRef = useRef<((n: number) => void) | null>(null);
 
   const revealData = useMemo(() => {
@@ -167,11 +186,17 @@ export function GodsGrid() {
           const map = new Map<string, RealDog>();
           for (const dog of dogs) {
             const n = dog.pack_number;
-            if (n && n >= 1 && n - 1 < positions.length) {
+            if (!n || n < 1) continue;
+            const pin = PINNED_POSITIONS[n];
+            if (pin) {
+              map.set(`${pin.col},${pin.row}`, dog);
+            } else if (n - 1 < positions.length) {
               map.set(`${positions[n - 1].col},${positions[n - 1].row}`, dog);
             }
           }
           realDogMapRef.current = map;
+          // Filler set pre nekonečný efekt = reálni psi BEZ Hektora (#1).
+          fillerDogsRef.current = dogs.filter(d => (d.pack_number ?? 0) >= 2);
           if (revealData.active && !revealData.heroglyphUrl) {
             const packNum = parseInt(revealData.packNumber, 10);
             const revealDog = dogs.find(d => d.pack_number === packNum);
@@ -451,14 +476,17 @@ export function GodsGrid() {
       return el;
     }
 
-    function makeRealDogCard(dog: RealDog, col: number, row: number) {
+    // fill=true → duplikát reálneho psa vo výplni nekonečného WALL. Vyzerá identicky
+    // ako originál (vrátane #čísla + správy) — slúži len nato aby WALL nebola prázdna.
+    // Nových psov pribúda od stredu (špirála) a postupne tieto duplikáty prepisujú.
+    function makeRealDogCard(dog: RealDog, col: number, row: number, fill = false) {
       const cc = countryToISO2(dog.country);
       const flagName = FLAG_NAMES[cc] || cc;
       const safeName = esc((dog.dog_name || 'DOGYPTIAN').toUpperCase());
       const packNum = dog.pack_number ?? '?';
 
       const el = document.createElement('article');
-      el.className = 'dog-card';
+      el.className = fill ? 'dog-card dog-card--fill' : 'dog-card';
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
       const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
@@ -491,9 +519,13 @@ export function GodsGrid() {
       const realDog = realDogMapRef.current.get(`${col},${row}`);
       if (realDog) return makeRealDogCard(realDog, col, row);
 
-      // Launch: WALL zobrazuje LEN reálnych psov (s heroglyfom). Žiadne dekoratívne
-      // placeholder fotky z godsData — prázdne bunky ostávajú nevyplnené.
-      return null;
+      // Nekonečný WALL: prázdne bunky vypĺňame OPAKOVANÍM reálnych psov (zákazníci,
+      // bez Hektora) — žiadne fake placeholder fotky. Deterministicky per bunka
+      // (stabilné pri scrolle); duplikáty sú „echo" (bez čísla/správy).
+      const fillers = fillerDogsRef.current;
+      if (fillers.length === 0) return null;
+      const fillDog = fillers[tileIndex(col, row, fillers.length)];
+      return makeRealDogCard(fillDog, col, row, true); // plný duplikát s #číslom
     }
 
     function updateTransform() {
@@ -705,6 +737,9 @@ export function GodsGrid() {
         // generatePackPositions, so it is NOT in the spiral — jump there directly.
         // (Without this, "#1" landed on positions[0], an empty placeholder cell.)
         col = 0; row = -1;
+      } else if (PINNED_POSITIONS[n]) {
+        // Pevné miesto mimo špirály (napr. ELLIE #9 vpravo od stredu).
+        ({ col, row } = PINNED_POSITIONS[n]);
       } else {
         const positions = generatePackPositions(n + 5);
         if (n - 1 >= positions.length) return;
