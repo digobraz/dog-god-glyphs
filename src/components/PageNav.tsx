@@ -5,7 +5,7 @@ import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 import { useLang, useT } from '@/i18n/LanguageContext';
 
 const NAV_ITEMS = [
-  { key: 'nav.wall', to: '/grid' },
+  { key: 'nav.wall', to: '/' },
   { key: 'nav.vision', to: '/vision' },
   { key: 'nav.religion', to: '/religion' },
   { key: 'nav.about', to: '/about' },
@@ -104,8 +104,8 @@ function DesktopNav() {
     >
       {NAV_ITEMS.map(({ key, to }) => {
         const isActive =
-          to === '/grid'
-            ? pathname === '/grid' || pathname === '/'
+          to === '/'
+            ? pathname === '/' || pathname === '/grid' || pathname === '/wall'
             : pathname === to;
         return (
           <span
@@ -351,7 +351,7 @@ function MobileMenuOverlay({
       >
         {/* Centered circular logo — large, shrinks when language dropdown opens */}
         <Link
-          to="/grid"
+          to="/"
           onClick={onClose}
           aria-label={t('nav.aria.wallHome')}
           style={{
@@ -390,8 +390,8 @@ function MobileMenuOverlay({
         </Link>
         {NAV_ITEMS.map(({ key, to }) => {
           const isActive =
-            to === '/grid'
-              ? pathname === '/grid' || pathname === '/gods' || pathname === '/'
+            to === '/'
+              ? pathname === '/' || pathname === '/grid' || pathname === '/gods' || pathname === '/wall'
               : pathname === to;
           return (
             <Link

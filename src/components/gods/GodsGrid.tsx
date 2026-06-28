@@ -199,7 +199,7 @@ export function GodsGrid() {
     const t2 = setTimeout(() => setRevealStep(3), 4200);
     const t3 = setTimeout(() => {
       setRevealStep(4);
-      window.history.replaceState(null, '', '/grid');
+      window.history.replaceState(null, '', '/');
     }, 5800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
@@ -491,26 +491,9 @@ export function GodsGrid() {
       const realDog = realDogMapRef.current.get(`${col},${row}`);
       if (realDog) return makeRealDogCard(realDog, col, row);
 
-      const p = photos[photoIndex(col, row)];
-      const pos = getPos(p.f);
-      const safeName = esc((p.n || 'DOGYPTIAN').toUpperCase());
-
-      const el = document.createElement('article');
-      el.className = 'dog-card dog-card--placeholder';
-      el.style.left = (col * GX) + 'px';
-      el.style.top  = (row * GY) + 'px';
-      el.innerHTML = `
-        <div class="card-img" style="background-image:url('/dogs/${p.f}');background-position:${pos}"></div>
-        <div class="card-open-overlay">
-          <div class="card-open-name">${safeName}</div>
-        </div>
-        <div class="card-rank-top">#—</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
-        <div class="card-name-block">
-          <div class="card-label">${safeName}</div>
-        </div>
-      `;
-      return el;
+      // Launch: WALL zobrazuje LEN reálnych psov (s heroglyfom). Žiadne dekoratívne
+      // placeholder fotky z godsData — prázdne bunky ostávajú nevyplnené.
+      return null;
     }
 
     function updateTransform() {

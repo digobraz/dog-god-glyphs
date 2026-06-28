@@ -675,7 +675,7 @@ export default function PackDogDetail() {
         </Link>
         {packNumber && (
           <Link
-            to={`/grid?focus=${packNumber}`}
+            to={`/?focus=${packNumber}`}
             className="inline-flex items-center gap-1.5"
             style={{
               fontFamily: "'Cinzel', serif",

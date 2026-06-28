@@ -53,7 +53,7 @@ export function PageTopBar({
         className="flex-shrink-0 relative flex flex-col items-center justify-center gap-1 md:gap-0 px-5 md:px-0 pb-1 md:pb-2 pt-[15px] md:pt-[25px]"
         style={{ zIndex: 2 }}
       >
-        <Link to="/grid" aria-label="WALL" className="flex-shrink-0 md:mb-1">
+        <Link to="/" aria-label="WALL" className="flex-shrink-0 md:mb-1">
           {logo}
         </Link>
         <PageNav />

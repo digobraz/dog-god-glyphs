@@ -184,7 +184,7 @@ export function WelcomeScreen() {
     });
     if (photoUrl) params.set('photoUrl', photoUrl);
     if (heroglyphPngUrl) params.set('heroglyphUrl', heroglyphPngUrl);
-    navigate(`/grid?${params.toString()}`);
+    navigate(`/?${params.toString()}`);
   }, [navigate, dogName, packNumber, photoUrl, heroglyphPngUrl]);
 
   const { display: packDisplay, landed } = useAnimatedCounter(

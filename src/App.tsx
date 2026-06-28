@@ -72,9 +72,11 @@ const App = () => (
         <RefCapture />
         <DevNav />
         <Routes>
-          <Route path="/" element={<SpiralLanding />} />
-          <Route path="/spiral" element={<SpiralLanding />} />
+          {/* LAUNCH SWAP (Matej OK): GRID = homepage. Spirála → /spiral archív. */}
+          <Route path="/" element={<GodsGrid />} />
+          <Route path="/wall" element={<GodsGrid />} />
           <Route path="/grid" element={<GodsGrid />} />
+          <Route path="/spiral" element={<SpiralLanding />} />
 
           {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok) */}
           <Route path="/heroglyph" element={<Heroglyph />} />

@@ -33,11 +33,9 @@ export function PaymentScreen() {
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
-  // Pre-vyplnený tester kód — user nezadáva, len klikne Apply. Reálna Stripe
-  // validácia ostáva v create-checkout; tu len UI potvrdenie.
-  // Hodnota = lowercase 'tester' (presný Stripe promotion code, overený na dev);
-  // input ho cez textTransform:uppercase ZOBRAZÍ ako TESTER. Value musí matchnúť Stripe.
-  const [promoCode, setPromoCode] = useState('tester');
+  // Ostrá prevádzka — pole je prázdne, používateľ zadá promo kód ručne.
+  // Reálna Stripe validácia ostáva v create-checkout; tu len UI potvrdenie.
+  const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
 
   // Route guard — deep-link / stale localStorage ochrana
@@ -225,14 +223,16 @@ export function PaymentScreen() {
               >
                 <p
                   style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 12,
-                    lineHeight: 1.5,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    letterSpacing: '0.14em',
+                    textTransform: 'uppercase',
                     color: 'hsl(30 20% 20%)',
                     margin: '0 0 10px',
                   }}
                 >
-                  {t('payment.promo.note')}
+                  {t('payment.promo.placeholder')}
                 </p>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
                   {/* ĽAVO — predvyplnený kód + ✓ validácia */}
