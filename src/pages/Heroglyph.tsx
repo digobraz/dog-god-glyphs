@@ -435,8 +435,8 @@ export default function Heroglyph() {
 
         /* CTA — replicates /grid .join-btn */
         .heroglyph-cta {
-          margin-top: 40px;
-          padding: 16px 40px;
+          margin-top: 24px;
+          padding: 14px 38px;
           background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
           border: 1px solid rgba(250, 244, 236, 0.40);
           border-radius: 8px;
@@ -505,7 +505,7 @@ export default function Heroglyph() {
 
       <PageTopBar withNav />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-6 pb-6 md:pt-16 md:pb-20 relative" style={{ zIndex: 2 }}>
+      <div className="flex-1 flex flex-col items-center justify-center px-5 pt-6 pb-6 md:pt-8 md:pb-8 relative" style={{ zIndex: 2 }}>
         <div className="w-full max-w-3xl flex flex-col items-center text-center">
 
           {/* HERO TITLE — Mobile: "THE / SYMBOL" stacked (big gold) + "THAT CHANGES HISTORY" subline (Vision-style, weight 500, uppercase, single row).
@@ -564,9 +564,9 @@ export default function Heroglyph() {
                 style={{
                   fontFamily: "'Cinzel', serif",
                   fontWeight: 700,
-                  fontSize: 'clamp(2.6rem, 6vw, 3.4rem)',
+                  fontSize: 'clamp(2.1rem, 4.6vw, 2.8rem)',
                   letterSpacing: '0.04em',
-                  lineHeight: 1.08,
+                  lineHeight: 1.06,
                   margin: 0,
                   textTransform: 'uppercase',
                 }}
@@ -588,11 +588,11 @@ export default function Heroglyph() {
                   fontFamily: "'Cinzel', serif",
                   fontStyle: 'italic',
                   fontWeight: 400,
-                  fontSize: 'clamp(1.2rem, 2.4vw, 1.6rem)',
+                  fontSize: 'clamp(1rem, 1.9vw, 1.3rem)',
                   letterSpacing: '0.04em',
                   color: '#FAF4EC',
                   textTransform: 'none',
-                  margin: 'clamp(6px, 0.8vw, 12px) 0 0',
+                  margin: 'clamp(4px, 0.6vw, 8px) 0 0',
                   lineHeight: 1.1,
                 }}
               >
@@ -758,7 +758,7 @@ export default function Heroglyph() {
               <div
                 className="dict-block"
                 style={{
-                  marginTop: 28,
+                  marginTop: 18,
                   width: '100%',
                   maxWidth: 640,
                   display: 'grid',
@@ -837,8 +837,8 @@ export default function Heroglyph() {
                 className="heroglyph-svg-wrap"
                 style={{
                   width: '100%',
-                  maxWidth: 380,
-                  marginTop: 32,
+                  maxWidth: 320,
+                  marginTop: 18,
                   position: 'relative',
                 }}
                 dangerouslySetInnerHTML={{ __html: svgMarkup }}
@@ -884,22 +884,14 @@ export default function Heroglyph() {
             </>
           ) : (
             <>
-              {/* DESKTOP order LOCKED: pills (2 rows) → CTA → outro */}
+              {/* DESKTOP order: pills (single row) → CTA → outro */}
               <PillMarquee
-                pills={pillsRow1}
+                pills={[...pillsRow1, ...pillsRow2]}
                 reverse={false}
                 onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
                 onMove={(x, y) => setPillTooltipPos({ x, y })}
                 onLeave={() => setPillTooltip(null)}
-                marginTop={32}
-              />
-              <PillMarquee
-                pills={pillsRow2}
-                reverse={true}
-                onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
-                onMove={(x, y) => setPillTooltipPos({ x, y })}
-                onLeave={() => setPillTooltip(null)}
-                marginTop={12}
+                marginTop={20}
               />
               <button
                 onClick={() => navigate('/heroglyph/intro')}
@@ -915,7 +907,7 @@ export default function Heroglyph() {
                   letterSpacing: '0.24em',
                   textTransform: 'uppercase',
                   color: 'rgba(250,244,236,0.5)',
-                  marginTop: 20,
+                  marginTop: 14,
                   textAlign: 'center',
                 }}
               >
