@@ -50,13 +50,6 @@ const GY = H + Math.round(64 * MScale);
 const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
 
-// Pevné pozície vybraných psov mimo špirály (kľúč = pack_number).
-// ELLIE (#9) má miesto vpravo od stredu — tam kde bola pôvodne placeholder karta (Kevin).
-// (1,0) = positions[0] = slot pre #1, ktorý je ale Hektor na (0,-1), takže je voľný.
-const PINNED_POSITIONS: Record<number, { col: number; row: number }> = {
-  9: { col: 1, row: 0 },
-};
-
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
 
 const FLAG_NAMES: Record<string, string> = {
@@ -132,14 +125,40 @@ function photoFor(col: number, row: number) {
   return photos[photoIndex(col, row)];
 }
 
-// Deterministická dlaždica (col,row) → index do poľa dĺžky `len`. Rovnaké primes
-// ako photoIndex → susedné bunky v rade/stĺpci dostanú iný prvok (žiadne vedľa seba
-// rovnaké). Slúži na nekonečné opakovanie reálnych psov cez prázdne bunky WALL.
-function tileIndex(col: number, row: number, len: number): number {
+// Hektor (#1) ako filler pes — rozmnožený v nekonečnej stene popri zákazníkoch.
+// Founder karta na (0,-1) ostáva špeciálna (makeHektorCard); toto je len pre výplň.
+const HEKTHOR_FILL: RealDog = {
+  id: 'hektor-fill',
+  dog_name: 'HEKTHOR',
+  pack_number: 1,
+  cloudinary_main_url: '/images/hektor-grid.jpg',
+  patron_svg: null,
+  heroglyph_png_url: '/images/hekthor-heroglyph.png',
+  country: 'SVK',
+  owner_message: null,
+};
+
+const NEIGHBORS8: ReadonlyArray<[number, number]> = [
+  [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1],
+];
+
+// Bázový index psa do `fillers` pre danú bunku. Lineárne koeficienty (1·c + 3·r)
+// zaručujú, že KAŽDÝ z 8 susedov (vrátane diagonál) má iný index — žiadne dva
+// rovnaké fillery vedľa seba. (Δ susedov = 1,3,4,7 mod 9 — všetky ≠ 0.)
+function gIndex(col: number, row: number, len: number): number {
   if (len <= 0) return 0;
-  const n = ((col % len) + len) % len;
-  const m = ((row % len) + len) % len;
-  return (n * 7 + m * 11 + 31) % len;
+  return (((col + 3 * row) % len) + len) % len;
+}
+
+// pack_number psa zobrazeného v bunke (bázovo, bez konfliktovej korekcie) — na
+// kontrolu susedov pri výbere fillera. Zrkadlí poradie vetiev v makeCard.
+function basePackAt(col: number, row: number, map: Map<string, RealDog>, fillers: RealDog[]): number | null {
+  if (col === 0 && row === 0) return null;       // hero
+  if (col === 0 && row === -1) return 1;          // Hektor founder
+  const canon = map.get(`${col},${row}`);
+  if (canon) return canon.pack_number ?? null;
+  if (fillers.length === 0) return null;
+  return fillers[gIndex(col, row, fillers.length)].pack_number ?? null;
 }
 
 
@@ -186,17 +205,16 @@ export function GodsGrid() {
           const map = new Map<string, RealDog>();
           for (const dog of dogs) {
             const n = dog.pack_number;
-            if (!n || n < 1) continue;
-            const pin = PINNED_POSITIONS[n];
-            if (pin) {
-              map.set(`${pin.col},${pin.row}`, dog);
-            } else if (n - 1 < positions.length) {
-              map.set(`${positions[n - 1].col},${positions[n - 1].row}`, dog);
+            if (!n || n < 2) continue; // #1 = Hektor founder, mimo špirály na (0,-1)
+            // #2 = prvá špirálová pozícia positions[0], #3 → [1], … #n → [n-2].
+            const idx = n - 2;
+            if (idx < positions.length) {
+              map.set(`${positions[idx].col},${positions[idx].row}`, dog);
             }
           }
           realDogMapRef.current = map;
-          // Filler set pre nekonečný efekt = reálni psi BEZ Hektora (#1).
-          fillerDogsRef.current = dogs.filter(d => (d.pack_number ?? 0) >= 2);
+          // Filler set = Hektor + všetci zákazníci (#2+); každý sa rozmnožuje v stene.
+          fillerDogsRef.current = [HEKTHOR_FILL, ...dogs.filter(d => (d.pack_number ?? 0) >= 2)];
           if (revealData.active && !revealData.heroglyphUrl) {
             const packNum = parseInt(revealData.packNumber, 10);
             const revealDog = dogs.find(d => d.pack_number === packNum);
@@ -519,13 +537,25 @@ export function GodsGrid() {
       const realDog = realDogMapRef.current.get(`${col},${row}`);
       if (realDog) return makeRealDogCard(realDog, col, row);
 
-      // Nekonečný WALL: prázdne bunky vypĺňame OPAKOVANÍM reálnych psov (zákazníci,
-      // bez Hektora) — žiadne fake placeholder fotky. Deterministicky per bunka
-      // (stabilné pri scrolle); duplikáty sú „echo" (bez čísla/správy).
+      // Nekonečná stena: prázdne bunky vypĺňame reálnymi psami (Hektor + zákazníci),
+      // plný duplikát s #číslom. Vyberáme tak, aby sa pes NIKDY neopakoval v žiadnom
+      // z 8 susedov (ani diagonálne) — inak to vyzerá divne.
       const fillers = fillerDogsRef.current;
       if (fillers.length === 0) return null;
-      const fillDog = fillers[tileIndex(col, row, fillers.length)];
-      return makeRealDogCard(fillDog, col, row, true); // plný duplikát s #číslom
+      const map = realDogMapRef.current;
+      const forbidden = new Set<number>();
+      for (const [dc, dr] of NEIGHBORS8) {
+        const p = basePackAt(col + dc, row + dr, map, fillers);
+        if (p != null) forbidden.add(p);
+      }
+      const start = gIndex(col, row, fillers.length);
+      for (let k = 0; k < fillers.length; k++) {
+        const cand = fillers[(start + k) % fillers.length];
+        if (!forbidden.has(cand.pack_number ?? -1)) {
+          return makeRealDogCard(cand, col, row, true);
+        }
+      }
+      return makeRealDogCard(fillers[start], col, row, true); // fallback (nemalo nastať)
     }
 
     function updateTransform() {
@@ -733,17 +763,14 @@ export function GodsGrid() {
       if (raf) cancelAnimationFrame(raf);
       let col: number, row: number;
       if (n === 1) {
-        // #1 = Hekthor, the founder card. Hardcoded at (0,-1) and skipped by
-        // generatePackPositions, so it is NOT in the spiral — jump there directly.
-        // (Without this, "#1" landed on positions[0], an empty placeholder cell.)
+        // #1 = Hekthor, the founder card. Hardcoded at (0,-1), NOT in the spiral.
         col = 0; row = -1;
-      } else if (PINNED_POSITIONS[n]) {
-        // Pevné miesto mimo špirály (napr. ELLIE #9 vpravo od stredu).
-        ({ col, row } = PINNED_POSITIONS[n]);
       } else {
+        // #2 = positions[0] (prvá špirálová pozícia) … #n → positions[n-2].
         const positions = generatePackPositions(n + 5);
-        if (n - 1 >= positions.length) return;
-        ({ col, row } = positions[n - 1]);
+        const idx = n - 2;
+        if (idx < 0 || idx >= positions.length) return;
+        ({ col, row } = positions[idx]);
       }
       const tx = vw / 2 - col * GX - W / 2;
       const ty = vh / 2 - row * GY - H / 2;
