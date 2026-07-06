@@ -5,6 +5,7 @@ import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
+import { countryISO2 } from '@/lib/countryGeo';
 import './WhatNextPopup.css';
 
 const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
@@ -65,34 +66,12 @@ const FLAG_NAMES: Record<string, string> = {
   it: 'Italy',
 };
 
+// Vlajka karty — deleguje na zdieľaný countryGeo helper (pozná Čínu, Áziu, ISO3/ISO2
+// aj SK/EN názvy). Neznámu/prázdnu krajinu vráti '' → vlajka sa NEVYKRESLÍ (radšej žiadna
+// než falošná SK). NIKDY nesmie mať vlastnú duplikovanú mapu — tá bola príčinou #18/#19
+// (Čína) aj #14 (Česko) padajúcich na slovenskú vlajku.
 function countryToISO2(country?: string | null): string {
-  if (!country) return 'sk';
-  const MAP: Record<string, string> = {
-    'slovakia':'sk','slovensko':'sk','svk':'sk','sk':'sk',
-    'czechia':'cz','czech republic':'cz','česko':'cz','cze':'cz','cz':'cz',
-    'hungary':'hu','maďarsko':'hu','hun':'hu',
-    'austria':'at','rakúsko':'at','aut':'at',
-    'poland':'pl','poľsko':'pl','pol':'pl',
-    'germany':'de','nemecko':'de','deu':'de',
-    'france':'fr','francúzsko':'fr','fra':'fr',
-    'italy':'it','taliansko':'it','ita':'it',
-    'spain':'es','španielsko':'es','esp':'es',
-    'united states':'us','usa':'us',
-    'united kingdom':'gb','uk':'gb','gbr':'gb',
-    'ireland':'ie','irl':'ie',
-    'netherlands':'nl','nld':'nl',
-    'switzerland':'ch','che':'ch',
-    'sweden':'se','swe':'se',
-    'norway':'no','nor':'no',
-    'denmark':'dk','dnk':'dk',
-    'finland':'fi','fin':'fi',
-    'australia':'au','aus':'au',
-    'canada':'ca','can':'ca',
-    'ukraine':'ua','ukr':'ua',
-    'romania':'ro','rou':'ro',
-    'croatia':'hr','hrv':'hr',
-  };
-  return MAP[country.trim().toLowerCase()] || 'sk';
+  return countryISO2(country) || '';
 }
 
 function esc(s: string): string {
@@ -449,7 +428,7 @@ export function GodsGrid() {
       const safeName = (revealData.dogName || 'DOGYPTIAN')
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       const packNumInt = parseInt(revealData.packNumber, 10);
-      let cc = 'sk';
+      let cc = '';
       let revealOwnerMessage = '';
       for (const dog of realDogMapRef.current.values()) {
         if (dog.pack_number === packNumInt) {
@@ -475,7 +454,7 @@ export function GodsGrid() {
           <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
         </div>
         <div class="card-rank-top">#${revealData.packNumber}</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
+        ${cc ? `<img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
         </div>
@@ -517,7 +496,7 @@ export function GodsGrid() {
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
         </div>
         <div class="card-rank-top">#${packNum}</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">
+        ${cc ? `<img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
         <div class="dog-heroglyph-wrap">
           <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
