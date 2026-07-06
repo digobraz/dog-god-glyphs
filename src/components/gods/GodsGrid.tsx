@@ -860,28 +860,29 @@ export function GodsGrid() {
         }
         .main-nav a:hover, .main-nav button:hover { opacity: 0.55; }
 
-        /* ── LOGIN pill — top-right, opposite the nav ── */
+        /* ── LOGIN — round papyrus icon button, top-right (matches bottom-bar btns) ── */
         .nav-login {
           position: fixed;
           top: 12px;
-          right: 20px;
+          right: 16px;
           z-index: 50;
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.78rem;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          color: rgba(0,0,0,0.78);
-          text-decoration: none;
+          width: 40px; height: 40px;
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1.5px solid rgba(201,154,63,0.65);
-          border-radius: 999px;
-          padding: 7px 18px;
+          border: 1px solid rgba(201,154,63,0.45);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
           cursor: pointer;
-          white-space: nowrap;
+          text-decoration: none;
           transition: opacity 150ms;
         }
-        .nav-login:hover { opacity: 0.65; }
+        .nav-login:hover { opacity: 0.75; }
+        .nav-login-icon {
+          width: 18px; height: 18px;
+          object-fit: contain;
+          filter: brightness(0);
+          opacity: 0.72;
+        }
 
         .info-overlay {
           position: fixed;
@@ -1666,15 +1667,9 @@ export function GodsGrid() {
             transform: translateX(-50%);
           }
 
-          /* Menu is centered on mobile → move LOGIN to the free top-left so it
-             never collides with the centered pills on narrow screens. */
-          .nav-login {
-            right: auto;
-            left: 16px;
-            top: 12px;
-            padding: 6px 14px;
-            font-size: 0.7rem;
-          }
+          /* LOGIN icon stays in the free top-right corner (menu is centered) */
+          .nav-login { width: 36px; height: 36px; top: 10px; right: 12px; }
+          .nav-login-icon { width: 16px; height: 16px; }
 
           /* Top nav: 3 names only (flag moves to the bottom bar), tighter so the
              longest labels (SK/CZ NÁBOŽENSTVO) never wrap. */
@@ -1768,9 +1763,9 @@ export function GodsGrid() {
             <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
-        {/* LOGIN — fixed top-right, discrete nav pill, opposite the main-nav */}
+        {/* LOGIN — round ankh (key of life = entry) icon button, top-right corner */}
         <a href="/login" className="nav-login" aria-label={t('nav.login')}>
-          {t('nav.login')}
+          <img src="/icons/pack/ankh.svg" alt="" className="nav-login-icon" draggable="false" />
         </a>
 
         <div className={`info-overlay ${infoOpen ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setInfoOpen(false); }}>
