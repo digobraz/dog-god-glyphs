@@ -33,6 +33,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { CertificateCard } from '@/components/CertificateCard';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { MemorialControl } from '@/components/pack/MemorialControl';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
@@ -57,13 +58,14 @@ interface DogAge {
 function computeAge(
   selections: Record<string, string> | null,
   fallbackYear: number | null,
+  asOf?: Date,           // FIX9: pre deceased psa = dátum úmrtia → vek zamrzne k tomu dňu
 ): DogAge | null {
   const y = parseInt(selections?.birthdayYear || '', 10) || fallbackYear || 0;
   if (!y || y < 1990) return null;
   const m = parseInt(selections?.birthdayMonth || '', 10) || 1;
   const d = parseInt(selections?.birthdayDay || '', 10) || 1;
   const birth = new Date(y, m - 1, d);
-  const now = new Date();
+  const now = asOf ?? new Date();
   if (birth > now) return null;
 
   let years = now.getFullYear() - birth.getFullYear();
@@ -117,6 +119,8 @@ interface DogRow {
   breed: string | null;
   country: string | null;
   birth_year: number | null;
+  life_status?: string | null;   // FIX9: 'alive' | 'deceased'
+  death_date?: string | null;    // FIX9: yyyy-mm-dd, keď deceased
   patron_svg: string | null;
   patron_svg2: string | null;
   selections: Record<string, string> | null;
@@ -272,7 +276,7 @@ export default function PackDogDetail() {
       })
         .from('dogs')
         .select(
-          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
+          'id, user_id, dog_name, cloudinary_main_url, cloudinary_extras, pdf_cert_url, pdf_vertical_url, pdf_horizontal_url, heroglyph_code, breed, country, birth_year, life_status, death_date, patron_svg, patron_svg2, selections, grid_message, created_at, stripe_session_id, pack_number, owner_name, weight_kg, health_status, allergies, conditions, medication, diet',
         )
         .eq('id', id)
         .eq('user_id', user.id)
@@ -609,7 +613,17 @@ export default function PackDogDetail() {
   const dogName = dog.dog_name || t('pack.dog.unnamed');
   const ownerName = dog.owner_name || '';
   const heroglyphCode = dog.heroglyph_code || 'H-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX-XX';
-  const age = computeAge(dog.selections, dog.birth_year);
+  // FIX9 Memorial: deceased pes → vek zamrzne ku dňu úmrtia (frozen "Lived his best
+  // life · N days"), a druhé, živé počítadlo ráta dni v anjelskej podobe (death → dnes).
+  const isDeceased = dog.life_status === 'deceased';
+  const deathDate = dog.death_date ? new Date(dog.death_date) : null;
+  const age = computeAge(dog.selections, dog.birth_year, isDeceased && deathDate ? deathDate : undefined);
+  const angelDays = deathDate
+    ? Math.max(0, Math.floor((Date.now() - deathDate.getTime()) / 86_400_000))
+    : null;
+  const deathDateLabel = deathDate
+    ? deathDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null;
   const WALK_LEVELS = getWalkLevels(t);
   const HEALTH_SHIELDS = getHealthShields(t);
 
@@ -869,27 +883,72 @@ export default function PackDogDetail() {
             </div>
             </div>
 
-            {/* "Living my best life" — hlavný údaj = dni (badge, podčiarknuté); roky+ľudské roky v tooltipe (hover PC / tap mobile) */}
-            {age ? (
-              <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1" style={{ marginTop: 12 }}>
-                <span
-                  className="inline-flex items-center gap-1.5"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 10,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: T.inkDim,
-                  }}
-                >
-                  <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
-                  {t('pack.dog.livingBestLife')}
-                </span>
-                <BestLifeBadge age={age} />
+            {/* "Living my best life" — hlavný údaj = dni (badge, podčiarknuté); roky+ľudské roky v tooltipe (hover PC / tap mobile).
+                FIX9: deceased pes → zmrazené "Lived his best life" + živé "In angel form" počítadlo. */}
+            {isDeceased ? (
+              <div className="flex flex-col items-center gap-2" style={{ marginTop: 12 }}>
+                <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                  {age && (
+                    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                      <span
+                        className="inline-flex items-center gap-1.5"
+                        style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
+                      >
+                        <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
+                        {t('pack.dog.livedBestLife', { poss: P.poss })}
+                      </span>
+                      <BestLifeBadge age={age} />
+                    </div>
+                  )}
+                  {angelDays !== null && (
+                    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                      <span
+                        className="inline-flex items-center gap-1.5"
+                        style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
+                      >
+                        🕊 {t('pack.dog.inAngelForm')}
+                      </span>
+                      <AngelBadge days={angelDays} sinceLabel={deathDateLabel} />
+                    </div>
+                  )}
+                </div>
+                <MemorialControl
+                  dogId={dog.id}
+                  dogName={dogName}
+                  isDeceased
+                  deathDate={dog.death_date ?? null}
+                  birthYear={dog.birth_year}
+                  poss={P.poss}
+                  onSaved={(iso) => setDog((prev) => (prev ? { ...prev, life_status: 'deceased', death_date: iso } : prev))}
+                />
               </div>
             ) : (
-              <div style={{ marginTop: 18, fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
-                {t('pack.dog.birthdayUnknown')}
+              <div className="flex flex-col items-center gap-1.5" style={{ marginTop: 12 }}>
+                {age ? (
+                  <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+                    <span
+                      className="inline-flex items-center gap-1.5"
+                      style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
+                    >
+                      <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
+                      {t('pack.dog.livingBestLife')}
+                    </span>
+                    <BestLifeBadge age={age} />
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 6, fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
+                    {t('pack.dog.birthdayUnknown')}
+                  </div>
+                )}
+                <MemorialControl
+                  dogId={dog.id}
+                  dogName={dogName}
+                  isDeceased={false}
+                  deathDate={null}
+                  birthYear={dog.birth_year}
+                  poss={P.poss}
+                  onSaved={(iso) => setDog((prev) => (prev ? { ...prev, life_status: 'deceased', death_date: iso } : prev))}
+                />
               </div>
             )}
             </div>
@@ -2220,6 +2279,64 @@ function BestLifeBadge({ age }: { age: DogAge }) {
           }}
         >
           {t('pack.dog.ageDetail', { years: String(age.years), months: String(age.months), days: String(age.days), humanYears: String(age.humanYears) })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// FIX9: živé počítadlo dní v anjelskej podobe (death → dnes). Strieborné, ráta ďalej.
+function AngelBadge({ days, sinceLabel }: { days: number; sinceLabel: string | null }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      className="relative inline-flex flex-col items-center"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={t('pack.dog.inAngelForm')}
+        style={{
+          padding: '5px 14px',
+          borderRadius: 999,
+          background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
+          color: '#3a4256',
+          fontFamily: "'Cinzel', serif",
+          fontSize: 15,
+          fontWeight: 700,
+          letterSpacing: '0.02em',
+          cursor: 'pointer',
+          boxShadow: '0 6px 16px -6px rgba(120, 130, 150, 0.55)',
+          border: '1px solid rgba(180,190,210,0.6)',
+          lineHeight: 1.1,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {days.toLocaleString('en-US')} days
+      </button>
+      {open && sinceLabel && (
+        <div
+          className="absolute"
+          style={{
+            top: 'calc(100% + 9px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            padding: '9px 15px',
+            borderRadius: 10,
+            background: T.ink,
+            color: T.card,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 12.5,
+            fontWeight: 500,
+            boxShadow: '0 10px 28px rgba(10,10,10,0.28)',
+            zIndex: 5,
+          }}
+        >
+          {t('pack.dog.angelSince', { date: sinceLabel })}
         </div>
       )}
     </div>
