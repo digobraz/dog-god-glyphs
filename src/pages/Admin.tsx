@@ -107,9 +107,9 @@ const ROLE_LABELS: Record<string, string> = {
   business: 'Business',
 };
 
-// amount je integer v centoch (Stripe). null = tester / nezaplatené.
+// dogs.amount je už v EURÁCH (stripe-webhook delí amount_total/100 pri zápise). null = tester / nezaplatené.
 const fmtAmount = (a: number | null) =>
-  a == null ? '—' : `€${(a / 100).toFixed(2)}`;
+  a == null ? '—' : `€${a.toFixed(2)}`;
 const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleString('sk-SK', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 const short = (s: string | null, n = 14) =>
