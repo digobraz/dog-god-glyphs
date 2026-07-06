@@ -21,10 +21,13 @@ interface RealDog {
   owner_message: string | null;
 }
 
+// Špirála štartuje OD Hekthora (#1, fixný na 0,-1), nie od hero/CTA karty (0,0) —
+// #2 tak vždy pristane hneď vedľa Hekthora (vpravo), #3 pod #2, atď. Hero (0,0)
+// ostáva len ďalšia preskočená diera v tej istej špirále.
 function generatePackPositions(count: number): Array<{col: number, row: number}> {
   const skip = new Set(['0,0', '0,-1']);
   const result: Array<{col: number, row: number}> = [];
-  let col = 0, row = 0;
+  let col = 0, row = -1;
   let dx = 1, dy = 0;
   let steps = 1, stepCount = 0, turns = 0;
   while (result.length < count) {
