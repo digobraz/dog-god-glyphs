@@ -709,10 +709,37 @@ export function GodsGrid() {
       render();
     };
 
+    // Klik na terč vždy dá viditeľnú odozvu: pulz na center hero + haptika.
+    const heroAnchorPulse = () => {
+      const hero = canvas?.querySelector('.center-hero') as HTMLElement | null;
+      if (hero) {
+        hero.classList.remove('hero-anchor-pulse');
+        void hero.offsetWidth; // reštart CSS animácie
+        hero.classList.add('hero-anchor-pulse');
+      }
+      navigator.vibrate?.(15);
+    };
+
     const onCenter = () => {
       if (raf) cancelAnimationFrame(raf);
       const tx = vw / 2 - W / 2;
       const ty = vh / 2 - H / 2;
+      if (Math.hypot(tx - ox, ty - oy) < 4) {
+        // Už ukotvené — rubber-band bounce namiesto „nič sa nedeje"
+        heroAnchorPulse();
+        const t0 = performance.now();
+        const dur = 480;
+        const A = 13;
+        function bounce(now: number) {
+          const p = Math.min((now - t0) / dur, 1);
+          oy = ty + A * Math.sin(p * Math.PI * 2.5) * (1 - p) * (1 - p);
+          render();
+          if (p < 1) raf = requestAnimationFrame(bounce);
+          else { oy = ty; render(); }
+        }
+        raf = requestAnimationFrame(bounce);
+        return;
+      }
       const sx = ox, sy = oy;
       const t0 = performance.now();
       const dur = 600;
@@ -724,6 +751,7 @@ export function GodsGrid() {
         oy = sy + (ty - sy) * e;
         render();
         if (p < 1) raf = requestAnimationFrame(step);
+        else heroAnchorPulse();
       }
       raf = requestAnimationFrame(step);
     };
@@ -1204,6 +1232,27 @@ export function GodsGrid() {
           background: radial-gradient(ellipse at center, rgba(8,8,8,0.92) 20%, transparent 68%);
           z-index: -1;
           pointer-events: none;
+        }
+        /* Zlatý pulz ring — feedback kliku na terč (ukotvenie na stred) */
+        .center-hero::after {
+          content: '';
+          position: absolute;
+          left: 50%; top: 50%;
+          width: 200px; height: 200px;
+          margin: -100px 0 0 -100px;
+          border-radius: 50%;
+          border: 2px solid rgba(201,154,63,0.9);
+          box-shadow: 0 0 24px rgba(201,154,63,0.35);
+          opacity: 0;
+          pointer-events: none;
+        }
+        .center-hero.hero-anchor-pulse::after {
+          animation: heroAnchorPulse 0.9s ease-out;
+        }
+        @keyframes heroAnchorPulse {
+          0%   { opacity: 0;    transform: scale(0.35); }
+          15%  { opacity: 0.95; }
+          100% { opacity: 0;    transform: scale(1.7); }
         }
         .hero-logo-icon {
           width: 120px; height: 120px;
