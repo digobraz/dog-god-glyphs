@@ -49,6 +49,11 @@ export function CheckoutScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setLocalEmail] = useState('');
+  // Billing address fields (owner/payer) → saved to selections.bill* → DB bill_* columns
+  const [billStreet, setBillStreet] = useState('');
+  const [billCity, setBillCity] = useState('');
+  const [billZip, setBillZip] = useState('');
+  // billCountry = owner's billing country (NOT dog's country — that lives in selections.country set on /name)
   const [country, setCountry] = useState('');
   const [showCountries, setShowCountries] = useState(false);
 
@@ -59,16 +64,28 @@ export function CheckoutScreen() {
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = EMAIL_RE.test(email.trim());
-  const isValid = firstName.trim() && lastName.trim() && isEmailValid && country.trim();
+  const isValid =
+    firstName.trim() &&
+    lastName.trim() &&
+    isEmailValid &&
+    billStreet.trim() &&
+    billCity.trim() &&
+    billZip.trim() &&
+    country.trim();
 
   const handleContinue = () => {
     if (!isValid) return;
     setSelectedAmount(11);
     setEmail(email);
-    // Persist country into selections so PaymentScreen's buildHeroglyphCode emits
-    // the real ISO3 (pos 15) instead of falling back to 'XXX'. Without this the
-    // country input was local-only and every purchased code lost its country.
-    setSelection('country', country.trim());
+    // Save billing info to selections.* — create-checkout reads these and
+    // maps to DB bill_* columns. bill_name is the payer's legal name (separate
+    // from owner_name/OwnerInfoScreen cartouche name). selections.country (dog's
+    // country) is intentionally NOT set here — it was set on /name screen.
+    setSelection('billName', `${firstName.trim()} ${lastName.trim()}`);
+    setSelection('billStreet', billStreet.trim());
+    setSelection('billCity', billCity.trim());
+    setSelection('billZip', billZip.trim());
+    setSelection('billCountry', country.trim());
     navigate('/payment');
   };
 
@@ -186,6 +203,12 @@ export function CheckoutScreen() {
                   Enter a valid email address
                 </p>
               )}
+              {/* Billing address — required for invoice (SK law) */}
+              <input type="text" placeholder={t('heroglyph.checkout.street')} value={billStreet} onChange={(e) => setBillStreet(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="street-address" />
+              <div className="flex gap-1.5">
+                <input type="text" placeholder={t('heroglyph.checkout.city')} value={billCity} onChange={(e) => setBillCity(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="address-level2" />
+                <input type="text" placeholder={t('heroglyph.checkout.zip')} value={billZip} onChange={(e) => setBillZip(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif", maxWidth: 110 }} autoComplete="postal-code" />
+              </div>
               <div className="relative">
                 <input
                   type="text"

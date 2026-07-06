@@ -10,6 +10,28 @@ import hekthorImg from '@/assets/hekthor.png';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+import { countryFlag } from '@/lib/countryGeo';
+
+// Countries list shared with CheckoutScreen (owner billing country).
+// Used here for dog's country of origin / home country.
+const COUNTRIES = [
+  'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
+  'Bahamas','Bahrain','Bangladesh','Barbados','Belarus','Belgium','Belize','Benin','Bhutan','Bolivia',
+  'Bosnia and Herzegovina','Botswana','Brazil','Brunei','Bulgaria','Burkina Faso','Burundi','Cambodia','Cameroon',
+  'Canada','Central African Republic','Chad','Chile','China','Colombia','Comoros','Congo','Costa Rica','Croatia',
+  'Cuba','Cyprus','Czech Republic','Denmark','Djibouti','Dominican Republic','Ecuador','Egypt','El Salvador',
+  'Estonia','Ethiopia','Fiji','Finland','France','Gabon','Gambia','Georgia','Germany','Ghana','Greece',
+  'Guatemala','Guinea','Haiti','Honduras','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland',
+  'Israel','Italy','Jamaica','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Kyrgyzstan','Laos','Latvia',
+  'Lebanon','Libya','Liechtenstein','Lithuania','Luxembourg','Madagascar','Malaysia','Maldives','Mali','Malta',
+  'Mexico','Moldova','Monaco','Mongolia','Montenegro','Morocco','Mozambique','Myanmar','Namibia','Nepal',
+  'Netherlands','New Zealand','Nicaragua','Niger','Nigeria','North Macedonia','Norway','Oman','Pakistan',
+  'Panama','Paraguay','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda',
+  'Saudi Arabia','Senegal','Serbia','Singapore','Slovakia','Slovenia','Somalia','South Africa','South Korea',
+  'Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tanzania','Thailand','Tunisia',
+  'Turkey','Uganda','Ukraine','United Arab Emirates','United Kingdom','United States','Uruguay','Uzbekistan',
+  'Venezuela','Vietnam','Yemen','Zambia','Zimbabwe',
+];
 
 // ── Name Entry Modal ─────────────────────────────────────────────────────────
 // Always mounted & portaled to document.body. Two things matter on iOS:
@@ -180,6 +202,9 @@ export function NameScreen() {
   const [month, setMonth] = useState<number>(hasStored ? stored.m : 1);
   const [year, setYear] = useState<number>(hasStored ? stored.y : currentYear - 5);
   const [touched, setTouched] = useState<boolean>(!!hasStored);
+  // Dog's country — restored from selections if user navigates back.
+  // Default empty: user must consciously pick (LOCKED decision 2026-07-06).
+  const [dogCountry, setDogCountry] = useState<string>(selections.country || '');
   const [showInfo, setShowInfo] = useState(false);
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [nameModalOpen, setNameModalOpen] = useState(false);
@@ -202,7 +227,8 @@ export function NameScreen() {
   const trimmed = input.trim();
   const nameValid = trimmed.length >= 1 && trimmed.length <= 30;
   const dateValid = touched;
-  const canContinue = nameValid && dateValid;
+  const countryValid = dogCountry !== '';
+  const canContinue = nameValid && dateValid && countryValid;
 
   const handleSend = () => {
     if (!canContinue) return;
@@ -210,6 +236,9 @@ export function NameScreen() {
     setSelection('birthdayDay', String(day).padStart(2, '0'));
     setSelection('birthdayMonth', String(month).padStart(2, '0'));
     setSelection('birthdayYear', String(year));
+    // Dog's country → heroglyph pos 15 + dogs.country + WALL flag.
+    // Stored as English name (matches COUNTRY_TO_ISO3 map in heroglyphCode.ts).
+    setSelection('country', dogCountry);
     navigate('/heroglyph/photo');
   };
 
@@ -358,9 +387,12 @@ export function NameScreen() {
             transition={{ duration: 0.35, delay: 0.1 }}
           >
             <div className="flex flex-col gap-2 md:gap-3">
+            {/* Name + Dog Country row — name 70 %, country select 30 % */}
+            <div style={{ display: 'flex', gap: 8 }}>
+
             {/* Name input — modal on mobile (keeps field above iOS keyboard),
                 inline input on desktop (direct keyboard typing). */}
-            <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`}>
+            <div className={`name-preview-wrap${trimmed.length > 0 ? ' is-filled' : ''}`} style={{ flex: '7 0 0', minWidth: 0 }}>
               {isMobile ? (
                 <button
                   type="button"
@@ -431,6 +463,70 @@ export function NameScreen() {
                 .name-preview-wrap.is-filled { box-shadow: 0 0 0 2px hsl(224 60% 45% / 0.45), 0 0 14px hsl(224 60% 45% / 0.22); }
               `}</style>
             </div>
+
+            {/* Dog Country select — 30% of name row */}
+            <div style={{ flex: '3 0 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <p
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '0.10em',
+                  textTransform: 'uppercase',
+                  color: 'hsl(var(--muted-foreground))',
+                  textAlign: 'center',
+                  margin: 0,
+                  lineHeight: 1.3,
+                }}
+              >
+                {t('heroglyph.flow.name.dogCountry')}
+              </p>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
+                <select
+                  value={dogCountry}
+                  onChange={(e) => setDogCountry(e.target.value)}
+                  aria-label={t('heroglyph.flow.name.dogCountry')}
+                  style={{
+                    appearance: 'none',
+                    WebkitAppearance: 'none',
+                    width: '100%',
+                    height: 44,
+                    background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
+                    border: dogCountry
+                      ? '1px solid hsl(var(--gold))'
+                      : '1px solid hsl(var(--gold) / 0.5)',
+                    borderRadius: 12,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    textAlign: 'center',
+                    color: dogCountry ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
+                    paddingLeft: 4,
+                    paddingRight: 20,
+                    cursor: 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  <option value="">🌍</option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
+                  ))}
+                </select>
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    right: 6,
+                    pointerEvents: 'none',
+                    color: 'hsl(var(--gold))',
+                    fontSize: 12,
+                    lineHeight: 1,
+                  }}
+                >▾</span>
+              </div>
+            </div>
+
+            </div>{/* end name + country flex row */}
 
             {/* Birthday — inline iOS-style 3-wheel picker */}
             <p

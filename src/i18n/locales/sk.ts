@@ -171,6 +171,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.name.adopted': 'Adoptovaný',
   'heroglyph.flow.name.location': 'Miesto',
   'heroglyph.flow.name.locationValue': 'Slovensko, EÚ',
+  'heroglyph.flow.name.dogCountry': 'Kde tvoj pes žije?',
 
   // ── /heroglyph flow — krok 2: foto ──
   'heroglyph.flow.photo.faceOfGodPrefix': '',
@@ -413,6 +414,9 @@ export const sk: Partial<Dict> = {
   'heroglyph.checkout.lastName': 'Priezvisko',
   'heroglyph.checkout.email': 'E-mail',
   'heroglyph.checkout.country': 'Krajina',
+  'heroglyph.checkout.street': 'Ulica a číslo',
+  'heroglyph.checkout.city': 'Mesto',
+  'heroglyph.checkout.zip': 'PSČ',
   'heroglyph.checkout.cta': 'POKRAČOVAŤ NA PLATBU',
   'heroglyph.checkout.disclaimerPrefix': 'Po platbe umiestnime fotku tvojho psa na web a tvoj ',
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certifikát',

@@ -165,6 +165,7 @@ export const en = {
   'heroglyph.flow.name.adopted': 'Adopted',
   'heroglyph.flow.name.location': 'Location',
   'heroglyph.flow.name.locationValue': 'Slovakia, EU',
+  'heroglyph.flow.name.dogCountry': "Where does your dog live?",
 
   // ── /heroglyph flow — step 2: photo ──
   'heroglyph.flow.photo.faceOfGodPrefix': 'A',
@@ -438,6 +439,9 @@ export const en = {
   'heroglyph.checkout.lastName': 'Last Name',
   'heroglyph.checkout.email': 'Email',
   'heroglyph.checkout.country': 'Country',
+  'heroglyph.checkout.street': 'Street & Number',
+  'heroglyph.checkout.city': 'City',
+  'heroglyph.checkout.zip': 'ZIP / Postal Code',
   'heroglyph.checkout.cta': 'CONTINUE TO PAYMENT',
   'heroglyph.checkout.disclaimerPrefix': "After payment, we'll place your dog's photo on the website and your ",
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certificate',

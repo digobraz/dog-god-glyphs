@@ -13,7 +13,7 @@ import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
  * are decoded — Cloudflare waits for that selector before printing.
  */
 
-// i18n labels — ALL 3 languages complete, no missing keys
+// i18n labels — sk / cs / uk / en complete, no missing keys
 const LABELS: Record<string, Record<string, string>> = {
   sk: {
     title: 'Faktúra',
@@ -117,6 +117,40 @@ const LABELS: Record<string, Record<string, string>> = {
     mailLabel: 'Mail',
     subtotalLabel: 'Subtotal',
   },
+  uk: {
+    title: 'Рахунок-фактура',
+    invoiceNumber: 'Номер рахунку',
+    seller: 'Постачальник',
+    buyer: 'Покупець',
+    description: 'Опис',
+    qty: 'К-ть',
+    unit: 'Од.',
+    unitVal: 'шт.',
+    price: 'Ціна',
+    subtotal: 'Разом',
+    issued: 'Дата виставлення',
+    delivered: 'Дата постачання',
+    payMethod: 'Картка · Stripe',
+    payMethodLabel: 'Оплата',
+    status: 'Статус',
+    statusVal: 'Оплачено',
+    toPay: 'До сплати',
+    paidByCard: 'Оплачено карткою',
+    paidStamp: 'Оплачено',
+    paidSmall: 'Paid · ',
+    inWords11: 'словами: одинадцять євро',
+    vatNote: 'Постачальник не є платником ПДВ; ціни є кінцевими.',
+    orNote: 'Компанія зареєстрована в суді Трнава, розділ Sro, вклад № 51029/T.',
+    paidNote: 'Цей рахунок оплачено онлайн карткою через Stripe — не є вимогою до оплати.',
+    footer: 'In Dog We Trust',
+    heroglyph: 'Heroglyph — унікальний священний символ',
+    icoLabel: 'Рег. номер',
+    dphLabel: 'ПДВ',
+    dphVal: 'Не платник ПДВ',
+    webLabel: 'Сайт',
+    mailLabel: 'E-mail',
+    subtotalLabel: 'Проміжний підсумок',
+  },
 };
 
 function detectLang(country?: string | null, paramLang?: string | null): string {
@@ -152,6 +186,12 @@ interface InvoiceDog {
   email: string | null;
   amount: number | null;
   country: string | null;
+  // Billing address fields (FIX6 2026-07-06) — null for old dogs (fallback to — )
+  bill_name?: string | null;
+  bill_street?: string | null;
+  bill_city?: string | null;
+  bill_zip?: string | null;
+  bill_country?: string | null;
   stripe_session_id: string | null;
   created_at: string;
   pack_number?: number | null;
@@ -415,10 +455,20 @@ export default function InvoiceRender() {
             </div>
             <div className="party">
               <div className="plabel">{L.buyer}</div>
-              <div className="name">{ownerName || '—'}</div>
+              {/* bill_name = legal payer name from checkout (FIX6 2026-07-06).
+                  Fallback to owner_name (cartouche name) for old dogs. */}
+              <div className="name">{dog.bill_name || ownerName || '—'}</div>
               <div className="lines">
                 {dog.email && <><b>{dog.email}</b><br /></>}
-                {dog.country && <>{dog.country}</>}
+                {dog.bill_street && <>{dog.bill_street}<br /></>}
+                {(dog.bill_zip || dog.bill_city) && (
+                  <>{[dog.bill_zip, dog.bill_city].filter(Boolean).join(' ')}<br /></>
+                )}
+                {dog.bill_country
+                  ? <>{dog.bill_country}</>
+                  : dog.country
+                  ? <>{dog.country}</>  /* legacy: old dogs have no bill_country */
+                  : null}
               </div>
             </div>
           </div>

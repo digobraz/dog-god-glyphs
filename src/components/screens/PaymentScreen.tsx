@@ -57,13 +57,15 @@ export function PaymentScreen() {
         setWaitingPhoto(false);
       }
       // Same inputs as WelcomeScreen → deterministic, matches the certificate the buyer sees.
+      // selections.country = dog's country (set on /name screen, FIX3). Never fall back to
+      // owner country — that would silently push owner's billing country into heroglyph pos 15.
       const heroglyphCode = buildHeroglyphCode({
         dogName,
         ownerName,
         patronSvg,
         breed: selections?.breed,
         patronCategory: selections?.patronCategory,
-        country: selections?.country || selections?.ownerCountry,
+        country: selections?.country,
         selections,
       });
       // Top-level breed + country columns power the Nation stats breakdown
@@ -71,7 +73,7 @@ export function PaymentScreen() {
       // normalized to ISO3 (e.g. "SVK") to match the invoice-language check
       // and the heroglyph code. Without these, every customer is missing from
       // the by-country / by-breed breakdown.
-      const rawCountry = selections?.country || selections?.ownerCountry;
+      const rawCountry = selections?.country;
       const iso3 = countryISO3(rawCountry);
       const res = await fetch(CREATE_CHECKOUT_URL, {
         method: 'POST',
