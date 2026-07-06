@@ -286,7 +286,11 @@ function BreedSearchField({
   return (
     <div
       className="flex flex-col gap-2"
-      style={disabled ? { opacity: 0.4, pointerEvents: 'none' } : undefined}
+      style={{
+        position: 'relative',
+        zIndex: desktopDropdownOpen ? 60 : undefined,
+        ...(disabled ? { opacity: 0.4, pointerEvents: 'none' } : {}),
+      }}
     >
       <div
         className={`breed-field-wrap${selectedBreed ? ' is-filled' : ''}`}

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
-import { WheelDatePicker } from '@/components/WheelDatePicker';
+import { DateDropdowns } from '@/components/DateDropdowns';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 
@@ -439,7 +439,7 @@ export function NameScreen() {
             >
               {t('heroglyph.flow.name.birthday')}
             </p>
-            <WheelDatePicker
+            <DateDropdowns
               day={day}
               month={month}
               year={year}
