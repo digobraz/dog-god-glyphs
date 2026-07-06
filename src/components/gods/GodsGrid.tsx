@@ -21,27 +21,25 @@ interface RealDog {
   owner_message: string | null;
 }
 
-// Špirála štartuje OD Hekthora (#1, fixný na 0,-1), nie od hero/CTA karty (0,0) —
-// #2 tak vždy pristane hneď vedľa Hekthora (vpravo), #3 pod #2, atď. Hero (0,0)
-// ostáva len ďalšia preskočená diera v tej istej špirále.
+// Hekthor (0,-1) + hero/CTA karta (0,0) tvoria spolu 1×2 "core" blok. Špirála
+// obieha tento core ako rastúci obdĺžnikový prstenec (pravá hrana dole → spodná
+// hrana doľava → ľavá hrana hore → horná hrana doprava), takže KAŽDÉ ďalšie
+// číslo je vždy presne o 1 bunku vedľa predošlého — nikdy neskočí cez core na
+// druhú stranu. #2 pristane hneď vpravo od Hekthora, #3 hneď pod #2, atď.
+// (Predošlá verzia mala jednoduchú point-špirálu s Hero ako preskočenou dierou
+// uprostred — to spôsobovalo skok #3→#4 cez CTA kartu.)
 function generatePackPositions(count: number): Array<{col: number, row: number}> {
-  const skip = new Set(['0,0', '0,-1']);
   const result: Array<{col: number, row: number}> = [];
-  let col = 0, row = -1;
-  let dx = 1, dy = 0;
-  let steps = 1, stepCount = 0, turns = 0;
+  let left = 0, right = 0, top = -1, bottom = 0; // core: Hekthor + hero
   while (result.length < count) {
-    if (!skip.has(`${col},${row}`)) result.push({col, row});
-    col += dx; row += dy;
-    stepCount++;
-    if (stepCount === steps) {
-      stepCount = 0;
-      [dx, dy] = [-dy, dx];
-      turns++;
-      if (turns % 2 === 0) steps++;
-    }
+    const newLeft = left - 1, newRight = right + 1, newTop = top - 1, newBottom = bottom + 1;
+    for (let r = newTop + 1; r <= newBottom; r++) result.push({ col: newRight, row: r });   // pravá hrana, dole
+    for (let c = newRight - 1; c >= newLeft; c--) result.push({ col: c, row: newBottom });   // spodná hrana, doľava
+    for (let r = newBottom - 1; r >= newTop; r--) result.push({ col: newLeft, row: r });     // ľavá hrana, hore
+    for (let c = newLeft + 1; c <= newRight; c++) result.push({ col: c, row: newTop });      // horná hrana, doprava
+    left = newLeft; right = newRight; top = newTop; bottom = newBottom;
   }
-  return result;
+  return result.slice(0, count);
 }
 
 // Mobil (<768px) = karty psov -33% (menšie karty, vyššia hustota grid steny). Desktop nedotknutý.
