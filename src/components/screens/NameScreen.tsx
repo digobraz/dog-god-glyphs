@@ -388,7 +388,7 @@ export function NameScreen() {
           >
             <div className="flex flex-col gap-2 md:gap-3">
             {/* Name + Dog Country row — name 70 %, country select 30 % */}
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 
             {/* Name input — modal on mobile (keeps field above iOS keyboard),
                 inline input on desktop (direct keyboard typing). */}
@@ -464,66 +464,51 @@ export function NameScreen() {
               `}</style>
             </div>
 
-            {/* Dog Country select — 30% of name row */}
-            <div style={{ flex: '3 0 0', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <p
+            {/* Dog Country select — 30% of name row; placeholder = short "HOME" label */}
+            <div style={{ flex: '3 0 0', minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <select
+                value={dogCountry}
+                onChange={(e) => setDogCountry(e.target.value)}
+                aria-label={t('heroglyph.flow.name.dogCountry')}
                 style={{
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  width: '100%',
+                  height: 48,
+                  background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
+                  border: dogCountry
+                    ? '2px solid hsl(var(--gold))'
+                    : '2px solid hsl(var(--gold) / 0.5)',
+                  borderRadius: 12,
                   fontFamily: "'Cinzel', serif",
-                  fontSize: 10,
+                  fontSize: 13,
                   fontWeight: 700,
-                  letterSpacing: '0.10em',
+                  letterSpacing: '0.06em',
                   textTransform: 'uppercase',
-                  color: 'hsl(var(--muted-foreground))',
                   textAlign: 'center',
-                  margin: 0,
-                  lineHeight: 1.3,
+                  color: dogCountry ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.6)',
+                  paddingLeft: 4,
+                  paddingRight: 20,
+                  cursor: 'pointer',
+                  outline: 'none',
                 }}
               >
-                {t('heroglyph.flow.name.dogCountry')}
-              </p>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center', flex: 1 }}>
-                <select
-                  value={dogCountry}
-                  onChange={(e) => setDogCountry(e.target.value)}
-                  aria-label={t('heroglyph.flow.name.dogCountry')}
-                  style={{
-                    appearance: 'none',
-                    WebkitAppearance: 'none',
-                    width: '100%',
-                    height: 44,
-                    background: dogCountry ? 'hsl(var(--papyrus))' : 'hsl(var(--card))',
-                    border: dogCountry
-                      ? '1px solid hsl(var(--gold))'
-                      : '1px solid hsl(var(--gold) / 0.5)',
-                    borderRadius: 12,
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    textAlign: 'center',
-                    color: dogCountry ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.5)',
-                    paddingLeft: 4,
-                    paddingRight: 20,
-                    cursor: 'pointer',
-                    outline: 'none',
-                  }}
-                >
-                  <option value="">🌍</option>
-                  {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
-                  ))}
-                </select>
-                <span
-                  aria-hidden
-                  style={{
-                    position: 'absolute',
-                    right: 6,
-                    pointerEvents: 'none',
-                    color: 'hsl(var(--gold))',
-                    fontSize: 12,
-                    lineHeight: 1,
-                  }}
-                >▾</span>
-              </div>
+                <option value="">{t('heroglyph.flow.name.dogCountry')}</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
+                ))}
+              </select>
+              <span
+                aria-hidden
+                style={{
+                  position: 'absolute',
+                  right: 8,
+                  pointerEvents: 'none',
+                  color: 'hsl(var(--gold))',
+                  fontSize: 12,
+                  lineHeight: 1,
+                }}
+              >▾</span>
             </div>
 
             </div>{/* end name + country flex row */}

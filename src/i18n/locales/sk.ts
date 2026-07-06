@@ -171,7 +171,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.name.adopted': 'Adoptovaný',
   'heroglyph.flow.name.location': 'Miesto',
   'heroglyph.flow.name.locationValue': 'Slovensko, EÚ',
-  'heroglyph.flow.name.dogCountry': 'Kde tvoj pes žije?',
+  'heroglyph.flow.name.dogCountry': 'Domov',
 
   // ── /heroglyph flow — krok 2: foto ──
   'heroglyph.flow.photo.faceOfGodPrefix': '',

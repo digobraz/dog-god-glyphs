@@ -165,7 +165,7 @@ export const en = {
   'heroglyph.flow.name.adopted': 'Adopted',
   'heroglyph.flow.name.location': 'Location',
   'heroglyph.flow.name.locationValue': 'Slovakia, EU',
-  'heroglyph.flow.name.dogCountry': "Where does your dog live?",
+  'heroglyph.flow.name.dogCountry': "Home",
 
   // ── /heroglyph flow — step 2: photo ──
   'heroglyph.flow.photo.faceOfGodPrefix': 'A',
