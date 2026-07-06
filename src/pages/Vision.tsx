@@ -14,6 +14,38 @@ const YT_CAPTION_LANG: Record<string, string> = {
   pol: 'pl', prt: 'pt', rus: 'ru', sk: 'sk', tur: 'tr', ukr: 'uk',
 };
 
+/* ── Vlastný titulkový overlay pre INTRO video ──
+ * YouTube si polohu titulkov pozicuje sám (dole nad ovládaním) a bije sa
+ * s vpáleným news-chyronom vo videu. Preto YT titulky VYPÍNAME
+ * (cc_load_policy=0) a kreslíme vlastný overlay vyššie, nad chyronom.
+ * Časovanie + preklady = tie isté VTT, čo sú nahrané na YT
+ * (vystupy/youtube/subtitles/*.vtt → public/data/intro-captions.json). */
+type IntroCue = { s: number; e: number; t: string };
+let introCaptionsPromise: Promise<Record<string, IntroCue[]>> | null = null;
+function loadIntroCaptions(): Promise<Record<string, IntroCue[]>> {
+  if (!introCaptionsPromise) {
+    introCaptionsPromise = fetch('/data/intro-captions.json').then((r) => r.json());
+  }
+  return introCaptionsPromise;
+}
+
+/* Načíta YouTube IFrame API raz; resolve keď je window.YT.Player pripravený. */
+let ytApiPromise: Promise<void> | null = null;
+function loadYouTubeIframeApi(): Promise<void> {
+  const w = window as unknown as { YT?: { Player?: unknown }; onYouTubeIframeAPIReady?: () => void };
+  if (w.YT?.Player) return Promise.resolve();
+  if (!ytApiPromise) {
+    ytApiPromise = new Promise<void>((resolve) => {
+      const prev = w.onYouTubeIframeAPIReady;
+      w.onYouTubeIframeAPIReady = () => { prev?.(); resolve(); };
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    });
+  }
+  return ytApiPromise;
+}
+
 type PillStatus = 'done' | 'progress' | 'future' | 'goal';
 type PillData = { icon: string; label: string; tooltip: string; status: PillStatus };
 
@@ -314,6 +346,9 @@ export default function Vision() {
   const ytCaptionLang = YT_CAPTION_LANG[lang] ?? 'en';
   const [activePill, setActivePill] = useState<number | null>(null);
   const [videoPlaying, setVideoPlaying] = useState<boolean>(false);
+  const [captionText, setCaptionText] = useState<string>('');
+  const ytPlayerRef = useRef<{ getCurrentTime?: () => number; destroy?: () => void; unloadModule?: (m: string) => void } | null>(null);
+  const introCuesRef = useRef<IntroCue[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== 'undefined' ? window.innerWidth < 768 : false,
   );
@@ -324,6 +359,57 @@ export default function Vision() {
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  // ── Vlastné titulky INTRO videa: vyber cues pre aktuálny jazyk ──
+  useEffect(() => {
+    if (!videoPlaying) return;
+    let cancelled = false;
+    loadIntroCaptions()
+      .then((data) => {
+        if (cancelled) return;
+        introCuesRef.current = data[ytCaptionLang] ?? data.en ?? [];
+      })
+      .catch(() => { introCuesRef.current = []; });
+    return () => { cancelled = true; };
+  }, [videoPlaying, ytCaptionLang]);
+
+  // ── Napoj YT prehrávač, poll času → riadi náš overlay ──
+  useEffect(() => {
+    if (!videoPlaying) { setCaptionText(''); return; }
+    let poll: number | undefined;
+    let cancelled = false;
+    loadYouTubeIframeApi().then(() => {
+      if (cancelled) return;
+      const YT = (window as unknown as { YT: { Player: new (id: string, opts: unknown) => typeof ytPlayerRef.current } }).YT;
+      const killNativeCaptions = () => {
+        const p = ytPlayerRef.current;
+        try { p?.unloadModule?.('captions'); p?.unloadModule?.('cc'); } catch { /* noop */ }
+      };
+      ytPlayerRef.current = new YT.Player('yt-intro-frame', {
+        events: {
+          onReady: () => {
+            killNativeCaptions();
+            poll = window.setInterval(() => {
+              const p = ytPlayerRef.current;
+              if (!p?.getCurrentTime) return;
+              const now = p.getCurrentTime();
+              const cue = introCuesRef.current.find((c) => now >= c.s && now < c.e);
+              setCaptionText(cue ? cue.t : '');
+            }, 200);
+          },
+          // YT načíta caption modul až s prehrávaním → zhasni ho aj pri PLAYING
+          onStateChange: (e: { data: number }) => { if (e.data === 1) killNativeCaptions(); },
+        },
+      });
+    });
+    return () => {
+      cancelled = true;
+      if (poll) window.clearInterval(poll);
+      try { ytPlayerRef.current?.destroy?.(); } catch { /* iframe už odmontovaný */ }
+      ytPlayerRef.current = null;
+      setCaptionText('');
+    };
+  }, [videoPlaying]);
 
   // ── WHAT IF pinned scrollytelling: scroll progress → active beat ──
   const wfPinRef = useRef<HTMLElement>(null);
@@ -1077,6 +1163,32 @@ export default function Vision() {
           height: 100%;
           border: 0;
         }
+        /* Vlastný titulkový overlay — posadený NAD vpálený news-chyron videa
+           (YT vlastné titulky sú vypnuté cez cc_load_policy=0). */
+        .intro-caption {
+          position: absolute;
+          left: 50%;
+          bottom: 19%;
+          transform: translateX(-50%);
+          width: min(92%, 600px);
+          text-align: center;
+          pointer-events: none;
+          z-index: 3;
+        }
+        .intro-caption span {
+          -webkit-box-decoration-break: clone;
+          box-decoration-break: clone;
+          background: rgba(0, 0, 0, 0.62);
+          color: #fff;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+          font-weight: 600;
+          font-size: clamp(0.78rem, 1.9vw, 1.02rem);
+          line-height: 1.5;
+          letter-spacing: 0.004em;
+          padding: 0.1em 0.4em;
+          border-radius: 5px;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+        }
         /* Clean facade poster — no YouTube chrome until played */
         .video-poster {
           position: absolute;
@@ -1465,12 +1577,20 @@ export default function Vision() {
         )}
         <div className={`video-embed-frame${videoPlaying ? ' is-playing' : ''}`}>
           {videoPlaying ? (
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white&cc_load_policy=1&cc_lang_pref=${ytCaptionLang}`}
-              title={t('vision.hero.videoTitle')}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-            />
+            <>
+              <iframe
+                id="yt-intro-frame"
+                src={`https://www.youtube-nocookie.com/embed/TwSl_aOwbaY?autoplay=1&rel=0&modestbranding=1&playsinline=1&iv_load_policy=3&color=white&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`}
+                title={t('vision.hero.videoTitle')}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+              {captionText && (
+                <div className="intro-caption" aria-hidden>
+                  <span>{captionText}</span>
+                </div>
+              )}
+            </>
           ) : (
             <button
               type="button"
