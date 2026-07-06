@@ -81,6 +81,18 @@ function esc(s: string): string {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// Only http(s) URLs and same-origin relative paths. Blocks javascript:/data: and
+// any value that could break out of a CSS url()/HTML attribute. Returns '' if unsafe.
+function safeUrl(u: string): string {
+  if (!u) return '';
+  try {
+    const url = new URL(u, window.location.origin);
+    return (url.protocol === 'http:' || url.protocol === 'https:') ? url.href : '';
+  } catch {
+    return '';
+  }
+}
+
 function getPos(filename: string): string {
   const key = decodeURIComponent(filename).normalize('NFC');
   return photoPositions[key] || '50% 50%';
@@ -442,13 +454,16 @@ export function GodsGrid() {
       }
       const flagName = FLAG_NAMES[cc] || cc;
       const overlayHeroSrc = esc(revealSymbol);
-      const inner = revealData.photoUrl
-        ? `<div class="reveal-card-inner" style="background-image:url('${revealData.photoUrl}')"></div>`
+      // photoUrl + packNumber come from the URL query string — never interpolate raw.
+      const photo = safeUrl(revealData.photoUrl);
+      const safePack = esc(revealData.packNumber);
+      const inner = photo
+        ? `<div class="reveal-card-inner"></div>`
         : `<div class="reveal-card-inner reveal-card-fallback"><span class="cartouche">${safeName}</span></div>`;
       el.innerHTML = `
         ${inner}
         <div class="card-open-overlay">
-          <div class="card-open-rank">#${revealData.packNumber}</div>
+          <div class="card-open-rank">#${safePack}</div>
           <div class="card-open-name">${safeName}</div>
           <img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
           ${revealOwnerMessage ? `<div class="card-open-msg">${revealOwnerMessage}</div>` : ''}
@@ -456,15 +471,18 @@ export function GodsGrid() {
         <div class="dog-heroglyph-wrap">
           <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
         </div>
-        <div class="card-rank-top">#${revealData.packNumber}</div>
+        <div class="card-rank-top">#${safePack}</div>
         ${cc ? `<img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
         </div>
       `;
-      if (revealData.photoUrl) {
+      if (photo) {
+        // Set background via DOM API (no HTML parsing) — safe from CSS/HTML injection.
+        const innerNode = el.querySelector('.reveal-card-inner') as HTMLElement | null;
+        if (innerNode) innerNode.style.backgroundImage = `url("${photo}")`;
         const probe = new Image();
-        probe.src = revealData.photoUrl;
+        probe.src = photo;
         probe.onerror = () => {
           const node = el.querySelector('.reveal-card-inner') as HTMLElement | null;
           if (!node) return;
