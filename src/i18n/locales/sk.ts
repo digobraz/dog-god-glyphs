@@ -604,6 +604,7 @@ export const sk: Partial<Dict> = {
   'nav.vision': 'Vízia',
   'nav.religion': 'Náboženstvo',
   'nav.about': 'O nás',
+  'nav.login': 'PRIHLÁSIŤ',
 
   // ── / (Wall / GodsGrid) ──
   'wall.hero.taglineLead': 'Miesto, kde',

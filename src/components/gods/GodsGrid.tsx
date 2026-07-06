@@ -590,7 +590,7 @@ export function GodsGrid() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.nav-login') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -666,7 +666,7 @@ export function GodsGrid() {
           // Interactive UI controls (join CTA, nav, lang, filter, numpad…) need their
           // native click — don't preventDefault, or the synthetic click never fires.
           const tapped = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
-          if (tapped?.closest('.center-hero, .center-btn, .main-nav, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay')) {
+          if (tapped?.closest('.center-hero, .center-btn, .main-nav, .nav-login, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay')) {
             return;
           }
           // Prevent the browser from firing synthetic mouse events (mousedown/mouseup/click)
@@ -859,6 +859,29 @@ export function GodsGrid() {
           padding: 0;
         }
         .main-nav a:hover, .main-nav button:hover { opacity: 0.55; }
+
+        /* ── LOGIN pill — top-right, opposite the nav ── */
+        .nav-login {
+          position: fixed;
+          top: 12px;
+          right: 20px;
+          z-index: 50;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.78rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          color: rgba(0,0,0,0.78);
+          text-decoration: none;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1.5px solid rgba(201,154,63,0.65);
+          border-radius: 999px;
+          padding: 7px 18px;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: opacity 150ms;
+        }
+        .nav-login:hover { opacity: 0.65; }
 
         .info-overlay {
           position: fixed;
@@ -1643,6 +1666,16 @@ export function GodsGrid() {
             transform: translateX(-50%);
           }
 
+          /* Menu is centered on mobile → move LOGIN to the free top-left so it
+             never collides with the centered pills on narrow screens. */
+          .nav-login {
+            right: auto;
+            left: 16px;
+            top: 12px;
+            padding: 6px 14px;
+            font-size: 0.7rem;
+          }
+
           /* Top nav: 3 names only (flag moves to the bottom bar), tighter so the
              longest labels (SK/CZ NÁBOŽENSTVO) never wrap. */
           .nav-lang-desktop { display: none; }
@@ -1735,6 +1768,10 @@ export function GodsGrid() {
             <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
+        {/* LOGIN — fixed top-right, discrete nav pill, opposite the main-nav */}
+        <a href="/login" className="nav-login" aria-label={t('nav.login')}>
+          {t('nav.login')}
+        </a>
 
         <div className={`info-overlay ${infoOpen ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setInfoOpen(false); }}>
           <button className="info-close" onClick={() => setInfoOpen(false)}>✕</button>

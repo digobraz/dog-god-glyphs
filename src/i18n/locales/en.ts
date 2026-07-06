@@ -649,6 +649,7 @@ export const en = {
   'nav.vision': 'Vision',
   'nav.religion': 'Religion',
   'nav.about': 'About',
+  'nav.login': 'LOGIN',
 
   // ── / (Wall / GodsGrid) ──
   // hero card — "DOG is GOD." motto stays EN inline (not keyed)

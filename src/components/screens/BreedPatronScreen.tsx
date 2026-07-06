@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import breedsData from '@/data/breeds.json';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { localizeBreed } from '@/lib/breedDisplay';
 
 type Breed = { id: number; en: string; sk: string; patron: string; group: string };
 type BreedsFile = { version: string; breeds: Breed[] };
@@ -59,6 +60,7 @@ interface BreedSearchModalProps {
   placeholder: string;
   enHint: string;
   closeLabel: string;
+  lang: string;
   rootRef: React.RefObject<HTMLDivElement>;
   inputRef: React.RefObject<HTMLInputElement>;
   onSearchChange: (v: string) => void;
@@ -68,7 +70,7 @@ interface BreedSearchModalProps {
 }
 
 function BreedSearchModal({
-  open, search, matches, title, placeholder, enHint, closeLabel,
+  open, search, matches, title, placeholder, enHint, closeLabel, lang,
   rootRef, inputRef, onSearchChange, onClear, onSelect, onClose,
 }: BreedSearchModalProps) {
   const [vp, setVp] = useState<{ top: number; height: number }>({ top: 0, height: 0 });
@@ -130,7 +132,7 @@ function BreedSearchModal({
                 className="breed-modal-match"
                 onClick={() => onSelect(m.name, m.category)}
               >
-                <span>{m.name}</span>
+                <span>{localizeBreed(m.name, lang)}</span>
                 <img src={patronUrl(m.patron)} alt="" className="h-6 w-6 object-contain opacity-90" />
               </button>
             ))}
@@ -222,11 +224,17 @@ function BreedSearchField({
   placeholder, disabled,
 }: BreedSearchFieldProps) {
   const t = useT();
+  const { lang } = useLang();
   const matches = useMemo(() => {
     if (disabled || search.trim().length < 2 || selectedBreed) return [];
     const q = search.toLowerCase();
-    return ALL_BREEDS.filter((b) => b.name.toLowerCase().includes(q)).slice(0, 6);
-  }, [search, selectedBreed, disabled]);
+    // Match EN-canonical name OR its localized label, so a SK user typing
+    // "pudel" finds "Toy Poodle" (shown as "Toy pudel"). Storage stays EN.
+    return ALL_BREEDS.filter((b) =>
+      b.name.toLowerCase().includes(q) ||
+      localizeBreed(b.name, lang).toLowerCase().includes(q)
+    ).slice(0, 6);
+  }, [search, selectedBreed, disabled, lang]);
 
   const isMobile = useMemo(() => window.matchMedia('(pointer: coarse)').matches, []);
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
@@ -297,7 +305,7 @@ function BreedSearchField({
                 className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
                 style={{ fontFamily: "'Cinzel', serif" }}
               >
-                {selectedBreed}
+                {localizeBreed(selectedBreed, lang)}
                 <span
                   role="button"
                   tabIndex={0}
@@ -323,7 +331,7 @@ function BreedSearchField({
               className="rounded-full px-3 py-1 text-sm flex items-center gap-1.5 bg-primary/20 text-foreground"
               style={{ fontFamily: "'Cinzel', serif" }}
             >
-              {selectedBreed}
+              {localizeBreed(selectedBreed, lang)}
               <span
                 role="button"
                 tabIndex={0}
@@ -373,7 +381,7 @@ function BreedSearchField({
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                     onMouseDown={(e) => { e.preventDefault(); handlePick(b.name, b.category); }}
                   >
-                    <span>{b.name}</span>
+                    <span>{localizeBreed(b.name, lang)}</span>
                     <img src={patronUrl(b.patron)} alt="" className="h-6 w-6 object-contain opacity-90" />
                   </button>
                 ))}
@@ -392,6 +400,7 @@ function BreedSearchField({
           placeholder={placeholderText}
           enHint={t('heroglyph.flow.breed.enHint')}
           closeLabel={t('nav.aria.close')}
+          lang={lang}
           rootRef={modalRootRef}
           inputRef={breedInputRef}
           onSearchChange={handleSearchChange}

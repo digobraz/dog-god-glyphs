@@ -47,7 +47,7 @@ export default function Religion() {
           position: 'absolute',
           inset: 0,
           background:
-            'radial-gradient(ellipse at center, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.5) 100%)',
+            'radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.65) 60%, rgba(0,0,0,0.75) 100%)',
           zIndex: 0,
           pointerEvents: 'none',
         }}
