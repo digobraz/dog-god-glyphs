@@ -144,6 +144,7 @@ export const esp: Partial<Dict> = {
   'heroglyph.flow.name.greetingPrefix': 'Hola, soy',
   'heroglyph.flow.name.greetingQuestion': '¿Cómo se llama tu perro?',
   'heroglyph.flow.name.placeholder': 'Escribe el nombre de tu perro...',
+  'heroglyph.flow.name.dogCountry': 'Hogar',
   'heroglyph.flow.name.birthday': '¿Cuándo nació tu perro?',
   'heroglyph.flow.name.continue': 'Continuar',
   'heroglyph.flow.name.infoAria': 'Información sobre Hekthor',

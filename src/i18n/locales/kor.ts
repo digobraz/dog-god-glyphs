@@ -102,6 +102,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "안녕, 나는",
   "heroglyph.flow.name.greetingQuestion": "당신의 개 이름이 뭔가요?",
   "heroglyph.flow.name.placeholder": "개 이름을 입력하세요...",
+  "heroglyph.flow.name.dogCountry": "홈",
   "heroglyph.flow.name.birthday": "당신의 개는 언제 태어났나요?",
   "heroglyph.flow.name.continue": "계속",
   "heroglyph.flow.name.infoAria": "Hekthor에 대한 정보",

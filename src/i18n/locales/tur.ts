@@ -102,6 +102,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "Merhaba, ben",
   "heroglyph.flow.name.greetingQuestion": "Köpeğinizin adı ne?",
   "heroglyph.flow.name.placeholder": "Köpeğinizin adını yazın...",
+  "heroglyph.flow.name.dogCountry": "Ev",
   "heroglyph.flow.name.birthday": "Köpeğiniz ne zaman doğdu?",
   "heroglyph.flow.name.continue": "Devam",
   "heroglyph.flow.name.infoAria": "Hekthor hakkında bilgi",

@@ -102,6 +102,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "Hallo, ik ben",
   "heroglyph.flow.name.greetingQuestion": "Hoe heet jouw hond?",
   "heroglyph.flow.name.placeholder": "Typ de naam van jouw hond...",
+  "heroglyph.flow.name.dogCountry": "Thuis",
   "heroglyph.flow.name.birthday": "Wanneer is jouw hond geboren?",
   "heroglyph.flow.name.continue": "Doorgaan",
   "heroglyph.flow.name.infoAria": "Info over Hekthor",

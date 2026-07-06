@@ -102,6 +102,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "مرحباً، أنا",
   "heroglyph.flow.name.greetingQuestion": "ما اسم كلبك؟",
   "heroglyph.flow.name.placeholder": "اكتب اسم كلبك...",
+  "heroglyph.flow.name.dogCountry": "الوطن",
   "heroglyph.flow.name.birthday": "متى وُلد كلبك؟",
   "heroglyph.flow.name.continue": "متابعة",
   "heroglyph.flow.name.infoAria": "معلومات عن Hekthor",

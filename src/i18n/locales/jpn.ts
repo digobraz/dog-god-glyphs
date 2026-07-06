@@ -102,6 +102,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "こんにちは、僕は",
   "heroglyph.flow.name.greetingQuestion": "愛犬の名前は？",
   "heroglyph.flow.name.placeholder": "愛犬の名前を入力...",
+  "heroglyph.flow.name.dogCountry": "ホーム",
   "heroglyph.flow.name.birthday": "愛犬はいつ生まれましたか？",
   "heroglyph.flow.name.continue": "続ける",
   "heroglyph.flow.name.infoAria": "Hekthorについての情報",

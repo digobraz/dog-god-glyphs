@@ -144,6 +144,7 @@ export const pol: Partial<Dict> = {
   'heroglyph.flow.name.greetingPrefix': 'Cześć, jestem',
   'heroglyph.flow.name.greetingQuestion': 'Jak ma na imię twój pies?',
   'heroglyph.flow.name.placeholder': 'Wpisz imię swojego psa...',
+  'heroglyph.flow.name.dogCountry': 'Dom',
   'heroglyph.flow.name.birthday': 'Kiedy urodził się twój pies?',
   'heroglyph.flow.name.continue': 'Dalej',
   'heroglyph.flow.name.infoAria': 'Informacje o Hekthorze',

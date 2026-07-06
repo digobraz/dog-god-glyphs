@@ -103,6 +103,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "नमस्ते, मैं हूँ",
   "heroglyph.flow.name.greetingQuestion": "आपके कुत्ते का नाम क्या है?",
   "heroglyph.flow.name.placeholder": "अपने कुत्ते का नाम लिखें...",
+  "heroglyph.flow.name.dogCountry": "घर",
   "heroglyph.flow.name.birthday": "आपका कुत्ता कब पैदा हुआ था?",
   "heroglyph.flow.name.continue": "जारी रखें",
   "heroglyph.flow.name.infoAria": "Hekthor के बारे में जानकारी",

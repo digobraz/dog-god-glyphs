@@ -102,6 +102,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.name.greetingPrefix": "嗨，我是",
   "heroglyph.flow.name.greetingQuestion": "你的狗叫什么名字？",
   "heroglyph.flow.name.placeholder": "输入你的狗的名字……",
+  "heroglyph.flow.name.dogCountry": "家",
   "heroglyph.flow.name.birthday": "你的狗是什么时候出生的？",
   "heroglyph.flow.name.continue": "继续",
   "heroglyph.flow.name.infoAria": "关于 Hekthor 的信息",

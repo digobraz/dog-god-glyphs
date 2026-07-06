@@ -152,6 +152,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.name.greetingPrefix': 'Ahoj, já jsem',
   'heroglyph.flow.name.greetingQuestion': 'Jak se jmenuje tvůj pejsek?',
   'heroglyph.flow.name.placeholder': 'Napiš jméno svého psa…',
+  'heroglyph.flow.name.dogCountry': 'Domov',
   'heroglyph.flow.name.birthday': 'Kdy se tvůj pes narodil?',
   'heroglyph.flow.name.continue': 'Pokračovat',
   'heroglyph.flow.name.infoAria': 'Info o Hekthorovi',
