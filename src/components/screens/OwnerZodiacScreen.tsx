@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 import { getChineseZodiac } from '@/lib/zodiac';
-import { YearDropdown } from '@/components/DateDropdowns';
+import { WheelYearPicker } from '@/components/WheelDatePicker';
 import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 
@@ -216,7 +216,7 @@ export function OwnerZodiacScreen() {
 
               <div className="flex items-center gap-3">
                 <div className="flex-1">
-                  <YearDropdown year={yearValue} minYear={1930} maxYear={new Date().getFullYear()} onChange={handleYearChange} />
+                  <WheelYearPicker year={yearValue} minYear={1930} maxYear={new Date().getFullYear()} onChange={handleYearChange} />
                 </div>
 
                 <div className="flex flex-col items-center gap-1 flex-shrink-0">
