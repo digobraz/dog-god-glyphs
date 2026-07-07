@@ -464,7 +464,11 @@ export function NameScreen() {
               `}</style>
             </div>
 
-            {/* Dog Country select — 30% of name row; placeholder = short "HOME" label */}
+            {/* Dog Country select — 30% of name row; placeholder = short "HOME" label.
+                Closed box shows ONLY the flag (full "flag + name" option text is kept for
+                the native dropdown list — full names help pick, but overflow the tiny
+                closed box). The select's own text is made transparent once a value is
+                chosen; a non-interactive flag overlay renders on top of it instead. */}
             <div style={{ flex: '3 0 0', minWidth: 0, position: 'relative', display: 'flex', alignItems: 'center' }}>
               <select
                 value={dogCountry}
@@ -486,7 +490,7 @@ export function NameScreen() {
                   letterSpacing: '0.06em',
                   textTransform: 'uppercase',
                   textAlign: 'center',
-                  color: dogCountry ? 'hsl(var(--foreground))' : 'hsl(var(--muted-foreground) / 0.6)',
+                  color: dogCountry ? 'transparent' : 'hsl(var(--muted-foreground) / 0.6)',
                   paddingLeft: 4,
                   paddingRight: 20,
                   cursor: 'pointer',
@@ -498,6 +502,20 @@ export function NameScreen() {
                   <option key={c} value={c}>{countryFlag(c) || '🏳'} {c}</option>
                 ))}
               </select>
+              {dogCountry && (
+                <span
+                  aria-hidden
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    textAlign: 'center',
+                    pointerEvents: 'none',
+                    fontSize: 20,
+                    lineHeight: 1,
+                  }}
+                >{countryFlag(dogCountry) || '🏳'}</span>
+              )}
               <span
                 aria-hidden
                 style={{
