@@ -444,6 +444,19 @@ export function PaymentScreen() {
                   </button>
                 ))}
               </div>
+              <p
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 9.5,
+                  fontStyle: 'italic',
+                  opacity: 0.6,
+                  textAlign: 'center',
+                  margin: '6px 0 0',
+                  color: 'hsl(30 20% 20%)',
+                }}
+              >
+                {t('payment.transparency.hint')}
+              </p>
 
               {/* Tooltip note panel */}
               {openTooltip !== null && (

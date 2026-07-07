@@ -545,6 +545,7 @@ export const jpn: Partial<Dict> = {
   "payment.promo.note":
     "犬好きのあなたへ、テストにご協力いただきありがとうございます。テスターとしてプロモコードを使えば、お支払いはたった€1で済みます。でも、もし満額を残してくださるなら、その一ユーロ一ユーロがよい目的に使われ、私たちは心から感謝します。🐾",
   "payment.transparency.title": "100%透明性",
+  "payment.transparency.hint": "カテゴリーをタップすると詳細が見られます。",
   "payment.transparency.eyebrow": "お金はどこへ行くの？",
   "transparency.part.development": "開発",
   "transparency.part.affiliate": "コミュニティ",
@@ -553,7 +554,7 @@ export const jpn: Partial<Dict> = {
   "transparency.part.development.note": "国家を築き、それを動かすすべての資金に充てられます — DOGYPTを前進させる人々、その背後にあるサービス、ツール、サーバー。これはムーブメントのエンジンであり、すべての支出はもれなく記録され、公開されます。",
   "transparency.part.affiliate.note": "広告ではなく、人へ。これは信仰を広めるドギプト人の口座に直接、BONES で支払われます。後でDOGYPT内で使うことも、困っている犬たちに寄付することもできます。私たちは高額なマーケティングではなく群れに投資します — 群れのほうがずっと遠くまで言葉を運んでくれるのです。",
   "transparency.part.directHelp.note": "困っている犬たちへまっすぐに — シェルター、食料、動物病院の費用、そしてレスキュー活動へ。仲介者も諸経費もなし。この分は苦しみのある場所へ届き、すべての一円までが記録され、領収書が残され、群れ全員が見られるよう公開されます。",
-  "transparency.part.hekthorBowl.note": "すべてを始めた創設者の犬。彼の取り分は最初の約束を生かし続け、夢は誇り高くシンプルなままです — 犬を助けて億万長者になる、犬を犠牲にしてではなく。Hekthorが最初に食べる、だから群れの残りが飢えることは決してありません。",
+  "transparency.part.hekthorBowl.note": "すべてを始めた創設者の犬。この取り分はHekthorと飼い主への透明な報酬——つまり二人の給料です。彼らの目標は億万長者になること——群れの中の百万匹の犬。Hekthorがいなければ DOGYPT は存在しませんでした——このボウルは感謝の印です。",
   "legal.eyebrow": "DOGYPT · 法律",
   "legal.motto": "DOGYPT · 犬を信じよ",
   "legal.updated": "最終更新：2026年5月4日 · v1.0",

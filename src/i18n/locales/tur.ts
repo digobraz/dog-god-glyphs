@@ -547,6 +547,8 @@ export const tur: Partial<Dict> = {
     "Köpek dostu, test etmemize yardım ettiğin için teşekkürler. Bir test eden olarak promosyon kodunu girip yalnızca €1 ödeyebilirsin. Ama dilersen tam tutarı bırakabilirsin; her euro iyi bir amaca gider ve bunu içtenlikle takdir ediyoruz. 🐾",
 
   "payment.transparency.title": "%100 Şeffaflık",
+
+  "payment.transparency.hint": "Detaylar için bir kategoriye dokun.",
   "payment.transparency.eyebrow": "Para nereye gidiyor?",
   "transparency.part.development": "Geliştirme",
   "transparency.part.affiliate": "Topluluk",
@@ -555,7 +557,7 @@ export const tur: Partial<Dict> = {
   "transparency.part.development.note": "Ulusu inşa etmek ve onu ayakta tutan her şeyi finanse etmek — DOGYPT'i ilerleten insanlar, onların ardındaki hizmetler, araçlar ve sunucular. Bu, hareketin motoru ve her bir harcama belgelenip açıkça yayımlanacak.",
   "transparency.part.affiliate.note": "Reklam değil — insanlar. Bu doğrudan inancı yayan Dogiptlilerin hesaplarına gider, BONES ile ödenir: onları daha sonra DOGYPT içinde harca ya da ihtiyaç içindeki köpeklere bağışla. Pahalı pazarlamaya değil, sürüye yatırım yaparız — sözü en uzağa sürü taşır.",
   "transparency.part.directHelp.note": "Doğrudan ihtiyaç içindeki köpeklere — barınaklar, mama, veteriner masrafları ve kurtarma görevleri. Aracı yok, ek masraf yok: bu pay acının olduğu yere gider ve her bir kuruş belgelenir, makbuzlanır ve tüm sürünün görmesi için kamuya açılır.",
-  "transparency.part.hekthorBowl.note": "Her şeyi başlatan kurucu köpek. Onun payı ilk verilen sözü yaşatır ve hayal görkemli biçimde sade kalır: köpeklere rağmen değil, onlara yardım ederek milyoner ol. Hekthor ilk yer, böylece sürünün geri kalanı asla aç kalmaz.",
+  "transparency.part.hekthorBowl.note": "Her şeyi başlatan kurucu köpek. Bu pay, Hekthor ve sahibi için şeffaf bir ödül — sadece onların maaşı. Amaçları milyoner olmak — sürüde bir milyon köpek. Hekthor olmasaydı DOGYPT hiç var olmazdı — bu kap bir teşekkür.",
   "legal.eyebrow": "DOGYPT · Hukuki",
   "legal.motto": "DOGYPT · Köpeğe Güveniyoruz",
   "legal.updated": "Son güncelleme: 4 Mayıs 2026 · v1.0",

@@ -545,6 +545,7 @@ export const chn: Partial<Dict> = {
   "payment.promo.note":
     "亲爱的爱狗人，谢谢你帮我们一起测试。作为测试者，你可以使用你的优惠码，只付 €1。不过，如果你愿意付足全款，每一欧元都会用于善举，我们由衷地感激。🐾",
   "payment.transparency.title": "100% 透明",
+  "payment.transparency.hint": "点击任意类别查看详情。",
   "payment.transparency.eyebrow": "钱去哪儿了？",
   "transparency.part.development": "开发",
   "transparency.part.affiliate": "社群",
@@ -553,7 +554,7 @@ export const chn: Partial<Dict> = {
   "transparency.part.development.note": "建设这个国度，并为它运转所需的一切提供资金——那些让 DOGYPT 不断前行的人，以及他们背后的服务、工具与服务器。这是整场运动的引擎，而每一笔开支都将被记录在案、公开透明。",
   "transparency.part.affiliate.note": "不是广告，而是人。这笔钱直接进入那些传播信仰的多吉普特人的账户，以 BONES 支付：日后可在 DOGYPT 内部消费，或捐给需要帮助的狗。我们投资于犬群，而非昂贵的市场营销——犬群把这个讯息传得更远。",
   "transparency.part.directHelp.note": "直达需要帮助的狗——收容所、食物、兽医费用与救援行动。没有中间人，没有额外开销：这一份去往痛苦所在之处，而每一分钱都被记录、留存收据，并向整个犬群公开。",
-  "transparency.part.hekthorBowl.note": "开启这一切的创始之犬。他的那一份让最初的承诺得以延续，也让梦想保持着光荣的纯粹：通过帮助狗成为百万富翁，而不是以牺牲它们为代价。Hekthor 先吃，这样犬群中的其余成员永远不会挨饿。",
+  "transparency.part.hekthorBowl.note": "开启这一切的创始之犬。这一份是给 Hekthor 和它主人的透明奖励——说白了就是他们的薪水。他们的目标是成为百万富翁——犬群中的一百万只狗。没有 Hekthor，DOGYPT 根本不会存在——这只碗是一份感谢。",
   "legal.eyebrow": "DOGYPT · 法律",
   "legal.motto": "DOGYPT · 信犬不渝",
   "legal.updated": "最后更新：2026 年 5 月 4 日 · v1.0",

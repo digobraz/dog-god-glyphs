@@ -724,6 +724,7 @@ export const en = {
     'Dog lover, thanks for helping us test. As a tester you can apply your promo code and pay just €1. But if you’d like to leave the full amount, every euro goes to a good cause and we truly appreciate it. 🐾',
   // transparency treasury block
   'payment.transparency.title': '100% Transparency',
+  'payment.transparency.hint': 'Tap any category to see where it goes.',
   'payment.transparency.eyebrow': 'Where does the money go?',
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
@@ -735,7 +736,7 @@ export const en = {
   'transparency.part.development.note': 'Building the nation and funding everything it runs on — the people who keep DOGYPT moving, the services, tools and servers behind them. This is the engine of the movement, and every single expense will be documented and published openly.',
   'transparency.part.affiliate.note': 'Not ads — people. This goes straight into the accounts of Dogyptians who spread the faith, paid in BONES: spend them later inside DOGYPT or donate them to dogs in need. We invest in the pack, never in expensive marketing — the pack carries the word far better.',
   'transparency.part.directHelp.note': 'Straight to dogs in need — shelters, food, vet bills and rescue missions. No middlemen, no overhead: this share goes where the suffering is, and every single cent is documented, receipted and made public for the whole pack to see.',
-  'transparency.part.hekthorBowl.note': "The founder dog who started it all. His share keeps the original promise alive and the dream stays gloriously simple: become a millionaire by helping dogs, not despite them. Hekthor eats first, so the rest of the pack never goes hungry.",
+  'transparency.part.hekthorBowl.note': "The founder dog who started it all. This share is a transparent reward for Hekthor and his owner — simply their paycheck. Their goal is to become a millionaire — a million dogs in the pack. Without Hekthor, DOGYPT would never have existed — this bowl is a thank you.",
 
   // ── /terms + /privacy — shared legal chrome ──
   // eyebrow + motto = brand → stay EN across locales (sk/cs fall back here by design)

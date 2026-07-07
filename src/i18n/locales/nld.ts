@@ -545,6 +545,7 @@ export const nld: Partial<Dict> = {
   "payment.promo.note":
     "Hondenliefhebber, bedankt dat je ons helpt testen. Als tester kun je je promocode toepassen en slechts € 1 betalen. Maar als je het volledige bedrag wilt laten staan, gaat elke euro naar een goed doel en daar zijn we echt dankbaar voor. 🐾",
   "payment.transparency.title": "100% Transparantie",
+  "payment.transparency.hint": "Tik op een categorie voor details.",
   "payment.transparency.eyebrow": "Waar gaat het geld heen?",
   "transparency.part.development": "Ontwikkeling",
   "transparency.part.affiliate": "Gemeenschap",
@@ -553,7 +554,7 @@ export const nld: Partial<Dict> = {
   "transparency.part.development.note": "De natie bouwen en alles bekostigen waarop ze draait — de mensen die DOGYPT in beweging houden, de diensten, tools en servers daarachter. Dit is de motor van de beweging, en elke uitgave wordt gedocumenteerd en openlijk gepubliceerd.",
   "transparency.part.affiliate.note": "Geen advertenties — mensen. Dit gaat rechtstreeks naar de rekeningen van Dogyptiërs die het geloof verspreiden, uitbetaald in BONES: geef ze later uit binnen DOGYPT of doneer ze aan honden in nood. We investeren in de roedel, nooit in dure marketing — de roedel draagt het woord veel verder.",
   "transparency.part.directHelp.note": "Rechtstreeks naar honden in nood — asielen, voer, dierenartskosten en reddingsmissies. Geen tussenpersonen, geen overhead: dit deel gaat waar het leed is, en elke cent wordt gedocumenteerd, gekwiteerd en openbaar gemaakt voor de hele roedel.",
-  "transparency.part.hekthorBowl.note": "De stichtershond die alles begon. Zijn deel houdt de oorspronkelijke belofte levend en de droom blijft glorieus eenvoudig: miljonair worden door honden te helpen, niet ondanks hen. Hekthor eet eerst, zodat de rest van de roedel nooit honger lijdt.",
+  "transparency.part.hekthorBowl.note": "De stichtershond die alles begon. Dit deel is een transparante beloning voor Hekthor en zijn baasje — gewoon hun loon. Hun doel is om miljonair te worden — een miljoen honden in de roedel. Zonder Hekthor had DOGYPT nooit bestaan — deze voerbak is een bedankje.",
   "legal.eyebrow": "DOGYPT · Juridisch",
   "legal.motto": "DOGYPT · In HOND We Vertrouwen",
   "legal.updated": "Laatste update: 4 mei 2026 · v1.0",

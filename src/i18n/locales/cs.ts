@@ -658,6 +658,7 @@ export const cs: Partial<Dict> = {
     'Pejskaři, díky, že nám pomáháte testovat. Jako tester můžete uplatnit svůj promo kód a zaplatit jen 1 €. Ale pokud byste rádi nechali plnou částku, každé euro jde na dobrou věc a my si toho upřímně vážíme. 🐾',
   // transparency treasury block
   'payment.transparency.title': '100% Transparentnost',
+  'payment.transparency.hint': 'Klikni na kategorii a zjisti, kam jde.',
   'payment.transparency.eyebrow': 'Kam jdou peníze?',
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
@@ -672,7 +673,7 @@ export const cs: Partial<Dict> = {
   'transparency.part.directHelp.note':
     'Rovnou psům v nouzi — útulkům, na žrádlo, veterinu a záchranné mise. Žádní prostředníci, žádná režie: tenhle podíl jde tam, kde se trpí, a každý jediný haléř je doložený, doklady k němu existují a vidí ho celá smečka.',
   'transparency.part.hekthorBowl.note':
-    'Pes zakladatel, který tohle všechno začal. Jeho podíl drží při životě původní slib a sen zůstává nádherně jednoduchý: stát se milionářem tím, že pomáháš psům, ne navzdory jim. Hekthor jí první, aby zbytek smečky nikdy nehladověl.',
+    'Pes zakladatel, který tohle všechno začal. Tenhle podíl je transparentní odměna pro Hekthora a jeho pána — prostě jejich výplata. Jejich cílem je stát se milionářem — milion psů v síti. Bez Hekthora by DOGYPT vůbec nevzniklo — tahle miska je poděkování.',
 
   // ── /terms + /privacy — STROJOVÝ PŘEKLAD (právní texty), čeká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovat sem)

@@ -675,6 +675,7 @@ export const sk: Partial<Dict> = {
     'Človeče, vďaka, že nám pomáhaš testovať. Ako tester si môžeš aplikovať promo kód a zaplatiť len 1 €. Ale ak chceš nechať plnú sumu, každé euro ide na dobrú vec a my si to vážime. 🐾',
   // transparency treasury block
   'payment.transparency.title': '100% Transparentnosť',
+  'payment.transparency.hint': 'Klikni na kategóriu a zisti, kam ide.',
   'payment.transparency.eyebrow': 'Kam idú peniaze?',
 
   // ── Transparency model part labels (shared: PaymentScreen + FounderInvite) ──
@@ -686,7 +687,7 @@ export const sk: Partial<Dict> = {
   'transparency.part.development.note': 'Budovanie národa a financovanie všetkého, na čom stojí — ľudí, ktorí udržiavajú DOGYPT v pohybe, služieb, nástrojov a serverov za nimi. Toto je motor hnutia a každý jediný výdavok bude zdokumentovaný a zverejnený.',
   'transparency.part.affiliate.note': 'Nie reklamy — ľudia. Toto ide priamo na účty Dogypťanov, ktorí šíria vieru, vyplatené v BONES: minú ich neskôr v DOGYPTE alebo darujú psom v núdzi. Investujeme do svorky, nie do drahého marketingu — svorka nesie posolstvo oveľa ďalej.',
   'transparency.part.directHelp.note': 'Priamo psom v núdzi — útulky, krmivo, veterinárne účty a záchranné akcie. Žiadni sprostredkovatelia, žiadna réžia: tento podiel ide tam, kde je utrpenie, a každý cent je zdokumentovaný, podložený dokladmi a verejný pre celú svorku.',
-  'transparency.part.hekthorBowl.note': 'Zakladajúci pes, ktorý to celé začal. Jeho podiel udržiava pôvodný sľub pri živote a sen ostáva nádherne jednoduchý: stať sa milionárom tým, že pomáhaš psom, nie napriek nim. Hekthor je prvý pri miske, aby zvyšok svorky nikdy nehladoval.',
+  'transparency.part.hekthorBowl.note': 'Zakladajúci pes, ktorý to celé začal. Táto časť je transparentná odmena pre Hekthora a jeho pána — jednoducho ich výplata. Ich cieľom je stať sa milionárom — milión psov v sieti. Bez Hekthora by DOGYPT vôbec nevznikol — táto miska je poďakovanie.',
 
   // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)
