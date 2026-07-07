@@ -205,6 +205,10 @@ export function Footer() {
             <a href="/privacy">{t('about.footer.privacy')}</a>
             <span>·</span>
             <a href="/terms">{t('about.footer.terms')}</a>
+            <span>·</span>
+            <a href="#" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event('dogypt:open-consent')); }}>
+              {t('consent.footerLink')}
+            </a>
           </div>
           <p className="footer-copy">© 2026 DOGYPT</p>
         </div>

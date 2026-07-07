@@ -43,6 +43,7 @@ import Heroglyph from "./pages/Heroglyph.tsx";
 import CertRender from "./pages/CertRender.tsx";
 import InvoiceRender from "./pages/InvoiceRender.tsx";
 import { DevNav } from "@/components/DevNav";
+import { ConsentBanner } from "@/components/ConsentBanner";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { captureRefFromSearch } from "@/lib/refCapture";
@@ -81,6 +82,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <RefCapture />
+        <ConsentBanner />
         <DevNav />
         <Routes>
           {/* LAUNCH SWAP (Matej OK): GRID = homepage. Spirála → /spiral archív. */}
