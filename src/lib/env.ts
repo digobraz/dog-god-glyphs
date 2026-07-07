@@ -25,3 +25,11 @@ export const SUPABASE_ANON_KEY = import.meta.env.PROD
   : ((import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || LIVE_SUPABASE_ANON_KEY);
 
 export const EDGE_BASE = `${SUPABASE_URL}/functions/v1`;
+
+// PostHog (EU cloud). Project API key je VEREJNÝ write-only (phc_...), rovnako ako
+// Supabase anon key — bezpečný vo verejnom bundli. Projekt 218037. Keychain: dogypt-posthog-key.
+const LIVE_POSTHOG_KEY = 'phc_uz2yLbgP6oxs5CapQsj4jyLwDegrbjB5ueAcTvLc4coM';
+export const POSTHOG_KEY = import.meta.env.PROD
+  ? LIVE_POSTHOG_KEY
+  : ((import.meta.env.VITE_POSTHOG_KEY as string) || LIVE_POSTHOG_KEY);
+export const POSTHOG_HOST = 'https://eu.i.posthog.com';

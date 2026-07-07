@@ -10,6 +10,8 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { EDGE_BASE } from '@/lib/env';
+import { track } from '@/lib/analytics';
+import { getAttribution } from '@/lib/attribution';
 
 const CREATE_CHECKOUT_URL = `${EDGE_BASE}/create-checkout`;
 
@@ -29,7 +31,7 @@ export function PaymentScreen() {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
-  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2, lifeStatus } = useDogyptStore();
+  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2, lifeStatus, deathDate } = useDogyptStore();
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
@@ -75,6 +77,7 @@ export function PaymentScreen() {
       // the by-country / by-breed breakdown.
       const rawCountry = selections?.country;
       const iso3 = countryISO3(rawCountry);
+      track('payment_initiated', { amount: selectedAmount ?? 11, lifeStatus });
       const res = await fetch(CREATE_CHECKOUT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,10 +97,15 @@ export function PaymentScreen() {
           promoCode: promoCode.trim() || undefined,
           language: lang,
           lifeStatus,
+          deathDate,
+          ...getAttribution(),   // utm_source/medium/campaign/content, first_referrer, first_landing
         }),
       });
       const data = await res.json();
-      if (data.promoApplied) setPromoApplied(true);
+      if (data.promoApplied) {
+        setPromoApplied(true);
+        track('promo_applied', { code: promoCode.trim() });
+      }
       if (data.url) {
         window.open(data.url, '_top');
         // fallback: ak _top navigation zlyha (iframe sandbox), otvor novu zalozku

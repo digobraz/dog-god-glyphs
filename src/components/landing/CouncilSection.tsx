@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
+import { track } from '@/lib/analytics';
 import iconDogLover from '@/assets/icons/council-doglover.svg';
 import iconDeveloper from '@/assets/icons/council-developer.svg';
 import iconDogPro from '@/assets/icons/council-dogpro.svg';
@@ -41,6 +42,7 @@ export function CouncilSection() {
       role,
       message: message.trim() || null,
     });
+    if (!error) track('email_signup', { role });
     setStatus(error ? 'error' : 'done');
   };
 

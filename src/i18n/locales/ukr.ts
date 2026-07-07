@@ -130,7 +130,7 @@ export const ukr: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.value': '#1 — Перший Пес',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'ПЕРШ НІЖ ПОЧАТИ',
+  'intro.eyebrow': 'ПЕРШ НІЖ ПОЧАТИ…',
   'intro.title': 'Особлива мить.',
   'intro.body': 'Ти ось-ось викарбуєш знак свого пса у вічну зграю — найбільшу в світі. Так ти показуєш свою любов до собак і допомагаєш тим, хто її потребує. Дякуємо, що ти частина цієї місії.',
   'intro.body2': 'Далі буде кілька запитань про твого пса — найкраще, якщо він зараз поруч із тобою. Це може бути будь-який пес: той, що з тобою сьогодні, або той, що вже за райдужним мостом. Кожна лапа на рахунку!',
@@ -280,7 +280,7 @@ export const ukr: Partial<Dict> = {
   // ── /heroglyph flow — step 8: dog-gender ──
   'heroglyph.flow.dogGender.infoAria': 'Інформація про стать пса',
   'heroglyph.flow.dogGender.title': 'Стать Пса',
-  'heroglyph.flow.dogGender.questionPrefix': 'У тебе вдома',
+  'heroglyph.flow.dogGender.questionPrefix': 'Твій пес',
   'heroglyph.flow.dogGender.questionKing': 'король',
   'heroglyph.flow.dogGender.questionOr': 'чи',
   'heroglyph.flow.dogGender.questionQueen': 'королева',

@@ -130,7 +130,7 @@ export const ita: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.value': '#1 — Primo Cane',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'PRIMA DI COMINCIARE',
+  'intro.eyebrow': 'PRIMA DI COMINCIARE…',
   'intro.title': 'Un momento speciale.',
   'intro.body': 'Stai per incidere il segno del tuo cane nel branco eterno — il più grande del mondo. È così che mostri il tuo amore per i cani e aiuti quelli in difficoltà. Grazie per essere parte di questa missione.',
   'intro.body2': 'Seguiranno alcune domande sul tuo cane — l’ideale è averlo accanto a te adesso. Può essere qualsiasi cane: quello che oggi è con te, o quello già oltre il ponte dell’arcobaleno. Ogni zampa conta!',
@@ -280,11 +280,11 @@ export const ita: Partial<Dict> = {
   // ── /heroglyph flow — step 8: dog-gender ──
   'heroglyph.flow.dogGender.infoAria': 'Info sul Sesso del Cane',
   'heroglyph.flow.dogGender.title': 'Sesso del Cane',
-  'heroglyph.flow.dogGender.questionPrefix': 'Hai un',
+  'heroglyph.flow.dogGender.questionPrefix': 'Il tuo cane è un',
   'heroglyph.flow.dogGender.questionKing': 're',
   'heroglyph.flow.dogGender.questionOr': 'o una',
   'heroglyph.flow.dogGender.questionQueen': 'regina',
-  'heroglyph.flow.dogGender.questionSuffix': ' a casa?',
+  'heroglyph.flow.dogGender.questionSuffix': '?',
   'heroglyph.flow.dogGender.king': 'Re',
   'heroglyph.flow.dogGender.queen': 'Regina',
   'heroglyph.flow.dogGender.info3Title': 'Corona a 3 punte',

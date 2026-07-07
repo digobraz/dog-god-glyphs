@@ -90,7 +90,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — 第一犬",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "开始之前",
+  "intro.eyebrow": "开始之前…",
   "intro.title": "一个特别的时刻。",
   "intro.body": "你即将把爱犬的印记刻入永恒的犬群——世界上最大的犬群。这是你表达对狗狗之爱、并帮助处于困境中的它们的方式。感谢你成为这场使命的一员。",
   "intro.body2": "接下来会有几个关于你爱犬的问题——最好现在让它陪在你身边。任何一只狗都可以：今天伴你左右的它，或已走过彩虹桥的它。每一只爪印都珍贵无比！",
@@ -218,11 +218,11 @@ export const chn: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "返回",
   "heroglyph.flow.dogGender.infoAria": "关于犬性别的信息",
   "heroglyph.flow.dogGender.title": "犬性别",
-  "heroglyph.flow.dogGender.questionPrefix": "你家里住着一位",
+  "heroglyph.flow.dogGender.questionPrefix": "你的狗狗是",
   "heroglyph.flow.dogGender.questionKing": "国王",
-  "heroglyph.flow.dogGender.questionOr": "还是一位",
+  "heroglyph.flow.dogGender.questionOr": "还是",
   "heroglyph.flow.dogGender.questionQueen": "女王",
-  "heroglyph.flow.dogGender.questionSuffix": "吗？",
+  "heroglyph.flow.dogGender.questionSuffix": "？",
   "heroglyph.flow.dogGender.king": "国王",
   "heroglyph.flow.dogGender.queen": "女王",
   "heroglyph.flow.dogGender.info3Title": "三爪皇冠",

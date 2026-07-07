@@ -1,20 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
+import { DateDropdowns } from '@/components/DateDropdowns';
 import introMedallionImg from '@/assets/intro-medallion.png';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';
-import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
+import { track } from '@/lib/analytics';
 
-// Cieľ severky — 1M psíkov v jednej sieti (CLAUDE.md)
-const PACK_GOAL = 1_000_000;
-// Zoskupenie číslic úzkou medzerou (jazykovo neutrálne, sedí SK aj EN)
-const groupNum = (n: number) =>
-  n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const MIN_DEATH_YEAR = 1990;
+
 
 // ── /heroglyph/intro — dedikačný predkrok (nepočítaný)
 // Misijné intro (medailón + 2-col header + body2 rámik) + výber živý/mŕtvy psa.
@@ -25,38 +23,48 @@ export function IntroScreen() {
   const t = useT();
   const setLifeStatus = useDogyptStore((s) => s.setLifeStatus);
   const storedLifeStatus = useDogyptStore((s) => s.lifeStatus);
+  const deathDate = useDogyptStore((s) => s.deathDate);
+  const setDeathDate = useDogyptStore((s) => s.setDeathDate);
 
   // Default = alive (predvolene vybraté podľa spec)
   const [selected, setSelected] = useState<'alive' | 'deceased'>(
     storedLifeStatus ?? 'alive',
   );
 
-  // Živý počet psov vo svorke — TEN ISTÝ zdroj ako WALL/grid (get-grid-dogs),
-  // aby pill sedel 1:1 s gridom. .length = reálne psy (paid, bez testerov).
-  // null = ešte nenačítané / chyba → pill sa nezobrazí (radšej nič než „0").
-  const [packCount, setPackCount] = useState<number | null>(null);
+  // flow_start — vstup do heroglyph flow. Fire-once guard proti re-renderu (nie proti re-mountu).
+  const flowStartFired = useRef(false);
   useEffect(() => {
-    let active = true;
-    // Len Authorization (NIE apikey) — get-grid-dogs cors Allow-Headers
-    // povoľuje len `content-type, authorization`; apikey by zhodil CORS preflight.
-    fetch(`${EDGE_BASE}/get-grid-dogs`, {
-      headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        // +1 = Hekthor, founder card #1 (hardcoded na WALLe, je is_tester →
-        // get-grid-dogs ho vynecháva). Vždy sa počíta, aby pill = počet na WALLe.
-        if (active && Array.isArray(d)) setPackCount(d.length + 1);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
+    if (flowStartFired.current) return;
+    flowStartFired.current = true;
+    track('flow_start');
   }, []);
+
+  // Dátum úmrtia — voliteľný popup (mirror MemorialControl date krok), ale bez
+  // DB zápisu: pes ešte neexistuje, dátum ide do store a zapíše sa až pri checkoute.
+  const now = new Date();
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [d, setD] = useState(now.getDate());
+  const [m, setM] = useState(now.getMonth() + 1);
+  const [y, setY] = useState(now.getFullYear());
+
+  const openDateModal = () => {
+    const seed = deathDate ? new Date(deathDate) : new Date();
+    setD(seed.getDate());
+    setM(seed.getMonth() + 1);
+    setY(seed.getFullYear());
+    setDateModalOpen(true);
+  };
+
+  const saveDeathDate = () => {
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    setDeathDate(iso);
+    setDateModalOpen(false);
+  };
 
   const handleSelect = (v: 'alive' | 'deceased') => {
     setSelected(v);
     setLifeStatus(v);
+    if (v === 'alive') setDeathDate(null);
   };
 
   const handleContinue = () => {
@@ -75,7 +83,7 @@ export function IntroScreen() {
 
           {/* Block 1 — brand modro-zlatý gradient (tmavý → svetlý text) */}
           <motion.div
-            className="w-full rounded-2xl p-4 md:p-5 flex flex-col gap-3"
+            className="w-full rounded-2xl p-4 md:p-5 flex flex-col gap-2"
             style={{
               background: 'var(--brand-gradient)',
               border: '2px solid rgba(160,116,35,0.55)',
@@ -84,72 +92,43 @@ export function IntroScreen() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
           >
-            {/* Horný riadok: medailón VĽAVO, eyebrow/title/body VPRAVO */}
-            <div className="flex gap-4 items-start">
-              {/* Medailón — vlastný kruhový rám, žiadny ďalší wrapper */}
+            {/* Horný riadok — medailón vľavo, siahajúci na výšku pill + eyebrow + title
+                stĺpca vpravo (items-stretch + h-full na fotke = zarovná presne po
+                spodok title). Stĺpec justify-between rozťahuje 3 prvky na výšku fotky. */}
+            {/* eyebrow + title — centrované navrch, full width */}
+            <p
+              className="text-center text-[10px] uppercase tracking-[0.22em] font-semibold"
+              style={{ fontFamily: "'Cinzel', serif", color: '#E5C16E' }}
+            >
+              {t('intro.eyebrow')}
+            </p>
+            <h2
+              className="text-center text-xl md:text-2xl font-bold leading-snug"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                color: '#FAF4EC',
+                textShadow: '0 1px 2px rgba(0,0,0,0.4)',
+              }}
+            >
+              {t('intro.title')}
+            </h2>
+
+            {/* dvojstĺpec — medailón vľavo, body text vpravo */}
+            <div className="flex flex-row gap-3 items-center">
               <img
                 src={introMedallionImg}
                 alt="DOGYPT — Matej a pes"
-                className="w-[140px] h-[140px] md:w-[170px] md:h-[170px] object-contain flex-shrink-0"
+                className="w-[110px] md:w-[125px] object-contain flex-shrink-0"
               />
-
-              {/* Pravý stĺpec: pill + eyebrow + title + body (1. odsek) — svetlý text na tmavom */}
-              <div className="flex-1 flex flex-col gap-2">
-                {/* Živé počítadlo — pulzujúci pill: {count} / 1 000 000 psov.
-                    self-start = zarovnané vľavo s eyebrow/nadpisom. */}
-                {packCount !== null && (
-                  <motion.div
-                    className="self-start flex items-center gap-2 px-3.5 py-1.5 rounded-full"
-                    style={{
-                      background: 'rgba(0,0,0,0.28)',
-                      border: '1px solid rgba(229,193,110,0.45)',
-                    }}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    <motion.span
-                      className="inline-block rounded-full flex-shrink-0"
-                      style={{ width: 6, height: 6, background: '#E5C16E' }}
-                      animate={{ opacity: [1, 0.25, 1], scale: [1, 1.35, 1] }}
-                      transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                    <span
-                      className="text-sm tracking-wide tabular-nums leading-none"
-                      style={{ fontFamily: "'Cinzel', serif" }}
-                    >
-                      <span className="font-bold" style={{ color: '#FAF4EC' }}>{groupNum(packCount)}</span>
-                      <span style={{ color: 'rgba(250,244,236,0.5)' }}> / {groupNum(PACK_GOAL)} </span>
-                      <span style={{ color: '#E5C16E' }}>{t('intro.counter.label')}</span>
-                    </span>
-                  </motion.div>
-                )}
-                <p
-                  className="text-[10px] uppercase tracking-[0.22em] font-semibold"
-                  style={{ fontFamily: "'Cinzel', serif", color: '#E5C16E' }}
-                >
-                  {t('intro.eyebrow')}
-                </p>
-                <h2
-                  className="text-xl md:text-2xl font-bold leading-snug md:whitespace-nowrap"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    color: '#FAF4EC',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.4)',
-                  }}
-                >
-                  {t('intro.title')}
-                </h2>
-                <p
-                  className="text-xs md:text-sm leading-snug"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: 'rgba(250,244,236,0.92)',
-                  }}
-                >
-                  {t('intro.body')}
-                </p>
-              </div>
+              <p
+                className="flex-1 min-w-0 text-xs md:text-sm leading-snug"
+                style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: 'rgba(250,244,236,0.92)',
+                }}
+              >
+                {t('intro.body')}
+              </p>
             </div>
 
             {/* body2 — rámik na tmavom: gold border, presvitavá výplň, krémový text */}
@@ -214,9 +193,12 @@ export function IntroScreen() {
                 </span>
               </button>
 
-              {/* deceased → Angel.svg */}
+              {/* deceased → Angel.svg — klik otvorí voliteľný date popup */}
               <button
-                onClick={() => handleSelect('deceased')}
+                onClick={() => {
+                  handleSelect('deceased');
+                  openDateModal();
+                }}
                 className={`flex-1 flex flex-col items-center gap-1.5 p-2.5 rounded-xl border-2 transition-all ${
                   selected === 'deceased'
                     ? 'is-selected-purple'
@@ -239,6 +221,18 @@ export function IntroScreen() {
               </button>
             </div>
 
+            {/* Zvolený dátum úmrtia — malý caption, len keď je vyplnený (voliteľné) */}
+            {selected === 'deceased' && deathDate && (
+              <p
+                className="text-center text-[10px] tracking-wide"
+                style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(14,14,14,0.6)' }}
+              >
+                {t('intro.deceasedDate.caption', {
+                  date: new Date(deathDate).toLocaleDateString(),
+                })}
+              </p>
+            )}
+
             {/* Continue — vždy aktívny, gold gradient ako ostatné flow kroky */}
             <Button
               onClick={handleContinue}
@@ -256,6 +250,104 @@ export function IntroScreen() {
 
         </div>
       </div>
+
+      {/* Dátum úmrtia — voliteľný popup. Vizuálne 1:1 s NameModal (.name-modal-*
+          v NameScreen.tsx) — rovnaký backdrop/karta/animácia/gold Save, len bez
+          textového inputu (obsah = DateDropdowns). */}
+      {dateModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center px-4" style={{ zIndex: 2100 }}>
+          <motion.div
+            className="fixed inset-0"
+            style={{ background: 'rgba(0,0,0,0.78)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' } as React.CSSProperties}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.16 }}
+            onClick={() => setDateModalOpen(false)}
+          />
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full"
+            style={{
+              maxWidth: 520,
+              background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
+              border: '1.5px solid rgba(201,154,63,0.55)',
+              borderRadius: 16,
+              padding: '22px 16px 16px',
+              boxShadow: '0 20px 64px rgba(0,0,0,0.65)',
+            }}
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2, ease: [0.2, 0.8, 0.3, 1.1] }}
+          >
+            <button
+              type="button"
+              aria-label={t('nav.aria.close')}
+              onClick={() => setDateModalOpen(false)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 14,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 14,
+                color: 'rgba(0,0,0,0.4)',
+                lineHeight: 1,
+                padding: 4,
+              }}
+            >
+              ✕
+            </button>
+            <h3
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: '1rem',
+                textAlign: 'center',
+                color: 'hsl(var(--gold-dark))',
+                margin: 0,
+                padding: '0 20px 16px',
+              }}
+            >
+              {t('intro.deceasedDate.title')}
+            </h3>
+            <div className="flex justify-center" style={{ marginBottom: 18 }}>
+              <DateDropdowns
+                day={d}
+                month={m}
+                year={y}
+                minYear={MIN_DEATH_YEAR}
+                maxYear={now.getFullYear()}
+                maxDate={now}
+                onChange={(nd, nm, ny) => { setD(nd); setM(nm); setY(ny); }}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={saveDeathDate}
+              style={{
+                width: '100%',
+                height: 46,
+                border: 'none',
+                borderRadius: 12,
+                cursor: 'pointer',
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                color: '#000',
+                background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35)',
+              }}
+            >
+              {t('pack.dog.memorial.save')}
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

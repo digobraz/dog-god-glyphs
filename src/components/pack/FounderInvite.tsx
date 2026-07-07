@@ -8,6 +8,7 @@ import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogoGold from '@/assets/dogypt-logo-gold.png';
 import { useT } from '@/i18n/LanguageContext';
 import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+import { track } from '@/lib/analytics';
 
 const APP_ORIGIN = 'https://dogypt.com';
 
@@ -63,6 +64,7 @@ export function FounderInvite() {
     try {
       await navigator.clipboard.writeText(link);
       setCopied(true);
+      track('referral_link_copied');
       toast(t('pack.invite.toastLinkCopied'), { description: t('pack.invite.toastLinkCopiedDesc') });
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -72,6 +74,8 @@ export function FounderInvite() {
 
   const handleShare = async () => {
     if (!link) return;
+    const nativeShare = typeof navigator.share === 'function';
+    track('share_clicked', { channel: nativeShare ? 'native' : 'copy_fallback' });
     const shareData = {
       title: 'DOGYPT',
       text: t('pack.invite.shareNativeText'),
@@ -79,7 +83,7 @@ export function FounderInvite() {
     };
     // Native share sheet on mobile (Instagram, WhatsApp, Facebook, Messages…);
     // desktops without the API fall back to copy.
-    if (typeof navigator.share === 'function') {
+    if (nativeShare) {
       try {
         await navigator.share(shareData);
         return;

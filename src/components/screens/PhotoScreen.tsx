@@ -11,6 +11,7 @@ import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
 import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
+import { track } from '@/lib/analytics';
 
 /* ───── helpers ───── */
 
@@ -417,6 +418,7 @@ export function PhotoScreen() {
     setExtraPhotos(extras);
     setCloudinaryExtraPublicIds(extraPublicIds.current);
     setGdprConsent(gdpr);
+    track('photo_uploaded');
     navigate('/heroglyph/breed');
   };
 

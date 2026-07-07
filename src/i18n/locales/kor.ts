@@ -90,7 +90,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — 첫 번째 개",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "시작하기 전에",
+  "intro.eyebrow": "시작하기 전에…",
   "intro.title": "특별한 순간입니다.",
   "intro.body": "이제 당신의 개의 표식을 영원한 무리 — 세상에서 가장 큰 무리 — 에 새기려 합니다. 이것이 개를 향한 당신의 사랑을 보여주고, 어려움에 처한 개들을 돕는 길입니다. 이 사명에 함께해 주셔서 감사합니다.",
   "intro.body2": "이제 당신의 개에 관한 몇 가지 질문이 이어집니다 — 지금 곁에 두고 있으면 가장 좋습니다. 어떤 개라도 괜찮습니다: 오늘 당신 곁에 있는 개든, 이미 무지개 다리를 건넌 개든. 모든 발자국이 소중합니다!",
@@ -218,11 +218,11 @@ export const kor: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "뒤로",
   "heroglyph.flow.dogGender.infoAria": "개 성별에 대한 정보",
   "heroglyph.flow.dogGender.title": "개 성별",
-  "heroglyph.flow.dogGender.questionPrefix": "집에",
+  "heroglyph.flow.dogGender.questionPrefix": "당신의 반려견은",
   "heroglyph.flow.dogGender.questionKing": "왕",
-  "heroglyph.flow.dogGender.questionOr": "이 있나요, 아니면",
+  "heroglyph.flow.dogGender.questionOr": "인가요, 아니면",
   "heroglyph.flow.dogGender.questionQueen": "여왕",
-  "heroglyph.flow.dogGender.questionSuffix": "이 있나요?",
+  "heroglyph.flow.dogGender.questionSuffix": "인가요?",
   "heroglyph.flow.dogGender.king": "왕",
   "heroglyph.flow.dogGender.queen": "여왕",
   "heroglyph.flow.dogGender.info3Title": "3점 왕관",

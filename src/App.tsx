@@ -45,7 +45,9 @@ import { DevNav } from "@/components/DevNav";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { captureRefFromSearch } from "@/lib/refCapture";
-import { trackPageview } from "@/lib/analytics";
+import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
+import { captureAttribution } from "@/lib/attribution";
+import { useLang } from "@/i18n/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -53,9 +55,16 @@ const queryClient = new QueryClient();
 // BrowserRouter to read the live location.
 function RefCapture() {
   const location = useLocation();
+  const { lang } = useLang();
   useEffect(() => {
     captureRefFromSearch(location.search);
   }, [location.search]);
+  useEffect(() => {
+    captureAttribution();
+  }, []);
+  useEffect(() => {
+    setAnalyticsLang(lang);
+  }, [lang]);
   useEffect(() => {
     trackPageview(location.pathname);
   }, [location.pathname]);

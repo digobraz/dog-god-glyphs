@@ -1,26 +1,26 @@
-// Inertný analytics wrapper — funguje len ak je window.posthog načítaný (snippet sa pridá neskôr s kľúčom).
-// Bez PostHog kľúča sú všetky volania no-op (nič nerozbijú).
+import posthog from 'posthog-js';
 
-declare global {
-  interface Window {
-    posthog?: { capture: (e: string, p?: Record<string, unknown>) => void };
-  }
-}
+// Aktuálny jazyk — nastavuje App.tsx (RefCapture) cez useLang. Každý event nesie lang.
+let currentLang = 'en';
+export const setAnalyticsLang = (l: string) => { if (l) currentLang = l; };
+
+// posthog.__loaded je false kým nie je zavolaný posthog.init() (prázdny POSTHOG_KEY
+// v main.tsx = init sa nikdy nevolá) — všetky volania nižšie sú vtedy bezpečný no-op.
+const enabled = () => Boolean(posthog?.__loaded);
 
 export const track = (event: string, props?: Record<string, unknown>) => {
-  try {
-    window.posthog?.capture(event, props);
-  } catch {
-    /* ignore */
-  }
+  try { if (enabled()) posthog.capture(event, { lang: currentLang, ...props }); } catch { /* ignore */ }
 };
 
 export const trackPageview = (path: string) => {
-  try {
-    window.posthog?.capture('$pageview', { path });
-  } catch {
-    /* ignore */
-  }
+  try { if (enabled()) posthog.capture('$pageview', { path, lang: currentLang }); } catch { /* ignore */ }
 };
 
-export {};
+// Volá sa vo vlne B po analytics consente — prepne z memory na plný režim + recording.
+export const upgradeToTier1 = () => {
+  try {
+    if (!enabled()) return;
+    posthog.set_config({ persistence: 'localStorage+cookie' });
+    posthog.startSessionRecording();
+  } catch { /* ignore */ }
+};

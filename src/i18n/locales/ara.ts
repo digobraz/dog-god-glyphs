@@ -90,7 +90,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — الكلب الأول",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "قبل أن تبدأ",
+  "intro.eyebrow": "قبل أن تبدأ…",
   "intro.title": "لحظة خاصة.",
   "intro.body": "أنت على وشك أن تنقش بصمة كلبك في القطيع الأبدي — الأكبر في العالم. هكذا تُظهر حبّك للكلاب وتمدّ يد العون لمن هم في حاجة. شكراً لك على أن تكون جزءاً من هذه الرسالة.",
   "intro.body2": "ستتبع بضعة أسئلة عن كلبك — يُفضّل أن يكون بجانبك الآن. قد يكون أيّ كلب: رفيقك اليوم، أو من عبر جسر قوس قزح. كلّ كفّ يُحتسب!",
@@ -218,11 +218,11 @@ export const ara: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "رجوع",
   "heroglyph.flow.dogGender.infoAria": "معلومات عن جنس الكلب",
   "heroglyph.flow.dogGender.title": "جنس الكلب",
-  "heroglyph.flow.dogGender.questionPrefix": "هل لديك",
+  "heroglyph.flow.dogGender.questionPrefix": "هل كلبك",
   "heroglyph.flow.dogGender.questionKing": "ملك",
   "heroglyph.flow.dogGender.questionOr": "أم",
   "heroglyph.flow.dogGender.questionQueen": "ملكة",
-  "heroglyph.flow.dogGender.questionSuffix": " في المنزل؟",
+  "heroglyph.flow.dogGender.questionSuffix": "؟",
   "heroglyph.flow.dogGender.king": "ملك",
   "heroglyph.flow.dogGender.queen": "ملكة",
   "heroglyph.flow.dogGender.info3Title": "تاج ثلاثي النقاط",

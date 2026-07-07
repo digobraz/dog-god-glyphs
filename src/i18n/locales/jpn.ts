@@ -90,7 +90,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — 第一の犬",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "はじめる前に",
+  "intro.eyebrow": "はじめる前に…",
   "intro.title": "特別なひととき。",
   "intro.body": "あなたの愛犬のしるしを、世界最大の永遠の群れに刻もうとしています。これは犬たちへの愛を示し、困っている子たちを助ける方法です。この使命に加わってくださり、ありがとうございます。",
   "intro.body2": "これから愛犬についていくつか質問が続きます。できれば今、そばにいてもらえると安心です。どんな犬でもかまいません。今日あなたのそばにいる子でも、すでに虹の橋を渡った子でも。どの足あとも、かけがえのないものです。",
@@ -218,11 +218,11 @@ export const jpn: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "戻る",
   "heroglyph.flow.dogGender.infoAria": "犬の性別についての情報",
   "heroglyph.flow.dogGender.title": "犬の性別",
-  "heroglyph.flow.dogGender.questionPrefix": "あなたのお家には",
+  "heroglyph.flow.dogGender.questionPrefix": "あなたの愛犬は",
   "heroglyph.flow.dogGender.questionKing": "キング",
-  "heroglyph.flow.dogGender.questionOr": "それとも",
+  "heroglyph.flow.dogGender.questionOr": "ですか、それとも",
   "heroglyph.flow.dogGender.questionQueen": "クイーン",
-  "heroglyph.flow.dogGender.questionSuffix": "がいますか？",
+  "heroglyph.flow.dogGender.questionSuffix": "ですか？",
   "heroglyph.flow.dogGender.king": "キング",
   "heroglyph.flow.dogGender.queen": "クイーン",
   "heroglyph.flow.dogGender.info3Title": "3点の王冠",

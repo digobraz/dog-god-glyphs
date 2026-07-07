@@ -90,7 +90,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — Eerste Hond",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "VOORDAT JE BEGINT",
+  "intro.eyebrow": "VOORDAT JE BEGINT…",
   "intro.title": "Een bijzonder moment.",
   "intro.body": "Je staat op het punt het teken van jouw hond te griffen in de eeuwige roedel — de grootste ter wereld. Zo toon je je liefde voor honden en help je hen die in nood zijn. Dank je dat je deel uitmaakt van deze missie.",
   "intro.body2": "Er volgen een paar vragen over jouw hond — heb hem het liefst nu naast je. Het mag elke hond zijn: die vandaag bij je is, of die al over de regenboogbrug is. Elke poot telt!",
@@ -218,11 +218,11 @@ export const nld: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "Terug",
   "heroglyph.flow.dogGender.infoAria": "Info over geslacht van de hond",
   "heroglyph.flow.dogGender.title": "Geslacht van de hond",
-  "heroglyph.flow.dogGender.questionPrefix": "Heb je een",
+  "heroglyph.flow.dogGender.questionPrefix": "Is je hond een",
   "heroglyph.flow.dogGender.questionKing": "koning",
   "heroglyph.flow.dogGender.questionOr": "of een",
   "heroglyph.flow.dogGender.questionQueen": "koningin",
-  "heroglyph.flow.dogGender.questionSuffix": " thuis?",
+  "heroglyph.flow.dogGender.questionSuffix": "?",
   "heroglyph.flow.dogGender.king": "Koning",
   "heroglyph.flow.dogGender.queen": "Koningin",
   "heroglyph.flow.dogGender.info3Title": "3-Punts Kroon",

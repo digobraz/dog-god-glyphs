@@ -90,7 +90,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — İlk Köpek",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "BAŞLAMADAN ÖNCE",
+  "intro.eyebrow": "BAŞLAMADAN ÖNCE…",
   "intro.title": "Özel bir an.",
   "intro.body": "Köpeğinin izini ebedi sürüye kazımak üzeresin — dünyanın en büyüğüne. Köpeklere olan sevgini böyle gösterir, ihtiyacı olanlara böyle yardım edersin. Bu yolculuğun bir parçası olduğun için teşekkürler.",
   "intro.body2": "Şimdi köpeğin hakkında birkaç soru gelecek — en iyisi onu şu an yanında bulundurman. Herhangi bir köpek olabilir: bugün yanındaki ya da çoktan gökkuşağı köprüsünü geçmiş olan. Her pati sayılır!",
@@ -218,11 +218,11 @@ export const tur: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "Geri",
   "heroglyph.flow.dogGender.infoAria": "Köpek Cinsiyeti hakkında bilgi",
   "heroglyph.flow.dogGender.title": "Köpek Cinsiyeti",
-  "heroglyph.flow.dogGender.questionPrefix": "Evde bir",
+  "heroglyph.flow.dogGender.questionPrefix": "Köpeğin bir",
   "heroglyph.flow.dogGender.questionKing": "kral",
   "heroglyph.flow.dogGender.questionOr": "mı yoksa bir",
   "heroglyph.flow.dogGender.questionQueen": "kraliçe",
-  "heroglyph.flow.dogGender.questionSuffix": " mi var?",
+  "heroglyph.flow.dogGender.questionSuffix": " mi?",
   "heroglyph.flow.dogGender.king": "Kral",
   "heroglyph.flow.dogGender.queen": "Kraliçe",
   "heroglyph.flow.dogGender.info3Title": "3 Uçlu Taç",

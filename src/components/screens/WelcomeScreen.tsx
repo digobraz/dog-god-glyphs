@@ -10,6 +10,7 @@ import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import { EDGE_BASE } from '@/lib/env';
+import { track } from '@/lib/analytics';
 
 function useSessionData(sessionId: string | null, fallbackStore: { dogName: string; ownerName: string; email: string; selections: Record<string, string>; dogPhotoUrl: string; patronSvg: string; patronSvg2: string }) {
   const [data, setData] = useState<typeof fallbackStore & { packNumber: number | null }>({ ...fallbackStore, packNumber: null });
@@ -128,6 +129,15 @@ export function WelcomeScreen() {
   // Single source of truth: the dog's WALL position, computed server-side in
   // get-session-data (same logic as get-grid-dogs) so /welcome and /grid match.
   const packNumber = certData.packNumber;
+
+  // purchase_completed — fire once, only after the real session resolves a pack_number
+  // (avoids firing on a fallback-store render with packNumber still null).
+  const purchaseTracked = useRef(false);
+  useEffect(() => {
+    if (purchaseTracked.current || packNumber === null) return;
+    purchaseTracked.current = true;
+    track('purchase_completed', { pack_number: packNumber });
+  }, [packNumber]);
 
   // Rehydrate store from session data so hidden HeroglyphFrame/VerticalHeroglyphFrame render correctly
   useEffect(() => {

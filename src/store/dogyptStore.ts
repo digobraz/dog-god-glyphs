@@ -24,6 +24,7 @@ export interface DogyptState {
   extraPhotos: string[];
   gdprConsent: boolean;
   lifeStatus: 'alive' | 'deceased';
+  deathDate: string | null; // yyyy-mm-dd — len keď lifeStatus==='deceased'; zapíše sa do DB pri checkoute
   setDogName: (name: string) => void;
   setOwnerName: (name: string) => void;
   setStep: (step: number) => void;
@@ -45,6 +46,7 @@ export interface DogyptState {
   setExtraPhotos: (v: string[]) => void;
   setGdprConsent: (v: boolean) => void;
   setLifeStatus: (v: 'alive' | 'deceased') => void;
+  setDeathDate: (v: string | null) => void;
   reset: () => void;
 }
 
@@ -71,6 +73,7 @@ const freshState = () => ({
   extraPhotos: [] as string[],
   gdprConsent: false,
   lifeStatus: 'alive' as 'alive' | 'deceased',
+  deathDate: null as string | null,
 });
 
 export const useDogyptStore = create<DogyptState>()(
@@ -98,6 +101,7 @@ export const useDogyptStore = create<DogyptState>()(
       setExtraPhotos: (v) => set({ extraPhotos: v }),
       setGdprConsent: (v) => set({ gdprConsent: v }),
       setLifeStatus: (v) => set({ lifeStatus: v }),
+      setDeathDate: (v) => set({ deathDate: v }),
       reset: () => set(freshState()),
     }),
     {

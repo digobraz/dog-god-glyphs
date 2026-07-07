@@ -130,7 +130,7 @@ export const deu: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.value': '#1 — Erster Hund',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'BEVOR DU BEGINNST',
+  'intro.eyebrow': 'BEVOR DU BEGINNST…',
   'intro.title': 'Ein besonderer Augenblick.',
   'intro.body': 'Gleich verewigst du das Zeichen deines Hundes im ewigen Rudel — dem größten der Welt. So zeigst du deine Liebe zu Hunden und hilfst jenen in Not. Danke, dass du Teil dieser Mission bist.',
   'intro.body2': 'Es folgen ein paar Fragen zu deinem Hund — am besten hast du ihn jetzt an deiner Seite. Es kann jeder Hund sein: der, der heute bei dir ist, oder der, der schon über die Regenbogenbrücke gegangen ist. Jede Pfote zählt!',
@@ -280,11 +280,11 @@ export const deu: Partial<Dict> = {
   // ── /heroglyph flow — step 8: dog-gender ──
   'heroglyph.flow.dogGender.infoAria': 'Infos über das Geschlecht des Hundes',
   'heroglyph.flow.dogGender.title': 'Geschlecht des Hundes',
-  'heroglyph.flow.dogGender.questionPrefix': 'Hast du einen',
+  'heroglyph.flow.dogGender.questionPrefix': 'Ist dein Hund ein',
   'heroglyph.flow.dogGender.questionKing': 'König',
   'heroglyph.flow.dogGender.questionOr': 'oder eine',
   'heroglyph.flow.dogGender.questionQueen': 'Königin',
-  'heroglyph.flow.dogGender.questionSuffix': ' zu Hause?',
+  'heroglyph.flow.dogGender.questionSuffix': '?',
   'heroglyph.flow.dogGender.king': 'König',
   'heroglyph.flow.dogGender.queen': 'Königin',
   'heroglyph.flow.dogGender.info3Title': '3-Punkte-Krone',

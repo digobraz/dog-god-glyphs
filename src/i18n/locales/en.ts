@@ -140,7 +140,7 @@ export const en = {
   'heroglyph.intro.meaning.ranking.value': '#1 — First Dog',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'BEFORE YOU BEGIN',
+  'intro.eyebrow': 'BEFORE YOU BEGIN…',
   'intro.title': 'A special moment.',
   'intro.body': "You're about to carve your dog's mark into the eternal pack — the largest in the world. This is how you show your love for dogs and help those in need. Thank you for being part of this mission.",
   'intro.body2': 'A few questions about your dog will follow — ideally have them by your side now. It can be any dog: the one with you today, or the one already across the rainbow bridge. Every paw counts!',
@@ -149,6 +149,8 @@ export const en = {
   'intro.alive': 'Yes, a living legend',
   'intro.deceased': 'Waiting for me, up there',
   'intro.continue': 'Begin',
+  'intro.deceasedDate.title': 'When did they cross the rainbow bridge?',
+  'intro.deceasedDate.caption': 'Date of passing: {date}',
 
   // ── /heroglyph flow — step 1: name ──
   'heroglyph.flow.name.greetingPrefix': "Hi, I'm",
@@ -293,11 +295,11 @@ export const en = {
   // ── /heroglyph flow — step 8: dog-gender ──
   'heroglyph.flow.dogGender.infoAria': 'Info about Dog Gender',
   'heroglyph.flow.dogGender.title': 'Dog Gender',
-  'heroglyph.flow.dogGender.questionPrefix': 'Do you have a',
+  'heroglyph.flow.dogGender.questionPrefix': 'Is your dog a',
   'heroglyph.flow.dogGender.questionKing': 'king',
   'heroglyph.flow.dogGender.questionOr': 'or a',
   'heroglyph.flow.dogGender.questionQueen': 'queen',
-  'heroglyph.flow.dogGender.questionSuffix': ' at home?',
+  'heroglyph.flow.dogGender.questionSuffix': '?',
   'heroglyph.flow.dogGender.king': 'King',
   'heroglyph.flow.dogGender.queen': 'Queen',
   'heroglyph.flow.dogGender.info3Title': '3-Point Crown',

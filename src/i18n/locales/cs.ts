@@ -138,7 +138,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.value': '#1 — První pes',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'NEŽ ZAČNEŠ',
+  'intro.eyebrow': 'NEŽ ZAČNEŠ…',
   'intro.title': 'Výjimečný okamžik.',
   'intro.body': 'Chystáš se vepsat stopu svého psa do věčné smečky — té největší na světě. Takhle dáváš najevo lásku ke psům a pomáháš těm, kdo to potřebují. Děkujeme, že jsi součástí téhle mise.',
   'intro.body2': 'Bude následovat pár otázek o tvém psovi — ideálně ho měj teď u sebe. Může to být kterýkoli pes: ten, co je dnes s tebou, nebo ten, který už je za duhovým mostem. Každá tlapka se počítá!',
@@ -288,10 +288,10 @@ export const cs: Partial<Dict> = {
   // ── /heroglyph flow — krok 8: pohlavie psa ──
   'heroglyph.flow.dogGender.infoAria': 'Info o pohlaví psa',
   'heroglyph.flow.dogGender.title': 'Pohlaví Psa',
-  'heroglyph.flow.dogGender.questionPrefix': 'Máš doma',
-  'heroglyph.flow.dogGender.questionKing': 'krále',
+  'heroglyph.flow.dogGender.questionPrefix': 'Je tvůj pes',
+  'heroglyph.flow.dogGender.questionKing': 'král',
   'heroglyph.flow.dogGender.questionOr': 'nebo',
-  'heroglyph.flow.dogGender.questionQueen': 'královnu',
+  'heroglyph.flow.dogGender.questionQueen': 'královna',
   'heroglyph.flow.dogGender.questionSuffix': '?',
   'heroglyph.flow.dogGender.king': 'Král',
   'heroglyph.flow.dogGender.queen': 'Královna',

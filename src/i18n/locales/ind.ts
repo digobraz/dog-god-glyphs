@@ -90,7 +90,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.intro.meaning.ranking.value": "#1 — पहला कुत्ता",
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  "intro.eyebrow": "शुरू करने से पहले",
+  "intro.eyebrow": "शुरू करने से पहले…",
   "intro.title": "एक विशेष क्षण।",
   "intro.body": "आप अपने कुत्ते की छाप शाश्वत झुंड में अंकित करने वाले हैं — जो दुनिया का सबसे बड़ा झुंड है। इसी तरह आप कुत्तों के लिए अपना प्यार दिखाते हैं और ज़रूरतमंदों की मदद करते हैं। इस मिशन का हिस्सा बनने के लिए धन्यवाद।",
   "intro.body2": "अब आपके कुत्ते के बारे में कुछ सवाल आएँगे — बेहतर हो कि वह अभी आपके पास हो। कोई भी कुत्ता हो सकता है: वह जो आज आपके साथ है, या वह जो पहले ही इंद्रधनुषी पुल पार कर चुका है। हर पंजा मायने रखता है!",
@@ -219,11 +219,11 @@ export const ind: Partial<Dict> = {
   "heroglyph.flow.ownerFinal.back": "वापस",
   "heroglyph.flow.dogGender.infoAria": "कुत्ते के लिंग के बारे में जानकारी",
   "heroglyph.flow.dogGender.title": "कुत्ते का लिंग",
-  "heroglyph.flow.dogGender.questionPrefix": "क्या आपके घर में एक",
+  "heroglyph.flow.dogGender.questionPrefix": "क्या आपका कुत्ता",
   "heroglyph.flow.dogGender.questionKing": "राजा",
-  "heroglyph.flow.dogGender.questionOr": "है या एक",
+  "heroglyph.flow.dogGender.questionOr": "है या",
   "heroglyph.flow.dogGender.questionQueen": "रानी",
-  "heroglyph.flow.dogGender.questionSuffix": " है?",
+  "heroglyph.flow.dogGender.questionSuffix": "?",
   "heroglyph.flow.dogGender.king": "राजा",
   "heroglyph.flow.dogGender.queen": "रानी",
   "heroglyph.flow.dogGender.info3Title": "3-बिंदु का मुकुट",

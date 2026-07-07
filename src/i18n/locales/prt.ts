@@ -130,7 +130,7 @@ export const prt: Partial<Dict> = {
   'heroglyph.intro.meaning.ranking.value': '#1 — Primeiro Cão',
 
   // ── /heroglyph/intro — dedikačný predkrok (life_status) ──
-  'intro.eyebrow': 'ANTES DE COMEÇAR',
+  'intro.eyebrow': 'ANTES DE COMEÇAR…',
   'intro.title': 'Um momento especial.',
   'intro.body': 'Você está prestes a gravar a marca do seu cão na matilha eterna — a maior do mundo. É assim que demonstra o seu amor pelos cães e ajuda aqueles que precisam. Obrigado por fazer parte desta missão.',
   'intro.body2': 'Seguem-se algumas perguntas sobre o seu cão — o ideal é tê-lo ao seu lado agora. Pode ser qualquer cão: o que está com você hoje, ou o que já atravessou a ponte do arco-íris. Cada patinha conta!',
@@ -280,7 +280,7 @@ export const prt: Partial<Dict> = {
   // ── /heroglyph flow — step 8: dog-gender ──
   'heroglyph.flow.dogGender.infoAria': 'Informação sobre o sexo do cão',
   'heroglyph.flow.dogGender.title': 'Sexo do Cão',
-  'heroglyph.flow.dogGender.questionPrefix': 'Tens em casa um',
+  'heroglyph.flow.dogGender.questionPrefix': 'O teu cão é um',
   'heroglyph.flow.dogGender.questionKing': 'rei',
   'heroglyph.flow.dogGender.questionOr': 'ou uma',
   'heroglyph.flow.dogGender.questionQueen': 'rainha',

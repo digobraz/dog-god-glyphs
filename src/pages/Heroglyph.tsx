@@ -4,6 +4,7 @@ import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
+import { track } from '@/lib/analytics';
 
 // label/value sú i18n KĽÚČE (module-level const nemôže volať t()); preklad pri renderi.
 type SymbolMeaning = { label: string; value: string };
@@ -27,6 +28,12 @@ const MEANINGS: Record<string, SymbolMeaning> = {
 
 const SYMBOL_IDS = Object.keys(MEANINGS);
 const SVG_URL = '/heroglyph/hektor-horizontal.svg';
+
+// Pills keep rotating (marquee), but hover/tap tooltip is switched off for now.
+// Flip to `true` to re-enable pill tooltips — gates handlers in renderPill() +
+// tooltip bubble rendering below. Does NOT affect the heroglyph symbol tooltip
+// (MEANINGS / attachInteractivity) — that stays independent.
+const PILL_TOOLTIPS_ENABLED = false;
 
 const ART_W = 3165;
 const ART_H = 825;
@@ -268,11 +275,36 @@ export default function Heroglyph() {
       />
       <style>{`
         .heroglyph-svg-wrap {
+          /* Reserve box height BEFORE the SVG fetch resolves — viewBox becomes
+             (ART_W + 2*SIDE_PAD) x (ART_H + TOP_PAD + BOTTOM_PAD) = 3285 x 945.
+             Without this the wrap has 0 height until injected, causing a layout
+             "pop"/jump once fetch(SVG_URL) resolves. Width stays 100% of the
+             parent (clamped by inline maxWidth: 342 mobile / 320 desktop). */
+          width: 100%;
+          aspect-ratio: 3285 / 945;
+          position: relative;
           filter:
             drop-shadow(0 0 18px rgba(255, 215, 110, 0.95))
             drop-shadow(0 0 42px rgba(201, 154, 63, 0.70))
             drop-shadow(0 0 90px rgba(201, 154, 63, 0.35));
           animation: heroglyph-aura-pulse 3.2s ease-in-out infinite;
+        }
+        .heroglyph-svg-wrap-inner {
+          opacity: 0;
+          transition: opacity 220ms ease;
+        }
+        .heroglyph-svg-wrap-inner.is-loaded {
+          opacity: 1;
+        }
+        .heroglyph-svg-wrap-loading {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 0 16px;
+          color: rgba(201,154,63,0.6);
         }
         @keyframes heroglyph-aura-pulse {
           0%, 100% {
@@ -608,13 +640,20 @@ export default function Heroglyph() {
                 ref={svgWrapRef}
                 className="heroglyph-svg-wrap"
                 style={{
-                  width: '100%',
                   maxWidth: 342,
                   marginTop: 14,
-                  position: 'relative',
                 }}
-                dangerouslySetInnerHTML={{ __html: svgMarkup }}
-              />
+              >
+                <div
+                  className={`heroglyph-svg-wrap-inner${svgMarkup ? ' is-loaded' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                />
+                {!svgMarkup && (
+                  <div className="heroglyph-svg-wrap-loading">
+                    {t('heroglyph.intro.loading')}
+                  </div>
+                )}
+              </div>
 
               {/* Symbol meaning bubble — inline pod heroglyph SVG (in-flow, posúva obsah nadol).
                   Mobile only. Desktop ostáva cursor-follow nižšie v JSX. */}
@@ -836,13 +875,20 @@ export default function Heroglyph() {
                 ref={svgWrapRef}
                 className="heroglyph-svg-wrap"
                 style={{
-                  width: '100%',
                   maxWidth: 320,
                   marginTop: 18,
-                  position: 'relative',
                 }}
-                dangerouslySetInnerHTML={{ __html: svgMarkup }}
-              />
+              >
+                <div
+                  className={`heroglyph-svg-wrap-inner${svgMarkup ? ' is-loaded' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                />
+                {!svgMarkup && (
+                  <div className="heroglyph-svg-wrap-loading">
+                    {t('heroglyph.intro.loading')}
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -850,7 +896,10 @@ export default function Heroglyph() {
             <>
               {/* MOBILE order: CTA → outro → pills last (CTA above the fold) */}
               <button
-                onClick={() => navigate('/heroglyph/intro')}
+                onClick={() => {
+                  track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
+                  navigate('/heroglyph/intro');
+                }}
                 className="heroglyph-cta"
               >
                 {t('heroglyph.intro.cta')}
@@ -894,7 +943,10 @@ export default function Heroglyph() {
                 marginTop={20}
               />
               <button
-                onClick={() => navigate('/heroglyph/intro')}
+                onClick={() => {
+                  track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
+                  navigate('/heroglyph/intro');
+                }}
                 className="heroglyph-cta"
               >
                 {t('heroglyph.intro.cta')}
@@ -916,11 +968,6 @@ export default function Heroglyph() {
             </>
           )}
 
-          {!svgMarkup && (
-            <div style={{ padding: 40, color: 'rgba(201,154,63,0.6)', textAlign: 'center' }}>
-              {t('heroglyph.intro.loading')}
-            </div>
-          )}
         </div>
       </div>
 
@@ -971,8 +1018,9 @@ export default function Heroglyph() {
         </div>
       )}
 
-      {/* Pill tooltip — mobile: bottom-center bubble + tap-outside close; desktop: cursor-follow */}
-      {pillTooltip && isMobile && (
+      {/* Pill tooltip — mobile: bottom-center bubble + tap-outside close; desktop: cursor-follow.
+          Mobile bubble is ONLY ever fed by pills (renderPill above), so it's fully gated by the flag. */}
+      {PILL_TOOLTIPS_ENABLED && pillTooltip && isMobile && (
         <>
           {/* invisible backdrop for tap-outside dismiss */}
           <div
@@ -1050,7 +1098,10 @@ export default function Heroglyph() {
           </div>
         </>
       )}
-      {pillTooltip && !isMobile && (
+      {/* Desktop bubble is shared with the "heroglyph.intro.word" hover tooltip
+          (dict-left, sets pillTooltip with icon: '') — that one must keep working
+          even when pill tooltips are off, so gate only actual pills (icon set). */}
+      {pillTooltip && !isMobile && (PILL_TOOLTIPS_ENABLED || pillTooltip.icon === '') && (
         <div
           style={{
             position: 'fixed',
@@ -1140,15 +1191,16 @@ function PillMarquee({
     <div
       key={key}
       className="pill-outline"
-      onMouseEnter={(e) => onEnter(p, e.clientX, e.clientY)}
-      onMouseMove={(e) => onMove(e.clientX, e.clientY)}
-      onMouseLeave={onLeave}
-      onTouchStart={(e) => {
+      style={{ cursor: PILL_TOOLTIPS_ENABLED ? 'pointer' : 'default' }}
+      onMouseEnter={PILL_TOOLTIPS_ENABLED ? (e) => onEnter(p, e.clientX, e.clientY) : undefined}
+      onMouseMove={PILL_TOOLTIPS_ENABLED ? (e) => onMove(e.clientX, e.clientY) : undefined}
+      onMouseLeave={PILL_TOOLTIPS_ENABLED ? onLeave : undefined}
+      onTouchStart={PILL_TOOLTIPS_ENABLED ? (e) => {
         const t = e.touches[0];
         if (!t) return;
         if (onTap) onTap(p, t.clientX, t.clientY);
         else onEnter(p, t.clientX, t.clientY);
-      }}
+      } : undefined}
     >
       <img src={p.icon} alt="" className="pill-outline-icon" />
       {p.label}
