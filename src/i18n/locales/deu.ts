@@ -709,19 +709,19 @@ export const deu: Partial<Dict> = {
     'Datenschutz & Datenanfragen: privacy@dogypt.com · Allgemeine Fragen: info@dogypt.com · Post: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slowakei.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Cookie-Einstellungen") ──
-  'consent.title': 'Nichts wird verborgen',
+  'consent.title': 'Kurz und ehrlich',
   'consent.body':
-    'Anonyme Analysen laufen immer — so erkennen wir, was kaputt ist, und reparieren es für jeden Hundeliebhaber, der hereinkommt. Sitzungsaufzeichnungen und Marketing schalten sich nur ein, wenn du Ja sagst.',
+    'Wir messen, wie die Seite genutzt wird, um zu reparieren, was kaputt ist — anonym, immer. Bildschirmaufzeichnungen und Werbung nur, wenn du es erlaubst.',
   'consent.acceptAll': 'Alle zulassen',
   'consent.necessary': 'Nur das Nötigste',
-  'consent.settings': 'Ich wähle selbst',
-  'consent.save': 'Meine Auswahl speichern',
+  'consent.settings': 'Wählen',
+  'consent.save': 'Speichern',
   'consent.analytics.label': 'Analysen & Aufzeichnungen',
   'consent.analytics.desc':
-    'Schaltet vollständige Produktanalysen und Sitzungswiederholungen ein, damit wir sehen, wo Hundeliebhaber hängenbleiben, und den Weg ebnen.',
+    'Vollständige Analysen und Sitzungswiederholungen — so sehen wir, wo Hundeliebhaber hängenbleiben.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Erlaubt uns Werbe-Cookies (wie das Meta Pixel), um neue Hundeliebhaber zu erreichen. Vorerst aus — wir schalten es erst später ein.',
+    'Werbe-Cookies (wie das Meta Pixel), um neue Hundeliebhaber zu erreichen. Vorerst aus.',
   'consent.footerLink': 'Cookie-Einstellungen',
 
   // ── /about — Council (We Need You) ──

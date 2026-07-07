@@ -770,19 +770,19 @@ export const sk: Partial<Dict> = {
     'Súkromie a osobné údaje: privacy@dogypt.com · Všeobecné otázky: info@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Nastavenia cookies") ──
-  'consent.title': 'Nič tu neskrývame',
+  'consent.title': 'Krátko a úprimne',
   'consent.body':
-    'Anonymná analytika beží stále — takto zistíme, čo je pokazené, a opravíme to pre každého psíčkara, ktorý sem príde. Nahrávanie relácií a marketing sa zapnú len vtedy, ak povieš áno.',
+    'Meriame, ako sa web používa, aby sme opravili, čo je pokazené — anonymne, vždy. Nahrávanie obrazovky a reklamy len vtedy, ak nám to dovolíš.',
   'consent.acceptAll': 'Povoliť všetko',
   'consent.necessary': 'Len nevyhnutné',
-  'consent.settings': 'Chcem si vybrať',
-  'consent.save': 'Uložiť moje voľby',
+  'consent.settings': 'Vybrať si',
+  'consent.save': 'Uložiť',
   'consent.analytics.label': 'Analytika a nahrávania',
   'consent.analytics.desc':
-    'Zapne plnú produktovú analytiku a záznamy relácií, aby sme videli, kde sa psíčkari zaseknú, a vyhladili im cestu.',
+    'Plná analytika a záznamy relácií — aby sme videli, kde sa psíčkari zaseknú.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Umožní nám používať reklamné cookies (ako Meta Pixel) na oslovenie nových psíčkarov. Zatiaľ vypnuté — zapneme ho až neskôr.',
+    'Reklamné cookies (ako Meta Pixel) na oslovenie nových psíčkarov. Zatiaľ vypnuté.',
   'consent.footerLink': 'Nastavenia cookies',
 
   // ── /about — Council (We Need You) — STROJOVÝ PREKLAD, čaká review ──

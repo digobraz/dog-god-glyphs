@@ -691,19 +691,19 @@ export const pol: Partial<Dict> = {
     'Prywatność i dane osobowe: privacy@dogypt.com · Pytania ogólne: info@dogypt.com · Poczta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Słowacja.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Ustawienia plików cookie") ──
-  'consent.title': 'Niczego tu nie ukrywamy',
+  'consent.title': 'Krótko i szczerze',
   'consent.body':
-    'Anonimowa analityka działa zawsze — tak wychwytujemy to, co jest zepsute, i naprawiamy dla każdego miłośnika psów, który tu zagląda. Nagrywanie sesji i marketing włączają się tylko wtedy, gdy powiesz tak.',
+    'Mierzymy, jak używa się strony, żeby naprawić to, co zepsute — anonimowo, zawsze. Nagrywanie ekranu i reklamy tylko za twoją zgodą.',
   'consent.acceptAll': 'Zezwól na wszystko',
   'consent.necessary': 'Tylko niezbędne',
-  'consent.settings': 'Chcę wybrać',
-  'consent.save': 'Zapisz moje wybory',
+  'consent.settings': 'Wybieram',
+  'consent.save': 'Zapisz',
   'consent.analytics.label': 'Analityka i nagrania',
   'consent.analytics.desc':
-    'Włącza pełną analitykę produktową i nagrania sesji, abyśmy widzieli, gdzie miłośnicy psów się zacinają, i wygładzili im drogę.',
+    'Pełna analityka i nagrania sesji — żebyśmy widzieli, gdzie miłośnicy psów się zacinają.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Pozwala nam używać plików cookie reklamowych (takich jak Meta Pixel) do docierania do nowych miłośników psów. Na razie wyłączone — włączymy je dopiero później.',
+    'Reklamowe pliki cookie (jak Meta Pixel), by docierać do nowych miłośników psów. Na razie wyłączone.',
   'consent.footerLink': 'Ustawienia plików cookie',
 
   // ── /about — Council (We Need You) — STROJOVÝ PREKLAD, čaká review ──
