@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -13,9 +13,13 @@ const T = PACK_THEME;
 //   • označiť živého psa ako anjela (s kontrolnou otázkou "Si si istý? — Áno")
 //   • doplniť / upraviť dátum úmrtia u psa už označeného ako deceased
 // Zápis: dogs.life_status = 'deceased' + dogs.death_date (yyyy-mm-dd).
-// Zobrazenie dvoch počítadiel rieši PackDogDetail (V3) — tento komponent len edituje.
+//
+// FIX9 polish: akcia sa už nespúšťa inline na prednej strane profilu (morbídne
+// pri živom psovi) — trigger žije v Documents paneli (PackDogDetail), tento
+// komponent je odteraz ČISTO modal, otváraný/riadený zvonku cez `open` +
+// `initialStep`. Zobrazenie dvoch počítadiel rieši PackDogDetail (V3).
 
-type Mode = 'idle' | 'confirm' | 'date';
+type Step = 'confirm' | 'date';
 
 interface Props {
   dogId: string;
@@ -24,22 +28,38 @@ interface Props {
   deathDate: string | null;   // yyyy-mm-dd alebo null
   birthYear: number | null;
   poss: string;               // his / her / their (pre EN copy)
+  open: boolean;
+  initialStep: Step;
+  onClose: () => void;
   onSaved: (deathISO: string) => void;
 }
 
-export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYear, poss, onSaved }: Props) {
+export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYear, poss, open, initialStep, onClose, onSaved }: Props) {
   const t = useT();
   const { toast } = useToast();
   const now = new Date();
 
-  const [mode, setMode] = useState<Mode>('idle');
+  const [step, setStep] = useState<Step>(initialStep);
   const [saving, setSaving] = useState(false);
 
-  // Predvyplniť picker existujúcim dátumom (edit) alebo dneškom (nový).
   const init = deathDate ? new Date(deathDate) : now;
   const [d, setD] = useState(init.getDate());
   const [m, setM] = useState(init.getMonth() + 1);
   const [y, setY] = useState(init.getFullYear());
+
+  // Zakaždým keď sa modal otvorí, nastav krok podľa triggeru a predvyplň picker
+  // existujúcim dátumom (edit) alebo dneškom (nový záznam).
+  useEffect(() => {
+    if (!open) return;
+    setStep(initialStep);
+    const seed = deathDate ? new Date(deathDate) : new Date();
+    setD(seed.getDate());
+    setM(seed.getMonth() + 1);
+    setY(seed.getFullYear());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialStep, deathDate]);
+
+  if (!open) return null;
 
   const minYear = birthYear && birthYear >= 1990 ? birthYear : 1990;
 
@@ -60,7 +80,7 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
       if (error) throw new Error(error.message);
       toast({ title: t('pack.dog.toastSaved') });
       onSaved(iso);
-      setMode('idle');
+      onClose();
     } catch (err) {
       toast({
         title: t('pack.dog.toastCouldNotSave'),
@@ -72,111 +92,97 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
     }
   };
 
-  const linkStyle: React.CSSProperties = {
-    fontFamily: "'Cinzel', serif",
-    fontSize: 11,
-    letterSpacing: '0.08em',
-    textTransform: 'uppercase',
-    color: T.inkDim,
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    textDecoration: 'underline',
-    textUnderlineOffset: 3,
-    padding: '4px 6px',
-  };
-
   const primaryBtn: React.CSSProperties = {
-    padding: '8px 18px',
-    borderRadius: 999,
-    background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
+    padding: '9px 20px',
+    borderRadius: 10,
+    background: 'linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%)',
+    border: '1px solid rgba(250, 244, 236, 0.30)',
     color: '#3d1f00',
     fontFamily: "'Cinzel', serif",
-    fontSize: 13,
+    fontSize: 11,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
     fontWeight: 700,
-    border: 'none',
     cursor: saving ? 'default' : 'pointer',
     opacity: saving ? 0.6 : 1,
+    boxShadow: '0 8px 20px -8px rgba(201, 154, 63, 0.65)',
   };
 
   const ghostBtn: React.CSSProperties = {
-    ...primaryBtn,
+    padding: '9px 18px',
+    borderRadius: 10,
     background: 'transparent',
+    border: `1px solid ${T.border}`,
     color: T.inkDim,
-    border: `1px solid ${T.hairline}`,
+    fontFamily: "'Cinzel', serif",
+    fontSize: 11,
+    letterSpacing: '0.14em',
+    textTransform: 'uppercase',
+    cursor: saving ? 'default' : 'pointer',
   };
 
-  // ── DATE picker (doplniť / upraviť dátum úmrtia) ──
-  if (mode === 'date') {
-    return (
-      <div className="w-full flex flex-col items-center gap-3" style={{ marginTop: 12, maxWidth: 340 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontSize: 12, letterSpacing: '0.08em', textTransform: 'uppercase', color: T.ink, textAlign: 'center' }}>
-          {t('pack.dog.memorial.datePrompt', { name: dogName })}
-        </div>
-        <DateDropdowns
-          day={d}
-          month={m}
-          year={y}
-          minYear={minYear}
-          maxYear={now.getFullYear()}
-          maxDate={now}
-          onChange={(nd, nm, ny) => { setD(nd); setM(nm); setY(ny); }}
-        />
-        <div className="flex items-center gap-2">
-          <button type="button" style={ghostBtn} disabled={saving} onClick={() => setMode('idle')}>
-            {t('pack.dog.memorial.cancel')}
-          </button>
-          <button type="button" style={primaryBtn} disabled={saving} onClick={() => void save()}>
-            {t('pack.dog.memorial.save')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── CONFIRM ("Si si istý? — Áno") ──
-  if (mode === 'confirm') {
-    return (
-      <div className="w-full flex flex-col items-center gap-2.5" style={{ marginTop: 12, maxWidth: 340 }}>
-        <div style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, color: T.ink }}>
-          {t('pack.dog.memorial.confirmTitle')}
-        </div>
-        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkDim, textAlign: 'center', lineHeight: 1.4 }}>
-          {t('pack.dog.memorial.confirmBody', { name: dogName })}
-        </div>
-        <div className="flex items-center gap-2" style={{ marginTop: 4 }}>
-          <button type="button" style={ghostBtn} onClick={() => setMode('idle')}>
-            {t('pack.dog.memorial.cancel')}
-          </button>
-          <button type="button" style={primaryBtn} onClick={() => setMode('date')}>
-            {t('pack.dog.memorial.confirmYes')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ── IDLE ──
-  // Deceased bez dátumu → výzva doplniť (kľúčové pre psy zapísané pred FIX9).
-  if (isDeceased && !deathDate) {
-    return (
-      <button type="button" style={{ ...linkStyle, color: T.accentGold }} onClick={() => setMode('date')}>
-        🕊 {t('pack.dog.memorial.addDate', { name: dogName })}
-      </button>
-    );
-  }
-  // Deceased s dátumom → decentná možnosť upraviť.
-  if (isDeceased && deathDate) {
-    return (
-      <button type="button" style={linkStyle} onClick={() => setMode('date')}>
-        {t('pack.dog.memorial.editDate')}
-      </button>
-    );
-  }
-  // Alive → decentná možnosť označiť ako anjela.
   return (
-    <button type="button" style={linkStyle} onClick={() => setMode('confirm')}>
-      🕊 {t('pack.dog.memorial.markLink')}
-    </button>
+    <div
+      className="fixed inset-0 flex items-center justify-center"
+      style={{ zIndex: 50, background: 'rgba(10,8,20,0.72)', backdropFilter: 'blur(3px)' }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+          border: `1px solid rgba(201, 154, 63, 0.40)`,
+          borderRadius: 20,
+          padding: '28px 26px',
+          maxWidth: 360,
+          width: '90vw',
+          boxShadow: '0 28px 60px -18px rgba(20,8,40,0.6)',
+        }}
+      >
+        {step === 'confirm' ? (
+          <>
+            <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, letterSpacing: '0.08em', color: T.ink, marginBottom: 10 }}>
+              {t('pack.dog.memorial.confirmTitle')}
+            </h3>
+            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.5, color: T.inkDim, marginBottom: 22 }}>
+              {t('pack.dog.memorial.confirmBody', { name: dogName })}
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button type="button" style={ghostBtn} onClick={onClose}>
+                {t('pack.dog.memorial.cancel')}
+              </button>
+              <button type="button" style={primaryBtn} onClick={() => setStep('date')}>
+                {t('pack.dog.memorial.confirmYes')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 style={{ fontFamily: "'Cinzel', serif", fontSize: 14, fontWeight: 700, letterSpacing: '0.06em', color: T.ink, marginBottom: 16, textAlign: 'center' }}>
+              {t('pack.dog.memorial.datePrompt', { name: dogName })}
+            </h3>
+            <div className="flex justify-center" style={{ marginBottom: 22 }}>
+              <DateDropdowns
+                day={d}
+                month={m}
+                year={y}
+                minYear={minYear}
+                maxYear={now.getFullYear()}
+                maxDate={now}
+                onChange={(nd, nm, ny) => { setD(nd); setM(nm); setY(ny); }}
+              />
+            </div>
+            <div className="flex items-center gap-3 justify-end">
+              <button type="button" style={ghostBtn} disabled={saving} onClick={onClose}>
+                {t('pack.dog.memorial.cancel')}
+              </button>
+              <button type="button" style={primaryBtn} disabled={saving} onClick={() => void save()}>
+                {t('pack.dog.memorial.save')}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

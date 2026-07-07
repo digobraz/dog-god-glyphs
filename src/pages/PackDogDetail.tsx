@@ -159,6 +159,9 @@ export default function PackDogDetail() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showCert, setShowCert] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [wallOpen, setWallOpen] = useState(false);
+  const [memorialOpen, setMemorialOpen] = useState(false);
+  const [memorialStep, setMemorialStep] = useState<'confirm' | 'date'>('confirm');
   // SECTIONS NAV — jedna otvorená dlaždica naraz (Health/Training/Journal). accordion.
   const [openTile, setOpenTile] = useState<null | 'health' | 'training' | 'journal'>(null);
   const toggleTile = (t: 'health' | 'training' | 'journal') =>
@@ -401,6 +404,7 @@ export default function PackDogDetail() {
       if (upErr) throw new Error(upErr.message);
       setDog({ ...dog, grid_message: next || null });
       setMessageDirty(false);
+      setWallOpen(false);
       toast({ title: t('pack.dog.toastMessageSaved'), description: t('pack.dog.toastMessageSavedDesc') });
     } catch (err) {
       toast({
@@ -737,13 +741,16 @@ export default function PackDogDetail() {
                 tooltipSide="right"
                 soon
               />
-              <IconBtn
-                icon={<BrandIcon name="alert" size={16} tint="danger" />}
-                label={t('pack.dog.lostDogTooltip')}
-                tooltipSide="right"
-                soon
-                danger
-              />
+              {/* FIX9: deceased pes sa nestráca — schovaj "Report lost dog" ikonu. */}
+              {!isDeceased && (
+                <IconBtn
+                  icon={<BrandIcon name="alert" size={16} tint="danger" />}
+                  label={t('pack.dog.lostDogTooltip')}
+                  tooltipSide="right"
+                  soon
+                  danger
+                />
+              )}
             </div>
             {/* — Papyrus (profil & dokumenty) vpravo hore — */}
             <div className="absolute flex items-center gap-2" style={{ top: 16, right: 16, zIndex: 4 }}>
@@ -799,9 +806,9 @@ export default function PackDogDetail() {
               style={{ display: 'none' }}
             />
 
-            {/* Meno + pulzujúca „alive" bodka vľavo */}
+            {/* Meno + pulzujúca „alive" bodka vľavo (FIX9: deceased → statický anjelský znak, žiadny pulz) */}
             <div className="flex items-center justify-center" style={{ marginTop: 12, gap: 10 }}>
-              <AliveDot />
+              {isDeceased ? <AngelDot /> : <AliveDot />}
               <h1
                 style={{
                   fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
@@ -861,17 +868,19 @@ export default function PackDogDetail() {
                   background: '#1a1a1a',
                 }}
               />
-              {/* Health */}
-              <HealthBadge
-                status={healthStatus}
-                open={healthOpen}
-                onToggle={() => setHealthOpen((v) => !v)}
-                onSelect={(k) => {
-                  setHealthStatus(k);
-                  setHealthOpen(false);
-                  void saveHealthFields({ health_status: k });
-                }}
-              />
+              {/* Health — FIX9: deceased pes = needitovateľný memoriálny čip, žiadny dropdown */}
+              {isDeceased ? <InLovingMemoryBadge /> : (
+                <HealthBadge
+                  status={healthStatus}
+                  open={healthOpen}
+                  onToggle={() => setHealthOpen((v) => !v)}
+                  onSelect={(k) => {
+                    setHealthStatus(k);
+                    setHealthOpen(false);
+                    void saveHealthFields({ health_status: k });
+                  }}
+                />
+              )}
             </div>
 
             {/* Heroglyf — čierny (vyplní spoločný wrapper, takže = šírka badge riadku) */}
@@ -912,15 +921,6 @@ export default function PackDogDetail() {
                     </div>
                   )}
                 </div>
-                <MemorialControl
-                  dogId={dog.id}
-                  dogName={dogName}
-                  isDeceased
-                  deathDate={dog.death_date ?? null}
-                  birthYear={dog.birth_year}
-                  poss={P.poss}
-                  onSaved={(iso) => setDog((prev) => (prev ? { ...prev, life_status: 'deceased', death_date: iso } : prev))}
-                />
               </div>
             ) : (
               <div className="flex flex-col items-center gap-1.5" style={{ marginTop: 12 }}>
@@ -940,15 +940,6 @@ export default function PackDogDetail() {
                     {t('pack.dog.birthdayUnknown')}
                   </div>
                 )}
-                <MemorialControl
-                  dogId={dog.id}
-                  dogName={dogName}
-                  isDeceased={false}
-                  deathDate={null}
-                  birthYear={dog.birth_year}
-                  poss={P.poss}
-                  onSaved={(iso) => setDog((prev) => (prev ? { ...prev, life_status: 'deceased', death_date: iso } : prev))}
-                />
               </div>
             )}
             </div>
@@ -964,7 +955,7 @@ export default function PackDogDetail() {
                 background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
                 borderRadius: 22,
                 padding: 18,
-                overflowY: 'auto',
+                overflowY: 'visible',
               }}
             >
               <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
@@ -1073,8 +1064,81 @@ export default function PackDogDetail() {
                 );
               })()}
 
-              {/* A word on the Wall — second (pre-filled with the dog's current message; Save persists) */}
-              <div style={{ marginTop: 14 }}>
+              {/* A word on the Wall — trigger opens a popup so the panel never scrolls */}
+              <button
+                type="button"
+                onClick={() => setWallOpen(true)}
+                className="inline-flex items-center justify-center gap-2 w-full"
+                style={{
+                  marginTop: 14,
+                  background: 'rgba(201, 154, 63, 0.07)',
+                  border: '1px solid rgba(201, 154, 63, 0.30)',
+                  padding: '8px 12px',
+                  borderRadius: 10,
+                  fontFamily: "'Cinzel', serif",
+                  fontSize: 9.5,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: T.ink,
+                  cursor: 'pointer',
+                }}
+              >
+                <BrandIcon name="heartpaw" size={12} tint="gold" />
+                {t('pack.dog.wordOnWall')}
+              </button>
+
+              {/* Memorial — decisive, clearly actionable, last in the panel. Never on the
+                  front of a living dog's card (FIX9 polish); lives here behind a hairline divider. */}
+              <div style={{ marginTop: 10, paddingTop: 12, borderTop: `1px solid ${T.hairline}` }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMemorialStep(isDeceased ? 'date' : 'confirm');
+                    setMemorialOpen(true);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 w-full"
+                  style={{
+                    background: T.ink,
+                    color: T.card,
+                    border: 'none',
+                    padding: '9px 14px',
+                    borderRadius: 10,
+                    fontFamily: "'Cinzel', serif",
+                    fontSize: 9.5,
+                    letterSpacing: '0.18em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  🕊 {isDeceased ? t('pack.dog.memorial.editDate') : t('pack.dog.memorial.markLink')}
+                </button>
+              </div>
+            </div>
+            )}
+          </section>
+
+          {/* Wall word popup — writing/saving the Wall message off the card, so the
+              back panel stays short and never scrolls (Matej 2026-07-07). */}
+          {wallOpen && (
+            <div
+              className="fixed inset-0 flex items-center justify-center"
+              style={{ zIndex: 50, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(3px)' }}
+              onClick={() => setWallOpen(false)}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
+                  border: `1px solid rgba(201, 154, 63, 0.40)`,
+                  borderRadius: 20,
+                  padding: '24px 22px',
+                  maxWidth: 360,
+                  width: '90vw',
+                  boxShadow: '0 28px 60px -18px rgba(20,8,40,0.6)',
+                }}
+              >
                 <div className="flex items-center justify-between mb-1.5">
                   <SectionHeading icon={<BrandIcon name="heartpaw" size={12} tint="gold" />} label={t('pack.dog.wordOnWall')} inline />
                   <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 9.5, color: T.inkDim }}>
@@ -1087,8 +1151,9 @@ export default function PackDogDetail() {
                     setMessageDraft(e.target.value.slice(0, MESSAGE_MAX));
                     setMessageDirty(true);
                   }}
-                  placeholder={t('pack.dog.wallPlaceholder')}
+                  placeholder={isDeceased ? t('pack.dog.wallPlaceholderMemorial', { poss: P.poss }) : t('pack.dog.wallPlaceholder')}
                   rows={5}
+                  autoFocus
                   style={{
                     minHeight: 110,
                     width: '100%',
@@ -1104,7 +1169,27 @@ export default function PackDogDetail() {
                     outline: 'none',
                   }}
                 />
-                <div className="mt-2 flex items-center justify-end">
+                <div className="mt-3 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setWallOpen(false)}
+                    disabled={messageSaving}
+                    style={{
+                      padding: '9px 18px',
+                      borderRadius: 10,
+                      background: 'transparent',
+                      border: `1px solid ${T.hairline}`,
+                      color: T.inkDim,
+                      fontFamily: "'Cinzel', serif",
+                      fontSize: 10,
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      cursor: messageSaving ? 'default' : 'pointer',
+                    }}
+                  >
+                    {t('pack.dog.memorial.cancel')}
+                  </button>
                   <button
                     type="button"
                     onClick={handleSaveMessage}
@@ -1114,11 +1199,11 @@ export default function PackDogDetail() {
                       background: messageDirty ? T.ink : 'transparent',
                       color: messageDirty ? T.card : T.inkFaint,
                       border: messageDirty ? 'none' : `1px solid ${T.hairline}`,
-                      padding: '8px 14px',
-                      borderRadius: 9,
+                      padding: '9px 18px',
+                      borderRadius: 10,
                       fontFamily: "'Cinzel', serif",
                       fontSize: 10,
-                      letterSpacing: '0.22em',
+                      letterSpacing: '0.18em',
                       textTransform: 'uppercase',
                       fontWeight: 700,
                       cursor: messageDirty ? 'pointer' : 'default',
@@ -1132,8 +1217,20 @@ export default function PackDogDetail() {
                 </div>
               </div>
             </div>
-            )}
-          </section>
+          )}
+
+          <MemorialControl
+            dogId={dog.id}
+            dogName={dogName}
+            isDeceased={isDeceased}
+            deathDate={dog.death_date ?? null}
+            birthYear={dog.birth_year}
+            poss={P.poss}
+            open={memorialOpen}
+            initialStep={memorialStep}
+            onClose={() => setMemorialOpen(false)}
+            onSaved={(iso) => setDog((prev) => (prev ? { ...prev, life_status: 'deceased', death_date: iso } : prev))}
+          />
 
           {/* — BLOCK 2 (right): Daily Prayers. LIVE = coming-soon karta; DEV_FULL = plný blok. — */}
           {DEV_FULL ? (
@@ -2802,6 +2899,33 @@ function HealthBadge({
   );
 }
 
+// FIX9: static memorial chip — replaces HealthBadge (+ its dropdown) for a deceased
+// dog. Same grid slot as HealthBadge, but needitovateľné; palette matches AngelBadge.
+function InLovingMemoryBadge() {
+  const t = useT();
+  return (
+    <div
+      className="flex w-full items-center justify-center gap-1.5"
+      style={{
+        padding: '7px 6px',
+        borderRadius: 999,
+        background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
+        border: '1px solid rgba(180,190,210,0.6)',
+        fontFamily: "'Cinzel', serif",
+        fontSize: 9,
+        letterSpacing: '0.16em',
+        textTransform: 'uppercase',
+        fontWeight: 700,
+        color: '#3a4256',
+        lineHeight: 1,
+      }}
+    >
+      <span aria-hidden style={{ fontSize: 11, lineHeight: 1 }}>🕊</span>
+      {t('pack.dog.inLovingMemory')}
+    </div>
+  );
+}
+
 // Pulzujúca svietiaca zelená bodka vľavo od mena = pes žije. Hover → odkaz.
 function AliveDot() {
   const t = useT();
@@ -2847,6 +2971,62 @@ function AliveDot() {
           }}
         >
           {t('pack.dog.stillAliveTooltip')}
+        </span>
+      )}
+    </span>
+  );
+}
+
+// FIX9: static silver dove — replaces AliveDot for a deceased dog. Same size/position,
+// no pulse (pulse = "alive"); palette matches AngelBadge.
+function AngelDot() {
+  const t = useT();
+  const [hover, setHover] = useState(false);
+  return (
+    <span
+      className="relative inline-flex items-center"
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <span
+        role="img"
+        aria-label={t('pack.dog.ariaInAngelForm')}
+        style={{
+          width: 11,
+          height: 11,
+          borderRadius: '50%',
+          flexShrink: 0,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 8,
+          lineHeight: 1,
+          background: 'radial-gradient(circle at 35% 30%, #F4F6FB 0%, #D9DEE8 70%)',
+          boxShadow: '0 0 0 1px rgba(180,190,210,0.6)',
+        }}
+      >
+        🕊
+      </span>
+      {hover && (
+        <span
+          className="absolute"
+          style={{
+            bottom: 'calc(100% + 9px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            zIndex: 8,
+            background: T.ink,
+            color: T.card,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 11,
+            fontWeight: 500,
+            padding: '7px 12px',
+            borderRadius: 9,
+            boxShadow: '0 8px 24px rgba(10,10,10,0.28)',
+          }}
+        >
+          {t('pack.dog.angelFormTooltip')}
         </span>
       )}
     </span>

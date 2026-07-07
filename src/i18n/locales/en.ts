@@ -1205,6 +1205,9 @@ export const en = {
   'pack.dog.livedBestLife': "Lived {poss} best life",
   'pack.dog.inAngelForm': "In angel form",
   'pack.dog.angelSince': "Since {date}",
+  'pack.dog.angelFormTooltip': "In angel form",
+  'pack.dog.ariaInAngelForm': "In angel form",
+  'pack.dog.inLovingMemory': "In loving memory",
   'pack.dog.memorial.markLink': "Mark as an angel",
   'pack.dog.memorial.addDate': "Add the day {name} left",
   'pack.dog.memorial.editDate': "Edit the day of passing",
@@ -1335,6 +1338,7 @@ export const en = {
   'pack.dog.walkLevelDay': "Day",
   'pack.dog.walkLevelUnder1h': "<1h",
   'pack.dog.wallPlaceholder': "A few words shown on your WALL card — a tribute, a memory, a hello to the pack.",
+  'pack.dog.wallPlaceholderMemorial': "A few words in {poss} memory — shown on {poss} WALL card.",
   'pack.dog.wordOnWall': "A word on the Wall",
   // pack.settings
   'pack.settings.account': "Account",
