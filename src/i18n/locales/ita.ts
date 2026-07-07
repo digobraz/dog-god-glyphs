@@ -678,19 +678,19 @@ export const ita: Partial<Dict> = {
     'DOGYPT s.r.o., una società a responsabilità limitata slovacca (IČO 54 444 594), sede legale Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia. Siamo il titolare del trattamento dei dati personali descritti di seguito. Per qualsiasi domanda relativa alla privacy scrivi a privacy@dogypt.com. Non abbiamo nominato un Responsabile della Protezione dei Dati perché il nostro trattamento non raggiunge le soglie dell\'art. 37 del GDPR. Data di entrata in vigore: 4 maggio 2026.',
   'privacy.s2.title': '2. Dati che Raccogliamo',
   'privacy.s2.body':
-    'Quando utilizzi il flusso HEROGLYPH raccogliamo: il tuo indirizzo email, il nome del tuo cane, la foto del tuo cane che carichi (archiviata su Cloudinary), le risposte simboliche che selezioni (sesso, colore, destino, lignaggio, carattere, il tuo zodiaco, la tua iniziale) e la data di nascita del tuo cane se fornita. Stripe raccoglie i tuoi dati di pagamento direttamente — noi riceviamo solo una conferma di pagamento, le ultime 4 cifre della carta e il paese. I nostri server registrano automaticamente dati tecnici (indirizzo IP, user-agent, ora della richiesta) per sicurezza e prevenzione degli abusi.',
+    'Quando utilizzi il flusso HEROGLYPH raccogliamo: il tuo indirizzo email, il nome del tuo cane, la foto del tuo cane che carichi (archiviata su Cloudinary), le risposte simboliche che selezioni (sesso, colore, destino, lignaggio, carattere, il tuo zodiaco, la tua iniziale) e la data di nascita del tuo cane se fornita. Stripe raccoglie i tuoi dati di pagamento direttamente — noi riceviamo solo una conferma di pagamento, le ultime 4 cifre della carta e il paese. I nostri server registrano automaticamente dati tecnici (indirizzo IP, user-agent, ora della richiesta) per sicurezza e prevenzione degli abusi. Raccogliamo anche dati di utilizzo su come ti muovi nel sito (pagine viste, clic, tipo di dispositivo e browser) — anonimizzati per impostazione predefinita e collegati a te solo se acconsenti alle analisi o alle registrazioni.',
   'privacy.s3.title': '3. Come li Usiamo',
   'privacy.s3.body':
     'Usiamo i tuoi dati per: generare e consegnare il tuo certificato HEROGLYPH; inviarti l\'email con il certificato e un piccolo numero di messaggi del branco successivi; mostrare la voce del tuo cane nel GodsGrid pubblico (pubblicamente appaiono solo il nome del cane, la foto e il simbolo HEROGLYPH — mai la tua email, il tuo nome o il tuo codice privato); gestire, proteggere e migliorare il Servizio; rispettare obblighi di legge come la contabilità e la tutela dei consumatori.',
   'privacy.s4.title': '4. Base Giuridica (GDPR)',
   'privacy.s4.body':
-    'Ci basiamo sull\'art. 6(1)(b) GDPR (esecuzione di un contratto) per la consegna dell\'HEROGLYPH e l\'iscrizione al branco; sull\'art. 6(1)(a) (consenso) per qualsiasi email di marketing oltre i messaggi di servizio — puoi revocarlo in qualsiasi momento; sull\'art. 6(1)(f) (legittimo interesse) per il logging di sicurezza, la prevenzione degli abusi e le analisi aggregate; e sull\'art. 6(1)(c) (obbligo legale) per i registri fiscali e contabili.',
+    'Ci basiamo sull\'art. 6(1)(b) GDPR (esecuzione di un contratto) per la consegna dell\'HEROGLYPH e l\'iscrizione al branco; sull\'art. 6(1)(a) (consenso) per le email di marketing oltre i messaggi di servizio, per le registrazioni di sessione e le analisi identificate, e per i cookie pubblicitari — puoi revocare ciascuno di questi in qualsiasi momento; sull\'art. 6(1)(f) (legittimo interesse) per il logging di sicurezza, la prevenzione degli abusi e le analisi aggregate anonime; e sull\'art. 6(1)(c) (obbligo legale) per i registri fiscali e contabili.',
   'privacy.s5.title': '5. Condivisione e Sub-responsabili',
   'privacy.s5.body':
-    'Non vendiamo i tuoi dati. Li condividiamo solo con i sub-responsabili che ci aiutano a gestire il Servizio: Stripe Payments Europe, Ltd. (pagamenti) · Cloudinary Ltd. (archiviazione e consegna foto) · Resend, Inc. (email transazionali) · Supabase, Inc. (database e autenticazione) · WebSupport s.r.o. (hosting web) · GitHub, Inc. (pipeline di deployment). Ogni sub-responsabile è vincolato dal proprio accordo sul trattamento dei dati.',
+    'Non vendiamo i tuoi dati. Li condividiamo solo con i sub-responsabili che ci aiutano a gestire il Servizio: Stripe Payments Europe, Ltd. (pagamenti) · Cloudinary Ltd. (archiviazione e consegna foto) · Resend, Inc. (email transazionali) · Supabase, Inc. (database e autenticazione) · WebSupport s.r.o. (hosting web) · GitHub, Inc. (pipeline di deployment) · PostHog (analisi di prodotto con hosting nell\'UE). Solo se fornisci il consenso al marketing, coinvolgiamo anche Google Ireland Ltd. (Google Analytics 4) e Meta Platforms Ireland Ltd. (Meta Pixel) per misurare le campagne e creare pubblici pubblicitari. Ogni sub-responsabile è vincolato dal proprio accordo sul trattamento dei dati.',
   'privacy.s6.title': '6. Cookie e Tracciamento',
   'privacy.s6.body':
-    'Utilizziamo solo i cookie e l\'archiviazione locale necessari per far funzionare il Servizio (sessione, lingua, le tue selezioni HEROGLYPH in corso). Non eseguiamo pubblicità di terze parti né pixel di tracciamento tra siti. Se aggiungeremo analisi di prodotto rispettose della privacy (come Plausible) aggiorneremo questa sezione prima di attivarle.',
+    'Manteniamo i cookie e l\'archiviazione locale al minimo necessario per far funzionare il Servizio — sessione, lingua e le tue selezioni HEROGLYPH in corso. Per le analisi di prodotto usiamo PostHog, con hosting nell\'UE. Per impostazione predefinita funziona in modalità senza cookie e anonimizzata — nessun tracciamento tra siti e nessuna pubblicità, il modello in stile Plausible — sulla base del nostro legittimo interesse a individuare e correggere ciò che non funziona. Solo se acconsenti attiviamo le analisi identificate e le registrazioni di sessione; e, separatamente, i cookie pubblicitari come Google Analytics 4 e il Meta Pixel, che misurano le campagne e costruiscono pubblici di marketing. Puoi concedere o revocare ciascuno di essi in qualsiasi momento tramite «Impostazioni cookie» nel piè di pagina. Tutti i dati di analisi vengono elaborati su server nell\'UE.',
   'privacy.s7.title': '7. Conservazione',
   'privacy.s7.body':
     'Il tuo HEROGLYPH e il tuo profilo branco vengono conservati finché esiste il tuo account, perché il GodsGrid è il registro a vita di ogni membro del branco. I log delle email transazionali vengono conservati per 12 mesi per supporto e prevenzione frodi. I registri contabili vengono conservati per 10 anni come richiesto dalla legge slovacca (Legge 431/2002 Racc.). Quando ci chiedi di cancellare il tuo account, rimuoviamo gli identificatori personali entro 30 giorni e conserviamo solo il minimo richiesto per legge.',
@@ -699,13 +699,29 @@ export const ita: Partial<Dict> = {
     'Ai sensi del GDPR hai il diritto di accedere ai tuoi dati, di rettificarli, di farli cancellare, di limitare o opporti al trattamento, alla portabilità dei dati e di revocare il consenso in qualsiasi momento. Puoi anche presentare un reclamo all\'autorità di controllo slovacca — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Per esercitare uno qualsiasi di questi diritti scrivi a privacy@dogypt.com — rispondiamo entro 30 giorni.',
   'privacy.s9.title': '9. Trasferimenti Internazionali',
   'privacy.s9.body':
-    'Alcuni dei nostri sub-responsabili (Stripe, Cloudinary, Resend, Supabase, GitHub) gestiscono server al di fuori dell\'UE/SEE, principalmente negli Stati Uniti. Quando i dati personali lasciano l\'UE/SEE ci basiamo sulle Clausole Contrattuali Standard della Commissione Europea, sul Data Privacy Framework UE–USA e su ulteriori garanzie richieste dal Capo V del GDPR.',
+    'Alcuni dei nostri sub-responsabili (Stripe, Cloudinary, Resend, Supabase, GitHub e — con il consenso al marketing — Google e Meta) gestiscono server al di fuori dell\'UE/SEE, principalmente negli Stati Uniti. PostHog elabora le nostre analisi su server nell\'UE. Quando i dati personali lasciano l\'UE/SEE ci basiamo sulle Clausole Contrattuali Standard della Commissione Europea, sul Data Privacy Framework UE–USA e su ulteriori garanzie richieste dal Capo V del GDPR.',
   'privacy.s10.title': '10. Modifiche a Questa Informativa',
   'privacy.s10.body':
     'Ti informeremo delle modifiche sostanziali via email almeno 30 giorni prima della loro entrata in vigore. Le modifiche minori — refusi, aggiornamenti dei nomi dei sub-responsabili, nuovi indirizzi di contatto — hanno effetto al momento della pubblicazione. La versione corrente e la data sono sempre in cima a questa pagina; le versioni precedenti sono disponibili su richiesta.',
   'privacy.s11.title': '11. Contatti',
   'privacy.s11.body':
     'Privacy e richieste sui dati: privacy@dogypt.com · Domande generali: info@dogypt.com · Posta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovacchia.',
+
+  // ── Consent banner (ConsentBanner.tsx + Footer «Impostazioni cookie») ──
+  'consent.title': 'Qui non si nasconde nulla',
+  'consent.body':
+    'Le analisi anonime sono sempre attive — è così che individuiamo cosa non funziona e lo sistemiamo per ogni amante dei cani che entra. Le registrazioni di sessione e il marketing si attivano solo se dici di sì.',
+  'consent.acceptAll': 'Consenti tutto',
+  'consent.necessary': 'Solo il necessario',
+  'consent.settings': 'Preferisco scegliere',
+  'consent.save': 'Salva le mie scelte',
+  'consent.analytics.label': 'Analisi e registrazioni',
+  'consent.analytics.desc':
+    'Attiva le analisi di prodotto complete e i replay di sessione, così possiamo vedere dove si bloccano gli amanti dei cani e spianare la strada.',
+  'consent.marketing.label': 'Marketing',
+  'consent.marketing.desc':
+    'Ci consente di usare cookie pubblicitari (come il Meta Pixel) per raggiungere nuovi amanti dei cani. Per ora disattivato — lo attiviamo solo più avanti.',
+  'consent.footerLink': 'Impostazioni cookie',
 
   // ── /about — Council (We Need You) ──
   'about.council.imgAlt': 'Un faraone con Hekthor e i suoi gatti — Dogypt ha bisogno di te',

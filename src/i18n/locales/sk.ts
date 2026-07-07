@@ -740,19 +740,19 @@ export const sk: Partial<Dict> = {
     'DOGYPT s.r.o., slovenská spoločnosť s ručením obmedzeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Sme prevádzkovateľom osobných údajov opísaných nižšie. S akoukoľvek otázkou o súkromí nám píšte na privacy@dogypt.com. Zodpovednú osobu (DPO) sme nevymenovali, pretože naše spracúvanie nedosahuje prahové hodnoty čl. 37 GDPR. Dátum účinnosti: 4. mája 2026.',
   'privacy.s2.title': '2. Aké údaje zbierame',
   'privacy.s2.body':
-    'Pri používaní HEROGLYPH procesu zbierame: vašu e-mailovú adresu, meno psa, nahranú fotografiu psa (uloženú na Cloudinary), symbolické odpovede, ktoré vyberiete (pohlavie, farba, osud, pokrvná línia, charakter, váš horoskop, vaša iniciála), a dátum narodenia psa, ak ho uvediete. Platobné údaje zbiera priamo Stripe — my dostávame len potvrdenie platby, posledné 4 číslice karty a krajinu. Naše servery automaticky zaznamenávajú technické údaje (IP adresa, user-agent, čas požiadavky) na účely bezpečnosti a prevencie zneužitia.',
+    'Pri používaní HEROGLYPH procesu zbierame: vašu e-mailovú adresu, meno psa, nahranú fotografiu psa (uloženú na Cloudinary), symbolické odpovede, ktoré vyberiete (pohlavie, farba, osud, pokrvná línia, charakter, váš horoskop, vaša iniciála), a dátum narodenia psa, ak ho uvediete. Platobné údaje zbiera priamo Stripe — my dostávame len potvrdenie platby, posledné 4 číslice karty a krajinu. Naše servery automaticky zaznamenávajú technické údaje (IP adresa, user-agent, čas požiadavky) na účely bezpečnosti a prevencie zneužitia. Zbierame aj údaje o používaní o tom, ako sa pohybujete po stránke (zobrazené stránky, kliknutia, typ zariadenia a prehliadača) — predvolene anonymizované a priradené k vám len vtedy, ak udelíte súhlas s analytikou alebo nahrávaniami.',
   'privacy.s3.title': '3. Ako ich používame',
   'privacy.s3.body':
     'Vaše údaje používame na: vygenerovanie a doručenie HEROGLYPH certifikátu; odoslanie e-mailu s certifikátom a malého počtu nadväzujúcich správ svorky; zobrazenie záznamu vášho psa vo verejnom GodsGrid (verejne sa zobrazuje len meno psa, fotografia a HEROGLYPH symbol — nikdy nie váš e-mail, vaše meno ani súkromný kód); prevádzku, zabezpečenie a zlepšovanie Služby; plnenie zákonných povinností, ako sú účtovníctvo a ochrana spotrebiteľa.',
   'privacy.s4.title': '4. Právny základ (GDPR)',
   'privacy.s4.body':
-    'Opierame sa o čl. 6 ods. 1 písm. b) GDPR (plnenie zmluvy) pri dodaní HEROGLYPHu a členstve vo svorke; čl. 6 ods. 1 písm. a) (súhlas) pri marketingových e-mailoch nad rámec servisných správ — súhlas môžete kedykoľvek odvolať; čl. 6 ods. 1 písm. f) (oprávnený záujem) pri bezpečnostnom logovaní, prevencii zneužitia a agregovanej analytike; a čl. 6 ods. 1 písm. c) (zákonná povinnosť) pri daňových a účtovných záznamoch.',
+    'Opierame sa o čl. 6 ods. 1 písm. b) GDPR (plnenie zmluvy) pri dodaní HEROGLYPHu a členstve vo svorke; čl. 6 ods. 1 písm. a) (súhlas) pri marketingových e-mailoch nad rámec servisných správ, pri nahrávaní relácií a identifikovanej analytike a pri reklamných cookies — ktorýkoľvek z nich môžete kedykoľvek odvolať; čl. 6 ods. 1 písm. f) (oprávnený záujem) pri bezpečnostnom logovaní, prevencii zneužitia a anonymnej agregovanej analytike; a čl. 6 ods. 1 písm. c) (zákonná povinnosť) pri daňových a účtovných záznamoch.',
   'privacy.s5.title': '5. Zdieľanie a sprostredkovatelia',
   'privacy.s5.body':
-    'Vaše údaje nepredávame. Zdieľame ich len so sprostredkovateľmi, ktorí nám pomáhajú prevádzkovať Službu: Stripe Payments Europe, Ltd. (platby) · Cloudinary Ltd. (ukladanie a doručovanie fotografií) · Resend, Inc. (transakčné e-maily) · Supabase, Inc. (databáza a autentifikácia) · WebSupport s.r.o. (webhosting) · GitHub, Inc. (nasadzovanie). Každý sprostredkovateľ je viazaný vlastnou zmluvou o spracúvaní údajov.',
+    'Vaše údaje nepredávame. Zdieľame ich len so sprostredkovateľmi, ktorí nám pomáhajú prevádzkovať Službu: Stripe Payments Europe, Ltd. (platby) · Cloudinary Ltd. (ukladanie a doručovanie fotografií) · Resend, Inc. (transakčné e-maily) · Supabase, Inc. (databáza a autentifikácia) · WebSupport s.r.o. (webhosting) · GitHub, Inc. (nasadzovanie) · PostHog (produktová analytika hostovaná v EÚ). Len ak udelíte marketingový súhlas, zapojíme aj Google Ireland Ltd. (Google Analytics 4) a Meta Platforms Ireland Ltd. (Meta Pixel) na meranie kampaní a budovanie reklamných publík. Každý sprostredkovateľ je viazaný vlastnou zmluvou o spracúvaní údajov.',
   'privacy.s6.title': '6. Cookies a sledovanie',
   'privacy.s6.body':
-    'Používame len cookies a lokálne úložisko, ktoré Služba potrebuje na fungovanie (relácia, jazyk, rozpracované HEROGLYPH voľby). Nepoužívame reklamu tretích strán ani sledovacie pixely naprieč stránkami. Ak pridáme analytiku šetrnú k súkromiu (napríklad Plausible), túto sekciu pred jej zapnutím aktualizujeme.',
+    'Cookies a lokálne úložisko udržiavame na minime potrebnom na fungovanie Služby — relácia, jazyk a rozpracované HEROGLYPH voľby. Na produktovú analytiku používame PostHog, hostovaný v EÚ. Predvolene beží v režime bez cookies a anonymizovane — bez sledovania naprieč stránkami a bez reklamy, model v štýle Plausible — na základe nášho oprávneného záujmu nájsť a opraviť to, čo nefunguje. Len ak udelíte súhlas, zapneme identifikovanú analytiku a nahrávanie relácií; a samostatne reklamné cookies, ako sú Google Analytics 4 a Meta Pixel, ktoré merajú kampane a budujú marketingové publiká. Ktorýkoľvek z týchto súhlasov môžete kedykoľvek udeliť alebo odvolať cez „Nastavenia cookies" v pätičke. Všetky analytické údaje sa spracúvajú na serveroch v EÚ.',
   'privacy.s7.title': '7. Uchovávanie údajov',
   'privacy.s7.body':
     'Váš HEROGLYPH a profil svorky uchovávame, kým existuje váš účet, pretože GodsGrid je doživotný register každého člena svorky. Záznamy o transakčných e-mailoch uchovávame 12 mesiacov na účely podpory a prevencie podvodov. Účtovné záznamy uchovávame 10 rokov, ako vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Keď požiadate o vymazanie účtu, osobné identifikátory odstránime do 30 dní a ponecháme len zákonom vyžadované minimum.',
@@ -761,13 +761,29 @@ export const sk: Partial<Dict> = {
     'Podľa GDPR máte právo na prístup k svojim údajom, ich opravu, vymazanie, obmedzenie spracúvania alebo námietku proti nemu, prenosnosť údajov a kedykoľvek odvolať súhlas. Sťažnosť môžete podať aj slovenskému dozornému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Na uplatnenie ktoréhokoľvek z týchto práv napíšte na privacy@dogypt.com — odpovieme do 30 dní.',
   'privacy.s9.title': '9. Medzinárodné prenosy',
   'privacy.s9.body':
-    'Niektorí naši sprostredkovatelia (Stripe, Cloudinary, Resend, Supabase, GitHub) prevádzkujú servery mimo EÚ/EHP, väčšinou v USA. Tam, kde osobné údaje opúšťajú EÚ/EHP, sa opierame o štandardné zmluvné doložky Európskej komisie, rámec EÚ–USA Data Privacy Framework a dodatočné záruky podľa kapitoly V GDPR.',
+    'Niektorí naši sprostredkovatelia (Stripe, Cloudinary, Resend, Supabase, GitHub a — pri marketingovom súhlase — Google a Meta) prevádzkujú servery mimo EÚ/EHP, väčšinou v USA. PostHog spracúva našu analytiku na serveroch v EÚ. Tam, kde osobné údaje opúšťajú EÚ/EHP, sa opierame o štandardné zmluvné doložky Európskej komisie, rámec EÚ–USA Data Privacy Framework a dodatočné záruky podľa kapitoly V GDPR.',
   'privacy.s10.title': '10. Zmeny týchto zásad',
   'privacy.s10.body':
     'O podstatných zmenách vás budeme informovať e-mailom najmenej 30 dní pred nadobudnutím účinnosti. Drobné úpravy — preklepy, zmeny názvov sprostredkovateľov, nové kontaktné adresy — nadobúdajú účinnosť zverejnením. Aktuálna verzia a dátum sú vždy v hornej časti tejto stránky; staršie verzie sú dostupné na požiadanie.',
   'privacy.s11.title': '11. Kontakt',
   'privacy.s11.body':
     'Súkromie a osobné údaje: privacy@dogypt.com · Všeobecné otázky: info@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+
+  // ── Consent banner (ConsentBanner.tsx + Footer „Nastavenia cookies") ──
+  'consent.title': 'Nič tu neskrývame',
+  'consent.body':
+    'Anonymná analytika beží stále — takto zistíme, čo je pokazené, a opravíme to pre každého psíčkara, ktorý sem príde. Nahrávanie relácií a marketing sa zapnú len vtedy, ak povieš áno.',
+  'consent.acceptAll': 'Povoliť všetko',
+  'consent.necessary': 'Len nevyhnutné',
+  'consent.settings': 'Chcem si vybrať',
+  'consent.save': 'Uložiť moje voľby',
+  'consent.analytics.label': 'Analytika a nahrávania',
+  'consent.analytics.desc':
+    'Zapne plnú produktovú analytiku a záznamy relácií, aby sme videli, kde sa psíčkari zaseknú, a vyhladili im cestu.',
+  'consent.marketing.label': 'Marketing',
+  'consent.marketing.desc':
+    'Umožní nám používať reklamné cookies (ako Meta Pixel) na oslovenie nových psíčkarov. Zatiaľ vypnuté — zapneme ho až neskôr.',
+  'consent.footerLink': 'Nastavenia cookies',
 
   // ── /about — Council (We Need You) — STROJOVÝ PREKLAD, čaká review ──
   'about.council.imgAlt': 'Faraón s Hekthorom a svojimi mačkami — Dogypt ťa potrebuje',

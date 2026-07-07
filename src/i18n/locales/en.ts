@@ -824,17 +824,17 @@ export const en = {
   // ── Consent banner (ConsentBanner.tsx + Footer „Cookie settings") ──
   'consent.title': 'Nothing Hidden Here',
   'consent.body':
-    'Anonymous analytics always run — it’s how we spot what’s broken and fix it for every dog lover who walks in. Session recordings and marketing only switch on if you say yes.',
+    'Anonymous analytics always run — that’s how we fix what’s broken. Recordings and marketing only if you say yes.',
   'consent.acceptAll': 'Allow all',
-  'consent.necessary': 'Only what’s needed',
-  'consent.settings': 'Let me choose',
-  'consent.save': 'Save my choices',
+  'consent.necessary': 'Only necessary',
+  'consent.settings': 'Choose',
+  'consent.save': 'Save',
   'consent.analytics.label': 'Analytics & recordings',
   'consent.analytics.desc':
-    'Turns on full product analytics and session replays, so we can see where dog lovers get stuck and smooth the path.',
+    'Full analytics and session replays — so we see where dog lovers get stuck.',
   'consent.marketing.label': 'Marketing',
   'consent.marketing.desc':
-    'Lets us use advertising cookies (like the Meta Pixel) to reach new dog lovers. Off for now — we only switch it on later.',
+    'Ad cookies (like the Meta Pixel) to reach new dog lovers. Off for now.',
   'consent.footerLink': 'Cookie settings',
 
   // ── /about — Council (We Need You) ──

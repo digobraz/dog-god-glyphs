@@ -72,7 +72,8 @@ export function ConsentBanner() {
       <style>{`
         .consent-banner {
           position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;
-          background: #000; border-top: 1px solid rgba(201,154,63,0.30);
+          background: #F5EEDF; border-top: 1px solid rgba(201,154,63,0.55);
+          box-shadow: 0 -6px 26px rgba(0,0,0,0.28);
           padding: clamp(18px, 3vh, 26px) clamp(18px, 5vw, 48px);
         }
         .consent-inner {
@@ -85,11 +86,11 @@ export function ConsentBanner() {
         .consent-title {
           font-family: 'Cinzel', serif; font-weight: 700;
           font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
-          color: rgba(201,154,63,0.9); margin: 0 0 6px;
+          color: #1a1206; margin: 0 0 6px;
         }
         .consent-body {
           font-family: 'Space Grotesk', sans-serif; font-size: 0.86rem; line-height: 1.6;
-          color: rgba(250,244,236,0.78); margin: 0; max-width: 640px;
+          color: #2a2013; margin: 0; max-width: 640px;
         }
         .consent-actions {
           display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;
@@ -99,53 +100,55 @@ export function ConsentBanner() {
         }
         .consent-btn-primary {
           background: linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-          border: 1px solid rgba(250,244,236,0.30); border-radius: 8px;
+          border: 1px solid rgba(26,18,6,0.28); border-radius: 8px;
           color: #000; font-family: 'Cinzel', serif; font-weight: 700;
           letter-spacing: 0.12em; text-transform: uppercase;
           padding: 12px 26px; cursor: pointer; font-size: 0.78rem;
         }
         .consent-btn-secondary {
-          background: transparent; border: 1px solid rgba(250,244,236,0.30);
-          border-radius: 8px; color: rgba(250,244,236,0.78);
+          background: transparent; border: 1px solid rgba(26,18,6,0.35);
+          border-radius: 8px; color: #2a2013;
           font-family: 'Cinzel', serif; font-weight: 700;
           letter-spacing: 0.12em; text-transform: uppercase;
           padding: 12px 26px; cursor: pointer; font-size: 0.78rem;
         }
+        .consent-btn-secondary:hover { background: rgba(26,18,6,0.06); }
         .consent-btn-link {
           background: none; border: none; cursor: pointer; padding: 4px 0;
           font-family: 'Space Grotesk', sans-serif; font-size: 0.82rem;
-          color: rgba(250,244,236,0.55); text-decoration: underline;
+          color: rgba(42,32,19,0.72); text-decoration: underline;
           text-underline-offset: 3px; align-self: flex-start;
         }
-        .consent-btn-link:hover { color: rgba(250,244,236,0.9); }
+        .consent-btn-link:hover { color: #1a1206; }
         @media (max-width: 759px) {
           .consent-btn-primary, .consent-btn-secondary { width: 100%; }
         }
         .consent-settings {
           display: flex; flex-direction: column; gap: 14px;
           margin-top: 4px; padding-top: 16px;
-          border-top: 1px solid rgba(201,154,63,0.20);
+          border-top: 1px solid rgba(26,18,6,0.15);
         }
         .consent-toggle-row {
           display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
         }
         .consent-toggle-label {
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.78rem;
-          letter-spacing: 0.06em; color: rgba(250,244,236,0.9); margin: 0 0 4px;
+          letter-spacing: 0.06em; color: #1a1206; margin: 0 0 4px;
         }
         .consent-toggle-desc {
           font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; line-height: 1.5;
-          color: rgba(250,244,236,0.55); margin: 0; max-width: 460px;
+          color: rgba(42,32,19,0.72); margin: 0; max-width: 460px;
         }
         .consent-switch {
           position: relative; flex-shrink: 0; width: 44px; height: 24px;
-          border-radius: 999px; border: 1px solid rgba(250,244,236,0.30);
-          background: rgba(250,244,236,0.08); cursor: pointer;
+          border-radius: 999px; border: 1px solid rgba(26,18,6,0.30);
+          background: rgba(26,18,6,0.12); cursor: pointer;
         }
-        .consent-switch[data-on="true"] { background: rgba(201,154,63,0.55); border-color: rgba(201,154,63,0.7); }
+        .consent-switch[data-on="true"] { background: rgba(201,154,63,0.85); border-color: rgba(201,154,63,0.95); }
         .consent-switch-knob {
           position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
-          border-radius: 50%; background: #FAF4EC; transition: transform .15s ease;
+          border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.35);
+          transition: transform .15s ease;
         }
         .consent-switch[data-on="true"] .consent-switch-knob { transform: translateX(20px); }
       `}</style>

@@ -679,19 +679,19 @@ export const esp: Partial<Dict> = {
     'DOGYPT s.r.o., una sociedad de responsabilidad limitada eslovaca (IČO 54 444 594), domicilio social Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Eslovaquia. Somos el responsable de los datos personales descritos a continuación. Para cualquier cuestión relacionada con la privacidad, escribe a privacy@dogypt.com. No hemos nombrado un Delegado de Protección de Datos porque nuestro tratamiento no alcanza los umbrales del art. 37 del RGPD. Fecha de entrada en vigor: 4 de mayo de 2026.',
   'privacy.s2.title': '2. Datos que Recopilamos',
   'privacy.s2.body':
-    'Cuando usas el flujo HEROGLYPH recopilamos: tu dirección de correo electrónico, el nombre de tu perro, la foto de tu perro que subes (almacenada en Cloudinary), las respuestas simbólicas que eliges (sexo, color, destino, linaje, carácter, tu zodíaco, tu inicial) y la fecha de nacimiento de tu perro si la facilitas. Stripe recopila tus datos de pago directamente — nosotros recibimos solo una confirmación de pago, los últimos 4 dígitos de la tarjeta y el país. Nuestros servidores registran automáticamente datos técnicos (dirección IP, agente de usuario, hora de la solicitud) para seguridad y prevención de abusos.',
+    'Cuando usas el flujo HEROGLYPH recopilamos: tu dirección de correo electrónico, el nombre de tu perro, la foto de tu perro que subes (almacenada en Cloudinary), las respuestas simbólicas que eliges (sexo, color, destino, linaje, carácter, tu zodíaco, tu inicial) y la fecha de nacimiento de tu perro si la facilitas. Stripe recopila tus datos de pago directamente — nosotros recibimos solo una confirmación de pago, los últimos 4 dígitos de la tarjeta y el país. Nuestros servidores registran automáticamente datos técnicos (dirección IP, agente de usuario, hora de la solicitud) para seguridad y prevención de abusos. También recopilamos datos de uso sobre cómo te mueves por el sitio (páginas vistas, clics, tipo de dispositivo y navegador) — anonimizados por defecto y vinculados a ti solo si consientes la analítica o las grabaciones.',
   'privacy.s3.title': '3. Cómo los Usamos',
   'privacy.s3.body':
     'Usamos tus datos para: generar y entregar tu certificado HEROGLYPH; enviarte el correo con el certificado y un pequeño número de mensajes de seguimiento de la jauría; mostrar la entrada de tu perro en el GodsGrid público (solo aparecen públicamente el nombre del perro, la foto y el símbolo HEROGLYPH — nunca tu correo, tu nombre ni tu código privado); operar, asegurar y mejorar el Servicio; cumplir obligaciones legales como la contabilidad y la protección del consumidor.',
   'privacy.s4.title': '4. Base Legal (RGPD)',
   'privacy.s4.body':
-    'Nos basamos en el art. 6(1)(b) del RGPD (ejecución de un contrato) para la entrega del HEROGLYPH y la membresía de la jauría; en el art. 6(1)(a) (consentimiento) para cualquier correo de marketing más allá de los mensajes del servicio — puedes retirarlo en cualquier momento; en el art. 6(1)(f) (interés legítimo) para el registro de seguridad, la prevención de abusos y la analítica agregada; y en el art. 6(1)(c) (obligación legal) para los registros fiscales y contables.',
+    'Nos basamos en el art. 6(1)(b) del RGPD (ejecución de un contrato) para la entrega del HEROGLYPH y la membresía de la jauría; en el art. 6(1)(a) (consentimiento) para el correo de marketing más allá de los mensajes del servicio, para las grabaciones de sesión y la analítica identificada, y para las cookies publicitarias — puedes retirar cualquiera de ellos en cualquier momento; en el art. 6(1)(f) (interés legítimo) para el registro de seguridad, la prevención de abusos y la analítica agregada anónima; y en el art. 6(1)(c) (obligación legal) para los registros fiscales y contables.',
   'privacy.s5.title': '5. Compartición y Subencargados',
   'privacy.s5.body':
-    'No vendemos tus datos. Solo los compartimos con subencargados que nos ayudan a operar el Servicio: Stripe Payments Europe, Ltd. (pagos) · Cloudinary Ltd. (almacenamiento y entrega de fotos) · Resend, Inc. (correo transaccional) · Supabase, Inc. (base de datos y autenticación) · WebSupport s.r.o. (alojamiento web) · GitHub, Inc. (canal de despliegue). Cada subencargado está vinculado por su propio acuerdo de tratamiento de datos.',
+    'No vendemos tus datos. Solo los compartimos con subencargados que nos ayudan a operar el Servicio: Stripe Payments Europe, Ltd. (pagos) · Cloudinary Ltd. (almacenamiento y entrega de fotos) · Resend, Inc. (correo transaccional) · Supabase, Inc. (base de datos y autenticación) · WebSupport s.r.o. (alojamiento web) · GitHub, Inc. (canal de despliegue) · PostHog (analítica de producto alojada en la UE). Solo si das tu consentimiento de marketing, recurrimos también a Google Ireland Ltd. (Google Analytics 4) y Meta Platforms Ireland Ltd. (Meta Pixel) para medir campañas y crear audiencias publicitarias. Cada subencargado está vinculado por su propio acuerdo de tratamiento de datos.',
   'privacy.s6.title': '6. Cookies y Rastreo',
   'privacy.s6.body':
-    'Usamos solo las cookies y el almacenamiento local que necesitamos para que el Servicio funcione (sesión, idioma, tus selecciones de HEROGLYPH en curso). No ejecutamos publicidad de terceros ni píxeles de rastreo entre sitios. Si añadimos analítica de producto respetuosa con la privacidad (como Plausible), actualizaremos esta sección antes de activarla.',
+    'Mantenemos las cookies y el almacenamiento local al mínimo necesario para que el Servicio funcione — sesión, idioma y tus selecciones de HEROGLYPH en curso. Para la analítica de producto usamos PostHog, alojado en la UE. Por defecto funciona en un modo sin cookies y anonimizado — sin rastreo entre sitios y sin publicidad, el modelo al estilo de Plausible — sobre la base de nuestro interés legítimo en detectar y corregir lo que falla. Solo si das tu consentimiento activamos la analítica identificada y las grabaciones de sesión; y, por separado, cookies publicitarias como Google Analytics 4 y el Meta Pixel, que miden campañas y construyen audiencias de marketing. Puedes otorgar o retirar cualquiera de ellos en cualquier momento a través de «Configuración de cookies» en el pie de página. Todos los datos de analítica se procesan en servidores de la UE.',
   'privacy.s7.title': '7. Conservación',
   'privacy.s7.body':
     'Tu HEROGLYPH y tu perfil de jauría se conservan mientras exista tu cuenta, porque el GodsGrid es el registro vitalicio de cada miembro de la jauría. Los registros de correo transaccional se conservan durante 12 meses para soporte y prevención del fraude. Los registros contables se conservan durante 10 años según exige la ley eslovaca (Ley 431/2002 Coll.). Cuando nos pides eliminar tu cuenta, eliminamos los identificadores personales en un plazo de 30 días y conservamos solo el mínimo legalmente exigido.',
@@ -700,13 +700,29 @@ export const esp: Partial<Dict> = {
     'Conforme al RGPD tienes derecho a acceder a tus datos, a rectificarlos, a que se supriman, a restringir u oponerte al tratamiento, a la portabilidad de los datos y a retirar el consentimiento en cualquier momento. También puedes presentar una reclamación ante la autoridad de control eslovaca — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Para ejercer cualquiera de estos derechos escribe a privacy@dogypt.com — respondemos en un plazo de 30 días.',
   'privacy.s9.title': '9. Transferencias Internacionales',
   'privacy.s9.body':
-    'Algunos de nuestros subencargados (Stripe, Cloudinary, Resend, Supabase, GitHub) operan servidores fuera de la UE/EEE, principalmente en Estados Unidos. Cuando los datos personales salen de la UE/EEE, nos basamos en las Cláusulas Contractuales Tipo de la Comisión Europea, el Marco de Privacidad de Datos UE–EE. UU. y las salvaguardas adicionales exigidas por el Capítulo V del RGPD.',
+    'Algunos de nuestros subencargados (Stripe, Cloudinary, Resend, Supabase, GitHub y — con consentimiento de marketing — Google y Meta) operan servidores fuera de la UE/EEE, principalmente en Estados Unidos. PostHog procesa nuestra analítica en servidores de la UE. Cuando los datos personales salen de la UE/EEE, nos basamos en las Cláusulas Contractuales Tipo de la Comisión Europea, el Marco de Privacidad de Datos UE–EE. UU. y las salvaguardas adicionales exigidas por el Capítulo V del RGPD.',
   'privacy.s10.title': '10. Cambios en esta Política',
   'privacy.s10.body':
     'Te informaremos de los cambios materiales por correo electrónico con al menos 30 días de antelación a su entrada en vigor. Las ediciones menores — erratas, actualizaciones de nombres de subencargados, nuevas direcciones de contacto — entran en vigor con su publicación. La versión y fecha actuales están siempre en la parte superior de esta página; las versiones anteriores están disponibles a petición.',
   'privacy.s11.title': '11. Contacto',
   'privacy.s11.body':
     'Privacidad y solicitudes de datos: privacy@dogypt.com · Preguntas generales: info@dogypt.com · Correo postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Eslovaquia.',
+
+  // ── Consent banner (ConsentBanner.tsx + Footer «Configuración de cookies») ──
+  'consent.title': 'Aquí no se esconde nada',
+  'consent.body':
+    'La analítica anónima siempre está activa — así detectamos qué falla y lo arreglamos para cada amante de los perros que entra. Las grabaciones de sesión y el marketing solo se activan si dices que sí.',
+  'consent.acceptAll': 'Permitir todo',
+  'consent.necessary': 'Solo lo necesario',
+  'consent.settings': 'Prefiero elegir',
+  'consent.save': 'Guardar mis opciones',
+  'consent.analytics.label': 'Analítica y grabaciones',
+  'consent.analytics.desc':
+    'Activa la analítica de producto completa y las repeticiones de sesión, para ver dónde se atascan los amantes de los perros y allanar el camino.',
+  'consent.marketing.label': 'Marketing',
+  'consent.marketing.desc':
+    'Nos permite usar cookies publicitarias (como el Meta Pixel) para llegar a nuevos amantes de los perros. Desactivado por ahora — lo activamos más adelante.',
+  'consent.footerLink': 'Configuración de cookies',
 
   // ── /about — Council (We Need You) ──
   'about.council.imgAlt': 'Un faraón con Hekthor y sus gatos — Dogypt te necesita',
