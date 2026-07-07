@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
 import ConstitutionBook from '@/components/religion/ConstitutionBook';
+import { Seo } from '@/components/Seo';
 
 export default function Religion() {
   const t = useT();
@@ -40,6 +41,11 @@ export default function Religion() {
 
   return (
     <div className="dark-bg codex-page flex flex-col h-[100dvh] overflow-hidden relative">
+      <Seo
+        path="/religion"
+        title="Dogyptism — The Dog Religion | DOGYPT"
+        description="Dogyptism: a syncretic faith where every dog is sacred. Read the constitution — five layers, twelve chapters. In Dog We Trust."
+      />
       {/* Radial vignette — drží sa 1 obrazovky (page = 100dvh), pozadie sa nezväčšuje */}
       <div
         aria-hidden

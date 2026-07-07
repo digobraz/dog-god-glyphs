@@ -4,6 +4,7 @@ import { ImageComparisonSlider } from '@/components/ui/image-comparison-slider-h
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import dogyptTextLogo from '@/assets/dogypt-logo-gold.png';
+import { Seo } from '@/components/Seo';
 
 /* Web jazykový kód (useLang) → YouTube caption BCP-47 kód.
  * Tých 18 caption trackov je nahraných na INTRO videu; cez cc_lang_pref
@@ -531,6 +532,11 @@ export default function Vision() {
 
   return (
     <div className="dark-bg vision-root flex flex-col min-h-[100dvh] relative">
+      <Seo
+        path="/vision"
+        title="The Vision — A World Where No Dog Is Forgotten | DOGYPT"
+        description="Uniting dog lovers under one philosophy to help dogs in need. This is the vision of DOGYPT, the movement where Dog is God."
+      />
       {/* Mild radial overlay — fixed so it stays put when scroll-snap moves sections */}
       <div
         aria-hidden

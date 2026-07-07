@@ -4,6 +4,7 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { TestimonialsSection } from '@/components/landing/TestimonialsSection';
 import { CouncilSection } from '@/components/landing/CouncilSection';
 import { Footer } from '@/components/landing/Footer';
+import { Seo } from '@/components/Seo';
 
 /**
  * /about — „A Dog Changed My Life." (So did yours.)
@@ -345,6 +346,11 @@ export default function About() {
 
   return (
     <div className="dark-bg about-root flex flex-col relative" style={{ overflowX: 'clip' }}>
+      <Seo
+        path="/about"
+        title="About DOGYPT — The Movement Where Dog Is God"
+        description="From adopting Hekthor to a global dog religion. The story, the mission and the people behind DOGYPT."
+      />
       <style>{`
         /* About je viac-obrazovková → bg-dark.png nech je viewport-sized (fixed),
            inak cover roztiahne vzor cez celú výšku stránky = obrie ikonky.

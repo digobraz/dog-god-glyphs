@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './SpiralLanding.css';
+import { Seo } from '@/components/Seo';
 
 const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSd0TkuULnE1R-dbYO0_yfnOhxMQBjOmPZmuRaA-9cjDIMMYnA/formResponse';
 const ENTRY_ID = 'entry.2054138710';
@@ -169,6 +170,7 @@ export function SpiralLanding() {
 
   return (
     <section className="dogypt-spiral-root">
+      <Seo path="/spiral" noindex title="DOGYPT — The Place Where DOG is GOD" description="DOGYPT — the movement where Dog is God." />
       <div className="cards-field" ref={fieldRef} />
       <div className="cards-fade" />
       <div className="vignette" />

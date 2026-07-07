@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { DEV_FULL } from "@/lib/packFlags";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -72,6 +73,7 @@ function RefCapture() {
 }
 
 const App = () => (
+  <HelmetProvider>
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
     <TooltipProvider>
@@ -139,6 +141,7 @@ const App = () => (
     </TooltipProvider>
     </LanguageProvider>
   </QueryClientProvider>
+  </HelmetProvider>
 );
 
 export default App;

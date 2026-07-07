@@ -3,21 +3,26 @@
   <url>
     <loc>https://dogypt.com/</loc>
     <priority>1.0</priority>
+    <lastmod>2026-07-07</lastmod>
   </url>
   <url>
     <loc>https://dogypt.com/heroglyph</loc>
     <priority>0.9</priority>
+    <lastmod>2026-07-07</lastmod>
   </url>
   <url>
     <loc>https://dogypt.com/religion</loc>
     <priority>0.8</priority>
+    <lastmod>2026-07-07</lastmod>
   </url>
   <url>
     <loc>https://dogypt.com/vision</loc>
     <priority>0.7</priority>
+    <lastmod>2026-07-07</lastmod>
   </url>
   <url>
     <loc>https://dogypt.com/about</loc>
     <priority>0.7</priority>
+    <lastmod>2026-07-07</lastmod>
   </url>
 </urlset>

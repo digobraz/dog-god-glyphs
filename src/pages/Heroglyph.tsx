@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
+import { Seo } from '@/components/Seo';
 
 // label/value sú i18n KĽÚČE (module-level const nemôže volať t()); preklad pri renderi.
 type SymbolMeaning = { label: string; value: string };
@@ -261,6 +262,20 @@ export default function Heroglyph() {
 
   return (
     <div className="dark-bg flex flex-col min-h-[100dvh] relative">
+      <Seo
+        path="/heroglyph"
+        type="product"
+        title="HEROGLYPH — Your Dog's Eternal Symbol | DOGYPT"
+        description="Every dog carries a story. Turn your dog's essence into a HEROGLYPH — twelve sacred symbols, one eternal legacy."
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": "HEROGLYPH",
+          "description": "A unique sacred symbol for your dog — twelve symbols encoding its essence, origin and character.",
+          "brand": { "@type": "Brand", "name": "DOGYPT" },
+          "offers": { "@type": "Offer", "price": "11", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://dogypt.com/heroglyph" }
+        }}
+      />
       {/* Mild radial overlay over bg-dark.png texture */}
       <div
         aria-hidden
