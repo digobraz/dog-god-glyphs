@@ -7,6 +7,7 @@ import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
 import { countryISO2 } from '@/lib/countryGeo';
 import { track } from '@/lib/analytics';
+import { Seo } from '@/components/Seo';
 import './WhatNextPopup.css';
 
 const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
@@ -845,6 +846,11 @@ export function GodsGrid() {
 
   return (
     <>
+      <Seo
+        path="/"
+        title="DOGYPT — The Place Where DOG is GOD"
+        description="Transform your dog's essence into a timeless HEROGLYPH. 12 Symbols, 1 Eternal Legacy."
+      />
       <style>{`
         body { overflow: hidden; }
 
