@@ -614,6 +614,7 @@ export const sk: Partial<Dict> = {
 
   // ── / (Wall / GodsGrid) ──
   'wall.hero.taglineLead': 'Miesto, kde',
+  'wall.hero.taglineGod': 'PES JE BOH.',
   'wall.hero.cta': 'Staň sa Dogypťanom',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PSOV',

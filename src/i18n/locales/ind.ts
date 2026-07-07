@@ -492,6 +492,7 @@ export const ind: Partial<Dict> = {
   "nav.religion": "धर्म",
   "nav.about": "परिचय",
   "wall.hero.taglineLead": "वह जगह जहाँ",
+  "wall.hero.taglineGod": "कुत्ता भगवान है।",
   "wall.hero.cta": "डॉगिप्तवासी बनें",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "कुत्ते",

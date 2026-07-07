@@ -491,6 +491,7 @@ export const nld: Partial<Dict> = {
   "nav.religion": "Religie",
   "nav.about": "Over",
   "wall.hero.taglineLead": "De plek waar",
+  "wall.hero.taglineGod": "HOND IS GOD.",
   "wall.hero.cta": "Word Dogyptiër",
   "wall.hero.total": "1.000.000",
   "wall.hero.dogs": "HONDEN",

@@ -491,6 +491,7 @@ export const jpn: Partial<Dict> = {
   "nav.religion": "宗教",
   "nav.about": "について",
   "wall.hero.taglineLead": "ここは",
+  "wall.hero.taglineGod": "犬は神なり。",
   "wall.hero.cta": "ドギプト人になる",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "犬",

@@ -491,6 +491,7 @@ export const kor: Partial<Dict> = {
   "nav.religion": "종교",
   "nav.about": "소개",
   "wall.hero.taglineLead": "이 곳은",
+  "wall.hero.taglineGod": "개는 신이다.",
   "wall.hero.cta": "도깁트인 되기",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "개",

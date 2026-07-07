@@ -491,6 +491,7 @@ export const ara: Partial<Dict> = {
   "nav.religion": "الدين",
   "nav.about": "عن",
   "wall.hero.taglineLead": "المكان الذي",
+  "wall.hero.taglineGod": "الكلب إله.",
   "wall.hero.cta": "كن دوغبتيًا",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "كلب",

@@ -564,6 +564,7 @@ export const esp: Partial<Dict> = {
   // ── / (Wall / GodsGrid) ──
   // hero card — "DOG is GOD." motto stays EN inline (not keyed)
   'wall.hero.taglineLead': 'El lugar donde',
+  'wall.hero.taglineGod': 'EL PERRO ES DIOS.',
   'wall.hero.cta': 'Conviértete en Dogipcio',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PERROS',

@@ -550,6 +550,7 @@ export const pol: Partial<Dict> = {
 
   // ── / (Wall / GodsGrid) ──
   'wall.hero.taglineLead': 'Miejsce, gdzie',
+  'wall.hero.taglineGod': 'PIES JEST BOGIEM.',
   'wall.hero.cta': 'Zostań Dogiptianinem',
   'wall.hero.total': '1 000 000',
   'wall.hero.dogs': 'PSÓW',

@@ -491,6 +491,7 @@ export const tur: Partial<Dict> = {
   "nav.religion": "Din",
   "nav.about": "Hakkında",
   "wall.hero.taglineLead": "Bulunduğu yer",
+  "wall.hero.taglineGod": "KÖPEK TANRIDIR.",
   "wall.hero.cta": "Dogiptli Ol",
   "wall.hero.total": "1.000.000",
   "wall.hero.dogs": "KÖPEKLER",

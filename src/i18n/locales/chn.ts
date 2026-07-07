@@ -491,6 +491,7 @@ export const chn: Partial<Dict> = {
   "nav.religion": "犬教",
   "nav.about": "关于",
   "wall.hero.taglineLead": "那个",
+  "wall.hero.taglineGod": "狗是神。",
   "wall.hero.cta": "成为多吉普特人",
   "wall.hero.total": "1,000,000",
   "wall.hero.dogs": "只狗",

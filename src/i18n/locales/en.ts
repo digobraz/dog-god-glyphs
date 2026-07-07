@@ -658,8 +658,9 @@ export const en = {
   'nav.login': 'LOGIN',
 
   // ── / (Wall / GodsGrid) ──
-  // hero card — "DOG is GOD." motto stays EN inline (not keyed)
+  // hero card
   'wall.hero.taglineLead': 'The place where',
+  'wall.hero.taglineGod': 'DOG is GOD.',
   'wall.hero.cta': 'Become Dogyptian',
   'wall.hero.total': '1,000,000',
   'wall.hero.dogs': 'DOGS',
