@@ -552,6 +552,7 @@ export const kor: Partial<Dict> = {
   "payment.promo.placeholder": "프로모 코드",
   "payment.promo.applied": "프로모 적용됨",
   "payment.promo.apply": "적용",
+  "payment.promo.invalid": "이 코드는 유효하지 않습니다.",
   "payment.promo.note":
     "강아지를 사랑하는 분, 테스트를 도와주셔서 고맙습니다. 테스터로서 프로모 코드를 적용하면 단 €1만 내시면 됩니다. 하지만 전액을 남겨두고 싶으시다면, 그 한 푼 한 푼이 좋은 일에 쓰이며 저희는 진심으로 감사드립니다. 🐾",
   "payment.transparency.title": "100% 투명성",

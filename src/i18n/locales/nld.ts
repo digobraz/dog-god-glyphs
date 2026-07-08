@@ -552,6 +552,7 @@ export const nld: Partial<Dict> = {
   "payment.promo.placeholder": "Promocode",
   "payment.promo.applied": "Promocode toegepast",
   "payment.promo.apply": "Toepassen",
+  "payment.promo.invalid": "Deze code is niet geldig.",
   "payment.promo.note":
     "Hondenliefhebber, bedankt dat je ons helpt testen. Als tester kun je je promocode toepassen en slechts € 1 betalen. Maar als je het volledige bedrag wilt laten staan, gaat elke euro naar een goed doel en daar zijn we echt dankbaar voor. 🐾",
   "payment.transparency.title": "100% Transparantie",

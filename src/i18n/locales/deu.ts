@@ -634,6 +634,7 @@ export const deu: Partial<Dict> = {
   'payment.promo.placeholder': 'Promo-Code',
   'payment.promo.applied': 'Promo-Code angewendet',
   'payment.promo.apply': 'Anwenden',
+  'payment.promo.invalid': 'Dieser Code ist ungültig.',
   'payment.promo.note':
     'Hundefreund, danke, dass du uns beim Testen hilfst. Als Tester kannst du deinen Promo-Code einlösen und nur 1 € zahlen. Aber wenn du den vollen Betrag lassen möchtest, fließt jeder Euro in einen guten Zweck und wir wissen das wirklich zu schätzen. 🐾',
 

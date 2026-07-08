@@ -373,7 +373,7 @@ export const ita: Partial<Dict> = {
   'heroglyph.flow.reveal.visionTribute': 'Grazie per il tuo contributo simbolico. Basta poco quando siamo in tanti — e grazie a te, il mondo è un po\' migliore.',
   'heroglyph.flow.reveal.welcome': 'BENVENUTO IN DOGYPT!',
   'heroglyph.flow.reveal.bond': 'Questo Heroglyph è il tuo legame eterno.',
-  'heroglyph.flow.reveal.cta': 'PRENDI IL MIO HEROGLYPH',
+  'heroglyph.flow.reveal.cta': 'VOGLIO IL MIO HEROGLYPH',
 
   // ── /heroglyph flow — step 14: message ──
   'heroglyph.flow.message.promptPrefix': 'Lascia un messaggio eterno per ',
@@ -634,6 +634,7 @@ export const ita: Partial<Dict> = {
   'payment.promo.placeholder': 'Codice promozionale',
   'payment.promo.applied': 'Codice applicato',
   'payment.promo.apply': 'Applica',
+  'payment.promo.invalid': 'Questo codice non è valido.',
   'payment.promo.note':
     'Amante dei cani, grazie per aiutarci a testare. Come tester puoi applicare il tuo codice promozionale e pagare solo 1 €. Ma se preferisci lasciare l’intero importo, ogni euro va a una buona causa e te ne siamo davvero grati. 🐾',
 

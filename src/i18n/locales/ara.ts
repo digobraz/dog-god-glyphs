@@ -552,6 +552,7 @@ export const ara: Partial<Dict> = {
   "payment.promo.placeholder": "رمز ترويجي",
   "payment.promo.applied": "تم تطبيق الرمز",
   "payment.promo.apply": "تطبيق",
+  "payment.promo.invalid": "هذا الرمز غير صالح.",
   "payment.promo.note":
     "يا محبّ الكلاب، شكرًا لمساعدتك لنا في الاختبار. بصفتك مختبِرًا يمكنك تطبيق رمزك الترويجي ودفع €1 فقط. لكن إن أردت ترك المبلغ كاملًا، فكل يورو يذهب لقضية نبيلة ونحن نقدّر ذلك من القلب. 🐾",
   "payment.transparency.title": "شفافية 100%",

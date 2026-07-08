@@ -634,6 +634,7 @@ export const fra: Partial<Dict> = {
   'payment.promo.placeholder': 'Code promo',
   'payment.promo.applied': 'Code promo appliqué',
   'payment.promo.apply': 'Appliquer',
+  'payment.promo.invalid': 'Ce code est invalide.',
   'payment.promo.note':
     'Ami des chiens, merci de nous aider à tester. En tant que testeur, tu peux appliquer ton code promo et ne payer qu’1 €. Mais si tu préfères laisser le montant complet, chaque euro va à une bonne cause et nous t’en sommes sincèrement reconnaissants. 🐾',
 

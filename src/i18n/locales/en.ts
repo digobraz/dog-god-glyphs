@@ -414,7 +414,7 @@ export const en = {
     'Thank you for your symbolic contribution. A little is enough when there are many of us — and thanks to you, the world is now a fur better place.',
   'heroglyph.flow.reveal.welcome': 'WELCOME TO DOGYPT!',
   'heroglyph.flow.reveal.bond': 'This Heroglyph is your eternal bond.',
-  'heroglyph.flow.reveal.cta': 'GRAB MY HEROGLYPH',
+  'heroglyph.flow.reveal.cta': 'CLAIM MY HEROGLYPH',
 
   // ── /heroglyph flow — step 14: message ──
   'heroglyph.flow.message.promptPrefix': 'Leave an eternal message for ',
@@ -722,6 +722,7 @@ export const en = {
   'payment.promo.placeholder': 'Promo code',
   'payment.promo.applied': 'Promo applied',
   'payment.promo.apply': 'Apply',
+  'payment.promo.invalid': 'This code is not valid.',
   'payment.promo.note':
     'Dog lover, thanks for helping us test. As a tester you can apply your promo code and pay just €1. But if you’d like to leave the full amount, every euro goes to a good cause and we truly appreciate it. 🐾',
   // transparency treasury block

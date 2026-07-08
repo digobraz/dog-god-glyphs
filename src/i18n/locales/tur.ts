@@ -553,6 +553,7 @@ export const tur: Partial<Dict> = {
   "payment.promo.placeholder": "Promosyon kodu",
   "payment.promo.applied": "Promosyon kodu uygulandı",
   "payment.promo.apply": "Uygula",
+  "payment.promo.invalid": "Bu kod geçerli değil.",
   "payment.promo.note":
     "Köpek dostu, test etmemize yardım ettiğin için teşekkürler. Bir test eden olarak promosyon kodunu girip yalnızca €1 ödeyebilirsin. Ama dilersen tam tutarı bırakabilirsin; her euro iyi bir amaca gider ve bunu içtenlikle takdir ediyoruz. 🐾",
 

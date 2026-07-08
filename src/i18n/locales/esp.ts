@@ -634,6 +634,7 @@ export const esp: Partial<Dict> = {
   'payment.promo.placeholder': 'Código promocional',
   'payment.promo.applied': 'Código aplicado',
   'payment.promo.apply': 'Aplicar',
+  'payment.promo.invalid': 'Este código no es válido.',
   'payment.promo.note':
     'Amante de los perros, gracias por ayudarnos a probarlo. Como tester puedes aplicar tu código promocional y pagar solo 1 €. Pero si prefieres dejar el importe completo, cada euro va a una buena causa y de verdad te lo agradecemos. 🐾',
 

@@ -673,6 +673,7 @@ export const sk: Partial<Dict> = {
   'payment.promo.placeholder': 'Promo kód',
   'payment.promo.applied': 'Promo kód aktivovaný',
   'payment.promo.apply': 'Použiť',
+  'payment.promo.invalid': 'Tento kód neplatí.',
   'payment.promo.note':
     'Človeče, vďaka, že nám pomáhaš testovať. Ako tester si môžeš aplikovať promo kód a zaplatiť len 1 €. Ale ak chceš nechať plnú sumu, každé euro ide na dobrú vec a my si to vážime. 🐾',
   // transparency treasury block

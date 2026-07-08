@@ -39,11 +39,43 @@ export function PaymentScreen() {
   // Ostrá prevádzka — pole je prázdne, používateľ zadá promo kód ručne.
   // Reálna Stripe validácia ostáva v create-checkout; tu len UI potvrdenie.
   const [promoCode, setPromoCode] = useState('');
-  // promoLocked = kód potvrdený v UI (✓, pole readOnly). Zľavnenú cenu ukáže
-  // až server (promoApplied z create-checkout / Stripe checkout) — Apply sám
-  // od seba NESMIE ukázať €1, kód môže byť neplatný.
+  // Apply overí kód cez validate-promo (Stripe) — prečiarknutá cena €11 → €1
+  // sa ukáže LEN pre reálne platný kód (Matej 2026-07-08: kupec potrebuje
+  // istotu, že kupón platí, inak nedoklikne na Zaplatiť). Neplatný kód
+  // dostane hlášku namiesto falošnej ceny.
   const [promoLocked, setPromoLocked] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
+  const [promoChecking, setPromoChecking] = useState(false);
+  const [promoInvalid, setPromoInvalid] = useState(false);
+  const [promoDiscount, setPromoDiscount] = useState<{ percentOff: number | null; amountOff: number | null } | null>(null);
+
+  const handleApplyPromo = async () => {
+    const code = promoCode.trim();
+    if (!code || promoChecking) return;
+    setPromoChecking(true);
+    setPromoInvalid(false);
+    try {
+      const res = await fetch(`${EDGE_BASE}/validate-promo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+      const data = res.ok ? await res.json() : { valid: false };
+      if (data.valid) {
+        setPromoLocked(true);
+        setPromoApplied(true);
+        setPromoDiscount({ percentOff: data.percentOff ?? null, amountOff: data.amountOff ?? null });
+        track('promo_applied', { code });
+      } else {
+        setPromoInvalid(true);
+      }
+    } catch (err) {
+      console.warn('validate-promo failed:', err);
+      // Sieťová chyba ≠ neplatný kód — kód nechaj tak, aplikuje sa na Stripe.
+    } finally {
+      setPromoChecking(false);
+    }
+  };
 
   // Route guard — deep-link / stale localStorage ochrana
   useEffect(() => {
@@ -149,8 +181,15 @@ export function PaymentScreen() {
 
   const basePrice = selectedAmount ?? 11;
   const isPromoValid = promoCode.trim().length > 0;
-  // TESTER zľava = fixne €1. Pri ďalších promo kódoch sem príde mapovanie.
-  const effectivePrice = promoApplied ? 1 : basePrice;
+  // Zľava z reálneho Stripe kupónu (validate-promo) — amount_off je v centoch.
+  const discountedPrice = (() => {
+    if (!promoApplied || !promoDiscount) return basePrice;
+    if (promoDiscount.amountOff != null) return Math.max(0, basePrice - promoDiscount.amountOff / 100);
+    if (promoDiscount.percentOff != null) return Math.max(0, basePrice * (1 - promoDiscount.percentOff / 100));
+    return basePrice;
+  })();
+  const effectivePrice = Math.round(discountedPrice * 100) / 100;
+  const showDiscount = promoApplied && effectivePrice < basePrice;
 
   // Zdieľaný box pre promo tlačidlo → rovnaká veľkosť pred aj po klику.
   const promoBtnBox: CSSProperties = {
@@ -216,7 +255,7 @@ export function PaymentScreen() {
                   margin: 0,
                 }}
               >
-                {promoApplied && (
+                {showDiscount && (
                   <span
                     style={{
                       fontSize: 22,
@@ -276,7 +315,7 @@ export function PaymentScreen() {
                     <input
                       type="text"
                       value={promoCode}
-                      onChange={(e) => { setPromoCode(e.target.value); setPromoLocked(false); setPromoApplied(false); }}
+                      onChange={(e) => { setPromoCode(e.target.value); setPromoLocked(false); setPromoApplied(false); setPromoInvalid(false); setPromoDiscount(null); }}
                       placeholder={t('payment.promo.placeholder')}
                       maxLength={32}
                       readOnly={promoLocked}
@@ -328,20 +367,33 @@ export function PaymentScreen() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setPromoLocked(true)}
-                      disabled={!isPromoValid}
+                      onClick={handleApplyPromo}
+                      disabled={!isPromoValid || promoChecking}
                       style={{
                         ...promoBtnBox,
                         background: 'transparent',
                         color: 'var(--brand-blue)',
-                        cursor: isPromoValid ? 'pointer' : 'not-allowed',
+                        cursor: isPromoValid && !promoChecking ? 'pointer' : 'not-allowed',
                         opacity: isPromoValid ? 1 : 0.4,
                       }}
                     >
-                      {t('payment.promo.apply')}
+                      {promoChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : t('payment.promo.apply')}
                     </button>
                   )}
                 </div>
+                {promoInvalid && (
+                  <p
+                    role="alert"
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontSize: 11.5,
+                      color: '#8a2c1d',
+                      margin: '8px 0 0',
+                    }}
+                  >
+                    {t('payment.promo.invalid')}
+                  </p>
+                )}
               </div>
             </div>
 
