@@ -351,11 +351,11 @@ const CSS = `
 /* ── strana 1: nadpis + motto + body, centrované v zóne + nudge k chrbtu (vľavo) ── */
 .cb-right .cb-title-page{padding:11% 28% 11% 8%;transform:translateX(-16px);}
 .cb-title-page{align-items:center;justify-content:center;text-align:center;gap:5%;}
-.cb-title{display:flex;flex-direction:column;gap:1px;margin:0;font-weight:700;line-height:1.1;font-size:clamp(18px,2.45vw,34px);}
+.cb-title{display:flex;flex-direction:column;gap:1px;margin:0;font-weight:700;line-height:1.1;font-size:clamp(15px,2.05vw,29px);}
 .cb-title em{font-style:italic;color:#9a6a16;}
 .cb-title-brand{font-size:1.5em;line-height:1;color:#9a6a16;letter-spacing:.01em;}
-.cb-trust{margin:0;font-size:clamp(11px,1.35vw,16px);letter-spacing:.22em;text-transform:uppercase;color:#7a531a;}
-.cb-sub{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(9px,1.05vw,13px);color:#6b4a18;max-width:26ch;line-height:1.45;}
+.cb-trust{margin:0;font-size:clamp(10px,1.15vw,14px);letter-spacing:.22em;text-transform:uppercase;color:#7a531a;}
+.cb-sub{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(8px,0.9vw,11px);color:#6b4a18;max-width:26ch;line-height:1.45;}
 
 /* ── strany 2-4: kapitoly — širšia zóna než titulná (dlhé názvy) ── */
 .cb-left .cb-index-page{padding:12% 11% 12% 22%;transform:translateX(15px);}
@@ -364,19 +364,19 @@ const CSS = `
 .cb-page-head{font-size:clamp(11px,1.35vw,16px);letter-spacing:.16em;text-transform:uppercase;color:#7a531a;margin:0;text-align:center;}
 .cb-chapters{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:clamp(5px,1.5vh,15px);align-self:center;width:max-content;max-width:100%;}
 .cb-chapter{display:flex;align-items:baseline;gap:12px;}
-.cb-ch-num{flex:0 0 auto;min-width:2.4em;font-weight:700;color:#9a6a16;font-size:clamp(10px,1.2vw,15px);text-align:right;}
+.cb-ch-num{flex:0 0 auto;min-width:2.4em;font-weight:700;color:#9a6a16;font-size:clamp(9px,1.05vw,13px);text-align:right;}
 .cb-ch-text{display:flex;flex-direction:column;line-height:1.14;align-items:flex-start;}
-.cb-ch-name{font-weight:700;letter-spacing:.05em;font-size:clamp(12px,1.4vw,18px);color:#3a2204;white-space:nowrap;}
-.cb-ch-desc{font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:clamp(8px,0.95vw,12px);color:#6b4a18;text-align:left;}
+.cb-ch-name{font-weight:700;letter-spacing:.05em;font-size:clamp(11px,1.2vw,15px);color:#3a2204;white-space:nowrap;}
+.cb-ch-desc{font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:clamp(7px,0.8vw,10px);color:#6b4a18;text-align:left;}
 
 /* ── strana 4-5: CTA, centrované — per-page nudge k stredu väzby ── */
 .cb-cta-page{align-items:center;justify-content:center;text-align:center;gap:4%;}
 .cb-left .cb-cta-page{transform:translateX(25px);}
 .cb-right .cb-cta-page{transform:translateX(-25px);}
-.cb-cta-kicker{margin:0;font-size:clamp(8px,1vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#9a6a16;}
-.cb-cta-head{margin:0;font-weight:700;line-height:1.05;font-size:clamp(17px,2.4vw,30px);color:#3a2204;}
-.cb-cta-text{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(9px,1.05vw,13px);color:#6b4a18;max-width:22ch;line-height:1.45;}
-.cb-cta-btn{margin-top:3%;display:inline-block;padding:.62em 1.5em;border-radius:8px;font-family:'Cinzel',serif;font-weight:700;font-size:clamp(10px,1.15vw,15px);letter-spacing:.04em;text-decoration:none;color:#2a1a06;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,.30);box-shadow:0 4px 14px rgba(90,58,12,.35);transition:transform .18s ease,box-shadow .18s ease;}
+.cb-cta-kicker{margin:0;font-size:clamp(7px,0.85vw,10px);letter-spacing:.22em;text-transform:uppercase;color:#9a6a16;}
+.cb-cta-head{margin:0;font-weight:700;line-height:1.05;font-size:clamp(14px,2vw,25px);color:#3a2204;}
+.cb-cta-text{margin:0;font-family:'Space Grotesk',sans-serif;font-size:clamp(8px,0.9vw,11px);color:#6b4a18;max-width:22ch;line-height:1.45;}
+.cb-cta-btn{margin-top:3%;display:inline-block;padding:.62em 1.5em;border-radius:8px;font-family:'Cinzel',serif;font-weight:700;font-size:clamp(9px,1.05vw,13px);letter-spacing:.04em;text-decoration:none;color:#2a1a06;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,.30);box-shadow:0 4px 14px rgba(90,58,12,.35);transition:transform .18s ease,box-shadow .18s ease;}
 .cb-cta-btn:hover{transform:translateY(-2px);box-shadow:0 7px 20px rgba(90,58,12,.45);}
 .cb-cta-link{font-family:'Cinzel',serif;font-size:clamp(10px,1.1vw,13px);letter-spacing:.06em;text-transform:uppercase;color:#7a531a;text-decoration:none;border-bottom:1px solid rgba(122,83,26,.4);padding-bottom:1px;transition:color .18s ease,border-color .18s ease;}
 .cb-cta-link:hover{color:#9a6a16;border-color:rgba(154,106,22,.7);}
