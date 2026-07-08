@@ -1,6 +1,6 @@
 // Consent storage + effects — Vlna B (Časť 1, infra).
 // localStorage kľúč `dogypt_consent`. Aplikuje účinky voľby (analytics/marketing).
-import { upgradeToTier1 } from './analytics';
+import { upgradeToTier1, downgradeToTier0 } from './analytics';
 
 const STORAGE_KEY = 'dogypt_consent';
 
@@ -19,16 +19,24 @@ export function getConsent(): Consent | null {
 }
 
 export function saveConsent(c: { analytics: boolean; marketing: boolean }): void {
+  // Predchádzajúca voľba treba PRED prepísaním — applyConsent podľa nej rozlíši
+  // upgrade (Tier0→Tier1) od downgrade (Tier1→Tier0, viď nižšie).
+  const prev = getConsent();
   const consent: Consent = { analytics: c.analytics, marketing: c.marketing, v: 1, ts: Date.now() };
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
   } catch { /* ignore */ }
-  applyConsent(consent);
+  applyConsent(consent, prev);
 }
 
-export function applyConsent(c: Consent): void {
+export function applyConsent(c: Consent, prev?: Consent | null): void {
   if (c.analytics === true) {
     upgradeToTier1();
+  } else if (prev?.analytics === true) {
+    // Downgrade: user mal predtým zapnuté analytics (session recording + cookies)
+    // a teraz to v Cookie settings vypol a uložil — bez tejto vetvy by applyConsent
+    // bol no-op a nahrávanie/cookies by bežali ďalej (GDPR problém).
+    downgradeToTier0();
   }
   if (c.marketing === true) {
     // gtag ešte NEEXISTUJE (príde vo vlne C) — guard = no-op teraz.

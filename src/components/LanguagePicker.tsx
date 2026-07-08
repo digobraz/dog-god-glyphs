@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { flagUrl } from '@/lib/countryGeo';
 import { createPortal } from 'react-dom';
 import { useLang } from '@/i18n/LanguageContext';
 
@@ -47,7 +48,7 @@ function FlagStack({ countries }: { countries: string[] }) {
         <span
           key={cc}
           className="lang-flag-stack__item"
-          style={{ backgroundImage: `url(https://flagcdn.com/w80/${cc}.png)` }}
+          style={{ backgroundImage: `url(${flagUrl(cc, 80)})` }}
         />
       ))}
     </span>

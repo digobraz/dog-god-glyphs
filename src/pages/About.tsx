@@ -352,7 +352,7 @@ export default function About() {
         description="From adopting Hekthor to a global dog religion. The story, the mission and the people behind DOGYPT."
       />
       <style>{`
-        /* About je viac-obrazovková → bg-dark.png nech je viewport-sized (fixed),
+        /* About je viac-obrazovková → bg-dark.webp nech je viewport-sized (fixed),
            inak cover roztiahne vzor cez celú výšku stránky = obrie ikonky.
            Scopnuté len na .about-root, globálny .dark-bg ostáva nedotknutý. */
         .about-root.dark-bg::before { position: fixed; }

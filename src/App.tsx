@@ -1,55 +1,101 @@
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL } from "@/lib/packFlags";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { LanguageProvider } from "@/i18n/LanguageContext";
-import { SpiralLanding } from "@/components/landing/SpiralLanding";
+import { LanguageProvider, useLang } from "@/i18n/LanguageContext";
 import { GodsGrid } from "@/components/gods/GodsGrid";
-import { IntroScreen } from "@/components/screens/IntroScreen";
-import { NameScreen } from "@/components/screens/NameScreen";
-import { PhotoScreen } from "@/components/screens/PhotoScreen";
-import { BreedPatronScreen } from "@/components/screens/BreedPatronScreen";
-import { RankingScreen } from "@/components/screens/RankingScreen";
-import { OwnerInfoScreen } from "@/components/screens/OwnerInfoScreen";
-import { OwnerZodiacScreen } from "@/components/screens/OwnerZodiacScreen";
-import { OwnerFinalScreen } from "@/components/screens/OwnerFinalScreen";
-import { DogGenderScreen } from "@/components/screens/DogGenderScreen";
-import { DogFateScreen } from "@/components/screens/DogFateScreen";
-import { DogColourScreen } from "@/components/screens/DogColourScreen";
-import { DogBloodlineScreen } from "@/components/screens/DogBloodlineScreen";
-import { DogCharacterScreen } from "@/components/screens/DogCharacterScreen";
-import { HeroglyphRevealScreen } from "@/components/screens/HeroglyphRevealScreen";
-import { MessageScreen } from "@/components/screens/MessageScreen";
-import { CheckoutScreen } from "@/components/screens/CheckoutScreen";
-import { PaymentScreen } from "@/components/screens/PaymentScreen";
-import { WelcomeScreen } from "@/components/screens/WelcomeScreen";
 import NotFound from "./pages/NotFound.tsx";
-import Terms from "./pages/Terms.tsx";
-import Privacy from "./pages/Privacy.tsx";
-import Pack from "./pages/Pack.tsx";
-import PackDogDetail from "./pages/PackDogDetail.tsx";
-import PackProfile from "./pages/PackProfile.tsx";
-import PackPortal from "./pages/PackPortal.tsx";
-import Login from "./pages/Login.tsx";
-import Admin from "./pages/Admin.tsx";
-import Vision from "./pages/Vision.tsx";
-import BetaVision from "./pages/BetaVision.tsx";
-import Religion from "./pages/Religion.tsx";
-import About from "./pages/About.tsx";
-import Heroglyph from "./pages/Heroglyph.tsx";
-import CertRender from "./pages/CertRender.tsx";
-import InvoiceRender from "./pages/InvoiceRender.tsx";
 import { DevNav } from "@/components/DevNav";
 import { ConsentBanner } from "@/components/ConsentBanner";
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { captureRefFromSearch } from "@/lib/refCapture";
 import { trackPageview, setAnalyticsLang } from "@/lib/analytics";
 import { captureAttribution } from "@/lib/attribution";
-import { useLang } from "@/i18n/LanguageContext";
+
+// Route-level code-split (P0 2026-07 perf pass). GodsGrid (homepage/LCP) + NotFound
+// stay eager; everything else behind /heroglyph, /pack, /admin, legacy /spiral, etc.
+// loads on demand. Screens under components/screens/ + SpiralLanding are named
+// exports — pages/* are default exports.
+const SpiralLanding = lazy(() =>
+  import("@/components/landing/SpiralLanding").then((m) => ({ default: m.SpiralLanding }))
+);
+const IntroScreen = lazy(() =>
+  import("@/components/screens/IntroScreen").then((m) => ({ default: m.IntroScreen }))
+);
+const NameScreen = lazy(() =>
+  import("@/components/screens/NameScreen").then((m) => ({ default: m.NameScreen }))
+);
+const PhotoScreen = lazy(() =>
+  import("@/components/screens/PhotoScreen").then((m) => ({ default: m.PhotoScreen }))
+);
+const BreedPatronScreen = lazy(() =>
+  import("@/components/screens/BreedPatronScreen").then((m) => ({ default: m.BreedPatronScreen }))
+);
+const RankingScreen = lazy(() =>
+  import("@/components/screens/RankingScreen").then((m) => ({ default: m.RankingScreen }))
+);
+const OwnerInfoScreen = lazy(() =>
+  import("@/components/screens/OwnerInfoScreen").then((m) => ({ default: m.OwnerInfoScreen }))
+);
+const OwnerZodiacScreen = lazy(() =>
+  import("@/components/screens/OwnerZodiacScreen").then((m) => ({ default: m.OwnerZodiacScreen }))
+);
+const OwnerFinalScreen = lazy(() =>
+  import("@/components/screens/OwnerFinalScreen").then((m) => ({ default: m.OwnerFinalScreen }))
+);
+const DogGenderScreen = lazy(() =>
+  import("@/components/screens/DogGenderScreen").then((m) => ({ default: m.DogGenderScreen }))
+);
+const DogFateScreen = lazy(() =>
+  import("@/components/screens/DogFateScreen").then((m) => ({ default: m.DogFateScreen }))
+);
+const DogColourScreen = lazy(() =>
+  import("@/components/screens/DogColourScreen").then((m) => ({ default: m.DogColourScreen }))
+);
+const DogBloodlineScreen = lazy(() =>
+  import("@/components/screens/DogBloodlineScreen").then((m) => ({ default: m.DogBloodlineScreen }))
+);
+const DogCharacterScreen = lazy(() =>
+  import("@/components/screens/DogCharacterScreen").then((m) => ({ default: m.DogCharacterScreen }))
+);
+const HeroglyphRevealScreen = lazy(() =>
+  import("@/components/screens/HeroglyphRevealScreen").then((m) => ({ default: m.HeroglyphRevealScreen }))
+);
+const MessageScreen = lazy(() =>
+  import("@/components/screens/MessageScreen").then((m) => ({ default: m.MessageScreen }))
+);
+const CheckoutScreen = lazy(() =>
+  import("@/components/screens/CheckoutScreen").then((m) => ({ default: m.CheckoutScreen }))
+);
+const PaymentScreen = lazy(() =>
+  import("@/components/screens/PaymentScreen").then((m) => ({ default: m.PaymentScreen }))
+);
+const WelcomeScreen = lazy(() =>
+  import("@/components/screens/WelcomeScreen").then((m) => ({ default: m.WelcomeScreen }))
+);
+const Terms = lazy(() => import("./pages/Terms.tsx"));
+const Privacy = lazy(() => import("./pages/Privacy.tsx"));
+const Pack = lazy(() => import("./pages/Pack.tsx"));
+const PackDogDetail = lazy(() => import("./pages/PackDogDetail.tsx"));
+const PackProfile = lazy(() => import("./pages/PackProfile.tsx"));
+const PackPortal = lazy(() => import("./pages/PackPortal.tsx"));
+const Login = lazy(() => import("./pages/Login.tsx"));
+const Admin = lazy(() => import("./pages/Admin.tsx"));
+const Vision = lazy(() => import("./pages/Vision.tsx"));
+const BetaVision = lazy(() => import("./pages/BetaVision.tsx"));
+const Religion = lazy(() => import("./pages/Religion.tsx"));
+const About = lazy(() => import("./pages/About.tsx"));
+const Heroglyph = lazy(() => import("./pages/Heroglyph.tsx"));
+const CertRender = lazy(() => import("./pages/CertRender.tsx"));
+const InvoiceRender = lazy(() => import("./pages/InvoiceRender.tsx"));
+
+// Fullscreen black div — no spinner/text, so nothing brand-foreign flashes
+// while a route chunk loads.
+const RouteFallback = () => <div style={{ position: "fixed", inset: 0, background: "#000" }} />;
 
 const queryClient = new QueryClient();
 
@@ -84,61 +130,65 @@ const App = () => (
         <RefCapture />
         <ConsentBanner />
         <DevNav />
-        <Routes>
-          {/* LAUNCH SWAP (Matej OK): GRID = homepage. Spirála → /spiral archív. */}
-          <Route path="/" element={<GodsGrid />} />
-          <Route path="/wall" element={<GodsGrid />} />
-          <Route path="/grid" element={<GodsGrid />} />
-          <Route path="/spiral" element={<SpiralLanding />} />
+        <ErrorBoundary>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              {/* LAUNCH SWAP (Matej OK): GRID = homepage. Spirála → /spiral archív. */}
+              <Route path="/" element={<GodsGrid />} />
+              <Route path="/wall" element={<GodsGrid />} />
+              <Route path="/grid" element={<GodsGrid />} />
+              <Route path="/spiral" element={<SpiralLanding />} />
 
-          {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok) */}
-          <Route path="/heroglyph" element={<Heroglyph />} />
-          <Route path="/heroglyph/intro" element={<IntroScreen />} />
-          <Route path="/heroglyph/name" element={<NameScreen />} />
-          <Route path="/heroglyph/photo" element={<PhotoScreen />} />
-          <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
-          <Route path="/heroglyph/ranking" element={<RankingScreen />} />
-          <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
-          <Route path="/heroglyph/owner-zodiac" element={<OwnerZodiacScreen />} />
-          <Route path="/heroglyph/owner-final" element={<OwnerFinalScreen />} />
-          <Route path="/heroglyph/dog-gender" element={<DogGenderScreen />} />
-          <Route path="/heroglyph/dog-fate" element={<DogFateScreen />} />
-          <Route path="/heroglyph/dog-colour" element={<DogColourScreen />} />
-          <Route path="/heroglyph/dog-bloodline" element={<DogBloodlineScreen />} />
-          <Route path="/heroglyph/dog-character" element={<DogCharacterScreen />} />
-          <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
-          <Route path="/heroglyph/message" element={<MessageScreen />} />
+              {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok) */}
+              <Route path="/heroglyph" element={<Heroglyph />} />
+              <Route path="/heroglyph/intro" element={<IntroScreen />} />
+              <Route path="/heroglyph/name" element={<NameScreen />} />
+              <Route path="/heroglyph/photo" element={<PhotoScreen />} />
+              <Route path="/heroglyph/breed" element={<BreedPatronScreen />} />
+              <Route path="/heroglyph/ranking" element={<RankingScreen />} />
+              <Route path="/heroglyph/owner-info" element={<OwnerInfoScreen />} />
+              <Route path="/heroglyph/owner-zodiac" element={<OwnerZodiacScreen />} />
+              <Route path="/heroglyph/owner-final" element={<OwnerFinalScreen />} />
+              <Route path="/heroglyph/dog-gender" element={<DogGenderScreen />} />
+              <Route path="/heroglyph/dog-fate" element={<DogFateScreen />} />
+              <Route path="/heroglyph/dog-colour" element={<DogColourScreen />} />
+              <Route path="/heroglyph/dog-bloodline" element={<DogBloodlineScreen />} />
+              <Route path="/heroglyph/dog-character" element={<DogCharacterScreen />} />
+              <Route path="/heroglyph/reveal" element={<HeroglyphRevealScreen />} />
+              <Route path="/heroglyph/message" element={<MessageScreen />} />
 
-          {/* Checkout — Stripe (flat, success_url je /welcome) */}
-          <Route path="/checkout" element={<CheckoutScreen />} />
-          <Route path="/payment" element={<PaymentScreen />} />
-          <Route path="/welcome" element={<WelcomeScreen />} />
-          <Route path="/vision" element={<Vision />} />
-          {import.meta.env.DEV && (
-            <Route path="/betavision" element={<BetaVision />} />
-          )}
-          <Route path="/religion" element={<Religion />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
+              {/* Checkout — Stripe (flat, success_url je /welcome) */}
+              <Route path="/checkout" element={<CheckoutScreen />} />
+              <Route path="/payment" element={<PaymentScreen />} />
+              <Route path="/welcome" element={<WelcomeScreen />} />
+              <Route path="/vision" element={<Vision />} />
+              {import.meta.env.DEV && (
+                <Route path="/betavision" element={<BetaVision />} />
+              )}
+              <Route path="/religion" element={<Religion />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
 
-          {/* Pack backoffice auth — magic link callback */}
-          <Route path="/login" element={<Login />} />
+              {/* Pack backoffice auth — magic link callback */}
+              <Route path="/login" element={<Login />} />
 
-          {/* /pack — buyer backoffice (auth-gated) */}
-          <Route path="/pack" element={<Pack />} />
-          <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
-          {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
-          <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
-          <Route path="/pack/portal" element={<PackPortal />} />
+              {/* /pack — buyer backoffice (auth-gated) */}
+              <Route path="/pack" element={<Pack />} />
+              <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
+              {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
+              <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/portal" element={<PackPortal />} />
 
-          <Route path="/cert-render/:id" element={<CertRender />} />
-          <Route path="/invoice-render/:id" element={<InvoiceRender />} />
+              <Route path="/cert-render/:id" element={<CertRender />} />
+              <Route path="/invoice-render/:id" element={<InvoiceRender />} />
 
-          {/* /admin — read-only backoffice (admin-email gated) */}
-          <Route path="/admin" element={<Admin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+              {/* /admin — read-only backoffice (admin-email gated) */}
+              <Route path="/admin" element={<Admin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>
     </LanguageProvider>

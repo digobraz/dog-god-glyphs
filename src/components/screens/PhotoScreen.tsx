@@ -12,6 +12,7 @@ import hekthorImg from '@/assets/hekthor.png';
 import { uploadMainPhoto, uploadCroppedPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 
 /* ───── helpers ───── */
 
@@ -318,6 +319,7 @@ type UploadState = 'idle' | 'uploading' | 'done' | 'error';
 export function PhotoScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const sessionId = useDogyptStore((s) => s.sessionId);
   const setDogPhotoUrl = useDogyptStore((s) => s.setDogPhotoUrl);
@@ -353,6 +355,10 @@ export function PhotoScreen() {
     if (!file) return;
     setFileName(file.name);
     const { url, blob } = await compressFile(file);
+    // Replacing an already-picked photo ("Change photo") — revoke the old blob,
+    // it's being swapped for a brand new one and the store is about to point
+    // at the new url anyway.
+    if (photoUrl?.startsWith('blob:')) URL.revokeObjectURL(photoUrl);
     const dims = await getImageDimensions(url);
     setLowRes(dims.w < 1500 && dims.h < 1500);
     setPhotoUrl(url);
@@ -393,6 +399,10 @@ export function PhotoScreen() {
     if (!file) return;
     const { url, blob } = await compressFile(file);
     const nextIndex = extras.length;
+    if (nextIndex >= 3) {
+      // Already at the 3-extra-photo cap — this blob is never stored/rendered.
+      URL.revokeObjectURL(url);
+    }
     setExtras((p) => (p.length < 3 ? [...p, url] : p));
     e.target.value = '';
 
@@ -470,6 +480,7 @@ export function PhotoScreen() {
                     className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5"
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (url.startsWith('blob:')) URL.revokeObjectURL(url);
                       setExtras((p) => p.filter((_, j) => j !== i));
                     }}
                   >
@@ -497,6 +508,8 @@ export function PhotoScreen() {
   );
 
   const screens = [renderUpload, renderCrop];
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

@@ -7,17 +7,21 @@ import { useT } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 import cleopatraImg from '@/assets/cleopatra-cartouche.png';
 
 export function OwnerFinalScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const [showInfo, setShowInfo] = useState(false);
   const [infoSeen, setInfoSeen] = useState(false);
   const openInfo = () => { setInfoSeen(true); setShowInfo((p) => !p); };
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

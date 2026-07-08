@@ -32,7 +32,12 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
     fired.current = true;
     const sid = sessionId || `local-${Date.now()}`;
 
-    setTimeout(async () => {
+    // One retry after 8s — the pipeline used to be strictly fire-once: a single
+    // transient failure (Cloudinary upload, font fetch) meant empty pdf_*_url
+    // and nothing to download in /pack. PackDogDetail still auto-regenerates
+    // server-side as the last resort.
+    const MAX_ATTEMPTS = 2;
+    const runPipeline = async (attempt: number): Promise<void> => {
       try {
         // Pre-inline external image URLs as data: URIs so html-to-image's PNG
         // serializer never needs to fetch (Cloudinary lacks CORS headers, and
@@ -139,8 +144,12 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
         });
       } catch (err) {
         const e = err as Error;
-        console.error('[postPayment] pipeline failed:', e?.message || e, e?.stack || err);
+        console.error(`[postPayment] pipeline failed (attempt ${attempt}/${MAX_ATTEMPTS}):`, e?.message || e, e?.stack || err);
+        if (attempt < MAX_ATTEMPTS) {
+          setTimeout(() => { void runPipeline(attempt + 1); }, 8000);
+        }
       }
-    }, RENDER_DELAY_MS);
+    };
+    setTimeout(() => { void runPipeline(1); }, RENDER_DELAY_MS);
   }, [email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef]);
 }

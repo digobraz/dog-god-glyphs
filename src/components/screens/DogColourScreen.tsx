@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 import brightSvg from '@/assets/colour/COLOUR-BRIGHT.svg';
 import darkSvg from '@/assets/colour/COLOUR-DARK.svg';
@@ -14,16 +15,26 @@ import mixSvg from '@/assets/colour/COLOUR-MIX.svg';
 export function DogColourScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
+  const navigateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimeout.current) clearTimeout(navigateTimeout.current);
+    };
+  }, []);
 
   const handleSelect = (colour: string) => {
     setSelected(colour);
     setSelection('dogColour', colour);
-    setTimeout(() => navigate('/heroglyph/dog-bloodline'), 500);
+    navigateTimeout.current = setTimeout(() => navigate('/heroglyph/dog-bloodline'), 500);
   };
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

@@ -128,6 +128,12 @@ export function countryCentroid(country?: string | null): [number, number] | nul
   return iso ? ISO2_CENTROID[iso] ?? null : null;
 }
 
+/** ISO2 → flagcdn PNG URL. Jediný zdroj vlajkových URL (GRID, LanguagePicker,
+ * PackDogDetail) — šírka podľa kontextu: 40 grid dlaždica, 80 picker, 160 detail. */
+export function flagUrl(iso2: string, width: 40 | 80 | 160 = 40): string {
+  return `https://flagcdn.com/w${width}/${iso2}.png`;
+}
+
 /** Free-text country → flag emoji, or '' if it can't be resolved to ISO2. */
 export function countryFlag(country?: string | null): string {
   const iso = countryISO2(country);

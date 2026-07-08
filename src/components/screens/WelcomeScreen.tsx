@@ -20,24 +20,42 @@ function useSessionData(sessionId: string | null, fallbackStore: { dogName: stri
   useEffect(() => {
     if (!sessionId || fetched.current) return;
     fetched.current = true;
-    fetch(`${EDGE_BASE}/get-session-data?session_id=${sessionId}`)
-      .then(r => r.json())
-      .then(d => {
-        if (d.dogName) {
-          sessionResolved.current = true;
-          setData({
-            dogName: d.dogName,
-            ownerName: d.ownerName,
-            email: d.email,
-            selections: d.selections,
-            dogPhotoUrl: d.dogPhotoUrl,
-            patronSvg: d.patronSvg ?? '',
-            patronSvg2: d.patronSvg2 ?? '',
-            packNumber: typeof d.packNumber === 'number' ? d.packNumber : null,
-          });
+    // Retry with backoff — a single failed fetch used to leave the buyer stuck
+    // on "preparing" forever (CTA disabled, blank certificate) right after
+    // paying. Transient network/edge hiccups are the common case; retrying a
+    // few times recovers them. Delays: 1s, 2s, 4s, 8s, 15s.
+    let alive = true;
+    const delays = [1000, 2000, 4000, 8000, 15000];
+    const attempt = async (n: number): Promise<void> => {
+      try {
+        const r = await fetch(`${EDGE_BASE}/get-session-data?session_id=${sessionId}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = await r.json();
+        if (!d.dogName) throw new Error('empty session data');
+        if (!alive) return;
+        sessionResolved.current = true;
+        setData({
+          dogName: d.dogName,
+          ownerName: d.ownerName,
+          email: d.email,
+          selections: d.selections,
+          dogPhotoUrl: d.dogPhotoUrl,
+          patronSvg: d.patronSvg ?? '',
+          patronSvg2: d.patronSvg2 ?? '',
+          packNumber: typeof d.packNumber === 'number' ? d.packNumber : null,
+        });
+      } catch (e) {
+        if (!alive) return;
+        if (n < delays.length) {
+          setTimeout(() => { if (alive) void attempt(n + 1); }, delays[n]);
+        } else {
+          console.error('[welcome] get-session-data failed after retries:', e);
+          // Fallback store data (mirrored by the other effect) stays in place.
         }
-      })
-      .catch(() => {/* use fallback store */});
+      }
+    };
+    void attempt(0);
+    return () => { alive = false; };
   }, [sessionId]);
 
   // Mirror live store ONLY when there is no payment session.

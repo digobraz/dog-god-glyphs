@@ -31,13 +31,18 @@ export function PaymentScreen() {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
-  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, patronSvg, patronSvg2, lifeStatus, deathDate } = useDogyptStore();
+  const { email, dogName, ownerName, selectedAmount, selections, dogPhotoUrl, extraPhotos, patronSvg, patronSvg2, lifeStatus, deathDate } = useDogyptStore();
   const [loading, setLoading] = useState(false);
   const [waitingPhoto, setWaitingPhoto] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
   const [openTooltip, setOpenTooltip] = useState<number | null>(null);
   // Ostrá prevádzka — pole je prázdne, používateľ zadá promo kód ručne.
   // Reálna Stripe validácia ostáva v create-checkout; tu len UI potvrdenie.
   const [promoCode, setPromoCode] = useState('');
+  // promoLocked = kód potvrdený v UI (✓, pole readOnly). Zľavnenú cenu ukáže
+  // až server (promoApplied z create-checkout / Stripe checkout) — Apply sám
+  // od seba NESMIE ukázať €1, kód môže byť neplatný.
+  const [promoLocked, setPromoLocked] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
 
   // Route guard — deep-link / stale localStorage ochrana
@@ -51,12 +56,21 @@ export function PaymentScreen() {
 
   const handlePay = async () => {
     setLoading(true);
+    setPayError(null);
     try {
       let stablePhotoUrl = dogPhotoUrl;
       if (stablePhotoUrl?.startsWith('blob:')) {
         setWaitingPhoto(true);
         stablePhotoUrl = await waitForStablePhotoUrl();
         setWaitingPhoto(false);
+      }
+      // A blob: URL is local to this tab — persisted to DB it renders as a dead
+      // image on the WALL and certificate. If the Cloudinary upload still hasn't
+      // finished after the wait, stop here instead of paying with a broken photo.
+      if (stablePhotoUrl?.startsWith('blob:')) {
+        setPayError(t('payment.photoNotReady'));
+        setLoading(false);
+        return;
       }
       // Same inputs as WelcomeScreen → deterministic, matches the certificate the buyer sees.
       // selections.country = dog's country (set on /name screen, FIX3). Never fall back to
@@ -87,6 +101,9 @@ export function PaymentScreen() {
           email,
           selections,
           dogPhotoUrl: stablePhotoUrl,
+          // Extra fotky z PhotoScreen — create-checkout ich ukladá do
+          // dogs.cloudinary_extras. Blob: URL by v DB boli mŕtve, filtrujeme.
+          cloudinaryExtras: extraPhotos.filter((u) => u && !u.startsWith('blob:')),
           patronSvg,
           patronSvg2,
           breed: selections?.breed || undefined,
@@ -101,6 +118,13 @@ export function PaymentScreen() {
           ...getAttribution(),   // utm_source/medium/campaign/content, first_referrer, first_landing
         }),
       });
+      if (!res.ok) {
+        const errText = await res.text().catch(() => '');
+        console.error('create-checkout HTTP error:', res.status, errText);
+        setPayError(t('payment.error'));
+        setLoading(false);
+        return;
+      }
       const data = await res.json();
       if (data.promoApplied) {
         setPromoApplied(true);
@@ -112,10 +136,12 @@ export function PaymentScreen() {
         setTimeout(() => setLoading(false), 2000);
       } else {
         console.error('create-checkout error:', data.error);
+        setPayError(t('payment.error'));
         setLoading(false);
       }
     } catch (err) {
       console.error('payment fetch error:', err);
+      setPayError(t('payment.error'));
       setLoading(false);
       setWaitingPhoto(false);
     }
@@ -250,10 +276,10 @@ export function PaymentScreen() {
                     <input
                       type="text"
                       value={promoCode}
-                      onChange={(e) => { setPromoCode(e.target.value); setPromoApplied(false); }}
+                      onChange={(e) => { setPromoCode(e.target.value); setPromoLocked(false); setPromoApplied(false); }}
                       placeholder={t('payment.promo.placeholder')}
                       maxLength={32}
-                      readOnly={promoApplied}
+                      readOnly={promoLocked}
                       style={{
                         width: '100%',
                         fontFamily: "'Cinzel', serif",
@@ -261,14 +287,14 @@ export function PaymentScreen() {
                         fontWeight: 700,
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
-                        background: promoApplied ? 'rgba(201,154,63,0.12)' : 'rgba(255,255,255,0.55)',
+                        background: promoLocked ? 'rgba(201,154,63,0.12)' : 'rgba(255,255,255,0.55)',
                         border: isPromoValid ? '1.5px solid #C99A3F' : '1.5px solid rgba(31,26,14,0.22)',
                         borderRadius: 8,
                         padding: '10px 34px 10px 12px',
                         color: 'hsl(30 20% 20%)',
                         outline: 'none',
-                        opacity: promoApplied ? 0.7 : 1,
-                        cursor: promoApplied ? 'default' : 'text',
+                        opacity: promoLocked ? 0.7 : 1,
+                        cursor: promoLocked ? 'default' : 'text',
                       }}
                     />
                     {isPromoValid && (
@@ -288,7 +314,7 @@ export function PaymentScreen() {
 
                   {/* PRAVO — Apply tlačidlo (outlined modré) → po klику filled modré + ✓.
                       Rovnaká veľkosť cez zdieľaný promoBtnBox. */}
-                  {promoApplied ? (
+                  {promoLocked ? (
                     <div
                       aria-label={t('payment.promo.applied')}
                       style={{
@@ -302,7 +328,7 @@ export function PaymentScreen() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setPromoApplied(true)}
+                      onClick={() => setPromoLocked(true)}
                       disabled={!isPromoValid}
                       style={{
                         ...promoBtnBox,
@@ -337,6 +363,26 @@ export function PaymentScreen() {
                   : <span className="flex items-center gap-2"><Lock className="h-4 w-4" /> {t('payment.pay')}</span>
                 }
               </Button>
+
+              {payError && (
+                <p
+                  role="alert"
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 12,
+                    lineHeight: 1.5,
+                    textAlign: 'center',
+                    color: '#8a2c1d',
+                    background: 'rgba(138,44,29,0.08)',
+                    border: '1px solid rgba(138,44,29,0.35)',
+                    borderRadius: 8,
+                    padding: '8px 12px',
+                    margin: '10px 0 0',
+                  }}
+                >
+                  {payError}
+                </p>
+              )}
 
               <p className="text-[10px] text-muted-foreground/60 text-center flex items-center justify-center gap-1 mt-2">
                 <Lock className="h-3 w-3" /> {t('payment.secured')}

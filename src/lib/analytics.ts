@@ -24,3 +24,17 @@ export const upgradeToTier1 = () => {
     posthog.startSessionRecording();
   } catch { /* ignore */ }
 };
+
+// Volá sa keď user v Cookie settings VYPNE analytics po tom, čo bol predtým Tier1
+// (GDPR downgrade — bez tohto by applyConsent bol no-op a recording by bežal ďalej).
+// Poradie: najprv stopni recording, potom prepni persistence späť na 'memory' — posthog-js
+// interne (PostHogPersistence.update_config) pri zmene `persistence` typu zavolá `clear()`
+// na PÔVODNOM storage (localStorage+cookie) PRED prepnutím na nový, takže existujúce
+// ph_* cookies/localStorage kľúče sa reálne zmažú, nielen prestanú dostávať nové zápisy.
+export const downgradeToTier0 = () => {
+  try {
+    if (!enabled()) return;
+    posthog.stopSessionRecording();
+    posthog.set_config({ persistence: 'memory' });
+  } catch { /* ignore */ }
+};

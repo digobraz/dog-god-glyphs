@@ -2,7 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
-import dogyptSeal from '@/assets/dogypt-seal.png';
+import dogyptSeal from '@/assets/dogypt-seal.webp';
 import { SACRED_INDEX } from '@/data/sacredIndex.generated';
 
 // ════════════════════════════════════════════════════════════════════════

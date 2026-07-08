@@ -276,7 +276,7 @@ export default function Heroglyph() {
           "offers": { "@type": "Offer", "price": "11", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://dogypt.com/heroglyph" }
         }}
       />
-      {/* Mild radial overlay over bg-dark.png texture */}
+      {/* Mild radial overlay over bg-dark.webp texture */}
       <div
         aria-hidden
         style={{

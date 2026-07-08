@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import { DateDropdowns } from '@/components/DateDropdowns';
-import introMedallionImg from '@/assets/intro-medallion.png';
+import introMedallionImg from '@/assets/intro-medallion.webp';
 import legendIconUrl from '@/assets/legend-icon.svg';
 import angelIconUrl from '@/assets/angel-icon.svg';
 import { useT } from '@/i18n/LanguageContext';

@@ -1,14 +1,7 @@
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
 import { useT } from "@/i18n/LanguageContext";
 
 const NotFound = () => {
   const t = useT();
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">

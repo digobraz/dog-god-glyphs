@@ -666,6 +666,8 @@ export const sk: Partial<Dict> = {
   'payment.preparing': 'PRIPRAVUJEME...',
   'payment.pay': 'ZAPLATIŤ CEZ STRIPE',
   'payment.secured': 'Zabezpečené cez Stripe · Karta, Apple Pay, Google Pay',
+  'payment.error': 'Platbu sa nepodarilo spustiť. Skontroluj pripojenie a skús to znova.',
+  'payment.photoNotReady': 'Fotka tvojho psa sa nestihla nahrať. Vráť sa na krok s fotkou a pridaj ju znova.',
   'payment.back': 'Späť',
   // promo code — tester perk callout
   'payment.promo.placeholder': 'Promo kód',

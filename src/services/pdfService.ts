@@ -1,6 +1,5 @@
-import { toPng } from 'html-to-image';
-import { jsPDF } from 'jspdf';
-
+// jsPDF + html-to-image are dynamically imported (P1 2026-07 perf pass) — both are only
+// needed post-payment (cert/invoice render) and shouldn't ship in the main chunk.
 const A4_W_MM = 210;
 const A4_H_MM = 297;
 
@@ -15,6 +14,7 @@ interface RenderOpts {
 }
 
 async function elementToPng(element: HTMLElement, pixelRatio: number): Promise<string> {
+  const { toPng } = await import('html-to-image');
   const rect = element.getBoundingClientRect();
   return toPng(element, {
     cacheBust: true,
@@ -34,7 +34,10 @@ export async function renderElementToPdfBlob(
   opts: RenderOpts,
 ): Promise<Blob> {
   const { orientation, marginMm = 0, bgColor, pixelRatio = 2.5 } = opts;
-  const png = await elementToPng(element, pixelRatio);
+  const [{ jsPDF }, png] = await Promise.all([
+    import('jspdf'),
+    elementToPng(element, pixelRatio),
+  ]);
   const { w: pageW, h: pageH } = pageDims(orientation);
 
   const doc = new jsPDF({ orientation, unit: 'mm', format: 'a4', compress: true });

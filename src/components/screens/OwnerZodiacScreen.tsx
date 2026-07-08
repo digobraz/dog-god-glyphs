@@ -8,6 +8,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { getChineseZodiac } from '@/lib/zodiac';
 import { WheelYearPicker } from '@/components/WheelDatePicker';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 
 import ariesSvg from '@/assets/zodiac/ZODIAC-ARIES.svg';
@@ -115,18 +116,31 @@ function ScrollableStrip({
 
 const DEFAULT_YEAR = 1990;
 
+// Store only keeps the resolved animal name (selections.ownerChineseZodiac), not
+// the raw year the wheel was on — so on back-navigation we reverse-lookup the
+// nearest matching year instead of always reseeding the wheel at DEFAULT_YEAR
+// (which silently overwrote the preview with whatever DEFAULT_YEAR resolves to).
+function yearForChineseZodiac(name: string): number {
+  const currentYear = new Date().getFullYear();
+  for (let y = currentYear; y >= 1930; y--) {
+    if (getChineseZodiac(y).name === name) return y;
+  }
+  return DEFAULT_YEAR;
+}
+
 export function OwnerZodiacScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const setSelection = useDogyptStore((s) => s.setSelection);
   const savedZodiac = useDogyptStore((s) => s.selections.ownerZodiac);
   const savedChinese = useDogyptStore((s) => s.selections.ownerChineseZodiac);
 
   const [selectedZodiac, setSelectedZodiac] = useState<string | null>(savedZodiac || null);
-  const [yearValue, setYearValue] = useState(DEFAULT_YEAR);
+  const [yearValue, setYearValue] = useState(() => (savedChinese ? yearForChineseZodiac(savedChinese) : DEFAULT_YEAR));
   const [yearTouched, setYearTouched] = useState(!!savedChinese);
   const [chineseResult, setChineseResult] = useState<{ name: string; emoji: string } | null>(
-    savedChinese ? getChineseZodiac(DEFAULT_YEAR) : null
+    savedChinese ? getChineseZodiac(yearForChineseZodiac(savedChinese)) : null
   );
 
   const westernScrollRef = useRef<HTMLDivElement>(null);
@@ -150,6 +164,8 @@ export function OwnerZodiacScreen() {
     if (!canContinue) return;
     navigate('/heroglyph/owner-final');
   };
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

@@ -5,7 +5,7 @@
 // Soft sandy palette — bledé papyrusové bloky (karty) na ČIERNOM pozadí (web-konzistentné).
 // POZN: bgTop/bg/bgBottom = svetlé VÝPLNE VNÚTRI kariet (HeroCard/PackTree/skeletony), NIE page bg.
 export const PACK_THEME = {
-  // "Naše tmavé" — #050505 + bg-dark.png heroglyf textúra (ako GodsGrid / heroglyph flow)
+  // "Naše tmavé" — #050505 + bg-dark.webp heroglyf textúra (ako GodsGrid / heroglyph flow)
   pageBg: '#050505',
   glass: 'rgba(5, 5, 5, 0.72)',
   glassSoft: 'rgba(5, 5, 5, 0.55)',

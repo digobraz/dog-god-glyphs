@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Hash } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
 import hekthorImg from '@/assets/hekthor.png';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 
 import num1 from '@/assets/numbers/NUMBER-1.svg';
 import num2 from '@/assets/numbers/NUMBER-2.svg';
@@ -132,6 +133,7 @@ export function RankingScreen() {
   const navigate = useNavigate();
   const t = useT();
   const { lang } = useLang();
+  const flowOk = useFlowGuard();
   // Ordinál: EN = „2nd/3rd" (anglický sufix), ostatné jazyky = „2./3." (SK formát).
   const ordinal = (n: number) => (lang === 'en' ? ordinalSuffix(n) : `${n}.`);
   const dogName = useDogyptStore((s) => s.dogName);
@@ -140,6 +142,13 @@ export function RankingScreen() {
   const [selected, setSelected] = useState<string | null>(null);
   const [customNum, setCustomNum] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimeout.current) clearTimeout(navigateTimeout.current);
+    };
+  }, []);
 
   const handleYes = () => {
     setSelection('ranking', '1');
@@ -153,7 +162,7 @@ export function RankingScreen() {
   const handlePickRank = (value: string) => {
     setSelected(value);
     setSelection('ranking', value);
-    setTimeout(() => navigate('/heroglyph/owner-info'), 500);
+    navigateTimeout.current = setTimeout(() => navigate('/heroglyph/owner-info'), 500);
   };
 
   const handleCustomConfirm = () => {
@@ -186,6 +195,8 @@ export function RankingScreen() {
       </span>
     </button>
   );
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

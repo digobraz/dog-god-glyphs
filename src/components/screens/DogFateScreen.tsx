@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 import raisedSvg from '@/assets/fate/FATE-RAISED.svg';
 import rescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
@@ -13,17 +14,27 @@ import rescuedSvg from '@/assets/fate/FATE-RESCUED.svg';
 export function DogFateScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const navigateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimeout.current) clearTimeout(navigateTimeout.current);
+    };
+  }, []);
 
   const handleSelect = (fate: string) => {
     setSelected(fate);
     setSelection('dogFate', fate);
-    setTimeout(() => navigate('/heroglyph/dog-colour'), 500);
+    navigateTimeout.current = setTimeout(() => navigate('/heroglyph/dog-colour'), 500);
   };
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

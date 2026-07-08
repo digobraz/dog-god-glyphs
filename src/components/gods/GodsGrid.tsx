@@ -5,8 +5,9 @@ import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
-import { countryISO2 } from '@/lib/countryGeo';
+import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { track } from '@/lib/analytics';
+import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import './WhatNextPopup.css';
 
@@ -93,6 +94,30 @@ function safeUrl(u: string): string {
   }
 }
 
+// Vytiahne Cloudinary public_id z uloženej secure_url (`.../image/upload/v123/tmp/<session>/main.jpg`
+// → `tmp/<session>/main`) — potrebné aby sme mohli znova zavolať gridTileUrl() a dostať
+// dlaždicovú transformáciu namiesto ťahania celého originálu (aj 1MB+ na WALL bunku).
+// Vráti null pre neCloudinary assety (napr. lokálne /images/... filler fotky) — vtedy sa
+// použije pôvodná URL bez zmeny.
+function cloudinaryPublicId(url: string): string | null {
+  const marker = '/image/upload/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  let rest = url.slice(idx + marker.length);
+  rest = rest.replace(/^v\d+\//, ''); // verzia (voliteľná)
+  rest = rest.replace(/\.[a-zA-Z0-9]+$/, ''); // prípona
+  return rest || null;
+}
+
+// Dlaždicová URL pre WALL kartu — sanitizovaná (safeUrl) + Cloudinary transform (w/h/q auto)
+// namiesto surového originálu. Detail/reveal overlay zostáva na plnom obrázku zámerne.
+function tileImageUrl(rawUrl: string | null): string {
+  const url = safeUrl(rawUrl || '');
+  if (!url) return '';
+  const publicId = cloudinaryPublicId(url);
+  return publicId ? gridTileUrl(publicId) : url;
+}
+
 function getPos(filename: string): string {
   const key = decodeURIComponent(filename).normalize('NFC');
   return photoPositions[key] || '50% 50%';
@@ -125,9 +150,9 @@ const HEKTHOR_FILL: RealDog = {
   id: 'hektor-fill',
   dog_name: 'HEKTHOR',
   pack_number: 1,
-  cloudinary_main_url: '/images/hektor-grid.jpg',
+  cloudinary_main_url: '/images/hektor-grid.webp',
   patron_svg: null,
-  heroglyph_png_url: '/images/hekthor-heroglyph.png',
+  heroglyph_png_url: '/images/hekthor-heroglyph.webp',
   country: 'SVK',
   owner_message: null,
 };
@@ -173,6 +198,12 @@ export function GodsGrid() {
   // Reálni psi (zákazníci, bez Hektora) opakovaní cez prázdne bunky → nekonečný WALL.
   const fillerDogsRef = useRef<RealDog[]>([]);
   const navigateToRef = useRef<((n: number) => void) | null>(null);
+  // t() drží aktuálnu funkciu bez toho, aby bola v deps hlavného build efektu (ten je
+  // najťažší v komponente — teardown pri každom prepnutí jazyka by zbúral celý grid,
+  // resetol scroll pozíciu a zavrel otvorenú kartu). Preklady vnútri efektu čítaj cez
+  // tRef.current(...), nie priamo cez `t`.
+  const tRef = useRef(t);
+  useEffect(() => { tRef.current = t; }, [t]);
 
   const revealData = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -190,9 +221,11 @@ export function GodsGrid() {
 
   // Load real dogs for the grid
   useEffect(() => {
+    let alive = true; // unmount guard — nesetuj state po odmountovaní (StrictMode dvojfetch, rýchla navigácia preč)
     fetch(GRID_DOGS_URL)
       .then(r => r.ok ? r.json() : [])
       .then((dogs: RealDog[]) => {
+        if (!alive) return;
         if (dogs.length > 0) {
           const maxN = dogs.reduce((m, d) => Math.max(m, d.pack_number ?? 0), 0);
           const positions = generatePackPositions(maxN + 5);
@@ -219,7 +252,8 @@ export function GodsGrid() {
         }
         setDogsReady(true);
       })
-      .catch(() => setDogsReady(true));
+      .catch(() => { if (alive) setDogsReady(true); });
+    return () => { alive = false; };
   }, [revealData.active, revealData.packNumber]);
 
   // Reveal sequence timing
@@ -401,9 +435,9 @@ export function GodsGrid() {
       el.style.transform = 'translate(-50%, -50%)';
       el.innerHTML = `
         <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
-        <p class="hero-tagline">${t('wall.hero.taglineLead')}<br><span class="gold">${t('wall.hero.taglineGod')}</span></p>
-        <button class="join-btn" data-join>${t('wall.hero.cta')}</button>
-        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${t('wall.hero.total')}</span><span class="hero-count-dogs">${t('wall.hero.dogs')}</span></span>
+        <p class="hero-tagline">${tRef.current('wall.hero.taglineLead')}<br><span class="gold">${tRef.current('wall.hero.taglineGod')}</span></p>
+        <button class="join-btn" data-join>${tRef.current('wall.hero.cta')}</button>
+        <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${tRef.current('wall.hero.total')}</span><span class="hero-count-dogs">${tRef.current('wall.hero.dogs')}</span></span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', () => {
@@ -419,19 +453,19 @@ export function GodsGrid() {
       el.style.left = '0px';
       el.style.top  = (-1 * GY) + 'px';
       el.innerHTML = `
-        <div class="card-img" style="background-image:url('/images/hektor-grid.jpg');background-position:50% 35%"></div>
+        <div class="card-img" style="background-image:url('/images/hektor-grid.webp');background-position:50% 35%"></div>
         <div class="card-open-overlay">
           <div class="card-open-titlerow">
             <span class="card-open-rank">#1</span>
             <span class="card-open-name">HEKTHOR</span>
           </div>
-          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.png" alt="HEKTHOR heroglyph" draggable="false">
-          <div class="card-open-msg">${t('wall.hektor.msg')}</div>
+          <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.webp" alt="HEKTHOR heroglyph" draggable="false">
+          <div class="card-open-msg">${tRef.current('wall.hektor.msg')}</div>
         </div>
         <div class="card-rank-top">#1</div>
-        <img class="card-flag" src="https://flagcdn.com/w40/sk.png" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
+        <img class="card-flag" src="${flagUrl('sk')}" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">
         <div class="hektor-heroglyph-wrap">
-          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.png" alt="Hekthor heroglyph" draggable="false">
+          <img class="hektor-heroglyph" src="/images/hekthor-heroglyph.webp" alt="Hekthor heroglyph" draggable="false">
         </div>
         <div class="card-name-block">
           <div class="card-label hektor-label">HEKTHOR</div>
@@ -477,7 +511,7 @@ export function GodsGrid() {
           <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
         </div>
         <div class="card-rank-top">#${safePack}</div>
-        ${cc ? `<img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
+        ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         <div class="card-name-block">
           <div class="card-label">${safeName}</div>
         </div>
@@ -513,8 +547,9 @@ export function GodsGrid() {
       el.style.left = (col * GX) + 'px';
       el.style.top  = (row * GY) + 'px';
       const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
+      const tileSrc = esc(tileImageUrl(dog.cloudinary_main_url));
       el.innerHTML = `
-        <div class="card-img" style="background-image:url('${dog.cloudinary_main_url || ''}');background-position:50% 30%"></div>
+        <div class="card-img" style="background-image:url('${tileSrc}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
           <div class="card-open-rank">#${packNum}</div>
           <div class="card-open-name">${safeName}</div>
@@ -522,7 +557,7 @@ export function GodsGrid() {
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
         </div>
         <div class="card-rank-top">#${packNum}</div>
-        ${cc ? `<img class="card-flag" src="https://flagcdn.com/w40/${cc}.png" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
+        ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
         ${overlayHeroSrc ? `
         <div class="dog-heroglyph-wrap">
           <img class="dog-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">
@@ -598,6 +633,19 @@ export function GodsGrid() {
       updateCells();
     }
 
+    // mousemove/touchmove/wheel môžu fírovať oveľa častejšie než 1×/frame (vysokofrekvenčné
+    // trackpady/myši) — bez throttlu by render() (transform + cells diff) bežal viackrát
+    // za frame zbytočne. scheduleRender() zbatchuje viacero volaní do jedného rAF; ox/oy
+    // sú do frame update-nuté synchrónne v handleroch, takže sa nič nestratí.
+    let renderRafId: number | null = null;
+    function scheduleRender() {
+      if (renderRafId !== null) return;
+      renderRafId = requestAnimationFrame(() => {
+        renderRafId = null;
+        render();
+      });
+    }
+
     function inertia() {
       vx *= 0.95;
       vy *= 0.95;
@@ -636,7 +684,7 @@ export function GodsGrid() {
       prevX = e.clientX; prevY = e.clientY; prevT = now;
       ox = e.clientX - startX;
       oy = e.clientY - startY;
-      render();
+      scheduleRender();
     };
     const onMouseUp = (e: MouseEvent) => {
       if (!dragging) return;
@@ -679,7 +727,7 @@ export function GodsGrid() {
       prevX = t.clientX; prevY = t.clientY; prevT = now;
       ox = t.clientX - startX;
       oy = t.clientY - startY;
-      render();
+      scheduleRender();
     };
     const onTouchEnd = (e: TouchEvent) => {
       dragging = false;
@@ -726,7 +774,7 @@ export function GodsGrid() {
       if (e.deltaMode === 2) { dx *= vh; dy *= vh; }
       ox -= dx;
       oy -= dy;
-      render();
+      scheduleRender();
     };
 
     const onResize = () => {
@@ -839,10 +887,35 @@ export function GodsGrid() {
       window.removeEventListener('resize', onResize);
       centerBtnMobile?.removeEventListener('click', onCenter);
       if (raf) cancelAnimationFrame(raf);
+      if (renderRafId !== null) cancelAnimationFrame(renderRafId);
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady, t]);
+  }, [navigate, dogsReady]);
+
+  // Zmena jazyka → NEBÚRAME grid (rebuild by zrušil scroll pozíciu, otvorenú kartu aj
+  // virtualizované bunky — je to najťažší efekt v komponente). Jediné miesta kde grid
+  // pri builde kreslí i18n text sú hero karta (0,0) a Hektor karta (0,-1) — ak práve
+  // existujú v DOM (mohli byť odstránené virtualizáciou pri scrolle ďaleko od stredu),
+  // len im prepíšeme text priamo. Ak neexistujú, nič sa nedeje — pri návrate do zorného
+  // poľa ich makeHeroCard/makeHektorCard postaví znova s aktuálnym tRef.current().
+  useEffect(() => {
+    if (!dogsReady) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const heroTagline = canvas.querySelector('.hero-tagline');
+    if (heroTagline) {
+      heroTagline.innerHTML = `${t('wall.hero.taglineLead')}<br><span class="gold">${t('wall.hero.taglineGod')}</span>`;
+    }
+    const joinBtn = canvas.querySelector('.join-btn');
+    if (joinBtn) joinBtn.textContent = t('wall.hero.cta');
+    const heroTotal = canvas.querySelector('.hero-count-total');
+    if (heroTotal) heroTotal.textContent = t('wall.hero.total');
+    const heroDogs = canvas.querySelector('.hero-count-dogs');
+    if (heroDogs) heroDogs.textContent = t('wall.hero.dogs');
+    const hektorMsg = canvas.querySelector('.hektor-card .card-open-msg');
+    if (hektorMsg) hektorMsg.textContent = t('wall.hektor.msg');
+  }, [t, dogsReady]);
 
   return (
     <>
@@ -867,7 +940,7 @@ export function GodsGrid() {
           content: '';
           position: absolute;
           inset: 0;
-          background-image: url('/images/bg-dark.png');
+          background-image: url('/images/bg-dark.webp');
           background-size: cover;
           background-position: center;
           background-repeat: no-repeat;

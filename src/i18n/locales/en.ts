@@ -22,28 +22,28 @@ export const en = {
   'vision.beat.dream.bigG': 'A DREAM',
   'vision.beat.dream.tag': 'I HAD A DREAM',
   'vision.intro.lead':
-    'In 2018, I had a <span class="wf-hl">vision</span> of how to <span class="wf-hl">save every dog on Earth</span>. And it\'s actually simple — every doglover <span class="wf-hl">unites into one community</span>, one that sees a dog as <span class="wf-hl">more than just an animal</span>. So here we are…',
+    'In 2018, I had a <span class="wf-hl">vision</span> of how to <span class="wf-hl">save every dog on Earth</span>. And it\'s actually simple — every dog lover <span class="wf-hl">unites into one community</span>, one that sees a dog as <span class="wf-hl">more than just an animal</span>. So here we are…',
 
   // beat 1
   'vision.beat.symbol.bigW': 'THE',
   'vision.beat.symbol.bigG': 'SYMBOL',
   'vision.beat.symbol.tag': 'THE SYMBOL',
   'vision.beat.symbol.h':
-    'Our language of love is <span class="wf-hl">DOG</span>. And beyond its ordinary name, every dog carries its own <span class="wf-hl">unique symbol</span> — the <span class="wf-hl">HEROGLYPH</span>. It\'s a <span class="wf-hl">universal language</span>, a <span class="wf-hl">sacred tool</span> to unite every doglover on Earth.',
+    'Our language of love is <span class="wf-hl">DOG</span>. And beyond its ordinary name, every dog carries its own <span class="wf-hl">unique symbol</span> — the <span class="wf-hl">HEROGLYPH</span>. It\'s a <span class="wf-hl">universal language</span>, a <span class="wf-hl">sacred tool</span> to unite every dog lover on Earth.',
 
   // beat 2
   'vision.beat.nation.bigW': 'A DOG',
   'vision.beat.nation.bigG': 'NATION',
   'vision.beat.nation.tag': 'A DOG NATION',
   'vision.beat.nation.h':
-    'Let\'s make a <span class="wf-hl">miracle</span>. Our first milestone: to unite <span class="wf-hl">a million doglovers</span>. Imagine the <span class="wf-hl">sheer power</span> we\'d hold together — everything we could do for ourselves, our dogs, and <span class="wf-hl">dogs in need</span>, beyond any state. <span class="wf-hl">We would be the state.</span>',
+    'Let\'s make a <span class="wf-hl">miracle</span>. Our first milestone: to unite <span class="wf-hl">a million dog lovers</span>. Imagine the <span class="wf-hl">sheer power</span> we\'d hold together — everything we could do for ourselves, our dogs, and <span class="wf-hl">dogs in need</span>, beyond any state. <span class="wf-hl">We would be the state.</span>',
 
   // beat 3
   'vision.beat.temple.bigW': 'DIGITAL',
   'vision.beat.temple.bigG': 'TEMPLE',
   'vision.beat.temple.tag': 'DIGITAL TEMPLE',
   'vision.beat.temple.h':
-    'One app, <span class="wf-hl">only for real doglovers</span> — no fake people. The first <span class="wf-hl">dog-friendly digital world</span> built just for us: a social home, and an ecosystem that truly helps — <span class="wf-hl">travel, vets, services, education</span>, and <span class="wf-hl">fundraisers</span> for dogs in need.',
+    'One app, <span class="wf-hl">only for real dog lovers</span> — no fake people. The first <span class="wf-hl">dog-friendly digital world</span> built just for us: a social home, and an ecosystem that truly helps — <span class="wf-hl">travel, vets, services, education</span>, and <span class="wf-hl">fundraisers</span> for dogs in need.',
 
   // beat 4
   'vision.beat.centers.bigW': 'REAL',
@@ -57,12 +57,12 @@ export const en = {
   'vision.beat.era.bigG': 'ERA',
   'vision.beat.era.tag': 'A NEW ERA',
   'vision.beat.era.h':
-    'Beyond borders and politics, doglovers are Earth\'s <span class="wf-hl">kindest hidden force</span>. Only together can we <span class="wf-hl">rebuild the system</span> and change the world — and leave behind something that protects our dogs <span class="wf-hl">forever</span>.',
+    'Beyond borders and politics, dog lovers are Earth\'s <span class="wf-hl">kindest hidden force</span>. Only together can we <span class="wf-hl">rebuild the system</span> and change the world — and leave behind something that protects our dogs <span class="wf-hl">forever</span>.',
 
   // ── /vision — finale CTA ──
   'vision.finale.title': 'What if…',
   'vision.finale.lead':
-    '…every doglover said <span style="color:#F5C73D;font-style:italic">yes</span> to one crazy idea?',
+    '…every dog lover said <span style="color:#F5C73D;font-style:italic">yes</span> to one crazy idea?',
   'vision.finale.cta': 'Become Dogyptian',
   'vision.finale.tagline': 'A new era is just one click away.',
 
@@ -86,7 +86,7 @@ export const en = {
 
   // CTA + outro
   'heroglyph.intro.cta': 'Create Your Heroglyph',
-  'heroglyph.intro.outro': 'Doglovers, assemble!',
+  'heroglyph.intro.outro': 'Dog lovers, assemble!',
   'heroglyph.intro.loading': 'Loading…',
 
   // pills rad 1
@@ -162,7 +162,7 @@ export const en = {
   'heroglyph.flow.name.whoTitle': 'WHO IS',
   'heroglyph.flow.name.whoTitleName': 'HEKTHOR?',
   'heroglyph.flow.name.whoBody':
-    "Hekthor is the first Dogyptian. Rescued from the streets and adopted from a shelter, his loyalty inspired a global movement to honor dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.",
+    "Hekthor is the first Dogyptian. Rescued from the streets and adopted from a shelter, his loyalty inspired a global movement to honour dogs as gods. His mission is to forge a unique HEROGLYPH for every dog on Earth, uniting the world's largest community of dog lovers to help millions of dogs in need.",
   'heroglyph.flow.name.born': 'Born',
   'heroglyph.flow.name.adopted': 'Adopted',
   'heroglyph.flow.name.location': 'Location',
@@ -557,7 +557,7 @@ export const en = {
   'about.crawl.p3':
     'A week later the two of them were together, and a beautiful story began. The man\'s whole life changed, and in time he understood one thing: only someone who has a dog, and knows what a dog\'s love feels like, can truly help dogs in need.',
   'about.crawl.p4':
-    'And so the Heroglyph was born — a symbol meant to unite doglovers everywhere into the largest community the world has ever known. A community that will stand for us, for our dogs, and for the generations to come — for people unafraid to admit that a dog is not just an animal, but a being that makes us better humans.',
+    'And so the Heroglyph was born — a symbol meant to unite dog lovers everywhere into the largest community the world has ever known. A community that will stand for us, for our dogs, and for the generations to come — for people unafraid to admit that a dog is not just an animal, but a being that makes us better humans.',
   'about.crawl.p5':
     'Right now, the journey to the first milestone begins — to create 1,000,000 Heroglyphs. And you can be part of it. Because the only ones crazy enough to believe they can change the world are the ones who do.',
   'about.crawl.p6': 'IN DOG WE TRUST.',
@@ -594,7 +594,7 @@ export const en = {
   'about.outro.quoteLead': 'It Was Never',
   'about.outro.quoteTail': '"Just a Dog."',
   'about.outro.body':
-    'You already know the feeling — that a dog isn\'t something you own, it\'s <strong>someone you love</strong>. Now imagine that love organized, connected, <strong>powerful enough to change things.</strong> And that\'s why <strong>DOGYPT</strong> exists.',
+    'You already know the feeling — that a dog isn\'t something you own, it\'s <strong>someone you love</strong>. Now imagine that love organised, connected, <strong>powerful enough to change things.</strong> And that\'s why <strong>DOGYPT</strong> exists.',
   'about.outro.name1': 'Matej',
   'about.outro.and': 'and',
   'about.outro.name2': 'Hekthor',
@@ -608,7 +608,7 @@ export const en = {
   'religion.hook.people': 'PEOPLE',
   'religion.hook.note': '(15% worldwide)',
   'religion.hook.bow': 'bow to the cow',
-  'religion.hook.doglovers': 'DOGLOVERS?',
+  'religion.hook.doglovers': 'DOG LOVERS?',
   'religion.hook.worship': "LET'S WORSHIP OUR DOGS.",
   'religion.cta': 'Become Dogyptian',
   'religion.aria.question': 'The Question',
@@ -621,11 +621,11 @@ export const en = {
   'religion.preamble.headlineGrad': 'In Dog',
   'religion.preamble.headlineLine': 'We Trust',
   'religion.preamble.text':
-    'We, the nation of doglovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.',
+    'We, the nation of dog lovers — knowing the <strong>infinite loyalty</strong>, the <strong>true love</strong> and the <strong>pure soul</strong> of every dog on Earth — in order to lift the standing of dogs in human society, build them a <strong>community</strong>, <strong>better</strong> their lives, and <strong>rewrite</strong> the fate of every dog in need, do give ourselves this constitution.',
   'religion.preamble.oath': 'The Oath of the Pack',
 
   // ── /religion — sacred index ──
-  'religion.bookTitle': 'The “Bible” for doglovers',
+  'religion.bookTitle': 'The “Bible” for dog lovers',
 
   // ── /religion — Constitution book (ConstitutionBook.tsx) ──
   'religion.book.sealAlt': 'The Dogyptian seal',
@@ -634,7 +634,7 @@ export const en = {
   'religion.book.titleBrand': 'Dogypt',
   'religion.book.titleConstitution': 'Constitution',
   'religion.book.trust': 'In Dog We Trust',
-  'religion.book.sub': 'Required reading for every doglover to become a Dogyptian.',
+  'religion.book.sub': 'Required reading for every dog lover to become a Dogyptian.',
   'religion.book.cta1.kicker': 'The Path Begins',
   'religion.book.cta1.head': 'Join the<br />Religion',
   'religion.book.cta1.text': 'Sign up for the dog religion — take a Heroglyph.',
@@ -671,7 +671,7 @@ export const en = {
   'wall.info.body': "DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack. We're collecting one million heroes. Be among the first.",
   // filter / numpad
   'wall.filter.find': 'Find dog by number',
-  'wall.filter.center': 'Center grid',
+  'wall.filter.center': 'Centre grid',
   'wall.filter.placeholder': 'Dog #',
   'wall.filter.clear': 'Clear',
   'wall.filter.confirm': 'Confirm',
@@ -683,10 +683,10 @@ export const en = {
   'whatNext.close': 'Close',
   'whatNext.prev': 'Previous',
   'whatNext.next': 'Next',
-  'whatNext.motto': 'In dog we trust.',
+  'whatNext.motto': 'In Dog We Trust.',
   'whatNext.s1.title': 'The First Step',
   'whatNext.s1.hook': 'One small step for a human — one giant leap for dogkind.',
-  'whatNext.s1.body': 'Your heroglyph just declared you part of a movement that honors dogs across the world. <b>The first step is done.</b>',
+  'whatNext.s1.body': 'Your heroglyph just declared you part of a movement that honours dogs across the world. <b>The first step is done.</b>',
   'whatNext.s2.title': 'You Are a Dogyptian Now',
   'whatNext.s2.hook': 'You are not a dog lover — you are a believer with a leash.',
   'whatNext.s2.body': 'Written into the WALL, forever. Each of us gives a little — and <b>together, we give dogs enough.</b>',
@@ -715,6 +715,8 @@ export const en = {
   'payment.preparing': 'PREPARING...',
   'payment.pay': 'PAY WITH STRIPE',
   'payment.secured': 'Secured by Stripe · Card, Apple Pay, Google Pay',
+  'payment.error': 'Payment could not start. Please check your connection and try again.',
+  'payment.photoNotReady': "Your dog's photo hasn't finished uploading. Go back to the photo step and add it again.",
   'payment.back': 'Back',
   // promo code — tester perk callout
   'payment.promo.placeholder': 'Promo code',
@@ -764,7 +766,7 @@ export const en = {
     'What you purchase is a digital good: a personal HEROGLYPH (a unique symbolic certificate), a PDF version of that certificate, your dog’s entry in the public GodsGrid, and ongoing access to your Pack profile. We grant you a personal, non-transferable, non-exclusive licence to use these digital goods for non-commercial personal use. Nothing physical is shipped. Reproduction, resale, or commercial exploitation of HEROGLYPH artwork or assets requires our prior written consent.',
   'terms.s5.title': '5. Payments',
   'terms.s5.body':
-    'Payments are processed by Stripe Payments Europe, Ltd. We never see or store your full card details. Prices are shown in the currency at checkout (default USD); any applicable VAT is calculated and displayed before you pay. The order you confirm at checkout is the order we deliver — we will not change scope or price after the fact.',
+    'Payments are processed by Stripe Payments Europe, Ltd. We never see or store your full card details. Prices are shown in the currency at checkout (default EUR); any applicable VAT is calculated and displayed before you pay. The order you confirm at checkout is the order we deliver — we will not change scope or price after the fact.',
   'terms.s6.title': '6. Refunds & Right of Withdrawal',
   'terms.s6.body':
     'Under EU Directive 2011/83/EU consumers normally have 14 days to withdraw from a distance contract. Because the HEROGLYPH is delivered as digital content immediately after payment, by clicking “Pay” you give your express prior consent to immediate performance and acknowledge that you thereby lose your right of withdrawal as soon as delivery begins (Art. 16(m) of the Directive). If something on our side goes wrong — a broken file, a duplicate charge, a cancelled order — write to support@dogypt.com within 14 days and we will refund or re-deliver, no questions asked.',
@@ -873,7 +875,7 @@ export const en = {
   // ── /about — Footer ──
   'about.footer.sealAlt': 'DOGYPT seal',
   // motto = brand → stays EN across locales (sk/cs fall back here by design)
-  'about.footer.motto': 'In dog we trust.',
+  'about.footer.motto': 'In Dog We Trust.',
   'about.footer.mission': 'A movement for everyone whose life was changed by a dog.',
   'about.footer.privacy': 'Privacy',
   'about.footer.terms': 'Terms',
@@ -884,7 +886,7 @@ export const en = {
     'The most powerful humans who ever lived all bowed to the same quiet teacher — and they wrote it down.',
   'about.legends.creditsSummary': 'Quotes from public interviews · Photo credits',
   'about.legends.creditsIntro':
-    'Portraits via Wikimedia Commons under Creative Commons / public-domain licenses.',
+    'Portraits via Wikimedia Commons under Creative Commons / public-domain licences.',
   // citáty: EN = canonical verbatim (zdroj POOL v TestimonialsSection.tsx);
   // preklady = preklad citátu, NIKDY parafráza ani vymyslený citát
   'about.legends.q.oprah-winfrey.text': 'The truest, purest love… is the love that comes from your dog.',

@@ -67,16 +67,21 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
     setSaving(true);
     const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       const { error } = await (supabase as unknown as {
         from: (table: string) => {
           update: (vals: Record<string, unknown>) => {
-            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            };
           };
         };
       })
         .from('dogs')
         .update({ life_status: 'deceased', death_date: iso })
-        .eq('id', dogId);
+        .eq('id', dogId)
+        .eq('user_id', user.id);
       if (error) throw new Error(error.message);
       toast({ title: t('pack.dog.toastSaved') });
       onSaved(iso);

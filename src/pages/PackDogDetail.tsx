@@ -37,7 +37,7 @@ import { MemorialControl } from '@/components/pack/MemorialControl';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { countryISO2 } from '@/lib/countryGeo';
+import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE } from '@/lib/env';
 import { DEV_FULL } from '@/lib/packFlags';
 
@@ -232,16 +232,21 @@ export default function PackDogDetail() {
     if (!dog?.id) return;
     setHealthSaving(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       const { error: upErr } = await (supabase as unknown as {
         from: (t: string) => {
           update: (vals: Record<string, unknown>) => {
-            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            };
           };
         };
       })
         .from('dogs')
         .update(fields)
-        .eq('id', dog.id);
+        .eq('id', dog.id)
+        .eq('user_id', user.id);
       if (upErr) throw new Error(upErr.message);
       toast({ title: t('pack.dog.toastSaved') });
     } catch (err) {
@@ -391,16 +396,21 @@ export default function PackDogDetail() {
     setMessageSaving(true);
     try {
       const next = messageDraft.trim().slice(0, MESSAGE_MAX);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       const { error: upErr } = await (supabase as unknown as {
         from: (t: string) => {
           update: (vals: { grid_message: string | null }) => {
-            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            };
           };
         };
       })
         .from('dogs')
         .update({ grid_message: next || null })
-        .eq('id', dog.id);
+        .eq('id', dog.id)
+        .eq('user_id', user.id);
       if (upErr) throw new Error(upErr.message);
       setDog({ ...dog, grid_message: next || null });
       setMessageDirty(false);
@@ -428,16 +438,21 @@ export default function PackDogDetail() {
       const sessionFolder = dog.stripe_session_id || dog.id;
       const result = await uploadExtraPhoto(file, sessionFolder, extras.length + 1);
       const next = [...extras, result.secureUrl];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       const { error: upErr } = await (supabase as unknown as {
         from: (t: string) => {
           update: (vals: { cloudinary_extras: string[] }) => {
-            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            };
           };
         };
       })
         .from('dogs')
         .update({ cloudinary_extras: next })
-        .eq('id', dog.id);
+        .eq('id', dog.id)
+        .eq('user_id', user.id);
       if (upErr) throw new Error(upErr.message);
       setExtras(next);
       toast({ title: t('pack.dog.toastPhotoAdded') });
@@ -456,16 +471,21 @@ export default function PackDogDetail() {
     if (!dog?.id) return;
     const next = extras.filter((u) => u !== url);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       const { error: upErr } = await (supabase as unknown as {
         from: (t: string) => {
           update: (vals: { cloudinary_extras: string[] }) => {
-            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            };
           };
         };
       })
         .from('dogs')
         .update({ cloudinary_extras: next })
-        .eq('id', dog.id);
+        .eq('id', dog.id)
+        .eq('user_id', user.id);
       if (upErr) throw new Error(upErr.message);
       setExtras(next);
     } catch (err) {
@@ -487,16 +507,21 @@ export default function PackDogDetail() {
     try {
       const sessionFolder = dog.stripe_session_id || dog.id;
       const result = await uploadExtraPhoto(file, sessionFolder, 0);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
       const { error: upErr } = await (supabase as unknown as {
         from: (t: string) => {
           update: (vals: { cloudinary_main_url: string }) => {
-            eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            eq: (col: string, val: string) => {
+              eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+            };
           };
         };
       })
         .from('dogs')
         .update({ cloudinary_main_url: result.secureUrl })
-        .eq('id', dog.id);
+        .eq('id', dog.id)
+        .eq('user_id', user.id);
       if (upErr) throw new Error(upErr.message);
       setDog({ ...dog, cloudinary_main_url: result.secureUrl });
       useDogyptStore.getState().setDogPhotoUrl(result.secureUrl);
@@ -564,13 +589,17 @@ export default function PackDogDetail() {
     if (!dog?.id || resending) return;
     setResending(true);
     try {
+      // resend-magic-link generates a fresh link server-side and emails it to the
+      // buyer on file (rate-limited 5/h per dog). The previous send-certificate
+      // call ({dogId, force}) was a silent no-op — that function ignores payloads
+      // without an email field and its email path is internal-only since v22.
       const { data: { session } } = await supabase.auth.getSession();
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (session?.access_token) headers.Authorization = `Bearer ${session.access_token}`;
-      const res = await fetch(`${EDGE_BASE}/send-certificate`, {
+      const res = await fetch(`${EDGE_BASE}/resend-magic-link`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ dogId: dog.id, force: true }),
+        body: JSON.stringify({ dogId: dog.id }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       toast({ title: t('pack.dog.toastEmailResent'), description: t('pack.dog.toastEmailResentDesc') });
@@ -670,7 +699,7 @@ export default function PackDogDetail() {
   const origin = dog.country || (typeof sel.country === 'string' ? sel.country : '');
   const flagIso = countryISO2(origin) || 'sk';
   // w160 (nie w40) — 28px krúžok na retine potrebuje 2–3× hustotu, inak rozmazané.
-  const flagUrl = `https://flagcdn.com/w160/${flagIso}.png`;
+  const dogFlagUrl = flagUrl(flagIso, 160);
 
   return (
     <PackLayout wide>
@@ -853,7 +882,7 @@ export default function PackDogDetail() {
               </div>
               {/* Vlajka — krúžok ako na GRIDE (flagcdn), bez badge rámu */}
               <img
-                src={flagUrl}
+                src={dogFlagUrl}
                 alt={origin || t('pack.dog.defaultCountry')}
                 title={origin || t('pack.dog.defaultCountry')}
                 loading="lazy"

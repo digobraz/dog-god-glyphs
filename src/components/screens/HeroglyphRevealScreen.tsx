@@ -11,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import hekthorImg from '@/assets/hekthor.png';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 
 export function HeroglyphRevealScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const [phase, setPhase] = useState<'intro' | 'reveal' | 'complete'>('intro');
   const [showVertical, setShowVertical] = useState(false);
@@ -25,6 +27,8 @@ export function HeroglyphRevealScreen() {
     const t2 = setTimeout(() => setPhase('complete'), 3600);
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg h-[100dvh] flex flex-col items-center relative overflow-hidden">
@@ -178,7 +182,7 @@ export function HeroglyphRevealScreen() {
                     style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                   >
                     <img
-                      src="/images/vision/vision-unity.png"
+                      src="/images/vision/vision-unity.webp"
                       alt=""
                       aria-hidden="true"
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none"
@@ -272,7 +276,7 @@ export function HeroglyphRevealScreen() {
                     style={{ backgroundColor: 'hsl(var(--papyrus))' }}
                   >
                     <img
-                      src="/images/vision/vision-unity.png"
+                      src="/images/vision/vision-unity.webp"
                       alt=""
                       aria-hidden="true"
                       className="absolute inset-0 w-full h-full object-contain pointer-events-none"

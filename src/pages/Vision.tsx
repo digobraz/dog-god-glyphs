@@ -72,6 +72,10 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
   const scratchRef = useRef<HTMLCanvasElement | null>(null);
   const fade = useRef({ from: active, to: active, t: 1 });
   const { x: sxF, y: syF, w: swF, h: shF } = sheet;
+  // true = document viditeľný AND stage v (blízkosti) viewportu. Keď false, draw() rAF
+  // slučka aj skryté videá sa pauznú (batéria) — bez toho by bežali navždy aj mimo obrazovky.
+  const activeRef = useRef(true);
+  const resumeDrawRef = useRef<() => void>(() => {});
 
   // Active beat changed → cross-fade the figure (papyrus untouched).
   useEffect(() => {
@@ -84,7 +88,10 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
   // papyrus. Kick them on the first user gesture (any touch/scroll/tap), which iOS
   // accepts, and keep retrying any that fall back to paused.
   useEffect(() => {
-    const playAll = () => vidRefs.current.forEach((v) => v && v.paused && v.play().catch(() => {}));
+    const playAll = () => {
+      if (!activeRef.current) return; // stage skrytá/tab v pozadí — nebuď videá naspäť
+      vidRefs.current.forEach((v) => v && v.paused && v.play().catch(() => {}));
+    };
     playAll();
     const opts = { passive: true, capture: true } as AddEventListenerOptions;
     document.addEventListener('touchstart', playAll, opts);
@@ -98,6 +105,42 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
       clearInterval(iv);
     };
   }, [videos]);
+
+  // Pauzni celú scénu keď je tab v pozadí (visibilitychange) alebo stage mimo viewportu
+  // (IntersectionObserver na canvase — kanvas má rovnaký bounding box ako skryté videá
+  // za ním). Pri návrate späť sa rAF slučka aj videá znova nakopnú.
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    let intersecting = true;
+    let docVisible = !document.hidden;
+
+    const applyActive = () => {
+      const next = intersecting && docVisible;
+      if (next === activeRef.current) return;
+      activeRef.current = next;
+      if (next) {
+        resumeDrawRef.current();
+        vidRefs.current.forEach((v) => v && v.paused && v.play().catch(() => {}));
+      } else {
+        vidRefs.current.forEach((v) => v && !v.paused && v.pause());
+      }
+    };
+
+    const io = new IntersectionObserver((entries) => {
+      intersecting = entries[0]?.isIntersecting ?? true;
+      applyActive();
+    }, { threshold: 0 });
+    io.observe(canvas);
+
+    const onVisibility = () => { docVisible = !document.hidden; applyActive(); };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      io.disconnect();
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -148,10 +191,20 @@ function PapyrusStage({ papyrus, sheet, videos, active }: {
         if (f.from !== f.to && f.t < 1) drawFig(f.from, 1 - f.t); // outgoing figure
         drawFig(f.to, f.from !== f.to ? f.t : 1); // incoming / steady figure
       }
-      raf = requestAnimationFrame(draw);
+      // Stage skrytá (tab v pozadí / mimo viewportu) → slučku zastav namiesto donekonečna
+      // kresliť neviditeľný canvas. resumeDrawRef (nižšie) ju znova nakopne pri návrate.
+      raf = activeRef.current ? requestAnimationFrame(draw) : 0;
     };
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    resumeDrawRef.current = () => {
+      if (raf) return; // slučka už beží
+      lastTs = 0; // vyhni sa skoku vo fade-e po dlhšej pauze
+      raf = requestAnimationFrame(draw);
+    };
+    return () => {
+      cancelAnimationFrame(raf);
+      resumeDrawRef.current = () => {};
+    };
   }, [papyrus, sxF, syF, swF, shF, videos]);
 
   return (
@@ -276,7 +329,7 @@ type Beat = {
   svg: string;
   figure?: string; // transparent figure PNG drawn ONTO the realistic papyrus frame
   img?: string; // baked papyrus+scene PNG on black (full, replaces the papyrus frame)
-  video?: string; // figure-on-white mp4 overlaid via mix-blend-mode:multiply onto papyrus-vision.png (universal, no alpha)
+  video?: string; // figure-on-white mp4 overlaid via mix-blend-mode:multiply onto papyrus-vision.webp (universal, no alpha)
 };
 
 const WF_BEATS: Beat[] = [
@@ -1358,7 +1411,7 @@ export default function Vision() {
         .wf-scroll-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; z-index: 1; }
         .wf-sheet-inner {
           position: absolute; z-index: 2;
-          /* inset to the writable sheet of papyrus-scroll.png (measured) + extra margin
+          /* inset to the writable sheet of papyrus-scroll.webp (measured) + extra margin
            * so the figure sits in the middle, clear of the rolls and curled side edges */
           top: 22%; bottom: 24%; left: 29%; right: 29%;
           display: flex; align-items: center; justify-content: center;
@@ -1638,7 +1691,7 @@ export default function Vision() {
             <div className="wf-scroll-col">
               <div className="wf-papyrus">
                 <PapyrusStage
-                  papyrus="/images/vision/papyrus-vision.png"
+                  papyrus="/images/vision/papyrus-vision.webp"
                   sheet={{ x: 0.10, y: 0.15, w: 0.80, h: 0.71 }}
                   videos={WF_VIDEOS}
                   active={wfState}

@@ -11,6 +11,7 @@ import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
@@ -184,6 +185,7 @@ export function OwnerInfoScreen() {
   useFlowKeyboardFix();
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const setOwnerName = useDogyptStore((s) => s.setOwnerName);
   const setSelection = useDogyptStore((s) => s.setSelection);
   const storedOwnerName = useDogyptStore((s) => s.ownerName);
@@ -218,6 +220,8 @@ export function OwnerInfoScreen() {
     setSelection('ownerGender', gender!);
     navigate('/heroglyph/owner-zodiac');
   };
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

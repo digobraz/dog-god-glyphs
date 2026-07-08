@@ -68,7 +68,7 @@ export function ConsentBanner() {
   };
 
   return (
-    <div className="consent-banner" role="dialog" aria-live="polite">
+    <div className="consent-banner" role="dialog" aria-live="polite" aria-label={t('consent.title')}>
       <style>{`
         .consent-banner {
           position: fixed; left: 0; right: 0; bottom: 0; z-index: 9999;

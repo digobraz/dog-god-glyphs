@@ -10,6 +10,7 @@ import hekthorImg from '@/assets/hekthor.png';
 import breedsData from '@/data/breeds.json';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { localizeBreed } from '@/lib/breedDisplay';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 
 type Breed = { id: number; en: string; sk: string; patron: string; group: string };
 type BreedsFile = { version: string; breeds: Breed[] };
@@ -742,6 +743,7 @@ function BackNextButtons({
 export function BreedPatronScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const setBreed = useDogyptStore((s) => s.setBreed);
   const setIsMixStore = useDogyptStore((s) => s.setIsMix);
@@ -827,6 +829,8 @@ export function BreedPatronScreen() {
       </>
     );
   };
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

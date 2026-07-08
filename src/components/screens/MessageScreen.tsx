@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 
 const MAX_CHARS = 150;
@@ -185,6 +186,7 @@ export function MessageScreen() {
 
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
@@ -205,6 +207,16 @@ export function MessageScreen() {
   );
 
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  // Close any lingering tick-sound AudioContext if the screen unmounts before
+  // the oscillator's onended fires (e.g. instant navigation after submit).
+  useEffect(() => {
+    return () => {
+      audioCtxRef.current?.close().catch(() => {});
+      audioCtxRef.current = null;
+    };
+  }, []);
 
   const openModal = () => {
     // iOS requires focus() called synchronously inside a user gesture to open the keyboard.
@@ -234,6 +246,7 @@ export function MessageScreen() {
     // Tick sound
     try {
       const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
@@ -242,12 +255,18 @@ export function MessageScreen() {
       osc.connect(gain).connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + 0.04);
+      osc.onended = () => {
+        ctx.close().catch(() => {});
+        if (audioCtxRef.current === ctx) audioCtxRef.current = null;
+      };
     } catch {}
 
     navigate('/checkout');
   };
 
   const placeholder = t('heroglyph.flow.message.placeholder', { dogName: displayName });
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

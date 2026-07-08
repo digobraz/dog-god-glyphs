@@ -1,22 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { en } from './locales/en';
 import { sk } from './locales/sk';
-import { cs } from './locales/cs';
-import { pol } from './locales/pol';
-import { ukr } from './locales/ukr';
-import { deu } from './locales/deu';
-import { esp } from './locales/esp';
-import { fra } from './locales/fra';
-import { prt } from './locales/prt';
-import { rus } from './locales/rus';
-import { ita } from './locales/ita';
-import { chn } from './locales/chn';
-import { jpn } from './locales/jpn';
-import { ind } from './locales/ind';
-import { ara } from './locales/ara';
-import { kor } from './locales/kor';
-import { nld } from './locales/nld';
-import { tur } from './locales/tur';
 
 /**
  * DOGYPT i18n — ľahká vlastná vrstva (bez react-i18next, Lovable-friendly).
@@ -27,6 +11,10 @@ import { tur } from './locales/tur';
  *   kľúč ticho padne na EN (nikdy prázdny string).
  * - Číta `dogypt_lang` z localStorage — ten istý kľúč, ktorý LanguagePicker UŽ zapisuje.
  *   Provider reaguje na zmenu (vrátane `storage` eventu z iného tabu).
+ *
+ * Perf (P0 2026-07): `en` + `sk` sú statické importy (fallback + najčastejší jazyk),
+ * zvyšných 16 locale súborov (100-150 kB každý) sa dotiahne dynamickým `import()` až
+ * pri reálnom prepnutí/inicializácii jazyka — main chunk nemá ťahať všetkých 18 naraz.
  */
 
 export type Dict = typeof en;
@@ -34,31 +22,53 @@ export type LangCode = string;
 
 const STORAGE_KEY = 'dogypt_lang';
 
-// Registry zapnutých locale slovníkov. Pridať jazyk = import + zápis sem.
-// (LanguagePicker `enabled` flag riadi VIDITEĽNOSŤ v UI; tu je dostupnosť obsahu.)
-const DICTS: Record<string, Partial<Dict>> = {
-  en,
-  sk,
-  cs,
+// Registry zapnutých locale slovníkov. `en`/`sk` sú vždy dostupné synchrónne,
+// ostatné sa dopĺňajú do cache po dotiahnutí (viď `loaders` nižšie).
+const DICTS: Record<string, Partial<Dict>> = { en, sk };
+
+// Lazy loaders pre ostatné jazyky. Pridať jazyk = import() sem + zápis do DICTS
+// po vyriešení promise (loadLang). Kľúče musia matchovať LanguagePicker `label` kódy.
+const loaders: Record<string, () => Promise<Partial<Dict>>> = {
+  cs: () => import('./locales/cs').then((m) => m.cs),
   // Launch-set strojové preklady (machine, pending human review cez review-prekladov.html).
-  // Kľúče musia matchovať LanguagePicker `label` kódy.
-  pol,
-  ukr,
-  deu,
-  esp,
-  fra,
-  prt,
-  rus,
-  ita,
+  pol: () => import('./locales/pol').then((m) => m.pol),
+  ukr: () => import('./locales/ukr').then((m) => m.ukr),
+  deu: () => import('./locales/deu').then((m) => m.deu),
+  esp: () => import('./locales/esp').then((m) => m.esp),
+  fra: () => import('./locales/fra').then((m) => m.fra),
+  prt: () => import('./locales/prt').then((m) => m.prt),
+  rus: () => import('./locales/rus').then((m) => m.rus),
+  ita: () => import('./locales/ita').then((m) => m.ita),
   // Full machine translations 2026-06-17 (680 keys each), pending human review.
-  chn,
-  jpn,
-  ind,
-  ara,
-  kor,
-  nld,
-  tur,
+  chn: () => import('./locales/chn').then((m) => m.chn),
+  jpn: () => import('./locales/jpn').then((m) => m.jpn),
+  ind: () => import('./locales/ind').then((m) => m.ind),
+  ara: () => import('./locales/ara').then((m) => m.ara),
+  kor: () => import('./locales/kor').then((m) => m.kor),
+  nld: () => import('./locales/nld').then((m) => m.nld),
+  tur: () => import('./locales/tur').then((m) => m.tur),
 };
+
+// In-flight promises, aby sa ten istý jazyk nesťahoval viackrát paralelne.
+const pendingLoads: Record<string, Promise<void> | undefined> = {};
+
+/** Dotiahne locale do `DICTS` cache (no-op ak už je natiahnutý alebo statický). */
+function loadLang(lang: LangCode): Promise<void> {
+  if (DICTS[lang] || !loaders[lang]) return Promise.resolve();
+  if (pendingLoads[lang]) return pendingLoads[lang]!;
+  const p = loaders[lang]()
+    .then((dict) => {
+      DICTS[lang] = dict;
+    })
+    .catch(() => {
+      // Sieť/chunk zlyhal — necháme fallback na EN, skúsi sa znova pri ďalšom setLang/mount.
+    })
+    .finally(() => {
+      delete pendingLoads[lang];
+    });
+  pendingLoads[lang] = p;
+  return p;
+}
 
 // RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.
 const RTL_LANGS = new Set(['ara', 'ar']);
@@ -108,6 +118,20 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // Dotiahni locale chunk pri každej zmene jazyka (no-op pre en/sk/už-natiahnuté).
+  // `dictsTick` len vynúti re-render (a novú identitu `t`) po dorazení chunku —
+  // dovtedy `t()` transparentne fallbackuje na EN vďaka lookupu nižšie.
+  const [dictsTick, setDictsTick] = useState(0);
+  useEffect(() => {
+    let cancelled = false;
+    loadLang(lang).then(() => {
+      if (!cancelled) setDictsTick((n) => n + 1);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [lang]);
+
   const setLang = useCallback((next: LangCode) => {
     setLangState(next);
     try { window.localStorage.setItem(STORAGE_KEY, next); } catch {}
@@ -117,7 +141,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     const dict = (DICTS[lang] ?? en) as Record<string, string>;
     const value = dict[key] ?? (en as Record<string, string>)[key];
     return interpolate(value ?? key, vars);
-  }, [lang]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- dictsTick force-refreshes `t` identity once a lazy locale chunk lands
+  }, [lang, dictsTick]);
 
   const value = useMemo<LanguageContextValue>(() => ({ lang, setLang, t }), [lang, setLang, t]);
 

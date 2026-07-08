@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +6,7 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { PageTopBar } from '@/components/PageTopBar';
+import { useFlowGuard } from '@/hooks/useFlowGuard';
 import hekthorImg from '@/assets/hekthor.png';
 
 import guardianSvg from '@/assets/character/CHARACTER-GUARDIAN.svg';
@@ -52,6 +53,7 @@ const traitLabelKey: Record<string, string> = Object.fromEntries(
 export function DogCharacterScreen() {
   const navigate = useNavigate();
   const t = useT();
+  const flowOk = useFlowGuard();
   const dogName = useDogyptStore((s) => s.dogName);
   const displayName = dogName || t('heroglyph.flow.yourDogFallback');
   const setSelection = useDogyptStore((s) => s.setSelection);
@@ -60,9 +62,16 @@ export function DogCharacterScreen() {
   const [slideIndex, setSlideIndex] = useState(0);
   const [slideDir, setSlideDir] = useState<1 | -1>(1);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const navigateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Swipe support for the slideshow
   const touchStartX = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (navigateTimeout.current) clearTimeout(navigateTimeout.current);
+    };
+  }, []);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -95,7 +104,7 @@ export function DogCharacterScreen() {
       if (next.length === 2) {
         setSelection('dogCharacter1', next[0]);
         setSelection('dogCharacter2', next[1]);
-        setTimeout(() => navigate('/heroglyph/reveal'), 600);
+        navigateTimeout.current = setTimeout(() => navigate('/heroglyph/reveal'), 600);
       }
 
       return next;
@@ -108,6 +117,8 @@ export function DogCharacterScreen() {
   };
 
   const currentSlide = slides[slideIndex];
+
+  if (!flowOk) return null;
 
   return (
     <div className="dark-bg flex flex-col h-[100dvh] overflow-hidden">

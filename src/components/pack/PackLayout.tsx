@@ -128,8 +128,11 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         navigate(`/login?return=${ret}`, { replace: true });
       }
     });
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((event, s) => {
       if (!mounted) return;
+      // INITIAL_SESSION duplikuje ensureSession() vyššie — bez tohto guardu sa
+      // pri mounte bez session zavolal navigate('/login') dvakrát.
+      if (event === 'INITIAL_SESSION') return;
       setSession(s);
       if (!s) {
         const ret = encodeURIComponent(location.pathname + location.search);
@@ -492,7 +495,7 @@ function HieroglyphBg() {
         aria-hidden
         style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100lvh',
-          backgroundImage: "url('/images/bg-dark.png')",
+          backgroundImage: "url('/images/bg-dark.webp')",
           backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
           filter: 'blur(3px)', zIndex: 0, pointerEvents: 'none',
         }}

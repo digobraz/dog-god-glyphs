@@ -589,7 +589,7 @@ function GateRevealSection() {
                   [isLeft ? 'left' : 'right']: 0,
                   width: '100vw',
                   height: '100dvh',
-                  backgroundImage: 'url(/images/brana-final.png)',
+                  backgroundImage: 'url(/images/brana-final.webp)',
                   backgroundSize: 'cover',
                   backgroundPosition: 'center center',
                   backgroundRepeat: 'no-repeat',
@@ -697,7 +697,7 @@ export default function BetaVision() {
       {/* Fixed bg layer: same gold-symbol texture as GodsGrid, extra dark overlay */}
       <div style={{
         position: 'fixed', inset: 0,
-        backgroundImage: "url('/images/bg-dark.png')",
+        backgroundImage: "url('/images/bg-dark.webp')",
         backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat',
         filter: 'blur(3px)', zIndex: -2, pointerEvents: 'none',
       }} />
