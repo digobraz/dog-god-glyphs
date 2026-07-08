@@ -52,6 +52,13 @@ const H  = Math.round(360 * MScale);
 const GX = W + Math.round(64 * MScale);
 const GY = H + Math.round(64 * MScale);
 
+// Cloudinary tile veľkosť podľa reálne zobrazenej karty × DPR (cap 2x — 3x displeje
+// nepotrebujú plnú hustotu na fotke v pozadí karty). Predtým pevných 800px pre všetkých,
+// aj mobil s kartou 241px CSS — zbytočne ťažké dlaždice (PageSpeed audit 2026-07-08).
+const TILE_SIZE = Math.min(800, Math.max(320, Math.round(
+  W * Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1, 2)
+)));
+
 const REVEAL_COL = 3;
 const REVEAL_ROW = 1;
 
@@ -115,7 +122,7 @@ function tileImageUrl(rawUrl: string | null): string {
   const url = safeUrl(rawUrl || '');
   if (!url) return '';
   const publicId = cloudinaryPublicId(url);
-  return publicId ? gridTileUrl(publicId) : url;
+  return publicId ? gridTileUrl(publicId, TILE_SIZE) : url;
 }
 
 function getPos(filename: string): string {
@@ -434,7 +441,7 @@ export function GodsGrid() {
       el.style.top  = (H / 2) + 'px';
       el.style.transform = 'translate(-50%, -50%)';
       el.innerHTML = `
-        <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon">
+        <img src="/images/dogypt-gold-logo.png" alt="DOGYPT" class="hero-logo-icon" fetchpriority="high">
         <p class="hero-tagline">${tRef.current('wall.hero.taglineLead')}<br><span class="gold">${tRef.current('wall.hero.taglineGod')}</span></p>
         <button class="join-btn" data-join>${tRef.current('wall.hero.cta')}</button>
         <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${tRef.current('wall.hero.total')}</span><span class="hero-count-dogs">${tRef.current('wall.hero.dogs')}</span></span>

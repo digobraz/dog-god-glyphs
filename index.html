@@ -26,14 +26,28 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Google Fonts moved here from src/index.css @import (was render-blocking the whole
          stylesheet parse). Only the families/weights actually used across the app
-         (Cinzel, Cinzel Decorative, Inter, Space Grotesk, JetBrains Mono). -->
+         (Cinzel, Cinzel Decorative, Inter, Space Grotesk, JetBrains Mono).
+         media="print" + onload swap = non-blocking load (PageSpeed 2026-07-08: 1750ms
+         "žiadosti o blokovanie vykreslenia"); text still shows via display=swap fallback
+         font in the meantime, no CLS since app already renders CLS=0. -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700;900&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@500;700&display=swap"
+      />
+    </noscript>
     <!-- NOTE: /spiral/img/* preloads removed (2026-07 perf pass) — spirála je archívna /spiral
-         stránka, homepage je GodsGrid a nepoužíva tieto assety. GodsGrid má vlastné hero logo
-         (/images/dogypt-gold-logo.png) — nepridané sem, keďže nie je overené ako LCP element. -->
+         stránka, homepage je GodsGrid a nepoužíva tieto assety. -->
+    <!-- GodsGrid LCP candidates (PageSpeed 2026-07-08: "nepriame vyhľadávanie žiadostí LCP" —
+         obe sa vykresľujú do canvasu až po JS mounte, prehliadač ich objaví neskoro bez preloadu). -->
+    <link rel="preload" as="image" href="/images/dogypt-gold-logo.png" fetchpriority="high" />
+    <link rel="preload" as="image" href="/images/hektor-grid.webp" fetchpriority="high" />
   <meta property="og:site_name" content="DOGYPT" />
   <meta property="og:locale" content="en_US" />
   <script type="application/ld+json">

@@ -40,8 +40,8 @@ export const certPreviewUrl = (publicId: string) =>
 export const certPdfUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,r_max,f_auto,q_auto/${publicId}`;
 
-export const gridTileUrl = (publicId: string) =>
-  `${BASE_URL}/c_fill,w_800,h_800,f_auto,q_auto/${publicId}`;
+export const gridTileUrl = (publicId: string, size = 800) =>
+  `${BASE_URL}/c_fill,w_${size},h_${size},f_auto,q_auto/${publicId}`;
 
 export const lightboxUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_1200,h_1200,f_auto,q_auto/${publicId}`;
