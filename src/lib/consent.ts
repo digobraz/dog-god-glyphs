@@ -38,19 +38,30 @@ export function applyConsent(c: Consent, prev?: Consent | null): void {
     // bol no-op a nahrávanie/cookies by bežali ďalej (GDPR problém).
     downgradeToTier0();
   }
+  // Consent Mode v2 (Vlna C): gtag existuje (inicializovaný v index.html PRED GTM).
+  // Posielame KOMPLETNÝ stav pri každej voľbe — aj revoke (granted→denied), inak by
+  // GA4/Pixel bežali ďalej po odvolaní v Cookie settings. analytics_storage viazané na
+  // `analytics`, ad_* na `marketing` (Consent Mode v2 ich rozlišuje).
+  if (typeof (window as any).gtag === 'function') {
+    (window as any).gtag('consent', 'update', {
+      analytics_storage:  c.analytics ? 'granted' : 'denied',
+      ad_storage:         c.marketing ? 'granted' : 'denied',
+      ad_user_data:       c.marketing ? 'granted' : 'denied',
+      ad_personalization: c.marketing ? 'granted' : 'denied',
+    });
+  }
+  // Custom eventy PO gtag update — GTM tagy s „require analytics_storage/ad_storage"
+  // sa pri neskoršom grante v tej istej session samy neznovuspustia (spustia sa len pri
+  // reloade s už uloženým súhlasom). Tieto eventy im dajú druhý firing trigger, aby GA4/Pixel
+  // nabehli okamžite po kliknutí Accept, nie až po reloade. Poradie: gtag update už prebehol
+  // vyššie, takže consent state je granted keď trigger spustí gated tag.
+  if (c.analytics === true) {
+    (window as any).dataLayer?.push({ event: 'consent_analytics_granted' });
+  }
   if (c.marketing === true) {
-    // gtag ešte NEEXISTUJE (príde vo vlne C) — guard = no-op teraz.
-    if (typeof (window as any).gtag === 'function') {
-      (window as any).gtag('consent', 'update', {
-        ad_storage: 'granted',
-        ad_user_data: 'granted',
-        ad_personalization: 'granted',
-        analytics_storage: 'granted',
-      });
-    }
     (window as any).dataLayer?.push({ event: 'consent_marketing_granted' });
   }
-  // pri false nič nevoláme — Tier 0 posthog beží ďalej (cookieless memory, kryté policy).
+  // Tier 0 posthog beží ďalej nezávisle (cookieless memory, kryté policy).
 }
 
 export function hasChoice(): boolean {

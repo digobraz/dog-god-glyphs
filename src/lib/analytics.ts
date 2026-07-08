@@ -8,12 +8,21 @@ export const setAnalyticsLang = (l: string) => { if (l) currentLang = l; };
 // v main.tsx = init sa nikdy nevolá) — všetky volania nižšie sú vtedy bezpečný no-op.
 const enabled = () => Boolean(posthog?.__loaded);
 
+// dataLayer bridge (Vlna C): každý track() ide AJ do window.dataLayer, aby GTM/GA4/Pixel
+// mali jeden bod inštrumentácie spolu s PostHogom. Consent Mode v2 (index.html) drží tagy
+// pod súhlasom — bridge len dodá eventy, gating rieši GTM. dataLayer vždy existuje (index.html).
+const toDataLayer = (event: string, props?: Record<string, unknown>) => {
+  try { (window as any).dataLayer?.push({ event, ...props }); } catch { /* ignore */ }
+};
+
 export const track = (event: string, props?: Record<string, unknown>) => {
   try { if (enabled()) posthog.capture(event, { lang: currentLang, ...props }); } catch { /* ignore */ }
+  toDataLayer(event, { lang: currentLang, ...props });
 };
 
 export const trackPageview = (path: string) => {
   try { if (enabled()) posthog.capture('$pageview', { path, lang: currentLang }); } catch { /* ignore */ }
+  toDataLayer('spa_pageview', { path, lang: currentLang });
 };
 
 // Volá sa vo vlne B po analytics consente — prepne z memory na plný režim + recording.
