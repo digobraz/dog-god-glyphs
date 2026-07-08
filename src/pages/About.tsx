@@ -785,7 +785,7 @@ export default function About() {
           </div>
 
           <p className="sw-intro" ref={swIntroRef}>{t('about.crawl.intro')}</p>
-          <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.png" alt="DOGYPT" />
+          <img className="sw-logo" ref={swLogoRef} src="/images/dogypt-gold-logo.webp" alt="DOGYPT" />
           <div className="sw-stage">
             <div className="sw-crawl-text" ref={swTextRef}>
               <p className="sw-episode">{t('about.crawl.episode')}</p>
