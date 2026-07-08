@@ -489,6 +489,10 @@ export const en = {
   'sharecard.shareText': '{name} is one of the first 1,000,000 dogs of DOGYPT. Find yours at dogypt.com',
   'sharecard.saved': 'Card saved',
   'sharecard.preparing': 'Preparing your card…',
+  'sharecard.facebook': 'Facebook',
+  'sharecard.whatsapp': 'WhatsApp',
+  'sharecard.copyLink': 'Copy link',
+  'sharecard.linkCopied': 'Link copied',
 
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'DOGYPT · Pack Access',

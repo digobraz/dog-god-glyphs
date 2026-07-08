@@ -280,7 +280,7 @@ export default function Pack() {
 
         {/* Share card — primary dog's ready-made social image (SHARE + DOWNLOAD) */}
         {primaryDog && (
-          <PackShareCard dogName={primaryDog.dog_name} shareCardUrl={primaryDog.share_card_url} />
+          <PackShareCard dogName={primaryDog.dog_name} packNumber={primaryDog.pack_number ?? null} shareCardUrl={primaryDog.share_card_url} />
         )}
 
         {/* Sacred interlude — verse of the day from the Constitution (rotates daily) */}

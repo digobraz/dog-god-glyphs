@@ -452,6 +452,10 @@ export const cs: Partial<Dict> = {
   'sharecard.shareText': '{name} je jeden z prvních 1 000 000 psů DOGYPT. Najdi toho svého na dogypt.com',
   'sharecard.saved': 'Karta uložena',
   'sharecard.preparing': 'Připravujeme tvou kartu…',
+  'sharecard.facebook': 'Facebook',
+  'sharecard.whatsapp': 'WhatsApp',
+  'sharecard.copyLink': 'Kopírovat odkaz',
+  'sharecard.linkCopied': 'Odkaz zkopírován',
 
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'DOGYPT · Přístup do Smečky',

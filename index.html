@@ -40,15 +40,14 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="color-scheme" content="dark" />
     <title>DOGYPT — The Place Where DOG is GOD</title>
-    <!-- description + og:title/description + twitter:title/description zámerne NIE statické: rieši ich per-route <Seo> (react-helmet-async) vrátane homepage (GodsGrid). Statická home hodnota by sa duplikovala na sub-stránkach popri per-route. -->
+    <!-- description + og:title/description + twitter:title/description zámerne NIE statické: rieši ich per-route <Seo> (react-helmet-async) vrátane homepage (GodsGrid). Statická home hodnota by sa duplikovala na sub-stránkach popri per-route.
+         og:image + twitter:image (2026-07-08, DogShare /d/:pack fix): tiež zámerne NIE statické, z rovnakého dôvodu — Helmet vie iba PRIDAŤ meta tag, nie odstrániť statický z raw HTML, takže obe existovali naraz a crawler (prvý tag v <head> vyhráva) bral vždy tento statický default namiesto per-route ogImage. Fallback hodnota žije v Seo.tsx DEFAULT_OG. -->
     <meta name="author" content="DOGYPT" />
-    
-    
+
+
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/r1xjLvSkh4R0qFvw293HZyntcAI2/social-images/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp">
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@dogyptcom" />
-    <meta name="twitter:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/r1xjLvSkh4R0qFvw293HZyntcAI2/social-images/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp">
     <!-- canonical + og:url zámerne NIE statické: rieši ich per-route <Seo> (react-helmet-async), inak by statická home hodnota kolidovala s per-route canonical (Google by mohol canonicalizovať sub-stránky na home). Home sa self-canonicalizuje. -->
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo-favicon.png" />

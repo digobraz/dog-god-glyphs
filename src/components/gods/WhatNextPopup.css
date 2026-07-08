@@ -166,6 +166,22 @@
 .wn-share-actions .wn-cta{
   margin-top:0; display:inline-flex; align-items:center; justify-content:center; gap:7px;
 }
+
+/* small icon row (Facebook / WhatsApp / Copy link) under SHARE/DOWNLOAD */
+.wn-share-links{
+  display:flex; align-items:center; justify-content:center; gap:9px; margin-top:11px;
+}
+.wn-share-link-btn{
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px; border-radius:50%; cursor:pointer;
+  background:rgba(255,250,240,0.55); border:1.5px solid rgba(160,116,35,0.40);
+  color:var(--wn-gold-deep);
+  box-shadow:0 2px 8px rgba(160,116,35,0.16), inset 0 1px 0 rgba(255,255,255,0.55);
+  transition:background .15s ease, border-color .15s ease, transform .12s ease;
+}
+.wn-share-link-btn:hover{ background:#fff; border-color:var(--wn-gold); transform:translateY(-1px); }
+.wn-share-link-btn:active{ transform:translateY(0); }
+.wn-share-link-btn > *{ pointer-events:none; }
 /* Share = primárny gold (brand .btn-gold family), Download = outline sekundárny */
 .wn-cta-outline{
   color:var(--wn-gold-deep); background:rgba(255,250,240,0.55);
@@ -175,6 +191,19 @@
 .wn-cta-outline:hover{ background:#fff; border-color:var(--wn-gold); box-shadow:0 4px 14px rgba(160,116,35,0.28), inset 0 1px 0 rgba(255,255,255,0.6); }
 .wn-cta-outline:disabled{ box-shadow:0 2px 8px rgba(160,116,35,0.16), inset 0 1px 0 rgba(255,255,255,0.55); }
 .wn-share-preparing{ font-style:italic; }
+
+/* Share slide (5/5) = image-first: skryť pečiatku + nadpis „WHAT NEXT?" + counter
+   + vlastný titulok slidu; obrázok karty dominantný a veľký. Trieda .wn-card--share
+   sa nasadzuje v slideri (go()) keď je aktívny posledný slide. */
+.wn-card--share .wn-stamp,
+.wn-card--share .wn-head-row,
+.wn-card--share .wn-divider,
+.wn-card--share .wn-slide-share h2{ display:none; }
+.wn-card--share .wn-share-preview{
+  width:auto; height:min(36vh, 280px); aspect-ratio:1 / 1; max-width:100%;
+  margin:0 auto 12px; border-radius:16px;
+}
+.wn-card--share .wn-slide-share{ justify-content:center; }
 
 /* šípky — kruhové papyrus tlačidlá, jasne klikateľné */
 .wn-arrow{
