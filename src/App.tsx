@@ -178,7 +178,8 @@ const App = () => (
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
               {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
               <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
-              <Route path="/pack/portal" element={<PackPortal />} />
+              {/* Portal = EN placeholder, LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva. */}
+              <Route path="/pack/portal" element={DEV_FULL ? <PackPortal /> : <Navigate to="/pack" replace />} />
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />
