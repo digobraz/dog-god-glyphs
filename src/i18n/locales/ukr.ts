@@ -585,6 +585,7 @@ export const ukr: Partial<Dict> = {
   'wall.filter.placeholder': 'Пес #',
   'wall.filter.clear': 'Очистити',
   'wall.filter.confirm': 'Підтвердити',
+  'wall.filter.countries': 'Країни',
 
   // ── whatNext popup ──
   'whatNext.stamp': 'Важливо',

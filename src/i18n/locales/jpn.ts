@@ -511,6 +511,7 @@ export const jpn: Partial<Dict> = {
   "wall.filter.placeholder": "犬 #",
   "wall.filter.clear": "クリア",
   "wall.filter.confirm": "確認",
+  "wall.filter.countries": "国",
   "whatNext.stamp": "重要",
   "whatNext.title": "次は何？",
   "whatNext.close": "閉じる",

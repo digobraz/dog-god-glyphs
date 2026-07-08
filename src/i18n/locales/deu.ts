@@ -587,6 +587,7 @@ export const deu: Partial<Dict> = {
   'wall.filter.placeholder': 'Hund #',
   'wall.filter.clear': 'Löschen',
   'wall.filter.confirm': 'Bestätigen',
+  'wall.filter.countries': 'Länder',
 
   // ── WHAT NEXT? popup ──
   'whatNext.stamp': 'Wichtig',

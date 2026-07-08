@@ -587,6 +587,7 @@ export const fra: Partial<Dict> = {
   'wall.filter.placeholder': 'Chien n°',
   'wall.filter.clear': 'Effacer',
   'wall.filter.confirm': 'Confirmer',
+  'wall.filter.countries': 'Pays',
 
   // ── WHAT NEXT? popup ──
   'whatNext.stamp': 'Important',

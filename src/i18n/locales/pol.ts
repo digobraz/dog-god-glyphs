@@ -570,6 +570,7 @@ export const pol: Partial<Dict> = {
   'wall.filter.placeholder': 'Pies #',
   'wall.filter.clear': 'Wyczyść',
   'wall.filter.confirm': 'Potwierdź',
+  'wall.filter.countries': 'Kraje',
 
   // ── /welcome — What Next? popup ──
   'whatNext.stamp': 'Ważne',

@@ -511,6 +511,7 @@ export const chn: Partial<Dict> = {
   "wall.filter.placeholder": "狗 #",
   "wall.filter.clear": "清除",
   "wall.filter.confirm": "确认",
+  "wall.filter.countries": "国家",
   "whatNext.stamp": "重要",
   "whatNext.title": "接下来呢？",
   "whatNext.close": "关闭",

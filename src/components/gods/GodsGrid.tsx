@@ -5,7 +5,7 @@ import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 import { EDGE_BASE } from '@/lib/env';
-import { flagUrl, countryISO2 } from '@/lib/countryGeo';
+import { flagUrl, countryISO2, iso2ToISO3, countryFlag } from '@/lib/countryGeo';
 import { track } from '@/lib/analytics';
 import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
@@ -201,6 +201,8 @@ export function GodsGrid() {
   const [dogsReady, setDogsReady] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterValue, setFilterValue] = useState('');
+  // Štatistika krajín pre filter popup: [{ iso2, iso3, count }], zoradené od najviac.
+  const [countryStats, setCountryStats] = useState<{ iso2: string; iso3: string; count: number }[]>([]);
   const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
   // Reálni psi (zákazníci, bez Hektora) opakovaní cez prázdne bunky → nekonečný WALL.
   const fillerDogsRef = useRef<RealDog[]>([]);
@@ -249,6 +251,18 @@ export function GodsGrid() {
           realDogMapRef.current = map;
           // Filler set = Hektor + všetci zákazníci (#2+); každý sa rozmnožuje v stene.
           fillerDogsRef.current = [HEKTHOR_FILL, ...dogs.filter(d => (d.pack_number ?? 0) >= 2)];
+          // Štatistika krajín (vrátane Hektora #1) pre filter popup.
+          const cc = new Map<string, number>();
+          for (const d of fillerDogsRef.current) {
+            const iso2 = countryISO2(d.country);
+            if (!iso2) continue;
+            cc.set(iso2, (cc.get(iso2) ?? 0) + 1);
+          }
+          setCountryStats(
+            [...cc.entries()]
+              .map(([iso2, count]) => ({ iso2, iso3: iso2ToISO3(iso2), count }))
+              .sort((a, b) => b.count - a.count)
+          );
           if (revealData.active && !revealData.heroglyphUrl) {
             const packNum = parseInt(revealData.packNumber, 10);
             const revealDog = dogs.find(d => d.pack_number === packNum);
@@ -1779,6 +1793,80 @@ export function GodsGrid() {
           background: rgba(46,158,79,0.10);
         }
 
+        /* ── Wide numpad: search (numpad) + country stats side by side ── */
+        .numpad--wide { width: min(92vw, 560px); }
+        .numpad-body {
+          display: grid;
+          grid-template-columns: 258px 1fr;
+          gap: 18px;
+          align-items: stretch;
+        }
+        .numpad-search { min-width: 0; }
+        .numpad-countries {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          border-left: 1px solid rgba(201,154,63,0.3);
+          padding-left: 18px;
+        }
+        .numpad-countries-title {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.82rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: rgba(0,0,0,0.55);
+          margin-bottom: 12px;
+        }
+        .numpad-countries-list {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          overflow-y: auto;
+          max-height: 300px;
+        }
+        .ncountry-row {
+          display: grid;
+          grid-template-columns: 26px 1fr auto;
+          align-items: center;
+          gap: 10px;
+          padding: 7px 10px;
+          border-radius: 9px;
+          background: rgba(255,255,255,0.34);
+          border: 1px solid rgba(201,154,63,0.28);
+        }
+        .ncountry-flag { font-size: 1.15rem; line-height: 1; }
+        .ncountry-code {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.95rem;
+          letter-spacing: 0.08em;
+          color: rgba(0,0,0,0.8);
+        }
+        .ncountry-count {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 1.05rem;
+          color: rgba(201,154,63,1);
+          min-width: 1.4em;
+          text-align: right;
+        }
+        /* Mobile: countries on TOP, numpad below (palec dosiahne numpad → ľahšie písanie) */
+        @media (max-width: 520px) {
+          .numpad--wide { width: min(88vw, 320px); }
+          .numpad-body { grid-template-columns: 1fr; gap: 14px; }
+          .numpad-countries {
+            order: -1;
+            border-left: none;
+            padding-left: 0;
+          }
+          .numpad-countries-list { max-height: 264px; } /* ~5 krajín viditeľných */
+          .numpad-search {
+            border-top: 1px solid rgba(201,154,63,0.3);
+            padding-top: 14px;
+          }
+        }
+
         /* ── Bottom bar: filter + center (+ flag on mobile), centered as a row ── */
         .gods-bottom-bar {
           position: fixed;
@@ -1967,42 +2055,59 @@ export function GodsGrid() {
           className={`numpad-overlay${filterOpen ? ' open' : ''}`}
           onClick={(e) => { if (e.target === e.currentTarget) { setFilterOpen(false); setFilterValue(''); } }}
         >
-          <div className="numpad" role="dialog" aria-label={t('wall.filter.find')}>
-            <div className="numpad-display">
-              {filterValue ? `#${filterValue}` : <span className="ph">{t('wall.filter.placeholder')}</span>}
-            </div>
-            <div className="numpad-grid">
-              {['1','2','3','4','5','6','7','8','9'].map(d => (
-                <button
-                  key={d}
-                  className="numpad-key"
-                  onClick={() => setFilterValue(v => (v + d).slice(0, 6))}
-                >{d}</button>
-              ))}
-              <button
-                className="numpad-key numpad-key--cancel"
-                onClick={() => setFilterValue('')}
-                aria-label={t('wall.filter.clear')}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 5 H14.5 L20.5 12 L14.5 19 H7 A2 2 0 0 1 5 17 V7 A2 2 0 0 1 7 5 Z"/>
-                  <path d="M8.4 9.4 L12.6 14.6 M12.6 9.4 L8.4 14.6"/>
-                </svg>
-              </button>
-              <button
-                className="numpad-key"
-                onClick={() => setFilterValue(v => (v + '0').slice(0, 6))}
-              >0</button>
-              <button
-                className="numpad-key numpad-key--enter"
-                onClick={submitFilter}
-                aria-label={t('wall.filter.confirm')}
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="9"/>
-                  <path d="M8 12.5 L11 15.5 L16.5 9"/>
-                </svg>
-              </button>
+          <div className="numpad numpad--wide" role="dialog" aria-label={t('wall.filter.find')}>
+            <div className="numpad-body">
+              <div className="numpad-search">
+                <div className="numpad-display">
+                  {filterValue ? `#${filterValue}` : <span className="ph">{t('wall.filter.placeholder')}</span>}
+                </div>
+                <div className="numpad-grid">
+                  {['1','2','3','4','5','6','7','8','9'].map(d => (
+                    <button
+                      key={d}
+                      className="numpad-key"
+                      onClick={() => setFilterValue(v => (v + d).slice(0, 6))}
+                    >{d}</button>
+                  ))}
+                  <button
+                    className="numpad-key numpad-key--cancel"
+                    onClick={() => setFilterValue('')}
+                    aria-label={t('wall.filter.clear')}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 5 H14.5 L20.5 12 L14.5 19 H7 A2 2 0 0 1 5 17 V7 A2 2 0 0 1 7 5 Z"/>
+                      <path d="M8.4 9.4 L12.6 14.6 M12.6 9.4 L8.4 14.6"/>
+                    </svg>
+                  </button>
+                  <button
+                    className="numpad-key"
+                    onClick={() => setFilterValue(v => (v + '0').slice(0, 6))}
+                  >0</button>
+                  <button
+                    className="numpad-key numpad-key--enter"
+                    onClick={submitFilter}
+                    aria-label={t('wall.filter.confirm')}
+                  >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9"/>
+                      <path d="M8 12.5 L11 15.5 L16.5 9"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div className="numpad-countries">
+                <div className="numpad-countries-title">{t('wall.filter.countries')}</div>
+                <div className="numpad-countries-list">
+                  {countryStats.map(c => (
+                    <div className="ncountry-row" key={c.iso2}>
+                      <span className="ncountry-flag">{countryFlag(c.iso2)}</span>
+                      <span className="ncountry-code">{c.iso3}</span>
+                      <span className="ncountry-count">{c.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

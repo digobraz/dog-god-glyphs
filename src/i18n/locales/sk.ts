@@ -626,6 +626,7 @@ export const sk: Partial<Dict> = {
   'wall.filter.placeholder': 'Pes #',
   'wall.filter.clear': 'Vymazať',
   'wall.filter.confirm': 'Potvrdiť',
+  'wall.filter.countries': 'Krajiny',
 
   // ── WHAT NEXT? popup (post-payment) ──
   'whatNext.stamp': 'Dôležité',

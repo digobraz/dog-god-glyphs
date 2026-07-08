@@ -570,6 +570,7 @@ export const rus: Partial<Dict> = {
   'wall.filter.placeholder': 'Собака №',
   'wall.filter.clear': 'Очистить',
   'wall.filter.confirm': 'Подтвердить',
+  'wall.filter.countries': 'Страны',
 
   // ── whatNext popup ──
   'whatNext.stamp': 'Важно',

@@ -511,6 +511,7 @@ export const tur: Partial<Dict> = {
   "wall.filter.placeholder": "Köpek #",
   "wall.filter.clear": "Temizle",
   "wall.filter.confirm": "Onayla",
+  "wall.filter.countries": "Ülkeler",
   "whatNext.stamp": "Önemli",
   "whatNext.title": "Sırada Ne Var?",
   "whatNext.close": "Kapat",

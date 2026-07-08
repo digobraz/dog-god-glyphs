@@ -128,6 +128,22 @@ export function countryCentroid(country?: string | null): [number, number] | nul
   return iso ? ISO2_CENTROID[iso] ?? null : null;
 }
 
+// ISO2 → ISO3 (reverse of the 3-letter aliases already present in NAME_TO_ISO2).
+// Covers every country that has an explicit ISO3 key; the rest fall back to the
+// uppercased ISO2 in iso2ToISO3() (current pack is fully covered).
+const ISO2_TO_ISO3: Record<string, string> = (() => {
+  const m: Record<string, string> = {};
+  for (const [k, v] of Object.entries(NAME_TO_ISO2)) {
+    if (k.length === 3 && !m[v]) m[v] = k.toUpperCase();
+  }
+  return m;
+})();
+
+/** ISO2 → ISO3 uppercase (e.g. "sk"→"SVK"). Fallback = ISO2 uppercased if unmapped. */
+export function iso2ToISO3(iso2: string): string {
+  return ISO2_TO_ISO3[iso2] ?? iso2.toUpperCase();
+}
+
 /** ISO2 → flagcdn PNG URL. Jediný zdroj vlajkových URL (GRID, LanguagePicker,
  * PackDogDetail) — šírka podľa kontextu: 40 grid dlaždica, 80 picker, 160 detail. */
 export function flagUrl(iso2: string, width: 40 | 80 | 160 = 40): string {

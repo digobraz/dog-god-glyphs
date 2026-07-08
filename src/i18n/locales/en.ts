@@ -675,6 +675,7 @@ export const en = {
   'wall.filter.placeholder': 'Dog #',
   'wall.filter.clear': 'Clear',
   'wall.filter.confirm': 'Confirm',
+  'wall.filter.countries': 'Countries',
 
   // ── WHAT NEXT? popup (post-payment, shown once after reveal) ──
   'whatNext.greet': 'Welcome, {name}',

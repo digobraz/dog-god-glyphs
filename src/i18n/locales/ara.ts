@@ -511,6 +511,7 @@ export const ara: Partial<Dict> = {
   "wall.filter.placeholder": "كلب #",
   "wall.filter.clear": "مسح",
   "wall.filter.confirm": "تأكيد",
+  "wall.filter.countries": "البلدان",
   "whatNext.stamp": "مهم",
   "whatNext.title": "ماذا بعد؟",
   "whatNext.close": "إغلاق",

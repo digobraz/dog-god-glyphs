@@ -512,6 +512,7 @@ export const ind: Partial<Dict> = {
   "wall.filter.placeholder": "कुत्ता #",
   "wall.filter.clear": "साफ करें",
   "wall.filter.confirm": "पुष्टि करें",
+  "wall.filter.countries": "देश",
   "whatNext.stamp": "महत्वपूर्ण",
   "whatNext.title": "आगे क्या?",
   "whatNext.close": "बंद करें",
