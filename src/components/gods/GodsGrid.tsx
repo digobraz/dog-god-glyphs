@@ -366,12 +366,15 @@ export function GodsGrid() {
   // Share Card race: pipeline generuje share_card_url ~pár sekúnd po platbe, takže
   // v momente prvého get-grid-dogs fetchu (spustí sa hneď pri reveale) často ešte
   // nie je hotová. Kým je WhatNext popup otvorený a URL stále chýba, dopytuj znova
-  // (max 8×, každé 4s) — prestane, keď sa nájde alebo sa popup zavrie/odmountuje.
+  // (max 20×, každé 4s ≈ 80s) — nový pes: share karta sa generuje v pipeline
+  // ~30-60s po platbe (heroglyph → toPng → upload → PATCH), 32s okno to tesne
+  // minulo. Prvý poll skoro (1.5s) nech hotová karta naskočí hneď.
   useEffect(() => {
     if (!revealData.active || revealShareCardUrl || !showWhatNext) return;
     let alive = true;
     let attempts = 0;
     let timer: ReturnType<typeof setTimeout>;
+    const MAX = 20;
     const packNum = parseInt(revealData.packNumber, 10);
     const poll = () => {
       attempts += 1;
@@ -382,13 +385,13 @@ export function GodsGrid() {
           const found = dogs.find(d => d.pack_number === packNum);
           if (found?.share_card_url) {
             setRevealShareCardUrl(found.share_card_url);
-          } else if (attempts < 8) {
+          } else if (attempts < MAX) {
             timer = setTimeout(poll, 4000);
           }
         })
-        .catch(() => { if (alive && attempts < 8) timer = setTimeout(poll, 4000); });
+        .catch(() => { if (alive && attempts < MAX) timer = setTimeout(poll, 4000); });
     };
-    timer = setTimeout(poll, 4000);
+    timer = setTimeout(poll, 1500);
     return () => { alive = false; clearTimeout(timer); };
   }, [revealData.active, revealData.packNumber, revealShareCardUrl, showWhatNext]);
 
@@ -2117,9 +2120,9 @@ export function GodsGrid() {
             <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
-        {/* LOGIN — round ankh (key of life = entry) icon button, top-right corner */}
+        {/* LOGIN — round house-with-heart (home = entry/belonging) icon button, top-right corner */}
         <a href="/login" className="nav-login" aria-label={t('nav.login')}>
-          <img src="/icons/pack/ankh.svg" alt="" className="nav-login-icon" draggable="false" />
+          <img src="/icons/pack/house-heart.svg" alt="" className="nav-login-icon" draggable="false" />
         </a>
 
         <div className={`info-overlay ${infoOpen ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setInfoOpen(false); }}>

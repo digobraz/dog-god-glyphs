@@ -25,6 +25,8 @@ export default function Login() {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordSending, setPasswordSending] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showRecoveryPassword, setShowRecoveryPassword] = useState(false);
 
   // forgot password
   const [showForgot, setShowForgot] = useState(false);
@@ -347,21 +349,35 @@ export default function Login() {
                     borderColor: "rgba(160,116,35,0.4)",
                   }}
                 />
-                <input
-                  type="password"
-                  value={passwordInput}
-                  onChange={e => { setPasswordInput(e.target.value); setPasswordError(""); }}
-                  placeholder={t('login.password.placeholder')}
-                  required
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: "#0E0E0E",
-                    background: "rgba(255,255,255,0.6)",
-                    borderColor: "rgba(160,116,35,0.4)",
-                  }}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={passwordInput}
+                    onChange={e => { setPasswordInput(e.target.value); setPasswordError(""); }}
+                    placeholder={t('login.password.placeholder')}
+                    required
+                    autoComplete="current-password"
+                    className="w-full px-4 py-3 pr-11 rounded-[8px] text-sm border outline-none"
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      color: "#0E0E0E",
+                      background: "rgba(255,255,255,0.6)",
+                      borderColor: "rgba(160,116,35,0.4)",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(v => !v)}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", opacity: 0.62 }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6a2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                      {!showPassword && <line x1="3" y1="3" x2="21" y2="21" />}
+                    </svg>
+                  </button>
+                </div>
                 {passwordError && (
                   <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: "#b91c1c", textAlign: "center" }}>
                     {passwordError}
@@ -427,22 +443,36 @@ export default function Login() {
               </p>
             ) : (
               <form onSubmit={handleRecoverySubmit} className="flex flex-col gap-3">
-                <input
-                  type="password"
-                  value={recoveryPassword}
-                  onChange={e => setRecoveryPassword(e.target.value)}
-                  placeholder={t('login.recovery.newPasswordPlaceholder')}
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  className="w-full px-4 py-3 rounded-[8px] text-sm border outline-none"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    color: "#0E0E0E",
-                    background: "rgba(255,255,255,0.6)",
-                    borderColor: "rgba(160,116,35,0.4)",
-                  }}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showRecoveryPassword ? "text" : "password"}
+                    value={recoveryPassword}
+                    onChange={e => setRecoveryPassword(e.target.value)}
+                    placeholder={t('login.recovery.newPasswordPlaceholder')}
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    className="w-full px-4 py-3 pr-11 rounded-[8px] text-sm border outline-none"
+                    style={{
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      color: "#0E0E0E",
+                      background: "rgba(255,255,255,0.6)",
+                      borderColor: "rgba(160,116,35,0.4)",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRecoveryPassword(v => !v)}
+                    aria-label={showRecoveryPassword ? "Hide password" : "Show password"}
+                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, display: "flex", opacity: 0.62 }}
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a6a2a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                      {!showRecoveryPassword && <line x1="3" y1="3" x2="21" y2="21" />}
+                    </svg>
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={recoverySending || recoveryPassword.length < 8}
