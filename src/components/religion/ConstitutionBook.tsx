@@ -35,9 +35,10 @@ function calcDims() {
     if (h > maxH) { h = maxH; w = h * RATIO; }
     return { w: Math.round(w), h: Math.round(h), mobile };
   }
-  let h = Math.min(vh * 0.76, 840);
+  // Kniha zväčšená (2026-07-08, Matej OK — vyzerala malá/nevýrazná vedľa cow/hektor bleedu).
+  let h = Math.min(vh * 0.82, 900);
   let w = h * RATIO;
-  const maxSpread = Math.min(vw * 0.82, 1180);
+  const maxSpread = Math.min(vw * 0.86, 1280);
   if (2 * w > maxSpread) { w = maxSpread / 2; h = w / RATIO; }
   return { w: Math.round(w), h: Math.round(h), mobile };
 }
@@ -78,11 +79,19 @@ export default function ConstitutionBook() {
     }
   }, [opened]);
 
+  // Prepočet rozmerov knihy. `useState(calcDims)` počíta iba raz pri mounte — ak sa to
+  // trafí do okna, keď viewport ešte nie je ustálený (alebo sa okno neskôr zmení cez CDP,
+  // ktorý NEVYVOLÁ window 'resize'), kniha zamrzne na malej hodnote a vykreslí sa ako
+  // drobná ikonka. ResizeObserver na <html> fírne aj po mounte (garantovaný re-measure po
+  // layoute) aj pri akejkoľvek zmene viewportu → robustné naprieč prostrediami (2026-07-08).
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
-    const onResize = () => { clearTimeout(t); t = setTimeout(() => setDims(calcDims()), 180); };
-    window.addEventListener('resize', onResize);
-    return () => { window.removeEventListener('resize', onResize); clearTimeout(t); };
+    const recalc = () => { clearTimeout(t); t = setTimeout(() => setDims(calcDims()), 120); };
+    const ro = new ResizeObserver(recalc);
+    ro.observe(document.documentElement);
+    window.addEventListener('resize', recalc);        // orientationchange / fallback
+    recalc();                                         // istota: prepočet hneď po mounte
+    return () => { ro.disconnect(); window.removeEventListener('resize', recalc); clearTimeout(t); };
   }, []);
 
   const onFlip = useCallback((e: { data: number }) => setPage(e.data), []);
@@ -226,7 +235,9 @@ export default function ConstitutionBook() {
           tabIndex={opened ? -1 : 0}
         >
           <span className="cb-halo" aria-hidden />
-          <img src="/images/dogma-cover.png" alt={t('religion.book.coverAlt')} className="cb-cover-img" style={{ height: dims.h }} />
+          {/* minHeight = height: Chrome (150+) ignoruje `height` na <img> flex-item vo flex
+              kontajneri (kniha sa scvrkla na ~8%), ale rešpektuje min-height. 2026-07-08. */}
+          <img src="/images/dogma-cover.png" alt={t('religion.book.coverAlt')} className="cb-cover-img" style={{ height: dims.h, minHeight: dims.h }} />
           <span className="cb-shimmer" aria-hidden />
         </button>
       </div>
@@ -276,13 +287,15 @@ const CSS = `
 .cb-open .cb-bookwrap{opacity:1;pointer-events:auto;}
 .cb-book{margin:0 auto;}
 
-/* PC (2026-06-03, Matej OK): kniha −15% (scale od stredu) aby bolo nad ňou vidno nadpis
-   "The Bible for doglovers". Scale = strany aj text sa zmenšia proporčne. Mobile má vlastný layout. */
+/* PC (2026-06-03, Matej OK; zmenšenie zredukované 2026-07-08, Matej OK): kniha mierne −6%
+   (scale od stredu) aby bolo nad ňou vidno nadpis "The Bible for doglovers". Predtým −15%,
+   kniha vyzerala malá/nevýrazná vedľa cow/hektor bleedu → scale zvýšený na 0.94 + calcDims
+   stropy zväčšené. Strany aj text sa zmenšia proporčne. Mobile má vlastný layout. */
 @media (min-width:768px){
-  .cb-stage{transform:scale(0.85);}
+  .cb-stage{transform:scale(0.94);}
   /* "Tap the book to open" 15px pod VIZUÁLNYM spodkom knihy (box je väčší kvôli scale →
-     absolútne cez --cb-h × 0.85, inak by hint visel priďaleko). Hint = len closed stav. */
-  .cb-hint{position:absolute;left:50%;top:calc(50% + (var(--cb-h) * 0.85 / 2) + 15px);transform:translateX(-50%);}
+     absolútne cez --cb-h × 0.94, inak by hint visel priďaleko). Hint = len closed stav. */
+  .cb-hint{position:absolute;left:50%;top:calc(50% + (var(--cb-h) * 0.94 / 2) + 15px);transform:translateX(-50%);}
 }
 
 .cb-cover-layer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
@@ -366,10 +379,11 @@ const CSS = `
 .cb-cta-link{font-family:'Cinzel',serif;font-size:clamp(10px,1.1vw,13px);letter-spacing:.06em;text-transform:uppercase;color:#7a531a;text-decoration:none;border-bottom:1px solid rgba(122,83,26,.4);padding-bottom:1px;transition:color .18s ease,border-color .18s ease;}
 .cb-cta-link:hover{color:#9a6a16;border-color:rgba(154,106,22,.7);}
 
-/* hint */
-.cb-hint{display:inline-flex;align-items:center;gap:9px;background:none;border:none;cursor:pointer;
-  font-family:'Cinzel',serif;font-size:clamp(11px,1.4vw,15px);letter-spacing:.13em;text-transform:uppercase;
-  color:#C99A3F;padding:6px 4px;animation:cbHint 2.6s ease-in-out infinite;}
+/* hint — zväčšený + jemný kontrastný podklad (2026-07-08, Matej OK), nech nezanikne vedľa cow/hektor scény */
+.cb-hint{display:inline-flex;align-items:center;gap:9px;background:rgba(0,0,0,.32);border:1px solid rgba(201,154,63,.28);
+  border-radius:20px;cursor:pointer;
+  font-family:'Cinzel',serif;font-size:clamp(13px,1.6vw,17px);letter-spacing:.13em;text-transform:uppercase;
+  color:#C99A3F;padding:8px 18px;animation:cbHint 2.6s ease-in-out infinite;}
 .cb-hint-dot{width:7px;height:7px;border-radius:50%;background:#C99A3F;box-shadow:0 0 10px rgba(201,154,63,.7);}
 @keyframes cbHint{0%,100%{opacity:.55;}50%{opacity:1;}}
 
