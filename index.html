@@ -53,11 +53,25 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "DOGYPT",
-    "url": "https://dogypt.com",
-    "logo": "https://storage.googleapis.com/gpt-engineer-file-uploads/r1xjLvSkh4R0qFvw293HZyntcAI2/social-images/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp",
-    "sameAs": ["https://twitter.com/dogyptcom"]
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://dogypt.com/#organization",
+        "name": "DOGYPT",
+        "alternateName": "Dogyptism",
+        "url": "https://dogypt.com",
+        "description": "DOGYPT is a movement for dog lovers. Every dog gets a unique Heroglyph — their permanent place in the global pack.",
+        "logo": "https://storage.googleapis.com/gpt-engineer-file-uploads/r1xjLvSkh4R0qFvw293HZyntcAI2/social-images/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp",
+        "sameAs": ["https://twitter.com/dogyptcom"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://dogypt.com/#website",
+        "name": "DOGYPT",
+        "url": "https://dogypt.com",
+        "publisher": { "@id": "https://dogypt.com/#organization" }
+      }
+    ]
   }
   </script>
 </head>

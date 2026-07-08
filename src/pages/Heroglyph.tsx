@@ -272,6 +272,7 @@ export default function Heroglyph() {
           "@type": "Product",
           "name": "HEROGLYPH",
           "description": "A unique sacred symbol for your dog — twelve symbols encoding its essence, origin and character.",
+          "image": "https://dogypt.com/images/hekthor-heroglyph.webp",
           "brand": { "@type": "Brand", "name": "DOGYPT" },
           "offers": { "@type": "Offer", "price": "11", "priceCurrency": "EUR", "availability": "https://schema.org/InStock", "url": "https://dogypt.com/heroglyph" }
         }}
