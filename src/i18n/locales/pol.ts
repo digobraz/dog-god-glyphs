@@ -881,6 +881,14 @@ export const pol: Partial<Dict> = {
   "welcome.password.notPaid": "Płatność jest jeszcze przetwarzana — spróbuj za kilka sekund.",
   "welcome.password.error": "Coś poszło nie tak. Spróbuj ponownie.",
   "welcome.password.altLink": "Wolisz link? Znajdziesz go w swojej skrzynce.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "Udostępnij {name} Packowi",
+  "sharecard.shareButton": "Udostępnij",
+  "sharecard.download": "Pobierz",
+  "sharecard.shareText": "{name} to jeden z pierwszych 1 000 000 psów DOGYPT. Znajdź swojego na dogypt.com",
+  "sharecard.saved": "Karta zapisana",
+  "sharecard.preparing": "Przygotowujemy twoją kartę…",
   "login.recovery.title": "Ustaw nowe hasło",
   "login.recovery.body": "Wybierz nowe hasło do swojego konta.",
   "login.password.placeholder": "Hasło",

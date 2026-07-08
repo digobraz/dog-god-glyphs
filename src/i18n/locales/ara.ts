@@ -370,6 +370,14 @@ export const ara: Partial<Dict> = {
   "welcome.password.notPaid": "الدفع لا يزال قيد المعالجة — حاول مرة أخرى بعد ثوانٍ.",
   "welcome.password.error": "حدث خطأ ما. حاول مرة أخرى.",
   "welcome.password.altLink": "تفضّل رابطاً بدلاً من ذلك؟ إنه في بريدك الإلكتروني.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "شارك {name} مع الـ Pack",
+  "sharecard.shareButton": "مشاركة",
+  "sharecard.download": "تنزيل",
+  "sharecard.shareText": "{name} من أوائل 1,000,000 كلب في DOGYPT. اعثر على كلبك على dogypt.com",
+  "sharecard.saved": "تم حفظ البطاقة",
+  "sharecard.preparing": "جارٍ تجهيز بطاقتك…",
   "login.eyebrow": "DOGYPT · دخول القطيع",
   "login.verifying.title": "فتح البوابة",
   "login.verifying.body": "جارٍ التحقق من رابطك السحري…",

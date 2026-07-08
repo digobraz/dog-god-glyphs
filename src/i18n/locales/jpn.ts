@@ -370,6 +370,14 @@ export const jpn: Partial<Dict> = {
   "welcome.password.notPaid": "支払い処理中 — 数秒後に再試行してください。",
   "welcome.password.error": "問題が発生しました。再試行してください。",
   "welcome.password.altLink": "リンクの方が良いですか？メールに届いています。",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "{name} を Pack にシェア",
+  "sharecard.shareButton": "シェア",
+  "sharecard.download": "ダウンロード",
+  "sharecard.shareText": "{name} は DOGYPT 最初の1,000,000匹の犬の一匹です。あなたの犬を dogypt.com で見つけよう",
+  "sharecard.saved": "カードを保存しました",
+  "sharecard.preparing": "カードを準備しています…",
   "login.eyebrow": "DOGYPT · Pack Access",
   "login.verifying.title": "ゲートを開く",
   "login.verifying.body": "マジックリンクを確認中…",

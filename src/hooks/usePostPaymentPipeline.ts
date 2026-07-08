@@ -1,11 +1,55 @@
 import { useEffect, useRef, RefObject } from 'react';
 import { toPng } from 'html-to-image';
 import { renderPdfsSequential } from '@/services/pdfService';
-import { uploadCertPdf, uploadVerticalPdf, uploadHorizontalPdf, uploadHeroglyphPng } from '@/services/cloudinaryService';
+import { uploadCertPdf, uploadVerticalPdf, uploadHorizontalPdf, uploadHeroglyphPng, uploadShareCardPng } from '@/services/cloudinaryService';
 import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
 const EDGE_HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY };
 const RENDER_DELAY_MS = 1500;
+
+// ShareCard mounts inside shareRef only once heroglyphPngUrl (below) exists —
+// it then kicks off its OWN async canvas recolor (black heroglyph -> gold) and
+// renders an <img src="data:..."> once that resolves (see ShareCard.tsx). That
+// component lives in the parent (WelcomeScreen), not in this hook, so we can't
+// just await a callback here — we poll the DOM for the gold <img> instead,
+// bounded by a timeout so a recolor failure (or ShareCard never mounting
+// because the heroglyph capture itself failed) can never hang this branch.
+const SHARE_CARD_POLL_TIMEOUT_MS = 8000;
+const SHARE_CARD_POLL_INTERVAL_MS = 150;
+
+async function waitForShareCardRoot(shareRef: RefObject<HTMLDivElement>): Promise<HTMLElement | null> {
+  const start = Date.now();
+  while (Date.now() - start < SHARE_CARD_POLL_TIMEOUT_MS) {
+    const root = shareRef.current?.querySelector('#share-card-root') as HTMLElement | null;
+    if (root && root.querySelector('img[src^="data:"]')) return root;
+    await new Promise((r) => setTimeout(r, SHARE_CARD_POLL_INTERVAL_MS));
+  }
+  // Timed out — capture whatever is there (root may exist without the gold
+  // heroglyph <img> yet, or not exist at all) rather than silently skipping.
+  return (shareRef.current?.querySelector('#share-card-root') as HTMLElement | null) ?? null;
+}
+
+// Fire-and-forget: captures the ShareCard at its native 1080x1080 (pixelRatio 1
+// — it's already full-size, no upscale needed) and PATCHes dogs.share_card_url.
+// Not awaited by the caller so a share-card failure can never delay/break the
+// PDF + heroglyph pipeline above.
+async function captureShareCard(sid: string, shareRef: RefObject<HTMLDivElement>) {
+  try {
+    const root = await waitForShareCardRoot(shareRef);
+    if (!root) return; // ShareCard never mounted — skip silently.
+    const dataUrl = await toPng(root, { cacheBust: true, pixelRatio: 1, backgroundColor: '#000' });
+    const pngRes = await fetch(dataUrl);
+    const pngBlob = await pngRes.blob();
+    const pngResult = await uploadShareCardPng(pngBlob, sid);
+    fetch(`${EDGE_BASE}/send-certificate`, {
+      method: 'POST',
+      headers: EDGE_HEADERS,
+      body: JSON.stringify({ sessionId: sid, shareCardUrl: pngResult.secureUrl }),
+    }).catch(() => {});
+  } catch (e) {
+    console.warn('[postPayment] share card capture failed:', e);
+  }
+}
 
 interface PipelineArgs {
   email: string;
@@ -17,17 +61,18 @@ interface PipelineArgs {
   certRef: RefObject<HTMLDivElement>;
   verticalRef: RefObject<HTMLDivElement>;
   horizontalRef: RefObject<HTMLDivElement>;
+  shareRef: RefObject<HTMLDivElement>;
   onHeroglyphReady?: (url: string) => void;
 }
 
 export function usePostPaymentPipeline(args: PipelineArgs) {
-  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, onHeroglyphReady } = args;
+  const { email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, shareRef, onHeroglyphReady } = args;
   const fired = useRef(false);
 
   useEffect(() => {
     if (fired.current) return;
     if (!email || !dogName) return;
-    if (!certRef.current || !verticalRef.current || !horizontalRef.current) return;
+    if (!certRef.current || !verticalRef.current || !horizontalRef.current || !shareRef.current) return;
 
     fired.current = true;
     const sid = sessionId || `local-${Date.now()}`;
@@ -112,6 +157,13 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
               headers: EDGE_HEADERS,
               body: JSON.stringify({ sessionId: sid, heroglyphPngUrl }),
             }).catch(() => {});
+
+            // SHARE CARD — onHeroglyphReady above sets WelcomeScreen's
+            // heroglyphPngUrl state, which mounts <ShareCard> inside shareRef
+            // with that URL as its source. Kicked off in parallel with the PDF
+            // pipeline below (not awaited) — see captureShareCard for the
+            // ShareCard-readiness wait.
+            void captureShareCard(sid, shareRef);
           }
         } catch (e) {
           console.warn('[postPayment] heroglyph PNG capture failed:', e);
@@ -151,5 +203,5 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
       }
     };
     setTimeout(() => { void runPipeline(1); }, RENDER_DELAY_MS);
-  }, [email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef]);
+  }, [email, dogName, ownerName, dogPhotoUrl, sessionId, packNumber, certRef, verticalRef, horizontalRef, shareRef]);
 }

@@ -371,6 +371,14 @@ export const ind: Partial<Dict> = {
   "welcome.password.notPaid": "भुगतान अभी प्रक्रिया में है — कुछ सेकंड में पुनः प्रयास करें।",
   "welcome.password.error": "कुछ गलत हो गया। पुनः प्रयास करें।",
   "welcome.password.altLink": "लिंक पसंद करते हैं? यह आपके ईमेल में है।",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "{name} को Pack के साथ शेयर करें",
+  "sharecard.shareButton": "शेयर करें",
+  "sharecard.download": "डाउनलोड करें",
+  "sharecard.shareText": "{name} DOGYPT के पहले 1,000,000 कुत्तों में से एक है। अपना dogypt.com पर खोजें",
+  "sharecard.saved": "कार्ड सहेजा गया",
+  "sharecard.preparing": "आपका कार्ड तैयार हो रहा है…",
   "login.eyebrow": "DOGYPT · झुंड में प्रवेश",
   "login.verifying.title": "द्वार खुल रहा है",
   "login.verifying.body": "आपका मैजिक लिंक सत्यापित हो रहा है…",

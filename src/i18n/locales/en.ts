@@ -482,6 +482,14 @@ export const en = {
   'welcome.password.error': 'Something went wrong. Try again.',
   'welcome.password.altLink': 'Prefer a link instead? It\'s in your email.',
 
+  // ── Share card — personalized 1080×1080 image ──
+  'sharecard.shareTitle': 'Share {name} with the pack',
+  'sharecard.shareButton': 'Share',
+  'sharecard.download': 'Download',
+  'sharecard.shareText': '{name} is one of the first 1,000,000 dogs of DOGYPT. Find yours at dogypt.com',
+  'sharecard.saved': 'Card saved',
+  'sharecard.preparing': 'Preparing your card…',
+
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'DOGYPT · Pack Access',
   // status: verifying

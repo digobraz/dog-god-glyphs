@@ -370,6 +370,14 @@ export const chn: Partial<Dict> = {
   "welcome.password.notPaid": "付款仍在处理中——请几秒后重试。",
   "welcome.password.error": "出了点问题，请重试。",
   "welcome.password.altLink": "更喜欢通过链接登录？链接已发送到你的邮箱。",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "把 {name} 分享给 Pack",
+  "sharecard.shareButton": "分享",
+  "sharecard.download": "下载",
+  "sharecard.shareText": "{name} 是 DOGYPT 首批 1,000,000 只狗之一。在 dogypt.com 找到你的那只",
+  "sharecard.saved": "卡片已保存",
+  "sharecard.preparing": "正在准备你的卡片…",
   "login.eyebrow": "DOGYPT · 狗群入口",
   "login.verifying.title": "正在开门",
   "login.verifying.body": "正在验证你的魔法链接……",

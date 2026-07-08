@@ -100,6 +100,9 @@ async function uploadPngBlob(blob: Blob, folder: string, publicId: string): Prom
 export const uploadHeroglyphPng = (blob: Blob, sessionId: string) =>
   uploadPngBlob(blob, 'heroglyphs', sessionId);
 
+export const uploadShareCardPng = (blob: Blob, sessionId: string) =>
+  uploadPngBlob(blob, 'sharecards', sessionId);
+
 // Pack feedback "proof" photo — raw file, auto public_id, parked in feedback/.
 export async function uploadFeedbackPhoto(file: File): Promise<CloudinaryResult> {
   const fd = new FormData();

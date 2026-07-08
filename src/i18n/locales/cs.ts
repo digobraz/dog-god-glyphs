@@ -445,6 +445,14 @@ export const cs: Partial<Dict> = {
   'welcome.password.error': 'Něco se pokazilo. Zkus to znovu.',
   'welcome.password.altLink': 'Radši odkaz? Najdeš ho v e-mailu.',
 
+  // ── Share card ──
+  'sharecard.shareTitle': 'Sdílej {name} s Packem',
+  'sharecard.shareButton': 'Sdílet',
+  'sharecard.download': 'Stáhnout',
+  'sharecard.shareText': '{name} je jeden z prvních 1 000 000 psů DOGYPT. Najdi toho svého na dogypt.com',
+  'sharecard.saved': 'Karta uložena',
+  'sharecard.preparing': 'Připravujeme tvou kartu…',
+
   // ── /login — magic-link callback (Login.tsx) ──
   'login.eyebrow': 'DOGYPT · Přístup do Smečky',
   'login.verifying.title': 'Otvírám bránu',

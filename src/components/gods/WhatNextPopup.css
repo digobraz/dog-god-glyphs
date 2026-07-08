@@ -148,6 +148,33 @@
 }
 .wn-cta:hover{ filter:brightness(1.05); box-shadow:0 6px 20px rgba(160,116,35,0.55), inset 0 1px 0 rgba(255,255,255,0.5); transform:translateY(-1px); }
 .wn-cta:active{ transform:translateY(0); }
+.wn-cta:disabled{ opacity:.55; cursor:default; filter:none; transform:none; box-shadow:0 4px 14px rgba(160,116,35,0.40), inset 0 1px 0 rgba(255,255,255,0.45); }
+.wn-cta > *{ pointer-events:none; }
+
+/* ---------- 5. slide: SHARE CARD (post-payment social image) ---------- */
+.wn-slide-share{ gap:2px; }
+.wn-slide-share h2{ margin-bottom:14px; }
+.wn-share-preview{
+  display:block; width:150px; height:150px; object-fit:cover;
+  border-radius:12px; margin:0 auto 16px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.30), 0 0 0 1px rgba(160,116,35,0.35);
+  background:#000;
+}
+.wn-share-actions{
+  display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap;
+}
+.wn-share-actions .wn-cta{
+  margin-top:0; display:inline-flex; align-items:center; justify-content:center; gap:7px;
+}
+/* Share = primárny gold (brand .btn-gold family), Download = outline sekundárny */
+.wn-cta-outline{
+  color:var(--wn-gold-deep); background:rgba(255,250,240,0.55);
+  border:1.5px solid rgba(160,116,35,0.45);
+  box-shadow:0 2px 8px rgba(160,116,35,0.16), inset 0 1px 0 rgba(255,255,255,0.55);
+}
+.wn-cta-outline:hover{ background:#fff; border-color:var(--wn-gold); box-shadow:0 4px 14px rgba(160,116,35,0.28), inset 0 1px 0 rgba(255,255,255,0.6); }
+.wn-cta-outline:disabled{ box-shadow:0 2px 8px rgba(160,116,35,0.16), inset 0 1px 0 rgba(255,255,255,0.55); }
+.wn-share-preparing{ font-style:italic; }
 
 /* šípky — kruhové papyrus tlačidlá, jasne klikateľné */
 .wn-arrow{

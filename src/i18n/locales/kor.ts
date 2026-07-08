@@ -370,6 +370,14 @@ export const kor: Partial<Dict> = {
   "welcome.password.notPaid": "결제가 아직 처리 중입니다 — 몇 초 후에 다시 시도하세요.",
   "welcome.password.error": "오류가 발생했습니다. 다시 시도하세요.",
   "welcome.password.altLink": "링크를 원하시나요? 이메일에 있습니다.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "{name}을 Pack과 공유하기",
+  "sharecard.shareButton": "공유",
+  "sharecard.download": "다운로드",
+  "sharecard.shareText": "{name}은 DOGYPT의 첫 1,000,000마리 개 중 하나입니다. dogypt.com에서 당신의 개를 찾으세요",
+  "sharecard.saved": "카드 저장됨",
+  "sharecard.preparing": "카드를 준비하는 중…",
   "login.eyebrow": "DOGYPT · 무리 접근",
   "login.verifying.title": "문이 열리는 중",
   "login.verifying.body": "매직 링크를 확인 중…",

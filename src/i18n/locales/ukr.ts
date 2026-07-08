@@ -900,6 +900,14 @@ export const ukr: Partial<Dict> = {
   "welcome.password.notPaid": "Оплата ще обробляється — спробуйте за кілька секунд.",
   "welcome.password.error": "Щось пішло не так. Спробуйте ще раз.",
   "welcome.password.altLink": "Бажаєте посилання? Воно в вашому листі.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "Поділись {name} з Pack",
+  "sharecard.shareButton": "Поділитися",
+  "sharecard.download": "Завантажити",
+  "sharecard.shareText": "{name} — один із перших 1 000 000 псів DOGYPT. Знайди свого на dogypt.com",
+  "sharecard.saved": "Картку збережено",
+  "sharecard.preparing": "Готуємо твою картку…",
   "login.recovery.title": "Встановити новий пароль",
   "login.recovery.body": "Оберіть новий пароль для вашого акаунту.",
   "login.password.placeholder": "Пароль",

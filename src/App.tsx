@@ -92,6 +92,7 @@ const About = lazy(() => import("./pages/About.tsx"));
 const Heroglyph = lazy(() => import("./pages/Heroglyph.tsx"));
 const CertRender = lazy(() => import("./pages/CertRender.tsx"));
 const InvoiceRender = lazy(() => import("./pages/InvoiceRender.tsx"));
+const ShareRender = lazy(() => import("./pages/ShareRender.tsx"));
 
 // Fullscreen black div — no spinner/text, so nothing brand-foreign flashes
 // while a route chunk loads.
@@ -183,6 +184,7 @@ const App = () => (
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />
+              <Route path="/share-render/:id" element={<ShareRender />} />
 
               {/* /admin — read-only backoffice (admin-email gated) */}
               <Route path="/admin" element={<Admin />} />

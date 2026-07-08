@@ -9,6 +9,9 @@ import { flagUrl, countryISO2, iso2ToISO3, countryFlag } from '@/lib/countryGeo'
 import { track } from '@/lib/analytics';
 import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
+import { useToast } from '@/hooks/use-toast';
+import { shareCard, downloadCard } from '@/lib/useShareCard';
+import { BrandIcon } from '../pack/BrandIcon';
 import './WhatNextPopup.css';
 
 const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
@@ -20,6 +23,7 @@ interface RealDog {
   cloudinary_main_url: string | null;
   patron_svg: string | null;
   heroglyph_png_url: string | null;
+  share_card_url?: string | null;
   country: string | null;
   owner_message: string | null;
 }
@@ -196,6 +200,11 @@ export function GodsGrid() {
   const [infoOpen, setInfoOpen] = useState(false);
   const [showWhatNext, setShowWhatNext] = useState(false);
   const whatNextShownRef = useRef(false);
+  const { toast } = useToast();
+  // Share Card (WhatNext 5. slide) — null kým sa pipeline (post-payment, ~pár sekúnd)
+  // nedopracuje k share_card_url; slide dovtedy zobrazí "preparing" fallback.
+  const [revealShareCardUrl, setRevealShareCardUrl] = useState<string | null>(null);
+  const [shareBusy, setShareBusy] = useState<'share' | 'download' | null>(null);
   const [revealStep, setRevealStep] = useState<0|1|2|3|4>(0);
   const [revealSymbol, setRevealSymbol] = useState(() => new URLSearchParams(window.location.search).get('heroglyphUrl') || REVEAL_SYMBOL);
   const [dogsReady, setDogsReady] = useState(false);
@@ -263,11 +272,14 @@ export function GodsGrid() {
               .map(([iso2, count]) => ({ iso2, iso3: iso2ToISO3(iso2), count }))
               .sort((a, b) => b.count - a.count)
           );
-          if (revealData.active && !revealData.heroglyphUrl) {
+          if (revealData.active) {
             const packNum = parseInt(revealData.packNumber, 10);
             const revealDog = dogs.find(d => d.pack_number === packNum);
-            if (revealDog?.heroglyph_png_url) {
+            if (!revealData.heroglyphUrl && revealDog?.heroglyph_png_url) {
               setRevealSymbol(revealDog.heroglyph_png_url);
+            }
+            if (revealDog?.share_card_url) {
+              setRevealShareCardUrl(revealDog.share_card_url);
             }
           }
         }
@@ -350,6 +362,77 @@ export function GodsGrid() {
       window.removeEventListener('touchstart', open);
     };
   }, [revealStep, revealData.active]);
+
+  // Share Card race: pipeline generuje share_card_url ~pár sekúnd po platbe, takže
+  // v momente prvého get-grid-dogs fetchu (spustí sa hneď pri reveale) často ešte
+  // nie je hotová. Kým je WhatNext popup otvorený a URL stále chýba, dopytuj znova
+  // (max 8×, každé 4s) — prestane, keď sa nájde alebo sa popup zavrie/odmountuje.
+  useEffect(() => {
+    if (!revealData.active || revealShareCardUrl || !showWhatNext) return;
+    let alive = true;
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const packNum = parseInt(revealData.packNumber, 10);
+    const poll = () => {
+      attempts += 1;
+      fetch(GRID_DOGS_URL)
+        .then(r => r.ok ? r.json() : [])
+        .then((dogs: RealDog[]) => {
+          if (!alive) return;
+          const found = dogs.find(d => d.pack_number === packNum);
+          if (found?.share_card_url) {
+            setRevealShareCardUrl(found.share_card_url);
+          } else if (attempts < 8) {
+            timer = setTimeout(poll, 4000);
+          }
+        })
+        .catch(() => { if (alive && attempts < 8) timer = setTimeout(poll, 4000); });
+    };
+    timer = setTimeout(poll, 4000);
+    return () => { alive = false; clearTimeout(timer); };
+  }, [revealData.active, revealData.packNumber, revealShareCardUrl, showWhatNext]);
+
+  // Share / Download handlers pre WhatNext 5. slide (self-contained — nezávislé
+  // od /pack, hoci volajú rovnaké fetch→File utility ako PackShareCard.tsx).
+  const handleWnShare = async () => {
+    if (!revealShareCardUrl || shareBusy) return;
+    setShareBusy('share');
+    try {
+      const result = await shareCard({
+        imageUrl: revealShareCardUrl,
+        dogName: revealData.dogName,
+        shareText: t('sharecard.shareText', { name: revealData.dogName }),
+      });
+      track('share_clicked', { channel: result, type: 'sharecard', location: 'whatnext' });
+      if (result === 'download') toast({ title: t('sharecard.saved') });
+    } catch (err) {
+      toast({
+        title: t('sharecard.saved'),
+        description: err instanceof Error ? err.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setShareBusy(null);
+    }
+  };
+
+  const handleWnDownload = async () => {
+    if (!revealShareCardUrl || shareBusy) return;
+    setShareBusy('download');
+    try {
+      await downloadCard({ imageUrl: revealShareCardUrl, dogName: revealData.dogName });
+      track('share_clicked', { channel: 'download', type: 'sharecard', location: 'whatnext' });
+      toast({ title: t('sharecard.saved') });
+    } catch (err) {
+      toast({
+        title: t('sharecard.saved'),
+        description: err instanceof Error ? err.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setShareBusy(null);
+    }
+  };
 
   // Carousel pre WHAT NEXT? popup (vanilla DOM, port z prototypu 1:1).
   useEffect(() => {
@@ -2133,7 +2216,7 @@ export function GodsGrid() {
                 <div className="wn-main">
                   <div className="wn-head-row">
                     <h1>{t('whatNext.title')}</h1>
-                    <span className="wn-counter"><span className="wn-cur">1</span>/4</span>
+                    <span className="wn-counter"><span className="wn-cur">1</span>/5</span>
                   </div>
                   <div className="wn-divider" />
 
@@ -2170,6 +2253,36 @@ export function GodsGrid() {
                         <p className="wn-ital">{t('whatNext.s4.hook')}</p>
                         <p className="wn-lead" dangerouslySetInnerHTML={{ __html: t('whatNext.s4.body') }} />
                         <button className="wn-cta" onClick={() => setShowWhatNext(false)}>{t('whatNext.s4.cta')}</button>
+                      </div>
+                      <div className="wn-slide wn-slide-share">
+                        <h2>{t('sharecard.shareTitle', { name: revealData.dogName })}</h2>
+                        {revealShareCardUrl ? (
+                          <>
+                            <img className="wn-share-preview" src={revealShareCardUrl} alt={t('sharecard.shareTitle', { name: revealData.dogName })} />
+                            <div className="wn-share-actions">
+                              <button
+                                type="button"
+                                className="wn-cta wn-cta-share"
+                                onClick={handleWnShare}
+                                disabled={shareBusy !== null}
+                              >
+                                <BrandIcon name="link" size={13} tint="dark" />
+                                {t('sharecard.shareButton')}
+                              </button>
+                              <button
+                                type="button"
+                                className="wn-cta wn-cta-outline"
+                                onClick={handleWnDownload}
+                                disabled={shareBusy !== null}
+                              >
+                                <BrandIcon name="document" size={13} tint="gold" />
+                                {t('sharecard.download')}
+                              </button>
+                            </div>
+                          </>
+                        ) : (
+                          <p className="wn-lead wn-share-preparing">{t('sharecard.preparing')}</p>
+                        )}
                       </div>
                     </div>
                   </div>

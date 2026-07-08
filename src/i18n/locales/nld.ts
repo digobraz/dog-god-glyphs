@@ -370,6 +370,14 @@ export const nld: Partial<Dict> = {
   "welcome.password.notPaid": "Betaling wordt nog verwerkt — probeer over een paar seconden opnieuw.",
   "welcome.password.error": "Er is iets misgegaan. Probeer opnieuw.",
   "welcome.password.altLink": "Liever een link? Die staat in jouw e-mail.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "Deel {name} met de Pack",
+  "sharecard.shareButton": "Delen",
+  "sharecard.download": "Downloaden",
+  "sharecard.shareText": "{name} is een van de eerste 1.000.000 honden van DOGYPT. Vind die van jou op dogypt.com",
+  "sharecard.saved": "Kaart opgeslagen",
+  "sharecard.preparing": "Je kaart wordt voorbereid…",
   "login.eyebrow": "DOGYPT · Roedeltoegang",
   "login.verifying.title": "De Poort Openen",
   "login.verifying.body": "Jouw magische link wordt geverifieerd…",

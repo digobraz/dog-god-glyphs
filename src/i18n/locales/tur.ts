@@ -370,6 +370,14 @@ export const tur: Partial<Dict> = {
   "welcome.password.notPaid": "Ödeme hâlâ işleniyor — birkaç saniye sonra tekrar deneyin.",
   "welcome.password.error": "Bir şeyler ters gitti. Tekrar deneyin.",
   "welcome.password.altLink": "Bağlantıyı tercih eder misiniz? E-postanızda.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "{name}'i Pack ile paylaş",
+  "sharecard.shareButton": "Paylaş",
+  "sharecard.download": "İndir",
+  "sharecard.shareText": "{name}, DOGYPT'in ilk 1.000.000 köpeğinden biri. Kendininkini dogypt.com adresinde bul",
+  "sharecard.saved": "Kart kaydedildi",
+  "sharecard.preparing": "Kartın hazırlanıyor…",
   "login.eyebrow": "DOGYPT · Sürü Erişimi",
   "login.verifying.title": "Kapı Açılıyor",
   "login.verifying.body": "Sihirli bağlantınız doğrulanıyor…",

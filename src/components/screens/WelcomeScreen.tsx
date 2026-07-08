@@ -6,6 +6,7 @@ import { CertificateCard } from '@/components/CertificateCard';
 import { buildHeroglyphCode } from '@/lib/heroglyphCode';
 import { VerticalHeroglyphFrame } from '@/components/VerticalHeroglyphFrame';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { ShareCard } from '@/components/ShareCard';
 import { usePostPaymentPipeline } from '@/hooks/usePostPaymentPipeline';
 import { useT } from '@/i18n/LanguageContext';
 import { PageTopBar } from '@/components/PageTopBar';
@@ -175,6 +176,7 @@ export function WelcomeScreen() {
   const certRef = useRef<HTMLDivElement>(null);
   const verticalRef = useRef<HTMLDivElement>(null);
   const horizontalRef = useRef<HTMLDivElement>(null);
+  const shareRef = useRef<HTMLDivElement>(null);
 
   const heroglyphCode = buildHeroglyphCode({
     dogName,
@@ -201,6 +203,7 @@ export function WelcomeScreen() {
     certRef,
     verticalRef,
     horizontalRef,
+    shareRef,
     onHeroglyphReady: setHeroglyphPngUrl,
   });
 
@@ -415,6 +418,20 @@ export function WelcomeScreen() {
         </div>
         <div ref={horizontalRef} style={{ width: 1200, height: 321, background: 'transparent', color: '#000' }}>
           <HeroglyphFrame showOwner />
+        </div>
+        {/* Share card render target — mounted always (so shareRef.current exists
+            for the pipeline's initial gate) but the ShareCard itself only once
+            heroglyphPngUrl exists: it needs a real (uploaded) heroglyph source
+            to fetch + recolor gold, and packNumber must be resolved. */}
+        <div ref={shareRef}>
+          {heroglyphPngUrl && packNumber !== null && (
+            <ShareCard
+              packNumber={packNumber}
+              dogName={dogName}
+              photoUrl={photoUrl}
+              heroglyphUrl={heroglyphPngUrl}
+            />
+          )}
         </div>
       </div>
     </div>

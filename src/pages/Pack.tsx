@@ -14,6 +14,7 @@ import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
 import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
+import { PackShareCard } from '@/components/pack/PackShareCard';
 import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
@@ -29,6 +30,7 @@ interface DogRow {
   cloudinary_extras: string[] | null;
   heroglyph_code: string | null;
   heroglyph_png_url: string | null;
+  share_card_url: string | null;
   breed: string | null;
   country: string | null;
   grid_message: string | null;
@@ -124,7 +126,7 @@ export default function Pack() {
         };
       })
         .from('dogs')
-        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections')
+        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, share_card_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections')
         .eq('user_id', u.id)
         .order('created_at', { ascending: false });
 
@@ -275,6 +277,11 @@ export default function Pack() {
             )}
           </div>
         </div>
+
+        {/* Share card — primary dog's ready-made social image (SHARE + DOWNLOAD) */}
+        {primaryDog && (
+          <PackShareCard dogName={primaryDog.dog_name} shareCardUrl={primaryDog.share_card_url} />
+        )}
 
         {/* Sacred interlude — verse of the day from the Constitution (rotates daily) */}
         <VerseOfTheDay />

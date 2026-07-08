@@ -901,6 +901,14 @@ export const esp: Partial<Dict> = {
   "welcome.password.notPaid": "El pago aún está procesándose — inténtalo de nuevo en unos segundos.",
   "welcome.password.error": "Algo salió mal. Inténtalo de nuevo.",
   "welcome.password.altLink": "¿Prefieres un enlace? Está en tu correo.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "Comparte {name} con el Pack",
+  "sharecard.shareButton": "Compartir",
+  "sharecard.download": "Descargar",
+  "sharecard.shareText": "{name} es uno de los primeros 1.000.000 de perros de DOGYPT. Encuentra el tuyo en dogypt.com",
+  "sharecard.saved": "Tarjeta guardada",
+  "sharecard.preparing": "Preparando tu tarjeta…",
   "login.recovery.title": "Establecer Nueva Contraseña",
   "login.recovery.body": "Elige una nueva contraseña para tu cuenta.",
   "login.password.placeholder": "Contraseña",

@@ -882,6 +882,14 @@ export const rus: Partial<Dict> = {
   "welcome.password.notPaid": "Платёж ещё обрабатывается — попробуйте через несколько секунд.",
   "welcome.password.error": "Что-то пошло не так. Попробуйте ещё раз.",
   "welcome.password.altLink": "Предпочитаете ссылку? Она у вас на почте.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "Поделись {name} с Pack",
+  "sharecard.shareButton": "Поделиться",
+  "sharecard.download": "Скачать",
+  "sharecard.shareText": "{name} — одна из первых 1 000 000 собак DOGYPT. Найди свою на dogypt.com",
+  "sharecard.saved": "Карточка сохранена",
+  "sharecard.preparing": "Готовим твою карточку…",
   "login.recovery.title": "Задать новый пароль",
   "login.recovery.body": "Выберите новый пароль для вашего аккаунта.",
   "login.password.placeholder": "Пароль",

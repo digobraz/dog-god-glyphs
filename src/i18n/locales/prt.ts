@@ -901,6 +901,14 @@ export const prt: Partial<Dict> = {
   "welcome.password.notPaid": "Pagamento ainda em processamento — tenta novamente em alguns segundos.",
   "welcome.password.error": "Algo correu mal. Tenta novamente.",
   "welcome.password.altLink": "Preferes um link? Está no teu email.",
+
+  // ── Share card ──
+  "sharecard.shareTitle": "Partilha {name} com o Pack",
+  "sharecard.shareButton": "Partilhar",
+  "sharecard.download": "Descarregar",
+  "sharecard.shareText": "{name} é um dos primeiros 1.000.000 de cães da DOGYPT. Encontra o teu em dogypt.com",
+  "sharecard.saved": "Cartão guardado",
+  "sharecard.preparing": "A preparar o teu cartão…",
   "login.recovery.title": "Definir Nova Palavra-passe",
   "login.recovery.body": "Escolhe uma nova palavra-passe para a tua conta.",
   "login.password.placeholder": "Palavra-passe",
