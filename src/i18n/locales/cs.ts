@@ -630,6 +630,7 @@ export const cs: Partial<Dict> = {
   'wall.filter.clear': 'Vymazat',
   'wall.filter.confirm': 'Potvrdit',
   'wall.filter.countries': 'Země',
+  'wall.dogPage': 'STRÁNKA PSA',
 
   // ── WHAT NEXT? popup ──
   'whatNext.stamp': 'Důležité',

@@ -571,6 +571,7 @@ export const pol: Partial<Dict> = {
   'wall.filter.clear': 'Wyczyść',
   'wall.filter.confirm': 'Potwierdź',
   'wall.filter.countries': 'Kraje',
+  'wall.dogPage': 'STRONA PSA',
 
   // ── /welcome — What Next? popup ──
   'whatNext.stamp': 'Ważne',

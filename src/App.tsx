@@ -189,6 +189,8 @@ const App = () => (
 
               {/* Public per-dog share landing — the OG image target for shared links (/d/<pack_number>) */}
               <Route path="/d/:pack" element={<DogShare />} />
+              {/* Canonical public dog page — /dog/<name>-<pack_number> (falls back to /dog/<pack_number>) */}
+              <Route path="/dog/:slug" element={<DogShare />} />
 
               {/* /admin — read-only backoffice (admin-email gated) */}
               <Route path="/admin" element={<Admin />} />

@@ -21,6 +21,21 @@ export function captureRefFromSearch(search: string): void {
   }
 }
 
+/** Store a dog page visit (e.g. /dog/bruno-23) as a first-touch referral code,
+ *  same rules as captureRefFromSearch — visiting a dog's public page is a
+ *  structural referral even without an explicit ?ref= param. An explicit
+ *  ?ref= (captured earlier, on mount) always wins since first-touch never
+ *  overwrites. */
+export function captureDogPageRef(pack: number): void {
+  try {
+    if (!Number.isFinite(pack) || pack <= 0) return;
+    if (localStorage.getItem(REF_KEY)) return; // first-touch wins
+    localStorage.setItem(REF_KEY, String(pack));
+  } catch {
+    /* private mode / no storage — ignore */
+  }
+}
+
 /** Read the stored referral code (or null) — used by the checkout payload. */
 export function getStoredRef(): string | null {
   try {

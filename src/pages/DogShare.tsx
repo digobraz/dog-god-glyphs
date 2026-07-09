@@ -4,16 +4,20 @@ import { PageTopBar } from '@/components/PageTopBar';
 import { Seo } from '@/components/Seo';
 import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
+import { dogPagePath, packFromSlug } from '@/lib/dogSlug';
+import { captureDogPageRef } from '@/lib/refCapture';
 
 /**
- * Public share landing — `/d/:pack`.
+ * Public share landing — `/d/:pack` (legacy) and `/dog/:slug` (canonical,
+ * e.g. `/dog/bruno-23`).
  *
  * The whole point of this page is the OG image: when a member shares their
  * share-card link (WhatNextPopup "Share" action), the URL they post is
- * `/d/<pack_number>`, NOT the raw Cloudinary image — so link unfurls
- * (Facebook/Twitter/Instagram/WhatsApp) show a branded landing with a CTA
- * instead of a bare image. Data comes from get-grid-dogs (same public feed
- * as the WALL), matched by pack_number.
+ * `/d/<pack_number>` or `/dog/<name>-<pack_number>` — NOT the raw Cloudinary
+ * image — so link unfurls (Facebook/Twitter/Instagram/WhatsApp) show a
+ * branded landing with a CTA instead of a bare image. Data comes from
+ * get-grid-dogs (same public feed as the WALL), matched by pack_number. Once
+ * the dog record loads, the URL is canonicalized in-place to `/dog/<slug>`.
  */
 
 interface GridDog {
@@ -31,15 +35,15 @@ const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
 type Status = 'loading' | 'found' | 'notfound';
 
 export default function DogShare() {
-  const { pack } = useParams<{ pack: string }>();
+  const { pack, slug } = useParams<{ pack?: string; slug?: string }>();
+  const packNum = packFromSlug(slug ?? pack);
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<Status>('loading');
   const [dog, setDog] = useState<GridDog | null>(null);
 
   useEffect(() => {
     let alive = true;
-    const packNum = Number(pack);
-    if (!pack || Number.isNaN(packNum)) {
+    if (packNum === null) {
       setStatus('notfound');
       return;
     }
@@ -55,6 +59,16 @@ export default function DogShare() {
         if (found) {
           setDog(found);
           setStatus('found');
+          // Visiting a dog's public page is a structural referral, even
+          // without an explicit ?ref= — first-touch never overwrites an
+          // earlier explicit ref, so precedence is preserved automatically.
+          captureDogPageRef(packNum);
+          // Canonicalize the URL in place (no reload) once we know the real
+          // name — covers /d/23, /dog/23 and /dog/wrong-name-23.
+          const canonicalPath = dogPagePath(found.dog_name, packNum);
+          if (window.location.pathname !== canonicalPath) {
+            window.history.replaceState(null, '', canonicalPath + window.location.search);
+          }
         } else {
           setStatus('notfound');
         }
@@ -65,13 +79,13 @@ export default function DogShare() {
     return () => {
       alive = false;
     };
-  }, [pack]);
+  }, [packNum]);
 
   // Fire once on mount — a link click/unfurl is the event we care about,
   // independent of whether the dog record resolves.
   useEffect(() => {
     track('share_landing_view', {
-      pack: Number(pack) || null,
+      pack: packNum,
       ref: searchParams.get('ref') || null,
       channel: searchParams.get('utm_medium') || null,
     });
@@ -91,7 +105,7 @@ export default function DogShare() {
       <Seo
         title={seoTitle}
         description={seoDescription}
-        path={`/d/${pack ?? ''}`}
+        path={status === 'found' && packNum !== null ? dogPagePath(dogName, packNum) : window.location.pathname}
         type="article"
         ogImage={ogImage}
       />
@@ -150,6 +164,19 @@ export default function DogShare() {
             <p className="max-w-md text-white/60" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               One of the first 1,000,000 dogs of DOGYPT. Find your dog's place in the global pack.
             </p>
+            {dog.owner_message && dog.owner_message.trim() && (
+              <div className="max-w-md">
+                <p
+                  className="italic"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'rgba(250,244,236,0.75)' }}
+                >
+                  &ldquo;{dog.owner_message.trim()}&rdquo;
+                </p>
+                <p className="text-sm text-white/40 mt-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  — {dogName}'s alpha
+                </p>
+              </div>
+            )}
             <a href="/heroglyph" className="btn-gold">
               Become Dogyptian
             </a>

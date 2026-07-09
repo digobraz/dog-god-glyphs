@@ -49,7 +49,7 @@ export function PackShareCard({ dogName, packNumber, shareCardUrl }: PackShareCa
 
   const handleFacebook = () => {
     if (!packNumber) return;
-    facebookShare(packNumber);
+    facebookShare(packNumber, name);
     track('share_clicked', { channel: 'facebook', type: 'sharecard', location: 'pack' });
   };
 
@@ -61,7 +61,7 @@ export function PackShareCard({ dogName, packNumber, shareCardUrl }: PackShareCa
 
   const handleCopyLink = async () => {
     if (!packNumber) return;
-    await copyDogLink(packNumber);
+    await copyDogLink(packNumber, name);
     track('share_clicked', { channel: 'copy', type: 'sharecard', location: 'pack' });
     toast({ title: t('sharecard.linkCopied') });
   };

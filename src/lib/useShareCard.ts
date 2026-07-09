@@ -11,6 +11,8 @@
 // image file). shareCard() below is the older image-only path, kept in case
 // something still imports it.
 
+import { dogSlug } from './dogSlug';
+
 export type ShareCardResult = 'native' | 'download';
 export type ShareDogResult = 'native' | 'copied';
 export type ShareChannel = 'native' | 'facebook' | 'whatsapp' | 'copy' | 'download';
@@ -74,12 +76,14 @@ export async function shareCard({
   return 'download';
 }
 
-// ── per-dog LINK share (LOCKED format) ────────────────────────────────────
-// https://dogypt.com/d/<pack>?ref=<pack>&utm_source=sharecard&utm_medium=<channel>
-// The /d/:pack page carries the share-card OG image, so recipients get a real
-// preview whichever platform they land from — not a raw PNG.
-export function dogShareLink(pack: number, channel: ShareChannel | string): string {
-  return `https://dogypt.com/d/${pack}?ref=${pack}&utm_source=sharecard&utm_medium=${channel}`;
+// ── per-dog LINK share (LOCKED format, 2026-07-09) ────────────────────────
+// https://dogypt.com/dog/<name>-<pack>?ref=<pack>&utm_source=sharecard&utm_medium=<channel>
+// Replaces the old /d/<pack> tvar — /dog/:slug now carries the share-card OG
+// image, so recipients get a real preview whichever platform they land from
+// (not a raw PNG). ?ref stays as belt & braces alongside the structural
+// referral already carried in the path itself.
+export function dogShareLink(pack: number, channel: ShareChannel | string, dogName?: string | null): string {
+  return `https://dogypt.com/dog/${dogSlug(dogName, pack)}?ref=${pack}&utm_source=sharecard&utm_medium=${channel}`;
 }
 
 // Primary "SHARE" button: link-first (image attached where the platform
@@ -96,7 +100,7 @@ export async function shareDog({
   imageUrl: string;
   channel?: ShareChannel | string;
 }): Promise<ShareDogResult> {
-  const link = dogShareLink(pack, channel);
+  const link = dogShareLink(pack, channel, dogName);
   const text = `${dogName} is one of the first 1,000,000 dogs of DOGYPT.`;
   const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
 
@@ -146,9 +150,9 @@ export async function shareDog({
   return 'copied';
 }
 
-export function facebookShare(pack: number): void {
+export function facebookShare(pack: number, dogName?: string | null): void {
   window.open(
-    'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(dogShareLink(pack, 'facebook')),
+    'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(dogShareLink(pack, 'facebook', dogName)),
     '_blank',
     'noopener,width=640,height=640'
   );
@@ -156,12 +160,12 @@ export function facebookShare(pack: number): void {
 
 export function whatsappShare(pack: number, dogName: string): void {
   window.open(
-    'https://wa.me/?text=' + encodeURIComponent(dogName + ' — ' + dogShareLink(pack, 'whatsapp')),
+    'https://wa.me/?text=' + encodeURIComponent(dogName + ' — ' + dogShareLink(pack, 'whatsapp', dogName)),
     '_blank',
     'noopener'
   );
 }
 
-export function copyDogLink(pack: number): Promise<void> {
-  return navigator.clipboard.writeText(dogShareLink(pack, 'copy'));
+export function copyDogLink(pack: number, dogName?: string | null): Promise<void> {
+  return navigator.clipboard.writeText(dogShareLink(pack, 'copy', dogName));
 }

@@ -524,6 +524,7 @@ export const kor: Partial<Dict> = {
   "wall.filter.clear": "지우기",
   "wall.filter.confirm": "확인",
   "wall.filter.countries": "국가",
+  "wall.dogPage": "강아지 페이지",
   "whatNext.stamp": "중요",
   "whatNext.title": "다음은?",
   "whatNext.close": "닫기",

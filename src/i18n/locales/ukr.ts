@@ -586,6 +586,7 @@ export const ukr: Partial<Dict> = {
   'wall.filter.clear': 'Очистити',
   'wall.filter.confirm': 'Підтвердити',
   'wall.filter.countries': 'Країни',
+  'wall.dogPage': 'СТОРІНКА ПСА',
 
   // ── whatNext popup ──
   'whatNext.stamp': 'Важливо',

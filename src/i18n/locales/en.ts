@@ -688,6 +688,7 @@ export const en = {
   'wall.filter.clear': 'Clear',
   'wall.filter.confirm': 'Confirm',
   'wall.filter.countries': 'Countries',
+  'wall.dogPage': 'DOG PAGE',
 
   // ── WHAT NEXT? popup (post-payment, shown once after reveal) ──
   'whatNext.greet': 'Welcome, {name}',

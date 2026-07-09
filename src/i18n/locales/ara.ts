@@ -524,6 +524,7 @@ export const ara: Partial<Dict> = {
   "wall.filter.clear": "مسح",
   "wall.filter.confirm": "تأكيد",
   "wall.filter.countries": "البلدان",
+  "wall.dogPage": "صفحة الكلب",
   "whatNext.stamp": "مهم",
   "whatNext.title": "ماذا بعد؟",
   "whatNext.close": "إغلاق",

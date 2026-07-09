@@ -11,6 +11,7 @@ import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
+import { dogPagePath } from '@/lib/dogSlug';
 import { BrandIcon } from '../pack/BrandIcon';
 import './WhatNextPopup.css';
 
@@ -422,7 +423,7 @@ export function GodsGrid() {
   };
 
   const handleWnFacebook = () => {
-    facebookShare(parseInt(revealData.packNumber, 10));
+    facebookShare(parseInt(revealData.packNumber, 10), revealData.dogName);
     track('share_clicked', { channel: 'facebook', type: 'sharecard', location: 'whatnext' });
   };
 
@@ -432,7 +433,7 @@ export function GodsGrid() {
   };
 
   const handleWnCopyLink = async () => {
-    await copyDogLink(parseInt(revealData.packNumber, 10));
+    await copyDogLink(parseInt(revealData.packNumber, 10), revealData.dogName);
     track('share_clicked', { channel: 'copy', type: 'sharecard', location: 'whatnext' });
     toast({ title: t('sharecard.linkCopied') });
   };
@@ -676,6 +677,11 @@ export function GodsGrid() {
       el.style.top  = (row * GY) + 'px';
       const overlayHeroSrc = dog.heroglyph_png_url ? esc(dog.heroglyph_png_url) : '';
       const tileSrc = esc(tileImageUrl(dog.cloudinary_main_url));
+      // Verejná stránka psa — len keď máme reálne dáta (pack_number + meno) z DB.
+      // Fillery bez čísla (edge/transitional stav) tlačidlo nedostanú.
+      const dogPageHref = (dog.pack_number != null && dog.dog_name)
+        ? esc(dogPagePath(dog.dog_name, dog.pack_number))
+        : '';
       el.innerHTML = `
         <div class="card-img" style="background-image:url('${tileSrc}');background-position:50% 30%"></div>
         <div class="card-open-overlay">
@@ -683,6 +689,7 @@ export function GodsGrid() {
           <div class="card-open-name">${safeName}</div>
           ${overlayHeroSrc ? `<img class="card-open-heroglyph" src="${overlayHeroSrc}" alt="${safeName} heroglyph" draggable="false">` : ''}
           ${dog.owner_message ? `<div class="card-open-msg">${esc(dog.owner_message)}</div>` : ''}
+          ${dogPageHref ? `<a class="card-open-dogpage-link" href="${dogPageHref}">${tRef.current('wall.dogPage')}</a>` : ''}
         </div>
         <div class="card-rank-top">#${packNum}</div>
         ${cc ? `<img class="card-flag" src="${flagUrl(cc)}" alt="${flagName}" title="${flagName}" loading="lazy" draggable="false">` : ''}
@@ -792,7 +799,7 @@ export function GodsGrid() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.nav-login') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay')) return;
+      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.nav-login') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay') || target.closest('.card-open-dogpage-link')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -868,7 +875,7 @@ export function GodsGrid() {
           // Interactive UI controls (join CTA, nav, lang, filter, numpad…) need their
           // native click — don't preventDefault, or the synthetic click never fires.
           const tapped = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
-          if (tapped?.closest('.center-hero, .center-btn, .main-nav, .nav-login, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay')) {
+          if (tapped?.closest('.center-hero, .center-btn, .main-nav, .nav-login, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay, .card-open-dogpage-link')) {
             return;
           }
           // Prevent the browser from firing synthetic mouse events (mousedown/mouseup/click)
@@ -1408,6 +1415,32 @@ export function GodsGrid() {
             drop-shadow(0 0 14px rgba(201,154,63,0.95))
             drop-shadow(0 0 32px rgba(201,154,63,0.55));
           margin-bottom: 4px;
+        }
+        .card-open-dogpage-link {
+          display: inline-block;
+          flex-shrink: 0;
+          margin-top: 4px;
+          padding: 6px 16px;
+          font-family: 'Cinzel', serif;
+          font-size: 0.62rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #C99A3F;
+          background: transparent;
+          border: 1px solid rgba(201,154,63,0.65);
+          border-radius: 8px;
+          text-decoration: none;
+          /* pointer-events až v otvorenom stave — explicitné auto tu by prerazilo
+             pointer-events:none zatvoreného overlay a neviditeľný link by žral kliky */
+          pointer-events: none;
+          cursor: pointer;
+          transition: box-shadow 200ms ease, background 200ms ease;
+        }
+        .dog-card.is-open .card-open-dogpage-link { pointer-events: auto; }
+        .card-open-dogpage-link:hover {
+          background: rgba(201,154,63,0.08);
+          box-shadow: 0 0 12px rgba(201,154,63,0.45);
         }
 
         .card-flag {

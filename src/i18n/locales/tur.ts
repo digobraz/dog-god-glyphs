@@ -524,6 +524,7 @@ export const tur: Partial<Dict> = {
   "wall.filter.clear": "Temizle",
   "wall.filter.confirm": "Onayla",
   "wall.filter.countries": "Ülkeler",
+  "wall.dogPage": "KÖPEK SAYFASI",
   "whatNext.stamp": "Önemli",
   "whatNext.title": "Sırada Ne Var?",
   "whatNext.close": "Kapat",
