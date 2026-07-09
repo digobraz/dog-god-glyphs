@@ -640,6 +640,7 @@ export const sk: Partial<Dict> = {
   'wall.filter.confirm': 'Potvrdiť',
   'wall.filter.countries': 'Krajiny',
   'wall.dogPage': 'STRÁNKA PSA',
+  'share.dogVoice': 'Ja, {dog}, som sa pridal k hnutiu, ktoré zmení svet psov. Naskoč aj ty!',
 
   // ── WHAT NEXT? popup (post-payment) ──
   'whatNext.stamp': 'Dôležité',

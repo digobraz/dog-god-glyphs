@@ -631,6 +631,7 @@ export const cs: Partial<Dict> = {
   'wall.filter.confirm': 'Potvrdit',
   'wall.filter.countries': 'Země',
   'wall.dogPage': 'STRÁNKA PSA',
+  'share.dogVoice': 'Já, {dog}, jsem se přidal k hnutí, které změní svět psů. Naskoč taky!',
 
   // ── WHAT NEXT? popup ──
   'whatNext.stamp': 'Důležité',

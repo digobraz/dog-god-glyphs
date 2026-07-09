@@ -28,11 +28,13 @@ export function PackShareCard({ dogName, packNumber, shareCardUrl }: PackShareCa
     if (!shareCardUrl || !packNumber || busy) return;
     setBusy('share');
     try {
+      const shareText = t('share.dogVoice', { dog: name.toUpperCase() });
       const result = await shareDog({
         pack: packNumber,
         dogName: name,
         imageUrl: shareCardUrl,
         channel: 'native',
+        shareText,
       });
       track('share_clicked', { channel: result, type: 'sharecard', location: 'pack' });
       if (result === 'copied') toast({ title: t('sharecard.linkCopied') });
@@ -49,13 +51,15 @@ export function PackShareCard({ dogName, packNumber, shareCardUrl }: PackShareCa
 
   const handleFacebook = () => {
     if (!packNumber) return;
-    facebookShare(packNumber, name);
+    const shareText = t('share.dogVoice', { dog: name.toUpperCase() });
+    facebookShare(packNumber, name, shareText);
     track('share_clicked', { channel: 'facebook', type: 'sharecard', location: 'pack' });
   };
 
   const handleWhatsapp = () => {
     if (!packNumber) return;
-    whatsappShare(packNumber, name);
+    const shareText = t('share.dogVoice', { dog: name.toUpperCase() });
+    whatsappShare(packNumber, name, shareText);
     track('share_clicked', { channel: 'whatsapp', type: 'sharecard', location: 'pack' });
   };
 

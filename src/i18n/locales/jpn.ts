@@ -525,6 +525,7 @@ export const jpn: Partial<Dict> = {
   "wall.filter.confirm": "確認",
   "wall.filter.countries": "国",
   "wall.dogPage": "犬のページ",
+  "share.dogVoice": "私、{dog}は犬の世界を変えるムーブメントに参加しました。君も乗ろう！",
   "whatNext.stamp": "重要",
   "whatNext.title": "次は何？",
   "whatNext.close": "閉じる",

@@ -526,6 +526,7 @@ export const ind: Partial<Dict> = {
   "wall.filter.confirm": "पुष्टि करें",
   "wall.filter.countries": "देश",
   "wall.dogPage": "HALAMAN ANJING",
+  "share.dogVoice": "Aku, {dog}, telah bergabung dengan gerakan yang akan mengubah dunia anjing. Ayo ikut!",
   "whatNext.stamp": "महत्वपूर्ण",
   "whatNext.title": "आगे क्या?",
   "whatNext.close": "बंद करें",

@@ -525,6 +525,7 @@ export const nld: Partial<Dict> = {
   "wall.filter.confirm": "Bevestigen",
   "wall.filter.countries": "Landen",
   "wall.dogPage": "HONDENPAGINA",
+  "share.dogVoice": "Ik, {dog}, heb me aangesloten bij de beweging die de wereld van honden gaat veranderen. Spring erop!",
   'whatNext.stamp': 'Belangrijk',
   'whatNext.title': 'Wat Nu?',
   'whatNext.close': 'Sluiten',

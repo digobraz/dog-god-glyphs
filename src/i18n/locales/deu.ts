@@ -589,6 +589,7 @@ export const deu: Partial<Dict> = {
   'wall.filter.confirm': 'Bestätigen',
   'wall.filter.countries': 'Länder',
   'wall.dogPage': 'HUNDESEITE',
+  'share.dogVoice': 'Ich, {dog}, bin der Bewegung beigetreten, die die Welt der Hunde verändern wird. Spring auf!',
 
   // ── WHAT NEXT? popup ──
   'whatNext.stamp': 'Wichtig',

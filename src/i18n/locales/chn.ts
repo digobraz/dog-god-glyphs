@@ -525,6 +525,7 @@ export const chn: Partial<Dict> = {
   "wall.filter.confirm": "确认",
   "wall.filter.countries": "国家",
   "wall.dogPage": "狗狗主页",
+  "share.dogVoice": "我，{dog}，已加入将改变狗狗世界的运动。快上车！",
   "whatNext.stamp": "重要",
   "whatNext.title": "接下来呢？",
   "whatNext.close": "关闭",

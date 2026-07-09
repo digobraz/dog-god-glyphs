@@ -525,6 +525,7 @@ export const ara: Partial<Dict> = {
   "wall.filter.confirm": "تأكيد",
   "wall.filter.countries": "البلدان",
   "wall.dogPage": "صفحة الكلب",
+  "share.dogVoice": "أنا {dog}، انضممت إلى الحركة التي ستغير عالم الكلاب. انضم أنت أيضًا!",
   "whatNext.stamp": "مهم",
   "whatNext.title": "ماذا بعد؟",
   "whatNext.close": "إغلاق",

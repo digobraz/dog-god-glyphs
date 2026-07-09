@@ -403,11 +403,13 @@ export function GodsGrid() {
     setShareBusy('share');
     try {
       const pack = parseInt(revealData.packNumber, 10);
+      const shareText = t('share.dogVoice', { dog: revealData.dogName.toUpperCase() });
       const result = await shareDog({
         pack,
         dogName: revealData.dogName,
         imageUrl: revealShareCardUrl,
         channel: 'native',
+        shareText,
       });
       track('share_clicked', { channel: result, type: 'sharecard', location: 'whatnext' });
       if (result === 'copied') toast({ title: t('sharecard.linkCopied') });
@@ -423,12 +425,14 @@ export function GodsGrid() {
   };
 
   const handleWnFacebook = () => {
-    facebookShare(parseInt(revealData.packNumber, 10), revealData.dogName);
+    const shareText = t('share.dogVoice', { dog: revealData.dogName.toUpperCase() });
+    facebookShare(parseInt(revealData.packNumber, 10), revealData.dogName, shareText);
     track('share_clicked', { channel: 'facebook', type: 'sharecard', location: 'whatnext' });
   };
 
   const handleWnWhatsapp = () => {
-    whatsappShare(parseInt(revealData.packNumber, 10), revealData.dogName);
+    const shareText = t('share.dogVoice', { dog: revealData.dogName.toUpperCase() });
+    whatsappShare(parseInt(revealData.packNumber, 10), revealData.dogName, shareText);
     track('share_clicked', { channel: 'whatsapp', type: 'sharecard', location: 'whatnext' });
   };
 

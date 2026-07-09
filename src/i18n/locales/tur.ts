@@ -525,6 +525,7 @@ export const tur: Partial<Dict> = {
   "wall.filter.confirm": "Onayla",
   "wall.filter.countries": "Ülkeler",
   "wall.dogPage": "KÖPEK SAYFASI",
+  "share.dogVoice": "Ben {dog}, köpeklerin dünyasını değiştirecek harekete katıldım. Sen de atla!",
   "whatNext.stamp": "Önemli",
   "whatNext.title": "Sırada Ne Var?",
   "whatNext.close": "Kapat",

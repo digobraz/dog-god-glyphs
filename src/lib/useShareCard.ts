@@ -94,14 +94,16 @@ export async function shareDog({
   dogName,
   imageUrl,
   channel = 'native',
+  shareText,
 }: {
   pack: number;
   dogName: string;
   imageUrl: string;
   channel?: ShareChannel | string;
+  shareText?: string;
 }): Promise<ShareDogResult> {
   const link = dogShareLink(pack, channel, dogName);
-  const text = `${dogName} is one of the first 1,000,000 dogs of DOGYPT.`;
+  const text = shareText || `${dogName} is one of the first 1,000,000 dogs of DOGYPT.`;
   const nav = navigator as Navigator & { canShare?: (data?: ShareData) => boolean };
 
   // Mobile + file support — attach the share card image alongside the link.
@@ -150,20 +152,20 @@ export async function shareDog({
   return 'copied';
 }
 
-export function facebookShare(pack: number, dogName?: string | null): void {
+export function facebookShare(pack: number, dogName?: string | null, shareText?: string): void {
+  const link = dogShareLink(pack, 'facebook', dogName);
+  const quote = shareText ? '&quote=' + encodeURIComponent(shareText) : '';
   window.open(
-    'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(dogShareLink(pack, 'facebook', dogName)),
+    'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(link) + quote,
     '_blank',
     'noopener,width=640,height=640'
   );
 }
 
-export function whatsappShare(pack: number, dogName: string): void {
-  window.open(
-    'https://wa.me/?text=' + encodeURIComponent(dogName + ' — ' + dogShareLink(pack, 'whatsapp', dogName)),
-    '_blank',
-    'noopener'
-  );
+export function whatsappShare(pack: number, dogName: string, shareText?: string): void {
+  const link = dogShareLink(pack, 'whatsapp', dogName);
+  const text = shareText ? `${shareText} ${link}` : `${dogName} — ${link}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
 }
 
 export function copyDogLink(pack: number, dogName?: string | null): Promise<void> {

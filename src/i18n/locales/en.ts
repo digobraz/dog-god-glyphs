@@ -689,6 +689,7 @@ export const en = {
   'wall.filter.confirm': 'Confirm',
   'wall.filter.countries': 'Countries',
   'wall.dogPage': 'DOG PAGE',
+  'share.dogVoice': 'I, {dog}, have joined the movement that will change the world for dogs. Hop on!',
 
   // ── WHAT NEXT? popup (post-payment, shown once after reveal) ──
   'whatNext.greet': 'Welcome, {name}',

@@ -6,7 +6,7 @@ import { EDGE_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { dogPagePath, packFromSlug } from '@/lib/dogSlug';
 import { captureDogPageRef } from '@/lib/refCapture';
-import { countryISO2, flagUrl } from '@/lib/countryGeo';
+import { countryISO2, flagUrl, iso2ToISO3 } from '@/lib/countryGeo';
 
 /**
  * Public share landing — `/d/:pack` (legacy) and `/dog/:slug` (canonical,
@@ -20,11 +20,16 @@ import { countryISO2, flagUrl } from '@/lib/countryGeo';
  * get-grid-dogs (same public feed as the WALL), matched by pack_number. Once
  * the dog record loads, the URL is canonicalized in-place to `/dog/<slug>`.
  *
- * Layout (2026-07-09): desktop = no-scroll 2-column (photo left, papyrus
- * info block right), sized purely via flexbox — the outer page is pinned to
- * 100dvh and the row fills whatever's left under PageTopBar, so the photo's
- * square size falls out of aspect-ratio + height:100%, not a hardcoded
- * "topbar is Npx" guess. Mobile stays a plain scrolling 2-block stack.
+ * Layout (2026-07-09): desktop = no-scroll 2-column (photo+CTA left,
+ * papyrus info block+"Back to WALL" right), sized purely via flexbox — the
+ * outer page is pinned to 100dvh and the row fills whatever's left under
+ * PageTopBar. Both squares (photo, papyrus) share the same aspect-square +
+ * height:100%-of-flex-frame + max-h-[390px] treatment so they render at
+ * identical size — no hardcoded "topbar is Npx" guess. Each column is a
+ * flex-col: a flex-1/min-h-0 frame holding the square, plus a fixed-size
+ * element below it (gold CTA / back link) — that's why max-h dropped from
+ * ~460 to 390, to leave room for those. Mobile stays a plain scrolling stack:
+ * photo → CTA → papyrus block → back link.
  */
 
 interface GridDog {
@@ -37,6 +42,7 @@ interface GridDog {
   owner_message: string | null;
   owner_first_name?: string | null;
   birth_year?: number | null;
+  birth_date?: string | null;
   joined_at?: string | null;
   life_status?: string | null;
 }
@@ -45,11 +51,24 @@ const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
 
 type Status = 'loading' | 'found' | 'notfound';
 
-// currentYear − birth_year. Deceased dogs (memorial mode) skip the age line entirely.
-function computeAgeYears(birthYear: number | null | undefined, lifeStatus: string | null | undefined): number | null {
-  if (!birthYear || lifeStatus === 'deceased') return null;
-  const years = new Date().getFullYear() - birthYear;
-  return years > 0 ? years : null;
+// today − birth_date, in whole days + full years (calendar-accurate, not days/365.25).
+// Deceased dogs (memorial mode) never show a "living my best life" line — the
+// subtitle falls back to "Founding Dogyptian #N" for them.
+function computeLifeStats(
+  birthDate: string | null | undefined,
+  lifeStatus: string | null | undefined
+): { days: number; years: number } | null {
+  if (!birthDate || lifeStatus === 'deceased') return null;
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return null;
+  const now = new Date();
+  const days = Math.floor((now.getTime() - birth.getTime()) / 86_400_000);
+  if (days < 0) return null;
+  let years = now.getFullYear() - birth.getFullYear();
+  const hadBirthdayThisYear =
+    now.getMonth() > birth.getMonth() || (now.getMonth() === birth.getMonth() && now.getDate() >= birth.getDate());
+  if (!hadBirthdayThisYear) years--;
+  return { days, years: Math.max(0, years) };
 }
 
 // today − joined_at, in whole days.
@@ -126,7 +145,6 @@ export default function DogShare() {
   }, []);
 
   const dogName = dog?.dog_name || 'This dog';
-  const dogNameUpper = dogName.toUpperCase();
   const ogImage = dog?.share_card_url || dog?.cloudinary_main_url || DEFAULT_OG;
   const seoTitle = status === 'found' ? `${dogName} — DOGYPT` : 'DOGYPT';
   const seoDescription =
@@ -135,14 +153,10 @@ export default function DogShare() {
       : "Join the first 1,000,000 dogs of DOGYPT. Find your dog's place in the global pack.";
 
   const flagIso = dog ? countryISO2(dog.country) : null;
-  const ageYears = dog ? computeAgeYears(dog.birth_year, dog.life_status) : null;
+  const lifeStats = dog ? computeLifeStats(dog.birth_date, dog.life_status) : null;
   const daysInPack = dog ? computeDaysInPack(dog.joined_at) : null;
   const alphaName = dog?.owner_first_name?.trim() || null;
   const ownerMessage = dog?.owner_message?.trim() || '';
-
-  const voiceQuote = alphaName
-    ? `I, ${dogNameUpper}, and my pawtner ${alphaName} have joined the movement that will change the world for dogs. Hop on!`
-    : `I, ${dogNameUpper}, have joined the movement that will change the world for dogs. Hop on!`;
 
   return (
     <div className="dark-bg dogshare-page min-h-screen flex flex-col md:h-[100dvh] md:overflow-hidden">
@@ -181,10 +195,29 @@ export default function DogShare() {
           border: 1px solid rgba(201,154,63,0.45);
           box-shadow: 0 30px 80px rgba(0,0,0,0.45);
         }
-        .dogshare-pack-link {
-          color: #4a3a1f;
+        .dogshare-hairline {
+          height: 1px;
+          width: 100%;
+          background: rgba(201,154,63,0.35);
         }
-        .dogshare-pack-link:hover {
+        .dogshare-label {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.6rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #C99A3F;
+        }
+        .dogshare-value {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.85rem;
+          color: #1a1a1a;
+          font-weight: 600;
+        }
+        .dogshare-back-link {
+          color: rgba(255,255,255,0.5);
+        }
+        .dogshare-back-link:hover {
           color: #C99A3F;
         }
       `}</style>
@@ -210,103 +243,123 @@ export default function DogShare() {
         )}
 
         {status === 'found' && dog && (
-          <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 md:gap-10 md:h-full">
-            {/* Photo column */}
-            <div className="flex-shrink-0 flex items-center justify-center w-full md:w-auto md:h-full">
+          <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 md:gap-10">
+            {/* Left column — photo with CTA glued under it. Both columns share the
+                exact same vertical composition (square + gap-4 + h-14 slot), so the
+                two squares stay top-aligned without any h-full/flex-1 juggling. */}
+            <div className="flex flex-col items-center gap-4 w-full md:w-auto">
               {ogImage && (
                 <img
                   src={ogImage}
                   alt={`${dogName} — DOGYPT share card`}
-                  className="dogshare-photo w-full max-w-[460px] md:w-auto md:h-full md:max-h-[460px]"
+                  className="dogshare-photo w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_280px))] md:max-w-none"
                 />
               )}
+              <div className="h-14 flex items-center w-full">
+                <a href="/heroglyph" className="btn-gold w-full text-center">
+                  Join Us
+                </a>
+              </div>
             </div>
 
-            {/* Info column — papyrus block */}
-            <div className="dogshare-info-card w-full max-w-[460px] md:max-w-[420px] md:h-full flex flex-col justify-center gap-3 md:gap-3.5 p-6 md:p-7 md:overflow-y-auto">
-              <h1
-                className="text-2xl md:text-3xl"
-                style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, letterSpacing: '0.01em' }}
-              >
-                {dogName}
-              </h1>
+            {/* Right column — papyrus info block + back link (same composition) */}
+            <div className="flex flex-col items-center gap-4 w-full md:w-auto">
+              <div className="dogshare-info-card w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_280px))] md:max-w-none md:aspect-square flex flex-col p-6 md:p-5 gap-2.5 md:gap-2 md:overflow-y-auto">
+                  {/* Name + rank */}
+                  <div className="text-center flex-shrink-0">
+                    <h1
+                      style={{
+                        fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+                        fontWeight: 700,
+                        fontSize: 'clamp(1.4rem, 4vw, 1.85rem)',
+                        color: '#1a1a1a',
+                        letterSpacing: '0.01em',
+                      }}
+                    >
+                      {dog.pack_number !== null && (
+                        <>
+                          <span style={{ color: '#C99A3F' }}>#{dog.pack_number}</span>{' '}
+                        </>
+                      )}
+                      {dogName}
+                    </h1>
+                    {dog.pack_number !== null && (
+                      <p
+                        className="mt-1"
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontWeight: 700,
+                          color: '#C99A3F',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.14em',
+                          fontSize: '0.72rem',
+                        }}
+                      >
+                        {lifeStats
+                          ? `Living My Best Life ${lifeStats.days.toLocaleString('en-US')} Days (${lifeStats.years} ${
+                              lifeStats.years === 1 ? 'Year' : 'Years'
+                            })`
+                          : `Founding Dogyptian #${dog.pack_number}`}
+                      </p>
+                    )}
+                  </div>
 
-              {dog.pack_number !== null && (
-                <p
-                  className="text-sm"
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontWeight: 700,
-                    color: '#C99A3F',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.12em',
-                  }}
-                >
-                  Founding Dogyptian #{dog.pack_number}
-                </p>
-              )}
+                  <div className="dogshare-hairline flex-shrink-0" />
 
-              {flagIso && (
-                <img
-                  src={flagUrl(flagIso, 40)}
-                  alt={dog.country || ''}
-                  title={dog.country || ''}
-                  style={{ width: 26, height: 'auto', borderRadius: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
-                />
-              )}
-
-              {(ageYears !== null || daysInPack !== null) && (
-                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, lineHeight: 1.6 }}>
-                  {ageYears !== null && (
-                    <div>
-                      <span style={{ fontWeight: 700 }}>Age:</span> {ageYears} {ageYears === 1 ? 'year' : 'years'}
+                  {/* 2-col info row — Origin / In the Pack */}
+                  {(flagIso || daysInPack !== null) && (
+                    <div className="flex items-start justify-center gap-5 flex-wrap flex-shrink-0">
+                      {flagIso && (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="dogshare-label">Origin</span>
+                          <img
+                            src={flagUrl(flagIso, 40)}
+                            alt={dog.country || ''}
+                            title={dog.country || ''}
+                            style={{ width: 22, height: 'auto', borderRadius: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
+                          />
+                          <span className="dogshare-value">{iso2ToISO3(flagIso)}</span>
+                        </div>
+                      )}
+                      {daysInPack !== null && (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="dogshare-label">In the Pack</span>
+                          <span className="dogshare-value">{daysInPackLabel(daysInPack)}</span>
+                        </div>
+                      )}
                     </div>
                   )}
-                  {daysInPack !== null && (
-                    <div>
-                      <span style={{ fontWeight: 700 }}>In the pack:</span> {daysInPackLabel(daysInPack)}
+
+                  {alphaName && (
+                    <div className="text-center flex-shrink-0">
+                      <span className="dogshare-label">Pawtner </span>
+                      <span className="dogshare-value">{alphaName.toUpperCase()}</span>
                     </div>
                   )}
-                </div>
-              )}
 
-              {alphaName && (
-                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13 }}>
-                  <span style={{ fontWeight: 700 }}>Alpha:</span> {alphaName.toUpperCase()}
-                </p>
-              )}
+                  <div className="dogshare-hairline flex-shrink-0" />
 
-              <p
-                className="italic"
-                style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 15, lineHeight: 1.5 }}
-              >
-                &ldquo;{voiceQuote}&rdquo;
-              </p>
-
-              {ownerMessage && (
-                <div>
-                  <p
-                    className="italic"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: 'rgba(26,26,26,0.7)' }}
-                  >
-                    &ldquo;{ownerMessage}&rdquo;
-                  </p>
-                  <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'rgba(26,26,26,0.5)', marginTop: 2 }}>
-                    — {dogName}'s alpha
-                  </p>
-                </div>
-              )}
-
-              <div className="flex flex-col items-start gap-3 mt-1">
-                <a href="/heroglyph" className="btn-gold">
-                  Become Dogyptian
-                </a>
+                  {ownerMessage && (
+                    <div className="flex-1 flex flex-col items-center justify-center text-center">
+                      <p
+                        className="italic md:line-clamp-6"
+                        style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'rgba(26,26,26,0.7)' }}
+                      >
+                        &ldquo;{ownerMessage}&rdquo;
+                      </p>
+                      <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: 'rgba(26,26,26,0.5)', marginTop: 2 }}>
+                        — {dogName}'s alpha
+                      </p>
+                    </div>
+                )}
+              </div>
+              <div className="h-14 flex items-center">
                 <Link
                   to="/"
-                  className="dogshare-pack-link text-sm underline underline-offset-4 transition-colors"
+                  className="dogshare-back-link text-sm transition-colors"
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 >
-                  See the whole pack →
+                  Back to WALL →
                 </Link>
               </div>
             </div>
