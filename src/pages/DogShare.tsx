@@ -26,7 +26,7 @@ interface GridDog {
   owner_message: string | null;
 }
 
-const DEFAULT_OG = 'https://storage.googleapis.com/gpt-engineer-file-uploads/r1xjLvSkh4R0qFvw293HZyntcAI2/social-images/social-1778165377850-LOGO_DOGYPT_FINAL_web.webp';
+const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
 
 type Status = 'loading' | 'found' | 'notfound';
 
