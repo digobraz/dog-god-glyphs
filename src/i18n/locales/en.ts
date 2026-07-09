@@ -838,9 +838,9 @@ export const en = {
     'Privacy & data requests: privacy@dogypt.com · General questions: info@dogypt.com · Postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Cookie settings") ──
-  'consent.title': 'A quick, honest word',
+  'consent.title': 'Human duties',
   'consent.body':
-    'We measure how the site is used so we can fix what’s broken — anonymously, always. Screen recordings and ads only if you allow them.',
+    'With your consent we can study and measure how the site is used — so we can fix what’s broken and improve our digital temple. Thank you for your cooperation.',
   'consent.acceptAll': 'Allow all',
   'consent.necessary': 'Only necessary',
   'consent.settings': 'Choose',

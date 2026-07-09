@@ -721,9 +721,9 @@ export const esp: Partial<Dict> = {
     'Privacidad y solicitudes de datos: privacy@dogypt.com · Preguntas generales: info@dogypt.com · Correo postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Eslovaquia.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer «Configuración de cookies») ──
-  'consent.title': 'Una palabra breve y honesta',
+  'consent.title': 'Deberes humanos',
   'consent.body':
-    'Medimos cómo se usa el sitio para arreglar lo que no funciona — siempre de forma anónima. Grabaciones de pantalla y anuncios solo si los permites.',
+    'Con tu consentimiento podemos estudiar y medir cómo se usa el sitio — para arreglar lo que no funciona y mejorar nuestro templo digital. Gracias por tu colaboración.',
   'consent.acceptAll': 'Permitir todo',
   'consent.necessary': 'Solo lo necesario',
   'consent.settings': 'Elegir',

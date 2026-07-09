@@ -704,9 +704,9 @@ export const rus: Partial<Dict> = {
     'Конфиденциальность и данные: privacy@dogypt.com · Общие вопросы: info@dogypt.com · Почта: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Словакия.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Настройки cookies") ──
-  'consent.title': 'Коротко и честно',
+  'consent.title': 'Человеческие обязанности',
   'consent.body':
-    'Мы измеряем, как используют сайт, чтобы чинить то, что сломалось — всегда анонимно. Записи экрана и реклама — только если ты разрешишь.',
+    'С твоего согласия мы можем изучать и измерять, как используют сайт — чтобы починить то, что не работает, и улучшить наш цифровой храм. Спасибо за сотрудничество.',
   'consent.acceptAll': 'Разрешить всё',
   'consent.necessary': 'Только необходимое',
   'consent.settings': 'Выбрать',
