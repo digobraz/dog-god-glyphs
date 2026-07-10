@@ -194,6 +194,15 @@ body {
     display: block;
     margin-inline: auto;
   }
+  /* ...except the off-screen capture target in WelcomeScreen's post-payment
+     pipeline (aria-hidden, position:fixed off left) — the 90% shrink above
+     silently truncated the toPng-captured heroglyph PNG at this exact
+     viewport range (laptop windows in this height/width band), corrupting
+     heroglyph_png_url/share_card_url for real buyers (DIVA #27, 2026-07-10).
+     Higher specificity (3 selectors vs 2) wins over the shrink rule above. */
+  .dark-bg [aria-hidden="true"] svg[viewBox="800 1100 13100 3500"] {
+    width: 100% !important;
+  }
   /* Lower the message-block min-height floor (gradient card). */
   .dark-bg .min-h-\[180px\] {
     min-height: 9rem;

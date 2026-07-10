@@ -6,6 +6,7 @@ import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 
 const EDGE_HEADERS = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'apikey': SUPABASE_ANON_KEY };
 const RENDER_DELAY_MS = 1500;
+const HEROGLYPH_RETRY_DELAY_MS = 4000;
 
 // ShareCard mounts inside shareRef only once heroglyphPngUrl (below) exists —
 // it then kicks off its OWN async canvas recolor (black heroglyph -> gold) and
@@ -140,33 +141,47 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
           }));
         }
 
-        // Capture heroglyph PNG from the horizontal frame SVG before PDF rendering
+        // Capture heroglyph PNG from the horizontal frame SVG before PDF rendering.
+        // This is isolated from the outer PDF-pipeline retry (MAX_ATTEMPTS above) by
+        // design, so a transient failure here (canvas/CORS hiccup, Cloudinary upload
+        // blip) needs its own retry — otherwise heroglyph_png_url stays empty forever
+        // with no second attempt (happened to DIVA #27, 2026-07-09).
+        const captureHeroglyph = async (): Promise<string> => {
+          const svgEl = horizontalRef.current?.querySelector('svg') as unknown as HTMLElement | null;
+          if (!svgEl) return '';
+          const dataUrl = await toPng(svgEl, { cacheBust: true, pixelRatio: 2, backgroundColor: undefined });
+          const pngRes = await fetch(dataUrl);
+          const pngBlob = await pngRes.blob();
+          const pngResult = await uploadHeroglyphPng(pngBlob, sid);
+          return pngResult.secureUrl;
+        };
         let heroglyphPngUrl = '';
         try {
-          const svgEl = horizontalRef.current?.querySelector('svg') as unknown as HTMLElement | null;
-          if (svgEl) {
-            const dataUrl = await toPng(svgEl, { cacheBust: true, pixelRatio: 2, backgroundColor: undefined });
-            const pngRes = await fetch(dataUrl);
-            const pngBlob = await pngRes.blob();
-            const pngResult = await uploadHeroglyphPng(pngBlob, sid);
-            heroglyphPngUrl = pngResult.secureUrl;
-            onHeroglyphReady?.(heroglyphPngUrl);
-            // Fire-and-forget: save to DB immediately, independent of PDF success
-            fetch(`${EDGE_BASE}/send-certificate`, {
-              method: 'POST',
-              headers: EDGE_HEADERS,
-              body: JSON.stringify({ sessionId: sid, heroglyphPngUrl }),
-            }).catch(() => {});
-
-            // SHARE CARD — onHeroglyphReady above sets WelcomeScreen's
-            // heroglyphPngUrl state, which mounts <ShareCard> inside shareRef
-            // with that URL as its source. Kicked off in parallel with the PDF
-            // pipeline below (not awaited) — see captureShareCard for the
-            // ShareCard-readiness wait.
-            void captureShareCard(sid, shareRef);
-          }
+          heroglyphPngUrl = await captureHeroglyph();
         } catch (e) {
-          console.warn('[postPayment] heroglyph PNG capture failed:', e);
+          console.warn('[postPayment] heroglyph PNG capture failed, retrying once:', e);
+          await new Promise((r) => setTimeout(r, HEROGLYPH_RETRY_DELAY_MS));
+          try {
+            heroglyphPngUrl = await captureHeroglyph();
+          } catch (e2) {
+            console.warn('[postPayment] heroglyph PNG capture failed on retry:', e2);
+          }
+        }
+        if (heroglyphPngUrl) {
+          onHeroglyphReady?.(heroglyphPngUrl);
+          // Fire-and-forget: save to DB immediately, independent of PDF success
+          fetch(`${EDGE_BASE}/send-certificate`, {
+            method: 'POST',
+            headers: EDGE_HEADERS,
+            body: JSON.stringify({ sessionId: sid, heroglyphPngUrl }),
+          }).catch(() => {});
+
+          // SHARE CARD — onHeroglyphReady above sets WelcomeScreen's
+          // heroglyphPngUrl state, which mounts <ShareCard> inside shareRef
+          // with that URL as its source. Kicked off in parallel with the PDF
+          // pipeline below (not awaited) — see captureShareCard for the
+          // ShareCard-readiness wait.
+          void captureShareCard(sid, shareRef);
         }
 
         const [certBlob, vBlob, hBlob] = await renderPdfsSequential([
