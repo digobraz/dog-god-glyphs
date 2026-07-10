@@ -207,13 +207,13 @@ export const cs: Partial<Dict> = {
   'heroglyph.flow.breed.cat.09': 'Vlčíci',
   'heroglyph.flow.breed.cat.10': 'Obři',
   'heroglyph.flow.breed.q1.title': 'Jaké plemeno je {name}?',
-  'heroglyph.flow.breed.q1.subtitle': 'Tohle je jen pro naši statistiku plemen — patrona si vybereš v dalším kroku.',
+  'heroglyph.flow.breed.q1.subtitle': 'Stačí tip — nemusíš si být jistý. Patrona si vybereš v dalším kroku.',
   'heroglyph.flow.breed.type.one': 'Jedno plemeno',
   'heroglyph.flow.breed.type.mix': 'Kříženec',
   'heroglyph.flow.breed.one.placeholder': 'Hledat plemeno',
   'heroglyph.flow.breed.mix.placeholder1': 'První plemeno',
-  'heroglyph.flow.breed.mix.placeholder2': 'Druhé plemeno',
-  'heroglyph.flow.breed.mix.dontKnow': 'Nevím',
+  'heroglyph.flow.breed.mix.placeholder2': 'Druhé plemeno (nepovinné)',
+  'heroglyph.flow.breed.mix.dontKnow': 'Nejsem si jistý — to nevadí',
   'heroglyph.flow.breed.patron.subtitle': 'Vyber siluetu, která nejvíc sedí {name} — může být jakákoliv.',
 
   // ── /heroglyph flow — krok 4: poradie ──

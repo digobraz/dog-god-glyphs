@@ -200,13 +200,13 @@ export const fra: Partial<Dict> = {
   'heroglyph.flow.breed.cat.09': 'Loups',
   'heroglyph.flow.breed.cat.10': 'Géants',
   'heroglyph.flow.breed.q1.title': 'Quelle est la race de {name} ?',
-  'heroglyph.flow.breed.q1.subtitle': "C'est juste pour nos stats de races — tu choisiras ton patron juste après.",
+  'heroglyph.flow.breed.q1.subtitle': "Une supposition suffit — pas besoin d'être sûr. Tu choisiras ton patron juste après.",
   'heroglyph.flow.breed.type.one': 'Une seule race',
   'heroglyph.flow.breed.type.mix': 'Race croisée',
   'heroglyph.flow.breed.one.placeholder': 'Rechercher une race',
   'heroglyph.flow.breed.mix.placeholder1': 'Première race',
-  'heroglyph.flow.breed.mix.placeholder2': 'Deuxième race',
-  'heroglyph.flow.breed.mix.dontKnow': 'Je ne sais pas',
+  'heroglyph.flow.breed.mix.placeholder2': 'Deuxième race (facultatif)',
+  'heroglyph.flow.breed.mix.dontKnow': 'Pas sûr — pas de souci',
   'heroglyph.flow.breed.patron.subtitle': 'Choisis la silhouette qui correspond le mieux à {name} — elle peut avoir n\'importe quelle forme.',
 
   // ── /heroglyph flow — step 4: ranking ──

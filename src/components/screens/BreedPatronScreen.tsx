@@ -241,6 +241,13 @@ function BreedSearchField({
   const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const fieldWrapRef = useRef<HTMLDivElement>(null);
+  // Desktop dropdown is portaled to <body> with fixed positioning so no
+  // overflow:hidden ancestor (flow slide container) can clip it. Anchored to the
+  // input, flips above when there's more room, always scrolls if it overflows.
+  const [dropRect, setDropRect] = useState<
+    { left: number; top: number; width: number; maxHeight: number } | null
+  >(null);
 
   // Search modal (iOS keyboard-safe)
   const [modalOpen, setModalOpen] = useState(false);
@@ -282,6 +289,38 @@ function BreedSearchField({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [desktopDropdownOpen]);
 
+  // Position the portaled desktop dropdown relative to the input; pick the side
+  // (below / above) with more room and cap the height so it always scrolls
+  // instead of getting clipped off-screen.
+  useEffect(() => {
+    if (isMobile || !desktopDropdownOpen || matches.length === 0) {
+      setDropRect(null);
+      return;
+    }
+    const compute = () => {
+      const el = fieldWrapRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const gap = 4;
+      const margin = 12;
+      const itemH = 45;
+      const contentH = matches.length * itemH + 2;
+      const spaceBelow = window.innerHeight - r.bottom - gap - margin;
+      const spaceAbove = r.top - gap - margin;
+      const openUp = spaceBelow < contentH && spaceAbove > spaceBelow;
+      const maxHeight = Math.min(contentH, openUp ? spaceAbove : spaceBelow);
+      setDropRect({
+        left: r.left,
+        width: r.width,
+        maxHeight: Math.max(90, maxHeight),
+        top: openUp ? r.top - gap - Math.min(contentH, spaceAbove) : r.bottom + gap,
+      });
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    return () => window.removeEventListener('resize', compute);
+  }, [isMobile, desktopDropdownOpen, matches.length, search]);
+
   const placeholderText = placeholder ?? t('heroglyph.flow.breed.one.placeholder');
 
   return (
@@ -294,6 +333,7 @@ function BreedSearchField({
       }}
     >
       <div
+        ref={fieldWrapRef}
         className={`breed-field-wrap${selectedBreed ? ' is-filled' : ''}`}
         style={{ position: 'relative' }}
       >
@@ -372,11 +412,19 @@ function BreedSearchField({
                 />
               </div>
             </div>
-            {desktopDropdownOpen && matches.length > 0 && (
+            {desktopDropdownOpen && matches.length > 0 && dropRect && createPortal(
               <div
                 ref={dropdownRef}
-                className="absolute left-0 right-0 z-50 rounded-xl border border-border/40 bg-card shadow-lg overflow-hidden"
-                style={{ top: '100%', marginTop: 4 }}
+                className="rounded-xl border border-border/40 bg-card shadow-lg"
+                style={{
+                  position: 'fixed',
+                  left: dropRect.left,
+                  top: dropRect.top,
+                  width: dropRect.width,
+                  maxHeight: dropRect.maxHeight,
+                  overflowY: 'auto',
+                  zIndex: 2100,
+                }}
               >
                 {matches.map((b) => (
                   <button
@@ -390,7 +438,8 @@ function BreedSearchField({
                     <img src={patronUrl(b.patron)} alt="" className="h-6 w-6 object-contain opacity-90" />
                   </button>
                 ))}
-              </div>
+              </div>,
+              document.body,
             )}
           </>
         )}
@@ -772,10 +821,13 @@ export function BreedPatronScreen() {
 
   const heroName = dogName?.trim() || t('heroglyph.flow.breed.fallbackHero');
 
-  // Gate for step 1 → step 2
+  // Gate for step 1 → step 2.
+  // Mix: second breed is OPTIONAL — one known breed (or "not sure") is enough.
+  // Rationale: adopters often know one breed but not the rest; forcing both
+  // (or forcing a total "I don't know") created accuracy anxiety at this step.
   const canNext =
     choice === 'one' ? !!breed1 :
-    choice === 'mix' ? ((!!breed1 && !!breed2) || dontKnow) :
+    choice === 'mix' ? (!!breed1 || !!breed2 || dontKnow) :
     false;
 
   const handleNext = () => {
@@ -984,14 +1036,10 @@ export function BreedPatronScreen() {
                         <input
                           type="checkbox"
                           checked={dontKnow}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setDontKnow(checked);
-                            if (checked) {
-                              setBreed1(''); setSearch1(''); setCat1('');
-                              setBreed2(''); setSearch2('');
-                            }
-                          }}
+                          // "Not sure" no longer wipes what the user already typed —
+                          // she keeps the breed she was confident about (e.g. Belga = NO)
+                          // and just flags that the rest is a guess.
+                          onChange={(e) => setDontKnow(e.target.checked)}
                           className="w-4 h-4 rounded accent-[hsl(224_60%_45%)]"
                         />
                         <span

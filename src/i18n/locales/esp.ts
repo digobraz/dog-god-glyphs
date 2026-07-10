@@ -199,13 +199,13 @@ export const esp: Partial<Dict> = {
   'heroglyph.flow.breed.cat.09': 'Loboides',
   'heroglyph.flow.breed.cat.10': 'Gigantes',
   'heroglyph.flow.breed.q1.title': '¿Qué raza es {name}?',
-  'heroglyph.flow.breed.q1.subtitle': 'Esto es solo para nuestras estadísticas de razas — elegirás tu patrón a continuación.',
+  'heroglyph.flow.breed.q1.subtitle': 'Con una suposición basta — no hace falta estar seguro. Elegirás tu patrón a continuación.',
   'heroglyph.flow.breed.type.one': 'Una sola raza',
   'heroglyph.flow.breed.type.mix': 'Raza mixta',
   'heroglyph.flow.breed.one.placeholder': 'Buscar raza',
   'heroglyph.flow.breed.mix.placeholder1': 'Primera raza',
-  'heroglyph.flow.breed.mix.placeholder2': 'Segunda raza',
-  'heroglyph.flow.breed.mix.dontKnow': 'No lo sé',
+  'heroglyph.flow.breed.mix.placeholder2': 'Segunda raza (opcional)',
+  'heroglyph.flow.breed.mix.dontKnow': 'No estoy seguro — no pasa nada',
   'heroglyph.flow.breed.patron.subtitle': 'Elige la silueta que mejor se adapte a {name} — puede tener cualquier forma.',
 
   // ── /heroglyph flow — step 4: ranking ──

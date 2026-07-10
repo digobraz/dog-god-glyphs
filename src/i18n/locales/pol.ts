@@ -199,13 +199,13 @@ export const pol: Partial<Dict> = {
   'heroglyph.flow.breed.cat.09': 'Wilczaki',
   'heroglyph.flow.breed.cat.10': 'Olbrzymy',
   'heroglyph.flow.breed.q1.title': 'Jaką rasą jest {name}?',
-  'heroglyph.flow.breed.q1.subtitle': 'To tylko do naszych statystyk ras — patrona wybierzesz za chwilę.',
+  'heroglyph.flow.breed.q1.subtitle': 'Wystarczy zgadywać — nie musisz być pewny. Patrona wybierzesz za chwilę.',
   'heroglyph.flow.breed.type.one': 'Jedna rasa',
   'heroglyph.flow.breed.type.mix': 'Mieszaniec',
   'heroglyph.flow.breed.one.placeholder': 'Szukaj rasy',
   'heroglyph.flow.breed.mix.placeholder1': 'Pierwsza rasa',
-  'heroglyph.flow.breed.mix.placeholder2': 'Druga rasa',
-  'heroglyph.flow.breed.mix.dontKnow': 'Nie wiem',
+  'heroglyph.flow.breed.mix.placeholder2': 'Druga rasa (opcjonalnie)',
+  'heroglyph.flow.breed.mix.dontKnow': 'Nie jestem pewny — to nic',
   'heroglyph.flow.breed.patron.subtitle': 'Wybierz sylwetkę, która najlepiej pasuje do {name} — może mieć dowolny kształt.',
 
   // ── /heroglyph flow — krok 4: poradie ──

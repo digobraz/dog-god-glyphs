@@ -199,13 +199,13 @@ export const ukr: Partial<Dict> = {
   'heroglyph.flow.breed.cat.09': 'Вовкоподібні',
   'heroglyph.flow.breed.cat.10': 'Велетні',
   'heroglyph.flow.breed.q1.title': 'Якої породи {name}?',
-  'heroglyph.flow.breed.q1.subtitle': 'Це лише для нашої статистики порід — покровителя обереш далі.',
+  'heroglyph.flow.breed.q1.subtitle': 'Достатньо здогадки — впевненість не потрібна. Покровителя обереш далі.',
   'heroglyph.flow.breed.type.one': 'Одна порода',
   'heroglyph.flow.breed.type.mix': 'Метис',
   'heroglyph.flow.breed.one.placeholder': 'Пошук породи',
   'heroglyph.flow.breed.mix.placeholder1': 'Перша порода',
-  'heroglyph.flow.breed.mix.placeholder2': 'Друга порода',
-  'heroglyph.flow.breed.mix.dontKnow': 'Не знаю',
+  'heroglyph.flow.breed.mix.placeholder2': 'Друга порода (за бажанням)',
+  'heroglyph.flow.breed.mix.dontKnow': 'Не впевнений — це нормально',
   'heroglyph.flow.breed.patron.subtitle': 'Обери силует, що найкраще пасує {name} — він може бути будь-якої форми.',
 
   // ── /heroglyph flow — step 4: ranking ──
