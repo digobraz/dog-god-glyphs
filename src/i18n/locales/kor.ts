@@ -525,6 +525,19 @@ export const kor: Partial<Dict> = {
   "wall.filter.confirm": "확인",
   "wall.filter.countries": "국가",
   "wall.dogPage": "강아지 페이지",
+
+  // ── public dog page (/dog/<slug>) ──
+  "dogPage.livingLegend": "살아있는 전설",
+  "dogPage.dogAngel": "천사견",
+  "dogPage.livedBestLife": "최고의 삶을 살았다",
+  "dogPage.foundingDogyptian": "창립 도깁트인",
+  "dogPage.pawtner": "Pawtner",
+  "dogPage.joinUs": "가입하기",
+  "dogPage.backToWall": "WALL로 돌아가기 →",
+  "dogPage.daysCount": "{days}일",
+  "dogPage.notFoundTitle": "이 개는 아직 무리에 속해 있지 않습니다.",
+  "dogPage.notFoundBody": "모든 개는 heroglyph를 받습니다 — 최초 1,000,000마리 중 하나뿐인 상징. 당신의 것이 기다리고 있습니다.",
+
   "share.dogVoice": "나 {dog}는 강아지들의 세상을 바꿀 움직임에 동참했어. 너도 올라타!",
   "whatNext.stamp": "중요",
   "whatNext.title": "다음은?",

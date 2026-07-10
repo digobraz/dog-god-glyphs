@@ -525,6 +525,19 @@ export const nld: Partial<Dict> = {
   "wall.filter.confirm": "Bevestigen",
   "wall.filter.countries": "Landen",
   "wall.dogPage": "HONDENPAGINA",
+
+  // ── public dog page (/dog/<slug>) ──
+  "dogPage.livingLegend": "Levende Legende",
+  "dogPage.dogAngel": "Hondenengel",
+  "dogPage.livedBestLife": "Beste leven geleefd",
+  "dogPage.foundingDogyptian": "Oprichtend Dogyptiër",
+  "dogPage.pawtner": "Pootner",
+  "dogPage.joinUs": "Doe mee",
+  "dogPage.backToWall": "Terug naar WALL →",
+  "dogPage.daysCount": "{days} dagen",
+  "dogPage.notFoundTitle": "Deze hond hoort nog niet bij de roedel.",
+  "dogPage.notFoundBody": "Elke hond krijgt een heroglyph — een uniek symbool onder de eerste 1.000.000. Die van jou wacht al.",
+
   "share.dogVoice": "Ik, {dog}, heb me aangesloten bij de beweging die de wereld van honden gaat veranderen. Spring erop!",
   'whatNext.stamp': 'Belangrijk',
   'whatNext.title': 'Wat Nu?',

@@ -572,6 +572,19 @@ export const pol: Partial<Dict> = {
   'wall.filter.confirm': 'Potwierdź',
   'wall.filter.countries': 'Kraje',
   'wall.dogPage': 'STRONA PSA',
+
+  // ── public dog page (/dog/<slug>) ──
+  'dogPage.livingLegend': 'Żyjąca Legenda',
+  'dogPage.dogAngel': 'Aniołek',
+  'dogPage.livedBestLife': 'Żył pełnią życia',
+  'dogPage.foundingDogyptian': 'Dogiptianin-Założyciel',
+  'dogPage.pawtner': 'Pawtner',
+  'dogPage.joinUs': 'Dołącz do nas',
+  'dogPage.backToWall': 'Powrót do WALL →',
+  'dogPage.daysCount': '{days} dni',
+  'dogPage.notFoundTitle': 'Ten pies nie należy jeszcze do sfory.',
+  'dogPage.notFoundBody': 'Każdy pies dostaje heroglyph — unikalny symbol wśród pierwszego 1 000 000. Twój już czeka.',
+
   'share.dogVoice': 'Ja, {dog}, dołączyłem do ruchu, który zmieni świat psów. Wskakuj!',
 
   // ── /welcome — What Next? popup ──

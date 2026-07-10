@@ -587,6 +587,16 @@ export const ukr: Partial<Dict> = {
   'wall.filter.confirm': 'Підтвердити',
   'wall.filter.countries': 'Країни',
   'wall.dogPage': 'СТОРІНКА ПСА',
+  'dogPage.livingLegend': 'Жива легенда',
+  'dogPage.dogAngel': 'Пес-ангел',
+  'dogPage.livedBestLife': 'Прожив найкраще життя',
+  'dogPage.foundingDogyptian': 'Догіптянин-засновник',
+  'dogPage.pawtner': 'Pawtner',
+  'dogPage.joinUs': 'Приєднатися',
+  'dogPage.backToWall': 'Назад на WALL →',
+  'dogPage.daysCount': '{days} дн.',
+  'dogPage.notFoundTitle': 'Цього пса ще немає у зграї.',
+  'dogPage.notFoundBody': 'Кожен пес отримує Heroglyph — унікальний символ серед першого мільйона. Твій уже чекає.',
   'share.dogVoice': 'Я, {dog}, приєднався до руху, який змінить світ собак. Приєднуйся!',
 
   // ── whatNext popup ──

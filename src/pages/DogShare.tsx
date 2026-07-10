@@ -8,6 +8,8 @@ import { dogPagePath, packFromSlug } from '@/lib/dogSlug';
 import { captureDogPageRef } from '@/lib/refCapture';
 import { countryISO2, flagUrl, iso2ToISO3 } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
+import legendIconUrl from '@/assets/legend-icon.svg';
+import angelIconUrl from '@/assets/angel-icon.svg';
 
 /**
  * Public share landing — `/d/:pack` (legacy) and `/dog/:slug` (canonical,
@@ -46,6 +48,7 @@ interface GridDog {
   birth_date?: string | null;
   joined_at?: string | null;
   life_status?: string | null;
+  death_date?: string | null;
 }
 
 const DEFAULT_OG = 'https://dogypt.com/og-image.jpg';
@@ -60,34 +63,61 @@ interface DogAge {
   humanYears: number; // "≈ N in human years" (×7) — same formula as PACK
 }
 
-// today − birth_date, full breakdown (calendar-accurate, mirrors PackDogDetail's
-// computeAge but sourced from the feed's exact ISO birth_date instead of raw
-// selections). Deceased dogs (memorial mode) never show a "living my best
-// life" line — the subtitle falls back to "Founding Dogyptian" for them.
+// birth_date → asOf, full breakdown (calendar-accurate, mirrors PackDogDetail's
+// computeAge but sourced from the feed's exact ISO birth_date). For a living dog
+// asOf = today ("living my best life"). For a deceased dog asOf = death_date, so
+// the lifespan is FROZEN at the day it ended ("lived my best life"). A deceased
+// dog with no valid death_date returns null → subtitle falls back to "Founding
+// Dogyptian".
 function computeDogAge(
   birthDate: string | null | undefined,
-  lifeStatus: string | null | undefined
+  lifeStatus: string | null | undefined,
+  deathDate?: string | null | undefined
 ): DogAge | null {
-  if (!birthDate || lifeStatus === 'deceased') return null;
+  if (!birthDate) return null;
   const birth = new Date(birthDate);
   if (Number.isNaN(birth.getTime())) return null;
-  const now = new Date();
-  if (birth > now) return null;
 
-  let years = now.getFullYear() - birth.getFullYear();
-  let months = now.getMonth() - birth.getMonth();
-  let days = now.getDate() - birth.getDate();
+  let asOf: Date;
+  if (lifeStatus === 'deceased') {
+    if (!deathDate) return null;
+    asOf = new Date(deathDate);
+    if (Number.isNaN(asOf.getTime())) return null;
+  } else {
+    asOf = new Date();
+  }
+  if (birth > asOf) return null;
+
+  let years = asOf.getFullYear() - birth.getFullYear();
+  let months = asOf.getMonth() - birth.getMonth();
+  let days = asOf.getDate() - birth.getDate();
   if (days < 0) {
     months -= 1;
-    days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    days += new Date(asOf.getFullYear(), asOf.getMonth(), 0).getDate();
   }
   if (months < 0) {
     years -= 1;
     months += 12;
   }
-  const totalDays = Math.floor((now.getTime() - birth.getTime()) / 86_400_000);
+  const totalDays = Math.floor((asOf.getTime() - birth.getTime()) / 86_400_000);
   const humanYears = Math.max(1, Math.round((totalDays / 365.25) * 7));
   return { years, months, days, totalDays, humanYears };
+}
+
+// death_date → today, whole days ("in angel form" counter). Mirrors PACK AngelBadge.
+function computeAngelDays(deathDate: string | null | undefined): number | null {
+  if (!deathDate) return null;
+  const d = new Date(deathDate);
+  if (Number.isNaN(d.getTime())) return null;
+  const days = Math.floor((Date.now() - d.getTime()) / 86_400_000);
+  return days >= 0 ? days : null;
+}
+
+function formatDeathDate(deathDate: string | null | undefined): string | null {
+  if (!deathDate) return null;
+  const d = new Date(deathDate);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 // today − joined_at, in whole days.
@@ -136,7 +166,7 @@ function DogAgePill({ age }: { age: DogAge }) {
           border: 'none',
         }}
       >
-        {age.totalDays.toLocaleString('en-US')} days
+        {t('dogPage.daysCount', { days: age.totalDays.toLocaleString('en-US') })}
       </button>
       {open && (
         <div
@@ -169,7 +199,35 @@ function DogAgePill({ age }: { age: DogAge }) {
   );
 }
 
+// Silver "in angel form" pill — days since death. Mirror of PACK's AngelBadge,
+// styled to sit on the papyrus (silver, dark ink). Native title = "Since <date>".
+function AngelDaysPill({ days, sinceLabel }: { days: number; sinceLabel: string | null }) {
+  const t = useT();
+  return (
+    <span
+      title={sinceLabel ? t('pack.dog.angelSince', { date: sinceLabel }) : undefined}
+      style={{
+        padding: '5px 14px',
+        borderRadius: 999,
+        background: 'linear-gradient(180deg, #C3C9D6 0%, #9098AB 100%)',
+        color: '#2b3040',
+        fontFamily: "'Cinzel', serif",
+        fontSize: 15,
+        fontWeight: 700,
+        letterSpacing: '0.02em',
+        boxShadow: '0 6px 16px -6px rgba(110,118,136,0.6)',
+        lineHeight: 1.1,
+        whiteSpace: 'nowrap',
+        cursor: sinceLabel ? 'help' : 'default',
+      }}
+    >
+      {t('dogPage.daysCount', { days: days.toLocaleString('en-US') })}
+    </span>
+  );
+}
+
 export default function DogShare() {
+  const t = useT();
   const { pack, slug } = useParams<{ pack?: string; slug?: string }>();
   const packNum = packFromSlug(slug ?? pack);
   const [searchParams] = useSearchParams();
@@ -236,10 +294,17 @@ export default function DogShare() {
       : "Join the first 1,000,000 dogs of DOGYPT. Find your dog's place in the global pack.";
 
   const flagIso = dog ? countryISO2(dog.country) : null;
-  const age = dog ? computeDogAge(dog.birth_date, dog.life_status) : null;
+  const age = dog ? computeDogAge(dog.birth_date, dog.life_status, dog.death_date) : null;
   const daysInPack = dog ? computeDaysInPack(dog.joined_at) : null;
   const alphaName = dog?.owner_first_name?.trim() || null;
   const ownerMessage = dog?.owner_message?.trim() || '';
+  // Living Legend (alive) vs Dog Angel (deceased) — same source of truth as PACK
+  // (PackDogDetail): dog.life_status === 'deceased'. Missing/unknown → alive.
+  const isDeceased = dog?.life_status === 'deceased';
+  // Memorial counters (mirror PACK): "lived my best life" is frozen in `age`
+  // above (asOf = death_date); "in angel form" counts death_date → today.
+  const angelDays = dog ? computeAngelDays(dog.death_date) : null;
+  const deathLabel = dog ? formatDeathDate(dog.death_date) : null;
 
   return (
     <div className="dark-bg dogshare-page min-h-screen flex flex-col md:h-[100dvh] md:overflow-hidden">
@@ -251,20 +316,49 @@ export default function DogShare() {
         ogImage={ogImage}
       />
       <style>{`
+        /* Matches WALL hero CTA (.join-btn in GodsGrid.tsx) 1:1 — gradient, border,
+           weight 900, size, glow stack, text-shadow and the subtle pulse. */
         .dogshare-page .btn-gold {
-          padding: 14px 32px;
+          padding: 16px 40px;
           background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-          border: 1px solid rgba(250,244,236,0.30);
+          border: 1px solid rgba(250,244,236,0.40);
           border-radius: 8px; color: #000;
-          font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 700;
-          letter-spacing: 0.12em; text-transform: uppercase;
+          font-family: 'Cinzel', serif; font-size: 0.98rem; font-weight: 900;
+          letter-spacing: 0.14em; text-transform: uppercase;
           cursor: pointer; text-decoration: none; display: block; text-align: center;
-          transition: transform 0.2s, box-shadow 0.22s;
-          box-shadow: 0 0 40px rgba(230,158,26,0.38), inset 0 1px 0 rgba(255,255,255,0.28);
+          text-shadow: 0 1px 0 rgba(255,240,200,0.45);
+          transition: transform 0.2s, box-shadow 0.25s, opacity 0.22s;
+          box-shadow:
+            0 0 24px rgba(255,200,90,0.65),
+            0 0 60px rgba(230,158,26,0.50),
+            0 0 110px rgba(230,158,26,0.28),
+            inset 0 1px 0 rgba(255,255,255,0.45);
+          animation: dogJoinPulse 3.2s ease-in-out infinite;
         }
         .dogshare-page .btn-gold:hover {
-          transform: scale(1.04);
-          box-shadow: 0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.28);
+          transform: scale(1.05);
+          box-shadow:
+            0 0 36px rgba(255,215,110,0.85),
+            0 0 90px rgba(230,158,26,0.70),
+            0 0 150px rgba(230,158,26,0.40),
+            inset 0 1px 0 rgba(255,255,255,0.55);
+        }
+        .dogshare-page .btn-gold:active { transform: scale(0.98); }
+        @keyframes dogJoinPulse {
+          0%, 100% {
+            box-shadow:
+              0 0 24px rgba(255,200,90,0.55),
+              0 0 60px rgba(230,158,26,0.42),
+              0 0 110px rgba(230,158,26,0.22),
+              inset 0 1px 0 rgba(255,255,255,0.45);
+          }
+          50% {
+            box-shadow:
+              0 0 32px rgba(255,210,100,0.75),
+              0 0 80px rgba(230,158,26,0.58),
+              0 0 130px rgba(230,158,26,0.34),
+              inset 0 1px 0 rgba(255,255,255,0.50);
+          }
         }
         .dogshare-photo {
           display: block; object-fit: cover; aspect-ratio: 1 / 1;
@@ -272,11 +366,12 @@ export default function DogShare() {
           box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,154,63,0.45), 0 0 60px rgba(201,154,63,0.14);
         }
         .dogshare-info-card {
-          background-color: #FAF4EC;
-          color: #1a1a1a;
-          border-radius: 8px;
-          border: 1px solid rgba(201,154,63,0.45);
-          box-shadow: 0 30px 80px rgba(0,0,0,0.45);
+          background-image: url('/images/vision/papyrus-vision.webp');
+          background-size: 100% 100%;
+          background-repeat: no-repeat;
+          background-position: center;
+          color: #3a2408;
+          filter: drop-shadow(0 22px 55px rgba(0,0,0,0.5));
         }
         .dogshare-hairline {
           height: 1px;
@@ -314,22 +409,22 @@ export default function DogShare() {
               className="text-2xl md:text-4xl uppercase text-white"
               style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.02em' }}
             >
-              This dog isn't in the pack yet.
+              {t('dogPage.notFoundTitle')}
             </h1>
             <p className="max-w-md text-white/60" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Every dog gets a heroglyph — a unique symbol among the first 1,000,000. Yours is waiting.
+              {t('dogPage.notFoundBody')}
             </p>
             <a href="/heroglyph" className="btn-gold">
-              Become Dogyptian
+              {t('wall.hero.cta')}
             </a>
           </div>
         )}
 
         {status === 'found' && dog && (
-          <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-center gap-8 md:gap-10">
-            {/* Left column — photo with CTA glued under it. Both columns share the
-                exact same vertical composition (square + gap-4 + h-14 slot), so the
-                two squares stay top-aligned without any h-full/flex-1 juggling. */}
+          <div className="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-center gap-8 md:gap-10">
+            {/* Left column — photo + Join Us CTA + (desktop) Back to WALL under it.
+                Papyrus on the right is sized to photo + button so its bottom lines up
+                with the CTA; the back link hangs just below on this side. */}
             <div className="flex flex-col items-center gap-4 w-full md:w-auto">
               {ogImage && (
                 <img
@@ -338,16 +433,25 @@ export default function DogShare() {
                   className="dogshare-photo w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_280px))] md:max-w-none"
                 />
               )}
-              <div className="h-14 flex items-center w-full">
-                <a href="/heroglyph" className="btn-gold w-full text-center">
-                  Join Us
-                </a>
-              </div>
+              <a href="/heroglyph" className="btn-gold w-full text-center">
+                {t('dogPage.joinUs')}
+              </a>
+              {/* Back to WALL — desktop: right under Join Us (mobile copy sits after the papyrus) */}
+              <Link
+                to="/"
+                className="dogshare-back-link hidden md:inline-block text-sm transition-colors"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {t('dogPage.backToWall')}
+              </Link>
             </div>
 
-            {/* Right column — papyrus info block + back link (same composition) */}
+            {/* Right column — papyrus scroll, height = photo + Join Us button */}
             <div className="flex flex-col items-center gap-4 w-full md:w-auto">
-              <div className="dogshare-info-card w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_280px))] md:max-w-none md:aspect-square flex flex-col p-6 md:p-5 gap-2.5 md:gap-2 md:overflow-y-auto">
+              <div
+                className="dogshare-info-card w-full max-w-[360px] md:max-w-none md:w-[min(390px,calc(100dvh_-_280px))] md:h-[calc(min(390px,100dvh_-_280px)_+_76px)] flex flex-col justify-center gap-2 md:gap-1.5"
+                style={{ aspectRatio: '0.8', padding: '66px 46px' }}
+              >
                   {/* Rank pill + name + living-my-best-life pill */}
                   <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
                     {dog.pack_number !== null && (
@@ -377,7 +481,47 @@ export default function DogShare() {
                     >
                       {dogName}
                     </h1>
-                    {age ? (
+                    {isDeceased && age ? (
+                      /* Memorial: two rows, each = label + pill inline.
+                         Row 1 "Lived My Best Life" (frozen gold pill),
+                         Row 2 "In Angel Form" (silver days-since-death pill). */
+                      <div className="flex flex-col items-center gap-2 mt-1">
+                        <div className="flex items-center justify-center gap-2.5">
+                          <span
+                            style={{
+                              fontFamily: "'Cinzel', serif",
+                              fontWeight: 700,
+                              color: '#C99A3F',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.1em',
+                              fontSize: '0.62rem',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {t('dogPage.livedBestLife')}
+                          </span>
+                          <DogAgePill age={age} />
+                        </div>
+                        {angelDays !== null && (
+                          <div className="flex items-center justify-center gap-2.5">
+                            <span
+                              style={{
+                                fontFamily: "'Cinzel', serif",
+                                fontWeight: 700,
+                                color: '#6E7688',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.1em',
+                                fontSize: '0.62rem',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {t('pack.dog.inAngelForm')}
+                            </span>
+                            <AngelDaysPill days={angelDays} sinceLabel={deathLabel} />
+                          </div>
+                        )}
+                      </div>
+                    ) : age ? (
                       <div className="flex flex-col items-center gap-1.5 mt-1">
                         <span
                           style={{
@@ -389,7 +533,7 @@ export default function DogShare() {
                             fontSize: '0.68rem',
                           }}
                         >
-                          Living My Best Life
+                          {t('pack.dog.livingBestLife')}
                         </span>
                         <DogAgePill age={age} />
                       </div>
@@ -406,7 +550,7 @@ export default function DogShare() {
                             fontSize: '0.72rem',
                           }}
                         >
-                          Founding Dogyptian
+                          {t('dogPage.foundingDogyptian')}
                         </p>
                       )
                     )}
@@ -414,39 +558,57 @@ export default function DogShare() {
 
                   <div className="dogshare-hairline flex-shrink-0" />
 
-                  {/* 3-col info row — flag+ISO3 (no label) / In the Pack / Pawtner */}
-                  {(flagIso || daysInPack !== null || alphaName) && (
-                    <div className="flex items-start justify-center gap-5 flex-wrap flex-shrink-0">
-                      {flagIso && (
-                        <div className="flex flex-col items-center gap-1 justify-end" style={{ minHeight: 40 }}>
-                          <img
-                            src={flagUrl(flagIso, 40)}
-                            alt={dog.country || ''}
-                            title={dog.country || ''}
-                            style={{ width: 22, height: 'auto', borderRadius: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
-                          />
-                          <span className="dogshare-value">{iso2ToISO3(flagIso)}</span>
-                        </div>
-                      )}
-                      {daysInPack !== null && (
-                        <div className="flex flex-col items-center gap-1" style={{ minHeight: 40, justifyContent: 'flex-end' }}>
-                          <span className="dogshare-label">In the Pack</span>
-                          <span className="dogshare-value">{daysInPackLabel(daysInPack)}</span>
-                        </div>
-                      )}
-                      {alphaName && (
-                        <div className="flex flex-col items-center gap-1" style={{ minHeight: 40, justifyContent: 'flex-end' }}>
-                          <span className="dogshare-label">Pawtner</span>
-                          <span className="dogshare-value">{alphaName.toUpperCase()}</span>
-                        </div>
-                      )}
+                  {/* 3-col info row — flag+ISO3 (no label) / Living Legend|Dog Angel / Pawtner */}
+                  <div className="flex items-start justify-center gap-5 flex-wrap flex-shrink-0">
+                    {flagIso && (
+                      <div className="flex flex-col items-center gap-1 justify-end" style={{ minHeight: 40 }}>
+                        <img
+                          src={flagUrl(flagIso, 40)}
+                          alt={dog.country || ''}
+                          title={dog.country || ''}
+                          style={{ width: 22, height: 'auto', borderRadius: 3, boxShadow: '0 1px 4px rgba(0,0,0,0.25)' }}
+                        />
+                        <span className="dogshare-value">{iso2ToISO3(flagIso)}</span>
+                      </div>
+                    )}
+                    {/* Living Legend (alive) / Dog Angel (deceased) — mirrors PACK life_status */}
+                    <div className="flex flex-col items-center gap-1 justify-end" style={{ minHeight: 40 }}>
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          display: 'block',
+                          width: 22,
+                          height: 22,
+                          backgroundColor: isDeceased ? '#6E7688' : '#1a1a1a',
+                          WebkitMaskImage: `url(${isDeceased ? angelIconUrl : legendIconUrl})`,
+                          maskImage: `url(${isDeceased ? angelIconUrl : legendIconUrl})`,
+                          WebkitMaskRepeat: 'no-repeat',
+                          maskRepeat: 'no-repeat',
+                          WebkitMaskPosition: 'center',
+                          maskPosition: 'center',
+                          WebkitMaskSize: 'contain',
+                          maskSize: 'contain',
+                        }}
+                      />
+                      <span className="dogshare-label" style={isDeceased ? { color: '#6E7688' } : undefined}>
+                        {isDeceased ? t('dogPage.dogAngel') : t('dogPage.livingLegend')}
+                      </span>
                     </div>
-                  )}
+                    {alphaName && (
+                      <div className="flex flex-col items-center gap-1" style={{ minHeight: 40, justifyContent: 'flex-end' }}>
+                        <span className="dogshare-label">{t('dogPage.pawtner')}</span>
+                        <span className="dogshare-value">{alphaName.toUpperCase()}</span>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="dogshare-hairline flex-shrink-0" />
 
                   {ownerMessage && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center">
+                    <div
+                      className="flex-1 flex flex-col items-center justify-center text-center"
+                      style={{ paddingLeft: 10, paddingRight: 10 }}
+                    >
                       <p
                         className="italic md:line-clamp-6"
                         style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'rgba(26,26,26,0.7)' }}
@@ -454,20 +616,19 @@ export default function DogShare() {
                         &ldquo;{ownerMessage}&rdquo;
                       </p>
                       <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, color: 'rgba(26,26,26,0.5)', marginTop: 2 }}>
-                        — {dogName}'s pawtner
+                        — {alphaName || dogName}
                       </p>
                     </div>
                 )}
               </div>
-              <div className="h-14 flex items-center">
-                <Link
-                  to="/"
-                  className="dogshare-back-link text-sm transition-colors"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
-                >
-                  Back to WALL →
-                </Link>
-              </div>
+              {/* Back to WALL — mobile only (desktop copy is under Join Us) */}
+              <Link
+                to="/"
+                className="dogshare-back-link inline-block md:hidden text-sm transition-colors"
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {t('dogPage.backToWall')}
+              </Link>
             </div>
           </div>
         )}

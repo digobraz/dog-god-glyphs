@@ -589,6 +589,19 @@ export const prt: Partial<Dict> = {
   'wall.filter.confirm': 'Confirmar',
   'wall.filter.countries': 'Países',
   'wall.dogPage': 'PÁGINA DO CÃO',
+
+  // ── public dog page (/dog/<slug>) ──
+  'dogPage.livingLegend': 'Lenda Viva',
+  'dogPage.dogAngel': 'Cão Anjo',
+  'dogPage.livedBestLife': 'Viveu a melhor vida',
+  'dogPage.foundingDogyptian': 'Dogípcio Fundador',
+  'dogPage.pawtner': 'Pawtner',
+  'dogPage.joinUs': 'Junta-te a Nós',
+  'dogPage.backToWall': 'Voltar à WALL →',
+  'dogPage.daysCount': '{days} dias',
+  'dogPage.notFoundTitle': 'Este cão ainda não faz parte da matilha.',
+  'dogPage.notFoundBody': 'Cada cão recebe um heroglyph — um símbolo único entre os primeiros 1 000 000. O teu está à espera.',
+
   'share.dogVoice': 'Eu, {dog}, juntei-me ao movimento que vai mudar o mundo dos cães. Embarca!',
 
   // ── WHAT NEXT? popup ──

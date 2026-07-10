@@ -211,13 +211,13 @@ export const en = {
 
   // ── breed step 1 (type + search) ──
   'heroglyph.flow.breed.q1.title': 'What breed is {name}?',
-  'heroglyph.flow.breed.q1.subtitle': "This is just for our breed stats — you'll choose your patron next.",
+  'heroglyph.flow.breed.q1.subtitle': "A guess is fine — no need to be sure. You'll pick your patron next.",
   'heroglyph.flow.breed.type.one': 'One breed',
   'heroglyph.flow.breed.type.mix': 'Mix breed',
   'heroglyph.flow.breed.one.placeholder': 'Search breed',
   'heroglyph.flow.breed.mix.placeholder1': 'First breed',
-  'heroglyph.flow.breed.mix.placeholder2': 'Second breed',
-  'heroglyph.flow.breed.mix.dontKnow': "I don't know",
+  'heroglyph.flow.breed.mix.placeholder2': 'Second breed (optional)',
+  'heroglyph.flow.breed.mix.dontKnow': "Not sure — that's okay",
   // ── breed step 2 (patron) ──
   'heroglyph.flow.breed.patron.subtitle': 'Pick the silhouette that fits {name} best — it can be any shape.',
 
@@ -689,6 +689,19 @@ export const en = {
   'wall.filter.confirm': 'Confirm',
   'wall.filter.countries': 'Countries',
   'wall.dogPage': 'DOG PAGE',
+
+  // ── public dog page (/dog/<slug>) ──
+  'dogPage.livingLegend': 'Living Legend',
+  'dogPage.dogAngel': 'Dog Angel',
+  'dogPage.livedBestLife': 'Lived my best life',
+  'dogPage.foundingDogyptian': 'Founding Dogyptian',
+  'dogPage.pawtner': 'Pawtner',
+  'dogPage.joinUs': 'Join Us',
+  'dogPage.backToWall': 'Back to WALL →',
+  'dogPage.daysCount': '{days} days',
+  'dogPage.notFoundTitle': "This dog isn't in the pack yet.",
+  'dogPage.notFoundBody': 'Every dog gets a heroglyph — a unique symbol among the first 1,000,000. Yours is waiting.',
+
   'share.dogVoice': 'I, {dog}, have joined the movement that will change the world for dogs. Hop on!',
 
   // ── WHAT NEXT? popup (post-payment, shown once after reveal) ──

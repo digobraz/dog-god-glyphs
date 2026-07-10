@@ -631,6 +631,16 @@ export const cs: Partial<Dict> = {
   'wall.filter.confirm': 'Potvrdit',
   'wall.filter.countries': 'Země',
   'wall.dogPage': 'STRÁNKA PSA',
+  'dogPage.livingLegend': 'Žijící legenda',
+  'dogPage.dogAngel': 'Psí anděl',
+  'dogPage.livedBestLife': 'Žil jsem si svůj nejlepší život',
+  'dogPage.foundingDogyptian': 'Zakladatelský Dogyptian',
+  'dogPage.pawtner': 'Pawtner',
+  'dogPage.joinUs': 'Připoj se k nám',
+  'dogPage.backToWall': 'Zpět na WALL →',
+  'dogPage.daysCount': '{days} dní',
+  'dogPage.notFoundTitle': 'Tento pes zatím není ve smečce.',
+  'dogPage.notFoundBody': 'Každý pes dostane Heroglyph — unikátní symbol mezi prvními 1 000 000. Ten tvůj už čeká.',
   'share.dogVoice': 'Já, {dog}, jsem se přidal k hnutí, které změní svět psů. Naskoč taky!',
 
   // ── WHAT NEXT? popup ──

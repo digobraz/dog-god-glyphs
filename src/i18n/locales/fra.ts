@@ -589,6 +589,16 @@ export const fra: Partial<Dict> = {
   'wall.filter.confirm': 'Confirmer',
   'wall.filter.countries': 'Pays',
   'wall.dogPage': 'PAGE DU CHIEN',
+  'dogPage.livingLegend': 'Légende Vivante',
+  'dogPage.dogAngel': 'Ange Canin',
+  'dogPage.livedBestLife': 'Ma meilleure vie, vécue',
+  'dogPage.foundingDogyptian': 'Dogyptien Fondateur',
+  'dogPage.pawtner': 'Pattenaire',
+  'dogPage.joinUs': 'Rejoins-nous',
+  'dogPage.backToWall': 'Retour au WALL →',
+  'dogPage.daysCount': '{days} jours',
+  'dogPage.notFoundTitle': 'Ce chien n’est pas encore dans la meute.',
+  'dogPage.notFoundBody': 'Chaque chien reçoit un Heroglyph — un symbole unique parmi les 1 000 000 premiers. Le tien t’attend.',
   'share.dogVoice': 'Moi, {dog}, j\'ai rejoint le mouvement qui va changer le monde des chiens. Monte à bord !',
 
   // ── WHAT NEXT? popup ──
