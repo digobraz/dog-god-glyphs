@@ -11,6 +11,9 @@ import { sk } from './locales/sk';
  *   kľúč ticho padne na EN (nikdy prázdny string).
  * - Číta `dogypt_lang` z localStorage — ten istý kľúč, ktorý LanguagePicker UŽ zapisuje.
  *   Provider reaguje na zmenu (vrátane `storage` eventu z iného tabu).
+ * - Prvá návšteva (bez uloženej voľby) = autodetekcia z `navigator.languages`;
+ *   do localStorage zapisuje AŽ explicitný výber v pickeri — detekcia ostáva živá
+ *   (zmena jazyka prehliadača sa prejaví, kým si user sám nevyberie).
  *
  * Perf (P0 2026-07): `en` + `sk` sú statické importy (fallback + najčastejší jazyk),
  * zvyšných 16 locale súborov (100-150 kB každý) sa dotiahne dynamickým `import()` až
@@ -73,12 +76,32 @@ function loadLang(lang: LangCode): Promise<void> {
 // RTL jazyky — pre post-launch (ar). Latinkové/cyrilické launch-set langs ostávajú ltr.
 const RTL_LANGS = new Set(['ara', 'ar']);
 
+// Prehliadačový jazyk (BCP-47 primárny subtag) → interný locale kód.
+// Kľúče musia pokrývať všetky jazyky v `DICTS`/`loaders` (18 launch-set).
+const BROWSER_LANG_MAP: Record<string, LangCode> = {
+  en: 'en', sk: 'sk', cs: 'cs', pl: 'pol', uk: 'ukr', de: 'deu',
+  es: 'esp', fr: 'fra', pt: 'prt', ru: 'rus', it: 'ita', zh: 'chn',
+  ja: 'jpn', id: 'ind', ar: 'ara', ko: 'kor', nl: 'nld', tr: 'tur',
+};
+
+/** Jazyk podľa prehliadača — prvý podporovaný z `navigator.languages`, inak EN. */
+function detectBrowserLang(): LangCode {
+  if (typeof navigator === 'undefined') return 'en';
+  const candidates = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const tag of candidates) {
+    if (!tag) continue;
+    const mapped = BROWSER_LANG_MAP[tag.toLowerCase().split('-')[0]];
+    if (mapped) return mapped;
+  }
+  return 'en';
+}
+
 function readStoredLang(): LangCode {
   if (typeof window === 'undefined') return 'en';
   try {
-    return window.localStorage.getItem(STORAGE_KEY) || 'en';
+    return window.localStorage.getItem(STORAGE_KEY) || detectBrowserLang();
   } catch {
-    return 'en';
+    return detectBrowserLang();
   }
 }
 
