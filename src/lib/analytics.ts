@@ -20,6 +20,14 @@ export const track = (event: string, props?: Record<string, unknown>) => {
   toDataLayer(event, { lang: currentLang, ...props });
 };
 
+// Abandoned-cart identify (2026-07-10): kupec dopíše platný email na /checkout →
+// PostHog person dostane email ako identitu. Bez tohto sú checkout-odídenci anonymi
+// (Stripe redirect navyše láme person_id) a záchranný mail nemá komu ísť.
+export const identifyUser = (email: string) => {
+  const e = email.trim().toLowerCase();
+  try { if (enabled() && e) posthog.identify(e, { email: e }); } catch { /* ignore */ }
+};
+
 export const trackPageview = (path: string) => {
   try { if (enabled()) posthog.capture('$pageview', { path, lang: currentLang }); } catch { /* ignore */ }
   toDataLayer('spa_pageview', { path, lang: currentLang });

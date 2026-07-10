@@ -1,13 +1,20 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
+import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
+import { getStoredRef } from '@/lib/refCapture';
+import { getAttribution } from '@/lib/attribution';
+import { track, identifyUser } from '@/lib/analytics';
+import { EDGE_BASE } from '@/lib/env';
+
+const SAVE_DRAFT_URL = `${EDGE_BASE}/save-checkout-draft`;
 
 const COUNTRIES = [
   'Afghanistan','Albania','Algeria','Andorra','Angola','Argentina','Armenia','Australia','Austria','Azerbaijan',
@@ -64,6 +71,72 @@ export function CheckoutScreen() {
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = EMAIL_RE.test(email.trim());
+
+  // ── Abandoned-cart zber (2026-07-10) ──────────────────────────────────────
+  // 14 z 22 checkout-odídencov nikdy neklikne Continue → email zachytávame hneď,
+  // ako je v poli platný (debounce 1,2 s): posthog.identify + draft riadok v DB
+  // (save-checkout-draft). Draft = rozrobený pes so všetkým zo store → záchranný
+  // mail vie poslať Resume&Pay link rovno na Stripe. Fire-and-forget, žiadna
+  // chyba nesmie blokovať checkout.
+  const lang = useLang();
+  const draftIdRef = useRef<string | null>(null);
+  const lastSavedEmailRef = useRef('');
+
+  const saveDraft = (emailVal: string) => {
+    const s = useDogyptStore.getState();
+    if (!s.dogName) return;
+    const heroglyphCode = buildHeroglyphCode({
+      dogName: s.dogName,
+      ownerName: s.ownerName,
+      patronSvg: s.patronSvg,
+      breed: s.selections?.breed,
+      patronCategory: s.selections?.patronCategory,
+      country: s.selections?.country,
+      selections: s.selections,
+    });
+    const iso3 = countryISO3(s.selections?.country);
+    fetch(SAVE_DRAFT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        draftId: draftIdRef.current ?? undefined,
+        dogName: s.dogName,
+        ownerName: s.ownerName,
+        email: emailVal.trim(),
+        selections: s.selections,
+        dogPhotoUrl: s.dogPhotoUrl,
+        cloudinaryExtras: s.extraPhotos.filter((u) => u && !u.startsWith('blob:')),
+        patronSvg: s.patronSvg,
+        patronSvg2: s.patronSvg2,
+        breed: s.selections?.breed || undefined,
+        country: iso3 !== 'XXX' ? iso3 : undefined,
+        heroglyphCode,
+        refCode: getStoredRef(),
+        language: lang,
+        lifeStatus: s.lifeStatus,
+        deathDate: s.deathDate,
+        ...getAttribution(),
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.draftId) draftIdRef.current = d.draftId; })
+      .catch(() => { /* draft je best-effort, checkout nesmie trpieť */ });
+  };
+
+  useEffect(() => {
+    const trimmed = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(trimmed) || trimmed === lastSavedEmailRef.current) return;
+    const timer = setTimeout(() => {
+      lastSavedEmailRef.current = trimmed;
+      identifyUser(trimmed);
+      track('checkout_email_entered');
+      saveDraft(trimmed);
+    }, 1200);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+  // ──────────────────────────────────────────────────────────────────────────
+
   const isValid =
     firstName.trim() &&
     lastName.trim() &&
@@ -86,6 +159,9 @@ export function CheckoutScreen() {
     setSelection('billCity', billCity.trim());
     setSelection('billZip', billZip.trim());
     setSelection('billCountry', country.trim());
+    // Zustand set je synchrónny → getState() v saveDraft už vidí bill*.
+    // Update draftu s fakturačnými údajmi (fire-and-forget, nečakáme).
+    saveDraft(email);
     navigate('/payment');
   };
 
