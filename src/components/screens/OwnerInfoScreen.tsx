@@ -13,6 +13,11 @@ import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
 
+// Android keyboards (Gboard/Samsung) can silently swap a typed word for a predicted
+// one and ignore autoCorrect="off". On Android only we surface the exact captured
+// value under the field so the user catches any swap before it's baked in.
+const IS_ANDROID = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
 import letterA from '@/assets/letters/NAME_-A.svg';
 import letterB from '@/assets/letters/NAME_-B.svg';
 import letterC from '@/assets/letters/NAME_-C.svg';
@@ -116,6 +121,9 @@ function OwnerNameModal({ open, value, placeholder, title, doneLabel, closeLabel
             className="name-modal-input"
           />
         </div>
+        {IS_ANDROID && value.trim().length > 0 && (
+          <p className="name-modal-confirm" aria-live="polite">→ <b>{value.trim()}</b></p>
+        )}
         <button type="button" className="name-modal-done" onClick={onDone} disabled={!canDone}>{doneLabel}</button>
       </div>
 
@@ -165,6 +173,16 @@ function OwnerNameModal({ open, value, placeholder, title, doneLabel, closeLabel
           text-transform: uppercase; text-align: center; letter-spacing: 0.05em;
         }
         .name-modal-input::placeholder { text-transform: none; letter-spacing: normal; color: rgba(0, 0, 0, 0.35); }
+        /* Android-only exact-value readout (predictive-swap safety net). */
+        .name-modal-confirm {
+          margin: -4px 0 0; text-align: center;
+          font-family: 'Space Grotesk', sans-serif; font-size: 13px;
+          color: rgba(26, 18, 8, 0.6); letter-spacing: 0.03em;
+        }
+        .name-modal-confirm b {
+          color: hsl(var(--gold-dark)); font-weight: 700;
+          letter-spacing: 0.08em; text-transform: uppercase;
+        }
         .name-modal-done {
           width: 100%; height: 46px; border: none; border-radius: 12px; cursor: pointer;
           font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.85rem;
