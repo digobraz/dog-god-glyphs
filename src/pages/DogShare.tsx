@@ -580,8 +580,13 @@ export default function DogShare() {
                           width: 22,
                           height: 22,
                           backgroundColor: isDeceased ? '#6E7688' : '#1a1a1a',
-                          WebkitMaskImage: `url(${isDeceased ? angelIconUrl : legendIconUrl})`,
-                          maskImage: `url(${isDeceased ? angelIconUrl : legendIconUrl})`,
+                          // Quoted url("...") is mandatory: the prod build inlines these
+                          // SVGs as data: URIs containing raw single quotes (Vite's
+                          // svgToDataURL), which make an unquoted url() token invalid
+                          // CSS — the mask silently drops and only the backgroundColor
+                          // square renders (black square bug, INGO #31 2026-07-10).
+                          WebkitMaskImage: `url("${isDeceased ? angelIconUrl : legendIconUrl}")`,
+                          maskImage: `url("${isDeceased ? angelIconUrl : legendIconUrl}")`,
                           WebkitMaskRepeat: 'no-repeat',
                           maskRepeat: 'no-repeat',
                           WebkitMaskPosition: 'center',

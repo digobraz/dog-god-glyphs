@@ -116,11 +116,16 @@ export default function Pack() {
           setUser((u) => (u ? { ...u, bones: Number(row?.points) || 0 } : u));
         });
 
+      // payment_status filter: abandoned-cart capture (2026-07-10) writes
+      // 'draft' rows that share the buyer's user_id — without the filter the
+      // pack shows the same dog twice (draft + paid duplicate avatars).
       const { data } = await (supabase as unknown as {
         from: (t: string) => {
           select: (cols: string) => {
             eq: (col: string, val: string) => {
-              order: (col: string, opts: { ascending: boolean }) => Promise<{ data: DogRow[] | null }>;
+              eq: (col: string, val: string) => {
+                order: (col: string, opts: { ascending: boolean }) => Promise<{ data: DogRow[] | null }>;
+              };
             };
           };
         };
@@ -128,6 +133,7 @@ export default function Pack() {
         .from('dogs')
         .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, share_card_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections')
         .eq('user_id', u.id)
+        .eq('payment_status', 'paid')
         .order('created_at', { ascending: false });
 
       if (!mounted) return;

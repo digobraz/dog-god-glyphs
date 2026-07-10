@@ -25,9 +25,13 @@ async function waitForShareCardRoot(shareRef: RefObject<HTMLDivElement>): Promis
     if (root && root.querySelector('img[src^="data:"]')) return root;
     await new Promise((r) => setTimeout(r, SHARE_CARD_POLL_INTERVAL_MS));
   }
-  // Timed out — capture whatever is there (root may exist without the gold
-  // heroglyph <img> yet, or not exist at all) rather than silently skipping.
-  return (shareRef.current?.querySelector('#share-card-root') as HTMLElement | null) ?? null;
+  // Timed out — the gold heroglyph <img> never appeared. Do NOT capture a
+  // half-empty card: an uploaded black card is worse than no card (OG/dog
+  // page fall back to cloudinary_main_url, and the wall-custodian re-bakes
+  // the missing share_card_url server-side within its next cycle). This
+  // exact failure shipped black cards for INGO #31 / JOY #32 (iOS Safari
+  // buyers, 2026-07-10).
+  return null;
 }
 
 // Fire-and-forget: captures the ShareCard at its native 1080x1080 (pixelRatio 1
@@ -37,10 +41,49 @@ async function waitForShareCardRoot(shareRef: RefObject<HTMLDivElement>): Promis
 async function captureShareCard(sid: string, shareRef: RefObject<HTMLDivElement>) {
   try {
     const root = await waitForShareCardRoot(shareRef);
-    if (!root) return; // ShareCard never mounted — skip silently.
-    const dataUrl = await toPng(root, { cacheBust: true, pixelRatio: 1, backgroundColor: '#000' });
+    if (!root) {
+      console.warn('[postPayment] share card not ready in time — skipping upload (custodian will re-bake)');
+      return;
+    }
+
+    // Pre-inline the dog photo (CSS background-image → data: URI) so
+    // html-to-image never has to fetch it mid-serialization — that fetch is
+    // what silently dropped the photo on iOS Safari. If the photo can't be
+    // inlined, skip the upload entirely rather than ship a photo-less card.
+    const photoDiv = Array.from(root.querySelectorAll('div')).find((el) =>
+      (el as HTMLElement).style.backgroundImage?.includes('url('),
+    ) as HTMLElement | undefined;
+    if (photoDiv) {
+      const m = photoDiv.style.backgroundImage.match(/url\(["']?(.+?)["']?\)/);
+      const src = m?.[1];
+      if (src && !src.startsWith('data:')) {
+        const r = await fetch(src, { mode: 'cors' });
+        if (!r.ok) throw new Error(`photo inline failed: ${r.status}`);
+        const blob = await r.blob();
+        const dataUrl: string = await new Promise((res, rej) => {
+          const fr = new FileReader();
+          fr.onload = () => res(fr.result as string);
+          fr.onerror = () => rej(fr.error);
+          fr.readAsDataURL(blob);
+        });
+        photoDiv.style.backgroundImage = `url("${dataUrl}")`;
+      }
+    }
+
+    // Double render: Safari's async image decode inside the SVG/foreignObject
+    // capture can paint blank on the first pass (known html-to-image quirk) —
+    // the second call reuses warm caches and paints reliably.
+    await toPng(root, { cacheBust: false, pixelRatio: 1, backgroundColor: '#000' });
+    const dataUrl = await toPng(root, { cacheBust: false, pixelRatio: 1, backgroundColor: '#000' });
     const pngRes = await fetch(dataUrl);
     const pngBlob = await pngRes.blob();
+    // Belt & braces: a card without the photo/glyph compresses to well under
+    // 300 KB (broken INGO/JOY cards were ~100 KB; every real card ≥ 570 KB).
+    // Refuse to upload obviously-empty output — no card beats a black card.
+    if (pngBlob.size < 300_000) {
+      console.warn(`[postPayment] share card suspiciously small (${pngBlob.size}B) — skipping upload`);
+      return;
+    }
     const pngResult = await uploadShareCardPng(pngBlob, sid);
     fetch(`${EDGE_BASE}/send-certificate`, {
       method: 'POST',
