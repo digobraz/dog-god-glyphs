@@ -407,6 +407,7 @@ export const rus: Partial<Dict> = {
   'heroglyph.checkout.disclaimerHighlight': 'Сертификат DOGYPT',
   'heroglyph.checkout.disclaimerSuffix': ' в твоём профиле.',
   'heroglyph.checkout.back': 'Назад',
+  'heroglyph.checkout.fillAllFields': 'Пожалуйста, заполните все поля, чтобы продолжить.',
   'heroglyph.checkout.dogFallback': 'Собака',
 
   // ── /welcome — post-payment (WelcomeScreen) ──

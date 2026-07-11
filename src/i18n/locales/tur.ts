@@ -346,6 +346,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.checkout.disclaimerHighlight": "DOGYPT Sertifikanızı",
   "heroglyph.checkout.disclaimerSuffix": " ekleyeceğiz.",
   "heroglyph.checkout.back": "Geri",
+  "heroglyph.checkout.fillAllFields": "Devam etmek için lütfen tüm alanları doldurun.",
   "heroglyph.checkout.dogFallback": "Köpek",
   "welcome.goal.label": "Hedefimiz 🎯",
   "welcome.goal.target": "1.000.000 Heroglyph",

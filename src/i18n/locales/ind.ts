@@ -347,6 +347,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.checkout.disclaimerHighlight": "DOGYPT Certificate",
   "heroglyph.checkout.disclaimerSuffix": " आपकी प्रोफ़ाइल में रखेंगे।",
   "heroglyph.checkout.back": "वापस",
+  "heroglyph.checkout.fillAllFields": "आगे बढ़ने के लिए कृपया सभी फ़ील्ड भरें।",
   "heroglyph.checkout.dogFallback": "कुत्ता",
   "welcome.goal.label": "हमारा लक्ष्य 🎯",
   "welcome.goal.target": "1,000,000 Heroglyphs",

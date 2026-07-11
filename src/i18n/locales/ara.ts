@@ -346,6 +346,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.checkout.disclaimerHighlight": "شهادة DOGYPT",
   "heroglyph.checkout.disclaimerSuffix": " في ملفك الشخصي.",
   "heroglyph.checkout.back": "رجوع",
+  "heroglyph.checkout.fillAllFields": "يرجى ملء جميع الحقول للمتابعة.",
   "heroglyph.checkout.dogFallback": "كلب",
   "welcome.goal.label": "هدفنا 🎯",
   "welcome.goal.target": "1,000,000 Heroglyph",

@@ -346,6 +346,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.checkout.disclaimerHighlight": "DOGYPT認定証",
   "heroglyph.checkout.disclaimerSuffix": "を発行します。",
   "heroglyph.checkout.back": "戻る",
+  "heroglyph.checkout.fillAllFields": "続けるには、すべての項目を入力してください。",
   "heroglyph.checkout.dogFallback": "犬",
   "welcome.goal.label": "私たちの目標 🎯",
   "welcome.goal.target": "1,000,000 Heroglyphs",

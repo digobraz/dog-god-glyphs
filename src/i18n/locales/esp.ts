@@ -407,6 +407,7 @@ export const esp: Partial<Dict> = {
   'heroglyph.checkout.disclaimerHighlight': 'Certificado DOGYPT',
   'heroglyph.checkout.disclaimerSuffix': ' en tu perfil.',
   'heroglyph.checkout.back': 'Atrás',
+  'heroglyph.checkout.fillAllFields': 'Completa todos los campos para continuar.',
   'heroglyph.checkout.dogFallback': 'Perro',
 
   // ── /welcome — post-payment (WelcomeScreen) ──

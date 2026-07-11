@@ -346,6 +346,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.checkout.disclaimerHighlight": "DOGYPT 证书",
   "heroglyph.checkout.disclaimerSuffix": " 放入你的档案。",
   "heroglyph.checkout.back": "返回",
+  "heroglyph.checkout.fillAllFields": "请填写所有字段以继续。",
   "heroglyph.checkout.dogFallback": "狗",
   "welcome.goal.label": "我们的目标 🎯",
   "welcome.goal.target": "1,000,000 枚 Heroglyph",

@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -43,8 +42,8 @@ export function CheckoutScreen() {
   const setSelectedAmount = useDogyptStore((s) => s.setSelectedAmount);
   const setEmail = useDogyptStore((s) => s.setEmail);
   const setSelection = useDogyptStore((s) => s.setSelection);
-
-  useFlowKeyboardFix();
+  const storedOwnerName = useDogyptStore((s) => s.ownerName);
+  const storedEmail = useDogyptStore((s) => s.email);
 
   // Route guard — bez dogName (rozrobený flow nebol dokončený) → reset na začiatok
   useEffect(() => {
@@ -53,9 +52,14 @@ export function CheckoutScreen() {
     }
   }, [dogName, navigate]);
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setLocalEmail] = useState('');
+  // Prefill z predošlých krokov flow — ownerName (owner-info krok) a email
+  // (ak už bol zadaný, napr. návrat z /payment cez Back). User môže stále prepísať.
+  const [firstName, setFirstName] = useState(() => storedOwnerName.trim().split(/\s+/)[0] || '');
+  const [lastName, setLastName] = useState(() => {
+    const parts = storedOwnerName.trim().split(/\s+/);
+    return parts.length > 1 ? parts.slice(1).join(' ') : '';
+  });
+  const [email, setLocalEmail] = useState(() => storedEmail || '');
   // Billing address fields (owner/payer) → saved to selections.bill* → DB bill_* columns
   const [billStreet, setBillStreet] = useState('');
   const [billCity, setBillCity] = useState('');
@@ -63,6 +67,26 @@ export function CheckoutScreen() {
   // billCountry = owner's billing country (NOT dog's country — that lives in selections.country set on /name)
   const [country, setCountry] = useState('');
   const [showCountries, setShowCountries] = useState(false);
+
+  // Click-to-validate (2026-07-11) — tlačidlo Continue je vždy aktívne (gold,
+  // nie disabled/sivé). Na klik s neplatným formulárom nenavigujeme, namiesto
+  // toho scrollneme + zafokusujeme prvé chýbajúce pole a ukážeme inline hlášku.
+  const [invalidField, setInvalidField] = useState<string | null>(null);
+  const [showValidationMsg, setShowValidationMsg] = useState(false);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const billStreetRef = useRef<HTMLInputElement>(null);
+  const billCityRef = useRef<HTMLInputElement>(null);
+  const billZipRef = useRef<HTMLInputElement>(null);
+  const countryRef = useRef<HTMLInputElement>(null);
+
+  const clearInvalid = (field: string) => {
+    if (invalidField === field) {
+      setInvalidField(null);
+      setShowValidationMsg(false);
+    }
+  };
 
   const filteredCountries = useMemo(() => {
     if (!country) return [];
@@ -147,7 +171,30 @@ export function CheckoutScreen() {
     country.trim();
 
   const handleContinue = () => {
-    if (!isValid) return;
+    if (!isValid) {
+      // Nájdi prvé chýbajúce/nevalidné pole v poradí ako sú vo formulári,
+      // scrollni naň + zafokusuj + zvýrazni, namiesto tichého no-op.
+      const fields: Array<[string, boolean, typeof firstNameRef]> = [
+        ['firstName', !!firstName.trim(), firstNameRef],
+        ['lastName', !!lastName.trim(), lastNameRef],
+        ['email', isEmailValid, emailRef],
+        ['billStreet', !!billStreet.trim(), billStreetRef],
+        ['billCity', !!billCity.trim(), billCityRef],
+        ['billZip', !!billZip.trim(), billZipRef],
+        ['country', !!country.trim(), countryRef],
+      ];
+      const firstInvalid = fields.find(([, valid]) => !valid);
+      if (firstInvalid) {
+        const [field, , ref] = firstInvalid;
+        setInvalidField(field);
+        setShowValidationMsg(true);
+        ref.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        ref.current?.focus();
+      }
+      return;
+    }
+    setInvalidField(null);
+    setShowValidationMsg(false);
     setSelectedAmount(11);
     setEmail(email);
     // Save billing info to selections.* — create-checkout reads these and
@@ -167,6 +214,8 @@ export function CheckoutScreen() {
 
   const inputClass =
     'w-full rounded-xl border-2 border-border/60 bg-background/50 px-3 py-2 text-base text-foreground placeholder:text-muted-foreground/50 focus:border-primary focus:outline-none transition-colors';
+  const invalidClass = ' border-red-400 ring-2 ring-red-400/40';
+  const fieldClass = (field: string) => inputClass + (invalidField === field ? invalidClass : '');
 
   if (!dogName) return null;
 
@@ -175,7 +224,7 @@ export function CheckoutScreen() {
       {/* Logo */}
       <PageTopBar />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-4 overflow-hidden">
+      <div className="flex-1 flex flex-col items-center px-4 py-4 overflow-y-auto">
         <div className="w-full max-w-xl flex flex-col items-center gap-1.5">
           {/* ORDER SUMMARY card */}
           <motion.div
@@ -270,30 +319,32 @@ export function CheckoutScreen() {
               }}
             >
               <div className="flex gap-1.5">
-                <input type="text" placeholder={t('heroglyph.checkout.firstName')} value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
-                <input type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+                <input ref={firstNameRef} aria-invalid={invalidField === 'firstName'} type="text" placeholder={t('heroglyph.checkout.firstName')} value={firstName} onChange={(e) => { setFirstName(e.target.value); clearInvalid('firstName'); }} className={fieldClass('firstName')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+                <input ref={lastNameRef} aria-invalid={invalidField === 'lastName'} type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => { setLastName(e.target.value); clearInvalid('lastName'); }} className={fieldClass('lastName')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               </div>
-              <input type="email" placeholder={t('heroglyph.checkout.email')} value={email} onChange={(e) => setLocalEmail(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+              <input ref={emailRef} aria-invalid={invalidField === 'email'} type="email" placeholder={t('heroglyph.checkout.email')} value={email} onChange={(e) => { setLocalEmail(e.target.value); clearInvalid('email'); }} className={fieldClass('email')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
               {email.trim() && !isEmailValid && (
                 <p className="text-[11px] text-red-400/80 px-1 -mt-0.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   Enter a valid email address
                 </p>
               )}
               {/* Billing address — required for invoice (SK law) */}
-              <input type="text" placeholder={t('heroglyph.checkout.street')} value={billStreet} onChange={(e) => setBillStreet(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="street-address" />
+              <input ref={billStreetRef} aria-invalid={invalidField === 'billStreet'} type="text" placeholder={t('heroglyph.checkout.street')} value={billStreet} onChange={(e) => { setBillStreet(e.target.value); clearInvalid('billStreet'); }} className={fieldClass('billStreet')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="street-address" />
               <div className="flex gap-1.5">
-                <input type="text" placeholder={t('heroglyph.checkout.city')} value={billCity} onChange={(e) => setBillCity(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="address-level2" />
-                <input type="text" placeholder={t('heroglyph.checkout.zip')} value={billZip} onChange={(e) => setBillZip(e.target.value)} className={inputClass} style={{ fontFamily: "'Space Grotesk', sans-serif", maxWidth: 110 }} autoComplete="postal-code" />
+                <input ref={billCityRef} aria-invalid={invalidField === 'billCity'} type="text" placeholder={t('heroglyph.checkout.city')} value={billCity} onChange={(e) => { setBillCity(e.target.value); clearInvalid('billCity'); }} className={fieldClass('billCity')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="address-level2" />
+                <input ref={billZipRef} aria-invalid={invalidField === 'billZip'} type="text" placeholder={t('heroglyph.checkout.zip')} value={billZip} onChange={(e) => { setBillZip(e.target.value); clearInvalid('billZip'); }} className={fieldClass('billZip')} style={{ fontFamily: "'Space Grotesk', sans-serif", maxWidth: 110 }} autoComplete="postal-code" />
               </div>
               <div className="relative">
                 <input
+                  ref={countryRef}
+                  aria-invalid={invalidField === 'country'}
                   type="text"
                   placeholder={t('heroglyph.checkout.country')}
                   value={country}
-                  onChange={(e) => { setCountry(e.target.value); setShowCountries(true); }}
+                  onChange={(e) => { setCountry(e.target.value); setShowCountries(true); clearInvalid('country'); }}
                   onFocus={() => country && setShowCountries(true)}
                   onBlur={() => setTimeout(() => setShowCountries(false), 150)}
-                  className={inputClass}
+                  className={fieldClass('country')}
                   style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                 />
                 {showCountries && filteredCountries.length > 0 && (
@@ -313,12 +364,12 @@ export function CheckoutScreen() {
               </div>
             </div>
 
-            {/* CTA inside card */}
+            {/* CTA inside card — vždy vizuálne aktívne (gold); validácia beží na klik,
+                nie cez disabled, aby button nikdy nevyzeral „rozbito" (2026-07-11 fix). */}
             <div className="mt-2.5 px-1">
               <Button
                 onClick={handleContinue}
-                disabled={!isValid}
-                className="w-full rounded-xl py-4 text-base font-bold tracking-wider hover:scale-[1.02] transition-transform disabled:opacity-30"
+                className="w-full rounded-xl py-4 text-base font-bold tracking-wider hover:scale-[1.02] transition-transform"
                 style={{
                   fontFamily: "'Cinzel', serif",
                   background: 'linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)))',
@@ -328,6 +379,11 @@ export function CheckoutScreen() {
               >
                 {t('heroglyph.checkout.cta')}
               </Button>
+              {showValidationMsg && (
+                <p role="alert" className="text-[11px] text-red-400/80 text-center mt-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  {t('heroglyph.checkout.fillAllFields')}
+                </p>
+              )}
             </div>
 
             {/* Disclaimer inside card */}

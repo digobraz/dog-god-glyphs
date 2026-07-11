@@ -424,6 +424,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certifikát',
   'heroglyph.checkout.disclaimerSuffix': ' do tvojho profilu.',
   'heroglyph.checkout.back': 'Späť',
+  'heroglyph.checkout.fillAllFields': 'Prosím, vyplňte všetky polia, aby ste mohli pokračovať.',
   'heroglyph.checkout.dogFallback': 'Pes',
 
   // ── /welcome — post-payment (WelcomeScreen) ──

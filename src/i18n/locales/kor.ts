@@ -346,6 +346,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.checkout.disclaimerHighlight": "DOGYPT 인증서",
   "heroglyph.checkout.disclaimerSuffix": "를 등록합니다.",
   "heroglyph.checkout.back": "뒤로",
+  "heroglyph.checkout.fillAllFields": "계속하려면 모든 필드를 입력해주세요.",
   "heroglyph.checkout.dogFallback": "개",
   "welcome.goal.label": "우리의 목표 🎯",
   "welcome.goal.target": "1,000,000개의 Heroglyph",

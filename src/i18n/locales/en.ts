@@ -449,6 +449,7 @@ export const en = {
   'heroglyph.checkout.disclaimerHighlight': 'DOGYPT Certificate',
   'heroglyph.checkout.disclaimerSuffix': ' in your profile.',
   'heroglyph.checkout.back': 'Back',
+  'heroglyph.checkout.fillAllFields': 'Please fill in all fields to continue.',
   'heroglyph.checkout.dogFallback': 'Dog',
 
   // ── /welcome — post-payment (WelcomeScreen) ──
