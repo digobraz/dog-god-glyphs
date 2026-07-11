@@ -172,7 +172,7 @@ export const pol: Partial<Dict> = {
   'heroglyph.flow.photo.uploadFailed': 'Wgrywanie nie powiodło się — spróbuj ponownie',
   'heroglyph.flow.photo.tipForward': 'pies na wprost',
   'heroglyph.flow.photo.tipSide': 'profil / grupa',
-  'heroglyph.flow.photo.tipBest': 'Najlepszy efekt: twarz wyraźnie widoczna, działa przycięta do koła.',
+  'heroglyph.flow.photo.tipBest': 'Najlepszy efekt: twarz wyraźnie widoczna, dobrze wpasowana w okrągły kadr.',
   'heroglyph.flow.photo.next': 'DALEJ',
   'heroglyph.flow.photo.back': 'WSTECZ',
   'heroglyph.flow.photo.adjustTitle': 'DOPASUJ SWÓJ PORTRET',
@@ -221,7 +221,7 @@ export const pol: Partial<Dict> = {
 
   // ── /heroglyph flow — krok 5: majiteľ ──
   'heroglyph.flow.ownerInfo.greetingPrefix': 'Dobrze, porozmawiajmy o tobie,',
-  'heroglyph.flow.ownerInfo.greetingWord': 'człowieku',
+  'heroglyph.flow.ownerInfo.greetingWord': 'opiekunie',
   'heroglyph.flow.ownerInfo.placeholder': 'Imię właściciela...',
   'heroglyph.flow.ownerInfo.man': 'Mężczyzna',
   'heroglyph.flow.ownerInfo.woman': 'Kobieta',
@@ -267,7 +267,7 @@ export const pol: Partial<Dict> = {
 
   // ── /heroglyph flow — krok 7: finále majiteľa ──
   'heroglyph.flow.ownerFinal.infoAria': 'Informacje o Heroglyphie',
-  'heroglyph.flow.ownerFinal.messageLine1': 'CZŁOWIEKU, twoja część jest gotowa.',
+  'heroglyph.flow.ownerFinal.messageLine1': 'OPIEKUNIE, twoja część jest gotowa.',
   'heroglyph.flow.ownerFinal.messageLine2': 'Ta mała ramka — to ty!',
   'heroglyph.flow.ownerFinal.messageLine3Prefix': 'Teraz dokończmy HEROGLYPH częścią należącą do',
   'heroglyph.flow.ownerFinal.messageLine3Suffix': '.',
@@ -276,7 +276,7 @@ export const pol: Partial<Dict> = {
   'heroglyph.flow.ownerFinal.infoBody':
     'HEROGLYPH składa się z dwóch ramek, które razem tworzą prawdziwą tożsamość twojego psa. W starożytnym Egipcie imiona bogów i faraonów wpisywano w podobne ochronne owalne ramki — kartusze — aby ich dziedzictwo przetrwało wieczność.',
   'heroglyph.flow.ownerFinal.cleopatraAlt': 'Kartusz Kleopatry',
-  'heroglyph.flow.ownerFinal.cleopatraCaption': 'Ten hieroglif należy do Kleopatry.',
+  'heroglyph.flow.ownerFinal.cleopatraCaption': 'Ten hieroglif należał do Kleopatry.',
   'heroglyph.flow.ownerFinal.back': 'Wstecz',
 
   // ── /heroglyph flow — krok 8: pohlavie psa ──
@@ -315,9 +315,9 @@ export const pol: Partial<Dict> = {
 
   // ── /heroglyph flow — krok 10: farba psa ──
   'heroglyph.flow.dogColour.title': 'Kolor Psa',
-  'heroglyph.flow.dogColour.questionPrefix': 'Jaką',
+  'heroglyph.flow.dogColour.questionPrefix': 'Jakiej barwy jest',
   'heroglyph.flow.dogColour.questionCoat': 'sierść',
-  'heroglyph.flow.dogColour.questionSuffix': ' nosi twój pies?',
+  'heroglyph.flow.dogColour.questionSuffix': ' twojego psa?',
   'heroglyph.flow.dogColour.bright': 'Jasna',
   'heroglyph.flow.dogColour.brightSub': 'Słońce',
   'heroglyph.flow.dogColour.dark': 'Ciemna',
@@ -407,6 +407,7 @@ export const pol: Partial<Dict> = {
   'heroglyph.checkout.disclaimerHighlight': 'Certyfikat DOGYPT',
   'heroglyph.checkout.disclaimerSuffix': ' w twoim profilu.',
   'heroglyph.checkout.back': 'Wstecz',
+  'heroglyph.checkout.fillAllFields': 'Wypełnij wszystkie pola, aby kontynuować.',
   'heroglyph.checkout.dogFallback': 'Pies',
 
   // ── /welcome — post-payment (WelcomeScreen) ──
@@ -495,7 +496,7 @@ export const pol: Partial<Dict> = {
   'about.milestone.5.tag': 'Dogypt',
   'about.milestone.5.title': 'Wędrówka zaczyna się od ciebie',
   'about.milestone.5.body':
-    'DOGYPT to ruch dla każdego, czyje życie zmienił pies. Zbudowany na najstarszej i najszczerszej więzi na Ziemi. Hekthor jest założycielem #1. Ty jesteś następny.',
+    'DOGYPT to ruch dla każdego, kogo życie zmienił pies. Zbudowany na najstarszej i najszczerszej więzi na Ziemi. Hekthor jest założycielem #1. Ty jesteś następny.',
 
   // ── /about — outro + reel ──
   'about.outro.quoteLead': 'To nigdy nie był',
@@ -766,7 +767,7 @@ export const pol: Partial<Dict> = {
 
   // ── /about — Footer ── (motto = EN by design, nezapisovať sem)
   'about.footer.sealAlt': 'Pieczęć DOGYPT',
-  'about.footer.mission': 'Ruch dla każdego, czyje życie zmienił pies.',
+  'about.footer.mission': 'Ruch dla każdego, kogo życie zmienił pies.',
   'about.footer.privacy': 'Prywatność',
   'about.footer.terms': 'Warunki',
 
@@ -898,7 +899,7 @@ export const pol: Partial<Dict> = {
   "welcome.password.altLink": "Wolisz link? Znajdziesz go w swojej skrzynce.",
 
   // ── Share card ──
-  "sharecard.shareTitle": "Udostępnij {name} Packowi",
+  "sharecard.shareTitle": "Udostępnij {name} sforze",
   "sharecard.shareButton": "Udostępnij",
   "sharecard.download": "Pobierz",
   "sharecard.shareText": "{name} to jeden z pierwszych 1 000 000 psów DOGYPT. Znajdź swojego na dogypt.com",
