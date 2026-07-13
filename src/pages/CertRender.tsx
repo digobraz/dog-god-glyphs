@@ -156,10 +156,34 @@ export default function CertRender() {
         const svgWaits = svgImages.map((el) =>
           preload(el.getAttribute('href') || el.getAttribute('xlink:href') || ''),
         );
-        // Web fonts (Cinzel) too.
-        const fontWait = (document as Document & { fonts?: { ready?: Promise<unknown> } })
-          .fonts?.ready ?? Promise.resolve();
-        await Promise.all([...imgWaits, ...svgWaits, fontWait]);
+        // Web fonts — EXPLICITLY load the exact faces the certificate uses, not
+        // just document.fonts.ready. In the headless bake env, `ready` could
+        // resolve before 'Cinzel Decorative' 900 (the dog-name face) finished,
+        // so the name silently fell back to plain 'Cinzel' — every baked cert
+        // rendered the name in classic Cinzel instead of the decorative one.
+        // fonts.load() force-triggers each face and its promise only settles
+        // once that specific face is usable, killing the race.
+        const fontApi = (
+          document as Document & {
+            fonts?: {
+              ready?: Promise<unknown>;
+              load?: (font: string, text?: string) => Promise<unknown>;
+            };
+          }
+        ).fonts;
+        const FONT_FACES = [
+          "900 88px 'Cinzel Decorative'", // dog name — the face that raced/fell back
+          "700 88px 'Cinzel Decorative'",
+          "900 40px 'Cinzel'",
+          "700 26px 'Cinzel'",
+          "600 14px 'Cinzel'",
+          "400 12px 'Cinzel'",
+        ];
+        const explicitLoads = fontApi?.load
+          ? FONT_FACES.map((f) => fontApi.load!(f).catch(() => undefined))
+          : [];
+        const fontWait = fontApi?.ready ?? Promise.resolve();
+        await Promise.all([...imgWaits, ...svgWaits, ...explicitLoads, fontWait]);
       } catch {
         /* ignore */
       }
