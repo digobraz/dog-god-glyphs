@@ -140,6 +140,16 @@ export const en = {
   'heroglyph.intro.meaning.ranking.value': '#1 — First Dog',
 
   // ── /heroglyph sales — front card (redesign 2026-07-13) ──
+  'heroglyph.sales.why': 'Why €11?',
+  'heroglyph.sales.eyebrow': 'Your ticket to DOGYPT',
+  'heroglyph.sales.title': 'Heroglyph',
+  'heroglyph.sales.subtitle': 'A unique symbol describing you and your dog — your eternal bond.',
+  'heroglyph.sales.loading': 'Loading your heroglyph…',
+  'heroglyph.sales.cta': 'Create heroglyph',
+  'heroglyph.sales.back': 'Back',
+  'heroglyph.sales.transparency.title': '100% Transparency',
+  'heroglyph.sales.transparency.tribute': 'Your symbolic tribute — €11',
+  'heroglyph.sales.transparency.footer': "Every euro stays in the open, for every member to see. You don't pay a company — you feed the pack.",
   'heroglyph.sales.pricePill': 'One-time · €11',
   'heroglyph.sales.card.cert.title': 'Certificate',
   'heroglyph.sales.card.cert.note': 'PDFs with a unique design',

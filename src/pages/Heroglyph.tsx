@@ -917,17 +917,17 @@ export default function Heroglyph() {
             className="hg-why"
             onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
           >
-            Why €11?
+            {t('heroglyph.sales.why')}
           </button>
 
           <p className="religion-eyebrow">
             <img src="/icons/heroglyph-page/ticket-gold.svg" alt="" className="eyebrow-icon" style={{ transform: 'none' }} />
-            Your ticket to DOGYPT
+            {t('heroglyph.sales.eyebrow')}
           </p>
-          <h1 className="religion-title">Heroglyph</h1>
+          <h1 className="religion-title">{t('heroglyph.sales.title')}</h1>
           <hr className="religion-rule" />
           <p className="religion-sub">
-            A unique symbol describing you and your dog — your eternal bond.
+            {t('heroglyph.sales.subtitle')}
           </p>
 
           <div ref={svgWrapRef} className="heroglyph-svg-wrap">
@@ -937,7 +937,7 @@ export default function Heroglyph() {
             />
             {!svgMarkup && (
               <div className="heroglyph-svg-wrap-loading">
-                Loading your heroglyph…
+                {t('heroglyph.sales.loading')}
               </div>
             )}
           </div>
@@ -1019,7 +1019,7 @@ export default function Heroglyph() {
           </div>
 
           <button onClick={enterFlow} className="entry-cta">
-            Create heroglyph
+            {t('heroglyph.sales.cta')}
           </button>
 
         </div>
@@ -1031,11 +1031,11 @@ export default function Heroglyph() {
             className="hg-why"
             onClick={(e) => { e.stopPropagation(); setFlipped(false); setActiveSplit(null); }}
           >
-            ← Back
+            ← {t('heroglyph.sales.back')}
           </button>
 
-          <h2 className="hg-back-title">100% Transparency</h2>
-          <span className="hg-your11-pill">Your symbolic tribute — €11</span>
+          <h2 className="hg-back-title">{t('heroglyph.sales.transparency.title')}</h2>
+          <span className="hg-your11-pill">{t('heroglyph.sales.transparency.tribute')}</span>
 
           {/* Pipeline — bublina so sumou; vysvetlenie sa rozbalí PRIAMO POD blokom
               (accordion grid 0fr→1fr): PC = hover, mobil = tap (is-active gated na
@@ -1061,7 +1061,7 @@ export default function Heroglyph() {
             ))}
           </div>
 
-          <p className="hg-pipe-footer">Every euro stays in the open, for every member to see. You don't pay a company — you feed the pack.</p>
+          <p className="hg-pipe-footer">{t('heroglyph.sales.transparency.footer')}</p>
 
         </div>
 
