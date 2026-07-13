@@ -578,7 +578,7 @@ export default function Entry() {
         .entry-cta:active { transform: scale(0.98); }
       `}</style>
 
-      <PageTopBar withNav />
+      <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-2 py-2 relative" style={{ zIndex: 2 }}>
         {/* ── Declaration + checklist — jeden blok, bez scrollingu ──────── */}

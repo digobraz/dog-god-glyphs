@@ -903,7 +903,7 @@ export default function Heroglyph() {
         }
       `}</style>
 
-      <PageTopBar withNav />
+      <PageTopBar />
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 pt-6 pb-6 md:pt-8 md:pb-8 relative" style={{ zIndex: 2 }}>
         <section className="hg-section">
