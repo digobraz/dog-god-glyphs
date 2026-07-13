@@ -546,7 +546,7 @@ function MyGodsContent({ dogs, loading }: { dogs: PackDogFull[]; loading: boolea
 
           {/* Add a god — priestor pre ďalších psov */}
           <Link
-            to="/heroglyph"
+            to="/entry"
             className="flex flex-col items-center gap-2"
             style={{ textDecoration: 'none', width: 84 }}
           >

@@ -414,7 +414,7 @@ export default function DogShare() {
             <p className="max-w-md text-white/60" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               {t('dogPage.notFoundBody')}
             </p>
-            <a href="/heroglyph" className="btn-gold">
+            <a href="/entry" className="btn-gold">
               {t('wall.hero.cta')}
             </a>
           </div>
@@ -433,7 +433,7 @@ export default function DogShare() {
                   className="dogshare-photo w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_280px))] md:max-w-none"
                 />
               )}
-              <a href="/heroglyph" className="btn-gold w-full text-center">
+              <a href="/entry" className="btn-gold w-full text-center">
                 {t('dogPage.joinUs')}
               </a>
               {/* Back to WALL — desktop: right under Join Us (mobile copy sits after the papyrus) */}

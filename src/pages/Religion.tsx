@@ -1120,7 +1120,7 @@ export default function Religion() {
                   </span>
                 </p>
                 <div className="codex-cta-cluster">
-                  <Link to="/heroglyph" className="codex-cta">
+                  <Link to="/entry" className="codex-cta">
                     {t('religion.cta')}
                   </Link>
                 </div>

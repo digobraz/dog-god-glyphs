@@ -625,7 +625,7 @@ function GateRevealSection() {
 
             <motion.div whileHover={{ scale: 0.96 }} whileTap={{ scale: 0.93 }} style={{ display: 'inline-block', cursor: 'pointer' }}>
               <Link
-                to="/heroglyph"
+                to="/entry"
                 style={{
                   display: 'inline-block',
                   fontFamily: "'Cinzel', serif",

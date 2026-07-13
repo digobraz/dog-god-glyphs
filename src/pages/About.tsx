@@ -864,7 +864,7 @@ export default function About() {
             <p dangerouslySetInnerHTML={{ __html: t('about.outro.body') }} />
           </div>
           <p className="about-signoff">{t('about.outro.name1')} <span className="amp">{t('about.outro.and')}</span> {t('about.outro.name2')}</p>
-          <a href="/heroglyph" className="btn-gold" style={{ marginTop: 8, marginBottom: 100 }}>
+          <a href="/entry" className="btn-gold" style={{ marginTop: 8, marginBottom: 100 }}>
             {t('about.outro.cta')}
           </a>
         </div>
