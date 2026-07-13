@@ -1,11 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 import { Seo } from '@/components/Seo';
+import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
+
+// ─────────────────────────────────────────────────────────────────────────
+//  /heroglyph — sales page. REDESIGN 2026-07-13 (Matej): "heroglyph is your
+//  ticket into DOGYPT" — plain papyrus card, BLACK line-art heroglyph on
+//  papyrus, price, 3 benefit tiles, CTA. Copy = EN-first HARDCODED (i18n
+//  fan-out only after copy lock — matches Entry.tsx pattern).
+//
+//  Per-symbol meaning tooltips (MEANINGS below) stay on the existing i18n
+//  keys — those are already translated in all 18 locales and independent
+//  from this page's new hardcoded copy.
+// ─────────────────────────────────────────────────────────────────────────
 
 // label/value sú i18n KĽÚČE (module-level const nemôže volať t()); preklad pri renderi.
 type SymbolMeaning = { label: string; value: string };
@@ -30,72 +40,21 @@ const MEANINGS: Record<string, SymbolMeaning> = {
 const SYMBOL_IDS = Object.keys(MEANINGS);
 const SVG_URL = '/heroglyph/hektor-horizontal.svg';
 
-// Pills keep rotating (marquee), but hover/tap tooltip is switched off for now.
-// Flip to `true` to re-enable pill tooltips — gates handlers in renderPill() +
-// tooltip bubble rendering below. Does NOT affect the heroglyph symbol tooltip
-// (MEANINGS / attachInteractivity) — that stays independent.
-const PILL_TOOLTIPS_ENABLED = false;
-
 const ART_W = 3165;
 const ART_H = 825;
 const SIDE_PAD = 60;
 const TOP_PAD = 60;
 const BOTTOM_PAD = 60;
 
-type PillData = { icon: string; label: string; tooltip: string; tooltipSub?: string };
-
-// label/tooltip/tooltipSub sú i18n KĽÚČE (module-level const nemôže volať t());
-// pred odovzdaním do PillMarquee / setPillTooltip sa preložia cez t() v komponente.
-const PILLS_ROW_1: PillData[] = [
-  {
-    icon: '/icons/heroglyph-page/clipboard.svg',
-    label: 'heroglyph.intro.pill.questions.label',
-    tooltip: 'heroglyph.intro.pill.questions.tooltip',
-  },
-  {
-    icon: '/icons/heroglyph-page/sandclock.svg',
-    label: 'heroglyph.intro.pill.minutes.label',
-    tooltip: 'heroglyph.intro.pill.minutes.tooltip',
-  },
-  {
-    icon: '/icons/heroglyph-page/scarab.svg',
-    label: 'heroglyph.intro.pill.forever.label',
-    tooltip: 'heroglyph.intro.pill.forever.tooltip',
-  },
+// 3 benefit tiles — what the heroglyph unlocks. White cards, icon + title,
+// unified Egypt-ink blue accent (v5A 2026-07-13). On hover (PC) / tap (mobile)
+// a bubble reveals a preview mockup + one-line note. Copy = DRAFT (copy lock TBD).
+// title/note sú i18n KĽÚČE (module-level const nemôže volať t()); preklad pri renderi. id = stabilný React key + alt.
+const BLOCKS: { id: string; icon: string; title: string; preview: string; note: string; accent: string; brd: string }[] = [
+  { id: 'cert',    icon: '/icons/heroglyph-page/poster-blue.svg',      title: 'heroglyph.sales.card.cert.title',    preview: '/images/heroglyph-preview/hover-cert.png',    note: 'heroglyph.sales.card.cert.note',    accent: '#2E5FD0', brd: 'rgba(46,95,208,0.35)' },
+  { id: 'wall',    icon: '/icons/heroglyph-page/wall-grid-blue.svg',   title: 'heroglyph.sales.card.wall.title',    preview: '/images/heroglyph-preview/hover-wall.png',    note: 'heroglyph.sales.card.wall.note',    accent: '#2E5FD0', brd: 'rgba(46,95,208,0.35)' },
+  { id: 'profile', icon: '/icons/heroglyph-page/profile-home-blue.svg', title: 'heroglyph.sales.card.profile.title', preview: '/images/heroglyph-preview/hover-profile.png', note: 'heroglyph.sales.card.profile.note', accent: '#2E5FD0', brd: 'rgba(46,95,208,0.35)' },
 ];
-
-const PILLS_ROW_2: PillData[] = [
-  {
-    icon: '/icons/heroglyph-page/star.svg',
-    label: 'heroglyph.intro.pill.unique.label',
-    tooltip: 'heroglyph.intro.pill.unique.tooltip',
-  },
-  {
-    icon: '/icons/heroglyph-page/ankh.svg',
-    label: 'heroglyph.intro.pill.vow.label',
-    tooltip: 'heroglyph.intro.pill.vow.tooltip',
-  },
-  {
-    icon: '/icons/heroglyph-page/heartpaw.svg',
-    label: 'heroglyph.intro.pill.bond.label',
-    tooltip: 'heroglyph.intro.pill.bond.tooltip',
-  },
-  {
-    icon: '/icons/heroglyph-page/eye.svg',
-    label: 'heroglyph.intro.pill.payment.label',
-    tooltip: 'heroglyph.intro.pill.payment.tooltip',
-  },
-];
-
-// Preloží PillData kľúče → text (volá sa v komponente, kde je dostupné t()).
-function translatePills(pills: PillData[], t: (k: string) => string): PillData[] {
-  return pills.map((p) => ({
-    ...p,
-    label: t(p.label),
-    tooltip: t(p.tooltip),
-    tooltipSub: p.tooltipSub ? t(p.tooltipSub) : undefined,
-  }));
-}
 
 export default function Heroglyph() {
   const navigate = useNavigate();
@@ -104,12 +63,12 @@ export default function Heroglyph() {
   const [svgMarkup, setSvgMarkup] = useState<string>('');
   const [tooltipSymbol, setTooltipSymbol] = useState<string | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [pillTooltip, setPillTooltip] = useState<PillData | null>(null);
-  const [pillTooltipPos, setPillTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState<boolean>(
     typeof window !== 'undefined' ? window.innerWidth < 640 : false,
   );
-  const [defOpen, setDefOpen] = useState<boolean>(false);
+  const [flipped, setFlipped] = useState(false);
+  const [openBenefit, setOpenBenefit] = useState<number | null>(null); // mobil tap-to-reveal benefit bublinu
+  const [activeSplit, setActiveSplit] = useState<number | null>(null); // transparency pipeline — hover/tap odhalí vysvetlenie
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 640);
@@ -142,8 +101,6 @@ export default function Heroglyph() {
 
     const ns = 'http://www.w3.org/2000/svg';
 
-    // Heroglyph fill = flat metallic gold (matches PNG canonical look)
-
     // Cartouche-wide click/hover pads (Dog + Owner whole frames)
     const dogPad = document.createElementNS(ns, 'rect');
     dogPad.setAttribute('x', '24');
@@ -172,8 +129,12 @@ export default function Heroglyph() {
     const handlers: Array<{ el: Element; type: string; fn: EventListener }> = [];
     const clickPads: Element[] = [];
 
+    // Reassigned nižšie pri setupe attract pulzu; prvý dotyk symbolu ho navždy vypne.
+    let stopAttract = () => {};
+
     const attachInteractivity = (el: Element, id: string) => {
       const enter = (e: Event) => {
+        stopAttract();
         const ev = e as MouseEvent;
         setTooltipSymbol(id);
         setTooltipPos({ x: ev.clientX, y: ev.clientY });
@@ -184,6 +145,7 @@ export default function Heroglyph() {
       };
       const leave = () => setTooltipSymbol(null);
       const tap = (e: Event) => {
+        stopAttract();
         e.stopPropagation();
         const touch = (e as TouchEvent).touches?.[0];
         if (touch) {
@@ -232,7 +194,39 @@ export default function Heroglyph() {
       } catch { /* skip */ }
     });
 
+    // ── Ambient "attract" pulz — náhodne rozsvieti symbol na gold (pomaly, jemne),
+    //    aby oko šlo myšou na heroglyf. Prvý dotyk KTORÉHOKOĽVEK symbolu (enter/tap)
+    //    ho navždy vypne → ostane len hover-vysvietenie ako doteraz. ──────────────
+    let attractStartDelay: number | undefined;
+    let attractTimer: number | undefined;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const zones = Array.from(svg.querySelectorAll('.hero-zone')) as SVGElement[];
+    if (!reduceMotion && zones.length) {
+      root.classList.add('hg-attracting');
+      const pulseOne = () => {
+        const el = zones[Math.floor(Math.random() * zones.length)];
+        if (!el || el.classList.contains('hg-attract')) return;
+        el.classList.add('hg-attract');
+        window.setTimeout(() => el.classList.remove('hg-attract'), 1200);
+      };
+      attractStartDelay = window.setTimeout(() => {
+        pulseOne();
+        attractTimer = window.setInterval(pulseOne, 1100);
+      }, 1000);
+      stopAttract = () => {
+        if (attractStartDelay) window.clearTimeout(attractStartDelay);
+        if (attractTimer) window.clearInterval(attractTimer);
+        attractStartDelay = undefined;
+        attractTimer = undefined;
+        root.classList.remove('hg-attracting');
+        zones.forEach((z) => z.classList.remove('hg-attract'));
+        stopAttract = () => {};
+      };
+    }
+
     return () => {
+      if (attractStartDelay) window.clearTimeout(attractStartDelay);
+      if (attractTimer) window.clearInterval(attractTimer);
       handlers.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
       clickPads.forEach((p) => p.remove());
       dogPad.remove();
@@ -257,11 +251,14 @@ export default function Heroglyph() {
   }, []);
 
   const meaning = tooltipSymbol ? MEANINGS[tooltipSymbol] : null;
-  const pillsRow1 = translatePills(PILLS_ROW_1, t);
-  const pillsRow2 = translatePills(PILLS_ROW_2, t);
+
+  const enterFlow = () => {
+    track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
+    navigate('/heroglyph/intro');
+  };
 
   return (
-    <div className="dark-bg flex flex-col min-h-[100dvh] relative">
+    <div className="hg-page dark-bg flex flex-col min-h-[100dvh] relative">
       <Seo
         path="/heroglyph"
         type="product"
@@ -290,20 +287,387 @@ export default function Heroglyph() {
         }}
       />
       <style>{`
+        /* Pozadie ODVIAZANÉ od obsahu — fixed na viewport, žiadne rescale
+           pri rozbalení papyrusovej karty (bg-dark.webp inak preškáluje
+           s výškou .dark-bg). Scoped LEN na /heroglyph. */
+        .hg-page.dark-bg::before { position: fixed; }
+
+        /* ── Papyrusová karta (parita s /entry .religion-section/.religion-card) ── */
+        .hg-section {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+          padding: 14px 18px 20px;
+        }
+        .hg-card {
+          position: relative;
+          width: 100%;
+          max-width: 620px;
+          background: linear-gradient(160deg, #FBF5E6 0%, #F3E4C4 55%, #EAD6A6 100%);
+          border: 1.5px solid #C99A3F;
+          border-radius: 16px;
+          box-shadow:
+            0 14px 44px rgba(0,0,0,0.55),
+            0 0 0 4px rgba(201,154,63,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.5);
+          padding: clamp(18px, 3.5vw, 24px) clamp(16px, 4.5vw, 32px);
+        }
+
+        /* ── WHY €11? reveal (v5C 2026-07-13): 3D flip ZRUŠENÝ (nevyzeral pekne) —
+           namiesto neho fade-in overlay cez kartu, rovnaký princíp odhalenia
+           ako info reveal vo flow (HeroglyphRevealScreen) a v /pack. ── */
+        .hg-flip {
+          width: 100%;
+          display: flex;
+          justify-content: center;
+        }
+        .hg-flip-inner {
+          position: relative;
+          width: 100%;
+          max-width: 620px;
+        }
+        /* Zadná strana = absolútny overlay cez front, fade + jemný scale-in.
+           z-index: 10 > front .hg-why (z-index 5), inak by front WHY pill
+           presvital cez overlay (je pozicovaný nad z-index:auto súrodencom). */
+        .hg-card.back {
+          position: absolute;
+          inset: 0;
+          z-index: 10;
+          opacity: 0;
+          visibility: hidden;
+          transform: scale(0.985);
+          pointer-events: none;
+          transition: opacity 0.32s ease, transform 0.32s ease, visibility 0.32s;
+        }
+        .hg-card.back.is-open {
+          opacity: 1;
+          visibility: visible;
+          transform: scale(1);
+          pointer-events: auto;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hg-card.back { transition: opacity 0.15s ease, visibility 0.15s; transform: none; }
+          .hg-card.back.is-open { transform: none; }
+        }
+
+        /* "Why €11?" / "← Back" — top-right corner button */
+        .hg-why {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          z-index: 5;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.62rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: #8a6420;
+          border: 1.5px solid rgba(201,154,63,0.75);
+          background: transparent;
+          border-radius: 999px;
+          padding: 5px 12px;
+          cursor: pointer;
+          transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .hg-why:hover {
+          background: rgba(201,154,63,0.1);
+          border-color: rgba(201,154,63,1);
+        }
+        /* Narrow mobile — eyebrow row would run under the WHY €11? pill; give it
+           breathing room on the right so text stays clear of the button. */
+        @media (max-width: 639px) {
+          .hg-card .religion-eyebrow { padding-right: 66px; }
+        }
+        /* Back face — "100% TRANSPARENCY" pipeline (v5D 2026-07-13) */
+        .hg-back-title {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(1.3rem, 5vw, 1.6rem);
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          color: #2a1608;
+          margin: 0;
+        }
+        .hg-your11-pill {
+          display: inline-block;
+          margin: 8px auto 0;
+          padding: 4px 14px;
+          background: linear-gradient(135deg, #F5C73D 0%, #D9A227 100%);
+          border-radius: 999px;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.7rem;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #2a1608;
+          box-shadow: 0 2px 8px rgba(160,116,35,0.35), inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        /* Vertikálna pipeline — bubliny spojené linkou */
+        .hg-pipeline {
+          position: relative;
+          width: 100%;
+          max-width: 360px;
+          margin: 18px auto 0;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .hg-pipe-row {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          width: 100%;
+          padding: 8px 12px;
+          background: rgba(255,255,255,0.55);
+          border: 1px solid rgba(201,154,63,0.4);
+          border-radius: 12px;
+          cursor: pointer;
+          font-family: inherit;
+          text-align: left;
+          transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .hg-pipe-bubble {
+          flex-shrink: 0;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: var(--pc);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.86rem;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.3);
+          transition: transform 0.18s ease;
+        }
+        .hg-pipe-label {
+          flex: 1;
+          font-family: 'Cinzel', serif;
+          font-size: 0.9rem;
+          color: #2a1608;
+        }
+        .hg-pipe-caret {
+          color: var(--pc);
+          font-weight: 700;
+          font-size: 1rem;
+          opacity: 0.6;
+        }
+        /* Plávajúca bublina s vysvetlením (parita s /entry .crit-pop) — absolútna,
+           0 posunu layoutu → obsah ostáva centrovaný. Default hore, .dir-down nadol. */
+        .hg-pipe-pop {
+          position: absolute;
+          bottom: calc(100% + 9px);
+          left: 50%;
+          width: min(320px, 82vw);
+          z-index: 30;
+          background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
+          border: 1.5px solid #C99A3F;
+          border-left: 3px solid var(--pc);
+          border-radius: 12px;
+          padding: 10px 13px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.7rem;
+          line-height: 1.45;
+          color: #5c3e10;
+          text-align: left;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transform: translateX(-50%) translateY(4px);
+          transition: opacity 140ms ease, transform 140ms ease, visibility 140ms;
+        }
+        .hg-pipe-pop::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 7px solid transparent;
+          border-top-color: #C99A3F;
+        }
+        /* 1. blok → bublina nadol (inak prekryje pill/nadpis) */
+        .hg-pipe-pop.dir-down {
+          bottom: auto;
+          top: calc(100% + 9px);
+          transform: translateX(-50%) translateY(-4px);
+        }
+        .hg-pipe-pop.dir-down::after {
+          top: auto;
+          bottom: 100%;
+          border-top-color: transparent;
+          border-bottom-color: #C99A3F;
+        }
+        /* Reveal — PC = hover, mobil = tap (is-active gated na hover:none, aby klik
+           na desktope bublinu „nelepil"). */
+        @media (hover: hover) {
+          .hg-pipe-row:hover {
+            z-index: 40; /* vyzdvihni nad súrodencov → bublina (najmä dir-down) nespadne za ďalší blok */
+            background: color-mix(in srgb, var(--pc) 12%, #fff);
+            border-color: var(--pc);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+          }
+          .hg-pipe-row:hover .hg-pipe-bubble { transform: scale(1.08); }
+          .hg-pipe-row:hover .hg-pipe-pop {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        @media (hover: none) {
+          .hg-pipe-row.is-active {
+            z-index: 40;
+            background: color-mix(in srgb, var(--pc) 12%, #fff);
+            border-color: var(--pc);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+          }
+          .hg-pipe-row.is-active .hg-pipe-bubble { transform: scale(1.08); }
+          .hg-pipe-row.is-active .hg-pipe-pop {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hg-pipe-pop { transition: opacity 140ms ease, visibility 140ms; transform: translateX(-50%); }
+          .hg-pipe-pop.dir-down { transform: translateX(-50%); }
+        }
+        .hg-pipe-footer {
+          margin: 14px auto 0;
+          max-width: 380px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.72rem;
+          font-style: italic;
+          line-height: 1.4;
+          color: #9c6f1f;
+          text-align: center;
+        }
+
+        /* "What you get" pill — binds the 3 benefit blocks below via dashed
+           connector (v5A 2026-07-13). €11 moved off the front of the card. */
+        .hg-what-pill {
+          display: inline-block;
+          margin: 8px auto 0;
+          padding: 6px 18px;
+          background: #2E5FD0;
+          border-radius: 999px;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.72rem;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: #FFFFFF;
+          box-shadow: 0 2px 8px rgba(46,95,208,0.35);
+        }
+
+        /* Dashed connector — pill → 3 benefit blocks (vejárovito). Scales with
+           the grid width via viewBox 0 0 300 30 (matches the 3-col grid). */
+        .hg-connector {
+          display: block;
+          width: 100%;
+          max-width: 100%;
+          height: 20px;
+          margin-top: 0;
+          overflow: visible;
+        }
+        .hg-connector path {
+          fill: none;
+          stroke: #2E5FD0;
+          stroke-width: 1.2;
+          stroke-dasharray: 4 4;
+          stroke-linecap: round;
+          opacity: 0.6;
+          vector-effect: non-scaling-stroke;
+        }
+
+        /* Eyebrow / title / rule / sub — parity s /entry tokens */
+        .religion-eyebrow {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(0.62rem, 1.7vw, 0.72rem);
+          font-weight: 500;
+          letter-spacing: 0.26em;
+          text-transform: uppercase;
+          color: #C99A3F;
+          margin: 0 0 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        .eyebrow-icon {
+          width: 15px;
+          height: 15px;
+          flex-shrink: 0;
+          transform: rotate(-12deg);
+          opacity: 0.92;
+        }
+        .religion-title {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(1.6rem, 6vw, 2.15rem);
+          letter-spacing: 0.03em;
+          text-transform: uppercase;
+          text-align: center;
+          color: #2a1608;
+          margin: 0;
+          line-height: 1.15;
+        }
+        .hg-caption {
+          font-family: 'Space Grotesk', sans-serif;
+          font-style: italic;
+          font-size: clamp(0.46rem, 1.5vw, 0.56rem);
+          letter-spacing: 0;
+          color: #9c6f1f;
+          text-align: center;
+          margin: 8px auto 0;
+          max-width: 360px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          line-height: 1.35;
+        }
+        @media (min-width: 640px) {
+          .hg-caption { max-width: 340px; }
+        }
+        .religion-rule {
+          width: 54px;
+          height: 2px;
+          margin: 7px auto 4px;
+          background: linear-gradient(90deg, transparent, #C99A3F, transparent);
+          border: none;
+        }
+        .religion-sub {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+          color: #7a5a2a;
+          text-align: center;
+          line-height: 1.5;
+          margin: 8px auto 4px;
+          max-width: 100%;
+        }
+
+        /* Heroglyph SVG — plain BLACK line-art directly on papyrus (NO glow,
+           NO dark relic panel — removed 2026-07-13 per brand: "black, not
+           neon, on a pale block"). */
         .heroglyph-svg-wrap {
           /* Reserve box height BEFORE the SVG fetch resolves — viewBox becomes
              (ART_W + 2*SIDE_PAD) x (ART_H + TOP_PAD + BOTTOM_PAD) = 3285 x 945.
              Without this the wrap has 0 height until injected, causing a layout
-             "pop"/jump once fetch(SVG_URL) resolves. Width stays 100% of the
-             parent (clamped by inline maxWidth: 342 mobile / 320 desktop). */
+             "pop"/jump once fetch(SVG_URL) resolves. */
           width: 100%;
+          max-width: 360px;
+          margin: 10px auto 0;
           aspect-ratio: 3285 / 945;
           position: relative;
-          filter:
-            drop-shadow(0 0 18px rgba(255, 215, 110, 0.95))
-            drop-shadow(0 0 42px rgba(201, 154, 63, 0.70))
-            drop-shadow(0 0 90px rgba(201, 154, 63, 0.35));
-          animation: heroglyph-aura-pulse 3.2s ease-in-out infinite;
+        }
+        @media (min-width: 640px) {
+          .heroglyph-svg-wrap { max-width: 340px; }
         }
         .heroglyph-svg-wrap-inner {
           opacity: 0;
@@ -320,24 +684,9 @@ export default function Heroglyph() {
           justify-content: center;
           text-align: center;
           padding: 0 16px;
-          color: rgba(201,154,63,0.6);
-        }
-        @keyframes heroglyph-aura-pulse {
-          0%, 100% {
-            filter:
-              drop-shadow(0 0 18px rgba(255, 215, 110, 0.90))
-              drop-shadow(0 0 42px rgba(201, 154, 63, 0.65))
-              drop-shadow(0 0 90px rgba(201, 154, 63, 0.30));
-          }
-          50% {
-            filter:
-              drop-shadow(0 0 24px rgba(255, 230, 140, 1))
-              drop-shadow(0 0 56px rgba(216, 130, 31, 0.80))
-              drop-shadow(0 0 120px rgba(216, 130, 31, 0.40));
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .heroglyph-svg-wrap { animation: none; }
+          color: rgba(122,90,42,0.6);
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.85rem;
         }
         .heroglyph-svg-wrap svg {
           width: 100%;
@@ -346,8 +695,8 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap svg path,
         .heroglyph-svg-wrap svg rect:not([id="Artboard1"]):not(.hero-click-pad):not(.cartouche-pad) {
-          fill: #FFD566 !important;
-          stroke: #FFD566 !important;
+          fill: #1a0a05 !important;
+          stroke: #1a0a05 !important;
         }
         .heroglyph-svg-wrap .hero-click-pad,
         .heroglyph-svg-wrap .cartouche-pad {
@@ -356,197 +705,200 @@ export default function Heroglyph() {
         }
         .heroglyph-svg-wrap .hero-zone {
           cursor: pointer;
-          fill: #FFD566 !important;
-          stroke: #FFD566 !important;
-          filter: drop-shadow(0 0 3px rgba(255,250,235,0.95)) drop-shadow(0 0 8px rgba(255,228,170,0.6));
-          transition: filter 0.2s ease, transform 0.2s ease, fill 0.2s ease;
+          fill: #1a0a05 !important;
+          stroke: #1a0a05 !important;
+          transition: fill 0.2s ease, stroke 0.2s ease, transform 0.2s ease;
           transform-box: fill-box;
           transform-origin: center;
-          animation: hero-pulse 2.6s ease-in-out infinite;
         }
         .heroglyph-svg-wrap .hero-zone:hover {
-          fill: #FFF4C2 !important;
-          stroke: #FFF4C2 !important;
-          filter: drop-shadow(0 0 4px #FFFFFF) drop-shadow(0 0 12px rgba(255,235,160,1));
-          transform: scale(1.08);
+          fill: #C99A3F !important;
+          stroke: #C99A3F !important;
+          transform: scale(1.06);
+        }
+        /* Attract pulz — počas attract módu majú symboly pomalý prechod farby,
+           JS toggluje .hg-attract (gold) na náhodných. Transitions bijú aj !important
+           (vyššie v kaskáde než !important deklarácie), takže farba plynie ink↔gold. */
+        .heroglyph-svg-wrap.hg-attracting .hero-zone,
+        .heroglyph-svg-wrap.hg-attracting .hero-zone path,
+        .heroglyph-svg-wrap.hg-attracting .hero-zone rect {
+          transition: fill 1.1s ease-in-out, stroke 1.1s ease-in-out, transform 0.2s ease;
+        }
+        .heroglyph-svg-wrap .hero-zone.hg-attract,
+        .heroglyph-svg-wrap .hero-zone.hg-attract path,
+        .heroglyph-svg-wrap .hero-zone.hg-attract rect {
+          fill: #C99A3F !important;
+          stroke: #C99A3F !important;
         }
         .heroglyph-svg-wrap .cartouche-pad:hover {
           cursor: pointer;
-        }
-        @keyframes hero-pulse {
-          0%, 100% { filter: drop-shadow(0 0 2px rgba(255,250,235,0.8)) drop-shadow(0 0 6px rgba(255,245,220,0.55)); }
-          50%      { filter: drop-shadow(0 0 4px rgba(255,253,240,1)) drop-shadow(0 0 11px rgba(255,248,225,0.85)); }
         }
         @keyframes tooltip-fade-in {
           0%   { opacity: 0; transform: translateY(4px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        /* Dictionary block: 2 columns on ALL viewports — mobile auto-sized, desktop fixed ratio */
-        .dict-block {
-          grid-template-columns: minmax(auto, max-content) minmax(0, 1fr);
-        }
-        .dict-block .dict-right {
-          padding-left: clamp(10px, 2.2vw, 22px);
-          border-left: 1px solid rgba(201,154,63,0.45);
-        }
-        @media (min-width: 640px) {
-          .dict-block {
-            grid-template-columns: minmax(0, 0.62fr) minmax(0, 1.38fr);
-          }
-        }
 
-        /* Pills marquee — moving track inside container, fade edges */
-        .pill-marquee {
+        /* 3 benefit tiles — white cards, per-tile colour accent, hover lift */
+        .hg-benefits {
+          margin-top: 8px;
           width: 100%;
-          max-width: 640px;
-          overflow: hidden;
-          mask-image: linear-gradient(to right, transparent 0, black 7%, black 93%, transparent 100%);
-          -webkit-mask-image: linear-gradient(to right, transparent 0, black 7%, black 93%, transparent 100%);
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          align-items: stretch;
+          gap: 12px;
         }
-        .pill-marquee-track {
-          display: inline-flex;
-          gap: 10px;
-          padding: 4px 0;
-          white-space: nowrap;
-          animation: pill-scroll-left 38s linear infinite;
-          will-change: transform;
+        .hg-benefit {
+          position: relative;
+          font-family: inherit;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+          gap: 6px;
+          min-width: 0;
+          background: #FFFFFF;
+          border: 1.5px solid;
+          border-radius: 12px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+          padding: 10px 8px;
+          transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
         }
-        .pill-marquee-track.reverse {
-          animation: pill-scroll-right 38s linear infinite;
-        }
-        .pill-marquee:hover .pill-marquee-track {
-          animation-play-state: paused;
-        }
-        /* On touch devices marquee never pauses — tap shows tooltip without stopping the scroll */
-        @media (hover: none) {
-          .pill-marquee:hover .pill-marquee-track,
-          .pill-marquee .pill-marquee-track {
-            animation-play-state: running;
-          }
-        }
-        @keyframes pill-scroll-left {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        @keyframes pill-scroll-right {
-          0%   { transform: translateX(-50%); }
-          100% { transform: translateX(0); }
+        .hg-benefit:hover,
+        .hg-benefit.is-active {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 24px rgba(0,0,0,0.16);
+          border-color: var(--accent);
         }
         @media (prefers-reduced-motion: reduce) {
-          .pill-marquee-track,
-          .pill-marquee-track.reverse {
-            animation: none;
-            transform: translateX(0);
-          }
+          .hg-benefit { transition: none; }
+          .hg-benefit:hover,
+          .hg-benefit.is-active { transform: none; }
         }
 
-        /* Outline pill — papyrus-cream border/text, 15% papyrus tint fill */
-        .pill-outline {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-family: 'Cinzel', serif;
-          font-size: clamp(0.58rem, 0.95vw, 0.7rem);
-          font-weight: 700;
-          letter-spacing: 0.18em;
-          text-transform: uppercase;
-          color: #FAF3E1;
-          background: rgba(250, 243, 225, 0.10);
-          border: 1px solid rgba(250, 243, 225, 0.55);
-          border-radius: 999px;
-          padding: 5px 12px;
-          white-space: nowrap;
-          cursor: pointer;
-          transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+        /* Hover/tap bublina — preview mockup + jednoriadkový popis. Absolútna nad kartou. */
+        .hg-benefit-pop {
+          position: absolute;
+          bottom: calc(100% + 10px);
+          left: 50%;
+          width: min(250px, 80vw);
+          z-index: 30;
+          display: block;
+          background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
+          border: 1.5px solid #C99A3F;
+          border-radius: 12px;
+          padding: 9px 9px 10px;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+          transform: translateX(-50%) translateY(4px);
+          transition: opacity 140ms ease, transform 140ms ease, visibility 140ms;
+        }
+        /* Vyššia špecificita (.hg-benefit …) + max-height:none — inak globálne
+           pravidlo .dark-bg button img (max-height 3rem, krátke obrazovky)
+           oreže preview na 48px, keďže tile je button. */
+        .hg-benefit .hg-benefit-pop-img {
+          display: block;
+          width: 100%;
+          height: 132px;
+          max-height: none;
+          object-fit: cover;    /* zdroj 800×600 (4:3) ≈ box → žiadna deformácia, minim. crop */
+          border-radius: 7px;
+          margin-bottom: 7px;
+        }
+        .hg-benefit-pop-note {
+          display: block;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.72rem;
+          font-weight: 500;
+          line-height: 1.3;
+          color: #5c3e10;
+          text-align: center;
+        }
+        .hg-benefit-pop::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          border: 7px solid transparent;
+          border-top-color: #C99A3F;
+        }
+        /* PC = LEN hover (klik nič nelepí). Dotyk = tap toggle (is-active).
+           is-active reveal gated na hover:none — inak by klik na desktope
+           bublinu „prilepil" a ostala otvorená aj po odsune kurzora. */
+        @media (hover: hover) {
+          .hg-benefit:hover .hg-benefit-pop {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        @media (hover: none) {
+          .hg-benefit.is-active .hg-benefit-pop {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hg-benefit-pop { transition: none; transform: translateX(-50%); }
+        }
+        .hg-benefit-icon {
+          width: clamp(32px, 10vw, 40px);
+          height: clamp(32px, 10vw, 40px);
+          object-fit: contain;
           flex-shrink: 0;
         }
-        .pill-outline:hover {
-          color: #FFFCF1;
-          border-color: rgba(250, 243, 225, 0.95);
-          background: rgba(250, 243, 225, 0.20);
-          transform: translateY(-1px);
-          box-shadow: 0 0 0 3px rgba(250, 243, 225, 0.08);
-        }
-        .pill-outline-icon {
-          width: 13px;
-          height: 13px;
-          object-fit: contain;
-          /* Black SVG → papyrus cream (#FAF3E1) */
-          filter: brightness(0) saturate(100%) invert(96%) sepia(7%)
-                  saturate(382%) hue-rotate(355deg) brightness(101%) contrast(96%);
-          opacity: 0.85;
-          transition: opacity 0.18s ease;
-        }
-        .pill-outline:hover .pill-outline-icon {
-          opacity: 1;
+        .hg-benefit-title {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(0.74rem, 2.4vw, 0.9rem);
+          line-height: 1.2;
         }
 
-        /* CTA — replicates /grid .join-btn */
-        .heroglyph-cta {
-          margin-top: 24px;
-          padding: 14px 38px;
-          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
-          border: 1px solid rgba(250, 244, 236, 0.40);
-          border-radius: 8px;
+        /* CTA — parita s /entry .entry-cta (flow tlačidlo) */
+        .entry-cta {
+          margin-top: 14px;
+          width: auto;
+          max-width: 340px;
+          padding: 13px 28px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
+          border: none;
+          border-radius: 12px;
           color: #000;
           font-family: 'Cinzel', serif;
-          font-size: 0.98rem;
-          font-weight: 900;
-          letter-spacing: 0.14em;
+          font-size: 0.95rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           cursor: pointer;
-          white-space: nowrap;
-          box-shadow:
-            0 0 24px rgba(255, 200, 90, 0.65),
-            0 0 60px rgba(230, 158, 26, 0.50),
-            0 0 110px rgba(230, 158, 26, 0.28),
-            inset 0 1px 0 rgba(255, 255, 255, 0.45);
-          text-shadow: 0 1px 0 rgba(255, 240, 200, 0.45);
-          transition: transform 0.2s, box-shadow 0.25s, opacity 0.22s;
-          animation: heroglyphCtaPulse 3.2s ease-in-out infinite;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35);
+          transition: transform 0.2s;
         }
-        .heroglyph-cta:hover {
-          transform: scale(1.05);
-          box-shadow:
-            0 0 36px rgba(255, 215, 110, 0.85),
-            0 0 90px rgba(230, 158, 26, 0.70),
-            0 0 150px rgba(230, 158, 26, 0.40),
-            inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        .cta-feather {
+          width: 16px;
+          height: 16px;
+          flex-shrink: 0;
+          transform: rotate(-12deg);
+          filter: brightness(0); /* zlaté SVG → čierne, sadne na čierny CTA text */
         }
-        .heroglyph-cta:active { transform: scale(0.98); }
-        @keyframes heroglyphCtaPulse {
-          0%, 100% {
-            box-shadow:
-              0 0 24px rgba(255, 200, 90, 0.55),
-              0 0 60px rgba(230, 158, 26, 0.42),
-              0 0 110px rgba(230, 158, 26, 0.22),
-              inset 0 1px 0 rgba(255, 255, 255, 0.45);
-          }
-          50% {
-            box-shadow:
-              0 0 34px rgba(255, 215, 110, 0.85),
-              0 0 84px rgba(230, 158, 26, 0.62),
-              0 0 140px rgba(230, 158, 26, 0.38),
-              inset 0 1px 0 rgba(255, 255, 255, 0.55);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .heroglyph-cta { animation: none; }
-        }
-        /* Mobile compact CTA — width matches the heroglyph (SVG max-width 342px),
-           reduced padding so it's a tidy block, wraps if text is tight. */
+        .entry-cta:hover { transform: scale(1.02); }
+        .entry-cta:active { transform: scale(0.98); }
+        /* Mobile compact CTA — width matches the heroglyph (SVG max-width 360px) */
         @media (max-width: 639px) {
-          .heroglyph-cta {
-            margin-top: 18px;
-            padding: 13px 18px;
-            font-size: 0.9rem;
-            letter-spacing: 0.12em;
+          .entry-cta {
+            margin-top: 20px;
             width: 100%;
-            max-width: 342px;
-            min-width: 0;
+            max-width: 360px;
             box-sizing: border-box;
-            white-space: normal;
-            line-height: 1.25;
           }
         }
       `}</style>
@@ -554,437 +906,168 @@ export default function Heroglyph() {
       <PageTopBar withNav />
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 pt-6 pb-6 md:pt-8 md:pb-8 relative" style={{ zIndex: 2 }}>
-        <div className="w-full max-w-3xl flex flex-col items-center text-center">
+        <section className="hg-section">
+        <div className="hg-flip">
+        <div className="hg-flip-inner">
 
-          {/* HERO TITLE — Mobile: "THE / SYMBOL" stacked (big gold) + "THAT CHANGES HISTORY" subline (Vision-style, weight 500, uppercase, single row).
-              Desktop: "THE SYMBOL THAT / CHANGES HISTORY" (locked). */}
-          {isMobile ? (
-            <>
-              <h1
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(3rem, 14vw, 4.6rem)',
-                  letterSpacing: '0.04em',
-                  lineHeight: 0.95,
-                  margin: 0,
-                  textTransform: 'uppercase',
-                }}
-              >
-                <span
-                  style={{
-                    background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
-                  }}
-                >
-                  {t('heroglyph.intro.title.line1')}
-                  {t('heroglyph.intro.title.line2') && (
-                    <>
-                      <br />
-                      {t('heroglyph.intro.title.line2')}
-                    </>
-                  )}
-                </span>
-              </h1>
-              <p
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontStyle: 'italic',
-                  fontWeight: 500,
-                  fontSize: 'clamp(1.05rem, 4.4vw, 1.45rem)',
-                  letterSpacing: '0.04em',
-                  color: 'rgba(250,244,236,0.92)',
-                  textTransform: 'none',
-                  margin: '12px 0 0',
-                  lineHeight: 1.1,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t('heroglyph.intro.title.sub')}
-              </p>
-            </>
-          ) : (
-            <>
-              <h1
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontWeight: 700,
-                  fontSize: 'clamp(2.1rem, 4.6vw, 2.8rem)',
-                  letterSpacing: '0.04em',
-                  lineHeight: 1.06,
-                  margin: 0,
-                  textTransform: 'uppercase',
-                }}
-              >
-                <span
-                  style={{
-                    background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    filter: 'drop-shadow(0 0 24px rgba(245,199,61,0.45)) drop-shadow(0 0 8px rgba(230,158,26,0.55))',
-                  }}
-                >
-                  {t('heroglyph.intro.title.desktop')}
-                </span>
-              </h1>
-              <p
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontStyle: 'italic',
-                  fontWeight: 400,
-                  fontSize: 'clamp(1rem, 1.9vw, 1.3rem)',
-                  letterSpacing: '0.04em',
-                  color: '#FAF4EC',
-                  textTransform: 'none',
-                  margin: 'clamp(4px, 0.6vw, 8px) 0 0',
-                  lineHeight: 1.1,
-                }}
-              >
-                {t('heroglyph.intro.title.sub')}
-              </p>
-            </>
-          )}
+        <div className="hg-card hg-face front flex flex-col items-center text-center" style={{ pointerEvents: flipped ? 'none' : 'auto' }}>
 
-          {isMobile ? (
-            <>
-              {/* MOBILE: SVG first (−10% size), then clickable label, IPA, accordion definition */}
-              <div
-                ref={svgWrapRef}
-                className="heroglyph-svg-wrap"
-                style={{
-                  maxWidth: 342,
-                  marginTop: 14,
-                }}
-              >
-                <div
-                  className={`heroglyph-svg-wrap-inner${svgMarkup ? ' is-loaded' : ''}`}
-                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
-                />
-                {!svgMarkup && (
-                  <div className="heroglyph-svg-wrap-loading">
-                    {t('heroglyph.intro.loading')}
-                  </div>
-                )}
+          <button
+            type="button"
+            className="hg-why"
+            onClick={(e) => { e.stopPropagation(); setFlipped(true); }}
+          >
+            Why €11?
+          </button>
+
+          <p className="religion-eyebrow">
+            <img src="/icons/heroglyph-page/ticket-gold.svg" alt="" className="eyebrow-icon" style={{ transform: 'none' }} />
+            Your ticket to DOGYPT
+          </p>
+          <h1 className="religion-title">Heroglyph</h1>
+          <hr className="religion-rule" />
+          <p className="religion-sub">
+            A unique symbol describing you and your dog — your eternal bond.
+          </p>
+
+          <div ref={svgWrapRef} className="heroglyph-svg-wrap">
+            <div
+              className={`heroglyph-svg-wrap-inner${svgMarkup ? ' is-loaded' : ''}`}
+              dangerouslySetInnerHTML={{ __html: svgMarkup }}
+            />
+            {!svgMarkup && (
+              <div className="heroglyph-svg-wrap-loading">
+                Loading your heroglyph…
               </div>
+            )}
+          </div>
 
-              {/* Symbol meaning bubble — inline pod heroglyph SVG (in-flow, posúva obsah nadol).
-                  Mobile only. Desktop ostáva cursor-follow nižšie v JSX. */}
-              {meaning && (
-                <div
-                  style={{
-                    marginTop: 14,
-                    width: '100%',
-                    maxWidth: 320,
-                    textAlign: 'center',
-                    background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
-                    border: '1.5px solid #C99A3F',
-                    borderRadius: 10,
-                    padding: '10px 16px',
-                    boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
-                    fontFamily: "'Cinzel', serif",
-                    color: '#1a0a05',
-                    animation: 'tooltip-fade-in 160ms ease',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '0.62rem',
-                      letterSpacing: '0.24em',
-                      textTransform: 'uppercase',
-                      color: '#9c6f1f',
-                      fontWeight: 700,
-                      marginBottom: 3,
-                    }}
-                  >
-                    {t(meaning.label)}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: '0.98rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.02em',
-                      lineHeight: 1.15,
-                    }}
-                  >
-                    {t(meaning.value)}
-                  </div>
-                </div>
-              )}
-
-              {/* Heroglyph word — clickable, chevron + dashed underline hint */}
-              <button
-                type="button"
-                onClick={() => setDefOpen((o) => !o)}
-                aria-expanded={defOpen}
-                aria-controls="heroglyph-def"
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  padding: 0,
-                  cursor: 'pointer',
-                  marginTop: 14,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  WebkitTapHighlightColor: 'transparent',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontWeight: 600,
-                    fontSize: '1.2rem',
-                    letterSpacing: '0.02em',
-                    lineHeight: 1.05,
-                    color: 'rgba(250,244,236,0.92)',
-                    borderBottom: '1px dashed rgba(250,244,236,0.45)',
-                    paddingBottom: 2,
-                  }}
-                >
-                  {t('heroglyph.intro.word')}
-                </span>
-                <ChevronDown
-                  size={16}
-                  color="rgba(250,244,236,0.85)"
-                  strokeWidth={2.2}
-                  style={{
-                    transition: 'transform 280ms ease',
-                    transform: defOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                  }}
-                />
-              </button>
-
-              {/* IPA + noun */}
+          {/* Symbol meaning bubble — inline pod heroglyph SVG (in-flow, posúva obsah nadol).
+              Mobile only. Desktop ostáva cursor-follow nižšie v JSX. */}
+          {meaning && isMobile && (
+            <div
+              style={{
+                marginTop: 14,
+                width: '100%',
+                maxWidth: 320,
+                textAlign: 'center',
+                background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
+                border: '1.5px solid #C99A3F',
+                borderRadius: 10,
+                padding: '10px 16px',
+                boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
+                fontFamily: "'Cinzel', serif",
+                color: '#1a0a05',
+                animation: 'tooltip-fade-in 160ms ease',
+              }}
+            >
               <div
                 style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: '0.8rem',
-                  color: 'rgba(250,244,236,0.78)',
-                  marginTop: 6,
-                  fontStyle: 'italic',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                {t('heroglyph.intro.ipa')}{' '}
-                <span style={{ fontWeight: 700, fontStyle: 'normal' }}>{t('heroglyph.intro.noun')}</span>
-              </div>
-
-              {/* Accordion: definition expands on click */}
-              <div
-                id="heroglyph-def"
-                style={{
-                  display: 'grid',
-                  gridTemplateRows: defOpen ? '1fr' : '0fr',
-                  transition: 'grid-template-rows 320ms ease, margin-top 320ms ease',
-                  width: '100%',
-                  maxWidth: 460,
-                  marginTop: defOpen ? 14 : 0,
-                }}
-              >
-                <div style={{ overflow: 'hidden' }}>
-                  <p
-                    style={{
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      fontSize: '0.92rem',
-                      fontWeight: 400,
-                      color: '#FAF4EC',
-                      lineHeight: 1.5,
-                      letterSpacing: '0.005em',
-                      margin: 0,
-                      padding: '12px 14px',
-                      background: 'rgba(250,244,236,0.04)',
-                      border: '1px solid rgba(245,199,61,0.22)',
-                      borderRadius: 8,
-                      textAlign: 'left',
-                    }}
-                  >
-                    {t('heroglyph.intro.definition')}
-                  </p>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {/* DESKTOP: original dict-block (2-col) above SVG (LOCKED) */}
-              <div
-                className="dict-block"
-                style={{
-                  marginTop: 18,
-                  width: '100%',
-                  maxWidth: 640,
-                  display: 'grid',
-                  alignItems: 'center',
-                  gap: 'clamp(14px, 3vw, 28px)',
-                  textAlign: 'left',
-                  paddingLeft: 'clamp(8px, 2vw, 16px)',
-                  paddingRight: 'clamp(8px, 2vw, 16px)',
-                }}
-              >
-                <div className="dict-left">
-                  <div
-                    onMouseEnter={(e) => {
-                      setPillTooltip({
-                        icon: '',
-                        label: t('heroglyph.intro.word'),
-                        tooltip: t('heroglyph.intro.wordTooltip'),
-                        tooltipSub: t('heroglyph.intro.wordTooltipSub'),
-                      });
-                      setPillTooltipPos({ x: e.clientX, y: e.clientY });
-                    }}
-                    onMouseMove={(e) => setPillTooltipPos({ x: e.clientX, y: e.clientY })}
-                    onMouseLeave={() => setPillTooltip(null)}
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      fontWeight: 700,
-                      fontSize: 'clamp(1.45rem, 3vw, 1.95rem)',
-                      letterSpacing: 0,
-                      lineHeight: 1.05,
-                      margin: 0,
-                      whiteSpace: 'nowrap',
-                      cursor: 'help',
-                      display: 'inline-block',
-                      background: 'linear-gradient(135deg, #F5C73D 0%, #FFB840 35%, #E69E1A 65%, #F5C73D 100%)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      backgroundClip: 'text',
-                      filter: 'drop-shadow(0 0 16px rgba(245,199,61,0.4)) drop-shadow(0 0 5px rgba(230,158,26,0.5))',
-                    }}
-                  >
-                    {t('heroglyph.intro.word')}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "'Space Grotesk', sans-serif",
-                      fontSize: 'clamp(0.72rem, 1.2vw, 0.84rem)',
-                      color: 'rgba(250,244,236,0.78)',
-                      marginTop: 6,
-                      fontStyle: 'italic',
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    {t('heroglyph.intro.ipa')}{' '}
-                    <span style={{ fontWeight: 700, fontStyle: 'normal' }}>{t('heroglyph.intro.noun')}</span>
-                  </div>
-                </div>
-
-                <p
-                  className="dict-right"
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 'clamp(0.85rem, 1.3vw, 0.98rem)',
-                    fontWeight: 400,
-                    color: '#FAF4EC',
-                    lineHeight: 1.5,
-                    letterSpacing: '0.005em',
-                    margin: 0,
-                  }}
-                >
-                  {t('heroglyph.intro.definition')}
-                </p>
-              </div>
-
-              <div
-                ref={svgWrapRef}
-                className="heroglyph-svg-wrap"
-                style={{
-                  maxWidth: 320,
-                  marginTop: 18,
-                }}
-              >
-                <div
-                  className={`heroglyph-svg-wrap-inner${svgMarkup ? ' is-loaded' : ''}`}
-                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
-                />
-                {!svgMarkup && (
-                  <div className="heroglyph-svg-wrap-loading">
-                    {t('heroglyph.intro.loading')}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          {isMobile ? (
-            <>
-              {/* MOBILE order: CTA → outro → pills last (CTA above the fold) */}
-              <button
-                onClick={() => {
-                  track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
-                  navigate('/heroglyph/intro');
-                }}
-                className="heroglyph-cta"
-              >
-                {t('heroglyph.intro.cta')}
-              </button>
-              <div
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: '0.7rem',
-                  fontWeight: 500,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  color: 'rgba(250,244,236,0.5)',
-                  marginTop: 10,
-                  textAlign: 'center',
-                }}
-              >
-                {t('heroglyph.intro.outro')}
-              </div>
-              <PillMarquee
-                pills={[...pillsRow1, ...pillsRow2]}
-                reverse={false}
-                onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
-                onMove={(x, y) => setPillTooltipPos({ x, y })}
-                onLeave={() => setPillTooltip(null)}
-                onTap={(p, x, y) => {
-                  setPillTooltip((prev) => (prev?.label === p.label ? null : p));
-                  setPillTooltipPos({ x, y });
-                }}
-                marginTop={16}
-              />
-            </>
-          ) : (
-            <>
-              {/* DESKTOP order: pills (single row) → CTA → outro */}
-              <PillMarquee
-                pills={[...pillsRow1, ...pillsRow2]}
-                reverse={false}
-                onEnter={(p, x, y) => { setPillTooltip(p); setPillTooltipPos({ x, y }); }}
-                onMove={(x, y) => setPillTooltipPos({ x, y })}
-                onLeave={() => setPillTooltip(null)}
-                marginTop={20}
-              />
-              <button
-                onClick={() => {
-                  track('cta_become_dogyptian_click', { location: 'heroglyph_sales' });
-                  navigate('/heroglyph/intro');
-                }}
-                className="heroglyph-cta"
-              >
-                {t('heroglyph.intro.cta')}
-              </button>
-              <div
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 'clamp(0.7rem, 1.15vw, 0.8rem)',
-                  fontWeight: 500,
+                  fontSize: '0.62rem',
                   letterSpacing: '0.24em',
                   textTransform: 'uppercase',
-                  color: 'rgba(250,244,236,0.5)',
-                  marginTop: 14,
-                  textAlign: 'center',
+                  color: '#9c6f1f',
+                  fontWeight: 700,
+                  marginBottom: 3,
                 }}
               >
-                {t('heroglyph.intro.outro')}
+                {t(meaning.label)}
               </div>
-            </>
+              <div
+                style={{
+                  fontSize: '0.98rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  lineHeight: 1.15,
+                }}
+              >
+                {t(meaning.value)}
+              </div>
+            </div>
           )}
 
+          <span className="hg-what-pill">{t('heroglyph.sales.pricePill')}</span>
+
+          <svg className="hg-connector" viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M150 0 V8" />
+            <path d="M50 16 H250" />
+            <path d="M50 16 V30" />
+            <path d="M150 8 V30" />
+            <path d="M250 16 V30" />
+          </svg>
+
+          <div className="hg-benefits">
+            {BLOCKS.map((b, i) => (
+              <button
+                key={b.id}
+                type="button"
+                className={`hg-benefit${openBenefit === i ? ' is-active' : ''}`}
+                style={{ borderColor: b.brd, ['--accent' as string]: b.accent }}
+                aria-pressed={openBenefit === i}
+                onClick={() => setOpenBenefit((o) => (o === i ? null : i))}
+              >
+                <img src={b.icon} alt="" className="hg-benefit-icon" />
+                <div className="hg-benefit-title" style={{ color: b.accent }}>{t(b.title)}</div>
+                {/* Vždy v DOM (skryté) → hover na PC (hover:hover), tap (is-active) na mobile.
+                    Absolútna bublina = 0 posunu layoutu. Obrázok + jednoriadkový popis. */}
+                <span className="hg-benefit-pop" role="tooltip">
+                  <img src={b.preview} alt={t(b.title)} className="hg-benefit-pop-img" loading="lazy" />
+                  <span className="hg-benefit-pop-note">{t(b.note)}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <button onClick={enterFlow} className="entry-cta">
+            Create heroglyph
+          </button>
+
         </div>
+
+        <div className={`hg-card hg-face back flex flex-col items-center justify-center text-center${flipped ? ' is-open' : ''}`}>
+
+          <button
+            type="button"
+            className="hg-why"
+            onClick={(e) => { e.stopPropagation(); setFlipped(false); setActiveSplit(null); }}
+          >
+            ← Back
+          </button>
+
+          <h2 className="hg-back-title">100% Transparency</h2>
+          <span className="hg-your11-pill">Your symbolic tribute — €11</span>
+
+          {/* Pipeline — bublina so sumou; vysvetlenie sa rozbalí PRIAMO POD blokom
+              (accordion grid 0fr→1fr): PC = hover, mobil = tap (is-active gated na
+              hover:none). Dáta+copy = kanonický TRANSPARENCY_SPLIT + i18n (ako /payment). */}
+          <div className="hg-pipeline">
+            {TRANSPARENCY_SPLIT.map((s, i) => (
+              <button
+                key={s.labelKey}
+                type="button"
+                className={`hg-pipe-row${activeSplit === i ? ' is-active' : ''}`}
+                style={{ ['--pc' as string]: s.color }}
+                onClick={() => setActiveSplit((a) => (a === i ? null : i))}
+              >
+                <span className="hg-pipe-bubble">€{s.share}</span>
+                <span className="hg-pipe-label">{t(s.labelKey)}</span>
+                <span className="hg-pipe-caret" aria-hidden>›</span>
+                {/* Plávajúca bublina (parita s /entry .crit-pop) — 0 posunu layoutu.
+                    Odchýlka pre 1. blok: otvor NADOL (dir-down), inak prekryje pill. */}
+                <span className={`hg-pipe-pop${i === 0 ? ' dir-down' : ''}`} role="tooltip">
+                  {t(s.noteKey)}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          <p className="hg-pipe-footer">Every euro stays in the open, for every member to see. You don't pay a company — you feed the pack.</p>
+
+        </div>
+
+        </div>
+        </div>
+        </section>
       </div>
 
       {/* Symbol meaning tooltip — desktop only (cursor-follow, viewport-clamped).
@@ -1033,202 +1116,6 @@ export default function Heroglyph() {
           </div>
         </div>
       )}
-
-      {/* Pill tooltip — mobile: bottom-center bubble + tap-outside close; desktop: cursor-follow.
-          Mobile bubble is ONLY ever fed by pills (renderPill above), so it's fully gated by the flag. */}
-      {PILL_TOOLTIPS_ENABLED && pillTooltip && isMobile && (
-        <>
-          {/* invisible backdrop for tap-outside dismiss */}
-          <div
-            onClick={() => setPillTooltip(null)}
-            onTouchStart={() => setPillTooltip(null)}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 99,
-              background: 'transparent',
-            }}
-          />
-          <div
-            style={{
-              position: 'fixed',
-              left: '50%',
-              bottom: 18,
-              transform: 'translateX(-50%)',
-              zIndex: 100,
-              pointerEvents: 'none',
-              background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
-              border: '1.5px solid #C99A3F',
-              borderRadius: 10,
-              padding: '10px 16px',
-              boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
-              color: '#1a0a05',
-              minWidth: 180,
-              maxWidth: '85vw',
-              textAlign: 'center',
-              animation: 'tooltip-fade-in 160ms ease',
-            }}
-          >
-            {pillTooltip.tooltipSub ? (
-              <>
-                <div
-                  style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: '0.9rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    lineHeight: 1.25,
-                    color: '#1a0a05',
-                  }}
-                >
-                  {pillTooltip.tooltip}
-                </div>
-                <div
-                  style={{
-                    fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: '0.78rem',
-                    fontWeight: 400,
-                    letterSpacing: '0.005em',
-                    lineHeight: 1.4,
-                    marginTop: 4,
-                    color: '#5c3e10',
-                  }}
-                >
-                  {pillTooltip.tooltipSub}
-                </div>
-              </>
-            ) : (
-              <div
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: '0.88rem',
-                  fontWeight: 400,
-                  letterSpacing: '0.005em',
-                  lineHeight: 1.4,
-                }}
-              >
-                {pillTooltip.tooltip}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-      {/* Desktop bubble is shared with the "heroglyph.intro.word" hover tooltip
-          (dict-left, sets pillTooltip with icon: '') — that one must keep working
-          even when pill tooltips are off, so gate only actual pills (icon set). */}
-      {pillTooltip && !isMobile && (PILL_TOOLTIPS_ENABLED || pillTooltip.icon === '') && (
-        <div
-          style={{
-            position: 'fixed',
-            left: pillTooltipPos.x + 14,
-            top: pillTooltipPos.y + 14,
-            zIndex: 100,
-            pointerEvents: 'none',
-            background: 'linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%)',
-            border: '1.5px solid #C99A3F',
-            borderRadius: 10,
-            padding: '8px 14px',
-            boxShadow: '0 6px 24px rgba(0,0,0,0.55), 0 0 0 3px rgba(201,154,63,0.18)',
-            color: '#1a0a05',
-            minWidth: 180,
-            maxWidth: 300,
-            animation: 'tooltip-fade-in 160ms ease',
-          }}
-        >
-          {pillTooltip.tooltipSub ? (
-            <>
-              <div
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontSize: '0.86rem',
-                  fontWeight: 700,
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  lineHeight: 1.25,
-                  color: '#1a0a05',
-                }}
-              >
-                {pillTooltip.tooltip}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: '0.74rem',
-                  fontWeight: 400,
-                  letterSpacing: '0.005em',
-                  lineHeight: 1.4,
-                  marginTop: 4,
-                  color: '#5c3e10',
-                }}
-              >
-                {pillTooltip.tooltipSub}
-              </div>
-            </>
-          ) : (
-            <div
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: '0.86rem',
-                fontWeight: 400,
-                letterSpacing: '0.005em',
-                lineHeight: 1.4,
-              }}
-            >
-              {pillTooltip.tooltip}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Marquee row of outline pills — duplicated content for seamless loop,
-// fade-mask on container edges (NOT page edges), pause on hover.
-function PillMarquee({
-  pills,
-  reverse,
-  onEnter,
-  onMove,
-  onLeave,
-  onTap,
-  marginTop,
-}: {
-  pills: PillData[];
-  reverse: boolean;
-  onEnter: (p: PillData, x: number, y: number) => void;
-  onMove: (x: number, y: number) => void;
-  onLeave: () => void;
-  onTap?: (p: PillData, x: number, y: number) => void;
-  marginTop: number;
-}) {
-  const renderPill = (p: PillData, key: string) => (
-    <div
-      key={key}
-      className="pill-outline"
-      style={{ cursor: PILL_TOOLTIPS_ENABLED ? 'pointer' : 'default' }}
-      onMouseEnter={PILL_TOOLTIPS_ENABLED ? (e) => onEnter(p, e.clientX, e.clientY) : undefined}
-      onMouseMove={PILL_TOOLTIPS_ENABLED ? (e) => onMove(e.clientX, e.clientY) : undefined}
-      onMouseLeave={PILL_TOOLTIPS_ENABLED ? onLeave : undefined}
-      onTouchStart={PILL_TOOLTIPS_ENABLED ? (e) => {
-        const t = e.touches[0];
-        if (!t) return;
-        if (onTap) onTap(p, t.clientX, t.clientY);
-        else onEnter(p, t.clientX, t.clientY);
-      } : undefined}
-    >
-      <img src={p.icon} alt="" className="pill-outline-icon" />
-      {p.label}
-    </div>
-  );
-
-  return (
-    <div className="pill-marquee" style={{ marginTop }}>
-      <div className={`pill-marquee-track${reverse ? ' reverse' : ''}`}>
-        {pills.map((p, i) => renderPill(p, `a-${i}`))}
-        {pills.map((p, i) => renderPill(p, `b-${i}`))}
-      </div>
     </div>
   );
 }

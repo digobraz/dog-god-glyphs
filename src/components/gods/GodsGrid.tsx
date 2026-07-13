@@ -568,14 +568,14 @@ export function GodsGrid() {
       el.innerHTML = `
         <img src="/images/dogypt-gold-logo.webp" alt="DOGYPT" class="hero-logo-icon" fetchpriority="high">
         <p class="hero-tagline">${tRef.current('wall.hero.taglineLead')}<br><span class="gold">${tRef.current('wall.hero.taglineGod')}</span></p>
-        <a href="/heroglyph" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>
+        <a href="/entry" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>
         <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${tRef.current('wall.hero.total')}</span><span class="hero-count-dogs">${tRef.current('wall.hero.dogs')}</span></span>
       `;
       const btn = el.querySelector('[data-join]');
       btn?.addEventListener('click', (e) => {
-        e.preventDefault();  // keep SPA nav; href="/heroglyph" exists purely so Googlebot can crawl to it
+        e.preventDefault();  // keep SPA nav; href="/entry" exists purely so Googlebot can crawl to it
         track('cta_become_dogyptian_click', { location: 'wall' });
-        navigate('/heroglyph');
+        navigate('/entry');
       });
       return el;
     }
@@ -594,6 +594,7 @@ export function GodsGrid() {
           </div>
           <img class="card-open-heroglyph" src="/images/hekthor-heroglyph.webp" alt="HEKTHOR heroglyph" draggable="false">
           <div class="card-open-msg">${tRef.current('wall.hektor.msg')}</div>
+          <a class="card-open-dogpage-link" href="${dogPagePath('Hekthor', 1)}">${tRef.current('wall.dogPage')}</a>
         </div>
         <div class="card-rank-top">#1</div>
         <img class="card-flag" src="${flagUrl('sk')}" alt="Slovakia" title="Slovakia" loading="lazy" draggable="false">

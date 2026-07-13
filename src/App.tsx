@@ -89,6 +89,8 @@ const Vision = lazy(() => import("./pages/Vision.tsx"));
 const BetaVision = lazy(() => import("./pages/BetaVision.tsx"));
 const Religion = lazy(() => import("./pages/Religion.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
+const Entry = lazy(() => import("./pages/Entry.tsx"));
+// Heroglyph sales page — REVÍZIA 2026-07-13: vraciame do flow /entry → /heroglyph → /heroglyph/intro (redizajn).
 const Heroglyph = lazy(() => import("./pages/Heroglyph.tsx"));
 const CertRender = lazy(() => import("./pages/CertRender.tsx"));
 const InvoiceRender = lazy(() => import("./pages/InvoiceRender.tsx"));
@@ -141,7 +143,11 @@ const App = () => (
               <Route path="/grid" element={<GodsGrid />} />
               <Route path="/spiral" element={<SpiralLanding />} />
 
-              {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok) */}
+              {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
+              <Route path="/entry" element={<Entry />} />
+
+              {/* Heroglyph flow — prefix /heroglyph/<step> (14 krokov + nepočítaný intro predkrok).
+                  /heroglyph sales page retirovaná → redirect na /entry (pokryje všetky staré CTA/inbound linky). */}
               <Route path="/heroglyph" element={<Heroglyph />} />
               <Route path="/heroglyph/intro" element={<IntroScreen />} />
               <Route path="/heroglyph/name" element={<NameScreen />} />
