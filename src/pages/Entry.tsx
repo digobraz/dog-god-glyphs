@@ -134,7 +134,7 @@ export default function Entry() {
 
   const enterFlow = () => {
     track('cta_become_dogyptian_click', { location: 'entry' });
-    navigate('/heroglyph/intro');
+    navigate('/heroglyph');
   };
 
   const renderTile = (c: Criterion, i: number) => {
@@ -227,7 +227,7 @@ export default function Entry() {
             0 14px 44px rgba(0,0,0,0.55),
             0 0 0 4px rgba(201,154,63,0.12),
             inset 0 1px 0 rgba(255,255,255,0.5);
-          padding: clamp(22px, 5vw, 36px) clamp(16px, 4.5vw, 32px);
+          padding: clamp(14px, 3vw, 22px) clamp(16px, 4.5vw, 32px);
         }
         .religion-eyebrow {
           font-family: 'Space Grotesk', sans-serif;
@@ -278,7 +278,7 @@ export default function Entry() {
         }
         /* 2-stĺpcová mriežka dlaždíc (políčka) */
         .crit-grid {
-          margin-top: 12px;
+          margin-top: 8px;
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 8px;
@@ -290,7 +290,7 @@ export default function Entry() {
           gap: 9px;
           min-width: 0; /* dovolí grid dlaždici zmenšiť sa (inak min-width:auto → pretečie kartu) */
           text-align: left;
-          padding: 10px 12px;
+          padding: 8px 12px;
           background: rgba(201,154,63,0.06);
           border: 1px solid rgba(201,154,63,0.35);
           border-radius: 10px;
@@ -310,11 +310,11 @@ export default function Entry() {
 
         /* Dolný riadok — 2 NESPLNENÉ = väčšie, plná šírka, červeno-oranžové ohraničenie */
         .crit-blocks {
-          margin-top: 10px;
+          margin-top: 8px;
           grid-template-columns: 1fr;
           gap: 8px;
         }
-        .crit-blocks .crit-tile { padding: 15px 14px; border-width: 2px; border-style: solid; }
+        .crit-blocks .crit-tile { padding: 11px 14px; border-width: 2px; border-style: solid; }
         /* Offerings (payment) = ZELENÝ blok */
         .crit-tile.is-open-slot {
           border-color: #2E9E5B;
@@ -491,8 +491,8 @@ export default function Entry() {
         @media (hover: hover) { .crit-sheet { display: none; } }
         /* Signed pečať + CTA — vedľa seba (desktop), pod seba (mobile) */
         .entry-cta-wrap {
-          margin-top: 16px;
-          padding-top: 14px;
+          margin-top: 10px;
+          padding-top: 12px;
           border-top: 1px solid rgba(201,154,63,0.3);
           display: flex;
           align-items: center;
@@ -580,7 +580,7 @@ export default function Entry() {
 
       <PageTopBar withNav />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-2 py-4 relative" style={{ zIndex: 2 }}>
+      <div className="flex-1 flex flex-col items-center justify-center px-2 py-2 relative" style={{ zIndex: 2 }}>
         {/* ── Declaration + checklist — jeden blok, bez scrollingu ──────── */}
         <section className="religion-section" style={{ position: 'relative', zIndex: 2 }}>
           <div className="religion-card">
