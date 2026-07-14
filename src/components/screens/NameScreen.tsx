@@ -10,6 +10,7 @@ import hekthorImg from '@/assets/hekthor.png';
 import { DateDropdowns } from '@/components/DateDropdowns';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
+import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
 import { countryFlag } from '@/lib/countryGeo';
 
 // Android keyboards (Gboard/Samsung) ignore autoCorrect/autoComplete="off" and may
@@ -63,6 +64,8 @@ interface NameModalProps {
 }
 
 function NameModal({ open, value, placeholder, title, doneLabel, closeLabel, rootRef, inputRef, onChange, onDone, onClose }: NameModalProps) {
+  // Block Android auto-correct word swaps (BELGA → BELGICKO) at the source.
+  useBlockAutocorrect(inputRef);
   // Track the visual viewport so the card stays centered above the soft keyboard.
   const [vp, setVp] = useState<{ top: number; height: number }>({ top: 0, height: 0 });
   useEffect(() => {
@@ -230,6 +233,9 @@ export function NameScreen() {
   const [nameModalOpen, setNameModalOpen] = useState(false);
   const nameModalRef = useRef<HTMLDivElement>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  // Desktop inline input — block Android (tablet/Chromebook) auto-correct swaps too.
+  const desktopInputRef = useRef<HTMLInputElement>(null);
+  useBlockAutocorrect(desktopInputRef);
 
   // iOS opens the soft keyboard only when focus() runs synchronously inside the
   // tap gesture on an already-mounted input. So we reveal the (always-mounted)
@@ -434,6 +440,7 @@ export function NameScreen() {
                 </button>
               ) : (
                 <input
+                  ref={desktopInputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value.toUpperCase().slice(0, 30))}
                   onKeyDown={(e) => { if (e.key === 'Enter' && canContinue) handleSend(); }}

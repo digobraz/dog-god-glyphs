@@ -12,6 +12,7 @@ import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
 import { useT } from '@/i18n/LanguageContext';
 import { useFlowKeyboardFix } from '@/hooks/useFlowKeyboardFix';
 import { useFlowGuard } from '@/hooks/useFlowGuard';
+import { useBlockAutocorrect } from '@/hooks/useBlockAutocorrect';
 
 // Android keyboards (Gboard/Samsung) can silently swap a typed word for a predicted
 // one and ignore autoCorrect="off". On Android only we surface the exact captured
@@ -72,6 +73,8 @@ interface OwnerNameModalProps {
 }
 
 function OwnerNameModal({ open, value, placeholder, title, doneLabel, closeLabel, rootRef, inputRef, onChange, onDone, onClose }: OwnerNameModalProps) {
+  // Block Android auto-correct word swaps (same fix as the dog-name field).
+  useBlockAutocorrect(inputRef);
   const [vp, setVp] = useState<{ top: number; height: number }>({ top: 0, height: 0 });
   useEffect(() => {
     const v = window.visualViewport;
