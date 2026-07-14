@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { PageTopBar } from "@/components/PageTopBar";
-import dogSilhouette from "@/assets/patroni/l05-dobermann.svg";
+import dogSilhouette from "@/assets/patroni/l11-hekthor.svg";
 
 // ── /404 — "Hekthor's Run" ──────────────────────────────────────────────
 // A page ran off-leash. Set on a big papyrus block: giant 404, one line of
@@ -81,17 +81,56 @@ const NotFound = () => {
     const x = 92;
     const topY = feetY - h + bob;
     if (off) {
-      // silhouette faces left → flip horizontally so Hekthor runs into the hazards
-      ctx.save();
-      ctx.translate(x + w, topY);
-      ctx.scale(-1, 1);
-      ctx.drawImage(off, 0, 0, w, h);
-      ctx.restore();
+      // Hekthor silhouette drawn facing right, into the oncoming hazards
+      ctx.drawImage(off, x, topY, w, h);
     } else {
       ctx.fillStyle = INK;
       ctx.fillRect(x, topY + 20, w, h - 20);
     }
     return { x, y: topY, w, h };
+  };
+
+  // ── parallax background scenery — faded, slower than hazards ────────
+  const peak = (c: CanvasRenderingContext2D, x: number, by: number, w: number, h: number) => {
+    c.beginPath(); c.moveTo(x - w / 2, by); c.lineTo(x, by - h); c.lineTo(x + w / 2, by); c.closePath(); c.fill();
+  };
+  const hill = (c: CanvasRenderingContext2D, x: number, by: number, w: number, h: number) => {
+    c.beginPath(); c.moveTo(x - w / 2, by);
+    c.quadraticCurveTo(x - w * 0.22, by - h, x, by - h);
+    c.quadraticCurveTo(x + w * 0.22, by - h, x + w / 2, by); c.closePath(); c.fill();
+  };
+  const pine = (c: CanvasRenderingContext2D, x: number, by: number, h: number) => {
+    c.beginPath(); c.moveTo(x - h * 0.4, by); c.lineTo(x, by - h); c.lineTo(x + h * 0.4, by); c.closePath(); c.fill();
+  };
+  const roundTree = (c: CanvasRenderingContext2D, x: number, by: number, r: number) => {
+    c.fillRect(x - 1.5, by - r, 3, r);
+    c.beginPath(); c.arc(x, by - r - r * 0.55, r * 0.95, 0, Math.PI * 2); c.fill();
+  };
+  const house = (c: CanvasRenderingContext2D, x: number, by: number, w: number, h: number) => {
+    c.fillRect(x - w / 2, by - h, w, h);
+    c.beginPath(); c.moveTo(x - w / 2 - 3, by - h); c.lineTo(x, by - h - h * 0.55); c.lineTo(x + w / 2 + 3, by - h); c.closePath(); c.fill();
+  };
+
+  const drawScenery = (ctx: CanvasRenderingContext2D, frame: number, speed: number) => {
+    const gy = GROUND_Y + 1;
+    // FAR — mountains, very faint & slow
+    ctx.fillStyle = "rgba(122,96,54,0.09)";
+    const tA = 540, offA = (frame * speed * 0.12) % tA;
+    for (let bx = -offA - tA; bx < VW + tA; bx += tA) {
+      peak(ctx, bx + 120, gy, 210, 96); peak(ctx, bx + 330, gy, 168, 70); hill(ctx, bx + 470, gy, 250, 52);
+    }
+    // NEAR — forest + village + a pyramid, faint (slower than hazards so never read as one)
+    ctx.fillStyle = "rgba(96,72,36,0.13)";
+    const tB = 680, offB = (frame * speed * 0.26) % tB;
+    for (let bx = -offB - tB; bx < VW + tB; bx += tB) {
+      pine(ctx, bx + 28, gy, 40); pine(ctx, bx + 56, gy, 30); pine(ctx, bx + 80, gy, 34);
+      roundTree(ctx, bx + 142, gy, 15);
+      house(ctx, bx + 224, gy, 46, 30);
+      peak(ctx, bx + 330, gy, 128, 72);
+      roundTree(ctx, bx + 432, gy, 17);
+      house(ctx, bx + 512, gy, 38, 24);
+      pine(ctx, bx + 588, gy, 36); pine(ctx, bx + 612, gy, 28);
+    }
   };
 
   const drawTick = (ctx: CanvasRenderingContext2D, o: Obstacle) => {
@@ -241,6 +280,8 @@ const NotFound = () => {
     const w = world.current;
     ctx.clearRect(0, 0, VW, VH);
 
+    drawScenery(ctx, w.frame, w.speed);
+
     // ground: ink baseline + moving dashes
     ctx.strokeStyle = INK_SOFT; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(0, GROUND_Y + 1); ctx.lineTo(VW, GROUND_Y + 1); ctx.stroke();
@@ -312,7 +353,6 @@ const NotFound = () => {
 
       <main className="nf-main">
         <section className="nf-block">
-          <p className="nf-eyebrow">Error 404 · Page not found</p>
           <h1 className="nf-404">404</h1>
           <p className="nf-lead">This page ran off-leash.</p>
 
