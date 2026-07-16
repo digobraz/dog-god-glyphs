@@ -129,6 +129,8 @@ export function ShareCard({ packNumber, dogName, photoUrl, heroglyphUrl, onHerog
     <div
       id="share-card-root"
       data-testid="share-card-root"
+      translate="no"
+      className="notranslate"
       style={{
         position: 'relative',
         width: 1080,

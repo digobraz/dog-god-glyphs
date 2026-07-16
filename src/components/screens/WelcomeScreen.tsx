@@ -401,8 +401,12 @@ export function WelcomeScreen() {
       </div>
       </motion.div>
 
-      {/* Hidden PDF render targets — off-screen, rendered for html-to-image */}
-      <div aria-hidden="true" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
+      {/* Hidden PDF render targets — off-screen, rendered for html-to-image.
+          translate="no" + .notranslate are LOAD-BEARING, do not remove: these
+          nodes are captured from the BUYER's browser, so Chrome auto-translate
+          rewrites them before toPng sees them. It translates the dog's name too
+          — BELGA became BELGICKO ("Belgium") on share card #42, 2026-07-16. */}
+      <div aria-hidden="true" translate="no" className="notranslate" style={{ position: 'fixed', left: -10000, top: 0, pointerEvents: 'none', opacity: 1 }}>
         <div ref={certRef}>
           <CertificateCard
             dogName={dogName}
