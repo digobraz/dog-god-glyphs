@@ -5,11 +5,22 @@
  * Reopen: window event 'dogypt:open-consent' (volá Footer „Cookie settings").
  */
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
 import { getConsent, saveConsent, applyConsent, hasChoice } from '@/lib/consent';
 
+// Headless capture routes (generate-pdfs → Cloudflare Browser Rendering,
+// wall-healer → Playwright). Those browsers are fresh every run, so they never
+// have a stored choice and the banner renders over the artwork and gets PRINTED
+// INTO the output — Daniela's certificate PDF #42 shipped with the cookie bar
+// baked across the bottom (2026-07-16). No consent UI (and no analytics) has any
+// business on a route whose only job is to be photographed.
+const RENDER_ROUTES = ['/cert-render', '/invoice-render', '/share-render'];
+
 export function ConsentBanner() {
   const t = useT();
+  const { pathname } = useLocation();
+  const isRenderRoute = RENDER_ROUTES.some((r) => pathname.startsWith(r));
   const [visible, setVisible] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [analyticsOn, setAnalyticsOn] = useState(false);
@@ -18,6 +29,7 @@ export function ConsentBanner() {
   // Mount uloženej voľby — ak už existuje, aplikuj účinky (napr. Tier1 po reloade)
   // a banner sa nezobrazí. Guard proti double-apply cez applyConsent volaný raz.
   useEffect(() => {
+    if (isRenderRoute) return;
     const c = getConsent();
     if (c) {
       applyConsent(c);
@@ -25,7 +37,7 @@ export function ConsentBanner() {
     } else {
       setVisible(true);
     }
-  }, []);
+  }, [isRenderRoute]);
 
   // Reopen z Footer „Cookie settings" — znova zobraz banner v Settings režime.
   useEffect(() => {
@@ -40,7 +52,7 @@ export function ConsentBanner() {
     return () => window.removeEventListener('dogypt:open-consent', onOpen);
   }, []);
 
-  if (!visible) return null;
+  if (isRenderRoute || !visible) return null;
 
   const handleAcceptAll = () => {
     saveConsent({ analytics: true, marketing: true });

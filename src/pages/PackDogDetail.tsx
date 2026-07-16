@@ -526,6 +526,11 @@ export default function PackDogDetail() {
       setDog({ ...dog, cloudinary_main_url: result.secureUrl });
       useDogyptStore.getState().setDogPhotoUrl(result.secureUrl);
       toast({ title: t('pack.dog.toastPhotoUpdated'), description: t('pack.dog.toastPhotoUpdatedDesc') });
+      // The photo is baked into the certificate PDF and the share card, and /dog
+      // renders the share card as its image + og:image. Without this the swap
+      // would only change the avatar in /pack while the whole outside world kept
+      // seeing the old dog. generate-pdfs re-bakes both, server-side.
+      void handleRegenerate();
     } catch (err) {
       toast({
         title: t('pack.dog.toastUploadFailed'),
@@ -552,12 +557,15 @@ export default function PackDogDetail() {
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(json?.error || `HTTP ${res.status}`);
       const urls = json?.urls || {};
-      setDog({
-        ...dog,
-        pdf_cert_url: urls.cert ?? dog.pdf_cert_url,
-        pdf_vertical_url: urls.vertical ?? dog.pdf_vertical_url,
-        pdf_horizontal_url: urls.horizontal ?? dog.pdf_horizontal_url,
-      });
+      // Functional update: a photo swap calls this straight after its own
+      // setDog, so `dog` in this closure is still the pre-swap row — spreading
+      // it would put the old photo back on screen.
+      setDog((prev) => (prev ? {
+        ...prev,
+        pdf_cert_url: urls.cert ?? prev.pdf_cert_url,
+        pdf_vertical_url: urls.vertical ?? prev.pdf_vertical_url,
+        pdf_horizontal_url: urls.horizontal ?? prev.pdf_horizontal_url,
+      } : prev));
       toast({ title: t('pack.dog.toastCertReady'), description: t('pack.dog.toastCertReadyDesc') });
     } catch (err) {
       toast({
