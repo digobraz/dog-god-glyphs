@@ -63,6 +63,7 @@ import { PACK_THEME } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
+  ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
 } from '@/components/pack/tripShared';
 import {
   crowdAggregate, mockEventsSeed, FOUNDER_WALKERS,
@@ -86,6 +87,12 @@ const PANEL_W = 440; // .trp-sidebar width — used to offset the inline-detail 
 // journeys (multi-day) + hikes zdieľajú ten istý zoznam/mapu — journey je len HeroTrail
 // s navyše `journey` blokom, takže sa spracúva rovnako (path, region, acts, filter).
 const ALL_TRIPS_STATIC: HeroTrail[] = [...HERO_JOURNEYS, ...HERO_TRAILS];
+// Founder walked default (Matej 2026-07-24): všetky nahodené (čierne, non-journey) trasy sú prejdené
+// + z červených journeys len SNP a Poloniny. Zoznam sa raz seedne do walked setu (ensureWalkedSeeded).
+const DEFAULT_WALKED_IDS: string[] = [
+  ...HERO_TRAILS.map((t) => t.id),
+  ...FOUNDER_WALKED_JOURNEY_IDS.filter((id) => ALL_TRIPS_STATIC.some((t) => t.id === id)),
+];
 const ALL_BOUNDS: LatLngTuple[] = ALL_TRIPS_STATIC.flatMap((t) => t.path);
 const CENTER: LatLngTuple = ALL_BOUNDS[Math.floor(ALL_BOUNDS.length / 2)] ?? [48.7, 19.5];
 const ALL_REGIONS: string[] = Array.from(new Set(ALL_TRIPS_STATIC.map((t) => t.region))).sort();
@@ -670,7 +677,7 @@ export default function PackPortal() {
   // komponent (navigate na PackTripArticle), tak fav/walked musí prežiť mount/unmount v
   // rámci tej istej browser session (žiadna Supabase perzistencia, viď tripShared komentár).
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
-  const [walkedIds, setWalkedIds] = useState<Set<string>>(() => readWalkedIds());
+  const [walkedIds, setWalkedIds] = useState<Set<string>>(() => { ensureWalkedSeeded(DEFAULT_WALKED_IDS); return readWalkedIds(); });
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
   useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
 

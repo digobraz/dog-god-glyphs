@@ -264,7 +264,7 @@ export const COMMUNITY_CSS = `
 .comm-medal--off .comm-medal-ic--logo img{filter:grayscale(1) brightness(1.1);opacity:.5;}
 /* TANAP + Pieniny = biely kruh za logo (tmavý text robený pre biele pozadie → čitateľný v OBOCH
    stavoch). off = mierne stlmený svetlý disk, ale text stále vidno (žiadne opacity .3/.5 fade). */
-.comm-medal-ic--disc{background:#FBF9F4;border-radius:50%;padding:7px;}
+.comm-medal-ic--disc{background:#FBF9F4;border-radius:50%;padding:7px;box-shadow:0 0 0 1px rgba(0,0,0,0.12),0 2px 9px rgba(0,0,0,0.4);}
 .comm-medal-ic--disc img{filter:none;opacity:1;}
 .comm-medal--off .comm-medal-ic--disc{background:#D6D1C4;}
 .comm-medal--off .comm-medal-ic--disc img{filter:grayscale(.45);opacity:.92;}
@@ -1065,8 +1065,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               {SK_GEO_UNITS(c.key).map((u) => {
                 const earned = c.done.includes(u);
                 const logo = c.key === 'parks' ? NP_LOGO[u] : c.key === 'chko' ? CHKO_LOGO[u] : undefined;
-                // CHKO logá idú vždy na biely kruh (tmavý text); pri parkoch len TANAP + Pieniny.
-                const onDisc = c.key === 'chko' || NP_DISC.has(u);
+                // Biely kruh LEN keď prejdené (Matej 2026-07-24): neprejdené CHKO/park = len vybledne,
+                // bez krúžku. Earned CHKO + earned TANAP/Pieniny = biely disk (tmavý text čitateľný, vidno text okolo).
+                const onDisc = (c.key === 'chko' || NP_DISC.has(u)) && earned;
                 const logoCls = logo
                   ? `comm-medal-ic comm-medal-ic--logo${onDisc ? ' comm-medal-ic--disc' : ''}${NP_BIG.has(u) ? ' comm-medal-ic--big' : ''}`
                   : '';

@@ -19,7 +19,7 @@ import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS } from '@/components/pack/packTheme';
-import { readLocalTrails, readWalkedIds, ICON, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
 import { readPlans, MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl } from '@/lib/countryGeo';
@@ -194,6 +194,12 @@ export default function PackTriplist() {
   const id = usePackIdentity();
 
   const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
+  // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackPortal mapy).
+  useMemo(() => ensureWalkedSeeded([
+    ...HERO_TRAILS.map((t) => t.id),
+    ...FOUNDER_WALKED_JOURNEY_IDS.filter((id) => [...HERO_JOURNEYS, ...HERO_TRAILS].some((t) => t.id === id)),
+  ]), []);
   const nowMs = useMemo(() => Date.now(), []);
 
   // dva povrchy na jednej route — ?tab=stats otvorí TRIPSTATS, inak TRIPLIST (Matej 2026-07-23,

@@ -245,6 +245,15 @@ const RANGE_TO_CHKO: Record<string, string> = {
 const PEAK_KEYWORDS: Array<[string, string]> = [
   ['záruby', 'Záruby'], ['vápeč', 'Vápeč'], ['inovec', 'Inovec'], ['kľak', 'Kľak'],
 ];
+// Dominantný vrchol pohoria → získaš ho keď prejdeš to pohorie (hrebeň magistrály cez neho vedie).
+// Fallback k slabému name-matchingu, lebo žiadna trasa nemá vrchol v názve. Matej 2026-07-24:
+// „prešiel som velky krivan aj dumbier a vlastne všetko okrem gerlachu". Gerlachovský štít ZÁMERNE
+// chýba — dá sa len s horským vodcom, takže ostáva nezískaný kým naň nebude explicitný trip.
+const PEAK_RANGE: Record<string, string> = {
+  'Ďumbier': 'Nízke Tatry', 'Veľký Kriváň': 'Malá Fatra', 'Ostrá (V. Fatra)': 'Veľká Fatra',
+  'Záruby': 'Malé Karpaty', 'Vápeč': 'Strážovské vrchy', 'Inovec': 'Považský Inovec',
+  'Poľana (vrchol)': 'Poľana', 'Kľak': 'Malá Fatra',
+};
 const WATER_KEYWORDS: Array<[string, string]> = [
   ['sĺňava', 'Sĺňava'], ['slnava', 'Sĺňava'], ['priehrad', 'Ružín'], ['pleso', 'Štrbské pleso'], ['jazer', 'Ružín'],
 ];
@@ -253,7 +262,9 @@ const WATER_KEYWORDS: Array<[string, string]> = [
 // DRAFT mapa (bez polygónov pohorí — nahradiť point-in-polygon až budú PostGIS geo_pohorie).
 // Hodnoty MUSIA byť z 'ranges' units v SK_GEO (12 kurátorovaných). Kľúč = trail.id journey.
 const JOURNEY_RANGES: Record<string, string[]> = {
-  'snp-cesta-hrdinov': ['Malé Karpaty', 'Považský Inovec', 'Strážovské vrchy', 'Malá Fatra', 'Veľká Fatra', 'Nízke Tatry', 'Slovenské rudohorie', 'Volovské vrchy'],
+  // Overené 2026-07-24 proti Wikipédii + reálnej OSM stope: SNP ide cez Biele Karpaty (0,1 km),
+  // NIE cez Považský Inovec (29 km preč — pôvodná chyba ručnej mapy). Geo-engine to prepočíta presne.
+  'snp-cesta-hrdinov': ['Malé Karpaty', 'Biele Karpaty', 'Strážovské vrchy', 'Malá Fatra', 'Kremnické vrchy', 'Veľká Fatra', 'Nízke Tatry', 'Slovenské rudohorie', 'Volovské vrchy'],
   'rudna-magistrala': ['Slovenské rudohorie', 'Volovské vrchy'],
   'tatranska-magistrala': ['Vysoké Tatry', 'Západné Tatry', 'Belianske Tatry'],
   'velkofatranska-magistrala': ['Veľká Fatra'],
@@ -296,8 +307,11 @@ export function unitsForTrail(trail: HeroTrail): Partial<Record<GeoCategory, str
   if (parkSet.size) out.parks = Array.from(parkSet);
   if (chkoSet.size) out.chko = Array.from(chkoSet);
   const name = trail.name.toLowerCase();
-  const peak = PEAK_KEYWORDS.find(([kw]) => name.includes(kw));
-  if (peak) out.peaks = [peak[1]];
+  // vrcholy = zbieraj VŠETKY (nie prvý): name-keyword + dominantný vrchol každého prejdeného pohoria
+  const peakSet = new Set<string>();
+  PEAK_KEYWORDS.forEach(([kw, p]) => { if (name.includes(kw)) peakSet.add(p); });
+  Object.entries(PEAK_RANGE).forEach(([peak, range]) => { if (rangeSet.has(range)) peakSet.add(peak); });
+  if (peakSet.size) out.peaks = Array.from(peakSet);
   const water = WATER_KEYWORDS.find(([kw]) => name.includes(kw));
   if (water) out.waters = [water[1]];
   return out;

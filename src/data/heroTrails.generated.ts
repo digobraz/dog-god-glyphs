@@ -387,7 +387,7 @@ export const HERO_TRAILS: HeroTrail[] = [
   },
   {
     "id": "male-karpaty-chtalnica-klenova",
-    "name": "Chtelnica-Klenová",
+    "name": "Chtalnica-Klenová",
     "region": "Malé Karpaty",
     "diff": "Easy",
     "km": "3.7",
@@ -1176,7 +1176,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Vysoká na steroidoch (tajné skaly)",
     "region": "Malé Karpaty",
     "diff": "Moderate",
-    "km": "7.1",
+    "km": "14.2",
     "stars": 5,
     "path": [
       [
@@ -3246,7 +3246,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Veľký Lopeník-rozhľadňa",
     "region": "Biele Karpaty",
     "diff": "Moderate",
-    "km": "2.2",
+    "km": "4.4",
     "stars": 5,
     "path": [
       [
@@ -3444,7 +3444,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Dračia studňa + Biely vrch",
     "region": "Biele Karpaty",
     "diff": "Hard",
-    "km": "8.0",
+    "km": "16.1",
     "stars": 5,
     "path": [
       [
@@ -4391,7 +4391,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Strážov",
     "region": "Strážovské vrchy",
     "diff": "Moderate",
-    "km": "3.2",
+    "km": "6.4",
     "stars": 5,
     "path": [
       [
@@ -5091,7 +5091,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Veľký Kriváň",
     "region": "Malá Fatra",
     "diff": "Hard",
-    "km": "4.0",
+    "km": "8.1",
     "stars": 5,
     "path": [
       [
@@ -5217,7 +5217,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Sokolie",
     "region": "Malá Fatra",
     "diff": "Moderate",
-    "km": "3.2",
+    "km": "6.4",
     "stars": 5,
     "path": [
       [
@@ -5314,7 +5314,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Kľak",
     "region": "Malá Fatra",
     "diff": "Moderate",
-    "km": "4.3",
+    "km": "8.5",
     "stars": 5,
     "path": [
       [
@@ -5669,6 +5669,1952 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "View",
       "Mountains"
+    ]
+  },
+  {
+    "id": "mala-fatra-mincol",
+    "name": "Minčol",
+    "region": "Malá Fatra",
+    "diff": "Moderate",
+    "km": "10.2",
+    "stars": 5,
+    "path": [
+      [
+        49.10227,
+        18.87983
+      ],
+      [
+        49.10252,
+        18.87498
+      ],
+      [
+        49.10274,
+        18.87232
+      ],
+      [
+        49.10715,
+        18.86966
+      ],
+      [
+        49.10634,
+        18.86674
+      ],
+      [
+        49.10713,
+        18.86271
+      ],
+      [
+        49.10676,
+        18.86014
+      ],
+      [
+        49.10968,
+        18.8549
+      ],
+      [
+        49.11269,
+        18.84542
+      ],
+      [
+        49.11494,
+        18.83559
+      ],
+      [
+        49.11564,
+        18.83293
+      ],
+      [
+        49.11783,
+        18.82984
+      ],
+      [
+        49.11912,
+        18.82829
+      ],
+      [
+        49.12397,
+        18.82739
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642085/trails/mala-fatra-mincol/1784642084324-dfdaac.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642086/trails/mala-fatra-mincol/1784642086551-5befc2.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642087/trails/mala-fatra-mincol/1784642087605-9c4fdf.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642089/trails/mala-fatra-mincol/1784642088887-efbe78.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642150/trails/mala-fatra-mincol/1784642149237-040bc9.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642152/trails/mala-fatra-mincol/1784642151745-84d957.jpg"
+    ],
+    "seasons": [],
+    "desc": "Výstup sa konal cez polmetra snehu v krátkom tričku, takže sme si moc prírodu neužili a nevideli pod nánosom bielej pokrývky ale výhľady aj atmosféra bola super určite by sme sa chceli vrátiť aj mimo zimy!",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Mountains",
+      "View",
+      "Forest"
+    ]
+  },
+  {
+    "id": "velka-fatra-ostredok",
+    "name": "Ostredok",
+    "region": "Veľká Fatra",
+    "diff": "Hard",
+    "km": "20.3",
+    "stars": 5,
+    "path": [
+      [
+        48.906,
+        19.16033
+      ],
+      [
+        48.90735,
+        19.1523
+      ],
+      [
+        48.9062,
+        19.14595
+      ],
+      [
+        48.90594,
+        19.13857
+      ],
+      [
+        48.90493,
+        19.13376
+      ],
+      [
+        48.90465,
+        19.12844
+      ],
+      [
+        48.90752,
+        19.122
+      ],
+      [
+        48.9097,
+        19.11407
+      ],
+      [
+        48.91494,
+        19.10771
+      ],
+      [
+        48.91692,
+        19.10986
+      ],
+      [
+        48.91906,
+        19.10797
+      ],
+      [
+        48.919,
+        19.10377
+      ],
+      [
+        48.92222,
+        19.10488
+      ],
+      [
+        48.92453,
+        19.10153
+      ],
+      [
+        48.92154,
+        19.09381
+      ],
+      [
+        48.91669,
+        19.09192
+      ],
+      [
+        48.90891,
+        19.08591
+      ],
+      [
+        48.90755,
+        19.08171
+      ],
+      [
+        48.90219,
+        19.07922
+      ],
+      [
+        48.89965,
+        19.08102
+      ],
+      [
+        48.89288,
+        19.0793
+      ],
+      [
+        48.88916,
+        19.08196
+      ],
+      [
+        48.87714,
+        19.07879
+      ],
+      [
+        48.87426,
+        19.08102
+      ],
+      [
+        48.87663,
+        19.09012
+      ],
+      [
+        48.87809,
+        19.08651
+      ],
+      [
+        48.88188,
+        19.09106
+      ],
+      [
+        48.88233,
+        19.10007
+      ],
+      [
+        48.88718,
+        19.11106
+      ],
+      [
+        48.88995,
+        19.1169
+      ],
+      [
+        48.88854,
+        19.12934
+      ],
+      [
+        48.89068,
+        19.14848
+      ],
+      [
+        48.89915,
+        19.1587
+      ],
+      [
+        48.90558,
+        19.16179
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642235/trails/velka-fatra-ostredok/1784642234851-bb5cdc.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642233/trails/velka-fatra-ostredok/1784642233162-87fd85.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642232/trails/velka-fatra-ostredok/1784642231081-057906.jpg"
+    ],
+    "seasons": [],
+    "desc": "Zo všetkých turistík, tu sme boli asi najbližšie k smrti. Išli sme po značenom chodníku ktorý bol zapadnutý v metre snehu zistili sme to keď sme zišli do doliny... zrazu nebola vidno značka... každý druhý nášľap = sa prepadnutie do metra, s nohami do potoka. Fakt masaker, nikdy nezabudnem ako sme to všetci prežili. Večerná vírivka potom padla vhod :))) nelozte tam ked je sneh a zima!!!  Inak kolosálne výhľady 10/10",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Mountains",
+      "View",
+      "Meadow",
+      "River"
+    ]
+  },
+  {
+    "id": "velka-fatra-tlsta-ostra",
+    "name": "Tlstá – Ostrá",
+    "region": "Veľká Fatra",
+    "diff": "Moderate",
+    "km": "11.7",
+    "stars": 5,
+    "path": [
+      [
+        48.93578,
+        18.93837
+      ],
+      [
+        48.93347,
+        18.94129
+      ],
+      [
+        48.93437,
+        18.94644
+      ],
+      [
+        48.93172,
+        18.95047
+      ],
+      [
+        48.92873,
+        18.95399
+      ],
+      [
+        48.92648,
+        18.95742
+      ],
+      [
+        48.92653,
+        18.96094
+      ],
+      [
+        48.92518,
+        18.97081
+      ],
+      [
+        48.92215,
+        18.97566
+      ],
+      [
+        48.92153,
+        18.9739
+      ],
+      [
+        48.92186,
+        18.9715
+      ],
+      [
+        48.92136,
+        18.96961
+      ],
+      [
+        48.92017,
+        18.96914
+      ],
+      [
+        48.92093,
+        18.97163
+      ],
+      [
+        48.92,
+        18.97137
+      ],
+      [
+        48.91876,
+        18.96657
+      ],
+      [
+        48.91761,
+        18.97262
+      ],
+      [
+        48.91975,
+        18.98034
+      ],
+      [
+        48.92409,
+        18.98296
+      ],
+      [
+        48.92745,
+        18.9842
+      ],
+      [
+        48.92984,
+        18.9833
+      ],
+      [
+        48.93137,
+        18.98317
+      ],
+      [
+        48.93216,
+        18.98098
+      ],
+      [
+        48.93233,
+        18.97626
+      ],
+      [
+        48.93337,
+        18.97352
+      ],
+      [
+        48.93385,
+        18.97146
+      ],
+      [
+        48.93533,
+        18.96858
+      ],
+      [
+        48.93939,
+        18.96807
+      ],
+      [
+        48.94035,
+        18.96051
+      ],
+      [
+        48.93905,
+        18.95708
+      ],
+      [
+        48.94102,
+        18.95322
+      ],
+      [
+        48.94145,
+        18.94884
+      ],
+      [
+        48.94401,
+        18.94704
+      ],
+      [
+        48.94226,
+        18.94352
+      ],
+      [
+        48.93905,
+        18.9394
+      ],
+      [
+        48.93606,
+        18.9382
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642302/trails/velka-fatra-tlsta-ostra/1784642301413-b6172d.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642304/trails/velka-fatra-tlsta-ostra/1784642303803-9dddee.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642305/trails/velka-fatra-tlsta-ostra/1784642305432-e8f2fb.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642307/trails/velka-fatra-tlsta-ostra/1784642306850-da5a0b.jpg"
+    ],
+    "seasons": [],
+    "desc": "Dychberúca turistika, škoda že na vrchole pršalo aj keď vrchol sme stihli v jaskyni - if you know what I mean :D Odporúčam! Je to fakt bomba.",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Mountains",
+      "Meadow",
+      "River",
+      "Forest",
+      "View"
+    ]
+  },
+  {
+    "id": "velka-fatra-gaderska-dolina",
+    "name": "Gaderská dolina",
+    "region": "Veľká Fatra",
+    "diff": "Easy",
+    "km": "14.1",
+    "stars": 5,
+    "path": [
+      [
+        48.93168,
+        18.93343
+      ],
+      [
+        48.9318,
+        18.93652
+      ],
+      [
+        48.9329,
+        18.93704
+      ],
+      [
+        48.93465,
+        18.93607
+      ],
+      [
+        48.93602,
+        18.93738
+      ],
+      [
+        48.93806,
+        18.93882
+      ],
+      [
+        48.93964,
+        18.93949
+      ],
+      [
+        48.94153,
+        18.94305
+      ],
+      [
+        48.9466,
+        18.94948
+      ],
+      [
+        48.94903,
+        18.95536
+      ],
+      [
+        48.94829,
+        18.95824
+      ],
+      [
+        48.94894,
+        18.96266
+      ],
+      [
+        48.95041,
+        18.96618
+      ],
+      [
+        48.95052,
+        18.9682
+      ],
+      [
+        48.95154,
+        18.9697
+      ],
+      [
+        48.95238,
+        18.97369
+      ],
+      [
+        48.95275,
+        18.97583
+      ],
+      [
+        48.95385,
+        18.97704
+      ],
+      [
+        48.95348,
+        18.97892
+      ],
+      [
+        48.95351,
+        18.9824
+      ],
+      [
+        48.95213,
+        18.98429
+      ],
+      [
+        48.95089,
+        18.98631
+      ],
+      [
+        48.95052,
+        18.98901
+      ],
+      [
+        48.94948,
+        18.99184
+      ],
+      [
+        48.94886,
+        18.99352
+      ],
+      [
+        48.94759,
+        18.99725
+      ],
+      [
+        48.94753,
+        18.99948
+      ],
+      [
+        48.94663,
+        19.00317
+      ],
+      [
+        48.9436,
+        19.0054
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642595/trails/velka-fatra-gaderska-dolina/1784642595020-92e42f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642504/trails/velka-fatra-gaderska-dolina/1784642503085-c3b996.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642510/trails/velka-fatra-gaderska-dolina/1784642506035-ec6be4.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642514/trails/velka-fatra-gaderska-dolina/1784642513158-6f2177.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642516/trails/velka-fatra-gaderska-dolina/1784642515716-66b313.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642518/trails/velka-fatra-gaderska-dolina/1784642518148-b553e9.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642522/trails/velka-fatra-gaderska-dolina/1784642521933-9016e9.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642525/trails/velka-fatra-gaderska-dolina/1784642524927-6d1c58.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642527/trails/velka-fatra-gaderska-dolina/1784642527514-0a0fd3.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642530/trails/velka-fatra-gaderska-dolina/1784642529526-29c52b.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642578/trails/velka-fatra-gaderska-dolina/1784642577584-b5fa0d.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642581/trails/velka-fatra-gaderska-dolina/1784642581074-bf16e6.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642585/trails/velka-fatra-gaderska-dolina/1784642584986-34623a.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642588/trails/velka-fatra-gaderska-dolina/1784642586953-a8400b.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642590/trails/velka-fatra-gaderska-dolina/1784642589636-22ef5f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642592/trails/velka-fatra-gaderska-dolina/1784642591862-134477.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642593/trails/velka-fatra-gaderska-dolina/1784642593445-53ae4c.jpg"
+    ],
+    "seasons": [],
+    "desc": "Nádherná asfaltová cestička v zajatí lesa a potoka - ideálna na korčule. Neodporúčam návštevu cez víkend.",
+    "dogNote": "",
+    "acts": [
+      "hike",
+      "skating",
+      "picnic"
+    ],
+    "surface": [
+      "asphalt"
+    ],
+    "crowd": "Rušné",
+    "tags": [
+      "River",
+      "Forest",
+      "Meadow"
+    ]
+  },
+  {
+    "id": "chocske-vrchy-velky-choc",
+    "name": "Veľký Choč",
+    "region": "Chočské vrchy",
+    "diff": "Moderate",
+    "km": "13.4",
+    "stars": 5,
+    "path": [
+      [
+        49.12911,
+        19.40203
+      ],
+      [
+        49.13719,
+        19.39688
+      ],
+      [
+        49.14236,
+        19.384
+      ],
+      [
+        49.13809,
+        19.37387
+      ],
+      [
+        49.13551,
+        19.36392
+      ],
+      [
+        49.14101,
+        19.35276
+      ],
+      [
+        49.1473,
+        19.35126
+      ],
+      [
+        49.14859,
+        19.351
+      ],
+      [
+        49.14823,
+        19.34916
+      ],
+      [
+        49.14929,
+        19.3483
+      ],
+      [
+        49.14682,
+        19.34469
+      ],
+      [
+        49.15086,
+        19.34306
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642613/trails/chocske-vrchy-velky-choc/1784642612862-79995f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642615/trails/chocske-vrchy-velky-choc/1784642615395-ce34da.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642616/trails/chocske-vrchy-velky-choc/1784642616703-feea8e.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642618/trails/chocske-vrchy-velky-choc/1784642618022-f71148.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642621/trails/chocske-vrchy-velky-choc/1784642620988-136bb8.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642639/trails/chocske-vrchy-velky-choc/1784642638956-2e890a.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642641/trails/chocske-vrchy-velky-choc/1784642640831-079ad5.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642642/trails/chocske-vrchy-velky-choc/1784642642015-cc91b7.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642644/trails/chocske-vrchy-velky-choc/1784642643973-fc5785.jpg"
+    ],
+    "seasons": [],
+    "desc": "Vraj najkrajší vrchol na Slovensku. Asi to tak bude... Chystám sa tam opäť  bez snehu! Aj keď so snehom to malo krásne čaro :)",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Mountains",
+      "River",
+      "View",
+      "Meadow",
+      "Forest"
+    ]
+  },
+  {
+    "id": "chocske-vrchy-sip",
+    "name": "Šíp",
+    "region": "Chočské vrchy",
+    "diff": "Moderate",
+    "km": "4.3",
+    "stars": 5,
+    "path": [
+      [
+        49.1642,
+        19.15765
+      ],
+      [
+        49.16558,
+        19.15883
+      ],
+      [
+        49.16657,
+        19.16159
+      ],
+      [
+        49.16565,
+        19.16322
+      ],
+      [
+        49.16535,
+        19.16404
+      ],
+      [
+        49.16427,
+        19.16303
+      ],
+      [
+        49.16394,
+        19.16434
+      ],
+      [
+        49.16394,
+        19.16565
+      ],
+      [
+        49.16301,
+        19.16608
+      ],
+      [
+        49.16346,
+        19.16713
+      ],
+      [
+        49.16312,
+        19.16846
+      ],
+      [
+        49.16464,
+        19.1708
+      ],
+      [
+        49.16495,
+        19.17279
+      ],
+      [
+        49.16511,
+        19.17498
+      ],
+      [
+        49.16526,
+        19.17814
+      ],
+      [
+        49.16542,
+        19.17923
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646773/trails/chocske-vrchy-sip/1784646773381-b39bfb.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646772/trails/chocske-vrchy-sip/1784646772555-2863c5.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646772/trails/chocske-vrchy-sip/1784646772554-ad5037.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646772/trails/chocske-vrchy-sip/1784646772556-d0b3f4.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646773/trails/chocske-vrchy-sip/1784646773287-7db704.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646773/trails/chocske-vrchy-sip/1784646773361-e61a56.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646773/trails/chocske-vrchy-sip/1784646773425-535303.webp"
+    ],
+    "seasons": [],
+    "desc": "Krátka turistika na celkom pekný nenápadný kopček :)",
+    "dogNote": "",
+    "acts": [
+      "hike",
+      "picnic"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Meadow",
+      "Forest",
+      "View"
+    ]
+  },
+  {
+    "id": "chocske-vrchy-kvacianska-dolina",
+    "name": "Kvačianska dolina",
+    "region": "Chočské vrchy",
+    "diff": "Moderate",
+    "km": "17.3",
+    "stars": 5,
+    "path": [
+      [
+        49.17835,
+        19.54236
+      ],
+      [
+        49.17967,
+        19.5415
+      ],
+      [
+        49.18107,
+        19.53987
+      ],
+      [
+        49.18427,
+        19.5415
+      ],
+      [
+        49.18609,
+        19.54249
+      ],
+      [
+        49.18845,
+        19.54592
+      ],
+      [
+        49.19024,
+        19.54682
+      ],
+      [
+        49.19153,
+        19.54588
+      ],
+      [
+        49.19316,
+        19.54644
+      ],
+      [
+        49.19445,
+        19.54485
+      ],
+      [
+        49.19543,
+        19.54472
+      ],
+      [
+        49.19519,
+        19.54352
+      ],
+      [
+        49.19617,
+        19.54275
+      ],
+      [
+        49.1968,
+        19.54127
+      ],
+      [
+        49.19624,
+        19.54101
+      ],
+      [
+        49.19711,
+        19.53929
+      ],
+      [
+        49.19649,
+        19.53727
+      ],
+      [
+        49.19645,
+        19.53629
+      ],
+      [
+        49.19599,
+        19.53429
+      ],
+      [
+        49.19606,
+        19.53273
+      ],
+      [
+        49.19559,
+        19.52785
+      ],
+      [
+        49.1954,
+        19.52301
+      ],
+      [
+        49.19622,
+        19.52017
+      ],
+      [
+        49.19305,
+        19.51502
+      ],
+      [
+        49.18738,
+        19.50537
+      ],
+      [
+        49.18054,
+        19.49408
+      ],
+      [
+        49.17998,
+        19.49232
+      ],
+      [
+        49.17988,
+        19.50125
+      ],
+      [
+        49.17949,
+        19.51129
+      ],
+      [
+        49.17337,
+        19.50391
+      ],
+      [
+        49.17362,
+        19.51206
+      ],
+      [
+        49.17921,
+        19.5197
+      ],
+      [
+        49.18521,
+        19.52262
+      ],
+      [
+        49.18846,
+        19.53524
+      ],
+      [
+        49.18914,
+        19.53781
+      ],
+      [
+        49.19121,
+        19.53738
+      ],
+      [
+        49.19329,
+        19.53601
+      ],
+      [
+        49.19121,
+        19.52622
+      ],
+      [
+        49.19564,
+        19.53137
+      ],
+      [
+        49.19688,
+        19.53773
+      ],
+      [
+        49.19542,
+        19.54442
+      ],
+      [
+        49.192,
+        19.54597
+      ],
+      [
+        49.18852,
+        19.54588
+      ],
+      [
+        49.18605,
+        19.54236
+      ],
+      [
+        49.18218,
+        19.54073
+      ],
+      [
+        49.1782,
+        19.54245
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642725/trails/chocske-vrchy-kvacianska-dolina/1784642724443-601c35.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642728/trails/chocske-vrchy-kvacianska-dolina/1784642727350-b050c9.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642796/trails/chocske-vrchy-kvacianska-dolina/1784642795192-4198ad.jpg"
+    ],
+    "seasons": [],
+    "desc": "Krásne miesto na konci Kvačianskej doliny je obrovský rebrík do Prosieckej... s veľkým psom to nedáte a neodporúčal by som to ani s malým. Tam cesta končí... vrátiť sa môžte tak isto alebo ísť cez Prosečné a trošku si zamakať :)",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "River",
+      "View",
+      "Meadow",
+      "Forest"
+    ]
+  },
+  {
+    "id": "nizke-tatry-chopok-dumbier",
+    "name": "Chopok – Ďumbier",
+    "region": "Nízke Tatry",
+    "diff": "Hard",
+    "km": "12.2",
+    "stars": 5,
+    "path": [
+      [
+        48.92487,
+        19.61042
+      ],
+      [
+        48.92521,
+        19.61901
+      ],
+      [
+        48.9265,
+        19.62536
+      ],
+      [
+        48.92583,
+        19.63171
+      ],
+      [
+        48.92667,
+        19.63832
+      ],
+      [
+        48.9265,
+        19.6463
+      ],
+      [
+        48.9265,
+        19.64973
+      ],
+      [
+        48.93045,
+        19.6475
+      ],
+      [
+        48.93338,
+        19.64622
+      ],
+      [
+        48.93558,
+        19.64055
+      ],
+      [
+        48.9384,
+        19.63034
+      ],
+      [
+        48.9371,
+        19.62441
+      ],
+      [
+        48.93919,
+        19.6209
+      ],
+      [
+        48.94054,
+        19.61386
+      ],
+      [
+        48.94088,
+        19.60613
+      ],
+      [
+        48.94111,
+        19.59789
+      ],
+      [
+        48.94269,
+        19.59206
+      ],
+      [
+        48.9419,
+        19.59034
+      ],
+      [
+        48.93981,
+        19.59017
+      ],
+      [
+        48.93637,
+        19.59214
+      ],
+      [
+        48.93507,
+        19.59317
+      ],
+      [
+        48.93203,
+        19.59085
+      ],
+      [
+        48.93237,
+        19.59635
+      ],
+      [
+        48.93217,
+        19.59841
+      ],
+      [
+        48.93156,
+        19.5998
+      ],
+      [
+        48.92891,
+        19.60073
+      ],
+      [
+        48.93031,
+        19.60238
+      ],
+      [
+        48.92803,
+        19.60257
+      ],
+      [
+        48.92804,
+        19.60298
+      ],
+      [
+        48.92619,
+        19.60242
+      ],
+      [
+        48.92509,
+        19.60223
+      ],
+      [
+        48.92481,
+        19.60268
+      ],
+      [
+        48.92714,
+        19.60532
+      ],
+      [
+        48.92611,
+        19.60682
+      ],
+      [
+        48.92457,
+        19.60673
+      ],
+      [
+        48.92425,
+        19.60744
+      ],
+      [
+        48.92535,
+        19.61036
+      ],
+      [
+        48.92495,
+        19.61042
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642920/trails/nizke-tatry-chopok-dumbier/1784642919362-251c38.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642921/trails/nizke-tatry-chopok-dumbier/1784642921336-341800.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642923/trails/nizke-tatry-chopok-dumbier/1784642922706-588e39.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642924/trails/nizke-tatry-chopok-dumbier/1784642923974-ffcbcb.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642926/trails/nizke-tatry-chopok-dumbier/1784642925731-e6ca15.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642928/trails/nizke-tatry-chopok-dumbier/1784642927329-2ea159.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642930/trails/nizke-tatry-chopok-dumbier/1784642929950-d2041d.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642932/trails/nizke-tatry-chopok-dumbier/1784642931763-205fc5.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642934/trails/nizke-tatry-chopok-dumbier/1784642933862-6b37c1.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784643430/trails/nizke-tatry-chopok-dumbier/1784643429681-ba9155.jpg"
+    ],
+    "seasons": [],
+    "desc": "Epická vysokohorská turistika. Dá sa to síce aj lanovkou ale odporúčam túto časť Nízkych Tatier prejsť pešo boli sme tam asi 4x :) Klasika z Trangošky...",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": []
+  },
+  {
+    "id": "nizke-tatry-ohniste",
+    "name": "Ohnište",
+    "region": "Nízke Tatry",
+    "diff": "Hard",
+    "km": "6.1",
+    "stars": 5,
+    "path": [
+      [
+        49.0221,
+        19.72044
+      ],
+      [
+        49.02008,
+        19.71715
+      ],
+      [
+        49.01837,
+        19.71728
+      ],
+      [
+        49.01198,
+        19.7166
+      ],
+      [
+        49.00584,
+        19.71291
+      ],
+      [
+        49.00173,
+        19.71325
+      ],
+      [
+        48.99734,
+        19.70913
+      ],
+      [
+        48.99317,
+        19.70261
+      ],
+      [
+        48.98461,
+        19.70467
+      ],
+      [
+        48.98247,
+        19.71085
+      ],
+      [
+        48.97932,
+        19.711
+      ],
+      [
+        48.97794,
+        19.70879
+      ],
+      [
+        48.97671,
+        19.70711
+      ],
+      [
+        48.97534,
+        19.70565
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646442/trails/nizke-tatry-ohniste/1784646441137-0565b7.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646443/trails/nizke-tatry-ohniste/1784646443673-d3f072.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646446/trails/nizke-tatry-ohniste/1784646445588-14f199.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646447/trails/nizke-tatry-ohniste/1784646446829-b7c5cb.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646449/trails/nizke-tatry-ohniste/1784646449027-ad1fbb.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646450/trails/nizke-tatry-ohniste/1784646450492-c20038.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646452/trails/nizke-tatry-ohniste/1784646451878-67b780.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646453/trails/nizke-tatry-ohniste/1784646453404-b2483d.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646455/trails/nizke-tatry-ohniste/1784646454794-5f4e2c.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646456/trails/nizke-tatry-ohniste/1784646456145-e2d294.jpg"
+    ],
+    "seasons": [],
+    "desc": "Najkrajšie skalné okno na Slovensku - bez pochyby. Predtým ako tam pôjdeš si zisti či je to povolené, počul som že niekedy to zvyknú uzatvoriť... takže na vlastné riziko! Ale Tento rok som žiadne upozornenie nevidel :) NA mapy.cz to býva uvedené...alebo priamo značka v teréne :) Určite odporúčam!",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Ľudoprázdne",
+    "tags": []
+  },
+  {
+    "id": "zapadne-tatry-sivy-vrch",
+    "name": "Sivý vrch",
+    "region": "Západné Tatry",
+    "diff": "Hard",
+    "km": "7.7",
+    "stars": 5,
+    "path": [
+      [
+        49.22295,
+        19.59909
+      ],
+      [
+        49.22295,
+        19.60639
+      ],
+      [
+        49.22104,
+        19.60733
+      ],
+      [
+        49.21886,
+        19.60982
+      ],
+      [
+        49.21914,
+        19.61145
+      ],
+      [
+        49.21678,
+        19.61068
+      ],
+      [
+        49.21381,
+        19.61884
+      ],
+      [
+        49.2128,
+        19.62853
+      ],
+      [
+        49.21174,
+        19.63368
+      ],
+      [
+        49.21212,
+        19.63482
+      ],
+      [
+        49.21205,
+        19.63613
+      ],
+      [
+        49.21245,
+        19.63716
+      ],
+      [
+        49.21187,
+        19.63939
+      ],
+      [
+        49.21116,
+        19.64177
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644651/trails/zapadne-tatry-sivy-vrch/1784644650862-71754a.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644653/trails/zapadne-tatry-sivy-vrch/1784644653006-6c411c.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644655/trails/zapadne-tatry-sivy-vrch/1784644654714-3603ae.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644656/trails/zapadne-tatry-sivy-vrch/1784644656207-13f34a.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644657/trails/zapadne-tatry-sivy-vrch/1784644657078-5be3fc.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644658/trails/zapadne-tatry-sivy-vrch/1784644658110-e50305.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644659/trails/zapadne-tatry-sivy-vrch/1784644659566-ff3e6b.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644661/trails/zapadne-tatry-sivy-vrch/1784644660816-07574c.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644662/trails/zapadne-tatry-sivy-vrch/1784644662200-17f566.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644663/trails/zapadne-tatry-sivy-vrch/1784644663551-c2bf4e.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644664/trails/zapadne-tatry-sivy-vrch/1784644664720-022acf.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644665/trails/zapadne-tatry-sivy-vrch/1784644665837-c2502b.jpg"
+    ],
+    "seasons": [],
+    "desc": "Ako z iného sveta. Krásna príroda aj výhľady - na vrchole už cez skaly so psom celkom neprejdete ale oplatí sa to vidieť :)",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Mountains",
+      "View",
+      "Meadow",
+      "Forest"
+    ]
+  },
+  {
+    "id": "vysoke-tatry-bielovodska-dolina",
+    "name": "Bielovodská dolina",
+    "region": "Vysoké Tatry",
+    "diff": "Hard",
+    "km": "22.0",
+    "stars": 5,
+    "path": [
+      [
+        49.26308,
+        20.11449
+      ],
+      [
+        49.25852,
+        20.11189
+      ],
+      [
+        49.2526,
+        20.10344
+      ],
+      [
+        49.24834,
+        20.10155
+      ],
+      [
+        49.23876,
+        20.10043
+      ],
+      [
+        49.2257,
+        20.10249
+      ],
+      [
+        49.2202,
+        20.10215
+      ],
+      [
+        49.21701,
+        20.10026
+      ],
+      [
+        49.21443,
+        20.10189
+      ],
+      [
+        49.21364,
+        20.10412
+      ],
+      [
+        49.21196,
+        20.10301
+      ],
+      [
+        49.20837,
+        20.10807
+      ],
+      [
+        49.19834,
+        20.11459
+      ],
+      [
+        49.19424,
+        20.11683
+      ],
+      [
+        49.18341,
+        20.11674
+      ],
+      [
+        49.17999,
+        20.11957
+      ],
+      [
+        49.1796,
+        20.1267
+      ],
+      [
+        49.17884,
+        20.13058
+      ],
+      [
+        49.17819,
+        20.12964
+      ],
+      [
+        49.17778,
+        20.12989
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646794/trails/vysoke-tatry-bielovodska-dolina/1784646793312-812aa4.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646793/trails/vysoke-tatry-bielovodska-dolina/1784646793310-14394f.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646794/trails/vysoke-tatry-bielovodska-dolina/1784646794007-d5795c.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646794/trails/vysoke-tatry-bielovodska-dolina/1784646793315-7182a0.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646794/trails/vysoke-tatry-bielovodska-dolina/1784646794714-18e97f.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646795/trails/vysoke-tatry-bielovodska-dolina/1784646793316-18fa64.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646795/trails/vysoke-tatry-bielovodska-dolina/1784646794745-eae434.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646795/trails/vysoke-tatry-bielovodska-dolina/1784646794852-506f2f.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646796/trails/vysoke-tatry-bielovodska-dolina/1784646796078-918b0b.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646796/trails/vysoke-tatry-bielovodska-dolina/1784646795718-4d72d7.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646796/trails/vysoke-tatry-bielovodska-dolina/1784646796519-ca9d99.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646797/trails/vysoke-tatry-bielovodska-dolina/1784646797237-0895f2.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646797/trails/vysoke-tatry-bielovodska-dolina/1784646797417-e0832d.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646797/trails/vysoke-tatry-bielovodska-dolina/1784646797244-d699db.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646796/trails/vysoke-tatry-bielovodska-dolina/1784646796313-a7e775.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646798/trails/vysoke-tatry-bielovodska-dolina/1784646798193-44ac08.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646798/trails/vysoke-tatry-bielovodska-dolina/1784646798416-031834.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646799/trails/vysoke-tatry-bielovodska-dolina/1784646798560-6aba31.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646799/trails/vysoke-tatry-bielovodska-dolina/1784646799212-e65df9.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646799/trails/vysoke-tatry-bielovodska-dolina/1784646799089-ddb305.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646799/trails/vysoke-tatry-bielovodska-dolina/1784646798785-b886ca.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646799/trails/vysoke-tatry-bielovodska-dolina/1784646799662-2207ab.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646800/trails/vysoke-tatry-bielovodska-dolina/1784646800314-8fc8d6.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646800/trails/vysoke-tatry-bielovodska-dolina/1784646800594-e25cda.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646801/trails/vysoke-tatry-bielovodska-dolina/1784646801116-88491c.webp"
+    ],
+    "seasons": [],
+    "desc": "NAša prvá Vysokotatranská túra - nič sa na ňu nechytá bola DOKONALÁ. Dostali sme sa po Litvorové pleso a to sme riadne šlapali takmer stále!  Pán prsteňov VIBE a málo ľudí. Potôčik, skaly, lesy, ticho fakt krása - toto odštartovalo našu kariéru turistov :)",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Pokojné",
+    "tags": [
+      "Mountains",
+      "River",
+      "View",
+      "Meadow",
+      "Forest"
+    ]
+  },
+  {
+    "id": "vysoke-tatry-zelene-pleso",
+    "name": "Zelené pleso",
+    "region": "Vysoké Tatry",
+    "diff": "Moderate",
+    "km": "20.6",
+    "stars": 5,
+    "path": [
+      [
+        49.22437,
+        20.32192
+      ],
+      [
+        49.21946,
+        20.31479
+      ],
+      [
+        49.21941,
+        20.31106
+      ],
+      [
+        49.21617,
+        20.3078
+      ],
+      [
+        49.21908,
+        20.30728
+      ],
+      [
+        49.2165,
+        20.29922
+      ],
+      [
+        49.22483,
+        20.27681
+      ],
+      [
+        49.21777,
+        20.26531
+      ],
+      [
+        49.22138,
+        20.2533
+      ],
+      [
+        49.22037,
+        20.25098
+      ],
+      [
+        49.22312,
+        20.2363
+      ],
+      [
+        49.22256,
+        20.23132
+      ],
+      [
+        49.22133,
+        20.23098
+      ],
+      [
+        49.21936,
+        20.22901
+      ],
+      [
+        49.21841,
+        20.23321
+      ],
+      [
+        49.21398,
+        20.22386
+      ],
+      [
+        49.21275,
+        20.22549
+      ],
+      [
+        49.20989,
+        20.2212
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784650107/trails/vysoke-tatry-zelene-pleso/1784650106624-849363.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784650110/trails/vysoke-tatry-zelene-pleso/1784650109565-5c0f68.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644754/trails/vysoke-tatry-zelene-pleso/1784644754788-133110.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644750/trails/vysoke-tatry-zelene-pleso/1784644749334-0dc87e.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644751/trails/vysoke-tatry-zelene-pleso/1784644751441-f52f89.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644753/trails/vysoke-tatry-zelene-pleso/1784644753187-a89187.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644756/trails/vysoke-tatry-zelene-pleso/1784644755943-aba3de.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644757/trails/vysoke-tatry-zelene-pleso/1784644757061-604d75.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644759/trails/vysoke-tatry-zelene-pleso/1784644759215-60c6d0.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644761/trails/vysoke-tatry-zelene-pleso/1784644760668-80c9c5.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784650113/trails/vysoke-tatry-zelene-pleso/1784650111951-5f6659.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784650116/trails/vysoke-tatry-zelene-pleso/1784650116095-b9258a.jpg"
+    ],
+    "seasons": [],
+    "desc": "Krásne pleso. Je fakt zelené! Hektor sa v ňom okúpal ešte skôr než to bola poburujúca téma :) Nádherná turistika-fakt.",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Rušné",
+    "tags": [
+      "River",
+      "Mountains",
+      "View",
+      "Meadow",
+      "Forest"
+    ]
+  },
+  {
+    "id": "slovensky-raj-tomasovsky-vyhlad",
+    "name": "Tomášovský výhľad",
+    "region": "Volovské vrchy",
+    "diff": "Hard",
+    "km": "26.3",
+    "stars": 5,
+    "path": [
+      [
+        48.86802,
+        20.38281
+      ],
+      [
+        48.8705,
+        20.39088
+      ],
+      [
+        48.87959,
+        20.39655
+      ],
+      [
+        48.88371,
+        20.40118
+      ],
+      [
+        48.88868,
+        20.41826
+      ],
+      [
+        48.88838,
+        20.42127
+      ],
+      [
+        48.89053,
+        20.42311
+      ],
+      [
+        48.8923,
+        20.42234
+      ],
+      [
+        48.89275,
+        20.42157
+      ],
+      [
+        48.8936,
+        20.42187
+      ],
+      [
+        48.89676,
+        20.42135
+      ],
+      [
+        48.89981,
+        20.42015
+      ],
+      [
+        48.90212,
+        20.41985
+      ],
+      [
+        48.90527,
+        20.41929
+      ],
+      [
+        48.90752,
+        20.41509
+      ],
+      [
+        48.91232,
+        20.41843
+      ],
+      [
+        48.92292,
+        20.42453
+      ],
+      [
+        48.93093,
+        20.42487
+      ],
+      [
+        48.93651,
+        20.42453
+      ],
+      [
+        48.93787,
+        20.4283
+      ],
+      [
+        48.94012,
+        20.43397
+      ],
+      [
+        48.94125,
+        20.44024
+      ],
+      [
+        48.93989,
+        20.44564
+      ],
+      [
+        48.94204,
+        20.45114
+      ],
+      [
+        48.94401,
+        20.45654
+      ],
+      [
+        48.94482,
+        20.45676
+      ],
+      [
+        48.94565,
+        20.45614
+      ],
+      [
+        48.94654,
+        20.45676
+      ],
+      [
+        48.94623,
+        20.45738
+      ],
+      [
+        48.94777,
+        20.45815
+      ],
+      [
+        48.94717,
+        20.45944
+      ],
+      [
+        48.94595,
+        20.45985
+      ],
+      [
+        48.94492,
+        20.45978
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784645638/trails/slovensky-raj-tomasovsky-vyhlad/1784645637377-a43ab3.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784645640/trails/slovensky-raj-tomasovsky-vyhlad/1784645639849-dd523c.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784645641/trails/slovensky-raj-tomasovsky-vyhlad/1784645641480-25e79f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784645644/trails/slovensky-raj-tomasovsky-vyhlad/1784645643614-387acf.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784645646/trails/slovensky-raj-tomasovsky-vyhlad/1784645645818-bd951f.jpg"
+    ],
+    "seasons": [],
+    "desc": "Toto bola fakt luxusná ale aj veľmi náročná turistika. Na výhľad sa dá ísť aj kratšou cestičkou - toto odporúčam len pokročilým dobrodruhom :) bolo to cez 30 km! Mladosť -pochabosť. Ale za to prejdený Slovenský Raj skrz na skrz!",
+    "dogNote": "",
+    "acts": [
+      "hike"
+    ],
+    "surface": [
+      "forest"
+    ],
+    "crowd": "Rušné",
+    "tags": [
+      "Mountains",
+      "View",
+      "River",
+      "Meadow"
+    ]
+  },
+  {
+    "id": "vodne-diela-liptovska-mara",
+    "name": "Liptovská Mara",
+    "region": "",
+    "diff": "Moderate",
+    "km": "",
+    "stars": 5,
+    "path": [
+      [
+        49.12411,
+        19.51035
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646788/trails/vodne-diela-liptovska-mara/1784646788679-bfd009.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646789/trails/vodne-diela-liptovska-mara/1784646788877-866b2c.webp",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646362/trails/vodne-diela-liptovska-mara/1784646361867-2a7643.jpg"
+    ],
+    "seasons": [],
+    "desc": "Epické kúpanie v krásnej a celkom studenej vode :)",
+    "dogNote": "",
+    "acts": [
+      "paddleboard"
+    ],
+    "surface": [],
+    "crowd": "",
+    "tags": [
+      "In the middle of nature"
+    ]
+  },
+  {
+    "id": "vodne-diela-kralova",
+    "name": "Kráľová",
+    "region": "",
+    "diff": "Moderate",
+    "km": "",
+    "stars": 4,
+    "path": [
+      [
+        48.22004,
+        17.81708
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646070/trails/vodne-diela-kralova/1784646069877-b52384.jpg"
+    ],
+    "seasons": [],
+    "desc": "Fakt obrovské dielo = súkromie na hladine.(opaľovanie bez plaviek - bezpečné)",
+    "dogNote": "",
+    "acts": [
+      "paddleboard",
+      "skating"
+    ],
+    "surface": [],
+    "crowd": "",
+    "tags": [
+      "In the middle of nowhere"
+    ]
+  },
+  {
+    "id": "vodne-diela-slnava",
+    "name": "Sĺňava",
+    "region": "",
+    "diff": "Moderate",
+    "km": "",
+    "stars": 5,
+    "path": [
+      [
+        48.56324,
+        17.83197
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646136/trails/vodne-diela-slnava/1784646135086-b0324f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646137/trails/vodne-diela-slnava/1784646137205-9862fa.jpg"
+    ],
+    "seasons": [],
+    "desc": "Zaujímavá vodná nádrž - s vtáčím ostrovom :)) Stojí za to urobiť si okružnú jazdu. Na mape som označil super miesto na parking - hneď pri vode.",
+    "dogNote": "",
+    "acts": [
+      "paddleboard",
+      "skating",
+      "picnic"
+    ],
+    "surface": [],
+    "crowd": "",
+    "tags": [
+      "In the middle of nowhere",
+      "In the middle of nature"
+    ]
+  },
+  {
+    "id": "vodne-diela-oresianska-priehrada",
+    "name": "Orešianska priehrada",
+    "region": "",
+    "diff": "Moderate",
+    "km": "",
+    "stars": 5,
+    "path": [
+      [
+        48.4738,
+        17.41831
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646186/trails/vodne-diela-oresianska-priehrada/1784646185382-2f6754.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646187/trails/vodne-diela-oresianska-priehrada/1784646187273-3f5064.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646190/trails/vodne-diela-oresianska-priehrada/1784646189089-1e0f8f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646192/trails/vodne-diela-oresianska-priehrada/1784646191424-57733c.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646193/trails/vodne-diela-oresianska-priehrada/1784646193148-996764.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646194/trails/vodne-diela-oresianska-priehrada/1784646194528-52a5d3.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646196/trails/vodne-diela-oresianska-priehrada/1784646195724-afc56e.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646197/trails/vodne-diela-oresianska-priehrada/1784646197127-bc6066.jpg"
+    ],
+    "seasons": [],
+    "desc": "Asi najkrajšia vodná plocha na západe - v strede prírody, málo ľudí, možnosť vylodiť sa na opustených zátokách, kopce vrhajú tieň, čistá voda... skrátka naša obľúbená priehrada, ktorú máme kúsok od domu! ",
+    "dogNote": "",
+    "acts": [
+      "skating",
+      "paddleboard",
+      "picnic"
+    ],
+    "surface": [],
+    "crowd": "",
+    "tags": [
+      "In the middle of nature"
+    ]
+  },
+  {
+    "id": "vodne-diela-palcmanska-masa",
+    "name": "Palcmanská Maša",
+    "region": "",
+    "diff": "Moderate",
+    "km": "",
+    "stars": 5,
+    "path": [
+      [
+        48.86192,
+        20.38084
+      ]
+    ],
+    "photos": [
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646293/trails/vodne-diela-palcmanska-masa/1784646292878-5a7db6.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646281/trails/vodne-diela-palcmanska-masa/1784646280611-a39ee2.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646282/trails/vodne-diela-palcmanska-masa/1784646282479-3397c3.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646286/trails/vodne-diela-palcmanska-masa/1784646286227-808b1d.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646287/trails/vodne-diela-palcmanska-masa/1784646287309-007671.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646288/trails/vodne-diela-palcmanska-masa/1784646288391-73ed09.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646289/trails/vodne-diela-palcmanska-masa/1784646289377-1c8b41.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646290/trails/vodne-diela-palcmanska-masa/1784646290474-b3864f.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646291/trails/vodne-diela-palcmanska-masa/1784646291564-06d138.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646295/trails/vodne-diela-palcmanska-masa/1784646294328-7a2dbc.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646296/trails/vodne-diela-palcmanska-masa/1784646296222-ad1935.jpg",
+      "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646297/trails/vodne-diela-palcmanska-masa/1784646297423-9dd065.jpg"
+    ],
+    "seasons": [],
+    "desc": "Za nás: Najkrajšia vodná plocha na SVK kde sa vraciame každý rok od 2019 :)) Výborný kemp hneď na brehu - dokonalosť.",
+    "dogNote": "",
+    "acts": [
+      "paddleboard",
+      "picnic",
+      "overnight"
+    ],
+    "surface": [],
+    "crowd": "",
+    "tags": [
+      "In the middle of nature"
     ]
   }
 ];

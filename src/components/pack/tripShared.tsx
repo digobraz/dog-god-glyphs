@@ -103,3 +103,20 @@ export const readFavIds = () => readStringSet(FAV_IDS_KEY);
 export const writeFavIds = (s: Set<string>) => writeStringSet(FAV_IDS_KEY, s);
 export const readWalkedIds = () => readStringSet(WALKED_IDS_KEY);
 export const writeWalkedIds = (s: Set<string>) => writeStringSet(WALKED_IDS_KEY, s);
+
+// Founder walked logika (Matej 2026-07-24, LOCKED): „čo nahodím, to som aj prešiel".
+// Každá nahodená (čierna, non-journey) trasa = walked. Z červených journeys sú reálne prejdené
+// len tieto — SNP + Poloniny; ostatné magistrály ostávajú neprejdené (default nezelené).
+export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny'];
+const WALKED_SEEDED_KEY = 'trp-walked-seeded-v1';
+// Seedne default walked set raz za session (ak ho user ešte nezmenil). Merguje, netlačí cez
+// existujúce toggly. defaultWalkedIds = zoznam id trás čo majú byť walked z founder logiky.
+export function ensureWalkedSeeded(defaultWalkedIds: string[]): void {
+  try {
+    if (sessionStorage.getItem(WALKED_SEEDED_KEY)) return;
+    const merged = readStringSet(WALKED_IDS_KEY);
+    defaultWalkedIds.forEach((id) => merged.add(id));
+    writeStringSet(WALKED_IDS_KEY, merged);
+    sessionStorage.setItem(WALKED_SEEDED_KEY, '1');
+  } catch { /* non-fatal */ }
+}
