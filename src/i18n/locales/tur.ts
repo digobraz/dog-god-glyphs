@@ -1149,6 +1149,7 @@ export const tur: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "Köpek",
   "pack.layout.navHome": "Ana sayfa",
   "pack.layout.navPortal": "Portal",
+  "pack.layout.navDogs": "Köpekler",
   // pack.survey
   "pack.survey.heading": "Uygulamayı şekillendir",
   "pack.survey.subheading": "İlk neyi inşa etmeliyiz?",

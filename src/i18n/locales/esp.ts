@@ -1335,6 +1335,7 @@ export const esp: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "Perro",
   "pack.layout.navHome": "Inicio",
   "pack.layout.navPortal": "Portal",
+  "pack.layout.navDogs": "Perros",
   // pack.survey
   "pack.survey.heading": "Da forma a la app",
   "pack.survey.subheading": "¿Qué deberíamos construir primero?",

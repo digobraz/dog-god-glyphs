@@ -1195,7 +1195,9 @@ export default function Vision() {
         }
         .video-embed-frame {
           position: relative;
-          width: min(680px, 100%);
+          /* Cap by viewport height too, so the whole frame stays visible on short
+           * laptops (reserve ~330px for topbar + nav + title + caption + padding). */
+          width: min(680px, 100%, calc((100dvh - 330px) * 16 / 9));
           aspect-ratio: 16 / 9;
           border-radius: 14px;
           overflow: hidden;
@@ -1209,7 +1211,7 @@ export default function Vision() {
         }
         /* Po kliku na "Watch ..." → náhľad sa zväčší + spustí prehrávanie */
         .video-embed-frame.is-playing {
-          width: min(980px, 100%);
+          width: min(980px, 100%, calc((100dvh - 330px) * 16 / 9));
           box-shadow:
             0 0 120px 16px rgba(201,154,63,0.48),
             0 0 220px 40px rgba(201,154,63,0.26),
@@ -1625,15 +1627,6 @@ export default function Vision() {
             {t('vision.hero.title')}
           </span>
         </h1>
-        {!videoPlaying && (
-          <button
-            type="button"
-            className="video-hero-caption"
-            onClick={() => setVideoPlaying(true)}
-          >
-            {t('vision.hero.watch')}
-          </button>
-        )}
         <div className={`video-embed-frame${videoPlaying ? ' is-playing' : ''}`}>
           {videoPlaying ? (
             <>
@@ -1676,6 +1669,15 @@ export default function Vision() {
             </button>
           )}
         </div>
+        {!videoPlaying && (
+          <button
+            type="button"
+            className="video-hero-caption"
+            onClick={() => setVideoPlaying(true)}
+          >
+            {t('vision.hero.watch')}
+          </button>
+        )}
       </section>
 
       {/* ── WHAT IF… pinned scrollytelling roadmap ── */}
@@ -1800,7 +1802,7 @@ export default function Vision() {
             button (the section's larger flex gap stays above the button) */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '7px' }}>
           <button
-            onClick={() => navigate('/heroglyph')}
+            onClick={() => navigate('/entry')}
             className="mission-cta"
             style={{ alignSelf: 'center', margin: 0 }}
           >

@@ -1316,6 +1316,7 @@ export const rus: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "Собака",
   "pack.layout.navHome": "Главная",
   "pack.layout.navPortal": "Портал",
+  "pack.layout.navDogs": "Собаки",
   // pack.survey
   "pack.survey.heading": "Формируйте приложение",
   "pack.survey.subheading": "Что построить в первую очередь?",

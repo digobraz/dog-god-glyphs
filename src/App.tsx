@@ -83,6 +83,13 @@ const Pack = lazy(() => import("./pages/Pack.tsx"));
 const PackDogDetail = lazy(() => import("./pages/PackDogDetail.tsx"));
 const PackProfile = lazy(() => import("./pages/PackProfile.tsx"));
 const PackPortal = lazy(() => import("./pages/PackPortal.tsx"));
+const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
+const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
+const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
+const PackTrails = lazy(() => import("./pages/PackTrails.tsx"));
+const TrailsModerate = lazy(() => import("./pages/TrailsModerate.tsx"));
+const TrailsPreview = lazy(() => import("./pages/__TrailsPreview.tsx")); // DEV TEMP — zmazať pred commitom
+const TrailsDrawTest = lazy(() => import("./pages/__TrailsDrawTest.tsx")); // DEV TEMP
 const Login = lazy(() => import("./pages/Login.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Vision = lazy(() => import("./pages/Vision.tsx"));
@@ -186,8 +193,19 @@ const App = () => (
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
               {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
               <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
-              {/* Portal = EN placeholder, LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva. */}
-              <Route path="/pack/portal" element={DEV_FULL ? <PackPortal /> : <Navigate to="/pack" replace />} />
+              {/* Portal = Trips surface (map + 28 real trips), LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva. */}
+              <Route path="/pack/portal" element={DEV_FULL ? <Navigate to="/pack/portal/trips" replace /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/portal/trips" element={DEV_FULL ? <PackPortal /> : <Navigate to="/pack" replace />} />
+              {/* iterácia 12 bod 5: ⤢ expand → SAMOSTATNÁ full-page article route (nie modal
+                  v PackPortal) — PackPortal už nikdy nemountuje so slugom. */}
+              <Route path="/pack/portal/trips/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
+              {/* TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md) */}
+              <Route path="/pack/portal/triplist" element={DEV_FULL ? <PackTriplist /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/dogs" element={DEV_FULL ? <PackDogs /> : <Navigate to="/pack" replace />} />
+              <Route path="/trails-preview" element={<TrailsPreview />} /> {/* DEV TEMP — zmazať pred commitom */}
+              <Route path="/trails-draw-test" element={<TrailsDrawTest />} /> {/* DEV TEMP */}
+              <Route path="/pack/trails" element={<PackTrails />} />
+              <Route path="/pack/trails/moderate" element={<TrailsModerate />} />
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />

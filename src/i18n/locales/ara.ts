@@ -1146,6 +1146,7 @@ export const ara: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "كلب",
   "pack.layout.navHome": "الرئيسية",
   "pack.layout.navPortal": "البوابة",
+  "pack.layout.navDogs": "الكلاب",
   // pack.survey
   "pack.survey.heading": "شكّل التطبيق",
   "pack.survey.subheading": "ماذا يجب أن نبني أولًا؟",

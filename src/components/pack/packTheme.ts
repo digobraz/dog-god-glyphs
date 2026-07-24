@@ -38,3 +38,26 @@ export const PACK_THEME = {
   alertRed: '#B25640',
   alertRedSoft: 'rgba(178, 86, 64, 0.12)',
 };
+
+// ── LIQUID GLASS primitív (LOCKED design language, 2026-07-23) ───────────────
+// JEDEN zdroj pravdy pre „obsahovú časť" na heroglyf pozadí: obsah nesmie plávať
+// priamo na čiernej — ide do frosted panelu (.pk-glass) cez ktorý heroglyfy
+// presvitajú (backdrop-blur). Bloky vnútra = .pk-glass-block. Reuse: triplist,
+// trip článok, walked — všade rovnaká situácia = rovnaký primitív. NEmixovať s
+// plnou čiernou. Render `<style>{GLASS_CSS}</style>` v komponente.
+export const GLASS_CSS = `
+.pk-glass{
+  background:linear-gradient(180deg,rgba(245,240,228,0.075) 0%,rgba(245,240,228,0.028) 100%);
+  -webkit-backdrop-filter:blur(24px) saturate(120%);
+  backdrop-filter:blur(24px) saturate(120%);
+  border:1px solid rgba(245,240,228,0.14);
+  border-radius:24px;
+  box-shadow:0 30px 70px rgba(0,0,0,0.5),inset 0 1px 0 rgba(245,240,228,0.12);
+}
+.pk-glass-block{
+  background:rgba(245,240,228,0.05);
+  border:1px solid rgba(245,240,228,0.10);
+  border-radius:16px;
+  overflow:hidden;
+}
+`;

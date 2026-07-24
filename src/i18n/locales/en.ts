@@ -1072,6 +1072,7 @@ export const en = {
   'pack.layout.loading': "LOADING…",
   'pack.layout.navHome': "Home",
   'pack.layout.navPortal': "Portal",
+  'pack.layout.navDogs': "Dogs",
   'pack.layout.profileAriaLabel': "Profile",
   'pack.layout.yourAvatarAlt': "Your avatar",
   // pack.tree

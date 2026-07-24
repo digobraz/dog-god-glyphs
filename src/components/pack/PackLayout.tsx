@@ -1,26 +1,22 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import type { Session } from '@supabase/supabase-js';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
-import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
+import { usePackIdentity, type PackDog } from './usePackIdentity';
 import iconHome from '@/assets/icons/nav-home.svg';
 import iconPortal from '@/assets/icons/nav-portal.svg';
+import iconDogs from '@/assets/icons/nav-dogs.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
-import { EDGE_BASE } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
-
-interface PackDog {
-  id: string;
-  dog_name: string | null;
-  cloudinary_main_url: string | null;
-}
+import { Inbox } from './messaging/Inbox';
+import { Thread } from './messaging/Thread';
+import { onOpenMessaging, emitOpenInbox, type MessagingOpenEvent } from './messaging/openBridge';
+import { unreadCount, subscribe as subscribeMessaging } from './messaging/packMessaging';
 
 const T = PACK_THEME;
-const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
 
 interface PackLayoutProps {
   children: ReactNode;
@@ -32,124 +28,7 @@ interface PackLayoutProps {
 export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps) {
   const t = useT();
   const navigate = useNavigate();
-  const location = useLocation();
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [dogs, setDogs] = useState<PackDog[]>([]);
-  const [devotion, setDevotion] = useState(100);
-  const [bones, setBones] = useState(0);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [packTotal, setPackTotal] = useState<number | null>(null);
-  const [packToday, setPackToday] = useState<number | null>(null);
-
-  // Empire stats — identical header on every tab so the member always sees live state.
-  useEffect(() => {
-    let alive = true;
-    fetch(STATS_EDGE)
-      .then((r) => r.json())
-      .then((j) => {
-        if (!alive) return;
-        setPackTotal(typeof j?.total === 'number' ? j.total : null);
-        setPackToday(typeof j?.last24h === 'number' ? j.last24h : null);
-      })
-      .catch(() => { /* best-effort */ });
-    return () => { alive = false; };
-  }, []);
-
-  // Live devotion refresh — listens for grant events dispatched by Pack.tsx / VisionRoadmap.tsx.
-  useEffect(() => {
-    function handler(e: Event) {
-      const total = (e as CustomEvent<{ total: number }>).detail?.total;
-      if (typeof total === 'number') setDevotion(total);
-    }
-    window.addEventListener('dogypt:devotion', handler);
-    return () => { window.removeEventListener('dogypt:devotion', handler); };
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    // DEV-ONLY auto sign-in for local /pack review. Guarded by import.meta.env.DEV,
-    // which is FALSE in any production build (Lovable publish) → this branch is dead code
-    // in prod. Opt-in via VITE_DEV_AUTH=1 + creds in .env.local (gitignored). Never ships.
-    const DEV_AUTH =
-      import.meta.env.DEV &&
-      import.meta.env.VITE_DEV_AUTH === '1' &&
-      !!import.meta.env.VITE_DEV_AUTH_EMAIL &&
-      !!import.meta.env.VITE_DEV_AUTH_PASSWORD;
-
-    async function ensureSession(): Promise<Session | null> {
-      const { data: { session: s } } = await supabase.auth.getSession();
-      if (s || !DEV_AUTH) return s;
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: import.meta.env.VITE_DEV_AUTH_EMAIL as string,
-        password: import.meta.env.VITE_DEV_AUTH_PASSWORD as string,
-      });
-      if (error) console.warn('[DEV_AUTH] auto sign-in failed:', error.message);
-      return data.session;
-    }
-
-    ensureSession().then(async (s) => {
-      if (!mounted) return;
-      if (s) {
-        try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
-        if (!mounted) return;
-        try {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: dogRows } = await (supabase as any)
-            .from('dogs')
-            .select('id, dog_name, cloudinary_main_url, created_at')
-            .eq('user_id', s.user.id)
-            // paid only — link_my_dogs also links abandoned checkout drafts by
-            // email, so without this the header switcher lists a dog once per
-            // attempt (BELGA showed 3×: 1 paid + 2 drafts). Pack.tsx already
-            // filters the same way; keep the two in sync.
-            .eq('payment_status', 'paid')
-            .order('created_at', { ascending: true }) as { data: PackDog[] | null };
-          if (mounted && dogRows) setDogs(dogRows.map(d => ({
-            id: d.id,
-            dog_name: d.dog_name ?? null,
-            cloudinary_main_url: d.cloudinary_main_url ?? null,
-          })));
-        } catch { /* non-blocking */ }
-        if (!mounted) return;
-        const meta = (s.user.user_metadata ?? {}) as Record<string, unknown>;
-        if (mounted) {
-          setDevotion(Number(meta.devotion) || 100);
-          setAvatarUrl((meta.avatar_url || meta.avatar || null) as string | null);
-        }
-        // BONES = affiliate currency (affiliates.points). Single source of truth
-        // for the header chip — NOT user_metadata.bones (legacy, always 0).
-        try {
-          const { data: aff } = await supabase.rpc('get_or_create_my_affiliate');
-          const row = (aff as { points?: number }[] | null)?.[0];
-          if (mounted && row) setBones(Number(row.points) || 0);
-        } catch { /* non-blocking */ }
-      }
-      setSession(s);
-      setLoading(false);
-      if (!s) {
-        const ret = encodeURIComponent(location.pathname + location.search);
-        navigate(`/login?return=${ret}`, { replace: true });
-      }
-    });
-    const { data: subscription } = supabase.auth.onAuthStateChange((event, s) => {
-      if (!mounted) return;
-      // INITIAL_SESSION duplikuje ensureSession() vyššie — bez tohto guardu sa
-      // pri mounte bez session zavolal navigate('/login') dvakrát.
-      if (event === 'INITIAL_SESSION') return;
-      setSession(s);
-      if (!s) {
-        const ret = encodeURIComponent(location.pathname + location.search);
-        navigate(`/login?return=${ret}`, { replace: true });
-      }
-    });
-    return () => {
-      mounted = false;
-      subscription.subscription.unsubscribe();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { session, loading, dogs, devotion, bones, avatarUrl, avatarInitial, packTotal, packToday } = usePackIdentity();
 
   if (loading) {
     return (
@@ -165,8 +44,6 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
   }
 
   if (!session) return null;
-
-  const avatarInitial = (session.user?.email?.[0] ?? 'D').toUpperCase();
 
   return (
     <div className="min-h-[100dvh] relative" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
@@ -219,31 +96,116 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         <main>{children}</main>
       </div>
 
-      {/* Floating pill nav — dolný (Home + Portal). LIVE: skryté (orezaný pack).
-          DEV_FULL: ostáva = plná dev verzia zamrznutá v tomto stave. */}
-      {DEV_FULL && (
-        <nav
-          className="fixed z-40"
-          style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
-        >
-          <div
-            className="flex items-center gap-1"
-            style={{
-              background: T.glass,
-              border: `1px solid ${T.onDarkBorder}`,
-              borderRadius: 999,
-              backdropFilter: 'blur(14px)',
-              WebkitBackdropFilter: 'blur(14px)',
-              padding: 6,
-              boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
-            }}
-          >
-            <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-            <FloatingNavLink to="/pack/portal" label={t('pack.layout.navPortal')} icon={iconPortal} />
-          </div>
-        </nav>
-      )}
+      {/* Floating pill nav — dolný (Home + Portal + Dogs + Messages). LIVE: skryté (orezaný
+          pack). DEV_FULL: ostáva = plná dev verzia zamrznutá v tomto stave. */}
+      <PackBottomNav />
+      <MessagingOverlayHost />
     </div>
+  );
+}
+
+// ── Messaging overlay host (Inbox/Thread) — design:
+// plany/zadanie-profil-messaging-2026-07-23.md §10 Fable amendment: "stav inbox/thread overlayu
+// žije v PackLayout ... žiadny prop-drilling cez 1944-riadkový PackPortal". PackPortal.tsx je ale
+// full-bleed a NEmountuje <PackLayout> (vlastný <DevotionHeader>/<PackBottomNav>, viď komentár pri
+// PackBottomNav nižšie) — preto je hosting vytiahnutý ako samostatný exportovaný komponent (žije
+// TU, v PackLayout.tsx, presne podľa zadania), mountnutý raz tu a raz priamo v PackPortal.tsx
+// (surgical 1-riadkový prídavok), nech "Message owner"/"Open trip group" na tripe aj Messages tab
+// v zdieľanom bottom nave majú vždy kam otvoriť overlay. Gated DEV_FULL — spúšťacie miesta
+// (PackNotifications live stav, bottom nav Messages, trip panel tlačidlá) sú tiež všetky
+// DEV_FULL-only, takže LIVE build sa nemení (§8.4 bez regresie).
+type MessagingOverlayState = { mode: 'closed' } | { mode: 'inbox' } | { mode: 'thread'; convId: string };
+
+export function MessagingOverlayHost() {
+  const [overlay, setOverlay] = useState<MessagingOverlayState>({ mode: 'closed' });
+
+  useEffect(() => {
+    if (!DEV_FULL) return;
+    return onOpenMessaging((ev: MessagingOpenEvent) => {
+      setOverlay(ev.mode === 'inbox' ? { mode: 'inbox' } : { mode: 'thread', convId: ev.convId });
+    });
+  }, []);
+
+  if (!DEV_FULL || overlay.mode === 'closed') return null;
+
+  if (overlay.mode === 'inbox') {
+    return (
+      <Inbox
+        onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
+        onClose={() => setOverlay({ mode: 'closed' })}
+      />
+    );
+  }
+
+  // Thread "back" (←) sa vracia do Inboxu (rovnaký vzor ako bežné DM appky), Inbox "×" zatvára
+  // overlay úplne.
+  return <Thread convId={overlay.convId} onClose={() => setOverlay({ mode: 'inbox' })} />;
+}
+
+// ── Floating bottom pill nav — Home · Portal · Dogs ─────────────────────────
+// Shared between PackLayout (every narrow-column pack page) and the full-bleed
+// Portal Trips surface (its own <DevotionHeader>, but the same bottom nav so
+// tab-switching feels identical everywhere). DEV_FULL-gated — LIVE pack stays
+// trimmed (nav hidden).
+export function PackBottomNav() {
+  const t = useT();
+  if (!DEV_FULL) return null;
+  return (
+    <nav
+      className="fixed z-40"
+      style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+    >
+      <div
+        className="flex items-center gap-1"
+        style={{
+          background: T.glass,
+          border: `1px solid ${T.onDarkBorder}`,
+          borderRadius: 999,
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          padding: 6,
+          boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+        }}
+      >
+        <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
+        <FloatingNavLink to="/pack/portal/trips" label={t('pack.layout.navPortal')} icon={iconPortal} />
+        <FloatingNavLink to="/pack/dogs" label={t('pack.layout.navDogs')} icon={iconDogs} />
+        <MessagesNavButton />
+      </div>
+    </nav>
+  );
+}
+
+// Messages entry — otvára Inbox overlay (emitOpenInbox → MessagingOverlayHost), s live unread
+// badge (unreadCount() je sync/pre-hydratovaný pri module load — žiadne 0→N bliknutie, viď
+// packMessaging.ts flag §10). Rovnaký pilulkový vzor ako FloatingNavLink, len <button> (nie route).
+function MessagesNavButton() {
+  const [count, setCount] = useState(() => unreadCount());
+  useEffect(() => subscribeMessaging(() => setCount(unreadCount())), []);
+  return (
+    <button
+      type="button"
+      className="group flex items-center gap-2 transition-all relative"
+      style={pillStyle(false)}
+      onClick={() => emitOpenInbox()}
+      aria-label="Messages"
+    >
+      <BrandIcon src="/icons/pack/chat.svg" active={false} />
+      <span className="hidden sm:inline" style={pillLabelStyle}>Messages</span>
+      {count > 0 && (
+        <span
+          style={{
+            position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, padding: '0 4px',
+            borderRadius: 999, background: '#C99A3F', color: '#1F1A0E',
+            fontFamily: "'Space Grotesk', sans-serif", fontSize: 9, fontWeight: 700,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: `1.5px solid ${T.pageBg}`, lineHeight: 1,
+          }}
+        >
+          {count > 9 ? '9+' : count}
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -266,7 +228,7 @@ function VDivider() {
   return <div aria-hidden style={{ width: 1, height: 20, background: 'rgba(245,240,228,0.18)', flexShrink: 0 }} />;
 }
 
-function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, wide, onProfile, onDog }: DevotionHeaderProps) {
+export function DevotionHeader({ avatarUrl, avatarInitial, devotion, bones, packTotal, packToday, dogs, wide, onProfile, onDog }: DevotionHeaderProps) {
   const t = useT();
   const glassPill: React.CSSProperties = {
     background: T.glass,
@@ -492,7 +454,7 @@ function DogSvorka({ dogs, onDog }: { dogs: PackDog[]; onDog: (id: string) => vo
 
 // ── Shared background ───────────────────────────────────────────────────────
 
-function HieroglyphBg() {
+export function HieroglyphBg() {
   return (
     <>
       {/* 100lvh (nie inset:0) — na mobile stabilné pozadie pri scroll (URL bar zmena viewportu) */}

@@ -1318,6 +1318,7 @@ export const pol: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "Pies",
   "pack.layout.navHome": "Start",
   "pack.layout.navPortal": "Portal",
+  "pack.layout.navDogs": "Psy",
   // pack.survey
   "pack.survey.heading": "Kształtuj aplikację",
   "pack.survey.subheading": "Co powinniśmy zbudować najpierw?",

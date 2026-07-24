@@ -158,8 +158,9 @@ function MessageModal({
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: #000;
-          background: linear-gradient(135deg, #F5C73D, #E69E1A);
-          box-shadow: 0 0 30px rgba(201, 154, 63, 0.45), 0 3px 12px rgba(0,0,0,0.25);
+          /* Parita s dvojčaťom NameScreen .name-modal-done — canonical gold, not orange. */
+          background: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-dark)));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35);
           transition: opacity 150ms ease, transform 150ms ease;
         }
         .msg-modal-done:disabled {

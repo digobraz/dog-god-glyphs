@@ -88,6 +88,22 @@
     --papyrus-light: 36 43% 95%;
     --radius-cta: 0.5rem;       /* 8px cartouche — buttons */
 
+    /* /app design-system — unify tokeny (fáza 1, 2026-07-14). Zdroj pravdy = /entry.
+       Aditívne — staré inline hodnoty zatiaľ ostávajú; migrácia po vizuálnom teste. */
+    --papyrus-card: linear-gradient(160deg, #FBF5E6 0%, #F3E4C4 55%, #EAD6A6 100%);
+    --papyrus-pop: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
+    --papyrus-border: 1.5px solid #C99A3F;
+    --shadow-papyrus-card: 0 14px 44px rgba(0,0,0,0.55), 0 0 0 4px rgba(201,154,63,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
+    --shadow-papyrus-pop: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
+    /* Kontextový gold systém (2026-07-14, Matej OK): pozadie určuje zlatú.
+       LIGHT/papyrus → --cta-gradient (medová canonical) + --cta-shadow-grounded (sadne).
+       DARK/čierne   → --cta-gradient-dark (žltá pop) + --cta-shadow-glow (žiari). */
+    --cta-gradient: linear-gradient(135deg, hsl(var(--gold)), hsl(var(--gold-deep)));
+    --cta-gradient-dark: linear-gradient(135deg, #F5C73D, #E69E1A);
+    --cta-shadow-grounded: inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 14px rgba(0,0,0,0.35);
+    --cta-shadow-glow: 0 0 24px rgba(245,199,61,0.60), 0 0 60px rgba(230,158,26,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+    --radius-card: 16px;
+
     /* Brand gradient — secondary (manual 2026). Egyptian Blue #1034A6 + gold,
        cez čiernu = „sarkofág v tme". Modrá = psie dichromatické videnie + Tutanchamón.
        Toto je JEDINÝ zdroj — nemeniť inline, swap len tu.

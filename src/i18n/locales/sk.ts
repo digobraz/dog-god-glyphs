@@ -1341,6 +1341,7 @@ export const sk: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "Pes",
   "pack.layout.navHome": "Domov",
   "pack.layout.navPortal": "Portál",
+  "pack.layout.navDogs": "Psy",
   // pack.survey
   "pack.survey.heading": "Formuj appku",
   "pack.survey.subheading": "Čo máme postaviť ako prvé?",

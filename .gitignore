@@ -35,3 +35,6 @@ dist-ssr
 # local screenshot/tuning artifacts
 .tune/
 .about-*.png
+
+# QA screenshot dumps (local, throwaway)
+.qa-screens/

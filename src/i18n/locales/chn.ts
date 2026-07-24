@@ -1146,6 +1146,7 @@ export const chn: Partial<Dict> = {
   "pack.layout.dogFallbackAriaLabel": "狗",
   "pack.layout.navHome": "首页",
   "pack.layout.navPortal": "门户",
+  "pack.layout.navDogs": "狗狗",
   // pack.survey
   "pack.survey.heading": "塑造这款应用",
   "pack.survey.subheading": "我们该先做什么？",
