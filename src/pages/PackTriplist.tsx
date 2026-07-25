@@ -1,4 +1,4 @@
-// /pack/portal/triplist — DVOJPOVRCH: TRIPLIST + TRIPSTATS na jednej route (Matej 2026-07-23,
+// /pack/map/triplist — DVOJPOVRCH: TRIPLIST + TRIPSTATS na jednej route (Matej 2026-07-23,
 // konsolidácia headera 4→2). ?tab=stats fokusuje TRIPSTATS, inak TRIPLIST; dve karty vedľa seba
 // prepínajú view. Vstup z PackPortal headera: ✓/km pilulka → ?tab=stats, 🐾 pilulka → list.
 //   TRIPLIST = MY TRIPS (seeded z plans; placeholdery keď prázdne) + OPEN TRIPS (mock). Wishlist
@@ -325,13 +325,13 @@ export default function PackTriplist() {
 
       <div className="tl-body">
         <div className="tl-backrow">
-          <button type="button" className="tl-back" onClick={() => navigate('/pack/portal/trips')} aria-label="Back to map">←</button>
+          <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label="Back to map">←</button>
         </div>
 
         {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad */}
         <div className="tl-tabs">
           <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
-            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('paw')} alt="" /></span> Triplist</span>
+            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('clipboard')} alt="" /></span> Triplist</span>
             <span className="tl-tab-sub">{nextUpDays !== null ? `Next trip · ${countdownLabel(nextUpDays)}` : 'Plans & open trips'}</span>
           </button>
           <button type="button" className={`tl-tab${view === 'stats' ? ' on' : ''}`} onClick={() => setView('stats')}>
@@ -340,16 +340,15 @@ export default function PackTriplist() {
           </button>
         </div>
 
+        {view === 'stats' ? (
+          <TripStatsPanel
+            walkedTrails={walkedTrails}
+            walkedKm={walkedKm}
+            onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)}
+            onAddTrip={(region) => navigate('/pack/map' + (region ? `?add=${encodeURIComponent(region)}` : ''))}
+          />
+        ) : (
         <div className="pk-glass tl-panel">
-          {view === 'stats' ? (
-            <TripStatsPanel
-              walkedTrails={walkedTrails}
-              walkedKm={walkedKm}
-              onOpenTrip={(tid) => navigate(`/pack/portal/trips/${tid}`)}
-              onAddTrip={(region) => navigate('/pack/portal/trips' + (region ? `?add=${encodeURIComponent(region)}` : ''))}
-            />
-          ) : (
-          <>
           {/* MY TRIPS — horizontálny slajd, status badge (farebný: done/with/looking/solo), vlajka */}
           <div className="tl-section">
             <div className="tl-sechead">
@@ -366,7 +365,7 @@ export default function PackTriplist() {
                     {dleft !== null && dleft >= 0 && (
                       <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(dleft)}</span>
                     )}
-                  <div className="pk-glass-block tl-block" onClick={() => navigate(`/pack/portal/trips/${trail.id}`)}>
+                  <div className="pk-glass-block tl-block" onClick={() => navigate(`/pack/map/${trail.id}`)}>
                     <div className="tl-block-cover" style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
                       <span className={`tl-block-badge ${statusClass(entry, done)}`}>{statusLabel(entry, done)}</span>
@@ -448,9 +447,8 @@ export default function PackTriplist() {
               </>
             )}
           </div>
-          </>
-          )}
         </div>
+        )}
       </div>
 
       {dateTripId && (
@@ -472,7 +470,7 @@ export default function PackTriplist() {
           nowMs={nowMs}
           joined={joinedIds.has(announceTrip.trail.id)}
           onRequestJoin={() => setJoinedIds((prev) => new Set(prev).add(announceTrip.trail.id))}
-          onViewTrail={() => { const id = announceTrip.trail.id; setAnnounceTrip(null); navigate(`/pack/portal/trips/${id}`); }}
+          onViewTrail={() => { const id = announceTrip.trail.id; setAnnounceTrip(null); navigate(`/pack/map/${id}`); }}
           onClose={() => setAnnounceTrip(null)}
         />
       )}

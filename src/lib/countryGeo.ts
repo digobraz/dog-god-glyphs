@@ -156,3 +156,94 @@ export function countryFlag(country?: string | null): string {
   if (!iso || iso.length !== 2) return '';
   return String.fromCodePoint(...[...iso.toUpperCase()].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
 }
+
+// --- Multi-country trip support (/pack Trips) ---------------------------------
+import { SVK_BORDER } from '@/data/svkBorder';
+
+// Bounding boxy susedných/blízkych krajín [latMin, latMax, lngMin, lngMax].
+// SK sa NErieši boxom (prekrýva sa s AT/HU/CZ/PL na hraniciach) — má presný polygon nižšie.
+const COUNTRY_BBOX: Array<[string, number, number, number, number]> = [
+  ['ch', 45.80, 47.81, 5.95, 10.50],
+  ['at', 46.37, 49.02, 9.53, 17.16],
+  ['si', 45.42, 46.88, 13.38, 16.61],
+  ['cz', 48.55, 51.06, 12.09, 18.86],
+  ['hu', 45.74, 48.58, 16.11, 22.90],
+  ['pl', 49.00, 54.84, 14.12, 24.15],
+  ['de', 47.27, 55.06, 5.87, 15.04],
+  ['it', 35.49, 47.10, 6.62, 18.52],
+  ['fr', 41.33, 51.09, -5.14, 9.56],
+];
+
+function pointInPolygon(lat: number, lng: number, poly: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const yi = poly[i][0], xi = poly[i][1];
+    const yj = poly[j][0], xj = poly[j][1];
+    const intersect = (yi > lat) !== (yj > lat) &&
+      lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+// SVK_BORDER je Douglas-Peucker zjednodušený (~200 m tolerancia), takže bod
+// reálne PÁR STO METROV vnútri SK (typicky pri horskom hrebeni Tatier) môže
+// vypadnúť tesne mimo polygónu. Bez bufferu ho potom zachytí PL/HU/AT/CZ bbox
+// (PL box pokrýva CELÝ sever SK) → SK trasa sa označí ako cudzia krajina.
+// BUG 2026-07-24: Bielovodská dolina (štart 85 m od hranice) → 'pl'.
+// SK je domovská krajina; cudzie trasy nesú explicitné `country`. Preto SK test
+// má buffer a má vždy prednosť pred bbox fallbackom.
+const SK_BUFFER_DEG = 0.006; // ~400–450 m — pokryje simplify chybu, no nezasiahne cudzí terén za hrebeňom
+
+/** Najkratšia vzdialenosť [lat,lng] od polygónu v stupňoch (lokálna planárna aproximácia). */
+function distToPolygonDeg(lat: number, lng: number, poly: [number, number][]): number {
+  const kx = Math.cos((lat * Math.PI) / 180); // lng stupne sú kratšie — škáluj
+  let min = Infinity;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const ay = poly[i][0], ax = poly[i][1];
+    const by = poly[j][0], bx = poly[j][1];
+    const px = (lng - ax) * kx, py = lat - ay;
+    const sx = (bx - ax) * kx, sy = by - ay;
+    const len2 = sx * sx + sy * sy;
+    const t = len2 ? Math.max(0, Math.min(1, (px * sx + py * sy) / len2)) : 0;
+    const dx = px - t * sx, dy = py - t * sy;
+    const d = Math.hypot(dx, dy);
+    if (d < min) min = d;
+  }
+  return min;
+}
+
+/** Je bod v SK (vrátane bufferu okolo zjednodušeného polygónu)? */
+function isInSlovakia(lat: number, lng: number): boolean {
+  if (pointInPolygon(lat, lng, SVK_BORDER as [number, number][])) return true;
+  return distToPolygonDeg(lat, lng, SVK_BORDER as [number, number][]) <= SK_BUFFER_DEG;
+}
+
+/** Súradnica [lat,lng] → ISO2 krajiny. SK cez polygon+buffer, ostatné cez bbox. null ak žiadna. */
+export function countryOfPoint(pt?: [number, number] | null): string | null {
+  if (!pt || pt.length < 2) return null;
+  const [lat, lng] = pt;
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (isInSlovakia(lat, lng)) return 'sk';
+  for (const [iso, laMin, laMax, lnMin, lnMax] of COUNTRY_BBOX) {
+    if (lat >= laMin && lat <= laMax && lng >= lnMin && lng <= lnMax) return iso;
+  }
+  return null;
+}
+
+/** Trip → ISO2 krajiny. Explicitné `country` má prednosť; inak sa odvodí z CELEJ path.
+ * Rozhodovanie z jediného bodu je pri hraničných trasách nespoľahlivé (štart pri
+ * hrebeni môže vypadnúť mimo SK polygónu) — preto: ak je HOCIKTORÝ bod trasy v SK,
+ * je to SK trasa. Cudzia trasa (napr. CH) nemá v SK ani jeden bod → padne na bbox. */
+export function trailCountry(t: { country?: string | null; path?: [number, number][] }): string {
+  if (t.country) return countryISO2(t.country) ?? 'sk';
+  const path = t.path ?? [];
+  if (path.some((p) => p && p.length >= 2 && isInSlovakia(p[0], p[1]))) return 'sk';
+  const p0 = path[0];
+  return (p0 && countryOfPoint(p0 as [number, number])) || 'sk';
+}
+
+/** ISO2 → vlajka emoji (regional indicator páry), pre <option> text kde <img> nejde. */
+export function flagEmoji(iso2: string): string {
+  return iso2.toUpperCase().replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}

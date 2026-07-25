@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { DEV_FULL } from "@/lib/packFlags";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -82,6 +82,7 @@ const Privacy = lazy(() => import("./pages/Privacy.tsx"));
 const Pack = lazy(() => import("./pages/Pack.tsx"));
 const PackDogDetail = lazy(() => import("./pages/PackDogDetail.tsx"));
 const PackProfile = lazy(() => import("./pages/PackProfile.tsx"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile.tsx")); // read-profil /pack/u/:id (zadanie-profil-read-dog-2026-07-25)
 const PackPortal = lazy(() => import("./pages/PackPortal.tsx"));
 const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
@@ -128,6 +129,12 @@ function RefCapture() {
     trackPageview(location.pathname);
   }, [location.pathname]);
   return null;
+}
+
+// Redirect starých zdieľaných trip odkazov /pack/portal/trips/:slug → /pack/map/:slug (zachová slug).
+function RedirectTripSlug() {
+  const { slug } = useParams();
+  return <Navigate to={`/pack/map/${slug ?? ''}`} replace />;
 }
 
 const App = () => (
@@ -193,14 +200,24 @@ const App = () => (
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
               {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
               <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
-              {/* Portal = Trips surface (map + 28 real trips), LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva. */}
-              <Route path="/pack/portal" element={DEV_FULL ? <Navigate to="/pack/portal/trips" replace /> : <Navigate to="/pack" replace />} />
-              <Route path="/pack/portal/trips" element={DEV_FULL ? <PackPortal /> : <Navigate to="/pack" replace />} />
+              {/* Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). Self +
+                  mock členovia (MOCK_MEMBER_POOL) fungujú v1; reálny cudzí user = graceful fallback
+                  (localStorage limit, žiaden crash). */}
+              <Route path="/pack/u/:id" element={DEV_FULL ? <PublicProfile /> : <Navigate to="/pack" replace />} />
+              {/* Map = Trips surface (map + real trips), LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva.
+                  Premenované z /pack/portal → /pack/map (Matej 2026-07-24, D1): „mapa je mapa"; „Portal"
+                  parkované pre budúci hub nástrojov/služieb. Statické segmenty (triplist) vyhrávajú nad :slug. */}
+              <Route path="/pack/map" element={DEV_FULL ? <PackPortal /> : <Navigate to="/pack" replace />} />
+              {/* TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md) */}
+              <Route path="/pack/map/triplist" element={DEV_FULL ? <PackTriplist /> : <Navigate to="/pack" replace />} />
               {/* iterácia 12 bod 5: ⤢ expand → SAMOSTATNÁ full-page article route (nie modal
                   v PackPortal) — PackPortal už nikdy nemountuje so slugom. */}
-              <Route path="/pack/portal/trips/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
-              {/* TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md) */}
-              <Route path="/pack/portal/triplist" element={DEV_FULL ? <PackTriplist /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/map/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
+              {/* Redirecty zo starých /pack/portal/* URL (poistka pre existujúce/zdieľané odkazy). */}
+              <Route path="/pack/portal" element={<Navigate to="/pack/map" replace />} />
+              <Route path="/pack/portal/trips" element={<Navigate to="/pack/map" replace />} />
+              <Route path="/pack/portal/triplist" element={<Navigate to="/pack/map/triplist" replace />} />
+              <Route path="/pack/portal/trips/:slug" element={<RedirectTripSlug />} />
               <Route path="/pack/dogs" element={DEV_FULL ? <PackDogs /> : <Navigate to="/pack" replace />} />
               <Route path="/trails-preview" element={<TrailsPreview />} /> {/* DEV TEMP — zmazať pred commitom */}
               <Route path="/trails-draw-test" element={<TrailsDrawTest />} /> {/* DEV TEMP */}

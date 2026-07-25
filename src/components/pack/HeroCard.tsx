@@ -3,6 +3,7 @@ import { Camera, Pencil, Check, Loader2 } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
+import { DEV_FULL } from '@/lib/packFlags';
 import { devotionLevel } from '@/lib/devotion';
 import { supabase } from '@/integrations/supabase/client';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
@@ -129,8 +130,10 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         }}
       />
 
-      {/* Notifikácie + správy (coming soon) — vpravo hore */}
-      {stats && (
+      {/* Notifikácie + správy (coming soon) — vpravo hore. DEV_FULL: presunuté do globálneho
+          top-right hubu (PackTopRight, D4 nav rework 2026-07-24) — tu by bol duplikát. LIVE:
+          zostáva presne ako predtým (bez zmeny). */}
+      {stats && !DEV_FULL && (
         <PackNotifications last24h={stats.last24h} last30d={stats.last30d} total={stats.total} />
       )}
 

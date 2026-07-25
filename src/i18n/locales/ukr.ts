@@ -1333,7 +1333,7 @@ export const ukr: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "Перейти до статистики народу",
   "pack.layout.dogFallbackAriaLabel": "Пес",
   "pack.layout.navHome": "Головна",
-  "pack.layout.navPortal": "Портал",
+  "pack.layout.navMap": "Карта",
   "pack.layout.navDogs": "Собаки",
   // pack.survey
   "pack.survey.heading": "Формуй застосунок",

@@ -1145,7 +1145,7 @@ export const jpn: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "国の統計へ移動",
   "pack.layout.dogFallbackAriaLabel": "犬",
   "pack.layout.navHome": "ホーム",
-  "pack.layout.navPortal": "ポータル",
+  "pack.layout.navMap": "地図",
   "pack.layout.navDogs": "犬",
   // pack.survey
   "pack.survey.heading": "アプリを形づくる",

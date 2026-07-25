@@ -8,10 +8,16 @@ export type HeroTrail = {
   path: LatLngTuple[]; photos: string[]; seasons: string[];
   desc: string; dogNote: string;
   acts?: string[]; surface?: string[]; crowd?: string; tags?: string[];
+  ascentM?: number;   // prevýšenie z DEM eudem25m (m), kalibrované na SNP=29403
+  waves?: number;     // vodná plocha: počet vlniek 1|2|3 podľa OSM plochy (100/1000 ha prahy)
+  marks?: ('red'|'blue'|'green'|'yellow')[][];  // turistické značky (KČT) — rad ÚSEKOV štart→cieľ, každý = množina súbežných farieb (auto z OSM)
   // iterácia 11 (Portal /pack/portal/trips bod 1) — generovaný dataset nemá per-trip author,
   // UI fallbackuje na 'Hekthor & Matej' (viď tripShared.tsx authorOf). Nové ADD-flow tripy
   // (lokálny session state, nie tento generátor) nesú meno prihláseného člena.
   author?: string;
+  // multi-country (2026-07-24): explicitná krajina (ISO2, napr. 'ch') pre ADD-flow tripy mimo SK;
+  // ak chýba, trailCountry() ju odvodí z path[0]. Generovaný SK dataset ju nemá (odvodí sa).
+  country?: string;
 };
 
 export const HERO_TRAILS: HeroTrail[] = [
@@ -169,6 +175,37 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 532,
+    "marks": [
+      [
+        "blue",
+        "yellow"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "red",
+        "green"
+      ]
     ]
   },
   {
@@ -295,6 +332,21 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Forest",
       "Meadow"
+    ],
+    "ascentM": 455,
+    "marks": [
+      [
+        "red"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "red",
+        "green",
+        "yellow"
+      ]
     ]
   },
   {
@@ -383,6 +435,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "View",
       "Forest"
+    ],
+    "ascentM": 264,
+    "marks": [
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -492,6 +550,15 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 275,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -618,6 +685,29 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "View",
       "Sunset"
+    ],
+    "ascentM": 566,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -672,6 +762,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "Meadow"
+    ],
+    "ascentM": 415,
+    "marks": [
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -757,6 +853,20 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 376,
+    "marks": [
+      [
+        "blue",
+        "yellow"
+      ],
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -811,6 +921,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "Meadow"
+    ],
+    "ascentM": 158,
+    "marks": [
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -962,6 +1078,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Sunset",
       "Forest",
       "View"
+    ],
+    "ascentM": 491,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -1169,6 +1291,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "River",
       "Forest"
+    ],
+    "ascentM": 192,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -1289,6 +1417,19 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 383,
+    "marks": [
+      [
+        "blue"
+      ],
+      [
+        "red",
+        "blue"
+      ],
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -1401,7 +1542,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "River",
       "Forest",
       "Meadow"
-    ]
+    ],
+    "ascentM": 228
   },
   {
     "id": "male-karpaty-egres",
@@ -1486,6 +1628,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 338,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -1643,6 +1791,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 263,
+    "marks": [
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -1745,6 +1899,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Meadow",
       "Sunset",
       "View"
+    ],
+    "ascentM": 113,
+    "marks": [
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -1899,6 +2059,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "In the middle of nature",
       "Embankment"
+    ],
+    "waves": 1,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -2088,7 +2254,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Meadow",
       "Sunset",
       "View"
-    ]
+    ],
+    "ascentM": 124
   },
   {
     "id": "male-karpaty-lancarska-luka",
@@ -2219,7 +2386,8 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Meadow",
       "Forest",
       "View"
-    ]
+    ],
+    "ascentM": 128
   },
   {
     "id": "male-karpaty-cachticky-hrad-plesivce",
@@ -2566,6 +2734,33 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 446,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "blue",
+        "yellow"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -2667,6 +2862,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Sunset"
+    ],
+    "ascentM": 200,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -2848,6 +3049,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "River"
+    ],
+    "ascentM": 373,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -2857,7 +3064,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "diff": "Moderate",
     "km": "",
     "stars": 4,
-    "path": [],
+    "path": [
+      [
+        48.53481,
+        17.36189
+      ]
+    ],
     "photos": [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784639926/trails/male-karpaty-bukova/1784639925133-ca940d.jpg",
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784639928/trails/male-karpaty-bukova/1784639927744-749722.jpg",
@@ -2875,7 +3087,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "In the middle of nature",
       "Forest"
-    ]
+    ],
+    "waves": 1
   },
   {
     "id": "male-karpaty-stary-plast",
@@ -3083,6 +3296,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "Meadow",
       "View"
+    ],
+    "ascentM": 558,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -3239,6 +3458,27 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "View",
       "Meadow"
+    ],
+    "ascentM": 400,
+    "marks": [
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ]
     ]
   },
   {
@@ -3328,6 +3568,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Sunset",
       "Meadow"
+    ],
+    "ascentM": 318,
+    "marks": [
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -3437,6 +3683,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "Meadow",
       "River"
+    ],
+    "ascentM": 46,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -3580,6 +3832,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Meadow",
       "River",
       "View"
+    ],
+    "ascentM": 531,
+    "marks": [
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -3737,6 +3995,12 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "River"
+    ],
+    "ascentM": 219,
+    "marks": [
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -3965,6 +4229,18 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "River",
       "Meadow"
+    ],
+    "ascentM": 480,
+    "marks": [
+      [
+        "blue"
+      ],
+      [
+        "red"
+      ],
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -4128,6 +4404,33 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 554,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -4384,6 +4687,22 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 537,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -4500,6 +4819,19 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "View",
       "River"
+    ],
+    "ascentM": 529,
+    "marks": [
+      [
+        "red"
+      ],
+      [
+        "red",
+        "yellow"
+      ],
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -4666,6 +4998,55 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 463,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "green"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "blue"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "blue"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -4888,6 +5269,43 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 590,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "red",
+        "green",
+        "yellow"
+      ],
+      [
+        "red",
+        "blue",
+        "green",
+        "yellow"
+      ]
     ]
   },
   {
@@ -5084,6 +5502,31 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Meadow",
       "Forest",
       "View"
+    ],
+    "ascentM": 508,
+    "marks": [
+      [
+        "yellow"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "green"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "blue",
+        "yellow"
+      ],
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -5210,6 +5653,19 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Mountains",
       "View",
       "Forest"
+    ],
+    "ascentM": 936,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -5307,6 +5763,15 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "View",
       "Forest"
+    ],
+    "ascentM": 633,
+    "marks": [
+      [
+        "blue"
+      ],
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -5419,6 +5884,20 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "Forest",
       "View"
+    ],
+    "ascentM": 526,
+    "marks": [
+      [
+        "red",
+        "yellow"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "green",
+        "yellow"
+      ]
     ]
   },
   {
@@ -5669,6 +6148,32 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Forest",
       "View",
       "Mountains"
+    ],
+    "ascentM": 1209,
+    "marks": [
+      [
+        "blue"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "yellow"
+      ],
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -5758,6 +6263,16 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Mountains",
       "View",
       "Forest"
+    ],
+    "ascentM": 774,
+    "marks": [
+      [
+        "yellow"
+      ],
+      [
+        "red",
+        "yellow"
+      ]
     ]
   },
   {
@@ -5925,6 +6440,25 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "River"
+    ],
+    "ascentM": 1096,
+    "marks": [
+      [
+        "yellow"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "blue"
+      ],
+      [
+        "red"
+      ],
+      [
+        "green"
+      ]
     ]
   },
   {
@@ -6102,6 +6636,24 @@ export const HERO_TRAILS: HeroTrail[] = [
       "River",
       "Forest",
       "View"
+    ],
+    "ascentM": 946,
+    "marks": [
+      [
+        "blue"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -6264,6 +6816,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "River",
       "Forest",
       "Meadow"
+    ],
+    "ascentM": 259,
+    "marks": [
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -6350,6 +6908,19 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 1021,
+    "marks": [
+      [
+        "red",
+        "blue"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -6449,6 +7020,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "Meadow",
       "Forest",
       "View"
+    ],
+    "ascentM": 422,
+    "marks": [
+      [
+        "yellow"
+      ]
     ]
   },
   {
@@ -6664,6 +7241,28 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 1099,
+    "marks": [
+      [
+        "red",
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "red",
+        "green"
+      ]
     ]
   },
   {
@@ -6849,7 +7448,45 @@ export const HERO_TRAILS: HeroTrail[] = [
       "forest"
     ],
     "crowd": "Pokojné",
-    "tags": []
+    "tags": [],
+    "ascentM": 1151,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "green",
+        "yellow"
+      ],
+      [
+        "green"
+      ],
+      [
+        "red",
+        "blue",
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "red",
+        "green"
+      ],
+      [
+        "red"
+      ],
+      [
+        "yellow"
+      ],
+      [
+        "blue",
+        "yellow"
+      ],
+      [
+        "yellow"
+      ]
+    ]
   },
   {
     "id": "nizke-tatry-ohniste",
@@ -6938,7 +7575,19 @@ export const HERO_TRAILS: HeroTrail[] = [
       "forest"
     ],
     "crowd": "Ľudoprázdne",
-    "tags": []
+    "tags": [],
+    "ascentM": 898,
+    "marks": [
+      [
+        "red"
+      ],
+      [
+        "blue"
+      ],
+      [
+        "green"
+      ]
+    ]
   },
   {
     "id": "zapadne-tatry-sivy-vrch",
@@ -7034,6 +7683,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 832,
+    "marks": [
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -7168,6 +7823,12 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 938,
+    "marks": [
+      [
+        "blue"
+      ]
     ]
   },
   {
@@ -7281,6 +7942,19 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "Meadow",
       "Forest"
+    ],
+    "ascentM": 1064,
+    "marks": [
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "red"
+      ]
     ]
   },
   {
@@ -7446,6 +8120,30 @@ export const HERO_TRAILS: HeroTrail[] = [
       "View",
       "River",
       "Meadow"
+    ],
+    "ascentM": 558,
+    "marks": [
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "blue",
+        "green"
+      ],
+      [
+        "green"
+      ],
+      [
+        "green",
+        "yellow"
+      ]
     ]
   },
   {
@@ -7476,7 +8174,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "crowd": "",
     "tags": [
       "In the middle of nature"
-    ]
+    ],
+    "waves": 3
   },
   {
     "id": "vodne-diela-kralova",
@@ -7505,7 +8204,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "crowd": "",
     "tags": [
       "In the middle of nowhere"
-    ]
+    ],
+    "waves": 3
   },
   {
     "id": "vodne-diela-slnava",
@@ -7537,7 +8237,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "tags": [
       "In the middle of nowhere",
       "In the middle of nature"
-    ]
+    ],
+    "waves": 2
   },
   {
     "id": "vodne-diela-oresianska-priehrada",
@@ -7574,7 +8275,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "crowd": "",
     "tags": [
       "In the middle of nature"
-    ]
+    ],
+    "waves": 1
   },
   {
     "id": "vodne-diela-palcmanska-masa",
@@ -7615,6 +8317,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "crowd": "",
     "tags": [
       "In the middle of nature"
-    ]
+    ],
+    "waves": 2
   }
 ];

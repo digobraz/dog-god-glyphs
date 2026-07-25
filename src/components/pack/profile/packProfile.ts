@@ -12,28 +12,167 @@ export type ActivityTag =
 
 export type TripVibe = 'chill' | 'adventure' | 'social' | 'training' | 'family';
 
+// ── full profile taxonómie (zadanie-profil-full-2026-07-24 ČASŤ A) ──
+export type Gender = 'male' | 'female' | 'other' | 'undisclosed';
+export type RelationshipStatus = 'single' | 'taken' | 'complicated' | 'just_dogs';
+export type PersonType = 'sporty' | 'active' | 'homebody';
+export type Smoking = 'non_smoker' | 'socially' | 'smoker' | 'vaper';
+export type Alcohol = 'none' | 'socially' | 'regularly';
+export type Diet = 'omnivore' | 'vegetarian' | 'vegan' | 'healthy' | 'gourmet';
+export type Intent = 'trip_buddies' | 'dog_playdates' | 'friendship' | 'dating' | 'community';
+export type HobbyTag =
+  | 'music' | 'cooking' | 'photography' | 'art' | 'reading' | 'gaming'
+  | 'fitness' | 'nature' | 'movies' | 'coffee' | 'crafts' | 'volunteering' | 'sports';
+
+// ── „koncentrát osobnosti" (zadanie-profil-koncentrat-2026-07-24) — jeden
+// pool, max 10 vybraných, zoskupené jemnými pod-labelmi (Vibe/Active/
+// Creative/Taste/Dogs) ale zdieľajú jeden limit. Nahrádza (v renderi, nie v
+// type — back-compat) staré interests/vibes/hobbies/personType. ──
+export type PersonalityGroup = 'vibe' | 'active' | 'creative' | 'taste' | 'dog';
+export type PersonalityTag =
+  | 'chill' | 'adventurous' | 'social' | 'homebody' | 'family' | 'open_minded'
+  | 'hiking' | 'camping' | 'sport' | 'travel'
+  | 'art' | 'music' | 'books' | 'movies'
+  | 'food' | 'coffee' | 'tea'
+  | 'dog_training' | 'dog_rescue' | 'work_with_dog';
+
+export type Smoke = 'yes' | 'no';
+export type Work = 'business' | 'employee' | 'free' | 'study';
+export const MAX_PERSONALITY = 10;
+
+// Visibility model — jadro rozšíriteľnosti. trip = vidno aj na výlete (buddy-listu),
+// profile = len na plnom profile, private = len ja. Override žije v human.visibility,
+// default v DEFAULT_VISIBILITY (nižšie) — getTier() spája oboje.
+export type VisTier = 'trip' | 'profile' | 'private';
+export type ProfileFieldKey =
+  | 'gender' | 'age' | 'relationship' | 'languages'
+  | 'dogVoiceBio' | 'bio'
+  | 'interests' | 'hobbies' | 'vibes'
+  | 'personType' | 'smoking' | 'alcohol' | 'diet'
+  | 'intents';
+
 export interface HumanProfile {
   interests: ActivityTag[];
   vibes: TripVibe[];
   region?: string;          // SK kraj / mesto (voľný výber z existujúcej SK_GEO)
   languages: string[];      // ['SK','EN']
-  bio?: string;             // max 240
-  lookingFor?: string;      // 1 veta „s kým/čím chodím na výlety"
+  bio?: string;             // „About me" — ≤150 slov (word-count, nie znaky)
+  lookingFor?: string;      // legacy — 1 veta „s kým/čím chodím na výlety", nahradené `intents`
+  gender?: Gender;
+  age?: number;
+  nickname?: string;        // voliteľná prezývka (zadanie-profil-blok1-rework-2026-07-24)
+  displayAs?: 'name' | 'nickname'; // ktorá verzia sa ukazuje navonok, default 'name'
+  nationality?: string;     // country code z NATIONALITY_OPTIONS, default 'SK' (nezapisuje sa kým user nevyberie)
+  relationship?: RelationshipStatus;
+  dogVoiceBio?: string;      // „What my dog says about me" — ≤150 slov, HERO (zobrazuje sa prvý)
+  hobbies: HobbyTag[];       // default []
+  personType?: PersonType;
+  smoking?: Smoking;
+  alcohol?: Alcohol;
+  diet?: Diet;
+  intents: Intent[];         // default []
+  personality: PersonalityTag[]; // koncentrát osobnosti — max MAX_PERSONALITY, default []
+  customPersonality?: string;    // ONE user-written personality pill (counts toward MAX_PERSONALITY)
+  smoke?: Smoke;             // Yes/No — nahrádza `smoking` v renderi (pole ostáva pre back-compat)
+  work?: Work;
+  visibility: Partial<Record<ProfileFieldKey, VisTier>>; // override defaultov, default {}
 }
 
 export type TrainingLevel = 'puppy' | 'basics' | 'advanced' | 'off_leash_ready';
 export type SocializationLevel = 'shy' | 'selective' | 'friendly' | 'social_butterfly';
 export type EnergyLevel = 'calm' | 'moderate' | 'high' | 'tireless';
 
+// Dog BIO + tags — read-profil / accordion editor (zadanie-profil-read-dog-2026-07-25 §1).
+// Closed-vocab chip taxonómie, i18n label key = `pack.dogTag.<value>`.
+//
+// POVAHA (zadanie-psia-karta-2026-07-25) — rozšírené zo 7 na 19. Zlúčené polia
+// „povaha" + „správanie" z Matejových zápiskov: boli to dve mená pre to isté,
+// druhé navyše nieslo dôsledok (dominantný → s dominantným možný problém),
+// ktorý teraz žije v `card.triggers` (čo reakciu spúšťa), nie v povahe.
+export const DOG_TEMPERAMENT_TAGS = [
+  'playful', 'friendly', 'calm', 'shy', 'alert', 'social', 'loner',
+  'tolerant', 'easygoing', 'ignoring', 'dominant', 'submissive',
+  'curious', 'gentle', 'goofy', 'stubborn', 'cuddly', 'vocal', 'protective',
+] as const;
+export type DogTemperamentTag = typeof DOG_TEMPERAMENT_TAGS[number];
+
+// DEPRECATED v UI — obsah pohltili štruktúrované polia DogCard (range/pace/
+// compat/joys). Typ + uložené dáta ostávajú kvôli back-compat starých recordov.
+export const DOG_TRAIL_TAGS = [
+  'dogs_ok', 'kids_ok', 'loves_water', 'long_distance', 'slow_pace', 'off_leash', 'hunts',
+] as const;
+export type DogTrailTag = typeof DOG_TRAIL_TAGS[number];
+
+// ── PSIA KARTA (zadanie-psia-karta-2026-07-25) ────────────────────────────────
+// Tri vrstvy: 1 ZÁKLAD (identita) · 2 AKO FUNGUJE + S KÝM (buddy matching) ·
+// 3 VET (owner-only, aditívny pohľad — NIE samostatný profil; ťahá 1+2 a
+// pridáva anamnézu). Semafor sa používa VÝHRADNE na kompatibilitu a riziko —
+// neutrálne vlastnosti (energia, veľkosť) sú škály, nie semafor.
+export type TrafficLight = 'green' | 'amber' | 'red';
+
+export type DogFitness = 'full' | 'normal' | 'take_it_easy';
+export type DogRange = 'r5' | 'r15' | 'r30' | 'all_day';
+export type DogAlone = 'fine' | 'a_while' | 'cannot';
+export type DogNeutered = 'yes' | 'no';
+export type DogOrigin = 'breeder' | 'shelter' | 'street' | 'bad_conditions' | 'loving_family' | 'other';
+export type DogFeeding = 'kibble' | 'wet' | 'barf' | 'cooked';
+
+// Semafor — orezaný na JEDEN riadok (Matej 2026-07-25 2. kolo: „nechajme len ako
+// vychádza so psami semafor a potom čo nemá rád"). Všetky ostatné cieľové skupiny
+// (samci/feny/malé/veľké/šteniatka/deti/cudzí/mačky) sa presunuli do otvorenej
+// otázky `dislikedTypes` ako návrhové pills — pýtať sa 11× na semafor bolo veľa,
+// a v praxi človek vymenuje len to, čo pes NEZNÁŠA.
+export const DOG_COMPAT_KEYS = ['dogs_overall'] as const;
+export type DogCompatKey = typeof DOG_COMPAT_KEYS[number];
+
+export interface DogCard {
+  // ── VRSTVA 1 — ZÁKLAD ──
+  sizeClass?: 'S' | 'M' | 'L' | 'XL';
+  neutered?: DogNeutered;
+  heatLast?: string;            // ISO — len nekastrovaná fena; ruší skupinový výlet
+  origin?: DogOrigin;
+  originSince?: string;         // ISO — odkedy ho máš
+
+  // ── VRSTVA 2a — AKO FUNGUJE ──
+  fitness?: DogFitness;         // koľko MÔŽE (verejné — buddy inak naplánuje 25 km)
+  range?: DogRange;
+  obedience?: TrafficLight;     // dropdown (Matej 3. kolo: nie semafor)
+  recall?: TrafficLight;        // samostatne — najdôležitejšia jedna vec pri off-leash
+  alone?: DogAlone;             // sám na ubytovaní — rozhoduje o prespaní na tripe
+  feeding?: DogFeeding[];       // Matej: do vrstvy 2, nie do vet
+
+  // ── VRSTVA 2b — S KÝM (semafor, 1 riadok) ──
+  compat: Partial<Record<DogCompatKey, TrafficLight>>;
+
+  // ── VRSTVA 2c — otvorené otázky (voľný text + návrhové pills) ──
+  // Hodnota je BUĎ kľúč z príslušného *_SUGGESTIONS (→ i18n label), ALEBO
+  // vlastný text používateľa. Render rozlišuje členstvom v zozname návrhov.
+  dislikedTypes: string[];      // „čo nemá rád" — typy psov + skupiny presunuté zo semaforu
+  triggers: string[];           // nahrádza pole „agresivita" (self-report bias + stigma)
+  fears: string[];
+  joys: string[];
+  quirks: string[];             // flavour, nefiltruje sa — bezpečnostné veci sú vyššie
+}
+
+export function emptyDogCard(): DogCard {
+  return { compat: {}, dislikedTypes: [], triggers: [], fears: [], joys: [], quirks: [] };
+}
+
 export interface DogProfileAttrs {
   dogId: string;
   training: TrainingLevel;
   socialization: SocializationLevel;
-  energy: EnergyLevel;
+  energy: EnergyLevel;          // koľko CHCE — párové s card.fitness (koľko môže)
   temperament: string[];        // chips: 'playful','protective','curious','gentle','independent','vocal'…
   sizeClass?: 'S' | 'M' | 'L' | 'XL'; // ak nie je v dogs row
   goodWith: Array<'dogs' | 'kids' | 'cats' | 'strangers'>;
   offLeashReliable?: boolean;
+  bio: string;                  // voľný text, ≤200 znakov (trim + orez) — public (tier 'profile')
+  tags: {
+    temperament: DogTemperamentTag[]; // Povaha
+    trail: DogTrailTag[];             // DEPRECATED v UI — viď DOG_TRAIL_TAGS
+  };
+  card: DogCard;
 }
 
 export interface CentralProfile {
@@ -48,27 +187,30 @@ export interface TaxonomyOption<T extends string = string> {
   value: T;
   labelEN: string;
   icon?: string;
+  emoji?: string; // font-native emoji prefix (zadanie-profil-kompakt-emoji-2026-07-24) — replaces <BrandIcon> in ProfilePill
+  abbr?: string; // short code (e.g. 3-letter nationality) for compact pill display (zadanie-profil-shrink-2026-07-24)
+  group?: PersonalityGroup; // sub-label grouping for the personality concentrate (zadanie-profil-koncentrat-2026-07-24)
 }
 
 export const ACTIVITY_OPTIONS: TaxonomyOption<ActivityTag>[] = [
-  { value: 'hiking', labelEN: 'Hiking', icon: 'walk' },
-  { value: 'running', labelEN: 'Running' },
-  { value: 'camping', labelEN: 'Camping', icon: 'forest' },
-  { value: 'swimming', labelEN: 'Swimming', icon: 'water' },
-  { value: 'cycling', labelEN: 'Cycling', icon: 'cycle' },
-  { value: 'city_walks', labelEN: 'City walks' },
-  { value: 'mountains', labelEN: 'Mountains', icon: 'sun' },
-  { value: 'water', labelEN: 'Water activities', icon: 'water' },
-  { value: 'training_meetups', labelEN: 'Training meetups', icon: 'graduate' },
-  { value: 'travel', labelEN: 'Travel', icon: 'globe' },
+  { value: 'hiking', labelEN: 'Hiking', icon: 'walk', emoji: '🥾' },
+  { value: 'running', labelEN: 'Running', emoji: '🏃' },
+  { value: 'camping', labelEN: 'Camping', icon: 'forest', emoji: '🏕️' },
+  { value: 'swimming', labelEN: 'Swimming', icon: 'water', emoji: '🏊' },
+  { value: 'cycling', labelEN: 'Cycling', icon: 'cycle', emoji: '🚴' },
+  { value: 'city_walks', labelEN: 'City walks', emoji: '🏙️' },
+  { value: 'mountains', labelEN: 'Mountains', icon: 'sun', emoji: '⛰️' },
+  { value: 'water', labelEN: 'Water activities', icon: 'water', emoji: '🌊' },
+  { value: 'training_meetups', labelEN: 'Training meetups', icon: 'graduate', emoji: '🎓' },
+  { value: 'travel', labelEN: 'Travel', icon: 'globe', emoji: '✈️' },
 ];
 
 export const VIBE_OPTIONS: TaxonomyOption<TripVibe>[] = [
-  { value: 'chill', labelEN: 'Chill', icon: 'yinyang' },
-  { value: 'adventure', labelEN: 'Adventure', icon: 'bow' },
-  { value: 'social', labelEN: 'Social', icon: 'people' },
-  { value: 'training', labelEN: 'Training', icon: 'graduate' },
-  { value: 'family', labelEN: 'Family', icon: 'house-heart' },
+  { value: 'chill', labelEN: 'Chill', icon: 'yinyang', emoji: '😌' },
+  { value: 'adventure', labelEN: 'Adventure', icon: 'bow', emoji: '🧭' },
+  { value: 'social', labelEN: 'Social', icon: 'people', emoji: '🎉' },
+  { value: 'training', labelEN: 'Training', icon: 'graduate', emoji: '🎯' },
+  { value: 'family', labelEN: 'Family', icon: 'house-heart', emoji: '👨‍👩‍👧' },
 ];
 
 export const TRAINING_OPTIONS: TaxonomyOption<TrainingLevel>[] = [
@@ -107,6 +249,280 @@ export const GOOD_WITH_OPTIONS: TaxonomyOption<'dogs' | 'kids' | 'cats' | 'stran
   { value: 'cats', labelEN: 'Cats' },
   { value: 'strangers', labelEN: 'Strangers', icon: 'people' },
 ];
+
+// ── full profile taxonómie — icon = len keď sedí sémanticky, inak necháva sa bez ──
+export const GENDER_OPTIONS: TaxonomyOption<Gender>[] = [
+  { value: 'male', labelEN: 'Male' },
+  { value: 'female', labelEN: 'Female' },
+  { value: 'other', labelEN: 'Other' },
+  { value: 'undisclosed', labelEN: 'Prefer not to say' },
+];
+
+// Trimmed to single/taken only (zadanie-profil-blok1-rework-2026-07-24 — was
+// 4 options incl. 'complicated'/'just_dogs', now rendered as 2 pills in BLOK 1's
+// one-row pill layout). RelationshipStatus type keeps the wider union so any
+// legacy-saved value still type-checks; the UI simply no longer offers them.
+export const RELATIONSHIP_OPTIONS: TaxonomyOption<RelationshipStatus>[] = [
+  { value: 'single', labelEN: 'Single', emoji: '💚' },
+  { value: 'taken', labelEN: 'Taken', emoji: '❤️' },
+];
+
+// ── nationality (zadanie-profil-blok1-rework-2026-07-24) — ~20 najčastejších
+// + 'other' catch-all, flag emoji per option, default 'SK' handled at the call
+// site (select shows SK until the user actually picks something). ──
+export const NATIONALITY_OPTIONS: TaxonomyOption<string>[] = [
+  { value: 'SK', labelEN: 'Slovakia', emoji: '🇸🇰', abbr: 'SVK' },
+  { value: 'CZ', labelEN: 'Czechia', emoji: '🇨🇿', abbr: 'CZE' },
+  { value: 'PL', labelEN: 'Poland', emoji: '🇵🇱', abbr: 'POL' },
+  { value: 'HU', labelEN: 'Hungary', emoji: '🇭🇺', abbr: 'HUN' },
+  { value: 'AT', labelEN: 'Austria', emoji: '🇦🇹', abbr: 'AUT' },
+  { value: 'DE', labelEN: 'Germany', emoji: '🇩🇪', abbr: 'DEU' },
+  { value: 'UK', labelEN: 'United Kingdom', emoji: '🇬🇧', abbr: 'GBR' },
+  { value: 'IE', labelEN: 'Ireland', emoji: '🇮🇪', abbr: 'IRL' },
+  { value: 'US', labelEN: 'United States', emoji: '🇺🇸', abbr: 'USA' },
+  { value: 'FR', labelEN: 'France', emoji: '🇫🇷', abbr: 'FRA' },
+  { value: 'IT', labelEN: 'Italy', emoji: '🇮🇹', abbr: 'ITA' },
+  { value: 'ES', labelEN: 'Spain', emoji: '🇪🇸', abbr: 'ESP' },
+  { value: 'NL', labelEN: 'Netherlands', emoji: '🇳🇱', abbr: 'NLD' },
+  { value: 'CH', labelEN: 'Switzerland', emoji: '🇨🇭', abbr: 'CHE' },
+  { value: 'UA', labelEN: 'Ukraine', emoji: '🇺🇦', abbr: 'UKR' },
+  { value: 'RO', labelEN: 'Romania', emoji: '🇷🇴', abbr: 'ROU' },
+  { value: 'HR', labelEN: 'Croatia', emoji: '🇭🇷', abbr: 'HRV' },
+  { value: 'SI', labelEN: 'Slovenia', emoji: '🇸🇮', abbr: 'SVN' },
+  { value: 'PT', labelEN: 'Portugal', emoji: '🇵🇹', abbr: 'PRT' },
+  { value: 'OTHER', labelEN: 'Other', emoji: '🏳️', abbr: 'OTH' },
+];
+
+export const PERSON_TYPE_OPTIONS: TaxonomyOption<PersonType>[] = [
+  { value: 'sporty', labelEN: 'Sporty', icon: 'trophy', emoji: '🏅' },
+  { value: 'active', labelEN: 'Active', icon: 'walk', emoji: '🚶' },
+  { value: 'homebody', labelEN: 'Homebody', icon: 'house-heart', emoji: '🛋️' },
+];
+
+export const SMOKING_OPTIONS: TaxonomyOption<Smoking>[] = [
+  { value: 'non_smoker', labelEN: 'Non-smoker', emoji: '🚭' },
+  { value: 'socially', labelEN: 'Socially', emoji: '🚬' },
+  { value: 'smoker', labelEN: 'Smoker', emoji: '🚬' },
+  { value: 'vaper', labelEN: 'Vaper', emoji: '💨' },
+];
+
+export const ALCOHOL_OPTIONS: TaxonomyOption<Alcohol>[] = [
+  { value: 'none', labelEN: "Doesn't drink", emoji: '🚱' },
+  { value: 'socially', labelEN: 'Socially', emoji: '🍷' },
+  { value: 'regularly', labelEN: 'Regularly', emoji: '🍺' },
+];
+
+export const DIET_OPTIONS: TaxonomyOption<Diet>[] = [
+  { value: 'omnivore', labelEN: 'All eater', emoji: '🍖' },
+  { value: 'vegetarian', labelEN: 'Vegetarian', emoji: '🥗' },
+  { value: 'vegan', labelEN: 'Vegan', emoji: '🌱' },
+  { value: 'healthy', labelEN: 'Healthy', emoji: '🍳' },
+  { value: 'gourmet', labelEN: 'Gourmet', emoji: '🍽️' },
+];
+
+// Personality concentrate — 20 tags, 5 groups (zadanie-profil-koncentrat-2026-07-24
+// ČASŤ A). Emoji exact per spec. `group` drives the pod-label rendering in
+// PackProfile.tsx; all 20 share ONE max-10 selection limit.
+export const PERSONALITY_OPTIONS: TaxonomyOption<PersonalityTag>[] = [
+  { value: 'chill', labelEN: 'Chill', emoji: '😌', group: 'vibe' },
+  { value: 'adventurous', labelEN: 'Adventurous', emoji: '🧭', group: 'vibe' },
+  { value: 'social', labelEN: 'Social', emoji: '🎉', group: 'vibe' },
+  { value: 'homebody', labelEN: 'Homebody', emoji: '🛋️', group: 'vibe' },
+  { value: 'family', labelEN: 'Family', emoji: '👨‍👩‍👧', group: 'vibe' },
+  { value: 'open_minded', labelEN: 'Open-minded', emoji: '🕊️', group: 'vibe' },
+  { value: 'hiking', labelEN: 'Hiking', emoji: '🥾', group: 'active' },
+  { value: 'camping', labelEN: 'Camping', emoji: '🏕️', group: 'active' },
+  { value: 'sport', labelEN: 'Sport', emoji: '🏅', group: 'active' },
+  { value: 'travel', labelEN: 'Travel', emoji: '✈️', group: 'active' },
+  { value: 'art', labelEN: 'Art', emoji: '🎨', group: 'creative' },
+  { value: 'music', labelEN: 'Music', emoji: '🎵', group: 'creative' },
+  { value: 'books', labelEN: 'Books', emoji: '📚', group: 'creative' },
+  { value: 'movies', labelEN: 'Movies', emoji: '🎬', group: 'creative' },
+  { value: 'food', labelEN: 'Food', emoji: '🍽️', group: 'taste' },
+  { value: 'coffee', labelEN: 'Coffee', emoji: '☕', group: 'taste' },
+  { value: 'tea', labelEN: 'Tea', emoji: '🍵', group: 'taste' },
+  { value: 'dog_training', labelEN: 'Dog training', emoji: '🐾', group: 'dog' },
+  { value: 'dog_rescue', labelEN: 'Dog rescue', emoji: '🐕', group: 'dog' },
+  { value: 'work_with_dog', labelEN: 'Work with dog', emoji: '🐕‍🦺', group: 'dog' },
+];
+
+export const PERSONALITY_GROUPS: { group: PersonalityGroup; label: string }[] = [
+  { group: 'vibe', label: 'Vibe' },
+  { group: 'active', label: 'Active' },
+  { group: 'creative', label: 'Creative' },
+  { group: 'taste', label: 'Taste' },
+  { group: 'dog', label: 'Dogs' },
+];
+
+export const SMOKE_OPTIONS: TaxonomyOption<Smoke>[] = [
+  { value: 'yes', labelEN: 'Yes', emoji: '🚬' },
+  { value: 'no', labelEN: 'No', emoji: '🚭' },
+];
+
+export const WORK_OPTIONS: TaxonomyOption<Work>[] = [
+  { value: 'business', labelEN: 'Business', emoji: '📈' },
+  { value: 'employee', labelEN: 'Employee', emoji: '💼' },
+  { value: 'free', labelEN: 'Free', emoji: '🕊️' },
+  { value: 'study', labelEN: 'Study', emoji: '🎓' },
+];
+
+// ── PSIA KARTA — taxonómie (zadanie-psia-karta-2026-07-25) ───────────────────
+export const DOG_FITNESS_OPTIONS: TaxonomyOption<DogFitness>[] = [
+  { value: 'full', labelEN: 'Full strength', emoji: '💪' },
+  { value: 'normal', labelEN: 'Normal', emoji: '🐾' },
+  { value: 'take_it_easy', labelEN: 'Needs to take it easy', emoji: '🌿' },
+];
+
+export const DOG_RANGE_OPTIONS: TaxonomyOption<DogRange>[] = [
+  { value: 'r5', labelEN: 'Up to 5 km' },
+  { value: 'r15', labelEN: 'Up to 15 km' },
+  { value: 'r30', labelEN: 'Up to 30 km' },
+  { value: 'all_day', labelEN: 'All day' },
+];
+
+export const DOG_ALONE_OPTIONS: TaxonomyOption<DogAlone>[] = [
+  { value: 'fine', labelEN: 'Totally fine' },
+  { value: 'a_while', labelEN: 'A while, then not' },
+  { value: 'cannot', labelEN: "Can't be alone" },
+];
+
+export const DOG_NEUTERED_OPTIONS: TaxonomyOption<DogNeutered>[] = [
+  { value: 'yes', labelEN: 'Neutered' },
+  { value: 'no', labelEN: 'Intact' },
+];
+
+export const DOG_ORIGIN_OPTIONS: TaxonomyOption<DogOrigin>[] = [
+  { value: 'breeder', labelEN: 'Breeder', emoji: '📜' },
+  { value: 'shelter', labelEN: 'Shelter', emoji: '🏠' },
+  { value: 'street', labelEN: 'Street', emoji: '🌍' },
+  { value: 'bad_conditions', labelEN: 'Bad conditions', emoji: '⛓️' },
+  { value: 'loving_family', labelEN: 'Loving family', emoji: '💛' },
+  { value: 'other', labelEN: 'Other' },
+];
+
+export const DOG_FEEDING_OPTIONS: TaxonomyOption<DogFeeding>[] = [
+  { value: 'kibble', labelEN: 'Kibble', emoji: '🥣' },
+  { value: 'wet', labelEN: 'Wet food', emoji: '🥫' },
+  { value: 'barf', labelEN: 'BARF / raw', emoji: '🥩' },
+  { value: 'cooked', labelEN: 'Home cooked', emoji: '🍲' },
+];
+
+// Skratky, nie slová (Matej 3. kolo) — ZÁKLAD má tri polia v jednom riadku,
+// „Small/Medium/Large/Giant" by ho pretiekli.
+export const DOG_SIZE_OPTIONS: TaxonomyOption<'S' | 'M' | 'L' | 'XL'>[] = [
+  { value: 'S', labelEN: 'S' },
+  { value: 'M', labelEN: 'M' },
+  { value: 'L', labelEN: 'L' },
+  { value: 'XL', labelEN: 'XL' },
+];
+
+// Dropdown varianty semaforu (Matej 3. kolo: „nedat na semafor ale na dropdown").
+// Hodnoty ostávajú TrafficLight — mení sa len ovládací prvok a labely. Emoji bodka
+// nesie farbu aj v natívnom <select> popupe, kde CSS nedosiahne.
+export const DOG_SKILL_OPTIONS: TaxonomyOption<TrafficLight>[] = [
+  { value: 'green', labelEN: 'No problem', emoji: '🟢' },
+  { value: 'amber', labelEN: 'Depends', emoji: '🟡' },
+  { value: 'red', labelEN: 'No', emoji: '🔴' },
+];
+/** Alias — rovnaké hodnoty aj labely, len iné volacie miesto (čitateľnosť). */
+export const DOG_COMPAT_OPTIONS = DOG_SKILL_OPTIONS;
+
+/** Farby semaforu — zdieľané medzi `SelectRow toneOf` a legendou. */
+export const TRAFFIC_COLORS: Record<TrafficLight, string> = {
+  green: '#3D7A4E',  // PACK_THEME.growGreen
+  amber: '#C99A3F',  // brand gold
+  red: '#B25640',    // PACK_THEME.alertRed
+};
+
+// Semafor legenda — MUSÍ sa renderovať v UI, inak si každý vyloží farby inak.
+export const TRAFFIC_OPTIONS: TaxonomyOption<TrafficLight>[] = [
+  { value: 'green', labelEN: 'No problem' },
+  { value: 'amber', labelEN: 'Depends' },
+  { value: 'red', labelEN: 'No' },
+];
+
+// Semafor riadky — jediný zostávajúci: ako vychádza so psami.
+export const DOG_COMPAT_ROWS: { key: DogCompatKey; labelEN: string; indent?: boolean }[] = [
+  { key: 'dogs_overall', labelEN: 'With other dogs' },
+];
+
+// ── otvorené otázky: návrhové pills ──
+// „Čo nemá rád" — dva pôvody návrhov:
+//  1) TYP psa (nie plemeno). Psy nereagujú na plemeno, reagujú na typ; krátkonosé
+//     majú stlačenú mimiku a nevedia signalizovať, preto ich veľa psov neznáša.
+//  2) skupiny presunuté zo zrušených semafor riadkov (2. kolo škrtania) — človek
+//     ich vymenuje rýchlejšie ako výpočet, než keby na každú klikal semafor.
+export const DOG_DISLIKED_TYPE_SUGGESTIONS = [
+  'big_dark', 'fluffy', 'curly', 'flat_faced', 'no_tail',
+  'small_dogs', 'big_dogs', 'puppies', 'intact_males', 'intact_females',
+  'kids', 'strangers', 'cats',
+  'snow', 'rain', 'wet', 'water',
+] as const;
+
+export const DOG_TRIGGER_SUGGESTIONS = [
+  'jump_on_back', 'at_food', 'at_toy', 'near_owner', 'on_leash', 'tight_space', 'cornered',
+] as const;
+
+export const DOG_FEAR_SUGGESTIONS = [
+  'storm', 'fireworks', 'water', 'cars', 'strange_men', 'vacuum', 'stairs', 'vet',
+  'big_animals',
+] as const;
+
+export const DOG_JOY_SUGGESTIONS = [
+  'water', 'snow', 'mud', 'stick', 'ball', 'kids', 'food', 'car_rides', 'couch',
+] as const;
+
+export const DOG_QUIRK_SUGGESTIONS = [
+  'eats_poop', 'rolls_in_poop', 'hunts', 'digs', 'barks_at_postman', 'steals_food', 'sleeps_in_bed',
+  'pesters_dogs', 'marks_everything', 'buries_prey', 'chases_birds',
+] as const;
+
+export const INTENT_OPTIONS: TaxonomyOption<Intent>[] = [
+  { value: 'trip_buddies', labelEN: 'Trip buddies', icon: 'walk', emoji: '🥾' },
+  { value: 'dog_playdates', labelEN: 'Dog playdates', icon: 'paw', emoji: '🐕' },
+  { value: 'friendship', labelEN: 'Friendship', icon: 'people', emoji: '🤝' },
+  { value: 'dating', labelEN: 'Dating', icon: 'heart', emoji: '💘' },
+  { value: 'community', labelEN: 'Just the community', icon: 'heartpaw', emoji: '🏛️' },
+];
+
+export const HOBBY_OPTIONS: TaxonomyOption<HobbyTag>[] = [
+  { value: 'music', labelEN: 'Music', emoji: '🎵' },
+  { value: 'cooking', labelEN: 'Cooking', icon: 'food', emoji: '🍳' },
+  { value: 'photography', labelEN: 'Photography', emoji: '📷' },
+  { value: 'art', labelEN: 'Art', emoji: '🎨' },
+  { value: 'reading', labelEN: 'Reading', emoji: '📚' },
+  { value: 'gaming', labelEN: 'Gaming', emoji: '🎮' },
+  { value: 'fitness', labelEN: 'Fitness', icon: 'trophy', emoji: '💪' },
+  { value: 'nature', labelEN: 'Nature', icon: 'forest', emoji: '🌿' },
+  { value: 'movies', labelEN: 'Movies', emoji: '🎬' },
+  { value: 'coffee', labelEN: 'Coffee', icon: 'cafe', emoji: '☕' },
+  { value: 'crafts', labelEN: 'Crafts', emoji: '🧵' },
+  { value: 'volunteering', labelEN: 'Shelter volunteering', icon: 'heartpaw', emoji: '🐾' },
+  { value: 'sports', labelEN: 'Sports', icon: 'trophy', emoji: '⚽' },
+];
+
+// Default viditeľnosť — override žije v human.visibility (getTier nižšie).
+// trip: fajčenie je LOCKED (Matej) — dealbreaker pri turistike so psom, viditeľné aj na výlete.
+export const DEFAULT_VISIBILITY: Record<ProfileFieldKey, VisTier> = {
+  languages: 'trip',
+  interests: 'trip',
+  vibes: 'trip',
+  personType: 'trip',
+  smoking: 'trip',
+  gender: 'profile',
+  age: 'profile',
+  relationship: 'profile',
+  dogVoiceBio: 'profile',
+  bio: 'profile',
+  hobbies: 'profile',
+  alcohol: 'profile',
+  diet: 'profile',
+  intents: 'profile',
+};
+
+export function getTier(profile: CentralProfile, key: ProfileFieldKey): VisTier {
+  return profile.human.visibility[key] ?? DEFAULT_VISIBILITY[key];
+}
 
 // ── deterministický hash → PRNG (mulberry32 + FNV-1a) — rovnaký vzor ako
 // packCommunity.ts, zámerne duplikovaný (nie import) — profil modul stojí
@@ -157,14 +573,61 @@ export function deriveDefaultDogAttrs(seed: string): DogProfileAttrs {
 
   const offLeashReliable = rnd() < 0.5;
 
-  return { dogId: seed, training, socialization, energy, temperament, sizeClass, goodWith, offLeashReliable };
+  return {
+    dogId: seed, training, socialization, energy, temperament, sizeClass, goodWith, offLeashReliable,
+    bio: '', tags: { temperament: [], trail: [] }, card: emptyDogCard(),
+  };
+}
+
+// Migrácia starých localStorage recordov (uložených pred zadanie-profil-read-dog-2026-07-25 /
+// zadanie-psia-karta-2026-07-25) — chýbajúce bio/tags/card → default prázdne, žiadny crash.
+function normalizeDogAttrs(d: Partial<DogProfileAttrs>): DogProfileAttrs {
+  const c = d.card ?? {};
+  return {
+    ...(d as DogProfileAttrs),
+    bio: d.bio ?? '',
+    tags: { temperament: d.tags?.temperament ?? [], trail: d.tags?.trail ?? [] },
+    card: {
+      ...c,
+      compat: c.compat ?? {},
+      dislikedTypes: c.dislikedTypes ?? [],
+      triggers: c.triggers ?? [],
+      fears: c.fears ?? [],
+      joys: c.joys ?? [],
+      quirks: c.quirks ?? [],
+      // sizeClass žil na attrs, karta ho preberá — nech sa staré dáta neztratia
+      sizeClass: c.sizeClass ?? d.sizeClass,
+    },
+  };
+}
+
+// Koľko z karty je vyplnené — poháňa „Hekthor je na 40 % spoznaný" progress.
+export function dogCardCompletion(card: DogCard): { filled: number; total: number; pct: number } {
+  const scalars: Array<unknown> = [
+    card.sizeClass, card.neutered, card.origin,
+    card.fitness, card.range, card.obedience, card.recall, card.alone,
+  ];
+  const lists: Array<unknown[]> = [
+    card.feeding ?? [], card.dislikedTypes, card.triggers, card.fears, card.joys, card.quirks,
+  ];
+  const compatFilled = DOG_COMPAT_ROWS.some((r) => card.compat[r.key]) ? 1 : 0;
+  const filled =
+    scalars.filter((v) => v !== undefined && v !== null && v !== '').length +
+    lists.filter((l) => l.length > 0).length +
+    compatFilled;
+  const total = scalars.length + lists.length + 1;
+  return { filled, total, pct: Math.round((filled / total) * 100) };
 }
 
 // ── localStorage CRUD (async-tvarované kvôli budúcemu Supabase swapu) ──
 const STORAGE_KEY = 'dogypt.profile.v1';
 
 function emptyProfile(): CentralProfile {
-  return { human: { interests: [], vibes: [], languages: [] }, dogs: {}, updatedAt: new Date(0).toISOString() };
+  return {
+    human: { interests: [], vibes: [], languages: [], hobbies: [], intents: [], personality: [], visibility: {} },
+    dogs: {},
+    updatedAt: new Date(0).toISOString(),
+  };
 }
 
 function readRaw(): CentralProfile {
@@ -172,9 +635,13 @@ function readRaw(): CentralProfile {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return emptyProfile();
     const parsed = JSON.parse(raw) as Partial<CentralProfile>;
+    const rawDogs = parsed.dogs ?? {};
     return {
-      human: { interests: [], vibes: [], languages: [], ...parsed.human },
-      dogs: parsed.dogs ?? {},
+      human: {
+        interests: [], vibes: [], languages: [], hobbies: [], intents: [], personality: [], visibility: {},
+        ...parsed.human,
+      },
+      dogs: Object.fromEntries(Object.entries(rawDogs).map(([id, d]) => [id, normalizeDogAttrs(d)])),
       updatedAt: parsed.updatedAt ?? new Date(0).toISOString(),
     };
   } catch {

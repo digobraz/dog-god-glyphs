@@ -1,20 +1,18 @@
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
+import { PackNotifications } from './PackNotifications';
 import iconHome from '@/assets/icons/nav-home.svg';
-import iconPortal from '@/assets/icons/nav-portal.svg';
-import iconDogs from '@/assets/icons/nav-dogs.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
 import { useT } from '@/i18n/LanguageContext';
 import { Inbox } from './messaging/Inbox';
 import { Thread } from './messaging/Thread';
-import { onOpenMessaging, emitOpenInbox, type MessagingOpenEvent } from './messaging/openBridge';
-import { unreadCount, subscribe as subscribeMessaging } from './messaging/packMessaging';
+import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge';
 
 const T = PACK_THEME;
 
@@ -49,30 +47,48 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
     <div className="min-h-[100dvh] relative" style={{ backgroundColor: T.pageBg, color: T.onDark }}>
       <HieroglyphBg />
 
-      {/* FLOATING STATUS HUB — fixed top, slim single-row pill */}
-      <DevotionHeader
-        avatarUrl={avatarUrl}
-        avatarInitial={avatarInitial}
-        devotion={devotion}
-        bones={bones}
-        packTotal={packTotal}
-        packToday={packToday}
-        dogs={dogs}
-        wide={wide}
-        onProfile={() => {
-          // LIVE: profil zrušený → avatar skroluje na settings blok dole na homepage.
-          // DEV_FULL: plný profil ostáva.
-          if (DEV_FULL) { navigate('/pack/profile'); return; }
-          navigate('/pack');
-          setTimeout(() => document.getElementById('pack-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
-        }}
-        onDog={(id) => navigate(`/pack/dogs/${id}`)}
-      />
+      {/* FLOATING STATUS HUB — fixed top, slim single-row pill. DEV_FULL target model
+          (D4 nav rework) drops this entirely — identity moved to the bottom nav avatar,
+          notif/messages to PackTopRight above. LIVE (§8.4, no regression) keeps it. */}
+      {!DEV_FULL && (
+        <DevotionHeader
+          avatarUrl={avatarUrl}
+          avatarInitial={avatarInitial}
+          devotion={devotion}
+          bones={bones}
+          packTotal={packTotal}
+          packToday={packToday}
+          dogs={dogs}
+          wide={wide}
+          onProfile={() => {
+            // LIVE: profil zrušený → avatar skroluje na settings blok dole na homepage.
+            navigate('/pack');
+            setTimeout(() => document.getElementById('pack-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+          }}
+          onDog={(id) => navigate(`/pack/dogs/${id}`)}
+        />
+      )}
 
       <div
         className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 pb-32`}
-        style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 106px)' }}
+        style={{ paddingTop: DEV_FULL ? 'calc(env(safe-area-inset-top, 0px) + 28px)' : 'calc(env(safe-area-inset-top, 0px) + 106px)' }}
       >
+        {/* Global top-right hub — notif + messages, on EVERY narrow-column pack page
+            (D4 nav rework, DEV_FULL-only). Matej amendment 2026-07-24: lives IN the content
+            flow now (right-aligned to this same max-w column), not floating past the screen
+            edge — that's PackPortal's full-bleed map only (no content column there). LIVE
+            keeps it exactly where it was (inside HeroCard), untouched.
+            Matej amendment 2026-07-24 (round 2): sticky, not static — otherwise it scrolls
+            away with the rest of the column. Pinned just under the safe-area, above content
+            (z-index above the z-10 column). */}
+        {DEV_FULL && (
+          <div
+            className="mb-5"
+            style={{ position: 'sticky', top: 'calc(env(safe-area-inset-top, 0px) + 12px)', zIndex: 30 }}
+          >
+            <PackTopRight last24h={packToday} total={packTotal} layout="inline" />
+          </div>
+        )}
         {(title || subtitle) && (
           <header className="mb-7 text-center">
             {subtitle && (
@@ -96,12 +112,20 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         <main>{children}</main>
       </div>
 
-      {/* Floating pill nav — dolný (Home + Portal + Dogs + Messages). LIVE: skryté (orezaný
-          pack). DEV_FULL: ostáva = plná dev verzia zamrznutá v tomto stave. */}
-      <PackBottomNav />
+      {/* Floating pill nav — dolný (Home · Map · Avatar, D4 nav rework). LIVE: skryté
+          (orezaný pack). */}
+      <PackBottomNav avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
       <MessagingOverlayHost />
     </div>
   );
+}
+
+// ── Global top-right chrome — notif + messages hub, mounted on EVERY pack page
+// (PackLayout column pages + the full-bleed PackPortal map). DEV_FULL-only; LIVE
+// build renders nothing here (PackNotifications stays inside HeroCard, unchanged).
+export function PackTopRight({ last24h, total, className, layout }: { last24h: number | null; total: number | null; className?: string; layout?: 'overlay' | 'inline' }) {
+  if (!DEV_FULL) return null;
+  return <PackNotifications dark last24h={last24h} total={total} className={className} layout={layout} />;
 }
 
 // ── Messaging overlay host (Inbox/Thread) — design:
@@ -142,12 +166,13 @@ export function MessagingOverlayHost() {
   return <Thread convId={overlay.convId} onClose={() => setOverlay({ mode: 'inbox' })} />;
 }
 
-// ── Floating bottom pill nav — Home · Portal · Dogs ─────────────────────────
+// ── Floating bottom pill nav — Home · Map · Avatar (D4 nav rework 2026-07-24) ─
 // Shared between PackLayout (every narrow-column pack page) and the full-bleed
 // Portal Trips surface (its own <DevotionHeader>, but the same bottom nav so
 // tab-switching feels identical everywhere). DEV_FULL-gated — LIVE pack stays
-// trimmed (nav hidden).
-export function PackBottomNav() {
+// trimmed (nav hidden). Dogs (svorka) + Messages moved off the bar: Dogs lives
+// in the avatar menu, Messages moved to the global PackTopRight hub.
+export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] } = {}) {
   const t = useT();
   if (!DEV_FULL) return null;
   return (
@@ -168,43 +193,166 @@ export function PackBottomNav() {
         }}
       >
         <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-        <FloatingNavLink to="/pack/portal/trips" label={t('pack.layout.navPortal')} icon={iconPortal} />
-        <FloatingNavLink to="/pack/dogs" label={t('pack.layout.navDogs')} icon={iconDogs} />
-        <MessagesNavButton />
+        <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+        <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
       </div>
     </nav>
   );
 }
 
-// Messages entry — otvára Inbox overlay (emitOpenInbox → MessagingOverlayHost), s live unread
-// badge (unreadCount() je sync/pre-hydratovaný pri module load — žiadne 0→N bliknutie, viď
-// packMessaging.ts flag §10). Rovnaký pilulkový vzor ako FloatingNavLink, len <button> (nie route).
-function MessagesNavButton() {
-  const [count, setCount] = useState(() => unreadCount());
-  useEffect(() => subscribeMessaging(() => setCount(unreadCount())), []);
+// Avatar entry — last item in the bottom pill (rightmost). Single click opens a small
+// glass dropdown, NO double-tap — click-away closes it (same pattern as PackNotifications'
+// bell dropdown). Matej amendment 2026-07-24: clean 2-item menu (Profile / My Pack), each
+// row carries its own small photo thumbnail — owner avatar for Profile, dog photo(s) for My
+// Pack (stacked circles when there's more than one dog). Settings does NOT live here — stays
+// a block on home (PackSettings, #pack-settings anchor).
+function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] }) {
+  const t = useT();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  return (
+    <div ref={wrapRef} className="relative" style={{ marginLeft: 4 }}>
+      <button
+        type="button"
+        onClick={() => setOpen((p) => !p)}
+        aria-label={t('pack.layout.profileAriaLabel')}
+        aria-expanded={open}
+        className="flex items-center justify-center"
+        style={{ ...pillStyle(open), padding: 4, lineHeight: 0 }}
+      >
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt=""
+            style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1.5px solid rgba(201,154,63,0.45)' }}
+          />
+        ) : (
+          <div style={{
+            width: 28, height: 28, borderRadius: '50%',
+            background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 12, color: '#1c160c',
+          }}>
+            {avatarInitial || 'D'}
+          </div>
+        )}
+      </button>
+
+      {open && (
+        <div
+          style={{
+            position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, minWidth: 190,
+            background: T.glass, border: `1px solid ${T.onDarkBorder}`, borderRadius: 14,
+            backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+            boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+            padding: 6, zIndex: 50,
+          }}
+        >
+          <AvatarMenuItem
+            label={t('pack.layout.navProfile')}
+            onClick={() => { setOpen(false); navigate('/pack/profile'); }}
+            thumb={<MiniAvatar avatarUrl={avatarUrl} avatarInitial={avatarInitial} />}
+          />
+          <AvatarMenuItem
+            label={t('pack.tree.title')}
+            onClick={() => { setOpen(false); navigate('/pack/profile#my-gods'); }}
+            thumb={<MiniDogStack dogs={dogs} />}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Small circular owner-avatar thumbnail — Profile row.
+function MiniAvatar({ avatarUrl, avatarInitial }: { avatarUrl?: string | null; avatarInitial?: string }) {
+  return avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt=""
+      style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid rgba(201,154,63,0.45)', flexShrink: 0 }}
+    />
+  ) : (
+    <div style={{
+      width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+      background: 'radial-gradient(circle at 35% 30%, #F5C73D, #E69E1A)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 10, color: '#1c160c',
+    }}>
+      {avatarInitial || 'D'}
+    </div>
+  );
+}
+
+// Stacked dog-photo thumbnails — My Pack row. 1 dog = single circle; 2+ dogs = overlapping
+// stack (AllTrails/Instagram "who's going" pattern), max 3 shown + no photo fallback (🐕 chip).
+function MiniDogStack({ dogs }: { dogs: PackDog[] }) {
+  const shown = dogs.slice(0, 3);
+  if (shown.length === 0) {
+    return (
+      <div style={{
+        width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+        background: 'rgba(201, 154, 63, 0.22)', border: '1px solid rgba(201,154,63,0.40)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11,
+      }}>🐕</div>
+    );
+  }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+      {shown.map((dog, i) => (
+        <div
+          key={dog.id}
+          style={{
+            width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+            marginLeft: i === 0 ? 0 : -8,
+            border: `1px solid ${T.pageBg}`,
+            boxShadow: '0 0 0 1px rgba(201,154,63,0.45)',
+            overflow: 'hidden',
+            background: dog.cloudinary_main_url ? 'transparent' : 'rgba(201, 154, 63, 0.22)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
+            zIndex: shown.length - i,
+          }}
+        >
+          {dog.cloudinary_main_url ? (
+            <img src={dog.cloudinary_main_url} alt={dog.dog_name || ''} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+          ) : '🐕'}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AvatarMenuItem({ label, onClick, thumb }: { label: string; onClick: () => void; thumb: ReactNode }) {
   return (
     <button
       type="button"
-      className="group flex items-center gap-2 transition-all relative"
-      style={pillStyle(false)}
-      onClick={() => emitOpenInbox()}
-      aria-label="Messages"
+      onClick={onClick}
+      className="flex items-center"
+      style={{
+        width: '100%', textAlign: 'left', padding: '8px 10px', gap: 9,
+        borderRadius: 9, background: 'none', border: 'none', cursor: 'pointer',
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(245,240,228,0.08)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
     >
-      <BrandIcon src="/icons/pack/chat.svg" active={false} />
-      <span className="hidden sm:inline" style={pillLabelStyle}>Messages</span>
-      {count > 0 && (
-        <span
-          style={{
-            position: 'absolute', top: -4, right: -4, minWidth: 16, height: 16, padding: '0 4px',
-            borderRadius: 999, background: '#C99A3F', color: '#1F1A0E',
-            fontFamily: "'Space Grotesk', sans-serif", fontSize: 9, fontWeight: 700,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            border: `1.5px solid ${T.pageBg}`, lineHeight: 1,
-          }}
-        >
-          {count > 9 ? '9+' : count}
-        </span>
-      )}
+      {thumb}
+      <span style={{
+        fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.12em',
+        textTransform: 'uppercase', fontWeight: 700, color: T.onDark,
+      }}>
+        {label}
+      </span>
     </button>
   );
 }

@@ -1,6 +1,6 @@
-// /pack/portal/trips/:slug — full-page trip article (iterácia 12 bod 5). Route model
+// /pack/map/:slug — full-page trip article (iterácia 12 bod 5). Route model
 // (LOCKED): klik na kartu v PackPortal.tsx → inline detail v paneli, BEZ navigácie (zostáva
-// na /pack/portal/trips). ⤢ expand → navigate() SEM, na SAMOSTATNÚ route — toto NAHRÁDZA
+// na /pack/map). ⤢ expand → navigate() SEM, na SAMOSTATNÚ route — toto NAHRÁDZA
 // starý `.trp-detoverlay` popup modal (zrušený z PackPortal.tsx). Deep-link na :slug ide
 // rovno sem (žiadna mapa/panel, shareable článok — AllTrails trail-page vzor).
 //
@@ -36,6 +36,7 @@ import {
   type WalkedInput, type PartnerAdInput,
 } from '@/components/pack/packCommunityUI';
 import { TripComments } from '@/components/pack/trip/TripComments';
+import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 
 const GOLD = '#C99A3F';
@@ -82,6 +83,8 @@ const CSS = `
 .pta-shell{max-width:800px;width:calc(100% - 32px);margin:22px auto 0;position:relative;z-index:2;overflow:hidden;}
 .pta-hero{position:relative;width:100%;height:34vh;min-height:230px;max-height:360px;overflow:hidden;background-size:cover;background-position:center;background-color:#111;}
 .pta-hero-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.30) 0%,rgba(0,0,0,0) 34%,rgba(0,0,0,0.55) 100%);}
+/* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
+.pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:3px 8px;border-radius:6px;max-width:62%;text-align:right;pointer-events:none;}
 .pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
 /* bod 1 (iterácia 14): WISHLIST/WALKED/SHARE presunuté na spodný okraj hero fotky (nahrádza
    starý top-right ♡ — .pta-hero-save zrušený, wishlist je teraz len tu, nie 2×). Mobile:
@@ -259,7 +262,7 @@ export default function PackTripArticle() {
 
   const handleShare = async () => {
     if (!trail) return;
-    const url = `${window.location.origin}/pack/portal/trips/${trail.id}`;
+    const url = `${window.location.origin}/pack/map/${trail.id}`;
     const shareData = { title: trail.name, text: `${trail.name} — ${trail.km} km, ${trail.diff}`, url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
@@ -293,7 +296,7 @@ export default function PackTripArticle() {
         <div style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Trip not found</div>
         <button
           type="button"
-          onClick={() => navigate('/pack/portal/trips')}
+          onClick={() => navigate('/pack/map')}
           style={{ fontFamily: "'Cinzel', serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}
         >← Back to trips</button>
       </div>
@@ -322,7 +325,10 @@ export default function PackTripArticle() {
       <div className="pta-shell pk-glass">
       <div className="pta-hero" ref={heroRef} style={cover ? { backgroundImage: `url('${cover}')` } : undefined}>
         <div className="pta-hero-grad" />
-        <button type="button" className="pta-back" onClick={() => navigate('/pack/portal/trips')} aria-label="Back to trips">←</button>
+        {(trail as { photoCredit?: string }).photoCredit && (
+          <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
+        )}
+        <button type="button" className="pta-back" onClick={() => navigate('/pack/map')} aria-label="Back to trips">←</button>
         {/* bod 1 (iterácia 14): WISHLIST/WALKED/SHARE presunuté sem (zo starého fixného
             spodného .pta-actions pruhu) — top-right ♡ zrušený, wishlist je len tu. */}
         <div className={`pta-hero-actions${heroCollapsed ? ' collapsed' : ''}`}>
@@ -359,6 +365,9 @@ export default function PackTripArticle() {
         {/* crowd agregát (design §A): rating = priemer, difficulty = konsenzus. */}
         <div className="pta-statrow">
           <div className="pta-stat"><b>{trail.km} km</b><span>Distance</span></div>
+          {(trail as { ascentM?: number }).ascentM != null && (
+            <div className="pta-stat"><b>↑ {(trail as { ascentM?: number }).ascentM} m</b><span>Elevation</span></div>
+          )}
           <div className="pta-stat"><b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span></div>
           <div className="pta-stat"><b><RatingPaws stars={agg.rating} size={11} gap={2} /> {agg.rating.toFixed(1)}</b><span>Rating</span></div>
         </div>
@@ -369,6 +378,13 @@ export default function PackTripArticle() {
             {tripChips.map((c) => <span key={c.key} className="pta-tag">{c.emoji ? `${c.emoji} ` : ''}{c.label}</span>)}
           </div>
         )}
+
+        {/* turistické značky (KČT) v poradí štart→cieľ — auto z OSM (compute-trail-marks.py) */}
+        {(trail as { marks?: TrailMarkColor[][] }).marks?.length ? (
+          <div style={{ marginTop: 14 }}>
+            <TrailMarks marks={(trail as { marks?: TrailMarkColor[][] }).marks} labelColor={PACK_THEME.onDark} />
+          </div>
+        ) : null}
 
         {trail.photos.length > 0 && (
           <div className="pta-gallery">

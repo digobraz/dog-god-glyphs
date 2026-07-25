@@ -69,35 +69,44 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
   );
 }
 
-// ── sessionStorage mirrors (iterácia 12 bod 5 side-effect) ─────────────────────────────────
+// ── client-side mirror (iterácia 12 bod 5 side-effect) ─────────────────────────────────
 // ⤢ expand teraz navigate()-uje na SAMOSTATNÚ route (PackTripArticle), ktorá unmountne
 // PackPortal — ale ADD-flow tripy (bod 6, iterácia 11) aj wishlist/walked toggle žili len v
 // PackPortal component state. Bez mirroru by expand na čerstvo pridaný trip / práve
 // wishlistnutý trip skončil "not found"/reset. Toto NIE JE Supabase perzistencia (tá je mimo
-// rozsahu, viď PackPortal submitAdd komentár) — len client-side session mirror medzi dvomi
-// mount-mi tej istej prehliadačovej session, nech routing split (bod 5) nič nevymaže.
+// rozsahu, viď PackPortal submitAdd komentár) — len client-side draft mirror.
+// 2026-07-24: sessionStorage → localStorage. sessionStorage sa mazal pri zatvorení tabu, takže
+// naklikané ADD-flow trasy (napr. CH) miznú medzi testami. localStorage prežije zatvorenie tabu
+// (fallback na sessionStorage v private mode / keď localStorage nie je dostupný).
+const trpStore: Storage = (() => {
+  try { const k = '__trp_probe'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; }
+  catch { return sessionStorage; }
+})();
 const LOCAL_TRAILS_KEY = 'trp-local-trails';
 const FAV_IDS_KEY = 'trp-fav-ids';
 const WALKED_IDS_KEY = 'trp-walked-ids';
 
 export function readLocalTrails(): HeroTrail[] {
   try {
-    const raw = sessionStorage.getItem(LOCAL_TRAILS_KEY);
+    const raw = trpStore.getItem(LOCAL_TRAILS_KEY);
     return raw ? (JSON.parse(raw) as HeroTrail[]) : [];
   } catch { return []; }
 }
-export function writeLocalTrails(trails: HeroTrail[]): void {
-  try { sessionStorage.setItem(LOCAL_TRAILS_KEY, JSON.stringify(trails)); } catch { /* private mode / quota — non-fatal */ }
+// Vracia true/false — volajúci (submitAdd) vie zistiť, či zápis prešiel, a nahlásiť
+// QuotaExceededError namiesto tichej straty tripu (fotky base64 vedia naplniť localStorage).
+export function writeLocalTrails(trails: HeroTrail[]): boolean {
+  try { trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(trails)); return true; }
+  catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
 }
 
 function readStringSet(key: string): Set<string> {
   try {
-    const raw = sessionStorage.getItem(key);
+    const raw = trpStore.getItem(key);
     return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
   } catch { return new Set(); }
 }
 function writeStringSet(key: string, set: Set<string>): void {
-  try { sessionStorage.setItem(key, JSON.stringify(Array.from(set))); } catch { /* non-fatal */ }
+  try { trpStore.setItem(key, JSON.stringify(Array.from(set))); } catch { /* non-fatal */ }
 }
 export const readFavIds = () => readStringSet(FAV_IDS_KEY);
 export const writeFavIds = (s: Set<string>) => writeStringSet(FAV_IDS_KEY, s);
@@ -106,17 +115,19 @@ export const writeWalkedIds = (s: Set<string>) => writeStringSet(WALKED_IDS_KEY,
 
 // Founder walked logika (Matej 2026-07-24, LOCKED): „čo nahodím, to som aj prešiel".
 // Každá nahodená (čierna, non-journey) trasa = walked. Z červených journeys sú reálne prejdené
-// len tieto — SNP + Poloniny; ostatné magistrály ostávajú neprejdené (default nezelené).
-export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny'];
-const WALKED_SEEDED_KEY = 'trp-walked-seeded-v1';
+// len tieto. Štefánikova magistrála = prejdená CEZ SNP (geo-audit: SNP⊇Štefánikova 90 %,
+// hrebeň Malé/Biele Karpaty–Javorníky sa prekrýva) — Matej 2026-07-24. Ostatné magistrály neprejdené.
+export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny', 'stefanikova-magistrala'];
+// v2 (Matej 2026-07-24): re-seed po pridaní Štefánikovej do default walked setu (merge, netlačí toggly).
+const WALKED_SEEDED_KEY = 'trp-walked-seeded-v2';
 // Seedne default walked set raz za session (ak ho user ešte nezmenil). Merguje, netlačí cez
 // existujúce toggly. defaultWalkedIds = zoznam id trás čo majú byť walked z founder logiky.
 export function ensureWalkedSeeded(defaultWalkedIds: string[]): void {
   try {
-    if (sessionStorage.getItem(WALKED_SEEDED_KEY)) return;
+    if (trpStore.getItem(WALKED_SEEDED_KEY)) return;
     const merged = readStringSet(WALKED_IDS_KEY);
     defaultWalkedIds.forEach((id) => merged.add(id));
     writeStringSet(WALKED_IDS_KEY, merged);
-    sessionStorage.setItem(WALKED_SEEDED_KEY, '1');
+    trpStore.setItem(WALKED_SEEDED_KEY, '1');
   } catch { /* non-fatal */ }
 }

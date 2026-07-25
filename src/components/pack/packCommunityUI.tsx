@@ -14,6 +14,7 @@ import {
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { HeroBadges } from '@/components/pack/HeroBadges';
 
 // ── Companion (Matej 2026-07-23) — vybratý spoločník do „kto bol so mnou": môj pes (zo svorky,
 // reálna cloudinary fotka) alebo iný člen (mock, initial avatar). key = unikát pre dedup/remove. ──
@@ -23,6 +24,15 @@ const T = PACK_THEME;
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const CARD = '#FFFBF2';
+
+// meno → MOCK_MEMBER_POOL id slug (zadanie-profil-read-dog-2026-07-25 §4 — klikateľnosť
+// planners/companion avatarov do /pack/u/:id). Mock crowd (mockPlannersFor/mockEventsSeed) berie
+// mená z rovnakého NAME_POOL ako MOCK_MEMBER_POOL, takže meno vždy jednoznačne mapuje na id;
+// `host` stringy majú tvar "Meno & Pes" — zober časť pred " & ".
+function mockMemberIdByName(name: string): string | undefined {
+  const first = name.split(' & ')[0]?.trim() ?? name;
+  return MOCK_MEMBER_POOL.find((m) => m.name === first)?.id;
+}
 
 // prvé meno z user_metadata (full_name/name), fallback e-mail local-part — rovnaký vzor ako
 // firstNameFrom() v Pack.tsx / PackPortal.tsx, len lokálna kópia (usePackIdentity meno
@@ -273,11 +283,62 @@ export const COMMUNITY_CSS = `
 .comm-medal-name{font-size:10px;line-height:1.25;color:${T.onDark};}
 .comm-medal--off .comm-medal-name{color:${T.onDarkDim};opacity:.55;}
 .comm-unit-drop{margin-top:10px;padding-top:10px;border-top:1px solid ${T.onDarkHair};}
+.comm-unit-empty{text-align:center;font-size:11px;color:${T.onDarkDim};padding:6px 0 10px;font-style:italic;}
 .comm-unit-addrow{text-align:center;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.04em;color:${GOLD};padding:10px;border-radius:10px;border:1px dashed rgba(201,154,63,0.4);cursor:pointer;transition:border-color .15s,background .15s;}
 .comm-unit-addrow:hover{border-color:${GOLD};background:rgba(201,154,63,0.08);}
 
+/* HERO BADGES — deviatka hrdinských odznakov (Matej 2026-07-24), globálny trip-míľnik achievement.
+   3D medailón feel: earned = plná farba + zlatý glow + jemný float; locked = grayscale + tlmené
+   (pes aj číslo míľnika stále čitateľné — žiadna silueta). */
+.comm-heroes{display:grid;grid-template-columns:repeat(9,1fr);gap:6px;margin-top:13px;}
+@media (min-width:640px){.comm-heroes{gap:10px;}}
+.comm-hero{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;font-family:inherit;cursor:pointer;padding:2px;}
+.comm-hero img{width:100%;aspect-ratio:1;object-fit:contain;transition:transform .25s,filter .25s;}
+.comm-hero--on img{filter:drop-shadow(0 0 6px rgba(201,154,63,0.65)) drop-shadow(0 4px 6px rgba(0,0,0,0.5));animation:comm-hero-float 4s ease-in-out infinite;}
+.comm-hero--on:hover img{transform:perspective(500px) rotateY(-8deg) scale(1.08);}
+.comm-hero--off img{filter:grayscale(1) brightness(.75);opacity:.4;}
+.comm-hero-trips{font-family:'Cinzel',serif;font-weight:700;font-size:10px;color:${T.onDarkDim};}
+.comm-hero--on .comm-hero-trips{color:${GOLD};}
+@keyframes comm-hero-float{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+@media (prefers-reduced-motion:reduce){.comm-hero--on img{animation:none;}.comm-hero--on:hover img{transform:none;}}
+
+/* REVEAL overlay — „milestone reached" moment (Matej 2026-07-24, upresnenie 2026-07-24 = horizontálny
+   card layout), portál do document.body (rodičovský .pk-glass má backdrop-filter → containing block
+   by ukotvil position:fixed o panel, nie o viewport). Backdrop klik = dismiss; klik NA card = nič. */
+.comm-reveal{position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:9999;padding:24px;cursor:pointer;animation:comm-reveal-fadein .35s ease;}
+.comm-reveal-card{position:relative;display:flex;gap:28px;align-items:center;width:100%;max-width:760px;max-height:86vh;background:linear-gradient(180deg,#161412,#0e0d0c);border:1px solid rgba(201,154,63,.28);border-radius:20px;padding:34px;cursor:default;box-shadow:0 24px 70px rgba(0,0,0,.6);animation:comm-reveal-pop .55s cubic-bezier(.2,1.3,.4,1);}
+.comm-reveal-left{flex:0 0 210px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+.comm-reveal-badge{width:210px;max-width:44vw;filter:drop-shadow(0 0 20px rgba(201,154,63,.5)) drop-shadow(0 10px 22px rgba(0,0,0,.55));}
+.comm-reveal-trips{font-family:'Cinzel',serif;font-weight:700;font-size:13px;color:${GOLD};letter-spacing:.16em;text-transform:uppercase;}
+.comm-reveal-right{flex:1;min-width:0;text-align:left;max-height:70vh;overflow-y:auto;}
+.comm-reveal-kicker{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.24em;color:${GOLD};text-transform:uppercase;}
+.comm-reveal-name{font-family:'Cinzel',serif;font-weight:700;font-size:30px;color:${T.onDark};margin-top:6px;line-height:1.05;}
+.comm-reveal-story{font-size:14px;line-height:1.65;color:${T.onDarkDim};margin-top:14px;}
+.comm-reveal-x{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(243,236,221,.18);background:rgba(255,255,255,.04);color:${T.onDark};font-size:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.comm-reveal-x:hover{background:rgba(255,255,255,.1);}
+.comm-reveal-badge--off{filter:grayscale(1) brightness(.72) drop-shadow(0 10px 22px rgba(0,0,0,.55));}
+.comm-reveal-kicker--locked{color:${T.onDarkDim};}
+.comm-reveal-source{display:inline-block;margin-top:16px;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.04em;color:${GOLD};text-decoration:none;border-bottom:1px solid rgba(201,154,63,.35);padding-bottom:2px;}
+.comm-reveal-source:hover{border-bottom-color:${GOLD};}
+.comm-reveal-source-label{font-family:inherit;font-weight:400;font-size:11px;color:${T.onDarkDim};letter-spacing:0;}
+@media (max-width:600px){
+  .comm-reveal-card{flex-direction:column;gap:16px;padding:26px 20px 22px;text-align:center;}
+  .comm-reveal-left{flex:none;}
+  .comm-reveal-badge{width:150px;}
+  .comm-reveal-right{text-align:center;max-height:48vh;}
+  .comm-reveal-name{font-size:24px;}
+}
+@keyframes comm-reveal-fadein{from{opacity:0;}to{opacity:1;}}
+@keyframes comm-reveal-pop{from{opacity:0;transform:scale(.94) translateY(8px);}to{opacity:1;transform:none;}}
+@media (prefers-reduced-motion:reduce){
+  .comm-reveal{animation:none;}
+  .comm-reveal-card{animation:none;}
+}
+
 /* planning list (C2) + events list (D) share the card style */
 .comm-plan{background:${T.glass};border:1px solid ${T.onDarkBorder};border-radius:14px;padding:15px 17px;margin-bottom:12px;}
+.comm-plan-photo{position:relative;margin:-15px -17px 13px;height:150px;background-size:cover;background-position:center;border-radius:14px 14px 0 0;cursor:pointer;}
+.comm-plan-planned{position:absolute;left:12px;bottom:10px;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
 .comm-plan-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
 .comm-plan-name{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:${T.onDark};}
 .comm-plan-meta{font-size:11.5px;color:${T.onDarkDim};margin-top:3px;}
@@ -623,11 +684,11 @@ export function BigRating({ rating, compact }: { rating: number; compact?: boole
 // ── PhotoMetaPills (Matej 2026-07-22) — dolný pravý roh fotky: náročnosť · km + popularita
 // STACKED (nad sebou). Hazard TU NIE (ten je len v detaile vedľa tagov — HazardTags). Hover na
 // pilulku = vysvetlenie (%-rozpad hlasov členov). Zdieľané karta + inline detail. ──
-export function PhotoMetaPills({ agg, km }: { agg: CrowdAgg; km: string }) {
+export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string; ascentM?: number }) {
   return (
     <div className="comm-photometa">
       <span className="comm-mpill comm-hastip" data-tip={`Difficulty — ${diffTip(agg)}`}>
-        <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km
+        <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km{ascentM != null ? ` · ↑ ${ascentM} m` : ''}
       </span>
       {agg.vibe && (
         <span className="comm-mpill comm-hastip" data-tip={`Popularity — ${vibeTip(agg)}`}>
@@ -656,10 +717,11 @@ export function HazardTags({ agg }: { agg: CrowdAgg }) {
 // ── CompanionPicker (Matej 2026-07-23) — „kto bol so mnou": jasný + a výber zo SVORKY (moje
 // psy, reálne fotky) + iní ČLENOVIA podľa mena (mock autocomplete, fotka = initial avatar).
 // Vybraté ako avatar chipy. Zdieľané done aj planning ADD flow. ──
-export function CompanionPicker({ myDogs, selected, onChange }: {
+export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
   myDogs: { id: string; name: string; photo?: string | null }[];
   selected: Companion[];
   onChange: (next: Companion[]) => void;
+  onOpenProfile?: (memberId: string) => void; // avatar klik → /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §4)
 }) {
   const [q, setQ] = useState('');
   const selectedKeys = new Set(selected.map((c) => c.key));
@@ -677,15 +739,22 @@ export function CompanionPicker({ myDogs, selected, onChange }: {
     <div>
       {selected.length > 0 && (
         <div className="comm-comp-selected">
-          {selected.map((c) => (
-            <span key={c.key} className="comm-comp-chip">
-              <span className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`} style={c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined}>
-                {c.photo ? '' : c.name.charAt(0).toUpperCase()}
+          {selected.map((c) => {
+            const memberId = c.key.startsWith('member-') ? mockMemberIdByName(c.name) : undefined;
+            return (
+              <span key={c.key} className="comm-comp-chip">
+                <span
+                  className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`}
+                  style={{ ...(c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined), cursor: memberId && onOpenProfile ? 'pointer' : undefined }}
+                  onClick={memberId ? () => onOpenProfile?.(memberId) : undefined}
+                >
+                  {c.photo ? '' : c.name.charAt(0).toUpperCase()}
+                </span>
+                <b>{c.name}</b>
+                <button type="button" onClick={() => remove(c.key)} aria-label={`Remove ${c.name}`}>×</button>
               </span>
-              <b>{c.name}</b>
-              <button type="button" onClick={() => remove(c.key)} aria-label={`Remove ${c.name}`}>×</button>
-            </span>
-          ))}
+            );
+          })}
         </div>
       )}
       {myDogs.length > 0 && (
@@ -714,7 +783,13 @@ export function CompanionPicker({ myDogs, selected, onChange }: {
           <div className="comm-comp-sug">
             {sugs.map((m) => (
               <div key={m.name} className="comm-comp-sugitem" onClick={() => { add({ key: `member-${m.name}`, name: m.name, sub: `& ${m.dog}` }); setQ(''); }}>
-                <span className="comm-comp-sugitem-av">{m.name.charAt(0)}</span>
+                <span
+                  className="comm-comp-sugitem-av"
+                  style={{ cursor: onOpenProfile ? 'pointer' : undefined }}
+                  onClick={onOpenProfile ? (e) => { e.stopPropagation(); onOpenProfile(m.id); } : undefined}
+                >
+                  {m.name.charAt(0)}
+                </span>
                 <span className="comm-comp-sugitem-tx">{m.name} <span>&amp; {m.dog}</span></span>
               </div>
             ))}
@@ -933,6 +1008,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
 
   return (
     <>
+      {/* BLOK 1 — identita svorky + WORLD staty + hero badges zbierka (Matej 2026-07-24: rozdelenie
+         jedného veľkého panelu na dva samostatné pk-glass bloky). */}
+      <section className="pk-glass tl-panel">
       {/* IDENTITY header — foto svorky (psy + owner, priestor pre budúceho member) + level odznak. */}
       <div className="comm-vhead">
         <div className="comm-vhead-pack">
@@ -972,7 +1050,21 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         </div>
       </div>
 
-      {/* WORLD prehľad — scope dropdown (zatiaľ len SVK) + precestované krajiny/vrch/výlety/km. */}
+      {/* WORLD prehľad — precestované krajiny/vrch/výlety/km (scope select presunutý do BLOKU 2). */}
+      <div className="comm-worldstats">
+        <div className="comm-wstat"><b>{countriesTraveled}</b><span>Countries</span></div>
+        <div className="comm-wstat"><b>{walkedTrails.length}</b><span>Trips</span></div>
+        <div className="comm-wstat"><b>{fmtKm(walkedKm)}</b><span>Km</span></div>
+        <div className="comm-wstat"><b style={{ fontSize: highest === '—' ? undefined : 14 }}>{highest}</b><span>Highest point</span></div>
+      </div>
+
+      {/* HERO BADGES — globálna zbierka deviatich hrdinov (trip míľniky, nie per-krajina). */}
+      <HeroBadges walkedCount={walkedTrails.length} />
+      </section>
+
+      {/* BLOK 2 — krajina: scope select + home-country ring + kategórie + zoznam prejdených tripov. */}
+      <section className="pk-glass tl-panel" style={{ marginTop: 14 }}>
+      {/* scope dropdown (zatiaľ len SVK) — presunuté sem z BLOKU 1 (Matej: „blok 2 = výber krajiny + homecountry"). */}
       <div className="comm-field" style={{ maxWidth: 240 }}>
         <label className="comm-label">Scope</label>
         <select className="comm-selectinput" defaultValue="all">
@@ -982,12 +1074,6 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           <option value="PL" disabled>🇵🇱 Poland — soon</option>
           <option value="AT" disabled>🇦🇹 Austria — soon</option>
         </select>
-      </div>
-      <div className="comm-worldstats">
-        <div className="comm-wstat"><b>{countriesTraveled}</b><span>Countries</span></div>
-        <div className="comm-wstat"><b>{walkedTrails.length}</b><span>Trips</span></div>
-        <div className="comm-wstat"><b>{fmtKm(walkedKm)}</b><span>Km</span></div>
-        <div className="comm-wstat"><b style={{ fontSize: highest === '—' ? undefined : 14 }}>{highest}</b><span>Highest point</span></div>
       </div>
 
       {/* HOME country — SVK % + km + pohoria/parky. */}
@@ -1026,29 +1112,33 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                       key={u}
                       type="button"
                       className={`comm-unit${cls}`}
-                      onClick={() => {
-                        if (count === 0) { onAddTrip(u); return; }
-                        setExpanded((cur) => (cur && cur.cat === c.key && cur.unit === u ? null : { cat: c.key, unit: u }));
-                      }}
+                      /* Matej 2026-07-24: klik VŽDY otvorí inline dropdown (aj nevysvietené) —
+                         nevysvietené ukážu „No trails yet — add one?", NIE skok rovno do ADD formu. */
+                      onClick={() => setExpanded((cur) => (cur && cur.cat === c.key && cur.unit === u ? null : { cat: c.key, unit: u }))}
                     >
                       {u}{count > 0 ? ` ×${count}` : ''}
                     </button>
                   );
                 })}
               </div>
-              {expandedUnit && (
-                <div className="comm-unit-drop">
-                  {walkedTrails
-                    .filter((tr) => (unitsForTrail(tr)[c.key] ?? []).includes(expandedUnit))
-                    .map((tr) => (
-                      <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)} style={{ marginBottom: 8 }}>
-                        <span className="comm-walkedrow-name">{tr.name}</span>
-                        <span className="comm-walkedrow-meta">· {tr.km} km</span>
-                      </div>
-                    ))}
-                  <div className="comm-unit-addrow" onClick={() => onAddTrip(expandedUnit)}>＋ Add a trip here</div>
-                </div>
-              )}
+              {expandedUnit && (() => {
+                const matches = walkedTrails.filter((tr) => (unitsForTrail(tr)[c.key] ?? []).includes(expandedUnit));
+                return (
+                  <div className="comm-unit-drop">
+                    {matches.length > 0 ? (
+                      matches.map((tr) => (
+                        <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)} style={{ marginBottom: 8 }}>
+                          <span className="comm-walkedrow-name">{tr.name}</span>
+                          <span className="comm-walkedrow-meta">· {tr.km} km</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="comm-unit-empty">No trails here yet.</div>
+                    )}
+                    <div className="comm-unit-addrow" onClick={() => onAddTrip(expandedUnit)}>＋ Add a trip here</div>
+                  </div>
+                );
+              })()}
             </div>
           );
         }
@@ -1098,6 +1188,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           </div>
         ))
       )}
+      </section>
     </>
   );
 }
@@ -1106,12 +1197,29 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
 function SK_GEO_UNITS(key: GeoCategory): string[] { return SK_GEO.find((c) => c.key === key)?.units ?? []; }
 
 // ── D · Events view (zoznam plánovaných spoločných výletov + join) ────────────────────────────
-export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip }: {
+// "hosted by X" — clickable when X resolves to a mock member (v1 scope, §4). Plain text otherwise
+// (real cross-account hosts aren't resolvable in v1 — no dead link).
+function HostNameLink({ host, onOpenProfile }: { host: string; onOpenProfile?: (memberId: string) => void }) {
+  const memberId = mockMemberIdByName(host);
+  if (!onOpenProfile || !memberId) return <>{host}</>;
+  return (
+    <span
+      onClick={() => onOpenProfile(memberId)}
+      style={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2 }}
+    >
+      {host}
+    </span>
+  );
+}
+
+export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip, onOpenProfile, photoFor }: {
   events: PartnerEvent[];
   trailsById: (id: string) => HeroTrail | undefined;
   onJoin: (id: string) => void;
   onMessage: (name: string) => void;
   onOpenTrip: (id: string) => void;
+  onOpenProfile?: (memberId: string) => void; // avatar/host klik → /pack/u/:id (mock members only, v1)
+  photoFor?: (tr: HeroTrail) => string;
 }) {
   if (events.length === 0) {
     return <div className="comm-empty">No planned walks yet. Save a trip and pick “Find a buddy”, or add a trip you're planning.</div>;
@@ -1122,12 +1230,24 @@ export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip }
         const tr = trailsById(ev.tripId);
         const going = ev.seedGoing + (ev.joinedByMe ? 1 : 0);
         const whenLabel = ev.dates.length > 0 ? ev.dates.join(' or ') : (ev.month ? `${ev.month} (flexible)` : 'Flexible');
+        const photo = tr && photoFor ? photoFor(tr) : '';
         return (
           <div key={ev.id} className="comm-plan">
+            {/* fotka (placeholder podľa aktivity) — plán vyzerá ako bežná karta. Rating = pomlčky
+                (výlet sa ešte neodohral → nehodnotený). Matej 2026-07-24. */}
+            {photo && (
+              <div className="comm-plan-photo" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.5)), url('${photo}')` }} onClick={() => onOpenTrip(ev.tripId)}>
+                <span className="comm-plan-planned">🗓️ Planned · —</span>
+              </div>
+            )}
             <div className="comm-plan-top">
               <div>
                 <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
-                <div className="comm-plan-meta">{whenLabel} · hosted by {ev.host}{tr ? ` · ${tr.region}` : ''}</div>
+                <div className="comm-plan-meta">
+                  {whenLabel} · hosted by{' '}
+                  <HostNameLink host={ev.host} onOpenProfile={onOpenProfile} />
+                  {tr ? ` · ${tr.region}` : ''}
+                </div>
               </div>
               <button type="button" className={`comm-joinbtn${ev.joinedByMe ? ' joined' : ''}`} onClick={() => onJoin(ev.id)}>
                 {ev.joinedByMe ? '✓ Going' : 'Join'}
@@ -1136,7 +1256,13 @@ export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip }
             {ev.socialization && <div className="comm-plan-meta" style={{ marginTop: 8 }}>🤝 {ev.socialization}</div>}
             <div className="comm-plan-people">
               <div className="comm-person">
-                <span className="comm-person-av">{ev.host.charAt(0)}</span>
+                <span
+                  className="comm-person-av"
+                  onClick={() => { const mid = mockMemberIdByName(ev.host); if (mid) onOpenProfile?.(mid); }}
+                  style={{ cursor: onOpenProfile && mockMemberIdByName(ev.host) ? 'pointer' : undefined }}
+                >
+                  {ev.host.charAt(0)}
+                </span>
                 <span className="comm-person-txt"><b>{going}</b> <span>{going === 1 ? 'Dogyptian going' : 'Dogyptians going'}</span></span>
                 <button type="button" className="comm-msgbtn" onClick={() => onMessage(ev.host)}>Message host</button>
               </div>

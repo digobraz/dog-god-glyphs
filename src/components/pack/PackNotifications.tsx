@@ -18,15 +18,42 @@ function hasUnread(conv: Conversation, meId: string): boolean {
 }
 
 interface PackNotificationsProps {
-  last24h: number;
-  last30d: number;
-  total: number;
+  last24h?: number | null;
+  last30d?: number | null;
+  total?: number | null;
+  /** Global top-right chrome mount (D4 nav rework, DEV_FULL-only) sits directly on the
+   * dark page bg (HieroglyphBg), NOT on the light papyrus HeroCard — needs onDark tokens
+   * + fixed positioning instead of the original absolute-inside-a-card behaviour.
+   * Default (false) = byte-identical to the original HeroCard mount (LIVE + DEV_FULL both
+   * still render it there unchanged when `dark` is omitted). */
+  dark?: boolean;
+  /** Extra className on the wrapper — lets a specific page override the top:16/right:16
+   * position via its own scoped CSS, or (D4 nav rework, round 2) cancel the 'inline' width:100%
+   * when the hub is appended into an existing row instead of getting its own (e.g. PackPortal's
+   * map header status row — `.trp-status-notif` in PackPortal.tsx). */
+  className?: string;
+  /** 'overlay' (default) = original top:16/right:16 corner float (fixed when `dark`, absolute
+   * inside the HeroCard otherwise) — UNCHANGED behaviour.
+   * 'inline' = normal content-flow row, right-aligned inside whatever box the parent gives it
+   * (D4 nav rework amendment 2026-07-24: on narrow-column /pack pages this hub sits ABOVE the
+   * content, right-edge aligned to the column — not floating past the screen edge; PackLayout
+   * wraps it in the same max-w column as everything else). */
+  layout?: 'overlay' | 'inline';
 }
 
-export function PackNotifications({ last24h, last30d, total }: PackNotificationsProps) {
+export function PackNotifications({ last24h, last30d, total, dark = false, className, layout = 'overlay' }: PackNotificationsProps) {
+  const inline = layout === 'inline';
   const t = useT();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  // Color tokens — light (original, on papyrus card) vs dark (global chrome, on pageBg).
+  // Dark variant's trigger buttons get a T.glass backing (not transparent) — this hub also
+  // mounts on PackPortal's full-bleed light map (not just the black hieroglyph bg), so a
+  // transparent pale-on-pale button would vanish there; same blurred glass chip language as
+  // the bottom nav / PackPortal's own map controls.
+  const c = dark
+    ? { border: T.onDarkBorder, ink: T.onDark, inkDim: T.onDarkDim, hairline: T.onDarkHair, panelBg: T.glass, badgeBorder: T.pageBg, buttonBg: T.glass }
+    : { border: T.border, ink: T.ink, inkDim: T.inkDim, hairline: T.hairline, panelBg: T.card, badgeBorder: T.card, buttonBg: 'transparent' };
 
   // Messages — live len za DEV_FULL (§8.4 zadania: LIVE build sa nemení, ostáva "coming soon").
   const [msgCount, setMsgCount] = useState(() => (DEV_FULL ? unreadCount() : 0));
@@ -52,14 +79,22 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
     return () => document.removeEventListener('mousedown', onDown);
   }, [open]);
 
+  // Degrade gracefully — global mount (dark) only has last24h/total at hand (from
+  // usePackIdentity, already fetched by the parent page), no last30d breakdown; skip
+  // whichever stat wasn't passed in rather than showing a bogus 0.
   const items = [
-    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? t(last24h === 1 ? 'pack.notif.newMemberToday' : 'pack.notif.newMembersToday', { count: last24h }) : t('pack.notif.noNewMembersToday') },
-    { iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) },
-    { iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.totalWorldwide', { count: total.toLocaleString('en-US') }) },
+    ...(last24h != null ? [{ iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: last24h > 0 ? t(last24h === 1 ? 'pack.notif.newMemberToday' : 'pack.notif.newMembersToday', { count: last24h }) : t('pack.notif.noNewMembersToday') }] : []),
+    ...(last30d != null ? [{ iconNode: <UserPlus className="h-3.5 w-3.5 shrink-0" style={{ color: T.accentGold, marginTop: 2 }} />, text: t('pack.notif.joinedLast30d', { count: last30d }) }] : []),
+    ...(total != null ? [{ iconNode: <BrandIcon name="globe" size={14} tint="gold" className="shrink-0" style={{ marginTop: 2 }} />, text: t('pack.notif.totalWorldwide', { count: total.toLocaleString('en-US') }) }] : []),
   ];
+  const bellCount = last24h ?? 0;
 
   return (
-    <div ref={wrapRef} className="absolute flex items-center gap-1.5" style={{ top: 16, right: 16, zIndex: 12 }}>
+    <div
+      ref={wrapRef}
+      className={`${inline ? 'relative w-full justify-end' : dark ? 'fixed' : 'absolute'} flex items-center gap-1.5${className ? ` ${className}` : ''}`}
+      style={inline ? { zIndex: 12 } : { top: 16, right: 16, zIndex: dark ? 45 : 12 }}
+    >
       {/* Messages — LIVE za DEV_FULL (opens Inbox overlay); LIVE build (bez DEV_FULL) ostáva
           presne ako predtým, "coming soon" disabled (§8.4 zadania — bez regresie). */}
       {DEV_FULL ? (
@@ -73,13 +108,16 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
             width: 38,
             height: 38,
             borderRadius: 999,
-            border: `1px solid ${T.border}`,
-            background: 'transparent',
-            color: T.ink,
+            border: `1px solid ${c.border}`,
+            background: c.buttonBg,
+            backdropFilter: dark ? 'blur(14px)' : undefined,
+            WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
+            boxShadow: dark ? '0 4px 14px rgba(0,0,0,0.4)' : undefined,
+            color: c.ink,
             cursor: 'pointer',
           }}
         >
-          <BrandIcon name="chat" size={16} tint="gold" />
+          <BrandIcon name="envelope" size={16} tint="gold" />
           {msgCount > 0 && (
             <span
               style={{
@@ -98,7 +136,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: `1.5px solid ${T.card}`,
+                border: `1.5px solid ${c.badgeBorder}`,
                 lineHeight: 1,
               }}
             >
@@ -157,14 +195,17 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
           width: 38,
           height: 38,
           borderRadius: 999,
-          border: `1px solid ${T.border}`,
-          background: open ? 'rgba(31,26,14,0.05)' : 'transparent',
-          color: T.ink,
+          border: `1px solid ${c.border}`,
+          background: open ? (dark ? 'rgba(245,240,228,0.14)' : 'rgba(31,26,14,0.05)') : c.buttonBg,
+          backdropFilter: dark ? 'blur(14px)' : undefined,
+          WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
+          boxShadow: dark ? '0 4px 14px rgba(0,0,0,0.4)' : undefined,
+          color: c.ink,
           cursor: 'pointer',
         }}
       >
         <Bell className="h-4 w-4" />
-        {last24h > 0 && (
+        {bellCount > 0 && (
           <span
             style={{
               position: 'absolute',
@@ -182,11 +223,11 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: `1.5px solid ${T.card}`,
+              border: `1.5px solid ${c.badgeBorder}`,
               lineHeight: 1,
             }}
           >
-            {last24h > 9 ? '9+' : last24h}
+            {bellCount > 9 ? '9+' : bellCount}
           </span>
         )}
       </button>
@@ -199,12 +240,14 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
             top: 46,
             right: 0,
             width: DEV_FULL && unreadConvs.length > 0 ? 268 : 244,
-            background: T.card,
-            border: `1px solid ${T.hairline}`,
+            background: c.panelBg,
+            border: `1px solid ${dark ? c.border : c.hairline}`,
             borderRadius: 14,
             boxShadow: '0 18px 44px -12px rgba(10,10,10,0.28)',
             padding: 12,
             zIndex: 20,
+            backdropFilter: dark ? 'blur(14px)' : undefined,
+            WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
           }}
         >
           {DEV_FULL && unreadConvs.length > 0 && (
@@ -212,7 +255,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
               <div
                 style={{
                   fontFamily: "'Cinzel', serif", fontSize: 9.5, letterSpacing: '0.28em',
-                  textTransform: 'uppercase', color: T.inkDim, marginBottom: 8,
+                  textTransform: 'uppercase', color: c.inkDim, marginBottom: 8,
                 }}
               >
                 Messages
@@ -245,7 +288,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, fontWeight: 700, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 11.5, fontWeight: 700, color: c.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {name}
                             </span>
                             <span style={{ flexShrink: 0, width: 6, height: 6, borderRadius: '50%', background: T.accentGold }} />
@@ -256,7 +299,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
                             </span>
                           )}
                           {last && (
-                            <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: T.inkDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ display: 'block', fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: c.inkDim, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {last.text}
                             </span>
                           )}
@@ -266,7 +309,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
                   );
                 })}
               </ul>
-              <div style={{ borderTop: `1px solid ${T.hairline}`, marginBottom: 10 }} />
+              <div style={{ borderTop: `1px solid ${c.hairline}`, marginBottom: 10 }} />
             </>
           )}
           <div
@@ -275,7 +318,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
               fontSize: 9.5,
               letterSpacing: '0.28em',
               textTransform: 'uppercase',
-              color: T.inkDim,
+              color: c.inkDim,
               marginBottom: 10,
             }}
           >
@@ -290,7 +333,7 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
                     fontFamily: "'Space Grotesk', sans-serif",
                     fontSize: 12.5,
                     lineHeight: 1.4,
-                    color: T.ink,
+                    color: c.ink,
                   }}
                 >
                   {it.text}
@@ -302,10 +345,10 @@ export function PackNotifications({ last24h, last30d, total }: PackNotifications
             style={{
               marginTop: 12,
               paddingTop: 10,
-              borderTop: `1px solid ${T.hairline}`,
+              borderTop: `1px solid ${c.hairline}`,
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
-              color: T.inkDim,
+              color: c.inkDim,
               textAlign: 'center',
             }}
           >

@@ -1145,7 +1145,7 @@ export const ara: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "انتقل إلى إحصاءات الأمة",
   "pack.layout.dogFallbackAriaLabel": "كلب",
   "pack.layout.navHome": "الرئيسية",
-  "pack.layout.navPortal": "البوابة",
+  "pack.layout.navMap": "الخريطة",
   "pack.layout.navDogs": "الكلاب",
   // pack.survey
   "pack.survey.heading": "شكّل التطبيق",

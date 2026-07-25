@@ -1334,7 +1334,7 @@ export const deu: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "Zu den Nation-Statistiken springen",
   "pack.layout.dogFallbackAriaLabel": "Hund",
   "pack.layout.navHome": "Start",
-  "pack.layout.navPortal": "Portal",
+  "pack.layout.navMap": "Karte",
   "pack.layout.navDogs": "Hunde",
   // pack.survey
   "pack.survey.heading": "Gestalte die App",

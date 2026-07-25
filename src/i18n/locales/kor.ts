@@ -1148,7 +1148,7 @@ export const kor: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "나라 통계로 이동",
   "pack.layout.dogFallbackAriaLabel": "개",
   "pack.layout.navHome": "홈",
-  "pack.layout.navPortal": "포털",
+  "pack.layout.navMap": "지도",
   "pack.layout.navDogs": "반려견",
   // pack.survey
   "pack.survey.heading": "앱을 빚어주세요",

@@ -1148,7 +1148,7 @@ export const tur: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "Nation istatistiklerine git",
   "pack.layout.dogFallbackAriaLabel": "Köpek",
   "pack.layout.navHome": "Ana sayfa",
-  "pack.layout.navPortal": "Portal",
+  "pack.layout.navMap": "Harita",
   "pack.layout.navDogs": "Köpekler",
   // pack.survey
   "pack.survey.heading": "Uygulamayı şekillendir",

@@ -1145,7 +1145,7 @@ export const chn: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "跳转到国度统计",
   "pack.layout.dogFallbackAriaLabel": "狗",
   "pack.layout.navHome": "首页",
-  "pack.layout.navPortal": "门户",
+  "pack.layout.navMap": "地图",
   "pack.layout.navDogs": "狗狗",
   // pack.survey
   "pack.survey.heading": "塑造这款应用",

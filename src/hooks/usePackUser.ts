@@ -5,8 +5,17 @@ export interface PackDogFull {
   id: string;
   dog_name: string | null;
   cloudinary_main_url: string | null;
-  selections: { ownerGender?: string | null } | null;
+  // ownerGender = pôvodné pole; dogGender/dogColour/dogBloodline pridané pre read-only heroglyph
+  // zhrnutie v profil-accordion editore (zadanie-profil-read-dog-2026-07-25 §2). Column list v
+  // .select() nižšie už 'selections' celé ťahá — toto len rozširuje typ o polia, ktoré sú v JSON.
+  selections: {
+    ownerGender?: string | null;
+    dogGender?: string | null;
+    dogColour?: string | null;
+    dogBloodline?: string | null;
+  } | null;
   created_at: string;
+  pack_number: number | null;
 }
 
 export interface PackUserData {
@@ -38,6 +47,26 @@ export function usePackUser(userId: string | null): PackUserData {
 
     let mounted = true;
 
+    // DEV-ONLY seed: NOAUTH guest has no Supabase dogs, so the editor gallery
+    // would be empty. Seed one demo dog so BIO/tags editing is testable locally.
+    // Never ships (import.meta.env.DEV). NECOMMITOVAŤ — revert before push.
+    const DEV_NOAUTH = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
+    if (DEV_NOAUTH) {
+      setState({
+        devotion: 100, bones: 0, avatarUrl: null, ownerGender: 'male',
+        dogs: [{
+          id: 'dev-mock-dog-1',
+          dog_name: 'Rex',
+          cloudinary_main_url: null,
+          selections: { ownerGender: 'male', dogGender: 'male', dogColour: 'black', dogBloodline: 'aristocrat' },
+          created_at: '2026-01-01T00:00:00.000Z',
+          pack_number: 42,
+        }],
+        loading: false,
+      });
+      return () => { mounted = false; };
+    }
+
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!mounted || !user) {
@@ -53,7 +82,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: dogRows } = await (supabase as any)
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, selections, created_at')
+        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true }) as { data: PackDogFull[] | null };
 

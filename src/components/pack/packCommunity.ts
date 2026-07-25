@@ -7,6 +7,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   ACTIVITY_OPTIONS, VIBE_OPTIONS, deriveDefaultDogAttrs,
   type ActivityTag, type TripVibe, type DogProfileAttrs,
+  type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
@@ -265,15 +266,28 @@ const JOURNEY_RANGES: Record<string, string[]> = {
   // Overené 2026-07-24 proti Wikipédii + reálnej OSM stope: SNP ide cez Biele Karpaty (0,1 km),
   // NIE cez Považský Inovec (29 km preč — pôvodná chyba ručnej mapy). Geo-engine to prepočíta presne.
   'snp-cesta-hrdinov': ['Malé Karpaty', 'Biele Karpaty', 'Strážovské vrchy', 'Malá Fatra', 'Kremnické vrchy', 'Veľká Fatra', 'Nízke Tatry', 'Slovenské rudohorie', 'Volovské vrchy'],
-  'rudna-magistrala': ['Slovenské rudohorie', 'Volovské vrchy'],
-  'tatranska-magistrala': ['Vysoké Tatry', 'Západné Tatry', 'Belianske Tatry'],
+  // Zladené 2026-07-24 s researchom: Rudná ide cez Štiavnické vrchy + Poľanu + Slovenské rudohorie
+  // (Muránska planina/Stolica). NIE Volovské vrchy (to je až za Stolicou, na trase nie je).
+  // Pohronský Inovec + Javorie sú mimo 26 pohorí → nezobraziteľné.
+  'rudna-magistrala': ['Štiavnické vrchy', 'Poľana', 'Slovenské rudohorie'],
   'velkofatranska-magistrala': ['Veľká Fatra'],
-  'ponitrianska-magistrala': ['Považský Inovec', 'Tribeč', 'Vtáčnik', 'Strážovské vrchy'],
-  'kysucka-magistrala': ['Kysucké Beskydy', 'Javorníky', 'Malá Fatra'],
-  'zahoracka-magistrala': ['Malé Karpaty', 'Biele Karpaty'],
-  'stefanikova-magistrala': ['Biele Karpaty', 'Javorníky'],
+  // Zladené 2026-07-24: Handlová (Vtáčnik) → Nitra (Tribeč). NIE Považský Inovec ani Strážovské
+  // vrchy (iné pohoria, na trase nie sú — Považský Inovec bola rovnaká chyba ako pri SNP vyššie).
+  'ponitrianska-magistrala': ['Vtáčnik', 'Tribeč'],
+  // Zladené 2026-07-24: reálne ide cez Turzovskú vrchovinu (+ Mor.-sliezske Beskydy pri Makove),
+  // OBE sú mimo 26 pohorí → prázdne. Predtým chybne Kysucké Beskydy/Javorníky/Malá Fatra (tie na
+  // trase nie sú — Javorníky sú len vzdialený výhľad).
+  'kysucka-magistrala': [],
+  // Zladené 2026-07-24: Skalica → Biele Karpaty hraničný hrebeň → Borská nížina (Závod). NIE Malé
+  // Karpaty (tie sú južnejšie). Myjavská/Chvojnická pahorkatina + Borská nížina sú mimo 26 pohorí.
+  'zahoracka-magistrala': ['Biele Karpaty'],
+  // Zladené 2026-07-24: Bradlo → Ivanka pri Dunaji cez CELÝ hrebeň Malých Karpát. Biele Karpaty
+  // na trase nie sú. Myjavská pahorkatina + Podunajská rovina sú mimo 26 pohorí.
+  'stefanikova-magistrala': ['Malé Karpaty'],
   'malofatransky-okruh': ['Malá Fatra'],
-  'vychodokarpatska-magistrala': ['Vihorlat', 'Bukovské vrchy'],
+  // Zladené 2026-07-24: Ubľa → Minčol cez Bukovské vrchy + Nízke Beskydy + Čergov. NIE Vihorlat
+  // (ten je južnejšie, na trase nie je). Nízke Beskydy (Laborecká/Ondavská vrch.) + Čergov = mimo 26.
+  'vychodokarpatska-magistrala': ['Bukovské vrchy'],
   'poloniny': ['Bukovské vrchy'],
 };
 
@@ -282,7 +296,7 @@ const JOURNEY_RANGES: Record<string, string[]> = {
 // DRAFT — Matej audituje. Hodnoty MUSIA byť z SK_GEO 'parks' units.
 const JOURNEY_PARKS: Record<string, string[]> = {
   'snp-cesta-hrdinov': ['NP Slovenský raj', 'NP Muránska planina'],
-  'rudna-magistrala': ['NP Muránska planina', 'NP Slovenský raj'],
+  'rudna-magistrala': ['NP Muránska planina'], // NIE Slovenský raj — je až za Stolicou (2026-07-24)
 };
 
 // ktoré geo jednotky daný trip „odškrtne" (design §C1: odškrtnutie vyžaduje trip)
@@ -388,6 +402,26 @@ export const MOCK_MEMBER_POOL: MockMember[] = NAME_POOL.map((name, i) => {
     attrs: deriveDefaultDogAttrs(id),
     human: { interests, vibes },
   };
+});
+
+// Demo seed — pár mock členov s vyplneným psím BIO + tagmi, aby read-profil (/pack/u/:id)
+// nebol prázdny pri prehliadke. Placeholder content (reálni useri dostanú vlastné dáta po
+// Supabase perzistencii profilu). Hodnoty musia byť z DOG_TEMPERAMENT_TAGS / DOG_TRAIL_TAGS.
+const MOCK_DOG_BIOS: Record<string, { bio: string; temperament: DogTemperamentTag[]; trail: DogTrailTag[] }> = {
+  martin: {
+    bio: 'Rescue mutt with more energy than sense. Will find every puddle within 2 km and lie down in it.',
+    temperament: ['playful', 'friendly', 'social'],
+    trail: ['dogs_ok', 'kids_ok', 'loves_water', 'long_distance'],
+  },
+  zuzka: {
+    bio: 'Calm old soul. Prefers a slow, sniff-heavy walk over any summit. Great with pups.',
+    temperament: ['calm', 'friendly'],
+    trail: ['dogs_ok', 'kids_ok', 'slow_pace'],
+  },
+};
+MOCK_MEMBER_POOL.forEach((m) => {
+  const seed = MOCK_DOG_BIOS[m.id];
+  if (seed) m.attrs = { ...m.attrs, bio: seed.bio, tags: { temperament: seed.temperament, trail: seed.trail } };
 });
 
 // deterministicky vyberie n unikátnych prvkov z pool pomocou danej PRNG inštancie (rnd musí byť

@@ -1333,7 +1333,7 @@ export const ita: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "Vai alle statistiche della nazione",
   "pack.layout.dogFallbackAriaLabel": "Cane",
   "pack.layout.navHome": "Home",
-  "pack.layout.navPortal": "Portale",
+  "pack.layout.navMap": "Mappa",
   "pack.layout.navDogs": "Cani",
   // pack.survey
   "pack.survey.heading": "Dai forma all'app",

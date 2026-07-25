@@ -1149,7 +1149,7 @@ export const ind: Partial<Dict> = {
   "pack.layout.jumpToStatsAriaLabel": "Nation आँकड़ों पर जाएँ",
   "pack.layout.dogFallbackAriaLabel": "कुत्ता",
   "pack.layout.navHome": "होम",
-  "pack.layout.navPortal": "पोर्टल",
+  "pack.layout.navMap": "नक्शा",
   "pack.layout.navDogs": "कुत्ते",
   // pack.survey
   "pack.survey.heading": "ऐप को आकार दें",

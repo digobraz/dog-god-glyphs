@@ -79,7 +79,15 @@ export function usePackIdentity(): PackIdentity {
       !!import.meta.env.VITE_DEV_AUTH_EMAIL &&
       !!import.meta.env.VITE_DEV_AUTH_PASSWORD;
 
+    // DEV-ONLY no-auth bypass for local/tunnel review of gated /pack. Never
+    // ships (import.meta.env.DEV). Opt-in via VITE_PACK_NOAUTH=1. NECOMMITOVAŤ.
+    const DEV_NOAUTH = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
+    const MOCK_SESSION = {
+      user: { id: '00000000-0000-0000-0000-000000000000', email: 'guest@dogypt.dev', user_metadata: {} },
+    } as unknown as Session;
+
     async function ensureSession(): Promise<Session | null> {
+      if (DEV_NOAUTH) return MOCK_SESSION;
       const { data: { session: s } } = await supabase.auth.getSession();
       if (s || !DEV_AUTH) return s;
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -139,6 +147,7 @@ export function usePackIdentity(): PackIdentity {
       // INITIAL_SESSION duplikuje ensureSession() vyššie — bez tohto guardu sa
       // pri mounte bez session zavolal navigate('/login') dvakrát.
       if (event === 'INITIAL_SESSION') return;
+      if (!s && DEV_NOAUTH) return;
       setSession(s);
       if (!s) {
         const ret = encodeURIComponent(location.pathname + location.search);
