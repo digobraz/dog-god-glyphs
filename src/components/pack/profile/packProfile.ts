@@ -604,7 +604,9 @@ export function deriveDefaultDogAttrs(seed: string): DogProfileAttrs {
 // Migrácia starých localStorage recordov (uložených pred zadanie-profil-read-dog-2026-07-25 /
 // zadanie-psia-karta-2026-07-25) — chýbajúce bio/tags/card → default prázdne, žiadny crash.
 function normalizeDogAttrs(d: Partial<DogProfileAttrs>): DogProfileAttrs {
-  const c = d.card ?? {};
+  // Anotácia typu je potrebná: bez nej sa `{}` odvodí ako typ `{}` a všetkých 7 prístupov
+  // nižšie (c.compat, c.triggers…) hodí TS2339 „Property does not exist on type '{}'".
+  const c: Partial<DogCard> = d.card ?? {};
   return {
     ...(d as DogProfileAttrs),
     bio: d.bio ?? '',

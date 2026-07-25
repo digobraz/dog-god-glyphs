@@ -28,8 +28,8 @@ import {
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
 } from '@/components/pack/tripShared';
 import {
-  crowdAggregate, FOUNDER_WALKERS, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  type TripVote, type TripPlan, type PartnerEvent,
+  crowdAggregate, FOUNDER_WALKERS, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
+  type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import {
   COMMUNITY_CSS, WalkedPopup, WishlistIntentPopup, PartnerAdForm,
@@ -94,6 +94,11 @@ const CSS = `
 .pta-hero-actions{position:absolute;left:0;right:0;bottom:14px;z-index:5;display:flex;gap:9px;padding:0 18px;}
 .pta-hero-actions .pta-actbtn{display:flex;align-items:center;justify-content:center;gap:6px;}
 .pta-actbtn-label{white-space:nowrap;}
+/* F1 (Matej 2026-07-24): „Ikonka srdiečka ≠ ikonka checklistu z headra → zladiť." Unicode ♡/♥
+   vymenené za brand clipboard.svg — rovnaká ikonka ako Triplist v status pruhu/headri.
+   Mask + currentColor namiesto <img filter:…>: ikonka tak drží PRESNÚ farbu textu tlačidla
+   v oboch stavoch (tmavá na zlatom podklade → zlatá keď je trip už v triplistе). */
+.pta-ic-mask{display:inline-block;width:13px;height:13px;background-color:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
 @media (max-width:760px){
   .pta-hero-actions.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
   .pta-hero-actions.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
@@ -120,6 +125,13 @@ const CSS = `
 .pta-stat + .pta-stat{border-left:1px solid ${T.onDarkBorder};}
 .pta-stat b{display:flex;align-items:center;justify-content:center;gap:5px;font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:${T.onDark};}
 .pta-stat span{display:block;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:${T.onDarkDim};margin-top:2px;}
+/* F1 (Matej 2026-07-24): „Zlúčiť dĺžka + prevýšenie do jedného bloku oddeleného zvislou čiarou
+   + spraviť miesto na VIBE." Route = km │ ↑m v jednej bunke, uvoľnená bunka ide na Crowd. */
+.pta-route{display:flex;align-items:center;justify-content:center;gap:8px;}
+.pta-route i{display:block;width:1px;height:13px;background:${T.onDarkBorder};}
+/* .pta-stat span je label (9px, uppercase) — vnútorné spany v .pta-route ho NESMÚ zdediť,
+   inak „8 km" vysadne menšie než susedné „Moderate". */
+.pta-route span{display:inline;font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit;margin-top:0;}
 /* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */
 .pta-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
 .pta-tag{background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:11px;font-weight:600;padding:5px 11px;border-radius:999px;}
@@ -144,6 +156,15 @@ const CSS = `
 .pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.onDarkDim};font-family:'Cinzel',serif;text-align:center;padding:20px;}
 ${DIFF_MARK_CSS}
 `;
+
+// F1 (Matej 2026-07-24): „hover → info koľko ľudí tak hlasovalo". Počet ide PRVÝ — otázka je
+// koľko ľudí, nie aké percento; % ostáva v zátvorke ako druhotná informácia.
+// „walker/walkers" = jednotné/množné číslo, aby to nečítalo „1 walkers".
+function voteTip(slices: CrowdSlice<string>[]): string {
+  return slices
+    .map((s) => `${s.count} ${s.count === 1 ? 'walker' : 'walkers'}: ${s.value} (${s.pct}%)`)
+    .join(' · ');
+}
 
 export default function PackTripArticle() {
   const t = useT();
@@ -337,7 +358,7 @@ export default function PackTripArticle() {
             className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}`}
             onClick={() => toggleFav(trail.id)}
           >
-            <span className="pta-actbtn-icon">{favIds.has(trail.id) ? '♥' : '♡'}</span>
+            <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />
             <span className="pta-actbtn-label">{favIds.has(trail.id) ? 'In triplist' : 'Triplist'}</span>
           </button>
           <button
@@ -362,13 +383,35 @@ export default function PackTripArticle() {
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
         <div className="pta-author">by {authorOf(trail)}{agg.walkedCount - FOUNDER_WALKERS > 0 ? ` · +${agg.walkedCount - FOUNDER_WALKERS} Dogyptians` : ''}</div>
 
-        {/* crowd agregát (design §A): rating = priemer, difficulty = konsenzus. */}
+        {/* crowd-sourced agregát (design §A): rating = priemer, difficulty + crowd = konsenzus.
+            Hover na Difficulty/Crowd → %-rozpad AJ s počtom hlasov (F1: „hover → info koľko ľudí
+            tak hlasovalo"). Pod prahom VOLUME_THRESHOLD sa hover nezobrazuje — je to seed, nie
+            hlasovanie, tooltip „100% (2)" by tvrdil viac než dáta vedia. */}
         <div className="pta-statrow">
-          <div className="pta-stat"><b>{trail.km} km</b><span>Distance</span></div>
-          {(trail as { ascentM?: number }).ascentM != null && (
-            <div className="pta-stat"><b>↑ {(trail as { ascentM?: number }).ascentM} m</b><span>Elevation</span></div>
+          <div className="pta-stat">
+            <b className="pta-route">
+              <span>{trail.km} km</span>
+              {(trail as { ascentM?: number }).ascentM != null && (<>
+                <i />
+                <span>↑ {(trail as { ascentM?: number }).ascentM} m</span>
+              </>)}
+            </b>
+            <span>{(trail as { ascentM?: number }).ascentM != null ? 'Distance · Elevation' : 'Distance'}</span>
+          </div>
+          <div
+            className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
+            data-tip={agg.belowThreshold ? undefined : voteTip(agg.difficultyBreakdown)}
+          >
+            <b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span>
+          </div>
+          {agg.crowd && (
+            <div
+              className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
+              data-tip={agg.belowThreshold ? undefined : voteTip(agg.crowdBreakdown)}
+            >
+              <b>{CROWD_EMOJI[agg.crowd]} {agg.crowd}</b><span>Crowd</span>
+            </div>
           )}
-          <div className="pta-stat"><b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span></div>
           <div className="pta-stat"><b><RatingPaws stars={agg.rating} size={11} gap={2} /> {agg.rating.toFixed(1)}</b><span>Rating</span></div>
         </div>
 
@@ -463,7 +506,7 @@ export default function PackTripArticle() {
       {walkedPopupOpen && (
         <WalkedPopup
           trailName={trail.name}
-          initial={votes[trail.id] ? { rating: votes[trail.id].rating, difficulty: votes[trail.id].difficulty, vibe: votes[trail.id].vibe, comment: votes[trail.id].comment, when: votes[trail.id].when, hazards: votes[trail.id].hazards } : null}
+          initial={votes[trail.id] ? { rating: votes[trail.id].rating, difficulty: votes[trail.id].difficulty, crowd: votes[trail.id].crowd, comment: votes[trail.id].comment, when: votes[trail.id].when, hazards: votes[trail.id].hazards } : null}
           onSubmit={submitWalked}
           onClose={() => setWalkedPopupOpen(false)}
         />

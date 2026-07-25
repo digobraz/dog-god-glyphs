@@ -235,12 +235,16 @@ export function countryOfPoint(pt?: [number, number] | null): string | null {
  * Rozhodovanie z jediného bodu je pri hraničných trasách nespoľahlivé (štart pri
  * hrebeni môže vypadnúť mimo SK polygónu) — preto: ak je HOCIKTORÝ bod trasy v SK,
  * je to SK trasa. Cudzia trasa (napr. CH) nemá v SK ani jeden bod → padne na bbox. */
-export function trailCountry(t: { country?: string | null; path?: [number, number][] }): string {
+// `path` je zámerne `readonly number[][]`, nie `[number, number][]`: HeroTrail ho má ako
+// leafletový `LatLngTuple[]`, čo je `[number, number] | [number, number, number]` (voliteľná
+// výška) → striktný dvojprvkový tuple sa naň nedal priradiť a 4 volania v PackPortal hlásili
+// TS2345. Funkcia aj tak čerpá len p[0]/p[1], takže širší vstup nič nezhoršuje.
+export function trailCountry(t: { country?: string | null; path?: readonly (readonly number[])[] }): string {
   if (t.country) return countryISO2(t.country) ?? 'sk';
   const path = t.path ?? [];
   if (path.some((p) => p && p.length >= 2 && isInSlovakia(p[0], p[1]))) return 'sk';
   const p0 = path[0];
-  return (p0 && countryOfPoint(p0 as [number, number])) || 'sk';
+  return (p0 && countryOfPoint([p0[0], p0[1]])) || 'sk';
 }
 
 /** ISO2 → vlajka emoji (regional indicator páry), pre <option> text kde <img> nejde. */

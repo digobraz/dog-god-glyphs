@@ -8,9 +8,9 @@ import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
-  DIFFICULTIES, VIBES, VIBE_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
+  DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
   computeCompletion, unitsForTrail, packLevel, isMyEvent,
-  type Difficulty, type Vibe, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
+  type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
@@ -116,7 +116,7 @@ export const COMMUNITY_CSS = `
 .comm-walked-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
 @media (max-width:560px){ .comm-walked-grid{grid-template-columns:1fr;} }
 
-/* segmented choice (difficulty / vibe) */
+/* segmented choice (difficulty / crowd) */
 .comm-seg{display:flex;gap:8px;}
 .comm-seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:10px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .comm-seg button:hover{border-color:${GOLD};}
@@ -444,18 +444,18 @@ function PawInput({ value, onChange }: { value: number; onChange: (n: number) =>
 }
 
 // ── A · Walked popup (povinný po označení „walked") ──────────────────────────────────────────
-export interface WalkedInput { rating: number; difficulty: Difficulty; vibe: Vibe; comment: string; when: string; hazards: Hazard[]; }
+export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Crowd; comment: string; when: string; hazards: Hazard[]; }
 export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
   trailName: string; initial?: WalkedInput | null; onSubmit: (v: WalkedInput) => void; onClose: () => void;
 }) {
   const [rating, setRating] = useState(initial?.rating ?? 0);
   const [difficulty, setDifficulty] = useState<Difficulty | ''>(initial?.difficulty ?? '');
-  const [vibe, setVibe] = useState<Vibe | ''>(initial?.vibe ?? '');
+  const [crowd, setCrowd] = useState<Crowd | ''>(initial?.crowd ?? '');
   const [comment, setComment] = useState(initial?.comment ?? '');
   const [when, setWhen] = useState(initial?.when ?? '');
   const [hazards, setHazards] = useState<Hazard[]>(initial?.hazards ?? []);
   const toggleHazard = (h: Hazard) => setHazards((prev) => prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h]);
-  const canSubmit = rating > 0 && difficulty !== '' && vibe !== '';
+  const canSubmit = rating > 0 && difficulty !== '' && crowd !== '';
   // Matej 2026-07-23: „urop popup širší aby sa zmestil na vh 100" → wide modal + 2-stĺpcový
   // layout, nech sa zmestí bez rolovania. Rating hore cez obe kolóny, zvyšok v 2 stĺpcoch.
   return (
@@ -476,11 +476,11 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
           </div>
         </div>
         <div className="comm-field">
-          <label className="comm-label">Vibe</label>
+          <label className="comm-label">Crowd</label>
           <div className="comm-seg">
-            {VIBES.map((v) => (
-              <button key={v} type="button" className={vibe === v ? 'on' : ''} onClick={() => setVibe(v)}>
-                {VIBE_EMOJI[v]} {v}
+            {CROWDS.map((v) => (
+              <button key={v} type="button" className={crowd === v ? 'on' : ''} onClick={() => setCrowd(v)}>
+                {CROWD_EMOJI[v]} {v}
               </button>
             ))}
           </div>
@@ -510,7 +510,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
         type="button"
         className="comm-submit"
         disabled={!canSubmit}
-        onClick={() => canSubmit && onSubmit({ rating, difficulty: difficulty as Difficulty, vibe: vibe as Vibe, comment, when, hazards })}
+        onClick={() => canSubmit && onSubmit({ rating, difficulty: difficulty as Difficulty, crowd: crowd as Crowd, comment, when, hazards })}
       >
         {initial ? 'Update my vote' : 'Log this walk'}
       </button>
@@ -641,7 +641,7 @@ export function AddModeChoice({ onPick, onClose }: { onPick: (m: 'planning' | 'd
 
 // ── crowd meta (agregát) — karta (compact) aj inline detail ──────────────────────────────────
 function diffTip(agg: CrowdAgg): string { return agg.difficultyBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
-function vibeTip(agg: CrowdAgg): string { return agg.vibeBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
+function crowdTip(agg: CrowdAgg): string { return agg.crowdBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
 function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) => `${s.pct}% reported ${s.value}`).join(' · '); }
 
 // crowd agregát na karte/detaile. „N walked" počet sa TU už NEzobrazuje — presunul sa k autorom
@@ -657,9 +657,9 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
       <span className="comm-crowd-row comm-hastip" style={{ fontSize: fs }} data-tip={diffTip(agg)}>
         <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km
       </span>
-      {agg.vibe && (
-        <span className="comm-crowd-row comm-hastip" style={{ fontSize: fs }} data-tip={vibeTip(agg)}>
-          {VIBE_EMOJI[agg.vibe]} {agg.vibe}
+      {agg.crowd && (
+        <span className="comm-crowd-row comm-hastip" style={{ fontSize: fs }} data-tip={crowdTip(agg)}>
+          {CROWD_EMOJI[agg.crowd]} {agg.crowd}
         </span>
       )}
       {!compact && agg.hazardBreakdown.length > 0 && (
@@ -694,9 +694,9 @@ export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string
       <span className="comm-mpill comm-hastip" data-tip={`Difficulty — ${diffTip(agg)}`}>
         <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km{ascentM != null ? ` · ↑ ${ascentM} m` : ''}
       </span>
-      {agg.vibe && (
-        <span className="comm-mpill comm-hastip" data-tip={`Popularity — ${vibeTip(agg)}`}>
-          {VIBE_EMOJI[agg.vibe]} {agg.vibe}
+      {agg.crowd && (
+        <span className="comm-mpill comm-hastip" data-tip={`Crowd — ${crowdTip(agg)}`}>
+          {CROWD_EMOJI[agg.crowd]} {agg.crowd}
         </span>
       )}
     </div>

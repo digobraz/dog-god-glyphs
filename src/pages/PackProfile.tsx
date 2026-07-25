@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Camera, Eye, EyeOff, Loader2, LogOut, Mail, BellOff, KeyRound, X } from 'lucide-react';
+import { ArrowLeft, Camera, Eye, EyeOff, Loader2, LogOut, BellOff, KeyRound, X } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -483,7 +483,9 @@ export default function PackProfile() {
             boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
           }}
         >
-          <Field icon={<Mail className="h-4 w-4" />} label="Email">
+          {/* F1 icon audit (2026-07-25): lucide Mail → brand envelope.svg. Na tej istej stránke
+              už brandová obálka bežala (PackNotifications), takže tu boli DVE rôzne obálky. */}
+          <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label="Email">
             <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>
               {email}
             </span>

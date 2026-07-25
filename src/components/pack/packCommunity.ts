@@ -11,9 +11,14 @@ import {
 } from '@/components/pack/profile/packProfile';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
-export type Vibe = 'Remote' | 'Calm' | 'Popular';
+// D2 (LOCKED 2026-07-24): feature „Vibe" → Crowd / Ruch. Jedna jasná os = počet ľudí, žiadny
+// slang („Remote" preč). Hodnoty zrkadlia SK dáta z nahadzovača → zero migrácia.
+// POZOR na dvojznačnosť slova crowd v tomto module: `Crowd` (nižšie) = RUCH na trase, kdežto
+// `CrowdAgg`/`CrowdSlice` = crowd-sourced agregát VŠETKÝCH hlasov (rating+difficulty+ruch).
+export type Crowd = 'Empty' | 'Calm' | 'Busy';
 export const DIFFICULTIES: Difficulty[] = ['Easy', 'Moderate', 'Hard'];
-export const VIBES: Vibe[] = ['Remote', 'Calm', 'Popular'];
+// Poradie = od najkľudnejšieho po najrušnejšie (F1: „Vibe zoradiť od najkľudnejšieho").
+export const CROWDS: Crowd[] = ['Empty', 'Calm', 'Busy'];
 
 // nebezpečenstvá trasy (design: Matej 2026-07-22) — hlásia ich chodci vo walked popupe, na tripe
 // sa agregujú ako % (koľko % chodcov ich nahlásilo), rovnako ako difficulty/vibe rozpad.
@@ -54,12 +59,12 @@ export const MOCK_PROFILE: TouristProfile = {
 // seed hodnota z nahadzovača (Matejov rating/diff/crowd), nie počítaný priemer.
 export const VOLUME_THRESHOLD = 3;
 
-// vibe (EN, „na prvý pohľad" labely) ← crowd (SK, dáta z nahadzovača). Rovnaké mapovanie ako
+// Crowd (EN labely v UI) ← `trail.crowd` (SK, dáta z nahadzovača). Rovnaké mapovanie ako
 // CROWD_LABELS v PackPortal, len bez emoji prefixu (ten pridáva UI).
-const CROWD_TO_VIBE: Record<string, Vibe> = { 'Ľudoprázdne': 'Remote', 'Pokojné': 'Calm', 'Rušné': 'Popular' };
-export const VIBE_EMOJI: Record<Vibe, string> = { Remote: '🏔️', Calm: '🌿', Popular: '👣' };
-export function seedVibe(trail: HeroTrail): Vibe | null {
-  return trail.crowd ? CROWD_TO_VIBE[trail.crowd] ?? null : null;
+const SEED_CROWD: Record<string, Crowd> = { 'Ľudoprázdne': 'Empty', 'Pokojné': 'Calm', 'Rušné': 'Busy' };
+export const CROWD_EMOJI: Record<Crowd, string> = { Empty: '🏔️', Calm: '🌿', Busy: '👣' };
+export function seedCrowd(trail: HeroTrail): Crowd | null {
+  return trail.crowd ? SEED_CROWD[trail.crowd] ?? null : null;
 }
 
 // ── deterministický PRNG z trip id (mulberry32 + FNV-1a hash) — mock hlasy/ľudia musia byť
@@ -81,7 +86,7 @@ function mulberry32(seed: number) {
 
 // ── User vote (flow „Walked", design §A) ──
 export interface TripVote {
-  tripId: string; rating: number; difficulty: Difficulty; vibe: Vibe; comment: string;
+  tripId: string; rating: number; difficulty: Difficulty; crowd: Crowd; comment: string;
   when: string; hazards: Hazard[]; at: number; // when = rok/mesiac (YYYY-MM), nemusí byť presný
 }
 
@@ -108,28 +113,28 @@ export interface PartnerEvent {
 export const isMyEvent = (ev: PartnerEvent): boolean =>
   ev.hostIsMe ?? ev.host.endsWith('& your dog');
 
-// ── Crowd agregát (design §A: priemer na rating, konsenzus + %-rozpad na diff/vibe) ──
+// ── Crowd-sourced agregát (design §A: priemer na rating, konsenzus + %-rozpad na diff/ruch) ──
 export interface CrowdSlice<T extends string> { value: T; pct: number; count: number; }
 export interface CrowdAgg {
   walkedCount: number;
-  belowThreshold: boolean; // true → zobrazuje sa seed, nie počítaný crowd
+  belowThreshold: boolean; // true → zobrazuje sa seed, nie počítaný agregát
   rating: number;
   difficulty: Difficulty;
   difficultyBreakdown: CrowdSlice<Difficulty>[];
-  vibe: Vibe | null;
-  vibeBreakdown: CrowdSlice<Vibe>[];
+  crowd: Crowd | null;
+  crowdBreakdown: CrowdSlice<Crowd>[];
   hazardBreakdown: CrowdSlice<Hazard>[]; // % chodcov čo nahlásili dané nebezpečenstvo
 }
 
-// deterministicky vygeneruje N mock hlasov (diff+vibe) sústredených okolo seed hodnoty, s
+// deterministicky vygeneruje N mock hlasov (diff+ruch) sústredených okolo seed hodnoty, s
 // rozptylom nech %-rozpad vyzerá živo (napr. „67% Moderate · 20% Hard · 13% Easy").
-function mockVotes(trail: HeroTrail): { diffs: Difficulty[]; vibes: Vibe[]; ratings: number[]; hazards: Hazard[][] } {
+function mockVotes(trail: HeroTrail): { diffs: Difficulty[]; crowds: Crowd[]; ratings: number[]; hazards: Hazard[][] } {
   const rnd = mulberry32(hashStr(trail.id));
   // min FOUNDER_WALKERS (Matej + Hekthor) + 0..14 komunitných → nikdy pod 2 (Matej 2026-07-22).
   const n = FOUNDER_WALKERS + Math.floor(rnd() * 15);
-  const sVibe = seedVibe(trail);
+  const sCrowd = seedCrowd(trail);
   const diffs: Difficulty[] = [];
-  const vibes: Vibe[] = [];
+  const crowds: Crowd[] = [];
   const ratings: number[] = [];
   const hazards: Hazard[][] = [];
   for (let i = 0; i < n; i++) {
@@ -138,15 +143,15 @@ function mockVotes(trail: HeroTrail): { diffs: Difficulty[]; vibes: Vibe[]; rati
     // Odyssey (journey) = intrinsická náročnosť, NIE komunitou hlasovaná — vždy trail.diff,
     // žiadny random rozptyl na Easy/Moderate/Hard (inak by 770 km magistrála ukázala „13% Easy").
     diffs.push(trail.diff === 'Odyssey' || founder || rnd() < 0.62 ? trail.diff : DIFFICULTIES[Math.floor(rnd() * 3)]);
-    if (sVibe) vibes.push(founder || rnd() < 0.6 ? sVibe : VIBES[Math.floor(rnd() * 3)]);
-    else vibes.push(VIBES[Math.floor(rnd() * 3)]);
+    if (sCrowd) crowds.push(founder || rnd() < 0.6 ? sCrowd : CROWDS[Math.floor(rnd() * 3)]);
+    else crowds.push(CROWDS[Math.floor(rnd() * 3)]);
     ratings.push(founder ? trail.stars : Math.min(5, Math.max(1, trail.stars + (rnd() < 0.5 ? 0 : rnd() < 0.5 ? 1 : -1))));
     // nebezpečenstvá: každý chodec nahlási 0..2 (deterministicky) — agregujú sa na %
     const hz: Hazard[] = [];
     for (const h of HAZARDS) if (rnd() < 0.22) hz.push(h);
     hazards.push(hz);
   }
-  return { diffs, vibes, ratings, hazards };
+  return { diffs, crowds, ratings, hazards };
 }
 
 function breakdown<T extends string>(votes: T[], order: T[]): CrowdSlice<T>[] {
@@ -158,16 +163,16 @@ function breakdown<T extends string>(votes: T[], order: T[]): CrowdSlice<T>[] {
     .sort((a, b) => b.count - a.count);
 }
 
-// Crowd agregát = seed (nahadzovač) + deterministické mock hlasy + prípadný hlas usera.
-// Pod prahom (VOLUME_THRESHOLD) sa vracia seed (rating=stars, difficulty=seed, vibe=seedVibe).
+// Crowd-sourced agregát = seed (nahadzovač) + deterministické mock hlasy + prípadný hlas usera.
+// Pod prahom (VOLUME_THRESHOLD) sa vracia seed (rating=stars, difficulty=seed, crowd=seedCrowd).
 export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): CrowdAgg {
-  const { diffs, vibes, ratings, hazards } = mockVotes(trail);
+  const { diffs, crowds, ratings, hazards } = mockVotes(trail);
   if (userVote) {
-    diffs.push(userVote.difficulty); vibes.push(userVote.vibe); ratings.push(userVote.rating);
+    diffs.push(userVote.difficulty); crowds.push(userVote.crowd); ratings.push(userVote.rating);
     hazards.push(userVote.hazards ?? []);
   }
   const walkedCount = ratings.length; // vždy ≥ FOUNDER_WALKERS
-  const sVibe = seedVibe(trail);
+  const sCrowd = seedCrowd(trail);
   // hazard % = koľko % CHODCOV nahlásilo dané nebezpečenstvo (denominátor = walkedCount, nie
   // počet zmienok — jeden chodec môže nahlásiť viac). Nezávisí od seed guardu.
   const hB: CrowdSlice<Hazard>[] = HAZARDS
@@ -181,21 +186,21 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
       rating: trail.stars,
       difficulty: trail.diff,
       difficultyBreakdown: [{ value: trail.diff, pct: 100, count: walkedCount }],
-      vibe: sVibe,
-      vibeBreakdown: sVibe ? [{ value: sVibe, pct: 100, count: walkedCount }] : [],
+      crowd: sCrowd,
+      crowdBreakdown: sCrowd ? [{ value: sCrowd, pct: 100, count: walkedCount }] : [],
       hazardBreakdown: hB,
     };
   }
   const dB = breakdown(diffs, DIFFICULTIES);
-  const vB = breakdown(vibes, VIBES);
+  const cB = breakdown(crowds, CROWDS);
   const avg = ratings.reduce((s, r) => s + r, 0) / walkedCount;
   return {
     walkedCount, belowThreshold: false,
     rating: Math.round(avg * 10) / 10,
     difficulty: dB[0]?.value ?? trail.diff,
     difficultyBreakdown: dB,
-    vibe: vB[0]?.value ?? sVibe,
-    vibeBreakdown: vB,
+    crowd: cB[0]?.value ?? sCrowd,
+    crowdBreakdown: cB,
     hazardBreakdown: hB,
   };
 }
@@ -234,7 +239,9 @@ export const SK_GEO: GeoCategoryDef[] = [
     'Gerlachovský štít', 'Ďumbier', 'Veľký Kriváň', 'Ostrá (V. Fatra)', 'Záruby',
     'Vápeč', 'Inovec', 'Poľana (vrchol)', 'Kľak',
   ] },
-  { key: 'waters', label: 'Top waters', icon: 'water', units: [
+  // F2 (Matej 2026-07-24): ikonka `water` vykresľovala DŽBÁN → `water-waves` = tri vlnky,
+  // rovnaká geometria ako modrý vodný pin na mape (waterIcon() v PackPortal).
+  { key: 'waters', label: 'Top waters', icon: 'water-waves', units: [
     'Liptovská Mara', 'Oravská priehrada', 'Zemplínska šírava', 'Sĺňava', 'Domaša',
     'Ružín', 'Štrbské pleso', 'Zelené pleso',
   ] },
@@ -266,9 +273,18 @@ const PEAK_RANGE: Record<string, string> = {
   'Záruby': 'Malé Karpaty', 'Vápeč': 'Strážovské vrchy', 'Inovec': 'Považský Inovec',
   'Poľana (vrchol)': 'Poľana', 'Kľak': 'Malá Fatra',
 };
-const WATER_KEYWORDS: Array<[string, string]> = [
-  ['sĺňava', 'Sĺňava'], ['slnava', 'Sĺňava'], ['priehrad', 'Ružín'], ['pleso', 'Štrbské pleso'], ['jazer', 'Ružín'],
-];
+// F2 (2026-07-25): pôvodné WATER_KEYWORDS boli mock a odškrtávali NESPRÁVNE plochy —
+// `'priehrad' → Ružín` znamenalo, že „Orešianska priehrada" (ani „Oravská priehrada") odškrtla
+// RUŽÍN; `'pleso' → Štrbské pleso` odškrtlo Štrbské za ktorékoľvek pleso; `'jazer' → Ružín`
+// detto. A naopak: reálny trip „Liptovská Mara" neodškrtol jednotku „Liptovská Mara", lebo
+// pre ňu keyword neexistoval. TRIPSTATS tak tvrdil prejdené plochy, kde si nebol, a zamlčal tie,
+// kde si bol.
+// Teraz: názov tripu sa páruje s NÁZVOM JEDNOTKY zo SK_GEO (bez diakritiky, case-insensitive).
+// Nič sa nefabrikuje — trip mimo kurátorovanej osmičky (Kráľová, Palcmanská Maša, Orešianska
+// priehrada) neodškrtne nič, čo je správne: „Top waters" je cieľovník, nie zoznam existujúcich
+// tripov.
+const deaccent = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const WATER_UNITS: string[] = SK_GEO.find((c) => c.key === 'waters')?.units ?? [];
 
 // Magistrála prechádza cez viacero pohorí → odškrtne ich všetky (nie len samú seba).
 // DRAFT mapa (bez polygónov pohorí — nahradiť point-in-polygon až budú PostGIS geo_pohorie).
@@ -337,8 +353,11 @@ export function unitsForTrail(trail: HeroTrail): Partial<Record<GeoCategory, str
   PEAK_KEYWORDS.forEach(([kw, p]) => { if (name.includes(kw)) peakSet.add(p); });
   Object.entries(PEAK_RANGE).forEach(([peak, range]) => { if (rangeSet.has(range)) peakSet.add(peak); });
   if (peakSet.size) out.peaks = Array.from(peakSet);
-  const water = WATER_KEYWORDS.find(([kw]) => name.includes(kw));
-  if (water) out.waters = [water[1]];
+  // voda: názov tripu musí obsahovať názov jednotky (bez diakritiky) — „Liptovská Mara" →
+  // jednotka „Liptovská Mara". Žiadne fuzzy keywordy, ktoré odškrtávali cudzie plochy.
+  const nameFlat = deaccent(trail.name);
+  const waters = WATER_UNITS.filter((u) => nameFlat.includes(deaccent(u)));
+  if (waters.length) out.waters = waters;
   return out;
 }
 

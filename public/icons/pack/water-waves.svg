@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- DOGYPT pack icon — VODNÁ PLOCHA (jazero/priehrada/pleso).
+     Nahrádza water.svg, ktoré vykresľovalo DŽBÁN — pri „Top waters" (priehrady, plesá) nesedelo
+     (F2, Matej 2026-07-24: „vymeniť ikonku vodných plôch").
+     Geometria = TÁ ISTÁ vlnka ako modrý vodný pin na mape (waterIcon() v PackPortal.tsx, Matej
+     2026-07-24) — tri vlnky, viewBox 15.5×15, stroke-width 1.4, zaoblené konce. Jeden vizuálny
+     jazyk pre vodu na mape aj v TRIPSTATS. Čierny stroke = konvencia sady (UI ho preklápa cez
+     filter: brightness(0) invert(1)).
+     Ak sa vlnka na mape zmení, zmeň ju aj tu. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15.5 15" width="800" height="800">
+  <g fill="none" stroke="#000000" stroke-width="1.4" stroke-linecap="round">
+    <path d="M1 3.5 Q3.25 1.5 5.5 3.5 T10 3.5 T14.5 3.5"/>
+    <path d="M1 7.5 Q3.25 5.5 5.5 7.5 T10 7.5 T14.5 7.5"/>
+    <path d="M1 11.5 Q3.25 9.5 5.5 11.5 T10 11.5 T14.5 11.5"/>
+  </g>
+</svg>

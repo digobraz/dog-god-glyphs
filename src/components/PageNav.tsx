@@ -170,8 +170,11 @@ function DesktopNav() {
 
       {langOpen &&
         createPortal(
+          /* useLang() vracia kontextový LangCode = `string` (zámerne voľný — slovníky sa
+             dotahujú dynamicky), tunajší LangCode je striktný union 18 kódov. Zúženie na
+             hranici; keby v storage sedel neznámy kód, LANGS lookup má fallback. */
           <LanguageModal
-            currentCode={lang}
+            currentCode={lang as LangCode}
             onSelect={(c) => {
               setLang(c);
               setLangOpen(false);
@@ -269,7 +272,7 @@ function MobileNav() {
       {open &&
         createPortal(
           <MobileMenuOverlay
-            currentLang={lang}
+            currentLang={lang as LangCode} /* to isté zúženie ako pri LanguageModal vyššie */
             onSelectLang={(c) => setLang(c)}
             onClose={() => setOpen(false)}
           />,

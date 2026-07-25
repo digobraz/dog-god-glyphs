@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Mail, KeyRound, BellOff, LogOut, Loader2, X, Check } from 'lucide-react';
+import { KeyRound, BellOff, LogOut, Loader2, X, Check } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PACK_THEME } from './packTheme';
@@ -93,7 +93,7 @@ export function PackSettings() {
         {t('pack.settings.account')}
       </div>
 
-      <Field icon={<Mail className="h-4 w-4" />} label={t('pack.settings.email')}>
+      <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label={t('pack.settings.email')}>
         <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>
           {email}
         </span>
