@@ -86,6 +86,48 @@ const LOCAL_TRAILS_KEY = 'trp-local-trails';
 const FAV_IDS_KEY = 'trp-fav-ids';
 const WALKED_IDS_KEY = 'trp-walked-ids';
 
+// ── Premenované trip id (slug) ────────────────────────────────────────────────────────────────
+// `id` výletu = slug a používa sa ako kľúč VŠADE: v URL `/pack/map/:slug`, v uloženom
+// walked/fav/votes/plans/events/triplist a v cache súboroch generátora. Keď sa slug opraví,
+// musia sa ošetriť obe strany: staré ODKAZY (redirect) aj staré ULOŽENÉ dáta (migrácia nižšie),
+// inak si človek príde o „prejdené" a zdieľaný link vráti „trip not found".
+// Pozn.: Cloudinary priečinok fotiek zámerne NEPREMENOVANÝ — assety tam reálne ležia pod
+// pôvodným názvom, premenovanie URL by ich rozbilo.
+export const RENAMED_TRIP_IDS: Record<string, string> = {
+  // preklep v názve obce (2026-07-25) — obec je Chtelnica, nie Chtalnica
+  'male-karpaty-chtalnica-klenova': 'male-karpaty-chtelnica-klenova',
+};
+export const currentTripId = (id: string): string => RENAMED_TRIP_IDS[id] ?? id;
+
+// Jednorazová migrácia uloženého stavu. Prepíše staré id vo VŠETKÝCH úložiskách, ktoré kľúčujú
+// podľa trip id. Guard flag = beží raz; keby pribudol ďalší prepis, stačí zvýšiť verziu kľúča.
+const RENAME_MIGRATED_KEY = 'trp-id-rename-v1';
+export function migrateRenamedTripIds(): void {
+  try {
+    if (trpStore.getItem(RENAME_MIGRATED_KEY)) return;
+    const pairs = Object.entries(RENAMED_TRIP_IDS);
+    if (pairs.length) {
+      // Všetky dotknuté úložiská držia id ako holý string v JSON-e (pole, kľúč objektu alebo
+      // pole `tripId`), takže textová zámena nad celým blobom je bezpečná a nezávisí od tvaru.
+      for (const key of [
+        LOCAL_TRAILS_KEY, FAV_IDS_KEY, WALKED_IDS_KEY,
+        'trp-votes-v2', 'trp-plans', 'trp-events-v2', 'dogypt.triplist.v1',
+      ]) {
+        const raw = trpStore.getItem(key);
+        if (!raw) continue;
+        let next = raw;
+        for (const [oldId, newId] of pairs) next = next.split(`"${oldId}"`).join(`"${newId}"`);
+        if (next !== raw) trpStore.setItem(key, next);
+      }
+    }
+    trpStore.setItem(RENAME_MIGRATED_KEY, '1');
+  } catch { /* private mode / quota — non-fatal, appka beží aj bez migrácie */ }
+}
+// Beží pri načítaní modulu, teda PRED prvým readWalkedIds/readFavIds/readVotes — inak by prvý
+// render prečítal ešte staré id a migrácia by dobehla až po ňom (blikanie / stratené „prejdené").
+// Modul už na tejto úrovni siaha na storage (trpStore probe vyššie), takže to nič nemení navyše.
+migrateRenamedTripIds();
+
 export function readLocalTrails(): HeroTrail[] {
   try {
     const raw = trpStore.getItem(LOCAL_TRAILS_KEY);

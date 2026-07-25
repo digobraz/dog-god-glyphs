@@ -25,7 +25,7 @@ import { PACK_THEME, GLASS_CSS } from '@/components/pack/packTheme';
 import { useToast } from '@/hooks/use-toast';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws,
-  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
+  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS,
 } from '@/components/pack/tripShared';
 import {
   crowdAggregate, FOUNDER_WALKERS, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -178,6 +178,11 @@ export default function PackTripArticle() {
   // stránka je detail jedného tripu, nepotrebuje živú reaktivitu na iný tab/mount).
   const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   const trail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
+  // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
+  const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;
+  useEffect(() => {
+    if (renamedTo) navigate(`/pack/map/${renamedTo}`, { replace: true });
+  }, [renamedTo, navigate]);
 
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
   const [walkedIds, setWalkedIds] = useState<Set<string>>(() => readWalkedIds());

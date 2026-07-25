@@ -444,7 +444,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ]
   },
   {
-    "id": "male-karpaty-chtalnica-klenova",
+    "id": "male-karpaty-chtelnica-klenova",
     "name": "Chtelnica-Klenová",
     "region": "Malé Karpaty",
     "diff": "Easy",
