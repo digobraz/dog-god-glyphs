@@ -43,13 +43,19 @@ export const MAX_PERSONALITY = 10;
 // Visibility model — jadro rozšíriteľnosti. trip = vidno aj na výlete (buddy-listu),
 // profile = len na plnom profile, private = len ja. Override žije v human.visibility,
 // default v DEFAULT_VISIBILITY (nižšie) — getTier() spája oboje.
+//
+// D3 (Matej 2026-07-25): trip-tier polia vidí KTORÝKOĽVEK člen packu, žiadny
+// výpočet spoločného výletu sa nerobí → 'trip' a 'profile' sú prakticky to isté
+// a reálne rozhodnutie je len „vidí to pack" vs. 'private'. Tiery ostávajú v type
+// kvôli budúcemu sprísneniu; UI ich neponúka, prepína sa len na/z 'private'.
 export type VisTier = 'trip' | 'profile' | 'private';
 export type ProfileFieldKey =
   | 'gender' | 'age' | 'relationship' | 'languages'
   | 'dogVoiceBio' | 'bio'
   | 'interests' | 'hobbies' | 'vibes'
   | 'personType' | 'smoking' | 'alcohol' | 'diet'
-  | 'intents';
+  | 'intents'
+  | 'region';
 
 export interface HumanProfile {
   interests: ActivityTag[];
@@ -518,11 +524,27 @@ export const DEFAULT_VISIBILITY: Record<ProfileFieldKey, VisTier> = {
   alcohol: 'profile',
   diet: 'profile',
   intents: 'profile',
+  region: 'profile',
 };
 
 export function getTier(profile: CentralProfile, key: ProfileFieldKey): VisTier {
   return profile.human.visibility[key] ?? DEFAULT_VISIBILITY[key];
 }
+
+// Skryté = user si to sám vypol cez oko pri identity riadku. Jediná otázka, ktorú
+// UI dnes kladie (viď komentár pri VisTier) — všetko ostatné vidí celý pack.
+export function isHidden(profile: CentralProfile | null, key: ProfileFieldKey): boolean {
+  return !!profile && getTier(profile, key) === 'private';
+}
+
+// Polia identity riadku, ktoré sa dajú skryť. Počet psov zámerne NIE — pes je
+// dôvod, prečo tu človek je. Národnosť tiež NIE — „nechaj viditeľné furt"
+// (Matej 2026-07-25). Druhý riadok (status/fajčenie/strava/práca) oko nemá:
+// je dobrovoľný, kto ho nechce ukázať, nevyplní ho.
+export const HIDEABLE_IDENTITY_FIELDS: { key: ProfileFieldKey; emoji: string; labelEN: string }[] = [
+  { key: 'age', emoji: '🎂', labelEN: 'Age' },
+  { key: 'region', emoji: '📍', labelEN: 'City' },
+];
 
 // ── deterministický hash → PRNG (mulberry32 + FNV-1a) — rovnaký vzor ako
 // packCommunity.ts, zámerne duplikovaný (nie import) — profil modul stojí

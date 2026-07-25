@@ -252,7 +252,7 @@ export default function PackTripArticle() {
     // partner inzerát je VŽDY public → Events (Matej 2026-07-22).
     const ev: PartnerEvent = {
       id: `ad-${nowMs}-${trail.id}`, tripId: trail.id, dates: ad.dates, month: ad.month,
-      socialization: ad.socialization, host: `${firstName} & your dog`,
+      socialization: ad.socialization, host: `${firstName} & your dog`, hostIsMe: true,
       at: nowMs, joinedByMe: true, seedGoing: 0,
     };
     setEvents((prev) => [ev, ...prev]);

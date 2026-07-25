@@ -125,7 +125,9 @@ export default function PublicProfile() {
     : (mockMember?.name ?? 'A Dogyptian');
   const headerAvatar = isSelf ? avatarUrl : (mockMember?.avatarUrl ?? null);
   const packNumber = isSelf ? (dogs[0]?.pack_number ?? null) : (mockMember?.packNumber ?? null);
-  const nationality = isSelf ? (human?.nationality ?? 'SK') : null; // mock members carry no nationality data
+  // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj
+  // viditeľné furt"). Mock členovia národnosť v dátach nemajú.
+  const nationality = isSelf ? (human?.nationality ?? 'SK') : null;
   const nationalityLabel = nationality ? NATIONALITY_OPTIONS.find((o) => o.value === nationality)?.labelEN : undefined;
 
   const dogEntries: DogGalleryEntry[] = isSelf

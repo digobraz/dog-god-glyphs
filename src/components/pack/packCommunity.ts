@@ -95,7 +95,18 @@ export interface PartnerEvent {
   id: string; tripId: string; dates: string[]; month: string; socialization: string;
   host: string; at: number; joinedByMe: boolean;
   seedGoing: number; // mock počet ostatných čo idú (deterministický pre seed eventy)
+  // Zavretá skupina (Matej 2026-07-25): „ktorýkoľvek člen v packu vidí výlet ALE ak
+  // sú dvaja v skupine vedia tento trip vypnúť aby sa už nikto nepridal." Inzerát
+  // teda ostáva VIDITEĽNÝ pre celý pack (nemení sa pravidlo z 2026-07-22), len sa
+  // nedá pridať. Zamyká VÝHRADNE autor výletu — nie ten, kto sa pridal.
+  closed?: boolean;
+  hostIsMe?: boolean; // inzerát som vypísal ja → jediný, kto smie zamykať
 }
+
+// Som autor tohto inzerátu? `hostIsMe` sa zapisuje pri vytvorení; fallback na tvar
+// mena je kvôli záznamom uloženým v localStorage pred zavedením toho poľa.
+export const isMyEvent = (ev: PartnerEvent): boolean =>
+  ev.hostIsMe ?? ev.host.endsWith('& your dog');
 
 // ── Crowd agregát (design §A: priemer na rating, konsenzus + %-rozpad na diff/vibe) ──
 export interface CrowdSlice<T extends string> { value: T; pct: number; count: number; }

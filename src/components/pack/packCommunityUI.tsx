@@ -9,7 +9,7 @@ import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, VIBES, VIBE_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
-  computeCompletion, unitsForTrail, packLevel,
+  computeCompletion, unitsForTrail, packLevel, isMyEvent,
   type Difficulty, type Vibe, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
@@ -355,6 +355,10 @@ export const COMMUNITY_CSS = `
 .comm-msgbtn:hover{border-color:${GOLD};color:${GOLD};}
 .comm-joinbtn{flex-shrink:0;font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:8px 15px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
 .comm-joinbtn.joined{background:rgba(201,154,63,0.16);color:${GOLD};border-color:${GOLD};}
+.comm-joinbtn.closed{background:rgba(245,240,228,0.05);color:${T.onDarkDim};border-color:${T.onDarkBorder};cursor:default;}
+.comm-lockbtn{flex-shrink:0;font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:none;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
+.comm-lockbtn:hover{border-color:${GOLD};color:${GOLD};}
+.comm-lockbtn.on{border-color:${GOLD};color:${GOLD};}
 .comm-empty{text-align:center;padding:34px 16px;color:${T.onDarkDim};font-size:12.5px;font-style:italic;}
 
 /* ── CompanionPicker (Matej 2026-07-23): „kto bol so mnou" — svorka (moje psy s fotkami) +
@@ -1212,10 +1216,11 @@ function HostNameLink({ host, onOpenProfile }: { host: string; onOpenProfile?: (
   );
 }
 
-export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip, onOpenProfile, photoFor }: {
+export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessage, onOpenTrip, onOpenProfile, photoFor }: {
   events: PartnerEvent[];
   trailsById: (id: string) => HeroTrail | undefined;
   onJoin: (id: string) => void;
+  onToggleClosed?: (id: string) => void; // zavrieť/otvoriť skupinu — len pre členov skupiny
   onMessage: (name: string) => void;
   onOpenTrip: (id: string) => void;
   onOpenProfile?: (memberId: string) => void; // avatar/host klik → /pack/u/:id (mock members only, v1)
@@ -1249,9 +1254,17 @@ export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip, 
                   {tr ? ` · ${tr.region}` : ''}
                 </div>
               </div>
-              <button type="button" className={`comm-joinbtn${ev.joinedByMe ? ' joined' : ''}`} onClick={() => onJoin(ev.id)}>
-                {ev.joinedByMe ? '✓ Going' : 'Join'}
-              </button>
+              {/* Zavretá skupina: inzerát ostáva viditeľný, len sa nedá pridať.
+                  Kto je vnútri, vidí namiesto toho svoje „✓ Going". */}
+              {ev.closed && !ev.joinedByMe ? (
+                <button type="button" className="comm-joinbtn closed" disabled>
+                  🔒 Closed
+                </button>
+              ) : (
+                <button type="button" className={`comm-joinbtn${ev.joinedByMe ? ' joined' : ''}`} onClick={() => onJoin(ev.id)}>
+                  {ev.joinedByMe ? '✓ Going' : 'Join'}
+                </button>
+              )}
             </div>
             {ev.socialization && <div className="comm-plan-meta" style={{ marginTop: 8 }}>🤝 {ev.socialization}</div>}
             <div className="comm-plan-people">
@@ -1266,6 +1279,19 @@ export function EventsView({ events, trailsById, onJoin, onMessage, onOpenTrip, 
                 <span className="comm-person-txt"><b>{going}</b> <span>{going === 1 ? 'Dogyptian going' : 'Dogyptians going'}</span></span>
                 <button type="button" className="comm-msgbtn" onClick={() => onMessage(ev.host)}>Message host</button>
               </div>
+              {/* Zámok — VÝHRADNE autor inzerátu (Matej 2026-07-25: „close to môže len
+                  autor tripu nie ten čo sa pridá"), a až keď sú aspoň dvaja. Sám sebe
+                  skupinu zavrieť nemôžeš — nie je pred kým. */}
+              {isMyEvent(ev) && going >= 2 && onToggleClosed && (
+                <button
+                  type="button"
+                  className={`comm-lockbtn${ev.closed ? ' on' : ''}`}
+                  onClick={() => onToggleClosed(ev.id)}
+                  style={{ marginTop: 8 }}
+                >
+                  {ev.closed ? '🔒 Closed — reopen' : '🔒 Close to others'}
+                </button>
+              )}
             </div>
           </div>
         );

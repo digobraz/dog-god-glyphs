@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Camera, Loader2, LogOut, Mail, BellOff, KeyRound, X } from 'lucide-react';
+import { ArrowLeft, Camera, Eye, EyeOff, Loader2, LogOut, Mail, BellOff, KeyRound, X } from 'lucide-react';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,6 +31,9 @@ import {
   WORK_OPTIONS,
   PERSONALITY_OPTIONS,
   MAX_PERSONALITY,
+  HIDEABLE_IDENTITY_FIELDS,
+  isHidden,
+  type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
 
@@ -368,31 +371,40 @@ export default function PackProfile() {
                 lifestyle (smoke/diet/work) — all optional, moved up next to age
                 per Matej 2026-07-24 (was a separate block below the pills). */}
             <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-1.5">
-              <MiniChipInput
-                emoji="🎂"
-                type="number"
-                value={human?.age}
-                placeholder="Age"
-                width={32}
-                onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })}
-              />
+              <HideWrap hidden={isHidden(profile, 'age')}>
+                <MiniChipInput
+                  emoji="🎂"
+                  type="number"
+                  value={human?.age}
+                  placeholder="Age"
+                  width={32}
+                  onSave={(v) => patchHuman({ age: v === '' ? undefined : Number(v) })}
+                />
+              </HideWrap>
               <MiniChip>
                 <span aria-hidden>🐶</span>
                 <span style={{ color: dogs.length ? T.inkDim : T.inkFaint }}>
                   {dogs.length} {dogs.length === 1 ? 'dog' : 'dogs'}
                 </span>
               </MiniChip>
+              {/* Národnosť oko NEMÁ — vždy viditeľná (Matej 2026-07-25). */}
               <NationalitySelect
                 value={human?.nationality ?? 'SK'}
                 onChange={(v) => patchHuman({ nationality: v })}
               />
-              <MiniChipInput
-                emoji="📍"
-                value={human?.region ?? ''}
-                placeholder="City"
-                width={76}
-                onSave={(v) => patchHuman({ region: v || undefined })}
-              />
+              <HideWrap hidden={isHidden(profile, 'region')}>
+                <MiniChipInput
+                  emoji="📍"
+                  value={human?.region ?? ''}
+                  placeholder="City"
+                  width={76}
+                  onSave={(v) => patchHuman({ region: v || undefined })}
+                />
+              </HideWrap>
+              {/* Jedno oko na celý riadok — dropdown s výberom, čo skryť (Matej
+                  2026-07-25: „nie oko pri každej"). Druhý riadok oko nemá: je
+                  dobrovoľný, kto ho nechce ukázať, nevyplní ho. */}
+              <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
             </div>
             <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-1.5" style={{ marginTop: 8 }}>
               <StatusSelect
@@ -1071,6 +1083,146 @@ function WordLimitTextarea({
 // Mini pill chip — wraps gender (read-only) / age / region into a compact,
 // single-line row instead of the old label-then-full-width-input stack
 // (zadanie-profil-kompakt-emoji-2026-07-24).
+// Skryté pole ostáva vo VLASTNOM profile plne editovateľné — len stlmené a s
+// preškrtnutým okom, aby si na prvý pohľad videl, čo pack nevidí. Skrývanie sa
+// deje až pri čítaní cudzím okom (PublicProfile), nie tu.
+function HideWrap({ hidden, children }: { hidden: boolean; children: React.ReactNode }) {
+  if (!hidden) return <>{children}</>;
+  return (
+    <span
+      className="relative inline-flex items-center"
+      title="Hidden from the pack — only you see this"
+      style={{ opacity: 0.45 }}
+    >
+      {children}
+      <EyeOff className="h-3 w-3" style={{ color: T.inkFaint, marginLeft: 3 }} />
+    </span>
+  );
+}
+
+// D3 — jedno oko na identity riadok. Klik otvorí zoznam skrývateľných polí
+// (vek · národnosť · mesto). Zapisuje do human.visibility: 'private' = skryté,
+// vymazanie kľúča = späť na default. Počet psov v zozname nie je zámerne.
+function IdentityVisibilityEye({
+  profile,
+  patchHuman,
+}: {
+  profile: CentralProfile | null;
+  patchHuman: (p: Partial<HumanProfile>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const hiddenKeys = HIDEABLE_IDENTITY_FIELDS.filter((f) => isHidden(profile, f.key));
+  const anyHidden = hiddenKeys.length > 0;
+
+  const toggle = (key: ProfileFieldKey) => {
+    const current = { ...(profile?.human.visibility ?? {}) };
+    if (current[key] === 'private') delete current[key];
+    else current[key] = 'private';
+    patchHuman({ visibility: current });
+  };
+
+  return (
+    <span className="relative inline-flex">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Who sees these details"
+        aria-expanded={open}
+        className="inline-flex items-center gap-1"
+        style={{
+          background: anyHidden ? 'rgba(201,154,63,0.10)' : T.bg,
+          border: `1px solid ${anyHidden ? 'rgba(201,154,63,0.45)' : T.hairline}`,
+          borderRadius: 999,
+          padding: '4px 8px',
+          color: anyHidden ? T.accentGold : T.inkFaint,
+          cursor: 'pointer',
+          lineHeight: 1,
+        }}
+      >
+        {anyHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+        {anyHidden && (
+          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10 }}>
+            {hiddenKeys.length}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <>
+          {/* Backdrop — klik mimo zatvára. Native <select>-y v riadku by inak
+              ostali pod otvoreným panelom nedostupné. */}
+          <span
+            className="fixed inset-0"
+            style={{ zIndex: 40 }}
+            onClick={() => setOpen(false)}
+            aria-hidden
+          />
+          <div
+            className="absolute"
+            style={{
+              zIndex: 41,
+              top: 'calc(100% + 6px)',
+              right: 0,
+              minWidth: 208,
+              background: T.card,
+              border: `1px solid ${T.hairline}`,
+              borderRadius: 12,
+              boxShadow: '0 14px 34px -12px rgba(20,8,40,0.35)',
+              padding: 10,
+              textAlign: 'left',
+            }}
+          >
+            <span
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 9,
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: T.inkFaint,
+                display: 'block',
+                marginBottom: 8,
+              }}
+            >
+              Hide from the pack
+            </span>
+            {HIDEABLE_IDENTITY_FIELDS.map((f) => {
+              const off = isHidden(profile, f.key);
+              return (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => toggle(f.key)}
+                  className="flex items-center gap-2 w-full"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '6px 4px',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 12.5,
+                    color: off ? T.inkFaint : T.ink,
+                  }}
+                >
+                  <span aria-hidden>{f.emoji}</span>
+                  <span className="flex-1" style={{ textDecoration: off ? 'line-through' : 'none' }}>
+                    {f.labelEN}
+                  </span>
+                  {off ? (
+                    <EyeOff className="h-3.5 w-3.5" style={{ color: T.accentGold }} />
+                  ) : (
+                    <Eye className="h-3.5 w-3.5" style={{ color: T.inkFaint }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
 function MiniChip({ children }: { children: React.ReactNode }) {
   return (
     <span

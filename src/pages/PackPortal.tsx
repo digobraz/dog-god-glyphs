@@ -1026,7 +1026,7 @@ export default function PackPortal() {
       id: `ad-${nowMs}-${partnerAdCtx.tripId}`,
       tripId: partnerAdCtx.tripId,
       dates: ad.dates, month: ad.month, socialization: ad.socialization,
-      host: `${firstName} & your dog`, at: nowMs, joinedByMe: true, seedGoing: 0,
+      host: `${firstName} & your dog`, at: nowMs, joinedByMe: true, seedGoing: 0, hostIsMe: true,
     };
     setEvents((prev) => [ev, ...prev]);
     const firstDate = ad.dates[0] ?? ad.month;
@@ -1035,6 +1035,10 @@ export default function PackPortal() {
   };
   const joinEvent = (eid: string) =>
     setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, joinedByMe: !e.joinedByMe } : e)));
+  // Zavrieť/otvoriť skupinu — inzerát ostáva pre pack viditeľný, len sa nedá pridať
+  // (Matej 2026-07-25). Prepína ho ktokoľvek zo skupiny, gating je v EventsView.
+  const toggleEventClosed = (eid: string) =>
+    setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, closed: !e.closed } : e)));
   const removePlan = (tid: string) => {
     setPlans((prev) => prev.filter((p) => p.tripId !== tid));
     setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
@@ -1181,7 +1185,7 @@ export default function PackPortal() {
         id: `plan-event-${nowMs}`, tripId: tid,
         dates: dateStr.length >= 7 ? [dateStr] : [],
         month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
-        socialization: addSocial, host: `${firstName} & your dog`,
+        socialization: addSocial, host: `${firstName} & your dog`, hostIsMe: true,
         at: nowMs, joinedByMe: true, seedGoing: 0,
       };
       setEvents((prev) => [ev, ...prev]);
@@ -1841,7 +1845,7 @@ export default function PackPortal() {
           <div className="trp-cards">
             {activeCat === 'trips'
               ? sortedVisibleHeroTrails.map(({ tr }) => renderTripCard(tr, true))
-              : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} />}
+              : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} />}
           </div>
         </div>
         </>
@@ -1941,7 +1945,7 @@ export default function PackPortal() {
         <div className="trp-cards">
           {activeCat === 'trips'
             ? sortedVisibleHeroTrails.map(({ tr }) => renderTripCard(tr, false))
-            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)} />}
+            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)} />}
         </div>
       </div>
 
