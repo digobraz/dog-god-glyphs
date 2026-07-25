@@ -242,6 +242,8 @@ export const COMMUNITY_CSS = `
 .comm-cat-pct{font-family:'Cinzel',serif;font-weight:700;font-size:13px;color:${GOLD};}
 .comm-cat-bar{height:7px;border-radius:999px;background:rgba(245,240,228,0.09);overflow:hidden;}
 .comm-cat-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);transition:width .4s;}
+.comm-walkedhead{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;background:none;border:none;cursor:pointer;padding:0;font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:.04em;color:${GOLD};margin:20px 0 12px;}
+.comm-walkedhead-n{font-family:'JetBrains Mono',monospace;font-weight:400;font-size:11px;letter-spacing:0;color:${T.onDarkDim};}
 .comm-dash-section-title{font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:.04em;color:${GOLD};margin:20px 0 12px;}
 .comm-walkedrow{display:flex;align-items:center;justify-content:space-between;gap:12px;background:${T.glass};border:1px solid ${T.onDarkBorder};border-radius:12px;padding:13px 16px;margin-bottom:9px;cursor:pointer;transition:border-color .15s;}
 .comm-walkedrow:hover{border-color:${GOLD};}
@@ -996,6 +998,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // kategóriou+menom (rovnaké meno jednotky sa opakuje naprieč kategóriami, napr. „Malé Karpaty"
   // v ranges aj chko).
   const [expanded, setExpanded] = useState<{ cat: GeoCategory; unit: string } | null>(null);
+  // Fáza 2 (Matej 2026-07-24): „Trips you walked" schovať za dropdown — pri 60 prejdených
+  // tripoch to bol nekonečný zoznam pod celým panelom. Zbalené default, počet v hlavičke.
+  const [walkedOpen, setWalkedOpen] = useState(false);
 
   // ── identity header (Slice B, Matej 2026-07-23) — foto svorky + meno svorky + level odznak.
   // usePackIdentity() je vlastný hook call (spec: „TripStatsPanel volá usePackIdentity() priamo"),
@@ -1184,16 +1189,29 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         );
       })}
 
-      <div className="comm-dash-section-title">Trips you've walked</div>
       {walkedTrails.length === 0 ? (
-        <div className="comm-empty">Log a walk to start ticking places.</div>
+        <>
+          <div className="comm-dash-section-title">Trips you've walked</div>
+          <div className="comm-empty">Log a walk to start ticking places.</div>
+        </>
       ) : (
-        walkedTrails.map((tr) => (
-          <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
-            <span className="comm-walkedrow-name">{tr.name}</span>
-            <span className="comm-walkedrow-meta">{tr.region} · {tr.km} km</span>
-          </div>
-        ))
+        <>
+          <button
+            type="button"
+            className="comm-walkedhead"
+            onClick={() => setWalkedOpen((v) => !v)}
+            aria-expanded={walkedOpen}
+          >
+            <span>Trips you've walked</span>
+            <span className="comm-walkedhead-n">{walkedTrails.length} · {fmtKm(walkedKm)} km {walkedOpen ? '⌃' : '⌄'}</span>
+          </button>
+          {walkedOpen && walkedTrails.map((tr) => (
+            <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
+              <span className="comm-walkedrow-name">{tr.name}</span>
+              <span className="comm-walkedrow-meta">{tr.region} · {tr.km} km</span>
+            </div>
+          ))}
+        </>
       )}
       </section>
     </>

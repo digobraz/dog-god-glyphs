@@ -212,13 +212,18 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
 export type GeoCategory = 'journeys' | 'ranges' | 'parks' | 'chko' | 'peaks' | 'waters';
 export interface GeoCategoryDef { key: GeoCategory; label: string; icon: string; units: string[]; }
 
+// F2/Fáza 2 (Matej 2026-07-24: „Vymeniť ikony pri range / national park / CHKO a pod."):
+// `ranges` a `chko` mali OBE `forest.svg` — dve kategórie vedľa seba s identickou ikonkou.
+// Teraz: ranges → `layers` (hrebene nad sebou) · parks → `forest` (sun sa k národnému parku
+// nehodil) · chko → `badge` (chránené = pečať/odznak) · peaks → `trophy` · waters → vlnky.
+// Všetko z existujúcej brand sady, žiadny nový asset.
 export const SK_GEO: GeoCategoryDef[] = [
   { key: 'journeys', label: 'Long-distance trails', icon: 'walk', units: [
     'Cesta hrdinov SNP', 'Rudná magistrála', 'Východokarpatská magistrála', 'Tatranská magistrála',
     'Veľkofatranská magistrála', 'Ponitrianska magistrála', 'Kysucká magistrála', 'Záhorácka magistrála',
     'Štefánikova magistrála', 'Poloniny',
   ] },
-  { key: 'ranges', label: 'Mountain ranges', icon: 'forest', units: [
+  { key: 'ranges', label: 'Mountain ranges', icon: 'layers', units: [
     // 26 kurátorovaných pohorí = zhodné s POHORIA v regions.ts (chrbtica filtra), zoradené podľa výšky dominanty.
     'Vysoké Tatry', 'Západné Tatry', 'Belianske Tatry', 'Nízke Tatry', 'Malá Fatra', 'Chočské vrchy',
     'Veľká Fatra', 'Slovenské rudohorie', 'Poľana', 'Vtáčnik', 'Oravská Magura', 'Kremnické vrchy',
@@ -226,11 +231,11 @@ export const SK_GEO: GeoCategoryDef[] = [
     'Slanské vrchy', 'Vihorlat', 'Javorníky', 'Považský Inovec', 'Štiavnické vrchy', 'Biele Karpaty',
     'Tribeč', 'Malé Karpaty',
   ] },
-  { key: 'parks', label: 'National parks', icon: 'sun', units: [
+  { key: 'parks', label: 'National parks', icon: 'forest', units: [
     'Tatranský NP', 'NP Nízke Tatry', 'NP Malá Fatra', 'NP Slovenský raj', 'NP Muránska planina',
     'NP Poloniny', 'NP Slovenský kras', 'NP Veľká Fatra', 'Pieninský NP',
   ] },
-  { key: 'chko', label: 'Protected areas (CHKO)', icon: 'forest', units: [
+  { key: 'chko', label: 'Protected areas (CHKO)', icon: 'badge', units: [
     // 14 CHKO na Slovensku (kompletné, Matej 2026-07-24) — logá ŠOP SR sopsr.sk/img/posobnost.
     'Malé Karpaty', 'Biele Karpaty', 'Strážovské vrchy', 'Kysuce', 'Horná Orava',
     'Ponitrie', 'Poľana', 'Cerová vrchovina', 'Vihorlat', 'Latorica',

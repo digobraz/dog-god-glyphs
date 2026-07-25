@@ -445,7 +445,7 @@ export const HERO_TRAILS: HeroTrail[] = [
   },
   {
     "id": "male-karpaty-chtalnica-klenova",
-    "name": "Chtalnica-Klenová",
+    "name": "Chtelnica-Klenová",
     "region": "Malé Karpaty",
     "diff": "Easy",
     "km": "3.7",
@@ -537,7 +537,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784663996/trails/male-karpaty-chtalnica-klenova/1784663995447-f59d71.webp"
     ],
     "seasons": [],
-    "desc": "ľahká nenáročná prechádzka s pekným výhľadom pri opekanisku",
+    "desc": "Ľahká nenáročná prechádzka s pekným výhľadom pri opekanisku.",
     "dogNote": "",
     "acts": [
       "hike",
@@ -909,7 +909,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646787/trails/male-karpaty-plavecky-hrad/1784646783985-bf5226.webp"
     ],
     "seasons": [],
-    "desc": "Jednoduchá prechádzka, prístupná zrúcanina (mňa moc nenadchla)",
+    "desc": "Jednoduchá prechádzka, prístupná zrúcanina (mňa moc nenadchla).",
     "dogNote": "",
     "acts": [
       "hike"
@@ -1064,7 +1064,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784638722/trails/male-karpaty-jelenec/1784638722183-71ce69.jpg"
     ],
     "seasons": [],
-    "desc": "Zabudnuté miestečko, bez turistov. Jeden z najkrajších západov slnka v Malých Karpatoch - výborné miestečko na prespatie (Jelenec) Na Keltek vedie extréééééémny strmák, výhľad je to pekný :)",
+    "desc": "Zabudnuté miestečko, bez turistov. Jeden z najkrajších západov slnka v Malých Karpatoch - výborné miestečko na prespatie (Jelenec). Na Keltek vedie extréééééémny strmák, výhľad je to pekný :)",
     "dogNote": "",
     "acts": [
       "hike",
@@ -1405,7 +1405,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784639036/trails/male-karpaty-vysoka-tajne-skaly/1784639036471-5f127c.jpg"
     ],
     "seasons": [],
-    "desc": "Vysoká je jedno z najrušnejších miest v Malých Karpatoch ale takmer nikto nevie o krásnom mieste kúsok od nej. Výhľady sú možno ešte krajšie. Treba skúsiť.",
+    "desc": "Vysoká je jedno z najrušnejších miest v Malých Karpatoch, ale takmer nikto nevie o krásnom mieste kúsok od nej. Výhľady sú možno ešte krajšie. Treba skúsiť.",
     "dogNote": "",
     "acts": [
       "hike"
@@ -2238,7 +2238,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784639469/trails/male-karpaty-plesiva-chtelnica/1784639468982-dad6ec.jpg"
     ],
     "seasons": [],
-    "desc": "Veľmi podarená lokalita. Krásne výhľady možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"dobrodružstvo\" v aute pre zamilovaných :)",
+    "desc": "Veľmi podarená lokalita. Krásne výhľady, možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"dobrodružstvo\" v aute pre zamilovaných :)",
     "dogNote": "",
     "acts": [
       "hike",
@@ -2722,7 +2722,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784639668/trails/male-karpaty-cachticky-hrad-plesivce/1784639668098-66a2b6.jpg"
     ],
     "seasons": [],
-    "desc": "Jednoduchá ale celkom dlhá prechádzka na Malý aj Veľký Plešivec cez Čachtický Hrad :) Krásne ale vždy veterné výhľady.",
+    "desc": "Jednoduchá, ale celkom dlhá prechádzka na Malý aj Veľký Plešivec cez Čachtický hrad :) Krásne ale vždy veterné výhľady.",
     "dogNote": "",
     "acts": [
       "hike"
@@ -3444,7 +3444,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784641340/trails/biele-karpaty-vrsatecke-podhradie/1784641340060-cff1e7.jpg"
     ],
     "seasons": [],
-    "desc": "Krásny výlet, prekvapí vás už samotná cesta ale aj samotné majestátne skalné bralá. V okolí je kopu dalších možností krásnych turistík :)",
+    "desc": "Krásny výlet, prekvapí vás už samotná cesta ale aj samotné majestátne skalné bralá. V okolí je kopu ďalších možností krásnych turistík :)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -3553,7 +3553,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784640114/trails/biele-karpaty-velky-lopenik/1784640114238-de53fa.jpg"
     ],
     "seasons": [],
-    "desc": "Celkom pekný výlet, neustále stúpanie - človek sa zapotí. V cieli čaká  obrovská rozhľadňa ",
+    "desc": "Celkom pekný výlet, neustále stúpanie - človek sa zapotí. V cieli čaká obrovská rozhľadňa. ",
     "dogNote": "",
     "acts": [
       "hike",
@@ -3982,7 +3982,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784640569/trails/biele-karpaty-zlatnicka-dolina/1784640569107-dac39c.jpg"
     ],
     "seasons": [],
-    "desc": "Veľmi krásna prechádzka, super asfalt, vedľa potôčik. Z Kamennej budy odporúčam ísť na späť po ťltej... magická prechádzka!",
+    "desc": "Veľmi krásna prechádzka, super asfalt, vedľa potôčik. Z Kamennej budy odporúčam ísť naspäť po žltej... magická prechádzka!",
     "dogNote": "",
     "acts": [
       "hike"
@@ -4216,7 +4216,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784641532/trails/povazsky-inovec-bezovec/1784641532031-d22889.jpg"
     ],
     "seasons": [],
-    "desc": "Príjemná prechádzka po krásnych lesoch a lúkach -pekné výhľady.",
+    "desc": "Príjemná prechádzka po krásnych lesoch a lúkach – pekné výhľady.",
     "dogNote": "",
     "acts": [
       "hike"
@@ -4675,7 +4675,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784641596/trails/povazsky-inovec-tesare/1784641596346-1ef465.jpg"
     ],
     "seasons": [],
-    "desc": "Celkom výživná prechádzka nedaľeko Bojnej :)",
+    "desc": "Celkom výživná prechádzka neďaleko Bojnej :)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -5258,7 +5258,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784640920/trails/strazovske-vrchy-sulovske-skaly/1784640917958-59791a.jpg"
     ],
     "seasons": [],
-    "desc": "Ikonické miesto s miliónom ľudí. Ultimátna rada = ak sem ideš nechoď cez víkend! V strede trasy sa cesta rozvetvuje a naspäť sa dá zísť aj žltou značkou cez Šarkaniu dieru ale vraj je tam rebrík =  pre psa nebezpečné/neschodné. Ale neviem nikdy som to neskúčal - kľudne pridajte koment! ",
+    "desc": "Ikonické miesto s miliónom ľudí. Ultimátna rada = ak sem ideš nechoď cez víkend! V strede trasy sa cesta rozvetvuje a naspäť sa dá zísť aj žltou značkou cez Šarkaniu dieru, ale vraj je tam rebrík =  pre psa nebezpečné/neschodné. Ale neviem nikdy som to neskúšal - kľudne pridajte koment! ",
     "dogNote": "",
     "acts": [
       "hike"
@@ -5640,7 +5640,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784640963/trails/mala-fatra-velky-krivan/1784640962764-922845.jpg"
     ],
     "seasons": [],
-    "desc": "Je to zaujímavý strmáčik ale výhľady stoja za to!",
+    "desc": "Je to zaujímavý strmáčik, ale výhľady stoja za to!",
     "dogNote": "",
     "acts": [
       "hike"
@@ -6133,7 +6133,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784641200/trails/mala-fatra-sutovsky-vodopad-buchta/1784641200626-0db1ba.jpg"
     ],
     "seasons": [],
-    "desc": "Jeden z najkrajších vodopádov na Slovensku - ideálna turistika v letných horúčavách. Trasa vedie celý čas v tieni pri zurčajúcom potoku prvá polovica je vhodná aj pre kočíky (asfalt). Pre maškrtných odporúčam vybehnúť na chatu pod Chlebom - cesta vedie cez krásne lúky, mojžišove pramene a buchta stojí za to! (2024)",
+    "desc": "Jeden z najkrajších vodopádov na Slovensku - ideálna turistika v letných horúčavách. Trasa vedie celý čas v tieni pri zurčajúcom potoku, prvá polovica je vhodná aj pre kočíky (asfalt). Pre maškrtných odporúčam vybehnúť na chatu pod Chlebom - cesta vedie cez krásne lúky, Mojžišove pramene a buchta stojí za to! (2024)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -6250,7 +6250,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642152/trails/mala-fatra-mincol/1784642151745-84d957.jpg"
     ],
     "seasons": [],
-    "desc": "Výstup sa konal cez polmetra snehu v krátkom tričku, takže sme si moc prírodu neužili a nevideli pod nánosom bielej pokrývky ale výhľady aj atmosféra bola super určite by sme sa chceli vrátiť aj mimo zimy!",
+    "desc": "Výstup sa konal cez polmetra snehu v krátkom tričku, takže sme si moc prírodu neužili a nevideli pod nánosom bielej pokrývky ale výhľady aj atmosféra boli super, určite by sme sa chceli vrátiť aj mimo zimy!",
     "dogNote": "",
     "acts": [
       "hike"
@@ -6426,7 +6426,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642232/trails/velka-fatra-ostredok/1784642231081-057906.jpg"
     ],
     "seasons": [],
-    "desc": "Zo všetkých turistík, tu sme boli asi najbližšie k smrti. Išli sme po značenom chodníku ktorý bol zapadnutý v metre snehu zistili sme to keď sme zišli do doliny... zrazu nebola vidno značka... každý druhý nášľap = sa prepadnutie do metra, s nohami do potoka. Fakt masaker, nikdy nezabudnem ako sme to všetci prežili. Večerná vírivka potom padla vhod :))) nelozte tam ked je sneh a zima!!!  Inak kolosálne výhľady 10/10",
+    "desc": "Zo všetkých turistík, tu sme boli asi najbližšie k smrti. Išli sme po značenom chodníku, ktorý bol zapadnutý v metre snehu. Zistili sme to, keď sme zišli do doliny... zrazu nebola vidno značka... každý druhý nášľap = prepadnutie do metra, s nohami do potoka. Fakt masaker, nikdy nezabudnem ako sme to všetci prežili. Večerná vírivka potom padla vhod :))) nelozte tam, keď je sneh a zima!!!  Inak kolosálne výhľady 10/10",
     "dogNote": "",
     "acts": [
       "hike"
@@ -6621,7 +6621,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642307/trails/velka-fatra-tlsta-ostra/1784642306850-da5a0b.jpg"
     ],
     "seasons": [],
-    "desc": "Dychberúca turistika, škoda že na vrchole pršalo aj keď vrchol sme stihli v jaskyni - if you know what I mean :D Odporúčam! Je to fakt bomba.",
+    "desc": "Dychberúca turistika, škoda, že na vrchole pršalo aj keď vrchol sme stihli v jaskyni - if you know what I mean :D Odporúčam! Je to fakt bomba.",
     "dogNote": "",
     "acts": [
       "hike"
@@ -6893,7 +6893,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642644/trails/chocske-vrchy-velky-choc/1784642643973-fc5785.jpg"
     ],
     "seasons": [],
-    "desc": "Vraj najkrajší vrchol na Slovensku. Asi to tak bude... Chystám sa tam opäť  bez snehu! Aj keď so snehom to malo krásne čaro :)",
+    "desc": "Vraj najkrajší vrchol na Slovensku. Asi to tak bude... Chystám sa tam opäť bez snehu! Aj keď so snehom to malo krásne čaro :)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -7227,7 +7227,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784642796/trails/chocske-vrchy-kvacianska-dolina/1784642795192-4198ad.jpg"
     ],
     "seasons": [],
-    "desc": "Krásne miesto na konci Kvačianskej doliny je obrovský rebrík do Prosieckej... s veľkým psom to nedáte a neodporúčal by som to ani s malým. Tam cesta končí... vrátiť sa môžte tak isto alebo ísť cez Prosečné a trošku si zamakať :)",
+    "desc": "Krásne miesto na konci Kvačianskej doliny je obrovský rebrík do Prosieckej... s veľkým psom to nedáte a neodporúčal by som to ani s malým. Tam cesta končí... vrátiť sa môžete tak isto alebo ísť cez Prosečné a trošku si zamakať :)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -7439,7 +7439,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784643430/trails/nizke-tatry-chopok-dumbier/1784643429681-ba9155.jpg"
     ],
     "seasons": [],
-    "desc": "Epická vysokohorská turistika. Dá sa to síce aj lanovkou ale odporúčam túto časť Nízkych Tatier prejsť pešo boli sme tam asi 4x :) Klasika z Trangošky...",
+    "desc": "Epická vysokohorská turistika. Dá sa to síce aj lanovkou ale odporúčam túto časť Nízkych Tatier prejsť pešo, boli sme tam asi 4x :) Klasika z Trangošky...",
     "dogNote": "",
     "acts": [
       "hike"
@@ -7566,7 +7566,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646456/trails/nizke-tatry-ohniste/1784646456145-e2d294.jpg"
     ],
     "seasons": [],
-    "desc": "Najkrajšie skalné okno na Slovensku - bez pochyby. Predtým ako tam pôjdeš si zisti či je to povolené, počul som že niekedy to zvyknú uzatvoriť... takže na vlastné riziko! Ale Tento rok som žiadne upozornenie nevidel :) NA mapy.cz to býva uvedené...alebo priamo značka v teréne :) Určite odporúčam!",
+    "desc": "Najkrajšie skalné okno na Slovensku - bez pochyby. Predtým, ako tam pôjdeš, si zisti, či je to povolené, počul som že niekedy to zvyknú uzatvoriť... takže na vlastné riziko! Ale tento rok som žiadne upozornenie nevidel :) Na mapy.cz to býva uvedené...alebo priamo značka v teréne :) Určite odporúčam!",
     "dogNote": "",
     "acts": [
       "hike"
@@ -7669,7 +7669,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784644665/trails/zapadne-tatry-sivy-vrch/1784644665837-c2502b.jpg"
     ],
     "seasons": [],
-    "desc": "Ako z iného sveta. Krásna príroda aj výhľady - na vrchole už cez skaly so psom celkom neprejdete ale oplatí sa to vidieť :)",
+    "desc": "Ako z iného sveta. Krásna príroda aj výhľady - na vrchole už cez skaly so psom celkom neprejdete, ale oplatí sa to vidieť :)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -7808,7 +7808,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646801/trails/vysoke-tatry-bielovodska-dolina/1784646801116-88491c.webp"
     ],
     "seasons": [],
-    "desc": "NAša prvá Vysokotatranská túra - nič sa na ňu nechytá bola DOKONALÁ. Dostali sme sa po Litvorové pleso a to sme riadne šlapali takmer stále!  Pán prsteňov VIBE a málo ľudí. Potôčik, skaly, lesy, ticho fakt krása - toto odštartovalo našu kariéru turistov :)",
+    "desc": "Naša prvá Vysokotatranská túra - nič sa na ňu nechytá bola DOKONALÁ. Dostali sme sa po Litvorové pleso a to sme riadne šlapali takmer stále! Pán prsteňov VIBE a málo ľudí. Potôčik, skaly, lesy, ticho fakt krása - toto odštartovalo našu kariéru turistov :)",
     "dogNote": "",
     "acts": [
       "hike"
@@ -8106,7 +8106,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784645646/trails/slovensky-raj-tomasovsky-vyhlad/1784645645818-bd951f.jpg"
     ],
     "seasons": [],
-    "desc": "Toto bola fakt luxusná ale aj veľmi náročná turistika. Na výhľad sa dá ísť aj kratšou cestičkou - toto odporúčam len pokročilým dobrodruhom :) bolo to cez 30 km! Mladosť -pochabosť. Ale za to prejdený Slovenský Raj skrz na skrz!",
+    "desc": "Toto bola fakt luxusná ale aj veľmi náročná turistika. Na výhľad sa dá ísť aj kratšou cestičkou - toto odporúčam len pokročilým dobrodruhom :) bolo to cez 30 km! Mladosť – pochabosť. Ale za to prejdený Slovenský Raj skrz na skrz!",
     "dogNote": "",
     "acts": [
       "hike"
@@ -8194,7 +8194,7 @@ export const HERO_TRAILS: HeroTrail[] = [
       "https://res.cloudinary.com/dz8lolmod/image/upload/v1784646070/trails/vodne-diela-kralova/1784646069877-b52384.jpg"
     ],
     "seasons": [],
-    "desc": "Fakt obrovské dielo = súkromie na hladine.(opaľovanie bez plaviek - bezpečné)",
+    "desc": "Fakt obrovské dielo = súkromie na hladine. (opaľovanie bez plaviek - bezpečné)",
     "dogNote": "",
     "acts": [
       "paddleboard",

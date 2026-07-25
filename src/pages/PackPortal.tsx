@@ -198,9 +198,21 @@ const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey'
 // povrchov v chipoch len Asphalt, takže trip označený v nahadzovači ako Forest path / Rocky sa
 // podľa povrchu nedal vyfiltrovať. Poradie: najprv scenéria, potom POVRCH (posledné tri).
 // Pozn.: `Forest` (scenéria z tr.tags) ≠ `Forest path` (povrch z tr.surface) — sú to dve polia.
-const TAG_VOCAB = ['Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset', 'Forest path', 'Asphalt', 'Rocky'] as const;
+// PROSTREDIE (Matej 2026-07-25): „je to pre paddleboard aby ľudia vedeli že budú na vode
+// v prírode alebo niekde na priehrade bez lesov okolo… ak človek filtruje sup/swim a potom sa
+// zobrazí že či je to lesná voda alebo nejaké vodné dielo na rovine". S Crowd to nesúvisí —
+// Crowd = koľko ľudí, prostredie = v čom to je. Tieto tri hodnoty v dátach nesie presne 9
+// tripov a všetky sú paddleboard; boli to ich JEDINÉ tagy, takže bez chipu boli neviditeľné
+// aj nefiltrovateľné (a vodné plochy kvôli prázdnemu tagSetu obchádzali tag filter).
+// 🔴 Labely = doslova hodnoty z dát, nič som nepremenoval — kratšie názvy sú na Matejovi.
+const TAG_VOCAB = [
+  'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset',
+  'In the middle of nature', 'In the middle of nowhere', 'Embankment',
+  'Forest path', 'Asphalt', 'Rocky',
+] as const;
 const TAG_EMOJI: Record<string, string> = {
   Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅',
+  'In the middle of nature': '🌳', 'In the middle of nowhere': '🌾', Embankment: '🧱',
   'Forest path': '🥾', Asphalt: '🛣️', Rocky: '🪨',
 };
 // surface = typ cesty (zdroj pravdy: nahadzovač state — hodnoty 'forest'/'asphalt')
@@ -236,6 +248,10 @@ const DATA_TAG_TO_UI: Record<string, string> = {
   Mountains: 'Mountains', Forest: 'Forest', View: 'View', Meadow: 'Meadow', Sunset: 'Sunset',
   Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
   Stream: 'River', River: 'River',
+  // prostredie vodných tripov — 1:1, hodnoty z nahadzovača sa nepremenúvajú
+  'In the middle of nature': 'In the middle of nature',
+  'In the middle of nowhere': 'In the middle of nowhere',
+  Embankment: 'Embankment',
 };
 // tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
 // aby sa dalo filtrovať podľa toho, čo sa dá zadať (F1 2026-07-24). `forest` už NEsplýva so
