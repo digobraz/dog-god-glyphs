@@ -9,12 +9,14 @@ import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
+  eventGoingMembers, mockMemberProfile,
   computeCompletion, unitsForTrail, packLevel, isMyEvent,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { HeroBadges } from '@/components/pack/HeroBadges';
+import { TripProfileCard } from '@/components/pack/profile/TripProfileCard';
 
 // ── Companion (Matej 2026-07-23) — vybratý spoločník do „kto bol so mnou": môj pes (zo svorky,
 // reálna cloudinary fotka) alebo iný člen (mock, initial avatar). key = unikát pre dedup/remove. ──
@@ -351,6 +353,7 @@ export const COMMUNITY_CSS = `
 .comm-person-txt{flex:1;min-width:0;font-size:11.5px;color:${T.onDark};}
 .comm-person-txt b{color:${T.onDark};}
 .comm-person-txt span{color:${T.onDarkDim};}
+.comm-buddytoggle{font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:6px 0;background:none;border:none;color:${GOLD};cursor:pointer;}
 .comm-msgbtn{flex-shrink:0;font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:6px 11px;border-radius:999px;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
 .comm-msgbtn:hover{border-color:${GOLD};color:${GOLD};}
 .comm-joinbtn{flex-shrink:0;font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:8px 15px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
@@ -1279,6 +1282,9 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
                 <span className="comm-person-txt"><b>{going}</b> <span>{going === 1 ? 'Dogyptian going' : 'Dogyptians going'}</span></span>
                 <button type="button" className="comm-msgbtn" onClick={() => onMessage(ev.host)}>Message host</button>
               </div>
+              {/* FÁZA 3 — buddy list: „kto ide" už nie je len počet, rozbalí sa na TripProfileCard
+                  každého účastníka (trip-tier polia, teda presne to, čo o sebe na výlet pustil). */}
+              <BuddyList event={ev} onMessage={onMessage} onOpenProfile={onOpenProfile} />
               {/* Zámok — VÝHRADNE autor inzerátu (Matej 2026-07-25: „close to môže len
                   autor tripu nie ten čo sa pridá"), a až keď sú aspoň dvaja. Sám sebe
                   skupinu zavrieť nemôžeš — nie je pred kým. */}
@@ -1297,5 +1303,44 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
         );
       })}
     </>
+  );
+}
+
+// ── Buddy list (FÁZA 3) — kto ide na plánovaný výlet, s TripProfileCard každého ────────────
+// Zbalený default: jeden riadok „See who's going". Dôvod: v Events je viac inzerátov pod sebou,
+// rozbalené karty by z listu urobili nekonečný scroll. Rozbalené = TripProfileCard, teda len
+// trip-tier polia (getTier==='trip') — presne to, čo o sebe člen na výlet pustil.
+function BuddyList({ event, onMessage, onOpenProfile }: {
+  event: PartnerEvent;
+  onMessage: (name: string) => void;
+  onOpenProfile?: (memberId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const members = eventGoingMembers(event);
+  if (members.length === 0) return null;
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button type="button" className="comm-buddytoggle" onClick={() => setOpen((v) => !v)}>
+        {open ? 'Hide who’s going' : `See who’s going (${members.length})`}
+      </button>
+      {open && (
+        <div className="flex flex-col gap-2" style={{ marginTop: 10 }}>
+          {members.map((m) => {
+            const { profile, dogs } = mockMemberProfile(m);
+            return (
+              <div key={m.id}>
+                <TripProfileCard profile={profile} name={m.name} dogs={dogs} packNumber={m.packNumber} />
+                <div className="flex gap-2" style={{ marginTop: 6 }}>
+                  <button type="button" className="comm-msgbtn" onClick={() => onMessage(m.name)}>Message</button>
+                  {onOpenProfile && (
+                    <button type="button" className="comm-msgbtn" onClick={() => onOpenProfile(m.id)}>Full profile</button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

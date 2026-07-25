@@ -5,10 +5,11 @@
 // partner_ads, events, sk_geo) príde až po zamknutí UX — viď §BACKEND v design doc.
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
-  ACTIVITY_OPTIONS, VIBE_OPTIONS, deriveDefaultDogAttrs,
-  type ActivityTag, type TripVibe, type DogProfileAttrs,
+  ACTIVITY_OPTIONS, VIBE_OPTIONS, PERSONALITY_OPTIONS, deriveDefaultDogAttrs,
+  type ActivityTag, type TripVibe, type DogProfileAttrs, type CentralProfile,
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
+import type { PackDogFull } from '@/hooks/usePackUser';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
 // D2 (LOCKED 2026-07-24): feature „Vibe" → Crowd / Ruch. Jedna jasná os = počet ľudí, žiadny
@@ -453,6 +454,55 @@ MOCK_MEMBER_POOL.forEach((m) => {
   const seed = MOCK_DOG_BIOS[m.id];
   if (seed) m.attrs = { ...m.attrs, bio: seed.bio, tags: { temperament: seed.temperament, trail: seed.trail } };
 });
+
+// ── FÁZA 3: TripProfileCard → buddy list (zadanie-trips-launch-2026-07-24) ──────────────────
+// „Prepojiť pripravené profily do TRIP vrstvy." Karta existovala len ako preview na spodku
+// PackProfile; tu sa dopĺňa to, čo jej chýbalo, aby sa dala vykresliť pre CUDZIEHO člena:
+//   1. KTO ide na výlet — `ev.seedGoing` bol len POČET, nie zoznam ľudí.
+//   2. PREKLAD MockMember → CentralProfile + PackDogFull[], čo karta žiada.
+// Oboje deterministické z `id` (mulberry32), rovnako ako mockVotes/deriveDefaultDogAttrs —
+// zoznam ľudí sa nesmie medzi rendermi prehadzovať.
+
+/** Kto ide na plánovaný výlet (mock). Host je zvlášť — je to meno, nie člen poolu. */
+export function eventGoingMembers(ev: PartnerEvent): MockMember[] {
+  const rnd = mulberry32(hashStr(`${ev.id}:going`));
+  const hostFirst = ev.host.split(' ')[0];
+  const pool = MOCK_MEMBER_POOL.filter((m) => m.name !== hostFirst);
+  return pickN(pool, Math.min(ev.seedGoing, pool.length), rnd);
+}
+
+/** MockMember → čo TripProfileCard žiada. Trip-tier polia (languages/personality/smoke)
+ *  sa dopĺňajú deterministicky, inak by karta cudzieho člena bola prázdna a vyzeralo by to
+ *  ako rozbité — rovnaký dôvod, prečo MOCK_DOG_BIOS seeduje psie BIO. */
+export function mockMemberProfile(m: MockMember): { profile: CentralProfile; dogs: PackDogFull[] } {
+  const rnd = mulberry32(hashStr(`${m.id}:tripcard`));
+  const personality = pickN(PERSONALITY_OPTIONS.map((o) => o.value), 3 + Math.floor(rnd() * 3), rnd);
+  const languages = ['SK', ...(rnd() < 0.6 ? ['EN'] : []), ...(rnd() < 0.25 ? ['DE'] : [])];
+  const dogId = `${m.id}-dog`;
+  return {
+    profile: {
+      human: {
+        interests: m.human.interests,
+        vibes: m.human.vibes,
+        languages,
+        hobbies: [], intents: [],
+        personality,
+        smoke: rnd() < 0.25 ? 'yes' : 'no',
+        visibility: {}, // žiadne override → platí DEFAULT_VISIBILITY (languages/interests/vibes = trip)
+      },
+      dogs: { [dogId]: m.attrs },
+      updatedAt: new Date(0).toISOString(),
+    },
+    dogs: [{
+      id: dogId,
+      dog_name: m.dog,
+      cloudinary_main_url: null,
+      selections: null,
+      created_at: new Date(0).toISOString(),
+      pack_number: m.packNumber,
+    }],
+  };
+}
 
 // deterministicky vyberie n unikátnych prvkov z pool pomocou danej PRNG inštancie (rnd musí byť
 // zdieľaná so zvyškom volania, inak by sa poradie hashov posunulo).
