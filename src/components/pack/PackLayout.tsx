@@ -174,9 +174,43 @@ export function MessagingOverlayHost() {
 // in the avatar menu, Messages moved to the global PackTopRight hub.
 export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: string | null; avatarInitial?: string; dogs?: PackDog[] } = {}) {
   const t = useT();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Nav publikuje svoju polovičnú šírku ako `--pack-nav-half` + značku
+  // `has-pack-nav` na <body>. Odoberá to AinubisWidget, ktorý sa vďaka tomu
+  // prilepí tesne k pravému okraju pillu (Matej 2026-07-26: „dajme ho pri nav
+  // bar spodný homemap profil a vedľa samostatne floating"). Šírka pillu je
+  // premenlivá — labely sa pod `sm:` skrývajú a jazyky majú rôzne dĺžky —
+  // preto ResizeObserver, nie natvrdo číslo. Keď nav nie je (LIVE build, routy
+  // mimo /pack), trieda chýba a widget ostáva vpravo dole.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const apply = () => {
+      const r = el.getBoundingClientRect();
+      root.style.setProperty('--pack-nav-half', `${r.width / 2}px`);
+      // Výška ide von tiež — widget sa podľa nej vycentruje na vodorovnú os
+      // pillu. Bez nej by len stál na tej istej základni a pri väčšom priemere
+      // by mu stred ušiel nahor.
+      root.style.setProperty('--pack-nav-h', `${r.height}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+    document.body.classList.add('has-pack-nav');
+    return () => {
+      ro.disconnect();
+      document.body.classList.remove('has-pack-nav');
+      root.style.removeProperty('--pack-nav-half');
+      root.style.removeProperty('--pack-nav-h');
+    };
+  }, []);
+
   if (!DEV_FULL) return null;
   return (
     <nav
+      ref={navRef}
       className="fixed z-40"
       style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
     >

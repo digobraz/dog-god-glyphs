@@ -9,7 +9,9 @@
  * Taby: Orders · Dogs · Photos · Council · Vision · Bugs.
  */
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import AinubisPanel from '@/components/admin/AinubisPanel';
 import iconDogLover from '@/assets/icons/council-doglover.svg';
 import iconDeveloper from '@/assets/icons/council-developer.svg';
 import iconDogPro from '@/assets/icons/council-dogpro.svg';
@@ -74,16 +76,18 @@ const VISION_LABELS: Record<string, string> = {
   map: 'Living Map', collar: 'Heroglyph Collar', firstaid: 'First Aid',
 };
 
-const GOLD = '#C99A3F';
-const GOLD_LIGHT = '#F5C73D';
+// Exportované — AinubisPanel (nový tab AINUBIS) sa drží rovnakého dizajnového
+// jazyka namiesto vymýšľania vlastného.
+export const GOLD = '#C99A3F';
+export const GOLD_LIGHT = '#F5C73D';
 const GOAL = 1_000_000;
 const SEAL = '/images/peciat-dogypt.png';
-const CINZEL = "'Cinzel', serif";
-const GROTESK = "'Space Grotesk', sans-serif";
+export const CINZEL = "'Cinzel', serif";
+export const GROTESK = "'Space Grotesk', sans-serif";
 const PAPYRUS = 'linear-gradient(165deg,#FFFBF2 0%,#F4E8CC 52%,#E7D8B8 100%)';
-const INK = '#1F1A0E';
+export const INK = '#1F1A0E';
 
-type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision';
+type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'ainubis';
 
 // role id → council ikona (mapovanie podľa CouncilSection prihlášky)
 const ROLE_ICONS: Record<string, string> = {
@@ -110,17 +114,24 @@ const ROLE_LABELS: Record<string, string> = {
 // dogs.amount je už v EURÁCH (stripe-webhook delí amount_total/100 pri zápise). null = tester / nezaplatené.
 const fmtAmount = (a: number | null) =>
   a == null ? '—' : `€${a.toFixed(2)}`;
-const fmtDate = (s: string | null) =>
+export const fmtDate = (s: string | null) =>
   s ? new Date(s).toLocaleString('sk-SK', { dateStyle: 'short', timeStyle: 'short' }) : '—';
-const short = (s: string | null, n = 14) =>
+export const short = (s: string | null, n = 14) =>
   !s ? '—' : s.length > n ? s.slice(0, n) + '…' : s;
 
-const MONO = "'Space Grotesk', ui-monospace, monospace";
+export const MONO = "'Space Grotesk', ui-monospace, monospace";
 
 export default function Admin() {
   const [auth, setAuth] = useState<AuthState>('loading');
   const [sessionEmail, setSessionEmail] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('orders');
+  // Deep link `/admin?ainubis=<conversation_id>` — edge fn ho posiela do konzília
+  // aj na Telegram, takže musí otvoriť tab AINUBIS rovno na danom vlákne.
+  const [searchParams] = useSearchParams();
+  const ainubisDeepLinkId = searchParams.get('ainubis');
+  useEffect(() => {
+    if (ainubisDeepLinkId) setTab('ainubis');
+  }, [ainubisDeepLinkId]);
 
   // login form
   const [loginEmail, setLoginEmail] = useState('');
@@ -282,7 +293,7 @@ export default function Admin() {
   ];
 
   const tabs: [Tab, string][] = [
-    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'],
+    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'], ['ainubis', 'Ainubis'],
   ];
 
   // user_id → owner label (from dogs) for the vision-votes list.
@@ -462,12 +473,16 @@ export default function Admin() {
           </p>
         </div>
       )}
+
+      {/* AINUBIS má vlastný live datasource (edge fn ainubis-ops) — nezávisí od
+          loadingData (to je pre dogs/contacts/pack/vision). */}
+      {tab === 'ainubis' && <AinubisPanel initialConversationId={ainubisDeepLinkId} />}
     </>
   );
 }
 
 // ── shared inline style objects ───────────────────────────────────────────────
-const brandBtn: React.CSSProperties = {
+export const brandBtn: React.CSSProperties = {
   background: 'var(--brand-gradient, linear-gradient(135deg,#F5C73D,#E69E1A))',
   border: '1px solid rgba(250,244,236,0.30)',
   color: '#000',
