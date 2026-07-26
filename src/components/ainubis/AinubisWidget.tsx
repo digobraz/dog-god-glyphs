@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { X, Send, Paperclip } from 'lucide-react';
+import { X, Send, Paperclip, Mic, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
@@ -82,6 +82,46 @@ interface PendingImage {
   base64: string;
   mime: string;
   previewUrl: string;
+}
+
+// ── Hlasovka ─────────────────────────────────────────────────────────────
+// Diktovanie beží na Web Speech API prehliadača (Chrome/Edge/Safari), rovnako
+// ako hlasovka v DIGOBRAZ prototype. Backend `ainubis-chat` prijíma text +
+// obrázok, zvuk nie — preto sa NENAHRÁVA audio súbor, ale rovno prepis, ktorý
+// padne do poľa a človek ho pred odoslaním vidí a môže opraviť.
+// TS DOM lib tieto typy nemá (je to stále draft), preto minimálne vlastné.
+interface SpeechRecognitionAlt {
+  transcript: string;
+}
+interface SpeechRecognitionRes {
+  isFinal: boolean;
+  length: number;
+  [index: number]: SpeechRecognitionAlt;
+}
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: { length: number; [index: number]: SpeechRecognitionRes };
+}
+interface SpeechRecognitionLike {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((e: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((e: { error?: string }) => void) | null;
+  onend: (() => void) | null;
+}
+type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionCtor;
+    webkitSpeechRecognition?: SpeechRecognitionCtor;
+  };
+  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
 // ── Drobné pomocníky ─────────────────────────────────────────────────────
@@ -270,10 +310,28 @@ function AinubisWidgetInner() {
   const [blinking, setBlinking] = useState(false);
   const [typewriter, setTypewriter] = useState<{ id: string; shown: number } | null>(null);
 
+  /** Hlavička ukazuje avatar + meno až KEĎ intro karta odrolovala hore. Matej
+   *  2026-07-26: „je zbytočné mať naraz dve fotky v chate — nechaj len tú veľkú
+   *  a keď sa konverzácia posunie dolu, až vtedy sa sticky". Kým je intro na
+   *  obrazovke, identita v hlavičke je priehľadná (ostáva v layoute, aby stav
+   *  ONLINE a krížik neposkakovali). */
+  const [headerIdentity, setHeaderIdentity] = useState(false);
+
+  // Hlasovka: tlačidlo sa vôbec nevykreslí tam, kde prehliadač diktovanie nevie
+  // (Firefox) — mŕtve tlačidlo je horšie ako žiadne.
+  const speechCtor = useState(() => getSpeechRecognitionCtor())[0];
+  const [listening, setListening] = useState(false);
+  const [micError, setMicError] = useState(false);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  /** Text, ktorý bol v poli pred spustením diktovania — prepis sa lepí ZA neho,
+   *  aby diktovanie nezmazalo rozpísanú správu. */
+  const dictationBaseRef = useRef('');
+
   const openRef = useRef(open);
   const messagesRef = useRef(messages);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const introNameRef = useRef<HTMLParagraphElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -283,10 +341,64 @@ function AinubisWidgetInner() {
     messagesRef.current = messages;
   }, [messages]);
 
-  // Scroll na koniec pri novej správe / postupe typewritera.
+  // Scroll na koniec pri novej správe / postupe typewritera. Pri čerstvej
+  // konverzácii ostávame HORE — intro karta je to prvé, čo má človek vidieť,
+  // skok na koniec by ju odscrolloval hneď po otvorení.
   useEffect(() => {
-    bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
+    const body = bodyRef.current;
+    if (!body) return;
+    if (messages.every((m) => m.id.startsWith('welcome'))) {
+      body.scrollTo({ top: 0 });
+      return;
+    }
+    body.scrollTo({ top: body.scrollHeight });
   }, [messages, typewriter?.shown]);
+
+  // Pole rastie s textom (po strop z CSS `max-height`). Bez toho sa nadiktovaná
+  // veta schová do jedného riadku a človek nevidí, čo vlastne pošle.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [input, open]);
+
+  // Zavretý panel (alebo odchod zo stránky) nesmie nechať mikrofón bežať.
+  useEffect(() => {
+    if (!open) stopDictation();
+  }, [open]);
+  useEffect(
+    () => () => {
+      try {
+        recognitionRef.current?.abort();
+      } catch {
+        /* nič nebeží */
+      }
+    },
+    []
+  );
+
+  // Sticky identita v hlavičke: zapne sa, až keď veľký badge z intra odrolo-
+  // val nad horný okraj tela. Bez intra (rozbehnutá konverzácia) je vždy zapnutá.
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (!open || !body) return;
+    const update = () => {
+      const mark = introNameRef.current;
+      if (!mark) {
+        setHeaderIdentity(true);
+        return;
+      }
+      // Rozhoduje spodok MENA v intre, nie badge: keby prepínal badge, meno by
+      // ešte chvíľu viselo v tele a v hlavičke by už bolo druhé — presne to
+      // zdvojenie, ktoré máme odstrániť. Takto sa hlavička zapne až vtedy, keď
+      // z intra nevidno ani fotku, ani meno.
+      setHeaderIdentity(mark.getBoundingClientRect().bottom < body.getBoundingClientRect().top + 4);
+    };
+    update();
+    body.addEventListener('scroll', update, { passive: true });
+    return () => body.removeEventListener('scroll', update);
+  }, [open, messages]);
 
   // ── Idle „žmurknutie" — náhodne každých 6–12 s, vypnuté pri reduced-motion.
   useEffect(() => {
@@ -553,6 +665,65 @@ function AinubisWidgetInner() {
     }
   }
 
+  // ── Hlasovka ───────────────────────────────────────────────────────────
+  function stopDictation() {
+    const rec = recognitionRef.current;
+    recognitionRef.current = null;
+    setListening(false);
+    if (rec) {
+      try {
+        rec.stop();
+      } catch {
+        /* už skončilo samo */
+      }
+    }
+  }
+
+  function startDictation() {
+    if (!speechCtor || recognitionRef.current) return;
+    const rec = new speechCtor();
+    // Rozpoznávanie musí vedieť jazyk dopredu — berieme ten, v ktorom je web.
+    rec.lang = lang === 'sk' ? 'sk-SK' : 'en-US';
+    rec.continuous = true;
+    // Priebežné výsledky: text pribúda v poli počas hovoru, nie až na konci —
+    // inak človek 20 sekúnd pozerá na prázdne pole a nevie, či ho počuť.
+    rec.interimResults = true;
+    dictationBaseRef.current = input.trim();
+    let finalText = '';
+
+    rec.onresult = (e) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i += 1) {
+        const res = e.results[i];
+        const chunk = res[0]?.transcript ?? '';
+        if (res.isFinal) finalText += (finalText ? ' ' : '') + chunk.trim();
+        else interim += chunk;
+      }
+      const parts = [dictationBaseRef.current, finalText, interim.trim()].filter(Boolean);
+      setInput(parts.join(' '));
+    };
+    rec.onerror = (e) => {
+      // `no-speech` je bežné ticho, nie chyba hodná hlášky.
+      if (e.error && e.error !== 'no-speech' && e.error !== 'aborted') setMicError(true);
+      stopDictation();
+    };
+    rec.onend = () => {
+      recognitionRef.current = null;
+      setListening(false);
+      textareaRef.current?.focus();
+    };
+
+    try {
+      rec.start();
+    } catch {
+      setMicError(true);
+      return;
+    }
+    setMicError(false);
+    recognitionRef.current = rec;
+    setListening(true);
+  }
+
   function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
     const item = Array.from(e.clipboardData.items).find((it) => it.type.startsWith('image/'));
     if (!item) return;
@@ -614,10 +785,12 @@ function AinubisWidgetInner() {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <div className="ainubis-panel__header">
+          <div className={`ainubis-panel__header${headerIdentity ? ' ainubis-panel__header--identity' : ''}`}>
             <img className="ainubis-panel__avatar" src={ainubisFace} alt="" aria-hidden="true" />
             <div className="ainubis-panel__ident">
-              <p className="ainubis-panel__title">{copy.panelTitle}</p>
+              <p className="ainubis-panel__title">
+                <span className="ainubis-ai">AI</span>NUBIS
+              </p>
               <p className="ainubis-panel__subtitle">
                 {takeoverActive ? copy.takeoverActive : copy.panelSubtitle}
               </p>
@@ -646,9 +819,12 @@ function AinubisWidgetInner() {
             {showSuggestions && (
               <div className="ainubis-intro">
                 <img className="ainubis-intro__badge" src={ainubisFace} alt="" aria-hidden="true" />
-                <p className="ainubis-intro__name">{copy.panelTitle}</p>
-                <p className="ainubis-intro__role">{copy.introRole}</p>
-                <p className="ainubis-intro__tagline">{copy.introTagline}</p>
+                {/* „AI" v mene svieti modrou — meno je značka, nie preklad,
+                    preto je rozdelené priamo v markupe, nie v copy súbore. */}
+                <p className="ainubis-intro__name">
+                  <span className="ainubis-ai">AI</span>NUBIS
+                </p>
+                <p className="ainubis-intro__role" ref={introNameRef}>{copy.introRole}</p>
                 <div className="ainubis-intro__rule" />
               </div>
             )}
@@ -696,6 +872,12 @@ function AinubisWidgetInner() {
           )}
 
           <div className={`ainubis-composer${dragOver ? ' ainubis-composer--dragover' : ''}`}>
+            {(listening || micError) && (
+              <div className={`ainubis-composer__mic-hint${micError ? ' ainubis-composer__mic-hint--error' : ''}`}>
+                {listening && <i />}
+                {micError ? copy.micDenied : copy.micListening}
+              </div>
+            )}
             {pendingImage && (
               <div className="ainubis-composer__preview">
                 <img src={pendingImage.previewUrl} alt={copy.imagePreviewAlt} />
@@ -725,6 +907,17 @@ function AinubisWidgetInner() {
               >
                 <Paperclip size={16} />
               </button>
+              {speechCtor && (
+                <button
+                  type="button"
+                  className={`ainubis-composer__icon-btn ainubis-composer__mic${listening ? ' ainubis-composer__mic--live' : ''}`}
+                  onClick={() => (listening ? stopDictation() : startDictation())}
+                  aria-label={listening ? copy.micStop : copy.micStart}
+                  aria-pressed={listening}
+                >
+                  {listening ? <Square size={13} /> : <Mic size={16} />}
+                </button>
+              )}
               <textarea
                 ref={textareaRef}
                 className="ainubis-composer__textarea"

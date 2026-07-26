@@ -11,9 +11,15 @@ export interface AinubisCopy {
   panelTitle: string;
   panelSubtitle: string;
   takeoverActive: string;
-  /** Intro karta nad prvou konverzáciou — badge + meno + rola + jedna veta. */
+  /** Intro karta = badge + meno + JEDEN riadok s dvoma rolami (Matej 2026-07-26:
+   *  „tu mi chýba pod anubisom tie dve veci čo tam mal takle podnadpisy
+   *  (strážca, AI podpora"). Dlhá tagline ostáva zrušená. */
   introRole: string;
-  introTagline: string;
+  /** Hlasovka — diktovanie cez Web Speech API, text padá do poľa na kontrolu. */
+  micStart: string;
+  micStop: string;
+  micListening: string;
+  micDenied: string;
   statusOnline: string;
   statusTakeover: string;
   /** Dve bubliny, nie jedna — viď 04-copy-a-vizual.md §1. */
@@ -44,15 +50,20 @@ export interface AinubisCopy {
 
 const sk: AinubisCopy = {
   panelTitle: 'AINUBIS',
-  panelSubtitle: 'Strážca DOGYPTu',
-  takeoverActive: 'Môj pán práve prevzal slovo.',
-  introRole: 'Digitálny klon · Strážca chrámu',
-  introTagline: 'Postavili ma z Hekthora. Strážim, čo tu stojí, a počúvam, čo tu chýba.',
+  // Riadok pod menom v hlavičke sa renderuje mono uppercase ako technický
+  // výpis — preto krátko, nie veta (dlhší text sa oreže tromi bodkami).
+  panelSubtitle: 'Digitálny strážca',
+  takeoverActive: 'Pán prevzal slovo',
+  introRole: 'Strážca chrámu · AI podpora',
+  micStart: 'Nahovoriť správu',
+  micStop: 'Ukončiť nahrávanie',
+  micListening: 'Počúvam… klikni znova, keď dopovieš.',
+  micDenied: 'K mikrofónu sa neviem dostať — povoľ ho v prehliadači, alebo mi to napíš.',
   statusOnline: 'Online',
   statusTakeover: 'Pán pri slove',
   welcome: [
-    'Ahoj, ja som AINUBIS — strážca DOGYPTU a digitálny klon HEKTHORA. Sprevádzam ťa po chráme.',
-    'Toto miesto stavia jeden človek a mňa má ako ochrancu. Ak ti niečo nefunguje, našiel si nesúlad alebo máš nápad — napíš mi. Pri probléme kľudne rovno so screenshotom: pozriem sa naň hneď a riešenie navrhnem skôr, než bude môj pán opäť online.',
+    'Ahoj, ja som AInubis — digitálny strážca DOGYPTU.',
+    'Náš digitálny chrám je vo výstavbe. Matej sa snaží… ale povedzme si úprimne, nie je programátor, takže sa sem-tam vyskytne chybička. Tu do hry vstupujem ja spolu s tebou: ak ti niečo nefunguje, našiel si nesúlad alebo máš nápad — napíš mi. Pri probléme kľudne rovno so screenshotom, pozriem sa naň hneď a riešenie navrhnem skôr, než bude môj pán opäť online :)',
   ],
   suggestions: {
     problem: 'Mám problém',
@@ -80,15 +91,18 @@ const sk: AinubisCopy = {
 
 const en: AinubisCopy = {
   panelTitle: 'AINUBIS',
-  panelSubtitle: 'Guardian of DOGYPT',
-  takeoverActive: 'My master has taken the word himself.',
-  introRole: 'Digital clone · Guardian of the temple',
-  introTagline: 'They built me from HEKTHOR. I guard what stands here, and I listen for what is missing.',
+  panelSubtitle: 'Digital guardian',
+  takeoverActive: 'Master has the word',
+  introRole: 'Guardian of the temple · AI support',
+  micStart: 'Record a message',
+  micStop: 'Stop recording',
+  micListening: 'Listening… click again when you are done.',
+  micDenied: "I can't reach the microphone — allow it in your browser, or just type it.",
   statusOnline: 'Online',
   statusTakeover: 'Master speaking',
   welcome: [
-    "Hi, I'm AINUBIS — guardian of DOGYPT and the digital clone of HEKTHOR. I'll walk you through the temple.",
-    "This place is built by one human, and I'm his guard dog. If something's broken, off, or you've got an idea — tell me. For problems, a screenshot works great: I'll look at it right away and draft a fix before my master is back online.",
+    "Hi, I'm AInubis — digital guardian of DOGYPT.",
+    "Our digital temple is still under construction. Matej is trying… but let's be honest, he's no programmer, so a glitch slips through now and then. That's where you and I come in: if something's broken, off, or you've got an idea — tell me. For problems just send a screenshot, I'll look at it right away and draft a fix before my master is back online :)",
   ],
   suggestions: {
     problem: 'I have a problem',

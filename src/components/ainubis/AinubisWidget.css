@@ -2,9 +2,17 @@
  * AINUBIS widget — CYBORG povrch (Matej 2026-07-26: „zmeňme grafiku pri otvorení
  * chatu = cyborg modrý dizajn (AI feeling)"). Vedomá odchýlka od brand v3.2:
  * panel nesie cyan `#5BE0F0` + modrú `#2E8FE6` namiesto zlatej `#C99A3F`, lebo
- * AINUBIS je stroj, nie chrámový povrch. Zlatá zostala tam, kde nesie význam
- * brandu, nie stroja: `+ODDANOSŤ` a kontrolka „pán prevzal slovo".
- * Zvyšok webu sa NEMENÍ — táto paleta žije len vnútri widgetu.
+ * AINUBIS je stroj, nie chrámový povrch. Zvyšok webu sa NEMENÍ — táto paleta
+ * žije len vnútri widgetu.
+ *
+ * DELIACA ČIARA MODRÁ/ZLATÁ (Matej 2026-07-26: „základ modrý, ale prvky zlatej —
+ * modrý je AINUBIS a človek má zlaté interakcie, tlačidlá, bubliny"):
+ *   • MODRÁ/CYAN = stroj — launcher, panel, hlavička, intro, bubliny AINUBISA,
+ *     systémové hlášky, stavová kontrolka.
+ *   • ZLATÁ (brand `#F5C73D → #E69E1A`) = človek — jeho bubliny, návrhové čipy,
+ *     odosielacie a prílohové tlačidlo, fokus poľa, drop zóna. Plus `+ODDANOSŤ`
+ *     a kontrolka „pán prevzal slovo", ktoré zlaté boli už predtým.
+ * Zlatá je tá istá dvojica ako `.btn-gold` (brand lock), nie nový gradient.
  *
  * Cinzel 700 len na nadpisy, telo Space Grotesk, technické výpisy JetBrains Mono
  * (Cinzel sa v odstavcoch nečíta — pravidlo z CLAUDE.md).
@@ -176,7 +184,7 @@ body.has-pack-nav .ainubis-launcher {
 
 .ainubis-panel__header {
   flex-shrink: 0;
-  padding: 12px 14px;
+  padding: 14px 14px 13px;
   /* Deliaca čiara ako svetelná stopa — jasná v strede, mizne do strán. */
   border-bottom: 1px solid transparent;
   border-image: linear-gradient(90deg, rgba(91, 224, 240, 0) 0%, rgba(91, 224, 240, 0.45) 50%, rgba(91, 224, 240, 0) 100%) 1;
@@ -185,16 +193,61 @@ body.has-pack-nav .ainubis-launcher {
   gap: 10px;
 }
 
-/* Miniatúra strážcu v hlavičke — drží identitu aj po odrolovaní intra. */
+/* „AI" v mene je modré — kúsok stroja v mene strážcu. Platí v hlavičke aj
+   v intre, obe používajú ten istý span. */
+.ainubis-ai {
+  color: #5BE0F0;
+  text-shadow: 0 0 16px rgba(91, 224, 240, 0.75);
+}
+
+/* Identita (portrét + meno) sa v hlavičke objaví, AŽ keď veľký badge z intra
+   odroluje hore — inak by boli na jednej obrazovke dve tie isté fotky a dvakrát
+   to isté meno. Kým je skrytá, hlavička sa ZLOŽÍ na tenký prúžok so stavom
+   a krížikom; prázdne pásmo vysoké ako portrét by vyzeralo ako chyba. */
+.ainubis-panel__avatar,
+.ainubis-panel__ident {
+  opacity: 0;
+  transform: translateY(-3px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.24s ease, width 0.24s ease, max-height 0.24s ease;
+}
+
+/* Dvojtriedny selektor zámerne — základné `.ainubis-panel__avatar { width:48px }`
+   je NIŽŠIE v súbore a s rovnakou špecificitou by zloženie prebilo. */
+.ainubis-panel__header .ainubis-panel__avatar {
+  width: 0;
+  max-height: 0;
+}
+
+.ainubis-panel__ident {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.ainubis-panel__header--identity .ainubis-panel__avatar,
+.ainubis-panel__header--identity .ainubis-panel__ident {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  max-height: 60px;
+}
+
+.ainubis-panel__header--identity .ainubis-panel__avatar {
+  width: 48px;
+}
+
+/* Portrét strážcu v hlavičke — drží identitu aj po odrolovaní intra. Matej
+   2026-07-26: „pri otvorenom chate má moc malý avatar" → 34 → 48 px, aby tvár
+   bola čitateľná a nie ikonka. */
 .ainubis-panel__avatar {
-  width: 34px;
-  height: 34px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   border-radius: 50%;
   object-fit: contain;
   background: radial-gradient(circle at 35% 30%, #101d2b 0%, #000 72%);
   border: 1px solid rgba(91, 224, 240, 0.35);
-  box-shadow: 0 0 12px rgba(59, 158, 255, 0.30);
+  box-shadow: 0 0 0 4px rgba(59, 158, 255, 0.07), 0 0 16px rgba(59, 158, 255, 0.34);
 }
 
 .ainubis-panel__ident {
@@ -205,19 +258,24 @@ body.has-pack-nav .ainubis-launcher {
 .ainubis-panel__title {
   font-family: 'Cinzel', serif;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
   text-transform: uppercase;
-  font-size: 14px;
-  color: #CFF3FA;
-  text-shadow: 0 0 14px rgba(91, 224, 240, 0.45);
+  font-size: 18px;
+  line-height: 1.1;
+  color: #E6FAFF;
+  text-shadow: 0 0 16px rgba(91, 224, 240, 0.5);
   margin: 0;
 }
 
+/* Rola pod menom = technický výpis stroja (mono, uppercase), nie veta. */
 .ainubis-panel__subtitle {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
-  color: rgba(207, 243, 250, 0.52);
-  margin: 2px 0 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  color: rgba(91, 224, 240, 0.72);
+  margin: 5px 0 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -306,22 +364,16 @@ body.has-pack-nav .ainubis-launcher {
   margin: 0;
 }
 
+/* Dva podnadpisy v jednom riadku (strážca · AI podpora) — Matej ich chcel späť
+   pod menom; sticky prah v TSX visí práve na tomto riadku, lebo je to posledný
+   kus identity v intre. */
 .ainubis-intro__role {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 9.5px;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: rgba(91, 224, 240, 0.7);
-  margin: 6px 0 0;
-}
-
-.ainubis-intro__tagline {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12.5px;
-  line-height: 1.55;
-  color: rgba(226, 240, 248, 0.62);
-  margin: 10px 0 0;
-  max-width: 30ch;
+  margin: 7px 0 0;
 }
 
 .ainubis-intro__rule {
@@ -351,11 +403,15 @@ body.has-pack-nav .ainubis-launcher {
   word-break: break-word;
 }
 
+/* Človek hovorí zlatom — rovnaká dvojica ako brand `.btn-gold`, aby bubliny
+   a odosielacie tlačidlo boli jeden materiál. Text tmavý (papyrusový atrament),
+   nie biely: na zlate by biela nemala kontrast. */
 .ainubis-msg--user {
   align-self: flex-end;
-  background: linear-gradient(135deg, #2E8FE6 0%, #1B5FA8 100%);
-  color: #F2FBFF;
-  box-shadow: 0 0 18px rgba(46, 143, 230, 0.28);
+  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  border: 1px solid rgba(250, 244, 236, 0.30);
+  color: #2a1608;
+  box-shadow: 0 0 18px rgba(245, 199, 61, 0.26);
 }
 
 .ainubis-msg--assistant {
@@ -407,22 +463,25 @@ body.has-pack-nav .ainubis-launcher {
   flex-shrink: 0;
 }
 
+/* Čipy sú prvá vec, ktorú povie ČLOVEK — preto zlaté, nie cyan. Vyplnia sa až
+   pri hoveri: v pokoji sú to obrysy, aby neprekričali bubliny nad nimi. */
 .ainubis-suggestion {
-  background: rgba(91, 224, 240, 0.05);
-  border: 1px solid rgba(91, 224, 240, 0.35);
-  color: #9FE6F5;
+  background: rgba(245, 199, 61, 0.06);
+  border: 1px solid rgba(245, 199, 61, 0.42);
+  color: #F0CE72;
   border-radius: 999px;
   padding: 6px 12px;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 12px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
 }
 
 .ainubis-suggestion:hover {
-  background: rgba(91, 224, 240, 0.14);
-  border-color: rgba(91, 224, 240, 0.75);
-  box-shadow: 0 0 14px rgba(91, 224, 240, 0.25);
+  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  border-color: rgba(250, 244, 236, 0.30);
+  color: #2a1608;
+  box-shadow: 0 0 16px rgba(245, 199, 61, 0.30);
 }
 
 .ainubis-composer {
@@ -439,10 +498,11 @@ body.has-pack-nav .ainubis-launcher {
   width: fit-content;
 }
 
+/* Príloha je ľudský vstup → zlatý rám, nie cyan. */
 .ainubis-composer__preview img {
   max-height: 64px;
   border-radius: 6px;
-  border: 1px solid rgba(91, 224, 240, 0.4);
+  border: 1px solid rgba(245, 199, 61, 0.45);
   display: block;
 }
 
@@ -454,8 +514,8 @@ body.has-pack-nav .ainubis-launcher {
   height: 18px;
   border-radius: 50%;
   background: #000;
-  border: 1px solid rgba(91, 224, 240, 0.6);
-  color: #5BE0F0;
+  border: 1px solid rgba(245, 199, 61, 0.6);
+  color: #F5C73D;
   font-size: 11px;
   line-height: 1;
   cursor: pointer;
@@ -463,6 +523,60 @@ body.has-pack-nav .ainubis-launcher {
   align-items: center;
   justify-content: center;
   padding: 0;
+}
+
+/* Hlasovka — ľudská akcia, teda zlatá. Počas nahrávania tlačidlo pulzuje
+   a nad poľom svieti riadok „Počúvam…", aby bolo jasné, že mikrofón beží. */
+.ainubis-composer__mic--live {
+  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  border-color: rgba(250, 244, 236, 0.30);
+  color: #2a1608;
+  animation: ainubis-mic-pulse 1.6s ease-in-out infinite;
+}
+
+.ainubis-composer__mic--live:hover {
+  color: #2a1608;
+}
+
+@keyframes ainubis-mic-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 199, 61, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(245, 199, 61, 0); }
+}
+
+.ainubis-composer__mic-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 199, 61, 0.85);
+}
+
+.ainubis-composer__mic-hint i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #F5C73D;
+  box-shadow: 0 0 8px rgba(245, 199, 61, 0.9);
+  animation: ainubis-blip 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.ainubis-composer__mic-hint--error {
+  color: rgba(255, 168, 168, 0.9);
+  text-transform: none;
+  letter-spacing: 0.04em;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ainubis-composer__mic--live,
+  .ainubis-composer__mic-hint i {
+    animation: none !important;
+  }
 }
 
 .ainubis-composer__row {
@@ -486,10 +600,12 @@ body.has-pack-nav .ainubis-launcher {
   min-height: 38px;
 }
 
+/* Fokus = človek píše → zlatý rám. V pokoji pole ostáva neutrálne cyan, aby
+   sa zlatá objavila až v momente ľudskej akcie. */
 .ainubis-composer__textarea:focus {
   outline: none;
-  border-color: rgba(91, 224, 240, 0.7);
-  box-shadow: 0 0 16px rgba(91, 224, 240, 0.20);
+  border-color: rgba(245, 199, 61, 0.65);
+  box-shadow: 0 0 16px rgba(245, 199, 61, 0.20);
 }
 
 .ainubis-composer__icon-btn {
@@ -508,15 +624,23 @@ body.has-pack-nav .ainubis-launcher {
 }
 
 .ainubis-composer__icon-btn:hover {
-  border-color: rgba(91, 224, 240, 0.7);
-  color: #5BE0F0;
+  border-color: rgba(245, 199, 61, 0.65);
+  color: #F5C73D;
 }
 
+/* Odoslanie = ľudská akcia → brandová zlatá dvojica `.btn-gold` (F5C73D→E69E1A)
+   s papyrusovým okrajom. Radius ostáva 10, aby sedel s poľom vedľa. */
 .ainubis-composer__send {
-  background: linear-gradient(135deg, #5BE0F0 0%, #2E8FE6 100%);
-  border: 1px solid rgba(207, 243, 250, 0.35);
-  color: #041018;
-  box-shadow: 0 0 16px rgba(59, 158, 255, 0.35);
+  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  border: 1px solid rgba(250, 244, 236, 0.30);
+  color: #2a1608;
+  box-shadow: 0 0 16px rgba(245, 199, 61, 0.35);
+}
+
+.ainubis-composer__send:hover {
+  border-color: rgba(250, 244, 236, 0.55);
+  color: #2a1608;
+  box-shadow: 0 0 22px rgba(245, 199, 61, 0.5);
 }
 
 .ainubis-composer__send:disabled {
@@ -526,7 +650,7 @@ body.has-pack-nav .ainubis-launcher {
 }
 
 .ainubis-composer--dragover {
-  outline: 2px dashed rgba(91, 224, 240, 0.7);
+  outline: 2px dashed rgba(245, 199, 61, 0.7);
   outline-offset: -4px;
 }
 
