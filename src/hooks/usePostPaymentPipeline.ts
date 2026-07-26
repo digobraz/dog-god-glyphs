@@ -116,6 +116,12 @@ export function usePostPaymentPipeline(args: PipelineArgs) {
   useEffect(() => {
     if (fired.current) return;
     if (!email || !dogName) return;
+    // Wait for the real pack_number (sealed server-side) before rendering/
+    // uploading anything — the cert/vertical/horizontal PDFs bake it in as a
+    // static image. Firing early used to render a meaningless placeholder
+    // number that could never be corrected after upload (MIA #52, 2026-07-26,
+    // under bursty concurrent-purchase load where sealing lagged behind /welcome).
+    if (packNumber == null) return;
     if (!certRef.current || !verticalRef.current || !horizontalRef.current || !shareRef.current) return;
 
     fired.current = true;

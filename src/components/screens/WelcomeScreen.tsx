@@ -188,9 +188,18 @@ export function WelcomeScreen() {
       certData.selections?.country || certData.selections?.ownerCountry,
     selections: certData.selections,
   });
-  const certNumber = sessionId
-    ? `#DOG-${sessionId.slice(-6).toUpperCase()}`
-    : `#DOG-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+  // Cert # = plain number, NO leading zeros (Matej lock 2026-06-07): "#1" not
+  // "#00001" — mirrors CertRender.tsx (server-side render), which is the
+  // canonical format. Bug fixed 2026-07-26: this used to ALWAYS render the
+  // sessionId-derived placeholder regardless of packNumber, so any buyer whose
+  // client-side PDF pipeline (usePostPaymentPipeline) won the write race against
+  // the server-side generate-pdfs got a certificate stamped with a meaningless
+  // "#DOG-XXXXXX" code instead of their real pack number (MIA #52, 2026-07-26).
+  const certNumber = packNumber != null
+    ? `#${packNumber}`
+    : sessionId
+      ? `#DOG-${sessionId.slice(-6).toUpperCase()}`
+      : `#DOG-${Date.now().toString(36).toUpperCase().slice(-6)}`;
   const issuedDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
   usePostPaymentPipeline({
