@@ -81,8 +81,9 @@ import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST 
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
-const CARD = '#FFFBF2';
 const T = PACK_THEME;
+// Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
+const CARD = PACK_THEME.card;
 const PANEL_W = 440; // .trp-sidebar width — used to offset the inline-detail fitBounds
 // (bod 4) so the selected trail centers in the map area actually visible next to the panel.
 
@@ -461,7 +462,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-catpill.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
 .trp-catpill.soon{border-style:dashed;opacity:.5;cursor:default;position:relative;}
 .trp-catpill.soon:hover{opacity:.8;}
-.trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${CARD};color:${INK};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:0 8px 22px rgba(0,0,0,0.45);z-index:5;}
+.trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:5px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:5;}
 .trp-catpill.soon:hover::after{opacity:1;}
 
 /* country select — flag + 3-letter code; native <select> so the dropdown escapes

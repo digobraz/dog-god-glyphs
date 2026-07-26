@@ -96,7 +96,8 @@ export default function PublicProfile() {
         <div
           className="flex flex-col items-center text-center gap-3"
           style={{
-            background: T.card, border: `1px solid ${T.hairline}`, borderRadius: 20,
+            background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
+            boxShadow: T.cardShadow,
             padding: '48px 24px', marginTop: 16,
           }}
         >
@@ -163,8 +164,8 @@ export default function PublicProfile() {
         {/* Owner hlavička — avatar · meno/nickname · nationalita · pack# · badges */}
         <section
           style={{
-            background: T.card, border: `1px solid ${T.hairline}`, borderRadius: 20,
-            padding: 24, boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+            background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
+            padding: 24, boxShadow: T.cardShadow,
           }}
         >
           <div className="flex items-center gap-4">
@@ -230,8 +231,8 @@ export default function PublicProfile() {
         {/* Moja svorka — read-only galéria (rovnaký accordion ako editor, bez edit polí) */}
         <section
           style={{
-            background: T.card, border: `1px solid ${T.hairline}`, borderRadius: 20,
-            padding: 22, boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+            background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
+            padding: 22, boxShadow: T.cardShadow,
           }}
         >
           <div className="flex items-center gap-2.5" style={{ color: T.inkDim, marginBottom: 14 }}>
@@ -253,8 +254,8 @@ export default function PublicProfile() {
         {isSelf && selfBadges && selfBadges.walkedTrails.length > 0 && (
           <section
             style={{
-              background: T.card, border: `1px solid ${T.hairline}`, borderRadius: 20,
-              padding: 22, boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+              background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
+              padding: 22, boxShadow: T.cardShadow,
             }}
           >
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim, display: 'block', marginBottom: 14 }}>

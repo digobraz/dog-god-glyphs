@@ -79,11 +79,11 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
     <div
       className="relative flex flex-col items-center w-full"
       style={{
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        border: `1px solid rgba(201, 154, 63, 0.30)`,
-        borderRadius: 20,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
         padding: '24px 20px',
-        boxShadow: '0 16px 40px -20px rgba(20, 8, 40, 0.55)',
+        boxShadow: T.cardShadow,
       }}
     >
         {/* # poradové číslo v Dogypte — badge v ľavom hornom rohu */}
@@ -268,12 +268,12 @@ function DogGridCard({ dog }: { dog: DogNode }) {
       to={`/pack/dogs/${dog.id}`}
       className="flex flex-col items-center pack-card-hover"
       style={{
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        border: `1px solid rgba(201, 154, 63, 0.30)`,
+        background: T.panelGrad,
+        border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 14,
         padding: '14px 8px 12px',
         textDecoration: 'none',
-        boxShadow: '0 8px 22px -16px rgba(20, 8, 40, 0.5)',
+        boxShadow: T.panelShadow,
       }}
     >
       <div
@@ -369,11 +369,11 @@ function DogRow({ dog }: { dog: DogNode }) {
       to={`/pack/dogs/${dog.id}`}
       className="relative flex items-center gap-3.5 w-full pack-card-hover"
       style={{
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        border: `1px solid rgba(201, 154, 63, 0.30)`,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
         padding: '13px 15px',
-        boxShadow: '0 10px 26px -16px rgba(20, 8, 40, 0.5)',
+        boxShadow: T.cardShadow,
         textDecoration: 'none',
       }}
     >

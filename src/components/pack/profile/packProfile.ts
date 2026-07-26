@@ -17,12 +17,13 @@ export type Gender = 'male' | 'female' | 'other' | 'undisclosed';
 export type RelationshipStatus = 'single' | 'taken' | 'complicated' | 'just_dogs';
 export type PersonType = 'sporty' | 'active' | 'homebody';
 export type Smoking = 'non_smoker' | 'socially' | 'smoker' | 'vaper';
-export type Alcohol = 'none' | 'socially' | 'regularly';
 export type Diet = 'omnivore' | 'vegetarian' | 'vegan' | 'healthy' | 'gourmet';
 export type Intent = 'trip_buddies' | 'dog_playdates' | 'friendship' | 'dating' | 'community';
-export type HobbyTag =
-  | 'music' | 'cooking' | 'photography' | 'art' | 'reading' | 'gaming'
-  | 'fitness' | 'nature' | 'movies' | 'coffee' | 'crafts' | 'volunteering' | 'sports';
+// ZRUŠENÉ 2026-07-26: `Alcohol` + `ALCOHOL_OPTIONS` + pole `alcohol` (Matej:
+// „dropdowny alkohol nedavame") a `HobbyTag` + `HOBBY_OPTIONS` + pole `hobbies`
+// (mŕtvy kód — 13 tagov sa nerenderovalo nikde, jediný výskyt bol `hobbies: []`
+// v mock generátore; nahradil ich PERSONALITY_OPTIONS, s ktorým sa prekrývali
+// v music/art/movies/coffee).
 
 // ── „koncentrát osobnosti" (zadanie-profil-koncentrat-2026-07-24) — jeden
 // pool, max 10 vybraných, zoskupené jemnými pod-labelmi (Vibe/Active/
@@ -52,8 +53,11 @@ export type VisTier = 'trip' | 'profile' | 'private';
 export type ProfileFieldKey =
   | 'gender' | 'age' | 'relationship' | 'languages'
   | 'dogVoiceBio' | 'bio'
-  | 'interests' | 'hobbies' | 'vibes'
-  | 'personType' | 'smoking' | 'alcohol' | 'diet'
+  | 'interests' | 'vibes'
+  // `smoke` (Yes/No), NIE `smoking` (4 hodnoty). Opravené 2026-07-26: UI ukladá do
+  // `smoke`, ale tier 'trip' sedel na nepoužívanom `smoking` → fajčenie, ktoré je
+  // LOCKED ako trip-viditeľné, fakticky žiadny tier nemalo a nedalo sa skryť.
+  | 'personType' | 'smoke' | 'diet'
   | 'intents'
   | 'region';
 
@@ -71,10 +75,8 @@ export interface HumanProfile {
   nationality?: string;     // country code z NATIONALITY_OPTIONS, default 'SK' (nezapisuje sa kým user nevyberie)
   relationship?: RelationshipStatus;
   dogVoiceBio?: string;      // „What my dog says about me" — ≤150 slov, HERO (zobrazuje sa prvý)
-  hobbies: HobbyTag[];       // default []
   personType?: PersonType;
-  smoking?: Smoking;
-  alcohol?: Alcohol;
+  smoking?: Smoking;         // legacy 4-hodnotové fajčenie — nerenderuje sa, drží staré dáta
   diet?: Diet;
   intents: Intent[];         // default []
   personality: PersonalityTag[]; // koncentrát osobnosti — max MAX_PERSONALITY, default []
@@ -312,12 +314,6 @@ export const SMOKING_OPTIONS: TaxonomyOption<Smoking>[] = [
   { value: 'vaper', labelEN: 'Vaper', emoji: '💨' },
 ];
 
-export const ALCOHOL_OPTIONS: TaxonomyOption<Alcohol>[] = [
-  { value: 'none', labelEN: "Doesn't drink", emoji: '🚱' },
-  { value: 'socially', labelEN: 'Socially', emoji: '🍷' },
-  { value: 'regularly', labelEN: 'Regularly', emoji: '🍺' },
-];
-
 export const DIET_OPTIONS: TaxonomyOption<Diet>[] = [
   { value: 'omnivore', labelEN: 'All eater', emoji: '🍖' },
   { value: 'vegetarian', labelEN: 'Vegetarian', emoji: '🥗' },
@@ -491,22 +487,6 @@ export const INTENT_OPTIONS: TaxonomyOption<Intent>[] = [
   { value: 'community', labelEN: 'Just the community', icon: 'heartpaw', emoji: '🏛️' },
 ];
 
-export const HOBBY_OPTIONS: TaxonomyOption<HobbyTag>[] = [
-  { value: 'music', labelEN: 'Music', emoji: '🎵' },
-  { value: 'cooking', labelEN: 'Cooking', icon: 'food', emoji: '🍳' },
-  { value: 'photography', labelEN: 'Photography', emoji: '📷' },
-  { value: 'art', labelEN: 'Art', emoji: '🎨' },
-  { value: 'reading', labelEN: 'Reading', emoji: '📚' },
-  { value: 'gaming', labelEN: 'Gaming', emoji: '🎮' },
-  { value: 'fitness', labelEN: 'Fitness', icon: 'trophy', emoji: '💪' },
-  { value: 'nature', labelEN: 'Nature', icon: 'forest', emoji: '🌿' },
-  { value: 'movies', labelEN: 'Movies', emoji: '🎬' },
-  { value: 'coffee', labelEN: 'Coffee', icon: 'cafe', emoji: '☕' },
-  { value: 'crafts', labelEN: 'Crafts', emoji: '🧵' },
-  { value: 'volunteering', labelEN: 'Shelter volunteering', icon: 'heartpaw', emoji: '🐾' },
-  { value: 'sports', labelEN: 'Sports', icon: 'trophy', emoji: '⚽' },
-];
-
 // Default viditeľnosť — override žije v human.visibility (getTier nižšie).
 // trip: fajčenie je LOCKED (Matej) — dealbreaker pri turistike so psom, viditeľné aj na výlete.
 export const DEFAULT_VISIBILITY: Record<ProfileFieldKey, VisTier> = {
@@ -514,14 +494,12 @@ export const DEFAULT_VISIBILITY: Record<ProfileFieldKey, VisTier> = {
   interests: 'trip',
   vibes: 'trip',
   personType: 'trip',
-  smoking: 'trip',
+  smoke: 'trip',
   gender: 'profile',
   age: 'profile',
   relationship: 'profile',
   dogVoiceBio: 'profile',
   bio: 'profile',
-  hobbies: 'profile',
-  alcohol: 'profile',
   diet: 'profile',
   intents: 'profile',
   region: 'profile',
@@ -625,6 +603,44 @@ function normalizeDogAttrs(d: Partial<DogProfileAttrs>): DogProfileAttrs {
   };
 }
 
+// Koľko z ĽUDSKÉHO profilu je vyplnené — poháňa progress v hlavičke sekcie
+// „WHO YOU ARE" (Matej 2026-07-26: „ukázať stav vyplnenia profilu").
+//
+// Zámerne sa počítajú len polia, ktoré user reálne vyplňuje na /pack/profile,
+// a každé váži rovnako — je to motivačný ukazovateľ, nie skóre. `avatar` a
+// `name` žijú v Supabase user_metadata (nie v HumanProfile), preto ich stránka
+// dopĺňa cez `extra` — inak by profil nikdy nemohol byť na 100 %.
+export interface CompletionStep { key: string; labelEN: string; done: boolean }
+
+export function humanProfileCompletion(
+  human: HumanProfile | undefined,
+  extra: CompletionStep[] = [],
+): { filled: number; total: number; pct: number; steps: CompletionStep[]; missing: CompletionStep[] } {
+  const has = (v: unknown) => v !== undefined && v !== null && v !== '';
+  const steps: CompletionStep[] = [
+    ...extra,
+    { key: 'gender', labelEN: 'Gender', done: has(human?.gender) },
+    { key: 'age', labelEN: 'Age', done: has(human?.age) },
+    { key: 'nationality', labelEN: 'Nationality', done: has(human?.nationality) },
+    { key: 'region', labelEN: 'City', done: has(human?.region) },
+    { key: 'relationship', labelEN: 'Status', done: has(human?.relationship) },
+    { key: 'smoke', labelEN: 'Smoke', done: has(human?.smoke) },
+    { key: 'diet', labelEN: 'Diet', done: has(human?.diet) },
+    { key: 'work', labelEN: 'Work', done: has(human?.work) },
+    { key: 'dogVoiceBio', labelEN: 'Bio', done: has(human?.dogVoiceBio) },
+    { key: 'personality', labelEN: 'Personality', done: (human?.personality?.length ?? 0) > 0 },
+  ];
+  const filled = steps.filter((s) => s.done).length;
+  const total = steps.length;
+  return {
+    filled,
+    total,
+    pct: total === 0 ? 0 : Math.round((filled / total) * 100),
+    steps,
+    missing: steps.filter((s) => !s.done),
+  };
+}
+
 // Koľko z karty je vyplnené — poháňa „Hekthor je na 40 % spoznaný" progress.
 export function dogCardCompletion(card: DogCard): { filled: number; total: number; pct: number } {
   const scalars: Array<unknown> = [
@@ -648,7 +664,7 @@ const STORAGE_KEY = 'dogypt.profile.v1';
 
 function emptyProfile(): CentralProfile {
   return {
-    human: { interests: [], vibes: [], languages: [], hobbies: [], intents: [], personality: [], visibility: {} },
+    human: { interests: [], vibes: [], languages: [], intents: [], personality: [], visibility: {} },
     dogs: {},
     updatedAt: new Date(0).toISOString(),
   };
@@ -662,7 +678,7 @@ function readRaw(): CentralProfile {
     const rawDogs = parsed.dogs ?? {};
     return {
       human: {
-        interests: [], vibes: [], languages: [], hobbies: [], intents: [], personality: [], visibility: {},
+        interests: [], vibes: [], languages: [], intents: [], personality: [], visibility: {},
         ...parsed.human,
       },
       dogs: Object.fromEntries(Object.entries(rawDogs).map(([id, d]) => [id, normalizeDogAttrs(d)])),

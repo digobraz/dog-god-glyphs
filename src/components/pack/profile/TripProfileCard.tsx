@@ -41,9 +41,10 @@ export function TripProfileCard({
 
   // Koncentrát osobnosti — top few pills + Smoke Y/N (zadanie-profil-
   // koncentrat-2026-07-24 ČASŤ C, replaces the old interests/personType/
-  // smoking(4) read). `personality`/`smoke` don't have a visibility tier yet
-  // (no ProfileFieldKey entry) so they're shown whenever set, same as the
-  // dogs block below.
+  // smoking(4) read). `personality` stále nemá tier (žiadny ProfileFieldKey
+  // záznam) → zobrazuje sa vždy, keď je vyplnené, ako blok psov nižšie.
+  // `smoke` tier UŽ MÁ (opravené 2026-07-26 — predtým tier 'trip' sedel na
+  // nepoužívanom poli `smoking`, takže fajčenie sa nedalo skryť).
   const personalityLabels = human.personality
     .slice(0, TRIP_PREVIEW_PERSONALITY_COUNT)
     .map((tag) => {
@@ -51,7 +52,7 @@ export function TripProfileCard({
       return opt ? `${opt.emoji ?? ''} ${opt.labelEN}`.trim() : undefined;
     })
     .filter((v): v is string => Boolean(v));
-  const smokeOpt = human.smoke ? SMOKE_OPTIONS.find((o) => o.value === human.smoke) : undefined;
+  const smokeOpt = human.smoke && isTrip('smoke') ? SMOKE_OPTIONS.find((o) => o.value === human.smoke) : undefined;
   const smokeLabel = smokeOpt ? `Smoke: ${smokeOpt.emoji ?? ''} ${smokeOpt.labelEN}`.replace('  ', ' ') : undefined;
   const languageLabels = isTrip('languages') ? human.languages : [];
 

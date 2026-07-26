@@ -73,11 +73,16 @@ export function PackSettings() {
     <section
       id="pack-settings"
       style={{
-        background: T.card,
-        border: `1px solid ${fromWelcome && !pwDone ? 'rgba(201,154,63,0.55)' : T.hairline}`,
-        borderRadius: 20,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
         padding: 22,
-        boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+        // fromWelcome && !pwDone = „nastav si heslo" upozornenie → širší zlatý ring
+        // NAD lockovaným cardShadow (predtým to bol silnejší 1px border, ten už lock
+        // zjednotil na 1.5px cardEdge, takže signál nesie ring).
+        boxShadow: fromWelcome && !pwDone
+          ? `${T.cardShadow}, 0 0 0 8px rgba(201,154,63,0.20)`
+          : T.cardShadow,
       }}
     >
       <div
@@ -163,11 +168,11 @@ export function PackSettings() {
             style={{
               width: '100%',
               maxWidth: 420,
-              background: T.card,
-              border: `1px solid ${T.hairline}`,
-              borderRadius: 20,
+              background: T.panelGrad,
+              border: `1.5px solid ${T.cardEdge}`,
+              borderRadius: 14,
               padding: 24,
-              boxShadow: '0 40px 90px -30px rgba(0,0,0,0.6)',
+              boxShadow: T.panelShadow,
             }}
           >
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
@@ -179,7 +184,7 @@ export function PackSettings() {
                 onClick={() => setPwModalOpen(false)}
                 aria-label={t('pack.settings.close')}
                 className="inline-flex items-center justify-center"
-                style={{ width: 30, height: 30, borderRadius: 999, background: 'rgba(31,26,14,0.06)', border: 'none', cursor: 'pointer', color: T.inkDim }}
+                style={{ width: 30, height: 30, borderRadius: 999, background: T.tileBg, border: 'none', cursor: 'pointer', color: T.inkDim }}
               >
                 <X className="h-4 w-4" />
               </button>

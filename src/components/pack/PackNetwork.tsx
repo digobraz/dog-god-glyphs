@@ -99,11 +99,11 @@ export function PackNetwork() {
   return (
     <section
       style={{
-        background: T.card,
-        border: `1px solid ${T.hairline}`,
-        borderRadius: 20,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
         padding: 22,
-        boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+        boxShadow: T.cardShadow,
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
@@ -184,9 +184,9 @@ export function PackNetwork() {
           <div
             className="flex items-start gap-2"
             style={{
-              background: T.cardSoft,
-              border: `1px solid ${T.hairline}`,
-              borderRadius: 12,
+              background: T.tileBg,
+              border: `1px solid ${T.border}`,
+              borderRadius: 10,
               padding: '11px 13px',
               marginTop: 14,
             }}
@@ -446,8 +446,8 @@ function Row({ member, indented }: { member: Member; indented?: boolean }) {
     <div
       className="flex items-center gap-2.5"
       style={{
-        background: T.cardSoft,
-        border: `1px solid ${T.hairline}`,
+        background: T.tileBg,
+        border: `1px solid ${T.border}`,
         borderRadius: 10,
         padding: '8px 11px',
       }}

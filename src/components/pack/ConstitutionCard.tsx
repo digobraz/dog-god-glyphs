@@ -17,10 +17,10 @@ export function ConstitutionCard() {
       onClick={() => { try { localStorage.setItem('dogypt_constitution_opened', '1'); } catch { /* ignore */ } }}
       className="pack-card-hover cbc block w-full"
       style={{
-        background: T.card,
-        border: `1px solid ${T.hairline}`,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
-        boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+        boxShadow: T.cardShadow,
         color: T.ink,
         textDecoration: 'none',
         height: '100%',

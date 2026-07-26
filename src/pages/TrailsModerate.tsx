@@ -14,7 +14,8 @@ const T = PACK_THEME;
 const ADMIN_EMAILS = ['biznismantt@gmail.com', 'dogypt@gmail.com'];
 
 const rowStyle: React.CSSProperties = {
-  background: T.card, border: `1px solid ${T.border}`, borderRadius: 8,
+  background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 16,
+  boxShadow: T.cardShadow,
   padding: '14px 16px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12,
 };
 

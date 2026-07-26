@@ -45,6 +45,7 @@ export function DogGalleryAccordion({
   addSlot,
   openId: controlledOpenId,
   onOpenChange,
+  layout = 'rows',
 }: {
   dogs: DogGalleryEntry[];
   editable: boolean;
@@ -54,6 +55,13 @@ export function DogGalleryAccordion({
   addSlot?: React.ReactNode;
   openId?: string | null;             // voliteľné — ovládané zvonka (napr. deep-link na jedného psa)
   onOpenChange?: (id: string | null) => void;
+  /**
+   * 'rows'  = lišta foto·meno·#, obsah sa rozbalí VNÚTRI lišty (default, drží
+   *           PublicProfile.tsx nedotknutý).
+   * 'tiles' = mriežka štvorcových foto dlaždíc, obsah sa rozbalí POD mriežkou
+   *           na plnú šírku. Používa /pack/profile — Matej 2026-07-26.
+   */
+  layout?: 'rows' | 'tiles';
 }) {
   const [localOpenId, setLocalOpenId] = useState<string | null>(null);
   const openId = controlledOpenId !== undefined ? controlledOpenId : localOpenId;
@@ -65,6 +73,89 @@ export function DogGalleryAccordion({
   // po odstránení Stats & Badges), 3+ = kompaktný, aby zoznam nerástol donekonečna
   // (Matej 2026-07-25).
   const scale: RowScale = dogs.length >= 3 ? 'compact' : 'large';
+
+  if (layout === 'tiles') {
+    const openDog = dogs.find((d) => d.id === openId) ?? null;
+    // Počet stĺpcov = počet dlaždíc (vrátane „Add a god"), max 4. Fixné 4 stĺpce
+    // nechávali pri dvoch psoch prázdny stĺpec vpravo — presne ten prázdny priestor,
+    // ktorý Matej na profile kritizoval. `auto-fill` zámerne NIE: pri jednom psovi
+    // by sa fotka vytiahla na celú šírku karty.
+    const tileCount = dogs.length + (addSlot ? 1 : 0);
+    const cols = Math.min(Math.max(tileCount, 1), 4);
+    return (
+      <div>
+        <style>{`
+          .dg-tiles{display:grid;gap:12px;grid-template-columns:repeat(${cols},minmax(0,1fr));}
+          @media (max-width:640px){.dg-tiles{grid-template-columns:repeat(${Math.min(cols, 2)},minmax(0,1fr));}}
+        `}</style>
+        <div className="dg-tiles">
+          {dogs.map((d) => (
+            <DogTile
+              key={d.id}
+              dog={d}
+              open={openId === d.id}
+              onToggleOpen={() => setOpenId(openId === d.id ? null : d.id)}
+            />
+          ))}
+          {addSlot}
+        </div>
+        {openDog && (
+          <div
+            style={{
+              marginTop: 14,
+              padding: '16px 16px 18px',
+              background: T.cardSoft,
+              border: `1px solid ${T.border}`,
+              borderRadius: 14,
+            }}
+          >
+            {/* Meno v hlavičke rozbaleného bloku — pri 4 dlaždiciach nie je inak
+                jasné, ktorého psa práve editujem. */}
+            <div className="flex items-center justify-between" style={{ gap: 10, marginBottom: 12 }}>
+              <span
+                style={{
+                  fontFamily: "'Cinzel', serif",
+                  fontWeight: 700,
+                  fontSize: 15,
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  color: T.inkStrong,
+                }}
+              >
+                {openDog.name}
+              </span>
+              <button
+                type="button"
+                onClick={() => setOpenId(null)}
+                aria-label="Close"
+                style={{
+                  background: 'none',
+                  border: `1px solid ${T.border}`,
+                  borderRadius: 8,
+                  padding: '4px 10px',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 11,
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  color: T.inkDim,
+                  cursor: 'pointer',
+                }}
+              >
+                Close
+              </button>
+            </div>
+            <DogGalleryBody
+              dog={openDog}
+              editable={editable}
+              onSaveBio={onSaveBio}
+              onToggleTag={onToggleTag}
+              onSaveCard={onSaveCard}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-2.5">
@@ -106,22 +197,6 @@ function DogGalleryRow({
   onSaveCard?: (dogId: string, patch: Partial<DogCard>) => void;
 }) {
   const S = ROW_SCALE[scale];
-  const t = useT();
-  const hg = dog.heroglyph;
-  const card = dog.attrs.card ?? emptyDogCard();
-  const set = <K extends keyof DogCard>(key: K, value: DogCard[K]) => onSaveCard?.(dog.id, { [key]: value } as Partial<DogCard>);
-  const setCompat = (key: string, v: string | undefined) =>
-    onSaveCard?.(dog.id, { compat: { ...card.compat, [key]: v } as DogCard['compat'] });
-
-  const completion = dogCardCompletion(card);
-  // Hárane — len nekastrovaná fena. Nekastrovaná fena v hárani ruší skupinový výlet,
-  // preto je to pole, nie poznámka. Pohlavie čítame z heroglyph selections (read-only).
-  const sex: 'male' | 'female' | null = /female|fena|suka/i.test(hg?.gender ?? '')
-    ? 'female'
-    : /male|pes|samec/i.test(hg?.gender ?? '') ? 'male' : null;
-  const isIntactFemale = sex === 'female' && card.neutered === 'no';
-  const countFilled = (...vals: unknown[]) =>
-    vals.filter((v) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)).length;
 
   return (
     <div style={{ border: `1px solid ${T.hairline}`, borderRadius: 14, background: open ? T.cardSoft : 'transparent' }}>
@@ -162,6 +237,144 @@ function DogGalleryRow({
 
       {open && (
         <div style={{ padding: '0 14px 16px' }}>
+          <DogGalleryBody
+            dog={dog}
+            editable={editable}
+            onSaveBio={onSaveBio}
+            onToggleTag={onToggleTag}
+            onSaveCard={onSaveCard}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── FOTO DLAŽDICA (layout='tiles') ───────────────────────────────────────────
+// Matej 2026-07-26: „použi moje fotky z profilu hekthor nech vidíme preview" +
+// „aktuálne je to pochmúrne bez emócie". Lišta s 64px krúžkom nechávala vpravo
+// prázdnu plochu a pes vyzeral ako riadok formulára; dlaždica dáva fotke plochu
+// a meno nesie zlatý cartouche pás (brand v3.2: radius 8, #C99A3F).
+function DogTile({
+  dog, open, onToggleOpen,
+}: {
+  dog: DogGalleryEntry;
+  open: boolean;
+  onToggleOpen: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggleOpen}
+      aria-expanded={open}
+      className="relative block w-full overflow-hidden"
+      style={{
+        aspectRatio: '1 / 1',
+        padding: 0,
+        borderRadius: 12,
+        border: `1.5px solid ${open ? T.accentGold : T.border}`,
+        background: T.bg,
+        cursor: 'pointer',
+        boxShadow: open
+          ? `0 0 0 3px rgba(201,154,63,0.22), 0 10px 26px rgba(0,0,0,0.28)`
+          : '0 4px 14px rgba(0,0,0,0.18)',
+        transition: 'box-shadow 180ms ease, border-color 180ms ease, transform 140ms ease',
+      }}
+    >
+      {dog.photoUrl ? (
+        <img
+          src={dog.photoUrl}
+          alt={dog.name}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+      ) : (
+        // Bez fotky = výzva, nie tichý placeholder. Iniciála ostáva, ale dostane
+        // papyrusové pozadie a hint „add a photo", aby prázdna dlaždica niečo žiadala.
+        <span
+          className="absolute inset-0 flex flex-col items-center justify-center"
+          // paddingBottom = výška cartouche pásu, inak doň „Add a photo" naráža.
+          style={{ background: `linear-gradient(160deg, ${T.bgTop} 0%, ${T.bgBottom} 100%)`, gap: 6, paddingBottom: 46 }}
+        >
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 46, fontWeight: 700, color: 'rgba(31,26,14,0.28)', lineHeight: 1 }}>
+            {(dog.name?.[0] || '?').toUpperCase()}
+          </span>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: T.inkFaint }}>
+            Add a photo
+          </span>
+        </span>
+      )}
+
+      {/* Cartouche pás — meno + poradové číslo. Gradient zdola nahor drží text
+          čitateľný aj na svetlej fotke (Hekthor má za sebou presvetlenú trávu). */}
+      <span
+        className="absolute inset-x-0 bottom-0 flex items-end justify-between"
+        style={{
+          gap: 8,
+          padding: '22px 10px 9px',
+          background: 'linear-gradient(to top, rgba(20,14,4,0.88) 0%, rgba(20,14,4,0.55) 55%, transparent 100%)',
+          textAlign: 'left',
+        }}
+      >
+        <span className="min-w-0">
+          <span
+            className="block truncate"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 14,
+              letterSpacing: '0.06em',
+              textTransform: 'uppercase',
+              color: '#FBF5E6',
+            }}
+          >
+            {dog.name}
+          </span>
+          {dog.packNumber != null && (
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: T.accentGold }}>
+              #{dog.packNumber}
+            </span>
+          )}
+        </span>
+        <ChevronDown
+          className="h-4 w-4 shrink-0"
+          style={{ color: '#FBF5E6', opacity: 0.8, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+        />
+      </span>
+    </button>
+  );
+}
+
+// ── Rozbalený obsah karty psa ────────────────────────────────────────────────
+// Vytiahnuté z DogGalleryRow, pretože v tiles layoute sa NErenderuje vnútri
+// lišty, ale POD mriežkou na plnú šírku (inak by sa 4 stĺpce zúžili na nič).
+function DogGalleryBody({
+  dog, editable, onSaveBio, onToggleTag, onSaveCard,
+}: {
+  dog: DogGalleryEntry;
+  editable: boolean;
+  onSaveBio?: (dogId: string, bio: string) => void;
+  onToggleTag?: (dogId: string, group: 'temperament' | 'trail', tag: string) => void;
+  onSaveCard?: (dogId: string, patch: Partial<DogCard>) => void;
+}) {
+  const t = useT();
+  const hg = dog.heroglyph;
+  const card = dog.attrs.card ?? emptyDogCard();
+  const set = <K extends keyof DogCard>(key: K, value: DogCard[K]) => onSaveCard?.(dog.id, { [key]: value } as Partial<DogCard>);
+  const setCompat = (key: string, v: string | undefined) =>
+    onSaveCard?.(dog.id, { compat: { ...card.compat, [key]: v } as DogCard['compat'] });
+
+  const completion = dogCardCompletion(card);
+  // Hárane — len nekastrovaná fena. Nekastrovaná fena v hárani ruší skupinový výlet,
+  // preto je to pole, nie poznámka. Pohlavie čítame z heroglyph selections (read-only).
+  const sex: 'male' | 'female' | null = /female|fena|suka/i.test(hg?.gender ?? '')
+    ? 'female'
+    : /male|pes|samec/i.test(hg?.gender ?? '') ? 'male' : null;
+  const isIntactFemale = sex === 'female' && card.neutered === 'no';
+  const countFilled = (...vals: unknown[]) =>
+    vals.filter((v) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && v.length === 0)).length;
+
+  return (
+        <>
           {editable ? (
             <BioTextarea value={dog.attrs.bio} onSave={(v) => onSaveBio?.(dog.id, v)} />
           ) : dog.attrs.bio ? (
@@ -336,10 +549,7 @@ function DogGalleryRow({
                 .replace('{pct}', String(completion.pct))}
             </p>
           )}
-
-        </div>
-      )}
-    </div>
+        </>
   );
 }
 

@@ -396,10 +396,13 @@ const NotFound = () => {
         .nf-block {
           position: relative; width: 100%; max-width: 940px;
           background: linear-gradient(160deg, #FBF5E6 0%, #F3E4C4 55%, #EAD6A6 100%);
-          border: 1px solid rgba(201,154,63,0.55);
-          border-radius: 18px;
+          border: 1.5px solid #C99A3F;
+          border-radius: 16px;
           padding: clamp(22px, 4vw, 40px) clamp(18px, 4vw, 44px) clamp(24px, 4vw, 38px);
-          box-shadow: 0 30px 80px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.6);
+          box-shadow:
+            0 14px 44px rgba(0,0,0,0.55),
+            0 0 0 4px rgba(201,154,63,0.12),
+            inset 0 1px 0 rgba(255,255,255,0.5);
           text-align: center;
         }
         .nf-eyebrow {

@@ -467,7 +467,7 @@ export default function Heroglyph() {
           background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
           border: 1.5px solid #C99A3F;
           border-left: 3px solid var(--pc);
-          border-radius: 12px;
+          border-radius: 10px;
           padding: 10px 13px;
           box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
           font-family: 'Space Grotesk', sans-serif;
@@ -786,7 +786,7 @@ export default function Heroglyph() {
           display: block;
           background: linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%);
           border: 1.5px solid #C99A3F;
-          border-radius: 12px;
+          border-radius: 10px;
           padding: 9px 9px 10px;
           box-shadow: 0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15);
           opacity: 0;

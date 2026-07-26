@@ -409,9 +409,10 @@ function TreeSkeleton() {
     <div
       className="animate-pulse"
       style={{
-        background: T.card,
-        border: `1px solid ${T.hairline}`,
-        borderRadius: 24,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
+        boxShadow: T.cardShadow,
         padding: 26,
       }}
     >

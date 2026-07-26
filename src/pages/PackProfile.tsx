@@ -33,11 +33,196 @@ import {
   MAX_PERSONALITY,
   HIDEABLE_IDENTITY_FIELDS,
   isHidden,
+  humanProfileCompletion,
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
 
 const T = PACK_THEME;
+
+// ── PAPYRUS PRIMITÍVY (lock 2026-07-26) ──────────────────────────────────────
+// Matej: „dizajn bledých blokov sme si lockli na základe toho aký je v /entry"
+// + „je to všetko moc na sebe — oddeliť okrajmi vizuálne ale aj rozdeliť
+// logicky". Preto profil UŽ NIE JE jedna karta s dvoma stĺpcami (ten layout
+// vyrábal prázdny pravý stĺpec, ktorý Matej zamietol 25.7.), ale stack
+// samostatných papyrusových kariet s medzerami — každá = jedna téma.
+function PapyrusCard({
+  children,
+  id,
+  pad = 26,
+}: {
+  children: React.ReactNode;
+  id?: string;
+  pad?: number;
+}) {
+  return (
+    <section
+      id={id}
+      style={{
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
+        boxShadow: T.cardShadow,
+        padding: pad,
+        scrollMarginTop: 90,
+      }}
+    >
+      {children}
+    </section>
+  );
+}
+
+/** Zlatá deliaca čiara vyblednutá do strán (`.religion-rule` z /entry). */
+function GoldRule({ width = 54, my = 12 }: { width?: number | string; my?: number }) {
+  return (
+    <div
+      aria-hidden
+      style={{ width, height: 2, margin: `${my}px 0`, background: T.rule, border: 'none' }}
+    />
+  );
+}
+
+// Pod-blok VNÚTRI papyrusovej karty — `.crit-tile` z /entry (zlatá výplň 6 %,
+// zlatý okraj 35 %, radius 10). Matej 2026-07-26: „je to všetko moc na sebe —
+// oddeliť okrajmi vizuálne ale aj rozdeliť logicky." Každý pod-blok = jedna
+// otázka, ktorú profil kladie, takže okraj nie je dekorácia, ale hranica témy.
+function SubBlock({
+  label,
+  children,
+  hint,
+}: {
+  label: string;
+  children: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <div
+      style={{
+        background: T.tileBg,
+        border: `1px solid ${T.border}`,
+        borderRadius: 10,
+        padding: '11px 13px 13px',
+      }}
+    >
+      <div className="flex items-baseline justify-between" style={{ gap: 10, marginBottom: 9 }}>
+        <span
+          style={{
+            fontFamily: "'Cinzel', serif",
+            fontSize: 9,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: T.inkDim,
+          }}
+        >
+          {label}
+        </span>
+        {hint && (
+          <span
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 10.5,
+              color: T.inkFaint,
+              textAlign: 'right',
+            }}
+          >
+            {hint}
+          </span>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+/** Malý eyebrow nadpis sekcie — Space Grotesk, zlatý, wide tracking. */
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        fontFamily: "'Space Grotesk', sans-serif",
+        fontSize: 11,
+        fontWeight: 500,
+        letterSpacing: '0.26em',
+        textTransform: 'uppercase',
+        color: T.cardEdge,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+// Stav vyplnenia profilu — zlatý bar v hlavičke sekcie. Pri 100 % sa mení na
+// potvrdenie, inak menuje PRVÉ chýbajúce pole (konkrétna výzva > „doplň profil").
+function ProfileProgress({
+  pct,
+  filled,
+  total,
+  missing,
+}: {
+  pct: number;
+  filled: number;
+  total: number;
+  missing: { labelEN: string }[];
+}) {
+  const done = pct === 100;
+  return (
+    <div style={{ minWidth: 0, flex: '1 1 220px', maxWidth: 340 }}>
+      <div className="flex items-baseline justify-between" style={{ gap: 10, marginBottom: 6 }}>
+        <span
+          style={{
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 12,
+            color: T.inkWarm,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {done ? 'Your scroll is complete.' : `Next: add your ${missing[0]?.labelEN.toLowerCase()}`}
+        </span>
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', monospace",
+            fontSize: 12,
+            fontWeight: 700,
+            color: done ? T.growGreen : T.cardEdge,
+            flexShrink: 0,
+          }}
+        >
+          {filled}/{total}
+        </span>
+      </div>
+      <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Profile completion"
+        style={{
+          height: 6,
+          borderRadius: 999,
+          background: 'rgba(201,154,63,0.16)',
+          border: `1px solid ${T.hairline}`,
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: '100%',
+            borderRadius: 999,
+            background: done
+              ? T.growGreen
+              : 'linear-gradient(90deg, #E6B450 0%, #C99A3F 100%)',
+            transition: 'width 420ms cubic-bezier(0.22, 1, 0.36, 1)',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function PackProfile() {
   const [session, setSession] = useState<Session | null>(null);
@@ -72,8 +257,17 @@ export default function PackProfile() {
       if (!mounted) return;
       setSession(data.session);
       const meta = (data.session?.user.user_metadata ?? {}) as Record<string, string | undefined>;
-      setAvatarUrl(meta.avatar_url || meta.avatar || null);
-      setFullName(meta.full_name || meta.name || '');
+      // DEV-ONLY: NOAUTH guest nemá session, takže avatar aj meno by boli prázdne
+      // a stránka by sa v deve nedala vizuálne posúdiť (Matej 2026-07-26: „nech
+      // vidíme preview"). Nikdy sa nedostane na produkciu (import.meta.env.DEV).
+      // NECOMMITOVAŤ — revert pred pushom, spolu s dev seedom v usePackUser.ts.
+      // Pozor: NIE `&& !data.session` — v deve často JE session (testovací účet)
+      // s prázdnym full_name/avatar_url, takže fallback by sa nikdy nechytil a
+      // avatar by ostal prázdny krúžok s iniciálou z e-mailu. Zrkadlí to
+      // usePackUser.ts, ktorý psov preseeduje pri DEV_NOAUTH bez ohľadu na session.
+      const devNoAuth = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
+      setAvatarUrl(meta.avatar_url || meta.avatar || (devNoAuth ? '/images/about-matej.png' : null));
+      setFullName(meta.full_name || meta.name || (devNoAuth ? 'Matej Stacho' : ''));
     });
     return () => {
       mounted = false;
@@ -190,6 +384,13 @@ export default function PackProfile() {
   const initial = (fullName?.[0] || email?.[0] || 'D').toUpperCase();
   const hasAvatar = !!avatarUrl;
 
+  // Stav vyplnenia — avatar a meno žijú v user_metadata, nie v HumanProfile,
+  // preto idú do `extra` (bez nich by profil nikdy nedosiahol 100 %).
+  const completion = humanProfileCompletion(human, [
+    { key: 'avatar', labelEN: 'Photo', done: hasAvatar },
+    { key: 'name', labelEN: 'Name', done: !!fullName.trim() },
+  ]);
+
   return (
     <PackLayout wide>
       <div className="flex flex-col gap-5">
@@ -209,21 +410,21 @@ export default function PackProfile() {
           <ArrowLeft className="h-3 w-3" />
           Pack
         </Link>
-        {/* Identity — avatar + name merged */}
-        <section
-          style={{
-            background: T.card,
-            border: `1px solid ${T.hairline}`,
-            borderRadius: 20,
-            padding: 26,
-            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-          }}
-        >
-          {/* Zlúčené: LEFT = majiteľ (foto + meno + level) · RIGHT = My Gods (psy) */}
-          <style>{`@media (min-width:768px){.profile-gods-right{border-top:none !important;padding-top:0 !important;border-left:1px solid ${T.hairline};padding-left:2rem;}}`}</style>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {/* ── LEFT — majiteľ ── */}
-          <div>
+        {/* ── SEKCIA 1 — WHO YOU ARE (človek) ─────────────────────────────
+            Vlastná papyrusová karta. Veľký nadpis tu ZÁMERNE nie je — hlavný
+            hrdina profilu je pes („OH, MY DOG!" nižšie), človek je eyebrow.
+            Zrkadlí brand princíp: majiteľ je vnútri rámiku psa, nie naopak. */}
+        <PapyrusCard>
+          <div className="flex flex-wrap items-end justify-between" style={{ gap: 16 }}>
+            <Eyebrow>Who you are</Eyebrow>
+            <ProfileProgress
+              pct={completion.pct}
+              filled={completion.filled}
+              total={completion.total}
+              missing={completion.missing}
+            />
+          </div>
+          <GoldRule width="100%" my={16} />
           <div className="flex flex-col sm:flex-row sm:items-center gap-5">
             {/* Avatar */}
             <button
@@ -366,11 +567,13 @@ export default function PackProfile() {
               basics" section (zadanie-profil-konsolidacia-2026-07-24); order +
               status/nationality collapsed to single dropdowns per
               zadanie-profil-shrink-2026-07-24. */}
-          <div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 16, paddingTop: 16 }}>
-            {/* Row 1: age · dogs · nationality · region.  Row 2: status +
-                lifestyle (smoke/diet/work) — all optional, moved up next to age
-                per Matej 2026-07-24 (was a separate block below the pills). */}
-            <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-1.5">
+          {/* Dva pod-bloky s okrajmi namiesto dvoch riadkov pills nalepených na
+              seba. ZÁKLAD je povinná časť identity, LIFESTYLE je dobrovoľná —
+              preto sú to dve témy, nie jeden zlepenec. Zarovnanie je zľava, nie
+              na stred: vycentrované pills plávali v prázdnej šírke karty. */}
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10, marginTop: 18 }}>
+          <SubBlock label="The basics">
+            <div className="flex flex-wrap items-center gap-1.5">
               <HideWrap hidden={isHidden(profile, 'age')}>
                 <MiniChipInput
                   emoji="🎂"
@@ -406,7 +609,9 @@ export default function PackProfile() {
                   dobrovoľný, kto ho nechce ukázať, nevyplní ho. */}
               <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
             </div>
-            <div className="flex flex-wrap md:flex-nowrap items-center justify-center gap-1.5" style={{ marginTop: 8 }}>
+          </SubBlock>
+          <SubBlock label="Lifestyle" hint="Optional">
+            <div className="flex flex-wrap items-center gap-1.5">
               <StatusSelect
                 value={human?.relationship}
                 onChange={(v) => patchHuman({ relationship: v })}
@@ -433,16 +638,20 @@ export default function PackProfile() {
                 onChange={(v) => patchHuman({ work: v })}
               />
             </div>
+          </SubBlock>
           </div>
 
           {/* Bio — ONE textarea (dog-voice), moved under the pills row (was in
               the RIGHT column) per zadanie-profil-layout-swap-2026-07-24. The
               separate "About me" textarea was folded away — dog-voice bio is
-              the hero copy (zadanie-profil-koncentrat-2026-07-24 ČASŤ B.1). */}
-          <div style={{ marginTop: 16 }}>
+              the hero copy (zadanie-profil-koncentrat-2026-07-24 ČASŤ B.1).
+              Dostalo zlatú deliacu čiaru + väčší odstup: je to hook profilu,
+              nie tretí riadok formulára. */}
+          <GoldRule width="100%" my={18} />
+          <div>
             {/* BIO heading — one bold, oversized line. It's the funny/unique hook
                 of the profile, so it should pop (Matej 2026-07-24). */}
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: T.ink, marginBottom: 10 }}>
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
               BIO: What my dog would probably say about me
             </div>
             <WordLimitTextarea
@@ -453,20 +662,26 @@ export default function PackProfile() {
             />
           </div>
 
-          {/* Personality concentrate — 20 pills / 5 groups / shared max-10
-              (zadanie-profil-koncentrat-2026-07-24 ČASŤ B.2). Replaces the old
-              Topics/Vibe/Off-the-leash/Person-type pill groups. */}
-          <div style={{ marginTop: 16 }}>
-            <PersonalityConcentrate human={human} patchHuman={patchHuman} />
-          </div>
-          </div>
+        </PapyrusCard>
 
-          {/* ── RIGHT — My Gods (psy) → Stats & Badges ── */}
-          <div id="my-gods" className="profile-gods-right flex flex-col gap-5" style={{ borderTop: `1px solid ${T.hairline}`, paddingTop: 18, scrollMarginTop: 90 }}>
-            <MyGodsContent dogs={dogs} loading={dogsLoading} profile={profile} />
-          </div>
-          </div>
-        </section>
+        {/* ── SEKCIA 2 — OH, MY DOG! (psy) ─────────────────────────────────
+            Dostala vlastnú kartu v plnej šírke. Predtým sedela v pravom stĺpci
+            zlúčenej karty, čo vyrábalo ~400 px prázdna pod dvoma nízkymi boxmi
+            (Matej 25.7.: „obsahovo sa mi to páči ale vizuálne nie"). Plná šírka
+            ten prázdny stĺpec ruší úplne a fotky psov majú kam dýchať. */}
+        <PapyrusCard id="my-gods">
+          <MyGodsContent dogs={dogs} loading={dogsLoading} profile={profile} />
+        </PapyrusCard>
+
+        {/* ── SEKCIA 3 — WHAT YOU'RE LIKE (osobnosť) ───────────────────────
+            20 pills / 5 skupín / spoločný max-10 (zadanie-profil-koncentrat-
+            2026-07-24 ČASŤ B.2). Vlastná karta, lebo je to najvyšší blok
+            stránky — natlačený pod bio pôsobil ako pokračovanie formulára. */}
+        <PapyrusCard>
+          <Eyebrow>What you’re like</Eyebrow>
+          <GoldRule width="100%" my={14} />
+          <PersonalityConcentrate human={human} patchHuman={patchHuman} />
+        </PapyrusCard>
 
         {/* Bones + your network — split two-column block */}
         <PackNetwork />
@@ -474,15 +689,9 @@ export default function PackProfile() {
         {/* Password block presunutý do Account info bloku → modal (pwModalOpen) */}
 
         {/* Account info (read-only) */}
-        <section
-          style={{
-            background: T.card,
-            border: `1px solid ${T.hairline}`,
-            borderRadius: 20,
-            padding: 22,
-            boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
-          }}
-        >
+        <PapyrusCard pad={22}>
+          <Eyebrow>Account</Eyebrow>
+          <GoldRule width="100%" my={12} />
           {/* F1 icon audit (2026-07-25): lucide Mail → brand envelope.svg. Na tej istej stránke
               už brandová obálka bežala (PackNotifications), takže tu boli DVE rôzne obálky. */}
           <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label="Email">
@@ -547,7 +756,7 @@ export default function PackProfile() {
               Sign out
             </button>
           </Field>
-        </section>
+        </PapyrusCard>
 
         <div style={{ height: 24 }} />
       </div>
@@ -564,11 +773,11 @@ export default function PackProfile() {
             style={{
               width: '100%',
               maxWidth: 420,
-              background: T.card,
-              border: `1px solid ${T.hairline}`,
-              borderRadius: 20,
+              background: T.panelGrad,
+              border: `1.5px solid ${T.cardEdge}`,
+              borderRadius: 14,
               padding: 24,
-              boxShadow: '0 40px 90px -30px rgba(0,0,0,0.6)',
+              boxShadow: T.panelShadow,
             }}
           >
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
@@ -654,9 +863,6 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
     saveDogAttrs(dogId, { card: { ...(current.card ?? emptyDogCard()), ...patch } });
   };
 
-  // "Add a god" slot drží krok so škálou riadkov v DogGalleryAccordion (3+ psy = kompakt).
-  const addBig = dogs.length < 3;
-
   const toggleTag = (dogId: string, group: 'temperament' | 'trail', tag: string) => {
     const current = profile?.dogs[dogId] ?? deriveDefaultDogAttrs(dogId);
     if (group === 'temperament') {
@@ -676,19 +882,68 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
 
   return (
     <>
-      <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
-        <div className="flex items-center gap-2.5" style={{ color: T.inkDim }}>
-          <BrandIcon name="heartpaw" size={16} tint="gold" />
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
-            My Gods
-          </span>
+      {/* Nadpis sekcie — Matej 2026-07-26: „namiesto názvu my gods daj vacsím
+          nadpis OH, MY DOG!". Bol to 10px Cinzel eyebrow, teda vizuálne label
+          formulára; teraz je to hlavný nadpis stránky (pes > majiteľ). */}
+      <div className="flex items-start justify-between" style={{ gap: 16, marginBottom: 4 }}>
+        <div style={{ minWidth: 0 }}>
+          <div className="flex items-center gap-2.5" style={{ marginBottom: 2 }}>
+            <BrandIcon name="heartpaw" size={17} tint="gold" />
+            <Eyebrow>Your pantheon</Eyebrow>
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 'clamp(1.75rem, 5.5vw, 2.6rem)',
+              letterSpacing: '0.03em',
+              textTransform: 'uppercase',
+              lineHeight: 1.05,
+              color: T.inkStrong,
+              margin: 0,
+            }}
+          >
+            Oh, my dog!
+          </h2>
         </div>
         {!loading && dogs.length > 0 && (
-          <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 12, color: T.inkFaint }}>
+          <span
+            className="inline-flex items-center justify-center shrink-0"
+            style={{
+              minWidth: 30,
+              height: 30,
+              padding: '0 9px',
+              borderRadius: 999,
+              background: T.tileBg,
+              border: `1px solid ${T.border}`,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 13,
+              fontWeight: 700,
+              color: T.cardEdge,
+            }}
+          >
             {dogs.length}
           </span>
         )}
       </div>
+      <p
+        style={{
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: 13.5,
+          lineHeight: 1.5,
+          color: T.inkWarm,
+          margin: '0 0 2px',
+        }}
+      >
+        {loading
+          ? ' '
+          : dogs.length === 0
+            ? 'No god yet. Every Dogyptian starts with one.'
+            : dogs.length === 1
+              ? 'The one who chose you. Tell the pack who they are.'
+              : 'The ones who chose you. Tell the pack who they are.'}
+      </p>
+      <GoldRule width="100%" my={14} />
 
       {loading ? (
         <div className="flex items-center gap-2 py-2" style={{ color: T.inkFaint }}>
@@ -699,22 +954,33 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
         <DogGalleryAccordion
           dogs={entries}
           editable
+          layout="tiles"
           onSaveBio={(dogId, bio) => saveDogAttrs(dogId, { bio: bio.slice(0, 200) })}
           onToggleTag={toggleTag}
           onSaveCard={saveCard}
           addSlot={
+            /* „Add a god" má tvar dlaždice, ale ZÁMERNE nižšiu váhu než pes —
+               dashed okraj, bez fotky, bez cartouche pásu. Boh a „pridaj boha"
+               nesmú vyzerať rovnako dôležito. */
             <Link
               to="/entry"
-              className="flex items-center"
-              style={{ gap: addBig ? 16 : 12, padding: addBig ? '13px 14px' : '9px 12px', textDecoration: 'none', border: `1px dashed ${T.border}`, borderRadius: 14 }}
+              className="flex flex-col items-center justify-center"
+              style={{
+                aspectRatio: '1 / 1',
+                gap: 8,
+                textDecoration: 'none',
+                border: `1.5px dashed ${T.border}`,
+                borderRadius: 12,
+                background: 'rgba(201,154,63,0.04)',
+              }}
             >
               <span
                 className="inline-flex items-center justify-center shrink-0"
-                style={{ width: addBig ? 64 : 44, height: addBig ? 64 : 44, borderRadius: '50%', border: `2px dashed ${T.border}`, color: T.inkFaint, fontSize: addBig ? 26 : 20, lineHeight: 1 }}
+                style={{ width: 42, height: 42, borderRadius: '50%', border: `1.5px dashed ${T.border}`, color: T.inkFaint, fontSize: 22, lineHeight: 1 }}
               >
                 +
               </span>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: addBig ? 11 : 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint }}>
+              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint, textAlign: 'center', padding: '0 6px' }}>
                 Add a god
               </span>
             </Link>

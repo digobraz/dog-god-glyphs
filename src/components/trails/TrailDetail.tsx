@@ -106,10 +106,11 @@ export function TrailDetail({ trail, place, onClose }: TrailDetailProps) {
   }
 
   const panelStyle: React.CSSProperties = {
-    background: T.card,
+    background: T.panelGrad,
     color: T.ink,
-    borderRadius: 8,
-    border: `1px solid ${T.border}`,
+    borderRadius: 14,
+    border: `1.5px solid ${T.cardEdge}`,
+    boxShadow: T.panelShadow,
     padding: 20,
     position: 'relative',
   };
@@ -163,7 +164,7 @@ export function TrailDetail({ trail, place, onClose }: TrailDetailProps) {
               {trail.activities.map((a) => (
                 <span key={a} style={{
                   fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase',
-                  color: T.ink, background: T.cardSoft, border: `1px solid ${T.border}`, borderRadius: 999, padding: '4px 10px',
+                  color: T.ink, background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 999, padding: '4px 10px',
                 }}>
                   {t(`pack.trails.activity.${a}`)}
                 </span>
@@ -187,7 +188,7 @@ export function TrailDetail({ trail, place, onClose }: TrailDetailProps) {
             {!loadingRatings && ratings.length > 0 && (
               <div className="flex flex-col gap-2 mt-3">
                 {ratings.filter((r) => r.comment).map((r) => (
-                  <div key={r.id} style={{ fontSize: 12, color: T.inkDim, background: T.cardSoft, borderRadius: 8, padding: '8px 10px' }}>
+                  <div key={r.id} style={{ fontSize: 12, color: T.inkDim, background: T.tileBg, border: `1px solid ${T.border}`, borderRadius: 10, padding: '8px 10px' }}>
                     <div className="flex items-center gap-1 mb-1">
                       {[1, 2, 3, 4, 5].map((n) => <Star key={n} filled={n <= r.stars} size={12} />)}
                     </div>

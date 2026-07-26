@@ -135,13 +135,13 @@ export function MemorialControl({ dogId, dogName, isDeceased, deathDate, birthYe
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-          border: `1px solid rgba(201, 154, 63, 0.40)`,
-          borderRadius: 20,
+          background: T.panelGrad,
+          border: `1.5px solid ${T.cardEdge}`,
+          borderRadius: 14,
           padding: '28px 26px',
           maxWidth: 360,
           width: '90vw',
-          boxShadow: '0 28px 60px -18px rgba(20,8,40,0.6)',
+          boxShadow: T.panelShadow,
         }}
       >
         {step === 'confirm' ? (

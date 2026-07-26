@@ -761,11 +761,11 @@ export default function PackDogDetail() {
           <section
             className="relative"
             style={{
-              background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-              border: `1px solid rgba(201, 154, 63, 0.30)`,
-              borderRadius: 22,
+              background: T.cardGrad,
+              border: `1.5px solid ${T.cardEdge}`,
+              borderRadius: 16,
               padding: '20px 20px',
-              boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+              boxShadow: T.cardShadow,
             }}
           >
             {/* FRONT — identity (always rendered; defines the block height) */}
@@ -989,8 +989,8 @@ export default function PackDogDetail() {
                 position: 'absolute',
                 inset: 0,
                 zIndex: 6,
-                background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-                borderRadius: 22,
+                background: T.cardGrad,
+                borderRadius: 16,
                 padding: 18,
                 overflowY: 'visible',
               }}
@@ -1002,7 +1002,7 @@ export default function PackDogDetail() {
                   onClick={() => setProfileOpen(false)}
                   aria-label={t('pack.dog.ariaBackToProfile')}
                   className="inline-flex items-center justify-center"
-                  style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(31,26,14,0.06)', border: `1px solid ${T.hairline}`, color: T.ink, cursor: 'pointer' }}
+                  style={{ width: 28, height: 28, borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}`, color: T.ink, cursor: 'pointer' }}
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -1167,13 +1167,13 @@ export default function PackDogDetail() {
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-                  border: `1px solid rgba(201, 154, 63, 0.40)`,
-                  borderRadius: 20,
+                  background: T.panelGrad,
+                  border: `1.5px solid ${T.cardEdge}`,
+                  borderRadius: 14,
                   padding: '24px 22px',
                   maxWidth: 360,
                   width: '90vw',
-                  boxShadow: '0 28px 60px -18px rgba(20,8,40,0.6)',
+                  boxShadow: T.panelShadow,
                 }}
               >
                 <div className="flex items-center justify-between mb-1.5">
@@ -1275,11 +1275,11 @@ export default function PackDogDetail() {
             id="prayers"
             className="flex flex-col"
             style={{
-              background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-              border: '1px solid rgba(201, 154, 63, 0.30)',
-              borderRadius: 22,
+              background: T.cardGrad,
+              border: `1.5px solid ${T.cardEdge}`,
+              borderRadius: 16,
               padding: '22px 20px',
-              boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+              boxShadow: T.cardShadow,
             }}
           >
             {/* Date eyebrow */}
@@ -1472,13 +1472,13 @@ export default function PackDogDetail() {
                 <div
                   onClick={(e) => e.stopPropagation()}
                   style={{
-                    background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-                    border: `1px solid rgba(201, 154, 63, 0.40)`,
-                    borderRadius: 20,
+                    background: T.panelGrad,
+                    border: `1.5px solid ${T.cardEdge}`,
+                    borderRadius: 14,
                     padding: '28px 26px',
                     maxWidth: 360,
                     width: '90vw',
-                    boxShadow: '0 28px 60px -18px rgba(20,8,40,0.6)',
+                    boxShadow: T.panelShadow,
                   }}
                 >
                   <h3
@@ -2069,11 +2069,11 @@ export default function PackDogDetail() {
           style={{
             position: 'relative',
             overflow: 'hidden',
-            background: T.card,
-            border: `1px solid rgba(201, 154, 63, 0.30)`,
-            borderRadius: 22,
+            background: T.cardGrad,
+            border: `1.5px solid ${T.cardEdge}`,
+            borderRadius: 16,
             padding: 24,
-            boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+            boxShadow: T.cardShadow,
           }}
         >
           {/* Faded preview — STATS not live yet */}
@@ -2589,7 +2589,7 @@ function EditableCriticalChip({ lucide, label, value, placeholder, onSave }: { l
   return (
     <div
       className="flex items-start gap-2.5"
-      style={{ padding: '10px 12px', borderRadius: 12, background: T.card, border: `1px solid ${T.hairline}` }}
+      style={{ padding: '10px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
     >
       <span style={{ color: T.accentGold, display: 'inline-flex', paddingTop: 2 }}>{lucide}</span>
       <div className="flex flex-col" style={{ gap: 1, minWidth: 0, flex: 1 }}>
@@ -2880,11 +2880,11 @@ function HealthBadge({
             right: 0,
             width: 250,
             zIndex: 20,
-            background: T.card,
-            border: `1px solid ${T.border}`,
+            background: T.panelGrad,
+            border: `1.5px solid ${T.cardEdge}`,
             borderRadius: 14,
             padding: 12,
-            boxShadow: '0 18px 44px -16px rgba(20,8,40,0.5)',
+            boxShadow: T.panelShadow,
           }}
         >
           <div className="flex flex-col gap-1.5">
@@ -3179,11 +3179,11 @@ function TilePanel({
   return (
     <section
       style={{
-        background: T.card,
-        border: `1px solid rgba(201, 154, 63, 0.30)`,
-        borderRadius: 20,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
         padding: 22,
-        boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+        boxShadow: T.cardShadow,
       }}
     >
       <div className="flex items-center gap-3" style={{ marginBottom: 18 }}>
@@ -3294,7 +3294,7 @@ function PreviewRow({
               style={{
                 padding: '2px 7px',
                 borderRadius: 999,
-                background: 'rgba(31, 26, 14, 0.06)',
+                background: T.tileBg,
                 fontFamily: "'Cinzel', serif",
                 fontSize: 8,
                 letterSpacing: '0.14em',
@@ -3421,7 +3421,7 @@ function ShieldBadge({
       ? { fg: '#3D7A4E', bg: 'rgba(61, 122, 78, 0.12)', bd: 'rgba(61, 122, 78, 0.40)' }
       : state === 'due'
         ? { fg: '#B8862F', bg: 'rgba(201, 154, 63, 0.14)', bd: 'rgba(201, 154, 63, 0.45)' }
-        : { fg: T.inkFaint, bg: 'rgba(31, 26, 14, 0.05)', bd: T.hairline };
+        : { fg: T.inkFaint, bg: T.tileBg, bd: T.border };
   return (
     <button
       type="button"
@@ -3461,7 +3461,7 @@ function CriticalChip({ lucide, label, value }: { lucide: React.ReactNode; label
   return (
     <div
       className="flex items-center gap-2.5"
-      style={{ padding: '10px 12px', borderRadius: 12, background: T.card, border: `1px solid ${T.hairline}` }}
+      style={{ padding: '10px 12px', borderRadius: 10, background: T.tileBg, border: `1px solid ${T.border}` }}
     >
       <span style={{ color: T.accentGold, display: 'inline-flex' }}>{lucide}</span>
       <div className="flex flex-col" style={{ gap: 1, minWidth: 0 }}>
@@ -3566,9 +3566,12 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
         position: 'relative',
         padding: '16px 16px',
         borderRadius: 16,
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        border: `1px solid rgba(201, 154, 63, ${hover ? 0.4 : 0.22})`,
-        transition: 'border-color 0.2s',
+        background: T.cardGrad,
+        // Papyrus lock: okraj je konštantný 1.5px cardEdge, hover teraz nesie tieň
+        // (predtým rozdiel v alfa okraja, ktorý lock zjednotil).
+        border: `1.5px solid ${T.cardEdge}`,
+        boxShadow: hover ? T.cardShadow : T.panelShadow,
+        transition: 'box-shadow 0.2s',
       }}
     >
       <span
@@ -3578,7 +3581,7 @@ function SubCard({ lucide, title, desc }: { lucide: React.ReactNode; title: stri
           right: 12,
           padding: '3px 8px',
           borderRadius: 999,
-          background: 'rgba(31, 26, 14, 0.06)',
+          background: T.tileBg,
           fontFamily: "'Cinzel', serif",
           fontSize: 8,
           letterSpacing: '0.14em',
@@ -3630,11 +3633,11 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
     <section
       className="flex flex-col items-center justify-center text-center"
       style={{
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        border: '1px solid rgba(201, 154, 63, 0.18)',
-        borderRadius: 22,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        borderRadius: 16,
         padding: '32px 24px',
-        boxShadow: '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+        boxShadow: T.cardShadow,
         gap: 14,
       }}
     >
@@ -3652,7 +3655,7 @@ function PrayersComingSoon({ dogName }: { dogName: string }) {
         style={{
           padding: '4px 12px',
           borderRadius: 999,
-          background: 'rgba(31,26,14,0.06)',
+          background: T.tileBg,
           fontFamily: "'Cinzel', serif",
           fontSize: 9,
           letterSpacing: '0.18em',
@@ -3701,12 +3704,14 @@ function HubTile({
       className="relative flex flex-col items-center justify-center text-center"
       style={{
         padding: '28px 14px',
-        borderRadius: 22,
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        border: `1px solid rgba(201, 154, 63, ${active ? (lift ? 0.55 : 0.34) : 0.18})`,
+        borderRadius: 16,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
+        // lift (hover na klikateľnej karte) = lockovaný cardShadow + zlatý glow navrch;
+        // pokoj = lockovaný cardShadow.
         boxShadow: lift
-          ? '0 24px 50px -18px rgba(201, 154, 63, 0.5)'
-          : '0 16px 44px -22px rgba(20, 8, 40, 0.45)',
+          ? `0 24px 50px -18px rgba(201, 154, 63, 0.5), ${T.cardShadow}`
+          : T.cardShadow,
         gap: 13,
         minHeight: 158,
         width: '100%',
@@ -3723,7 +3728,7 @@ function HubTile({
             right: 11,
             padding: '3px 8px',
             borderRadius: 999,
-            background: 'rgba(31, 26, 14, 0.06)',
+            background: T.tileBg,
             fontFamily: "'Cinzel', serif",
             fontSize: 8,
             letterSpacing: '0.14em',
@@ -3928,9 +3933,9 @@ function DownloadButton({
     gap: 7,
     width: '100%',
     padding: '11px 10px',
-    borderRadius: 12,
+    borderRadius: 10,
     textDecoration: 'none',
-    background: 'rgba(201,154,63,0.06)',
+    background: T.tileBg,
     border: `1px solid ${enabled ? 'rgba(201,154,63,0.32)' : T.hairline}`,
     color: enabled ? T.ink : T.inkFaint,
     fontFamily: "'Cinzel', serif",
@@ -3958,12 +3963,13 @@ function NotFoundBox() {
   return (
     <div
       style={{
-        background: T.card,
-        borderRadius: 20,
+        background: T.cardGrad,
+        borderRadius: 16,
         padding: 28,
         maxWidth: 480,
         margin: '0 auto',
-        border: `1px solid ${T.hairline}`,
+        border: `1.5px solid ${T.cardEdge}`,
+        boxShadow: T.cardShadow,
       }}
     >
       <h2
@@ -4008,7 +4014,7 @@ function NotFoundBox() {
 function ErrorBox({ message }: { message: string }) {
   const t = useT();
   return (
-    <div style={{ background: T.card, borderRadius: 16, padding: 20, maxWidth: 480, margin: '0 auto' }}>
+    <div style={{ background: T.cardGrad, border: `1.5px solid ${T.cardEdge}`, boxShadow: T.cardShadow, borderRadius: 16, padding: 20, maxWidth: 480, margin: '0 auto' }}>
       <p style={{ fontFamily: "'Space Grotesk', sans-serif", color: T.ink }}>
         {t('pack.dog.errorLoading')}
       </p>

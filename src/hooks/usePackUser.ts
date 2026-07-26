@@ -48,13 +48,25 @@ export function usePackUser(userId: string | null): PackUserData {
     let mounted = true;
 
     // DEV-ONLY seed: NOAUTH guest has no Supabase dogs, so the editor gallery
-    // would be empty. Seed one demo dog so BIO/tags editing is testable locally.
+    // would be empty. Seed demo dogs so BIO/tags editing is testable locally.
     // Never ships (import.meta.env.DEV). NECOMMITOVAŤ — revert before push.
+    //
+    // Hekthor NESIE REÁLNU FOTKU (Matej 2026-07-26: „použi moje fotky z profilu
+    // hekthor nech vidíme preview") — bez nej je celá galéria prázdne krúžky s
+    // iniciálou, čo je presne to, čo na profile vyzeralo pochmúrne. Rex ostáva
+    // BEZ fotky zámerne: v jednom screenshote je tak vidieť oba stavy.
     const DEV_NOAUTH = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
     if (DEV_NOAUTH) {
       setState({
-        devotion: 100, bones: 0, avatarUrl: null, ownerGender: 'male',
+        devotion: 100, bones: 0, avatarUrl: '/images/about-matej.png', ownerGender: 'male',
         dogs: [{
+          id: 'dev-mock-dog-hekthor',
+          dog_name: 'Hekthor',
+          cloudinary_main_url: '/images/hektor-grid.webp',
+          selections: { ownerGender: 'male', dogGender: 'male', dogColour: 'black', dogBloodline: 'aristocrat' },
+          created_at: '2017-06-01T00:00:00.000Z',
+          pack_number: 1,
+        }, {
           id: 'dev-mock-dog-1',
           dog_name: 'Rex',
           cloudinary_main_url: null,

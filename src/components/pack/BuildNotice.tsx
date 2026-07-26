@@ -55,11 +55,13 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
     <div
       className="pack-card-hover"
       style={{
-        background: `linear-gradient(180deg, #FFF6F1 0%, ${T.card} 58%)`,
-        border: `1.5px solid rgba(181,72,47,0.30)`,
+        // Papyrus lock (cardGrad) + tehlový wash navrchu — WIP karta si drží
+        // brick identitu (border/glow), ale podklad je lockovaný papyrus, nie plochá biela.
+        background: `linear-gradient(180deg, rgba(181,72,47,0.09) 0%, rgba(181,72,47,0) 58%), ${T.cardGrad}`,
+        border: `1.5px solid rgba(181,72,47,0.55)`,
         borderRadius: 16,
         padding: 20,
-        boxShadow: '0 10px 30px -6px rgba(181,72,47,0.18), 0 8px 28px rgba(10,10,10,0.05)',
+        boxShadow: `0 10px 30px -6px rgba(181,72,47,0.28), ${T.cardShadow}`,
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
@@ -141,7 +143,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                 width: '100%',
                 minHeight: 84,
                 resize: 'vertical',
-                background: 'rgba(31,26,14,0.03)',
+                background: T.tileBg,
                 border: `1px solid ${T.hairline}`,
                 borderRadius: 10,
                 padding: '10px 12px',
@@ -168,7 +170,7 @@ export function BuildNotice({ ownerName, email }: BuildNoticeProps) {
                   border: `1px solid ${T.hairline}`,
                   borderRadius: 10,
                   padding: 6,
-                  background: 'rgba(31,26,14,0.03)',
+                  background: T.tileBg,
                 }}
               >
                 <img

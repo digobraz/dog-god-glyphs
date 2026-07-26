@@ -73,11 +73,11 @@ export function Ranking({
 
       <div
         style={{
-          background: T.card,
-          border: `1px solid ${T.hairline}`,
+          background: T.cardGrad,
+          border: `1.5px solid ${T.cardEdge}`,
           borderRadius: 16,
           overflow: 'hidden',
-          boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+          boxShadow: T.cardShadow,
         }}
       >
         {filled.map((r, i) => (
@@ -236,10 +236,10 @@ function RankingModal({
           maxHeight: '80vh',
           display: 'flex',
           flexDirection: 'column',
-          background: `linear-gradient(180deg, #FFFBF2, #FCF4DF)`,
-          borderRadius: 20,
-          border: `1px solid ${T.hairline}`,
-          boxShadow: '0 40px 90px -30px rgba(0,0,0,0.6)',
+          background: T.panelGrad,
+          borderRadius: 14,
+          border: `1.5px solid ${T.cardEdge}`,
+          boxShadow: T.panelShadow,
           overflow: 'hidden',
         }}
       >
@@ -268,7 +268,7 @@ function RankingModal({
               width: 30,
               height: 30,
               borderRadius: 999,
-              background: 'rgba(31,26,14,0.06)',
+              background: T.tileBg,
               border: 'none',
               cursor: 'pointer',
               color: T.inkDim,

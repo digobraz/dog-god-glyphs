@@ -21,11 +21,11 @@ export default function PackDogs() {
               to={`/pack/dogs/${dog.id}`}
               className="flex items-center gap-4"
               style={{
-                background: T.card,
-                border: `1px solid ${T.border}`,
-                borderRadius: 14,
+                background: T.cardGrad,
+                border: `1.5px solid ${T.cardEdge}`,
+                borderRadius: 16,
                 padding: '14px 16px',
-                boxShadow: '0 6px 20px rgba(10,10,10,0.06)',
+                boxShadow: T.cardShadow,
               }}
             >
               {dog.cloudinary_main_url ? (
@@ -61,11 +61,11 @@ function EmptyState() {
     <div
       className="flex flex-col items-center text-center gap-4"
       style={{
-        background: T.card,
-        border: `1px solid ${T.border}`,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
         padding: '36px 24px',
-        boxShadow: '0 8px 28px rgba(10,10,10,0.06)',
+        boxShadow: T.cardShadow,
       }}
     >
       <BrandIcon name="bone" size={30} tint="dark" />

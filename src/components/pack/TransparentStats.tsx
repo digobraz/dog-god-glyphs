@@ -79,8 +79,8 @@ export function TransparentStats() {
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
             color: T.inkDim,
-            background: T.cardSoft,
-            border: `1px solid ${T.hairline}`,
+            background: T.tileBg,
+            border: `1px solid ${T.border}`,
             borderRadius: 999,
             padding: '4px 11px',
           }}
@@ -93,9 +93,9 @@ export function TransparentStats() {
       <div
         className="flex items-center justify-center gap-4"
         style={{
-          background: T.cardSoft,
-          border: `1px solid ${T.hairline}`,
-          borderRadius: 14,
+          background: T.tileBg,
+          border: `1px solid ${T.border}`,
+          borderRadius: 10,
           padding: '18px 24px',
           marginBottom: 14,
         }}
@@ -132,9 +132,9 @@ export function TransparentStats() {
           <div
             key={a.key}
             style={{
-              background: T.card,
-              border: `1px solid ${T.hairline}`,
-              borderRadius: 14,
+              background: T.tileBg,
+              border: `1px solid ${T.border}`,
+              borderRadius: 10,
               padding: '13px 13px 12px',
               position: 'relative',
               overflow: 'hidden',

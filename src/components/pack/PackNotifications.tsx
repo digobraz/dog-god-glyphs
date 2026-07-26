@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, UserPlus } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { DEV_FULL } from '@/lib/packFlags';
+import { readPlans, nextPlannedTrip, type NextTripInfo } from './packCommunity';
+import { readTriplist } from './triplist/triplist';
 import { getMe, listConversations, unreadCount, subscribe as subscribeMessaging, type Conversation } from './messaging/packMessaging';
 import { emitOpenInbox, emitOpenThread } from './messaging/openBridge';
 
@@ -44,8 +47,29 @@ interface PackNotificationsProps {
 export function PackNotifications({ last24h, last30d, total, dark = false, className, layout = 'overlay' }: PackNotificationsProps) {
   const inline = layout === 'inline';
   const t = useT();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  // D5 (Matej 2026-07-26): najskorší naplánovaný výlet ako ikonka + číslo v krúžku,
+  // hore vpravo vedľa správ a upozornení — teda na KAŽDEJ /pack stránke, nie len na
+  // homepage. Zdroj = `trp-plans` (sessionStorage), preto sa číta pri mounte a po
+  // návrate na tab: plán vznikne na inej stránke (trip článok) a tento hub sa
+  // medzitým neremountuje.
+  const [nextTrip, setNextTrip] = useState<NextTripInfo | null>(null);
+  useEffect(() => {
+    // Triplist + plans naraz: triplist je zdroj pravdy (user tam dátum edituje),
+    // plans držia to, čo sa doň ešte nemigrovalo (migráciu robí až mount tripListu).
+    const refresh = () =>
+      setNextTrip(nextPlannedTrip([...Object.values(readTriplist()), ...readPlans()]));
+    refresh();
+    // 'focus' aj 'visibilitychange': prvé chytí prepnutie okna, druhé prepnutie tabu.
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, []);
   // Color tokens — light (original, on papyrus card) vs dark (global chrome, on pageBg).
   // Dark variant's trigger buttons get a T.glass backing (not transparent) — this hub also
   // mounts on PackPortal's full-bleed light map (not just the black hieroglyph bg), so a
@@ -95,6 +119,66 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
       className={`${inline ? 'relative w-full justify-end' : dark ? 'fixed' : 'absolute'} flex items-center gap-1.5${className ? ` ${className}` : ''}`}
       style={inline ? { zIndex: 12 } : { top: 16, right: 16, zIndex: dark ? 45 : 12 }}
     >
+      {/* D5 — NEXT TRIP. Renderuje sa LEN keď existuje budúci plán s celým dátumom,
+          inak by tu visela prázdna ikonka. Klik = otvor ten výlet. */}
+      {nextTrip && (
+        <button
+          type="button"
+          onClick={() => navigate(`/pack/map/${nextTrip.tripId}`)}
+          aria-label={
+            nextTrip.daysUntil === 0
+              ? 'Your next trip is today'
+              : `Your next trip is in ${nextTrip.daysUntil} days`
+          }
+          title={
+            nextTrip.daysUntil === 0
+              ? 'Next trip: today'
+              : nextTrip.daysUntil === 1
+                ? 'Next trip: tomorrow'
+                : `Next trip in ${nextTrip.daysUntil} days`
+          }
+          className="relative inline-flex items-center justify-center"
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 999,
+            border: `1px solid ${c.border}`,
+            background: c.buttonBg,
+            backdropFilter: dark ? 'blur(14px)' : undefined,
+            WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
+            boxShadow: dark ? '0 4px 14px rgba(0,0,0,0.4)' : undefined,
+            color: c.ink,
+            cursor: 'pointer',
+          }}
+        >
+          <BrandIcon name="walk" size={16} tint="gold" />
+          <span
+            style={{
+              position: 'absolute',
+              top: -3,
+              right: -3,
+              minWidth: 16,
+              height: 16,
+              padding: '0 4px',
+              borderRadius: 999,
+              // Dnes/zajtra = zelená (už sa to deje), inak zlatá ako ostatné badge.
+              background: nextTrip.daysUntil <= 1 ? T.growGreen : T.accentGold,
+              color: nextTrip.daysUntil <= 1 ? '#FBF5E6' : '#1F1A0E',
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 9,
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: `1.5px solid ${c.badgeBorder}`,
+              lineHeight: 1,
+            }}
+          >
+            {nextTrip.daysUntil > 99 ? '99+' : nextTrip.daysUntil}
+          </span>
+        </button>
+      )}
+
       {/* Messages — LIVE za DEV_FULL (opens Inbox overlay); LIVE build (bez DEV_FULL) ostáva
           presne ako predtým, "coming soon" disabled (§8.4 zadania — bez regresie). */}
       {DEV_FULL ? (

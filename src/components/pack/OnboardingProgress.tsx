@@ -19,11 +19,11 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
     <div
       className="pack-card-hover"
       style={{
-        background: T.card,
-        border: `1px solid ${T.hairline}`,
+        background: T.cardGrad,
+        border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
         padding: 20,
-        boxShadow: '0 8px 28px rgba(10,10,10,0.05)',
+        boxShadow: T.cardShadow,
         height: '100%',
       }}
     >

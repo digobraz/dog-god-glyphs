@@ -153,7 +153,7 @@ export function AddTrailFlow({ onClose, onAdded }: AddTrailFlowProps) {
   }
 
   return (
-    <div style={{ background: T.card, color: T.ink, borderRadius: 8, border: `1px solid ${T.border}`, padding: 20 }}>
+    <div style={{ background: T.panelGrad, color: T.ink, borderRadius: 14, border: `1.5px solid ${T.cardEdge}`, boxShadow: T.panelShadow, padding: 20 }}>
       <div className="flex items-start justify-between">
         <h2 style={{ fontFamily: "'Cinzel', serif", fontSize: 18, fontWeight: 700, letterSpacing: '0.02em' }}>
           {t('pack.trails.addFlow.title')}

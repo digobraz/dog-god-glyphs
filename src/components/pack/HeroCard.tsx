@@ -91,11 +91,11 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
     <section
       className="pack-card-hover h-full"
       style={{
-        background: `linear-gradient(180deg, ${T.card} 0%, ${T.cardSoft} 100%)`,
-        borderRadius: 24,
+        background: T.cardGrad,
+        borderRadius: 16,
         padding: '28px 22px 22px',
-        border: `1px solid ${T.hairline}`,
-        boxShadow: '0 20px 50px -25px rgba(31, 26, 14, 0.18)',
+        border: `1.5px solid ${T.cardEdge}`,
+        boxShadow: T.cardShadow,
         position: 'relative',
         overflow: 'hidden',
         display: 'flex',

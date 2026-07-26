@@ -490,7 +490,7 @@ export function mockMemberProfile(m: MockMember): { profile: CentralProfile; dog
         interests: m.human.interests,
         vibes: m.human.vibes,
         languages,
-        hobbies: [], intents: [],
+        intents: [],
         personality,
         smoke: rnd() < 0.25 ? 'yes' : 'no',
         visibility: {}, // žiadne override → platí DEFAULT_VISIBILITY (languages/interests/vibes = trip)
@@ -581,3 +581,40 @@ export const readPlans = () => readJson<TripPlan[]>(PLANS_KEY, []);
 export const writePlans = (p: TripPlan[]) => writeJson(PLANS_KEY, p);
 export const readEvents = () => readJson<PartnerEvent[]>(EVENTS_KEY, []);
 export const writeEvents = (e: PartnerEvent[]) => writeJson(EVENTS_KEY, e);
+
+// ── D5 „Next trip in X days" (rozhodnutie Mateja 2026-07-26) ─────────────────
+// Zdroj dát = `trp-plans` (readPlans), teda MOJE naplánované výlety. Vyberá sa
+// NAJSKORŠÍ budúci — v tripliste ako info, a hore vpravo pri 🔔/✉ ako ikonka
+// s číslom v krúžku.
+//
+// Pozor na formát dátumu: je to string z <input type="date">, ale
+// PackTripArticle doň pri inzeráte zapisuje `ad.dates[0] ?? ad.month`, takže to
+// môže byť aj 'YYYY-MM' alebo ''. Bez celého dňa sa počet dní spočítať nedá →
+// také plány sa preskakujú (nie crash, nie nula).
+//
+// Signatúra je zámerne štruktúrna (`{tripId, date?}`), nie `TripPlan[]`: zdroj
+// pravdy pre „moje výlety" je TRIPLIST (`triplist.ts`, user tam dátum priamo
+// edituje), plány sú len to, čo sa doň ešte nemigrovalo. Volajúci posiela oboje
+// a duplicity nevadia — vyhráva najskorší dátum, nie poradie.
+export interface NextTripInfo { tripId: string; date: string; daysUntil: number }
+
+const FULL_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+export function nextPlannedTrip(
+  plans: Array<{ tripId: string; date?: string }>,
+  now: Date = new Date(),
+): NextTripInfo | null {
+  // Porovnávame kalendárne dni, nie časové známky — výlet dnes o 8:00 pri
+  // otvorení appky o 20:00 musí ostať „dnes" (0 dní), nie „−1".
+  const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  let best: NextTripInfo | null = null;
+  for (const p of plans) {
+    if (!FULL_DATE.test(p.date ?? '')) continue;
+    const [y, m, d] = p.date!.split('-').map(Number);
+    const when = Date.UTC(y, m - 1, d);
+    const daysUntil = Math.round((when - today) / DAY_MS);
+    if (daysUntil < 0) continue;                       // minulé výlety nezaujímajú
+    if (!best || daysUntil < best.daysUntil) best = { tripId: p.tripId, date: p.date, daysUntil };
+  }
+  return best;
+}

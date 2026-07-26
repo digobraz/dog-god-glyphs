@@ -63,10 +63,11 @@ export function CouncilSection() {
         /* ── Beige papyrus block (like /pack cards) — full width, image | form ── */
         .council-card {
           width: 100%;
-          background: linear-gradient(165deg, #FFFBF2 0%, #F4E8CC 52%, #E7D8B8 100%);
-          border: 1px solid rgba(31,26,14,0.16);
-          border-radius: clamp(18px, 2vw, 28px);
-          box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55);
+          /* PAPYRUS LOCK (2026-07-26) — bledý blok podľa /entry .religion-card */
+          background: var(--papyrus-card);
+          border: var(--papyrus-border);
+          border-radius: var(--radius-card);
+          box-shadow: var(--shadow-papyrus-card);
           padding: clamp(22px, 3vw, 46px);
           display: grid; grid-template-columns: 1fr; gap: clamp(22px, 4vh, 38px);
           align-items: center; text-align: center;

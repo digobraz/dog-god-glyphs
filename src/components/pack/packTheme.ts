@@ -17,13 +17,39 @@ export const PACK_THEME = {
   bgTop: '#F2E5C7',
   bgBottom: '#E5D5B3',
   bg: '#EDDCBD',
-  card: '#FFFBF2',
+  // `card` = PLNÁ farba, nie gradient — používa sa aj ako `color:` (svetlý text na
+  // tmavom podklade, napr. hover overlay avatara). Pre pozadie karty ber `cardGrad`.
+  card: '#FBF5E6',
   cardSoft: '#FCF4DF',
   ink: '#1F1A0E', // off-black, warm
   inkDim: 'rgba(31, 26, 14, 0.62)',
   inkFaint: 'rgba(31, 26, 14, 0.42)',
-  hairline: 'rgba(31, 26, 14, 0.08)',
-  border: 'rgba(31, 26, 14, 0.16)',
+  // ── PAPYRUS LOCK (2026-07-26, Matej: „dizajn bledých blokov sme si lockli
+  // podľa /entry") — zdroj pravdy = src/pages/Entry.tsx `.religion-card`,
+  // `.crit-tile`, `.religion-rule`. Bledý blok NIE je plochá biela so šedým
+  // hairlinom; je to papyrusový gradient v zlatom ráme so zlatým halo ringom.
+  // Šedé hairliny (rgba(31,26,14,…)) sú preto preložené na tlmenú zlatú.
+  hairline: 'rgba(201, 154, 63, 0.30)',
+  border: 'rgba(201, 154, 63, 0.45)',
+  /** Pozadie bledej KARTY (`.religion-card`). */
+  cardGrad: 'linear-gradient(160deg, #FBF5E6 0%, #F3E4C4 55%, #EAD6A6 100%)',
+  /** Pozadie menšieho bledého PANELU (tooltip/modal v /entry). */
+  panelGrad: 'linear-gradient(135deg, #FBF5E6 0%, #F2E2BD 100%)',
+  /** Vonkajší okraj bledej karty — 1.5px solid, plná zlatá. */
+  cardEdge: '#C99A3F',
+  /** Tieň bledej karty vrátane zlatého halo ringu a horného inner highlightu. */
+  cardShadow:
+    '0 14px 44px rgba(0,0,0,0.55), 0 0 0 4px rgba(201,154,63,0.12), inset 0 1px 0 rgba(255,255,255,0.5)',
+  /** Tieň menšieho panelu (užší ring). */
+  panelShadow: '0 8px 28px rgba(0,0,0,0.45), 0 0 0 3px rgba(201,154,63,0.15)',
+  /** Výplň dlaždice/políčka VNÚTRI bledej karty (`.crit-tile`). */
+  tileBg: 'rgba(201, 154, 63, 0.06)',
+  /** Deliaca čiara vnútri bledej karty — zlatá, vyblednutá do strán. */
+  rule: 'linear-gradient(90deg, transparent, #C99A3F, transparent)',
+  /** Tmavý inkoust na papyruse pre nadpisy (Cinzel) — teplejší než `ink`. */
+  inkStrong: '#2a1608',
+  /** Sekundárny text na papyruse (Space Grotesk sub). */
+  inkWarm: '#7a5a2a',
   accentGold: '#C99A3F',
   growGreen: '#3D7A4E',
   // ── Canonical TRANSPARENCY MODEL part colors (LOCKED 2026-06-09) ──────────

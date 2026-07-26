@@ -25,7 +25,8 @@ export interface Companion { key: string; name: string; sub?: string; photo?: st
 const T = PACK_THEME;
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
-const CARD = '#FFFBF2';
+// Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
+const CARD = PACK_THEME.card;
 
 // meno → MOCK_MEMBER_POOL id slug (zadanie-profil-read-dog-2026-07-25 §4 — klikateľnosť
 // planners/companion avatarov do /pack/u/:id). Mock crowd (mockPlannersFor/mockEventsSeed) berie
@@ -188,7 +189,7 @@ export const COMMUNITY_CSS = `
 
 /* hover %-rozpad tooltip (design §A) */
 .comm-hastip{position:relative;cursor:help;}
-.comm-hastip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);right:0;background:${CARD};color:${INK};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:6px 10px;border-radius:7px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:0 8px 22px rgba(0,0,0,0.45);z-index:20;}
+.comm-hastip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);right:0;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:6px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:20;}
 .comm-hastip:hover::after{opacity:1;}
 
 /* ── dashboard „My Slovakia" ── */
