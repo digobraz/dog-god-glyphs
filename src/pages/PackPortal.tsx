@@ -61,9 +61,9 @@ import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripComments } from '@/components/pack/trip/TripComments';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
-  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS,
+  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, DIFF_COLOR, ElevationProfile,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
 } from '@/components/pack/tripShared';
@@ -82,6 +82,9 @@ import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const T = PACK_THEME;
+
+// Typografický poriadok (FONT_TITLE = identita, FONT_UI = dáta/eyebrow/chipy) žije
+// v packTheme.ts vedľa farebných tokenov — pravidlá a dôvody sú tam.
 // Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
 const CARD = PACK_THEME.card;
 const PANEL_W = 440; // .trp-sidebar width — used to offset the inline-detail fitBounds
@@ -206,14 +209,16 @@ const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey'
 // tripov a všetky sú paddleboard; boli to ich JEDINÉ tagy, takže bez chipu boli neviditeľné
 // aj nefiltrovateľné (a vodné plochy kvôli prázdnemu tagSetu obchádzali tag filter).
 // 🔴 Labely = doslova hodnoty z dát, nič som nepremenoval — kratšie názvy sú na Matejovi.
+// Matej 2026-07-26: „In the middle of nature" AJ „In the middle of nowhere" preč — obe boli
+// PROSTREDIE catch-all chipy (2026-07-25), zbytočné vedľa Forest/Lake/River scenérie.
 const TAG_VOCAB = [
   'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset',
-  'In the middle of nature', 'In the middle of nowhere', 'Embankment',
+  'Embankment',
   'Forest path', 'Asphalt', 'Rocky',
 ] as const;
 const TAG_EMOJI: Record<string, string> = {
   Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅',
-  'In the middle of nature': '🌳', 'In the middle of nowhere': '🌾', Embankment: '🧱',
+  Embankment: '🧱',
   'Forest path': '🥾', Asphalt: '🛣️', Rocky: '🪨',
 };
 // surface = typ cesty (zdroj pravdy: nahadzovač state — hodnoty 'forest'/'asphalt')
@@ -250,8 +255,8 @@ const DATA_TAG_TO_UI: Record<string, string> = {
   Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
   Stream: 'River', River: 'River',
   // prostredie vodných tripov — 1:1, hodnoty z nahadzovača sa nepremenúvajú
-  'In the middle of nature': 'In the middle of nature',
-  'In the middle of nowhere': 'In the middle of nowhere',
+  // ('In the middle of nature'/'In the middle of nowhere' zámerne bez mapovania —
+  // Matej 2026-07-26 oba chipy zrušil)
   Embankment: 'Embankment',
 };
 // tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
@@ -369,7 +374,10 @@ function MapRefBridge({ onReady }: { onReady: (map: L.Map) => void }) {
 }
 
 const CSS = `
-.trp-root{position:fixed;inset:0;overflow:hidden;background:#000;color:rgba(245,240,228,0.9);font-family:'DM Sans',system-ui,sans-serif;display:flex;flex-direction:column;}
+/* Základný font: bolo 'DM Sans', ktorý sa NIKDE nenačítava (index.html ťahá Cinzel, Inter,
+   Space Grotesk, JetBrains Mono) → celý neCinzelový text padal na system-ui. Teraz Space
+   Grotesk, presne ako pravidlo pre body v index.css. */
+.trp-root{position:fixed;inset:0;overflow:hidden;background:#000;color:rgba(245,240,228,0.9);font-family:${FONT_UI};display:flex;flex-direction:column;}
 
 /* ── top bar — lives ON the map, AllTrails "Search map" vzor. Sits between
    the floating panel's right edge and the right-side map control stack.
@@ -416,28 +424,50 @@ const CSS = `
    100% (rozšírené na celú šírku topbaru, zarovnané so search-a-place/
    top-filter riadkom pod ňou; pozícia/floating charakter nezmenené).
    D4 nav rework (2026-07-24): avatar (.trp-status-avatar, i15 bod 1) ODSTRÁNENÝ —
-   žije v zdieľanom bottom nave (PackBottomNav), duplicita zrušená. .trp-status-right
-   preto už netlačí doprava (margin-left:auto zrušené) — hugne prirodzene zľava. */
+   žije v zdieľanom bottom nave (PackBottomNav), duplicita zrušená.
+   Matej 2026-07-26: obsah rozdelený na tri bloky (.trp-status-left / -center / .trp-headright). */
 .trp-status-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:14px;padding:13px 20px;box-shadow:0 10px 30px rgba(0,0,0,0.35);}
 
-.trp-status-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+/* TROJDIELNY header (Matej 2026-07-26): [LEVEL] — [TRIPSTATS/TRIPLIST/ADD TRIP] — [messages+bell].
+   Krajné bloky nesú flex:1 1 0 (rovnaký podiel voľného miesta), stredný len svoj obsah → stredný
+   klaster sedí v skutočnej osi riadku, nezávisle od toho aká dlhá je ľavá/pravá strana. */
+.trp-status-left{flex:1 1 0;min-width:0;display:flex;align-items:center;}
+.trp-status-center{flex:0 1 auto;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
 .trp-stat-pill{display:flex;align-items:center;gap:6px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:9px 15px;}
 .trp-stat-pill img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.75;flex-shrink:0;}
-.trp-stat-pill span{font-family:'Cinzel',serif;font-weight:700;font-size:13px;color:${GOLD};line-height:1;}
-.trp-stat-pill b{font-family:'Cinzel',serif;font-weight:700;font-size:13px;color:rgba(245,240,228,0.92);white-space:nowrap;}
+/* Obsah pilulky = dáta (počet výletov, km, názov zoznamu) → FONT_UI. Číslice v Space Grotesku
+   sú tabular-ish a pri 13px čitateľnejšie než Cinzel serifka. */
+.trp-stat-pill span{font-family:${FONT_UI};font-weight:600;font-size:12.5px;color:${GOLD};line-height:1;}
+.trp-stat-pill b{font-family:${FONT_UI};font-weight:600;font-size:12.5px;letter-spacing:.01em;color:rgba(245,240,228,0.92);white-space:nowrap;}
 button.trp-stat-pill{cursor:pointer;transition:all .15s;}
 button.trp-stat-pill:hover{border-color:${GOLD};}
 button.trp-stat-pill.on{background:${GOLD};border-color:${GOLD};}
 button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
-.trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
+/* LEVEL (Matej 2026-07-26): NIE pilulka — holý text v status riadku. „Zatraktívnené" cez
+   typografiu, nie cez rámik. Tri role, tri roly písma (Matej 2026-07-26 „ten level si odflákol"
+   — pôvodne bolo všetko Cinzel, takže tam nebol žiadny kontrast, len rozdiel veľkostí):
+     PÚTNIK = rang → FONT_TITLE (identita)
+     LVL    = eyebrow → FONT_UI 500 / .26em ako .religion-eyebrow v Entry.tsx
+     1      = číslo → FONT_UI 600, veľké, gold gradient
+   Gradient ide cez background-clip:text (glyf je transparentný) → glow MUSÍ byť
+   filter:drop-shadow, text-shadow by presvital cez dieru v glyfe. */
+.trp-level{display:inline-flex;align-items:baseline;gap:9px;flex-shrink:0;padding-right:2px;white-space:nowrap;}
+.trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
+.trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px rgba(245,199,61,0.35));}
+.trp-level-num i{font-style:normal;font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;}
+.trp-level-num em{font-style:normal;font-weight:600;font-size:21px;letter-spacing:0;}
+/* CTA tlačidlo → Cinzel ostáva: .btn-gold (SpiralLanding.css) je LOCKED brand CTA a ten je
+   Cinzel 700 uppercase. Grotesk sem nepatrí. */
+.trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
 .trp-addtrip-btn:hover{filter:brightness(1.05);}
 /* Matej 2026-07-24: "+" brand ikonka pred textom — plus.svg je natívne čierne (fill hardcoded,
    nie currentColor), čo na zlatom gradiente číta ako tmavá/INK farba presne ako treba — žiadny
    invert filter (to by ju zmenilo na bielu). */
 .trp-addtrip-icon{width:13px;height:13px;flex-shrink:0;display:block;}
 
-.trp-greet-hi{font-family:'Cinzel',serif;font-weight:700;font-size:13px;color:rgba(245,240,228,0.65);}
-.trp-greet-sub{font-family:'Cinzel',serif;font-weight:700;font-size:19px;color:${GOLD};letter-spacing:.01em;margin-top:2px;line-height:1.25;}
+/* „Hi Guest," = sub riadok nad otázkou → FONT_UI; samotná otázka = nadpis → FONT_TITLE. */
+.trp-greet-hi{font-family:${FONT_UI};font-weight:500;font-size:12.5px;color:rgba(245,240,228,0.65);}
+.trp-greet-sub{font-family:${FONT_TITLE};font-weight:700;font-size:19px;color:${GOLD};letter-spacing:.01em;margin-top:2px;line-height:1.25;}
 
 /* bod 2 (Matej 2026-07-22): pozdrav vľavo + filter (sliders) ikonka vpravo hore, medzi nimi space. */
 .trp-greet-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
@@ -450,7 +480,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-sortpop--desk{position:absolute;top:calc(100% + 8px);right:0;background:rgba(6,5,3,0.96);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:11px;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,0.55);z-index:40;min-width:150px;}
 .trp-sortpop--desk button{display:block;width:100%;text-align:left;padding:11px 15px;font-family:inherit;font-size:12.5px;color:${T.onDark};background:none;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;}
 .trp-sortpop--desk button:last-child{border-bottom:0;}
-.trp-sortpop--desk button.on{color:${GOLD};font-weight:700;}
+.trp-sortpop--desk button.on{color:${GOLD};font-weight:600;}
 .trp-sortpop--desk button:hover{background:rgba(201,154,63,0.14);}
 
 /* category pills — Trips active (solid gold), rest dashed + muted, CSS
@@ -458,11 +488,12 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    (Matejov feedback bod 1): FULL-WIDTH grid, 4 rovnaké stĺpce, edge-to-edge —
    rovnako široké ako dropdowny pod nimi. */
 .trp-cat-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
-.trp-catpill{width:100%;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
+/* Kategórie (Trips/Events/Places/Services) sú nadpisy sekcií, nie dáta → FONT_TITLE. */
+.trp-catpill{width:100%;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
 .trp-catpill.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
 .trp-catpill.soon{border-style:dashed;opacity:.5;cursor:default;position:relative;}
 .trp-catpill.soon:hover{opacity:.8;}
-.trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;padding:5px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:5;}
+.trp-catpill.soon::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:${T.panelGrad};border:1.5px solid ${T.cardEdge};color:${INK};font-family:${FONT_UI};font-size:10px;font-weight:600;padding:5px 10px;border-radius:10px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;box-shadow:${T.panelShadow};z-index:5;}
 .trp-catpill.soon:hover::after{opacity:1;}
 
 /* country select — flag + 3-letter code; native <select> so the dropdown escapes
@@ -504,7 +535,8 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-bigcard-photoacts{position:absolute;right:9px;top:9px;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
 /* náročnosť + popularita STACKED — dolný PRAVÝ roh fotky (PhotoMetaPills). Hazard tu NIE. */
 .trp-bigcard-photometa{position:absolute;right:9px;bottom:9px;z-index:2;}
-.trp-bigcard-photoactbtn{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.22);color:#fff;font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.02em;padding:6px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+/* Chipy na fotke (Walked / Triplist) = drobné ovládanie, nie CTA → FONT_UI. */
+.trp-bigcard-photoactbtn{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.22);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;padding:6px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 .trp-bigcard-photoactbtn:hover{border-color:${GOLD};}
 .trp-bigcard-photoactbtn.on{background:${GOLD};border-color:${GOLD};color:${INK};}
 /* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo rating·difficulty·Crowd */
@@ -513,9 +545,10 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-bigcard-body{padding:11px 13px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .trp-bigcard-info{min-width:0;}
 /* pohorie · región label, pod fotkou (Matejov feedback bod 3, iterácia 7) */
-.trp-bigcard-loc{font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:rgba(245,240,228,0.45);margin-bottom:3px;}
+/* Región nad názvom = eyebrow (Entry.tsx .religion-eyebrow vzor) → FONT_UI 500 + .22em. */
+.trp-bigcard-loc{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,240,228,0.45);margin-bottom:3px;}
 /* bod 4 (iterácia 16): line-clamp 2 riadky, nech dlhé názvy nerozbíjajú layout */
-.trp-bigcard-name{font-family:'Cinzel',serif;font-weight:700;font-size:13.5px;color:rgba(245,240,228,0.92);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.trp-bigcard-name{font-family:${FONT_TITLE};font-weight:700;font-size:13.5px;color:rgba(245,240,228,0.92);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 /* bod 6: "by {author}" riadok + avatarpair (majiteľ+pes) — .trp-bigcard-author je teraz
    inline text vedľa avatarov, nie vlastný blok (margin presunutý na wrapper riadok). */
 .trp-bigcard-authorrow{display:flex;align-items:center;gap:6px;margin-top:4px;}
@@ -523,13 +556,13 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-bigcard-meta2{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
 .trp-bigcard-meta2 span{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;white-space:nowrap;}
 .trp-bigcard-meta2-row{color:rgba(245,240,228,0.55);}
-.trp-bigcard-star{color:${GOLD};font-weight:700;}
+.trp-bigcard-star{color:${GOLD};font-weight:600;}
 
 /* bod 6 (iterácia 16): dva prekrývajúce sa kruhové avatary (majiteľ + pes) pri "by {author}"
    riadku — zdieľané medzi kartou a inline detailom (AuthorAvatars komponent), veľkosť cez
    --trp-av-size CSS var (size prop, rôzna pre kompaktnú kartu vs. priestrannejší detail). */
 .trp-avatarpair{display:inline-flex;align-items:center;flex-shrink:0;}
-.trp-avatarcircle{width:var(--trp-av-size,16px);height:var(--trp-av-size,16px);border-radius:50%;border:1.5px solid ${T.pageBg};background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-family:'Cinzel',serif;font-weight:700;font-size:calc(var(--trp-av-size,16px) * 0.42);color:#1c160c;}
+.trp-avatarcircle{width:var(--trp-av-size,16px);height:var(--trp-av-size,16px);border-radius:50%;border:1.5px solid ${T.pageBg};background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;font-family:${FONT_UI};font-weight:600;font-size:calc(var(--trp-av-size,16px) * 0.44);color:#1c160c;}
 .trp-avatarcircle+.trp-avatarcircle{margin-left:calc(var(--trp-av-size,16px) * -0.3);}
 .trp-avatarcircle--placeholder{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);}
 
@@ -550,16 +583,16 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-inldet-photowrap{position:relative;}
 .trp-inldet-photo{width:100%;aspect-ratio:4/3;border-radius:12px;background-size:cover;background-position:center;background-color:#111;}
 .trp-inldet-authoravatar{position:absolute;top:10px;left:10px;z-index:3;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);border:2px solid rgba(255,255,255,0.5);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
-.trp-inldet-authoravatar span{font-family:'Cinzel',serif;font-weight:700;font-size:12px;color:#1c160c;}
-.trp-inldet-savebtn{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,0.28);color:#fff;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
+.trp-inldet-authoravatar span{font-family:${FONT_UI};font-weight:600;font-size:12px;color:#1c160c;}
+.trp-inldet-savebtn{position:absolute;bottom:10px;right:10px;z-index:3;display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1.5px solid rgba(255,255,255,0.28);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:7px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 .trp-inldet-savebtn.on{background:${GOLD};border-color:${GOLD};color:${INK};}
 /* bod 4 (i15) + bod 1/2/6 (i16): 2 stĺpce (ako karta) — vľavo 3 riadky (loc/název/autor+
    avatarpair), vpravo rating(packy+číslo)+difficulty+km+Crowd. Tagy a text idú POD tento blok
    (mimo gridu, vlastný riadok). */
 .trp-inldet-main{display:grid;grid-template-columns:1fr auto;gap:14px;margin-top:12px;align-items:center;}
-.trp-inldet-loc{font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:${T.onDarkDim};}
+.trp-inldet-loc{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
 /* bod 4 (iterácia 16): line-clamp 2 riadky */
-.trp-inldet-name{font-family:'Cinzel',serif;font-weight:700;font-size:17px;color:${T.onDark};margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.trp-inldet-name{font-family:${FONT_TITLE};font-weight:700;font-size:17px;color:${T.onDark};margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 /* bod 6: "by {author}" riadok + avatarpair (majiteľ+pes), rovnaký vzor ako karta */
 .trp-inldet-authorrow{display:flex;align-items:center;gap:7px;margin-top:5px;}
 .trp-inldet-author{font-size:10.5px;color:${T.onDarkDim};}
@@ -567,17 +600,19 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-inldet-meta2-row{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:${T.onDarkDim};white-space:nowrap;}
 /* bod 2 (iterácia 16): rating = 5-pack (RatingPaws, tripShared) + stars.toFixed(1) */
 .trp-inldet-rating{display:inline-flex;align-items:center;gap:6px;}
-.trp-inldet-rating b{font-family:'Cinzel',serif;font-weight:700;font-size:12px;color:${GOLD};}
+.trp-inldet-rating b{font-family:${FONT_UI};font-weight:600;font-size:12px;color:${GOLD};}
 /* bod 4: tagy JEDEN riadok vedľa seba (nie stĺpec/pravá strana ako v i12) */
 .trp-inldet-tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
 .trp-inldet-tag{background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:10.5px;font-weight:600;padding:5px 10px;border-radius:999px;white-space:nowrap;}
 .trp-inldet-desc{font-size:12.5px;line-height:1.6;color:${T.onDarkDim};margin-top:10px;}
 /* bod 4: Comments + "Walked by N Dogyptians" — placeholder empty-state sekcie */
 .trp-inldet-section{margin-top:16px;}
-.trp-inldet-section h4{font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:${T.onDark};margin-bottom:6px;}
+/* Sekčné popisky v detaile ("Elevation profile", "Walked by N Dogyptians") sú pri 10.5px
+   uppercase eyebrow, nie nadpis → FONT_UI 500. Titulnú rolu v detaile nesie .trp-inldet-name. */
+.trp-inldet-section h4{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDark};margin-bottom:6px;}
 .trp-inldet-empty{font-size:11.5px;color:${T.onDarkDim};font-style:italic;}
 .trp-inldet-actions{display:flex;gap:9px;padding:14px 20px 20px;border-top:1px solid ${T.onDarkHair};flex-shrink:0;}
-.trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+.trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
 .trp-inldet-btn--ghost{background:rgba(245,240,228,0.06);color:${T.onDark};border-color:${T.onDarkBorder};}
 .trp-inldet-btn--ghost.on{background:rgba(201,154,63,0.16);color:${GOLD};border-color:${GOLD};}
 
@@ -587,23 +622,23 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    submitAdd) — DB zápis je mimo rozsahu tejto iterácie. ── */
 .trp-addsetup{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;}
 .trp-addsetup-head{display:flex;align-items:center;gap:10px;padding:16px 20px 10px;flex-shrink:0;}
-.trp-addsetup-title{font-family:'Cinzel',serif;font-weight:700;font-size:14px;color:${T.onDark};}
+.trp-addsetup-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
 .trp-addsetup-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:13px;}
-.trp-addsetup-field label{display:block;font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
+.trp-addsetup-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
 .trp-addsetup-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:9px;padding:9px 11px;color:${T.onDark};font-family:inherit;font-size:12.5px;outline:0;}
 .trp-addsetup-input:focus{border-color:${GOLD};}
 .trp-addsetup-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .trp-multitoggle{margin-top:6px;background:none;border:0;padding:2px 0;color:${GOLD};font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;opacity:.85;}
 .trp-multitoggle:hover{opacity:1;text-decoration:underline;}
-.trp-plannedpill{display:inline-block;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
-.trp-norating{font-size:22px;font-weight:700;color:rgba(245,240,228,0.35);letter-spacing:.05em;}
+.trp-plannedpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
+.trp-norating{font-size:22px;font-weight:600;color:rgba(245,240,228,0.35);letter-spacing:.05em;}
 .trp-planmarker-dot{width:16px;height:16px;border-radius:50% 50% 50% 0;background:#FF5FA2;border:2.5px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 7px rgba(0,0,0,0.5);}
 /* plánovanie (Matej 2026-07-23): 3 date dropdowny (deň/mesiac/rok) + profil note. */
 .trp-addsetup-daterow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .trp-addsetup-profilenote{font-size:11.5px;line-height:1.5;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid rgba(201,154,63,0.3);border-radius:10px;padding:11px 13px;}
 /* TODO: forest placeholder foto (Cloudinary) doplniť keď Matej vyberie z 10 návrhov → background-image na .trp-planph */
 .trp-planph{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;margin-bottom:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);display:flex;align-items:center;justify-content:center;border:1px solid rgba(245,240,228,0.12);}
-.trp-planph-badge{font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
+.trp-planph-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
 .trp-planpin{padding:9px 11px;border-radius:9px;border:1px dashed rgba(201,154,63,0.5);background:rgba(201,154,63,0.06);color:rgba(245,240,228,0.75);font-size:12px;}
 .trp-planpin.set{border-style:solid;color:${GOLD};}
 .trp-addsetup-file{font-size:11px;color:${T.onDarkDim};}
@@ -613,17 +648,17 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-addsetup-stars{display:flex;gap:4px;}
 .trp-addsetup-stars button{background:none;border:none;font-size:20px;color:rgba(245,240,228,0.22);cursor:pointer;line-height:1;}
 .trp-addsetup-stars button.on{color:${GOLD};}
-.trp-addsetup-livekm{font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid rgba(201,154,63,0.3);border-radius:9px;padding:9px 11px;}
-.trp-addsetup-submit{flex-shrink:0;margin:0 20px 20px;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
+.trp-addsetup-livekm{font-family:${FONT_UI};font-weight:600;font-size:11.5px;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid rgba(201,154,63,0.3);border-radius:9px;padding:9px 11px;}
+.trp-addsetup-submit{flex-shrink:0;margin:0 20px 20px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
 .trp-addsetup-submit:disabled{opacity:.45;cursor:default;}
 
 /* draw hint bubble — shown on the map while ADD TRIP is open (bod 6) */
 /* Matej 2026-07-23: hint bol hore v headri (zle) → POD search-a-place riadkom (top:120px),
    ČERVENÝ a väčší, nech je jasne vidno. Mobile override nižšie ho drží pod mobilným headerom. */
 .trp-drawhint{position:absolute;top:152px;left:calc(50% + ${PANEL_W / 2}px);transform:translateX(-50%);z-index:750;background:rgba(178,38,30,0.94);backdrop-filter:blur(10px);border:1.5px solid rgba(255,124,112,0.7);border-radius:12px;padding:13px 22px;box-shadow:0 12px 34px rgba(120,20,14,0.5);display:flex;align-items:center;gap:14px;max-width:calc(100vw - ${PANEL_W + 60}px);}
-.trp-drawhint-txt{font-size:15px;font-weight:700;color:#fff;white-space:nowrap;}
+.trp-drawhint-txt{font-size:15px;font-weight:600;color:#fff;white-space:nowrap;}
 .trp-drawhint-actions{display:flex;gap:8px;flex-shrink:0;}
-.trp-drawhint-actions button{font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:${GOLD};background:none;border:none;cursor:pointer;text-decoration:underline;}
+.trp-drawhint-actions button{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${GOLD};background:none;border:none;cursor:pointer;text-decoration:underline;}
 
 /* ── mobile-only surfaces (header/list/toggle/ADD overlay), hidden on desktop — see the
    ≤760px media query below for their real layout (bod 5 i11, bod 4 i14). ── */
@@ -635,9 +670,12 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-mapfull .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
 .trp-attr{position:absolute;right:10px;bottom:10px;z-index:800;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.85);border-radius:4px;padding:2px 7px;font-size:9px;color:#333;}
 /* D4 nav rework (2026-07-24, Matej): notif+messages žijú VNÚTRI status headra, odtlačené do
-   jeho pravého rohu cez margin-left:auto (sibling .trp-status-right v .trp-status-row /
-   .trp-mheader-status). width:auto zruší inline-layout w-full, nech je to kompaktný klaster. */
-.trp-header-notif{margin-left:auto;width:auto!important;}
+   jeho pravého rohu. width:auto zruší inline-layout w-full, nech je to kompaktný klaster.
+   Matej 2026-07-26: margin-left:auto ZRUŠENÉ — pravý blok je teraz tretina trojdielneho headra
+   (flex:1 + justify-content:flex-end), obsah = messages + bell. Auto-margin by rozbil centrovanie
+   stredného klastra (zožral by celý voľný priestor a stred by ušiel doľava). */
+.trp-header-notif{width:auto!important;}
+.trp-headright{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:flex-end;gap:10px;}
 /* pravý vertikálny ovládací stack (AllTrails vzor): štýl / zoom / poloha —
    z-index 800 musí prebiť Leaflet vlastné panes (idú až po 700). */
 .trp-ctlstack{position:absolute;top:16px;right:16px;z-index:800;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
@@ -647,7 +685,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-stylebtn:hover{border-color:${GOLD};}
 .trp-stylebtn img{width:18px;height:18px;filter:brightness(0) saturate(0);opacity:.75;}
 .trp-zoomgroup{display:flex;flex-direction:column;background:${CARD};border:1px solid rgba(201,154,63,0.45);border-radius:9px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
-.trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:17px;font-weight:700;line-height:1;color:${INK};display:flex;align-items:center;justify-content:center;}
+.trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:17px;font-weight:600;line-height:1;color:${INK};display:flex;align-items:center;justify-content:center;}
 .trp-zoomgroup button:first-child{border-bottom:1px solid rgba(31,26,14,0.12);}
 .trp-zoomgroup button:hover{background:rgba(201,154,63,0.12);}
 .trp-locatebtn{width:38px;height:38px;border-radius:9px;background:${CARD};border:1px solid rgba(201,154,63,0.45);box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -660,7 +698,9 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 /* bod 3 (iterácia 12): marker = čierny pill (diffmark + km), ŽIADNE poradové číslo. Pozícia
    centrovaná cez left:-50%/top:-100% (dynamická šírka podľa km textu — viď pillIcon komentár). */
 .trp-pinwrap{background:none;border:0;}
-.trp-pill{position:relative;left:-50%;top:-100%;display:inline-flex;align-items:center;gap:5px;background:#141414;color:#fff;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1.5px solid rgba(255,255,255,0.16);box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;transition:all .15s;}
+/* Markery na mape nesú ČÍSLA (km) v 10.5px — Cinzel serifka sa tu zlievala, Grotesk 600 má
+   pri tejto veľkosti výrazne lepšiu čitateľnosť. */
+.trp-pill{position:relative;left:-50%;top:-100%;display:inline-flex;align-items:center;gap:5px;background:#141414;color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1.5px solid rgba(255,255,255,0.16);box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;transition:all .15s;}
 .trp-pill.hot{border-color:${GOLD};box-shadow:0 0 0 3px rgba(245,199,61,0.3),0 4px 12px rgba(0,0,0,0.6);}
 .trp-pill--journey{background:#E01B22;color:#fff;border-color:rgba(255,255,255,0.55);}
 .trp-pill--journey.hot{border-color:#fff;box-shadow:0 0 0 3px rgba(224,27,34,0.35),0 4px 12px rgba(0,0,0,0.6);}
@@ -674,7 +714,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-waterdot--3{width:30px;height:30px;}
 .trp-waterdot svg{display:block;}
 /* farebná legenda mapy — floating vpravo dole, nad Dev nav / atribúciou */
-.trp-legend{position:absolute;right:12px;bottom:54px;z-index:600;display:flex;flex-direction:column;gap:4px;background:rgba(20,20,20,0.82);backdrop-filter:blur(6px);padding:8px 11px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);box-shadow:0 4px 14px rgba(0,0,0,0.45);font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;color:#fff;letter-spacing:.3px;pointer-events:none;}
+.trp-legend{position:absolute;right:12px;bottom:54px;z-index:600;display:flex;flex-direction:column;gap:4px;background:rgba(20,20,20,0.82);backdrop-filter:blur(6px);padding:8px 11px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);box-shadow:0 4px 14px rgba(0,0,0,0.45);font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:#fff;letter-spacing:.06em;pointer-events:none;}
 .trp-legrow{display:flex;align-items:center;gap:7px;}
 .trp-legdot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,0.5);}
 .trp-legdot--hike{background:#141414;}
@@ -685,7 +725,7 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 /* bod 2 (iterácia 17): live "{km} km" label pri konci kreslenej trasy (ADD flow draw) —
    rovnaká centrovacia technika ako .trp-pill (left:-50%/top:-100%), o kúsok vyššie (-10px
    extra gap), nech nesedí priamo na poslednom bode trasy. */
-.trp-drawlabel{position:relative;left:-50%;top:calc(-100% - 10px);background:rgba(6,5,3,0.92);color:${GOLD};font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
+.trp-drawlabel{position:relative;left:-50%;top:calc(-100% - 10px);background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
 ${DIFF_MARK_CSS}
 
 /* ── desktop: floating bottom nav stays CENTERED (PackBottomNav default —
@@ -723,33 +763,45 @@ ${DIFF_MARK_CSS}
      (i12 bod 7). .trp-mheader je teraz column namiesto jedného riadku. */
   .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid ${T.onDarkBorder};padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;}
   .trp-mheader-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  .trp-mheader-status .trp-status-right{gap:6px;}
+  /* Mobile: trojdielny split by pri 390px stlačil stred na nulu — krajné bloky preto strácajú
+     flex:1 a celý riadok sa správa ako pôvodný wrap-ujúci zoznam (LEVEL → pilulky → ikonky). */
+  .trp-mheader-status .trp-status-left,.trp-mheader-status .trp-headright{flex:0 0 auto;}
+  .trp-mheader-status .trp-status-center{gap:6px;}
+  .trp-mheader-status .trp-headright{gap:6px;margin-left:auto;}
   .trp-mheader-status .trp-stat-pill{gap:4px;padding:5px 9px;}
   .trp-mheader-status .trp-stat-pill img{width:11px;height:11px;}
   .trp-mheader-status .trp-stat-pill span,.trp-mheader-status .trp-stat-pill b{font-size:10.5px;}
+  /* LEVEL text zmenšený v rovnakom pomere ako pilulky, nech nepretlačí status riadok na mobile. */
+  .trp-mheader-status .trp-level{gap:6px;}
+  .trp-mheader-status .trp-level-name{font-size:10.5px;letter-spacing:.12em;}
+  .trp-mheader-status .trp-level-num i{font-size:8px;}
+  .trp-mheader-status .trp-level-num em{font-size:15px;}
   .trp-mheader-status .trp-addtrip-btn{padding:7px 12px;font-size:9.5px;}
   .trp-mheader-row2{display:flex;align-items:center;gap:6px;}
   .trp-mheader-scroll{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none;}
   .trp-mheader-scroll::-webkit-scrollbar{display:none;}
-  .trp-mheader .trp-mapsearch{flex:0 0 96px;min-width:96px;padding:6px 10px;border-radius:999px;}
+  /* Matej 2026-07-26: dropdowny (Activities/Difficulty/Crowd) predtým flex:1 1 0 = nútene
+     rovnaký podiel priestoru bez ohľadu na dĺžku labelu ("Crowd" natiahnuté rovnako ako
+     "Difficulty") → search mal len fixných 96px. Teraz: selecty flex-grow:0 (neťahajú si
+     viac než treba), search flex-grow:2 (dostane každý voľný px navyše). Oba typy si smú
+     zmrštiť (flex-shrink:1) rovnomerne, keby sa 3 selecty + search naozaj nezmestili —
+     poistka je aj horizontálny scroll na .trp-mheader-scroll. */
+  .trp-mheader .trp-mapsearch{flex:2 1 100px;min-width:66px;padding:6px 10px;border-radius:999px;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
   .trp-mheader .trp-mapsearch input{font-size:11.5px;}
-  /* bod 2 (iterácia 13): flex:1 1 0 (nie auto) — 3 selecty sa DELIA o zvyšný priestor a
-     zmršťujú (min-width:0 + ellipsis), nech sa vždy zmestia všetky tri + filter ikonka do
-     riadku bez orezania (predtým "popularity" vypadávalo mimo viewport). */
-  .trp-mheader-select{flex:1 1 0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 8px;color:${T.onDark};font-size:10px;font-family:inherit;outline:0;}
+  .trp-mheader-select{flex:0 1 auto;min-width:0;max-width:98px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 8px;color:${T.onDark};font-size:10px;font-family:inherit;outline:0;}
   .trp-mfilterwrap{position:relative;flex-shrink:0;}
   .trp-mfiltericon{width:32px;height:32px;border-radius:50%;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
   .trp-mfiltericon img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:.8;}
   .trp-sortpop{position:absolute;top:calc(100% + 8px);right:0;background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:10px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:950;min-width:132px;}
   .trp-sortpop button{display:block;width:100%;text-align:left;padding:10px 14px;font-size:12px;color:${T.onDark};background:none;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;}
   .trp-sortpop button:last-child{border-bottom:0;}
-  .trp-sortpop button.on{color:${GOLD};font-weight:700;}
+  .trp-sortpop button.on{color:${GOLD};font-weight:600;}
   .trp-sortpop button:hover{background:rgba(201,154,63,0.14);}
 
   /* LIST/MAP toggle pill, bottom-center — default view = map (žiadny
      bottom-sheet defaultne), klik prepína celú stránku na zoznam. */
-  .trp-mtoggle{display:flex;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:900;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 26px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.4);cursor:pointer;}
+  .trp-mtoggle{display:flex;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:900;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 26px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.4);cursor:pointer;}
 
   /* full-page card list — replaces the map (not an overlay) when mobileView==='list'.
      top padding 122px (bod 1) matches the now-taller 2-row .trp-mheader. */
@@ -761,7 +813,7 @@ ${DIFF_MARK_CSS}
      je tu display:none, tak renderAddSetup() beží znova vo full-screen .trp-madd namiesto. */
   .trp-madd{display:flex;flex-direction:column;position:fixed;inset:0;z-index:950;background:#0a0a0a;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
   .trp-madd .trp-addsetup{background:transparent;}
-  .trp-madd-drawbtn{display:block;width:100%;margin-top:2px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:11px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);color:${GOLD};cursor:pointer;}
+  .trp-madd-drawbtn{display:block;width:100%;margin-top:2px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:11px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);color:${GOLD};cursor:pointer;}
 }
 
 `;
@@ -1494,20 +1546,32 @@ export default function PackPortal() {
     </div>
   );
 
-  // bod 1 (iterácia 15): pravá skupina status riadku — zdieľaná medzi desktop .trp-status-row
+  // bod 1 (iterácia 15): ľavá skupina status riadku — zdieľaná medzi desktop .trp-status-row
   // (v .trp-topbar) a mobile .trp-mheader-status (i13 bod 1), presne tá istá "ako desktop"
-  // logika ako predtým, len teraz pilulky namiesto holých ikoniek. Poradie: km → ✓ (walked
-  // count) → ★ (wishlist count) → ADD TRIP.
+  // logika ako predtým, len teraz pilulky namiesto holých ikoniek.
   // Matej 2026-07-22: km + ✓ SPOJENÉ do jednej pilulky (✓ N · Y km) → Walked tab; ★ → Wishlist tab.
   // Matej 2026-07-23: header konsolidovaný 4→2 pilulky. TRIPSTATS (✓ N · km) a TRIPLIST (🐾) sú dva
   // povrchy tej istej route /pack/map/triplist (?tab=stats vs list). ✓/★ dashboard modal ZRUŠENÝ,
-  // wishlist splynul do triplistu. + Add trip (akcia, ostáva).
-  // D4 nav rework (2026-07-24, Matej: "nechaj to vnútri headru a len to posun na pravý roh
-  // toho vnútorného bloku") — notif+messages sú PRIDANÉ ako sibling tohto .trp-status-right
-  // v .trp-status-row / .trp-mheader-status s .trp-header-notif (margin-left:auto) → odtlačené
-  // do pravého rohu status headra, oddelené od Add trip. NIE samostatný rohový klaster nad mapou.
-  const renderStatusRight = () => (
-    <div className="trp-status-right">
+  // wishlist splynul do triplistu.
+  // Matej 2026-07-26 (tretie kolo): header rozdelený na TRI časti — ĽAVÁ = LEVEL, STRED =
+  // TRIPSTATS + TRIPLIST + ADD TRIP (centrované v riadku), PRAVÁ = messages + zvonček.
+  // Krajné bloky majú flex:1, stredný len svoju šírku → stred je naozaj v osi riadku, nie
+  // „niekde medzi". LEVEL nie je pilulka ani tlačidlo — klasický text (.trp-level), lebo nič
+  // neotvára; pilulky sú vyhradené akciám/routám.
+  // 🔴 "Pútnik Lvl. 1" je zatiaľ HARDCODED placeholder — reálny bodový systém (prah(N)=(N−1)(15N+20),
+  // Pilgrim/Pútnik 1–N) je LOCKED spec z 2026-07-25, ale ešte NEIMPLEMENTOVANÝ (čaká sa na zelenú
+  // na kódenie: walked→DB, points.config.ts, atď.). Keď sa postaví, tento text sa napojí naň.
+  const renderStatusLeft = () => (
+    <div className="trp-status-left">
+      <div className="trp-level" title="Your pack level">
+        <span className="trp-level-name">Pútnik</span>
+        <span className="trp-level-num"><i>Lvl</i><em>1</em></span>
+      </div>
+    </div>
+  );
+
+  const renderStatusCenter = () => (
+    <div className="trp-status-center">
       <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist?tab=stats')} title="Your trip stats — world, home & walked">
         <img src={ICON('trophy')} alt="" />
         <b>{walkedIds.size} · {fmtKm(walkedKm)} km</b>
@@ -1516,10 +1580,25 @@ export default function PackPortal() {
         <img src={ICON('clipboard')} alt="" />
         <b>Triplist</b>
       </button>
+      {/* ADD TRIP patrí do stredného klastra (Matej 2026-07-26) — vedľa správ nemá čo robiť,
+          a je to jediný vstup do ADD flow, takže sa nesmie stratiť. */}
       <button type="button" className="trp-addtrip-btn" onClick={openAddChoice}>
         <img src={ICON('plus')} alt="" className="trp-addtrip-icon" />
         Add trip
       </button>
+    </div>
+  );
+
+  // D4 nav rework (2026-07-24, Matej: "nechaj to vnútri headru a len to posun na pravý roh
+  // toho vnútorného bloku") — messages sú PRIDANÉ ako sibling tohto klastra v .trp-status-row /
+  // .trp-mheader-status. Matej 2026-07-26 (druhé kolo): tu ostávajú LEN dve ikonky — správy a
+  // napravo od nich zvonček upozornení. NEXT TRIP (chodec + počet dní) zrušený úplne (Matej,
+  // tretie kolo: „to vymaz nie je to aktualna polozka v menu na ziadnej stranke na webe" —
+  // D5 badge z PackNotifications.tsx odstránený, `hideNextTrip` prop už neexistuje).
+  // ADD TRIP je späť v pilulkovom rade vľavo.
+  const renderHeaderRight = () => (
+    <div className="trp-headright">
+      <PackNotifications dark layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
     </div>
   );
 
@@ -1679,7 +1758,9 @@ export default function PackPortal() {
           // bod 4 (i12): tagy/aktivity s emoji (rovnaký vocabulary ako filter chipy nižšie).
           const dtChips = [
             ...(dt.acts ?? []).map((a) => ({ key: `a:${a}`, label: a, emoji: ACT_EMOJI[a] ?? '' })),
-            ...(dt.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
+            // 'In the middle of nature'/'nowhere' zrušené (Matej 2026-07-26) — filter aj tu, nielen
+            // v TAG_VOCAB, lebo dtChips číta dt.tags priamo (surová dátová hodnota, nie cez TAG_VOCAB).
+            ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
           ];
           const dtAgg = crowdAggregate(dt, votes[dt.id]);
           const isUnwalkedPlan = dt.id.startsWith('plan-') && !walkedIds.has(dt.id);
@@ -1767,6 +1848,13 @@ export default function PackPortal() {
                 {dt.desc && <p className="trp-inldet-desc">{dt.desc}</p>}
                 {dt.dogNote && <p className="trp-inldet-desc">🐾 {dt.dogNote}</p>}
 
+                {(dt as { elev?: number[] }).elev && (
+                  <div className="trp-inldet-section">
+                    <h4>Elevation profile</h4>
+                    <ElevationProfile elev={(dt as { elev?: number[] }).elev} km={parseFloat(dt.km) || 0} />
+                  </div>
+                )}
+
                 <div className="trp-inldet-section">
                   <h4>Walked by {dtAgg.walkedCount} Dogyptian{dtAgg.walkedCount === 1 ? '' : 's'}</h4>
                   {dtAgg.walkedCount === 0 && <div className="trp-inldet-empty">Be the first to walk this.</div>}
@@ -1810,10 +1898,11 @@ export default function PackPortal() {
 
           <div className="trp-cat-pills">
             <button type="button" className={`trp-catpill${activeCat === 'trips' ? ' on' : ''}`} onClick={() => setActiveCat('trips')}>Trips</button>
+            {/* design §D: Events sa aktivoval — zoznam plánovaných spoločných výletov + join.
+                Matej 2026-07-26: presunuté hneď vedľa Trips (pred Places/Services placeholdery). */}
+            <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>Events</button>
             <button type="button" className="trp-catpill soon" disabled data-tip="Coming soon">Places</button>
             <button type="button" className="trp-catpill soon" disabled data-tip="Coming soon">Services</button>
-            {/* design §D: Events sa aktivoval — zoznam plánovaných spoločných výletov + join. */}
-            <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>Events</button>
           </div>
 
           {/* geo/tag filtre sú trip-specifické — pri Events kategórii sa skryjú. */}
@@ -1896,9 +1985,11 @@ export default function PackPortal() {
           ≤760px. Visible in BOTH mobile map/list views. */}
       <div className="trp-mheader">
         <div className="trp-mheader-status">
-          {/* Avatar REMOVED here too (D4 nav rework) — same reasoning as desktop .trp-status-row. */}
-          {renderStatusRight()}
-          <PackNotifications dark layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
+          {/* Avatar REMOVED here too (D4 nav rework) — same reasoning as desktop .trp-status-row.
+              Trojdielny split je zdieľaný s desktopom, len s menšou typografiou (viď media query). */}
+          {renderStatusLeft()}
+          {renderStatusCenter()}
+          {renderHeaderRight()}
         </div>
         <div className="trp-mheader-row2">
           <div className="trp-mheader-scroll">
@@ -2065,11 +2156,15 @@ export default function PackPortal() {
                   );
                 }
                 if (!hot) {
+                  // farebnosť podľa náročnosti (2026-07-26) — rovnaká paleta ako DiffMark
+                  // pilulky/markery (DIFF_COLOR), nech je náročnosť čitateľná aj bez hoveru.
+                  // Výber = zámerný: hot/selected stav zostáva čierno-zlatý (brand), toto
+                  // mení len pokojný, nevybraný stav.
                   return (
                     <Polyline
                       key={tr.id}
                       positions={tr.path}
-                      pathOptions={{ color: '#161616', weight: 3, opacity: .8 }}
+                      pathOptions={{ color: DIFF_COLOR[tr.diff] ?? '#161616', weight: 3, opacity: .62, lineCap: 'round', lineJoin: 'round' }}
                       eventHandlers={handlers}
                     />
                   );
@@ -2163,16 +2258,18 @@ export default function PackPortal() {
                 filter, žije NA mape (AllTrails "Search map" vzor). Iterácia 10: status riadok
                 späť sem (i9 full-width edge-to-edge header ODMIETNUTÝ), rovnaká floating
                 pozícia ako v iterácii 8, len teraz na 100% šírky topbaru. Iterácia 15 bod 1:
-                pravá skupina = renderStatusRight() pilulky (km/✓/★/ADD TRIP). */}
+                trojdielny (Matej 2026-07-26): ĽAVÁ = LEVEL, STRED = tripstats/triplist/add trip,
+                PRAVÁ = messages + zvonček. */}
             <div className="trp-topbar">
               {/* Avatar REMOVED from this status pill (D4 nav rework 2026-07-24) — it now lives
                   in the shared bottom nav (PackBottomNav), so having it here too was a duplicate.
                   See PackLayout.tsx AvatarNavButton. */}
               <div className="trp-status-row">
-                {renderStatusRight()}
-                {/* notif+messages → pravý roh TOHTO bloku (Matej 2026-07-24), margin-left:auto ich
-                    odtlačí od add-trip na koniec status-row. Inline layout = v toku, nie fixed. */}
-                <PackNotifications dark layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
+                {renderStatusLeft()}
+                {renderStatusCenter()}
+                {/* messages + zvonček → pravý roh TOHTO bloku (Matej 2026-07-24/26).
+                    Inline layout = v toku, nie fixed. */}
+                {renderHeaderRight()}
               </div>
               <div className="trp-topsearchrow">
                 <div className="trp-floatsearch">

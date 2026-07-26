@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PackNetwork } from '@/components/pack/PackNetwork';
 import { usePackUser, type PackDogFull } from '@/hooks/usePackUser';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -86,14 +86,20 @@ function GoldRule({ width = 54, my = 12 }: { width?: number | string; my?: numbe
 // zlatý okraj 35 %, radius 10). Matej 2026-07-26: „je to všetko moc na sebe —
 // oddeliť okrajmi vizuálne ale aj rozdeliť logicky." Každý pod-blok = jedna
 // otázka, ktorú profil kladie, takže okraj nie je dekorácia, ale hranica témy.
+// `center` (Matej 2026-07-26: „všetko centrované v 1. bloku") — pri centrovaní
+// label a hint NEMÔŽU zostať na opačných koncoch riadku (`justify-between`),
+// inak label sedí vľavo a stred blku je prázdny. Preto sa zlepia do jedného
+// centrovaného riadku a hint stráca `textAlign: right`.
 function SubBlock({
   label,
   children,
   hint,
+  center = false,
 }: {
   label: string;
   children: React.ReactNode;
   hint?: string;
+  center?: boolean;
 }) {
   return (
     <div
@@ -101,10 +107,18 @@ function SubBlock({
         background: T.tileBg,
         border: `1px solid ${T.border}`,
         borderRadius: 10,
-        padding: '11px 13px 13px',
+        // Matej 2026-07-26: „obidva bloky maju male okraje zhora a dola" —
+        // 11/13px hore/dole zväčšené na 17/19px, bočný padding nedotknutý.
+        padding: '17px 13px 19px',
+        // Jemný lift, aby pod-blok nesplýval s kartou pod sebou (Matej
+        // 2026-07-26: „je to suche bez šťavy moc tenke nevyrazne").
+        boxShadow: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.4)',
       }}
     >
-      <div className="flex items-baseline justify-between" style={{ gap: 10, marginBottom: 9 }}>
+      <div
+        className={`flex items-baseline ${center ? 'justify-center' : 'justify-between'}`}
+        style={{ gap: center ? 7 : 10, marginBottom: 9 }}
+      >
         <span
           style={{
             fontFamily: "'Cinzel', serif",
@@ -122,13 +136,32 @@ function SubBlock({
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 10.5,
               color: T.inkFaint,
-              textAlign: 'right',
+              textAlign: center ? 'center' : 'right',
             }}
           >
-            {hint}
+            {center ? `· ${hint.toLowerCase()}` : hint}
           </span>
         )}
       </div>
+      {children}
+    </div>
+  );
+}
+
+// Centrovaný stĺpec vnútri karty. Bez obmedzenej šírky by centrovanie dopadlo
+// presne ako pri pills 25.7. — obsah plávajúci v prázdnej šírke karty. Preto
+// centrovanie = úzka os, nie `text-align: center` na plnú šírku.
+function Column({
+  children,
+  max = 520,
+  mt,
+}: {
+  children: React.ReactNode;
+  max?: number;
+  mt?: number;
+}) {
+  return (
+    <div style={{ maxWidth: max, margin: '0 auto', marginTop: mt, textAlign: 'center' }}>
       {children}
     </div>
   );
@@ -167,7 +200,7 @@ function ProfileProgress({
 }) {
   const done = pct === 100;
   return (
-    <div style={{ minWidth: 0, flex: '1 1 220px', maxWidth: 340 }}>
+    <div style={{ minWidth: 0, width: '100%', maxWidth: 340, margin: '0 auto' }}>
       <div className="flex items-baseline justify-between" style={{ gap: 10, marginBottom: 6 }}>
         <span
           style={{
@@ -410,34 +443,50 @@ export default function PackProfile() {
           <ArrowLeft className="h-3 w-3" />
           Pack
         </Link>
+        {/* `.pf-field`/`.pf-pill` — zdieľané s DogGallery.tsx/DogCardFields.tsx
+            (psia karta), definícia žije v `packTheme.ts` (`PF_FIELD_CSS`),
+            presne ako `GLASS_CSS`. Render raz na stránke. */}
+        <style>{PF_FIELD_CSS}</style>
+
+        {/* SEKCIA 1+2 VRÁTENÉ SPÄŤ POD SEBA (Matej 2026-07-26, tretí pokus:
+            „toto rozloženie je zlé vráť to... na 2 bloky pod sebou"). Vedľa
+            seba (lg:grid-cols-[3fr_2fr]) vydržalo len jedno kolo — pôvodný
+            komentár k tomuto pokusu je v git histórii, netreba ho tu naťahovať. */}
         {/* ── SEKCIA 1 — WHO YOU ARE (človek) ─────────────────────────────
-            Vlastná papyrusová karta. Veľký nadpis tu ZÁMERNE nie je — hlavný
-            hrdina profilu je pes („OH, MY DOG!" nižšie), človek je eyebrow.
-            Zrkadlí brand princíp: majiteľ je vnútri rámiku psa, nie naopak. */}
+            Nadnadpis „Who you are" je PREČ (Matej 2026-07-26: „zbytočne fill
+            slova preč!") — bola to eyebrow bez informačnej hodnoty, karta je
+            zjavne majiteľ len z obsahu. Hlavný hrdina profilu je pes („OH, MY
+            DOG!" vpravo), majiteľ nepotrebuje vlastný label na to, aby to bolo
+            jasné. Zrkadlí brand princíp: majiteľ je vnútri rámiku psa. */}
         <PapyrusCard>
-          <div className="flex flex-wrap items-end justify-between" style={{ gap: 16 }}>
-            <Eyebrow>Who you are</Eyebrow>
-            <ProfileProgress
-              pct={completion.pct}
-              filled={completion.filled}
-              total={completion.total}
-              missing={completion.missing}
-            />
-          </div>
-          <GoldRule width="100%" my={16} />
-          <div className="flex flex-col sm:flex-row sm:items-center gap-5">
-            {/* Avatar */}
+          {/* Bar stavu vyplnenia je VYPNUTÝ (Matej 2026-07-26: „ten progres nemá
+              zmysel - vypni ho"). Komponent `ProfileProgress` aj
+              `humanProfileCompletion()` zostávajú v kóde — zapnutie = vrátiť
+              tieto štyri props do hlavičky karty. */}
+          {/* Centrovaná os: FOTO → MENO → BIO → BASICS+LIFESTYLE → WHAT YOU'RE
+              LIKE (Matej 2026-07-26: „1. blok foto zvačšime a vycentrujme, pod
+              to mena, pod to bio, pod to basic a lifestyle — a what you like
+              všetko centrované v 1. bloku"). Predtým to bol vodorovný riadok
+              avatar | polia, čo lámalo os stránky na dve. */}
+          <div className="flex flex-col items-center" style={{ gap: 18 }}>
+            {/* Avatar — hrdina bloku, nie 88px krúžok vedľa formulára. `clamp`
+                namiesto fixnej veľkosti: na 390px mobile by 176px zožralo pol
+                obrazovky. `aspectRatio` drží kruh bez druhej clamp hodnoty. */}
             <button
               type="button"
               onClick={handleAvatarClick}
               disabled={uploading}
               aria-label="Change avatar"
-              className="relative shrink-0 group self-center sm:self-auto"
+              className="relative shrink-0 group"
               style={{
-                width: 88,
-                height: 88,
+                width: 'clamp(136px, 40vw, 176px)',
+                aspectRatio: '1 / 1',
                 borderRadius: '50%',
-                border: hasAvatar ? `1px solid ${T.hairline}` : `2px dashed ${T.border}`,
+                // 1px šedý hairline z 88px krúžku sa pri 176px stratí a fotka
+                // splynie s papyrusom. Zlatý ring + halo = ten istý jazyk ako
+                // rám karty (brand lock), o vrstvu menší.
+                border: hasAvatar ? `2px solid ${T.cardEdge}` : `2px dashed ${T.border}`,
+                boxShadow: hasAvatar ? '0 0 0 5px rgba(201,154,63,0.14)' : 'none',
                 background: hasAvatar
                   ? 'transparent'
                   : 'linear-gradient(135deg, #F0E3C4 0%, #F5EDD8 100%)',
@@ -459,7 +508,7 @@ export default function PackProfile() {
                 <span
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 32,
+                    fontSize: 58,
                     fontWeight: 700,
                     color: T.inkDim,
                   }}
@@ -471,7 +520,7 @@ export default function PackProfile() {
                 className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                 style={{ background: 'rgba(10,10,10,0.55)', color: T.card, borderRadius: '50%' }}
               >
-                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+                {uploading ? <Loader2 className="h-7 w-7 animate-spin" /> : <Camera className="h-7 w-7" />}
               </span>
             </button>
             <input
@@ -482,12 +531,15 @@ export default function PackProfile() {
               style={{ display: 'none' }}
             />
 
-            {/* Name + nickname + display-as toggle — avatar click already shows a
-                camera affordance on hover, so no "add a photo" caption is needed.
-                Name auto-saves on blur (no Save button). Name/Nickname sit side by
-                side in a 2-col grid on ALL breakpoints incl. mobile, compact inputs
-                (per zadanie-profil-shrink-2026-07-24 — was full-width stacked). */}
-            <div className="min-w-0 flex-1 w-full">
+            {/* MENO — pod fotkou, nie vedľa nej. Name/Nickname zostávajú v 2-col
+                gridu aj na mobile (zadanie-profil-shrink-2026-07-24). Šírka
+                640 = rovnaká hranica ako basics+lifestyle nižšie (Matej
+                2026-07-26: „text area je aj name a nickname a mal by byť
+                široky ako tranice dolných dvoch blokov") — predtým 430 nesedelo
+                s ničím pod tým, os stránky mala tri rôzne šírky. Text v poliach
+                je centrovaný — vľavo zarovnaný by pod centrovaným labelom
+                vyzeral ako chyba. */}
+            <Column max={640}>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label
@@ -512,16 +564,15 @@ export default function PackProfile() {
                     }}
                     onBlur={() => { handleSaveName(); }}
                     placeholder="Your name"
+                    className="pf-field"
                     style={{
                       width: '100%',
-                      background: T.bg,
-                      border: `1px solid ${T.hairline}`,
                       borderRadius: 8,
                       padding: '8px 12px',
                       color: T.ink,
                       fontFamily: "'Space Grotesk', sans-serif",
                       fontSize: 13,
-                      outline: 'none',
+                      textAlign: 'center',
                     }}
                   />
                 </div>
@@ -544,11 +595,12 @@ export default function PackProfile() {
                     value={human?.nickname ?? ''}
                     onSave={(v) => patchHuman({ nickname: v || undefined })}
                     placeholder="Pack calls you"
+                    align="center"
                   />
                 </div>
               </div>
 
-              <div className="mt-3 flex items-center gap-2.5 flex-wrap">
+              <div className="mt-3 flex items-center justify-center gap-2.5 flex-wrap">
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkDim }}>
                   Show as:
                 </span>
@@ -557,8 +609,29 @@ export default function PackProfile() {
                   onChange={(v) => patchHuman({ displayAs: v })}
                 />
               </div>
-            </div>
+            </Column>
           </div>
+
+          {/* BIO — hneď pod menom (Matej 2026-07-26: „pod to bio, pod to basic a
+              lifestyle"). Predtým bolo AŽ pod pills, čiže hook profilu čítal
+              človek po vyplnenom formulári. Je to hlas psa o majiteľovi, takže
+              centrovaný ho číta ako citát, nie ako tretí riadok formulára. */}
+          <GoldRule width="100%" my={18} />
+          <Column max={640}>
+            {/* BIO heading — one bold, oversized line. It's the funny/unique hook
+                of the profile, so it should pop (Matej 2026-07-24). */}
+            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
+              BIO: What my dog would probably say about me
+            </div>
+            <WordLimitTextarea
+              value={human?.dogVoiceBio ?? ''}
+              onSave={(v) => patchHuman({ dogVoiceBio: v })}
+              placeholder="My human wakes up at 6 just to walk me. Slightly obsessed. Would recommend. — 🐾"
+              rows={2}
+              align="center"
+              white
+            />
+          </Column>
 
           {/* identity pills — ONE row: gender (read-only) · age · status
               (relationship, single pill dropdown) · nationality (flag+abbr
@@ -569,11 +642,14 @@ export default function PackProfile() {
               zadanie-profil-shrink-2026-07-24. */}
           {/* Dva pod-bloky s okrajmi namiesto dvoch riadkov pills nalepených na
               seba. ZÁKLAD je povinná časť identity, LIFESTYLE je dobrovoľná —
-              preto sú to dve témy, nie jeden zlepenec. Zarovnanie je zľava, nie
-              na stred: vycentrované pills plávali v prázdnej šírke karty. */}
-          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10, marginTop: 18 }}>
-          <SubBlock label="The basics">
-            <div className="flex flex-wrap items-center gap-1.5">
+              preto sú to dve témy, nie jeden zlepenec. Pills SÚ centrované
+              (Matej 2026-07-26) — plávaniu v prázdnej šírke, ktoré to spôsobilo
+              25.7., bráni `Column`, nie zarovnanie zľava. */}
+          <GoldRule width="100%" my={18} />
+          <Column max={640}>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 10 }}>
+          <SubBlock label="The basics" center>
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
               <HideWrap hidden={isHidden(profile, 'age')}>
                 <MiniChipInput
                   emoji="🎂"
@@ -596,11 +672,15 @@ export default function PackProfile() {
                 onChange={(v) => patchHuman({ nationality: v })}
               />
               <HideWrap hidden={isHidden(profile, 'region')}>
+                {/* Matej 2026-07-26: „jaslovske bohunice nie su cele viditelne" —
+                    76px zobrazí len ~9 znakov, dlhšie mestá (Jaslovské Bohunice,
+                    18 znakov) sa orežú. 128px pokryje bežné SK mestá aj s
+                    diakritikou bez toho, aby riadok pills prerástol na mobile. */}
                 <MiniChipInput
                   emoji="📍"
                   value={human?.region ?? ''}
                   placeholder="City"
-                  width={76}
+                  width={128}
                   onSave={(v) => patchHuman({ region: v || undefined })}
                 />
               </HideWrap>
@@ -610,8 +690,8 @@ export default function PackProfile() {
               <IdentityVisibilityEye profile={profile} patchHuman={patchHuman} />
             </div>
           </SubBlock>
-          <SubBlock label="Lifestyle" hint="Optional">
-            <div className="flex flex-wrap items-center gap-1.5">
+          <SubBlock label="Lifestyle" hint="Optional" center>
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
               <StatusSelect
                 value={human?.relationship}
                 onChange={(v) => patchHuman({ relationship: v })}
@@ -640,47 +720,34 @@ export default function PackProfile() {
             </div>
           </SubBlock>
           </div>
+          </Column>
 
-          {/* Bio — ONE textarea (dog-voice), moved under the pills row (was in
-              the RIGHT column) per zadanie-profil-layout-swap-2026-07-24. The
-              separate "About me" textarea was folded away — dog-voice bio is
-              the hero copy (zadanie-profil-koncentrat-2026-07-24 ČASŤ B.1).
-              Dostalo zlatú deliacu čiaru + väčší odstup: je to hook profilu,
-              nie tretí riadok formulára. */}
+          {/* WHAT YOU'RE LIKE — vtiahnuté DO bloku 1 (Matej 2026-07-26: „a what
+              you like všetko centrované v 1. bloku"). Bola to samostatná karta
+              (SEKCIA 3) pod psami; teraz je celý človek — foto, meno, bio,
+              základ, lifestyle, osobnosť — v jednej karte a psy sú ten druhý,
+              samostatný hrdina. Vrátenie = vytiahnuť tieto tri riadky späť do
+              vlastnej `<PapyrusCard>`. */}
           <GoldRule width="100%" my={18} />
-          <div>
-            {/* BIO heading — one bold, oversized line. It's the funny/unique hook
-                of the profile, so it should pop (Matej 2026-07-24). */}
-            <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 17, fontWeight: 700, lineHeight: 1.2, color: T.inkStrong, marginBottom: 10 }}>
-              BIO: What my dog would probably say about me
+          <Column max={640}>
+            {/* `hideLabel` — vnútri PersonalityConcentrate je vlastný label
+                „PERSONALITY". Kým to bola samostatná karta, čítal sa ako pod-
+                nadpis; pod eyebrow „What you're like" je to to isté dvakrát. */}
+            <div style={{ marginBottom: 12 }}>
+              <Eyebrow>What you’re like</Eyebrow>
             </div>
-            <WordLimitTextarea
-              value={human?.dogVoiceBio ?? ''}
-              onSave={(v) => patchHuman({ dogVoiceBio: v })}
-              placeholder="My human wakes up at 6 just to walk me. Slightly obsessed. Would recommend. — 🐾"
-              rows={2}
-            />
-          </div>
+            <PersonalityConcentrate human={human} patchHuman={patchHuman} center hideLabel />
+          </Column>
 
         </PapyrusCard>
 
         {/* ── SEKCIA 2 — OH, MY DOG! (psy) ─────────────────────────────────
-            Dostala vlastnú kartu v plnej šírke. Predtým sedela v pravom stĺpci
-            zlúčenej karty, čo vyrábalo ~400 px prázdna pod dvoma nízkymi boxmi
-            (Matej 25.7.: „obsahovo sa mi to páči ale vizuálne nie"). Plná šírka
-            ten prázdny stĺpec ruší úplne a fotky psov majú kam dýchať. */}
+            Vlastná karta POD sekciou 1 (Matej 2026-07-26, tretí pokus — vedľa
+            seba nevydržalo, „vráť to"). Pôvodný dôvod vlastnej karty (25.7.:
+            prázdny stĺpec v predtým zlúčenej dvojstĺpcovej karte) platí ďalej —
+            len teraz sú karty pod sebou, nie vedľa seba. */}
         <PapyrusCard id="my-gods">
           <MyGodsContent dogs={dogs} loading={dogsLoading} profile={profile} />
-        </PapyrusCard>
-
-        {/* ── SEKCIA 3 — WHAT YOU'RE LIKE (osobnosť) ───────────────────────
-            20 pills / 5 skupín / spoločný max-10 (zadanie-profil-koncentrat-
-            2026-07-24 ČASŤ B.2). Vlastná karta, lebo je to najvyšší blok
-            stránky — natlačený pod bio pôsobil ako pokračovanie formulára. */}
-        <PapyrusCard>
-          <Eyebrow>What you’re like</Eyebrow>
-          <GoldRule width="100%" my={14} />
-          <PersonalityConcentrate human={human} patchHuman={patchHuman} />
         </PapyrusCard>
 
         {/* Bones + your network — split two-column block */}
@@ -854,6 +921,7 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
       colour: d.selections?.dogColour,
       bloodline: d.selections?.dogBloodline,
     },
+    heroglyphUrl: d.heroglyph_png_url ?? null,
   }));
 
   // Psia karta — patch merge do existujúcej karty (accordion posiela vždy len
@@ -884,18 +952,20 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
     <>
       {/* Nadpis sekcie — Matej 2026-07-26: „namiesto názvu my gods daj vacsím
           nadpis OH, MY DOG!". Bol to 10px Cinzel eyebrow, teda vizuálne label
-          formulára; teraz je to hlavný nadpis stránky (pes > majiteľ). */}
+          formulára; teraz je to hlavný nadpis stránky (pes > majiteľ).
+          Nadnadpis („Your pantheon" + heartpaw ikonka) aj podnadpis („The ones
+          who chose you…") sú PREČ — Matej 2026-07-26: „oh my dog (preč
+          nadnadpis aj podnadpis". Zostal jeden nadpis a počítadlo psov. */}
       <div className="flex items-start justify-between" style={{ gap: 16, marginBottom: 4 }}>
         <div style={{ minWidth: 0 }}>
-          <div className="flex items-center gap-2.5" style={{ marginBottom: 2 }}>
-            <BrandIcon name="heartpaw" size={17} tint="gold" />
-            <Eyebrow>Your pantheon</Eyebrow>
-          </div>
           <h2
             style={{
               fontFamily: "'Cinzel', serif",
               fontWeight: 700,
-              fontSize: 'clamp(1.75rem, 5.5vw, 2.6rem)',
+              /* Matej 2026-07-26: „ten nadpis Oh my dog je teraz neprimerane
+                 veľký" — strop 2.6rem (41.6px) znížený na 2rem (32px),
+                 spodok 1.75→1.5rem. */
+              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
               letterSpacing: '0.03em',
               textTransform: 'uppercase',
               lineHeight: 1.05,
@@ -939,9 +1009,11 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
           ? ' '
           : dogs.length === 0
             ? 'No god yet. Every Dogyptian starts with one.'
-            : dogs.length === 1
-              ? 'The one who chose you. Tell the pack who they are.'
-              : 'The ones who chose you. Tell the pack who they are.'}
+            /* Podnadpis „The one(s) who chose you. Tell the pack who they are."
+               je PREČ (Matej 2026-07-26: „preč nadnadpis aj podnadpis").
+               Prázdny stav si vetu drží — bez psa by pod nadpisom visela len
+               dashed výzva bez vysvetlenia. */
+            : ''}
       </p>
       <GoldRule width="100%" my={14} />
 
@@ -954,23 +1026,25 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
         <DogGalleryAccordion
           dogs={entries}
           editable
-          layout="tiles"
+          layout="open"
           onSaveBio={(dogId, bio) => saveDogAttrs(dogId, { bio: bio.slice(0, 200) })}
           onToggleTag={toggleTag}
           onSaveCard={saveCard}
           addSlot={
-            /* „Add a god" má tvar dlaždice, ale ZÁMERNE nižšiu váhu než pes —
-               dashed okraj, bez fotky, bez cartouche pásu. Boh a „pridaj boha"
-               nesmú vyzerať rovnako dôležito. */
+            /* „Add a god" má ZÁMERNE nižšiu váhu než pes — dashed okraj, bez
+               fotky. Je to VODOROVNÝ PÁS, nie štvorec: ako štvorcová dlaždica sa
+               pri nula psoch roztiahla na celú šírku karty a `aspect-ratio 1/1`
+               z nej urobil ~950 px vysoký prázdny box — presne to videl každý
+               nový člen bez psa. */
             <Link
               to="/entry"
-              className="flex flex-col items-center justify-center"
+              className="flex flex-row items-center justify-center"
               style={{
-                aspectRatio: '1 / 1',
-                gap: 8,
+                gap: 10,
+                padding: '16px 18px',
                 textDecoration: 'none',
                 border: `1.5px dashed ${T.border}`,
-                borderRadius: 12,
+                borderRadius: 14,
                 background: 'rgba(201,154,63,0.04)',
               }}
             >
@@ -1092,18 +1166,15 @@ function ProfilePill<V extends string>({
     <button
       type="button"
       onClick={disabled ? undefined : onClick}
-      className="inline-flex items-center gap-1"
+      disabled={disabled}
+      className={`pf-pill inline-flex items-center gap-1${selected ? ' is-selected' : ''}`}
       style={{
-        background: selected ? T.accentGold : T.bg,
-        border: `1px solid ${selected ? T.accentGold : T.hairline}`,
         borderRadius: 999,
         padding: '3px 9px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         fontWeight: selected ? 600 : 500,
-        color: selected ? '#1F1A0E' : T.inkDim,
         cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.4 : 1,
       }}
     >
       {option.emoji ? <span aria-hidden>{option.emoji}</span> : null}
@@ -1119,9 +1190,13 @@ function ProfilePill<V extends string>({
 function PersonalityConcentrate({
   human,
   patchHuman,
+  center = false,
+  hideLabel = false,
 }: {
   human: HumanProfile | undefined;
   patchHuman: (p: Partial<HumanProfile>) => void;
+  center?: boolean;
+  hideLabel?: boolean;
 }) {
   const selected = human?.personality ?? [];
   const custom = human?.customPersonality;
@@ -1147,10 +1222,15 @@ function PersonalityConcentrate({
 
   return (
     <div>
-      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.24em', textTransform: 'uppercase', color: T.inkDim }}>
-          Personality
-        </span>
+      <div
+        className={`flex items-center ${center ? 'justify-center' : 'justify-between'}`}
+        style={{ marginBottom: 10, gap: center ? 8 : 0 }}
+      >
+        {!hideLabel && (
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.24em', textTransform: 'uppercase', color: T.inkDim }}>
+            Personality
+          </span>
+        )}
         <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: atMax ? T.accentGold : T.inkFaint }}>
           {total}/{MAX_PERSONALITY}
         </span>
@@ -1158,7 +1238,7 @@ function PersonalityConcentrate({
       {/* Flat pool — no group sub-headings, tighter gaps (Matej 2026-07-24:
           „daj preč nadpisy … tie pils sú veľké a roztiahnuté"). Last: ONE
           user-written custom pill („pridať vlastný pill, len 1x"). */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className={`flex flex-wrap gap-1.5 ${center ? 'justify-center' : ''}`}>
         {PERSONALITY_OPTIONS.map((opt) => {
           const isSelected = selected.includes(opt.value);
           return (
@@ -1178,16 +1258,13 @@ function PersonalityConcentrate({
           <button
             type="button"
             onClick={() => patchHuman({ customPersonality: undefined })}
-            className="inline-flex items-center gap-1"
+            className="pf-pill is-selected inline-flex items-center gap-1"
             style={{
-              background: T.accentGold,
-              border: `1px solid ${T.accentGold}`,
               borderRadius: 999,
               padding: '3px 9px',
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
               fontWeight: 600,
-              color: '#1F1A0E',
               cursor: 'pointer',
             }}
           >
@@ -1207,16 +1284,14 @@ function PersonalityConcentrate({
               if (e.key === 'Escape') { setDraft(''); setAdding(false); }
             }}
             placeholder="Your own…"
+            className="pf-field"
             style={{
-              background: T.bg,
-              border: `1px dashed ${T.border}`,
               borderRadius: 999,
               padding: '3px 10px',
               width: 120,
               fontFamily: "'Space Grotesk', sans-serif",
               fontSize: 11,
               color: T.ink,
-              outline: 'none',
             }}
           />
         ) : !atMax ? (
@@ -1263,15 +1338,13 @@ function LifestyleSelect<V extends string>({
     <select
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value ? (e.target.value as V) : undefined)}
+      className="pf-field"
       style={{
-        background: T.bg,
-        border: `1px solid ${T.hairline}`,
         borderRadius: 999,
         padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: value ? T.ink : T.inkFaint,
-        outline: 'none',
         cursor: 'pointer',
       }}
     >
@@ -1290,11 +1363,19 @@ function WordLimitTextarea({
   onSave,
   placeholder,
   rows = 4,
+  align = 'left',
+  white = false,
 }: {
   value: string;
   onSave: (v: string) => void;
   placeholder?: string;
   rows?: number;
+  align?: 'left' | 'center';
+  /** Matej 2026-07-26: „texta area daj biele" — plochá biela namiesto
+   *  zlatého gradientu ostatných `.pf-field` prvkov. Inline `background`
+   *  prebije CSS triedu (inline vždy vyhráva), takže `.pf-field` border/
+   *  shadow/focus glow ostávajú, mení sa len výplň. */
+  white?: boolean;
 }) {
   const [local, setLocal] = useState(value);
   useEffect(() => setLocal(value), [value]);
@@ -1316,10 +1397,9 @@ function WordLimitTextarea({
         onBlur={() => { if (local !== value) onSave(local); }}
         placeholder={placeholder}
         rows={rows}
+        className="pf-field"
         style={{
           width: '100%',
-          background: T.bg,
-          border: `1px solid ${T.hairline}`,
           borderRadius: 10,
           padding: '8px 12px 22px',
           minHeight: 48,
@@ -1327,8 +1407,9 @@ function WordLimitTextarea({
           fontFamily: "'Space Grotesk', sans-serif",
           fontSize: 13,
           lineHeight: 1.4,
-          outline: 'none',
+          textAlign: align,
           resize: 'vertical',
+          ...(white ? { background: '#FFFFFF' } : {}),
         }}
       />
       <span
@@ -1494,10 +1575,8 @@ function IdentityVisibilityEye({
 function MiniChip({ children }: { children: React.ReactNode }) {
   return (
     <span
-      className="inline-flex items-center gap-1"
+      className="pf-field inline-flex items-center gap-1"
       style={{
-        background: T.bg,
-        border: `1px solid ${T.hairline}`,
         borderRadius: 999,
         padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
@@ -1563,15 +1642,13 @@ function NationalitySelect({ value, onChange }: { value: string; onChange: (v: s
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      className="pf-field"
       style={{
-        background: T.bg,
-        border: `1px solid ${T.hairline}`,
         borderRadius: 999,
         padding: '4px 6px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: T.ink,
-        outline: 'none',
         cursor: 'pointer',
       }}
     >
@@ -1595,15 +1672,13 @@ function StatusSelect({
     <select
       value={value ?? ''}
       onChange={(e) => onChange(e.target.value ? (e.target.value as RelationshipStatus) : undefined)}
+      className="pf-field"
       style={{
-        background: T.bg,
-        border: `1px solid ${T.hairline}`,
         borderRadius: 999,
         padding: '4px 8px',
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 11,
         color: value ? T.ink : T.inkFaint,
-        outline: 'none',
         cursor: 'pointer',
       }}
     >
@@ -1622,10 +1697,12 @@ function AutoSaveTextInput({
   value,
   onSave,
   placeholder,
+  align = 'left',
 }: {
   value: string;
   onSave: (v: string) => void;
   placeholder?: string;
+  align?: 'left' | 'center';
 }) {
   const [local, setLocal] = useState(value);
   useEffect(() => setLocal(value), [value]);
@@ -1636,16 +1713,15 @@ function AutoSaveTextInput({
       onChange={(e) => setLocal(e.target.value)}
       onBlur={() => { if (local !== value) onSave(local); }}
       placeholder={placeholder}
+      className="pf-field"
       style={{
         width: '100%',
-        background: T.bg,
-        border: `1px solid ${T.hairline}`,
         borderRadius: 8,
         padding: '8px 12px',
         color: T.ink,
         fontFamily: "'Space Grotesk', sans-serif",
         fontSize: 13,
-        outline: 'none',
+        textAlign: align,
       }}
     />
   );
@@ -1672,8 +1748,11 @@ function DisplayAsToggle({
           type="button"
           onClick={() => onChange(opt.key)}
           style={{
-            background: value === opt.key ? T.ink : 'transparent',
-            color: value === opt.key ? T.card : T.inkFaint,
+            /* Matej 2026-07-26: „nickname na modro nie čierno" — vybraný pill
+               bol T.ink (takmer čierna). `T.partHek` (#2E5FD0, Egyptian blue)
+               je existujúci modrý token, používaný napr. pri pohlaví psa. */
+            background: value === opt.key ? T.partHek : 'transparent',
+            color: value === opt.key ? '#FBF5E6' : T.inkFaint,
             border: 'none',
             borderRadius: 999,
             padding: '4px 11px',

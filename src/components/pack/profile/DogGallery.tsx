@@ -4,6 +4,7 @@
 // open/close chevron v PackDogDetail.tsx — hand-drawn sada nemá chevron/arrow-down variant).
 import { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import heroglyphFrame from '@/assets/heroglyph-frame.svg';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import {
@@ -34,6 +35,9 @@ export interface DogGalleryEntry {
   // Z `selections`. Zobrazovací blok „From the heroglyph" bol zrušený (Matej 2026-07-25),
   // ale `gender` sa ďalej používa — určuje farbu pills kastrácie (modrá pes / ružová fena).
   heroglyph?: { gender?: string | null; colour?: string | null; bloodline?: string | null };
+  /** Pre-rendered heroglyf psa (`dogs.heroglyph_png_url`). Bez neho sa vykreslí
+   *  prázdny rám — nikdy nie textová/unicode aproximácia. */
+  heroglyphUrl?: string | null;
 }
 
 export function DogGalleryAccordion({
@@ -59,9 +63,13 @@ export function DogGalleryAccordion({
    * 'rows'  = lišta foto·meno·#, obsah sa rozbalí VNÚTRI lišty (default, drží
    *           PublicProfile.tsx nedotknutý).
    * 'tiles' = mriežka štvorcových foto dlaždíc, obsah sa rozbalí POD mriežkou
-   *           na plnú šírku. Používa /pack/profile — Matej 2026-07-26.
+   *           na plnú šírku (Matej 2026-07-26 dopoludnia, nahradené `open`).
+   * 'open'  = žiadne rozbaľovanie: každý pes je otvorená karta, vľavo kruhová
+   *           fotka + heroglyf, vpravo obsah. Používa /pack/profile — Matej
+   *           2026-07-26: „aby karta kde sa píše bola otvorená = na ľavo foto
+   *           na pravo obsah".
    */
-  layout?: 'rows' | 'tiles';
+  layout?: 'rows' | 'tiles' | 'open';
 }) {
   const [localOpenId, setLocalOpenId] = useState<string | null>(null);
   const openId = controlledOpenId !== undefined ? controlledOpenId : localOpenId;
@@ -73,6 +81,31 @@ export function DogGalleryAccordion({
   // po odstránení Stats & Badges), 3+ = kompaktný, aby zoznam nerástol donekonečna
   // (Matej 2026-07-25).
   const scale: RowScale = dogs.length >= 3 ? 'compact' : 'large';
+
+  // Karta so zbaleným dropdownom — hlavička (foto + heroglyf) je vidno vždy,
+  // zvyšok (bio, POVAHA, dropdowny) sa rozbalí až po kliku (Matej 2026-07-26:
+  // „celý obsah schováme za dropdown = na karte bude foto a vedľa heroglyf,
+  // po kliknutí sa obsah zobrazí uprataný"). `openId` sa tu používa rovnako
+  // ako pri 'rows'/'tiles' — max jeden pes rozbalený naraz.
+  if (layout === 'open') {
+    return (
+      <div className="flex flex-col" style={{ gap: 14 }}>
+        {dogs.map((d) => (
+          <DogOpenCard
+            key={d.id}
+            dog={d}
+            open={openId === d.id}
+            onToggleOpen={() => setOpenId(openId === d.id ? null : d.id)}
+            editable={editable}
+            onSaveBio={onSaveBio}
+            onToggleTag={onToggleTag}
+            onSaveCard={onSaveCard}
+          />
+        ))}
+        {addSlot}
+      </div>
+    );
+  }
 
   if (layout === 'tiles') {
     const openDog = dogs.find((d) => d.id === openId) ?? null;
@@ -114,7 +147,7 @@ export function DogGalleryAccordion({
             <div className="flex items-center justify-between" style={{ gap: 10, marginBottom: 12 }}>
               <span
                 style={{
-                  fontFamily: "'Cinzel', serif",
+                  fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
                   fontWeight: 700,
                   fontSize: 15,
                   letterSpacing: '0.1em',
@@ -220,7 +253,10 @@ function DogGalleryRow({
           )}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate" style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: S.name, fontWeight: 600, color: T.ink }}>
+          {/* Meno psa = Cinzel Decorative (Matej 2026-07-26: „mena psov su cinzel
+              dekorative"). Bolo Space Grotesk 600 — odchýlka od konvencie, ktorú
+              drží ShareCard/CertificateCard/PackTree/GodsGrid/PackDogDetail. */}
+          <span className="block truncate" style={{ fontFamily: "'Cinzel Decorative', 'Cinzel', serif", fontSize: S.name, fontWeight: 700, color: T.ink }}>
             {dog.name}
           </span>
           {dog.packNumber != null && (
@@ -247,6 +283,203 @@ function DogGalleryRow({
         </div>
       )}
     </div>
+  );
+}
+
+// ── KARTA PSA S DROPDOWNOM (layout='open') ───────────────────────────────────
+// Matej 2026-07-26 (2. kolo): „celý obsah schováme za dropdown = na karte
+// bude foto a vedľa heroglyf, po kliknutí sa obsah zobrazí uprataný". Hlavička
+// (kruhová fotka + heroglyf vedľa seba) je JEDINÉ, čo je vidno zbalené — bio,
+// POVAHA aj 3 dropdown sekcie idú do `DogGalleryBody` pod ňou, len keď `open`.
+// Kruh drží predchádzajúce rozhodnutie (rovnaký tvar ako avatar majiteľa v
+// bloku 1 — jeden jazyk pre „toto je bytosť").
+// Matej 2026-07-26 (3. kolo): „zvačši foto o 20% vedľa fotky pojde MENO a
+// vedla hero tak aby bol obsah na takmer celú stránku, na mobile bude len
+// foto a hero" → poradie foto→meno→hero, foto 72→86px. Meno na mobile ZMIZNE
+// (`hidden sm:block`).
+// Matej 2026-07-26 (4. kolo, po živom screenshote — „to prečo je heroglyph
+// na konci a číslo nie je v pills"): `flex-1` na MENE bola chyba — krátke
+// meno ako „Hekthor" natiahlo prázdnotu MEDZI seba a heroglyf, takže
+// heroglyph vyzeral odtrhnutý, nalepený na chevron. Foto+meno+heroglyf teraz
+// sedia TESNE vedľa seba (prirodzený `gap`), `flex-1` spacer sa presunul AŽ
+// ZA heroglyf (pred chevron) — ten naťahuje hlavičku na celú šírku bez toho,
+// aby roztrhol meno od heroglyfu. Meno zväčšené 15→19px, nech vedľa 86px
+// fotky vizuálne váži. `#packNumber` dostal zlatý pill (rovnaký jazyk ako
+// počítadlo psov vedľa nadpisu „OH, MY DOG!"), nie holý mono text.
+function DogOpenCard({
+  dog, open, onToggleOpen, editable, onSaveBio, onToggleTag, onSaveCard,
+}: {
+  dog: DogGalleryEntry;
+  open: boolean;
+  onToggleOpen: () => void;
+  editable: boolean;
+  onSaveBio?: (dogId: string, bio: string) => void;
+  onToggleTag?: (dogId: string, group: 'temperament' | 'trail', tag: string) => void;
+  onSaveCard?: (dogId: string, patch: Partial<DogCard>) => void;
+}) {
+  return (
+    <section
+      style={{
+        background: T.cardSoft,
+        border: `1px solid ${T.border}`,
+        borderRadius: 14,
+      }}
+    >
+      <button
+        type="button"
+        onClick={onToggleOpen}
+        aria-expanded={open}
+        className="flex items-center w-full gap-3 p-3 lg:gap-4 lg:p-4"
+        style={{ background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+      >
+        {/* Foto — kruh, rovnaký jazyk ako avatar majiteľa v bloku 1. Na mobile
+            56px, od `lg` 86px (= 72 + 20 % z 3. kola). Zmenšenie na mobile je
+            ZÁMER, nie kompromis: uvoľnená šírka ide celá heroglyfu, ktorý má
+            byť v riadku dominantný (Matej 11. kolo: „na mobile len foto a
+            heroglyph"). Rozmery cez triedy, NIE inline — inline `width`
+            prebíja Tailwind. */}
+        <span
+          className="inline-flex items-center justify-center overflow-hidden shrink-0 w-[65px] h-[65px] lg:w-[86px] lg:h-[86px]"
+          style={{
+            borderRadius: '50%',
+            border: dog.photoUrl ? `2px solid ${T.cardEdge}` : `2px dashed ${T.border}`,
+            boxShadow: dog.photoUrl ? '0 0 0 4px rgba(201,154,63,0.14)' : 'none',
+            background: `linear-gradient(160deg, ${T.bgTop} 0%, ${T.bgBottom} 100%)`,
+          }}
+        >
+          {dog.photoUrl ? (
+            <img src={dog.photoUrl} alt={dog.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span className="text-xl lg:text-3xl" style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, color: 'rgba(31,26,14,0.26)', lineHeight: 1 }}>
+              {(dog.name?.[0] || '?').toUpperCase()}
+            </span>
+          )}
+        </span>
+
+        {/* Meno — TESNE vedľa fotky (žiadny `flex-1` — pozri komentár vyššie).
+            Matej 2026-07-26 (6. kolo): „meno psa ešte zvačši, a pils daj až za
+            heroglyf" → 36px, pill sa odsťahoval ZA heroglyf (nižšie).
+
+            ⚠️ Pôvodné `hidden sm:block` (z 3. kola, Matej: „na mobile bude len
+            foto a hero") ZRUŠENÉ v 10. kole — Matej: „??????" nad screenshotom
+            z ~520px okna. To pravidlo platilo, kým bolo VŠETKO v jednom riadku
+            a meno tam nemalo miesto. Odkedy heroglyf odišiel na vlastný riadok,
+            je riadok 1 poloprázdny: fotka vľavo, ~250px prázdna plocha,
+            chevron vpravo — karta vyzerala rozhádzaná. Meno tú prázdnotu
+            vypĺňa, takže musí byť viditeľné na VŠETKÝCH šírkach.
+
+            `clamp()` namiesto breakpointu — plynulá veľkosť bez skoku:
+            390px→22px · 520px→26px · 720px+→36px. */}
+        <span className="hidden lg:block min-w-0 shrink">
+          <span
+            className="block truncate"
+            style={{
+              fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+              fontWeight: 700,
+              fontSize: 'clamp(22px, 5vw, 36px)',
+              letterSpacing: '0.03em',
+              textTransform: 'uppercase',
+              color: T.inkStrong,
+            }}
+          >
+            {dog.name}
+          </span>
+        </span>
+
+        {/* Heroglyf — Pre-rendered PNG z DB; bez neho prázdny rám, nikdy
+            textová/unicode aproximácia. Zdrojový asset je zlatý,
+            `brightness(0)` ho vytmaví na čiernu siluetu a zachová alfa okraje
+            (Matej: „musí byť vždy čierny ak je na papyruse").
+
+            DESKTOP: tesne za menom (Matej: „vedla hero"), výškou riadený
+            (`sm:h-16`), NIE odtrhnutý na druhom konci hlavičky.
+
+            MOBILE (<640px): VLASTNÝ RIADOK na celú šírku karty (`basis-full
+            w-full h-auto order-last` + `flex-wrap` na tlačidle). Matej 3× po
+            sebe: „heroglyph zväčši na mobile" → „aký je heroglyph na mobile
+            malý…prisposob aby to vyzeralo pekne" → „stale je maly! halo?".
+            Dôvod, prečo px-šúľanie (36→40px) nestačilo: kým heroglyf sedel v
+            JEDNOM riadku s fotkou, jeho šírka = karta(304) − foto(86) −
+            gapy − chevron ≈ 160px, a pri pomere strán 3.9:1 to je STROP 40px
+            výšky — matematika layoutu, nie zle zvolené číslo. Vlastný riadok
+            mu dá plných ~284px šírky → 72px výška (+80 %).
+
+            ⚠️ `max-h-[65px]` JE POVINNÝ, nie kozmetika (Matej: „tebe jebe? čo
+            stváraš? toto je ok podla teba?" — screenshot z ~520px okna).
+            Bez stropu rastie výška LINEÁRNE so šírkou okna až po breakpoint:
+            390px→72 · 520px→105 · 639px→**135px** (vyšší než 86px fotka!) a
+            pri 641px spadne na 64px. Testoval som len 390px a 1400px, celý
+            pás medzi nimi nie — preto sa to prejavilo až u Mateja. Strop drží
+            72px na celom páse a zmenšuje skok na breakpointe (72→64).
+            `objectPosition:left` — nad 390px `max-height` letterboxuje obsah
+            vnútri plnej šírky, bez toho by sa glyf centroval, kým fotka nad
+            ním začína pri ľavom okraji. */}
+        {dog.heroglyphUrl ? (
+          <img
+            src={dog.heroglyphUrl}
+            alt={`${dog.name} heroglyph`}
+            className="flex-1 min-w-0 h-auto max-h-[65px] lg:flex-none lg:w-auto lg:h-16 lg:max-h-none"
+            style={{ objectFit: 'contain', objectPosition: 'left center', display: 'block', filter: 'brightness(0)' }}
+          />
+        ) : (
+          <img
+            src={heroglyphFrame}
+            alt=""
+            aria-hidden
+            /* Rovnaký 72px strop ako reálny heroglyf — placeholder má iný
+               pomer strán (~2.6:1), takže bez stropu by na plnej šírke
+               vyrástol ešte vyššie (~109px pri 390px). */
+            className="flex-1 min-w-0 h-auto max-h-[65px] lg:flex-none lg:w-auto lg:h-14 lg:max-h-none"
+            style={{ objectFit: 'contain', objectPosition: 'left center', filter: 'brightness(0) opacity(0.3)' }}
+          />
+        )}
+
+        {/* Pill s #packNumber — Matej 2026-07-26 (6. kolo): „pils daj až za
+            heroglyf" (predtým bol vedľa mena). 12. kolo: „pridaj vedla neho
+            z pravej strany pils s číslom" → viditeľný aj na mobile (predtým
+            `hidden sm:`). V DOM stojí hneď za heroglyfom, takže „vpravo od
+            neho" platí bez zmeny poradia. Na mobile kompaktný (10px font,
+            tesnejší padding) — každý px šírky, ktorý si vezme, uberá
+            heroglyfu, ktorý má `flex-1`. */}
+        {dog.packNumber != null && (
+          <span
+            className="inline-flex items-center shrink-0 text-[10px] lg:text-xs px-2 py-0.5 lg:px-2.5"
+            style={{
+              borderRadius: 999,
+              background: T.tileBg,
+              border: `1px solid ${T.border}`,
+              fontFamily: "'JetBrains Mono', monospace",
+              fontWeight: 700,
+              color: T.cardEdge,
+            }}
+          >
+            #{dog.packNumber}
+          </span>
+        )}
+
+        {/* Spacer — naťahuje hlavičku na takmer celú šírku karty BEZ toho, aby
+            roztrhol meno od heroglyfu (tie sedia tesne vedľa seba vyššie).
+            Na mobile chýba meno, tak tlačí chevron k pravému okraju rovnako. */}
+        <span className="hidden lg:block lg:flex-1" />
+
+        <ChevronDown
+          className="h-4 w-4 sm:h-5 sm:w-5 shrink-0"
+          style={{ color: T.inkDim, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+        />
+      </button>
+
+      {open && (
+        <div style={{ padding: '0 16px 18px' }}>
+          <DogGalleryBody
+            dog={dog}
+            editable={editable}
+            onSaveBio={onSaveBio}
+            onToggleTag={onToggleTag}
+            onSaveCard={onSaveCard}
+          />
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -319,7 +552,7 @@ function DogTile({
           <span
             className="block truncate"
             style={{
-              fontFamily: "'Cinzel', serif",
+              fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
               fontWeight: 700,
               fontSize: 14,
               letterSpacing: '0.06em',
@@ -348,13 +581,17 @@ function DogTile({
 // Vytiahnuté z DogGalleryRow, pretože v tiles layoute sa NErenderuje vnútri
 // lišty, ale POD mriežkou na plnú šírku (inak by sa 4 stĺpce zúžili na nič).
 function DogGalleryBody({
-  dog, editable, onSaveBio, onToggleTag, onSaveCard,
+  dog, editable, onSaveBio, onToggleTag, onSaveCard, showTemperament = true,
 }: {
   dog: DogGalleryEntry;
   editable: boolean;
   onSaveBio?: (dogId: string, bio: string) => void;
   onToggleTag?: (dogId: string, group: 'temperament' | 'trail', tag: string) => void;
   onSaveCard?: (dogId: string, patch: Partial<DogCard>) => void;
+  /** `layout='open'` vykresľuje POVAHA pills SAMOSTATNE v ľavom stĺpci (Matej
+   *  2026-07-26: „pod tym povaha pils vedla zostane bio a dropdowny"), takže
+   *  telo karty ich tu preskočí, aby sa nerenderovali dvakrát. */
+  showTemperament?: boolean;
 }) {
   const t = useT();
   const hg = dog.heroglyph;
@@ -387,14 +624,16 @@ function DogGalleryBody({
             </p>
           )}
 
-          <TagGroup
-            label={t('pack.dogProfile.temperament')}
-            options={DOG_TEMPERAMENT_TAGS as readonly string[]}
-            selected={dog.attrs.tags.temperament}
-            editable={editable}
-            max={MAX_DOG_TEMPERAMENT}
-            onToggle={(v) => onToggleTag?.(dog.id, 'temperament', v)}
-          />
+          {showTemperament && (
+            <TagGroup
+              label={t('pack.dogProfile.temperament')}
+              options={DOG_TEMPERAMENT_TAGS as readonly string[]}
+              selected={dog.attrs.tags.temperament}
+              editable={editable}
+              max={MAX_DOG_TEMPERAMENT}
+              onToggle={(v) => onToggleTag?.(dog.id, 'temperament', v)}
+            />
+          )}
 
           {/* ── VRSTVA 1 — ZÁKLAD ── */}
           <SubSection
@@ -608,10 +847,13 @@ function BioTextarea({ value, onSave }: { value: string; onSave: (v: string) => 
         onBlur={() => { if (local !== value) onSave(local.trim()); }}
         placeholder={t('pack.dogProfile.bioPlaceholder')}
         rows={2}
+        className="pf-field"
         style={{
           width: '100%',
-          background: T.bg,
-          border: `1px solid ${T.hairline}`,
+          // Biela, nie zlatý gradient — rovnaké pravidlo ako bio v bloku 1
+          // (Matej 2026-07-26: „texta area daj biele"). `.pf-field` okraj/
+          // focus glow ostávajú, mení sa len výplň (inline vždy prebije triedu).
+          background: '#FFFFFF',
           borderRadius: 10,
           padding: '8px 12px 20px',
           minHeight: 48,
@@ -619,7 +861,6 @@ function BioTextarea({ value, onSave }: { value: string; onSave: (v: string) => 
           fontFamily: "'Space Grotesk', sans-serif",
           fontSize: 13,
           lineHeight: 1.4,
-          outline: 'none',
           resize: 'vertical',
         }}
       />
