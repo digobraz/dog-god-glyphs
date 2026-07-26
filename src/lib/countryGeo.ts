@@ -150,6 +150,25 @@ export function flagUrl(iso2: string, width: 40 | 80 | 160 = 40): string {
   return `https://flagcdn.com/w${width}/${iso2}.png`;
 }
 
+/**
+ * Emoji fallback for when the flagcdn image can't load.
+ *
+ * flagcdn.com is a third-party CDN and NOT reachable everywhere: a member opened
+ * her dog page from the Gmail in-app browser on 2026-07-26 and the flag rendered
+ * as the iOS broken-image glyph ("vlajka svieti jej otaznik") while every other
+ * image on the page — her Cloudinary photo included — loaded fine. The country
+ * data and URL were both correct; the host simply never answered.
+ *
+ * The emoji needs no network, so a flag drawn from it can never break. Takes the
+ * ISO2 we already resolved, so it stays in sync with what the <img> asked for.
+ */
+export function flagEmojiFromISO2(iso2?: string | null): string {
+  if (!iso2 || iso2.length !== 2) return '';
+  return String.fromCodePoint(
+    ...[...iso2.toUpperCase()].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65),
+  );
+}
+
 /** Free-text country → flag emoji, or '' if it can't be resolved to ISO2. */
 export function countryFlag(country?: string | null): string {
   const iso = countryISO2(country);

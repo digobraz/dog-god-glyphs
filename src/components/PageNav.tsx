@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import dogyptLogoRound from '@/assets/dogypt-logo-round.png';
 import { useLang, useT } from '@/i18n/LanguageContext';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const NAV_ITEMS = [
   { key: 'nav.wall', to: '/' },
@@ -79,14 +80,7 @@ function DesktopNav() {
     return () => document.removeEventListener('keydown', onKey);
   }, [langOpen]);
 
-  useEffect(() => {
-    if (!langOpen) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [langOpen]);
+  useBodyScrollLock(langOpen);
 
   const currentLang = LANGS.find((l) => l.code === lang) ?? LANGS[0];
 
@@ -198,14 +192,7 @@ function MobileNav() {
     return () => document.removeEventListener('keydown', onKey);
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
+  useBodyScrollLock(open);
 
   return (
     <>

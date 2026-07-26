@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { acquireScrollLock } from './useBodyScrollLock';
 
 /**
  * iOS Safari leaves a 100dvh overflow-hidden flow screen scrolled ("stuck in
@@ -13,20 +14,18 @@ import { useEffect } from 'react';
  */
 export function useFlowKeyboardFix() {
   useEffect(() => {
-    const { body } = document;
-    const html = document.documentElement;
-    const prevBodyOverflow = body.style.overflow;
-    const prevHtmlOverflow = html.style.overflow;
-    body.style.overflow = 'hidden';
-    html.style.overflow = 'hidden';
+    // Shared refcount lock (body + html). Previously this saved/restored the
+    // overflow itself, which clobbered — and got clobbered by — PageNav's two
+    // locks whenever a flow screen and the nav/language overlay were mounted at
+    // the same time, leaving the page permanently frozen. See useBodyScrollLock.
+    const releaseLock = acquireScrollLock(true);
 
     const resetScroll = () => window.scrollTo(0, 0);
     window.addEventListener('focusout', resetScroll);
     window.visualViewport?.addEventListener('resize', resetScroll);
 
     return () => {
-      body.style.overflow = prevBodyOverflow;
-      html.style.overflow = prevHtmlOverflow;
+      releaseLock();
       window.removeEventListener('focusout', resetScroll);
       window.visualViewport?.removeEventListener('resize', resetScroll);
     };
