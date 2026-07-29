@@ -9,6 +9,7 @@
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí position:absolute a
@@ -21,10 +22,10 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useToast } from '@/hooks/use-toast';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws,
+  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS,
 } from '@/components/pack/tripShared';
 import {
@@ -77,7 +78,7 @@ const CSS = `
 /* bod 1 (iterácia 14): action bar presunutý z fixného spodného pruhu (.pta-actions zrušený)
    na spodný okraj hero fotky — .pta-root už nepotrebuje veľkú rezervu, len bežný bottom
    padding nech posledná sekcia (Comments) nezmizne za PackBottomNav. */
-.pta-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:'DM Sans',system-ui,sans-serif;position:relative;padding-bottom:100px;}
+.pta-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:${FONT_UI};position:relative;padding-bottom:100px;}
 /* §16 (2026-07-23): fotka je VNÚTRI glass rámika (.pta-shell) — full-bleed hore, zaoblené rohy
    dedí z rámika (overflow:hidden). Už NIE samostatná karta + rámik pod ňou, ale fotka v rámiku. */
 .pta-shell{max-width:800px;width:calc(100% - 32px);margin:22px auto 0;position:relative;z-index:2;overflow:hidden;}
@@ -86,13 +87,26 @@ const CSS = `
 /* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
 .pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:3px 8px;border-radius:6px;max-width:62%;text-align:right;pointer-events:none;}
 .pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-/* bod 1 (iterácia 14): WISHLIST/WALKED/SHARE presunuté na spodný okraj hero fotky (nahrádza
-   starý top-right ♡ — .pta-hero-save zrušený, wishlist je teraz len tu, nie 2×). Mobile:
-   IntersectionObserver na .pta-hero → .collapsed trieda, keď fotka vyscrolluje z viewportu —
-   rad sa "odtrhne" a prilepí ako zvislý icon-only rail vpravo (position:fixed). Desktop bez
-   collapse (.collapsed nemá na ≥761px žiadny efekt, len base štýl na fotke). */
-.pta-hero-actions{position:absolute;left:0;right:0;bottom:14px;z-index:5;display:flex;gap:9px;padding:0 18px;}
-.pta-hero-actions .pta-actbtn{display:flex;align-items:center;justify-content:center;gap:6px;}
+/* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
+   stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
+   plné farby na tmavom paneli čítajú lepšie a fotka ostáva čistá.
+   Mobile: IntersectionObserver na .pta-hero → .collapsed trieda, keď fotka vyscrolluje z
+   viewportu — rad sa "odtrhne" a prilepí ako zvislý icon-only rail vpravo (position:fixed).
+   .pta-acts-slot drží výšku v toku, aby obsah pod ním neposkočil hore, keď rad odíde do railu.
+   Desktop bez collapse (.collapsed nemá na ≥761px žiadny efekt). */
+.pta-acts-slot{margin-top:18px;}
+.pta-acts{display:flex;gap:9px;}
+.pta-acts .pta-actbtn{display:flex;align-items:center;justify-content:center;gap:6px;}
+/* dropdown na zelenom WALKED ✓ (Matej 2026-07-27) — wrapper musí byť position:relative,
+   inak menu vypadne mimo tlačidla. */
+.pta-actwrap{position:relative;flex:1;display:flex;}
+.pta-actwrap .pta-actbtn{flex:1;}
+.pta-actmenu{position:absolute;left:0;top:calc(100% + 6px);z-index:20;min-width:200px;background:#0d0d0d;border:1px solid ${T.onDarkBorder};border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,0.6);overflow:hidden;}
+.pta-actmenu button{display:flex;width:100%;align-items:center;gap:9px;padding:11px 13px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.onDark};text-align:left;}
+.pta-actmenu button + button{border-top:1px solid ${T.onDarkHair};}
+.pta-actmenu button:hover{background:rgba(245,240,228,0.07);}
+.pta-actmenu .pta-actmenu-off{color:${T.onDarkDim};}
+.pta-caret{font-size:9px;opacity:0.8;}
 .pta-actbtn-label{white-space:nowrap;}
 /* F1 (Matej 2026-07-24): „Ikonka srdiečka ≠ ikonka checklistu z headra → zladiť." Unicode ♡/♥
    vymenené za brand clipboard.svg — rovnaká ikonka ako Triplist v status pruhu/headri.
@@ -100,9 +114,14 @@ const CSS = `
    v oboch stavoch (tmavá na zlatom podklade → zlatá keď je trip už v triplistе). */
 .pta-ic-mask{display:inline-block;width:13px;height:13px;background-color:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat;}
 @media (max-width:760px){
-  .pta-hero-actions.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
-  .pta-hero-actions.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
-  .pta-hero-actions.collapsed .pta-actbtn-label{display:none;}
+  .pta-acts-slot{min-height:44px;}
+  .pta-actbtn{font-size:10px;padding:12px 4px;}
+  .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
+  .pta-acts.collapsed .pta-actwrap{flex:0 0 auto;}
+  .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
+  .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret{display:none;}
+  /* v raile je rad pri pravom okraji → menu sa musí otvárať doľava, nie pod tlačidlo */
+  .pta-acts.collapsed .pta-actmenu{left:auto;right:calc(100% + 8px);top:0;}
 }
 /* bod 3 (iterácia 14): fotky v galérii klikacie → lightbox (fullscreen popup) */
 .pta-lightbox{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.94);display:flex;align-items:center;justify-content:center;padding:28px;}
@@ -117,13 +136,13 @@ const CSS = `
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
    — nemá plávať na plnej čiernej, rovnaká situácia ako triplist/walked. */
 .pta-panel{padding:22px 20px 26px;}
-.pta-loc{font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:${T.onDarkDim};}
-.pta-title{font-family:'Cinzel',serif;font-weight:700;font-size:26px;line-height:1.15;color:${T.onDark};margin-top:4px;}
+.pta-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+.pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;line-height:1.15;color:${T.onDark};margin-top:4px;}
 .pta-author{font-size:11.5px;color:${T.onDarkDim};margin-top:8px;}
 .pta-statrow{display:flex;margin-top:20px;border-radius:14px;overflow:hidden;border:1px solid ${T.onDarkBorder};background:${T.glassSoft};}
-.pta-stat{flex:1;padding:13px 6px;text-align:center;}
+.pta-stat{flex:1;padding:13px 6px;text-align:center;display:flex;flex-direction:column;justify-content:center;}
 .pta-stat + .pta-stat{border-left:1px solid ${T.onDarkBorder};}
-.pta-stat b{display:flex;align-items:center;justify-content:center;gap:5px;font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:${T.onDark};}
+.pta-stat b{display:flex;align-items:center;justify-content:center;gap:5px;font-family:${FONT_UI};font-size:15px;font-weight:600;color:${T.onDark};}
 .pta-stat span{display:block;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:${T.onDarkDim};margin-top:2px;}
 /* F1 (Matej 2026-07-24): „Zlúčiť dĺžka + prevýšenie do jedného bloku oddeleného zvislou čiarou
    + spraviť miesto na VIBE." Route = km │ ↑m v jednej bunke, uvoľnená bunka ide na Crowd. */
@@ -132,6 +151,15 @@ const CSS = `
 /* .pta-stat span je label (9px, uppercase) — vnútorné spany v .pta-route ho NESMÚ zdediť,
    inak „8 km" vysadne menšie než susedné „Moderate". */
 .pta-route span{display:inline;font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit;margin-top:0;}
+/* Matej 2026-07-27: label „Distance · Elevation" zrušený — ikony (↔ / ↑) hovoria to isté.
+   Na mobile ide route pod seba (↔ km NAD ↑ m) a rating tiež (číslo NAD packami), aby stĺpce
+   nepotrebovali toľko šírky a text sa nelámal. */
+@media (max-width:560px){
+  .pta-route{flex-direction:column;gap:3px;}
+  .pta-route i{display:none;}
+  /* column-reverse = číslo hore, packy pod ním (v DOM sú packy prvé, aby desktop čítal „🐾 4.0"). */
+  .pta-ratingstack{flex-direction:column-reverse;gap:3px;}
+}
 /* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */
 .pta-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
 .pta-tag{background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:11px;font-weight:600;padding:5px 11px;border-radius:999px;}
@@ -142,18 +170,27 @@ const CSS = `
 .pta-dognote{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:10px;}
 .pta-mapwrap{margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
 .pta-mapwrap .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
-.pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:${T.onDarkDim};font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:20px;}
+.pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
+.pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
 .pta-section{margin-top:28px;}
-.pta-section h3{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:${GOLD};margin-bottom:8px;}
+.pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};margin-bottom:8px;}
 .pta-empty{font-size:12.5px;color:${T.onDarkDim};font-style:italic;}
-/* .pta-actbtn — zdieľané medzi .pta-hero-actions (bod 1, iterácia 14; predtým fixný spodný
-   .pta-actions pruh, teraz zrušený) */
-.pta-actbtn{flex:1;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:12px 6px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
+/* .pta-actbtn — zdieľané medzi .pta-acts (iterácia 15; predtým .pta-hero-actions na fotke) */
+.pta-actbtn{flex:1;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:12px 6px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
 .pta-actbtn--gold{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border-color:rgba(250,244,236,0.3);}
 .pta-actbtn--gold.on{background:rgba(201,154,63,0.18);color:${GOLD};border-color:${GOLD};}
-.pta-actbtn--ghost{background:rgba(245,240,228,0.06);color:${T.onDark};border-color:${T.onDarkBorder};}
-.pta-actbtn--ghost.on{background:rgba(201,154,63,0.16);color:${GOLD};border-color:${GOLD};}
-.pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.onDarkDim};font-family:'Cinzel',serif;text-align:center;padding:20px;}
+/* Ghost = len „Mark walked" pred označením. Zosilnené oproti iterácii 14 (0.06/0.18 splývalo
+   s podkladom — Matej: „slabo viditeľné a biedne"). */
+.pta-actbtn--ghost{background:rgba(245,240,228,0.10);color:${T.onDark};border-color:rgba(245,240,228,0.34);}
+.pta-actbtn--ghost:hover{background:rgba(245,240,228,0.16);}
+/* Modrá SHARE + zelená WALKED ✓ — obe kotvené na kánonické brand tokeny z packTheme:
+   T.partHek #2E5FD0 (Egyptian blue) a T.growGreen #3D7A4E. Gradient je len svetlejší/tmavší
+   odtieň okolo tokenu, aby držal rovnaký diagonálny vzor ako zlatý .btn-gold. */
+.pta-actbtn--blue{background:linear-gradient(135deg,#3A6BDD,#2148B8);color:#fff;border-color:rgba(255,255,255,0.24);box-shadow:0 6px 16px rgba(46,95,208,0.30);}
+.pta-actbtn--blue:hover{background:linear-gradient(135deg,#4478EC,#264FC7);}
+.pta-actbtn--green{background:linear-gradient(135deg,#4A8F5D,#2F6440);color:#fff;border-color:rgba(255,255,255,0.22);box-shadow:0 6px 16px rgba(61,122,78,0.28);}
+.pta-actbtn--green:hover{background:linear-gradient(135deg,#549C68,#356E47);}
+.pta-notfound{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:${T.onDarkDim};font-family:${FONT_UI};text-align:center;padding:20px;}
 ${DIFF_MARK_CSS}
 `;
 
@@ -199,6 +236,10 @@ export default function PackTripArticle() {
   useEffect(() => { writePlans(plans); }, [plans]);
   useEffect(() => { writeEvents(events); }, [events]);
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
+  // Zelené WALKED ✓ nie je toggle — klik otvorí menu (Add to triplist / Remove walked).
+  // Dôvod (Matej 2026-07-27): odznačenie zmaže aj hlas o obtiažnosti, nesmie sa stať omylom.
+  const [walkedMenuOpen, setWalkedMenuOpen] = useState(false);
+  const walkedMenuRef = useRef<HTMLDivElement | null>(null);
   const [wishlistPopupOpen, setWishlistPopupOpen] = useState(false);
   const [partnerAdOpen, setPartnerAdOpen] = useState(false);
 
@@ -214,8 +255,11 @@ export default function PackTripArticle() {
 
   // bod 1 (iterácia 14): mobile sticky icon-only rail — keď .pta-hero vyscrolluje z viewportu
   // (IntersectionObserver), akčné tlačidlá sa "odtrhnú" z fotky a prilepia napravo (viď CSS
-  // .pta-hero-actions.collapsed, scoped len ≤760px). Effect musí bežať aj po tom, čo `trail`
+  // .pta-acts.collapsed, scoped len ≤760px). Effect musí bežať aj po tom, čo `trail`
   // prejde z null→nájdený (heroRef sa naplní až vtedy), preto dep [trail?.id] nie [].
+  // ⚠️ `id.loading` v depoch (fix 2026-07-27): kým identita načítava, komponent vracia loading
+  // obrazovku → .pta-hero ešte NEEXISTUJE a heroRef.current je null. Bez tejto závislosti sa
+  // effect po dobehnutí identity už nespustil a rail bol ticho mŕtvy.
   const heroRef = useRef<HTMLDivElement | null>(null);
   const [heroCollapsed, setHeroCollapsed] = useState(false);
   useEffect(() => {
@@ -224,10 +268,44 @@ export default function PackTripArticle() {
     const obs = new IntersectionObserver(([entry]) => setHeroCollapsed(!entry.isIntersecting), { threshold: 0 });
     obs.observe(el);
     return () => obs.disconnect();
-  }, [trail?.id]);
+  }, [trail?.id, id.loading]);
+
+  // Rail je MOBILE-only. Predtým to riešila len CSS media query, ale s portálom (nižšie) musí
+  // o šírke vedieť aj JS — inak by sa rad na desktope prehodil do document.body a vyzeral by
+  // ako voľne plávajúci pruh mimo článku.
+  const [isNarrow, setIsNarrow] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width:760px)').matches,
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width:760px)');
+    const onChange = () => setIsNarrow(mq.matches);
+    onChange();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  const railed = isNarrow && heroCollapsed;
+
+  // WALKED dropdown: klik mimo / Escape zatvorí. Hook MUSÍ byť nad podmienenými returnmi nižšie
+  // (Rules of Hooks) — inak biela stránka pri `trip not found`.
+  useEffect(() => {
+    if (!walkedMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!walkedMenuRef.current?.contains(e.target as Node)) setWalkedMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setWalkedMenuOpen(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+  }, [walkedMenuOpen]);
 
   // bod 3 (iterácia 14): lightbox — index otvorenej fotky v trail.photos, null = zavreté
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+
+  // hover (desktop) / dotyk (mobile) nad route mapou → trasa zpriesvitnie na 50%, nech je
+  // vidno podklad (terén/farba) pod ňou. Väzba na wrapper div, nie na Polyline samotnú —
+  // presné trafenie 4px čiary prstom je nespoľahlivé.
+  const [routeDimmed, setRouteDimmed] = useState(false);
 
   // ★ wishlist → zámer popup (ak nie je uložený); walked → povinný walked popup. Odznačenie
   // = priame odobratie (aj hlas/plán). Rovnaká logika ako PackPortal.
@@ -323,7 +401,7 @@ export default function PackTripArticle() {
         <button
           type="button"
           onClick={() => navigate('/pack/map')}
-          style={{ fontFamily: "'Cinzel', serif", fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}
+          style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}
         >← Back to trips</button>
       </div>
     );
@@ -338,6 +416,74 @@ export default function PackTripArticle() {
     ...(trail.acts ?? []).map((a) => ({ key: `a:${a}`, label: a, emoji: ACT_EMOJI[a] ?? '' })),
     ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
   ];
+
+  // Akčný rad ako premenná — na mobile ho po odscrollovaní fotky renderujeme PORTÁLOM do
+  // document.body (nie na mieste). Dôvod: rodičovský .pk-glass má backdrop-filter, ktorý robí
+  // containing block pre position:fixed — rail by sa inak ukotvil o glass panel a plával
+  // uprostred článku namiesto viewportu. Rovnaký vzor ako HeroBadges.tsx.
+  const actsRow = (
+        <div className={`pta-acts${railed ? ' collapsed' : ''}`}>
+          {!walkedIds.has(trail.id) && (
+            <button
+              type="button"
+              className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}`}
+              onClick={() => toggleFav(trail.id)}
+              aria-label={favIds.has(trail.id) ? 'In triplist' : 'Add to triplist'}
+            >
+              <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />
+              <span className="pta-actbtn-label">{favIds.has(trail.id) ? 'In triplist' : 'Add to triplist'}</span>
+            </button>
+          )}
+          {walkedIds.has(trail.id) ? (
+            <div className="pta-actwrap" ref={walkedMenuRef}>
+              <button
+                type="button"
+                className="pta-actbtn pta-actbtn--green"
+                onClick={() => setWalkedMenuOpen((o) => !o)}
+                aria-haspopup="menu"
+                aria-expanded={walkedMenuOpen}
+                aria-label="Walked"
+              >
+                <span className="pta-actbtn-icon">🐾</span>
+                <span className="pta-actbtn-label">Walked ✓</span>
+                <span className="pta-caret">▾</span>
+              </button>
+              {walkedMenuOpen && (
+                <div className="pta-actmenu" role="menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => { setWalkedMenuOpen(false); toggleFav(trail.id); }}
+                  >
+                    {favIds.has(trail.id) ? '✓ In triplist — remove' : '+ Add to triplist'}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="pta-actmenu-off"
+                    onClick={() => { setWalkedMenuOpen(false); toggleWalked(trail.id); }}
+                  >
+                    ✕ Remove walked
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="pta-actbtn pta-actbtn--ghost"
+              onClick={() => toggleWalked(trail.id)}
+            >
+              <span className="pta-actbtn-icon">🐾</span>
+              <span className="pta-actbtn-label">Mark walked</span>
+            </button>
+          )}
+          <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label="Share">
+            <span className="pta-actbtn-icon"><img src={ICON('link')} alt="" style={{ width: 12, height: 12, filter: 'brightness(0) invert(1)' }} /></span>
+            <span className="pta-actbtn-label">Share</span>
+          </button>
+        </div>
+  );
 
   return (
     <div className="pta-root">
@@ -355,30 +501,6 @@ export default function PackTripArticle() {
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
         <button type="button" className="pta-back" onClick={() => navigate('/pack/map')} aria-label="Back to trips">←</button>
-        {/* bod 1 (iterácia 14): WISHLIST/WALKED/SHARE presunuté sem (zo starého fixného
-            spodného .pta-actions pruhu) — top-right ♡ zrušený, wishlist je len tu. */}
-        <div className={`pta-hero-actions${heroCollapsed ? ' collapsed' : ''}`}>
-          <button
-            type="button"
-            className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}`}
-            onClick={() => toggleFav(trail.id)}
-          >
-            <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />
-            <span className="pta-actbtn-label">{favIds.has(trail.id) ? 'In triplist' : 'Triplist'}</span>
-          </button>
-          <button
-            type="button"
-            className={`pta-actbtn pta-actbtn--ghost${walkedIds.has(trail.id) ? ' on' : ''}`}
-            onClick={() => toggleWalked(trail.id)}
-          >
-            <span className="pta-actbtn-icon">🐾</span>
-            <span className="pta-actbtn-label">{walkedIds.has(trail.id) ? 'Walked ✓' : 'Mark walked'}</span>
-          </button>
-          <button type="button" className="pta-actbtn pta-actbtn--ghost" onClick={handleShare}>
-            <span className="pta-actbtn-icon"><img src={ICON('link')} alt="" style={{ width: 12, height: 12, filter: 'brightness(0) invert(1)', opacity: 0.8 }} /></span>
-            <span className="pta-actbtn-label">Share</span>
-          </button>
-        </div>
       </div>
 
         <div className="pta-panel">
@@ -388,6 +510,17 @@ export default function PackTripArticle() {
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
         <div className="pta-author">by {authorOf(trail)}{agg.walkedCount - FOUNDER_WALKERS > 0 ? ` · +${agg.walkedCount - FOUNDER_WALKERS} Dogyptians` : ''}</div>
 
+        {/* iterácia 15 (Matej 2026-07-27): AKCIE — von z fotky, nad stat tabuľku.
+            Stavová logika:
+              neprejdený → ADD TO TRIPLIST (zlatá) · MARK WALKED (outline) · SHARE (modrá)
+              prejdený   → triplist ZMIZNE (načo plánovať, čo už máš za sebou),
+                           WALKED ✓ je zelené s dropdownom (Add to triplist — keď chceš
+                           opakovať — / Remove walked) · SHARE
+            SHARE je VŽDY viditeľný a modrý: má vyzývať na zdieľanie, nie sa stratiť. */}
+        <div className="pta-acts-slot">
+          {railed ? null : actsRow}
+        </div>
+
         {/* crowd-sourced agregát (design §A): rating = priemer, difficulty + crowd = konsenzus.
             Hover na Difficulty/Crowd → %-rozpad AJ s počtom hlasov (F1: „hover → info koľko ľudí
             tak hlasovalo"). Pod prahom VOLUME_THRESHOLD sa hover nezobrazuje — je to seed, nie
@@ -395,13 +528,12 @@ export default function PackTripArticle() {
         <div className="pta-statrow">
           <div className="pta-stat">
             <b className="pta-route">
-              <span>{trail.km} km</span>
+              <span>↔ {trail.km} km</span>
               {(trail as { ascentM?: number }).ascentM != null && (<>
                 <i />
                 <span>↑ {(trail as { ascentM?: number }).ascentM} m</span>
               </>)}
             </b>
-            <span>{(trail as { ascentM?: number }).ascentM != null ? 'Distance · Elevation' : 'Distance'}</span>
           </div>
           <div
             className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
@@ -417,7 +549,7 @@ export default function PackTripArticle() {
               <b>{CROWD_EMOJI[agg.crowd]} {agg.crowd}</b><span>Crowd</span>
             </div>
           )}
-          <div className="pta-stat"><b><RatingPaws stars={agg.rating} size={11} gap={2} /> {agg.rating.toFixed(1)}</b><span>Rating</span></div>
+          <div className="pta-stat"><b className="pta-ratingstack"><RatingPaws stars={agg.rating} size={11} gap={2} />{agg.rating.toFixed(1)}</b><span>Rating</span></div>
         </div>
 
         {/* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */}
@@ -457,7 +589,13 @@ export default function PackTripArticle() {
           onRequestWalk={() => setWalkedPopupOpen(true)}
         />
 
-        <div className="pta-mapwrap">
+        <div
+          className="pta-mapwrap"
+          onMouseEnter={() => setRouteDimmed(true)}
+          onMouseLeave={() => setRouteDimmed(false)}
+          onTouchStart={() => setRouteDimmed(true)}
+          onTouchEnd={() => setRouteDimmed(false)}
+        >
           {trail.path.length > 0 ? (
             <MapContainer
               center={trail.path[Math.floor(trail.path.length / 2)]}
@@ -466,15 +604,24 @@ export default function PackTripArticle() {
               <TileLayer url={mapyTiles('outdoor')} />
               <InvalidateSizeOnMount />
               {/* bod 1 (iterácia 17): article route mapa = trasa je vždy "tá" → plný AllTrails-
-                  style čierno-zlatý casing (rovnaké dve vrstvy ako zvýraznená trasa v PackPortal). */}
-              <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: 1, lineCap: 'round', lineJoin: 'round' }} />
-              <Polyline positions={trail.path} pathOptions={{ color: '#F5C73D', weight: 4, opacity: 1, lineCap: 'round', lineJoin: 'round' }} />
+                  style čierno-zlatý casing (rovnaké dve vrstvy ako zvýraznená trasa v PackPortal).
+                  Hover/dotyk (routeDimmed) stiahne opacity oboch vrstiev na 50%, nech je vidno
+                  podklad — obe vrstvy naraz, inak by čierny casing ostal nepriehľadný sám. */}
+              <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
+              <Polyline positions={trail.path} pathOptions={{ color: '#F5C73D', weight: 4, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
               <Marker position={trail.path[0]} icon={placeIcon('walk', true)} />
             </MapContainer>
           ) : (
             <div className="pta-mapempty">Route map coming soon</div>
           )}
         </div>
+
+        {(trail as { elev?: number[] }).elev && (
+          <div className="pta-section">
+            <h3>Elevation profile</h3>
+            <ElevationProfile elev={(trail as { elev?: number[] }).elev} km={parseFloat(trail.km) || 0} />
+          </div>
+        )}
 
         <div className="pta-section">
           <h3>Walked by {agg.walkedCount} Dogyptian{agg.walkedCount === 1 ? '' : 's'}</h3>
@@ -506,6 +653,9 @@ export default function PackTripArticle() {
           )}
         </div>
       )}
+
+      {/* Mobilný rail — ten istý actsRow, len portálom mimo .pk-glass (viď komentár pri actsRow). */}
+      {railed && createPortal(actsRow, document.body)}
 
       {/* ── KOMUNITNÉ modaly (rovnaké ako PackPortal) ── */}
       {walkedPopupOpen && (

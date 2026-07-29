@@ -4,7 +4,7 @@
 // (human + dog tagy v pills s emoji — štartovací set, doladí sa v profile). REQUEST TO JOIN = mock stav.
 // Trasa/blog ostáva čistá — oznam v nej NEžije.
 import { useState } from 'react';
-import { PACK_THEME, GLASS_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { flagUrl } from '@/lib/countryGeo';
 import { ICON } from '@/components/pack/tripShared';
 import type { MockMember } from '@/components/pack/packCommunity';
@@ -32,54 +32,54 @@ const CSS = `
 .tap-flag{position:absolute;top:12px;left:12px;width:26px;height:26px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.45);background:#1a1a1a;z-index:2;}
 .tap-x{position:absolute;top:12px;right:12px;z-index:3;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:1px solid ${T.onDarkBorder};color:#fff;font-size:17px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tap-x:hover{border-color:${GOLD};color:${GOLD};}
-.tap-countdown{position:absolute;top:12px;right:54px;z-index:3;font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.03em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};box-shadow:0 2px 10px rgba(230,158,26,0.5);}
+.tap-countdown{position:absolute;top:12px;right:54px;z-index:3;font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};box-shadow:0 2px 10px rgba(230,158,26,0.5);}
 .tap-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;}
 .tap-cover-cap{position:absolute;left:18px;right:18px;bottom:13px;z-index:2;}
-.tap-badge{display:inline-block;font-family:'Cinzel',serif;font-weight:700;font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:#2ED3C3;color:#032420;margin-bottom:8px;}
-.tap-title{font-family:'Cinzel',serif;font-weight:700;font-size:21px;line-height:1.2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.6);}
+.tap-badge{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:#2ED3C3;color:#032420;margin-bottom:8px;}
+.tap-title{font-family:${FONT_TITLE};font-weight:700;font-size:21px;line-height:1.2;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,0.6);}
 .tap-sub{font-size:11.5px;color:rgba(245,240,228,0.82);margin-top:4px;text-shadow:0 1px 6px rgba(0,0,0,0.6);}
 
 /* dve zóny — rail účastníkov + profil */
 .tap-zones{display:flex;min-height:0;flex:1;overflow:hidden;}
 .tap-rail{flex:0 0 168px;border-right:1px solid ${T.onDarkHair};overflow-y:auto;padding:14px 12px;}
-.tap-rail-head{font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:${GOLD};margin-bottom:11px;}
+.tap-rail-head{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:11px;}
 .tap-member{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:8px 9px;border-radius:11px;border:1px solid transparent;background:transparent;cursor:pointer;transition:all .15s;margin-bottom:5px;}
 .tap-member:hover{background:rgba(245,240,228,0.05);}
 .tap-member.on{background:rgba(201,154,63,0.12);border-color:rgba(201,154,63,0.45);}
 /* pár človek+pes (Matej 2026-07-23: „who coming musí tam byť aj jeho pes/psy, nie len on") */
 .tap-avpair{position:relative;flex-shrink:0;width:40px;height:32px;}
-.tap-mav{position:absolute;top:0;left:0;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:12px;color:${INK};}
+.tap-mav{position:absolute;top:0;left:0;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
 .tap-dav{position:absolute;bottom:0;right:0;width:19px;height:19px;border-radius:50%;background:#2a2118;border:1.5px solid ${T.glass};display:flex;align-items:center;justify-content:center;}
 .tap-dav img{width:11px;height:11px;filter:brightness(0) invert(1);opacity:.82;}
 .tap-mtxt{min-width:0;display:flex;flex-direction:column;gap:2px;}
-.tap-mname{font-family:'Cinzel',serif;font-weight:700;font-size:11.5px;color:${T.onDark};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tap-mname{font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;color:${T.onDark};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tap-mrole{font-size:9px;color:${T.onDarkDim};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tap-pending{font-size:10px;color:${T.onDarkDim};font-style:italic;padding:6px 9px;}
 
 .tap-main{flex:1;overflow-y:auto;padding:18px 20px;min-width:0;}
 .tap-prof-head{display:flex;align-items:center;gap:12px;}
-.tap-av{flex-shrink:0;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:17px;color:${INK};}
-.tap-owner-name{font-family:'Cinzel',serif;font-weight:700;font-size:15px;color:${T.onDark};}
+.tap-av{flex-shrink:0;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:17px;color:${INK};}
+.tap-owner-name{font-family:${FONT_TITLE};font-weight:700;font-size:15px;color:${T.onDark};}
 .tap-owner-meta{font-size:10.5px;color:${T.onDarkDim};margin-top:2px;}
 .tap-msg{margin-top:15px;font-size:12px;line-height:1.55;color:${T.onDarkDim};background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:12px 14px;}
 .tap-grp{margin-top:16px;}
-.tap-grp-title{font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:${GOLD};margin-bottom:9px;}
+.tap-grp-title{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:9px;}
 .tap-pills{display:flex;flex-wrap:wrap;gap:6px;}
 .tap-pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:5px 10px;}
 /* preklik na verejný profil — vedľa mena (parking; profil stránka = neskôr, iná session) */
-.tap-profilelink{flex-shrink:0;margin-left:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:7px 11px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
+.tap-profilelink{flex-shrink:0;margin-left:auto;align-self:flex-start;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:7px 11px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
 .tap-profilelink:hover{border-color:${GOLD};color:${GOLD};}
 .tap-soonnote{margin-top:8px;font-size:10px;color:${T.onDarkDim};font-style:italic;}
 
 .tap-foot{flex-shrink:0;border-top:1px solid ${T.onDarkHair};padding:14px 18px 16px;}
 .tap-foot-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.tap-datepill{display:inline-flex;align-items:center;font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.03em;padding:6px 11px;border-radius:9px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};}
+.tap-datepill{display:inline-flex;align-items:center;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.03em;padding:6px 11px;border-radius:9px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};}
 .tap-going{font-size:10.5px;color:${T.onDarkDim};margin-left:auto;}
-.tap-join{width:100%;font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:12px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;transition:filter .15s;}
+.tap-join{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:12px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;transition:filter .15s;}
 .tap-join:hover{filter:brightness(1.05);}
 .tap-join.sent{background:rgba(55,178,106,0.16);border-color:rgba(55,178,106,0.5);color:#5FD98C;cursor:default;}
 .tap-note{font-size:10px;color:${T.onDarkDim};text-align:center;margin-top:8px;}
-.tap-viewtrail{display:block;width:100%;margin-top:10px;text-align:center;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:11px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:transparent;color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
+.tap-viewtrail{display:block;width:100%;margin-top:10px;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding:11px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:transparent;color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
 .tap-viewtrail:hover{border-color:${GOLD};color:${GOLD};}
 
 /* MOBILE — zóny na seba, rail = horizontálny pás avatarov */

@@ -3,7 +3,7 @@
 // packCommunityUI.tsx (.comm-dash fullscreen vzor) — tmavé glass pozadie, papyrus/gold akcenty,
 // Cinzel nadpisy, brand ikony (NIE lucide). Web texty = EN (rovnaká konvencia ako packCommunityUI).
 import { useEffect, useState } from 'react';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { getMe, listConversations, subscribe, type Conversation } from './packMessaging';
 
@@ -24,7 +24,7 @@ export const INBOX_CSS = `
 .msg-row-mid{flex:1;min-width:0;}
 .msg-row-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
 .msg-row-name{font-family:'Cinzel',serif;font-weight:700;font-size:13.5px;color:${T.onDark};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.msg-row-pack{font-family:'DM Sans',sans-serif;font-weight:400;font-size:11px;color:${T.onDarkDim};}
+.msg-row-pack{font-family:${FONT_UI};font-weight:400;font-size:11px;color:${T.onDarkDim};}
 .msg-row-time{flex-shrink:0;font-size:10px;color:${T.onDarkDim};}
 .msg-row-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;}
 .msg-row-preview{font-size:12px;color:${T.onDarkDim};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}

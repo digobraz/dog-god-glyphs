@@ -93,13 +93,23 @@ export type EnergyLevel = 'calm' | 'moderate' | 'high' | 'tireless';
 // Dog BIO + tags — read-profil / accordion editor (zadanie-profil-read-dog-2026-07-25 §1).
 // Closed-vocab chip taxonómie, i18n label key = `pack.dogTag.<value>`.
 //
-// POVAHA (zadanie-psia-karta-2026-07-25) — rozšírené zo 7 na 19. Zlúčené polia
-// „povaha" + „správanie" z Matejových zápiskov: boli to dve mená pre to isté,
-// druhé navyše nieslo dôsledok (dominantný → s dominantným možný problém),
-// ktorý teraz žije v `card.triggers` (čo reakciu spúšťa), nie v povahe.
+// POVAHA (zadanie-psia-karta-2026-07-25) — rozšírené zo 7 na 19, orezané na 17
+// 2026-07-26 (Matej: „povaha psa má zbytočne vela pils, niektoré sa opakujú").
+// Zlúčené polia „povaha" + „správanie" z Matejových zápiskov: boli to dve mená
+// pre to isté, druhé navyše nieslo dôsledok (dominantný → s dominantným možný
+// problém), ktorý teraz žije v `card.triggers` (čo reakciu spúšťa), nie v povahe.
+// Vyhodené duplicity:
+//  • 'easygoing' (Nekonfliktný) — takmer synonymum 'tolerant' (Tolerantný).
+//  • 'ignoring' (Iných psov nerieši) — duplikuje semafor „With other dogs"
+//    (`DOG_COMPAT_ROWS`, S KÝM VYCHÁDZA), ktorý tú istú otázku už kladie ako
+//    green/amber/red, nie ako voľný tag.
+//  • 'social' (Spoločenský) — 2026-07-29 (Matej): rovnaký dôvod ako vyššie,
+//    prekrýva sa s 'friendly' (Priateľský) a je opak 'loner' (Samotár).
+//    i18n kľúč `pack.dogTag.social` ostáva (mŕtvy, rovnaký precedens ako
+//    easygoing/ignoring) — nie je referencovaný odtiaľto.
 export const DOG_TEMPERAMENT_TAGS = [
-  'playful', 'friendly', 'calm', 'shy', 'alert', 'social', 'loner',
-  'tolerant', 'easygoing', 'ignoring', 'dominant', 'submissive',
+  'playful', 'friendly', 'calm', 'shy', 'alert', 'loner',
+  'tolerant', 'dominant', 'submissive',
   'curious', 'gentle', 'goofy', 'stubborn', 'cuddly', 'vocal', 'protective',
 ] as const;
 export type DogTemperamentTag = typeof DOG_TEMPERAMENT_TAGS[number];
@@ -421,10 +431,14 @@ export const DOG_SIZE_OPTIONS: TaxonomyOption<'S' | 'M' | 'L' | 'XL'>[] = [
 // Dropdown varianty semaforu (Matej 3. kolo: „nedat na semafor ale na dropdown").
 // Hodnoty ostávajú TrafficLight — mení sa len ovládací prvok a labely. Emoji bodka
 // nesie farbu aj v natívnom <select> popupe, kde CSS nedosiahne.
+// 2026-07-29 (Matej, o Poslušnosti): „nepáči sa mi odpoveď nie... skor sa
+// zamerať na to že zvádnuté, závisí/učíme sa... nie moc vyčítavé". Tento set
+// je zdieľaný (DOG_COMPAT_OPTIONS alias nižšie) medzi Poslušnosťou, Privolaním
+// aj „S kým vychádza" — Matej odsúhlasil zjednotiť všade rovnako.
 export const DOG_SKILL_OPTIONS: TaxonomyOption<TrafficLight>[] = [
-  { value: 'green', labelEN: 'No problem', emoji: '🟢' },
+  { value: 'green', labelEN: 'Mastered', emoji: '🟢' },
   { value: 'amber', labelEN: 'Depends', emoji: '🟡' },
-  { value: 'red', labelEN: 'No', emoji: '🔴' },
+  { value: 'red', labelEN: 'Still learning', emoji: '🔴' },
 ];
 /** Alias — rovnaké hodnoty aj labely, len iné volacie miesto (čitateľnosť). */
 export const DOG_COMPAT_OPTIONS = DOG_SKILL_OPTIONS;
@@ -438,9 +452,9 @@ export const TRAFFIC_COLORS: Record<TrafficLight, string> = {
 
 // Semafor legenda — MUSÍ sa renderovať v UI, inak si každý vyloží farby inak.
 export const TRAFFIC_OPTIONS: TaxonomyOption<TrafficLight>[] = [
-  { value: 'green', labelEN: 'No problem' },
+  { value: 'green', labelEN: 'Mastered' },
   { value: 'amber', labelEN: 'Depends' },
-  { value: 'red', labelEN: 'No' },
+  { value: 'red', labelEN: 'Still learning' },
 ];
 
 // Semafor riadky — jediný zostávajúci: ako vychádza so psami.

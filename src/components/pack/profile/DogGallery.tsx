@@ -329,7 +329,12 @@ function DogOpenCard({
         type="button"
         onClick={onToggleOpen}
         aria-expanded={open}
-        className="flex items-center w-full gap-3 p-3 lg:gap-4 lg:p-4"
+        /* `lg:gap-8` (32px) — Matej 2026-07-29: „NA PC zväčši priestor medzi
+           fotkou a menom a menom a heroglyfom". Predtým `lg:gap-4` (16px),
+           čo pri 86px fotke a 36px mene lepilo tri prvky na seba. Mobilný
+           `gap-3` sa NEMENÍ — tam je heroglyf na vlastnom riadku a väčšia
+           medzera by len ukrojila zo šírky. */
+        className="flex items-center w-full gap-3 p-3 lg:gap-8 lg:p-4"
         style={{ background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}
       >
         {/* Foto — kruh, rovnaký jazyk ako avatar majiteľa v bloku 1. Na mobile
@@ -644,21 +649,21 @@ function DogGalleryBody({
             editable={editable}
           >
             {/* Šírky podľa obsahu: veľkosť je len S/M/L/XL, kastrácia potrebuje dve
-                pills v JEDNOM riadku, pôvod dostane zvyšok. */}
-            <FieldGrid template="auto auto minmax(0, 1fr)">
+                pills v JEDNOM riadku. Pôvod + odkedy dátum si delia zvyšok riadku
+                rovnako (Matej 2026-07-29: „ten veľký dropdown nedáva zmysel" —
+                CAME FROM predtým hltal celú zvyšnú šírku samo, vyzeralo prázdno). */}
+            <FieldGrid template={card.origin ? 'auto auto minmax(120px, 1fr) minmax(120px, 1fr)' : 'auto auto minmax(0, 1fr)'}>
               <SelectRow label={t('pack.dogCard.size')} value={card.sizeClass} options={DOG_SIZE_OPTIONS} editable={editable} onChange={(v) => set('sizeClass', v)} />
               <NeuterPills label={t('pack.dogCard.neutered')} value={card.neutered} sex={sex} editable={editable} onChange={(v) => set('neutered', v)} />
               <SelectRow label={t('pack.dogCard.origin')} value={card.origin} options={DOG_ORIGIN_OPTIONS} editable={editable} onChange={(v) => set('origin', v)} />
+              {card.origin && (
+                <DateRow label={t('pack.dogCard.originSince')} value={card.originSince} editable={editable} onChange={(v) => set('originSince', v)} />
+              )}
             </FieldGrid>
-            {(isIntactFemale || card.origin) && (
+            {isIntactFemale && (
               <div style={{ marginTop: 8 }}>
                 <FieldGrid cols={3}>
-                  {isIntactFemale && (
-                    <DateRow label={t('pack.dogCard.heatLast')} value={card.heatLast} editable={editable} onChange={(v) => set('heatLast', v)} />
-                  )}
-                  {card.origin && (
-                    <DateRow label={t('pack.dogCard.originSince')} value={card.originSince} editable={editable} onChange={(v) => set('originSince', v)} />
-                  )}
+                  <DateRow label={t('pack.dogCard.heatLast')} value={card.heatLast} editable={editable} onChange={(v) => set('heatLast', v)} />
                 </FieldGrid>
               </div>
             )}

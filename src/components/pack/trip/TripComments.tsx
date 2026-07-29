@@ -1,7 +1,7 @@
 // Trip detail comment section — Reviews (paw rating + optional text) + Advice (Q&A). Replaces the
 // old "Message owner" / "Open trip group" placeholder buttons (§14 zadanie 2026-07-23 — "komentová
 // sekcia namiesto trip-group chatu"). Isolated component, mounted in PackPortal trip detail panel.
-// Same visual language as messaging (Inbox.tsx/Thread.tsx) — Cinzel labels, gold accents,
+// Same visual language as messaging (Inbox.tsx/Thread.tsx) — gold accents,
 // papyrus-on-dark. Mock data = deterministic per tripId (mulberry32 + FNV-1a hash, same pattern as
 // packCommunity.ts) — no Math.random, so counts/content stay stable across renders.
 //
@@ -10,7 +10,7 @@
 // same pattern as packCommunity.ts sessionStorage mirrors. Reviewing is gated on `walked` (passed
 // down from PackPortal's existing walkedIds state) — see PawReviewPopup below.
 import { useEffect, useMemo, useState } from 'react';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { MOCK_MEMBER_POOL, type MockMember } from '@/components/pack/packCommunity';
 
@@ -22,7 +22,7 @@ const PAGE_SIZE = 5;
 export const TRIP_COMMENTS_CSS = `
 .tcm-wrap{margin-top:16px;border:1px solid ${T.onDarkBorder};border-radius:14px;background:${T.glass};overflow:hidden;}
 .tcm-tabs{display:flex;border-bottom:1px solid ${T.onDarkHair};}
-.tcm-tab{flex:1;text-align:center;padding:12px 8px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:none;cursor:pointer;transition:color .15s,background .15s;}
+.tcm-tab{flex:1;text-align:center;padding:12px 8px;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:none;cursor:pointer;transition:color .15s,background .15s;}
 .tcm-tab:hover{color:${T.onDark};}
 .tcm-tab.on{color:${GOLD};background:rgba(201,154,63,0.10);box-shadow:inset 0 -2px 0 ${GOLD};}
 .tcm-body{padding:12px 16px 6px;}
@@ -31,12 +31,12 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-review:last-child{border-bottom:none;}
 .tcm-review.mine{cursor:pointer;border:1px solid rgba(201,154,63,0.45);background:rgba(201,154,63,0.07);border-radius:10px;padding:11px 12px;margin-bottom:4px;}
 .tcm-review.mine:hover{border-color:${GOLD};}
-.tcm-avatar{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:12px;color:${INK};}
+.tcm-avatar{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:12px;color:${INK};}
 .tcm-review-main{flex:1;min-width:0;}
 .tcm-review-top{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
-.tcm-review-name{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;color:${T.onDark};}
+.tcm-review-name{font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;color:${T.onDark};}
 .tcm-review-pack{font-size:10px;color:${T.onDarkDim};}
-.tcm-review-badge{font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:${GOLD};background:rgba(201,154,63,0.16);padding:2px 7px;border-radius:999px;}
+.tcm-review-badge{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:${GOLD};background:rgba(201,154,63,0.16);padding:2px 7px;border-radius:999px;}
 .tcm-paws{display:inline-flex;gap:2px;margin-top:4px;}
 .tcm-review-text{font-size:12px;line-height:1.5;color:${T.onDarkDim};margin-top:5px;}
 .tcm-advice{padding:11px 0;border-bottom:1px solid ${T.onDarkHair};}
@@ -52,11 +52,23 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-pager button{width:26px;height:26px;border-radius:50%;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
 .tcm-pager button:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .tcm-pager button:disabled{opacity:.28;cursor:default;}
-.tcm-pager span{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.04em;color:${T.onDarkDim};min-width:30px;text-align:center;}
+.tcm-pager span{font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.04em;color:${T.onDarkDim};min-width:30px;text-align:center;}
+
+/* reviews dropdown toggle — list is collapsed by default, CTA above stays visible */
+.tcm-collapse-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;margin-bottom:10px;border-radius:10px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;}
+.tcm-collapse-toggle:hover{border-color:${GOLD};color:${GOLD};}
+.tcm-collapse-chevron{display:inline-block;font-size:11px;transition:transform .15s;}
+.tcm-collapse-chevron.open{transform:rotate(180deg);}
+
+/* per-review like/heart */
+.tcm-review-footer{display:flex;justify-content:flex-end;margin-top:6px;}
+.tcm-like{display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:2px 4px;color:${T.onDarkDim};font-size:11px;font-family:inherit;}
+.tcm-like:hover{color:${T.onDark};}
+.tcm-like.on{color:#E0796D;}
 
 /* add review CTA */
 .tcm-addrow{margin-bottom:14px;}
-.tcm-btn-gold{width:100%;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;box-shadow:0 0 22px rgba(230,158,26,0.32),inset 0 1px 0 rgba(255,255,255,0.3);}
+.tcm-btn-gold{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:12px;border-radius:8px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;box-shadow:0 0 22px rgba(230,158,26,0.32),inset 0 1px 0 rgba(255,255,255,0.3);}
 .tcm-btn-gold:hover:not(:disabled){filter:brightness(1.04);}
 .tcm-btn-gold:disabled{opacity:.35;cursor:default;box-shadow:none;filter:none;}
 .tcm-gatehint{text-align:center;font-size:11px;color:${T.onDarkDim};font-style:italic;margin-top:7px;}
@@ -64,28 +76,28 @@ export const TRIP_COMMENTS_CSS = `
 /* ask a question box */
 .tcm-askbox{margin-bottom:16px;}
 .tcm-ask-actions{display:flex;justify-content:flex-end;margin-top:8px;}
-.tcm-postbtn{font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 18px;border-radius:8px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
+.tcm-postbtn{font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:8px 18px;border-radius:8px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
 .tcm-postbtn:disabled{opacity:.35;cursor:default;}
 
 /* popup (self-contained, same look as WalkedPopup in packCommunityUI.tsx) */
 .tcm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .tcm-modal{width:100%;max-width:400px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.glass};backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(245,240,228,0.06);padding:24px;}
 .tcm-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
-.tcm-modal-title{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:${GOLD};line-height:1.25;}
+.tcm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${GOLD};line-height:1.25;}
 .tcm-modal-sub{font-size:12px;color:${T.onDarkDim};margin-top:4px;}
 .tcm-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tcm-x:hover{border-color:${GOLD};color:${GOLD};}
 .tcm-field{margin-bottom:16px;}
-.tcm-label{display:block;font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
+.tcm-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
 .tcm-pawpick{display:flex;justify-content:center;gap:10px;}
 .tcm-pawpick button{background:none;border:none;cursor:pointer;padding:2px;line-height:0;}
 .tcm-pawpick button:hover img{transform:scale(1.12);}
 .tcm-pawpick img{transition:transform .1s;}
 .tcm-textarea{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:10px 12px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
 .tcm-textarea:focus{border-color:${GOLD};}
-.tcm-submit{width:100%;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
+.tcm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
 .tcm-submit:disabled{opacity:.4;cursor:default;}
-.tcm-deletebtn{width:100%;margin-top:9px;font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:10px;border-radius:10px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid rgba(206,75,60,0.4);cursor:pointer;}
+.tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:10px;border-radius:10px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid rgba(206,75,60,0.4);cursor:pointer;}
 .tcm-deletebtn:hover{background:rgba(178,38,30,0.22);}
 `;
 
@@ -142,7 +154,7 @@ const ADVICE_TEXT_POOL = [
   'First time doing this with a puppy — any tips on pacing?',
 ];
 
-interface MockReview { member: MockMember; rating: number; text: string | null; }
+interface MockReview { member: MockMember; rating: number; text: string | null; likes: number; }
 interface MockAdvice { member: MockMember; text: string; }
 
 function pickMember(rnd: () => number): MockMember {
@@ -159,7 +171,8 @@ function buildReviews(tripId: string): MockReview[] {
     const rating = RATING_POOL[Math.floor(rnd() * RATING_POOL.length)];
     const hasText = rnd() < 0.55;
     const text = hasText ? REVIEW_TEXT_POOL[Math.floor(rnd() * REVIEW_TEXT_POOL.length)] : null;
-    out.push({ member, rating, text });
+    const likes = Math.floor(rnd() * 13); // 0..12, same deterministic PRNG as rating/text
+    out.push({ member, rating, text, likes });
   }
   return out;
 }
@@ -199,6 +212,27 @@ function PawPicker({ value, onChange }: { value: number; onChange: (n: number) =
       ))}
     </div>
   );
+}
+
+// clickable heart on a review — liked state persisted in localStorage (see LIKES_KEY below).
+// tint flips gold-dim → danger(red) on like, same convention as a "favourited" heart elsewhere.
+function LikeButton({ liked, count, onClick }: { liked: boolean; count: number; onClick: () => void }) {
+  return (
+    <button type="button" className={`tcm-like${liked ? ' on' : ''}`} onClick={onClick} aria-label={liked ? 'Unlike review' : 'Like review'}>
+      <BrandIcon name="heart" size={13} tint={liked ? 'danger' : 'dim'} />
+      <span>{count}</span>
+    </button>
+  );
+}
+
+// ── review likes persistence (localStorage) — flat set of `${tripId}#${reviewKey}` strings,
+// same pattern as myReviews/myQuestions below (no Supabase yet). ──
+const LIKES_KEY = 'dogypt.tripReviewLikes.v1';
+function readLikedKeys(): Set<string> {
+  try { return new Set(JSON.parse(localStorage.getItem(LIKES_KEY) || '[]') as string[]); } catch { return new Set(); }
+}
+function writeLikedKeys(s: Set<string>) {
+  try { localStorage.setItem(LIKES_KEY, JSON.stringify([...s])); } catch { /* best-effort */ }
 }
 
 // ── my review persistence (localStorage — no Supabase yet, same pattern as packCommunity.ts
@@ -283,10 +317,23 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const [page, setPage] = useState(1);
   const changeTab = (t: 'reviews' | 'advice') => { setTab(t); setPage(1); };
 
+  // reviews collapse behind a dropdown by default — "Add review" CTA stays visible above it.
+  const [reviewsOpen, setReviewsOpen] = useState(false);
+
   const [myReviews, setMyReviews] = useState<MyReviewsMap>(() => readMyReviews());
   const [myQuestions, setMyQuestions] = useState<MyQuestionsMap>(() => readMyQuestions());
   const [reviewPopupOpen, setReviewPopupOpen] = useState(false);
   const [askText, setAskText] = useState('');
+  const [likedKeys, setLikedKeys] = useState<Set<string>>(() => readLikedKeys());
+
+  const toggleLike = (key: string) => {
+    setLikedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      writeLikedKeys(next);
+      return next;
+    });
+  };
 
   const myReview = myReviews[tripId] ?? null;
   const myQuestionsForTrip = myQuestions[tripId] ?? [];
@@ -376,38 +423,54 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
               </button>
             </div>
 
-            {reviewSliceMine && myReview && (
-              <div className="tcm-review mine" onClick={() => setReviewPopupOpen(true)}>
-                <span className="tcm-avatar"><BrandIcon name="paw" size={16} tint="dark" /></span>
-                <div className="tcm-review-main">
-                  <div className="tcm-review-top">
-                    <span className="tcm-review-name">You</span>
-                    <span className="tcm-review-badge">Your review</span>
-                  </div>
-                  <Paws rating={myReview.paws} />
-                  {myReview.text && <div className="tcm-review-text">{myReview.text}</div>}
-                </div>
-              </div>
+            {reviewCount > 0 && (
+              <button type="button" className="tcm-collapse-toggle" onClick={() => setReviewsOpen((v) => !v)}>
+                {reviewsOpen ? 'Hide reviews' : `Show ${reviewCount} review${reviewCount === 1 ? '' : 's'}`}
+                <span className={`tcm-collapse-chevron${reviewsOpen ? ' open' : ''}`}>⌄</span>
+              </button>
             )}
 
-            {reviewCount === 0 ? (
-              <div className="tcm-empty">No reviews yet. Be the first to rate this trip.</div>
-            ) : (
-              reviewMockSlice.map((r, i) => (
-                <div className="tcm-review" key={`${r.member.id}-${reviewMockOffset + i}`}>
-                  <span className="tcm-avatar">{r.member.name.charAt(0).toUpperCase()}</span>
-                  <div className="tcm-review-main">
-                    <div className="tcm-review-top">
-                      <span className="tcm-review-name">{r.member.name}</span>
-                      <span className="tcm-review-pack">· Dogyptian #{r.member.packNumber}</span>
+            {reviewCount === 0 && <div className="tcm-empty">No reviews yet. Be the first to rate this trip.</div>}
+
+            {reviewsOpen && (
+              <>
+                {reviewSliceMine && myReview && (
+                  <div className="tcm-review mine" onClick={() => setReviewPopupOpen(true)}>
+                    <span className="tcm-avatar"><BrandIcon name="paw" size={16} tint="dark" /></span>
+                    <div className="tcm-review-main">
+                      <div className="tcm-review-top">
+                        <span className="tcm-review-name">You</span>
+                        <span className="tcm-review-badge">Your review</span>
+                      </div>
+                      <Paws rating={myReview.paws} />
+                      {myReview.text && <div className="tcm-review-text">{myReview.text}</div>}
                     </div>
-                    <Paws rating={r.rating} />
-                    {r.text && <div className="tcm-review-text">{r.text}</div>}
                   </div>
-                </div>
-              ))
+                )}
+
+                {reviewMockSlice.map((r, i) => {
+                  const key = `${tripId}#${reviewMockOffset + i}`;
+                  const liked = likedKeys.has(key);
+                  return (
+                    <div className="tcm-review" key={`${r.member.id}-${reviewMockOffset + i}`}>
+                      <span className="tcm-avatar">{r.member.name.charAt(0).toUpperCase()}</span>
+                      <div className="tcm-review-main">
+                        <div className="tcm-review-top">
+                          <span className="tcm-review-name">{r.member.name}</span>
+                          <span className="tcm-review-pack">· Dogyptian #{r.member.packNumber}</span>
+                        </div>
+                        <Paws rating={r.rating} />
+                        {r.text && <div className="tcm-review-text">{r.text}</div>}
+                        <div className="tcm-review-footer">
+                          <LikeButton liked={liked} count={r.likes + (liked ? 1 : 0)} onClick={() => toggleLike(key)} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <Pager page={page} totalPages={reviewPages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(reviewPages, p + 1))} />
+              </>
             )}
-            <Pager page={page} totalPages={reviewPages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(reviewPages, p + 1))} />
           </>
         ) : (
           <>

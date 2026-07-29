@@ -6,6 +6,12 @@ import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 
 type Status = "verifying" | "success" | "expired" | "invalid" | "network" | "missing" | "recovery";
 
+// Token types Supabase may hand us in ?type=. `signup` is what a brand-new buyer
+// gets (their auth user is created by the purchase), so it must be honoured or
+// their very first login link dies.
+type OtpType = "magiclink" | "email" | "recovery" | "signup" | "invite" | "email_change";
+const OTP_TYPES: OtpType[] = ["magiclink", "email", "recovery", "signup", "invite", "email_change"];
+
 const isExpired = (msg: string) =>
   /expired|otp_expired|invalid_token|token has expired/i.test(msg);
 
@@ -87,7 +93,12 @@ export default function Login() {
         }
 
         const tokenHash = params.get("token_hash") ?? params.get("token") ?? "";
-        const typeParam = (params.get("type") ?? "magiclink") as "magiclink" | "email" | "recovery";
+        // A first-time buyer's link is a `signup` confirmation, not a magiclink —
+        // GoTrue picks the type, and verifyOtp rejects the token if we guess wrong
+        // ("Email link is invalid or has expired"). Accept every type the sender
+        // may legitimately issue instead of narrowing to magiclink.
+        const rawType = params.get("type") ?? "magiclink";
+        const typeParam = (OTP_TYPES.includes(rawType as OtpType) ? rawType : "magiclink") as OtpType;
         const hasHashToken = window.location.hash.includes("access_token=");
         const hasHashError = window.location.hash.includes("error=");
 

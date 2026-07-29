@@ -18,7 +18,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
 import { readPlans, MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
@@ -37,20 +37,20 @@ const DAY_MS = 86400000;
 const isoDate = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
 const CSS = `
-.tl-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:'DM Sans',system-ui,sans-serif;position:relative;padding-bottom:110px;}
+.tl-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:${FONT_UI};position:relative;padding-bottom:110px;}
 .tl-body{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) 20px 0;position:relative;z-index:2;}
 /* back = holá šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty) */
 .tl-backrow{display:flex;justify-content:center;margin-bottom:16px;}
 .tl-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:19px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s;}
 .tl-back:hover{border-color:${GOLD};color:${GOLD};}
-.tl-title{font-family:'Cinzel',serif;font-weight:700;font-size:26px;letter-spacing:.03em;color:${GOLD};text-align:center;}
+.tl-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;letter-spacing:.03em;color:${GOLD};text-align:center;}
 .tl-sub{font-size:12.5px;color:${T.onDarkDim};text-align:center;margin-top:6px;}
 
 /* dvojkartový prepínač TRIPLIST | TRIPSTATS — aktívna karta = zlatý rámik, druhá „vedľa" = klik na prepnutie */
 .tl-tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
 .tl-tab{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 17px;border-radius:16px;border:1px solid ${T.onDarkBorder};background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;text-align:left;transition:border-color .15s,transform .15s,background .15s;}
 .tl-tab:hover{border-color:rgba(201,154,63,0.5);transform:translateY(-1px);}
-.tl-tab-label{font-family:'Cinzel',serif;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};display:flex;align-items:center;gap:8px;}
+.tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};display:flex;align-items:center;gap:8px;}
 .tl-tab-ic{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};flex-shrink:0;}
 .tl-tab-ic img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:.8;}
 .tl-tab-sub{font-size:10.5px;color:${T.onDarkDim};padding-left:34px;}
@@ -64,8 +64,8 @@ const CSS = `
 .tl-section + .tl-section{margin-top:22px;}
 .tl-divider{height:1px;background:${T.onDarkHair};margin:22px 0;}
 .tl-sechead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
-.tl-sechead h3{font-family:'Cinzel',serif;font-weight:700;font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;color:${GOLD};margin:0;}
-.tl-seeall{font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDarkDim};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
+.tl-sechead h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};margin:0;}
+.tl-seeall{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:${T.onDarkDim};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
 .tl-seeall:hover{color:${GOLD};border-color:${GOLD};}
 .tl-empty{font-size:12.5px;color:${T.onDarkDim};font-style:italic;padding:6px 0 2px;}
 
@@ -86,52 +86,52 @@ const CSS = `
 /* vlajka do kruhu — ľavý horný roh, vzor z /wall .card-flag */
 .tl-flag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.45);background:#1a1a1a;z-index:2;}
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard */
-.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.04em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.6),0 0 0 3px ${T.pageBg};white-space:nowrap;pointer-events:none;}
+.tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.6),0 0 0 3px ${T.pageBg};white-space:nowrap;pointer-events:none;}
 .tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.65),0 0 0 3px ${T.pageBg};}
-.tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:'Cinzel',serif;font-weight:700;font-size:8.5px;letter-spacing:.03em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:0 2px 8px rgba(0,0,0,0.45);max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:${FONT_UI};font-weight:600;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:0 2px 8px rgba(0,0,0,0.45);max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 /* status farby (Matej 2026-07-23): done=zelená · solo=biela · s niekým=modrá · hľadanie=tyrkys */
 .tl-block-badge.done{background:#37B26A;color:#062611;}
 .tl-block-badge.solo{background:rgba(245,240,228,0.94);color:#1a1305;}
 .tl-block-badge.with{background:#3B82F6;color:#03102b;}
 .tl-block-badge.looking{background:#2ED3C3;color:#032420;}
 .tl-block-info{padding:9px 11px 11px;}
-.tl-block-name{font-family:'Cinzel',serif;font-weight:700;font-size:12px;line-height:1.25;color:${T.onDark};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
+.tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${T.onDark};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
 .tl-block-sub{font-size:9.5px;color:${T.onDarkDim};margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .tl-block-owner{display:flex;align-items:center;gap:6px;font-size:10px;color:${T.onDarkDim};margin-top:7px;min-width:0;}
 .tl-block-owner span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tl-block-avatar{flex-shrink:0;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:8px;color:${INK};}
+.tl-block-avatar{flex-shrink:0;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:8.5px;color:${INK};}
 /* krátka správa usporiadateľa — 2 riadky, celá v natívnom tooltipe (overflow:hidden na karte by orezal custom bublinu) */
 .tl-msg{font-size:9.5px;color:${T.onDarkDim};line-height:1.4;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:help;}
 .tl-block-foot{margin-top:8px;}
-.tl-datebtn{font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.03em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;}
+.tl-datebtn{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;}
 .tl-datebtn:hover{border-color:${GOLD};color:${GOLD};}
 /* dátum v rámiku (open trips) */
-.tl-datepill{display:inline-flex;align-items:center;gap:5px;font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.03em;padding:4px 9px;border-radius:8px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};}
+.tl-datepill{display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.04em;padding:4px 9px;border-radius:8px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};}
 .tl-date{font-size:10px;color:${T.onDarkDim};}
 /* OPEN TRIPS filter bar */
 .tl-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
-.tl-filter{font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:6px 12px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
+.tl-filter{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:6px 12px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
 .tl-filter:hover{border-color:${GOLD};color:${GOLD};}
 .tl-filter.on{background:${GOLD};border-color:${GOLD};color:${INK};}
-.tl-filter-sel{font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};cursor:pointer;color-scheme:dark;outline:0;}
+.tl-filter-sel{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};cursor:pointer;color-scheme:dark;outline:0;}
 .tl-filter-sep{width:1px;height:20px;background:${T.onDarkHair};margin:0 2px;}
 /* OPEN TRIPS pager */
 .tl-pager{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px;}
-.tl-pagebtn{font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.05em;text-transform:uppercase;padding:8px 15px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};cursor:pointer;transition:all .15s;}
+.tl-pagebtn{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:8px 15px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};cursor:pointer;transition:all .15s;}
 .tl-pagebtn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .tl-pagebtn:disabled{opacity:.35;cursor:default;}
-.tl-pageinfo{font-family:'Cinzel',serif;font-weight:700;font-size:10px;letter-spacing:.05em;color:${T.onDarkDim};}
+.tl-pageinfo{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.06em;color:${T.onDarkDim};}
 
 /* Add date popup — dark glass, vokabulár .tcm-overlay/.tcm-modal (TripComments.tsx) */
 .tl-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .tl-modal{width:100%;max-width:360px;background:${T.glass};backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(245,240,228,0.06);padding:24px;}
 .tl-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
-.tl-modal-title{font-family:'Cinzel',serif;font-weight:700;font-size:16px;color:${GOLD};}
+.tl-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${GOLD};}
 .tl-x{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .tl-x:hover{border-color:${GOLD};color:${GOLD};}
 .tl-dateinput{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:11px 12px;color:${T.onDark};font-family:inherit;font-size:14px;outline:0;color-scheme:dark;}
 .tl-dateinput:focus{border-color:${GOLD};}
-.tl-modal-submit{width:100%;margin-top:16px;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
+.tl-modal-submit{width:100%;margin-top:16px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
 .tl-modal-submit:disabled{opacity:.4;cursor:default;}
 `;
 
@@ -328,15 +328,16 @@ export default function PackTriplist() {
           <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label="Back to map">←</button>
         </div>
 
-        {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad */}
+        {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad.
+            Matej 2026-07-26: poradie otočené — Tripstats vľavo, Triplist vpravo. */}
         <div className="tl-tabs">
-          <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
-            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('clipboard')} alt="" /></span> Triplist</span>
-            <span className="tl-tab-sub">{nextUpDays !== null ? `Next trip · ${countdownLabel(nextUpDays)}` : 'Plans & open trips'}</span>
-          </button>
           <button type="button" className={`tl-tab${view === 'stats' ? ' on' : ''}`} onClick={() => setView('stats')}>
             <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('trophy')} alt="" /></span> Tripstats</span>
             <span className="tl-tab-sub">{walkedTrails.length} walked · {walkedKm % 1 === 0 ? walkedKm : walkedKm.toFixed(1)} km</span>
+          </button>
+          <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
+            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('clipboard')} alt="" /></span> Triplist</span>
+            <span className="tl-tab-sub">{nextUpDays !== null ? `Next trip · ${countdownLabel(nextUpDays)}` : 'Plans & open trips'}</span>
           </button>
         </div>
 

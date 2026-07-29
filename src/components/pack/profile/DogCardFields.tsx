@@ -51,32 +51,29 @@ export function SubSection({
   const [open, setOpen] = useState(defaultOpen);
   if (!editable && filled === 0) return null;
   return (
-    <div style={{ marginTop: 12, borderTop: `1px solid ${T.hairline}`, paddingTop: 10 }}>
+    <div style={{ marginTop: 10 }}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex items-center gap-2 w-full"
-        style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+        className={`flex items-center gap-2.5 w-full pf-subsection${open ? ' is-open' : ''}`}
+        style={{ borderRadius: 10, padding: '10px 12px', cursor: 'pointer', textAlign: 'left' }}
       >
-        <span style={sectionLabelStyle}>{title}</span>
+        <span style={{ ...sectionLabelStyle, fontSize: 10.5, letterSpacing: '0.16em', color: T.inkStrong }}>{title}</span>
         {editable && (
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace", fontSize: 10,
-              color: filled > 0 ? T.accentGold : T.inkFaint,
-            }}
-          >
+          <span className={`pf-subsection-badge${filled > 0 ? ' is-filled' : ' is-empty'}`}>
             {filled}/{total}
           </span>
         )}
         <span className="flex-1" />
-        <ChevronDown
-          className="h-3.5 w-3.5"
-          style={{ color: T.inkFaint, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-        />
+        <span className="pf-subsection-chevron">
+          <ChevronDown
+            className="h-3.5 w-3.5"
+            style={{ color: T.inkWarm, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          />
+        </span>
       </button>
-      {open && <div style={{ marginTop: 10 }}>{children}</div>}
+      {open && <div style={{ marginTop: 10, padding: '0 2px' }}>{children}</div>}
     </div>
   );
 }
@@ -121,6 +118,14 @@ export function SelectRow<V extends string>({
   onChange: (v: V | undefined) => void;
 }) {
   const tone = value && toneOf ? toneOf(value) : undefined;
+  // Bez `toneOf` (SIZE, CAME FROM, FITNESS, …) select nenesie sémantickú farbu
+  // odpovede — ale vyplnený vs prázdny musí byť vidno na prvý pohľad, inak sa
+  // vyplnené polia strácajú v hromade prázdnych (Matej 2026-07-29: „tie ktoré
+  // sa nevyfarbia ako pills musíme vyfarbiť zelenou = na prvý pohľad jasné čo
+  // je vyplnené"). Zelená = DONE stav, rovnaká sémantika ako `growGreen` inde
+  // v appke (walked trip). Sémantický `tone` (semafor) má prednosť, nemieša sa.
+  const doneColor = !tone && value ? T.growGreen : undefined;
+  const activeColor = tone ?? doneColor;
   const t = useT();
   const optLabel = (o: TaxonomyOption<V>) => {
     const key = `pack.dogCard.opt.${o.value}`;
@@ -153,13 +158,16 @@ export function SelectRow<V extends string>({
       <select
         value={value ?? ''}
         onChange={(e) => onChange((e.target.value || undefined) as V | undefined)}
+        className={activeColor ? undefined : 'pf-field'}
         style={{
-          background: tone ? `${tone}1F` : T.bg,
-          border: `1px solid ${tone ?? T.hairline}`,
+          // Tónovaná/DONE hodnota je sémantický signál — nesmie ju prebiť
+          // papyrusová `.pf-field` výplň, preto ide mimo triedy.
+          background: activeColor ? `${activeColor}1F` : undefined,
+          border: activeColor ? `1px solid ${activeColor}` : undefined,
           borderRadius: 8,
           padding: '5px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
-          fontWeight: tone ? 600 : 400,
-          color: value ? (tone ?? T.ink) : T.inkFaint, outline: 'none', width: '100%',
+          fontWeight: activeColor ? 600 : 400,
+          color: value ? (activeColor ?? T.ink) : T.inkFaint, width: '100%',
         }}
       >
         <option value="">—</option>
@@ -207,10 +215,11 @@ export function NumberRow({
           const n = e.target.value === '' ? undefined : Number(e.target.value);
           onChange(n != null && Number.isFinite(n) ? n : undefined);
         }}
+        className="pf-field"
         style={{
-          background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 8,
+          borderRadius: 8,
           padding: '5px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
-          color: T.ink, outline: 'none', width: '100%',
+          color: T.ink, width: '100%',
         }}
       />
     </label>
@@ -252,15 +261,18 @@ export function NeuterPills({
           const active = value === o.v;
           if (!editable && !active) return null;
           const translated = t(o.key);
+          // Aktívna pill nesie sémantickú farbu pohlavia (modrá/ružová) — mimo
+          // `.pf-field` triedy, tá platí len na neutrálnu neaktívnu pill.
           return (
             <button
               key={o.v}
               type="button"
               aria-pressed={active}
               onClick={editable ? () => onChange(active ? undefined : o.v) : undefined}
+              className={active ? undefined : 'pf-field'}
               style={{
-                background: active && o.filled ? tone : 'transparent',
-                border: `1.5px solid ${active ? tone : T.hairline}`,
+                background: active ? (o.filled ? tone : 'transparent') : undefined,
+                border: active ? `1.5px solid ${tone}` : undefined,
                 borderRadius: 999, padding: '3px 10px',
                 fontFamily: "'Space Grotesk', sans-serif", fontSize: 11,
                 fontWeight: active ? 600 : 500,
@@ -302,10 +314,11 @@ export function DateRow({
         type="date"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value || undefined)}
+        className="pf-field"
         style={{
-          background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 8,
+          borderRadius: 8,
           padding: '5px 8px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
-          color: value ? T.ink : T.inkFaint, outline: 'none', width: '100%',
+          color: value ? T.ink : T.inkFaint, width: '100%',
         }}
       />
     </label>
@@ -405,14 +418,12 @@ export function ChipMulti({
             key={opt}
             type="button"
             onClick={editable && !blocked ? () => onToggle(opt) : undefined}
+            disabled={blocked}
+            className={`pf-pill${isSelected ? ' is-selected' : ''}`}
             style={{
-              background: isSelected ? T.accentGold : T.bg,
-              border: `1px solid ${isSelected ? T.accentGold : T.hairline}`,
               borderRadius: 999, padding: '3px 9px',
               fontFamily: "'Space Grotesk', sans-serif", fontSize: 11,
               fontWeight: isSelected ? 600 : 500,
-              color: isSelected ? '#1F1A0E' : T.inkDim,
-              opacity: blocked ? 0.35 : 1,
               cursor: editable && !blocked ? 'pointer' : 'default',
             }}
           >
@@ -507,10 +518,11 @@ export function OpenQuestion({
             }}
             onBlur={() => { if (draft.trim()) { add(draft); setDraft(''); } }}
             placeholder={placeholder}
+            className="pf-field"
             style={{
-              width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 8,
+              width: '100%', borderRadius: 8,
               padding: '6px 10px', fontFamily: "'Space Grotesk', sans-serif", fontSize: 12,
-              color: T.ink, outline: 'none',
+              color: T.ink,
             }}
           />
           {unused.length > 0 && (

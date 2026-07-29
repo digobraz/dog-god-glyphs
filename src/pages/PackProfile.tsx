@@ -463,15 +463,18 @@ export default function PackProfile() {
               zmysel - vypni ho"). Komponent `ProfileProgress` aj
               `humanProfileCompletion()` zostávajú v kóde — zapnutie = vrátiť
               tieto štyri props do hlavičky karty. */}
-          {/* Centrovaná os: FOTO → MENO → BIO → BASICS+LIFESTYLE → WHAT YOU'RE
-              LIKE (Matej 2026-07-26: „1. blok foto zvačšime a vycentrujme, pod
-              to mena, pod to bio, pod to basic a lifestyle — a what you like
-              všetko centrované v 1. bloku"). Predtým to bol vodorovný riadok
-              avatar | polia, čo lámalo os stránky na dve. */}
-          <div className="flex flex-col items-center" style={{ gap: 18 }}>
-            {/* Avatar — hrdina bloku, nie 88px krúžok vedľa formulára. `clamp`
-                namiesto fixnej veľkosti: na 390px mobile by 176px zožralo pol
-                obrazovky. `aspectRatio` drží kruh bez druhej clamp hodnoty. */}
+          {/* HLAVIČKA BLOKU 1 — FOTO vľavo | MENÁ vpravo (Matej 2026-07-29:
+              „skonsolidovať prvú časť — fotku daj na ľavo a name, nickname na
+              pravo aj na mobile"). Predtým bola os čisto vertikálna (foto NAD
+              menami), čo z hlavičky robilo dve obrazovky na mobile. Zvyšok
+              bloku (BIO → basics/lifestyle → what you're like) ostáva
+              centrovaný — mení sa len táto hlavička. */}
+          <Column max={640}>
+          <div className="flex flex-row items-center" style={{ gap: 16 }}>
+            {/* Avatar — vľavo, menší než v centrovanej verzii: vedľa neho teraz
+                sedia polia, takže `clamp` má nižší strop aj nižšie dno (na
+                390px mobile ostane ~94px a zvyšok riadku patrí menám).
+                `aspectRatio` drží kruh bez druhej clamp hodnoty. */}
             <button
               type="button"
               onClick={handleAvatarClick}
@@ -479,7 +482,7 @@ export default function PackProfile() {
               aria-label="Change avatar"
               className="relative shrink-0 group"
               style={{
-                width: 'clamp(136px, 40vw, 176px)',
+                width: 'clamp(88px, 24vw, 148px)',
                 aspectRatio: '1 / 1',
                 borderRadius: '50%',
                 // 1px šedý hairline z 88px krúžku sa pri 176px stratí a fotka
@@ -508,7 +511,8 @@ export default function PackProfile() {
                 <span
                   style={{
                     fontFamily: "'Cinzel', serif",
-                    fontSize: 58,
+                    // Škáluje s kruhom — fixných 58px pretieklo z 88px avatara.
+                    fontSize: 'clamp(34px, 9vw, 58px)',
                     fontWeight: 700,
                     color: T.inkDim,
                   }}
@@ -531,16 +535,16 @@ export default function PackProfile() {
               style={{ display: 'none' }}
             />
 
-            {/* MENO — pod fotkou, nie vedľa nej. Name/Nickname zostávajú v 2-col
-                gridu aj na mobile (zadanie-profil-shrink-2026-07-24). Šírka
-                640 = rovnaká hranica ako basics+lifestyle nižšie (Matej
-                2026-07-26: „text area je aj name a nickname a mal by byť
-                široky ako tranice dolných dvoch blokov") — predtým 430 nesedelo
-                s ničím pod tým, os stránky mala tri rôzne šírky. Text v poliach
-                je centrovaný — vľavo zarovnaný by pod centrovaným labelom
-                vyzeral ako chyba. */}
-            <Column max={640}>
-              <div className="grid grid-cols-2 gap-2">
+            {/* MENÁ — vpravo od fotky, `flex-1 min-w-0` (bez `min-w-0` by grid
+                s inputmi odmietol zmenšiť a vytlačil by riadok zo šírky karty).
+                Na mobile Name/Nickname POD SEBOU: vedľa fotky ostane ~230px, čo
+                by pri 2 stĺpcoch dalo ~105px na pole a placeholdery by sa
+                orezali. Od `sm` (640px) sa vracajú vedľa seba — 2-col z
+                zadanie-profil-shrink-2026-07-24 tak platí všade, kde sa vojde.
+                Vonkajší `Column max={640}` drží rovnakú hranicu šírky ako
+                basics+lifestyle nižšie (Matej 2026-07-26). */}
+            <div className="flex-1 min-w-0">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
                   <label
                     style={{
@@ -609,8 +613,9 @@ export default function PackProfile() {
                   onChange={(v) => patchHuman({ displayAs: v })}
                 />
               </div>
-            </Column>
+            </div>
           </div>
+          </Column>
 
           {/* BIO — hneď pod menom (Matej 2026-07-26: „pod to bio, pod to basic a
               lifestyle"). Predtým bolo AŽ pod pills, čiže hook profilu čítal
@@ -956,7 +961,11 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
           Nadnadpis („Your pantheon" + heartpaw ikonka) aj podnadpis („The ones
           who chose you…") sú PREČ — Matej 2026-07-26: „oh my dog (preč
           nadnadpis aj podnadpis". Zostal jeden nadpis a počítadlo psov. */}
-      <div className="flex items-start justify-between" style={{ gap: 16, marginBottom: 4 }}>
+      {/* Matej 2026-07-29: „nadpis musím centrovať a dajme ho menším."
+          `justify-between` (nadpis vľavo, počítadlo vypchané na opačný koniec)
+          → `justify-center`: nadpis a počítadlo idú do stredu ako jeden celok.
+          Počítadlo si drží `shrink-0`, takže sa pri dlhom nadpise nezrazí. */}
+      <div className="flex items-center justify-center" style={{ gap: 12, marginBottom: 4 }}>
         <div style={{ minWidth: 0 }}>
           <h2
             style={{
@@ -964,8 +973,9 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
               fontWeight: 700,
               /* Matej 2026-07-26: „ten nadpis Oh my dog je teraz neprimerane
                  veľký" — strop 2.6rem (41.6px) znížený na 2rem (32px),
-                 spodok 1.75→1.5rem. */
-              fontSize: 'clamp(1.5rem, 4vw, 2rem)',
+                 spodok 1.75→1.5rem. Matej 2026-07-29: „dajme ho menším" —
+                 ďalšie kolo, 2rem→1.5rem (24px) / spodok 1.5→1.2rem. */
+              fontSize: 'clamp(1.2rem, 3.2vw, 1.5rem)',
               letterSpacing: '0.03em',
               textTransform: 'uppercase',
               lineHeight: 1.05,
@@ -1003,6 +1013,9 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
           lineHeight: 1.5,
           color: T.inkWarm,
           margin: '0 0 2px',
+          /* Ide s centrovaným nadpisom — vľavo zarovnaná veta pod centrovaným
+             nadpisom číta ako chyba. Vidno ju len v prázdnom stave. */
+          textAlign: 'center',
         }}
       >
         {loading

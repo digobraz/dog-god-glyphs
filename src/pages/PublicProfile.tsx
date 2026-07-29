@@ -19,7 +19,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { usePackUser } from '@/hooks/usePackUser';
 import { useProfile, deriveDefaultDogAttrs, NATIONALITY_OPTIONS } from '@/components/pack/profile/packProfile';
 import { MOCK_MEMBER_POOL, computeCompletion } from '@/components/pack/packCommunity';
@@ -159,6 +159,10 @@ export default function PublicProfile() {
   return (
     <PackLayout wide>
       <div className="flex flex-col gap-5">
+        {/* `.pf-field`/`.pf-pill` (packTheme.ts) — DogGalleryAccordion tu renderuje
+            tie isté chipy/polia ako PackProfile.tsx (editor), takže potrebujú tú
+            istú CSS triedu aj na read-only profile. */}
+        <style>{PF_FIELD_CSS}</style>
         <BackLink />
 
         {/* Owner hlavička — avatar · meno/nickname · nationalita · pack# · badges */}

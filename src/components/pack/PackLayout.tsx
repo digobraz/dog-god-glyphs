@@ -285,14 +285,22 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
 
       {open && (
         <div
+          className="pack-avatar-menu"
           style={{
-            position: 'absolute', bottom: 'calc(100% + 10px)', right: 0, minWidth: 190,
+            position: 'absolute', right: 0, minWidth: 190,
             background: T.glass, border: `1px solid ${T.onDarkBorder}`, borderRadius: 14,
             backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
             boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
             padding: 6, zIndex: 50,
           }}
         >
+          {/* .pack-avatar-menu bottom offset žije v CSS (nie inline) — na /pack/map
+              (≤1023px) musí preskočiť .trp-mtoggle LIST/MAP pilulku (bottom 78px + výška),
+              inak ju prekrýva a schová druhú položku menu pod ňou (Matej 2026-07-27 bug report). */}
+          <style>{`
+            .pack-avatar-menu{bottom:calc(100% + 10px);}
+            @media (max-width:1023px){.pack-avatar-menu{bottom:calc(100% + 76px);}}
+          `}</style>
           <AvatarMenuItem
             label={t('pack.layout.navProfile')}
             onClick={() => { setOpen(false); navigate('/pack/profile'); }}

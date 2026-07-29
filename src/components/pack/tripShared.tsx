@@ -3,6 +3,7 @@
 // route/page (article), not a modal, so anything both surfaces render (author fallback,
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import { PACK_THEME } from '@/components/pack/packTheme';
 
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
 
@@ -33,39 +34,109 @@ export function DiffMark({ diff }: { diff: string }) {
 
 // CSS pre .trp-diffmark — jeden string, interpolovaný do vlastného scoped <style> oboch
 // stránok (PackPortal aj PackTripArticle), nech je tvar/farba na JEDNOM mieste (bod 6, i12).
-// Iterácia 16 bod 3: Moderate #E0A020 (žltá) → #2E6FD6 (modrá). Easy/Hard nezmenené.
+// 2026-07-27: Moderate bola modrá, teraz žltá (#E0A020) — modrá sa uvoľnila pre vodu (kolízia
+// významu: dnes bola naraz "stredná náročnosť" aj "vodná plocha"), viď WATER_COLOR nižšie.
 export const DIFF_MARK_CSS = `
 .trp-diffmark{display:inline-block;flex-shrink:0;width:9px;height:9px;}
 .trp-diffmark--circle{border-radius:50%;background:#3FA34D;}
-.trp-diffmark--square{background:#2E6FD6;}
+.trp-diffmark--square{background:#E0A020;}
 .trp-diffmark--triangle{width:0;height:0;background:none;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid #CE4B3C;}
 .trp-diffmark--triangle.trp-diffmark--odyssey{border-bottom-color:#FFFFFF;}
 `;
 
-// ── Rating packy (iterácia 16 bod 2) — jednotný 5-pack widget, zdieľaný medzi kartami/inline
-// detailom (PackPortal.tsx) a článkom (PackTripArticle.tsx), nech "5 paciek všade" je na
-// JEDNOM mieste (rovnaký vzor ako <DiffMark>). paw.svg zdrojový tvar je už plný/solid (5
-// zvarených blobov — palma + 4 prsty, žiadny stroke-outline), takže "rozsvietené"/"tlmené"
-// rieši len GOLD_ICON_FILTER vs. tlmená biela + opacity — tvar sa nemení, len tón (bod 2 ask
-// "plné packy, nie obrysy" je už splnené zdrojovým SVG, viď report). size/gap = px, voliteľné
-// pre rôzne kontexty (karta kompaktná vs. inline detail/článok priestrannejšie). *
+// Rovnaká paleta ako DIFF_MARK_CSS vyššie, ale ako JS hodnoty — pre miesta, ktoré farbu
+// potrebujú mimo CSS triedy (2026-07-26: idle stav trasy na mape v PackPortal.tsx, farba
+// podľa náročnosti namiesto plochej čiernej). Odyssey nemá vlastný odtieň na mape (žurnálové
+// trasy idú cez samostatnú červeno-bielu vetvu), fallbackuje na Hard červenú.
+export const DIFF_COLOR: Record<string, string> = {
+  Easy: '#3FA34D', Moderate: '#E0A020', Hard: '#CE4B3C', Odyssey: '#CE4B3C',
+};
+
+// Voda (mapové bodky/legenda) — 2026-07-27: predtým zdieľala hodnotu s Moderate náročnosťou,
+// teraz vlastný token nech nikde nie je ako holý literál (Matej: "modrá farba bude voda").
+export const WATER_COLOR = '#2E6FD6';
+
+// ── Rating packy (iterácia 16 bod 2, doplnené 2026-07-27 o desatinný fill) — jednotný
+// 5-pack widget, zdieľaný medzi kartami/inline detailom (PackPortal.tsx) a článkom
+// (PackTripArticle.tsx). Priemer viacerých hlasov (na rozdiel od jedného hlasu v
+// addtrip/PawRating.tsx) môže byť zlomkový, napr. 4,5 — Matej: "pri hviezdičkách to tak
+// funguje že je vyfarbená iba na X% ked je 4,5 tak je vyfarbenej aj 50% piatej hviezdy ako
+// to urobíme my?". Rovnaký princíp ako hviezdičky, len cez `clip-path` na obrázok namiesto
+// `width` na fontovú glyph. Zaokrúhlené na najbližších 10 % (Matejova voľba cez
+// AskUserQuestion) — 4,53 aj 4,47 vyzerajú rovnako, netreba nekonečnú presnosť.
+// Každá packa = 2 vrstvy NA SEBE, brand Hekypaw (rovnaké assety ako addtrip/PawRating.tsx,
+// NIE generický `paw-solid`): spodná = `paw.svg` (obrys, tlmený, nevyplnená časť), vrchná =
+// `paw-full.svg` (plná) orezaná `clip-path: inset()` sprava na presne fillPct % danej packy.
+// Obe kresby majú takmer identický pomer strán (369×382 vs 1538×1592, rozdiel 0,06 %), takže
+// pri rovnakom `width`/`height` sadnú presne na seba a prechod obrys→plná neposkočí.
 export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?: number; gap?: number }) {
-  const rounded = Math.round(stars);
+  const rounded = Math.round(stars * 10) / 10;
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap }}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <img
-          key={n}
-          src={ICON('paw-solid')}
-          alt=""
-          style={{
-            width: size, height: size, flexShrink: 0,
-            filter: n <= rounded ? GOLD_ICON_FILTER : 'brightness(0) invert(1)',
-            opacity: n <= rounded ? 1 : 0.28,
-          }}
-        />
-      ))}
+    <span
+      role="img"
+      aria-label={`${stars.toFixed(1)} out of 5 packs`}
+      style={{ display: 'inline-flex', alignItems: 'center', gap }}
+    >
+      {[1, 2, 3, 4, 5].map((n) => {
+        const fillPct = Math.round(Math.max(0, Math.min(1, rounded - (n - 1))) * 100);
+        return (
+          <span key={n} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+            <img
+              src={ICON('paw')}
+              alt=""
+              style={{
+                position: 'absolute', inset: 0, width: size, height: size,
+                filter: 'brightness(0) invert(1)', opacity: 0.28,
+              }}
+            />
+            {fillPct > 0 && (
+              <img
+                src={ICON('paw-full')}
+                alt=""
+                style={{
+                  position: 'absolute', inset: 0, width: size, height: size,
+                  filter: GOLD_ICON_FILTER, clipPath: `inset(0 ${100 - fillPct}% 0 0)`,
+                }}
+              />
+            )}
+          </span>
+        );
+      })}
     </span>
+  );
+}
+
+// ── ElevationProfile (2026-07-26) — výškový profil trasy, zdieľaný medzi inline detailom
+// (PackPortal.tsx) a článkom (PackTripArticle.tsx). `elev` = downsamplovaná krivka z DEM,
+// zapečená v heroTrails.generated.ts generátorom (plany/gen-hero-trails.mjs, zdroj surových
+// dát plany/.ascent-elev-cache.json). Body sú rovnomerne rozložené po deklarovanej dĺžke `km`
+// (rovnaký predpoklad ako compute-ascent.py: ~100 m rozostup pozdĺž KRESLENEJ trasy).
+// 🔴 Krivka je taká presná ako geometria trasy — pri kľukatých/skracujúcich trasách (viď
+// pamäť trasy_geometria) môže vyhladiť serpentíny; presnosť sa zlepší až po snap-to-trail.
+// Menej než 2 body → nezmysel na vykreslenie, vráti null (caller sekciu vôbec nezobrazí).
+export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km: number }) {
+  if (!elev || elev.length < 2 || !(km > 0)) return null;
+  const W = 300, H = 84, P = { t: 8, r: 4, b: 16, l: 28 };
+  const minY = Math.min(...elev), maxY = Math.max(...elev);
+  const sx = (i: number) => P.l + (i / (elev.length - 1)) * (W - P.l - P.r);
+  const sy = (v: number) => H - P.b - ((v - minY) / Math.max(maxY - minY, 1)) * (H - P.t - P.b);
+  const d = elev.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)} ${sy(v).toFixed(1)}`).join(' ');
+  const area = `${d} L${sx(elev.length - 1).toFixed(1)} ${H - P.b} L${sx(0).toFixed(1)} ${H - P.b} Z`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} aria-hidden="true">
+      <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke={PACK_THEME.onDarkBorder} />
+      <path d={area} fill="url(#elevFill)" />
+      <path d={d} fill="none" stroke="#F5C73D" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
+      <defs>
+        <linearGradient id="elevFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#F5C73D" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#F5C73D" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <text x={2} y={sy(maxY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(maxY)} m</text>
+      <text x={2} y={sy(minY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(minY)} m</text>
+      <text x={W - P.r} y={H - 4} fill={PACK_THEME.onDarkDim} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
+    </svg>
   );
 }
 

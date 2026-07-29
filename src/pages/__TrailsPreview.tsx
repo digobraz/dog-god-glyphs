@@ -6,6 +6,7 @@ import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
+import { snapSegment, buildLine } from '@/lib/snapToTrail';
 import { placeIcon } from '@/components/trails/trailIcons';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated'; // ⚙️ done tripy z nahadzovača (gen-hero-trails.mjs)
 import { REGION_MAPS } from '@/components/trails/regionMaps';
@@ -217,7 +218,7 @@ const EVENTS: EventItem[] = [
 const PERPAGE_OPTS = [20, 50, 100];
 
 const CSS = `
-.tv-root{position:fixed;inset:0;overflow-y:auto;background:#050505;color:rgba(245,240,228,0.9);font-family:'DM Sans',system-ui,sans-serif;}
+.tv-root{position:fixed;inset:0;overflow-y:auto;background:#050505;color:rgba(245,240,228,0.9);font-family:'Space Grotesk',system-ui,sans-serif;}
 .tv-bg{position:fixed;inset:0;background-image:url('/images/bg-dark.webp');background-size:cover;background-position:center;filter:blur(3px);z-index:0;pointer-events:none;}
 .tv-bg2{position:fixed;inset:0;background:radial-gradient(ellipse at center,rgba(5,5,5,0.25) 0%,rgba(5,5,5,0.5) 60%,rgba(5,5,5,0.7) 100%);z-index:0;pointer-events:none;}
 .tv-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:104px 26px 120px;}
@@ -1111,11 +1112,16 @@ function PoiLayer({ enabled, onStatus }: { enabled: Record<PoiKind, boolean>; on
 }
 
 // „Add a trail" krok 2 — Route: klikaním do mapy sa trasujú body pozdĺž chodníka (A → … → cieľ).
-function PickPath({ drawing, path, onAdd }: { drawing: boolean; path: LatLngTuple[]; onAdd: (p: LatLngTuple) => void }) {
+// `path` = kotvy (to, čo používateľ naklikal a vie undo-núť), `line` = skutočne vykreslená
+// stopa prilepená na chodník. Body sa kreslia na kotvách, čiara po línii.
+function PickPath({ drawing, path, line, onAdd }: {
+  drawing: boolean; path: LatLngTuple[]; line?: LatLngTuple[]; onAdd: (p: LatLngTuple) => void;
+}) {
   useMapEvents({ click(e) { if (drawing) onAdd([e.latlng.lat, e.latlng.lng]); } });
+  const shown = line && line.length > 1 ? line : path;
   return (
     <>
-      {path.length > 1 && <Polyline positions={path} pathOptions={{ color: GOLD, weight: 4, opacity: 0.95 }} />}
+      {shown.length > 1 && <Polyline positions={shown} pathOptions={{ color: GOLD, weight: 4, opacity: 0.95 }} />}
       {path.map((p, i) => <Marker key={i} position={p} icon={dotIcon} />)}
       {path.length > 0 && <Marker position={path[0]} icon={abIcon('A')} />}
       {path.length > 1 && <Marker position={path[path.length - 1]} icon={abIcon('B')} />}
@@ -1251,7 +1257,11 @@ export default function TrailsPreview() {
   const [crewQuery, setCrewQuery] = useState('');
   const [crewOpen, setCrewOpen] = useState(false);
   const [addCtyOpen, setAddCtyOpen] = useState(false); // custom country dropdown (vlajka → plné názvy)
-  const [addPath, setAddPath] = useState<LatLngTuple[]>([]); // Route krok 2 — body pozdĺž chodníka
+  const [addPath, setAddPath] = useState<LatLngTuple[]>([]); // Route krok 2 — KOTVY (naklikané body)
+  // snap-to-trail: legs[i] = geometria chodníka medzi kotvou i a i+1 (null = rovná čiara,
+  // keď routing zlyhá alebo by chcel absurdnú obchádzku). Kreslenie sa nikdy nečaká na sieť.
+  const [addLegs, setAddLegs] = useState<(LatLngTuple[] | null)[]>([]);
+  const [snapping, setSnapping] = useState(0);
   const [kmManual, setKmManual] = useState(''); // route km s možnosťou ručne prepísať (Matej: „z route s možnosťou prepísať")
   const [waterQuery, setWaterQuery] = useState('');          // paddleboard — vyhľadávanie vodnej plochy
   const [waterSug, setWaterSug] = useState<PlaceSug[]>([]);
@@ -1291,14 +1301,31 @@ export default function TrailsPreview() {
   };
   const removeAddPhoto = (idx: number) => setAddPhotos(prev => prev.filter((_, i) => i !== idx));
   const addRegions = addForm.country === 'Slovakia' ? SK_REGIONS : [];
-  const routeKm = addPath.length >= 2 ? pathKm(addPath) : null; // km z naklikaných bodov (F1; snap na chodník = F2)
+  // čiara na mape = kotvy poprepájané snapnutou geometriou (kde je); km sa počíta z NEJ
+  const addLine = buildLine(addPath, addLegs);
+  const routeKm = addPath.length >= 2 ? pathKm(addLine) : null; // km po snapnutej trase (rovná čiara tam, kde snap nesadol)
   // route km → hiking distance kôš (rovnaké koše ako GO filter HIKE_DISTANCE → trasa sa tam neskôr prejaví)
   const kmBucket = (km: number) => (km <= 5 ? 'Up to 5 km' : km <= 10 ? 'Up to 10 km' : 'Over 10 km');
   // efektívne km = ručná hodnota ak zadaná, inak z route; kôš sa počíta z nej
   const effKm = kmManual.trim() !== '' && !Number.isNaN(parseFloat(kmManual)) ? parseFloat(kmManual) : routeKm;
   const addActivity = TRIP_ACTIVITIES.find(a => a.id === addForm.type);
   const isSpot = !!addActivity?.spot; // bodová aktivita (paddleboard) = parking + názov, nie trasa
-  const onMapAdd = (p: LatLngTuple) => { if (isSpot) setAddPath([p]); else setAddPath(prev => [...prev, p]); }; // spot=1 bod, inak trasa
+  // spot = 1 bod (parking), inak trasa. Pri trase sa nová kotva hneď skúsi prilepiť na
+  // chodník — kotva pribudne okamžite (UI nečaká), geometria dobehne a prekreslí čiaru.
+  const onMapAdd = (p: LatLngTuple) => {
+    if (isSpot) { setAddPath([p]); return; }
+    setAddPath(prev => {
+      const prevLast = prev[prev.length - 1];
+      if (prevLast) {
+        const legIdx = prev.length - 1;
+        setSnapping(n => n + 1);
+        snapSegment(prevLast, p)
+          .then(line => setAddLegs(ls => { const n = [...ls]; n[legIdx] = line; return n; }))
+          .finally(() => setSnapping(n => n - 1));
+      }
+      return [...prev, p];
+    });
+  };
   const crewMatches = ADD_MEMBERS.filter(m => !addCrew.includes(m.name) && m.name.toLowerCase().includes(crewQuery.trim().toLowerCase()));
 
   // paddleboard — vyhľadávanie vodnej plochy (Mapy.com Suggest)
@@ -1759,7 +1786,7 @@ export default function TrailsPreview() {
                         {addPath.length === 0
                           ? <span className="tv-pthint">Tap the map to drop your parking point</span>
                           : <span className="tv-kmchip tv-kmok">Parking point set ✓</span>}
-                        {addPath.length > 0 && <button className="tv-drawundo" onClick={() => setAddPath([])}>Reset</button>}
+                        {addPath.length > 0 && <button className="tv-drawundo" onClick={() => { setAddPath([]); setAddLegs([]); }}>Reset</button>}
                       </div>
 
                       <div className="tv-addfield" style={{ marginTop: 2 }}>
@@ -1808,7 +1835,7 @@ export default function TrailsPreview() {
                         {addPath.length === 0
                           ? <span className="tv-pthint">Tap the map to drop your first point</span>
                           : <span className="tv-kmchip tv-kmok">
-                              {addPath.length} point{addPath.length > 1 ? 's' : ''} · ≈
+                              {addPath.length} point{addPath.length > 1 ? 's' : ''}{snapping > 0 ? ' · snapping…' : ''} · ≈
                               <input
                                 className="tv-kminput"
                                 type="number" min="0" step="0.1" inputMode="decimal"
@@ -1820,8 +1847,8 @@ export default function TrailsPreview() {
                             </span>}
                         {addPath.length > 0 && (
                           <div className="tv-drawacts">
-                            <button className="tv-drawundo" onClick={() => setAddPath(p => p.slice(0, -1))}>Undo</button>
-                            <button className="tv-drawundo" onClick={() => { setAddPath([]); setKmManual(''); }}>Clear</button>
+                            <button className="tv-drawundo" onClick={() => { setAddPath(p => p.slice(0, -1)); setAddLegs(l => l.slice(0, -1)); }}>Undo</button>
+                            <button className="tv-drawundo" onClick={() => { setAddPath([]); setAddLegs([]); setKmManual(''); }}>Clear</button>
                           </div>
                         )}
                       </div>
@@ -1995,7 +2022,7 @@ export default function TrailsPreview() {
               <FitBounds path={heroBounds} />
               {!(addActive && addStep === 3) && <PoiLayer enabled={poiEnabled} onStatus={setPoiStatus} />}
               {addActive && addStep === 3 ? (
-                <PickPath drawing={true} path={addPath} onAdd={onMapAdd} />
+                <PickPath drawing={true} path={addPath} line={addLine} onAdd={onMapAdd} />
               ) : (
                 <>
                   {tripStep === 'idle' && !addActive && !showResults && (

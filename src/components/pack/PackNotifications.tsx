@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, UserPlus } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
@@ -46,6 +47,13 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   const t = useT();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  // Dropdown is portaled to <body> (fixed, viewport-anchored) — ancestors like
+  // .trp-status-row use backdrop-filter, which creates its own stacking context and
+  // traps any in-place z-index inside it, so a later sibling (search/filter row) always
+  // painted over this panel regardless of zIndex (recurring bug class, see
+  // BreedPatronScreen's dropRect for the same fix pattern).
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
   // Color tokens — light (original, on papyrus card) vs dark (global chrome, on pageBg).
   // Dark variant's trigger buttons get a T.glass backing (not transparent) — this hub also
   // mounts on PackPortal's full-bleed light map (not just the black hieroglyph bg), so a
@@ -69,14 +77,38 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     return subscribeMessaging(load);
   }, []);
 
-  // click-away close
+  // click-away close — must check both the trigger (wrapRef) AND the portaled panel
+  // (panelRef lives outside wrapRef in the DOM now), else any click inside the dropdown
+  // is seen as "outside" and closes it instantly.
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (wrapRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', onDown);
     return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  // Anchor the portaled panel to the trigger's viewport position; recompute on
+  // resize/scroll so it tracks the bell button instead of drifting.
+  useEffect(() => {
+    if (!open) { setPanelPos(null); return; }
+    const compute = () => {
+      const el = wrapRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setPanelPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+    };
+    compute();
+    window.addEventListener('resize', compute);
+    window.addEventListener('scroll', compute, true);
+    return () => {
+      window.removeEventListener('resize', compute);
+      window.removeEventListener('scroll', compute, true);
+    };
   }, [open]);
 
   // Degrade gracefully — global mount (dark) only has last24h/total at hand (from
@@ -232,20 +264,24 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
         )}
       </button>
 
-      {/* Dropdown */}
-      {open && (
+      {/* Dropdown — portaled to <body>, fixed + viewport-anchored (see panelPos effect
+          above). Do NOT go back to position:absolute inside wrapRef: any ancestor here
+          (e.g. .trp-status-row) uses backdrop-filter, which creates its own stacking
+          context and silently traps the panel behind later siblings no matter its zIndex. */}
+      {open && panelPos && createPortal(
         <div
+          ref={panelRef}
           style={{
-            position: 'absolute',
-            top: 46,
-            right: 0,
+            position: 'fixed',
+            top: panelPos.top,
+            right: panelPos.right,
             width: DEV_FULL && unreadConvs.length > 0 ? 268 : 244,
             background: c.panelBg,
             border: `1px solid ${dark ? c.border : c.hairline}`,
             borderRadius: 14,
             boxShadow: '0 18px 44px -12px rgba(10,10,10,0.28)',
             padding: 12,
-            zIndex: 20,
+            zIndex: 2100,
             backdropFilter: dark ? 'blur(14px)' : undefined,
             WebkitBackdropFilter: dark ? 'blur(14px)' : undefined,
           }}
@@ -354,7 +390,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           >
             {t('pack.notif.personalComingSoon')}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

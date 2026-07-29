@@ -24,11 +24,17 @@ const TYPEWRITER_MS = 14; // ms/znak
 // Render routy pre PDF/OG obrázky — widget by sa zapiekol do výstupu.
 const HIDDEN_EXACT_PREFIXES = ['/cert-render', '/invoice-render', '/share-render'];
 
+// Matej 2026-07-29: verejný web zatiaľ NEpúšťame (anonymné konverzácie bez
+// e-mailu nechceme na public route) — AINUBIS beží len v /pack, kým sa
+// nedorieši email-gate pre anonymov. Otoč na false, keď sa public launch schváli.
+const PUBLIC_LAUNCH_PAUSED = true;
+
 function isAinubisHidden(pathname: string): boolean {
   if (HIDDEN_EXACT_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true;
   // Celý heroglyph flow OKREM bare /heroglyph (sales page) — v platobnom
   // flow by widget rušil konverziu.
   if (pathname.startsWith('/heroglyph/')) return true;
+  if (PUBLIC_LAUNCH_PAUSED && !pathname.startsWith('/pack')) return true;
   return false;
 }
 

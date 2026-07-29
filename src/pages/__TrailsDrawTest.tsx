@@ -125,7 +125,7 @@ function DrawLayer({ points, onAdd }: { points: LatLngTuple[]; onAdd: (p: LatLng
 }
 
 const CSS = `
-.tdt-root{position:fixed;inset:0;overflow-y:auto;background:#050505;color:rgba(245,240,228,0.9);font-family:'DM Sans',system-ui,sans-serif;}
+.tdt-root{position:fixed;inset:0;overflow-y:auto;background:#050505;color:rgba(245,240,228,0.9);font-family:'Space Grotesk',system-ui,sans-serif;}
 .tdt-wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:48px 26px 80px;}
 .tdt-title{font-family:'Cinzel',serif;font-weight:700;font-size:22px;letter-spacing:.04em;color:${GOLD};margin-bottom:6px;}
 .tdt-sub{font-size:12.5px;color:rgba(245,240,228,0.55);margin-bottom:26px;}

@@ -16,6 +16,11 @@ export interface PackDogFull {
   } | null;
   created_at: string;
   pack_number: number | null;
+  // Pre-rendered heroglyf (rovnaký zdroj, aký zobrazuje PackTree). Kruhová fotka
+  // v OH, MY DOG! ho stavia vedľa seba (Matej 2026-07-26: „foto do kruhu +
+  // heroglyph"). Fake/unicode aproximácia sa NEKRESLÍ — bez URL sa zobrazí
+  // prázdny rám z `assets/heroglyph-frame.svg`.
+  heroglyph_png_url?: string | null;
 }
 
 export interface PackUserData {
@@ -40,11 +45,6 @@ export function usePackUser(userId: string | null): PackUserData {
   });
 
   useEffect(() => {
-    if (!userId) {
-      setState(s => ({ ...s, loading: false }));
-      return;
-    }
-
     let mounted = true;
 
     // DEV-ONLY seed: NOAUTH guest has no Supabase dogs, so the editor gallery
@@ -53,8 +53,9 @@ export function usePackUser(userId: string | null): PackUserData {
     //
     // Hekthor NESIE REÁLNU FOTKU (Matej 2026-07-26: „použi moje fotky z profilu
     // hekthor nech vidíme preview") — bez nej je celá galéria prázdne krúžky s
-    // iniciálou, čo je presne to, čo na profile vyzeralo pochmúrne. Rex ostáva
-    // BEZ fotky zámerne: v jednom screenshote je tak vidieť oba stavy.
+    // iniciálou, čo je presne to, čo na profile vyzeralo pochmúrne. Rex (mock
+    // druhý pes bez fotky) ODSTRÁNENÝ 2026-07-29 (Matej: „vymaž rexa a nechaj
+    // len hektora") — zostáva len jeden dev seed.
     const DEV_NOAUTH = import.meta.env.DEV && import.meta.env.VITE_PACK_NOAUTH === '1';
     if (DEV_NOAUTH) {
       setState({
@@ -66,16 +67,18 @@ export function usePackUser(userId: string | null): PackUserData {
           selections: { ownerGender: 'male', dogGender: 'male', dogColour: 'black', dogBloodline: 'aristocrat' },
           created_at: '2017-06-01T00:00:00.000Z',
           pack_number: 1,
-        }, {
-          id: 'dev-mock-dog-1',
-          dog_name: 'Rex',
-          cloudinary_main_url: null,
-          selections: { ownerGender: 'male', dogGender: 'male', dogColour: 'black', dogBloodline: 'aristocrat' },
-          created_at: '2026-01-01T00:00:00.000Z',
-          pack_number: 42,
+          heroglyph_png_url: '/images/hekthor-heroglyph.webp',
         }],
         loading: false,
       });
+      return () => { mounted = false; };
+    }
+
+    // Pozor na poradie: seed musí byť PRED touto podmienkou. Bez prihlásenia je
+    // `userId` null, takže early return zhasol seed a galéria bola prázdna
+    // („No god yet.") aj s VITE_PACK_NOAUTH=1.
+    if (!userId) {
+      setState(s => ({ ...s, loading: false }));
       return () => { mounted = false; };
     }
 
@@ -94,7 +97,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: dogRows } = await (supabase as any)
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number')
+        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true }) as { data: PackDogFull[] | null };
 

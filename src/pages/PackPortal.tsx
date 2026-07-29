@@ -44,7 +44,7 @@
 // (6) `<DiffMark>` (CSS tvar namiesto emoji) zdieľaný cez
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Polygon, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
@@ -63,7 +63,7 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
-  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, DIFF_COLOR, ElevationProfile,
+  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, DIFF_COLOR, WATER_COLOR, ElevationProfile,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
 } from '@/components/pack/tripShared';
@@ -73,11 +73,18 @@ import {
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import {
-  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, CompanionPicker, WalkedPopup, WishlistIntentPopup, PartnerAdForm, DMStub,
-  AddModeChoice, EventsView,
-  type WalkedInput, type PartnerAdInput, type Companion,
+  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup, WishlistIntentPopup, PartnerAdForm, DMStub,
+  EventsView,
+  type WalkedInput, type PartnerAdInput,
 } from '@/components/pack/packCommunityUI';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
+// ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vytiahnuté z
+// tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
+// formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
+import { AddTripEntry } from '@/components/pack/addtrip/AddTripEntry';
+import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
+import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
+import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -88,6 +95,13 @@ const T = PACK_THEME;
 // Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
 const CARD = PACK_THEME.card;
 const PANEL_W = 440; // .trp-sidebar width — used to offset the inline-detail fitBounds
+// Matej 2026-07-27 („pozri ako sa pri zúžení obrazovky správa mapa"): desktop layout
+// (floating panel 440px + topbar NA mape) potrebuje reálne ~1024px+. Pod tým ostával
+// topbaru pás cca 100–340px, takže sa status riadok aj filtre lámali do stĺpca a liezli
+// na mapu. Mobilný map-first layout preto beží až po 1023px (tablet naportrét ho dostane
+// tiež) a medzi 1024–1400px je kompaktný desktop (užší panel, skrátené labely).
+// MUSÍ sedieť s `@media (max-width:1023px)` v CSS nižšie.
+const MOBILE_BP = 1023;
 // (bod 4) so the selected trail centers in the map area actually visible next to the panel.
 
 // journeys (multi-day) + hikes zdieľajú ten istý zoznam/mapu — journey je len HeroTrail
@@ -101,18 +115,6 @@ const DEFAULT_WALKED_IDS: string[] = [
 ];
 const ALL_BOUNDS: LatLngTuple[] = ALL_TRIPS_STATIC.flatMap((t) => t.path);
 const CENTER: LatLngTuple = ALL_BOUNDS[Math.floor(ALL_BOUNDS.length / 2)] ?? [48.7, 19.5];
-// `.filter(Boolean)` — 5 vodných plôch (vodne-diela-*) má `region: ""`, bez filtra sa v
-// dropdowne pohorí vykreslila prázdna položka (F1 „skontrolovať filter", 2026-07-25).
-const ALL_REGIONS: string[] = Array.from(new Set(ALL_TRIPS_STATIC.map((t) => t.region).filter(Boolean))).sort();
-
-// multi-country ADD flow (2026-07-24): krajina sa auto-deteguje z nakreslenej trasy, ale je
-// klikateľná (override pri chybnej detekcii na hranici). Zoznam = SK + susedia + Alpy.
-const ADD_COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', 'fr'] as const;
-const ISO2_LABEL: Record<string, string> = {
-  sk: 'Slovakia', cz: 'Czechia', at: 'Austria', hu: 'Hungary', pl: 'Poland',
-  de: 'Germany', ch: 'Switzerland', it: 'Italy', si: 'Slovenia', fr: 'France',
-};
-
 // TRIPSTATS Slice A (bod 3, Matej 2026-07-23) — add-trip z pohoria: stred pohoria = stred path
 // prvého tripu v ňom čo má nakreslenú trasu (guard proti path=[] tripom, viď bod 6 vyššie).
 // Fallback = stred SR, keď región nemá žiadny trip s trasou (nemalo by nastať, ale ?add= je
@@ -187,11 +189,14 @@ const TRIP_ACTIVITIES: { id: string; label: string }[] = [
   { id: 'overnight', label: 'Overnight' },
   { id: 'skating', label: 'Skate' },
   { id: 'paddleboard', label: 'SUP/swim' },
+  { id: 'explore', label: 'Explore' },
 ];
 // 'journey' = viacdňová turistika (multi-day thru-hike), napr. Cesta hrdinov SNP.
-const ACT_EMOJI: Record<string, string> = { hiking: '🥾', journey: '🎒', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄' };
+// 'explore' 🧭 = siedmy pill (Matej 2026-07-27/29, addTripModel.ts ACTIVITY_GEOMETRY komentár) —
+// point/area miesta bez trasy (hrady, kaštiele, parky).
+const ACT_EMOJI: Record<string, string> = { hiking: '🥾', journey: '🎒', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄', explore: '🧭' };
 // dátové pole tr.acts[] používa 'hike' (nie 'hiking') — mapovanie UI aktivita-id → dáta.
-const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard' };
+const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard', explore: 'explore' };
 
 // Tag vocabulary UPRATANÝ na presne 8 univerzálnych tagov (Matejov feedback bod 2, iterácia 7).
 // TAG_VOCAB = poradie zobrazenia v UI. DATA_TAG_TO_UI mapuje reálne tr.tags[] hodnoty na tento
@@ -211,18 +216,15 @@ const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey'
 // 🔴 Labely = doslova hodnoty z dát, nič som nepremenoval — kratšie názvy sú na Matejovi.
 // Matej 2026-07-26: „In the middle of nature" AJ „In the middle of nowhere" preč — obe boli
 // PROSTREDIE catch-all chipy (2026-07-25), zbytočné vedľa Forest/Lake/River scenérie.
+// Matej 2026-07-27: 'Embankment' preč.
 const TAG_VOCAB = [
   'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset',
-  'Embankment',
   'Forest path', 'Asphalt', 'Rocky',
 ] as const;
 const TAG_EMOJI: Record<string, string> = {
   Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅',
-  Embankment: '🧱',
   'Forest path': '🥾', Asphalt: '🛣️', Rocky: '🪨',
 };
-// surface = typ cesty (zdroj pravdy: nahadzovač state — hodnoty 'forest'/'asphalt')
-const SURFACE_VOCAB = [{ id: 'forest', e: '🌲', t: 'Forest path' }, { id: 'asphalt', e: '🛣️', t: 'Asphalt' }, { id: 'rocky', e: '🪨', t: 'Rocky' }] as const;
 
 // Per-aktivita placeholder fotky (Cloudinary pack/placeholders, webp). Kľúč = ACT_DATA_ID
 // (hike/journey/picnic/overnight/skating/paddleboard). Použité pre tripy bez vlastnej fotky
@@ -235,6 +237,10 @@ const ACTIVITY_PLACEHOLDERS: Record<string, string[]> = {
   overnight: [`${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`],
   skating: [`${CLD}/skating-1.webp`, `${CLD}/skating-2.webp`, `${CLD}/skating-3.webp`],
   paddleboard: [`${CLD}/paddleboard-1.webp`, `${CLD}/paddleboard-2.webp`, `${CLD}/paddleboard-3.webp`],
+  // explore-1/2/3 v Cloudinary NEEXISTUJÚ — nateraz požičané z picnic (najbližší neutrálny
+  // outdoor-spot vizuál, bez turistickej výbavy ako hiking-set). Matej má doplniť vlastné
+  // explore-1/2/3.webp do pack/placeholders, potom vymeniť tento riadok.
+  explore: [`${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`],
 };
 // vyber 1 z 3 stabilne podľa seedu (id tripu / názov) → variety naprieč kartami, ale nemení sa pri re-renderi
 function placeholderFor(actIds: string[] | undefined, seed: string): string {
@@ -256,8 +262,7 @@ const DATA_TAG_TO_UI: Record<string, string> = {
   Stream: 'River', River: 'River',
   // prostredie vodných tripov — 1:1, hodnoty z nahadzovača sa nepremenúvajú
   // ('In the middle of nature'/'In the middle of nowhere' zámerne bez mapovania —
-  // Matej 2026-07-26 oba chipy zrušil)
-  Embankment: 'Embankment',
+  // Matej 2026-07-26 oba chipy zrušil; 'Embankment' zrušil 2026-07-27)
 };
 // tr.surface[] → chip. Všetky tri hodnoty z SURFACE_VOCAB (nahadzovač) majú teraz svoj chip,
 // aby sa dalo filtrovať podľa toho, čo sa dá zadať (F1 2026-07-24). `forest` už NEsplýva so
@@ -277,33 +282,59 @@ function firstNameFrom(email: string, fullName?: string): string {
   return base.charAt(0).toUpperCase() + base.slice(1);
 }
 
-// bod 3 (iterácia 12): marker = čierny pill s difficulty pictogramom + "{km} km", ŽIADNE
-// poradové číslo. divIcon html je plain string (nie JSX) — diffMarkShape (tripShared, zdieľané
-// s <DiffMark> v React kontexte) len skladá tú istú .trp-diffmark-- triedu, aby tvar/farba
-// pictogramu bol na jednom mieste (bod 6). iconSize/iconAnchor zámerne neuvedené — .trp-pill
-// sa centruje cez CSS (position:relative;left:-50%;top:-100%), lebo šírka je dynamická (km text).
-// journey (diaľková, viacdňová) = ČERVENÁ bublinka + biely trojuholník + biele písmo —
-// odlíšenie od bežných tripov (čierny pill), lebo journey má vždy podstatne viac km.
-const pillIcon = (tr: HeroTrail, hot: boolean) => {
-  const journey = tr.acts?.includes('journey');
-  return L.divIcon({
-    className: 'trp-pinwrap',
-    html: `<div class="trp-pill${journey ? ' trp-pill--journey' : ''}${hot ? ' hot' : ''}"><span class="trp-diffmark trp-diffmark--${diffMarkShape(tr.diff)}"></span><span>${tr.km} km</span></div>`,
-  });
-};
+// ── zoomovo-vrstvené markery + pixelové zhlukovanie (2026-07-27, port z odladeného prototypu
+// scratchpad/pins-proto.html — Matej: "z diaľky len piktogramy, postupne pilulky s km, zapratané
+// rieš zhlukmi"). Nahrádza pôvodné oddelené pillIcon/waterIcon + dva samostatné <Marker> loopy
+// jedným systémom (viď <TripMarkers> nižšie pri mape), lebo zhlukovanie musí vidieť VŠETKY typy
+// bodov naraz (trip aj vodná plocha môžu spadnúť do tej istej pixelovej bunky). ──
+type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: boolean; journey: boolean };
 
-// vodná plocha (jazero/priehrada) = MODRÝ kruh s VLNKAMI, ŽIADNY názov (Matej 2026-07-24).
-// Počet vlniek = veľkosť plochy: 1 = malá (<100 ha) · 2 = stredná (100–1000) · 3 = veľká (>1000).
-// Zaradenie z OSM plochy (plany/compute-water-waves.py → gen). Kruh mierne rastie s kategóriou.
-// Farebná logika mapy: čierny pill = hike trasa · červená = diaľkové (journey) · modrá = voda.
-const waterIcon = (waves?: number) => {
+// tri vrstvy podľa zoomu (zadanie 2.3): z<=9 len bodka · z10–11 bodka (diaľkové už pilulka) ·
+// z>=12 všetko pilulka.
+const mapTier = (z: number): 0 | 1 | 2 => (z <= 9 ? 0 : z <= 11 ? 1 : 2);
+// Matej 2026-07-27: diaľkové (journey) nesú km len v STREDNOM pásme priblíženia (z8–z11) —
+// „ako jediné z diaľky aj kilometre, nech človek vie že je to dlhé". Na oboch koncoch sa sťahujú
+// na holý piktogram:
+//   · z ≤ 7 (celá Európa) — na Slovensko pripadá pár cm a 10 pilulek sa nakopilo na seba
+//   · z ≥ 12 (zblízka) — trasa je aj tak nakreslená, „770 km" by len zavadzalo
+// Bežné body a voda idú opačne: pilulka až pri najväčšom priblížení.
+const JOURNEY_KM_ZOOM = { min: 8, max: 11 };
+const pointIsPill = (p: MapPoint, zoom: number) =>
+  p.journey ? zoom >= JOURNEY_KM_ZOOM.min && zoom <= JOURNEY_KM_ZOOM.max : mapTier(zoom) === 2;
+
+// vlnky vodnej plochy — rovnaká krivka ako pôvodný waterIcon() (Matej 2026-07-24: počet = veľkosť
+// plochy z OSM), teraz zdieľaná bodkou aj pilulkou namiesto vlastnej .trp-waterdot veľkosti.
+const waterWaves = (waves?: number): string => {
   const n = Math.min(3, Math.max(1, waves || 1));
   const wave = (y: number) => `<path d="M1 ${y} Q3.25 ${y - 2} 5.5 ${y} T10 ${y} T14.5 ${y}" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>`;
   const ys = n === 1 ? [7.5] : n === 2 ? [5, 10] : [3.5, 7.5, 11.5];
+  return `<svg viewBox="0 0 15.5 15" width="11" height="11" aria-hidden="true">${ys.map(wave).join('')}</svg>`;
+};
+const pointPicto = (p: MapPoint): string =>
+  p.water ? waterWaves((p.tr as { waves?: number }).waves) : `<span class="trp-diffmark trp-diffmark--${diffMarkShape(p.tr.diff)}"></span>`;
+const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.water ? '--water' : '');
+
+// bod = pilulka (km, vodná plocha bez km nesie NÁZOV — zadanie 2.3) alebo bodka (17px, len
+// piktogram) podľa vrstvy. iconSize/iconAnchor zámerne neuvedené — centrovanie cez CSS
+// (left:-50%/top:-100%|-50%), rovnaký vzor ako pôvodný pillIcon/waterIcon.
+const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
+  const type = pointTypeClass(p);
+  if (pointIsPill(p, zoom)) {
+    const label = p.water ? p.tr.name : `${p.tr.km} km`;
+    return L.divIcon({
+      className: 'trp-pinwrap',
+      html: `<div class="trp-pill${type ? ` trp-pill${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}<span>${label}</span></div>`,
+    });
+  }
   return L.divIcon({
     className: 'trp-pinwrap',
-    html: `<div class="trp-waterdot trp-waterdot--${n}"><svg viewBox="0 0 15.5 15" width="15" height="15" aria-hidden="true">${ys.map(wave).join('')}</svg></div>`,
+    html: `<div class="trp-dot${type ? ` trp-dot${type}` : ''}${hot ? ' hot' : ''}">${pointPicto(p)}</div>`,
   });
+};
+// zhluk (zadanie 2.4) — veľkosť bubliny rastie s počtom bodov v nej.
+const clusterIcon = (n: number) => {
+  const s = n < 5 ? 30 : n < 12 ? 36 : 42;
+  return L.divIcon({ className: 'trp-pinwrap', html: `<div class="trp-cluster" style="width:${s}px;height:${s}px;font-size:${n < 12 ? 12 : 13}px">${n}</div>` });
 };
 
 // vodná plocha = trip s aktivitou SUP/paddleboard → na mape 1 modrý bod (NIE čierny hike/trasa).
@@ -332,7 +363,7 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
     // necháva miesto na ~440px panel vľavo + topbar hore + nav dole; mobile (panel skrytý)
     // len na header hore + nav/toggle dole. maxZoom len pri výbere jedného tripu (offset),
     // nech sa krátka trasa neodzoomuje zbytočne blízko; celé Slovensko sa zmestí bez capu.
-    const mobile = typeof window !== 'undefined' && window.innerWidth <= 760;
+    const mobile = typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP;
     const pad = mobile
       ? { paddingTopLeft: [28, 150] as [number, number], paddingBottomRight: [28, 150] as [number, number] }
       : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] };
@@ -373,6 +404,158 @@ function MapRefBridge({ onReady }: { onReady: (map: L.Map) => void }) {
   return null;
 }
 
+// ── ľavý zoznam sa riadi VÝREZOM mapy (Matej 2026-07-27: „potrebujem aby sa trasy zobrazovali
+// na základe viewportu a nastavaní filtra") ─────────────────────────────────────────────────
+// Mostík hlási aktuálny výrez hore do PackPortal (useMap* smie žiť len vnútri <MapContainer>,
+// rovnaký vzor ako MapRefBridge/FitBounds). Hlási sa LEN na moveend/zoomend (nie počas ťahania)
+// + raz po mounte; handler musí mať stabilnú referenciu (useCallback), inak sa listener pri
+// každom renderi odhlasuje/prihlasuje a vie prepásť udalosť z FitBounds — presne tá pasca, čo
+// je popísaná pri TripMarkers nižšie.
+type ViewBox = { n: number; s: number; e: number; w: number };
+function ViewportWatcher({ onChange }: { onChange: (b: ViewBox) => void }) {
+  const map = useMap();
+  const emit = useCallback(() => {
+    const b = map.getBounds();
+    onChange({ n: b.getNorth(), s: b.getSouth(), e: b.getEast(), w: b.getWest() });
+  }, [map, onChange]);
+  useEffect(() => { emit(); }, [emit]);
+  useMapEvent('moveend', emit);
+  useMapEvent('zoomend', emit);
+  return null;
+}
+
+// bbox trasy × výrez mapy. Stačí PRIENIK obálok — dlhá journey, ktorá cez výrez len prechádza,
+// tak ostane v zozname (bod na trase vnútri výrezu by ju pri hrubom samplovaní vedel stratiť).
+const boxIntersects = (a: ViewBox, b: ViewBox) => a.s <= b.n && a.n >= b.s && a.w <= b.e && a.e >= b.w;
+
+// Matej 2026-07-27 (druhé kolo): dashArray pattern nesadol ("nemáči sa mi to"). Náhrada — pod
+// pevnou čierno-zlatou čiarou (nedotknutá, LOCKED "rastúce územie" vzhľad) pridaná JEDNA extra
+// vrstva so šírkou v REÁLNYCH METROCH (Matejov rozsah 200-500m, stred 350m) pri 50% opacity.
+// Real-world šírka prirodzene škáluje s metersPerPixel(zoom): pri bežnom prezeraní (z9-11) je
+// sub-pixel tenká → neviditeľná, súčasný bold vzhľad nezmenený. Pri priblížení na hraničný
+// úsek narastie na desiatky px → mäkký priehľadný pás, cez ktorý presvitá trasa. Vlastný
+// zoom-state žije TU (rovnaký vzor ako TripMarkers vyššie), nie zdvíhaný do PackPortal.
+const TERRITORY_ZONE_WIDTH_M = 350;
+const TERRITORY_ZONE_MIN_PX = 3;
+const TERRITORY_ZONE_MAX_PX = 160;
+// Matej 2026-07-27 (tretie kolo, na živom priblížení ~z15): "pri takomto zoome už vylúč tú
+// zlatú s čiernym lemom a nechaj len tú širokú priesvitnú" — pevná čiara pri hraničnom
+// priblížení prekáža rovnako ako predtým dashArray. Fade namiesto tvrdého cutoffu (žiadny
+// skok pri prekročení hranice zoomu): plná od z<=CASING_FADE_START, preč od z>=CASING_FADE_END.
+const CASING_FADE_START = 12;
+const CASING_FADE_END = 14;
+function metersPerPixel(lat: number, zoom: number) {
+  return (156543.03392 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoom);
+}
+function TerritoryBorders({ countries }: { countries: string[] }) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(() => map.getZoom());
+  const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
+  useMapEvent('zoomend', onZoomEnd);
+  const zoneWeight = Math.min(TERRITORY_ZONE_MAX_PX, Math.max(TERRITORY_ZONE_MIN_PX, TERRITORY_ZONE_WIDTH_M / metersPerPixel(CENTER[0], zoom)));
+  const casingFade = 1 - Math.min(1, Math.max(0, (zoom - CASING_FADE_START) / (CASING_FADE_END - CASING_FADE_START)));
+
+  return (
+    <>
+      {countries.flatMap((iso) => {
+        const rings = COUNTRY_BORDERS[iso];
+        if (!rings) {
+          if (import.meta.env.DEV) console.warn(`[territory] chýba hraničný polygón pre '${iso}' — dogeneruj cez scripts/gen_borders.py a doplň do countryBorders.ts`);
+          return [];
+        }
+        return rings.flatMap((ring, i) => [
+          <Polygon key={`border-${iso}-${i}-zone`} positions={ring} pathOptions={{ color: '#C99A3F', weight: zoneWeight, opacity: 0.5, fill: false, interactive: false, lineJoin: 'round' }} />,
+          <Polygon key={`border-${iso}-${i}-casing`} positions={ring} pathOptions={{ color: '#0A0A0A', weight: 11, opacity: 0.9 * casingFade, fill: false, interactive: false, lineJoin: 'round' }} />,
+          <Polygon key={`border-${iso}-${i}-gold`} positions={ring} pathOptions={{ color: '#C99A3F', weight: 2.5, opacity: 0.9 * casingFade, fillColor: '#C99A3F', fillOpacity: 0.03 * casingFade, interactive: false, lineJoin: 'round' }} />,
+        ]);
+      })}
+    </>
+  );
+}
+
+type MapMarkerItem =
+  | { kind: 'single'; p: MapPoint }
+  | { kind: 'cluster'; lat: number; lon: number; count: number };
+
+// vykresľuje VŠETKY body (trip pily + vodné plochy) v jednej vrstve podľa aktuálneho zoomu
+// (zadanie 2.3) a pri z<12 ich pixelovo zhlukuje (zadanie 2.4, port z pins-proto.html render()).
+// Vlastný stav zoomu/prepočtu žije TU (nie v PackPortal), rovnaký vzor ako FitBounds/MapRefBridge
+// vyššie — mapa naň reaguje cez zoomend/moveend, prepočet len pre body vo viditeľných bounds.
+function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
+  points: MapPoint[]; hoverId: string | null; inlineDetailId: string | null;
+  onHover: (id: string | null) => void; onSelect: (tr: HeroTrail) => void;
+}) {
+  const map = useMap();
+  const [zoom, setZoom] = useState(() => map.getZoom());
+  const [moveTick, setMoveTick] = useState(0);
+  // 2026-07-27: handler MUSÍ mať stabilnú referenciu (useCallback), inak useMapEvent pri KAŽDOM
+  // renderi odhlási starý a prihlási nový listener — a keď FitBounds (sused v <MapContainer>,
+  // skôr v strome) vo SVOJOM effecte v tom istom commite synchrónne zavolá map.fitBounds(...),
+  // vie sa trafiť presne do okna medzi odhlásením a prihlásením → zoomend/moveend sa stratí
+  // a mapa ostane trvalo v starej vrstve (zistené na výbere vodného tripu: fitBounds({maxZoom:14,
+  // animate:false}) skočí na z14, ale markery ostali bodky zo z9).
+  const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
+  const onMoveEnd = useCallback(() => setMoveTick((n) => n + 1), []);
+  useMapEvent('zoomend', onZoomEnd);
+  useMapEvent('moveend', onMoveEnd);
+  const tier = mapTier(zoom);
+
+  const items = useMemo<MapMarkerItem[]>(() => {
+    // bounds filter platí pre VŠETKY vrstvy (zadanie 2.4: "len pre markery vo getBounds().pad(.35)"),
+    // nielen pre zhlukované — port z prototypu, kde `vis` počíta raz na vrchu render() a používa sa
+    // aj vo vetve T===2 (viď pins-proto.html).
+    const bounds = map.getBounds().pad(0.35);
+    const vis = points.filter((p) => bounds.contains([p.lat, p.lon]));
+    if (tier === 2) return vis.map((p) => ({ kind: 'single', p }));
+    const cell = tier === 0 ? 58 : 48;
+    const buckets = new Map<string, MapPoint[]>();
+    // Diaľkové sa NEZHLUKUJÚ, kým nesú km (Matej 2026-07-27) — majú vyzerať dôležito a vzácne,
+    // a pohltenie do bubliny s počtom by ich z mapy zmazalo. Mimo toho pásma (celá Európa) sú to
+    // už len bodky a zhlukujú sa ako všetko ostatné — inak sa na seba nakopia.
+    const solo: MapMarkerItem[] = vis.filter((p) => pointIsPill(p, zoom)).map((p) => ({ kind: 'single', p }));
+    vis.filter((p) => !pointIsPill(p, zoom)).forEach((p) => {
+      const pt = map.latLngToContainerPoint([p.lat, p.lon]);
+      const key = `${Math.floor(pt.x / cell)}:${Math.floor(pt.y / cell)}`;
+      let bucket = buckets.get(key);
+      if (!bucket) { bucket = []; buckets.set(key, bucket); }
+      bucket.push(p);
+    });
+    return solo.concat(Array.from(buckets.values()).map((g): MapMarkerItem => (g.length === 1
+      ? { kind: 'single', p: g[0] }
+      : {
+          kind: 'cluster',
+          lat: g.reduce((s, p) => s + p.lat, 0) / g.length,
+          lon: g.reduce((s, p) => s + p.lon, 0) / g.length,
+          count: g.length,
+        })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- moveTick je zámerný trigger prepočtu (pan), nie dáta sama
+  }, [points, tier, zoom, map, moveTick]);
+
+  return (
+    <>
+      {items.map((it, i) => it.kind === 'cluster' ? (
+        <Marker
+          key={`cluster:${i}:${it.lat.toFixed(4)}:${it.lon.toFixed(4)}`}
+          position={[it.lat, it.lon]}
+          icon={clusterIcon(it.count)}
+          eventHandlers={{ click: () => map.flyTo([it.lat, it.lon], Math.min(zoom + 2, 14), { duration: 0.6 }) }}
+        />
+      ) : (
+        <Marker
+          key={it.p.id}
+          position={[it.p.lat, it.p.lon]}
+          icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom)}
+          eventHandlers={{
+            mouseover: () => onHover(it.p.id),
+            mouseout: () => onHover(null),
+            click: () => onSelect(it.p.tr),
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
 const CSS = `
 /* Základný font: bolo 'DM Sans', ktorý sa NIKDE nenačítava (index.html ťahá Cinzel, Inter,
    Space Grotesk, JetBrains Mono) → celý neCinzelový text padal na system-ui. Teraz Space
@@ -394,8 +577,21 @@ const CSS = `
 /* bod 3 (iterácia 11): Activity/Difficulty/Popularity už NIE SÚ zabalené v samostatnom
    glass boxe (.trp-topfilters zrušený) — sú to teraz totožné, borderless polia priamo
    v .trp-topsearchrow, rovnaká výška/radius/glass ako search-a-place vedľa nich. */
-.trp-toprow-select{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:13px;cursor:pointer;outline:0;}
+.trp-toprow-select,.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:13px;cursor:pointer;outline:0;}
 .trp-toprow-select:focus{border-color:${GOLD};}
+/* Tags multi-select trigger (Matej 2026-07-27) — presne rovnaký look ako susedné
+   .trp-toprow-select, len navyše button-špecifiká (text-align, chevron, aktívny stav). */
+.trp-tagdd-btn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;box-sizing:border-box;text-align:left;}
+.trp-tagdd-btn.on{border-color:${GOLD};color:${GOLD};}
+.trp-tagdd-chevron{flex-shrink:0;opacity:.7;font-size:10px;}
+.trp-tagdd-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:41;min-width:210px;max-height:420px;overflow-y:auto;background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,0.55);padding:10px;}
+.trp-tagdd-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:8px;}
+.trp-tagdd-row{display:flex;align-items:center;gap:8px;width:100%;padding:7px 4px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12.5px;color:${T.onDark};opacity:.75;text-align:left;}
+.trp-tagdd-row.on{color:${GOLD};font-weight:600;opacity:1;}
+.trp-tagdd-row:hover{background:rgba(201,154,63,0.14);border-radius:7px;}
+.trp-tagdd-row span:first-child{flex:1;}
+.trp-tagdd-clear{display:block;width:100%;text-align:center;margin-top:6px;padding-top:8px;border-top:1px solid ${T.onDarkHair};background:none;border-left:0;border-right:0;border-bottom:0;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.04em;color:${T.onDarkDim};cursor:pointer;}
+.trp-tagdd-clear:hover{color:${GOLD};}
 
 /* place-search box — iterácia 9 (Matejov feedback bod 2): tmavá/glass karta
    (bola svetlý papyrus), ladí s ostatnými tmavými prvkami nad mapou. */
@@ -460,6 +656,12 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    Cinzel 700 uppercase. Grotesk sem nepatrí. */
 .trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
 .trp-addtrip-btn:hover{filter:brightness(1.05);}
+/* Dva labely CTA (Matej 2026-07-27): plný „Add trip" na širokom desktope, skrátený „Add"
+   v kompaktnom desktope a na mobile — tam sa musí celý status riadok zmestiť do JEDNÉHO
+   riadku. Prepínajú sa v media queries nižšie; default = plný. */
+.trp-addtrip-short{display:none;}
+/* Modálny filter sheet skrýva plávajúci AINUBIS launcher — viď komentár pri useEffect vyššie. */
+body.trp-sheet-open .ainubis-launcher{display:none;}
 /* Matej 2026-07-24: "+" brand ikonka pred textom — plus.svg je natívne čierne (fill hardcoded,
    nie currentColor), čo na zlatom gradiente číta ako tmavá/INK farba presne ako treba — žiadny
    invert filter (to by ju zmenilo na bielu). */
@@ -500,10 +702,13 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    the panel's overflow:hidden cleanly (no popover-clip risk). Only SK enabled. */
 .trp-country-select,.trp-filter-select{width:100%;min-width:0;background:rgba(245,240,228,0.05);border:1px solid rgba(245,240,228,0.16);border-radius:9px;padding:8px 9px;color:rgba(245,240,228,0.85);font-family:inherit;font-size:11.5px;cursor:pointer;outline:0;}
 .trp-country-select:focus,.trp-filter-select:focus{border-color:${GOLD};}
-/* geo kaskáda (Matejov feedback bod 4, iterácia 7; Pohorie vrátené iterácia 9): country
-   (malinký, flag+kód) → región (West/Center/East) → pohorie (tr.region), 3 stĺpce vedľa seba. */
-.trp-georow{display:grid;grid-template-columns:78px 1fr 1fr;gap:7px;}
-.trp-georow .trp-country-select{padding:8px 6px;}
+/* geo kaskáda (Matejov feedback bod 4, iterácia 7; Pohorie vrátené iterácia 9; Activity
+   presunutá sem 2026-07-27): country (malinký, flag+kód) → región (West/Center/East) →
+   activity. Flexbox namiesto grid-u 3 pevných stĺpcov, lebo activity musí ostať v riadku
+   aj keď je región skrytý (mimo SK) — grid s 3 stĺpcami by vtedy nechal prázdnu medzeru. */
+.trp-georow{display:flex;gap:7px;}
+.trp-georow .trp-country-select{flex:0 0 72px;padding:8px 6px;}
+.trp-georow .trp-filter-select{flex:1 1 0;min-width:0;}
 
 /* tag chips — iterácia 8: Activity/Difficulty/Popularity presunuté hore do top filter
    baru (viď komentár pri .trp-topfilters), panel teraz nesie len 8 univerzálnych tagov. */
@@ -517,6 +722,12 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    doesn't divide the panel evenly on purpose (peek = scroll affordance). */
 .trp-cards-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 20px 20px;}
 .trp-cards{display:flex;flex-direction:column;gap:14px;}
+/* oddeľovač „Elsewhere on the map · N" (Matej 2026-07-27) — zoznam je delený výrezom mapy:
+   nad čiarou to, čo je práve vidno, pod ňou zvyšok. Typografia = dark-panel UI (Space Grotesk,
+   nie Cinzel — nie je to nadpis ani identita), vlasová linka rovnaká ako .trp-tagdd-clear. */
+.trp-cards-sep{display:flex;align-items:center;gap:9px;margin:8px 0 0;font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,240,228,0.40);}
+.trp-cards-sep::before,.trp-cards-sep::after{content:'';flex:1;height:1px;background:rgba(245,240,228,0.12);}
+.trp-cards-sep b{font-weight:600;color:rgba(245,240,228,0.28);letter-spacing:.06em;}
 .trp-bigcard{border-radius:14px;overflow:hidden;background:rgba(245,240,228,0.03);border:1px solid rgba(245,240,228,0.10);border-left:3px solid transparent;cursor:pointer;transition:all .15s;flex-shrink:0;}
 .trp-bigcard:hover,.trp-bigcard.hot{border-color:${GOLD};background:rgba(201,154,63,0.07);}
 .trp-bigcard-photo{position:relative;width:100%;aspect-ratio:4/3;height:auto;background-size:cover;background-position:center;background-color:#111;flex-shrink:0;}
@@ -533,12 +744,17 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-bigcard-dot.on{background:#fff;}
 /* bod 3 (Matej 2026-07-22): ✓/★ v HORNOM pravom rohu fotky. */
 .trp-bigcard-photoacts{position:absolute;right:9px;top:9px;z-index:3;display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
-/* náročnosť + popularita STACKED — dolný PRAVÝ roh fotky (PhotoMetaPills). Hazard tu NIE. */
-.trp-bigcard-photometa{position:absolute;right:9px;bottom:9px;z-index:2;}
+/* Trasa · náročnosť · popularita — DOLNÝ PRUH fotky po celej šírke (Matej 2026-07-27; predtým
+   dve stacknuté pilulky v pravom rohu). left+right, nie len right — pilulky idú vedľa seba. */
+.trp-bigcard-photometa{position:absolute;left:9px;right:9px;bottom:9px;z-index:2;}
 /* Chipy na fotke (Walked / Triplist) = drobné ovládanie, nie CTA → FONT_UI. */
 .trp-bigcard-photoactbtn{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.22);color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;padding:6px 10px;border-radius:999px;cursor:pointer;white-space:nowrap;}
 .trp-bigcard-photoactbtn:hover{border-color:${GOLD};}
 .trp-bigcard-photoactbtn.on{background:${GOLD};border-color:${GOLD};color:${INK};}
+/* Walked chip je ZELENÝ, nie zlatý (Matej 2026-07-27) — rovnaká farba ako WALKED ✓ v detaile
+   výletu, kotvená na T.growGreen #3D7A4E. Zlatá ostáva Triplistu = dve akcie, dve farby. */
+.trp-bigcard-photoactbtn--walked.on{background:linear-gradient(135deg,#4A8F5D,#2F6440);border-color:rgba(255,255,255,0.28);color:#fff;}
+.trp-bigcard-photoactbtn--walked.on:hover{border-color:rgba(255,255,255,0.5);}
 /* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo rating·difficulty·Crowd */
 /* align-items:center (Matej 2026-07-22) — rating (pravý stĺpec) vertikálne na STRED karty,
    nie pri hornom okraji. */
@@ -695,31 +911,61 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-mapfull .leaflet-control-scale{margin-left:12px;margin-bottom:12px;}
 .trp-mapfull .leaflet-control-scale-line{background:rgba(255,255,255,0.8);border-color:rgba(31,26,14,0.55);color:#2a2a2a;font-size:10px;}
 
-/* bod 3 (iterácia 12): marker = čierny pill (diffmark + km), ŽIADNE poradové číslo. Pozícia
-   centrovaná cez left:-50%/top:-100% (dynamická šírka podľa km textu — viď pillIcon komentár). */
-.trp-pinwrap{background:none;border:0;}
+/* bod 3 (iterácia 12): marker = pill (diffmark + km) alebo bodka (piktogram), ŽIADNE poradové
+   číslo. Pozícia centrovaná cez left:-50%/top:-100%|-50% (dynamická šírka podľa km textu — viď
+   pointIcon komentár). 2026-07-27 BUG FIX: Leaflet bez explicitného iconSize dáva divIcon-u
+   default [12,12] a nastaví to ako INLINE style width/height priamo na .trp-pinwrap — preto sa
+   "8.9 km" lámalo na dva riadky (pilulka mala vnútri len 12px na text). width/height auto
+   !important je jediný spôsob, ako CSS trieda prebije inline style; wrapper sa tak zmrští na
+   skutočný obsah, presne na čo left:-50%/top:-100% centrovanie dole spolieha. */
+.trp-pinwrap{background:none;border:0;width:auto!important;height:auto!important;}
+/* 2026-07-27 BUG FIX pokračovanie: aj po (1) sa "8.9 km" stále lámalo, lebo
+   p,li,label,span{text-wrap:pretty} v index.css (globálny "pekné zalamovanie" reset pre bežný
+   text) sedí aj na holé <span> vnútri divIcon HTML stringu a PREBÍJA zdedené white-space:nowrap
+   z .trp-pill (priama deklarácia na elemente vždy vyhráva nad zdedenou, bez ohľadu na
+   špecifickosť/@layer). Fix = vyššia špecifickosť ".trp-pill span" nižšie. */
+.trp-pill span,.trp-dot span{white-space:nowrap;}
 /* Markery na mape nesú ČÍSLA (km) v 10.5px — Cinzel serifka sa tu zlievala, Grotesk 600 má
-   pri tejto veľkosti výrazne lepšiu čitateľnosť. */
-.trp-pill{position:relative;left:-50%;top:-100%;display:inline-flex;align-items:center;gap:5px;background:#141414;color:#fff;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1.5px solid rgba(255,255,255,0.16);box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;transition:all .15s;}
-.trp-pill.hot{border-color:${GOLD};box-shadow:0 0 0 3px rgba(245,199,61,0.3),0 4px 12px rgba(0,0,0,0.6);}
-.trp-pill--journey{background:#E01B22;color:#fff;border-color:rgba(255,255,255,0.55);}
-.trp-pill--journey.hot{border-color:#fff;box-shadow:0 0 0 3px rgba(224,27,34,0.35),0 4px 12px rgba(0,0,0,0.6);}
-.trp-pill--journey .trp-diffmark--triangle{border-bottom-color:#fff;}
+   pri tejto veľkosti výrazne lepšiu čitateľnosť. 2026-07-27: štýl A z prototypu (tmavá glass +
+   zlatý lem) — plná zlatá sa šetrí len na hot/vybraté (a len pre bežný, nie journey/water typ). */
+.trp-pill{position:relative;left:-50%;top:-100%;display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
+.trp-pill.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;border-color:rgba(250,244,236,0.55);box-shadow:0 0 0 3px rgba(245,199,61,0.3),0 4px 12px rgba(0,0,0,0.6);}
+/* diaľkové (journey) — 2026-07-27: #E01B22 → stlmená bordová (Matej "stlmiť odtiene"); voda
+   ostáva jasne modrá (.trp-pill--water nižšie), lebo stlmenie by oslabilo novú asociáciu. */
+/* Matej 2026-07-27: „ten piktogram by sme mohli zväčšiť — nech vyzerá dôležito, vzácne, teraz je
+   nenápadný". Diaľkové sú na mape rarita (10 z 67) a jediné nesú km aj z diaľky → väčšie písmo,
+   viac priestoru, plný zlatý prsteň (bežné pilulky majú lem na 55 % — zlatý RING je vyhradený
+   práve im) a väčší trojuholník náročnosti. */
+.trp-pill--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;font-size:11.5px;padding:5px 10px 5px 8px;gap:6px;border-width:1.5px;border-color:${GOLD};box-shadow:0 0 0 2px rgba(201,154,63,0.20),0 3px 10px rgba(0,0,0,0.42);}
+.trp-pill--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;box-shadow:0 0 0 4px rgba(245,199,61,0.45),0 4px 14px rgba(0,0,0,0.6);}
+.trp-pill--journey .trp-diffmark--triangle{border-bottom-color:#fff;border-left-width:5.5px;border-right-width:5.5px;border-bottom-width:10px;}
 .trp-pill--journey .trp-diffmark--circle,.trp-pill--journey .trp-diffmark--square{background:#fff;}
-/* vodná plocha = modrý kruh s 1–3 vlnkami (bez názvu). Kruh rastie s kategóriou plochy. */
-.trp-waterdot{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;background:#2E6FD6;border-radius:50%;border:1.5px solid rgba(255,255,255,0.6);box-shadow:0 3px 9px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
-.trp-waterdot:hover{transform:scale(1.12);}
-.trp-waterdot--1{width:22px;height:22px;}
-.trp-waterdot--2{width:26px;height:26px;}
-.trp-waterdot--3{width:30px;height:30px;}
-.trp-waterdot svg{display:block;}
+/* vodná plocha — bez stlmenia (zadanie 2.5). Väčšina plôch nemá km → pilulka nesie NÁZOV
+   (viď pointIcon), vlnky vo vnútri = rovnaká krivka ako pôvodný .trp-waterdot. */
+.trp-pill--water{background:${WATER_COLOR};color:#fff;border-color:rgba(255,255,255,0.55);}
+.trp-pill--water.hot{background:${WATER_COLOR};border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
+/* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
+.trp-dot{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
+.trp-dot.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.55);}
+.trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}
+.trp-dot--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;}
+.trp-dot--journey .trp-diffmark--triangle{border-bottom-color:#fff;}
+.trp-dot--journey .trp-diffmark--circle,.trp-dot--journey .trp-diffmark--square{background:#fff;}
+/* vodná bodka — zachováva pôvodný .trp-waterdot hover-pop (jediný CSS :hover efekt v pôvodnom
+   kóde), teraz na zdieľanej .trp-dot základni. */
+.trp-dot--water{background:${WATER_COLOR};border-color:rgba(255,255,255,0.55);}
+.trp-dot--water:hover{transform:scale(1.12);}
+.trp-dot--water.hot{background:${WATER_COLOR};border-color:#fff;}
+/* zhluk (zadanie 2.4) — rovnaký glass+zlatý lem, veľkosť rastie s počtom bodov (clusterIcon). */
+.trp-cluster{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
+.trp-cluster:hover{transform:scale(1.09);}
 /* farebná legenda mapy — floating vpravo dole, nad Dev nav / atribúciou */
 .trp-legend{position:absolute;right:12px;bottom:54px;z-index:600;display:flex;flex-direction:column;gap:4px;background:rgba(20,20,20,0.82);backdrop-filter:blur(6px);padding:8px 11px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);box-shadow:0 4px 14px rgba(0,0,0,0.45);font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:#fff;letter-spacing:.06em;pointer-events:none;}
 .trp-legrow{display:flex;align-items:center;gap:7px;}
 .trp-legdot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,0.5);}
 .trp-legdot--hike{background:#141414;}
 .trp-legdot--journey{background:#E01B22;}
-.trp-legdot--water{background:#2E6FD6;}
+.trp-legdot--water{background:${WATER_COLOR};}
 /* plánovaný trip = ružový teardrop pin (zhoduje sa s .trp-planmarker-dot na mape) */
 .trp-legdot--planned{background:#FF5FA2;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border-color:#fff;}
 /* bod 2 (iterácia 17): live "{km} km" label pri konci kreslenej trasy (ADD flow draw) —
@@ -732,8 +978,34 @@ ${DIFF_MARK_CSS}
    left:50%/translateX untouched); only its bottom offset is pinned so it
    lines up with the floating panel's bottom edge (both 20px). Scoped under
    .trp-root so it never touches other /pack pages. ── */
-@media (min-width:761px){
+@media (min-width:1024px){
   .trp-root .fixed.z-40{ bottom:20px !important; }
+}
+
+/* ── KOMPAKTNÝ DESKTOP 1024–1400px (Matej 2026-07-27) ───────────────────────
+   Príčina pôvodného rozbitia: .trp-topbar mal natvrdo left:480px (= 440px panel
+   + marginy) a right:180px. Pri okne 1000px ostalo topbaru 340px, pri 800px len
+   140px → status riadok (LEVEL + pilulky + ADD TRIP + ikonky) sa zalomil do
+   stĺpca a natiekol na mapu. Tu sa panel zúži na 360px, topbar sa odvodí od
+   NEHO (žiadne pevné 480), a labely, ktoré nesú info aj bez textu (Triplist =
+   clipboard ikonka, „Add trip" → „Add"), sa skrátia. Nad 1400px = plný layout. */
+@media (min-width:1024px) and (max-width:1400px){
+  .trp-sidebar{width:360px;}
+  .trp-topbar{left:400px;right:74px;}
+  .trp-status-row{gap:10px;padding:11px 14px;}
+  .trp-status-center{gap:7px;flex-wrap:nowrap;}
+  .trp-status-row .trp-stat-pill{padding:8px 12px;}
+  .trp-status-row .trp-stat-pill span,.trp-status-row .trp-stat-pill b{font-size:11.5px;}
+  /* Triplist = len clipboard ikonka (route je rovnaká, title/aria label ostáva). */
+  .trp-status-row .trp-triplist-label{display:none;}
+  .trp-status-row .trp-stat-pill--icon{padding:8px 10px;}
+  .trp-status-row .trp-addtrip-btn{padding:8px 12px;font-size:10px;}
+  .trp-status-row .trp-addtrip-full{display:none;}
+  .trp-status-row .trp-addtrip-short{display:inline;}
+  .trp-headright{gap:6px;}
+  .trp-topsearchrow{gap:8px;}
+  .trp-floatsearch{flex:1 1 160px;min-width:140px;}
+  .trp-toprow-select,.trp-tagdd-btn{flex:1 1 100px;min-width:92px;padding:9px 11px;font-size:12px;}
 }
 
 /* ── mobile (≤760px) — bod 5, iterácia 11: map-first + LIST/MAP toggle +
@@ -742,13 +1014,14 @@ ${DIFF_MARK_CSS}
    desktop-only, mobile detail ide priamo na full-page článok — PackTripArticle,
    iterácia 12 bod 5). Nav stays centered + fixed, untouched (PackBottomNav
    default). ── */
-@media (max-width:760px){
+@media (max-width:1023px){
   .trp-topbar{display:none;}
   .trp-sidebar{display:none;}
 
-  /* bod 1 (iterácia 13): 78px → 122px — header je teraz 2-riadkový (status + search row),
-     vyšší ako predtým, ctlstack/drawhint musia začínať POD ním, nie ho prekrývať. */
-  .trp-ctlstack{top:calc(env(safe-area-inset-top,0px) + 122px);right:12px;gap:7px;}
+  /* bod 1 (iterácia 13): 78px → 122px — header je 2-riadkový (status + search row), ctlstack/
+     drawhint musia začínať POD ním. Matej 2026-07-27: header sa zúžením statusu na jeden riadok
+     a náhradou 3 selectov jednou „Filters" pilulkou zmenšil na ~95px → 122 → 106 (95 + medzera). */
+  .trp-ctlstack{top:calc(env(safe-area-inset-top,0px) + 106px);right:12px;gap:7px;}
 
   .trp-stylebtn{width:34px;height:34px;}
   .trp-stylebtn img{width:16px;height:16px;}
@@ -756,67 +1029,158 @@ ${DIFF_MARK_CSS}
   .trp-locatebtn{width:34px;height:34px;}
   .trp-locatebtn img{width:16px;height:16px;}
 
-  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 122px);}
+  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 106px);}
 
   /* bod 1 (iterácia 13, prestavané i15): mobilný header = 2 riadky — (1) status (avatar +
      renderStatusRight() pilulky, ako desktop .trp-status-row) + (2) search+dropdowny+filter
      (i12 bod 7). .trp-mheader je teraz column namiesto jedného riadku. */
   .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid ${T.onDarkBorder};padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;}
-  .trp-mheader-status{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
-  /* Mobile: trojdielny split by pri 390px stlačil stred na nulu — krajné bloky preto strácajú
-     flex:1 a celý riadok sa správa ako pôvodný wrap-ujúci zoznam (LEVEL → pilulky → ikonky). */
-  .trp-mheader-status .trp-status-left,.trp-mheader-status .trp-headright{flex:0 0 auto;}
-  .trp-mheader-status .trp-status-center{gap:6px;}
-  .trp-mheader-status .trp-headright{gap:6px;margin-left:auto;}
-  .trp-mheader-status .trp-stat-pill{gap:4px;padding:5px 9px;}
+  /* Matej 2026-07-27: status riadok sa musí zmestiť do JEDNÉHO riadku — LEVEL · staty ·
+     triplist(ikonka) · Add · správy+zvonček. Preto flex-wrap:nowrap; overflow-x:auto je len
+     poistka pre <350px zariadenia (nech sa radšej dá odscrollovať, než aby to zalomilo). */
+  .trp-mheader-status{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
+  .trp-mheader-status::-webkit-scrollbar{display:none;}
+  /* Matej 2026-07-27 (druhé kolo): LEVEL vľavo, stred (staty/triplist/add) naozaj centrovaný
+     v riadku — ako na desktope (flex:1 na krajných blokoch). min-width:max-content namiesto
+     0 drží krajné bloky nad ich obsahom, nech sa pri 390px nestlačia na nulu — pri nedostatku
+     miesta prevezme overflow-x:auto (horizontálny scroll), nie kolaps stredu. */
+  .trp-mheader-status .trp-status-left{flex:1 1 0;min-width:max-content;}
+  .trp-mheader-status .trp-status-center{gap:6px;flex-wrap:nowrap;flex:0 0 auto;}
+  .trp-mheader-status .trp-headright{gap:5px;flex:1 1 0;min-width:max-content;justify-content:flex-end;}
+  /* PackNotifications má rozmery v inline style (38px) → prebiť sa dá len !important. */
+  .trp-mheader-status .trp-header-notif button{width:32px!important;height:32px!important;}
+  .trp-mheader-status .trp-stat-pill{gap:4px;padding:5px 8px;}
   .trp-mheader-status .trp-stat-pill img{width:11px;height:11px;}
-  .trp-mheader-status .trp-stat-pill span,.trp-mheader-status .trp-stat-pill b{font-size:10.5px;}
+  .trp-mheader-status .trp-stat-pill span,.trp-mheader-status .trp-stat-pill b{font-size:10px;}
+  /* Triplist = len clipboard ikonka (Matej 2026-07-27: „triplist iba ikonka nie aj názov"). */
+  .trp-mheader-status .trp-triplist-label{display:none;}
+  .trp-mheader-status .trp-stat-pill--icon{padding:5px 7px;}
   /* LEVEL text zmenšený v rovnakom pomere ako pilulky, nech nepretlačí status riadok na mobile. */
-  .trp-mheader-status .trp-level{gap:6px;}
-  .trp-mheader-status .trp-level-name{font-size:10.5px;letter-spacing:.12em;}
+  .trp-mheader-status .trp-level{gap:5px;}
+  .trp-mheader-status .trp-level-name{font-size:10px;letter-spacing:.1em;}
   .trp-mheader-status .trp-level-num i{font-size:8px;}
-  .trp-mheader-status .trp-level-num em{font-size:15px;}
-  .trp-mheader-status .trp-addtrip-btn{padding:7px 12px;font-size:9.5px;}
-  .trp-mheader-row2{display:flex;align-items:center;gap:6px;}
-  .trp-mheader-scroll{display:flex;align-items:center;gap:6px;flex:1 1 auto;min-width:0;overflow-x:auto;scrollbar-width:none;}
-  .trp-mheader-scroll::-webkit-scrollbar{display:none;}
-  /* Matej 2026-07-26: dropdowny (Activities/Difficulty/Crowd) predtým flex:1 1 0 = nútene
-     rovnaký podiel priestoru bez ohľadu na dĺžku labelu ("Crowd" natiahnuté rovnako ako
-     "Difficulty") → search mal len fixných 96px. Teraz: selecty flex-grow:0 (neťahajú si
-     viac než treba), search flex-grow:2 (dostane každý voľný px navyše). Oba typy si smú
-     zmrštiť (flex-shrink:1) rovnomerne, keby sa 3 selecty + search naozaj nezmestili —
-     poistka je aj horizontálny scroll na .trp-mheader-scroll. */
-  .trp-mheader .trp-mapsearch{flex:2 1 100px;min-width:66px;padding:6px 10px;border-radius:999px;}
+  .trp-mheader-status .trp-level-num em{font-size:14px;}
+  .trp-mheader-status .trp-addtrip-btn{padding:6px 10px;font-size:9.5px;gap:4px;}
+  .trp-mheader-status .trp-addtrip-icon{width:10px;height:10px;}
+  .trp-mheader-status .trp-addtrip-full{display:none;}
+  .trp-mheader-status .trp-addtrip-short{display:inline;}
+  /* Riadok 2 (Matej 2026-07-27, prestavané): predtým tu boli 3 natívne selecty
+     (Activities/Difficulty/Crowd) v horizontálnom scrolli — a country, región a Tagy sa na
+     mobile NEZOBRAZOVALI VÔBEC (žijú v .trp-sidebar / .trp-topbar, oboje display:none).
+     Teraz: search + jedna „Filters · N" pilulka, ktorá otvára .trp-msheet so VŠETKÝMI
+     filtrami (country, región, activity, difficulty, crowd, tagy, sort). */
+  .trp-mheader-row2{display:flex;align-items:center;gap:8px;}
+  .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:7px 12px;border-radius:999px;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
-  .trp-mheader .trp-mapsearch input{font-size:11.5px;}
-  .trp-mheader-select{flex:0 1 auto;min-width:0;max-width:98px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 8px;color:${T.onDark};font-size:10px;font-family:inherit;outline:0;}
-  .trp-mfilterwrap{position:relative;flex-shrink:0;}
-  .trp-mfiltericon{width:32px;height:32px;border-radius:50%;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-  .trp-mfiltericon img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:.8;}
-  .trp-sortpop{position:absolute;top:calc(100% + 8px);right:0;background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:10px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);z-index:950;min-width:132px;}
-  .trp-sortpop button{display:block;width:100%;text-align:left;padding:10px 14px;font-size:12px;color:${T.onDark};background:none;border:0;border-bottom:1px solid ${T.onDarkHair};cursor:pointer;}
-  .trp-sortpop button:last-child{border-bottom:0;}
-  .trp-sortpop button.on{color:${GOLD};font-weight:600;}
-  .trp-sortpop button:hover{background:rgba(201,154,63,0.14);}
+  .trp-mheader .trp-mapsearch input{font-size:12px;}
+  .trp-mfilterwrap{position:relative;flex:0 0 auto;}
+  .trp-mfilterbtn{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:11.5px;white-space:nowrap;cursor:pointer;}
+  .trp-mfilterbtn img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.8;}
+  .trp-mfilterbtn.on{border-color:${GOLD};color:${GOLD};}
+  .trp-mfilterbtn.on img{filter:none;opacity:1;}
+
+  /* ── FILTER SHEET (bottom sheet) — AllTrails vzor. Tmavý glass povrch, lebo stojí nad
+     mapou (rovnaká vrstva ako .trp-mheader), nie papyrus. z-index nad .trp-mheader (900). */
+  .trp-msheet-back{position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);}
+  .trp-msheet{position:fixed;left:0;right:0;bottom:0;z-index:961;display:flex;flex-direction:column;max-height:86vh;background:rgba(10,9,6,0.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid ${T.onDarkBorder};border-radius:20px 20px 0 0;box-shadow:0 -18px 50px rgba(0,0,0,0.6);padding-bottom:env(safe-area-inset-bottom,0px);}
+  .trp-msheet-grab{width:38px;height:4px;border-radius:999px;background:rgba(245,240,228,0.22);margin:9px auto 2px;flex:0 0 auto;}
+  .trp-msheet-head{display:flex;align-items:center;justify-content:space-between;padding:8px 18px 12px;flex:0 0 auto;}
+  .trp-msheet-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:${GOLD};}
+  .trp-msheet-x{width:30px;height:30px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:15px;line-height:1;cursor:pointer;}
+  .trp-msheet-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:0 18px 16px;display:flex;flex-direction:column;gap:15px;}
+  .trp-msheet-field{display:flex;flex-direction:column;gap:6px;}
+  .trp-msheet-pair{display:flex;gap:10px;}
+  .trp-msheet-pair .trp-msheet-field{flex:1 1 0;min-width:0;}
+  .trp-msheet-label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+  .trp-msheet-select{width:100%;min-width:0;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:11px 12px;color:${T.onDark};font-family:${FONT_UI};font-size:13px;cursor:pointer;outline:0;}
+  .trp-msheet-select:focus{border-color:${GOLD};}
+  .trp-msheet-chips{display:flex;flex-wrap:wrap;gap:7px;}
+  .trp-msheet-chip{display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border-radius:999px;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
+  .trp-msheet-chip.on{border-color:${GOLD};color:${GOLD};background:rgba(201,154,63,0.16);font-weight:600;}
+  /* Sticky pätka — Clear (ghost) + SHOW N (brand gold CTA, radius 8, .btn-gold lock). */
+  .trp-msheet-foot{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:12px 18px 16px;border-top:1px solid ${T.onDarkHair};background:rgba(10,9,6,0.97);}
+  .trp-msheet-clear{flex:0 0 auto;padding:12px 18px;border-radius:8px;background:none;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+  .trp-msheet-clear:disabled{opacity:.4;cursor:default;}
+  .trp-msheet-show{flex:1 1 auto;padding:12px 18px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.30);color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
 
   /* LIST/MAP toggle pill, bottom-center — default view = map (žiadny
      bottom-sheet defaultne), klik prepína celú stránku na zoznam. */
   .trp-mtoggle{display:flex;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:900;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 26px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.4);cursor:pointer;}
 
   /* full-page card list — replaces the map (not an overlay) when mobileView==='list'.
-     top padding 122px (bod 1) matches the now-taller 2-row .trp-mheader. */
-  .trp-mlist{position:absolute;inset:0;z-index:60;overflow-y:auto;background:#050505;padding:calc(env(safe-area-inset-top,0px) + 122px) 14px 100px;}
+     top padding sedí s výškou .trp-mheader (viď .trp-ctlstack vyššie). */
+  .trp-mlist{position:absolute;inset:0;z-index:60;overflow-y:auto;background:#050505;padding:calc(env(safe-area-inset-top,0px) + 106px) 14px 100px;}
   .trp-root.mlist-active .trp-mapregion{display:none;}
   .trp-root.mlist-active .trp-mlist{display:block;}
 
-  /* bod 4 (iterácia 14): ADD TRIP full-screen overlay — .trp-sidebar (desktop ADD setup home)
-     je tu display:none, tak renderAddSetup() beží znova vo full-screen .trp-madd namiesto. */
+  /* bod 4 (iterácia 14, krok 9 zachované): ADD TRIP full-screen overlay — .trp-sidebar (desktop
+     ADD setup home) je tu display:none, tak AddTripPlan/AddTripLog bežia znova vo full-screen
+     .trp-madd namiesto. */
   .trp-madd{display:flex;flex-direction:column;position:fixed;inset:0;z-index:950;background:#0a0a0a;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
   .trp-madd .trp-addsetup{background:transparent;}
   .trp-madd-drawbtn{display:block;width:100%;margin-top:2px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:11px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);color:${GOLD};cursor:pointer;}
 }
 
 `;
+
+// Tags multi-select dropdown pre top filter bar — presunuté z chip-riadku v ľavom paneli
+// (Matej 2026-07-27). Vzor = IdentityVisibilityEye (PackProfile.tsx): trigger → backdrop →
+// absolútne pozicovaný panel, klik na položku IBA toggle-ne (multi-select, panel sa
+// nezatvára). Stav (heroTags/toggleTag) ostáva v PackPortal, komponent je bezstavový wrapper.
+function TripTagsDropdown({
+  tags,
+  onToggle,
+  onClear,
+}: {
+  tags: Set<string>;
+  onToggle: (tag: string) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const count = tags.size;
+
+  return (
+    <span className="relative inline-flex" style={{ flex: '1 1 140px', minWidth: 120 }}>
+      <button
+        type="button"
+        className={`trp-tagdd-btn${count > 0 ? ' on' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label="Tags"
+      >
+        <span>{count > 0 ? `Tags · ${count}` : 'Tags'}</span>
+        <span className="trp-tagdd-chevron" aria-hidden>▾</span>
+      </button>
+
+      {open && (
+        <>
+          {/* Backdrop — klik mimo zatvára, aj natívne <select>-y pod panelom ostanú nedostupné. */}
+          <span className="fixed inset-0" style={{ zIndex: 40 }} onClick={() => setOpen(false)} aria-hidden />
+          <div className="trp-tagdd-panel">
+            <span className="trp-tagdd-eyebrow">Filter by tag</span>
+            {TAG_VOCAB.map((tag) => {
+              const on = tags.has(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`trp-tagdd-row${on ? ' on' : ''}`}
+                  onClick={() => onToggle(tag)}
+                >
+                  <span>{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{tag}</span>
+                  {on && <span aria-hidden>✓</span>}
+                </button>
+              );
+            })}
+            {count > 0 && (
+              <button type="button" className="trp-tagdd-clear" onClick={onClear}>Clear</button>
+            )}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
 
 export default function PackPortal() {
   const t = useT();
@@ -847,6 +1211,9 @@ export default function PackPortal() {
 
   const [placeQuery, setPlaceQuery] = useState('');
   const [placeSug, setPlaceSug] = useState<PlaceSug[]>([]);
+  // naposledy vybraný návrh (viď guard v suggest efekte) + wrapper na klik-mimo
+  const pickedPlaceRef = useRef('');
+  const placeBoxRef = useRef<HTMLDivElement | null>(null);
   const [mapTarget, setMapTarget] = useState<LatLngTuple | null>(null);
   const [mapStyle, setMapStyle] = useState<'outdoor' | 'aerial'>('outdoor'); // bod 2: Winter preč
   const [locating, setLocating] = useState(false);
@@ -859,45 +1226,18 @@ export default function PackPortal() {
   // ADD setup (addOpen). Desktop-only — mobile skrýva .trp-sidebar celý (bod 5).
   const [inlineDetailId, setInlineDetailId] = useState<string | null>(null);
 
-  // bod 6 — ADD TRIP flow (recyklované z AddTrailFlow.tsx: click-to-draw, undo/clear, km).
-  const [addOpen, setAddOpen] = useState(false);
-  const [drawPoints, setDrawPoints] = useState<LatLngTuple[]>([]);
-  const [addName, setAddName] = useState('');
-  const [addDate, setAddDate] = useState('');
-  const [addRegion, setAddRegion] = useState('');
-  const [addCountry, setAddCountry] = useState(''); // '' = auto z trasy; hodnota = manuálny override
-  const [addDiff, setAddDiff] = useState<'' | 'Easy' | 'Moderate' | 'Hard'>('');
-  const [addMultiTrip, setAddMultiTrip] = useState(false);     // toggle „+ multi-day" → odhalí End date
-  const [addDateEnd, setAddDateEnd] = useState('');            // koniec multideň tripu → odomkne Journey
-  const [addCrowd, setAddCrowd] = useState<'' | 'Pokojné' | 'Rušné' | 'Ľudoprázdne'>(''); // popularita
-  const [addSurface, setAddSurface] = useState<Set<string>>(new Set()); // 'forest' | 'asphalt'
-  const [addPlanPoint, setAddPlanPoint] = useState<LatLngTuple | null>(null); // planning pin
-  const toggleAddSurface = (s: string) => setAddSurface((prev) => { const n = new Set(prev); n.has(s) ? n.delete(s) : n.add(s); return n; });
-  const [addTags, setAddTags] = useState<Set<string>>(new Set());
-  // F1 (Matej 2026-07-24): „Add-trip — pridať možnosť hrozby (hazards), teraz tam nie je."
-  // Hazards nie sú vlastnosť TRASY ale HLÁSENIE CHODCA (agregujú sa ako % chodcov), preto
-  // idú do hlasu autora (setVotes nižšie), nie do HeroTrail. VOLITEĽNÉ — nie v addMissing:
-  // „žiadne nebezpečenstvá" je legitímna odpoveď a nedá sa odlíšiť od nevyplneného.
-  const [addHazards, setAddHazards] = useState<Set<Hazard>>(new Set());
-  const toggleAddHazard = (h: Hazard) => setAddHazards((prev) => { const n = new Set(prev); n.has(h) ? n.delete(h) : n.add(h); return n; });
-  const [addActs, setAddActs] = useState<Set<string>>(new Set());
-  // Journey = viacdňová (Start+End) A dostatočne dlhá (≥50 km). MUSÍ byť tu (pred early-return
-  // `if (!id.session)`), inak useEffect po podmienenom return poruší Rules of Hooks (biela stránka).
-  const isMultiDay = addMultiTrip && !!addDateEnd && addDateEnd > addDate;
-  const drawKm = totalDistanceM(drawPoints) / 1000;
-  const journeyOk = isMultiDay && drawKm >= 50;
-  useEffect(() => { if (!journeyOk && addActs.has('journey')) setAddActs((prev) => { const n = new Set(prev); n.delete('journey'); return n; }); }, [journeyOk]); // eslint-disable-line react-hooks/exhaustive-deps
-  // „kto bol so mnou" — spoločníci (svorka + iní členovia), Matej 2026-07-23. Bol to string,
-  // teraz štruktúrovaný výber cez CompanionPicker.
-  const [addCrew, setAddCrew] = useState<Companion[]>([]);
-  const [addPhotos, setAddPhotos] = useState<string[]>([]);
-  const [addPhotoNote, setAddPhotoNote] = useState('');   // feedback pri zahodených/HEIC/prebytočných fotkách
+  // ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vstupný popup
+  // (AddTripEntry) → AddTripPlan/AddTripLog. Tie dva formuláre si držia vlastný interný state
+  // (name/geometry/photos/…), Portal drží len KTORÝ je otvorený + chybu zápisu + mobile
+  // map-reveal toggle.
+  const [addEntryOpen, setAddEntryOpen] = useState(false);
+  const [addFlow, setAddFlow] = useState<TripState | null>(null);
   const [addError, setAddError] = useState('');           // chyba pri ukladaní (napr. plný localStorage)
-  const [addRating, setAddRating] = useState(0);
-  // bod 4 (iterácia 14): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku vrátane mapy,
-  // takže "Draw route on map" dočasne SCHOVÁ formulár (mobileDrawing=true) nech je mapa
-  // klikateľná; "Done" v .trp-drawhint ju vráti. Draw samotný je nezávisle aktívny už len cez
-  // addOpen (DrawClickCatcher), toto len riadi VIDITEĽNOSŤ .trp-madd na mobile.
+  // bod 4 (iterácia 14, zachované): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku
+  // vrátane mapy — mobileDrawing dočasne SCHOVÁ formulár (CSS display, NIE unmount — inak by
+  // AddTripPlan/AddTripLog stratili svoj interný state pri každom "choď na mapu"), nech je mapa
+  // pod ním klikateľná. GeometryPicker počúva `map.on('click')` priamo cez mapRef, nezávisle od
+  // viditeľnosti panela, takže zápis geometrie beží ďalej aj kým je panel schovaný.
   const [mobileDrawing, setMobileDrawing] = useState(false);
   // tripy pridané v tejto session (ADD flow submit) — lokálny state, NIE Supabase (mimo
   // rozsahu tejto iterácie); zobrazujú sa hneď na mape + v zozname pred statickými HERO_TRAILS.
@@ -906,16 +1246,14 @@ export default function PackPortal() {
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
 
   // TRIPSTATS Slice A (bod 3, Matej 2026-07-23) — add-trip z pohoria: TripStatsPanel „+ Add a
-  // trip here" navigate-uje sem s ?add=<region>. Raz na mount: otvor ADD flow pre-filled na
-  // daný región + odleť mapou na jeho stred. leafletMapRef môže byť ešte null (id.loading gate
-  // odloží mount <MapContainer>) — pendingFlyRef drží cieľ, MapRefBridge onReady ho skonzumuje
-  // keď mapa domountuje.
+  // trip here" navigate-uje sem s ?add=<region>. Raz na mount: otvor ADD flow (log formulár —
+  // krok 9: región už nie je samostatné pole, AddTripLog si ho odvodí z nakreslenej geometrie)
+  // + odleť mapou na jeho stred. leafletMapRef môže byť ešte null (id.loading gate odloží mount
+  // <MapContainer>) — pendingFlyRef drží cieľ, MapRefBridge onReady ho skonzumuje keď mapa domountuje.
   useEffect(() => {
     const addParam = searchParams.get('add');
     if (!addParam) return;
-    setAddRegion(addParam);
-    setDrawPoints([]);
-    setAddOpen(true);
+    setAddFlow('walked');
     const target = regionCenter(addParam);
     if (leafletMapRef.current) leafletMapRef.current.flyTo(target, 11, { duration: 1.2 });
     else pendingFlyRef.current = target;
@@ -926,7 +1264,32 @@ export default function PackPortal() {
   // bod 5 — mobile map-first + LIST/MAP toggle + FILTER (sort) popover.
   const [mobileView, setMobileView] = useState<'map' | 'list'>('map');
   const [sortOpen, setSortOpen] = useState(false);
-  const [mobileSort, setMobileSort] = useState<'' | 'top' | 'easiest' | 'hardest'>('');
+  // Matej 2026-07-27: default poradie = „klasicky na najlepšie hodnotené" → 'top' je VÝCHODZÍ
+  // stav, nie voliteľný filter (preto sa ani neráta do activeFilterCount a prázdna hodnota ''
+  // z únie zmizla — vypnúť sort sa nedá, len prepnúť). Platí pre desktop popover aj mobile sheet.
+  const [mobileSort, setMobileSort] = useState<'top' | 'easiest' | 'hardest'>('top');
+  // aktuálny výrez mapy (hlási <ViewportWatcher>) — riadi rozdelenie ľavého zoznamu na
+  // „v tomto výreze" / „inde na mape". null = mapa ešte nedomountovala → zoznam bez delenia.
+  const [viewBox, setViewBox] = useState<ViewBox | null>(null);
+  const handleViewport = useCallback((b: ViewBox) => {
+    // ignoruj sub-pixelové drobčenie (fitBounds vie doraziť o zlomok stupňa) — inak by každý
+    // dotyk mapy re-renderoval celú stránku vrátane všetkých polyline.
+    setViewBox((cur) => (cur && Math.abs(cur.n - b.n) < 1e-5 && Math.abs(cur.s - b.s) < 1e-5
+      && Math.abs(cur.e - b.e) < 1e-5 && Math.abs(cur.w - b.w) < 1e-5) ? cur : b);
+  }, []);
+  // Mobilný filter sheet (Matej 2026-07-27) — nesie country/region/activity/difficulty/crowd/
+  // tagy/sort. Vlastný stav (NIE zdieľaný sortOpen), aby sa desktopový sort popover a mobilný
+  // sheet nikdy neotvorili naraz pri zmene šírky okna.
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  // AINUBIS launcher (.ainubis-launcher, z-index 60) žije MIMO tejto stránky a PackLayout mu
+  // dáva vlastný stacking context (`<div className="relative" style={{zIndex:1}}>`), takže ho
+  // žiadny z-index vnútri .trp-root neprebije — sadal si na "SHOW N" v pätke sheetu. Sheet je
+  // modál, tak ho na jeho čas skryjeme (body class, upratané pri zatvorení aj unmounte).
+  useEffect(() => {
+    if (!filterSheetOpen) return;
+    document.body.classList.add('trp-sheet-open');
+    return () => document.body.classList.remove('trp-sheet-open');
+  }, [filterSheetOpen]);
 
   // ── KOMUNITNÁ vrstva (design: plany/pack-community-features-design.md) — MOCK, sessionStorage
   // mirror (packCommunity), žiadna Supabase perzistencia. `now` fixné pri mounte kvôli
@@ -949,20 +1312,41 @@ export default function PackPortal() {
   const [dmName, setDmName] = useState<string | null>(null);
   // Portal kategória (design §D): Trips ↔ Events (Events pill sa aktivoval).
   const [activeCat, setActiveCat] = useState<'trips' | 'events'>('trips');
-  // ADD lifecycle (design §E): najprv voľba zámeru, potom form. addMode určuje polia + kam to ide.
-  const [addModeChoiceOpen, setAddModeChoiceOpen] = useState(false);
-  const [addMode, setAddMode] = useState<'planning' | 'done'>('done');
-  const [addSocial, setAddSocial] = useState('');
-  // Matej 2026-07-23: PLÁNOVANIE zjednodušené — názov = aktivita + lokalita; dátum = 3 dropdowny
-  // (deň/mesiac/rok), min. rok; žiadny región/difficulty/tagy vopred; správa o tripe = technické
-  // veci (idem autom, ostávam celý deň…) + info z profilu sa priloží.
-  const [addPlanAct, setAddPlanAct] = useState('');
-  const [addPlanLoc, setAddPlanLoc] = useState('');
-  const [addYear, setAddYear] = useState('');
-  const [addMonth, setAddMonth] = useState('');
-  const [addDay, setAddDay] = useState('');
-
   const allTrails = useMemo(() => [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
+  // vstup pre <TripMarkers> (zoomové vrstvy + zhlukovanie, zadanie 2.3/2.4) — jeden bod na trip:
+  // hike = štart trasy, journey = stred (rovnaká logika ako pôvodný pillIcon Marker), vodná
+  // plocha = ťažisko (waterPoint). Plánované tripy ('plan-') majú vlastný ružový pin, sem nepatria.
+  const mapPoints = useMemo<MapPoint[]>(() => {
+    const pts: MapPoint[] = [];
+    allTrails.forEach((tr) => {
+      if (tr.id.startsWith('plan-') || tr.path.length === 0) return;
+      if (isWaterTrail(tr)) {
+        const [lat, lon] = waterPoint(tr.path);
+        pts.push({ id: tr.id, tr, lat, lon, water: true, journey: false });
+      } else {
+        const journey = !!tr.acts?.includes('journey');
+        const [lat, lon] = journey ? tr.path[Math.floor(tr.path.length / 2)] : tr.path[0];
+        pts.push({ id: tr.id, tr, lat, lon, water: false, journey });
+      }
+    });
+    return pts;
+  }, [allTrails]);
+  // bbox každej trasy — predpočítané raz, porovnáva sa s výrezom mapy pri každom paneli (r. nižšie,
+  // inViewTrails/elsewhereTrails). Trasa bez bodov (napr. plán bez pinu) sem nepatrí a berie sa
+  // ako „nedá sa umiestniť" → ostáva v hornej skupine, nech ju viewport nikdy nezhodí dolu.
+  const trailBox = useMemo(() => {
+    const m = new Map<string, ViewBox>();
+    allTrails.forEach((tr) => {
+      if (!tr.path.length) return;
+      let n = -90, s = 90, e = -180, w = 180;
+      tr.path.forEach(([la, lo]) => {
+        if (la > n) n = la; if (la < s) s = la;
+        if (lo > e) e = lo; if (lo < w) w = lo;
+      });
+      m.set(tr.id, { n, s, e, w });
+    });
+    return m;
+  }, [allTrails]);
   const availableCountries = useMemo(() => {
     const seen = new Set<string>();
     for (const tr of allTrails) seen.add(trailCountry(tr));
@@ -998,6 +1382,12 @@ export default function PackPortal() {
   useEffect(() => {
     const q = placeQuery.trim();
     if (q.length < 2) { setPlaceSug([]); return; }
+    // BUG FIX (Matej 2026-07-27: „mapka ho pekne nacentruje ale dropdown zostáva a nejde
+    // zavrieť"): klik na návrh zapisuje jeho meno do placeQuery → tento efekt sa spustil
+    // znova, dofetchol tie isté návrhy a 250 ms po zatvorení ich vrátil späť. Donekonečna,
+    // lebo každé ďalšie zatvorenie query nemení. Guard = pamätáme si naposledy VYBRANÝ
+    // reťazec; kým sa nezmení (= kým používateľ nezačne písať niečo iné), neponúkame nič.
+    if (pickedPlaceRef.current === q) { setPlaceSug([]); return; }
     const timer = setTimeout(async () => {
       try {
         const url = `https://api.mapy.com/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
@@ -1016,6 +1406,25 @@ export default function PackPortal() {
     }, 250);
     return () => clearTimeout(timer);
   }, [placeQuery]);
+
+  // Zatvorenie ponuky miest bez výberu (Matej 2026-07-27) — klik kamkoľvek mimo search boxu
+  // alebo Escape. Backdrop element sa tu použiť NEDÁ (na rozdiel od Tags dropdownu): prekryl
+  // by mapu, takže by sa nedalo pretiahnuť/zoomnúť, kým je ponuka otvorená.
+  useEffect(() => {
+    if (placeSug.length === 0) return;
+    const onDown = (e: MouseEvent | TouchEvent) => {
+      if (!placeBoxRef.current?.contains(e.target as Node)) setPlaceSug([]);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPlaceSug([]); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('touchstart', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [placeSug.length]);
 
   if (id.loading) {
     return (
@@ -1044,11 +1453,11 @@ export default function PackPortal() {
   // slug anymore. Mobile nemá inline-detail panel (bod 5 i11 ho skrýva celý), tak tam ostáva
   // priama navigácia rovno na článok (jediné miesto, kde sa klik na kartu líši podľa šírky).
   const selectTrail = (tr: HeroTrail) => {
-    if (typeof window !== 'undefined' && window.innerWidth <= 760) {
+    if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
       navigate(`/pack/map/${tr.id}`);
       return;
     }
-    setAddOpen(false);
+    setAddFlow(null);
     setInlineDetailId(tr.id);
     setHeroBounds(tr.path);
   };
@@ -1130,421 +1539,154 @@ export default function PackPortal() {
   const toggleTag = (tag: string) => setHeroTags((prev) => {
     const n = new Set(prev); if (n.has(tag)) n.delete(tag); else n.add(tag); return n;
   });
+
+  // ── mobilný filter sheet (Matej 2026-07-27) ────────────────────────────
+  // Zmena krajiny nesie aj prefokus mapy — vytiahnuté z inline onChange ľavého panelu, aby
+  // sheet a panel používali TÚ ISTÚ logiku (inak by sa časom rozišli).
+  const applyCountry = (c: string) => {
+    setSelectedCountry(c);
+    // SK-špecifický región filter (West/Center/East) platí len pre SK
+    if (c !== '' && c !== 'sk') setHeroMacroRegion('');
+    // prefokus mapy na trasy vybranej krajiny (union ich path bodov); '' → celé SR
+    if (c === '') { setHeroBounds(SVK_BORDER); }
+    else {
+      const pts = allTrails.filter((t) => trailCountry(t) === c).flatMap((t) => t.path);
+      if (pts.length) setHeroBounds(pts as typeof heroBounds);
+    }
+  };
+  // Počet aktívnych filtrov na pilulke „Filters · N" — sort sa počíta tiež, lebo v sheete je.
+  // 'top' je VÝCHODZÍ sort (Matej 2026-07-27), takže sa neráta — inak by badge svietil stále.
+  const activeFilterCount =
+    (selectedCountry ? 1 : 0) + (heroMacroRegion ? 1 : 0) + (heroAct ? 1 : 0) +
+    (heroDiff ? 1 : 0) + (heroCrowd ? 1 : 0) + heroTags.size + (mobileSort !== 'top' ? 1 : 0);
+  const clearAllFilters = () => {
+    applyCountry('');
+    setHeroMacroRegion(''); setHeroAct(''); setHeroDiff(''); setHeroCrowd('');
+    setHeroTags(new Set()); setMobileSort('top');
+  };
   // carousel na veľkej foto-karte — cyklí photoIdx pre daný trip, dir = -1/+1
   const cyclePhoto = (tid: string, dir: -1 | 1, total: number) => setPhotoIdx((prev) => {
     const cur = prev[tid] ?? 0;
     return { ...prev, [tid]: (cur + dir + total) % total };
   });
 
-  // ── bod 6: ADD TRIP flow handlers ──────────────────────────────────────
-  const toggleAddTag = (tag: string) => setAddTags((prev) => {
-    const n = new Set(prev); if (n.has(tag)) n.delete(tag); else n.add(tag); return n;
-  });
-  const toggleAddAct = (aid: string) => setAddActs((prev) => {
-    const n = new Set(prev); if (n.has(aid)) n.delete(aid); else n.add(aid); return n;
-  });
-  // Fotky (Matej 2026-07-24): max 10 + aktívny optimalizátor veľkosti. Predtým sa ukladal
-  // `blob:` URL z createObjectURL — ten po reloade tabu zomrie (rozbitý obrázok) A nespadol
-  // by do localStorage zmysluplne. Teraz: každú fotku prekreslíme na canvas (longest side
-  // ≤1280 px), export JPEG q0.72 → data URL. Prežije reload aj drží veľkosť pod kontrolou.
-  const MAX_PHOTOS = 10;
-  const optimizePhoto = (file: File, maxDim = 1280, quality = 0.72): Promise<string | null> =>
-    new Promise((resolve) => {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) { resolve(null); return; }
-        ctx.drawImage(img, 0, 0, w, h);
-        try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch { resolve(null); }
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-      img.src = url;
-    });
-  const handleAddPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const picked = Array.from(e.target.files ?? []);
-    e.target.value = '';
-    const imgs = picked.filter((f) => f.type.startsWith('image/'));
-    const room = MAX_PHOTOS - addPhotos.length;
-    if (room <= 0) { setAddPhotoNote(`Max ${MAX_PHOTOS} photos reached.`); return; }
-    const take = imgs.slice(0, room);
-    const results = await Promise.all(take.map((f) => optimizePhoto(f)));
-    const ok = results.filter(Boolean) as string[];
-    if (ok.length) setAddPhotos((prev) => [...prev, ...ok].slice(0, MAX_PHOTOS));
-    // #2 + #5: povedz používateľovi čo sa nezmestilo / nedalo prečítať (HEIC z iPhonu → img.onerror).
-    const notes: string[] = [];
-    if (imgs.length > room) notes.push(`only ${room} added (max ${MAX_PHOTOS})`);
-    const failed = results.length - ok.length;
-    if (failed > 0) notes.push(`${failed} couldn't be read — use JPG/PNG (HEIC not supported)`);
-    if (picked.length > imgs.length) notes.push(`${picked.length - imgs.length} skipped (not an image)`);
-    setAddPhotoNote(notes.join(' · '));
-  };
-  const removeAddPhoto = (i: number) => setAddPhotos((prev) => prev.filter((_, idx) => idx !== i));
-  // design §E: „Add trip" → najprv voľba zámeru (Plánujem / Prešiel som), potom form.
-  const openAddChoice = () => setAddModeChoiceOpen(true);
-  const pickAddMode = (m: 'planning' | 'done') => {
-    setAddMode(m);
-    setAddModeChoiceOpen(false);
-    openAdd();
-  };
-  const openAdd = () => {
+  // ── ADD TRIP flow (krok 9, zadanie §3 + kontrakt §0) ────────────────────
+  // myDogs pre CompanionPicker vnútri AddTripPlan/AddTripLog — rovnaký tvar/mapping ako pôvodné
+  // CompanionPicker volanie v starom renderAddSetup. Plain expression, NIE useMemo — tento riadok
+  // je ZA `if (id.loading)` / `if (!id.session) return null` vyššie (early return), takže hook by
+  // tu porušil Rules of Hooks (biela stránka, tsc to nechytí — viď CLAUDE.md).
+  const myDogsForAdd = id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? 'My dog', photo: d.cloudinary_main_url }));
+  const openAddEntry = () => setAddEntryOpen(true);
+  const pickAddFlow = (state: TripState) => {
+    setAddEntryOpen(false);
     setInlineDetailId(null);
-    setDrawPoints([]);
     setMobileDrawing(false);
-    setAddOpen(true);
+    setAddFlow(state);
   };
-  // multi-country ADD flow: krajina detegovaná z prvého bodu nakreslenej trasy; efektívna =
-  // manuálny override (addCountry) má prednosť, inak detekcia, inak SK. Region je SK-viazaný
-  // dropdown len pri SK — pri inej krajine sa prepne na voľný text (SK pohoria tam nedávajú zmysel).
-  // #4: detekcia z CELEJ nakreslenej trasy (nie len drawPoints[0]) — rovnaká logika ako
-  // trailCountry (whole-path SK-aware), nech editor readout nesklame pri štarte od hranice.
-  const addDetectedCountry = drawPoints.length ? trailCountry({ path: drawPoints as [number, number][] }) : null;
-  const addEffCountry = addCountry || addDetectedCountry || 'sk';
-  const addCountryOpts = ADD_COUNTRY_OPTIONS.includes(addEffCountry as typeof ADD_COUNTRY_OPTIONS[number])
-    ? ADD_COUNTRY_OPTIONS
-    : [addEffCountry, ...ADD_COUNTRY_OPTIONS];
-
   const closeAdd = () => {
-    setAddOpen(false);
+    setAddFlow(null);
     setMobileDrawing(false);
-    setDrawPoints([]);
-    setAddName(''); setAddDate(''); setAddRegion(''); setAddCountry(''); setAddDiff('');
-    setAddTags(new Set()); setAddActs(new Set()); setAddCrew([]);
-    setAddPhotos([]); setAddPhotoNote(''); setAddError(''); setAddRating(0); setAddSocial('');
-    setAddPlanAct(''); setAddPlanLoc(''); setAddYear(''); setAddMonth(''); setAddDay('');
-    setAddMultiTrip(false); setAddDateEnd(''); setAddCrowd(''); setAddSurface(new Set()); setAddPlanPoint(null);
-    setAddMode('done');
+    setAddError('');
   };
-  // design §E: „Prešiel som" (done) = názov + nakreslená trasa. „Plánujem" = navyše dátum
-  // (kedy pôjdeš, pre event/inzerát); rating/trail fotky sa nezbierajú (ešte si to neprešiel).
-  // Matej 2026-07-23: PLÁNOVANIE zjednodušené — vyžaduje aktivitu + lokalitu + aspoň ROK (deň/
-  // mesiac voliteľné, „možno k výletu ani nepríde"). Trasa sa nekreslí. „Prešiel som" (done)
-  // stále vyžaduje názov + nakreslenú trasu.
-  // „Prešiel som" trip — VŠETKO povinné (Matej 2026-07-24: „aby nemohli tam byť blbosti").
-  // Krajina je auto z trasy, „kto bol so mnou" ostáva voliteľné (neboli v povinnom zozname).
-  // addMissing = ľudské labely chýbajúcich polí → nápoveda pri disabled submite (nie mŕtve tlačidlo).
-  const addMissing: string[] = addMode === 'done' ? ([
-    addName.trim().length === 0 && 'name',
-    drawPoints.length < 2 && 'route on map',
-    addDate === '' && 'date',
-    addDiff === '' && 'difficulty',
-    addCrowd === '' && 'popularity',
-    addSurface.size === 0 && 'surface',
-    addActs.size === 0 && 'activity',
-    addTags.size === 0 && 'tag',
-    addRating < 1 && 'rating',
-    addPhotos.length === 0 && 'photo',
-  ].filter(Boolean) as string[]) : [];
-  const canSubmitAdd = addMode === 'done'
-    ? addMissing.length === 0
-    : (addPlanAct !== '' && addPlanLoc.trim().length > 0 && addYear !== '');
-  const submitAdd = () => {
-    if (!canSubmitAdd) return;
 
-    // ── PLÁNOVANIE (Matej 2026-07-23): názov = aktivita + lokalita; dátum z 3 dropdownov (min
-    // rok); žiadny región/difficulty/tagy/trasa; správa o tripe + info z profilu → len Events/
-    // wishlist. Nič sa nekreslí na mapu (path=[]). ──
-    if (addMode === 'planning') {
-      const actLabel = TRIP_ACTIVITIES.find((a) => a.id === addPlanAct)?.label ?? 'Trip';
-      const name = `${actLabel} · ${addPlanLoc.trim()}`;
-      // benevolentný dátum: deň+mesiac+rok → YYYY-MM-DD; mesiac+rok → YYYY-MM; inak len rok.
-      const dateStr = addDay && addMonth && addYear ? `${addYear}-${addMonth}-${addDay}`
-        : addMonth && addYear ? `${addYear}-${addMonth}`
-        : addYear;
-      const tid = `plan-${nowMs}`;
-      const planTrail: HeroTrail = {
-        id: tid, name, region: '', diff: 'Moderate', km: '0', stars: 0, path: addPlanPoint ? [addPlanPoint] : [],
-        photos: [], seasons: [], desc: '', dogNote: addSocial,
-        acts: [ACT_DATA_ID[addPlanAct] ?? addPlanAct], surface: [], crowd: '', tags: [], author: firstName,
+  // AddTripDraft → zápis. `walked` drží PRESNE to isté poradie ako pôvodný submitAdd (#1: over
+  // zápis PRED pridaním do state, inak sa trip zobrazí a po reloade zmizne). `planned` nejde
+  // cez schvaľovaciu frontu (AddTripPlan draft.approval je vždy 'approved'), rovno do My trips
+  // + Events.
+  const submitAddTripDraft = (draft: AddTripDraft): boolean => {
+    if (draft.state === 'walked') {
+      // JOURNEY = výber existujúcej magistrály (AddTripLog.tsx `existingTripId`, lokálne
+      // rozšírenie AddTripDraft — addTripModel.ts sa needituje). Keď je nastavené, NEVZNIKÁ
+      // nový HeroTrail/localTrails záznam (inak by 20 prechodov SNP dalo 20× 770 km čiaru) —
+      // len sa označí ako prejdený a zapíše hlas na existujúce id.
+      const existingTripId = (draft as AddTripDraft & { existingTripId?: string }).existingTripId;
+      if (existingTripId) {
+        const tid = existingTripId;
+        setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+        if ((draft.paws ?? 0) > 0) {
+          setVotes((prev) => ({ ...prev, [tid]: {
+            tripId: tid, rating: draft.paws ?? 0,
+            difficulty: (draft.diff ?? 'Moderate') as TripVote['difficulty'],
+            crowd: seedCrowd({ crowd: draft.crowd } as HeroTrail) ?? 'Calm',
+            comment: '', when: draft.date?.slice(0, 7) ?? '',
+            hazards: (draft.hazards ?? []) as Hazard[], at: Date.now(),
+          } }));
+        }
+        closeAdd();
+        return true;
+      }
+      const line = draft.geometry.kind === 'route' ? (draft.geometry.snapPath ?? draft.geometry.path) : [];
+      const km = (totalDistanceM(line) / 1000).toFixed(1);
+      const tid = `local-${Date.now()}-${Math.round(totalDistanceM(line))}`;
+      const newTrail: HeroTrail = {
+        id: tid,
+        name: draft.name.trim(),
+        region: draft.region ?? '',
+        country: draft.country,
+        diff: draft.diff ?? 'Moderate',
+        km,
+        stars: draft.paws ?? 0,
+        path: line,
+        photos: draft.photos ?? [],
+        seasons: [],
+        desc: draft.note ?? '',
+        dogNote: '',
+        acts: [ACT_DATA_ID[draft.activity] ?? draft.activity],
+        surface: draft.surface ?? [],
+        crowd: draft.crowd ?? '',
+        tags: draft.tags ?? [],
+        author: firstName,
       };
-      setLocalTrails((prev) => [planTrail, ...prev]);
-      addPlan(tid, 'partner', dateStr);
-      const ev: PartnerEvent = {
-        id: `plan-event-${nowMs}`, tripId: tid,
-        dates: dateStr.length >= 7 ? [dateStr] : [],
-        month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
-        socialization: addSocial, host: `${firstName} & your dog`, hostIsMe: true,
-        at: nowMs, joinedByMe: true, seedGoing: 0,
-      };
-      setEvents((prev) => [ev, ...prev]);
+      const next = [newTrail, ...localTrails];
+      if (!writeLocalTrails(next)) {
+        setAddError(`Couldn't save — photos are too large for this device's storage. Remove a few and try again.`);
+        return false;
+      }
+      setAddError('');
+      setLocalTrails(next);
+      setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+      if ((draft.paws ?? 0) > 0) {
+        // seedCrowd() prekladá SK hodnotu z nahadzovača (newTrail.crowd) na EN Crowd.
+        setVotes((prev) => ({ ...prev, [tid]: {
+          tripId: tid, rating: draft.paws ?? 0,
+          difficulty: (draft.diff ?? 'Moderate') as TripVote['difficulty'],
+          crowd: seedCrowd(newTrail) ?? 'Calm',
+          comment: '', when: draft.date?.slice(0, 7) ?? '',
+          // vlastná hrozba (§7 zadania) je voľný text kým ju Matej neschváli — cast, nie nový typ.
+          hazards: (draft.hazards ?? []) as Hazard[], at: Date.now(),
+        } }));
+      }
       closeAdd();
-      return;
+      return true;
     }
 
-    // ── „PREŠIEL SOM" (done): názov + nakreslená trasa + rating/fotky. ──
-    const km = (totalDistanceM(drawPoints) / 1000).toFixed(1);
-    const tid = `local-${nowMs}-${Math.round(totalDistanceM(drawPoints))}`;
-    const newTrail: HeroTrail = {
-      id: tid,
-      name: addName.trim(),
-      region: addRegion,
-      country: addEffCountry,
-      diff: addDiff || 'Moderate',
-      km,
-      stars: addRating,
-      path: drawPoints,
-      photos: addPhotos,
-      seasons: [],
-      desc: '',
-      dogNote: '',
-      acts: Array.from(addActs).map((a) => ACT_DATA_ID[a] ?? a),
-      surface: Array.from(addSurface),
-      crowd: addCrowd,
-      tags: Array.from(addTags),
+    // ── PLÁNOVANIE ──
+    const now = Date.now();
+    const anchor: LatLngTuple[] = draft.geometry.kind === 'route'
+      ? (draft.geometry.snapPath ?? draft.geometry.path)
+      : (draft.geometry.center ? [draft.geometry.center] : []);
+    const tid = `plan-${now}`;
+    const planTrail: HeroTrail = {
+      id: tid, name: draft.name.trim(), region: draft.region ?? '', country: draft.country,
+      diff: 'Moderate', km: '0', stars: 0, path: anchor,
+      photos: [], seasons: [], desc: '', dogNote: '',
+      acts: [ACT_DATA_ID[draft.activity] ?? draft.activity], surface: [], crowd: '', tags: [],
       author: firstName,
     };
-    // #1: over zápis PRED pridaním do state — inak sa trip zobrazí, ale po reloade zmizne
-    // (writeLocalTrails vráti false pri plnom localStorage, napr. priveľa base64 fotiek).
-    const next = [newTrail, ...localTrails];
-    if (!writeLocalTrails(next)) {
-      setAddError(`Couldn't save — photos are too large for this device's storage. Remove a few and try again.`);
-      return;
-    }
-    setAddError('');
-    setLocalTrails(next);
-    setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
-    if (addRating > 0) {
-      // Crowd aj hazards berieme z formulára — predtým tu bolo natvrdo `crowd: 'Calm'` a
-      // `hazards: []`, takže autorov vlastný hlas protirečil tomu, čo práve vyplnil.
-      // seedCrowd() prekladá SK hodnotu z nahadzovača (addCrowd) na EN Crowd.
-      setVotes((prev) => ({ ...prev, [tid]: {
-        tripId: tid, rating: addRating,
-        difficulty: (addDiff || 'Moderate') as TripVote['difficulty'],
-        crowd: seedCrowd(newTrail) ?? 'Calm',
-        comment: '', when: addDate.slice(0, 7),
-        hazards: Array.from(addHazards), at: nowMs,
-      } }));
-    }
+    setLocalTrails((prev) => [planTrail, ...prev]);
+    const dateStr = draft.dateKind === 'flexible' ? '' : (draft.date ?? '');
+    addPlan(tid, 'partner', dateStr);
+    const ev: PartnerEvent = {
+      id: `plan-event-${now}`, tripId: tid,
+      dates: dateStr.length >= 7 ? [dateStr] : [],
+      month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
+      socialization: '', host: `${firstName} & your dog`, hostIsMe: true,
+      at: now, joinedByMe: true, seedGoing: 0,
+    };
+    setEvents((prev) => [ev, ...prev]);
     closeAdd();
+    return true;
   };
-
-  // ADD setup form — zdieľané medzi desktop .trp-sidebar (bod 4, iterácia 11) a mobile
-  // full-screen .trp-madd overlay (bod 4, iterácia 14, keďže .trp-sidebar je na mobile
-  // display:none). ".trp-madd-drawbtn" je viditeľné len vnútri .trp-madd na mobile (CSS
-  // scoped selector) — desktop má mapu vždy vedľa panela, netreba "choď na mapu" krok.
-  const renderAddSetup = () => (
-    <div className="trp-addsetup">
-      <div className="trp-addsetup-head">
-        <button type="button" className="trp-panelnav-btn" onClick={closeAdd} aria-label="Back to list">←</button>
-        <div className="trp-addsetup-title">{addMode === 'planning' ? 'Plan a trip' : 'Add a walked trip'}</div>
-      </div>
-      <div className="trp-addsetup-body">
-        {addMode === 'planning' ? (
-          /* ── PLÁNOVANIE (Matej 2026-07-23) — jednoduché: aktivita + lokalita = názov; dátum z 3
-             dropdownov (min rok); žiadny región/difficulty/tagy; správa o tripe + profil sa priloží.
-             Ide len do wishlistu/Events. ── */
-          <>
-            <div className="trp-planph" style={addPlanAct ? { backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${placeholderFor([ACT_DATA_ID[addPlanAct] ?? addPlanAct], addPlanLoc || addPlanAct)}')`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
-              <div className="trp-planph-badge">ADVENTURE · COMING SOON</div>
-            </div>
-            <div className="trp-addsetup-row2">
-              <div className="trp-addsetup-field">
-                <label>Activity</label>
-                <select className="trp-addsetup-input" value={addPlanAct} onChange={(e) => setAddPlanAct(e.target.value)}>
-                  <option value="">Select…</option>
-                  {TRIP_ACTIVITIES.map((a) => <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>)}
-                </select>
-              </div>
-              <div className="trp-addsetup-field">
-                <label>Where <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· click the map</span></label>
-                <div className={`trp-planpin${addPlanPoint ? ' set' : ''}`}>
-                  {addPlanPoint ? `📍 Pin set (${addPlanPoint[0].toFixed(4)}, ${addPlanPoint[1].toFixed(4)})` : '📍 Click on the map to drop a pin'}
-                </div>
-                <input className="trp-addsetup-input" style={{ marginTop: 6 }} value={addPlanLoc} onChange={(e) => setAddPlanLoc(e.target.value)} placeholder="Optional name — e.g. Vápeč" />
-              </div>
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Roughly when <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· year is enough</span></label>
-              <div className="trp-addsetup-daterow">
-                <select className="trp-addsetup-input" value={addDay} onChange={(e) => setAddDay(e.target.value)} aria-label="Day">
-                  <option value="">Day</option>
-                  {Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0')).map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <select className="trp-addsetup-input" value={addMonth} onChange={(e) => setAddMonth(e.target.value)} aria-label="Month">
-                  <option value="">Month</option>
-                  {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
-                    <option key={m} value={String(i + 1).padStart(2, '0')}>{m}</option>
-                  ))}
-                </select>
-                <select className="trp-addsetup-input" value={addYear} onChange={(e) => setAddYear(e.target.value)} aria-label="Year">
-                  <option value="">Year*</option>
-                  {Array.from({ length: 3 }, (_, i) => String(new Date(nowMs).getFullYear() + i)).map((y) => <option key={y} value={y}>{y}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Message about the trip</label>
-              <textarea className="trp-addsetup-input" style={{ minHeight: 66, resize: 'vertical' }} value={addSocial} onChange={(e) => setAddSocial(e.target.value)} placeholder="e.g. going by car, planning to stay the whole day, easy pace…" />
-            </div>
-            <div className="trp-addsetup-profilenote">
-              🐾 Your Dogyptian profile (you &amp; your dog) is attached automatically.
-            </div>
-          </>
-        ) : (
-          /* ── „PREŠIEL SOM" (done) — plný záznam: názov + trasa + región/difficulty + aktivity +
-             tagy + spoločníci + fotky + rating. ── */
-          <>
-            <div className="trp-addsetup-field">
-              <label>Trip name</label>
-              <input className="trp-addsetup-input" value={addName} onChange={(e) => setAddName(e.target.value)} placeholder="e.g. Sunset ridge walk" />
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Date</label>
-              <input type="date" className="trp-addsetup-input" value={addDate} onChange={(e) => setAddDate(e.target.value)} />
-              {!addMultiTrip ? (
-                <button type="button" className="trp-multitoggle" onClick={() => setAddMultiTrip(true)}>+ Multi-day trip</button>
-              ) : (
-                <div className="trp-addsetup-field" style={{ marginTop: 8 }}>
-                  <label>End date <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· multi-day · unlocks Journey</span></label>
-                  <input type="date" className="trp-addsetup-input" value={addDateEnd} min={addDate || undefined} onChange={(e) => setAddDateEnd(e.target.value)} />
-                  <button type="button" className="trp-multitoggle" onClick={() => { setAddMultiTrip(false); setAddDateEnd(''); }}>− Single day</button>
-                </div>
-              )}
-            </div>
-            {/* Country — auto z nakreslenej trasy, klikateľné (override). Skryté kým nič nenakreslené. */}
-            {addDetectedCountry && (
-              <div className="trp-addsetup-field">
-                <label>Country <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· auto from your route</span></label>
-                <select className="trp-addsetup-input" value={addEffCountry} onChange={(e) => setAddCountry(e.target.value)}>
-                  {addCountryOpts.map((c) => <option key={c} value={c}>{flagEmoji(c)} {ISO2_LABEL[c] ?? c.toUpperCase()}</option>)}
-                </select>
-              </div>
-            )}
-            {/* #3: región sa ukladá (predtým hardcode '') — select z existujúcich pohorí, nech
-                pridaná trasa sedí do filtra regiónu. Voliteľné; pri ne-SK krajine sú SK pohoria
-                irelevantné, tak sa skryje. */}
-            {addEffCountry === 'sk' && (
-              <div className="trp-addsetup-field">
-                <label>Region <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· optional</span></label>
-                <select className="trp-addsetup-input" value={addRegion} onChange={(e) => setAddRegion(e.target.value)}>
-                  <option value="">— none —</option>
-                  {ALL_REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                </select>
-              </div>
-            )}
-            <div className="trp-addsetup-row2">
-              <div className="trp-addsetup-field">
-                <label>Difficulty</label>
-                <select className="trp-addsetup-input" value={addDiff} onChange={(e) => setAddDiff(e.target.value as typeof addDiff)}>
-                  <option value="">Select…</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Moderate">Moderate</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              </div>
-              <div className="trp-addsetup-field">
-                {/* D2 (LOCKED 2026-07-24): „Popularity" → „Crowd" — jeden názov naprieč appkou. */}
-                <label>Crowd</label>
-                <select className="trp-addsetup-input" value={addCrowd} onChange={(e) => setAddCrowd(e.target.value as typeof addCrowd)}>
-                  <option value="">Select…</option>
-                  {Object.entries(CROWD_LABELS).map(([sk, en]) => <option key={sk} value={sk}>{en}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Surface</label>
-              <div className="trp-filters-row2">
-                {SURFACE_VOCAB.map((s) => (
-                  <button key={s.id} type="button" className={`trp-chip-sm${addSurface.has(s.id) ? ' on' : ''}`} onClick={() => toggleAddSurface(s.id)}>{s.e} {s.t}</button>
-                ))}
-              </div>
-            </div>
-            {/* F1 (Matej 2026-07-24): hrozby aj v add-trip, nielen vo walked popupe. Rovnaké
-                HAZARDS + HAZARD_EMOJI = jeden zdroj pravdy, žiadna lokálna kópia. */}
-            <div className="trp-addsetup-field">
-              <label>Any hazards? <span style={{ opacity: 0.55, textTransform: 'none', letterSpacing: 0 }}>(optional — helps the pack)</span></label>
-              <div className="trp-filters-row2">
-                {HAZARDS.map((h) => (
-                  <button key={h} type="button" className={`trp-chip-sm${addHazards.has(h) ? ' on' : ''}`} onClick={() => toggleAddHazard(h)}>{HAZARD_EMOJI[h]} {h}</button>
-                ))}
-              </div>
-            </div>
-            {/* Matej 2026-07-23: Aktivity PRED tagy — tagy sú len doplnky. */}
-            <div className="trp-addsetup-field">
-              <label>Activities</label>
-              <div className="trp-filters-row2">
-                {TRIP_ACTIVITIES.map((a) => {
-                  const locked = a.id === 'journey' && !journeyOk;
-                  return (
-                    <button key={a.id} type="button" disabled={locked}
-                      className={`trp-chip-sm${addActs.has(a.id) ? ' on' : ''}${locked ? ' locked' : ''}`}
-                      title={locked ? 'Journey needs a multi-day trip (Start + End) of at least 50 km' : undefined}
-                      onClick={() => toggleAddAct(a.id)}>{ACT_EMOJI[a.id]} {a.label}</button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Tags</label>
-              <div className="trp-filters-row2">
-                {TAG_VOCAB.map((tag) => (
-                  <button key={tag} type="button" className={`trp-chip-sm${addTags.has(tag) ? ' on' : ''}`} onClick={() => toggleAddTag(tag)}>{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{tag}</button>
-                ))}
-              </div>
-            </div>
-            <div className="trp-addsetup-field">
-              {/* Matej 2026-07-23: „kto bol so mnou" — jasný + a výber zo svorky + iní členovia. */}
-              <label>Who was with you</label>
-              <CompanionPicker
-                myDogs={id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? 'My dog', photo: d.cloudinary_main_url }))}
-                selected={addCrew}
-                onChange={setAddCrew}
-                onOpenProfile={(mid) => navigate('/pack/u/' + mid)}
-              />
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Trail photos <span style={{ opacity: 0.5, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· {addPhotos.length}/{MAX_PHOTOS} · auto-resized</span></label>
-              <input type="file" accept="image/*" multiple onChange={handleAddPhotos} className="trp-addsetup-file" disabled={addPhotos.length >= MAX_PHOTOS} />
-              {addPhotoNote && <div style={{ fontSize: 10.5, opacity: 0.72, marginTop: 4, lineHeight: 1.45 }}>{addPhotoNote}</div>}
-              {addPhotos.length > 0 && (
-                <div className="trp-addsetup-photos">
-                  {addPhotos.map((p, i) => (
-                    <div key={i} className="trp-addsetup-photo" style={{ backgroundImage: `url('${p}')` }}>
-                      <button type="button" onClick={() => removeAddPhoto(i)} aria-label="Remove photo">×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="trp-addsetup-field">
-              <label>Your rating</label>
-              <div className="trp-addsetup-stars">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button key={n} type="button" className={n <= addRating ? 'on' : ''} onClick={() => setAddRating(n)}>★</button>
-                ))}
-              </div>
-            </div>
-            <div className="trp-addsetup-livekm">
-              {drawPoints.length < 2
-                ? 'Draw a route on the map to set the distance'
-                : `${(totalDistanceM(drawPoints) / 1000).toFixed(1)} km · ${drawPoints.length} points`}
-            </div>
-            {/* mobile-only — .trp-madd prekrýva mapu, tlačidlo ju dočasne odkryje na kreslenie. */}
-            <button type="button" className="trp-madd-drawbtn" onClick={() => setMobileDrawing(true)}>
-              {drawPoints.length > 0 ? 'Edit route on map' : 'Draw route on map'}
-            </button>
-          </>
-        )}
-      </div>
-      {addMode === 'done' && addMissing.length > 0 && (
-        <div style={{ fontSize: 11, textAlign: 'center', opacity: 0.72, margin: '0 12px 8px', letterSpacing: '.02em', lineHeight: 1.5 }}>
-          Still needed: {addMissing.join(' · ')}
-        </div>
-      )}
-      {addError && (
-        <div style={{ fontSize: 11.5, textAlign: 'center', color: '#E8896B', margin: '0 12px 8px', lineHeight: 1.5 }}>{addError}</div>
-      )}
-      <button type="button" className="trp-addsetup-submit" disabled={!canSubmitAdd} onClick={submitAdd}>
-        {addMode === 'planning' ? 'Post plan → Events' : 'Add walked trip'}
-      </button>
-    </div>
-  );
 
   // bod 1 (iterácia 15): ľavá skupina status riadku — zdieľaná medzi desktop .trp-status-row
   // (v .trp-topbar) a mobile .trp-mheader-status (i13 bod 1), presne tá istá "ako desktop"
@@ -1576,15 +1718,18 @@ export default function PackPortal() {
         <img src={ICON('trophy')} alt="" />
         <b>{walkedIds.size} · {fmtKm(walkedKm)} km</b>
       </button>
-      <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist')} title="Open your triplist">
+      {/* Matej 2026-07-27: na mobile (a v kompaktnom desktope) je Triplist LEN ikonka — text
+          by rozbil jednoriadkový status. Klikacia plocha, route aj title/aria zostávajú. */}
+      <button type="button" className="trp-stat-pill trp-stat-pill--icon" onClick={() => navigate('/pack/map/triplist')} title="Open your triplist" aria-label="Open your triplist">
         <img src={ICON('clipboard')} alt="" />
-        <b>Triplist</b>
+        <b className="trp-triplist-label">Triplist</b>
       </button>
       {/* ADD TRIP patrí do stredného klastra (Matej 2026-07-26) — vedľa správ nemá čo robiť,
           a je to jediný vstup do ADD flow, takže sa nesmie stratiť. */}
-      <button type="button" className="trp-addtrip-btn" onClick={openAddChoice}>
+      <button type="button" className="trp-addtrip-btn" onClick={openAddEntry}>
         <img src={ICON('plus')} alt="" className="trp-addtrip-icon" />
-        Add trip
+        <span className="trp-addtrip-full">Add trip</span>
+        <span className="trp-addtrip-short" aria-hidden>Add</span>
       </button>
     </div>
   );
@@ -1635,16 +1780,54 @@ export default function PackPortal() {
     .reduce((sum, tr) => sum + (parseFloat(tr.km) || 0), 0);
   const fmtKm = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
-  // bod 5: FILTER (sort) popover na mobile — Top rated/Easiest/Hardest, aplikované na
-  // visibleHeroTrails. Desktop nemá UI pre tento sort (mobileSort ostáva ''), takže tam
-  // je toto no-op — zdieľané pole nech sa karta nerenderuje dvakrát rôzne (desktop vs mobile).
-  const sortedVisibleHeroTrails = mobileSort
-    ? [...visibleHeroTrails].sort((a, b) => {
-        if (mobileSort === 'top') return b.tr.stars - a.tr.stars;
-        if (mobileSort === 'easiest') return diffRank(a.tr.diff) - diffRank(b.tr.diff);
-        return diffRank(b.tr.diff) - diffRank(a.tr.diff); // 'hardest'
-      })
-    : visibleHeroTrails;
+  // FILTER (sort) — Top rated (default) / Easiest / Hardest, ovládané z desktop popoveru aj
+  // mobilného sheetu; zdieľané pole nech sa karta nerenderuje dvakrát rôzne (desktop vs mobile).
+  // Matej 2026-07-27: „journey posledné nie prve" → viacdňové cesty (Cesta hrdinov SNP a spol.)
+  // idú VŽDY naspodok svojej skupiny, bez ohľadu na hodnotenie. Predtým boli prvé len preto, že
+  // HERO_JOURNEYS stoja na začiatku allTrails — statické poradie dát, nie rozhodnutie.
+  const sortTrips = (arr: typeof visibleHeroTrails) => [...arr].sort((a, b) => {
+    const ja = a.tr.acts?.includes('journey') ? 1 : 0;
+    const jb = b.tr.acts?.includes('journey') ? 1 : 0;
+    if (ja !== jb) return ja - jb;
+    if (mobileSort === 'easiest') return diffRank(a.tr.diff) - diffRank(b.tr.diff);
+    if (mobileSort === 'hardest') return diffRank(b.tr.diff) - diffRank(a.tr.diff);
+    return b.tr.stars - a.tr.stars; // 'top'
+  });
+
+  // Viewport-driven zoznam (Matej 2026-07-27) — MÄKKO, nie orezanie ako Google Maps: čo je vo
+  // výreze ide hore, zvyšok ostáva pod oddeľovačom. Zoznam tak nikdy nezostane prázdny (výber
+  // trasy priblíži mapu na ňu → tvrdý filter by panel takmer vyprázdnil), ale poradie sa reálne
+  // premiešava podľa toho, kam sa člen na mape pozerá. Dropdown filtre (krajina/región/aktivita/
+  // tagy) bežia PRED tým, vo visibleHeroTrails — viewport ich nenahrádza, len dopĺňa.
+  const inViewTrails = viewBox
+    ? sortTrips(visibleHeroTrails.filter(({ tr }) => {
+        const box = trailBox.get(tr.id);
+        return !box || boxIntersects(box, viewBox);
+      }))
+    : sortTrips(visibleHeroTrails);
+  const elsewhereTrails = viewBox
+    ? sortTrips(visibleHeroTrails.filter(({ tr }) => {
+        const box = trailBox.get(tr.id);
+        return !!box && !boxIntersects(box, viewBox);
+      }))
+    : [];
+  // spoločné pole pre počty (mobilný sheet „Show N", prázdny stav) — poradie = ako sa renderuje.
+  const sortedVisibleHeroTrails = [...inViewTrails, ...elsewhereTrails];
+
+  // zoznam kariet vrátane oddeľovača — zdieľaný desktopom (.trp-cards-scroll, withRef kvôli
+  // hover→scrollIntoView) a mobilom (.trp-mlist, bez ref).
+  const renderTripList = (withRef: boolean) => (
+    <>
+      {inViewTrails.map(({ tr }) => renderTripCard(tr, withRef))}
+      {elsewhereTrails.length > 0 && (
+        <div className="trp-cards-sep">
+          <span>{inViewTrails.length === 0 ? 'Nothing in this view' : 'Elsewhere on the map'}</span>
+          <b>{elsewhereTrails.length}</b>
+        </div>
+      )}
+      {elsewhereTrails.map(({ tr }) => renderTripCard(tr, withRef))}
+    </>
+  );
 
   // karta zdieľaná medzi desktop .trp-cards-scroll a mobile .trp-mlist (bod 5) — withRef len
   // pre desktop (hover→scrollIntoView), mobile ju nepotrebuje (touch, žiadny hover-scroll).
@@ -1693,21 +1876,26 @@ export default function PackPortal() {
               ))}
             </div>
           )}
-          {/* bod 3 (Matej 2026-07-22): ✓/★ v HORNOM pravom rohu fotky (predtým dole). */}
+          {/* ✓/★ v HORNOM pravom rohu fotky (bod 3, Matej 2026-07-22).
+              Matej 2026-07-27: keď je trip PREJDENÝ, ostáva len zelený ✓ Walked — Triplist
+              zmizne (načo plánovať, čo už máš za sebou). Rovnaká logika ako detail výletu,
+              tam je navyše dropdown „Add to triplist" pre opakovanie. */}
           <div className="trp-bigcard-photoacts">
             {/* Walked: pri pláne LEN pre autora (ostatní ho nemôžu označiť ako prejdený — nebol) */}
             {(!isUnwalkedPlan || isMine) && (
               <button
                 type="button"
-                className={`trp-bigcard-photoactbtn${walkedIds.has(tr.id) ? ' on' : ''}`}
+                className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleWalked(tr.id); }}
               >✓ Walked</button>
             )}
-            <button
-              type="button"
-              className={`trp-bigcard-photoactbtn${favIds.has(tr.id) ? ' on' : ''}`}
-              onClick={(e) => { e.stopPropagation(); toggleFav(tr.id); }}
-            >★ Triplist</button>
+            {!walkedIds.has(tr.id) && (
+              <button
+                type="button"
+                className={`trp-bigcard-photoactbtn${favIds.has(tr.id) ? ' on' : ''}`}
+                onClick={(e) => { e.stopPropagation(); toggleFav(tr.id); }}
+              >★ Triplist</button>
+            )}
           </div>
           {/* bod 3: náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
               Plán = žiadne meta (výlet sa neodohral), len „Planned" pilulka. */}
@@ -1750,7 +1938,13 @@ export default function PackPortal() {
           3 mutually-exclusive stavy (LIST default / inline DETAIL / ADD setup), desktop-only
           (mobile ho celý skrýva — bod 5, viď .trp-sidebar{display:none} v mobile media query). */}
       <aside className="trp-sidebar">
-        {addOpen ? renderAddSetup() : inlineDetailId ? (() => {
+        {addFlow ? (
+          addFlow === 'planned' ? (
+            <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+          ) : (
+            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+          )
+        ) : inlineDetailId ? (() => {
           const dt = allTrails.find((x) => x.id === inlineDetailId);
           if (!dt) return null;
           const idx = photoIdx[dt.id] ?? 0;
@@ -1783,19 +1977,22 @@ export default function PackPortal() {
                   {/* Matej 2026-07-22: ✓ walked + ★ wishlist v hornom pravom rohu fotky (rovnaký
                       princíp ako karta; „mark as walked" zmizlo zo spodu detailu → je tu). */}
                   <div className="trp-bigcard-photoacts">
-                    {/* Walked: pri pláne LEN autor (ostatní nemôžu — výlet sa neodohral) */}
+                    {/* Walked: pri pláne LEN autor (ostatní nemôžu — výlet sa neodohral).
+                        Prejdený → Triplist zmizne (Matej 2026-07-27, ako karta aj detail). */}
                     {(!isUnwalkedPlan || isMine) && (
                       <button
                         type="button"
-                        className={`trp-bigcard-photoactbtn${walkedIds.has(dt.id) ? ' on' : ''}`}
+                        className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}`}
                         onClick={() => toggleWalked(dt.id)}
                       >✓ {walkedIds.has(dt.id) ? 'Walked' : 'Mark walked'}</button>
                     )}
-                    <button
-                      type="button"
-                      className={`trp-bigcard-photoactbtn${favIds.has(dt.id) ? ' on' : ''}`}
-                      onClick={() => toggleFav(dt.id)}
-                    >★ {favIds.has(dt.id) ? 'In triplist' : 'Triplist'}</button>
+                    {!walkedIds.has(dt.id) && (
+                      <button
+                        type="button"
+                        className={`trp-bigcard-photoactbtn${favIds.has(dt.id) ? ' on' : ''}`}
+                        onClick={() => toggleFav(dt.id)}
+                      >★ {favIds.has(dt.id) ? 'In triplist' : 'Triplist'}</button>
+                    )}
                   </div>
                   {/* náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
                       Plán = žiadne meta, len „Planned" pilulka. */}
@@ -1878,7 +2075,7 @@ export default function PackPortal() {
               <div className="trp-greet-sub">What are you exploring?</div>
             </div>
             <div className="trp-greet-filterwrap">
-              <button type="button" className={`trp-greet-filter${mobileSort ? ' on' : ''}`} onClick={() => setSortOpen((v) => !v)} aria-label="Sort & filter">
+              <button type="button" className={`trp-greet-filter${mobileSort !== 'top' ? ' on' : ''}`} onClick={() => setSortOpen((v) => !v)} aria-label="Sort & filter">
                 <img src={ICON('sliders')} alt="" />
               </button>
               {sortOpen && (
@@ -1888,7 +2085,7 @@ export default function PackPortal() {
                       key={v}
                       type="button"
                       className={mobileSort === v ? 'on' : ''}
-                      onClick={() => { setMobileSort((cur) => (cur === v ? '' : v)); setSortOpen(false); }}
+                      onClick={() => { setMobileSort((cur) => (cur === v ? 'top' : v)); setSortOpen(false); }}
                     >{l}</button>
                   ))}
                 </div>
@@ -1907,32 +2104,26 @@ export default function PackPortal() {
 
           {/* geo/tag filtre sú trip-specifické — pri Events kategórii sa skryjú. */}
           {activeCat === 'trips' && (<>
-          {/* geo kaskáda (Matejov feedback bod 4): country (malinký, flag+kód) → región
-              (West/Center/East) → pohorie (tr.region); výber regiónu filtruje ponuku pohorí. */}
+          {/* geo kaskáda (Matejov feedback bod 4; Tagy presunuté do top baru a Activity sem
+              2026-07-27, viď zadanie „kozmetická úprava filtrov"): country (malinký, flag+kód)
+              → región (West/Center/East) → activity. Activity je MIMO SK-podmienky nižšie —
+              musí byť v riadku vždy, aj keď je krajina iná ako SK a Region sa skryje. */}
           <div className="trp-georow">
             <select
               className="trp-country-select"
               value={selectedCountry}
               aria-label="Country"
-              onChange={(e) => {
-                const c = e.target.value;
-                setSelectedCountry(c);
-                // SK-špecifický región filter (West/Center/East) platí len pre SK
-                if (c !== '' && c !== 'sk') setHeroMacroRegion('');
-                // prefokus mapy na trasy vybranej krajiny (union ich path bodov); '' → celé SR
-                if (c === '') { setHeroBounds(SVK_BORDER); }
-                else {
-                  const pts = allTrails.filter((t) => trailCountry(t) === c).flatMap((t) => t.path);
-                  if (pts.length) setHeroBounds(pts as typeof heroBounds);
-                }
-              }}
+              onChange={(e) => applyCountry(e.target.value)}
             >
               {availableCountries.length > 1 && <option value="">🌍 All</option>}
               {availableCountries.map((c) => (
                 <option key={c} value={c}>{flagEmoji(c)} {c.toUpperCase()}</option>
               ))}
             </select>
-            {(selectedCountry === '' || selectedCountry === 'sk') && (<>
+            {/* F1 (Matej 2026-07-24): „Preč »all ranges« — zbytočne komplikované." → druhostupňový
+                dropdown POHORÍ zrušený, filtruje sa len makro-regiónom West/Center/East. Pohorie
+                ostáva viditeľné na karte tripu (trp-bigcard-loc), len sa podľa neho nefiltruje. */}
+            {(selectedCountry === '' || selectedCountry === 'sk') && (
             <select
               className="trp-filter-select"
               value={heroMacroRegion}
@@ -1944,25 +2135,18 @@ export default function PackPortal() {
                 <option key={r} value={r}>{r}</option>
               ))}
             </select>
-            {/* F1 (Matej 2026-07-24): „Preč »all ranges« — zbytočne komplikované." → druhostupňový
-                dropdown POHORÍ zrušený, filtruje sa len makro-regiónom West/Center/East. Pohorie
-                ostáva viditeľné na karte tripu (trp-bigcard-loc), len sa podľa neho nefiltruje. */}
-            </>)}
-          </div>
-
-          <div className="trp-filters-row2">
-            {/* univerzálny 8-tag vocabulary (Matejov feedback bod 2, iterácia 7) — vždy
-                celý, nezávisle od vybranej aktivity (per-activity scoping zrušený).
-                Activity/Difficulty/Popularity presunuté (iterácia 8) do top filter baru
-                nad mapou — panel nesie už len tagy. */}
-            {TAG_VOCAB.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className={`trp-chip-sm${heroTags.has(tag) ? ' on' : ''}`}
-                onClick={() => toggleTag(tag)}
-              >{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{tag}</button>
-            ))}
+            )}
+            <select
+              className="trp-filter-select"
+              value={heroAct}
+              onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}
+              aria-label="Activity"
+            >
+              <option value="">Activities</option>
+              {TRIP_ACTIVITIES.map((a) => (
+                <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>
+              ))}
+            </select>
           </div>
           </>)}
         </div>
@@ -1970,7 +2154,7 @@ export default function PackPortal() {
         <div className="trp-cards-scroll">
           <div className="trp-cards">
             {activeCat === 'trips'
-              ? sortedVisibleHeroTrails.map(({ tr }) => renderTripCard(tr, true))
+              ? renderTripList(true)
               : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} />}
           </div>
         </div>
@@ -1992,72 +2176,147 @@ export default function PackPortal() {
           {renderHeaderRight()}
         </div>
         <div className="trp-mheader-row2">
-          <div className="trp-mheader-scroll">
-            <div className="trp-mapsearch">
-              <img src={ICON('globe')} alt="" />
-              <input
-                value={placeQuery}
-                onChange={(e) => setPlaceQuery(e.target.value)}
-                placeholder="Search a place…"
-              />
-            </div>
-            <select
-              className="trp-mheader-select"
-              value={heroAct}
-              onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}
-              aria-label="Activity"
-            >
-              {/* bod 2 (iterácia 13): "All activities" → "Activities" — kratší default label */}
-              <option value="">Activities</option>
-              {TRIP_ACTIVITIES.map((a) => (
-                <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>
-              ))}
-            </select>
-            <select
-              className="trp-mheader-select"
-              value={heroDiff}
-              onChange={(e) => setHeroDiff(e.target.value as typeof heroDiff)}
-              aria-label="Difficulty"
-            >
-              <option value="">Difficulty</option>
-              <option value="Easy">Easy</option>
-              <option value="Moderate">Moderate</option>
-              <option value="Hard">Hard</option>
-              <option value="Odyssey">Odyssey</option>
-            </select>
-            {/* bod 2 (iterácia 15) → D2 2026-07-24: "Popularity" → "Vibe" → "Crowd" (Empty/Calm/Busy) */}
-            <select
-              className="trp-mheader-select"
-              value={heroCrowd}
-              onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}
-              aria-label="Crowd"
-            >
-              <option value="">Crowd</option>
-              {Object.entries(CROWD_LABELS).map(([sk, en]) => (
-                <option key={sk} value={sk}>{en}</option>
-              ))}
-            </select>
+          <div className="trp-mapsearch">
+            <img src={ICON('globe')} alt="" />
+            <input
+              value={placeQuery}
+              onChange={(e) => setPlaceQuery(e.target.value)}
+              placeholder="Search a place…"
+            />
           </div>
+          {/* Matej 2026-07-27: jedna „Filters · N" pilulka namiesto troch selectov — všetky
+              filtre (včetane country/region/tagov, ktoré na mobile chýbali ÚPLNE) žijú v sheete. */}
           <div className="trp-mfilterwrap">
-            {/* bod 7: sliders/tune ikonka (NIE graph/chart) — bez textového labelu "All" */}
-            <button type="button" className="trp-mfiltericon" onClick={() => setSortOpen((v) => !v)} aria-label="Sort">
+            <button
+              type="button"
+              className={`trp-mfilterbtn${activeFilterCount > 0 ? ' on' : ''}`}
+              onClick={() => setFilterSheetOpen(true)}
+              aria-label="Filters"
+              aria-expanded={filterSheetOpen}
+            >
               <img src={ICON('sliders')} alt="" />
+              <span>{activeFilterCount > 0 ? `Filters · ${activeFilterCount}` : 'Filters'}</span>
             </button>
-            {sortOpen && (
-              <div className="trp-sortpop">
-                {([['top', 'Top rated'], ['easiest', 'Easiest'], ['hardest', 'Hardest']] as const).map(([v, l]) => (
-                  <button
-                    key={v}
-                    type="button"
-                    className={mobileSort === v ? 'on' : ''}
-                    onClick={() => { setMobileSort((cur) => (cur === v ? '' : v)); setSortOpen(false); }}
-                  >{l}</button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       </div>
+
+      {/* ── MOBILNÝ FILTER SHEET (Matej 2026-07-27: „na mobile nevidím country, tagy, ani
+          region... kde to je?") — country/region/Activity žili len v .trp-sidebar a Tags len
+          v .trp-topbar, oboje display:none pod 1024px, takže na mobile neexistovali. Tu sú
+          všetky filtre pohromade + sort. Stav je zdieľaný s desktopom (rovnaké setre), takže
+          filter nastavený na mobile platí aj po rozšírení okna. ── */}
+      {filterSheetOpen && (
+        <>
+          <div className="trp-msheet-back" onClick={() => setFilterSheetOpen(false)} aria-hidden />
+          <div className="trp-msheet" role="dialog" aria-label="Filters">
+            <div className="trp-msheet-grab" aria-hidden />
+            <div className="trp-msheet-head">
+              <span className="trp-msheet-title">Filters</span>
+              <button type="button" className="trp-msheet-x" onClick={() => setFilterSheetOpen(false)} aria-label="Close filters">✕</button>
+            </div>
+
+            <div className="trp-msheet-body">
+              <div className="trp-msheet-pair">
+                <div className="trp-msheet-field">
+                  <span className="trp-msheet-label">Country</span>
+                  <select className="trp-msheet-select" value={selectedCountry} aria-label="Country" onChange={(e) => applyCountry(e.target.value)}>
+                    {availableCountries.length > 1 && <option value="">🌍 All</option>}
+                    {availableCountries.map((c) => (
+                      <option key={c} value={c}>{flagEmoji(c)} {c.toUpperCase()}</option>
+                    ))}
+                  </select>
+                </div>
+                {/* Región (West/Center/East) je SK-špecifický — rovnaká podmienka ako v paneli. */}
+                {(selectedCountry === '' || selectedCountry === 'sk') && (
+                  <div className="trp-msheet-field">
+                    <span className="trp-msheet-label">Region</span>
+                    <select
+                      className="trp-msheet-select"
+                      value={heroMacroRegion}
+                      aria-label="Region"
+                      onChange={(e) => setHeroMacroRegion(e.target.value as typeof heroMacroRegion)}
+                    >
+                      <option value="">All regions</option>
+                      {MACRO_REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div className="trp-msheet-field">
+                <span className="trp-msheet-label">Activity</span>
+                <select className="trp-msheet-select" value={heroAct} aria-label="Activity" onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}>
+                  <option value="">Activities</option>
+                  {TRIP_ACTIVITIES.map((a) => (
+                    <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="trp-msheet-pair">
+                <div className="trp-msheet-field">
+                  <span className="trp-msheet-label">Difficulty</span>
+                  <select className="trp-msheet-select" value={heroDiff} aria-label="Difficulty" onChange={(e) => setHeroDiff(e.target.value as typeof heroDiff)}>
+                    <option value="">Any</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Moderate">Moderate</option>
+                    <option value="Hard">Hard</option>
+                    <option value="Odyssey">Odyssey</option>
+                  </select>
+                </div>
+                <div className="trp-msheet-field">
+                  {/* D2 (LOCKED 2026-07-24): Crowd = Empty · Calm · Busy */}
+                  <span className="trp-msheet-label">Crowd</span>
+                  <select className="trp-msheet-select" value={heroCrowd} aria-label="Crowd" onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}>
+                    <option value="">Any</option>
+                    {Object.entries(CROWD_LABELS).map(([sk, en]) => (
+                      <option key={sk} value={sk}>{en}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="trp-msheet-field">
+                <span className="trp-msheet-label">Tags</span>
+                <div className="trp-msheet-chips">
+                  {TAG_VOCAB.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={`trp-msheet-chip${heroTags.has(tag) ? ' on' : ''}`}
+                      aria-pressed={heroTags.has(tag)}
+                      onClick={() => toggleTag(tag)}
+                    >{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{tag}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="trp-msheet-field">
+                <span className="trp-msheet-label">Sort</span>
+                <div className="trp-msheet-chips">
+                  {([['top', 'Top rated'], ['easiest', 'Easiest'], ['hardest', 'Hardest']] as const).map(([v, l]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`trp-msheet-chip${mobileSort === v ? ' on' : ''}`}
+                      aria-pressed={mobileSort === v}
+                      onClick={() => setMobileSort((cur) => (cur === v ? 'top' : v))}
+                    >{l}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="trp-msheet-foot">
+              <button type="button" className="trp-msheet-clear" disabled={activeFilterCount === 0} onClick={clearAllFilters}>Clear</button>
+              <button type="button" className="trp-msheet-show" onClick={() => setFilterSheetOpen(false)}>
+                Show {sortedVisibleHeroTrails.length}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* LIST/MAP toggle (mobile only) — default view = map, bod 5. */}
       <button
@@ -2072,19 +2331,26 @@ export default function PackPortal() {
       <div className="trp-mlist">
         <div className="trp-cards">
           {activeCat === 'trips'
-            ? sortedVisibleHeroTrails.map(({ tr }) => renderTripCard(tr, false))
+            ? renderTripList(false)
             : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)} />}
         </div>
       </div>
 
-      {/* bod 4 (iterácia 14): ADD TRIP na mobile — .trp-sidebar (kde žije desktop ADD setup)
-          je na mobile display:none, tak reused renderAddSetup() beží aj tu vo full-screen
-          overlayi. Keď mobileDrawing=true, overlay sa schová (nie unmountne — inputy si držia
-          hodnotu) nech je mapa pod ním klikateľná pre kreslenie trasy ("Draw route on map" v
-          renderAddSetup, "Done" v .trp-drawhint nižšie ho vráti). */}
-      {addOpen && !mobileDrawing && (
-        <div className="trp-madd">
-          {renderAddSetup()}
+      {/* bod 4 (iterácia 14, krok 9 zachované): ADD TRIP na mobile — .trp-sidebar (kde žije
+          desktop ADD setup) je na mobile display:none, tak formulár beží aj tu vo full-screen
+          overlayi. mobileDrawing=true CSS-schová overlay (display:none, NIE unmount — inak by
+          AddTripPlan/AddTripLog stratili svoj interný state) nech je mapa pod ním klikateľná pre
+          GeometryPicker; "View map" tlačidlo ju schová, "Done" v .trp-drawhint nižšie ju vráti. */}
+      {!!addFlow && (
+        <div className="trp-madd" style={mobileDrawing ? { display: 'none' } : undefined}>
+          <button type="button" className="trp-madd-drawbtn" onClick={() => setMobileDrawing(true)}>
+            View map to place your route / pin
+          </button>
+          {addFlow === 'planned' ? (
+            <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+          ) : (
+            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+          )}
         </div>
       )}
 
@@ -2101,27 +2367,24 @@ export default function PackPortal() {
                   Kreslí sa PRED trasami, takže červené journey línie po hranici ležia NAD ňou.
                   Dvojvrstvový casing (hrubý čierny podklad + tenká zlatá brand stopa) per prstenec
                   (kvôli enklávam/ostrovom). interactive=false — klik musí prejsť na trip pod ňou.
-                  Krajina s trasou ale bez polygónu tu → dogeneruj cez scripts/gen_borders.py. */}
-              {availableCountries.flatMap((iso) => {
-                const rings = COUNTRY_BORDERS[iso];
-                if (!rings) {
-                  if (import.meta.env.DEV) console.warn(`[territory] chýba hraničný polygón pre '${iso}' — dogeneruj cez scripts/gen_borders.py a doplň do countryBorders.ts`);
-                  return [];
-                }
-                return rings.flatMap((ring, i) => [
-                  <Polygon key={`border-${iso}-${i}-casing`} positions={ring} pathOptions={{ color: '#0A0A0A', weight: 11, opacity: 0.9, fill: false, interactive: false, lineJoin: 'round' }} />,
-                  <Polygon key={`border-${iso}-${i}-gold`} positions={ring} pathOptions={{ color: '#C99A3F', weight: 2.5, opacity: 0.9, fillColor: '#C99A3F', fillOpacity: 0.03, interactive: false, lineJoin: 'round' }} />,
-                ]);
-              })}
+                  Krajina s trasou ale bez polygónu tu → dogeneruj cez scripts/gen_borders.py.
+                  Cross-border legibility (Matej 2026-07-27, druhé kolo) → viď TerritoryBorders
+                  vyššie (real-metrová priehľadná zóna namiesto dashArray, ktorý „nesadol"). */}
+              <TerritoryBorders countries={availableCountries} />
               <ScaleControl position="bottomleft" imperial={false} />
               <FlyTo target={mapTarget} />
               <FitBounds path={heroBounds} offset={!!inlineDetailId} />
+              {/* ľavý zoznam podľa výrezu mapy (Matej 2026-07-27) — hlási bounds na moveend/zoomend */}
+              <ViewportWatcher onChange={handleViewport} />
               <MapRefBridge onReady={(map) => {
                 leafletMapRef.current = map;
                 if (pendingFlyRef.current) { map.flyTo(pendingFlyRef.current, 11, { duration: 1.2 }); pendingFlyRef.current = null; }
               }} />
-              <DrawClickCatcher active={addOpen && addMode === 'done'} onPoint={(lat, lng) => setDrawPoints((p) => [...p, [lat, lng]])} />
-              <DrawClickCatcher active={addOpen && addMode === 'planning'} onPoint={(lat, lng) => setAddPlanPoint([lat, lng])} />
+              {/* krok 9 (zadanie §2 kontraktu GeometryPicker): DrawClickCatcher tu už netreba pre
+                  ADD flow — GeometryPicker si berie map.on('click') sám cez mapRef a kreslí si
+                  vlastné vrstvy imperatívne (kotvy, snapnutá stopa, duchovia), nezávisle od tejto
+                  <MapContainer> React stromu. Komponent samotný ostáva (viď jeho definícia) —
+                  nepoužíva ho už nikto iný v tomto súbore. */}
               {/* guard: pár done tripov v nahadzovači ešte nemá nakreslenú trasu (path=[]) —
                   bez guardu Leaflet spadne na undefined position (Marker/Polyline). Bod 3 (iterácia
                   12): default trasa ČIERNA, weight 3. Bod 1 (iterácia 17): hover/inline-selected
@@ -2136,10 +2399,16 @@ export default function PackPortal() {
                   click: () => selectTrail(tr),
                 };
                 // journey (viacdňová, napr. Cesta hrdinov SNP) = plná červená čiara v bielom
-                // ráme: biely spojitý casing (pod) + červené spojité jadro (nad). Vždy
-                // zvýraznená (hero trasa), pri hoveri zhrubne.
+                // ráme: biely spojitý casing (pod) + červené spojité jadro (nad).
+                // Matej 2026-07-27: „pri diaľkových cestách sú vidno len piktogramy, po prejdení
+                // myšou sa zobrazí route a po kliku sa otvorí, ale inak nebude v základe vidno tie
+                // dlhé routes" — desať 100–770 km čiar cez pol Slovenska naraz robilo mapu surovou.
+                // V pokoji sa teda NEKRESLÍ nič, trasu drží len jej piktogram; hover naň (alebo
+                // výber) ju vykreslí. Handlery ostávajú aj na čiare, nech neblikne, keď z markera
+                // prejdeš myšou priamo na ňu.
                 if (tr.acts?.includes('journey')) {
-                  const w = hot ? 5 : 4;
+                  if (!hot) return null;
+                  const w = 5;
                   return (
                     <Fragment key={tr.id}>
                       <Polyline
@@ -2184,60 +2453,21 @@ export default function PackPortal() {
                   </Fragment>
                 );
               })}
-              {allTrails.map((tr) => tr.path.length > 0 && !isWaterTrail(tr) && !tr.id.startsWith('plan-') && (
-                <Marker
-                  key={tr.id + ':m'}
-                  /* bežný trip = pill na začiatku trasy; journey (diaľková) = v STREDE trasy,
-                     nech červená bublinka sadne doprostred dlhej červenej čiary (Matej). */
-                  position={tr.acts?.includes('journey') ? tr.path[Math.floor(tr.path.length / 2)] : tr.path[0]}
-                  icon={pillIcon(tr, hoverId === tr.id || inlineDetailId === tr.id)}
-                  eventHandlers={{
-                    mouseover: () => setHoverId(tr.id),
-                    mouseout: () => setHoverId(null),
-                    click: () => selectTrail(tr),
-                  }}
-                />
-              ))}
-              {/* vodné plochy = SUP tripy (paddleboard) = MODRÝ kruh + vlnovky + názov priehrady
-                  (Matej 2026-07-24). NIE čierny hike pill / trasa — na mape 1 bod (ťažisko stopy).
-                  Klik = detail tripu (má fotky/reviews). Bez súradnice (0 bodov, napr. Buková
-                  priehrada) sa nezobrazí — čaká na nahadzovač 📍 bod-miesto. */}
-              {allTrails.filter((tr) => isWaterTrail(tr) && tr.path.length > 0).map((tr) => (
-                <Marker
-                  key={'w:' + tr.id}
-                  position={waterPoint(tr.path)}
-                  icon={waterIcon((tr as { waves?: number }).waves)}
-                  eventHandlers={{
-                    mouseover: () => setHoverId(tr.id),
-                    mouseout: () => setHoverId(null),
-                    click: () => selectTrail(tr),
-                  }}
-                />
-              ))}
-              {/* bod 6 (i11) + bod 2 (i17): draft polyline kým sa kreslí nová trasa v ADD flow —
-                  rovnaký čierno-zlatý casing ako zvýraznená trasa (bod 1), jadro ostáva
-                  prerušované (dashArray), nech je vidno že ešte nie je finálna. */}
-              {addOpen && drawPoints.length > 1 && (
-                <>
-                  <Polyline positions={drawPoints} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: 1, lineCap: 'round', lineJoin: 'round' }} />
-                  <Polyline positions={drawPoints} pathOptions={{ color: '#F5C73D', weight: 4, dashArray: '6 8', opacity: 0.95, lineCap: 'round', lineJoin: 'round' }} />
-                </>
-              )}
-              {/* bod 2 (iterácia 17): malý live "{km} km" label pri konci kreslenej trasy
-                  (mimo .trp-drawhint bubliny nižšie — priamo na mape, pri poslednom bode). */}
-              {addOpen && drawPoints.length > 1 && (
-                <Marker
-                  position={drawPoints[drawPoints.length - 1]}
-                  interactive={false}
-                  icon={L.divIcon({
-                    className: 'trp-pinwrap',
-                    html: `<div class="trp-drawlabel">${(totalDistanceM(drawPoints) / 1000).toFixed(1)} km</div>`,
-                  })}
-                />
-              )}
-              {addOpen && addMode === 'planning' && addPlanPoint && (
-                <Marker position={addPlanPoint} icon={PLAN_PIN} />
-              )}
+              {/* trip pily (start/stred trasy) + vodné plochy (ťažisko) — jedna vrstva, zoomovo
+                  vrstvená + pixelovo zhlukovaná (zadanie 2.3/2.4, <TripMarkers> vyššie pri mape).
+                  Bez súradnice (0 bodov, napr. Buková priehrada) sa vodná plocha nezobrazí — čaká
+                  na nahadzovač 📍 bod-miesto (mapPoints guard, viď komentár pri jeho definícii). */}
+              <TripMarkers
+                points={mapPoints}
+                hoverId={hoverId}
+                inlineDetailId={inlineDetailId}
+                onHover={setHoverId}
+                onSelect={selectTrail}
+              />
+              {/* krok 9: draft polyline/km-label/pin, ktoré tu predtým kreslil starý drawPoints
+                  ADD flow, sú preč — GeometryPicker (vnútri AddTripPlan/AddTripLog) kreslí kotvy,
+                  snapnutú stopu aj bod/územie imperatívne priamo na túto mapu cez mapRef, takže
+                  duplicitné React vrstvy tu už nie sú potrebné (viď kontrakt §2.1 „vrstvy na mape"). */}
               {/* uložené PLÁNY (nie vodné plochy!) = jeden RUŽOVÝ bod na mape → Marker, klik vyberie
                   trip. Gate na id 'plan-' — vodné plochy s 1 bodom nesmú dostať pin. */}
               {allTrails.filter((tr) => tr.id.startsWith('plan-') && tr.path.length === 1).map((tr) => (
@@ -2272,7 +2502,7 @@ export default function PackPortal() {
                 {renderHeaderRight()}
               </div>
               <div className="trp-topsearchrow">
-                <div className="trp-floatsearch">
+                <div className="trp-floatsearch" ref={placeBoxRef}>
                   <div className="trp-mapsearch">
                     <img src={ICON('globe')} alt="" />
                     <input
@@ -2287,7 +2517,12 @@ export default function PackPortal() {
                         <div
                           key={i}
                           className="trp-mapsug-item"
-                          onClick={() => { setMapTarget([s.lat, s.lon]); setPlaceQuery(s.name); setPlaceSug([]); }}
+                          onClick={() => {
+                            pickedPlaceRef.current = s.name.trim();
+                            setMapTarget([s.lat, s.lon]);
+                            setPlaceQuery(s.name);
+                            setPlaceSug([]);
+                          }}
                         >
                           <div className="trp-mapsug-name">{s.name}</div>
                           {s.sub && <div className="trp-mapsug-sub">{s.sub}</div>}
@@ -2297,20 +2532,9 @@ export default function PackPortal() {
                   )}
                 </div>
 
-                {/* bod 3 (iterácia 11): Activity/Difficulty/Popularity — samostatné, totožné
-                    borderless polia priamo v riadku (.trp-topfilters wrapper box zrušený). */}
-                <select
-                  className="trp-toprow-select"
-                  value={heroAct}
-                  onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}
-                  aria-label="Activity"
-                >
-                  {/* bod 2 (iterácia 13): "All activities" → "Activities" — kratší default label */}
-                  <option value="">Activities</option>
-                  {TRIP_ACTIVITIES.map((a) => (
-                    <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>
-                  ))}
-                </select>
+                {/* bod 3 (iterácia 11): Difficulty/Popularity — samostatné, totožné borderless
+                    polia priamo v riadku (.trp-topfilters wrapper box zrušený). Activity
+                    presunutá 2026-07-27 do .trp-georow (ľavý panel, vedľa "All regions"). */}
                 <select
                   className="trp-toprow-select"
                   value={heroDiff}
@@ -2335,6 +2559,12 @@ export default function PackPortal() {
                     <option key={sk} value={sk}>{en}</option>
                   ))}
                 </select>
+                {/* Tags presunuté z ľavého panelu sem ako multi-select dropdown (Matej 2026-07-27),
+                    vzor IdentityVisibilityEye v PackProfile.tsx. Len pri Trips (rovnaká logika
+                    ako mala pôvodná chip sekcia — pri Events sa geo/tag filtre skrývajú). */}
+                {activeCat === 'trips' && (
+                  <TripTagsDropdown tags={heroTags} onToggle={toggleTag} onClear={() => setHeroTags(new Set())} />
+                )}
               </div>
             </div>
 
@@ -2371,23 +2601,15 @@ export default function PackPortal() {
               <span>© Seznam.cz a.s.</span>
             </div>
 
-            {/* bod 6 (i11): draw hint bubble — "Click on the map to draw your route" + live
-                km/undo/clear. Bod 4 (i14): "Done" (mobile draw toggle, viď mobileDrawing) —
-                zobrazí sa aj pri 0 bodoch, nech sa dá vrátiť na formulár bez nakreslenia. */}
-            {addOpen && addMode === 'done' && (
+            {/* bod 4 (i14, krok 9 zjednodušené): kým je formulár na mobile schovaný
+                (mobileDrawing), GeometryPicker vlastný readout/Undo/Clear panel je schovaný
+                s ním (je jeho súčasťou) — táto bublina len drží "Done" návrat k formuláru. */}
+            {mobileDrawing && (
               <div className="trp-drawhint">
-                <div className="trp-drawhint-txt">
-                  {drawPoints.length > 0
-                    ? `${drawPoints.length} points · ${(totalDistanceM(drawPoints) / 1000).toFixed(1)} km`
-                    : 'Click on the map to draw your route'}
+                <div className="trp-drawhint-txt">Tap the map to place your route or pin</div>
+                <div className="trp-drawhint-actions">
+                  <button type="button" onClick={() => setMobileDrawing(false)}>Done</button>
                 </div>
-                {(drawPoints.length > 0 || mobileDrawing) && (
-                  <div className="trp-drawhint-actions">
-                    {drawPoints.length > 0 && <button type="button" onClick={() => setDrawPoints((p) => p.slice(0, -1))}>Undo</button>}
-                    {drawPoints.length > 0 && <button type="button" onClick={() => setDrawPoints([])}>Clear</button>}
-                    {mobileDrawing && <button type="button" onClick={() => setMobileDrawing(false)}>Done</button>}
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -2398,8 +2620,8 @@ export default function PackPortal() {
           (PackTripArticle.tsx cez App.tsx), tak tento súbor už nikdy nemountuje so slugom. */}
 
       {/* ── KOMUNITNÉ modaly / dashboard (design plany/pack-community-features-design.md) ── */}
-      {addModeChoiceOpen && (
-        <AddModeChoice onPick={pickAddMode} onClose={() => setAddModeChoiceOpen(false)} />
+      {addEntryOpen && (
+        <AddTripEntry onPick={pickAddFlow} onClose={() => setAddEntryOpen(false)} />
       )}
       {walkedPopupId && (
         <WalkedPopup
