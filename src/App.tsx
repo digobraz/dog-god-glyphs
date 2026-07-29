@@ -92,8 +92,6 @@ const PackPortal = lazy(() => import("./pages/PackPortal.tsx"));
 const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
 const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
-const PackTrails = lazy(() => import("./pages/PackTrails.tsx"));
-const TrailsModerate = lazy(() => import("./pages/TrailsModerate.tsx"));
 const TrailsPreview = lazy(() => import("./pages/__TrailsPreview.tsx")); // DEV TEMP — zmazať pred commitom
 const TrailsDrawTest = lazy(() => import("./pages/__TrailsDrawTest.tsx")); // DEV TEMP
 const Login = lazy(() => import("./pages/Login.tsx"));
@@ -229,8 +227,11 @@ const App = () => (
               <Route path="/pack/dogs" element={DEV_FULL ? <PackDogs /> : <Navigate to="/pack" replace />} />
               <Route path="/trails-preview" element={<TrailsPreview />} /> {/* DEV TEMP — zmazať pred commitom */}
               <Route path="/trails-draw-test" element={<TrailsDrawTest />} /> {/* DEV TEMP */}
-              <Route path="/pack/trails" element={<PackTrails />} />
-              <Route path="/pack/trails/moderate" element={<TrailsModerate />} />
+              {/* Legacy DOGYPT Trails (DB tabuľky trails/trail_places/trail_ratings, vlastná mapa + add-flow
+                  + moderácia) ZRUŠENÉ 2026-07-29 — nahradené /pack/map (výlety v heroTrails.generated.ts).
+                  Tabuľky v DB ostávajú prázdne a nepoužívané. Viď plany/zadanie-db-migracia-2026-07-29.md. */}
+              <Route path="/pack/trails" element={<Navigate to="/pack/map" replace />} />
+              <Route path="/pack/trails/moderate" element={<Navigate to="/pack/map" replace />} />
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />
