@@ -219,9 +219,13 @@ export interface GeoCategoryDef { key: GeoCategory; label: string; icon: string;
 // Všetko z existujúcej brand sady, žiadny nový asset.
 export const SK_GEO: GeoCategoryDef[] = [
   { key: 'journeys', label: 'Long-distance trails', icon: 'walk', units: [
-    'Cesta hrdinov SNP', 'Rudná magistrála', 'Východokarpatská magistrála', 'Tatranská magistrála',
+    // POZOR: názvy sa párujú 1:1 s `name` v heroJourneys.ts (unitsForTrail). Čo tu nie je, sa nedá
+    // odškrtnúť; čo tu je navyše, robí menovateľ nedosiahnuteľným. Audit 2026-07-29: vyhodená
+    // 'Tatranská magistrála' (v datasete NIE JE — vyradená, psy zakázané v TANAPe), doplnený
+    // 'Malofatranský okruh' (v datasete JE, ale nedal sa odškrtnúť).
+    'Cesta hrdinov SNP', 'Rudná magistrála', 'Východokarpatská magistrála', 'Nízkotatranská hrebeňovka',
     'Veľkofatranská magistrála', 'Ponitrianska magistrála', 'Kysucká magistrála', 'Záhorácka magistrála',
-    'Štefánikova magistrála', 'Poloniny',
+    'Štefánikova magistrála', 'Poloniny', 'Malofatranský okruh',
   ] },
   { key: 'ranges', label: 'Mountain ranges', icon: 'layers', units: [
     // 26 kurátorovaných pohorí = zhodné s POHORIA v regions.ts (chrbtica filtra), zoradené podľa výšky dominanty.
