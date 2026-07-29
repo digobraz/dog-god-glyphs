@@ -61,7 +61,7 @@ export const MOCK_PROFILE: TouristProfile = {
 export const VOLUME_THRESHOLD = 3;
 
 // Crowd (EN labely v UI) ← `trail.crowd` (SK, dáta z nahadzovača). Rovnaké mapovanie ako
-// CROWD_LABELS v PackPortal, len bez emoji prefixu (ten pridáva UI).
+// CROWD_LABELS v PackMap, len bez emoji prefixu (ten pridáva UI).
 const SEED_CROWD: Record<string, Crowd> = { 'Ľudoprázdne': 'Empty', 'Pokojné': 'Calm', 'Rušné': 'Busy' };
 export const CROWD_EMOJI: Record<Crowd, string> = { Empty: '🏔️', Calm: '🌿', Busy: '👣' };
 export function seedCrowd(trail: HeroTrail): Crowd | null {
@@ -250,7 +250,7 @@ export const SK_GEO: GeoCategoryDef[] = [
     'Vápeč', 'Inovec', 'Poľana (vrchol)', 'Kľak',
   ] },
   // F2 (Matej 2026-07-24): ikonka `water` vykresľovala DŽBÁN → `water-waves` = tri vlnky,
-  // rovnaká geometria ako modrý vodný pin na mape (waterIcon() v PackPortal).
+  // rovnaká geometria ako modrý vodný pin na mape (waterIcon() v PackMap).
   { key: 'waters', label: 'Top waters', icon: 'water-waves', units: [
     'Liptovská Mara', 'Oravská priehrada', 'Zemplínska šírava', 'Sĺňava', 'Domaša',
     'Ružín', 'Štrbské pleso', 'Zelené pleso',

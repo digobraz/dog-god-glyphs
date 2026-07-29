@@ -1,4 +1,4 @@
-// Presná hranica Slovenska pre /pack/portal/trips mapu (Matej 2026-07-22 — chcel presné,
+// Presná hranica Slovenska pre /pack/map mapu (Matej 2026-07-22 — chcel presné,
 // nie nakreslené). Zdroj: geoBoundaries gbOpen SVK ADM0 (41k bodov) → Douglas-Peucker
 // simplify tol 0.002° (~200 m) = 1290 bodov, prevedené [lng,lat]→[lat,lng]. Vykreslené
 // ako čierno-zlatý Polygon (SK = vybraná krajina). Regenerácia: viď scratchpad skript.

@@ -1,10 +1,10 @@
 // /pack/map/:slug — full-page trip article (iterácia 12 bod 5). Route model
-// (LOCKED): klik na kartu v PackPortal.tsx → inline detail v paneli, BEZ navigácie (zostáva
+// (LOCKED): klik na kartu v PackMap.tsx → inline detail v paneli, BEZ navigácie (zostáva
 // na /pack/map). ⤢ expand → navigate() SEM, na SAMOSTATNÚ route — toto NAHRÁDZA
-// starý `.trp-detoverlay` popup modal (zrušený z PackPortal.tsx). Deep-link na :slug ide
+// starý `.trp-detoverlay` popup modal (zrušený z PackMap.tsx). Deep-link na :slug ide
 // rovno sem (žiadna mapa/panel, shareable článok — AllTrails trail-page vzor).
 //
-// ADD-flow tripy (PackPortal bod 6, iterácia 11) aj wishlist/walked toggle žijú v PackPortal
+// ADD-flow tripy (PackMap bod 6, iterácia 11) aj wishlist/walked toggle žijú v PackMap
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
@@ -13,10 +13,10 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí position:absolute a
-// dlaždice kaskádujú dole ako bloky (Matej 2026-07-22 „mapa sa vykresľuje zle"). PackPortal ho
-// importuje, ale pri PRIAMOM otvorení článku (deep-link / ⤢ expand) PackPortal nie je mountnutý.
+// dlaždice kaskádujú dole ako bloky (Matej 2026-07-22 „mapa sa vykresľuje zle"). PackMap ho
+// importuje, ale pri PRIAMOM otvorení článku (deep-link / ⤢ expand) PackMap nie je mountnutý.
 import { mapyTiles } from '@/lib/env';
-import { placeIcon } from '@/components/trails/trailIcons';
+import { placeIcon } from '@/components/geo/trailIcons';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
@@ -44,10 +44,10 @@ const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const T = PACK_THEME;
 
-// bod 2 (iterácia 14): rovnaké emoji mapovanie ako inline detail v PackPortal.tsx (Aktivita/
+// bod 2 (iterácia 14): rovnaké emoji mapovanie ako inline detail v PackMap.tsx (Aktivita/
 // Tag vocabulary) — LOKÁLNA kópia, lebo zadanie scopuje bod 2 výhradne na tento súbor
-// (PackPortal.tsx sa v tejto iterácii nemení). Ak sa emoji sada niekedy zmení, treba upraviť
-// na oboch miestach. Rovnaká poznámka ako PackPortal: tr.acts[] nesie dátové id 'hike' (nie
+// (PackMap.tsx sa v tejto iterácii nemení). Ak sa emoji sada niekedy zmení, treba upraviť
+// na oboch miestach. Rovnaká poznámka ako PackMap: tr.acts[] nesie dátové id 'hike' (nie
 // 'hiking'), takže ACT_EMOJI['hike'] je undefined — zdedený stav z inline detailu, flag v reporte.
 const ACT_EMOJI: Record<string, string> = { hiking: '🥾', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄' };
 const TAG_EMOJI: Record<string, string> = {
@@ -56,7 +56,7 @@ const TAG_EMOJI: Record<string, string> = {
 
 // bod 6 (iterácia 13): mobile route mapa sa renderovala sčasti čierna — Leaflet meria
 // veľkosť pri mounte, kedy layout (hero/statrow nad ňou) ešte nemusí byť dokončený. Rovnaký
-// vzor ako MapRefBridge v PackPortal.tsx, len tu priamo volá invalidateSize namiesto expose.
+// vzor ako MapRefBridge v PackMap.tsx, len tu priamo volá invalidateSize namiesto expose.
 // Leaflet si meria veľkosť kontajnera pri mounte — lenže nad mapou sú fotky galérie, ktoré sa
 // ešte doťahujú a posúvajú layout, takže dlaždice sa napozicujú podľa zastaralej/nulovej veľkosti
 // (Matej 2026-07-22: „mapa sa vykresľuje zle" — dva odsadené útržky). Fix = invalidateSize až keď
@@ -211,7 +211,7 @@ export default function PackTripArticle() {
   const { toast } = useToast();
 
   // bod 5 side-effect (viď súborový komentár hore): allTrails = statické HERO_TRAILS +
-  // sessionStorage mirror ADD-flow tripov z PackPortal (jeden-krát na mount stačí — táto
+  // sessionStorage mirror ADD-flow tripov z PackMap (jeden-krát na mount stačí — táto
   // stránka je detail jedného tripu, nepotrebuje živú reaktivitu na iný tab/mount).
   const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   const trail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
@@ -226,7 +226,7 @@ export default function PackTripArticle() {
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
   useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
 
-  // ── KOMUNITNÁ vrstva (rovnaké flowy ako PackPortal — walked popup / wishlist zámer /
+  // ── KOMUNITNÁ vrstva (rovnaké flowy ako PackMap — walked popup / wishlist zámer /
   // partner ad); sessionStorage mirror (packCommunity), žiadna Supabase. ──
   const nowMs = useMemo(() => Date.now(), []);
   const [votes, setVotes] = useState<Record<string, TripVote>>(() => readVotes());
@@ -243,7 +243,7 @@ export default function PackTripArticle() {
   const [wishlistPopupOpen, setWishlistPopupOpen] = useState(false);
   const [partnerAdOpen, setPartnerAdOpen] = useState(false);
 
-  // greeting meno pre partner-ad host (rovnaký vzor ako PackPortal firstNameFrom)
+  // greeting meno pre partner-ad host (rovnaký vzor ako PackMap firstNameFrom)
   const firstName = useMemo(() => {
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
     const full = (meta.full_name || meta.name) as string | undefined;
@@ -308,7 +308,7 @@ export default function PackTripArticle() {
   const [routeDimmed, setRouteDimmed] = useState(false);
 
   // ★ wishlist → zámer popup (ak nie je uložený); walked → povinný walked popup. Odznačenie
-  // = priame odobratie (aj hlas/plán). Rovnaká logika ako PackPortal.
+  // = priame odobratie (aj hlas/plán). Rovnaká logika ako PackMap.
   const toggleFav = (tid: string) => {
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
@@ -408,9 +408,9 @@ export default function PackTripArticle() {
   }
 
   const cover = trail.photos[0];
-  // crowd agregát (design §A) — konzistentné s kartami v PackPortal
+  // crowd agregát (design §A) — konzistentné s kartami v PackMap
   const agg = crowdAggregate(trail, votes[trail.id]);
-  // bod 2 (iterácia 14): rovnaká chip-skladačka ako inline detail v PackPortal.tsx (acts + tags,
+  // bod 2 (iterácia 14): rovnaká chip-skladačka ako inline detail v PackMap.tsx (acts + tags,
   // emoji prefix keď existuje mapovanie).
   const tripChips = [
     ...(trail.acts ?? []).map((a) => ({ key: `a:${a}`, label: a, emoji: ACT_EMOJI[a] ?? '' })),
@@ -578,7 +578,7 @@ export default function PackTripArticle() {
         {trail.desc && <p className="pta-desc">{trail.desc}</p>}
         {trail.dogNote && <p className="pta-dognote">🐾 {trail.dogNote}</p>}
 
-        {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackPortal)
+        {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackMap)
             NAD mapou — nahrádza starú spodnú „Comments" sekciu (zmazaná). walked/onRequestWalk
             napojené na tunajší walked-popup: keď trip nie je walked, CTA otvorí „you did it" popup. */}
         <TripComments
@@ -604,7 +604,7 @@ export default function PackTripArticle() {
               <TileLayer url={mapyTiles('outdoor')} />
               <InvalidateSizeOnMount />
               {/* bod 1 (iterácia 17): article route mapa = trasa je vždy "tá" → plný AllTrails-
-                  style čierno-zlatý casing (rovnaké dve vrstvy ako zvýraznená trasa v PackPortal).
+                  style čierno-zlatý casing (rovnaké dve vrstvy ako zvýraznená trasa v PackMap).
                   Hover/dotyk (routeDimmed) stiahne opacity oboch vrstiev na 50%, nech je vidno
                   podklad — obe vrstvy naraz, inak by čierny casing ostal nepriehľadný sám. */}
               <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
@@ -657,7 +657,7 @@ export default function PackTripArticle() {
       {/* Mobilný rail — ten istý actsRow, len portálom mimo .pk-glass (viď komentár pri actsRow). */}
       {railed && createPortal(actsRow, document.body)}
 
-      {/* ── KOMUNITNÉ modaly (rovnaké ako PackPortal) ── */}
+      {/* ── KOMUNITNÉ modaly (rovnaké ako PackMap) ── */}
       {walkedPopupOpen && (
         <WalkedPopup
           trailName={trail.name}

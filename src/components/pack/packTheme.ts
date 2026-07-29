@@ -6,7 +6,7 @@
 // POZN: bgTop/bg/bgBottom = svetlé VÝPLNE VNÚTRI kariet (HeroCard/PackTree/skeletony), NIE page bg.
 
 // ── TYPOGRAFICKÝ PORIADOK (Matej 2026-07-26: „prečo sa mi zdá že všetko je cinzelom") ──
-// Trips klaster (PackPortal 33× / PackTriplist 17× / PackTripArticle 9×) bol jednofontový —
+// Trips klaster (PackMap 33× / PackTriplist 17× / PackTripArticle 9×) bol jednofontový —
 // všetko Cinzel, nula Space Grotesku. To je proti nášmu vlastnému systému:
 //   `index.css`  → `body { Space Grotesk }`, `h1–h6 { Cinzel }`
 //   `Entry.tsx`  → eyebrow = Space Grotesk 500 / .26em / uppercase, sub = Space Grotesk

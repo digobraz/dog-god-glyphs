@@ -7,10 +7,10 @@ import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
 import { snapSegment, buildLine } from '@/lib/snapToTrail';
-import { placeIcon } from '@/components/trails/trailIcons';
+import { placeIcon } from '@/components/geo/trailIcons';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated'; // ⚙️ done tripy z nahadzovača (gen-hero-trails.mjs)
-import { REGION_MAPS } from '@/components/trails/regionMaps';
-import { findPohorie, type Zone } from '@/components/trails/regions';
+import { REGION_MAPS } from '@/components/geo/regionMaps';
+import { findPohorie, type Zone } from '@/components/geo/regions';
 import { DevotionHeader } from '@/components/pack/PackLayout';
 import navHome from '@/assets/icons/nav-home.svg';
 import navHike from '@/assets/icons/portal-hike.svg';

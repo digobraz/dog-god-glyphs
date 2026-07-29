@@ -1,6 +1,6 @@
 // Trip detail comment section — Reviews (paw rating + optional text) + Advice (Q&A). Replaces the
 // old "Message owner" / "Open trip group" placeholder buttons (§14 zadanie 2026-07-23 — "komentová
-// sekcia namiesto trip-group chatu"). Isolated component, mounted in PackPortal trip detail panel.
+// sekcia namiesto trip-group chatu"). Isolated component, mounted in PackMap trip detail panel.
 // Same visual language as messaging (Inbox.tsx/Thread.tsx) — gold accents,
 // papyrus-on-dark. Mock data = deterministic per tripId (mulberry32 + FNV-1a hash, same pattern as
 // packCommunity.ts) — no Math.random, so counts/content stay stable across renders.
@@ -8,7 +8,7 @@
 // §15 zadanie 2026-07-23: pagination (5/page, "‹ 1/N ›") + "my review"/"my question" write flow.
 // Both persist to localStorage (dogypt.tripReviews.v1 / dogypt.tripQuestions.v1) — no Supabase yet,
 // same pattern as packCommunity.ts sessionStorage mirrors. Reviewing is gated on `walked` (passed
-// down from PackPortal's existing walkedIds state) — see PawReviewPopup below.
+// down from PackMap's existing walkedIds state) — see PawReviewPopup below.
 import { useEffect, useMemo, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
@@ -102,7 +102,7 @@ export const TRIP_COMMENTS_CSS = `
 `;
 
 // ── deterministický PRNG z tripId (mulberry32 + FNV-1a hash) — rovnaký vzor ako
-// packCommunity.ts/PackPortal.tsx tripOwnerMember(). Mock reviews/advice musia byť stabilné
+// packCommunity.ts/PackMap.tsx tripOwnerMember(). Mock reviews/advice musia byť stabilné
 // medzi rendermi, žiadny Math.random. ──
 function hashStr(s: string): number {
   let h = 2166136261;

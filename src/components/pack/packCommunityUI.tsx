@@ -1,7 +1,7 @@
 // /pack komunitné UI komponenty (design: plany/pack-community-features-design.md) — všetky
-// popupy/dashboard/events na jednom mieste, aby PackPortal.tsx nerástol o ďalších 800 riadkov.
+// popupy/dashboard/events na jednom mieste, aby PackMap.tsx nerástol o ďalších 800 riadkov.
 // Brand: tmavé glass pozadie + papyrusové karty + zlaté CTA (Cinzel), rovnaké tokeny ako Portal.
-// Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackPortal.
+// Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
 import { useState } from 'react';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
@@ -38,7 +38,7 @@ function mockMemberIdByName(name: string): string | undefined {
 }
 
 // prvé meno z user_metadata (full_name/name), fallback e-mail local-part — rovnaký vzor ako
-// firstNameFrom() v Pack.tsx / PackPortal.tsx, len lokálna kópia (usePackIdentity meno
+// firstNameFrom() v Pack.tsx / PackMap.tsx, len lokálna kópia (usePackIdentity meno
 // neexponuje). Použité v TRIPSTATS identity header (Slice B) pre „meno svorky".
 function firstNameFrom(email: string, fullName?: string): string {
   if (fullName && fullName.trim()) return fullName.trim().split(' ')[0];
@@ -95,7 +95,7 @@ const CHKO_LOGO: Record<string, string> = {
   'Záhorie': '/icons/chko/zahorie.png',
 };
 
-// ── zdieľané CSS — PackPortal ho injektne raz vedľa svojho vlastného <style> ──────────────────
+// ── zdieľané CSS — PackMap ho injektne raz vedľa svojho vlastného <style> ──────────────────
 export const COMMUNITY_CSS = `
 /* ── modal shell (walked / wishlist / partner ad / DM) ── */
 .comm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
@@ -1005,7 +1005,7 @@ export function MySlovakiaDashboard({ initialTab, completion, walkedTrails, walk
 }
 
 // ── C2 · TRIPSTATS panel (Matej 2026-07-23) — obsahové telo bývalého „Walked" tabu, vytiahnuté
-// z MySlovakiaDashboard nech ho vie rendrovať aj /pack/portal/triplist ako druhá karta. Žiadny
+// z MySlovakiaDashboard nech ho vie rendrovať aj /pack/map/triplist ako druhá karta. Žiadny
 // modal chrome (fixed overlay, close, tabs) ani wishlist — ten splynul do TRIPLISTU. Konzument
 // dodá <style>{COMMUNITY_CSS}</style>. completion sa počíta interne z walkedTrails. ──
 export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }: {

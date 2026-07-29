@@ -1,7 +1,7 @@
 // ADD TRIP — plán ("WE'RE HEADING OUT"), vlna 1, plany/zadanie-addtrip-flow-2026-07-27.md §4.2.
 // Renderuje sa ako panel content (sidebar na desktope / fullscreen overlay na mobile — kontajner
 // a jeho pozíciu rieši volajúci v kroku 9, tento súbor len vypĺňa vnútro, rovnaký vzor ako pôvodné
-// `renderAddSetup()` v PackPortal.tsx zdieľané medzi `.trp-sidebar` a `.trp-madd`).
+// `renderAddSetup()` v PackMap.tsx zdieľané medzi `.trp-sidebar` a `.trp-madd`).
 // Mapa žije v Portale — `GeometryPicker` (kontrakt: plany/kontrakt-geometrypicker-2026-07-29.md)
 // dostane `mapRef` a kreslí do nej, tento formulár len drží riadený `TripGeometry` state.
 import { useEffect, useMemo, useState } from 'react';
@@ -28,15 +28,15 @@ export type AddTripPlanProps = {
   /** false = zlyhal zápis (napr. plná kvóta) — formulár zostane otvorený, ukáže chybu. */
   onSubmit: (draft: AddTripDraft) => boolean;
   onClose: () => void;
-  /** PackPortal.tsx:246 `placeholderFor()` — lokálna funkcia tam, dostávame ju ako prop
+  /** PackMap.tsx:246 `placeholderFor()` — lokálna funkcia tam, dostávame ju ako prop
    *  (presun do zdieľaného modulu je krok 9, nie tento). */
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
-  /** Mapa žije v PackPortal.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
+  /** Mapa žije v PackMap.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
   mapRef: MutableRefObject<LeafletMap | null>;
 };
 
 // Aktivita taxonómia — lokálna kópia (id/label/emoji + dátové ACT_DATA_ID mapovanie pre
-// placeholderFor). PackPortal.tsx má rovnaký zoznam (TRIP_ACTIVITIES/ACT_EMOJI/ACT_DATA_ID,
+// placeholderFor). PackMap.tsx má rovnaký zoznam (TRIP_ACTIVITIES/ACT_EMOJI/ACT_DATA_ID,
 // ~riadky 190-201), ale needituje sa a nič z neho nie je exportované — Portal sám o sebe je
 // už lokálna kópia z __TrailsPreview.tsx (viď komentár tam), takže toto je tá istá, už zavedená
 // duplicačná konvencia, nie nový vzor.

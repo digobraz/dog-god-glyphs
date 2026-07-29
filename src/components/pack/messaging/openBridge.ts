@@ -1,6 +1,6 @@
 // Tenká event vrstva pre otváranie messaging overlayu (Inbox/Thread) odkiaľkoľvek v appke
-// (PackNotifications dropdown, trip detail panel v PackPortal.tsx, …) bez prop-drillingu cez
-// PackPortal (1900+ riadkov) alebo PackLayout. Design: plany/zadanie-profil-messaging-2026-07-23.md
+// (PackNotifications dropdown, trip detail panel v PackMap.tsx, …) bez prop-drillingu cez
+// PackMap (1900+ riadkov) alebo PackLayout. Design: plany/zadanie-profil-messaging-2026-07-23.md
 // §10 Fable amendment — "openThread(convId) sa volá cez TEN ISTÝ event emitter z packMessaging.ts".
 //
 // packMessaging.ts.subscribe() je ale "dátový" emitter — no-arg callback pre zmenu dát (nová

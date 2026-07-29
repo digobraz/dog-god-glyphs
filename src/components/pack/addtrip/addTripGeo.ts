@@ -86,7 +86,7 @@ export function calibratedAscent(path: LatLngTuple[], elevAt: (p: LatLngTuple) =
   return Math.round(rawAscent(elevations) * CALIB_FACTOR);
 }
 
-// ── totalDistanceM — 1:1 kópia z PackPortal.tsx:167 (ten súbor needitovať, len prevzaté) ──
+// ── totalDistanceM — 1:1 kópia z PackMap.tsx:167 (ten súbor needitovať, len prevzaté) ──
 export function totalDistanceM(points: LatLngTuple[]): number {
   let sum = 0;
   for (let i = 1; i < points.length; i++) sum += hav(points[i - 1], points[i]);

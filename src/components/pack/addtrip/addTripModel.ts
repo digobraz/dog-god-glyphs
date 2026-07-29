@@ -1,6 +1,6 @@
 // ADD TRIP — dátový model (vlna 1, plany/zadanie-addtrip-flow-2026-07-27.md §3).
 // Jedna entita, dva stavy (planned/walked) namiesto dvoch nezávislých foriem ako dnes v
-// PackPortal.tsx. `approval` je napísaný v cieľovom tvare pre vlnu 2 (Supabase schvaľovacia
+// PackMap.tsx. `approval` je napísaný v cieľovom tvare pre vlnu 2 (Supabase schvaľovacia
 // fronta), ale vo vlne 1 sa nič neschvaľuje na serveri — len sa model SPRÁVA správne
 // (draft/pending badge), perzistencia ostáva localStorage (`trp-local-trails`, tripShared.tsx).
 import type { LatLngTuple } from 'leaflet';
@@ -73,7 +73,7 @@ export type AddTripDraft = {
   approval: ApprovalStatus;
   // spoločné
   name: string;
-  activity: string;              // TRIP_ACTIVITIES id (PackPortal.tsx ~190)
+  activity: string;              // TRIP_ACTIVITIES id (PackMap.tsx ~190)
   geometry: TripGeometry;
   country: string;                // ISO2 — auto z geometrie, manuálny override možný
   region?: 'W' | 'C' | 'E';      // LEN pre SK; inak undefined
@@ -83,7 +83,7 @@ export type AddTripDraft = {
   date?: string;                  // 'YYYY-MM-DD' | 'YYYY-MM' | undefined pri flexible
   // MULTIDAY (Matej 2026-07-29: „date zmizol multiday!") — regresia z prestavby: starý flow mal
   // toggle „+ multi-day" + End date a práve tá dvojica odomykala aktivitu `journey`
-  // (PackPortal pred prestavbou: `isMultiDay = addMultiTrip && addDateEnd > addDate`,
+  // (PackMap pred prestavbou: `isMultiDay = addMultiTrip && addDateEnd > addDate`,
   // `journeyOk = isMultiDay && drawKm >= 50`). Bez toho sa viacdňový výlet nedá zadať vôbec.
   dateEnd?: string;               // 'YYYY-MM-DD' — koniec viacdňového tripu
   // pack
@@ -110,7 +110,7 @@ export type AddTripDraft = {
 };
 
 // ── Geometria podľa aktivity (§5 tabuľka) ───────────────────────────────────────────────
-// Kľúče = id z TRIP_ACTIVITIES (PackPortal.tsx ~190): hiking/journey/picnic/overnight/
+// Kľúče = id z TRIP_ACTIVITIES (PackMap.tsx ~190): hiking/journey/picnic/overnight/
 // skating/paddleboard. 'skating' a 'paddleboard' sú UI-id aktivít (nezamieňať s dátovým
 // tr.acts poľom, kde je 'hike'/'skating'/'paddleboard' — mapovanie je ACT_DATA_ID v Portale).
 // Pri PLÁNE je default vždy najvoľnejšia povolená geometria (§5: „nikto nekreslí presnú
@@ -152,7 +152,7 @@ export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 
 
 const HIKE_LIKE = new Set(['hiking', 'journey']);
 
-// Ľudské EN labely chýbajúcich polí — vzor `addMissing` v PackPortal.tsx ~1707 (nápoveda pri
+// Ľudské EN labely chýbajúcich polí — vzor `addMissing` v PackMap.tsx ~1707 (nápoveda pri
 // disabled submite, nie mŕtve tlačidlo).
 const FIELD_LABEL: Partial<Record<keyof AddTripDraft, string>> = {
   name: 'name',

@@ -12,7 +12,7 @@ export type HeroTrail = {
   elev?: number[];    // výškový profil (m), downsamplovaný na ~50 bodov rovnomerne po km trasy
   waves?: number;     // vodná plocha: počet vlniek 1|2|3 podľa OSM plochy (100/1000 ha prahy)
   marks?: ('red'|'blue'|'green'|'yellow')[][];  // turistické značky (KČT) — rad ÚSEKOV štart→cieľ, každý = množina súbežných farieb (auto z OSM)
-  // iterácia 11 (Portal /pack/portal/trips bod 1) — generovaný dataset nemá per-trip author,
+  // iterácia 11 (Map /pack/map bod 1) — generovaný dataset nemá per-trip author,
   // UI fallbackuje na 'Hekthor & Matej' (viď tripShared.tsx authorOf). Nové ADD-flow tripy
   // (lokálny session state, nie tento generátor) nesú meno prihláseného člena.
   author?: string;

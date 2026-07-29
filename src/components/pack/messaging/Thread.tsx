@@ -97,7 +97,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const handleTagClick = () => {
     if (conv.tag?.kind === 'trip' && conv.tag.id) {
       if (onOpenTrip) onOpenTrip(conv.tag.id);
-      // TODO: bez onOpenTrip (napr. keď je Thread otvorený mimo /pack/portal/trips) zatiaľ len
+      // TODO: bez onOpenTrip (napr. keď je Thread otvorený mimo /pack/map) zatiaľ len
       // logujeme — skok na trip cez route/overlay príde s ďalším kolom (§4.3 zadania).
       else console.log('[Thread] TODO: jump to trip', conv.tag.id);
     }

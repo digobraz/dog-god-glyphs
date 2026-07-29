@@ -406,7 +406,7 @@ function MapRefBridge({ onReady }: { onReady: (map: L.Map) => void }) {
 
 // ── ľavý zoznam sa riadi VÝREZOM mapy (Matej 2026-07-27: „potrebujem aby sa trasy zobrazovali
 // na základe viewportu a nastavaní filtra") ─────────────────────────────────────────────────
-// Mostík hlási aktuálny výrez hore do PackPortal (useMap* smie žiť len vnútri <MapContainer>,
+// Mostík hlási aktuálny výrez hore do PackMap (useMap* smie žiť len vnútri <MapContainer>,
 // rovnaký vzor ako MapRefBridge/FitBounds). Hlási sa LEN na moveend/zoomend (nie počas ťahania)
 // + raz po mounte; handler musí mať stabilnú referenciu (useCallback), inak sa listener pri
 // každom renderi odhlasuje/prihlasuje a vie prepásť udalosť z FitBounds — presne tá pasca, čo
@@ -434,7 +434,7 @@ const boxIntersects = (a: ViewBox, b: ViewBox) => a.s <= b.n && a.n >= b.s && a.
 // Real-world šírka prirodzene škáluje s metersPerPixel(zoom): pri bežnom prezeraní (z9-11) je
 // sub-pixel tenká → neviditeľná, súčasný bold vzhľad nezmenený. Pri priblížení na hraničný
 // úsek narastie na desiatky px → mäkký priehľadný pás, cez ktorý presvitá trasa. Vlastný
-// zoom-state žije TU (rovnaký vzor ako TripMarkers vyššie), nie zdvíhaný do PackPortal.
+// zoom-state žije TU (rovnaký vzor ako TripMarkers vyššie), nie zdvíhaný do PackMap.
 const TERRITORY_ZONE_WIDTH_M = 350;
 const TERRITORY_ZONE_MIN_PX = 3;
 const TERRITORY_ZONE_MAX_PX = 160;
@@ -479,7 +479,7 @@ type MapMarkerItem =
 
 // vykresľuje VŠETKY body (trip pily + vodné plochy) v jednej vrstve podľa aktuálneho zoomu
 // (zadanie 2.3) a pri z<12 ich pixelovo zhlukuje (zadanie 2.4, port z pins-proto.html render()).
-// Vlastný stav zoomu/prepočtu žije TU (nie v PackPortal), rovnaký vzor ako FitBounds/MapRefBridge
+// Vlastný stav zoomu/prepočtu žije TU (nie v PackMap), rovnaký vzor ako FitBounds/MapRefBridge
 // vyššie — mapa naň reaguje cez zoomend/moveend, prepočet len pre body vo viditeľných bounds.
 function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
   points: MapPoint[]; hoverId: string | null; inlineDetailId: string | null;
@@ -1126,7 +1126,7 @@ ${DIFF_MARK_CSS}
 // Tags multi-select dropdown pre top filter bar — presunuté z chip-riadku v ľavom paneli
 // (Matej 2026-07-27). Vzor = IdentityVisibilityEye (PackProfile.tsx): trigger → backdrop →
 // absolútne pozicovaný panel, klik na položku IBA toggle-ne (multi-select, panel sa
-// nezatvára). Stav (heroTags/toggleTag) ostáva v PackPortal, komponent je bezstavový wrapper.
+// nezatvára). Stav (heroTags/toggleTag) ostáva v PackMap, komponent je bezstavový wrapper.
 function TripTagsDropdown({
   tags,
   onToggle,
@@ -1182,7 +1182,7 @@ function TripTagsDropdown({
   );
 }
 
-export default function PackPortal() {
+export default function PackMap() {
   const t = useT();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -2649,7 +2649,7 @@ export default function PackPortal() {
       {dmName && <DMStub toName={dmName} onClose={() => setDmName(null)} />}
 
       <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
-      {/* PackPortal je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže
+      {/* PackMap je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže
           overlay host (Inbox/Thread) sa mountuje aj tu priamo — inak by „Message owner"/„Open
           trip group" vyššie a Messages v zdieľanom PackBottomNav nemali kam otvoriť (viď
           komentár pri MessagingOverlayHost v PackLayout.tsx). */}

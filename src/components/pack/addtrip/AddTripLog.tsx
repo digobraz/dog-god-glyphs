@@ -28,7 +28,7 @@ const GOLD = '#C99A3F';
 
 // JOURNEY = VÝBER, NIE KRESLENIE (Matej 2026-07-29, plany/zadanie-journey-pick-2026-07-29.md).
 // `existingTripId` je lokálne rozšírenie AddTripDraft (addTripModel.ts sa needituje) — nesie
-// odkaz na magistrálu z HERO_JOURNEYS, aby konvertor v PackPortal.tsx vedel, že nemá vytvárať
+// odkaz na magistrálu z HERO_JOURNEYS, aby konvertor v PackMap.tsx vedel, že nemá vytvárať
 // nový HeroTrail (viď submitAddTripDraft tam), len označiť existujúci trip ako prejdený.
 type LogDraft = AddTripDraft & { existingTripId?: string };
 
@@ -42,15 +42,15 @@ export type AddTripLogProps = {
   /** false = zlyhal zápis (napr. plná kvóta) — formulár zostane otvorený, ukáže chybu. */
   onSubmit: (draft: AddTripDraft) => boolean;
   onClose: () => void;
-  /** PackPortal.tsx:246 `placeholderFor()` — rovnaký prop ako AddTripPlan, len tu slúži ako
+  /** PackMap.tsx:246 `placeholderFor()` — rovnaký prop ako AddTripPlan, len tu slúži ako
    *  fallback pokým autor nenahrá vlastnú fotku (row 10) — akonáhle je aspoň jedna, nahrádza ju. */
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
-  /** Mapa žije v PackPortal.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
+  /** Mapa žije v PackMap.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
   mapRef: MutableRefObject<LeafletMap | null>;
 };
 
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
-// (komentár tam vysvetľuje prečo: PackPortal.tsx má rovnaký zoznam, needituje sa, nič z neho nie
+// (komentár tam vysvetľuje prečo: PackMap.tsx má rovnaký zoznam, needituje sa, nič z neho nie
 // je exportované).
 const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string }> = [
   { id: 'hiking', label: 'Hiking', emoji: '🥾', dataId: 'hike' },
@@ -67,14 +67,14 @@ const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntrie
 // v addTripModel.ts (needituje sa, nie je exportovaná — lokálna kópia tej istej myšlienky).
 const HIKE_LIKE = new Set(['hiking', 'journey']);
 const DIFF_OPTIONS = ['Easy', 'Moderate', 'Hard', 'Odyssey'] as const;
-// terrain — lokálna kópia SURFACE_VOCAB (PackPortal.tsx, needituje sa/needituje sa exportovať).
+// terrain — lokálna kópia SURFACE_VOCAB (PackMap.tsx, needituje sa/needituje sa exportovať).
 const TERRAIN_OPTIONS = [
   { id: 'forest', emoji: '🌲', label: 'Forest path' },
   { id: 'asphalt', emoji: '🛣️', label: 'Asphalt' },
   { id: 'rocky', emoji: '🪨', label: 'Rocky' },
 ] as const;
 // tags — scenéria, ODDELENÁ od terrain (surface má vlastné pole `surface`, viď addTripModel.ts
-// komentár „PRAVIDLO PRE VŠETKY VRSTVY"). PackPortal.tsx TAG_VOCAB miešal scenériu + surface do
+// komentár „PRAVIDLO PRE VŠETKY VRSTVY"). PackMap.tsx TAG_VOCAB miešal scenériu + surface do
 // jedného radu (bolo to pre FILTER chipy, kde to malo zmysel); tu majú tags a terrain oddelené
 // polia, tak dávame do tag-chipov len scenériu, nie duplicitu terrain dropdownu.
 const TAG_OPTIONS: Array<{ label: string; emoji: string }> = [
@@ -82,7 +82,7 @@ const TAG_OPTIONS: Array<{ label: string; emoji: string }> = [
   { label: 'River', emoji: '💧' }, { label: 'View', emoji: '🌄' }, { label: 'Meadow', emoji: '🌼' }, { label: 'Sunset', emoji: '🌅' },
 ];
 
-// State (krajina) — lokálna kópia ADD_COUNTRY_OPTIONS/ISO2_LABEL (PackPortal.tsx:117-121),
+// State (krajina) — lokálna kópia ADD_COUNTRY_OPTIONS/ISO2_LABEL (PackMap.tsx:117-121),
 // needituje sa a nič z neho nie je exportované, rovnaká duplikačná konvencia ako vyššie.
 const COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', 'fr'] as const;
 const COUNTRY_LABEL: Record<string, string> = {
@@ -99,7 +99,7 @@ function emptyGeometryFor(activity: string): TripGeometry {
   return { kind: 'route', path: [], snapped: false };
 }
 
-// Fotky — base64, lokálna kópia optimizePhoto/handleAddPhotos (PackPortal.tsx ~1621-1663).
+// Fotky — base64, lokálna kópia optimizePhoto/handleAddPhotos (PackMap.tsx ~1621-1663).
 // Vlna 2 preklopí na Cloudinary upload (§9 zadania „Fotky ... ako dnes, base64").
 const MAX_PHOTOS = 10;
 function optimizePhoto(file: File, maxDim = 1280, quality = 0.72): Promise<string | null> {

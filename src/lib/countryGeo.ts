@@ -237,7 +237,7 @@ export function countryOfPoint(pt?: [number, number] | null): string | null {
  * je to SK trasa. Cudzia trasa (napr. CH) nemá v SK ani jeden bod → padne na bbox. */
 // `path` je zámerne `readonly number[][]`, nie `[number, number][]`: HeroTrail ho má ako
 // leafletový `LatLngTuple[]`, čo je `[number, number] | [number, number, number]` (voliteľná
-// výška) → striktný dvojprvkový tuple sa naň nedal priradiť a 4 volania v PackPortal hlásili
+// výška) → striktný dvojprvkový tuple sa naň nedal priradiť a 4 volania v PackMap hlásili
 // TS2345. Funkcia aj tak čerpá len p[0]/p[1], takže širší vstup nič nezhoršuje.
 export function trailCountry(t: { country?: string | null; path?: readonly (readonly number[])[] }): string {
   if (t.country) return countryISO2(t.country) ?? 'sk';

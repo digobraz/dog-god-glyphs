@@ -76,7 +76,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         {/* Global top-right hub — notif + messages, on EVERY narrow-column pack page
             (D4 nav rework, DEV_FULL-only). Matej amendment 2026-07-24: lives IN the content
             flow now (right-aligned to this same max-w column), not floating past the screen
-            edge — that's PackPortal's full-bleed map only (no content column there). LIVE
+            edge — that's PackMap's full-bleed map only (no content column there). LIVE
             keeps it exactly where it was (inside HeroCard), untouched.
             Matej amendment 2026-07-24 (round 2): sticky, not static — otherwise it scrolls
             away with the rest of the column. Pinned just under the safe-area, above content
@@ -121,7 +121,7 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
 }
 
 // ── Global top-right chrome — notif + messages hub, mounted on EVERY pack page
-// (PackLayout column pages + the full-bleed PackPortal map). DEV_FULL-only; LIVE
+// (PackLayout column pages + the full-bleed PackMap map). DEV_FULL-only; LIVE
 // build renders nothing here (PackNotifications stays inside HeroCard, unchanged).
 export function PackTopRight({ last24h, total, className, layout }: { last24h: number | null; total: number | null; className?: string; layout?: 'overlay' | 'inline' }) {
   if (!DEV_FULL) return null;
@@ -130,10 +130,10 @@ export function PackTopRight({ last24h, total, className, layout }: { last24h: n
 
 // ── Messaging overlay host (Inbox/Thread) — design:
 // plany/zadanie-profil-messaging-2026-07-23.md §10 Fable amendment: "stav inbox/thread overlayu
-// žije v PackLayout ... žiadny prop-drilling cez 1944-riadkový PackPortal". PackPortal.tsx je ale
+// žije v PackLayout ... žiadny prop-drilling cez 1944-riadkový PackMap". PackMap.tsx je ale
 // full-bleed a NEmountuje <PackLayout> (vlastný <DevotionHeader>/<PackBottomNav>, viď komentár pri
 // PackBottomNav nižšie) — preto je hosting vytiahnutý ako samostatný exportovaný komponent (žije
-// TU, v PackLayout.tsx, presne podľa zadania), mountnutý raz tu a raz priamo v PackPortal.tsx
+// TU, v PackLayout.tsx, presne podľa zadania), mountnutý raz tu a raz priamo v PackMap.tsx
 // (surgical 1-riadkový prídavok), nech "Message owner"/"Open trip group" na tripe aj Messages tab
 // v zdieľanom bottom nave majú vždy kam otvoriť overlay. Gated DEV_FULL — spúšťacie miesta
 // (PackNotifications live stav, bottom nav Messages, trip panel tlačidlá) sú tiež všetky

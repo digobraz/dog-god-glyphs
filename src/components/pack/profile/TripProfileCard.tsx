@@ -2,7 +2,7 @@
 // zadanie-profil-full-2026-07-24 ČASŤ C). Renderuje LEN polia kde
 // getTier(profile,key)==='trip' + fixný základ (avatar/meno/psy).
 // Reusable — v tomto kole len ako živý PREVIEW na spodku PackProfile.tsx;
-// wiring do reálneho buddy-listu (PackPortal.tsx) je samostatný krok.
+// wiring do reálneho buddy-listu (PackMap.tsx) je samostatný krok.
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';

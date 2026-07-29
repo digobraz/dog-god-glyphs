@@ -30,8 +30,8 @@ interface PackNotificationsProps {
   dark?: boolean;
   /** Extra className on the wrapper — lets a specific page override the top:16/right:16
    * position via its own scoped CSS, or (D4 nav rework, round 2) cancel the 'inline' width:100%
-   * when the hub is appended into an existing row instead of getting its own (e.g. PackPortal's
-   * map header status row — `.trp-status-notif` in PackPortal.tsx). */
+   * when the hub is appended into an existing row instead of getting its own (e.g. PackMap's
+   * map header status row — `.trp-status-notif` in PackMap.tsx). */
   className?: string;
   /** 'overlay' (default) = original top:16/right:16 corner float (fixed when `dark`, absolute
    * inside the HeroCard otherwise) — UNCHANGED behaviour.
@@ -56,9 +56,9 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
   const [panelPos, setPanelPos] = useState<{ top: number; right: number } | null>(null);
   // Color tokens — light (original, on papyrus card) vs dark (global chrome, on pageBg).
   // Dark variant's trigger buttons get a T.glass backing (not transparent) — this hub also
-  // mounts on PackPortal's full-bleed light map (not just the black hieroglyph bg), so a
+  // mounts on PackMap's full-bleed light map (not just the black hieroglyph bg), so a
   // transparent pale-on-pale button would vanish there; same blurred glass chip language as
-  // the bottom nav / PackPortal's own map controls.
+  // the bottom nav / PackMap's own map controls.
   const c = dark
     ? { border: T.onDarkBorder, ink: T.onDark, inkDim: T.onDarkDim, hairline: T.onDarkHair, panelBg: T.glass, badgeBorder: T.pageBg, buttonBg: T.glass }
     : { border: T.border, ink: T.ink, inkDim: T.inkDim, hairline: T.hairline, panelBg: T.card, badgeBorder: T.card, buttonBg: 'transparent' };

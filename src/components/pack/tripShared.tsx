@@ -1,4 +1,4 @@
-// Shared bits between the Portal trip list (PackPortal.tsx) and the full-page trip article
+// Shared bits between the Portal trip list (PackMap.tsx) and the full-page trip article
 // (PackTripArticle.tsx) — iterácia 12 bod 5/6: expand (⤢) teraz navigates to a SEPARATE
 // route/page (article), not a modal, so anything both surfaces render (author fallback,
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
@@ -8,7 +8,7 @@ import { PACK_THEME } from '@/components/pack/packTheme';
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
 
 // autor fallback (iterácia 11 bod 1) — generovaný dataset (28 done tripov) nemá `author`;
-// zdieľané medzi karty/inline detail (PackPortal) a článok (PackTripArticle).
+// zdieľané medzi karty/inline detail (PackMap) a článok (PackTripArticle).
 export const AUTHOR_FALLBACK = 'Hekthor & Matej';
 export const authorOf = (tr: HeroTrail) => tr.author || AUTHOR_FALLBACK;
 
@@ -33,7 +33,7 @@ export function DiffMark({ diff }: { diff: string }) {
 }
 
 // CSS pre .trp-diffmark — jeden string, interpolovaný do vlastného scoped <style> oboch
-// stránok (PackPortal aj PackTripArticle), nech je tvar/farba na JEDNOM mieste (bod 6, i12).
+// stránok (PackMap aj PackTripArticle), nech je tvar/farba na JEDNOM mieste (bod 6, i12).
 // 2026-07-27: Moderate bola modrá, teraz žltá (#E0A020) — modrá sa uvoľnila pre vodu (kolízia
 // významu: dnes bola naraz "stredná náročnosť" aj "vodná plocha"), viď WATER_COLOR nižšie.
 export const DIFF_MARK_CSS = `
@@ -45,7 +45,7 @@ export const DIFF_MARK_CSS = `
 `;
 
 // Rovnaká paleta ako DIFF_MARK_CSS vyššie, ale ako JS hodnoty — pre miesta, ktoré farbu
-// potrebujú mimo CSS triedy (2026-07-26: idle stav trasy na mape v PackPortal.tsx, farba
+// potrebujú mimo CSS triedy (2026-07-26: idle stav trasy na mape v PackMap.tsx, farba
 // podľa náročnosti namiesto plochej čiernej). Odyssey nemá vlastný odtieň na mape (žurnálové
 // trasy idú cez samostatnú červeno-bielu vetvu), fallbackuje na Hard červenú.
 export const DIFF_COLOR: Record<string, string> = {
@@ -57,7 +57,7 @@ export const DIFF_COLOR: Record<string, string> = {
 export const WATER_COLOR = '#2E6FD6';
 
 // ── Rating packy (iterácia 16 bod 2, doplnené 2026-07-27 o desatinný fill) — jednotný
-// 5-pack widget, zdieľaný medzi kartami/inline detailom (PackPortal.tsx) a článkom
+// 5-pack widget, zdieľaný medzi kartami/inline detailom (PackMap.tsx) a článkom
 // (PackTripArticle.tsx). Priemer viacerých hlasov (na rozdiel od jedného hlasu v
 // addtrip/PawRating.tsx) môže byť zlomkový, napr. 4,5 — Matej: "pri hviezdičkách to tak
 // funguje že je vyfarbená iba na X% ked je 4,5 tak je vyfarbenej aj 50% piatej hviezdy ako
@@ -107,7 +107,7 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
 }
 
 // ── ElevationProfile (2026-07-26) — výškový profil trasy, zdieľaný medzi inline detailom
-// (PackPortal.tsx) a článkom (PackTripArticle.tsx). `elev` = downsamplovaná krivka z DEM,
+// (PackMap.tsx) a článkom (PackTripArticle.tsx). `elev` = downsamplovaná krivka z DEM,
 // zapečená v heroTrails.generated.ts generátorom (plany/gen-hero-trails.mjs, zdroj surových
 // dát plany/.ascent-elev-cache.json). Body sú rovnomerne rozložené po deklarovanej dĺžke `km`
 // (rovnaký predpoklad ako compute-ascent.py: ~100 m rozostup pozdĺž KRESLENEJ trasy).
@@ -142,10 +142,10 @@ export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km:
 
 // ── client-side mirror (iterácia 12 bod 5 side-effect) ─────────────────────────────────
 // ⤢ expand teraz navigate()-uje na SAMOSTATNÚ route (PackTripArticle), ktorá unmountne
-// PackPortal — ale ADD-flow tripy (bod 6, iterácia 11) aj wishlist/walked toggle žili len v
-// PackPortal component state. Bez mirroru by expand na čerstvo pridaný trip / práve
+// PackMap — ale ADD-flow tripy (bod 6, iterácia 11) aj wishlist/walked toggle žili len v
+// PackMap component state. Bez mirroru by expand na čerstvo pridaný trip / práve
 // wishlistnutý trip skončil "not found"/reset. Toto NIE JE Supabase perzistencia (tá je mimo
-// rozsahu, viď PackPortal submitAdd komentár) — len client-side draft mirror.
+// rozsahu, viď PackMap submitAdd komentár) — len client-side draft mirror.
 // 2026-07-24: sessionStorage → localStorage. sessionStorage sa mazal pri zatvorení tabu, takže
 // naklikané ADD-flow trasy (napr. CH) miznú medzi testami. localStorage prežije zatvorenie tabu
 // (fallback na sessionStorage v private mode / keď localStorage nie je dostupný).

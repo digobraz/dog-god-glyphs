@@ -1,7 +1,7 @@
 // ADD TRIP — GeometryPicker (vlna 1, krok 3). Trasa / bod / územie + živé km a prevýšenie.
 // Kontrakt: plany/kontrakt-geometrypicker-2026-07-29.md §2 · Zadanie: §5
 //
-// ARCHITEKTÚRA: mapa žije v PackPortal.tsx (`<MapContainer>`), tento komponent ju NEVYTVÁRA —
+// ARCHITEKTÚRA: mapa žije v PackMap.tsx (`<MapContainer>`), tento komponent ju NEVYTVÁRA —
 // dostane `mapRef` a kreslí do nej IMPERATÍVNE cez Leaflet API. Preto tu nie sú react-leaflet
 // komponenty: panel s readoutom sa renderuje mimo mapy, vrstvy (čiara, kotvy, duchovia, kruh)
 // patria dovnútra — jeden React strom to naraz neurobí, imperatívna vrstva áno.

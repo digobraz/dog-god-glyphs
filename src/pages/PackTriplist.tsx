@@ -1,6 +1,6 @@
 // /pack/map/triplist — DVOJPOVRCH: TRIPLIST + TRIPSTATS na jednej route (Matej 2026-07-23,
 // konsolidácia headera 4→2). ?tab=stats fokusuje TRIPSTATS, inak TRIPLIST; dve karty vedľa seba
-// prepínajú view. Vstup z PackPortal headera: ✓/km pilulka → ?tab=stats, 🐾 pilulka → list.
+// prepínajú view. Vstup z PackMap headera: ✓/km pilulka → ?tab=stats, 🐾 pilulka → list.
 //   TRIPLIST = MY TRIPS (seeded z plans; placeholdery keď prázdne) + OPEN TRIPS (mock). Wishlist
 //     splynul sem (★ = „mám to v zozname"), samostatná wishlist sekcia zrušená.
 //   TRIPSTATS = <TripStatsPanel> z packCommunityUI (svet + home 🇸🇰 + prejdené) — bývalý „Trippin'"
@@ -195,7 +195,7 @@ export default function PackTriplist() {
 
   const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
-  // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackPortal mapy).
+  // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
   useMemo(() => ensureWalkedSeeded([
     ...HERO_TRAILS.map((t) => t.id),
     ...FOUNDER_WALKED_JOURNEY_IDS.filter((id) => [...HERO_JOURNEYS, ...HERO_TRAILS].some((t) => t.id === id)),

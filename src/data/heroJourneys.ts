@@ -7,7 +7,7 @@
 // (~4492 bodov, ~736 km meranej stopy). © OpenStreetMap contributors (ODbL).
 //
 // Journey nesie rovnaký profil ako hike (HeroTrail) + navyše `journey` blok (dni, etapy,
-// prevýšenie). Spája sa do zoznamu tripov v PackPortal.tsx a PackTripArticle.tsx cez
+// prevýšenie). Spája sa do zoznamu tripov v PackMap.tsx a PackTripArticle.tsx cez
 // `[...HERO_JOURNEYS, ...HERO_TRAILS]`. Aktivita id = 'journey'.
 import type { HeroTrail } from './heroTrails.generated';
 import type { LatLngTuple } from 'leaflet';
