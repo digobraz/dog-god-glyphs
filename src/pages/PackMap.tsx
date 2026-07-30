@@ -52,6 +52,7 @@ import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
+import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { SVK_BORDER } from '@/data/svkBorder';
 import { COUNTRY_BORDERS } from '@/data/countryBorders';
@@ -2517,6 +2518,9 @@ export default function PackMap() {
                   vrstvená + pixelovo zhlukovaná (zadanie 2.3/2.4, <TripMarkers> vyššie pri mape).
                   Bez súradnice (0 bodov, napr. Buková priehrada) sa vodná plocha nezobrazí — čaká
                   na nahadzovač 📍 bod-miesto (mapPoints guard, viď komentár pri jeho definícii). */}
+              {/* POI z OSM (issue #40) — pod trip markermi (zIndexOffset), viditeľné až od z14.
+                  Atribúcia „© OpenStreetMap" je podmienka licencie → .trp-attrib pod mapou. */}
+              <PoiLayer />
               <TripMarkers
                 points={mapPoints}
                 hoverId={hoverId}
@@ -2543,6 +2547,9 @@ export default function PackMap() {
               <div className="trp-legrow"><span className="trp-legdot trp-legdot--water" />Water</div>
               <div className="trp-legrow"><span className="trp-legdot trp-legdot--planned" />Planned</div>
             </div>
+            {/* POI vrstva beží na dátach OpenStreetMap (ODbL) — atribúcia je podmienka licencie,
+                preto je natvrdo v DOM a nedá sa vypnúť spolu s vrstvou. Posadená pod legendu. */}
+            <PoiAttribution style={{ bottom: 34 }} />
 
             {/* top bar — floating status riadok + search-a-place + Activity/Difficulty/Crowd
                 filter, žije NA mape (AllTrails "Search map" vzor). Iterácia 10: status riadok

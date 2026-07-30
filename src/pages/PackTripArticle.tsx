@@ -17,6 +17,7 @@ import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí 
 // importuje, ale pri PRIAMOM otvorení článku (deep-link / ⤢ expand) PackMap nie je mountnutý.
 import { mapyTiles } from '@/lib/env';
 import { placeIcon } from '@/components/geo/trailIcons';
+import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
@@ -169,7 +170,7 @@ const CSS = `
 .pta-gallery img{flex:0 0 148px;height:104px;border-radius:11px;object-fit:cover;background:#111;cursor:pointer;}
 .pta-desc{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:20px;}
 .pta-dognote{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:10px;}
-.pta-mapwrap{margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
+.pta-mapwrap{position:relative;margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
 .pta-mapwrap .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
 .pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
 .pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
@@ -621,10 +622,14 @@ export default function PackTripArticle() {
               <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
               <Polyline positions={trail.path} pathOptions={{ color: '#F5C73D', weight: 4, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
               <Marker position={trail.path[0]} icon={placeIcon('walk', true)} />
+              {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
+                  Atribúcia je podmienka licencie ODbL, preto ide s vrstvou vždy v páre. */}
+              <PoiLayer />
             </MapContainer>
           ) : (
             <div className="pta-mapempty">Route map coming soon</div>
           )}
+          {trail.path.length > 0 && <PoiAttribution />}
         </div>
 
         {(trail as { elev?: number[] }).elev && (
