@@ -23,6 +23,11 @@ import { captureAttribution } from "@/lib/attribution";
 const SpiralLanding = lazy(() =>
   import("@/components/landing/SpiralLanding").then((m) => ({ default: m.SpiralLanding }))
 );
+// AINUBIS chat widget — lazy, aby nezaťažil homepage bundle (perf je otvorená téma).
+// Widget si sám rozhoduje o skrytí na render/heroglyph routách (viď AinubisWidget.tsx).
+const AinubisWidget = lazy(() =>
+  import("@/components/ainubis/AinubisWidget").then((m) => ({ default: m.AinubisWidget }))
+);
 const IntroScreen = lazy(() =>
   import("@/components/screens/IntroScreen").then((m) => ({ default: m.IntroScreen }))
 );
@@ -133,6 +138,9 @@ const App = () => (
       <BrowserRouter>
         <RefCapture />
         <ConsentBanner />
+        <Suspense fallback={null}>
+          <AinubisWidget />
+        </Suspense>
         <DevNav />
         <ErrorBoundary>
           <Suspense fallback={<RouteFallback />}>
