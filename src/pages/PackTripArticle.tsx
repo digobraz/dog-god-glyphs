@@ -41,6 +41,11 @@ import {
 import { TripComments } from '@/components/pack/trip/TripComments';
 import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
+// #41 — karta tvorcu výletu. Tá istá trojica ako v PackMap (inline detail), lebo
+// mobil sem naviguje namiesto otvorenia panelu.
+import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
+import { useTripParties, partyKey } from '@/components/pack/triplist/useTripParty';
+import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -175,6 +180,8 @@ const CSS = `
 .pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
 .pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
 .pta-section{margin-top:28px;}
+/* #41 — blok jednej partie (organizátor + kto s ním ide) */
+.pta-host + .pta-host{margin-top:10px;}
 .pta-section h3{font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:${GOLD};margin-bottom:8px;}
 .pta-empty{font-size:12.5px;color:${T.onDarkDim};font-style:italic;}
 /* .pta-actbtn — zdieľané medzi .pta-acts (iterácia 15; predtým .pta-hero-actions na fotke) */
@@ -222,6 +229,23 @@ export default function PackTripArticle() {
   useEffect(() => {
     if (renamedTo) navigate(`/pack/map/${renamedTo}`, { replace: true });
   }, [renamedTo, navigate]);
+
+  // #41 — KTO TENTO VÝLET VYPÍSAL. Na desktope to rieši inline detail v PackMap, ale
+  // MOBIL sem naviguje na celú routu (`/pack/map/:slug`), takže bez tohto by na
+  // primárnom povrchu nebolo vidieť organizátora vôbec. Hooky MUSIA byť nad
+  // `if (!trail)` returnom nižšie (Rules of Hooks).
+  const { trips: openTrips } = useOpenTrips();
+  const hostsHere = useMemo(
+    () => openTrips.filter((o) => o.slug === slug),
+    [openTrips, slug],
+  );
+  const hostParties = useTripParties(hostsHere.map((o) => ({ slug: o.slug, organizerId: o.organizerId })));
+  const hosts = useMemo(() => hostsHere.flatMap((o) => {
+    const party = hostParties[partyKey(o.slug, o.organizerId)];
+    // bez organizátora z RPC (zavretý medzitým, nezaplatený) nie je koho vykresliť
+    if (!party?.organizer) return [];
+    return [{ key: partyKey(o.slug, o.organizerId), date: o.date, organizer: party.organizer, joiners: party.joiners }];
+  }), [hostsHere, hostParties]);
 
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
   const [walkedIds, setWalkedIds] = useState<Set<string>>(() => readWalkedIds());
@@ -502,6 +526,7 @@ export default function PackTripArticle() {
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{GLASS_CSS}</style>
+      <style>{PARTY_CARD_CSS}</style>
       {/* §16 (2026-07-23): heroglyf textúra ZA obsahom — bez nej glass panel nemá čo rozmazať
           (predtým holá čierna = „všetko na čiernej"). Rovnaké pozadie ako triplist/pack. */}
       <HieroglyphBg />
@@ -631,6 +656,22 @@ export default function PackTripArticle() {
           )}
           {trail.path.length > 0 && <PoiAttribution />}
         </div>
+
+        {/* #41 — KTO TENTO VÝLET VYPÍSAL. Nie autor trasy (`authorOf` je textové pole
+            datasetu), ale reálny člen, ktorý má trasu ako otvorený výlet v DB.
+            Nad profilom prevýšenia, lebo „s kým" je pri otvorenom výlete dôležitejšie
+            než „koľko metrov". */}
+        {hosts.length > 0 && (
+          <div className="pta-section">
+            <h3>Open trip from the pack</h3>
+            {hosts.map((h) => (
+              <div key={h.key} className="pta-host">
+                <PartyMemberCard member={h.organizer} roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'} />
+                {h.joiners.map((j, i) => <PartyMemberCard key={`${h.key}:${i}`} member={j} />)}
+              </div>
+            ))}
+          </div>
+        )}
 
         {(trail as { elev?: number[] }).elev && (
           <div className="pta-section">
