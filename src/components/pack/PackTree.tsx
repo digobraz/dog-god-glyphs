@@ -408,7 +408,9 @@ function DogRow({ dog }: { dog: DogNode }) {
 
       {/* Meno + # pod menom. Mobile = bez mena (škaredý ellipsis „SK…"), len # badge
           + väčší heroglyf. Desktop drží plné meno. */}
-      <div className="flex-1 min-w-0">
+      {/* minWidth = # badge sa nesmie stlačiť pod svoju šírku. Bez toho ho na úzkom
+          mobile prekryl heroglyf (basis 0 → stĺpec dostal ~41px, badge ~50px). */}
+      <div className="flex-1" style={{ minWidth: 56 }}>
         <div
           className="hidden sm:block"
           style={{
@@ -450,8 +452,8 @@ function DogRow({ dog }: { dog: DogNode }) {
         <img
           src={dog.heroglyph_png_url}
           alt={`${name} heroglyph`}
-          className="h-12 max-w-[170px] sm:h-10 sm:max-w-[132px]"
-          style={{ width: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }}
+          className="h-12 max-w-[170px] sm:h-10 sm:max-w-[132px] min-w-0"
+          style={{ width: 'auto', objectFit: 'contain', display: 'block', flexShrink: 1 }}
         />
       )}
 
