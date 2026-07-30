@@ -562,7 +562,10 @@ export function WishlistIntentPopup({ trailName, onSolo, onPartner, onClose }: {
           <span className="comm-choice-ic"><img src={ICON('people')} alt="" /></span>
           <span>
             <span className="comm-choice-t">Find a walk buddy</span>
-            <span className="comm-choice-d">Post a shout — meet another Dogyptian on this trail.</span>
+            {/* #42: povedať NAHLAS, čo sa zverejňuje. Doteraz tu stálo len „post a shout" —
+                z toho sa nedalo vyčítať, že s trasou ide von aj dátum a pes. Znenie sedí na
+                to, čo reálne vydá `user_trips_read_open` + `get_trip_party`. */}
+            <span className="comm-choice-d">Your pack sees the trail, the date and your dog — and any member can ask to join. You can switch it back to private in your triplist.</span>
           </span>
         </button>
       </div>

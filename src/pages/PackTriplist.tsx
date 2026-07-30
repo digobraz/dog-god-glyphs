@@ -130,6 +130,22 @@ const CSS = `
 .tl-pagebtn:disabled{opacity:.35;cursor:default;}
 .tl-pageinfo{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.06em;color:${T.onDarkDim};}
 
+/* VIDITEĽNOSŤ VÝLETU (#42) — badge na MY TRIPS karte je prepínač, nie nálepka */
+.tl-block-badge.tap{cursor:pointer;border:0;font-family:inherit;}
+.tl-block-badge.tap:hover{filter:brightness(1.08);}
+.tl-vis{display:flex;flex-direction:column;gap:10px;}
+.tl-vischoice{display:flex;align-items:flex-start;gap:11px;text-align:left;padding:13px 14px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);cursor:pointer;transition:all .15s;}
+.tl-vischoice:hover{border-color:${GOLD};background:rgba(201,154,63,0.08);}
+.tl-vischoice.on{border-color:${GOLD};background:rgba(201,154,63,0.12);}
+.tl-vischoice-ic{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};font-size:14px;}
+.tl-vischoice-t{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;letter-spacing:.04em;color:${T.onDark};}
+.tl-vischoice-d{display:block;font-size:10.5px;line-height:1.45;color:${T.onDarkDim};margin-top:4px;}
+
+/* Po prijatí žiadosti — ponuka stiahnuť inzerát (#42, „na rande nechceš tretiu osobu") */
+.tl-closebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:12px;border:1px solid rgba(55,178,106,0.4);background:rgba(55,178,106,0.10);}
+.tl-closebar-t{flex:1;min-width:180px;font-size:11.5px;line-height:1.45;color:${T.onDark};}
+.tl-closebar-t b{font-family:${FONT_TITLE};font-weight:700;}
+
 /* REQUESTS TO JOIN — schránka organizátora (#41). Riadok = karta člena (.pmc) + dve akcie. */
 .tl-req{display:flex;align-items:center;gap:10px;}
 .tl-req + .tl-req{margin-top:8px;}
@@ -357,6 +373,9 @@ export default function PackTriplist() {
   const [reqEpoch, setReqEpoch] = useState(0);
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [joinErr, setJoinErr] = useState<Record<string, string>>({});
+  // #42 — prepínač viditeľnosti (badge na MY TRIPS karte) + ponuka zavrieť po prijatí
+  const [visTripId, setVisTripId] = useState<string | null>(null);
+  const [closeOffer, setCloseOffer] = useState<{ slug: string; who: string | null } | null>(null);
   const incoming = useIncomingRequests(reqEpoch);
   const myRequests = useMyRequests(reqEpoch);
 
@@ -450,12 +469,34 @@ export default function PackTriplist() {
 
   // #41 — organizátor rozhodne. Riadok sa adresuje `id`; meno k nemu má appka len
   // z RPC (get_trip_party cudzie uuid zámerne nevydáva).
-  const onDecide = async (id: string, status: 'accepted' | 'declined') => {
+  //
+  // #42: po PRIJATÍ ponúkneme stiahnuť inzerát. Zámerne PONUKA, nie automat — organizátor
+  // môže hľadať ďalších. Bez toho ostane `looking` navždy a žiadosti chodia aj do plnej
+  // partie (Matej: „ak sa dohodnu dvaja na rande, nebudú chcieť tretiu osobu").
+  const onDecide = async (id: string, status: 'accepted' | 'declined', slug?: string, who?: string | null) => {
     setReqBusy(id);
     const err = await decideRequest(id, status);
     setReqBusy(null);
     if (err) console.warn('[trip request]', err);
+    // ponuku ukazujeme LEN keď je výlet naozaj ešte inzerovaný — pri zavretom by to bola
+    // otázka na niečo, čo už platí
+    if (!err && status === 'accepted' && slug && triplist[slug]?.openness === 'open') {
+      setCloseOffer({ slug, who: who ?? null });
+    }
     setReqEpoch((e) => e + 1);
+  };
+
+  // #42 — zmena viditeľnosti výletu. `private` pri výlete, na ktorý už niekto ide, NESMIE
+  // zhodiť status na 'solo' — tým by sa stratilo, že partia existuje. Preto 'going'.
+  const setVisibility = (tripId: string, open: boolean) => {
+    const hasJoiners = (parties[tripId]?.joiners.length ?? 0) > 0;
+    const next = open
+      ? { status: 'looking' as TripStatus, openness: 'open' as const }
+      : { status: (hasJoiners ? 'going' : 'solo') as TripStatus, openness: 'closed' as const };
+    const saved = upsertMyTrip(tripId, next);
+    setTriplist((prev) => ({ ...prev, [tripId]: saved }));
+    setVisTripId(null);
+    setCloseOffer(null);
   };
 
   if (id.loading) {
@@ -530,7 +571,7 @@ export default function PackTriplist() {
                           type="button"
                           className="tl-reqbtn yes"
                           disabled={reqBusy === row.id}
-                          onClick={() => void onDecide(row.id, 'accepted')}
+                          onClick={() => void onDecide(row.id, 'accepted', slug, member?.ownerFirst ?? member?.dogName ?? null)}
                         >Accept</button>
                         <button
                           type="button"
@@ -547,6 +588,26 @@ export default function PackTriplist() {
             </>
           )}
 
+          {/* #42 — po prijatí: stiahnuť inzerát, alebo hľadať ďalej. Ponuka, nie automat. */}
+          {closeOffer && (
+            <>
+              <div className="tl-closebar">
+                <span className="tl-closebar-t">
+                  <b>{closeOffer.who ?? 'A Dogyptian'}</b> is going with you. Close this trip to new requests?
+                </span>
+                <div className="tl-req-acts">
+                  <button type="button" className="tl-reqbtn yes" onClick={() => setVisibility(closeOffer.slug, false)}>
+                    Close it
+                  </button>
+                  <button type="button" className="tl-reqbtn" onClick={() => setCloseOffer(null)}>
+                    Keep looking
+                  </button>
+                </div>
+              </div>
+              <div className="tl-divider" />
+            </>
+          )}
+
           {/* MY TRIPS — horizontálny slajd, status badge (farebný: done/with/looking/solo), vlajka */}
           <div className="tl-section">
             <div className="tl-sechead">
@@ -556,8 +617,17 @@ export default function PackTriplist() {
               <div className="tl-empty">No trips in your list yet. Add a trail to start planning.</div>
             ) : (
               <div className="tl-hscroll">
-                {myTrips.map(({ entry, trail, done }) => {
+                {myTrips.map(({ entry, trail, done, placeholder }) => {
                   const dleft = done ? null : daysFromNow(entry.date, nowMs);
+                  // #42: badge je prepínač viditeľnosti. Nie na placeholder riadkoch — tie
+                  // v DB neexistujú, nie je čo prepínať.
+                  //
+                  // ⚠️ PREJDENÉ výlety sem PATRIA. Prvá verzia ich vylúčila („čo už sa
+                  // zverejňovať") a tým vyrobila slepú uličku: `walked` neprepína `openness`,
+                  // takže prejdený výlet ostane visieť v OPEN TRIPS celému packu — aj s
+                  // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
+                  // „Looking", takže o tom ani nevie.
+                  const canToggleVis = !placeholder;
                   return (
                   <div key={entry.tripId} className="tl-mycard">
                     {dleft !== null && dleft >= 0 && (
@@ -566,7 +636,16 @@ export default function PackTriplist() {
                   <div className="pk-glass-block tl-block" onClick={() => navigate(`/pack/map/${trail.id}`)}>
                     <div className="tl-block-cover" style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
-                      <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(entry, done, parties[entry.tripId])}</span>
+                      {canToggleVis ? (
+                        <button
+                          type="button"
+                          className={`tl-block-badge tap ${statusClass(entry, done, parties[entry.tripId])}`}
+                          title="Who can see this trip"
+                          onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
+                        >{statusLabel(entry, done, parties[entry.tripId])}</button>
+                      ) : (
+                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(entry, done, parties[entry.tripId])}</span>
+                      )}
                     </div>
                     <div className="tl-block-info">
                       <div className="tl-block-name">{trail.name}</div>
@@ -684,6 +763,55 @@ export default function PackTriplist() {
           </div>
         </div>
       )}
+
+      {/* #42 — KTO VIDÍ TENTO VÝLET. Text hovorí presne to, čo appka reálne vydá
+          (`user_trips_read_open` + `get_trip_party`): trasa, dátum, pes. Matejovo rozhodnutie
+          2026-07-30: presný dátum ostáva vonku, takže to musí byť aspoň POVEDANÉ. */}
+      {visTripId && (() => {
+        const entry = triplist[visTripId];
+        const isOpen = entry?.openness === 'open';
+        const trail = allTrails.find((tr) => tr.id === visTripId);
+        const joiners = parties[visTripId]?.joiners.length ?? 0;
+        const waiting = parties[visTripId]?.requests.length ?? 0;
+        return (
+          <div className="tl-overlay" onClick={() => setVisTripId(null)}>
+            <div className="tl-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="tl-modal-head">
+                <div>
+                  <div className="tl-modal-title">Who can see this trip</div>
+                  <div className="tl-sub" style={{ textAlign: 'left', marginTop: 4 }}>{trail?.name ?? visTripId}</div>
+                </div>
+                <button type="button" className="tl-x" onClick={() => setVisTripId(null)} aria-label="Close">×</button>
+              </div>
+              <div className="tl-vis">
+                <button type="button" className={`tl-vischoice${!isOpen ? ' on' : ''}`} onClick={() => setVisibility(visTripId, false)}>
+                  <span className="tl-vischoice-ic">🔒</span>
+                  <span>
+                    <span className="tl-vischoice-t">Private</span>
+                    <span className="tl-vischoice-d">
+                      Only you {joiners > 0 ? 'and the Dogyptians already going ' : ''}see this trip. Nobody new can ask to join.
+                    </span>
+                  </span>
+                </button>
+                <button type="button" className={`tl-vischoice${isOpen ? ' on' : ''}`} onClick={() => setVisibility(visTripId, true)}>
+                  <span className="tl-vischoice-ic">🐾</span>
+                  <span>
+                    <span className="tl-vischoice-t">Looking for pack</span>
+                    <span className="tl-vischoice-d">
+                      Your pack sees the trail, the date{entry?.date ? ` (${entry.date})` : ''} and your dog — and any member can ask to join.
+                    </span>
+                  </span>
+                </button>
+              </div>
+              {waiting > 0 && !isOpen && (
+                <div className="tl-sub" style={{ textAlign: 'left', marginTop: 12 }}>
+                  {waiting} pending request{waiting === 1 ? '' : 's'} stay{waiting === 1 ? 's' : ''} in your list — closing the trip doesn't answer them.
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {announceTrip && (
         <TripAnnouncePopup
