@@ -25,6 +25,7 @@ import { readPlans, MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl } from '@/lib/countryGeo';
 import { TripAnnouncePopup } from '@/components/pack/triplist/TripAnnouncePopup';
+import { useMyTripParties, type TripParty } from '@/components/pack/triplist/useTripParty';
 import {
   readTriplist, upsertMyTrip, seedTriplistFromPlans, buildPublicTrips,
   trailWCE, WCE_LABEL, type WCE,
@@ -136,10 +137,17 @@ const CSS = `
 .tl-modal-submit:disabled{opacity:.4;cursor:default;}
 `;
 
-// status pilulka — 'going' vetva reálne nastane až Slice B (joiners naplní on), okrem placeholderov.
-// done = walked (prejdené) má prednosť pred statusom. Farebné triedy: done/with/looking/solo.
-function statusLabel(entry: TriplistTrip, done?: boolean): string {
+// status pilulka. done = walked (prejdené) má prednosť pred statusom.
+// Farebné triedy: done/with/looking/solo.
+//
+// #41: mená účastníkov idú z DB (`get_trip_party`), nie z lokálneho `entry.joiners`
+// — ten drží len mock/placeholder. Keď má výlet reálnu partiu, vyhráva ona; lokálna
+// vetva ostáva pre placeholder riadky (prázdny triplist) a offline.
+function statusLabel(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
   if (done) return 'Done';
+  const real = party?.joiners ?? [];
+  if (real.length === 1) return `With ${real[0].ownerFirst ?? 'a Dogyptian'}`;
+  if (real.length > 1) return `With ${real.length}`;
   if (entry.status === 'going') {
     if (entry.joiners.length === 1) {
       const name = MOCK_MEMBER_POOL.find((m) => m.id === entry.joiners[0].memberId)?.name ?? 'a Dogyptian';
@@ -148,11 +156,16 @@ function statusLabel(entry: TriplistTrip, done?: boolean): string {
     if (entry.joiners.length > 1) return `With ${entry.joiners.length}`;
     return 'Going';
   }
-  if (entry.status === 'looking') return 'Looking for pack';
+  if (entry.status === 'looking') {
+    // organizátor vidí, koľko ľudí čaká na jeho odpoveď — inak by o žiadosti nevedel
+    const waiting = party?.requests.length ?? 0;
+    return waiting ? `Looking · ${waiting} asked` : 'Looking for pack';
+  }
   return 'Solo';
 }
-function statusClass(entry: TriplistTrip, done?: boolean): string {
+function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
   if (done) return 'done';
+  if ((party?.joiners.length ?? 0) > 0) return 'with';
   if (entry.status === 'going') return 'with';
   if (entry.status === 'looking') return 'looking';
   return 'solo';
@@ -278,6 +291,13 @@ export default function PackTriplist() {
     () => sortMyTrips(realMyTrips.length > 0 ? realMyTrips : placeholderMyTrips, nowMs),
     [realMyTrips, placeholderMyTrips, nowMs],
   );
+  // #41: kto reálne ide. Len pre SKUTOČNÉ výlety — placeholder riadky (prázdny
+  // triplist) nemajú v DB čo hľadať a zbytočne by strieľali RPC.
+  const partySlugs = useMemo(
+    () => (realMyTrips.length > 0 ? realMyTrips.map((r) => r.entry.tripId) : []),
+    [realMyTrips],
+  );
+  const parties = useMyTripParties(partySlugs);
   // najbližší nadchádzajúci trip → sub v TRIPLIST tab-e (Matej: „v headri môže byť info next trip za xy dní")
   const nextUpDays = useMemo(() => {
     const up = myTrips.find((r) => !r.done && (daysFromNow(r.entry.date, nowMs) ?? -1) >= 0);
@@ -375,7 +395,7 @@ export default function PackTriplist() {
                   <div className="pk-glass-block tl-block" onClick={() => navigate(`/pack/map/${trail.id}`)}>
                     <div className="tl-block-cover" style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
-                      <span className={`tl-block-badge ${statusClass(entry, done)}`}>{statusLabel(entry, done)}</span>
+                      <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(entry, done, parties[entry.tripId])}</span>
                     </div>
                     <div className="tl-block-info">
                       <div className="tl-block-name">{trail.name}</div>
