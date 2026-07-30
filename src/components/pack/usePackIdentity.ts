@@ -3,6 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE } from '@/lib/env';
+import { hydratePackStore } from '@/lib/packStore';
 
 export interface PackDog {
   id: string;
@@ -103,6 +104,12 @@ export function usePackIdentity(): PackIdentity {
       if (s) {
         try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
         if (!mounted) return;
+        // Perzistencia výletov (issue #32): raz za návštevu stiahne stav z Supabase do
+        // localStorage a odošle, čo sa naklikalo offline. Zámerne BEZ await — hydratácia
+        // nesmie zdržať vykreslenie /packu; hotové povrchy si prečítajú znova cez
+        // onPackStoreHydrated(). Pri DEV_NOAUTH (mock session bez reálneho tokenu) sa
+        // vnútri sama vypne a store beží lokálne.
+        void hydratePackStore();
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: dogRows } = await (supabase as any)

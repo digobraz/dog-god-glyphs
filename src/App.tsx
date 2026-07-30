@@ -212,6 +212,13 @@ const App = () => (
               {/* iterácia 12 bod 5: ⤢ expand → SAMOSTATNÁ full-page article route (nie modal
                   v PackMap) — PackMap už nikdy nemountuje so slugom. */}
               <Route path="/pack/map/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
+              {/* ADD flow má vlastnú URL od začiatku (issue #35): `/pack/add/trip`, NIE `/pack/add`.
+                  Medzikrok ADD → (trip · event · place · service) sa teraz nestavia, ale keď pribudne,
+                  zasunie sa na `/pack/add` bez lámania uložených odkazov. Render = PackMap (ADD je
+                  overlay nad živou leaflet mapou — GeometryPicker kreslí priamo do nej), stránka si
+                  z pathname otvorí log formulár. */}
+              <Route path="/pack/add/trip" element={DEV_FULL ? <PackMap /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/add" element={<Navigate to="/pack/add/trip" replace />} />
               <Route path="/pack/dogs" element={DEV_FULL ? <PackDogs /> : <Navigate to="/pack" replace />} />
               <Route path="/trails-preview" element={<TrailsPreview />} /> {/* DEV TEMP */}
               <Route path="/trails-draw-test" element={<TrailsDrawTest />} /> {/* DEV TEMP */}

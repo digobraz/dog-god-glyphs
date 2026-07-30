@@ -10,11 +10,12 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
   eventGoingMembers, mockMemberProfile,
-  computeCompletion, unitsForTrail, packLevel, isMyEvent,
+  computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { levelProgress } from '@/lib/tripPoints';
 import { HeroBadges } from '@/components/pack/HeroBadges';
 import { TripProfileCard } from '@/components/pack/profile/TripProfileCard';
 
@@ -1041,7 +1042,13 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
     : id.avatarInitial;
   const dogNames = id.dogs.map((d) => d.dog_name).filter((n): n is string => !!n);
   const packName = dogNames.length > 0 ? [...dogNames, ownerName].join(' & ') : ownerName;
-  const lvl = packLevel(walkedTrails.length);
+  // LEVEL z BODOV, nie z počtu tripov (issue #33; lock „level = počet tripov" z 23. 7. padol
+  // 25. 7.). Body sa počítajú z toho, čo človek reálne má — prejdené trasy, ich km/stúpanie,
+  // pevné ceny magistrál a odškrtnuté geo jednotky. Vďaka tomu sa level nemôže rozísť s dátami.
+  // Zdroj cien + krivky = dashboard tab Mapa, sekcia 03/05 (viď src/lib/tripPoints.ts).
+  const addedByMe = addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(id.session?.user?.email) });
+  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, countries: countriesTraveled });
+  const lvl = levelProgress(profilePoints.total);
 
   return (
     <>
@@ -1070,19 +1077,13 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         </div>
         <div className="comm-vhead-name">{packName}</div>
         <div className="comm-level">
-          <span className="comm-level-pill">
+          <span className="comm-level-pill" title={profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ')}>
             <img className="comm-level-ic" src={ICON('trophy')} alt="" />
-            {lvl.level.name}
+            {lvl.rank} · Level {lvl.level}
           </span>
+          {/* Rebrík nemá strop (rozhodnuté 29. 7.) → žiadny „Top rank" stav, vždy je kam ísť. */}
           <span className="comm-level-next">
-            {lvl.next ? (
-              `${lvl.toNext} trip${lvl.toNext === 1 ? '' : 's'} to ${lvl.next.name}`
-            ) : (
-              <>
-                <img src={ICON('paw')} alt="" style={{ width: 10, height: 10, filter: 'brightness(0) invert(1)', opacity: 0.6 }} />
-                Top rank
-              </>
-            )}
+            {lvl.points} pts · {lvl.toNext} to {lvl.level + 1}
           </span>
         </div>
       </div>

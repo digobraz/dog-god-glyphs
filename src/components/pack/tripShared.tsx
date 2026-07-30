@@ -4,6 +4,10 @@
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME } from '@/components/pack/packTheme';
+import {
+  packStorage, PACK_KEYS, readStringSet as readSet,
+  persistWalked, persistFav, scheduleFounderSeed,
+} from '@/lib/packStore';
 
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
 
@@ -149,13 +153,13 @@ export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km:
 // 2026-07-24: sessionStorage → localStorage. sessionStorage sa mazal pri zatvorení tabu, takže
 // naklikané ADD-flow trasy (napr. CH) miznú medzi testami. localStorage prežije zatvorenie tabu
 // (fallback na sessionStorage v private mode / keď localStorage nie je dostupný).
-const trpStore: Storage = (() => {
-  try { const k = '__trp_probe'; localStorage.setItem(k, '1'); localStorage.removeItem(k); return localStorage; }
-  catch { return sessionStorage; }
-})();
-const LOCAL_TRAILS_KEY = 'trp-local-trails';
-const FAV_IDS_KEY = 'trp-fav-ids';
-const WALKED_IDS_KEY = 'trp-walked-ids';
+// 2026-07-30 (issue #32): úložisko sa presunulo do `@/lib/packStore` — čítanie ostáva
+// synchrónne a lokálne, ale zápis ide write-through aj do Supabase (`trip_walked`,
+// `trip_fav`), takže prejdené a wishlist prežijú prehliadač aj zariadenie.
+const trpStore = packStorage;
+const LOCAL_TRAILS_KEY = PACK_KEYS.localTrails;
+const FAV_IDS_KEY = PACK_KEYS.fav;
+const WALKED_IDS_KEY = PACK_KEYS.walked;
 
 // ── Premenované trip id (slug) ────────────────────────────────────────────────────────────────
 // `id` výletu = slug a používa sa ako kľúč VŠADE: v URL `/pack/map/:slug`, v uloženom
@@ -212,35 +216,21 @@ export function writeLocalTrails(trails: HeroTrail[]): boolean {
   catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
 }
 
-function readStringSet(key: string): Set<string> {
-  try {
-    const raw = trpStore.getItem(key);
-    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-  } catch { return new Set(); }
-}
-function writeStringSet(key: string, set: Set<string>): void {
-  try { trpStore.setItem(key, JSON.stringify(Array.from(set))); } catch { /* non-fatal */ }
-}
+const readStringSet = readSet;
 export const readFavIds = () => readStringSet(FAV_IDS_KEY);
-export const writeFavIds = (s: Set<string>) => writeStringSet(FAV_IDS_KEY, s);
+// Zápis ide cez packStore: lokálne hneď + do Supabase (fronta, ak nie je sieť).
+export const writeFavIds = (s: Set<string>) => persistFav(s);
 export const readWalkedIds = () => readStringSet(WALKED_IDS_KEY);
-export const writeWalkedIds = (s: Set<string>) => writeStringSet(WALKED_IDS_KEY, s);
+export const writeWalkedIds = (s: Set<string>) => persistWalked(s);
 
 // Founder walked logika (Matej 2026-07-24, LOCKED): „čo nahodím, to som aj prešiel".
 // Každá nahodená (čierna, non-journey) trasa = walked. Z červených journeys sú reálne prejdené
 // len tieto. Štefánikova magistrála = prejdená CEZ SNP (geo-audit: SNP⊇Štefánikova 90 %,
 // hrebeň Malé/Biele Karpaty–Javorníky sa prekrýva) — Matej 2026-07-24. Ostatné magistrály neprejdené.
 export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny', 'stefanikova-magistrala'];
-// v2 (Matej 2026-07-24): re-seed po pridaní Štefánikovej do default walked setu (merge, netlačí toggly).
-const WALKED_SEEDED_KEY = 'trp-walked-seeded-v2';
-// Seedne default walked set raz za session (ak ho user ešte nezmenil). Merguje, netlačí cez
-// existujúce toggly. defaultWalkedIds = zoznam id trás čo majú byť walked z founder logiky.
-export function ensureWalkedSeeded(defaultWalkedIds: string[]): void {
-  try {
-    if (trpStore.getItem(WALKED_SEEDED_KEY)) return;
-    const merged = readStringSet(WALKED_IDS_KEY);
-    defaultWalkedIds.forEach((id) => merged.add(id));
-    writeStringSet(WALKED_IDS_KEY, merged);
-    trpStore.setItem(WALKED_SEEDED_KEY, '1');
-  } catch { /* non-fatal */ }
-}
+
+// Seed sa od 2026-07-30 (issue #32) NEROBÍ per-prehliadač na slepo — rozhoduje o ňom packStore
+// PO hydratácii z DB: dostane ho iba founder účet a iba keď v DB nemá ani jednu prejdenú trasu.
+// Dôvod: (a) nový člen si inak naseedoval 64 cudzích prejdených trás, (b) ručné odškrtnutie sa
+// na druhom zariadení vzkriesilo. Volajúci sa nemení — stále len povie, čo by sa seedovať malo.
+export const ensureWalkedSeeded = scheduleFounderSeed;

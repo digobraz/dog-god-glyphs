@@ -1,8 +1,9 @@
-// /pack komunitná vrstva — MOCK dáta + logika (design: plany/pack-community-features-design.md).
-// Fáza: UI-first, žiadna Supabase perzistencia. Všetko žije v sessionStorage mirror-och
-// (rovnaký vzor ako tripShared.tsx) alebo je deterministicky odvodené z trip id (mock crowd /
-// mock ľudia), aby sa hover %-rozpad a completion nemenili medzi rendermi. Backend (trip_walks,
-// partner_ads, events, sk_geo) príde až po zamknutí UX — viď §BACKEND v design doc.
+// /pack komunitná vrstva — logika + MOCK ľudia (design: plany/pack-community-features-design.md).
+// Perzistencia (2026-07-30, issue #32): hodnotenia / plány / inzeráty už NIE sú sessionStorage
+// mirror — idú cez `@/lib/packStore` (localStorage + write-through do Supabase: trip_votes,
+// user_trips, trip_events). MOCK ostáva len tam, kde ide o CUDZÍCH ľudí a ich obsah (mock crowd,
+// MOCK_MEMBER_POOL) — to je deterministicky odvodené z trip id, aby sa hover %-rozpad a completion
+// nemenili medzi rendermi. Wiring reálnych členov = Slice B (#41).
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   ACTIVITY_OPTIONS, VIBE_OPTIONS, PERSONALITY_OPTIONS, deriveDefaultDogAttrs,
@@ -10,6 +11,8 @@ import {
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
 import type { PackDogFull } from '@/hooks/usePackUser';
+import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents } from '@/lib/packStore';
+import { calculateProfilePoints, type TripPointsResult } from '@/lib/tripPoints';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
 // D2 (LOCKED 2026-07-24): feature „Vibe" → Crowd / Ruch. Jedna jasná os = počet ľudí, žiadny
@@ -32,21 +35,11 @@ export const HAZARD_EMOJI: Record<Hazard, string> = { Ticks: '🪱', Vipers: '�
 // count nikdy neklesne pod 2 (design: Matej 2026-07-22).
 export const FOUNDER_WALKERS = 2;
 
-// TRIPSTATS Slice B (Matej 2026-07-23) — level rebrík, počíta sa POČTOM prejdených tripov
-// (LOCKED: „Počíta sa podľa počtu tripov" — NIE devotion/bones, tie žijú zvlášť v usePackIdentity).
-// Názvy = DRAFT stringy, Matej doladí menoslov; prahy nelineárne (rastú s hĺbkou hry).
-export interface PackLevel { name: string; min: number; }
-export const PACK_LEVELS: PackLevel[] = [
-  { name: 'Stray', min: 0 }, { name: 'Wanderer', min: 3 }, { name: 'Pilgrim', min: 10 },
-  { name: 'Pathfinder', min: 25 }, { name: 'Devotee', min: 50 }, { name: 'Guardian', min: 100 },
-  { name: 'Hero of the Pack', min: 200 },
-];
-export function packLevel(tripCount: number): { level: PackLevel; index: number; next: PackLevel | null; toNext: number } {
-  let index = 0;
-  for (let i = 0; i < PACK_LEVELS.length; i++) if (tripCount >= PACK_LEVELS[i].min) index = i;
-  const next = PACK_LEVELS[index + 1] ?? null;
-  return { level: PACK_LEVELS[index], index, next, toNext: next ? next.min - tripCount : 0 };
-}
+// LEVELY sú v `@/lib/tripPoints` (issue #33, 2026-07-30).
+// Zrušené: `PACK_LEVELS` so siedmimi menami (Stray → Hero of the Pack) + `packLevel(tripCount)`.
+// Dôvod (dashboard tab Mapa, sekcia 05): lock „level = počet tripov" z 23. 7. padol 25. 7. —
+// level sa počíta z BODOV, menoslov hodností ostáva voľný pre DEVOTION a rebrík je jedno meno
+// (PILGRIM) + číslo bez stropu. Duplicita s odznakmi (tie tiež rátali výlety) tým zaniká.
 
 // Turistický profil = JEDEN zdroj naprieč platformou (design: Matej 2026-07-22 — needituje sa
 // per-kategória, ale na jednom mieste). Zatiaľ MOCK placeholder; reálny profil = budúca feature.
@@ -326,7 +319,27 @@ const JOURNEY_RANGES: Record<string, string[]> = {
   // (ten je južnejšie, na trase nie je). Nízke Beskydy (Laborecká/Ondavská vrch.) + Čergov = mimo 26.
   'vychodokarpatska-magistrala': ['Bukovské vrchy'],
   'poloniny': ['Bukovské vrchy'],
+  // 2026-07-30 (issue #36): CHÝBALA. Hrebeňovka pribudla 29.7. a do tejto mapy sa nedostala —
+  // pohorie jej odškrtávalo len `trail.region` ('Nízke Tatry'), teda náhodou to isté. Zapísané
+  // explicitne, nech to nezávisí od textu v inom poli. Geometria: 0,1 km od Chopku, celá trasa
+  // Donovaly → Kráľova hoľa je v Nízkych Tatrách, žiadne druhé pohorie sa jej netýka.
+  'nizkotatranska-hrebenovka': ['Nízke Tatry'],
 };
+
+// GEOMETRICKÝ AUDIT (2026-07-30, issue #36) — 11 magistrál × 26 pohorí, min. vzdialenosť
+// reálnej stopy (`path`, 79–4492 bodov) od referenčných vrcholov/sediel každého pohoria.
+// Prah „prechádza cez pohorie" = 6 km od referenčného bodu.
+//   ✅ Potvrdené bez zmeny: SNP (8 z 9 pohorí do 5,3 km — Malé/Biele Karpaty, Strážovské,
+//      Malá + Veľká Fatra, Kremnické, Nízke Tatry, Volovské), Rudná (3/3), Ponitrianska (2/2),
+//      Štefánikova, Veľkofatranská, Malofatranský okruh, Východokarpatská, Poloniny.
+//   ⚠️ Neoverené touto metódou (referenčné body ležia mimo stopy, NIE dôkaz chyby):
+//      SNP × Slovenské rudohorie (13,2 km od Stolice — trasa ide Muránskou planinou),
+//      Záhorácka × Biele Karpaty (12,2 km — trasa vedie podhorím), Kysucká × Javorníky
+//      (5,4 km od Makova, ale medzi nimi leží Turzovská vrchovina — pôvodný research
+//      z 24.7. hovorí, že Javorníky sú len výhľad).
+// Tieto tri rozhodne až point-in-polygon v geo-engine (Overpass/turf) — bodové referencie
+// na to nemajú rozlišovaciu schopnosť a prepisovať kvôli nim overený research by bol krok vzad.
+
 
 // Magistrála križuje aj NP ktoré NIE SÚ viazané na 26 pohorí (Slovenský raj, Muránska planina,
 // Slovenský kras, Pieniny) → priamy zoznam, inak sú tie NP štrukturálne nezarobiteľné.
@@ -394,6 +407,50 @@ export function computeCompletion(walkedTrails: HeroTrail[]): SlovakiaCompletion
   const doneUnits = categories.reduce((s, c) => s + c.done.length, 0);
   const totalUnits = categories.reduce((s, c) => s + c.total, 0);
   return { categories, overallPct: Math.round((doneUnits / totalUnits) * 100), doneUnits, totalUnits };
+}
+
+// Ktoré trasy nahodil TENTO človek (20 b za trasu / 10 za miesto). Dva prípady:
+//  · bežný člen — trasa nesie jeho meno v `author` (tak ju zapisuje ADD TRIP flow),
+//  · founder — kurátorovaný dataset (77 tripov) je jeho práca, ale `author` tam chýba alebo
+//    je to fallback „Hekthor & Matej"; bez tejto výnimky by Matejov level spadol o 4 stupne.
+// Musí to byť JEDNA funkcia, inak mapa a vysvedčenie ukážu iné číslo (presne to sa dnes dialo).
+export function addedByMeIds(
+  trails: HeroTrail[],
+  opts: { ownerName?: string | null; isFounder?: boolean },
+): Set<string> {
+  const FALLBACK_AUTHOR = 'Hekthor & Matej';
+  return new Set(
+    trails
+      .filter((tr) => (tr.author && opts.ownerName ? tr.author === opts.ownerName : false)
+        || (opts.isFounder && (!tr.author || tr.author === FALLBACK_AUTHOR)))
+      .map((tr) => tr.id),
+  );
+}
+
+export const FOUNDER_ACCOUNT_EMAIL = 'hekthorsk@gmail.com';
+export const isFounderEmail = (email?: string | null) =>
+  (email ?? '').toLowerCase() === FOUNDER_ACCOUNT_EMAIL;
+
+// ── BODY PROFILU (issue #33) — jedno miesto, dva povrchy ────────────────────
+// Level sa ukazuje v hlavičke mapy aj vo vysvedčení (TripStatsPanel). Keby si každý povrch
+// počítal body sám, rozišli by sa (mapa mala zadrôtované „Pútnik Lvl 1", vysvedčenie počítalo
+// z počtu tripov). Ceny a krivka žijú v `@/lib/tripPoints`, odškrtnuté geo jednotky sem
+// dodá `computeCompletion` — táto funkcia ich len spojí.
+export function profilePointsFor(
+  walkedTrails: HeroTrail[],
+  opts?: { addedIds?: Set<string>; ratings?: number; countries?: number },
+): TripPointsResult {
+  const completion = computeCompletion(walkedTrails);
+  const done = (key: GeoCategory) => completion.categories.find((c) => c.key === key)?.done.length ?? 0;
+  return calculateProfilePoints({
+    walked: walkedTrails,
+    addedIds: opts?.addedIds,
+    ratings: opts?.ratings,
+    discovered: {
+      ranges: done('ranges'), parks: done('parks'), chko: done('chko'), waters: done('waters'),
+      countries: opts?.countries ?? (walkedTrails.length > 0 ? 1 : 0),
+    },
+  });
 }
 
 // ── mock „ostatní ľudia" (design §C2 „kto sa tiež chystá" + §D účastníci eventu) ──
@@ -565,26 +622,22 @@ export function mockEventsSeed(trails: HeroTrail[], nowMs: number): PartnerEvent
   });
 }
 
-// ── sessionStorage mirrors (rovnaký vzor ako tripShared.tsx — NIE Supabase) ──
-// v2: TripVote pribudlo when/hazards, PartnerEvent prešiel na dates[]/month (Matej 2026-07-22) —
-// bump verzie zahodí staré nekompatibilné dáta zo sessionStorage (inak ev.dates undefined → crash).
-const VOTES_KEY = 'trp-votes-v2';
-const PLANS_KEY = 'trp-plans';
-const EVENTS_KEY = 'trp-events-v2';
-
-function readJson<T>(key: string, fallback: T): T {
-  try { const raw = sessionStorage.getItem(key); return raw ? (JSON.parse(raw) as T) : fallback; } catch { return fallback; }
-}
-function writeJson(key: string, val: unknown): void {
-  try { sessionStorage.setItem(key, JSON.stringify(val)); } catch { /* private mode / quota — non-fatal */ }
-}
+// ── perzistencia (2026-07-30, issue #32) ────────────────────────────────────
+// PREDTÝM: sessionStorage → hodnotenia, plány aj inzeráty zmizli používateľovi pri
+// zatvorení tabu. TERAZ: `@/lib/packStore` = localStorage (synchrónne čítanie, žiadny
+// prepis volajúcich) + write-through do Supabase (`trip_votes`, `user_trips`, `trip_events`).
+// v2 v kľúčoch ostáva: TripVote pribudlo when/hazards, PartnerEvent prešiel na dates[]/month
+// (Matej 2026-07-22) — bump verzie zahodil staré nekompatibilné dáta (inak ev.dates undefined → crash).
+const VOTES_KEY = PACK_KEYS.votes;
+const PLANS_KEY = PACK_KEYS.plans;
+const EVENTS_KEY = PACK_KEYS.events;
 
 export const readVotes = () => readJson<Record<string, TripVote>>(VOTES_KEY, {});
-export const writeVotes = (v: Record<string, TripVote>) => writeJson(VOTES_KEY, v);
+export const writeVotes = (v: Record<string, TripVote>) => persistVotes(v);
 export const readPlans = () => readJson<TripPlan[]>(PLANS_KEY, []);
-export const writePlans = (p: TripPlan[]) => writeJson(PLANS_KEY, p);
+export const writePlans = (p: TripPlan[]) => persistPlans(p);
 export const readEvents = () => readJson<PartnerEvent[]>(EVENTS_KEY, []);
-export const writeEvents = (e: PartnerEvent[]) => writeJson(EVENTS_KEY, e);
+export const writeEvents = (e: PartnerEvent[]) => persistEvents(e);
 
 // ── D5 „Next trip in X days" (rozhodnutie Mateja 2026-07-26) ─────────────────
 // Zdroj dát = `trp-plans` (readPlans), teda MOJE naplánované výlety. Vyberá sa

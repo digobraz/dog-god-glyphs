@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useDogyptStore } from '@/store/dogyptStore';
 import { PACK_THEME } from './packTheme';
 import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
@@ -408,7 +409,9 @@ function DogRow({ dog }: { dog: DogNode }) {
 
       {/* Meno + # pod menom. Mobile = bez mena (škaredý ellipsis „SK…"), len # badge
           + väčší heroglyf. Desktop drží plné meno. */}
-      <div className="flex-1 min-w-0">
+      {/* minWidth = # badge sa nesmie stlačiť pod svoju šírku. Bez toho ho na úzkom
+          mobile prekryl heroglyf (basis 0 → stĺpec dostal ~41px, badge ~50px). */}
+      <div className="flex-1" style={{ minWidth: 56 }}>
         <div
           className="hidden sm:block"
           style={{
@@ -450,8 +453,8 @@ function DogRow({ dog }: { dog: DogNode }) {
         <img
           src={dog.heroglyph_png_url}
           alt={`${name} heroglyph`}
-          className="h-12 max-w-[170px] sm:h-10 sm:max-w-[132px]"
-          style={{ width: 'auto', objectFit: 'contain', display: 'block', flexShrink: 0 }}
+          className="h-12 max-w-[170px] sm:h-10 sm:max-w-[132px] min-w-0"
+          style={{ width: 'auto', objectFit: 'contain', display: 'block', flexShrink: 1 }}
         />
       )}
 
@@ -463,10 +466,16 @@ function DogRow({ dog }: { dog: DogNode }) {
 
 function PackActions() {
   const t = useT();
+  // issue #34: kto už má heroglyf, NEmá prechádzať `/entry` — to je verejná conviction gate pre
+  // ľudí zvonku („chcem sa pridať"). Existujúci člen ide rovno do tvorby (`/heroglyph/intro`).
+  // Reset flow storu je súčasť fixu, nie navyše: store nepersistuje buyer dáta, ale v tej istej
+  // SPA session v ňom môže visieť prvý pes → druhý by mal predplnené meno/dátum/tier.
+  const resetFlow = useDogyptStore((s) => s.reset);
   return (
     <div className="w-full mt-5 flex flex-col sm:flex-row gap-2.5">
       <Link
-        to="/entry"
+        to="/heroglyph/intro"
+        onClick={resetFlow}
         className="flex-1 inline-flex items-center justify-center gap-2"
         style={{
           // .btn-gold (brand manuál v3.2 — LOCKED)

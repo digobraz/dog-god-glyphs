@@ -4,10 +4,13 @@
 // leave/handoff, request→DM), C (header 🐾+🔔), D (post-trip loop) are separate later kolá —
 // joiners/requests stay [] until Slice B wires them up.
 //
-// Perzistencia = sessionStorage mirror, rovnaký vzor ako packCommunity.ts (readJson/writeJson
-// nie sú odtiaľ exportnuté, tak má tento súbor vlastnú minimálnu kópiu — self-contained).
+// Perzistencia (2026-07-30, issue #32): `@/lib/packStore` — localStorage (synchrónne čítanie)
+// + write-through do Supabase `user_trips` (dátum, status, openness). PREDTÝM to bol
+// sessionStorage mirror, takže „môj výlet" aj naplánovaný dátum zmizli pri zatvorení tabu.
+// `joiners`/`requests` ostávajú lokálne — to je doména `trip_requests` a wiring Slice B (#41).
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { MOCK_MEMBER_POOL, type MockMember, type TripPlan } from '@/components/pack/packCommunity';
+import { PACK_KEYS, readJson, persistTriplist } from '@/lib/packStore';
 
 export type TripStatus = 'solo' | 'looking' | 'going';
 export type TripOpenness = 'open' | 'closed';
@@ -122,21 +125,13 @@ function pickNIndices(len: number, n: number, rnd: () => number): number[] {
   return out;
 }
 
-// ── sessionStorage mirror (self-contained — packCommunity.ts readJson/writeJson nie sú
-// exportnuté) ──
-const STORE_KEY = 'dogypt.triplist.v1';
-function readJson<T>(key: string, fallback: T): T {
-  try { const raw = sessionStorage.getItem(key); return raw ? (JSON.parse(raw) as T) : fallback; } catch { return fallback; }
-}
-function writeJson(key: string, val: unknown): void {
-  try { sessionStorage.setItem(key, JSON.stringify(val)); } catch { /* private mode / quota — non-fatal */ }
-}
+const STORE_KEY = PACK_KEYS.triplist;
 
 export function readTriplist(): Record<string, TriplistTrip> {
   return readJson<Record<string, TriplistTrip>>(STORE_KEY, {});
 }
 export function writeTriplist(m: Record<string, TriplistTrip>): void {
-  writeJson(STORE_KEY, m);
+  persistTriplist(m);
 }
 
 // merge patch into the store entry for tripId (creating a default solo/closed entry if none

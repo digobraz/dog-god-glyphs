@@ -21,6 +21,7 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useToast } from '@/hooks/use-toast';
@@ -235,6 +236,16 @@ export default function PackTripArticle() {
   useEffect(() => { writeVotes(votes); }, [votes]);
   useEffect(() => { writePlans(plans); }, [plans]);
   useEffect(() => { writeEvents(events); }, [events]);
+  // Znovu prečítať po hydratácii z DB (issue #32) — viď usePackStoreEpoch.
+  const storeEpoch = usePackStoreEpoch();
+  useEffect(() => {
+    if (!storeEpoch) return;
+    setFavIds(readFavIds());
+    setWalkedIds(readWalkedIds());
+    setVotes(readVotes());
+    setPlans(readPlans());
+    setEvents(readEvents());
+  }, [storeEpoch]);
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
   // Zelené WALKED ✓ nie je toggle — klik otvorí menu (Add to triplist / Remove walked).
   // Dôvod (Matej 2026-07-27): odznačenie zmaže aj hlas o obtiažnosti, nesmie sa stať omylom.

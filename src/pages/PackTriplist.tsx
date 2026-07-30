@@ -17,6 +17,7 @@ import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
@@ -193,6 +194,8 @@ export default function PackTriplist() {
   const navigate = useNavigate();
   const id = usePackIdentity();
 
+  // Hydratácia z DB (issue #32) dobehne po mounte → epoch prečíta walked/triplist znova.
+  const storeEpoch = usePackStoreEpoch();
   const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
   // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
@@ -212,7 +215,7 @@ export default function PackTriplist() {
   const walkedTrails = useMemo(() => {
     const walked = readWalkedIds();
     return allTrails.filter((tr) => walked.has(tr.id));
-  }, [allTrails]);
+  }, [allTrails, storeEpoch]);
   // tr.km je STRING (HeroTrail.km: string) → coerce na number, inak reduce reťazí stringy a walkedKm.toFixed spadne
   const walkedKm = useMemo(() => walkedTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0), [walkedTrails]);
 
@@ -220,6 +223,7 @@ export default function PackTriplist() {
   useEffect(() => { seedTriplistFromPlans(readPlans()); }, []);
 
   const [triplist, setTriplist] = useState<Record<string, TriplistTrip>>(() => readTriplist());
+  useEffect(() => { if (storeEpoch) setTriplist(readTriplist()); }, [storeEpoch]);
   const [dateTripId, setDateTripId] = useState<string | null>(null);
   const [dateValue, setDateValue] = useState('');
   const [publicWCE, setPublicWCE] = useState<WCE | 'all'>('all'); // OPEN TRIPS filter (region)
@@ -229,7 +233,7 @@ export default function PackTriplist() {
   const [announceTrip, setAnnounceTrip] = useState<PublicTrip | null>(null);
   const [joinedIds, setJoinedIds] = useState<Set<string>>(() => new Set());
 
-  const walkedSet = useMemo(() => readWalkedIds(), [allTrails]);
+  const walkedSet = useMemo(() => readWalkedIds(), [allTrails, storeEpoch]);
 
   const realMyTrips = useMemo<MyTripRow[]>(() => {
     return Object.values(triplist)
@@ -342,11 +346,13 @@ export default function PackTriplist() {
         </div>
 
         {view === 'stats' ? (
+          // onAddTrip: issue #35 — kanonická ADD adresa `/pack/add/trip`; `?region=` (nie starý
+          // `?add=`), PackMap rozumie obom tvarom.
           <TripStatsPanel
             walkedTrails={walkedTrails}
             walkedKm={walkedKm}
             onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)}
-            onAddTrip={(region) => navigate('/pack/map' + (region ? `?add=${encodeURIComponent(region)}` : ''))}
+            onAddTrip={(region) => navigate('/pack/add/trip' + (region ? `?region=${encodeURIComponent(region)}` : ''))}
           />
         ) : (
         <div className="pk-glass tl-panel">

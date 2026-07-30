@@ -45,7 +45,7 @@
 // components/pack/tripShared.tsx; (7) mobile header kompaktnejší, filter
 // ikonka = sliders (nie graph).
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, Polyline, Polygon, Marker, ScaleControl, useMap, useMapEvent } from 'react-leaflet';
 import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
@@ -60,6 +60,8 @@ import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/
 import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripComments } from '@/components/pack/trip/TripComments';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
+import { levelProgress } from '@/lib/tripPoints';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
@@ -70,6 +72,7 @@ import {
 import {
   crowdAggregate, mockEventsSeed, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
+  profilePointsFor, addedByMeIds, isFounderEmail,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import {
@@ -1186,6 +1189,9 @@ export default function PackMap() {
   const t = useT();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // issue #35: `/pack/add/trip` mountuje TÚ ISTÚ stránku ako `/pack/map` — ADD flow je overlay nad
+  // živou mapou, nie samostatná obrazovka. Pathname rozhoduje, či sa formulár otvorí pri mounte.
+  const onAddRoute = useLocation().pathname.startsWith('/pack/add');
   const id = usePackIdentity();
 
   const [hoverId, setHoverId] = useState<string | null>(null);
@@ -1250,14 +1256,25 @@ export default function PackMap() {
   // krok 9: región už nie je samostatné pole, AddTripLog si ho odvodí z nakreslenej geometrie)
   // + odleť mapou na jeho stred. leafletMapRef môže byť ešte null (id.loading gate odloží mount
   // <MapContainer>) — pendingFlyRef drží cieľ, MapRefBridge onReady ho skonzumuje keď mapa domountuje.
+  // issue #35: kanonický vstup je routa `/pack/add/trip?region=<region>`; `?add=<region>` na
+  // `/pack/map` je STARÝ odkaz a musí ostať funkčný (žije v uložených linkoch a v starých
+  // TripStats tlačidlách). Oba tvary robia to isté — otvor log formulár + odleť na región.
   useEffect(() => {
-    const addParam = searchParams.get('add');
-    if (!addParam) return;
-    setAddFlow('walked');
-    const target = regionCenter(addParam);
-    if (leafletMapRef.current) leafletMapRef.current.flyTo(target, 11, { duration: 1.2 });
-    else pendingFlyRef.current = target;
-    setSearchParams({}, { replace: true });
+    const region = searchParams.get('region') ?? searchParams.get('add');
+    if (!onAddRoute && !region) return;
+    // s regiónom prichádza konkrétny pokyn („pridaj výlet TU", z TripStats) → rovno log formulár.
+    // bez regiónu je to len „chcem pridať výlet" → vstupný picker walked/planned, ako klik na
+    // tlačidlo + Add trip. Inak by routa ticho zjedla voľbu „planujem" z AddTripEntry.
+    if (region) setAddFlow('walked');
+    else setAddEntryOpen(true);
+    if (region) {
+      const target = regionCenter(region);
+      if (leafletMapRef.current) leafletMapRef.current.flyTo(target, 11, { duration: 1.2 });
+      else pendingFlyRef.current = target;
+    }
+    // query sa odstráni (bol to len jednorazový pokyn), pathname `/pack/add/trip` ostáva —
+    // nesie informáciu „som v ADD flow" a je to URL, ktorú má užívateľ vidieť.
+    if (region) setSearchParams({}, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1291,9 +1308,9 @@ export default function PackMap() {
     return () => document.body.classList.remove('trp-sheet-open');
   }, [filterSheetOpen]);
 
-  // ── KOMUNITNÁ vrstva (design: plany/pack-community-features-design.md) — MOCK, sessionStorage
-  // mirror (packCommunity), žiadna Supabase perzistencia. `now` fixné pri mounte kvôli
-  // deterministickým mock dátumom (planners/events). ──
+  // ── KOMUNITNÁ vrstva (design: plany/pack-community-features-design.md) — hodnotenia/plány/
+  // inzeráty idú cez packStore (localStorage + Supabase, issue #32); MOCK ostávajú len cudzí
+  // ľudia. `now` fixné pri mounte kvôli deterministickým mock dátumom (planners/events). ──
   const nowMs = useMemo(() => Date.now(), []);
   const [votes, setVotes] = useState<Record<string, TripVote>>(() => readVotes());
   const [plans, setPlans] = useState<TripPlan[]>(() => readPlans());
@@ -1304,6 +1321,18 @@ export default function PackMap() {
   useEffect(() => { writeVotes(votes); }, [votes]);
   useEffect(() => { writePlans(plans); }, [plans]);
   useEffect(() => { writeEvents(events); }, [events]);
+  // Po dobehnutí hydratácie z DB (issue #32) prečítať znova — inicializátory vyššie bežali
+  // pred ňou. `epoch` 0 = ešte nebola, preto guard (bez neho by sa pri mounte prepísal
+  // rozrobený stav tým istým obsahom a zbytočne to preblikne).
+  const storeEpoch = usePackStoreEpoch();
+  useEffect(() => {
+    if (!storeEpoch) return;
+    setFavIds(readFavIds());
+    setWalkedIds(readWalkedIds());
+    setVotes(readVotes());
+    setPlans(readPlans());
+    setEvents((prev) => { const stored = readEvents(); return stored.length ? stored : prev; });
+  }, [storeEpoch]);
 
   // flow modaly (design §A/§B/§D): walked popup, wishlist zámer, partner ad, DM stub, dashboard.
   const [walkedPopupId, setWalkedPopupId] = useState<string | null>(null);
@@ -1426,6 +1455,23 @@ export default function PackMap() {
     };
   }, [placeSug.length]);
 
+  // BODY + LEVEL (issue #33) — z prejdených trás, ich km/stúpania, pevných cien magistrál a
+  // odškrtnutých geo jednotiek. `localTrails` = to, čo člen sám nahodil → počíta sa aj ako
+  // „pridaná trasa" (20 b).
+  // ⚠️ MUSÍ ostať NAD `if (!id.session) return null` — useMemo je hook a beží počas renderu:
+  // pod podmieneným returnom by menil počet hookov medzi rendermi (Rules of Hooks) a zároveň
+  // by siahal na `firstName` v TDZ. Meno člena si preto skladá sám z session (bezpečné cez ?.).
+  const profilePoints = useMemo(() => {
+    const email = id.session?.user?.email ?? '';
+    const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
+    const owner = firstNameFrom(email, (meta.full_name || meta.name) as string | undefined);
+    const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
+    const addedIds = addedByMeIds(walkedTrails, { ownerName: owner, isFounder: isFounderEmail(email) });
+    localTrails.forEach((tr) => addedIds.add(tr.id));
+    return profilePointsFor(walkedTrails, { addedIds });
+  }, [allTrails, walkedIds, localTrails, id.session]);
+  const levelInfo = levelProgress(profilePoints.total);
+
   if (id.loading) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
@@ -1446,6 +1492,7 @@ export default function PackMap() {
   const authMeta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
   const authFullName = (authMeta.full_name || authMeta.name) as string | undefined;
   const firstName = firstNameFrom(id.session?.user?.email ?? '', authFullName);
+
 
   // bod 4: klik na kartu/pin → inline DETAIL v paneli (desktop) namiesto priamej navigácie;
   // ⤢ expand (expandDetail nižšie) navigates to the SEPARATE full-page article route
@@ -1576,7 +1623,14 @@ export default function PackMap() {
   // je ZA `if (id.loading)` / `if (!id.session) return null` vyššie (early return), takže hook by
   // tu porušil Rules of Hooks (biela stránka, tsc to nechytí — viď CLAUDE.md).
   const myDogsForAdd = id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? 'My dog', photo: d.cloudinary_main_url }));
+  // Tlačidlo „+ Add trip" na mape NEnaviguje na `/pack/add/trip` zámerne — obe adresy sú iné
+  // <Route>, takže navigácia by PackMap odmountovala a zhodila zoom/filtre/výrez mapy. Routa je
+  // vstupný bod (deep link z Triplistu, TripStats, uložený odkaz), nie interný toggle.
   const openAddEntry = () => setAddEntryOpen(true);
+  const closeAddEntry = () => {
+    setAddEntryOpen(false);
+    if (onAddRoute) navigate('/pack/map', { replace: true });
+  };
   const pickAddFlow = (state: TripState) => {
     setAddEntryOpen(false);
     setInlineDetailId(null);
@@ -1587,6 +1641,9 @@ export default function PackMap() {
     setAddFlow(null);
     setMobileDrawing(false);
     setAddError('');
+    // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
+    // inak by na mape visela adresa ADD flow a reload/back by formulár otvoril znova.
+    if (onAddRoute) navigate('/pack/map', { replace: true });
   };
 
   // AddTripDraft → zápis. `walked` drží PRESNE to isté poradie ako pôvodný submitAdd (#1: over
@@ -1700,14 +1757,17 @@ export default function PackMap() {
   // Krajné bloky majú flex:1, stredný len svoju šírku → stred je naozaj v osi riadku, nie
   // „niekde medzi". LEVEL nie je pilulka ani tlačidlo — klasický text (.trp-level), lebo nič
   // neotvára; pilulky sú vyhradené akciám/routám.
-  // 🔴 "Pútnik Lvl. 1" je zatiaľ HARDCODED placeholder — reálny bodový systém (prah(N)=(N−1)(15N+20),
-  // Pilgrim/Pútnik 1–N) je LOCKED spec z 2026-07-25, ale ešte NEIMPLEMENTOVANÝ (čaká sa na zelenú
-  // na kódenie: walked→DB, points.config.ts, atď.). Keď sa postaví, tento text sa napojí naň.
+  // 2026-07-30 (issue #33): rang + level UŽ NIE JE hardcoded „Pútnik Lvl 1" — počíta sa z bodov
+  // (`profilePointsFor` → `@/lib/tripPoints`, ceny a krivka = dashboard tab Mapa). Rovnaké číslo
+  // ako vo vysvedčení, jedna funkcia pre oba povrchy. Tooltip nesie rozpad „za čo".
   const renderStatusLeft = () => (
     <div className="trp-status-left">
-      <div className="trp-level" title="Your pack level">
-        <span className="trp-level-name">Pútnik</span>
-        <span className="trp-level-num"><i>Lvl</i><em>1</em></span>
+      <div
+        className="trp-level"
+        title={`${levelInfo.points} pts · ${levelInfo.toNext} to ${levelInfo.level + 1}\n${profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ')}`}
+      >
+        <span className="trp-level-name">{levelInfo.rank}</span>
+        <span className="trp-level-num"><i>Lvl</i><em>{levelInfo.level}</em></span>
       </div>
     </div>
   );
@@ -2621,7 +2681,7 @@ export default function PackMap() {
 
       {/* ── KOMUNITNÉ modaly / dashboard (design plany/pack-community-features-design.md) ── */}
       {addEntryOpen && (
-        <AddTripEntry onPick={pickAddFlow} onClose={() => setAddEntryOpen(false)} />
+        <AddTripEntry onPick={pickAddFlow} onClose={closeAddEntry} />
       )}
       {walkedPopupId && (
         <WalkedPopup
