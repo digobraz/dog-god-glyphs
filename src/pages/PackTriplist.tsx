@@ -25,7 +25,13 @@ import { readPlans, MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl } from '@/lib/countryGeo';
 import { TripAnnouncePopup } from '@/components/pack/triplist/TripAnnouncePopup';
-import { useMyTripParties, type TripParty } from '@/components/pack/triplist/useTripParty';
+import { useMyTripParties, useTripParties, partyKey, type TripParty, type PartyMember } from '@/components/pack/triplist/useTripParty';
+import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
+import {
+  requestToJoin, decideRequest, useMyRequests, useIncomingRequests, pairPending, requestKey,
+  type TripRequestStatus,
+} from '@/components/pack/triplist/tripRequests';
+import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 import {
   readTriplist, upsertMyTrip, seedTriplistFromPlans, buildPublicTrips,
   trailWCE, WCE_LABEL, type WCE,
@@ -124,6 +130,26 @@ const CSS = `
 .tl-pagebtn:disabled{opacity:.35;cursor:default;}
 .tl-pageinfo{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.06em;color:${T.onDarkDim};}
 
+/* REQUESTS TO JOIN — schránka organizátora (#41). Riadok = karta člena (.pmc) + dve akcie. */
+.tl-req{display:flex;align-items:center;gap:10px;}
+.tl-req + .tl-req{margin-top:8px;}
+.tl-req-member{flex:1;min-width:0;}
+.tl-req-member .pmc{margin-top:0;}
+.tl-req-acts{display:flex;gap:6px;flex-shrink:0;}
+.tl-reqbtn{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border-radius:10px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;transition:all .15s;}
+.tl-reqbtn:disabled{opacity:.4;cursor:default;}
+.tl-reqbtn.yes:not(:disabled):hover{border-color:#37B26A;color:#5FD98C;background:rgba(55,178,106,0.12);}
+.tl-reqbtn.no:not(:disabled):hover{border-color:#E5502A;color:#FF8A66;background:rgba(229,80,42,0.12);}
+@media(max-width:560px){.tl-req{flex-wrap:wrap;}.tl-req-acts{width:100%;}.tl-reqbtn{flex:1;}}
+
+/* JOIN tlačidlo na karte cudzieho otvoreného výletu (#41) — CTA lock .btn-gold (gradient + radius) */
+.tl-join{width:100%;margin-top:8px;font-family:${FONT_TITLE};font-weight:700;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:8px 6px;border-radius:8px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;transition:filter .15s;}
+.tl-join:hover:not(:disabled){filter:brightness(1.05);}
+.tl-join:disabled{cursor:default;}
+.tl-join.done{background:rgba(55,178,106,0.16);border-color:rgba(55,178,106,0.5);color:#5FD98C;}
+.tl-join.pending{background:rgba(245,240,228,0.06);border-color:${T.onDarkBorder};color:${T.onDarkDim};}
+.tl-joinerr{font-size:9px;color:#FF8A66;margin-top:5px;line-height:1.35;}
+
 /* Add date popup — dark glass, vokabulár .tcm-overlay/.tcm-modal (TripComments.tsx) */
 .tl-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .tl-modal{width:100%;max-width:360px;background:${T.glass};backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(245,240,228,0.06);padding:24px;}
@@ -201,6 +227,40 @@ function sortMyTrips(rows: MyTripRow[], nowMs: number): MyTripRow[] {
 }
 
 type MyTripRow = { entry: TriplistTrip; trail: HeroTrail; placeholder?: boolean; done?: boolean };
+
+// Jedna karta v OPEN TRIPS. Dva pôvody, jeden tvar: `real` = inzerát z DB (dá sa
+// oň požiadať), `mock` = deterministická demo náplň z triplist.ts (otvára starý
+// oznamový popup s vymyslenými profilmi). Mock sa ukáže LEN keď v DB nie je nič.
+type OpenCard = {
+  key: string;
+  trail: HeroTrail;
+  date: string;            // '' = bez dátumu
+  joiners: number;
+  ownerName: string;
+  ownerInitial: string;
+  message?: string;
+  real?: { slug: string; organizerId: string };
+  mock?: PublicTrip;
+};
+
+// stav tlačidla „požiadať" podľa mojej existujúcej žiadosti na ten výlet
+function joinLabel(status?: TripRequestStatus): { label: string; cls: string; disabled: boolean } {
+  switch (status) {
+    case 'requested': return { label: '✓ Requested', cls: ' pending', disabled: true };
+    case 'accepted': return { label: "✓ You're going", cls: ' done', disabled: true };
+    // odmietnutý aj odídený smie požiadať znova — starý riadok sa pri tom zmaže
+    // a založí nanovo (viď tripRequests.ts, unique constraint)
+    case 'declined': return { label: 'Ask again', cls: '', disabled: false };
+    case 'left': return { label: 'Ask again', cls: '', disabled: false };
+    default: return { label: 'Request to join', cls: '', disabled: false };
+  }
+}
+
+// Keď `get_trip_party()` k žiadosti meno nevydá (človek medzitým prestal byť platiaci
+// člen → vypadne z `member` v SQL), riadok sa aj tak MUSÍ dať vybaviť.
+const UNKNOWN_MEMBER: PartyMember = {
+  role: 'requested', ownerFirst: null, dogName: null, dogPhoto: null, packNumber: null, at: null,
+};
 
 export default function PackTriplist() {
   const t = useT();
@@ -291,13 +351,31 @@ export default function PackTriplist() {
     () => sortMyTrips(realMyTrips.length > 0 ? realMyTrips : placeholderMyTrips, nowMs),
     [realMyTrips, placeholderMyTrips, nowMs],
   );
+  // #41 — ŽIADOSTI. `reqEpoch` je ručný refresh: prijatie/odmietnutie zmení riadok
+  // v DB, ale RPC ani zoznamy o tom samy nevedia. `reqBusy` drží id práve
+  // spracúvanej akcie (dvojklik na Accept by inak poslal dva updaty).
+  const [reqEpoch, setReqEpoch] = useState(0);
+  const [reqBusy, setReqBusy] = useState<string | null>(null);
+  const [joinErr, setJoinErr] = useState<Record<string, string>>({});
+  const incoming = useIncomingRequests(reqEpoch);
+  const myRequests = useMyRequests(reqEpoch);
+
   // #41: kto reálne ide. Len pre SKUTOČNÉ výlety — placeholder riadky (prázdny
-  // triplist) nemajú v DB čo hľadať a zbytočne by strieľali RPC.
-  const partySlugs = useMemo(
-    () => (realMyTrips.length > 0 ? realMyTrips.map((r) => r.entry.tripId) : []),
-    [realMyTrips],
+  // triplist) nemajú v DB čo hľadať a zbytočne by strieľali RPC. Slugy zo schránky
+  // sa pridávajú aj keď v lokálnom triplíste (ešte) nie sú — inak by žiadosť visela bez mena.
+  const partySlugs = useMemo(() => {
+    const s = new Set<string>(realMyTrips.map((r) => r.entry.tripId));
+    Object.keys(incoming.bySlug).forEach((slug) => s.add(slug));
+    return [...s];
+  }, [realMyTrips, incoming.bySlug]);
+  const parties = useMyTripParties(partySlugs, reqEpoch);
+
+  // #41: REÁLNE otvorené výlety ostatných členov (DB) + ich organizátori.
+  const { trips: dbOpenTrips } = useOpenTrips(reqEpoch);
+  const openParties = useTripParties(
+    dbOpenTrips.map((o) => ({ slug: o.slug, organizerId: o.organizerId })),
+    reqEpoch,
   );
-  const parties = useMyTripParties(partySlugs);
   // najbližší nadchádzajúci trip → sub v TRIPLIST tab-e (Matej: „v headri môže byť info next trip za xy dní")
   const nextUpDays = useMemo(() => {
     const up = myTrips.find((r) => !r.done && (daysFromNow(r.entry.date, nowMs) ?? -1) >= 0);
@@ -307,12 +385,45 @@ export default function PackTriplist() {
   // depends on `triplist` — trip pridaný do vlastného zoznamu vypadne z PUBLIC (buildPublicTrips
   // excludes tripIds v readTriplist()).
   const publicTripsAll: PublicTrip[] = useMemo(() => buildPublicTrips(allTrails, nowMs), [allTrails, nowMs, triplist]);
-  const publicTrips = useMemo(
-    () => (publicWCE === 'all' ? publicTripsAll : publicTripsAll.filter((pt) => trailWCE(pt.trail) === publicWCE)),
-    [publicTripsAll, publicWCE],
+
+  // #41: DB inzeráty majú prednosť pred mockom — mock je len demo náplň, kým reálne
+  // inzeráty nie sú (rovnaký vzor ako placeholderMyTrips vyššie).
+  const realOpenCards = useMemo<OpenCard[]>(() => dbOpenTrips.flatMap((o) => {
+    const trail = allTrails.find((tr) => tr.id === o.slug);
+    // cudzia LOKÁLNA trasa — jej geometriu ani fotky appka nemá, kartu nepostaví
+    if (!trail) return [];
+    const party = openParties[partyKey(o.slug, o.organizerId)];
+    const org = party?.organizer;
+    const who = [org?.ownerFirst, org?.dogName].filter(Boolean).join(' & ');
+    return [{
+      key: partyKey(o.slug, o.organizerId),
+      trail,
+      date: o.date ?? '',
+      joiners: party?.joiners.length ?? 0,
+      ownerName: who || 'A Dogyptian',
+      ownerInitial: (org?.ownerFirst ?? org?.dogName ?? '?').charAt(0).toUpperCase(),
+      real: { slug: o.slug, organizerId: o.organizerId },
+    }];
+  }), [dbOpenTrips, openParties, allTrails]);
+
+  const mockOpenCards = useMemo<OpenCard[]>(() => publicTripsAll.map((pt) => ({
+    key: pt.trail.id,
+    trail: pt.trail,
+    date: pt.date,
+    joiners: pt.joinersCount,
+    ownerName: `${pt.owner.name} & ${pt.owner.dog}`,
+    ownerInitial: pt.owner.name.charAt(0).toUpperCase(),
+    message: pt.message,
+    mock: pt,
+  })), [publicTripsAll]);
+
+  const openCardsAll = realOpenCards.length > 0 ? realOpenCards : mockOpenCards;
+  const openCards = useMemo(
+    () => (publicWCE === 'all' ? openCardsAll : openCardsAll.filter((c) => trailWCE(c.trail) === publicWCE)),
+    [openCardsAll, publicWCE],
   );
-  const publicPageCount = Math.max(1, Math.ceil(publicTrips.length / PUBLIC_PER_PAGE));
-  const publicShown = publicTrips.slice(publicPage * PUBLIC_PER_PAGE, publicPage * PUBLIC_PER_PAGE + PUBLIC_PER_PAGE);
+  const publicPageCount = Math.max(1, Math.ceil(openCards.length / PUBLIC_PER_PAGE));
+  const publicShown = openCards.slice(publicPage * PUBLIC_PER_PAGE, publicPage * PUBLIC_PER_PAGE + PUBLIC_PER_PAGE);
   const setRegion = (k: WCE | 'all') => { setPublicWCE(k); setPublicPage(0); };
 
   const openAddDate = (tripId: string, current?: string) => {
@@ -324,6 +435,27 @@ export default function PackTriplist() {
     const next = upsertMyTrip(dateTripId, { date: dateValue || undefined });
     setTriplist((prev) => ({ ...prev, [dateTripId]: next }));
     setDateTripId(null);
+  };
+
+  // #41 — požiadať o pridanie na cudzí otvorený výlet. `from_user_id` sa neposiela
+  // odtiaľto: doplní ho tripRequests.ts zo session a RLS ho aj tak zamyká na auth.uid().
+  const onRequestJoin = async (real: { slug: string; organizerId: string }) => {
+    const k = requestKey(real.slug, real.organizerId);
+    setReqBusy(k);
+    const err = await requestToJoin(real.slug, real.organizerId);
+    setReqBusy(null);
+    setJoinErr((prev) => ({ ...prev, [k]: err ?? '' }));
+    if (!err) setReqEpoch((e) => e + 1);
+  };
+
+  // #41 — organizátor rozhodne. Riadok sa adresuje `id`; meno k nemu má appka len
+  // z RPC (get_trip_party cudzie uuid zámerne nevydáva).
+  const onDecide = async (id: string, status: 'accepted' | 'declined') => {
+    setReqBusy(id);
+    const err = await decideRequest(id, status);
+    setReqBusy(null);
+    if (err) console.warn('[trip request]', err);
+    setReqEpoch((e) => e + 1);
   };
 
   if (id.loading) {
@@ -344,6 +476,7 @@ export default function PackTriplist() {
     <div className="tl-root">
       <style>{GLASS_CSS}</style>
       <style>{COMMUNITY_CSS}</style>
+      <style>{PARTY_CARD_CSS}</style>
       <style>{CSS}</style>
       <HieroglyphBg />
 
@@ -376,6 +509,44 @@ export default function PackTriplist() {
           />
         ) : (
         <div className="pk-glass tl-panel">
+          {/* REQUESTS TO JOIN (#41) — schránka organizátora. Ukáže sa LEN keď niekto čaká;
+              prijatie/odmietnutie píše do `trip_requests` (status prepína výhradne organizátor,
+              policy trip_requests_decide). Meno k riadku dáva get_trip_party, id dáva tabuľka. */}
+          {incoming.count > 0 && (
+            <>
+              <div className="tl-section">
+                <div className="tl-sechead">
+                  <h3>Requests to join · {incoming.count}</h3>
+                </div>
+                {Object.entries(incoming.bySlug).map(([slug, rows]) => {
+                  const trail = allTrails.find((tr) => tr.id === slug);
+                  return pairPending(rows, parties[slug]?.requests ?? []).map(({ row, member }) => (
+                    <div key={row.id} className="tl-req">
+                      <div className="tl-req-member">
+                        <PartyMemberCard member={member ?? UNKNOWN_MEMBER} roleLabel={trail?.name ?? slug} />
+                      </div>
+                      <div className="tl-req-acts">
+                        <button
+                          type="button"
+                          className="tl-reqbtn yes"
+                          disabled={reqBusy === row.id}
+                          onClick={() => void onDecide(row.id, 'accepted')}
+                        >Accept</button>
+                        <button
+                          type="button"
+                          className="tl-reqbtn no"
+                          disabled={reqBusy === row.id}
+                          onClick={() => void onDecide(row.id, 'declined')}
+                        >Decline</button>
+                      </div>
+                    </div>
+                  ));
+                })}
+              </div>
+              <div className="tl-divider" />
+            </>
+          )}
+
           {/* MY TRIPS — horizontálny slajd, status badge (farebný: done/with/looking/solo), vlajka */}
           <div className="tl-section">
             <div className="tl-sechead">
@@ -440,29 +611,52 @@ export default function PackTriplist() {
                 <option value="AT" disabled>Austria — soon</option>
               </select>
             </div>
-            {publicTrips.length === 0 ? (
+            {openCards.length === 0 ? (
               <div className="tl-empty">No open trips in this region right now.</div>
             ) : (
               <>
               <div className="tl-grid">
-                {publicShown.map((pt) => (
-                  <div key={pt.trail.id} className="pk-glass-block tl-block" onClick={() => setAnnounceTrip(pt)}>
-                    <div className="tl-block-cover" style={pt.trail.photos[0] ? { backgroundImage: `url('${pt.trail.photos[0]}')` } : undefined}>
+                {publicShown.map((c) => {
+                  // `real` do lokálnej konštanty — TS si zúženie c.real do onClick closure neprenesie
+                  const real = c.real;
+                  const k = real ? requestKey(real.slug, real.organizerId) : '';
+                  const st = real ? joinLabel(myRequests[k]) : null;
+                  return (
+                  <div
+                    key={c.key}
+                    className="pk-glass-block tl-block"
+                    onClick={() => (c.mock ? setAnnounceTrip(c.mock) : navigate(`/pack/map/${c.trail.id}`))}
+                  >
+                    <div className="tl-block-cover" style={c.trail.photos[0] ? { backgroundImage: `url('${c.trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
-                      <span className="tl-block-badge looking">Looking for pack{pt.joinersCount > 0 ? ` · +${pt.joinersCount}` : ''}</span>
+                      <span className="tl-block-badge looking">Looking for pack{c.joiners > 0 ? ` · +${c.joiners}` : ''}</span>
                     </div>
                     <div className="tl-block-info">
-                      <div className="tl-block-name">{pt.trail.name}</div>
-                      <div className="tl-block-sub">{pt.trail.region} · {WCE_LABEL[trailWCE(pt.trail)]}</div>
+                      <div className="tl-block-name">{c.trail.name}</div>
+                      <div className="tl-block-sub">{c.trail.region} · {WCE_LABEL[trailWCE(c.trail)]}</div>
                       <div className="tl-block-owner">
-                        <span className="tl-block-avatar">{pt.owner.name.charAt(0).toUpperCase()}</span>
-                        <span>{pt.owner.name} & {pt.owner.dog}</span>
+                        <span className="tl-block-avatar">{c.ownerInitial}</span>
+                        <span>{c.ownerName}</span>
                       </div>
-                      <div className="tl-msg" title={pt.message}>{pt.message}</div>
-                      <div className="tl-block-foot"><span className="tl-datepill">{pt.date}</span></div>
+                      {c.message && <div className="tl-msg" title={c.message}>{c.message}</div>}
+                      <div className="tl-block-foot">
+                        {c.date ? <span className="tl-datepill">{c.date}</span> : <span className="tl-date">No date yet</span>}
+                      </div>
+                      {real && st && (
+                        <>
+                          <button
+                            type="button"
+                            className={`tl-join${st.cls}`}
+                            disabled={st.disabled || reqBusy === k}
+                            onClick={(e) => { e.stopPropagation(); void onRequestJoin(real); }}
+                          >{reqBusy === k ? '…' : st.label}</button>
+                          {joinErr[k] && <div className="tl-joinerr">{joinErr[k]}</div>}
+                        </>
+                      )}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               {publicPageCount > 1 && (
                 <div className="tl-pager">

@@ -84,29 +84,47 @@ export function useTripParty(tripSlug: string | null | undefined, organizerId?: 
 }
 
 /**
- * Partie pre VIAC mojich výletov naraz (zoznam TRIPLIST). RPC je per výlet, takže
- * sa volá paralelne — mojich výletov sú jednotky, nie tisíce. Kľúč cache je zoznam
- * slugov, nie pole: inak by sa to prekresľovalo pri každom renderi rodiča.
+ * Kľúč do mapy partií. Slug SÁM O SEBE výlet neidentifikuje — tú istú trasu má
+ * naplánovanú viac ľudí a každý plán je iná partia. Bez organizátora (moje výlety)
+ * je kľúč holý slug, nech `useMyTripParties` ostáva `Record<slug, …>`.
  */
-export function useMyTripParties(slugs: string[]): Record<string, TripParty> {
+export function partyKey(slug: string, organizerId?: string | null): string {
+  return organizerId ? `${slug}|${organizerId}` : slug;
+}
+
+/**
+ * Partie pre VIAC výletov naraz. RPC je per výlet, takže sa volá paralelne —
+ * výletov na obrazovke sú jednotky, nie tisíce. Dep je odvodený REŤAZEC, nie pole:
+ * inak by sa to prekresľovalo pri každom renderi rodiča.
+ *
+ * `epoch` = ručný refresh (prijatie/odmietnutie žiadosti prepíše partiu v DB, ale
+ * RPC o tom sama nevie — komponent zvýši epoch a partia sa dotiahne znova).
+ */
+export function useTripParties(
+  items: { slug: string; organizerId?: string | null }[],
+  epoch = 0,
+): Record<string, TripParty> {
   const [map, setMap] = useState<Record<string, TripParty>>({});
-  const key = slugs.join('|');
+  const key = items.map((i) => partyKey(i.slug, i.organizerId)).join(',');
 
   useEffect(() => {
     let alive = true;
-    const list = key ? key.split('|') : [];
+    const list = key ? key.split(',') : [];
     if (!list.length) { setMap({}); return; }
     (async () => {
-      const entries = await Promise.all(list.map(async (slug) => {
+      const entries = await Promise.all(list.map(async (k) => {
+        const [slug, organizerId] = k.split('|');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error } = await (supabase as any).rpc('get_trip_party', { p_trip_slug: slug }) as
-          { data: PartyRow[] | null; error: { message: string } | null };
-        if (error) return [slug, EMPTY] as const;
+        const { data, error } = await (supabase as any).rpc('get_trip_party', {
+          p_trip_slug: slug,
+          ...(organizerId ? { p_organizer: organizerId } : {}),
+        }) as { data: PartyRow[] | null; error: { message: string } | null };
+        if (error) return [k, EMPTY] as const;
         const rows = (data ?? []).map((r): PartyMember => ({
           role: r.role, ownerFirst: r.owner_first, dogName: r.dog_name,
           dogPhoto: r.dog_photo, packNumber: r.pack_number, at: r.at,
         }));
-        return [slug, {
+        return [k, {
           organizer: rows.find((r) => r.role === 'organizer') ?? null,
           joiners: rows.filter((r) => r.role === 'joiner'),
           requests: rows.filter((r) => r.role === 'requested'),
@@ -116,7 +134,12 @@ export function useMyTripParties(slugs: string[]): Record<string, TripParty> {
       if (alive) setMap(Object.fromEntries(entries));
     })();
     return () => { alive = false; };
-  }, [key]);
+  }, [key, epoch]);
 
   return map;
+}
+
+/** Partie MOJICH výletov (organizátor = ja, default v SQL je `auth.uid()`). */
+export function useMyTripParties(slugs: string[], epoch = 0): Record<string, TripParty> {
+  return useTripParties(slugs.map((slug) => ({ slug })), epoch);
 }

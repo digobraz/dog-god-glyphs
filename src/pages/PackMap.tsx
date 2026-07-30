@@ -82,6 +82,11 @@ import {
   type WalkedInput, type PartnerAdInput,
 } from '@/components/pack/packCommunityUI';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
+// #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
+// `useTripParties` k nim mená (get_trip_party), karta ich vykreslí.
+import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
+import { useTripParties, partyKey, type PartyMember } from '@/components/pack/triplist/useTripParty';
+import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 // ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vytiahnuté z
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
@@ -831,6 +836,8 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    uppercase eyebrow, nie nadpis → FONT_UI 500. Titulnú rolu v detaile nesie .trp-inldet-name. */
 .trp-inldet-section h4{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDark};margin-bottom:6px;}
 .trp-inldet-empty{font-size:11.5px;color:${T.onDarkDim};font-style:italic;}
+/* #41 — blok jednej partie (organizátor + kto s ním ide) v inline detaile */
+.trp-inldet-host + .trp-inldet-host{margin-top:10px;}
 .trp-inldet-actions{display:flex;gap:9px;padding:14px 20px 20px;border-top:1px solid ${T.onDarkHair};flex-shrink:0;}
 .trp-inldet-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;padding:10px 8px;border-radius:10px;cursor:pointer;border:1px solid transparent;transition:all .15s;}
 .trp-inldet-btn--ghost{background:rgba(245,240,228,0.06);color:${T.onDark};border-color:${T.onDarkBorder};}
@@ -1387,6 +1394,23 @@ export default function PackMap() {
     allTrails.forEach((t) => m.set(t.id, t));
     return (id: string) => m.get(id);
   }, [allTrails]);
+
+  // #41 — CUDZIE OTVORENÉ VÝLETY na tejto trase. Kľúčované slugom do zoznamu, nie na
+  // jednu položku: tú istú trasu môže mať vypísanú viac ľudí a každý je iná partia.
+  // Bez organizátora z RPC (zavretý medzičasom, nezaplatený) sa karta nekreslí — nie je koho.
+  const { trips: openTrips } = useOpenTrips();
+  const openTripParties = useTripParties(openTrips.map((o) => ({ slug: o.slug, organizerId: o.organizerId })));
+  const openHostsBySlug = useMemo(() => {
+    const m = new Map<string, { key: string; date: string | null; organizer: PartyMember; joiners: PartyMember[] }[]>();
+    for (const o of openTrips) {
+      const party = openTripParties[partyKey(o.slug, o.organizerId)];
+      if (!party?.organizer) continue;
+      const arr = m.get(o.slug) ?? [];
+      arr.push({ key: partyKey(o.slug, o.organizerId), date: o.date, organizer: party.organizer, joiners: party.joiners });
+      m.set(o.slug, arr);
+    }
+    return m;
+  }, [openTrips, openTripParties]);
 
   const trailColor = (tid: string) => walkedIds.has(tid) ? '#7BB07A' : favIds.has(tid) ? GOLD : '#D47D6D';
 
@@ -1994,6 +2018,7 @@ export default function PackMap() {
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
+      <style>{PARTY_CARD_CSS}</style>
 
       {/* floating dark "Explore" panel — no header, margined off top/left/bottom. Bod 4/6:
           3 mutually-exclusive stavy (LIST default / inline DETAIL / ADD setup), desktop-only
@@ -2100,6 +2125,22 @@ export default function PackMap() {
                   <div className="trp-inldet-tagrow">
                     {dtChips.map((c) => <span key={c.key} className="trp-inldet-tag">{c.emoji ? `${c.emoji} ` : ''}{c.label}</span>)}
                     {!isUnwalkedPlan && <HazardTags agg={dtAgg} />}
+                  </div>
+                )}
+
+                {/* #41 — KTO TENTO VÝLET VYPÍSAL. Nie autor trasy (`authorOf` je textové pole
+                    datasetu), ale reálny člen, ktorý má trasu ako otvorený výlet v DB.
+                    Karta je zámerne chudobná — o cudzom človeku appka vie len meno, psa,
+                    fotku a poradové číslo (viď PartyMemberCard.tsx). */}
+                {(openHostsBySlug.get(dt.id) ?? []).length > 0 && (
+                  <div className="trp-inldet-section">
+                    <h4>Open trip from the pack</h4>
+                    {(openHostsBySlug.get(dt.id) ?? []).map((h) => (
+                      <div key={h.key} className="trp-inldet-host">
+                        <PartyMemberCard member={h.organizer} roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'} />
+                        {h.joiners.map((j, i) => <PartyMemberCard key={`${h.key}:${i}`} member={j} />)}
+                      </div>
+                    ))}
                   </div>
                 )}
 
