@@ -4,7 +4,7 @@
 // PREČO CEZ PROXY A NIE PRIAMO: kľúč Mapy.com je síce vo frontende (src/lib/env.ts — musí byť,
 // ťahajú sa cezeň mapové dlaždice), ale routing cezeň volať priamo NESMIEME — obišli by sme
 // server-side cache, mesačný kill-switch aj počítadlo `map_api_usage`. Presne to robí starý
-// src/lib/snapToTrail.ts; ten sa na konci vlny maže spolu s __TrailsPreview.tsx.
+// Predchodca (src/lib/snapToTrail.ts + __TrailsPreview.tsx) zmazaný 2026-07-31.
 //
 // DVE CACHE, OBE MODULOVÉ (nie React state) — prežívajú zavretie a znovuotvorenie ADD flow,
 // inak by človek platil kredity znova za tie isté kliky:

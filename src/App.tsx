@@ -92,8 +92,6 @@ const PackMap = lazy(() => import("./pages/PackMap.tsx"));
 const PackTripArticle = lazy(() => import("./pages/PackTripArticle.tsx")); // iterácia 12 bod 5 — ⤢ expand full-page article
 const PackTriplist = lazy(() => import("./pages/PackTriplist.tsx")); // TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md)
 const PackDogs = lazy(() => import("./pages/PackDogs.tsx"));
-const TrailsPreview = lazy(() => import("./pages/__TrailsPreview.tsx")); // DEV TEMP — zmazať pred commitom
-const TrailsDrawTest = lazy(() => import("./pages/__TrailsDrawTest.tsx")); // DEV TEMP
 const Login = lazy(() => import("./pages/Login.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Vision = lazy(() => import("./pages/Vision.tsx"));
@@ -220,8 +218,6 @@ const App = () => (
               <Route path="/pack/add/trip" element={DEV_FULL ? <PackMap /> : <Navigate to="/pack" replace />} />
               <Route path="/pack/add" element={<Navigate to="/pack/add/trip" replace />} />
               <Route path="/pack/dogs" element={DEV_FULL ? <PackDogs /> : <Navigate to="/pack" replace />} />
-              <Route path="/trails-preview" element={<TrailsPreview />} /> {/* DEV TEMP */}
-              <Route path="/trails-draw-test" element={<TrailsDrawTest />} /> {/* DEV TEMP */}
 
               <Route path="/cert-render/:id" element={<CertRender />} />
               <Route path="/invoice-render/:id" element={<InvoiceRender />} />
