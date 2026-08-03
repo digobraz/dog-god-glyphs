@@ -244,7 +244,12 @@ export default function PackTripArticle() {
     const party = hostParties[partyKey(o.slug, o.organizerId)];
     // bez organizátora z RPC (zavretý medzitým, nezaplatený) nie je koho vykresliť
     if (!party?.organizer) return [];
-    return [{ key: partyKey(o.slug, o.organizerId), date: o.date, organizer: party.organizer, joiners: party.joiners }];
+    return [{
+      key: partyKey(o.slug, o.organizerId), date: o.date,
+      organizer: party.organizer, joiners: party.joiners,
+      // kontext pre „Message" na karte (#53) — adresu si server odvodí sám
+      slug: o.slug, organizerId: o.organizerId,
+    }];
   }), [hostsHere, hostParties]);
 
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
@@ -666,8 +671,18 @@ export default function PackTripArticle() {
             <h3>Open trip from the pack</h3>
             {hosts.map((h) => (
               <div key={h.key} className="pta-host">
-                <PartyMemberCard member={h.organizer} roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'} />
-                {h.joiners.map((j, i) => <PartyMemberCard key={`${h.key}:${i}`} member={j} />)}
+                <PartyMemberCard
+                  member={h.organizer}
+                  roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'}
+                  dm={{ tripSlug: h.slug, organizerId: h.organizerId, isMe: h.organizerId === id.session?.user?.id }}
+                />
+                {h.joiners.map((j, i) => (
+                  <PartyMemberCard
+                    key={`${h.key}:${i}`}
+                    member={j}
+                    dm={{ tripSlug: h.slug, organizerId: h.organizerId }}
+                  />
+                ))}
               </div>
             ))}
           </div>

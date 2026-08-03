@@ -31,6 +31,7 @@ export const THREAD_CSS = `
 .msg-bubble{font-size:13px;line-height:1.5;padding:10px 14px;border-radius:16px;background:${T.card};color:${INK};border:1px solid rgba(201,154,63,0.25);}
 .msg-bubble.me{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border-color:rgba(250,244,236,0.3);}
 .msg-empty{text-align:center;padding:40px 16px;color:${T.onDarkDim};font-size:12.5px;font-style:italic;}
+.msg-senderr{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:0 16px 8px;box-sizing:border-box;font-size:11.5px;color:#E0A0A0;}
 .msg-thread-send{flex-shrink:0;display:flex;gap:10px;padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1px solid ${T.onDarkHair};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;}
 .msg-thread-input{flex:1;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:11px 16px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;}
 .msg-thread-input:focus{border-color:${GOLD};}
@@ -48,6 +49,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
 }) {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [text, setText] = useState('');
+  const [sendErr, setSendErr] = useState<string | null>(null);
   const me = getMe();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -107,8 +109,17 @@ export function Thread({ convId, onClose, onOpenTrip }: {
     const t = text.trim();
     if (!t) return;
     setText('');
-    const updated = await sendMessage(convId, t);
-    setConv(updated); // okamžitý refresh — nespoliehať sa len na emitter (ten dobehne o chvíľu tiež)
+    setSendErr(null);
+    try {
+      const updated = await sendMessage(convId, t);
+      setConv(updated); // okamžitý refresh — nespoliehať sa len na emitter (ten dobehne o chvíľu tiež)
+    } catch {
+      // DM ide od 2026-08-03 do DB a zápis môže byť odmietnutý (blok, offline,
+      // vypadnutá session). Text vraciame do inputu — správa, ktorá neodišla,
+      // sa nesmie stratiť ani tváriť ako odoslaná.
+      setText(t);
+      setSendErr('Message not sent. Check your connection and try again.');
+    }
   };
 
   const handleJoin = async () => {
@@ -148,6 +159,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
         })}
         <div ref={bottomRef} />
       </div>
+
+      {sendErr && <div className="msg-senderr" role="alert">{sendErr}</div>}
 
       {iAmMember ? (
         <div className="msg-thread-send">

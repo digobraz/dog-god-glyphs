@@ -56,16 +56,21 @@ const CSS = `
 
 /* dvojkartový prepínač TRIPLIST | TRIPSTATS — aktívna karta = zlatý rámik, druhá „vedľa" = klik na prepnutie */
 .tl-tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
-.tl-tab{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 17px;border-radius:16px;border:1px solid ${T.onDarkBorder};background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;text-align:left;transition:border-color .15s,transform .15s,background .15s;}
+/* V3 (#46): len IKONA a NÁZOV, žiadny podnadpis, vycentrované a väčšie. Podnadpisy („12 walked ·
+   148 km" / „Next trip · o 3 dni") hovorili to isté, čo obsah hneď pod nimi, a rozbíjali karte os
+   — teraz je karta jeden symbol a jedno slovo. Farebnosť: aktívna = zlatá (brand lock .btn-gold
+   rodina), neaktívna = tlmené sklo bez farebného akcentu, aby bolo na prvý pohľad vidieť, ktorá
+   je zapnutá — dve súperiace farby by z prepínača urobili dve rovnocenné tlačidlá. */
+.tl-tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px 14px;border-radius:16px;border:1px solid ${T.onDarkBorder};background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);cursor:pointer;text-align:center;transition:border-color .15s,transform .15s,background .15s;}
 .tl-tab:hover{border-color:rgba(201,154,63,0.5);transform:translateY(-1px);}
-.tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};display:flex;align-items:center;gap:8px;}
-.tl-tab-ic{width:26px;height:26px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};flex-shrink:0;}
-.tl-tab-ic img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:.8;}
-.tl-tab-sub{font-size:10.5px;color:${T.onDarkDim};padding-left:34px;}
+.tl-tab-label{font-family:${FONT_TITLE};font-weight:700;font-size:15px;letter-spacing:.09em;text-transform:uppercase;color:${T.onDark};display:flex;flex-direction:column;align-items:center;gap:10px;}
+.tl-tab-ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};flex-shrink:0;}
+.tl-tab-ic img{width:24px;height:24px;filter:brightness(0) invert(1);opacity:.8;}
 .tl-tab.on{background:linear-gradient(135deg,rgba(245,199,61,0.16),rgba(230,158,26,0.10));border-color:${GOLD};}
 .tl-tab.on .tl-tab-label{color:${GOLD};}
 .tl-tab.on .tl-tab-ic{background:rgba(201,154,63,0.16);border-color:rgba(201,154,63,0.5);}
 .tl-tab.on .tl-tab-ic img{filter:${GOLD_ICON_FILTER};opacity:1;}
+@media (max-width:400px){ .tl-tab{padding:16px 10px;} .tl-tab-label{font-size:13px;letter-spacing:.06em;} .tl-tab-ic{width:40px;height:40px;} .tl-tab-ic img{width:21px;height:21px;} }
 
 /* LIQUID GLASS obsahový panel (.pk-glass z GLASS_CSS) */
 .tl-panel{margin-top:14px;padding:22px 20px 24px;}
@@ -531,11 +536,9 @@ export default function PackTriplist() {
         <div className="tl-tabs">
           <button type="button" className={`tl-tab${view === 'stats' ? ' on' : ''}`} onClick={() => setView('stats')}>
             <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('trophy')} alt="" /></span> Tripstats</span>
-            <span className="tl-tab-sub">{walkedTrails.length} walked · {walkedKm % 1 === 0 ? walkedKm : walkedKm.toFixed(1)} km</span>
           </button>
           <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
             <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('clipboard')} alt="" /></span> Triplist</span>
-            <span className="tl-tab-sub">{nextUpDays !== null ? `Next trip · ${countdownLabel(nextUpDays)}` : 'Plans & open trips'}</span>
           </button>
         </div>
 
@@ -564,7 +567,14 @@ export default function PackTriplist() {
                   return pairPending(rows, parties[slug]?.requests ?? []).map(({ row, member }) => (
                     <div key={row.id} className="tl-req">
                       <div className="tl-req-member">
-                        <PartyMemberCard member={member ?? UNKNOWN_MEMBER} roleLabel={trail?.name ?? slug} />
+                        {/* #53 — organizátor si vie so žiadateľom napísať EŠTE PRED
+                            rozhodnutím; „idem/nejdem" sa dohaduje v správach, nie
+                            slepým Accept. Organizátorom tejto schránky som ja. */}
+                        <PartyMemberCard
+                          member={member ?? UNKNOWN_MEMBER}
+                          roleLabel={trail?.name ?? slug}
+                          dm={id.session?.user?.id ? { tripSlug: slug, organizerId: id.session.user.id } : undefined}
+                        />
                       </div>
                       <div className="tl-req-acts">
                         <button
