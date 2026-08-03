@@ -176,6 +176,27 @@ export function countryFlag(country?: string | null): string {
   return String.fromCodePoint(...[...iso.toUpperCase()].map((ch) => 0x1f1e6 + ch.charCodeAt(0) - 65));
 }
 
+// ISO2 → anglický celý názov. NAME_TO_ISO2 je zoznam ALIASOV (anglicky, slovensky, ISO3,
+// ISO2) a anglický názov v ňom stojí pri každej krajine ako PRVÝ — reverzný index preto berie
+// prvý kľúč dlhší než 3 znaky. Bez toho by TRIPSTATS musel držať vlastnú tabuľku krajín a tá
+// by sa s touto rozišla pri prvom pridaní krajiny.
+const ISO2_TO_NAME: Record<string, string> = (() => {
+  const small = new Set(['and', 'of', 'the']);
+  const m: Record<string, string> = {};
+  for (const [k, v] of Object.entries(NAME_TO_ISO2)) {
+    if (k.length <= 3 || m[v]) continue;
+    m[v] = k.split(' ').map((w) => (small.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1))).join(' ');
+  }
+  return m;
+})();
+
+/** ISO2 → anglický názov krajiny ("sk" → "Slovakia"). Neznáme ISO2 → veľkými písmenami. */
+export function countryName(iso2?: string | null): string {
+  if (!iso2) return '';
+  const key = iso2.trim().toLowerCase();
+  return ISO2_TO_NAME[key] ?? key.toUpperCase();
+}
+
 // --- Multi-country trip support (/pack Trips) ---------------------------------
 import { SVK_BORDER } from '@/data/svkBorder';
 

@@ -2,7 +2,7 @@
 // popupy/dashboard/events na jednom mieste, aby PackMap.tsx nerástol o ďalších 800 riadkov.
 // Brand: tmavé glass pozadie + papyrusové karty + zlaté CTA (Cinzel), rovnaké tokeny ako Portal.
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
@@ -15,7 +15,9 @@ import {
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
-import { levelProgress } from '@/lib/tripPoints';
+import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS } from '@/lib/tripPoints';
+import { HERO_JOURNEYS } from '@/data/heroJourneys';
+import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
 import { HeroBadges } from '@/components/pack/HeroBadges';
 import { TripProfileCard } from '@/components/pack/profile/TripProfileCard';
 
@@ -421,6 +423,78 @@ export const COMMUNITY_CSS = `
 .comm-mode-em{font-size:26px;line-height:1;flex-shrink:0;}
 .comm-mode-t{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:15px;color:${T.onDark};}
 .comm-mode-d{display:block;font-size:11.5px;color:${T.onDarkDim};margin-top:4px;line-height:1.45;}
+
+/* ── TRIPSTATS V3 (issues #46 / #47 / #50) ──────────────────────────────────────────────────
+   Tri zmeny naraz, lebo bývajú v jednom paneli:
+    · #46 level a progressbar do ďalšieho levelu priamo v hlavičke + ⓘ cenník bodov,
+    · #47 vysvedčenie BEZ percent krajiny — hero krajiny, počty tripov a km, odznak za počet,
+    · #50 magistrála je odkaz na svoj detail, nie rozbaľovacia položka.
+   POZOR: toto je template literál — v komentároch ŽIADNE spätné apostrofy. */
+
+/* level + progressbar (#46). Pruh berie percentá z levelProgress(), nie z počtu tripov. */
+.comm-lvlwrap{flex-basis:100%;display:flex;flex-direction:column;gap:7px;}
+.comm-lvlhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.comm-lvlbar{height:8px;border-radius:999px;background:rgba(245,240,228,0.09);overflow:hidden;}
+.comm-lvlbar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);transition:width .45s;}
+.comm-lvlfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${T.onDarkDim};}
+.comm-lvlinfo{position:relative;flex-shrink:0;display:inline-flex;margin-left:auto;}
+.comm-lvlinfo-btn{width:22px;height:22px;border-radius:50%;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.06);color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.comm-lvlinfo-btn:hover,.comm-lvlinfo-btn.on{border-color:${GOLD};color:${GOLD};}
+/* cenník = papyrusový panel (rovnaká vrstva ako comm-hastip), nie ďalšie tmavé sklo */
+.comm-pts{position:absolute;top:calc(100% + 9px);right:0;z-index:30;width:min(280px,78vw);max-height:320px;overflow-y:auto;text-align:left;cursor:default;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:14px 15px;}
+.comm-pts-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
+.comm-pts-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};padding:3px 0;}
+.comm-pts-row b{font-weight:600;color:${T.inkStrong};white-space:nowrap;}
+.comm-pts-rule{height:2px;margin:10px 0;background:${T.rule};}
+.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:${T.inkStrong};}
+
+/* countries — VŠETKY štáty s vlajkou, aj tie bez výletu (#46) */
+.comm-ctrys{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;margin-bottom:14px;-webkit-overflow-scrolling:touch;}
+.comm-ctry{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:7px 13px 7px 8px;border-radius:999px;border:1px solid ${T.onDarkHair};background:none;font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-ctry:hover{border-color:${GOLD};}
+.comm-ctry.on{border-color:${GOLD};background:rgba(201,154,63,0.12);}
+.comm-ctry--empty{opacity:.5;}
+.comm-ctry img{width:22px;height:15px;border-radius:3px;object-fit:cover;flex-shrink:0;}
+.comm-ctry b{font-family:${FONT_UI};font-weight:600;font-size:11.5px;color:${T.onDark};white-space:nowrap;}
+.comm-ctry.on b{color:${GOLD};}
+.comm-ctry span{font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.onDarkDim};white-space:nowrap;}
+
+/* hero krajiny + dropdown (#47) — zaoblený obrázok ako v tripovom článku */
+.comm-chero{position:relative;border-radius:18px;overflow:hidden;border:1px solid ${T.onDarkBorder};background:${T.glass};background-size:cover;background-position:center;min-height:172px;display:flex;align-items:flex-end;padding:18px;margin-bottom:16px;}
+.comm-chero::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.78) 100%);}
+/* krajina bez vlastnej fotky: vlajka NEsmie ísť cez background cover — roztiahnutá rakúska
+   alebo švajčiarska vlajka je len biela plocha. Ostáva tmavý panel + vlajka ako odznak. */
+.comm-chero--noimg{background-image:none;}
+.comm-chero--noimg::before{background:linear-gradient(180deg,rgba(245,240,228,0.04) 0%,rgba(0,0,0,0.45) 100%);}
+.comm-chero-flag{display:block;width:54px;height:36px;object-fit:cover;border-radius:8px;border:1px solid rgba(245,240,228,0.35);box-shadow:0 4px 14px rgba(0,0,0,0.5);margin-bottom:11px;}
+.comm-chero-sel{position:absolute;top:12px;right:12px;z-index:2;}
+.comm-chero-sel select{appearance:none;-webkit-appearance:none;background:rgba(3,2,1,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(201,154,63,0.55);border-radius:999px;color:#F5F0E4;font-family:${FONT_UI};font-weight:600;font-size:11px;padding:7px 28px 7px 13px;cursor:pointer;}
+.comm-chero-sel::after{content:'';position:absolute;right:12px;top:50%;width:6px;height:6px;border-right:1.5px solid rgba(201,154,63,0.9);border-bottom:1.5px solid rgba(201,154,63,0.9);transform:translateY(-70%) rotate(45deg);pointer-events:none;}
+.comm-chero-in{position:relative;z-index:1;width:100%;}
+.comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:28px;line-height:1;letter-spacing:.07em;text-transform:uppercase;color:#F5F0E4;text-shadow:0 2px 14px rgba(0,0,0,0.7);}
+.comm-chero-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.85);margin-top:7px;}
+.comm-chero-goal{margin-top:11px;max-width:340px;}
+.comm-chero-goaltxt{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
+.comm-chero-bar{height:6px;border-radius:999px;background:rgba(245,240,228,0.18);overflow:hidden;}
+.comm-chero-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);}
+@media (max-width:560px){ .comm-chero{min-height:150px;padding:14px;} .comm-chero-name{font-size:22px;} }
+
+/* magistrály = odkazy na detail, žiadny dropdown (#50) */
+.comm-jrows{display:flex;flex-direction:column;gap:7px;margin-top:12px;}
+.comm-jrow{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;text-align:left;padding:11px 14px;border-radius:11px;border:1px solid ${T.onDarkHair};background:rgba(245,240,228,0.03);font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s;}
+.comm-jrow:hover{border-color:${GOLD};background:rgba(201,154,63,0.07);}
+.comm-jrow-name{font-family:${FONT_TITLE};font-weight:700;font-size:12.5px;color:${T.onDark};}
+.comm-jrow.on .comm-jrow-name{color:${GOLD};}
+.comm-jrow-meta{font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${T.onDarkDim};white-space:nowrap;flex-shrink:0;}
+.comm-jrow.on .comm-jrow-meta{color:${UNIT_DONE_COLOR};}
+
+/* zoznam prejdených = viditeľný ovládač, nie holý klikací nadpis (#46) */
+.comm-drop{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:20px 0 12px;padding:12px 15px;border-radius:12px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);font-family:inherit;cursor:pointer;transition:border-color .15s;}
+.comm-drop:hover{border-color:${GOLD};}
+.comm-drop-t{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;color:${GOLD};}
+.comm-drop-n{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.onDarkDim};}
+.comm-drop-chev{display:inline-block;width:7px;height:7px;border-right:1.5px solid ${T.onDarkDim};border-bottom:1.5px solid ${T.onDarkDim};transform:translateY(-2px) rotate(45deg);transition:transform .2s;}
+.comm-drop.on .comm-drop-chev{transform:translateY(1px) rotate(-135deg);}
 
 @media (max-width:760px){
   .comm-dash-hero{flex-direction:column;text-align:center;gap:14px;}
@@ -1008,6 +1082,63 @@ export function MySlovakiaDashboard({ initialTab, completion, walkedTrails, walk
   );
 }
 
+// ── TRIPSTATS V3 pomocníci (issues #46 / #47 / #50) ──────────────────────────────────────────
+
+// #50 — magistrála (unit string zo SK_GEO 'journeys') → slug jej detailu. Detail ako routa
+// `/pack/map/:slug` (PackTripArticle: mapa + prevýšenie + komentáre) UŽ EXISTUJE, takže
+// štatistika nemá dôvod stavať vlastný rozbaľovací zoznam — klik vedie rovno tam.
+const JOURNEY_SLUG: Record<string, string> = Object.fromEntries(HERO_JOURNEYS.map((j) => [j.name, j.id]));
+
+// #46 — ktoré štáty sa v prehľade ukazujú aj bez jediného výletu. Zoznam = krajiny, ktoré vie
+// appka rozpoznať z geometrie (COUNTRY_BBOX v countryGeo.ts) + domovská SK. Prázdny štát nie je
+// chyba, je to pozvánka: klik naň skončí výzvou „pridaj tam prvý výlet".
+const OFFERED_COUNTRIES = ['sk', 'cz', 'pl', 'at', 'hu', 'si', 'de', 'ch', 'it', 'fr'];
+
+// #47 — odznak za krajinu NAMIESTO percenta. Percento krajiny je mätúce: 100 % znamená prejsť
+// celé Slovensko, čo nespraví nikto, takže „50 %" nemeria nič, k čomu sa dá dôjsť. Počet
+// prejdených výletov áno. Prahy sú tunable na jednom mieste.
+const COUNTRY_TIERS: Array<{ trips: number; title: string }> = [
+  { trips: 5, title: 'visitor' },
+  { trips: 10, title: 'regular' },
+  { trips: 20, title: 'specialist' },
+  { trips: 40, title: 'native' },
+];
+function countryTier(trips: number, countryLabel: string) {
+  const reached = COUNTRY_TIERS.filter((t) => trips >= t.trips).length;
+  const next = COUNTRY_TIERS[reached];
+  const from = reached > 0 ? COUNTRY_TIERS[reached - 1].trips : 0;
+  return {
+    earned: reached > 0 ? `${countryLabel} ${COUNTRY_TIERS[reached - 1].title}` : null,
+    next: next ? `${countryLabel} ${next.title}` : null,
+    nextAt: next?.trips ?? null,
+    pct: next ? Math.min(100, Math.max(0, ((trips - from) / (next.trips - from)) * 100)) : 100,
+  };
+}
+
+// #46 — cenník do ⓘ popupu. Čísla sa NEPÍŠU ručne: ťahajú sa z bodového enginu (tripPoints.ts),
+// inak by popup sľuboval iné hodnoty, než appka pripisuje. Geo objavenia sa zlievajú do jedného
+// riadku LEN keď majú rovnakú cenu — keď sa raz rozídu, riadky sa rozpadnú samy.
+function pointsLegend(): Array<[string, string]> {
+  const geo = [POINTS.range, POINTS.np, POINTS.chko, POINTS.water];
+  const rows: Array<[string, string]> = [
+    ['Add a trail', `+${POINTS.add}`],
+    ['Add a place', `+${POINTS.place}`],
+    ['Walk a trail', `+${POINTS.walk}`],
+    ['Visit a place', `+${POINTS.visit}`],
+    ['Every km walked', `+${POINTS_PER_KM}`],
+    ['Every 100 m of climb', `+${POINTS_PER_100M}`],
+  ];
+  if (geo.every((p) => p === geo[0])) rows.push(['New range, park, protected area or water', `+${geo[0]}`]);
+  else rows.push(['New range', `+${POINTS.range}`], ['New national park', `+${POINTS.np}`], ['New protected area', `+${POINTS.chko}`], ['New water', `+${POINTS.water}`]);
+  rows.push(
+    ['New country', `+${POINTS.country}`],
+    ['Rate a trail you walked', `+${POINTS.rate}`],
+    ['Complete a collection', `+${POINTS.collection}`],
+    ['Long-distance trail', 'fixed price'],
+  );
+  return rows;
+}
+
 // ── C2 · TRIPSTATS panel (Matej 2026-07-23) — obsahové telo bývalého „Walked" tabu, vytiahnuté
 // z MySlovakiaDashboard nech ho vie rendrovať aj /pack/map/triplist ako druhá karta. Žiadny
 // modal chrome (fixed overlay, close, tabs) ani wishlist — ten splynul do TRIPLISTU. Konzument
@@ -1018,9 +1149,42 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   onOpenTrip: (id: string) => void;
   onAddTrip: (region?: string) => void; // klik na jednotku → ADD TRIP pre-filled na dané pohorie/park (Slice A bod 3)
 }) {
-  const completion = computeCompletion(walkedTrails);
   const fmtKm = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
-  const countriesTraveled = walkedTrails.length > 0 ? 1 : 0;
+
+  // V3 (#47): vysvedčenie je PER KRAJINU. Delí sa cez trailCountry() — tou istou funkciou triedi
+  // výlety mapa, takže sa počty na dvoch povrchoch nemôžu rozísť.
+  const byCountry = useMemo(() => {
+    const m = new Map<string, HeroTrail[]>();
+    for (const tr of walkedTrails) {
+      const iso = trailCountry(tr);
+      const arr = m.get(iso);
+      if (arr) arr.push(tr); else m.set(iso, [tr]);
+    }
+    return m;
+  }, [walkedTrails]);
+
+  // #46 — VŠETKY štáty, nielen prejdené: ponúkané + hocijaký ďalší, kde už výlet je.
+  // SK prvá (domovská), potom podľa počtu výletov, zvyšok podľa abecedy.
+  const countries = useMemo(() => (
+    [...new Set<string>([...OFFERED_COUNTRIES, ...byCountry.keys()])]
+      .map((iso) => ({ iso, name: countryName(iso), trips: byCountry.get(iso)?.length ?? 0 }))
+      .sort((a, b) => (a.iso === 'sk' ? -1 : b.iso === 'sk' ? 1 : (b.trips - a.trips) || a.name.localeCompare(b.name)))
+  ), [byCountry]);
+
+  const [country, setCountry] = useState('sk');
+  const cTrails = byCountry.get(country) ?? [];
+  const cKm = cTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0);
+  const cName = countryName(country);
+  const tier = countryTier(cTrails.length, cName);
+  // hero obrázok = reálna fotka z prejdenej trasy v tej krajine; kým tam človek nebol, vlajka
+  // ako odznak na tmavom paneli. Žiadny nový kurátorovaný asset — dominanta krajiny je fotka
+  // výletu, ktorý tam naozaj má.
+  const heroPhoto = cTrails.find((tr) => tr.photos?.[0])?.photos[0];
+
+  // SK taxonómia (pohoria/NP/CHKO/vrcholy/vody) sa počíta LEN zo slovenských výletov — je to
+  // slovenský zoznam a cudzí výlet doň aj tak nikdy nič nepridal.
+  const completion = useMemo(() => computeCompletion(byCountry.get('sk') ?? []), [byCountry]);
+  const countriesTraveled = byCountry.size;
   const peaksDone = completion.categories.find((c) => c.key === 'peaks')?.done ?? [];
   const highest = peaksDone[0] ?? '—';
   // per-unit rozbaliteľný dropdown (Slice A bod 2) — jedna otvorená naraz, identifikovaná
@@ -1030,6 +1194,18 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // Fáza 2 (Matej 2026-07-24): „Trips you walked" schovať za dropdown — pri 60 prejdených
   // tripoch to bol nekonečný zoznam pod celým panelom. Zbalené default, počet v hlavičke.
   const [walkedOpen, setWalkedOpen] = useState(false);
+  // #46 — ⓘ pri leveli: čo koľko dáva. Zatvára sa klikom KAMKOĽVEK cez document listener, nie
+  // priesvitným backdropom: `.pk-glass` má backdrop-filter, a ten robí z panelu containing block
+  // aj pre `position:fixed` deti — backdrop by nepokryl stránku, len panel.
+  const [ptsOpen, setPtsOpen] = useState(false);
+  useEffect(() => {
+    if (!ptsOpen) return;
+    const close = () => setPtsOpen(false);
+    // až v ďalšom ticku, inak popup zavrie ten istý klik, ktorý ho otvoril
+    const t = window.setTimeout(() => document.addEventListener('click', close), 0);
+    return () => { window.clearTimeout(t); document.removeEventListener('click', close); };
+  }, [ptsOpen]);
+  const pickCountry = (iso: string) => { setCountry(iso); setExpanded(null); setWalkedOpen(false); };
 
   // ── identity header (Slice B, Matej 2026-07-23) — foto svorky + meno svorky + level odznak.
   // usePackIdentity() je vlastný hook call (spec: „TripStatsPanel volá usePackIdentity() priamo"),
@@ -1079,15 +1255,50 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
           </span>
         </div>
         <div className="comm-vhead-name">{packName}</div>
-        <div className="comm-level">
-          <span className="comm-level-pill" title={profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ')}>
-            <img className="comm-level-ic" src={ICON('trophy')} alt="" />
-            {lvl.rank} · Level {lvl.level}
-          </span>
+        {/* #46 — level + progressbar do ďalšieho levelu na celú šírku hlavičky, nie schovaný
+            do rohovej pilulky. Percento pruhu aj chýbajúce body dáva levelProgress() z bodového
+            enginu; panel si nič nepočíta sám. */}
+        <div className="comm-lvlwrap">
+          <div className="comm-lvlhead">
+            <span className="comm-level-pill">
+              <img className="comm-level-ic" src={ICON('trophy')} alt="" />
+              {lvl.rank} · Level {lvl.level}
+            </span>
+            <span className="comm-lvlinfo">
+              <button
+                type="button"
+                className={`comm-lvlinfo-btn${ptsOpen ? ' on' : ''}`}
+                onClick={() => setPtsOpen((v) => !v)}
+                aria-expanded={ptsOpen}
+                aria-label="How points work"
+              >i</button>
+              {ptsOpen && (
+                  <span className="comm-pts" onClick={(e) => e.stopPropagation()}>
+                    <span className="comm-pts-eyebrow">How points work</span>
+                    {pointsLegend().map(([label, val]) => (
+                      <span key={label} className="comm-pts-row">{label}<b>{val}</b></span>
+                    ))}
+                    {profilePoints.rows.length > 0 && (
+                      <>
+                        <span className="comm-pts-rule" />
+                        <span className="comm-pts-eyebrow">Your points</span>
+                        {profilePoints.rows.map((r) => (
+                          <span key={r.label} className="comm-pts-row">{r.label}<b>{r.points}</b></span>
+                        ))}
+                        <span className="comm-pts-rule" />
+                        <span className="comm-pts-tot">Total<b>{profilePoints.total}</b></span>
+                      </>
+                    )}
+                  </span>
+              )}
+            </span>
+          </div>
+          <div className="comm-lvlbar"><i style={{ width: `${lvl.pct}%` }} /></div>
           {/* Rebrík nemá strop (rozhodnuté 29. 7.) → žiadny „Top rank" stav, vždy je kam ísť. */}
-          <span className="comm-level-next">
-            {lvl.points} pts · {lvl.toNext} to {lvl.level + 1}
-          </span>
+          <div className="comm-lvlfoot">
+            <span>{lvl.points} pts</span>
+            <span>{lvl.toNext} pts to Level {lvl.level + 1}</span>
+          </div>
         </div>
       </div>
 
@@ -1103,45 +1314,128 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       <HeroBadges walkedCount={walkedTrails.length} />
       </section>
 
-      {/* BLOK 2 — krajina: scope select + home-country ring + kategórie + zoznam prejdených tripov. */}
+      {/* BLOK 2 — VYSVEDČENIE krajiny: všetky štáty s vlajkou (#46) + hero krajiny s dropdownom
+         a cieľom v tripoch namiesto percent (#47) + kategórie + zoznam prejdených tripov. */}
       <section className="pk-glass tl-panel" style={{ marginTop: 14 }}>
-      {/* scope dropdown (zatiaľ len SVK) — presunuté sem z BLOKU 1 (Matej: „blok 2 = výber krajiny + homecountry"). */}
-      <div className="comm-field" style={{ maxWidth: 240 }}>
-        <label className="comm-label">Scope</label>
-        <select className="comm-selectinput" defaultValue="all">
-          <option value="all">All countries</option>
-          <option value="SK">🇸🇰 Slovakia</option>
-          <option value="CZ" disabled>🇨🇿 Czechia — soon</option>
-          <option value="PL" disabled>🇵🇱 Poland — soon</option>
-          <option value="AT" disabled>🇦🇹 Austria — soon</option>
-        </select>
+      {/* #46 — VŠETKY štáty, aj tie bez výletu. Prázdny štát sa dá vybrať a skončí výzvou
+         „pridaj tam prvý výlet"; predtým tu bol select s troma natvrdo vypnutými krajinami. */}
+      <div className="comm-ctrys">
+        {countries.map((c) => (
+          <button
+            key={c.iso}
+            type="button"
+            className={`comm-ctry${c.iso === country ? ' on' : ''}${c.trips === 0 ? ' comm-ctry--empty' : ''}`}
+            onClick={() => pickCountry(c.iso)}
+          >
+            <img src={flagUrl(c.iso)} alt="" loading="lazy" draggable={false} />
+            <b>{c.name}</b>
+            <span>{c.trips > 0 ? `${c.trips} trip${c.trips === 1 ? '' : 's'}` : 'not yet'}</span>
+          </button>
+        ))}
       </div>
 
-      {/* HOME country — SVK % + km + pohoria/parky. */}
-      <div className="comm-dash-section-title" style={{ marginTop: 26 }}>Home — Slovakia 🇸🇰</div>
-      <div className="comm-dash-hero">
-        <div className="comm-ring" style={{ ['--pct' as string]: completion.overallPct }}>
-          <span>{completion.overallPct}%</span>
+      {/* #47 — hero krajiny: obrázok (fotka z vlastného výletu, inak vlajka), veľký názov vľavo,
+         dropdown na inú krajinu vpravo hore. Cieľ je v TRIPOCH, nie v percentách. */}
+      <div
+        className={`comm-chero${heroPhoto ? '' : ' comm-chero--noimg'}`}
+        style={heroPhoto ? { backgroundImage: `url('${heroPhoto}')` } : undefined}
+      >
+        <div className="comm-chero-sel">
+          <select value={country} onChange={(e) => pickCountry(e.target.value)} aria-label="Country">
+            {countries.map((c) => (
+              <option key={c.iso} value={c.iso}>{flagEmojiFromISO2(c.iso)} {c.name}</option>
+            ))}
+          </select>
         </div>
-        <div className="comm-dash-herotxt">
-          <h3>{walkedTrails.length} trip{walkedTrails.length === 1 ? '' : 's'} · {fmtKm(walkedKm)} km in Slovakia</h3>
-          <p>
-            {completion.doneUnits} of {completion.totalUnits} places (ranges, parks, protected areas, peaks, waters). Every tick needs a real trip.{' '}
-            <img src={ICON('paw')} alt="" style={{ width: 11, height: 11, verticalAlign: 'middle', filter: 'brightness(0) invert(1)', opacity: 0.85 }} />
-          </p>
+        <div className="comm-chero-in">
+          {!heroPhoto && <img className="comm-chero-flag" src={flagUrl(country, 160)} alt="" loading="lazy" draggable={false} />}
+          <div className="comm-chero-name">{cName}</div>
+          <div className="comm-chero-sub">
+            {cTrails.length} trip{cTrails.length === 1 ? '' : 's'} · {fmtKm(cKm)} km
+            {country === 'sk' ? ` · ${completion.doneUnits}/${completion.totalUnits} places ticked` : ''}
+          </div>
+          <div className="comm-chero-goal">
+            <div className="comm-chero-goaltxt">
+              {tier.earned ? `${tier.earned} · ` : ''}
+              {tier.next ? `${cTrails.length}/${tier.nextAt} trips to ${tier.next}` : 'every tier taken'}
+            </div>
+            <div className="comm-chero-bar"><i style={{ width: `${tier.pct}%` }} /></div>
+          </div>
         </div>
       </div>
 
+      {country !== 'sk' ? (
+        // Zahraničie je zatiaľ PROVIZÓRIUM (#47): žiadna geo taxonómia (pohoria/NP/CHKO sú
+        // slovenský zoznam), len počty, km a zoznam. Kým nebude geo dataset pre cudzie krajiny,
+        // vymyslený menovateľ by klamal viac než jeho absencia.
+        cTrails.length === 0 ? (
+          <>
+            <div className="comm-empty">No trips in {cName} yet.</div>
+            <div className="comm-unit-addrow" onClick={() => onAddTrip()}>＋ Add the first trip in {cName}</div>
+          </>
+        ) : (
+          <>
+            <div className="comm-worldstats" style={{ gridTemplateColumns: 'repeat(3,1fr)', marginBottom: 16 }}>
+              <div className="comm-wstat"><b>{cTrails.filter((tr) => tr.acts?.includes('hike')).length}</b><span>Hikes</span></div>
+              <div className="comm-wstat"><b>{cTrails.filter((tr) => !tr.acts?.includes('hike')).length}</b><span>Places</span></div>
+              <div className="comm-wstat"><b>{fmtKm(cKm)}</b><span>Km</span></div>
+            </div>
+            <div className="comm-dash-section-title">Trips in {cName}</div>
+            {cTrails.map((tr) => (
+              <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
+                <span className="comm-walkedrow-name">{tr.name}</span>
+                <span className="comm-walkedrow-meta">{tr.region} · {tr.km} km</span>
+              </div>
+            ))}
+            <div className="comm-unit-addrow" style={{ marginTop: 12 }} onClick={() => onAddTrip()}>＋ Add a trip in {cName}</div>
+          </>
+        )
+      ) : (
+      <>
       {completion.categories.map((c) => {
-        // ranges + journeys = hlavná os (bar + count-pills + dropdown), NECHANÉ ako je.
-        if (c.key === 'ranges' || c.key === 'journeys') {
+        // #50 — magistrály sú ODKAZY na svoj detail (/pack/map/:slug), nie rozbaľovací zoznam.
+        if (c.key === 'journeys') {
+          return (
+            <div key={c.key} className="comm-cat">
+              <div className="comm-cat-head">
+                <img className="comm-cat-ic" src={ICON(c.icon)} alt="" />
+                <span className="comm-cat-name">{c.label}</span>
+                <span className="comm-cat-count">{c.done.length}/{c.total}</span>
+              </div>
+              <div className="comm-jrows">
+                {SK_GEO_UNITS(c.key).map((u) => {
+                  const slug = JOURNEY_SLUG[u];
+                  const done = c.done.includes(u);
+                  const price = slug ? JOURNEY_POINTS[slug] : undefined;
+                  return (
+                    <button
+                      key={u}
+                      type="button"
+                      className={`comm-jrow${done ? ' on' : ''}`}
+                      disabled={!slug}
+                      onClick={() => { if (slug) onOpenTrip(slug); }}
+                    >
+                      <span className="comm-jrow-name">{u}</span>
+                      {/* Pevná cena magistrály stojí na karte od prvého dňa (tripPoints.ts) —
+                          nie je to výplata po dokončení, ale vypísaná odmena. */}
+                      <span className="comm-jrow-meta">{done ? '✓ walked' : price ? `+${price} pts` : ''} ›</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        }
+        // ranges = hlavná os (bar + count-pills + dropdown). #47: percento preč, ostáva zlomok
+        // odškrtnutých pohorí — to je počet, nie „koľko percent Slovenska mám prejdených".
+        if (c.key === 'ranges') {
           const expandedUnit = expanded?.cat === c.key ? expanded.unit : null;
           return (
             <div key={c.key} className="comm-cat">
               <div className="comm-cat-head">
                 <img className="comm-cat-ic" src={ICON(c.icon)} alt="" />
                 <span className="comm-cat-name">{c.label}</span>
-                <span className="comm-cat-pct">{c.done.length}/{c.total} · {c.pct}%</span>
+                <span className="comm-cat-pct">{c.done.length}/{c.total}</span>
               </div>
               <div className="comm-cat-bar"><div className="comm-cat-fill" style={{ width: `${c.pct}%` }} /></div>
               <div className="comm-cat-units">
@@ -1163,7 +1457,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                 })}
               </div>
               {expandedUnit && (() => {
-                const matches = walkedTrails.filter((tr) => (unitsForTrail(tr)[c.key] ?? []).includes(expandedUnit));
+                const matches = cTrails.filter((tr) => (unitsForTrail(tr)[c.key] ?? []).includes(expandedUnit));
                 return (
                   <div className="comm-unit-drop">
                     {matches.length > 0 ? (
@@ -1218,7 +1512,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         );
       })}
 
-      {walkedTrails.length === 0 ? (
+      {/* #46 — zoznam prejdených ako viditeľný ovládač (rámik + šípka), nie holý zlatý nadpis:
+         predtým sa nedalo uhádnuť, že sa to dá rozkliknúť. */}
+      {cTrails.length === 0 ? (
         <>
           <div className="comm-dash-section-title">Trips you've walked</div>
           <div className="comm-empty">Log a walk to start ticking places.</div>
@@ -1227,20 +1523,22 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         <>
           <button
             type="button"
-            className="comm-walkedhead"
+            className={`comm-drop${walkedOpen ? ' on' : ''}`}
             onClick={() => setWalkedOpen((v) => !v)}
             aria-expanded={walkedOpen}
           >
-            <span>Trips you've walked</span>
-            <span className="comm-walkedhead-n">{walkedTrails.length} · {fmtKm(walkedKm)} km {walkedOpen ? '⌃' : '⌄'}</span>
+            <span className="comm-drop-t">{walkedOpen ? 'Hide' : 'Show all'} {cTrails.length} trip{cTrails.length === 1 ? '' : 's'} you've walked</span>
+            <span className="comm-drop-n">{fmtKm(cKm)} km <i className="comm-drop-chev" /></span>
           </button>
-          {walkedOpen && walkedTrails.map((tr) => (
+          {walkedOpen && cTrails.map((tr) => (
             <div key={tr.id} className="comm-walkedrow" onClick={() => onOpenTrip(tr.id)}>
               <span className="comm-walkedrow-name">{tr.name}</span>
               <span className="comm-walkedrow-meta">{tr.region} · {tr.km} km</span>
             </div>
           ))}
         </>
+      )}
+      </>
       )}
       </section>
     </>
