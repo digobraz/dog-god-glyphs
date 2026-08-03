@@ -59,7 +59,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "Eeuwige Band",
   "heroglyph.intro.pill.bond.tooltip": "Een symbool van de eeuwige band tussen jou en jouw hond.",
   "heroglyph.intro.pill.payment.label": "Één Symbolische Betaling",
-  "heroglyph.intro.pill.payment.tooltip": "€11 eenmalig — voor het ontwerp van de Heroglyph van je hond. Al het geld blijft in DOGYPT — voor ontwikkeling en systematische hulp!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 eenmalig — geen abonnementen. Al het geld blijft in DOGYPT — voor ontwikkeling en systematische hulp!",
   "heroglyph.intro.meaning.dog.label": "Hond",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "Baasje",
@@ -1209,7 +1209,7 @@ export const nld: Partial<Dict> = {
   "pack.dog.statsTitle": "STATISTIEKEN",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "Eenmalig · €11",
+  "heroglyph.sales.pricePill": "Eenmalig €11 · jouw toegang",
   "heroglyph.sales.card.cert.title": "Certificaat",
   "heroglyph.sales.card.cert.note": "PDF's met een uniek ontwerp",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1224,7 +1224,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.sales.cta": "Maak heroglyph",
   "heroglyph.sales.back": "Terug",
   "heroglyph.sales.transparency.title": "100% Transparantie",
-  "heroglyph.sales.transparency.tribute": "Jouw symbolische eerbetoon — €11",
+  "heroglyph.sales.transparency.tribute": "Jouw toegang — €11, eenmalig",
   "heroglyph.sales.transparency.footer": "Elke euro blijft in de openbaarheid, voor elk lid om te zien. Je betaalt geen bedrijf — je voedt de roedel.",
   "entry.declare.eyebrow": "Hierbij verklaar ik",
   "entry.title": "In Hond Vertrouw Ik",

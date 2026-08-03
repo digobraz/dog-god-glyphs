@@ -59,7 +59,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "永遠の絆",
   "heroglyph.intro.pill.bond.tooltip": "あなたと愛犬の永遠の絆のシンボル。",
   "heroglyph.intro.pill.payment.label": "一度きりの象徴的な支払い",
-  "heroglyph.intro.pill.payment.tooltip": "€11一回限り — 愛犬のHeroglyphデザインのために。すべての資金はDOGYPTに — 開発と継続的な支援のために！",
+  "heroglyph.intro.pill.payment.tooltip": "€11一回限り — サブスクなし。すべての資金はDOGYPTに — 開発と継続的な支援のために！",
   "heroglyph.intro.meaning.dog.label": "犬",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "オーナー",
@@ -1206,7 +1206,7 @@ export const jpn: Partial<Dict> = {
   "pack.dog.statsTitle": "統計",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "一度きり · €11",
+  "heroglyph.sales.pricePill": "一度きり €11 · あなたの入場",
   "heroglyph.sales.card.cert.title": "認定証",
   "heroglyph.sales.card.cert.note": "唯一無二のデザインのPDF",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1221,7 +1221,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.sales.cta": "Heroglyphを作る",
   "heroglyph.sales.back": "戻る",
   "heroglyph.sales.transparency.title": "100%透明性",
-  "heroglyph.sales.transparency.tribute": "あなたの象徴的な捧げもの — €11",
+  "heroglyph.sales.transparency.tribute": "あなたの入場 — €11、一度きり",
   "heroglyph.sales.transparency.footer": "すべてのユーロは公開され、どのメンバーも見られる。あなたは会社に払うのではない — 群れを養うのだ。",
   "entry.declare.eyebrow": "ここに宣言する",
   "entry.title": "我、犬を信ず",

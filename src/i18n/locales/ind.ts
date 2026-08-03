@@ -59,7 +59,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "शाश्वत बंधन",
   "heroglyph.intro.pill.bond.tooltip": "आपके और आपके कुत्ते के बीच शाश्वत बंधन का प्रतीक।",
   "heroglyph.intro.pill.payment.label": "एक प्रतीकात्मक भुगतान",
-  "heroglyph.intro.pill.payment.tooltip": "€11 एक बार — आपके कुत्ते के Heroglyph डिज़ाइन के लिए। सारा पैसा DOGYPT में रहता है — विकास और नियमित मदद के लिए!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 एक बार — कोई सदस्यता नहीं। सारा पैसा DOGYPT में रहता है — विकास और व्यवस्थित सहायता के लिए!",
   "heroglyph.intro.meaning.dog.label": "कुत्ता",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "मालिक",
@@ -1210,7 +1210,7 @@ export const ind: Partial<Dict> = {
   "pack.dog.statsTitle": "आँकड़े",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "Sekali bayar · €11",
+  "heroglyph.sales.pricePill": "Sekali bayar €11 · tiket masuk Anda",
   "heroglyph.sales.card.cert.title": "Sertifikat",
   "heroglyph.sales.card.cert.note": "PDF dengan desain yang unik",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1225,7 +1225,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.sales.cta": "Buat heroglyph",
   "heroglyph.sales.back": "Kembali",
   "heroglyph.sales.transparency.title": "100% Transparansi",
-  "heroglyph.sales.transparency.tribute": "Persembahan simbolis Anda — €11",
+  "heroglyph.sales.transparency.tribute": "Tiket masuk Anda — €11, sekali bayar",
   "heroglyph.sales.transparency.footer": "Setiap euro tetap terbuka, untuk dilihat setiap anggota. Anda tidak membayar sebuah perusahaan — Anda memberi makan sang kawanan.",
   "entry.declare.eyebrow": "Dengan ini saya menyatakan",
   "entry.title": "Kepada Anjing Aku Percaya",

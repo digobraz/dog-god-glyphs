@@ -59,7 +59,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "영원한 유대",
   "heroglyph.intro.pill.bond.tooltip": "당신과 당신의 개 사이의 영원한 유대의 상징.",
   "heroglyph.intro.pill.payment.label": "상징적인 일회 결제",
-  "heroglyph.intro.pill.payment.tooltip": "€11 한 번만 — 반려견의 Heroglyph 디자인 비용입니다. 모든 자금은 DOGYPT에 남습니다 — 개발과 지속적인 도움을 위해!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 일회 — 구독 없음. 모든 돈은 DOGYPT에 남아 — 개발과 체계적인 도움을 위해!",
   "heroglyph.intro.meaning.dog.label": "개",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "주인",
@@ -1209,7 +1209,7 @@ export const kor: Partial<Dict> = {
   "pack.dog.statsTitle": "통계",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "일회 · €11",
+  "heroglyph.sales.pricePill": "일회 €11 · 당신의 입장",
   "heroglyph.sales.card.cert.title": "인증서",
   "heroglyph.sales.card.cert.note": "세상에 하나뿐인 디자인의 PDF",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1224,7 +1224,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.sales.cta": "heroglyph 만들기",
   "heroglyph.sales.back": "뒤로",
   "heroglyph.sales.transparency.title": "100% 투명성",
-  "heroglyph.sales.transparency.tribute": "당신의 상징적인 헌사 — €11",
+  "heroglyph.sales.transparency.tribute": "당신의 입장 — €11, 한 번만",
   "heroglyph.sales.transparency.footer": "모든 유로는 누구나 볼 수 있도록 열린 장부에 남습니다. 당신은 회사에 돈을 내는 것이 아니라 — 무리를 먹여 살립니다.",
   "entry.declare.eyebrow": "이에 나는 선언합니다",
   "entry.title": "개를 믿습니다",

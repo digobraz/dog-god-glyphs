@@ -5,10 +5,16 @@ import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { DEV_FULL } from '@/lib/packFlags';
-import { getMe, listConversations, unreadCount, subscribe as subscribeMessaging, type Conversation } from './messaging/packMessaging';
+// `import type` (nie runtime import) — packMessaging.ts ťahá pri module-load MOCK_MEMBER_POOL,
+// HERO_TRAILS (1,5 MB) a HERO_JOURNEYS; esbuild/Vite `import type` úplne vytrasí (isolatedModules),
+// takže tento riadok sa do bundlu nedostane. Runtime funkcie (getMe/unreadCount/…) sa nahrádzajú
+// dynamickým import()-om nižšie, vyhodnoteným až v efekte, keď je DEV_FULL true.
+import type { Conversation } from './messaging/packMessaging';
 import { emitOpenInbox, emitOpenThread } from './messaging/openBridge';
 
 const T = PACK_THEME;
+
+type PackMessagingModule = typeof import('./messaging/packMessaging');
 
 // unread konverzácie pre dropdown položky — rovnaká logika ako Inbox.tsx (zámerne duplikovaná,
 // UI komponenty na seba nenaväzujú, viď packMessaging.ts vzor).
@@ -63,19 +69,32 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
     ? { border: T.onDarkBorder, ink: T.onDark, inkDim: T.onDarkDim, hairline: T.onDarkHair, panelBg: T.glass, badgeBorder: T.pageBg, buttonBg: T.glass }
     : { border: T.border, ink: T.ink, inkDim: T.inkDim, hairline: T.hairline, panelBg: T.card, badgeBorder: T.card, buttonBg: 'transparent' };
 
-  // Messages — live len za DEV_FULL (§8.4 zadania: LIVE build sa nemení, ostáva "coming soon").
-  const [msgCount, setMsgCount] = useState(() => (DEV_FULL ? unreadCount() : 0));
-  const [unreadConvs, setUnreadConvs] = useState<Conversation[]>([]);
+  // packMessaging modul sa načíta dynamicky, len keď je DEV_FULL true (na LIVE sa toto
+  // import() telo nikdy nespustí → chunk sa nestiahne). msgCount preto štartuje na 0 a
+  // dorovná sa hneď ako import() resolvne (rovnaký tick, žiadny viditeľný "coming soon" stav
+  // medzitým — bunka je skrytá/disabled len keď !DEV_FULL, viď JSX nižšie).
+  const [messaging, setMessaging] = useState<PackMessagingModule | null>(null);
   useEffect(() => {
     if (!DEV_FULL) return;
-    const me = getMe();
+    let cancelled = false;
+    import('./messaging/packMessaging').then((m) => { if (!cancelled) setMessaging(m); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const [msgCount, setMsgCount] = useState(0);
+  const [meId, setMeId] = useState('me');
+  const [unreadConvs, setUnreadConvs] = useState<Conversation[]>([]);
+  useEffect(() => {
+    if (!DEV_FULL || !messaging) return;
+    const me = messaging.getMe();
+    setMeId(me.id);
     const load = () => {
-      setMsgCount(unreadCount());
-      listConversations().then((cs) => setUnreadConvs(cs.filter((c) => hasUnread(c, me.id))));
+      setMsgCount(messaging.unreadCount());
+      messaging.listConversations().then((cs) => setUnreadConvs(cs.filter((c) => hasUnread(c, me.id))));
     };
     load();
-    return subscribeMessaging(load);
-  }, []);
+    return messaging.subscribe(load);
+  }, [messaging]);
 
   // click-away close — must check both the trigger (wrapRef) AND the portaled panel
   // (panelRef lives outside wrapRef in the DOM now), else any click inside the dropdown
@@ -298,9 +317,8 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
               </div>
               <ul className="flex flex-col gap-2 mb-3">
                 {unreadConvs.map((conv) => {
-                  const me = getMe();
                   const isGroup = conv.kind === 'group';
-                  const other = !isGroup ? conv.members.find((p) => p.id !== me.id) : undefined;
+                  const other = !isGroup ? conv.members.find((p) => p.id !== meId) : undefined;
                   const name = isGroup ? (conv.title ?? 'Pack group') : (other?.name ?? 'Dogyptian');
                   const last = conv.messages[conv.messages.length - 1];
                   return (

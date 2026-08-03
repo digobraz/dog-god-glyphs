@@ -1196,8 +1196,10 @@ export default function Vision() {
         .video-embed-frame {
           position: relative;
           /* Cap by viewport height too, so the whole frame stays visible on short
-           * laptops (reserve ~330px for topbar + nav + title + caption + padding). */
-          width: min(680px, 100%, calc((100dvh - 330px) * 16 / 9));
+           * laptops (reserve ~330px for topbar + nav + title + caption + padding).
+           * Dolná poistka na 320px: na telefóne naležato je 100dvh len ~390px,
+           * takže samotný calc() by zrazil šírku na pár px (poštová známka). */
+          width: min(680px, 100%, max(320px, calc((100dvh - 330px) * 16 / 9)));
           aspect-ratio: 16 / 9;
           border-radius: 14px;
           overflow: hidden;
@@ -1211,7 +1213,8 @@ export default function Vision() {
         }
         /* Po kliku na "Watch ..." → náhľad sa zväčší + spustí prehrávanie */
         .video-embed-frame.is-playing {
-          width: min(980px, 100%, calc((100dvh - 330px) * 16 / 9));
+          /* Rovnaká dolná poistka ako pri náhľade vyššie. */
+          width: min(980px, 100%, max(320px, calc((100dvh - 330px) * 16 / 9)));
           box-shadow:
             0 0 120px 16px rgba(201,154,63,0.48),
             0 0 220px 40px rgba(201,154,63,0.26),

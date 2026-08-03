@@ -708,7 +708,13 @@ export default function PackDogDetail() {
   // life · N days"), a druhé, živé počítadlo ráta dni v anjelskej podobe (death → dnes).
   const isDeceased = dog.life_status === 'deceased';
   const deathDate = dog.death_date ? new Date(dog.death_date) : null;
-  const age = computeAge(dog.selections, dog.birth_year, isDeceased && deathDate ? deathDate : undefined);
+  // Deceased bez zapísaného dátumu úmrtia (majiteľ ešte nedoplnil) — asOf by bez tejto
+  // poistky spadol na `undefined` = počíta sa k dnešku a "Lived his best life" počítadlo
+  // by majiteľovi rástlo deň čo deň, akoby pes stále žil. Radšej vek vôbec nezobraziť.
+  const awaitingDeathDate = isDeceased && !deathDate;
+  const age = awaitingDeathDate
+    ? null
+    : computeAge(dog.selections, dog.birth_year, isDeceased && deathDate ? deathDate : undefined);
   const angelDays = deathDate
     ? Math.max(0, Math.floor((Date.now() - deathDate.getTime()) / 86_400_000))
     : null;
@@ -761,7 +767,13 @@ export default function PackDogDetail() {
 
   return (
     <PackLayout wide>
-      <PackDogWizard />
+      {/* PackDogWizard vypnutý úplne (Matej, 2026-08-03) — NIE DEV gate, lebo tento
+          render beží aj mimo DEV-only vetvy (na rozdiel od PackWizard v Pack.tsx:276) a
+          členovia z okna 17.–22.6.2026 môžu mať v localStorage `dogypt_wz==='2'`, čo by
+          ho spustilo aj v produkcii. Sľuboval krok "Prayer of Presence" a spotlight na
+          #prayers — obe sú na LIVE zamknuté/neexistujúce. Kód nechaný nedotknutý pre
+          prípadný návrat: odkomentuj, až keď bude Prayer of Presence flow reálne live. */}
+      {/* <PackDogWizard /> */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           to="/pack"
@@ -1192,7 +1204,12 @@ export default function PackDogDetail() {
                     cursor: 'pointer',
                   }}
                 >
-                  🕊 {isDeceased ? t('pack.dog.memorial.editDate') : t('pack.dog.memorial.markLink')}
+                  🕊{' '}
+                  {isDeceased
+                    ? awaitingDeathDate
+                      ? t('pack.dog.memorial.addDate', { name: dogName })
+                      : t('pack.dog.memorial.editDate')
+                    : t('pack.dog.memorial.markLink')}
                 </button>
               </div>
             </div>

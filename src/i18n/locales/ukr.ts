@@ -97,7 +97,7 @@ export const ukr: Partial<Dict> = {
   'heroglyph.intro.pill.bond.tooltip': 'Символ вічного зв\'язку між тобою та твоїм псом.',
   'heroglyph.intro.pill.payment.label': 'Один Символічний Платіж',
   'heroglyph.intro.pill.payment.tooltip':
-    '€11 одноразово — за дизайн Heroglyph твого пса. Усі гроші залишаються в DOGYPT — на розвиток і системну допомогу!',
+    '€11 одноразово — жодних підписок. Усі гроші залишаються в DOGYPT — на розвиток і системну допомогу!',
 
   // showcase symbol meanings (Hekthorov heroglyf) — label + value
   'heroglyph.intro.meaning.dog.label': 'Пес',
@@ -1394,7 +1394,7 @@ export const ukr: Partial<Dict> = {
   "pack.dog.statsTitle": "СТАТИСТИКА",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "Одноразово · €11",
+  "heroglyph.sales.pricePill": "Одноразово €11 · твій вхід",
   "heroglyph.sales.card.cert.title": "Сертифікат",
   "heroglyph.sales.card.cert.note": "PDF з унікальним дизайном",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1409,7 +1409,7 @@ export const ukr: Partial<Dict> = {
   "heroglyph.sales.cta": "Створити Heroglyph",
   "heroglyph.sales.back": "Назад",
   "heroglyph.sales.transparency.title": "100% прозорість",
-  "heroglyph.sales.transparency.tribute": "Твоя символічна данина — €11",
+  "heroglyph.sales.transparency.tribute": "Твій вхід — €11, один раз",
   "heroglyph.sales.transparency.footer": "Кожне євро залишається на видноті, доступне кожному членові. Ти платиш не компанії — ти годуєш зграю.",
   "entry.declare.eyebrow": "Цим я проголошую",
   "entry.title": "На Пса Уповаю",

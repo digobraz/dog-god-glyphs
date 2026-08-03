@@ -59,7 +59,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "永恒羁绊",
   "heroglyph.intro.pill.bond.tooltip": "象征你与你的狗之间永恒羁绊的符号。",
   "heroglyph.intro.pill.payment.label": "一次象征性付款",
-  "heroglyph.intro.pill.payment.tooltip": "€11 一次性 — 用于你爱犬的 Heroglyph 设计。所有资金都留在 DOGYPT — 用于开发与长期救助！",
+  "heroglyph.intro.pill.payment.tooltip": "€11 一次性付款——无需订阅。所有资金留存于 DOGYPT——用于发展与系统性帮助！",
   "heroglyph.intro.meaning.dog.label": "狗",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "主人",
@@ -1206,7 +1206,7 @@ export const chn: Partial<Dict> = {
   "pack.dog.statsTitle": "数据",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "一次性 · €11",
+  "heroglyph.sales.pricePill": "一次性 €11 · 你的入场",
   "heroglyph.sales.card.cert.title": "证书",
   "heroglyph.sales.card.cert.note": "拥有独一无二设计的 PDF",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1221,7 +1221,7 @@ export const chn: Partial<Dict> = {
   "heroglyph.sales.cta": "创建 heroglyph",
   "heroglyph.sales.back": "返回",
   "heroglyph.sales.transparency.title": "100% 透明",
-  "heroglyph.sales.transparency.tribute": "你象征性的献礼——€11",
+  "heroglyph.sales.transparency.tribute": "你的入场——€11，一次付清",
   "heroglyph.sales.transparency.footer": "每一欧元都公开可见，供每一位成员查看。你并非付钱给一家公司——你在供养这个族群。",
   "entry.declare.eyebrow": "我在此宣告",
   "entry.title": "信犬不渝",

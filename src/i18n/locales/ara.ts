@@ -59,7 +59,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "رابطة أبدية",
   "heroglyph.intro.pill.bond.tooltip": "رمز للرابطة الأبدية بينك وبين كلبك.",
   "heroglyph.intro.pill.payment.label": "دفعة رمزية واحدة",
-  "heroglyph.intro.pill.payment.tooltip": "11 يورو مرة واحدة — مقابل تصميم Heroglyph كلبك. كل المال يبقى في DOGYPT — للتطوير والمساعدة المنهجية!",
+  "heroglyph.intro.pill.payment.tooltip": "11 يورو مرة واحدة — بلا اشتراكات. كل المال يبقى في DOGYPT — للتطوير والمساعدة المنهجية!",
   "heroglyph.intro.meaning.dog.label": "الكلب",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "المالك",
@@ -1206,7 +1206,7 @@ export const ara: Partial<Dict> = {
   "pack.dog.statsTitle": "الإحصاءات",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "مرة واحدة · €11",
+  "heroglyph.sales.pricePill": "مرة واحدة €11 · دخولك",
   "heroglyph.sales.card.cert.title": "شهادة",
   "heroglyph.sales.card.cert.note": "ملفات PDF بتصميم فريد",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1221,7 +1221,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.sales.cta": "أنشئ Heroglyph",
   "heroglyph.sales.back": "رجوع",
   "heroglyph.sales.transparency.title": "شفافية 100%",
-  "heroglyph.sales.transparency.tribute": "قربانك الرمزي — €11",
+  "heroglyph.sales.transparency.tribute": "دخولك — €11، تُدفع مرة واحدة",
   "heroglyph.sales.transparency.footer": "كل يورو يبقى في العلن، ليراه كل عضو. أنت لا تدفع لشركة — بل تُطعم القطيع.",
   "entry.declare.eyebrow": "أُعلن بموجب هذا",
   "entry.title": "نؤمن بالكلب",

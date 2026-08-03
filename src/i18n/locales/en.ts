@@ -107,7 +107,7 @@ export const en = {
   'heroglyph.intro.pill.bond.tooltip': 'A symbol of the eternal bond between you and your dog.',
   'heroglyph.intro.pill.payment.label': 'One Symbolic Payment',
   'heroglyph.intro.pill.payment.tooltip':
-    '€11 once — for your dog’s Heroglyph design. All money stays in DOGYPT — for development and systematic help!',
+    '€11 once — no subscriptions. All money stays in DOGYPT — for development and systematic help!',
 
   // showcase symbol meanings (Hekthorov heroglyf) — label + value
   'heroglyph.intro.meaning.dog.label': 'Dog',
@@ -148,9 +148,9 @@ export const en = {
   'heroglyph.sales.cta': 'Create heroglyph',
   'heroglyph.sales.back': 'Back',
   'heroglyph.sales.transparency.title': '100% Transparency',
-  'heroglyph.sales.transparency.tribute': 'Your symbolic tribute — €11',
+  'heroglyph.sales.transparency.tribute': 'Your entry — €11, paid once',
   'heroglyph.sales.transparency.footer': "Every euro stays in the open, for every member to see. You don't pay a company — you feed the pack.",
-  'heroglyph.sales.pricePill': 'One-time · €11',
+  'heroglyph.sales.pricePill': 'One-time €11 · your entry',
   'heroglyph.sales.card.cert.title': 'Certificate',
   'heroglyph.sales.card.cert.note': 'PDFs with a unique design',
   'heroglyph.sales.card.wall.title': 'Wall',

@@ -59,7 +59,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "Ebedi Bağ",
   "heroglyph.intro.pill.bond.tooltip": "Siz ve köpeğiniz arasındaki ebedi bağın simgesi.",
   "heroglyph.intro.pill.payment.label": "Tek Sembolik Ödeme",
-  "heroglyph.intro.pill.payment.tooltip": "€11 tek seferlik — köpeğinin Heroglyph tasarımı için. Tüm para DOGYPT’te kalır — geliştirme ve sistemli yardım için!",
+  "heroglyph.intro.pill.payment.tooltip": "Tek seferlik €11 — abonelik yok. Tüm para DOGYPT'te kalır — geliştirme ve sistematik yardım için!",
   "heroglyph.intro.meaning.dog.label": "Köpek",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "Sahip",
@@ -1209,7 +1209,7 @@ export const tur: Partial<Dict> = {
   "pack.dog.statsTitle": "İSTATİSTİK",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "Tek seferlik · €11",
+  "heroglyph.sales.pricePill": "Tek seferlik €11 · girişin",
   "heroglyph.sales.card.cert.title": "Sertifika",
   "heroglyph.sales.card.cert.note": "Eşsiz tasarımlı PDF'ler",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1224,7 +1224,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.sales.cta": "Heroglyph oluştur",
   "heroglyph.sales.back": "Geri",
   "heroglyph.sales.transparency.title": "%100 Şeffaflık",
-  "heroglyph.sales.transparency.tribute": "Sembolik adağın — €11",
+  "heroglyph.sales.transparency.tribute": "Girişin — €11, tek seferlik",
   "heroglyph.sales.transparency.footer": "Her euro açıkta kalır, her üyenin görebileceği şekilde. Bir şirkete ödeme yapmıyorsun — sürüyü besliyorsun.",
   "entry.declare.eyebrow": "İşbu belgeyle beyan ederim",
   "entry.title": "Köpeğe Güveniyorum",

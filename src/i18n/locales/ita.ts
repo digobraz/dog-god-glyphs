@@ -97,7 +97,7 @@ export const ita: Partial<Dict> = {
   'heroglyph.intro.pill.bond.tooltip': 'Un simbolo del legame eterno tra te e il tuo cane.',
   'heroglyph.intro.pill.payment.label': 'Un Pagamento Simbolico',
   'heroglyph.intro.pill.payment.tooltip':
-    '€11 una sola volta — per il design dell’Heroglyph del tuo cane. Tutto il denaro resta in DOGYPT — per lo sviluppo e l’aiuto sistematico!',
+    '€11 una sola volta — nessun abbonamento. Tutto il denaro resta in DOGYPT — per lo sviluppo e l\'aiuto sistematico!',
 
   // showcase symbol meanings (Hekthorov heroglyf) — label + value
   'heroglyph.intro.meaning.dog.label': 'Cane',
@@ -1394,7 +1394,7 @@ export const ita: Partial<Dict> = {
   "pack.dog.statsTitle": "STATISTICHE",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  'heroglyph.sales.pricePill': 'Pagamento unico · €11',
+  'heroglyph.sales.pricePill': 'Pagamento unico €11 · il tuo ingresso',
   'heroglyph.sales.card.cert.title': 'Certificato',
   'heroglyph.sales.card.cert.note': 'PDF dal design unico',
   'heroglyph.sales.card.wall.title': 'WALL',
@@ -1409,7 +1409,7 @@ export const ita: Partial<Dict> = {
   'heroglyph.sales.cta': 'Crea heroglyph',
   'heroglyph.sales.back': 'Indietro',
   'heroglyph.sales.transparency.title': '100% Trasparenza',
-  'heroglyph.sales.transparency.tribute': 'Il tuo tributo simbolico — €11',
+  'heroglyph.sales.transparency.tribute': 'Il tuo ingresso — €11, una volta sola',
   'heroglyph.sales.transparency.footer': 'Ogni euro resta alla luce del sole, visibile a ogni membro. Non paghi un\'azienda — nutri il branco.',
   'entry.declare.eyebrow': 'Con la presente dichiaro',
   'entry.title': 'In cane io confido',

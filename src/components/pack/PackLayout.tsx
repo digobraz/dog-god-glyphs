@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
+import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
@@ -10,9 +10,14 @@ import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
 import { useT } from '@/i18n/LanguageContext';
-import { Inbox } from './messaging/Inbox';
-import { Thread } from './messaging/Thread';
 import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge';
+
+// Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: MOCK_MEMBER_POOL,
+// HERO_TRAILS 1,5 MB, HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
+// nikdy nevykreslí nič (DEV_FULL je runtime konštanta, Rollup ju nevytrasí). Lazy = stiahne sa
+// až pri reálnom otvorení overlaya (teda na LIVE nikdy).
+const Inbox = lazy(() => import('./messaging/Inbox').then((m) => ({ default: m.Inbox })));
+const Thread = lazy(() => import('./messaging/Thread').then((m) => ({ default: m.Thread })));
 
 const T = PACK_THEME;
 
@@ -152,18 +157,26 @@ export function MessagingOverlayHost() {
 
   if (!DEV_FULL || overlay.mode === 'closed') return null;
 
+  // Suspense fallback=null — Inbox/Thread sú lazy (viď import vyššie), krátky async gap pri
+  // prvom otvorení overlaya je tichý (žiadny spinner v zadaní), nie chýbajúci chunk.
   if (overlay.mode === 'inbox') {
     return (
-      <Inbox
-        onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
-        onClose={() => setOverlay({ mode: 'closed' })}
-      />
+      <Suspense fallback={null}>
+        <Inbox
+          onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
+          onClose={() => setOverlay({ mode: 'closed' })}
+        />
+      </Suspense>
     );
   }
 
   // Thread "back" (←) sa vracia do Inboxu (rovnaký vzor ako bežné DM appky), Inbox "×" zatvára
   // overlay úplne.
-  return <Thread convId={overlay.convId} onClose={() => setOverlay({ mode: 'inbox' })} />;
+  return (
+    <Suspense fallback={null}>
+      <Thread convId={overlay.convId} onClose={() => setOverlay({ mode: 'inbox' })} />
+    </Suspense>
+  );
 }
 
 // ── Floating bottom pill nav — Home · Map · Avatar (D4 nav rework 2026-07-24) ─

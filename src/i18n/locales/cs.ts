@@ -105,7 +105,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.intro.pill.bond.tooltip': 'Symbol věčného pouta mezi tebou a tvým psem.',
   'heroglyph.intro.pill.payment.label': 'Jedna Symbolická Platba',
   'heroglyph.intro.pill.payment.tooltip':
-    '€11 jednorázově — za design Heroglyfu tvého psa. Všechny peníze zůstávají v DOGYPT — na vývoj a systematickou pomoc!',
+    '€11 jednou — žádné předplatné. Všechny peníze zůstávají v DOGYPT — na vývoj a systematickou pomoc!',
 
   // showcase symbol meanings (Hekthorov heroglyf) — vlastné mená (Hekthor/Matej) NEPREKLADÁM
   'heroglyph.intro.meaning.dog.label': 'Pes',
@@ -1395,7 +1395,7 @@ export const cs: Partial<Dict> = {
   "pack.dog.statsTitle": "STATISTIKY",
 
   // ── /entry + /heroglyph sales (i18n 2026-07-13) ──
-  "heroglyph.sales.pricePill": "Jednorázově · €11",
+  "heroglyph.sales.pricePill": "Jednorázově €11 · tvůj vstup",
   "heroglyph.sales.card.cert.title": "Certifikát",
   "heroglyph.sales.card.cert.note": "PDF s jedinečným designem",
   "heroglyph.sales.card.wall.title": "WALL",
@@ -1410,7 +1410,7 @@ export const cs: Partial<Dict> = {
   "heroglyph.sales.cta": "Vytvořit heroglyph",
   "heroglyph.sales.back": "Zpět",
   "heroglyph.sales.transparency.title": "100% transparentnost",
-  "heroglyph.sales.transparency.tribute": "Tvůj symbolický příspěvek — €11",
+  "heroglyph.sales.transparency.tribute": "Tvůj vstup — €11, jednou",
   "heroglyph.sales.transparency.footer": "Každé euro zůstává na očích, aby ho viděl každý člen. Neplatíš firmě — sytíš smečku.",
   "entry.declare.eyebrow": "Tímto prohlašuji",
   "entry.title": "In Dog I Trust",
