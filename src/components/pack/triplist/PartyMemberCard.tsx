@@ -24,6 +24,9 @@ export const PARTY_CARD_CSS = `
 .pmc + .pmc{margin-top:8px;}
 .pmc-av{position:relative;flex-shrink:0;width:44px;height:44px;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:17px;color:${INK};border:1px solid rgba(201,154,63,0.5);}
 .pmc-av img{width:100%;height:100%;object-fit:cover;display:block;}
+/* #41 — klik na ikonku tvorcu/účastníka otvorí TripProfileCard (padding:0 reset, button je inak UA-štýlovaný) */
+button.pmc-av{padding:0;margin:0;cursor:pointer;}
+button.pmc-av:hover{filter:brightness(1.08);}
 .pmc-txt{min-width:0;flex:1;}
 .pmc-role{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}
 .pmc-dog{font-family:${DOG_FONT};font-weight:700;font-size:14px;line-height:1.15;color:${T.onDark};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -58,10 +61,13 @@ export interface PartyDmContext {
   isMe?: boolean;
 }
 
-export function PartyMemberCard({ member, roleLabel, dm }: {
+export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
   member: PartyMember;
   roleLabel?: string;
   dm?: PartyDmContext;
+  /** issue #41 — klik na ikonku otvorí TripProfileCard (majiteľ + pes). Bez neho ostáva
+   *  avatar čisto zobrazovací, ako doteraz. */
+  onOpenProfile?: () => void;
 }) {
   const dog = member.dogName?.trim();
   const owner = member.ownerFirst?.trim();
@@ -95,13 +101,24 @@ export function PartyMemberCard({ member, roleLabel, dm }: {
     }
   };
 
+  const avatar = member.dogPhoto
+    ? <img src={member.dogPhoto} alt={dog ?? 'Dog'} loading="lazy" draggable={false} />
+    : initial;
+
   return (
     <div className="pmc">
-      <span className="pmc-av">
-        {member.dogPhoto
-          ? <img src={member.dogPhoto} alt={dog ?? 'Dog'} loading="lazy" draggable={false} />
-          : initial}
-      </span>
+      {onOpenProfile ? (
+        <button
+          type="button"
+          className="pmc-av"
+          onClick={onOpenProfile}
+          aria-label={`View ${dog ?? owner ?? 'this Dogyptian'}'s profile`}
+        >
+          {avatar}
+        </button>
+      ) : (
+        <span className="pmc-av">{avatar}</span>
+      )}
       <span className="pmc-txt">
         <span className="pmc-role" style={{ display: 'block' }}>{roleLabel ?? ROLE_LABEL[member.role]}</span>
         <span className="pmc-dog" style={{ display: 'block' }}>{dog ?? 'A Dogyptian dog'}</span>

@@ -9,7 +9,6 @@ import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
-  eventGoingMembers, mockMemberProfile,
   computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
@@ -19,7 +18,10 @@ import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS }
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
 import { HeroBadges } from '@/components/pack/HeroBadges';
-import { TripProfileCard } from '@/components/pack/profile/TripProfileCard';
+import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pack/profile/TripProfileCard';
+// #41 — reálna partia (get_trip_party), namiesto fabrikovaného MOCK_MEMBER_POOL zoznamu.
+// Real len pre MOJE vlastné inzeráty (organizátor = ja) — pozri BuddyList nižšie.
+import { useTripParty } from '@/components/pack/triplist/useTripParty';
 
 // ── Companion (Matej 2026-07-23) — vybratý spoločník do „kto bol so mnou": môj pes (zo svorky,
 // reálna cloudinary fotka) alebo iný člen (mock, initial avatar). key = unikát pre dedup/remove. ──
@@ -388,6 +390,8 @@ export const COMMUNITY_CSS = `
 .comm-lockbtn:hover{border-color:${GOLD};color:${GOLD};}
 .comm-lockbtn.on{border-color:${GOLD};color:${GOLD};}
 .comm-empty{text-align:center;padding:34px 16px;color:${T.onDarkDim};font-size:12.5px;font-style:italic;}
+/* #41 — úprimná veta namiesto fabrikovaného člena/prázdneho bloku (issue #41, ČASŤ 2) */
+.comm-buddynote{font-size:11px;color:${T.onDarkDim};font-style:italic;padding:8px 0 2px;}
 
 /* ── CompanionPicker (Matej 2026-07-23): „kto bol so mnou" — svorka (moje psy s fotkami) +
    iní členovia podľa mena. Vybraté = avatar chipy s ×. ── */
@@ -1651,40 +1655,47 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
   );
 }
 
-// ── Buddy list (FÁZA 3) — kto ide na plánovaný výlet, s TripProfileCard každého ────────────
-// Zbalený default: jeden riadok „See who's going". Dôvod: v Events je viac inzerátov pod sebou,
-// rozbalené karty by z listu urobili nekonečný scroll. Rozbalené = TripProfileCard, teda len
-// trip-tier polia (getTier==='trip') — presne to, čo o sebe člen na výlet pustil.
-function BuddyList({ event, onMessage, onOpenProfile }: {
+// ── Buddy list (FÁZA 3, prerobené #41) — kto ide na plánovaný výlet, s TripProfileCard
+// každého účastníka. PREDTÝM fabrikovalo ľudí z MOCK_MEMBER_POOL pre KAŽDÝ inzerát (aj cudzí
+// „Zuzka & Bady" seed). Reálnu partiu (get_trip_party) vieme dotiahnuť LEN pre MOJE VLASTNÉ
+// inzeráty — organizátor je tam ja (auth.uid(), default v RPC); demo seed „hostia" nemajú
+// reálne uuid, appka pre nich žiadnu skutočnú partiu vytiahnuť nemá odkiaľ. Pre tie namiesto
+// vymysleného človeka ide úprimná veta (issue #41, bod 3).
+function BuddyList({ event, onMessage }: {
   event: PartnerEvent;
   onMessage: (name: string) => void;
   onOpenProfile?: (memberId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const members = eventGoingMembers(event);
-  if (members.length === 0) return null;
+  const isMine = isMyEvent(event);
+  const party = useTripParty(isMine ? event.tripId : null);
+  if (!isMine) {
+    return <div className="comm-buddynote">Preview listing — real participants aren't tracked here yet.</div>;
+  }
+  const members = party.joiners;
   return (
     <div style={{ marginTop: 10 }}>
       <button type="button" className="comm-buddytoggle" onClick={() => setOpen((v) => !v)}>
         {open ? 'Hide who’s going' : `See who’s going (${members.length})`}
       </button>
       {open && (
-        <div className="flex flex-col gap-2" style={{ marginTop: 10 }}>
-          {members.map((m) => {
-            const { profile, dogs } = mockMemberProfile(m);
-            return (
-              <div key={m.id}>
-                <TripProfileCard profile={profile} name={m.name} dogs={dogs} packNumber={m.packNumber} />
-                <div className="flex gap-2" style={{ marginTop: 6 }}>
-                  <button type="button" className="comm-msgbtn" onClick={() => onMessage(m.name)}>Message</button>
-                  {onOpenProfile && (
-                    <button type="button" className="comm-msgbtn" onClick={() => onOpenProfile(m.id)}>Full profile</button>
-                  )}
+        members.length === 0 ? (
+          <div className="comm-buddynote">Nobody's joined this trip yet.</div>
+        ) : (
+          <div className="flex flex-col gap-2" style={{ marginTop: 10 }}>
+            {members.map((m, i) => {
+              const cardProps = partyMemberToProfileCardProps(m);
+              return (
+                <div key={i}>
+                  <TripProfileCard {...cardProps} />
+                  <div className="flex gap-2" style={{ marginTop: 6 }}>
+                    <button type="button" className="comm-msgbtn" onClick={() => onMessage(cardProps.name)}>Message</button>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )
       )}
     </div>
   );

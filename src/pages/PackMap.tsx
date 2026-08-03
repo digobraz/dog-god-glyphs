@@ -88,6 +88,8 @@ import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST 
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
 import { useTripParties, partyKey, type PartyMember } from '@/components/pack/triplist/useTripParty';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
+// #41 — klik na ikonku tvorcu/účastníka výletu otvorí TÚTO kartu (nestavia sa druhá).
+import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pack/profile/TripProfileCard';
 // ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vytiahnuté z
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
@@ -1394,6 +1396,10 @@ export default function PackMap() {
   const [wishlistPopupId, setWishlistPopupId] = useState<string | null>(null);
   const [partnerAdCtx, setPartnerAdCtx] = useState<{ tripId: string } | null>(null);
   const [dmName, setDmName] = useState<string | null>(null);
+  // #41 — klik na ikonku tvorcu/účastníka v „Open trip from the pack" rozbalí TripProfileCard
+  // pod jeho riadkom. Kľúč = `${h.key}:org` alebo `${h.key}:joiner:${i}`, nie len id člena —
+  // tá istá trasa môže byť naraz otvorená viacerými organizátormi.
+  const [expandedPartyKey, setExpandedPartyKey] = useState<string | null>(null);
   // Portal kategória (design §D): Trips ↔ Events (Events pill sa aktivoval).
   const [activeCat, setActiveCat] = useState<'trips' | 'events'>('trips');
   const allTrails = useMemo(() => [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
@@ -2178,16 +2184,44 @@ export default function PackMap() {
                 {/* #41 — KTO TENTO VÝLET VYPÍSAL. Nie autor trasy (`authorOf` je textové pole
                     datasetu), ale reálny člen, ktorý má trasu ako otvorený výlet v DB.
                     Karta je zámerne chudobná — o cudzom človeku appka vie len meno, psa,
-                    fotku a poradové číslo (viď PartyMemberCard.tsx). */}
+                    fotku a poradové číslo (viď PartyMemberCard.tsx). Klik na ikonku rozbalí
+                    TripProfileCard toho istého člena (majiteľ + pes, žiadna druhá karta). */}
                 {(openHostsBySlug.get(dt.id) ?? []).length > 0 && (
                   <div className="trp-inldet-section">
                     <h4>Open trip from the pack</h4>
-                    {(openHostsBySlug.get(dt.id) ?? []).map((h) => (
-                      <div key={h.key} className="trp-inldet-host">
-                        <PartyMemberCard member={h.organizer} roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'} />
-                        {h.joiners.map((j, i) => <PartyMemberCard key={`${h.key}:${i}`} member={j} />)}
-                      </div>
-                    ))}
+                    {(openHostsBySlug.get(dt.id) ?? []).map((h) => {
+                      const orgKey = `${h.key}:org`;
+                      return (
+                        <div key={h.key} className="trp-inldet-host">
+                          <PartyMemberCard
+                            member={h.organizer}
+                            roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'}
+                            onOpenProfile={() => setExpandedPartyKey((cur) => (cur === orgKey ? null : orgKey))}
+                          />
+                          {expandedPartyKey === orgKey && (
+                            <div style={{ marginTop: 8 }}>
+                              <TripProfileCard {...partyMemberToProfileCardProps(h.organizer)} />
+                            </div>
+                          )}
+                          {h.joiners.map((j, i) => {
+                            const jKey = `${h.key}:joiner:${i}`;
+                            return (
+                              <Fragment key={jKey}>
+                                <PartyMemberCard
+                                  member={j}
+                                  onOpenProfile={() => setExpandedPartyKey((cur) => (cur === jKey ? null : jKey))}
+                                />
+                                {expandedPartyKey === jKey && (
+                                  <div style={{ marginTop: 8 }}>
+                                    <TripProfileCard {...partyMemberToProfileCardProps(j)} />
+                                  </div>
+                                )}
+                              </Fragment>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 

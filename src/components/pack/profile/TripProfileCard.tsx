@@ -6,6 +6,7 @@
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
+import type { PartyMember } from '@/components/pack/triplist/useTripParty';
 import {
   type CentralProfile,
   type ProfileFieldKey,
@@ -15,6 +16,41 @@ import {
   PERSONALITY_OPTIONS,
   SMOKE_OPTIONS,
 } from './packProfile';
+
+// ── Reálny člen partie (whitelist z get_trip_party — meno, pes, fotka, číslo) → props, ktoré
+// táto karta žiada (issue #41: „prepoužiť TripProfileCard, nestavať druhú"). Trip-tier polia
+// (osobnosť/jazyky/fajčenie) o CUDZOM človeku appka nemá odkiaľ vziať — žijú len v localStorage
+// vlastného prehliadača (packProfile.ts:757) — profil ostáva prázdny a karta ich jednoducho
+// nezobrazí (žiadna pilulka), presne ako keď ich pri sebe nevyplníš ty. Nič sa nefabrikuje.
+export function partyMemberToProfileCardProps(member: PartyMember): {
+  profile: CentralProfile;
+  name: string;
+  avatarUrl?: string | null;
+  dogs: PackDogFull[];
+  packNumber?: number;
+} {
+  const dogName = member.dogName?.trim();
+  return {
+    profile: {
+      human: { interests: [], vibes: [], languages: [], intents: [], personality: [], visibility: {} },
+      dogs: {},
+      updatedAt: new Date(0).toISOString(),
+    },
+    name: member.ownerFirst?.trim() || 'A Dogyptian',
+    // appka nemá fotku MAJITEĽA o cudzom človeku, len fotku PSA (get_trip_party whitelist) —
+    // rovnaký kompromis ako .pmc-av v PartyMemberCard.tsx.
+    avatarUrl: member.dogPhoto,
+    dogs: dogName ? [{
+      id: `party-${dogName}`,
+      dog_name: dogName,
+      cloudinary_main_url: member.dogPhoto,
+      selections: null,
+      created_at: new Date(0).toISOString(),
+      pack_number: member.packNumber,
+    }] : [],
+    packNumber: member.packNumber ?? undefined,
+  };
+}
 
 // Top-N personality pills shown on the trip mini-card (koncentrát osobnosti
 // preview) — kept small so the card doesn't grow (zadanie-profil-koncentrat-
