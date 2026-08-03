@@ -59,7 +59,7 @@ export const kor: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "영원한 유대",
   "heroglyph.intro.pill.bond.tooltip": "당신과 당신의 개 사이의 영원한 유대의 상징.",
   "heroglyph.intro.pill.payment.label": "상징적인 일회 결제",
-  "heroglyph.intro.pill.payment.tooltip": "€11 일회 — 구독 없음. 모든 돈은 DOGYPT에 남아 — 개발과 체계적인 도움을 위해!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 한 번만 — 반려견의 Heroglyph 디자인 비용입니다. 모든 자금은 DOGYPT에 남습니다 — 개발과 지속적인 도움을 위해!",
   "heroglyph.intro.meaning.dog.label": "개",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "주인",

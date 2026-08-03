@@ -59,7 +59,7 @@ export const ara: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "رابطة أبدية",
   "heroglyph.intro.pill.bond.tooltip": "رمز للرابطة الأبدية بينك وبين كلبك.",
   "heroglyph.intro.pill.payment.label": "دفعة رمزية واحدة",
-  "heroglyph.intro.pill.payment.tooltip": "11 يورو مرة واحدة — بلا اشتراكات. كل المال يبقى في DOGYPT — للتطوير والمساعدة المنهجية!",
+  "heroglyph.intro.pill.payment.tooltip": "11 يورو مرة واحدة — مقابل تصميم Heroglyph كلبك. كل المال يبقى في DOGYPT — للتطوير والمساعدة المنهجية!",
   "heroglyph.intro.meaning.dog.label": "الكلب",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "المالك",

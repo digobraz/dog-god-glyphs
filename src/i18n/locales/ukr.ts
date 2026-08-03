@@ -97,7 +97,7 @@ export const ukr: Partial<Dict> = {
   'heroglyph.intro.pill.bond.tooltip': 'Символ вічного зв\'язку між тобою та твоїм псом.',
   'heroglyph.intro.pill.payment.label': 'Один Символічний Платіж',
   'heroglyph.intro.pill.payment.tooltip':
-    '€11 одноразово — жодних підписок. Усі гроші залишаються в DOGYPT — на розвиток і системну допомогу!',
+    '€11 одноразово — за дизайн Heroglyph твого пса. Усі гроші залишаються в DOGYPT — на розвиток і системну допомогу!',
 
   // showcase symbol meanings (Hekthorov heroglyf) — label + value
   'heroglyph.intro.meaning.dog.label': 'Пес',

@@ -59,7 +59,7 @@ export const tur: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "Ebedi Bağ",
   "heroglyph.intro.pill.bond.tooltip": "Siz ve köpeğiniz arasındaki ebedi bağın simgesi.",
   "heroglyph.intro.pill.payment.label": "Tek Sembolik Ödeme",
-  "heroglyph.intro.pill.payment.tooltip": "Tek seferlik €11 — abonelik yok. Tüm para DOGYPT'te kalır — geliştirme ve sistematik yardım için!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 tek seferlik — köpeğinin Heroglyph tasarımı için. Tüm para DOGYPT’te kalır — geliştirme ve sistemli yardım için!",
   "heroglyph.intro.meaning.dog.label": "Köpek",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "Sahip",

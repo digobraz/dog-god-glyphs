@@ -107,7 +107,7 @@ export const en = {
   'heroglyph.intro.pill.bond.tooltip': 'A symbol of the eternal bond between you and your dog.',
   'heroglyph.intro.pill.payment.label': 'One Symbolic Payment',
   'heroglyph.intro.pill.payment.tooltip':
-    '€11 once — no subscriptions. All money stays in DOGYPT — for development and systematic help!',
+    '€11 once — for your dog’s Heroglyph design. All money stays in DOGYPT — for development and systematic help!',
 
   // showcase symbol meanings (Hekthorov heroglyf) — label + value
   'heroglyph.intro.meaning.dog.label': 'Dog',

@@ -59,7 +59,7 @@ export const ind: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "शाश्वत बंधन",
   "heroglyph.intro.pill.bond.tooltip": "आपके और आपके कुत्ते के बीच शाश्वत बंधन का प्रतीक।",
   "heroglyph.intro.pill.payment.label": "एक प्रतीकात्मक भुगतान",
-  "heroglyph.intro.pill.payment.tooltip": "€11 एक बार — कोई सदस्यता नहीं। सारा पैसा DOGYPT में रहता है — विकास और व्यवस्थित सहायता के लिए!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 एक बार — आपके कुत्ते के Heroglyph डिज़ाइन के लिए। सारा पैसा DOGYPT में रहता है — विकास और नियमित मदद के लिए!",
   "heroglyph.intro.meaning.dog.label": "कुत्ता",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "मालिक",

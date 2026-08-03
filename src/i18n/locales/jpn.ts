@@ -59,7 +59,7 @@ export const jpn: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "永遠の絆",
   "heroglyph.intro.pill.bond.tooltip": "あなたと愛犬の永遠の絆のシンボル。",
   "heroglyph.intro.pill.payment.label": "一度きりの象徴的な支払い",
-  "heroglyph.intro.pill.payment.tooltip": "€11一回限り — サブスクなし。すべての資金はDOGYPTに — 開発と継続的な支援のために！",
+  "heroglyph.intro.pill.payment.tooltip": "€11一回限り — 愛犬のHeroglyphデザインのために。すべての資金はDOGYPTに — 開発と継続的な支援のために！",
   "heroglyph.intro.meaning.dog.label": "犬",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "オーナー",

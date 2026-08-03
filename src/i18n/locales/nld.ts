@@ -59,7 +59,7 @@ export const nld: Partial<Dict> = {
   "heroglyph.intro.pill.bond.label": "Eeuwige Band",
   "heroglyph.intro.pill.bond.tooltip": "Een symbool van de eeuwige band tussen jou en jouw hond.",
   "heroglyph.intro.pill.payment.label": "Één Symbolische Betaling",
-  "heroglyph.intro.pill.payment.tooltip": "€11 eenmalig — geen abonnementen. Al het geld blijft in DOGYPT — voor ontwikkeling en systematische hulp!",
+  "heroglyph.intro.pill.payment.tooltip": "€11 eenmalig — voor het ontwerp van de Heroglyph van je hond. Al het geld blijft in DOGYPT — voor ontwikkeling en systematische hulp!",
   "heroglyph.intro.meaning.dog.label": "Hond",
   "heroglyph.intro.meaning.dog.value": "Hekthor",
   "heroglyph.intro.meaning.owner.label": "Baasje",
