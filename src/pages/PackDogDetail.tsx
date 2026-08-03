@@ -37,7 +37,7 @@ import { MemorialControl } from '@/components/pack/MemorialControl';
 import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
-import { flagUrl, countryISO2 } from '@/lib/countryGeo';
+import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE } from '@/lib/env';
 import { DEV_FULL } from '@/lib/packFlags';
 
@@ -138,6 +138,56 @@ interface DogRow {
 }
 
 type Status = 'loading' | 'ready' | 'not-found' | 'error';
+
+// Country flag circle with an offline fallback. The flagcdn image is preferred
+// (crisp, matches the GRID), but if it fails to load — third-party host, in-app
+// browser, blocked CDN — we draw the flag emoji in the same circle instead of
+// leaving the browser's broken-image glyph behind.
+function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: string }) {
+  const [failed, setFailed] = useState(false);
+  const base: React.CSSProperties = {
+    width: 28,
+    height: 28,
+    borderRadius: '50%',
+    justifySelf: 'center',
+    border: '1.5px solid rgba(201, 154, 63, 0.55)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+    background: '#1a1a1a',
+  };
+
+  if (failed) {
+    const emoji = flagEmojiFromISO2(iso2);
+    return (
+      <span
+        title={label}
+        aria-label={label}
+        role="img"
+        style={{
+          ...base,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 16,
+          lineHeight: 1,
+          overflow: 'hidden',
+        }}
+      >
+        {emoji}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={label}
+      title={label}
+      loading="lazy"
+      onError={() => setFailed(true)}
+      style={{ ...base, objectFit: 'cover' }}
+    />
+  );
+}
 
 export default function PackDogDetail() {
   const t = useT();
@@ -888,22 +938,15 @@ export default function PackDogDetail() {
                   {certNumber}
                 </span>
               </div>
-              {/* Vlajka — krúžok ako na GRIDE (flagcdn), bez badge rámu */}
-              <img
+              {/* Vlajka — krúžok ako na GRIDE (flagcdn), bez badge rámu.
+                  Emoji fallback: flagcdn je cudzí CDN a nie je dostupný všade
+                  (Gmail in-app browser, 2026-07-26 → namiesto vlajky sa kreslil
+                  iOS „?"). Bez fallbacku ostane po zlyhaní tmavý štvorec s
+                  otáznikom, čo vyzerá ako rozbitá stránka. */}
+              <FlagCircle
                 src={dogFlagUrl}
-                alt={origin || t('pack.dog.defaultCountry')}
-                title={origin || t('pack.dog.defaultCountry')}
-                loading="lazy"
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: '50%',
-                  objectFit: 'cover',
-                  justifySelf: 'center',
-                  border: '1.5px solid rgba(201, 154, 63, 0.55)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
-                  background: '#1a1a1a',
-                }}
+                iso2={flagIso}
+                label={origin || t('pack.dog.defaultCountry')}
               />
               {/* Health — FIX9: deceased pes = needitovateľný memoriálny čip, žiadny dropdown */}
               {isDeceased ? <InLovingMemoryBadge /> : (

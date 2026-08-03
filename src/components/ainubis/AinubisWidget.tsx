@@ -21,6 +21,13 @@ const MAX_IMAGE_DIM = 1568; // px, dlhšia strana — zhoduje sa s limitom na ba
 const JPEG_QUALITY = 0.82;
 const TYPEWRITER_MS = 14; // ms/znak
 
+/** Uvítanie naživo — kým vyskočí prvá bublina, AINUBIS chvíľu „píše". */
+const WELCOME_FIRST_PAUSE_MS = 1100;
+/** Pauza pred každou ďalšou bublinou (počíta sa od dopísania predošlej). */
+const WELCOME_PAUSE_MS = 700;
+/** Ako dlho po odoslaní bubliny sa znovu rozsvieti „…píše". */
+const WELCOME_GAP_MS = 260;
+
 // Render routy pre PDF/OG obrázky — widget by sa zapiekol do výstupu.
 const HIDDEN_EXACT_PREFIXES = ['/cert-render', '/invoice-render', '/share-render'];
 
@@ -296,16 +303,16 @@ function AinubisWidgetInner() {
   const [open, setOpen] = useState(() => safeLocalStorageGet(LS_OPEN) === '1');
   const [conversationId, setConversationId] = useState<string | null>(() => safeLocalStorageGet(LS_CONV));
   const [sessionToken, setSessionToken] = useState<string | null>(() => safeLocalStorageGet(LS_TOK));
-  const [messages, setMessages] = useState<AinubisMessage[]>(() => [
-    // Uvítanie je zámerne rozdelené na viac bublín (04-copy-a-vizual.md §1) —
-    // jedna päťveta na úvod odradí skôr, než sa človek dostane k otázke.
-    ...copy.welcome.map((text, i) => ({
-      id: `welcome-${i}`,
-      role: 'assistant' as const,
-      content: text,
-      created_at: new Date().toISOString(),
-    })),
-  ]);
+  // Uvítanie sa NEVKLADÁ do počiatočného stavu (Matej 2026-07-30: „teraz je to
+  // ako keby tam už predpísané a to nechceme, chceme aby to vyzeralo ONLINE
+  // LIVE"). Bubliny sa prehrajú až po otvorení panela — najprv „…píše", potom
+  // text po znakoch, ako keby AINUBIS naozaj sedel na druhej strane.
+  // Rozdelenie na viac bublín je zámer (04-copy-a-vizual.md §1).
+  const [messages, setMessages] = useState<AinubisMessage[]>([]);
+  /** Beží uvítacia sekvencia — drží indikátor „…píše" medzi bublinami. */
+  const [welcomeTyping, setWelcomeTyping] = useState(false);
+  /** Aby sa uvítanie neprehralo druhýkrát pri zavretí a znovuotvorení panela. */
+  const welcomePlayedRef = useRef(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [takeoverActive, setTakeoverActive] = useState(false);
   const [input, setInput] = useState('');
@@ -425,6 +432,68 @@ function AinubisWidgetInner() {
       window.clearTimeout(resetTimer);
     };
   }, [reducedMotion]);
+
+  // ── Uvítanie naživo ─────────────────────────────────────────────────────
+  // Otvorenie panela = AINUBIS si všimol, že si prišiel: chvíľu „píše", potom
+  // pošle prvú bublinu, znova píše, pošle druhú. Časovanie je odhad ľudského
+  // tempa, nie presnosť — dôležité je, že text NIE JE na obrazovke skôr, než ho
+  // „napíše". Pri `prefers-reduced-motion` sa obe bubliny vložia naraz.
+  useEffect(() => {
+    // Uvítanie sa prehrá aj vracajúcemu sa človeku — rovnako ako predtým, keď
+    // bolo v počiatočnom stave. Preskočiť ho podľa uloženého `conversationId`
+    // sa neosvedčilo: keď sa história nedotiahne (stará alebo zmazaná
+    // konverzácia), panel ostane úplne prázdny.
+    if (!open || welcomePlayedRef.current) return;
+    welcomePlayedRef.current = true;
+
+    const pushWelcome = (i: number) => {
+      const id = `welcome-${i}`;
+      setMessages((prev) =>
+        prev.some((m) => m.id === id)
+          ? prev
+          : [
+              ...prev,
+              {
+                id,
+                role: 'assistant' as const,
+                content: copy.welcome[i],
+                created_at: new Date().toISOString(),
+              },
+            ]
+      );
+      startTypewriter(id, copy.welcome[i]);
+    };
+
+    if (reducedMotion) {
+      copy.welcome.forEach((_, i) => pushWelcome(i));
+      return;
+    }
+
+    const timers: number[] = [];
+    let at = 0;
+    setWelcomeTyping(true);
+    copy.welcome.forEach((text, i) => {
+      at += i === 0 ? WELCOME_FIRST_PAUSE_MS : WELCOME_PAUSE_MS;
+      timers.push(
+        window.setTimeout(() => {
+          setWelcomeTyping(false);
+          pushWelcome(i);
+          if (i < copy.welcome.length - 1) {
+            timers.push(
+              window.setTimeout(() => setWelcomeTyping(true), WELCOME_GAP_MS)
+            );
+          }
+        }, at)
+      );
+      // Ďalšia bublina čaká, kým sa tá predošlá dopíše (14 ms/znak).
+      at += text.length * TYPEWRITER_MS;
+    });
+
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+      setWelcomeTyping(false);
+    };
+  }, [open, copy.welcome, reducedMotion]);
 
   // ── Typewriter — 14 ms/znak, klik kdekoľvek do panelu preskočí (skipTypewriter).
   useEffect(() => {
@@ -757,7 +826,17 @@ function AinubisWidgetInner() {
     textareaRef.current?.focus();
   }
 
-  const showSuggestions = messages.every((m) => m.id.startsWith('welcome'));
+  /** Konverzácia je stále čerstvá — človek ešte nenapísal. Intro karta (badge +
+   *  meno + rola) drží miesto od prvej sekundy, aj kým uvítanie ešte nabieha:
+   *  keby sa dorenderovala až po ňom, bubliny by pod ňou poskočili. */
+  const showIntro = messages.every((m) => m.id.startsWith('welcome'));
+  /** Návrhy sa ukážu až keď uvítanie dobehlo (vrátane typewritera) — vyskočiť
+   *  skôr, než AINUBIS dopíše, vyzerá ako predpripravený formulár. */
+  const showSuggestions =
+    showIntro &&
+    messages.length === copy.welcome.length &&
+    !welcomeTyping &&
+    !typewriter;
 
   return (
     <>
@@ -822,7 +901,7 @@ function AinubisWidgetInner() {
             {/* Intro karta — len kým je konverzácia prázdna (rovnaká podmienka
                 ako návrhy pod ňou). Akonáhle človek napíše, odscrolluje sa
                 s históriou preč a už sa nevracia. */}
-            {showSuggestions && (
+            {showIntro && (
               <div className="ainubis-intro">
                 <img className="ainubis-intro__badge" src={ainubisFace} alt="" aria-hidden="true" />
                 {/* „AI" v mene svieti modrou — meno je značka, nie preklad,
@@ -860,7 +939,9 @@ function AinubisWidgetInner() {
                 </div>
               );
             })}
-            {waitingReply && <div className="ainubis-typing">{copy.typing}</div>}
+            {(waitingReply || welcomeTyping) && (
+              <div className="ainubis-typing">{copy.typing}</div>
+            )}
           </div>
 
           {showSuggestions && (
