@@ -2,6 +2,7 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import HTMLFlipBook from 'react-pageflip';
 import { Link } from 'react-router-dom';
 import { useT } from '@/i18n/LanguageContext';
+import { markConstitutionOpened } from '@/lib/constitutionRead';
 import dogyptSeal from '@/assets/dogypt-seal.webp';
 import { SACRED_INDEX } from '@/data/sacredIndex.generated';
 
@@ -77,7 +78,7 @@ export default function ConstitutionBook() {
   // step in the /pack First Steps checklist (no DB signal for reading).
   useEffect(() => {
     if (opened) {
-      try { localStorage.setItem('dogypt_constitution_opened', '1'); } catch { /* ignore */ }
+      markConstitutionOpened();
     }
   }, [opened]);
 

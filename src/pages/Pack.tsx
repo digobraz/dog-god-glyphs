@@ -15,6 +15,7 @@ import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { PackShareCard } from '@/components/pack/PackShareCard';
+import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
@@ -75,6 +76,28 @@ export default function Pack() {
   const [featureVotes, setFeatureVotes] = useState<Record<string, number>>({});
   const [hasVoted, setHasVoted] = useState(false);
   const [hasReferral, setHasReferral] = useState(false);
+  // „Prelistuj DOGMU" — flag píše ConstitutionCard / ConstitutionBook. localStorage = okamžitá
+  // odozva na tomto zariadení, user_metadata.constitution_opened = trvalý per-user zdroj
+  // (bez neho quest na druhom zariadení/prehliadači zmizol — sťažnosť zákazníčky 2026-07-30).
+  const [constitutionOpened, setConstitutionOpened] = useState(() => {
+    try { return localStorage.getItem('dogypt_constitution_opened') === '1'; } catch { return false; }
+  });
+
+  // Karta DOGMA sa otvára v novom tabe (target="_blank") → po návrate sa /pack sám
+  // neprekreslí a fajočka zostala prázdna aj po prečítaní. Pri návrate flag prečítame znova.
+  useEffect(() => {
+    const sync = () => {
+      try {
+        if (localStorage.getItem('dogypt_constitution_opened') === '1') setConstitutionOpened(true);
+      } catch { /* ignore */ }
+    };
+    window.addEventListener('focus', sync);
+    document.addEventListener('visibilitychange', sync);
+    return () => {
+      window.removeEventListener('focus', sync);
+      document.removeEventListener('visibilitychange', sync);
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -91,6 +114,7 @@ export default function Pack() {
       const devotion = Number(meta.devotion) || 100;
       const display = firstNameFrom(u.email ?? '', fullName);
       if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones: 0 });
+      if (mounted && meta.constitution_opened) setConstitutionOpened(true);
 
       // First Steps — extra completion signals (best-effort, non-blocking).
       // "Cast your vote in Shape" → any row in feature_votes for this user.
@@ -166,14 +190,17 @@ export default function Pack() {
     const hasDog = list.length > 0;
     const hasExtras = list.some((d) => (d.cloudinary_extras ?? []).length > 0);
     const hasAvatar = !!user?.avatarUrl;
-    let constitutionOpened = false;
-    try { constitutionOpened = localStorage.getItem('dogypt_constitution_opened') === '1'; } catch { /* ignore */ }
     return [
       { label: t('pack.steps.forgeHeroglyph'), done: hasDog },
       { label: t('pack.steps.addPhoto'), done: hasAvatar },
       { label: t('pack.steps.addExtraPhotos'), done: hasExtras },
       { label: t('pack.steps.castVote'), done: hasVoted },
-      { label: t('pack.steps.flipConstitution'), done: constitutionOpened },
+      {
+        label: t('pack.steps.flipConstitution'),
+        done: constitutionOpened,
+        href: 'https://dogma.dogypt.com',
+        onAction: markConstitutionOpened,
+      },
       { label: t('pack.steps.inviteDogLover'), done: hasReferral },
     ];
   })();

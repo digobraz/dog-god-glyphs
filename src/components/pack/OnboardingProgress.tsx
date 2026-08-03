@@ -8,6 +8,10 @@ const T = PACK_THEME;
 export interface OnboardingStep {
   label: string;
   done: boolean;
+  /** Nesplnený krok, ktorý sa dá splniť jedným klikom (napr. „Prelistuj DOGMU" → dogma.dogypt.com). */
+  href?: string;
+  /** Beží pri kliku na krok — označí splnenie (localStorage + user_metadata). */
+  onAction?: () => void;
 }
 
 export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
@@ -115,7 +119,26 @@ export function OnboardingProgress({ steps }: { steps: OnboardingStep[] }) {
             ) : (
               <Circle className="h-4 w-4 shrink-0" style={{ color: T.inkFaint }} />
             )}
-            <span>{s.label}</span>
+            {/* Nesplnený krok s odkazom = klikací (členka čítala DOGMU z IG linku, kde sa
+                splnenie nedá pripísať účtu — z checklistu je cesta zjavná a zaráta sa). */}
+            {s.href && !s.done ? (
+              <a
+                href={s.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={s.onAction}
+                style={{
+                  color: 'inherit',
+                  textDecoration: 'underline',
+                  textDecorationColor: 'rgba(201,154,63,0.45)',
+                  textUnderlineOffset: 3,
+                }}
+              >
+                {s.label}
+              </a>
+            ) : (
+              <span>{s.label}</span>
+            )}
           </li>
         ))}
       </ul>

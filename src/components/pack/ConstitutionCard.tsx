@@ -1,5 +1,6 @@
 import { PACK_THEME } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { markConstitutionOpened } from '@/lib/constitutionRead';
 
 const T = PACK_THEME;
 
@@ -14,7 +15,7 @@ export function ConstitutionCard() {
       // Constitution" First Step (Pack.tsx reads this flag). Without this, the
       // step — and the +10 ☥ for 100% completion — was only reachable via the
       // /religion flipbook, which /pack members have no link to.
-      onClick={() => { try { localStorage.setItem('dogypt_constitution_opened', '1'); } catch { /* ignore */ } }}
+      onClick={markConstitutionOpened}
       className="pack-card-hover cbc block w-full"
       style={{
         background: T.cardGrad,
