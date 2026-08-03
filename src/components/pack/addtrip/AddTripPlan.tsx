@@ -96,6 +96,9 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
   const [dateKind, setDateKind] = useState<'exact' | 'month' | 'flexible'>('exact');
   const [date, setDate] = useState('');
   const [crew, setCrew] = useState<Companion[]>([]);
+  // #42 — konzervatívny default: kým člen výslovne nezvolí "Looking for pack", výlet je
+  // súkromný. Predtým sa toto vôbec nepýtalo a draft vždy odišiel ako verejný inzerát.
+  const [visibility, setVisibility] = useState<'private' | 'open'>('private');
   const [note, setNote] = useState('');
   const [phIdx, setPhIdx] = useState(0);
   const [submitError, setSubmitError] = useState('');
@@ -140,11 +143,12 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
       date: dateKind === 'flexible' ? undefined : (date || undefined),
       crew,
       note: note.trim() || undefined,
+      visibility,
       authorName,
       createdAt: now,
       updatedAt: now,
     };
-  }, [geometry, name, activity, dateKind, date, crew, note, authorName]);
+  }, [geometry, name, activity, dateKind, date, crew, note, visibility, authorName]);
 
   const missing = missingFields(draft).toSubmit;
   const canSubmit = missing.length === 0;
@@ -221,6 +225,33 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
             <input type="month" className="att-input" style={{ marginTop: 8 }} value={date} onChange={(e) => setDate(e.target.value)} />
           )}
           {dateKind === 'flexible' && <p className="att-when-note">we'll agree in the chat</p>}
+        </div>
+
+        {/* #42 — viditeľnosť sa volí TU, pri zakladaní, nie schovaná v nastaveniach.
+            Default "Private" (konzervatívne) — "Looking for pack" je vedomá voľba. */}
+        <div className="att-field">
+          <label>Who can see this</label>
+          <div className="att-when-toggle" role="tablist" aria-label="Who can see this">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={visibility === 'private'}
+              className={`att-when-btn${visibility === 'private' ? ' on' : ''}`}
+              onClick={() => setVisibility('private')}
+            >Private</button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={visibility === 'open'}
+              className={`att-when-btn${visibility === 'open' ? ' on' : ''}`}
+              onClick={() => setVisibility('open')}
+            >Looking for pack</button>
+          </div>
+          <p className="att-when-note">
+            {visibility === 'private'
+              ? "Only you and your pack see this. Nobody outside can find it or ask to join."
+              : 'Your pack can see the trail, the date and your dog — and ask to join.'}
+          </p>
         </div>
 
         {/* Note — what's planned */}

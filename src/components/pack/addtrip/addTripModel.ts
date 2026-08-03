@@ -86,6 +86,14 @@ export type AddTripDraft = {
   // (PackMap pred prestavbou: `isMultiDay = addMultiTrip && addDateEnd > addDate`,
   // `journeyOk = isMultiDay && drawKm >= 50`). Bez toho sa viacdňový výlet nedá zadať vôbec.
   dateEnd?: string;               // 'YYYY-MM-DD' — koniec viacdňového tripu
+  // VIDITEĽNOSŤ (issue #42) — LEN pre `planned`. Rozhoduje sa TU, pri zakladaní, nie skryté
+  // v nastaveniach: `'private'` (default, konzervatívne) = nikto cudzí trip nevidí ani nemôže
+  // požiadať o pridanie; `'open'` = "Looking for pack" inzerát, presne ako doterajší
+  // WishlistIntentPopup partner-flow (PackMap.tsx `choosePartner`). Bez tohto poľa PackMap
+  // (`submitAddTripDraft`) doteraz KAŽDÝ naplánovaný výlet automaticky publikoval ako
+  // `status:'looking', openness:'open'` + verejný `trip_events` inzerát — člen o tom nevedel
+  // a nič si nevyberal.
+  visibility?: 'private' | 'open';
   // pack
   crew: Companion[];              // CompanionPicker, existujúci typ (packCommunityUI.tsx)
   // len walked

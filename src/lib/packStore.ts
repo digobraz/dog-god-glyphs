@@ -286,6 +286,38 @@ export function persistEvents(next: EventLike[]): void {
   enqueue(ops);
 }
 
+// ── privacy close-through: trip_events (issue #42) ──────────────────────────
+// AddTripPlan (PackMap.tsx submitAddTripDraft) môže pri "Looking for pack" spolu s
+// user_trips vytvoriť aj vlastný `trip_events` riadok — TEN má svoj vlastný `closed`
+// príznak a vlastnú RLS politiku (`trip_events_read_open`: vidí ho KAŽDÝ platiaci člen,
+// kým `closed=false`, BEZ OHĽADU na `user_trips.openness`). Keď človek výlet neskôr
+// SPRIVATIZUJE cez "Who can see this trip" (PackTriplist.tsx `setVisibility`), tá zmena
+// sedí len v `user_trips` — bez tejto funkcie by inzerát ostal verejný navždy, hoci appka
+// tvrdí "Private". PackTriplist.tsx a PackMap.tsx sú DVE rôzne stránky s vlastným React
+// state, takže to nejde riešiť volaním `setEvents()` priamo — packStore je jediné
+// spoločné miesto (localStorage `trp-events-v2` + DB).
+export function closeMyTripEvents(tripSlug: string): void {
+  const events = readJson<EventLike[]>(PACK_KEYS.events, []);
+  let changed = false;
+  const next = events.map((e) => {
+    if (e.tripId !== tripSlug || e.hostIsMe !== true || e.id.startsWith('seed-') || e.closed === true) return e;
+    changed = true;
+    return { ...e, closed: true };
+  });
+  if (!changed) return;
+  writeJson(PACK_KEYS.events, next);
+  const ops: SyncOp[] = next
+    .filter((e) => e.tripId === tripSlug && e.hostIsMe === true && !e.id.startsWith('seed-'))
+    .map((e) => ({
+      kind: 'upsert', tbl: 'trip_events', onConflict: 'host_id,client_id', own: 'host_id',
+      row: {
+        client_id: e.id, trip_slug: e.tripId, dates: e.dates ?? [],
+        month: e.month ?? null, socialization: e.socialization ?? null, closed: true,
+      },
+    }));
+  enqueue(ops);
+}
+
 // ── write-through: členmi nahodené výlety (pack_trips, issue #32 fáza F5) ──────────────────
 // Odlišné od domén vyššie: fotky sú dnes v `trp-local-trails` uložené ako base64 (tripShared.tsx
 // `writeLocalTrails`) a DB stĺpec `pack_trips.payload` ich smie niesť len ako Cloudinary URL

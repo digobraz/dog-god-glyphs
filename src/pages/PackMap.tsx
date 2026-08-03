@@ -1810,15 +1810,21 @@ export default function PackMap() {
     };
     setLocalTrails((prev) => [planTrail, ...prev]);
     const dateStr = draft.dateKind === 'flexible' ? '' : (draft.date ?? '');
-    addPlan(tid, 'partner', dateStr);
-    const ev: PartnerEvent = {
-      id: `plan-event-${now}`, tripId: tid,
-      dates: dateStr.length >= 7 ? [dateStr] : [],
-      month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
-      socialization: '', host: `${firstName} & your dog`, hostIsMe: true,
-      at: now, joinedByMe: true, seedGoing: 0,
-    };
-    setEvents((prev) => [ev, ...prev]);
+    // #42 — konzervatívny default: draft.visibility chýba len na starých draftoch (autosave
+    // z čias pred týmto poľom), fallback je preto 'private', NIE 'open'. Len výslovné 'open'
+    // zakladá "partner" plán + verejný inzerát (trip_events) — predtým sa toto vôbec nepýtalo.
+    const isOpen = draft.visibility === 'open';
+    addPlan(tid, isOpen ? 'partner' : 'solo', dateStr);
+    if (isOpen) {
+      const ev: PartnerEvent = {
+        id: `plan-event-${now}`, tripId: tid,
+        dates: dateStr.length >= 7 ? [dateStr] : [],
+        month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
+        socialization: '', host: `${firstName} & your dog`, hostIsMe: true,
+        at: now, joinedByMe: true, seedGoing: 0,
+      };
+      setEvents((prev) => [ev, ...prev]);
+    }
     closeAdd();
     return true;
   };

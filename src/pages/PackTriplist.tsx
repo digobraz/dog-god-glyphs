@@ -21,6 +21,7 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
+import { closeMyTripEvents } from '@/lib/packStore';
 import { readPlans, MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl } from '@/lib/countryGeo';
@@ -500,6 +501,9 @@ export default function PackTriplist() {
       : { status: (hasJoiners ? 'going' : 'solo') as TripStatus, openness: 'closed' as const };
     const saved = upsertMyTrip(tripId, next);
     setTriplist((prev) => ({ ...prev, [tripId]: saved }));
+    // #42 — privatizácia musí zavrieť aj samostatný "Looking for pack" inzerát (trip_events);
+    // ten sa netočí okolo `openness` a bez tohto by ostal verejný aj po prepnutí na "Private".
+    if (!open) closeMyTripEvents(tripId);
     setVisTripId(null);
     setCloseOffer(null);
   };
