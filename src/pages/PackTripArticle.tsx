@@ -26,6 +26,7 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useToast } from '@/hooks/use-toast';
+import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS,
@@ -56,9 +57,17 @@ const T = PACK_THEME;
 // (PackMap.tsx sa v tejto iterácii nemení). Ak sa emoji sada niekedy zmení, treba upraviť
 // na oboch miestach. Rovnaká poznámka ako PackMap: tr.acts[] nesie dátové id 'hike' (nie
 // 'hiking'), takže ACT_EMOJI['hike'] je undefined — zdedený stav z inline detailu, flag v reporte.
-const ACT_EMOJI: Record<string, string> = { hiking: '🥾', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄' };
+//
+// ✅ OPRAVENÉ 2026-08-03 (audit #45): kľúče sú odteraz TIE, ktoré reálne sú v dátach.
+// Zmerané na `heroTrails.generated.ts`: acts = hike 55× · picnic 18 · overnight 7 ·
+// skating 7 · paddleboard 7 · explore 1; tags = Forest 55 · View 49 · Meadow 34 ·
+// River 18 · Sunset 12 · Mountains 12 · Lake 8. Staré kľúče `hiking` a `Lake/Reservoir`
+// nemali v dátach ani jeden výskyt, takže tie dve emoji sa nikdy nezobrazili na
+// 55, resp. 8 výletoch. `Asphalt` v tagoch neexistuje (je to hodnota `surface`) —
+// nechávam ho tu len ako neškodnú rezervu.
+const ACT_EMOJI: Record<string, string> = { hike: '🥾', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄', explore: '🧭' };
 const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
+  Mountains: '🏔️', Forest: '🌲', Lake: '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
 };
 
 // bod 6 (iterácia 13): mobile route mapa sa renderovala sčasti čierna — Leaflet meria
@@ -143,7 +152,10 @@ const CSS = `
 /* §16 (2026-07-23): obsahová časť článku do zdieľaného LIQUID GLASS panelu (.pk-glass z GLASS_CSS)
    — nemá plávať na plnej čiernej, rovnaká situácia ako triplist/walked. */
 .pta-panel{padding:22px 20px 26px;}
-.pta-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+.pta-loc{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};display:flex;align-items:center;gap:7px;}
+/* vlajka krajiny — na karte v mape je (.trp-cardflag), v článku chýbala, takže zahraničný
+   výlet stratil pri otvorení jediný signál, že je v cudzine (audit #45) */
+.pta-flag{width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.55);flex-shrink:0;}
 .pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;line-height:1.15;color:${T.onDark};margin-top:4px;}
 .pta-author{font-size:11.5px;color:${T.onDarkDim};margin-top:8px;}
 .pta-statrow{display:flex;margin-top:20px;border-radius:14px;overflow:hidden;border:1px solid ${T.onDarkBorder};background:${T.glassSoft};}
@@ -403,6 +415,9 @@ export default function PackTripArticle() {
     setEvents((prev) => [ev, ...prev]);
     setPlans((prev) => prev.map((p) => (p.tripId === trail.id ? { ...p, date: ad.dates[0] ?? ad.month } : p)));
     setPartnerAdOpen(false);
+    // Inzerát sa na TEJTO stránke nikde nevykresľuje (žije v triplist/OPEN TRIPS), takže bez
+    // potvrdenia človek zavrie popup a nemá jediný signál, že je vonku. (audit #45)
+    toast({ description: 'Your trip is now open — the pack can join you.' });
   };
 
   const handleShare = async () => {
@@ -546,7 +561,10 @@ export default function PackTripArticle() {
       </div>
 
         <div className="pta-panel">
-        <div className="pta-loc">{trail.region}{REGION_OF[trail.region] ? ` · ${REGION_OF[trail.region]}` : ''}</div>
+        <div className="pta-loc">
+          <img className="pta-flag" src={flagUrl(trailCountry(trail))} alt={countryName(trailCountry(trail))} loading="lazy" draggable={false} />
+          <span>{trail.region}{REGION_OF[trail.region] ? ` · ${REGION_OF[trail.region]}` : ''}</span>
+        </div>
         <div className="pta-title">{trail.name}</div>
         {/* bod 4 (iterácia 13): samostatný DiffMark+diff riadok pod titulom ZMAZANÝ —
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
@@ -570,7 +588,11 @@ export default function PackTripArticle() {
         <div className="pta-statrow">
           <div className="pta-stat">
             <b className="pta-route">
-              <span>↔ {trail.km} km</span>
+              {/* 6 výletov (vodné plochy: Bukovská priehrada, Liptovská Mara, Kráľová, Sĺňava,
+                  Orešianska, Palcmanská Maša) má `km: ""` — bez tejto podmienky sa vykreslilo
+                  holé „↔  km". Pri paddleboarde a pikniku pri vode vzdialenosť ani nedáva
+                  zmysel, preto sa riadok radšej nezobrazí vôbec. (audit #45) */}
+              {trail.km?.trim() && <span>↔ {trail.km} km</span>}
               {(trail as { ascentM?: number }).ascentM != null && (<>
                 <i />
                 <span>↑ {(trail as { ascentM?: number }).ascentM} m</span>
@@ -649,8 +671,15 @@ export default function PackTripArticle() {
                   style čierno-zlatý casing (rovnaké dve vrstvy ako zvýraznená trasa v PackMap).
                   Hover/dotyk (routeDimmed) stiahne opacity oboch vrstiev na 50%, nech je vidno
                   podklad — obe vrstvy naraz, inak by čierny casing ostal nepriehľadný sám. */}
-              <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
-              <Polyline positions={trail.path} pathOptions={{ color: '#F5C73D', weight: 4, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
+              {/* Trasu kreslíme len keď to trasa naozaj JE. 6 výletov k vodným plochám má
+                  v `path` jediný bod — dve polyline z jedného bodu vykreslili neviditeľnú
+                  čiaru a mapa tvárila, že trasa existuje. Pri jednom bode ostáva mapa
+                  s markerom: pri paddleboarde je odpoveď „kde to je", nie „kadiaľ ísť".
+                  (audit #45) */}
+              {trail.path.length > 1 && (<>
+                <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
+                <Polyline positions={trail.path} pathOptions={{ color: '#F5C73D', weight: 4, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
+              </>)}
               <Marker position={trail.path[0]} icon={placeIcon('walk', true)} />
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
                   Atribúcia je podmienka licencie ODbL, preto ide s vrstvou vždy v páre. */}

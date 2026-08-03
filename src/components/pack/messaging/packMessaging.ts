@@ -74,6 +74,10 @@ export interface Conversation {
   messages: Message[];
   lastReadAt: Record<string, string>; // per participant id
   updatedAt: string;
+  // DM only (#54) — blok v KTOROMKOĽVEK smere. Server ho vracia ako jeden boolean
+  // zámerne: kto koho zablokoval, si už ani jeden druhému nenapíše, takže UI nemá
+  // dôvod ten smer poznať (a z blokovaného by sa nemalo dať vyčítať, že blokol on).
+  blocked?: boolean;
 }
 
 // ── deterministický hash → PRNG (mulberry32 + FNV-1a) — rovnaký vzor ako
@@ -370,6 +374,7 @@ function convFromRow(row: ConvRow, meId: string): Conversation {
     messages: preview,
     lastReadAt: { [meId]: readAt },
     updatedAt: row.updated_at,
+    blocked: row.blocked ?? false,
   };
 }
 
@@ -529,6 +534,58 @@ export async function getConversation(convId: string): Promise<Conversation | un
 // adresovala priamo `Participant.id`. Na serveri to nejde a ísť nemá — appka
 // cudzí `user_id` nepozná. Nahradilo ju `startTripDM()` (vyššie), ktoré adresuje
 // kontextom výletu a poradovým číslom. Volajúceho stará funkcia nikdy nemala.
+
+// ── blok a nahlásenie (issue #54) ───────────────────────────────────────────
+// Obe idú cez `security definer` RPC, lebo appka **nepozná cudzí `user_id`** —
+// `list_my_conversations()` ho zámerne nevydáva. Protistranu si odvodí server
+// z vlákna, ktorého som členom (`conv_peer()`); klient posiela len `convId`.
+
+export type ReportReason = 'spam' | 'harassment' | 'unsafe' | 'not_dog_related' | 'other';
+
+/** zablokuje / odblokuje protistranu DM; vracia stav PO operácii */
+export async function setPeerBlocked(convId: string, blocked: boolean): Promise<boolean> {
+  const me = await ensureMe();
+  if (me.id === 'me') return false;          // bez session nie je koho blokovať
+  const { data, error } = await db.rpc('block_conv_peer', { p_conv_id: convId, p_block: blocked });
+  if (error) throw error;                     // volajúci musí vedieť, že zámok NEplatí
+  const state = Boolean(data);
+  const conv = cache.conversations[convId];
+  if (conv) { conv.blocked = state; emitChange(); }
+  void refreshDMs();                          // server je zdroj pravdy aj pre zvyšok Inboxu
+  return state;
+}
+
+/**
+ * Nahlási obsah alebo človeka. Poradie je zámerné: najprv zápis do DB (to je
+ * zámok — musí platiť aj keď mail nikam nedôjde), až potom ping Matejovi.
+ * Zlyhaný mail preto nikdy nezhodí nahlásenie.
+ */
+export async function reportContent(
+  kind: 'member' | 'conversation' | 'comment' | 'trip',
+  ref: string,
+  reason: ReportReason,
+  note?: string,
+): Promise<void> {
+  const me = await ensureMe();
+  if (me.id === 'me') throw new Error('[packMessaging] reportContent: no session');
+  const { data, error } = await db.rpc('report_content', {
+    p_kind: kind, p_ref: ref, p_reason: reason, p_note: note ?? null,
+  });
+  if (error) throw error;
+
+  try {
+    const { data: sess } = await supabase.auth.getSession();
+    const token = sess.session?.access_token;
+    if (token) {
+      await supabase.functions.invoke('notify-report', {
+        body: { report_id: data },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+  } catch {
+    // mail je len ping — nahlásenie je zapísané a Matej ho vidí v admin pohľade
+  }
+}
 
 export async function joinGroup(convId: string): Promise<Conversation> {
   const me = await ensureMe();

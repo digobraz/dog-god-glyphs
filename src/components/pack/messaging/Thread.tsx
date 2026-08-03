@@ -6,7 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import {
-  getConversation, getMe, joinGroup, markRead, sendMessage, subscribe, type Conversation,
+  getConversation, getMe, joinGroup, markRead, reportContent, sendMessage, setPeerBlocked,
+  subscribe, type Conversation, type ReportReason,
 } from './packMessaging';
 
 const T = PACK_THEME;
@@ -40,7 +41,38 @@ export const THREAD_CSS = `
 .msg-thread-join{flex-shrink:0;padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${T.onDarkHair};max-width:640px;width:100%;margin:0 auto;box-sizing:border-box;}
 .msg-joinbtn{width:100%;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
 .msg-joinbtn:hover{filter:brightness(1.05);}
+
+/* ── moderácia (#54): nahlásiť / zablokovať ── */
+.msg-mod{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.msg-mod:hover{border-color:${GOLD};color:${GOLD};}
+.msg-modsheet{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.62);display:flex;align-items:flex-end;justify-content:center;}
+.msg-modpanel{width:100%;max-width:460px;background:${T.pageBg};border:1px solid ${T.onDarkBorder};border-bottom:0;border-radius:16px 16px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 20px);box-sizing:border-box;}
+.msg-modtitle{font-family:'Cinzel',serif;font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
+.msg-modsub{font-size:12px;line-height:1.55;color:${T.onDarkDim};margin-top:6px;}
+.msg-modrow{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+.msg-modbtn{width:100%;text-align:left;font-size:13px;padding:12px 14px;border-radius:10px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
+.msg-modbtn:hover{border-color:${GOLD};}
+.msg-modbtn--danger{color:#E8A79A;}
+.msg-modnote{width:100%;box-sizing:border-box;margin-top:10px;min-height:74px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:11px 13px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;resize:vertical;}
+.msg-modnote:focus{border-color:${GOLD};}
+.msg-modsend{width:100%;margin-top:12px;font-family:'Cinzel',serif;font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;}
+.msg-modsend:disabled{opacity:.45;cursor:default;}
+.msg-modcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.onDarkDim};font-family:inherit;font-size:12.5px;padding:9px;cursor:pointer;}
+.msg-modcancel:hover{color:${T.onDark};}
+.msg-blocked{flex-shrink:0;max-width:640px;width:100%;margin:0 auto;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 16px);border-top:1px solid ${T.onDarkHair};box-sizing:border-box;text-align:center;}
+.msg-blockedtxt{font-size:12.5px;line-height:1.6;color:${T.onDarkDim};}
+.msg-unblock{margin-top:10px;font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:10px 20px;border-radius:8px;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;}
+.msg-unblock:hover{border-color:${GOLD};color:${GOLD};}
 `;
+
+// Dôvody nahlásenia — držané v angličtine (web je navonok EN, preklad = #65).
+const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
+  { id: 'harassment', label: 'Harassment or abuse' },
+  { id: 'spam', label: 'Spam or advertising' },
+  { id: 'unsafe', label: 'Unsafe for people or dogs' },
+  { id: 'not_dog_related', label: 'Not dog related' },
+  { id: 'other', label: 'Something else' },
+];
 
 export function Thread({ convId, onClose, onOpenTrip }: {
   convId: string;
@@ -50,6 +82,12 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const [conv, setConv] = useState<Conversation | null>(null);
   const [text, setText] = useState('');
   const [sendErr, setSendErr] = useState<string | null>(null);
+  // moderácia (#54): 'menu' = voľby, 'report' = výber dôvodu, 'sent' = potvrdenie
+  const [modView, setModView] = useState<null | 'menu' | 'report' | 'sent'>(null);
+  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [reportNote, setReportNote] = useState('');
+  const [modBusy, setModBusy] = useState(false);
+  const [modErr, setModErr] = useState<string | null>(null);
   const me = getMe();
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -127,6 +165,39 @@ export function Thread({ convId, onClose, onOpenTrip }: {
     setConv(updated); // okamžitý refresh — odomkne send box hneď, bez čakania na emitter
   };
 
+  // ── moderácia (#54) ──
+  const closeMod = () => { setModView(null); setReason(null); setReportNote(''); setModErr(null); };
+
+  const handleBlock = async (blocked: boolean) => {
+    setModBusy(true);
+    setModErr(null);
+    try {
+      const state = await setPeerBlocked(convId, blocked);
+      setConv((c) => (c ? { ...c, blocked: state } : c));
+      closeMod();
+    } catch {
+      // Zámok, ktorý sa nezapísal, sa nesmie tváriť ako platný.
+      setModErr(blocked ? 'Could not block. Check your connection and try again.'
+                        : 'Could not unblock. Check your connection and try again.');
+    } finally {
+      setModBusy(false);
+    }
+  };
+
+  const handleReport = async () => {
+    if (!reason) return;
+    setModBusy(true);
+    setModErr(null);
+    try {
+      await reportContent('conversation', convId, reason, reportNote.trim() || undefined);
+      setModView('sent');
+    } catch {
+      setModErr('Could not send the report. Check your connection and try again.');
+    } finally {
+      setModBusy(false);
+    }
+  };
+
   return (
     <div className="msg-thread">
       <style>{THREAD_CSS}</style>
@@ -141,6 +212,15 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             </button>
           )}
         </div>
+        {!isGroup && (
+          <button
+            type="button"
+            className="msg-mod"
+            onClick={() => setModView('menu')}
+            aria-label="Report or block this person"
+            title="Report or block"
+          >⋯</button>
+        )}
       </div>
 
       <div className="msg-thread-body">
@@ -162,7 +242,17 @@ export function Thread({ convId, onClose, onOpenTrip }: {
 
       {sendErr && <div className="msg-senderr" role="alert">{sendErr}</div>}
 
-      {iAmMember ? (
+      {conv.blocked ? (
+        <div className="msg-blocked">
+          <div className="msg-blockedtxt">
+            You and {title} can no longer write to each other.
+          </div>
+          <button type="button" className="msg-unblock" disabled={modBusy} onClick={() => void handleBlock(false)}>
+            {modBusy ? 'Working…' : 'Unblock'}
+          </button>
+          {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: '#E0A0A0' }}>{modErr}</div>}
+        </div>
+      ) : iAmMember ? (
         <div className="msg-thread-send">
           <input
             className="msg-thread-input"
@@ -180,6 +270,76 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           <button type="button" className="msg-joinbtn" onClick={() => void handleJoin()}>
             {conv.tag?.kind === 'trip' ? 'Join the pack on this trip' : 'Join this pack'}
           </button>
+        </div>
+      )}
+
+      {modView && (
+        <div className="msg-modsheet" role="dialog" aria-modal="true" onClick={(e) => { if (e.target === e.currentTarget) closeMod(); }}>
+          <div className="msg-modpanel">
+            {modView === 'menu' && (
+              <>
+                <div className="msg-modtitle">{title}</div>
+                <div className="msg-modsub">
+                  Blocking is instant and works both ways — neither of you can write to the other.
+                  Reporting sends the thread to Matej, who reads it himself.
+                </div>
+                <div className="msg-modrow">
+                  <button type="button" className="msg-modbtn" onClick={() => setModView('report')}>
+                    Report this conversation
+                  </button>
+                  <button type="button" className="msg-modbtn msg-modbtn--danger" disabled={modBusy} onClick={() => void handleBlock(true)}>
+                    {modBusy ? 'Blocking…' : `Block ${title}`}
+                  </button>
+                </div>
+                {modErr && <div className="msg-modsub" role="alert" style={{ color: '#E8A79A' }}>{modErr}</div>}
+                <button type="button" className="msg-modcancel" onClick={closeMod}>Cancel</button>
+              </>
+            )}
+
+            {modView === 'report' && (
+              <>
+                <div className="msg-modtitle">Why are you reporting this?</div>
+                <div className="msg-modrow">
+                  {REPORT_REASONS.map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      className="msg-modbtn"
+                      style={reason === r.id ? { borderColor: GOLD, color: GOLD } : undefined}
+                      onClick={() => setReason(r.id)}
+                    >{r.label}</button>
+                  ))}
+                </div>
+                <textarea
+                  className="msg-modnote"
+                  value={reportNote}
+                  onChange={(e) => setReportNote(e.target.value)}
+                  placeholder="Anything Matej should know (optional)"
+                />
+                {modErr && <div className="msg-modsub" role="alert" style={{ color: '#E8A79A' }}>{modErr}</div>}
+                <button type="button" className="msg-modsend" disabled={!reason || modBusy} onClick={() => void handleReport()}>
+                  {modBusy ? 'Sending…' : 'Send report'}
+                </button>
+                <button type="button" className="msg-modcancel" onClick={closeMod}>Cancel</button>
+              </>
+            )}
+
+            {modView === 'sent' && (
+              <>
+                <div className="msg-modtitle">Report sent</div>
+                <div className="msg-modsub">
+                  Matej reads every report himself. If this person is bothering you, block them too —
+                  that takes effect right away.
+                </div>
+                <div className="msg-modrow">
+                  <button type="button" className="msg-modbtn msg-modbtn--danger" disabled={modBusy} onClick={() => void handleBlock(true)}>
+                    {modBusy ? 'Blocking…' : `Block ${title}`}
+                  </button>
+                </div>
+                <button type="button" className="msg-modcancel" onClick={closeMod}>Done</button>
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -87,7 +87,23 @@ export const GROTESK = "'Space Grotesk', sans-serif";
 const PAPYRUS = 'linear-gradient(165deg,#FFFBF2 0%,#F4E8CC 52%,#E7D8B8 100%)';
 export const INK = '#1F1A0E';
 
-type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'ainubis';
+// Nahlásenie obsahu alebo člena (#54). Riešenie beží mimo appky (mail + rozhovor),
+// tu je len fronta a označenie „vybavené" — zmazať obsah cudzieho člena z admin
+// tabuľky by bola iná featura a iné rozhodnutie.
+interface PackReport {
+  id: string;
+  created_at: string;
+  target_kind: string;
+  target_ref: string;
+  target_user_id: string | null;
+  reporter_id: string;
+  reason: string;
+  note: string | null;
+  status: string;
+  handled_at: string | null;
+}
+
+type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'reports' | 'ainubis';
 
 // role id → council ikona (mapovanie podľa CouncilSection prihlášky)
 const ROLE_ICONS: Record<string, string> = {
@@ -143,6 +159,7 @@ export default function Admin() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [packMembers, setPackMembers] = useState<PackMember[]>([]);
   const [visionVotes, setVisionVotes] = useState<VisionVote[]>([]);
+  const [reports, setReports] = useState<PackReport[]>([]);
   const [dataErr, setDataErr] = useState('');
   const [loadingData, setLoadingData] = useState(false);
 
@@ -170,11 +187,14 @@ export default function Admin() {
     setLoadingData(true);
     setDataErr('');
     (async () => {
-      const [d, c, p, v] = await Promise.all([
+      const [d, c, p, v, r] = await Promise.all([
         supabase.from('dogs').select('*').order('created_at', { ascending: false }),
         supabase.from('contacts').select('*').order('created_at', { ascending: false }),
         supabase.from('pack_members').select('*').order('created_at', { ascending: false }),
         supabase.from('vision_votes').select('*').order('voted_at', { ascending: false }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generované typy poznajú
+        // len `pack_members`, celý /pack ide cez `as any` (viď packStore.ts)
+        (supabase as any).from('pack_reports').select('*').order('created_at', { ascending: false }),
       ]);
       if (cancelled) return;
       const err = d.error || c.error || p.error || v.error;
@@ -183,6 +203,9 @@ export default function Admin() {
       setContacts((c.data as Contact[]) ?? []);
       setPackMembers((p.data as PackMember[]) ?? []);
       setVisionVotes((v.data as VisionVote[]) ?? []);
+      // Nahlásenia sa načítavajú zvlášť a ticho: keď migrácia ešte nie je na tomto
+      // projekte, nesmie to zhodiť celý admin (ostatné tabuľky s tým nemajú nič spoločné).
+      setReports((r.data as PackReport[]) ?? []);
       setLoadingData(false);
     })();
     return () => { cancelled = true; };
@@ -292,8 +315,20 @@ export default function Admin() {
     { label: 'Testers', value: testers.length },
   ];
 
+  // Nevybavené nahlásenia patria do očí hneď, nie až po kliknutí na tab.
+  const openReports = reports.filter((r) => r.status === 'new').length;
+
+  const markReportHandled = async (id: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- viď načítanie vyššie
+    const { error } = await (supabase as any).from('pack_reports')
+      .update({ status: 'handled', handled_at: new Date().toISOString() }).eq('id', id);
+    if (error) { setDataErr(error.message); return; }
+    setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'handled', handled_at: new Date().toISOString() } : r)));
+  };
+
   const tabs: [Tab, string][] = [
-    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'], ['ainubis', 'Ainubis'],
+    ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'],
+    ['reports', openReports > 0 ? `Reports (${openReports})` : 'Reports'], ['ainubis', 'Ainubis'],
   ];
 
   // user_id → owner label (from dogs) for the vision-votes list.
@@ -472,6 +507,39 @@ export default function Admin() {
             is added, this tab will render it read-only like the others.
           </p>
         </div>
+      )}
+
+      {!loadingData && tab === 'reports' && (
+        <>
+          <div style={{ opacity: 0.6, fontSize: 13, lineHeight: 1.6, maxWidth: 620, marginBottom: 16 }}>
+            Every report also arrives by e-mail. Handling happens outside the app — this is the queue,
+            so nothing gets lost when a mail does. Blocking is the member's own tool and works
+            instantly, without you.
+          </div>
+          <DataTable
+            cols={['Date', 'What', 'Reason', 'Reported by', 'Target', 'Note', 'Status', '']}
+            rows={reports.map((r) => [
+              fmtDate(r.created_at),
+              r.target_kind,
+              r.reason.replace(/_/g, ' '),
+              ownerByUser.get(r.reporter_id) || short(r.reporter_id, 10),
+              r.target_user_id ? (ownerByUser.get(r.target_user_id) || short(r.target_user_id, 10)) : short(r.target_ref, 12),
+              r.note ?? '—',
+              <Pill key="s" ok={r.status === 'handled'}>{r.status}</Pill>,
+              r.status === 'new' ? (
+                <button
+                  key="a"
+                  onClick={() => void markReportHandled(r.id)}
+                  style={{
+                    background: 'none', border: `1px solid ${GOLD}`, color: GOLD, borderRadius: 6,
+                    padding: '5px 11px', fontSize: 12, cursor: 'pointer', fontFamily: GROTESK, whiteSpace: 'nowrap',
+                  }}
+                >Mark handled</button>
+              ) : '',
+            ])}
+            empty="No reports. Good."
+          />
+        </>
       )}
 
       {/* AINUBIS má vlastný live datasource (edge fn ainubis-ops) — nezávisí od
