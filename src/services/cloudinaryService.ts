@@ -33,6 +33,13 @@ export const uploadCroppedPhoto = (blob: Blob, sessionId: string) =>
 export const uploadExtraPhoto = (blob: Blob, sessionId: string, index: number) =>
   uploadBlob(blob, `tmp/${sessionId}/extras`, String(index).padStart(2, '0'));
 
+// Member-submitted trip photos (issue #32 fáza F5, packStore.ts `pack_trips` write-through).
+// `payload.photos` v DB nesmie niesť base64 — sem idú predtým, než sa riadok upsertne.
+// Cesta zámerne `pack-trips/<slug>/...`, NIE `trails/<slug>/...` — ten priečinok už nesie fotky
+// 77 kurátorovaných tripov (slug tam nemožno premenovať, viď CLAUDE.md), kolízia by ich prepísala.
+export const uploadPackTripPhoto = (blob: Blob, slug: string, index: number) =>
+  uploadBlob(blob, `pack-trips/${slug}`, String(index).padStart(2, '0'));
+
 // Delivery URLs (on-the-fly transformations)
 export const certPreviewUrl = (publicId: string) =>
   `${BASE_URL}/c_fill,w_400,h_400,r_max,f_auto,q_auto/${publicId}`;

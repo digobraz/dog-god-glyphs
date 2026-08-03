@@ -6,7 +6,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
-  persistWalked, persistFav, scheduleFounderSeed,
+  persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
 } from '@/lib/packStore';
 
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
@@ -254,9 +254,18 @@ export function readLocalTrails(): HeroTrail[] {
 }
 // Vracia true/false — volajúci (submitAdd) vie zistiť, či zápis prešiel, a nahlásiť
 // QuotaExceededError namiesto tichej straty tripu (fotky base64 vedia naplniť localStorage).
+// 2026-08 (issue #32 fáza F5): diff proti PREDOŠLÉMU zápisu zistí NOVÉ id (submitAddTripDraft
+// v PackMap.tsx sem posiela celé pole `[newTrail, ...localTrails]`) a zaradí ich do packStore
+// fronty fotky→Cloudinary→`pack_trips` — bez prihlásenia (DEV_NOAUTH) fronta len čaká, nič sa
+// neodošle (packStore `processTripUploadQueue` to rieši samo).
 export function writeLocalTrails(trails: HeroTrail[]): boolean {
-  try { trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(trails)); return true; }
-  catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
+  const prevIds = new Set(readLocalTrails().map((t) => t.id));
+  try {
+    trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(trails));
+  } catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
+  const added = trails.filter((t) => !prevIds.has(t.id)).map((t) => t.id);
+  if (added.length) queueLocalTripUpload(added);
+  return true;
 }
 
 const readStringSet = readSet;

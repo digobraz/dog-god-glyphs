@@ -35,6 +35,8 @@
    tu, v jednom dátovom module, nie rozsypané po komponentoch. Regenerácia typov je samostatná
    úloha, keď bude migrácia aj na LIVE. */
 import { supabase } from '@/integrations/supabase/client';
+import { uploadPackTripPhoto } from '@/services/cloudinaryService';
+import type { HeroTrail } from '@/data/heroTrails.generated';
 
 // ── úložisko ────────────────────────────────────────────────────────────────
 // localStorage s fallbackom na sessionStorage (private mode). Rovnaká probe ako
@@ -161,7 +163,7 @@ export async function flushQueue(): Promise<number> {
 }
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => { void flushQueue(); });
+  window.addEventListener('online', () => { void flushQueue(); void processTripUploadQueue(); });
 }
 
 // ── tvary (štruktúrne, zámerne bez importu z packCommunity/triplist) ────────
@@ -284,6 +286,88 @@ export function persistEvents(next: EventLike[]): void {
   enqueue(ops);
 }
 
+// ── write-through: členmi nahodené výlety (pack_trips, issue #32 fáza F5) ──────────────────
+// Odlišné od domén vyššie: fotky sú dnes v `trp-local-trails` uložené ako base64 (tripShared.tsx
+// `writeLocalTrails`) a DB stĺpec `pack_trips.payload` ich smie niesť len ako Cloudinary URL
+// (migrácia §7 komentár). Medzi „nový trip pribudol" a „zápis do SyncOp fronty" preto MUSÍ byť
+// async krok (upload) — čo obyčajná `SyncOp` fronta nevie (spracúva hotové riadky, nie kroky).
+// Vlastná malá fronta (`trp-trip-upload-pending-v1`, slugy) preto obaľuje tento async krok:
+// slug sa z nej odstráni AŽ keď sú všetky fotky nahraté A upsert je bezpečne v `SyncOp` fronte
+// (tá už offline/reload prežije sama — viď `enqueue`/`flushQueue` vyššie).
+const TRIP_PENDING_KEY = 'trp-trip-upload-pending-v1';
+const TRIP_MIGRATED_KEY = 'trp-trips-db-migrated-v1';
+
+const readTripPending = (): string[] => readJson<string[]>(TRIP_PENDING_KEY, []);
+const writeTripPending = (ids: string[]): void => { writeJson(TRIP_PENDING_KEY, Array.from(new Set(ids))); };
+
+/** Volá `writeLocalTrails` (tripShared.tsx) pre každý nový/nemigrovaný trip id. Idempotentné —
+ *  bezpečné volať opakovane, slug sa vo fronte nezduplikuje. */
+export function queueLocalTripUpload(ids: string[]): void {
+  if (!ids.length) return;
+  writeTripPending([...readTripPending(), ...ids]);
+  void processTripUploadQueue();
+}
+
+let tripProcessing = false;
+
+async function processTripUploadQueue(): Promise<void> {
+  if (tripProcessing) return;
+  const uid = await currentUserId();
+  if (!uid) return; // DEV_NOAUTH / odhlásený návštevník — beží čisto lokálne, nič sa neodosiela
+  tripProcessing = true;
+  try {
+    let pending = readTripPending();
+    while (pending.length) {
+      const slug = pending[0];
+      const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
+      if (!trail) { pending = pending.slice(1); writeTripPending(pending); continue; } // zmazaný lokálne medzitým
+      try {
+        const photos = await uploadTrailPhotos(slug);
+        const fresh = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug) ?? trail;
+        enqueue([{
+          kind: 'upsert', tbl: 'pack_trips', onConflict: 'slug', own: 'author_id',
+          row: {
+            slug,
+            payload: { ...fresh, photos },
+            km: Number.parseFloat(fresh.km) || null,
+            ascent: fresh.ascentM ?? null,
+            country: fresh.country ?? null,
+          },
+        }]);
+      } catch {
+        break; // sieť padla uprostred uploadu — necháme frontu, skúsi sa znova (online event / ďalšia hydratácia)
+      }
+      pending = readTripPending().slice(1);
+      writeTripPending(pending);
+    }
+  } finally { tripProcessing = false; }
+}
+
+/** Nahradí base64 fotky trasy `slug` Cloudinary URL-kami. Zapisuje priebežne (po každej fotke)
+ *  do `trp-local-trails`, aby retry po výpadku siete neopakoval už hotové uploady. */
+async function uploadTrailPhotos(slug: string): Promise<string[]> {
+  const trail = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).find((t) => t.id === slug);
+  const photos = [...(trail?.photos ?? [])];
+  for (let i = 0; i < photos.length; i++) {
+    if (!photos[i].startsWith('data:')) continue; // už URL (predchádzajúci beh / plánovaný trip bez fotky)
+    const blob = dataUrlToBlob(photos[i]);
+    const { secureUrl } = await uploadPackTripPhoto(blob, slug, i);
+    photos[i] = secureUrl;
+    const all = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []);
+    writeJson(PACK_KEYS.localTrails, all.map((t) => (t.id === slug ? { ...t, photos } : t)));
+  }
+  return photos;
+}
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [meta, b64] = dataUrl.split(',');
+  const mime = meta.match(/data:(.*?);base64/)?.[1] ?? 'image/jpeg';
+  const bin = atob(b64);
+  const arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: mime });
+}
+
 // ── hydratácia ──────────────────────────────────────────────────────────────
 type Listener = () => void;
 const listeners = new Set<Listener>();
@@ -329,17 +413,28 @@ export function hydratePackStore(): Promise<boolean> {
         packStorage.setItem(MIGRATED_KEY, '1');
       } catch { /* non-fatal, skúsi sa pri ďalšom vstupe */ }
     }
+    // (1b) jednorazová migrácia členmi nahodených výletov (`trp-local-trails` → `pack_trips`,
+    // issue #32 fáza F5) — VLASTNÝ guard, lebo tento krok má vlastnú async frontu (fotky) a beží
+    // nezávisle od (1) vyššie.
+    if (!packStorage.getItem(TRIP_MIGRATED_KEY)) {
+      try {
+        const localIds = readJson<HeroTrail[]>(PACK_KEYS.localTrails, []).map((t) => t.id);
+        if (localIds.length) queueLocalTripUpload(localIds);
+        packStorage.setItem(TRIP_MIGRATED_KEY, '1');
+      } catch { /* non-fatal, skúsi sa pri ďalšom vstupe */ }
+    }
     await flushQueue();
 
     // (2) pull — doménu s nevyslanou frontou nechávame na pokoji
     const blocked = pendingTables();
     try {
-      const [walked, fav, trips, votes, events] = await Promise.all([
+      const [walked, fav, trips, votes, events, packTrips] = await Promise.all([
         (supabase as any).from('trip_walked').select('trip_slug'),
         (supabase as any).from('trip_fav').select('trip_slug'),
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
         (supabase as any).from('trip_votes').select('*'),
         (supabase as any).from('trip_events').select('*').eq('host_id', uid),
+        (supabase as any).from('pack_trips').select('slug,payload'),
       ]);
 
       if (!blocked.has('trip_walked') && !walked.error && walked.data) {
@@ -388,6 +483,15 @@ export function hydratePackStore(): Promise<boolean> {
           socialization: r.socialization ?? '', closed: r.closed ?? false, hostIsMe: true,
         }));
         writeJson(PACK_KEYS.events, [...dbMine, ...notMine]);
+      }
+      // pack_trips (issue #32 fáza F5): vlastný "blocked" — okrem SyncOp fronty (`enqueue`) môže
+      // mať trip aj nedokončený upload fotiek (`trp-trip-upload-pending-v1`); v oboch prípadoch
+      // pull PRESKOČÍME celý, nech neprepíše rozpracovaný lokálny zápis (rovnaká opatrnosť ako
+      // `blocked` vyššie — tento krok len rozširuje, čo sa počíta za "má nevyslaný zápis").
+      const tripsBlocked = blocked.has('pack_trips') || readTripPending().length > 0;
+      if (!tripsBlocked && !packTrips.error && packTrips.data) {
+        const fromDb = (packTrips.data as any[]).map((r) => r.payload as HeroTrail);
+        writeJson(PACK_KEYS.localTrails, fromDb);
       }
     } catch { return false; }
 
