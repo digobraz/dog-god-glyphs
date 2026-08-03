@@ -66,7 +66,8 @@ import { levelProgress } from '@/lib/tripPoints';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
-  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, DIFF_COLOR, WATER_COLOR, ElevationProfile,
+  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
+  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
 } from '@/components/pack/tripShared';
@@ -429,6 +430,18 @@ function ViewportWatcher({ onChange }: { onChange: (b: ViewBox) => void }) {
   }, [map, onChange]);
   useEffect(() => { emit(); }, [emit]);
   useMapEvent('moveend', emit);
+  useMapEvent('zoomend', emit);
+  return null;
+}
+
+// Hlási hore ŠKÁLU hrúbky trasy (issue #49) — nie surový zoom. Bucket z trailSaberScale sa mení
+// len na pár stupňoch, takže sa 77 polyline neprekresľuje pri každom kroku zoomu. Rovnaký vzor
+// (stabilný useCallback) ako ViewportWatcher vyššie — inak sa listener pri každom renderi
+// odhlasuje/prihlasuje a vie prepásť udalosť z FitBounds.
+function SaberScaleWatcher({ onChange }: { onChange: (k: number) => void }) {
+  const map = useMap();
+  const emit = useCallback(() => { onChange(trailSaberScale(map.getZoom())); }, [map, onChange]);
+  useEffect(() => { emit(); }, [emit]);
   useMapEvent('zoomend', emit);
   return null;
 }
@@ -984,6 +997,7 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    extra gap), nech nesedí priamo na poslednom bode trasy. */
 .trp-drawlabel{position:relative;left:-50%;top:calc(-100% - 10px);background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
 ${DIFF_MARK_CSS}
+${TRAIL_LINE_CSS}
 
 /* ── desktop: floating bottom nav stays CENTERED (PackBottomNav default —
    left:50%/translateX untouched); only its bottom offset is pinned so it
@@ -1203,6 +1217,10 @@ export default function PackMap() {
   const id = usePackIdentity();
 
   const [hoverId, setHoverId] = useState<string | null>(null);
+  // Matej 2026-07-31: „pri dotyku myšou trasa vybledne aby bolo vidno turistické značenie farby".
+  // Vlastný stav vedľa hoverId zámerne — hoverId plní aj ĽAVÝ ZOZNAM a markery, kde je hover
+  // pomôcka na NÁJDENIE trasy (tam musí ostať zlatá). Vybledne len to, na čom reálne stojí myš.
+  const [lineHoverId, setLineHoverId] = useState<string | null>(null);
   const [heroDiff, setHeroDiff] = useState<'' | 'Easy' | 'Moderate' | 'Hard' | 'Odyssey'>('');
   const [heroCrowd, setHeroCrowd] = useState<'' | 'Pokojné' | 'Rušné' | 'Ľudoprázdne'>('');
   const [heroAct, setHeroAct] = useState<'' | 'hiking' | 'picnic' | 'overnight' | 'skating' | 'paddleboard'>('');
@@ -1296,6 +1314,8 @@ export default function PackMap() {
   // aktuálny výrez mapy (hlási <ViewportWatcher>) — riadi rozdelenie ľavého zoznamu na
   // „v tomto výreze" / „inde na mape". null = mapa ešte nedomountovala → zoznam bez delenia.
   const [viewBox, setViewBox] = useState<ViewBox | null>(null);
+  // hrúbka „svetelného meča" podľa zoomu (issue #49) — plní SaberScaleWatcher vnútri mapy
+  const [saberScale, setSaberScale] = useState(1);
   const handleViewport = useCallback((b: ViewBox) => {
     // ignoruj sub-pixelové drobčenie (fitBounds vie doraziť o zlomok stupňa) — inak by každý
     // dotyk mapy re-renderoval celú stránku vrátane všetkých polyline.
@@ -2478,6 +2498,7 @@ export default function PackMap() {
               <FitBounds path={heroBounds} offset={!!inlineDetailId} />
               {/* ľavý zoznam podľa výrezu mapy (Matej 2026-07-27) — hlási bounds na moveend/zoomend */}
               <ViewportWatcher onChange={handleViewport} />
+              <SaberScaleWatcher onChange={setSaberScale} />
               <MapRefBridge onReady={(map) => {
                 leafletMapRef.current = map;
                 if (pendingFlyRef.current) { map.flyTo(pendingFlyRef.current, 11, { duration: 1.2 }); pendingFlyRef.current = null; }
@@ -2494,10 +2515,17 @@ export default function PackMap() {
                   hrubšia zlatá čiara — dve <Polyline> na tých istých pozíciách (casing prvá =
                   pod, jadro druhá = nad). Nevybrané trasy ostávajú tenké čierne, bez casingu. */}
               {allTrails.filter((tr) => tr.path.length > 1 && !isWaterTrail(tr)).map((tr) => {
-                const hot = hoverId === tr.id || inlineDetailId === tr.id;
+                // myš NA ČIARE → trasa vybledne, nech je pod ňou vidno turistické značenie
+                // (Matej 2026-07-31). Hover zo zoznamu/markera ostáva zlaté zvýraznenie —
+                // tam trasu hľadáš, tu sa na ňu pozeráš. Rovnaký princíp ako `routeDimmed`
+                // v PackTripArticle (tam sa stlmí vybraná trasa pri dotyku mapy).
+                const selected = inlineDetailId === tr.id;
+                const lineHover = lineHoverId === tr.id;
+                const hot = selected || (hoverId === tr.id && !lineHover);
+                const dim = lineHover ? 0.3 : 1;
                 const handlers = {
-                  mouseover: () => setHoverId(tr.id),
-                  mouseout: () => setHoverId(null),
+                  mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
+                  mouseout: () => { setHoverId(null); setLineHoverId(null); },
                   click: () => selectTrail(tr),
                 };
                 // journey (viacdňová, napr. Cesta hrdinov SNP) = plná červená čiara v bielom
@@ -2509,47 +2537,79 @@ export default function PackMap() {
                 // výber) ju vykreslí. Handlery ostávajú aj na čiare, nech neblikne, keď z markera
                 // prejdeš myšou priamo na ňu.
                 if (tr.acts?.includes('journey')) {
-                  if (!hot) return null;
+                  // pozor: `hot` je pri hoveri NA ČIARE zámerne false (trasa vybledá), takže
+                  // magistrála musí ostať vykreslená aj v tomto stave — inak by zmizla presne
+                  // v okamihu, keď na ňu ideš myšou.
+                  if (!hot && !lineHover) return null;
                   const w = 5;
                   return (
                     <Fragment key={tr.id}>
                       <Polyline
                         positions={tr.path}
-                        pathOptions={{ color: '#FFFFFF', weight: w + 4, opacity: 1, lineCap: 'round', lineJoin: 'round' }}
+                        pathOptions={{ color: '#FFFFFF', weight: w + 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                         eventHandlers={handlers}
                       />
                       <Polyline
                         positions={tr.path}
-                        pathOptions={{ color: '#E01B22', weight: w, opacity: 1, lineCap: 'round', lineJoin: 'round' }}
+                        pathOptions={{ color: '#E01B22', weight: w, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                         eventHandlers={handlers}
                       />
                     </Fragment>
                   );
                 }
                 if (!hot) {
-                  // farebnosť podľa náročnosti (2026-07-26) — rovnaká paleta ako DiffMark
-                  // pilulky/markery (DIFF_COLOR), nech je náročnosť čitateľná aj bez hoveru.
-                  // Výber = zámerný: hot/selected stav zostáva čierno-zlatý (brand), toto
-                  // mení len pokojný, nevybraný stav.
+                  // issue #49 (Matej 2026-07-31, vybral z porovnania `plany/farba-trasy.html`):
+                  // pokojná trasa = FIALOVÝ „svetelný meč" — štyri vrstvy na tých istých bodoch
+                  // (tmavý okraj → sýta s dosvitom → svetlá → biele jadro), tokeny v tripShared.
+                  // Farba čiary je odteraz VLASTNÁ os; náročnosť nesú markery/pilulky (DIFF_COLOR),
+                  // ktoré ostali nedotknuté. Hot/vybraný stav je stále čierno-zlatý (brand) nižšie.
+                  // Dosvit len od z12 hore: dole je čiara aj tak stenčená na ~polovicu a 77 paths
+                  // s SVG filtrom je zbytočná záťaž na mobile.
                   return (
-                    <Polyline
-                      key={tr.id}
-                      positions={tr.path}
-                      pathOptions={{ color: DIFF_COLOR[tr.diff] ?? '#161616', weight: 3, opacity: .62, lineCap: 'round', lineJoin: 'round' }}
-                      eventHandlers={handlers}
-                    />
+                    <Fragment key={tr.id}>
+                      {TRAIL_SABER_LAYERS.map((ly) => (
+                        <Polyline
+                          key={ly.key}
+                          positions={tr.path}
+                          // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
+                          // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
+                          // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj
+                          // v GeometryPickeri funguje). Dosvit preto nasadzujeme priamo na SVG
+                          // element. Inline ref beží pri každom renderi, takže prepnutie podľa
+                          // zoomu netreba riešiť remountom vrstvy.
+                          ref={(layer) => {
+                            const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
+                            if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && saberScale >= 0.7);
+                          }}
+                          pathOptions={{
+                            color: ly.color,
+                            weight: Math.max(0.8, ly.weight * saberScale),
+                            opacity: ly.opacity * dim,
+                            lineCap: 'round',
+                            lineJoin: 'round',
+                            // dosvit (trieda vyššie cez ref) beží až od z12 — nižšie je čiara aj
+                            // tak stenčená a 77 paths s SVG filtrom je na mobile zbytočná záťaž.
+                            // Pri vyblednutí sa stlmí sám: drop-shadow polopriehľadnej čiary je
+                            // tiež polopriehľadný.
+                          }}
+                          eventHandlers={handlers}
+                        />
+                      ))}
+                    </Fragment>
                   );
                 }
                 return (
                   <Fragment key={tr.id}>
+                    {/* vybraná trasa: casing aj jadro blednú SPOLU (dim), inak by čierny casing
+                        ostal nepriehľadný sám a značenie by aj tak nebolo vidno */}
                     <Polyline
                       positions={tr.path}
-                      pathOptions={{ color: '#0A0A0A', weight: 8, opacity: 1, lineCap: 'round', lineJoin: 'round' }}
+                      pathOptions={{ color: '#0A0A0A', weight: 8, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                       eventHandlers={handlers}
                     />
                     <Polyline
                       positions={tr.path}
-                      pathOptions={{ color: '#F5C73D', weight: 4, opacity: 1, lineCap: 'round', lineJoin: 'round' }}
+                      pathOptions={{ color: '#F5C73D', weight: 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                       eventHandlers={handlers}
                     />
                   </Fragment>

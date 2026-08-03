@@ -21,6 +21,7 @@ import {
   type TripGeometry,
 } from './addTripModel';
 import { SPACING, calibratedAscent, hav, interp, totalDistanceM } from './addTripGeo';
+import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } from '@/components/pack/tripShared';
 import {
   ensureElevations,
   elevAt,
@@ -264,6 +265,7 @@ export function GeometryPicker({
 
   // ── vrstvy na mape (imperatívne) ──────────────────────────────────────────────────────
   const layersRef = useRef<L.Layer[]>([]);
+  const [zoomTick, setZoomTick] = useState(0); // prekreslenie meča po zmene zoomu (viď nižšie)
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -271,6 +273,10 @@ export function GeometryPicker({
     layersRef.current.forEach((l) => map.removeLayer(l));
     layersRef.current = [];
     const add = (l: L.Layer) => { l.addTo(map); layersRef.current.push(l); };
+    // issue #49 — čo tu nakreslíš, tak to bude vyzerať na mape (fialový „svetelný meč"), preto
+    // rovnaké tokeny ako PackMap. CSS s dosvitom si musí ADD flow zabezpečiť sám (vlastná routa).
+    ensureTrailLineCss();
+    const saberK = trailSaberScale(map.getZoom());
 
     // duchovia existujúcich trás (§5.3) — tenké polopriehľadné čiary, klik ponúkne log
     if (value.kind === 'route' && onPickExisting) {
@@ -279,8 +285,11 @@ export function GeometryPicker({
         .filter((tr) => tr.path?.length > 1 && bounds.intersects(L.latLngBounds(tr.path)))
         .slice(0, 120)
         .forEach((tr) => {
+          // duch = tá istá fialová rodina ako hotové trasy, len stlmená na jednu vrstvu —
+          // 120 duchov × 4 vrstvy s SVG filtrom by mapu položilo a prekričalo by to trasu,
+          // ktorú práve kreslíš.
           const ghost = L.polyline(tr.path, {
-            color: GOLD, weight: 2, opacity: 0.28, interactive: true,
+            color: TRAIL_LINE.light, weight: 2.5, opacity: 0.4, interactive: true,
           });
           ghost.on('click', (e) => { L.DomEvent.stopPropagation(e); onPickExisting(tr); });
           ghost.bindTooltip(tr.name, { direction: 'top', opacity: 0.9 });
@@ -289,9 +298,18 @@ export function GeometryPicker({
     }
 
     if (value.kind === 'route' && line.length > 1) {
-      // dvojvrstvový casing ako na zvyšku mapy: čierny podklad + zlaté jadro
-      add(L.polyline(line, { color: '#000', weight: 7, opacity: 0.55, interactive: false }));
-      add(L.polyline(line, { color: GOLD_BRIGHT, weight: 3, opacity: 0.95, interactive: false }));
+      // kreslená trasa = ten istý „svetelný meč" ako na mape (issue #49) — WYSIWYG, nie zlatá
+      TRAIL_SABER_LAYERS.forEach((ly) => {
+        add(L.polyline(line, {
+          color: ly.color,
+          weight: Math.max(0.8, ly.weight * saberK),
+          opacity: ly.opacity,
+          lineCap: 'round',
+          lineJoin: 'round',
+          className: ('glow' in ly && ly.glow && saberK >= 0.7) ? 'trp-saber-glow' : undefined,
+          interactive: false,
+        }));
+      });
     }
     // KOTVY, nie body stopy — človek musí vidieť, čo undo zmaže
     if (value.kind === 'route') {
@@ -318,11 +336,17 @@ export function GeometryPicker({
       }));
     }
 
+    // hrúbka meča závisí od zoomu → po zoomovaní treba vrstvy prekresliť, inak ostanú v starej
+    // mierke až do ďalšej zmeny kotiev (efekt inak beží len na zmenu geometrie)
+    const onZoom = () => setZoomTick((n) => n + 1);
+    map.on('zoomend', onZoom);
+
     return () => {
+      map.off('zoomend', onZoom);
       layersRef.current.forEach((l) => { if (map.hasLayer(l)) map.removeLayer(l); });
       layersRef.current = [];
     };
-  }, [value, line, allTrails, onPickExisting, mapRef]);
+  }, [value, line, allTrails, onPickExisting, mapRef, zoomTick]);
 
   // ── panel ─────────────────────────────────────────────────────────────────────────────
   const pointCount = value.kind === 'route' ? value.path.length : 0;

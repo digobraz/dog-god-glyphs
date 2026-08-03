@@ -60,6 +60,49 @@ export const DIFF_COLOR: Record<string, string> = {
 // teraz vlastný token nech nikde nie je ako holý literál (Matej: "modrá farba bude voda").
 export const WATER_COLOR = '#2E6FD6';
 
+// ── Farba čiary trasy na mape (issue #49, Matej 2026-07-31) ────────────────────────────────
+// Matej: „skúsme tú fialovú ale urobme ju takú pkenú ako keby neónovú zvnútra stred biely po
+// kraji tmavá - ako svetelný meč". Vybral z klikacieho porovnania na reálnej mape
+// (`plany/farba-trasy.html`, 4 farby): FIALOVÁ.
+// Prečo fialová a nie tyrkysová/modrá/zelená: je to jediná VOĽNÁ os. Egyptian blue #2E5FD0 je
+// prakticky voda (WATER_COLOR), tmavozelená splýva s Easy #3FA34D aj so zelenými KČT chodníkmi
+// na dlaždiciach, a tyrkysová (faience) má v DOGME D67 pridelený význam — ceremoniálna farba
+// sviatkov, minula by sa na najbežnejší prvok mapy.
+// POZOR: toto je farba ČIARY = samostatná os. Náročnosť ostáva na markeroch/pilulkách
+// (DIFF_COLOR) a nesmie sa s ňou zliať — presne to sme rozpletali 2026-07-27.
+export const TRAIL_LINE = { edge: '#170424', mid: '#7A2FBF', light: '#B36BFF', core: '#FFFFFF' } as const;
+
+// Dosvit sa NEDÁ spraviť hrúbkou čiary — robí ho SVG filter na strednej vrstve (Leaflet
+// renderuje <path>, filter naň sadne). Trieda sa podáva cez pathOptions.className.
+export const TRAIL_LINE_CSS = `
+.trp-saber-glow{filter:drop-shadow(0 0 3px rgba(179,107,255,0.95)) drop-shadow(0 0 9px rgba(155,60,255,0.55));}
+`;
+
+// Štyri vrstvy na tých istých bodoch, zdola nahor: tmavý okraj → sýta (nesie dosvit) → svetlá
+// → biele jadro. Poradie v poli = poradie kreslenia.
+export const TRAIL_SABER_LAYERS = [
+  { key: 'edge', color: TRAIL_LINE.edge, weight: 11, opacity: 0.8 },
+  { key: 'mid', color: TRAIL_LINE.mid, weight: 7, opacity: 0.92, glow: true },
+  { key: 'light', color: TRAIL_LINE.light, weight: 4, opacity: 1 },
+  { key: 'core', color: TRAIL_LINE.core, weight: 1.8, opacity: 0.97 },
+] as const;
+
+// PackMap si `TRAIL_LINE_CSS` vlieva do svojho <style> bloku, ale meč kreslí aj ADD TRIP
+// (GeometryPicker), ktorý žije na vlastnej route — bez tejto poistky by mu dosvit ticho chýbal.
+// Idempotentné: štýl sa vloží raz na dokument.
+export function ensureTrailLineCss() {
+  if (typeof document === 'undefined' || document.getElementById('trp-trail-line-css')) return;
+  const el = document.createElement('style');
+  el.id = 'trp-trail-line-css';
+  el.textContent = TRAIL_LINE_CSS;
+  document.head.appendChild(el);
+}
+
+// Viacvrstvová čiara sa pri odzoomovaní zlieva do kaše (77 trás = fialové fľaky), preto hrúbka
+// chudne so zoomom. Bucketované zámerne — prepočet len pri zmene stupňa, nie pri každom pixeli.
+export const trailSaberScale = (zoom: number) =>
+  zoom <= 10 ? 0.45 : zoom === 11 ? 0.55 : zoom === 12 ? 0.7 : zoom === 13 ? 0.85 : 1;
+
 // ── Rating packy (iterácia 16 bod 2, doplnené 2026-07-27 o desatinný fill) — jednotný
 // 5-pack widget, zdieľaný medzi kartami/inline detailom (PackMap.tsx) a článkom
 // (PackTripArticle.tsx). Priemer viacerých hlasov (na rozdiel od jedného hlasu v
