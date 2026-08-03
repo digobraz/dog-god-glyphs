@@ -37,6 +37,7 @@ import {
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
+import { useDogyptStore } from '@/store/dogyptStore';
 
 const T = PACK_THEME;
 
@@ -258,6 +259,9 @@ function ProfileProgress({
 }
 
 export default function PackProfile() {
+  // issue #34: člen s heroglyfom obchádza `/entry` (verejná conviction gate) a ide rovno do tvorby.
+  // Reset flow storu, aby druhý pes nezdedil meno/dátum/tier prvého v tej istej SPA session.
+  const resetFlow = useDogyptStore((s) => s.reset);
   const [session, setSession] = useState<Session | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
@@ -1050,7 +1054,8 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
                z nej urobil ~950 px vysoký prázdny box — presne to videl každý
                nový člen bez psa. */
             <Link
-              to="/entry"
+              to="/heroglyph/intro"
+              onClick={resetFlow}
               className="flex flex-row items-center justify-center"
               style={{
                 gap: 10,
