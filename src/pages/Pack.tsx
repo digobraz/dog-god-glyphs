@@ -16,6 +16,7 @@ import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { PackShareCard } from '@/components/pack/PackShareCard';
 import { NextTripCard } from '@/components/pack/NextTripCard';
+import { DEV_FULL } from '@/lib/packFlags';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { EDGE_BASE } from '@/lib/env';
 
@@ -312,8 +313,12 @@ export default function Pack() {
           </div>
         </div>
 
-        {/* Next up — nearest planned trip (or an invite into the map when nothing's planned yet) */}
-        <NextTripCard />
+        {/* Next up — nearest planned trip (or an invite into the map when nothing's planned yet).
+            ⚠️ Za DEV_FULL zámerne: `/pack` je LIVE, ale `/pack/map` ešte nie. Bez tejto podmienky
+            by každý platiaci člen videl kartu, ktorej jediné tlačidlo („Explore the map") vedie na
+            routu, čo ho hodí späť na `/pack` — slepá ulička. Karta sa objaví v ten istý moment ako
+            mapa, keď flag padne. */}
+        {DEV_FULL && <NextTripCard />}
 
         {/* Share card — primary dog's ready-made social image (SHARE + DOWNLOAD) */}
         {primaryDog && (
