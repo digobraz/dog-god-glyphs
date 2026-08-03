@@ -15,6 +15,7 @@ import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { PackShareCard } from '@/components/pack/PackShareCard';
+import { NextTripCard } from '@/components/pack/NextTripCard';
 import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { EDGE_BASE } from '@/lib/env';
 
@@ -310,6 +311,9 @@ export default function Pack() {
             )}
           </div>
         </div>
+
+        {/* Next up — nearest planned trip (or an invite into the map when nothing's planned yet) */}
+        <NextTripCard />
 
         {/* Share card — primary dog's ready-made social image (SHARE + DOWNLOAD) */}
         {primaryDog && (
