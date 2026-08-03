@@ -902,7 +902,7 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
 
 /* ── mobile-only surfaces (header/list/toggle/ADD overlay), hidden on desktop — see the
    ≤760px media query below for their real layout (bod 5 i11, bod 4 i14). ── */
-.trp-mheader,.trp-mtoggle,.trp-mlist,.trp-madd,.trp-madd-drawbtn{display:none;}
+.trp-mheader,.trp-mtoggle,.trp-mactions,.trp-mlist,.trp-madd,.trp-madd-drawbtn{display:none;}
 
 /* ── map region — full-bleed, the floating panel sits on top of it ── */
 .trp-mapregion{position:absolute;inset:0;z-index:0;}
@@ -921,16 +921,20 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
 .trp-ctlstack{position:absolute;top:16px;right:16px;z-index:800;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
 /* bod 2 (iterácia 12): Terrain/Satellite/Winter stack → JEDNO kruhové tlačidlo, prepína
    len outdoor↔aerial (Winter úplne preč, aj z mapStyle typu aj z mapyTiles volania). */
-.trp-stylebtn{width:38px;height:38px;border-radius:50%;background:${CARD};border:1px solid rgba(201,154,63,0.45);box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+/* Matej 2026-08-03: „bočné tlačítka na mape +- center a vrstvy... chcelo by to dať asi tmavé
+   ako aj všetko ostatné" — papyrusový stack bol na tmavej appke JEDINÝ svetlý prvok a preto
+   optický ťažisko obrazovky, hoci je najmenej dôležitý. Teraz rovnaké tmavé sklo ako
+   .trp-mheader a PackBottomNav (T.glass + T.onDarkBorder), ikony biele cez invert filter. */
+.trp-stylebtn{width:38px;height:38px;border-radius:50%;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 3px 10px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .trp-stylebtn:hover{border-color:${GOLD};}
-.trp-stylebtn img{width:18px;height:18px;filter:brightness(0) saturate(0);opacity:.75;}
-.trp-zoomgroup{display:flex;flex-direction:column;background:${CARD};border:1px solid rgba(201,154,63,0.45);border-radius:9px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.4);}
-.trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:17px;font-weight:600;line-height:1;color:${INK};display:flex;align-items:center;justify-content:center;}
-.trp-zoomgroup button:first-child{border-bottom:1px solid rgba(31,26,14,0.12);}
-.trp-zoomgroup button:hover{background:rgba(201,154,63,0.12);}
-.trp-locatebtn{width:38px;height:38px;border-radius:9px;background:${CARD};border:1px solid rgba(201,154,63,0.45);box-shadow:0 3px 10px rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.trp-stylebtn img{width:18px;height:18px;filter:brightness(0) invert(1);opacity:.82;}
+.trp-zoomgroup{display:flex;flex-direction:column;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};border-radius:9px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.45);}
+.trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:17px;font-weight:600;line-height:1;color:${T.onDark};display:flex;align-items:center;justify-content:center;}
+.trp-zoomgroup button:first-child{border-bottom:1px solid ${T.onDarkHair};}
+.trp-zoomgroup button:hover{background:rgba(201,154,63,0.18);}
+.trp-locatebtn{width:38px;height:38px;border-radius:9px;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 3px 10px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;}
 .trp-locatebtn:hover{border-color:${GOLD};}
-.trp-locatebtn img{width:18px;height:18px;filter:brightness(0) saturate(0);opacity:.7;}
+.trp-locatebtn img{width:18px;height:18px;filter:brightness(0) invert(1);opacity:.78;}
 .trp-locatebtn.loading img{opacity:.35;}
 .trp-mapfull .leaflet-control-scale{margin-left:12px;margin-bottom:12px;}
 .trp-mapfull .leaflet-control-scale-line{background:rgba(255,255,255,0.8);border-color:rgba(31,26,14,0.55);color:#2a2a2a;font-size:10px;}
@@ -983,15 +987,10 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
 /* zhluk (zadanie 2.4) — rovnaký glass+zlatý lem, veľkosť rastie s počtom bodov (clusterIcon). */
 .trp-cluster{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
 .trp-cluster:hover{transform:scale(1.09);}
-/* farebná legenda mapy — floating vpravo dole, nad Dev nav / atribúciou */
-.trp-legend{position:absolute;right:12px;bottom:54px;z-index:600;display:flex;flex-direction:column;gap:4px;background:rgba(20,20,20,0.82);backdrop-filter:blur(6px);padding:8px 11px;border-radius:12px;border:1px solid rgba(255,255,255,0.14);box-shadow:0 4px 14px rgba(0,0,0,0.45);font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:#fff;letter-spacing:.06em;pointer-events:none;}
-.trp-legrow{display:flex;align-items:center;gap:7px;}
-.trp-legdot{width:12px;height:12px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,0.5);}
-.trp-legdot--hike{background:#141414;}
-.trp-legdot--journey{background:#E01B22;}
-.trp-legdot--water{background:${WATER_COLOR};}
-/* plánovaný trip = ružový teardrop pin (zhoduje sa s .trp-planmarker-dot na mape) */
-.trp-legdot--planned{background:#FF5FA2;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border-color:#fff;}
+/* Farebná legenda mapy (.trp-legend / .trp-legrow / .trp-legdot) ZRUŠENÁ 2026-08-03 —
+   Matej: „a folný blok s legendami daj preč celkom". Zaberala 126×93 px vpravo dole a na
+   mobile kolidovala s atribúciou aj spodnou navigáciou. Ak by farby niekedy bolo treba
+   vysvetliť, patrí to do Filters sheetu (.trp-msheet), nie ako trvalý blok na mapu. */
 /* bod 2 (iterácia 17): live "{km} km" label pri konci kreslenej trasy (ADD flow draw) —
    rovnaká centrovacia technika ako .trp-pill (left:-50%/top:-100%), o kúsok vyššie (-10px
    extra gap), nech nesedí priamo na poslednom bode trasy. */
@@ -1060,35 +1059,32 @@ ${TRAIL_LINE_CSS}
      renderStatusRight() pilulky, ako desktop .trp-status-row) + (2) search+dropdowny+filter
      (i12 bod 7). .trp-mheader je teraz column namiesto jedného riadku. */
   .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid ${T.onDarkBorder};padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;}
-  /* Matej 2026-07-27: status riadok sa musí zmestiť do JEDNÉHO riadku — LEVEL · staty ·
-     triplist(ikonka) · Add · správy+zvonček. Preto flex-wrap:nowrap; overflow-x:auto je len
-     poistka pre <350px zariadenia (nech sa radšej dá odscrollovať, než aby to zalomilo). */
-  .trp-mheader-status{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;}
-  .trp-mheader-status::-webkit-scrollbar{display:none;}
-  /* Matej 2026-07-27 (druhé kolo): LEVEL vľavo, stred (staty/triplist/add) naozaj centrovaný
-     v riadku — ako na desktope (flex:1 na krajných blokoch). min-width:max-content namiesto
-     0 drží krajné bloky nad ich obsahom, nech sa pri 390px nestlačia na nulu — pri nedostatku
-     miesta prevezme overflow-x:auto (horizontálny scroll), nie kolaps stredu. */
-  .trp-mheader-status .trp-status-left{flex:1 1 0;min-width:max-content;}
-  .trp-mheader-status .trp-status-center{gap:6px;flex-wrap:nowrap;flex:0 0 auto;}
-  .trp-mheader-status .trp-headright{gap:5px;flex:1 1 0;min-width:max-content;justify-content:flex-end;}
+  /* Matej 2026-08-03 („na mobil je toho veľa"): riadok 1 UŽ NIE JE rad piatich pilulek
+     v horizontálnom scrolli, ale IDENTITA vľavo ↔ notifikácie vpravo. Preto space-between
+     a žiadny overflow-x — už niet čo scrollovať, obsah sa vždy zmestí. */
+  .trp-mheader-status{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:nowrap;}
+  .trp-mheader-status .trp-headright{gap:5px;flex:0 0 auto;justify-content:flex-end;}
   /* PackNotifications má rozmery v inline style (38px) → prebiť sa dá len !important. */
   .trp-mheader-status .trp-header-notif button{width:32px!important;height:32px!important;}
-  .trp-mheader-status .trp-stat-pill{gap:4px;padding:5px 8px;}
-  .trp-mheader-status .trp-stat-pill img{width:11px;height:11px;}
-  .trp-mheader-status .trp-stat-pill span,.trp-mheader-status .trp-stat-pill b{font-size:10px;}
-  /* Triplist = len clipboard ikonka (Matej 2026-07-27: „triplist iba ikonka nie aj názov"). */
-  .trp-mheader-status .trp-triplist-label{display:none;}
-  .trp-mheader-status .trp-stat-pill--icon{padding:5px 7px;}
-  /* LEVEL text zmenšený v rovnakom pomere ako pilulky, nech nepretlačí status riadok na mobile. */
-  .trp-mheader-status .trp-level{gap:5px;}
-  .trp-mheader-status .trp-level-name{font-size:10px;letter-spacing:.1em;}
-  .trp-mheader-status .trp-level-num i{font-size:8px;}
+  /* IDENTITA = avatar + [rang Lvl N / staty]. Celý blok je klikací (→ triplist?tab=stats),
+     ale nevyzerá ako tlačidlo — je to identita, nie akcia (rovnaká logika, prečo .trp-level
+     nikdy nebol pilulka). */
+  .trp-midentity{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;background:none;border:none;padding:0;cursor:pointer;text-align:left;}
+  .trp-mavatar{width:34px;height:34px;border-radius:50%;flex:0 0 auto;object-fit:cover;border:1.5px solid ${GOLD};box-shadow:0 0 0 1px rgba(0,0,0,0.5);}
+  .trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1;}
+  .trp-midentity-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .trp-mheader-status .trp-level{gap:7px;}
+  .trp-mheader-status .trp-level-name{font-size:11px;letter-spacing:.14em;}
+  /* Matej 2026-08-03: „LVL daj do oranžovej pill alebo inak vizuálne zvýrazni" — desktop necháva
+     level ako zlatý gradient TEXT (.trp-level-num vyššie: background-clip:text + color:transparent),
+     na mobile je z neho plná zlatá pilulka. Preto sa musí zhasnúť aj clip aj -webkit-text-fill-color
+     — samotné color: by pri background-clip:text neprebilo priehľadnú výplň písma. */
+  .trp-mheader-status .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:border-box;background-clip:border-box;color:${INK};-webkit-text-fill-color:${INK};filter:none;box-shadow:0 2px 8px rgba(245,199,61,0.28);}
   .trp-mheader-status .trp-level-num em{font-size:14px;}
-  .trp-mheader-status .trp-addtrip-btn{padding:6px 10px;font-size:9.5px;gap:4px;}
-  .trp-mheader-status .trp-addtrip-icon{width:10px;height:10px;}
-  .trp-mheader-status .trp-addtrip-full{display:none;}
-  .trp-mheader-status .trp-addtrip-short{display:inline;}
+  /* Podriadok nahradil trophy pilulku „64 · 1550.4 km" (Matej 2026-08-03, rozhodnutie o tvare
+     ponechané na mne): číslo ostáva viditeľné bez ťuknutia, ale prestalo byť ďalším prvkom
+     v rade. Space Grotesk — je to dáta, nie identita (typografický poriadok v CLAUDE.md). */
+  .trp-mstats{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};white-space:nowrap;}
   /* Riadok 2 (Matej 2026-07-27, prestavané): predtým tu boli 3 natívne selecty
      (Activities/Difficulty/Crowd) v horizontálnom scrolli — a country, región a Tagy sa na
      mobile NEZOBRAZOVALI VÔBEC (žijú v .trp-sidebar / .trp-topbar, oboje display:none).
@@ -1129,14 +1125,40 @@ ${TRAIL_LINE_CSS}
   .trp-msheet-show{flex:1 1 auto;padding:12px 18px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.30);color:${INK};font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
 
   /* LIST/MAP toggle pill, bottom-center — default view = map (žiadny
-     bottom-sheet defaultne), klik prepína celú stránku na zoznam. */
-  .trp-mtoggle{display:flex;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 78px);z-index:900;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 26px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.4);cursor:pointer;}
+     bottom-sheet defaultne), klik prepína celú stránku na zoznam.
+     2026-08-03: (1) posunuté vyššie — 78px nechávalo nad spodnou navigáciou 8 px, čo čítalo
+     ako preklep, nie ako medzera (Matej: „Posuň vyššie"); (2) pribudla ikonka pred text
+     (Matej: „pri tlačítkach LIST a MAP dolu treba pridať ikonky MAP = map location interface
+     a LIST: menu lines (z brand manuálu)") — obe SVG sú z vstupy/vizualna-identita/
+     "Icons hand drawn", skopírované do public/icons/pack/ ako map.svg + menu.svg.
+     Ikonka je ČIERNA na zlatom (nie invert) — pilulka je .btn-gold vzor, tmavý ink na zlate. */
+  /* Matej 2026-08-03 (druhé kolo): „LIST/MAP posuň dolu o polovicu a urob to tak že hned vedla
+     pridaj tlačítko ADD aby boli vedľa seba a obidve centruj aby boli nad NAV panelom".
+     ADD teda UŽ NIE JE roh-FAB — obe tlačidlá sedia v jednom centrovanom páre. Posun dole
+     o polovicu = 96 → 87px (predtým 78, čo nechávalo nad navom 8px). */
+  .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px);z-index:900;}
+  .trp-mtoggle,.trp-mfab{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.4);cursor:pointer;white-space:nowrap;}
+  .trp-mtoggle img,.trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0);opacity:.82;}
+
+  /* hlavička LIST pohľadu — sem sa presťahoval TRIPLIST z mapového headera. V zozname dáva
+     zmysel (je to zoznamový povrch), v headeri mapy bol len ďalšia ikonka v rade. */
+  .trp-mlist-head{display:flex;align-items:center;justify-content:flex-end;margin-bottom:12px;}
+  .trp-mlist-triplist{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+  .trp-mlist-triplist img{width:13px;height:13px;filter:brightness(0) invert(1);opacity:.8;}
 
   /* full-page card list — replaces the map (not an overlay) when mobileView==='list'.
      top padding sedí s výškou .trp-mheader (viď .trp-ctlstack vyššie). */
-  .trp-mlist{position:absolute;inset:0;z-index:60;overflow-y:auto;background:#050505;padding:calc(env(safe-area-inset-top,0px) + 106px) 14px 100px;}
+  .trp-mlist{position:absolute;inset:0;z-index:60;overflow-y:auto;background:#050505;padding:calc(env(safe-area-inset-top,0px) + 106px) 14px 150px;}
   .trp-root.mlist-active .trp-mapregion{display:none;}
   .trp-root.mlist-active .trp-mlist{display:block;}
+  /* BUG FIX 2026-08-03 (Matej: „pri otvorenom liste zmizne spodný NAV! skontroluj to"):
+     PackBottomNav je fixed z-40 a je SÚRODENEC .trp-mlist vnútri .trp-root — čiže v tom istom
+     stacking kontexte. .trp-mlist má z-index:60 a NEPRIEHĽADNÉ pozadie (#050505) cez celý inset:0,
+     takže navigáciu jednoducho prekryl. position:fixed proti tomu nechráni, o poradí rozhoduje
+     len z-index v spoločnom kontexte. Dvíham nav na 100: nad zoznam (60), ale pod pár tlačidiel
+     (.trp-mactions 900) aj pod modaly (.trp-madd 950, .trp-msheet), nech sa poradie inde nemení.
+     Padding-bottom zoznamu zároveň 100 → 150px, aby posledná karta neskončila pod navom. */
+  .trp-root > nav.fixed{z-index:100;}
 
   /* bod 4 (iterácia 14, krok 9 zachované): ADD TRIP full-screen overlay — .trp-sidebar (desktop
      ADD setup home) je tu display:none, tak AddTripPlan/AddTripLog bežia znova vo full-screen
@@ -2290,11 +2312,42 @@ export default function PackMap() {
           Activity/Difficulty/Crowd + FILTER (sort) icon. Replaces the floating .trp-topbar on
           ≤760px. Visible in BOTH mobile map/list views. */}
       <div className="trp-mheader">
+        {/* 2026-08-03 (Matej: „na mobil je toho veľa... potrebujem to vylepšiť tak aby to viac
+            dýchalo"): mobilný status riadok UŽ NIE JE zdieľaný trojdielny split z desktopu.
+            Desktop (.trp-topbar) ostáva 1:1 ako bol („na PC je to v skutku fajn"), mobil dostal
+            vlastnú štruktúru — riadok 1 = ČISTÁ IDENTITA, nič iné:
+              [avatar] PILGRIM Lvl 15            [✉ 🔔]
+                       64 trips · 1550 km
+            Trophy pilulka (TRIPSTATS) zanikla — číslo žije ako podriadok pod menom, takže
+            ubudol celý prvok a údaj ostal viditeľný bez ťuknutia. Klik na celý blok vedie tam,
+            kam viedla pilulka (/pack/map/triplist?tab=stats).
+            TRIPLIST sa presunul do LIST pohľadu (.trp-mlist-head), ADD TRIP na plávajúci FAB
+            nad mapou (.trp-mfab) — v hornom rohu bol horšie dosiahnuteľný palcom.
+            Avatar sa sem VRACIA (Matej: „Hor pri PILGRIM z lavej strane musí byť FOTO/avatar
+            užívateľa") — v D4 nav reworku 2026-07-24 bol odsťahovaný do PackBottomNav; tam
+            zostáva ako navigácia, tu je identita, nie duplicita ovládania. */}
         <div className="trp-mheader-status">
-          {/* Avatar REMOVED here too (D4 nav rework) — same reasoning as desktop .trp-status-row.
-              Trojdielny split je zdieľaný s desktopom, len s menšou typografiou (viď media query). */}
-          {renderStatusLeft()}
-          {renderStatusCenter()}
+          <button
+            type="button"
+            className="trp-midentity"
+            onClick={() => navigate('/pack/map/triplist?tab=stats')}
+            title={`${levelInfo.points} pts · ${levelInfo.toNext} to ${levelInfo.level + 1}\n${profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ')}`}
+          >
+            {id.avatarUrl
+              ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
+              : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
+            <span className="trp-midentity-txt">
+              <span className="trp-level">
+                <span className="trp-level-name">{levelInfo.rank}</span>
+                {/* Matej 2026-08-03 (tretie kolo): „to LVL ma ruší" → popisok „Lvl" preč, ostáva
+                    holé číslo v zlatej pilulke. Rang vedľa (PILGRIM) už povie, čo to je, takže
+                    popisok bol len šum navyše. Desktop (renderStatusLeft) si „Lvl" NECHÁVA — tam
+                    nie je pilulka, ale gradientový text, ktorý bez popisku nemá čo číslo ukotviť. */}
+                <span className="trp-level-num" aria-label={`Level ${levelInfo.level}`}><em>{levelInfo.level}</em></span>
+              </span>
+              <span className="trp-mstats">{walkedIds.size} trips · {fmtKm(walkedKm)} km</span>
+            </span>
+          </button>
           {renderHeaderRight()}
         </div>
         <div className="trp-mheader-row2">
@@ -2440,17 +2493,40 @@ export default function PackMap() {
         </>
       )}
 
-      {/* LIST/MAP toggle (mobile only) — default view = map, bod 5. */}
-      <button
-        type="button"
-        className="trp-mtoggle"
-        onClick={() => setMobileView((v) => (v === 'map' ? 'list' : 'map'))}
-      >
-        {mobileView === 'map' ? 'List' : 'Map'}
-      </button>
+      {/* LIST/MAP toggle (mobile only) — default view = map, bod 5.
+          Ikonka ukazuje CIEĽ prepnutia, rovnako ako text (v mape ponúka „List", v zozname
+          „Map") — nie aktuálny stav. */}
+      <div className="trp-mactions">
+        <button
+          type="button"
+          className="trp-mtoggle"
+          onClick={() => setMobileView((v) => (v === 'map' ? 'list' : 'map'))}
+        >
+          <img src={ICON(mobileView === 'map' ? 'menu' : 'map')} alt="" />
+          {mobileView === 'map' ? 'List' : 'Map'}
+        </button>
+        {/* ADD TRIP (mobile) — presunuté z .trp-mheader-status 2026-08-03. Zostáva viditeľné aj
+            v LIST pohľade: dvojica je centrovaná ako celok, takže skrytie ADD by LIST vystrelilo
+            z osi. */}
+        <button type="button" className="trp-mfab" onClick={openAddEntry}>
+          <img src={ICON('plus')} alt="" />
+          Add
+        </button>
+      </div>
 
       {/* full-page card list (mobile 'list' view — replaces the map, not an overlay) */}
       <div className="trp-mlist">
+        <div className="trp-mlist-head">
+          <button
+            type="button"
+            className="trp-mlist-triplist"
+            onClick={() => navigate('/pack/map/triplist')}
+            title="Open your triplist"
+          >
+            <img src={ICON('clipboard')} alt="" />
+            Triplist
+          </button>
+        </div>
         <div className="trp-cards">
           {activeCat === 'trips'
             ? renderTripList(false)
@@ -2640,16 +2716,10 @@ export default function PackMap() {
               ))}
             </MapContainer>
 
-            {/* farebná legenda mapy (Matej 2026-07-24): čierna=hike · červená=diaľkové · modrá=voda.
-                „do budúcna možno pribudnú ďalšie" → stačí pridať ďalší .trp-legrow. */}
-            <div className="trp-legend">
-              <div className="trp-legrow"><span className="trp-legdot trp-legdot--hike" />Hike</div>
-              <div className="trp-legrow"><span className="trp-legdot trp-legdot--journey" />Long-distance</div>
-              <div className="trp-legrow"><span className="trp-legdot trp-legdot--water" />Water</div>
-              <div className="trp-legrow"><span className="trp-legdot trp-legdot--planned" />Planned</div>
-            </div>
+            {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
+                viď komentár pri .trp-legend v CSS. */}
             {/* POI vrstva beží na dátach OpenStreetMap (ODbL) — atribúcia je podmienka licencie,
-                preto je natvrdo v DOM a nedá sa vypnúť spolu s vrstvou. Posadená pod legendu. */}
+                preto je natvrdo v DOM a nedá sa vypnúť spolu s vrstvou. */}
             <PoiAttribution style={{ bottom: 34 }} />
 
             {/* top bar — floating status riadok + search-a-place + Activity/Difficulty/Crowd

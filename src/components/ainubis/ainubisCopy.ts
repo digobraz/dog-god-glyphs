@@ -63,7 +63,7 @@ const sk: AinubisCopy = {
   statusTakeover: 'Pán pri slove',
   welcome: [
     'Ahoj, ja som AInubis — digitálny strážca DOGYPTU.',
-    'Náš digitálny chrám je vo výstavbe. Matej sa snaží… ale povedzme si úprimne, nie je programátor, takže sa sem-tam vyskytne chybička. Tu do hry vstupujem ja spolu s tebou: ak ti niečo nefunguje, našiel si nesúlad alebo máš nápad — napíš mi. Pri probléme kľudne rovno so screenshotom, pozriem sa naň hneď a riešenie navrhnem skôr, než bude môj pán opäť online :)',
+    'Toto miesto stavia hŕstka ľudí, jeden pes a ja. Chrám ešte rastie, takže tvoje oči sú tu vzácne: ak niečo nefunguje alebo ťa napadne niečo krajšie, napíš mi (pokojne so screenshotom). Pozriem sa hneď a odovzdám to pánovi.',
   ],
   suggestions: {
     problem: 'Mám problém',
@@ -102,7 +102,7 @@ const en: AinubisCopy = {
   statusTakeover: 'Master speaking',
   welcome: [
     "Hi, I'm AInubis — digital guardian of DOGYPT.",
-    "Our digital temple is still under construction. Matej is trying… but let's be honest, he's no programmer, so a glitch slips through now and then. That's where you and I come in: if something's broken, off, or you've got an idea — tell me. For problems just send a screenshot, I'll look at it right away and draft a fix before my master is back online :)",
+    "This place is built by a handful of people, one dog and me. The temple is still growing, so your eyes are precious here: if something does not work, or you think of something better, tell me (a screenshot is welcome). I will look right away and pass it on to my master.",
   ],
   suggestions: {
     problem: 'I have a problem',
