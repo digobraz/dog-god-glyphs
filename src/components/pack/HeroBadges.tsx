@@ -2,9 +2,15 @@
 // upresnenie 2026-07-24 = REVEAL-moment, upresnenie #2 = zdieľaná card popup pre reveal aj klik).
 // Globálny achievement pásmo (celkový počet prejdených tripov, nezávislé od krajiny) → žije v
 // BLOKU 1 (identita) TripStatsPanelu, hneď pod WORLD staty. Dáta = statické HERO_BADGES
-// (heroBadges.ts, needituj), earned = derivované z walkedCount (žiadny perzistovaný unlock flag —
-// rovnaká logika ako NP medaily v TripStatsPanel).
+// (heroBadges.ts, needituj).
 //
+// PERZISTENCIA (issue #48, 2026-08-03): „získané" sa PERZISTUJE cez packStore.ts
+// (`readHeroEarned`/`persistHeroEarned`, tabuľka `hero_badges_earned`) — raz odomknutý
+// odznak ostáva odomknutý aj keď človek neskôr zmaže prejdenú trasu a walkedCount klesne
+// pod míľnik. `walkedCount` sa už používa LEN na (a) detekciu NOVÉHO prekročenia míľnika
+// (potom sa zapíše natrvalo) a (b) text "N more trips to unlock" pri locked odznaku.
+//
+
 // REVEAL-moment (Matej citát: „ak človek dosiahne daný počet tripov - otvorí sa čierna obrazovka
 // s popupom kde bude krátka gratulácia odznak a text story o psovi, klikne vedľa zmizne to a
 // odznak sa zobrazí už farebný v riadku"). Diff sa počíta cez localStorage kľúč
@@ -20,6 +26,9 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { HERO_BADGES, type HeroBadge } from '@/components/pack/heroBadgesData';
+import {
+  readHeroEarned, persistHeroEarned, scheduleHeroBadgeBackfill, onPackStoreHydrated,
+} from '@/lib/packStore';
 
 const REVEALED_KEY = 'pack_hero_revealed';
 
@@ -81,22 +90,43 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
 export function HeroBadges({ walkedCount }: { walkedCount: number }) {
   const [clicked, setClicked] = useState<HeroBadge | null>(null);
   const [queue, setQueue] = useState<HeroBadge[]>([]);
+  // Perzistovaný stav (issue #48) — id-čka, ktoré NIKDY nezmiznú, aj keby walkedCount
+  // neskôr klesol. Inicializácia zo synchrónnej localStorage čítačky, refresh nižšie.
+  const [earnedIds, setEarnedIds] = useState<Set<string>>(() => new Set(Object.keys(readHeroEarned())));
 
-  // localStorage diff — nájde nové míľniky oproti tomu, čo bolo naposledy odhalené. Hooky MUSIA
-  // byť nad akýmkoľvek podmieneným returnom (tento komponent žiaden nemá, ale drží sa poriadok).
+  // Jednorazová migrácia — kto mal odznaky doteraz len odvodené z walkedCount, dostane
+  // ich zapísané natrvalo (guard vnútri packStore.ts, beží raz na prehliadač).
+  useEffect(() => { scheduleHeroBadgeBackfill(HERO_BADGES); }, []);
+
+  // Store môže zmeniť `hero_badges_earned` aj mimo walkedCount zmeny (hydratácia z DB,
+  // backfill vyššie) — refresh nech to appka uvidí bez čakania na ďalší render.
+  useEffect(() => onPackStoreHydrated(() => setEarnedIds(new Set(Object.keys(readHeroEarned())))), []);
+
+  // Nový míľnik prekročený → zapíš NATRVALO (persistHeroEarned je no-op pre id, ktoré už
+  // odomknuté je) a zosúlaď REVEAL frontu s tým istým persistovaným stavom. localStorage
+  // diff kľúč `pack_hero_revealed` (string[] id-čiek už odhalených):
+  //  - kľúč NEEXISTUJE (prvé načítanie appky vôbec) → baseline-silent: zapíš aktuálne earned
+  //    id-čka, ŽIADNY overlay (nechceme retro-blast gratulácií za odznaky spred featuru).
+  //  - kľúč existuje → nové earned id-čka oproti uloženému stavu = fronta popupov (jeden po
+  //    druhom, poradie = HERO_BADGES tiers).
   useEffect(() => {
-    const earnedIds = HERO_BADGES.filter((b) => walkedCount >= b.trips).map((b) => b.id);
+    const already = readHeroEarned();
+    const newlyEarned = HERO_BADGES.filter((b) => walkedCount >= b.trips && !already[b.id]).map((b) => b.id);
+    if (newlyEarned.length) persistHeroEarned(newlyEarned);
+
+    const earnedNow = new Set(Object.keys(readHeroEarned()));
+    setEarnedIds(earnedNow);
+
     const stored = loadRevealed();
     if (stored === null) {
-      // prvé načítanie appky vôbec — baseline-silent, žiadna retro-gratulácia.
-      saveRevealed(earnedIds);
+      saveRevealed(Array.from(earnedNow));
       return;
     }
-    const toReveal = HERO_BADGES.filter((b) => earnedIds.includes(b.id) && !stored.includes(b.id));
+    const toReveal = HERO_BADGES.filter((b) => earnedNow.has(b.id) && !stored.includes(b.id));
     if (toReveal.length > 0) setQueue(toReveal);
   }, [walkedCount]);
 
-  const earnedCount = HERO_BADGES.filter((b) => walkedCount >= b.trips).length;
+  const earnedCount = earnedIds.size;
   const revealing = queue[0];
 
   const dismissReveal = () => {
@@ -117,7 +147,7 @@ export function HeroBadges({ walkedCount }: { walkedCount: number }) {
       </div>
       <div className="comm-heroes">
         {HERO_BADGES.map((b) => {
-          const earned = walkedCount >= b.trips;
+          const earned = earnedIds.has(b.id);
           return (
             <button
               key={b.id}
@@ -135,7 +165,7 @@ export function HeroBadges({ walkedCount }: { walkedCount: number }) {
       {revealing ? (
         <HeroRevealCard badge={revealing} kicker="Milestone reached" locked={false} onClose={dismissReveal} />
       ) : clicked ? (() => {
-        const earned = walkedCount >= clicked.trips;
+        const earned = earnedIds.has(clicked.id);
         const kicker = earned ? 'Hero badge' : `${clicked.trips - walkedCount} more trips to unlock`;
         return (
           <HeroRevealCard badge={clicked} kicker={kicker} locked={!earned} onClose={() => setClicked(null)} />

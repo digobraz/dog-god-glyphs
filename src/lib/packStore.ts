@@ -428,13 +428,14 @@ export function hydratePackStore(): Promise<boolean> {
     // (2) pull — doménu s nevyslanou frontou nechávame na pokoji
     const blocked = pendingTables();
     try {
-      const [walked, fav, trips, votes, events, packTrips] = await Promise.all([
+      const [walked, fav, trips, votes, events, packTrips, heroEarned] = await Promise.all([
         (supabase as any).from('trip_walked').select('trip_slug'),
         (supabase as any).from('trip_fav').select('trip_slug'),
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
         (supabase as any).from('trip_votes').select('*'),
         (supabase as any).from('trip_events').select('*').eq('host_id', uid),
         (supabase as any).from('pack_trips').select('slug,payload'),
+        (supabase as any).from('hero_badges_earned').select('badge_id,earned_at'),
       ]);
 
       if (!blocked.has('trip_walked') && !walked.error && walked.data) {
@@ -492,6 +493,15 @@ export function hydratePackStore(): Promise<boolean> {
       if (!tripsBlocked && !packTrips.error && packTrips.data) {
         const fromDb = (packTrips.data as any[]).map((r) => r.payload as HeroTrail);
         writeJson(PACK_KEYS.localTrails, fromDb);
+      }
+      // hero_badges_earned je append-only (issue #48) → MERGE, nikdy overwrite: lokálny
+      // záznam môže byť čerstvejší než posledný pull (napr. práve odomknuté touto session,
+      // ešte vo fronte), DB záznam dopĺňa len id-čka, ktoré lokálne ešte chýbajú.
+      if (!blocked.has('hero_badges_earned') && !heroEarned.error && heroEarned.data) {
+        const local = readHeroEarned();
+        const merged = { ...local };
+        for (const r of heroEarned.data as any[]) { if (!merged[r.badge_id]) merged[r.badge_id] = r.earned_at; }
+        writeJson(HERO_EARNED_KEY, merged);
       }
     } catch { return false; }
 
@@ -560,6 +570,62 @@ function applyFounderSeed(defaultWalkedIds: string[]): void {
     writeStringSet(PACK_KEYS.walked, walked);
     if (hasSession) enqueue(ops);                   // do DB raz, so zdrojom `founder_seed`
     notifyListeners();                              // povrchy nech si prečítajú naseedovaný stav
+  } catch { /* non-fatal */ }
+}
+
+// ── HERO BADGES — perzistované odomknutie (issue #48) ───────────────────────
+// Doteraz sa „získané" počítalo za behu z walkedCount (HeroBadges.tsx) — nikde sa
+// nezapisovalo, takže zmazanie prejdenej trasy odznak vzalo späť a nikdy sa nedalo
+// povedať „toto som odomkol vtedy". Vzor = rovnaký ako `trip_walked` vyššie, len
+// APPEND-ONLY: odznak sa raz zapíše a už nikdy nezmaže (na rozdiel od `persistSetDiff`
+// niet druhého smeru — odomknutie je nevratné rozhodnutie, nie prepínač).
+const HERO_EARNED_KEY = 'trp-hero-earned-v1';
+const HERO_BACKFILL_KEY = 'trp-hero-earned-backfilled-v1';
+
+/** id odznaku (`HeroBadge.id`) → ISO dátum prvého odomknutia. Synchrónna čítačka. */
+export const readHeroEarned = (): Record<string, string> => readJson<Record<string, string>>(HERO_EARNED_KEY, {});
+
+/**
+ * Zapíše nové odomknutia natrvalo (write-through). Id, ktoré už v mape je, sa
+ * NEPREPÍŠE — prvý dátum odomknutia je ten platný.
+ */
+export function persistHeroEarned(newIds: string[]): void {
+  const already = readHeroEarned();
+  const fresh = newIds.filter((id) => !already[id]);
+  if (!fresh.length) return;
+  const now = new Date().toISOString();
+  const next = { ...already };
+  const ops: SyncOp[] = [];
+  fresh.forEach((id) => {
+    next[id] = now;
+    ops.push({ kind: 'upsert', tbl: 'hero_badges_earned', onConflict: 'user_id,badge_id', row: { badge_id: id, earned_at: now } });
+  });
+  writeJson(HERO_EARNED_KEY, next);
+  enqueue(ops);
+  notifyListeners(); // HeroBadges.tsx sedí na tomto evente, nech si prečíta čerstvý stav
+}
+
+/**
+ * Jednorazová migrácia (issue #48): kto má DNES odznaky odvodené len z počtu
+ * prejdených trás, nesmie o ne prísť len preto, že appka teraz odomknutie perzistuje.
+ * Guard beží raz na prehliadač — rovnaký vzor ako `scheduleFounderSeed` — a spustí sa
+ * AŽ po hydratácii, nech nezapíše odznak skôr, než DB stihne poslať to, čo tam
+ * prípadne už je (inak by dva prehliadače toho istého člena vyrobili dva `earned_at`).
+ */
+export function scheduleHeroBadgeBackfill(badges: { id: string; trips: number }[]): void {
+  if (packStorage.getItem(HERO_BACKFILL_KEY)) return;
+  if (hydrated) { applyHeroBadgeBackfill(badges); return; }
+  const off = onPackStoreHydrated(() => { off(); applyHeroBadgeBackfill(badges); });
+}
+
+function applyHeroBadgeBackfill(badges: { id: string; trips: number }[]): void {
+  try {
+    if (packStorage.getItem(HERO_BACKFILL_KEY)) return;
+    packStorage.setItem(HERO_BACKFILL_KEY, '1'); // rozhodnutie padne raz, nech to skončí akokoľvek
+    const walkedCount = readStringSet(PACK_KEYS.walked).size;
+    const already = readHeroEarned();
+    const toBackfill = badges.filter((b) => walkedCount >= b.trips && !already[b.id]).map((b) => b.id);
+    if (toBackfill.length) persistHeroEarned(toBackfill);
   } catch { /* non-fatal */ }
 }
 
