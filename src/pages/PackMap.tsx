@@ -1058,7 +1058,12 @@ ${TRAIL_LINE_CSS}
   /* bod 1 (iterácia 13, prestavané i15): mobilný header = 2 riadky — (1) status (avatar +
      renderStatusRight() pilulky, ako desktop .trp-status-row) + (2) search+dropdowny+filter
      (i12 bod 7). .trp-mheader je teraz column namiesto jedného riadku. */
-  .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid ${T.onDarkBorder};padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;}
+  /* issue #51 (Matej: efekt z Instagramu) — mapa/obsah pod headrom sa má strácať plynulo,
+     bez ostrej hrany. border-bottom (1px hard line presne na okraji blur vrstvy) nahradený
+     mask-image na TOMTO ISTOM existujúcom blur elemente: posledných ~12% výšky (padding-bottom
+     zóna POD search riadkom, žiadny reálny UI prvok tam nesedí) plynulo stmavne do priehľadna.
+     Žiadny nový blur layer navyše (drahé na starších telefónoch) — len maska nad tým čo už beží. */
+  .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);}
   /* Matej 2026-08-03 („na mobil je toho veľa"): riadok 1 UŽ NIE JE rad piatich pilulek
      v horizontálnom scrolli, ale IDENTITA vľavo ↔ notifikácie vpravo. Preto space-between
      a žiadny overflow-x — už niet čo scrollovať, obsah sa vždy zmestí. */

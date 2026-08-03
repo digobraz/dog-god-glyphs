@@ -237,6 +237,12 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
           WebkitBackdropFilter: 'blur(14px)',
           padding: 6,
           boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+          // issue #51 (Instagram-style fade): top rim of the pill dissolves into transparent
+          // instead of cutting the blur off with a hard line, so page content scrolling up
+          // from behind it disappears gradually. Mask only on the existing blur layer — no
+          // extra backdrop-filter surface, so it stays cheap on older phones.
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 16%, black 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 16%, black 100%)',
         }}
       >
         <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />

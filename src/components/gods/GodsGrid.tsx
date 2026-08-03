@@ -238,6 +238,16 @@ export function GodsGrid() {
     };
   }, []);
 
+  // "VIEW ON WALL #N" (PackDogDetail.tsx) linkuje na `/?focus=N` — zaostri kameru na
+  // psa #N po naloadovaní gridu. Neplatné/chýbajúce N (NaN, <1) → ticho ignoruj,
+  // žiadna console chyba.
+  const focusPackNumber = useMemo(() => {
+    const raw = new URLSearchParams(window.location.search).get('focus');
+    if (!raw) return null;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 1 ? n : null;
+  }, []);
+
   // Load real dogs for the grid
   useEffect(() => {
     let alive = true; // unmount guard — nesetuj state po odmountovaní (StrictMode dvojfetch, rýchla navigácia preč)
@@ -1016,6 +1026,13 @@ export function GodsGrid() {
 
     render();
 
+    // Kamera skočí na hero (0,0)/reveal pozíciu pri initial render() vyššie — ak URL
+    // nesie `?focus=N`, dožeň animovaný pan na cieľovú kartu (Hekthor #1 je fixný na
+    // (0,-1), nič v navigateTo tú pozíciu nemení ani nerotuje).
+    if (focusPackNumber !== null && !revealData.active) {
+      navigateTo(focusPackNumber);
+    }
+
     return () => {
       app.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
@@ -1031,7 +1048,7 @@ export function GodsGrid() {
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady]);
+  }, [navigate, dogsReady, focusPackNumber, revealData.active]);
 
   // Zmena jazyka → NEBÚRAME grid (rebuild by zrušil scroll pozíciu, otvorenú kartu aj
   // virtualizované bunky — je to najťažší efekt v komponente). Jediné miesta kde grid
