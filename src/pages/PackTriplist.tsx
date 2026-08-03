@@ -80,6 +80,10 @@ const CSS = `
 .tl-seeall{font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:${T.onDarkDim};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:5px 12px;cursor:pointer;white-space:nowrap;}
 .tl-seeall:hover{color:${GOLD};border-color:${GOLD};}
 .tl-empty{font-size:12.5px;color:${T.onDarkDim};font-style:italic;padding:6px 0 2px;}
+/* #55 — prázdny stav = veta faktu + JEDNA akcia. Po zmazaní výplne (2026-08-03) je toto
+   prvá obrazovka nového člena v triplíste, samotná kurzíva ho nikam nepustí. */
+.tl-emptybox{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:6px 0 4px;}
+.tl-emptybtn{font-family:'Cinzel',serif;font-weight:700;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;padding:10px 18px;border-radius:8px;border:1px solid rgba(250,244,236,0.30);background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};cursor:pointer;}
 
 /* zdieľaný štvorcový GRID — OPEN TRIPS (MY TRIPS = horizontálny scroll .tl-hscroll) */
 .tl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
@@ -113,7 +117,6 @@ const CSS = `
 .tl-block-owner span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tl-block-avatar{flex-shrink:0;width:17px;height:17px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:8.5px;color:${INK};}
 /* krátka správa usporiadateľa — 2 riadky, celá v natívnom tooltipe (overflow:hidden na karte by orezal custom bublinu) */
-.tl-msg{font-size:9.5px;color:${T.onDarkDim};line-height:1.4;margin-top:7px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:help;}
 .tl-block-foot{margin-top:8px;}
 .tl-datebtn{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:4px 9px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDarkDim};cursor:pointer;}
 .tl-datebtn:hover{border-color:${GOLD};color:${GOLD};}
@@ -566,7 +569,10 @@ export default function PackTriplist() {
               <h3>My trips</h3>
             </div>
             {myTrips.length === 0 ? (
-              <div className="tl-empty">You haven't logged a trip yet.</div>
+              <div className="tl-emptybox">
+                <span className="tl-empty">You haven’t logged a trip yet.</span>
+                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>Add your first trip</button>
+              </div>
             ) : (
               <div className="tl-hscroll">
                 {myTrips.map(({ entry, trail, done, placeholder }) => {
@@ -643,7 +649,10 @@ export default function PackTriplist() {
               </select>
             </div>
             {openCards.length === 0 ? (
-              <div className="tl-empty">No open trips right now. Announce one and the pack will see it.</div>
+              <div className="tl-emptybox">
+                <span className="tl-empty">No open trips right now. Announce one and the pack will see it.</span>
+                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>Announce a trip</button>
+              </div>
             ) : (
               <>
               <div className="tl-grid">

@@ -415,7 +415,7 @@ export default function PackTripArticle() {
     const ev: PartnerEvent = {
       id: `ad-${nowMs}-${trail.id}`, tripId: trail.id, dates: ad.dates, month: ad.month,
       socialization: ad.socialization, host: `${firstName} & your dog`, hostIsMe: true,
-      at: nowMs, joinedByMe: true, seedGoing: 0,
+      at: nowMs, joinedByMe: true,
     };
     setEvents((prev) => [ev, ...prev]);
     setPlans((prev) => prev.map((p) => (p.tripId === trail.id ? { ...p, date: ad.dates[0] ?? ad.month } : p)));

@@ -178,9 +178,14 @@ export function emptyDogCard(): DogCard {
 
 export interface DogProfileAttrs {
   dogId: string;
-  training: TrainingLevel;
-  socialization: SocializationLevel;
-  energy: EnergyLevel;          // koľko CHCE — párové s card.fitness (koľko môže)
+  // LOCKED 2026-08-03 (Matej: „nesmie sa nič dogenerovať!") — polia sú VOLITEĽNÉ, lebo
+  // „majiteľ zatiaľ nevyplnil" je legitímny stav a appka ho nesmie ničím zaplátať.
+  // Predtým tu sedel deriveDefaultDogAttrs(): z id psa vyrobil trénovanosť/energiu/
+  // temperament a vykreslil ich bez akéhokoľvek rozdielu oproti vyplneným údajom —
+  // teda tvrdil o REÁLNOM psovi vymyslené veci. Nevyplnené sa teraz proste nezobrazí.
+  training?: TrainingLevel;
+  socialization?: SocializationLevel;
+  energy?: EnergyLevel;         // koľko CHCE — párové s card.fitness (koľko môže)
   temperament: string[];        // chips: 'playful','protective','curious','gentle','independent','vocal'…
   sizeClass?: 'S' | 'M' | 'L' | 'XL'; // ak nie je v dogs row
   goodWith: Array<'dogs' | 'kids' | 'cats' | 'strangers'>;
@@ -538,57 +543,12 @@ export const HIDEABLE_IDENTITY_FIELDS: { key: ProfileFieldKey; emoji: string; la
   { key: 'region', emoji: '📍', labelEN: 'City' },
 ];
 
-// ── deterministický hash → PRNG (mulberry32 + FNV-1a) — rovnaký vzor ako
-// packCommunity.ts, zámerne duplikovaný (nie import) — profil modul stojí
-// samostatne, packCommunity naopak importuje z NEHO (deriveDefaultDogAttrs),
-// obrátený import by vytvoril cyklus. ──
-function hashStr(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// Deterministicky odvodí DogProfileAttrs z ľubovoľného reťazca (meno/id psa).
-// Slúži ako seed pre mock členov (packCommunity.MOCK_MEMBER_POOL) aj ako
-// default pre reálnych psov bez vyplneného profilu — rovnaký pes/meno vždy
-// dostane rovnaké atribúty (žiadny Math.random).
-export function deriveDefaultDogAttrs(seed: string): DogProfileAttrs {
-  const rnd = mulberry32(hashStr(seed));
-  const training = TRAINING_OPTIONS[Math.floor(rnd() * TRAINING_OPTIONS.length)].value;
-  const socialization = SOCIALIZATION_OPTIONS[Math.floor(rnd() * SOCIALIZATION_OPTIONS.length)].value;
-  const energy = ENERGY_OPTIONS[Math.floor(rnd() * ENERGY_OPTIONS.length)].value;
-
-  const temperamentPool = TEMPERAMENT_OPTIONS.map((o) => o.value);
-  const t1 = temperamentPool[Math.floor(rnd() * temperamentPool.length)];
-  let t2 = temperamentPool[Math.floor(rnd() * temperamentPool.length)];
-  if (t2 === t1) t2 = temperamentPool[(temperamentPool.indexOf(t1) + 1) % temperamentPool.length];
-  const temperament = [t1, t2];
-
-  const sizeClasses: NonNullable<DogProfileAttrs['sizeClass']>[] = ['S', 'M', 'L', 'XL'];
-  const sizeClass = sizeClasses[Math.floor(rnd() * sizeClasses.length)];
-
-  const goodWithPool: DogProfileAttrs['goodWith'] = ['dogs', 'kids', 'cats', 'strangers'];
-  const goodWithCount = 1 + Math.floor(rnd() * goodWithPool.length);
-  const remaining = [...goodWithPool];
-  const goodWith: DogProfileAttrs['goodWith'] = [];
-  for (let i = 0; i < goodWithCount && remaining.length; i++) {
-    const idx = Math.floor(rnd() * remaining.length);
-    goodWith.push(remaining.splice(idx, 1)[0]);
-  }
-
-  const offLeashReliable = rnd() < 0.5;
-
+// Prázdny profil psa — jediný povolený „default" (Matej 2026-08-03: nič sa nedogeneruje).
+// Nahradil `deriveDefaultDogAttrs()`, ktorý z id psa deterministicky vymýšľal trénovanosť,
+// socializáciu, energiu, temperament, veľkosť aj `goodWith` a servíroval ich ako fakt.
+export function emptyDogAttrs(dogId: string): DogProfileAttrs {
   return {
-    dogId: seed, training, socialization, energy, temperament, sizeClass, goodWith, offLeashReliable,
+    dogId, temperament: [], goodWith: [],
     bio: '', tags: { temperament: [], trail: [] }, card: emptyDogCard(),
   };
 }
@@ -726,7 +686,7 @@ export async function saveHuman(patch: Partial<HumanProfile>): Promise<CentralPr
 
 export async function saveDogAttrs(dogId: string, patch: Partial<DogProfileAttrs>): Promise<CentralProfile> {
   const cur = readRaw();
-  const existing = cur.dogs[dogId] ?? deriveDefaultDogAttrs(dogId);
+  const existing = cur.dogs[dogId] ?? emptyDogAttrs(dogId);
   const next: CentralProfile = {
     ...cur,
     dogs: { ...cur.dogs, [dogId]: { ...existing, ...patch, dogId } },

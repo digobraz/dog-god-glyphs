@@ -61,31 +61,33 @@ export interface PartyDmContext {
   isMe?: boolean;
 }
 
-export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
+/**
+ * Tlačidlo „Message" nad členom partie — jediné miesto v appke, kde sa z partie
+ * otvára REÁLNE vlákno (`start_dm`). Vydelené z karty, lebo ten istý človek sa dá
+ * napísať aj z buddy listu v EVENTS, kde sa vykresľuje bohatšou `TripProfileCard`.
+ * Bez `dm` kontextu sa nevykreslí nič — adresát bez výletu neexistuje.
+ */
+export function PartyDmButton({ member, dm, className = 'pmc-msg' }: {
   member: PartyMember;
-  roleLabel?: string;
   dm?: PartyDmContext;
-  /** issue #41 — klik na ikonku otvorí TripProfileCard (majiteľ + pes). Bez neho ostáva
-   *  avatar čisto zobrazovací, ako doteraz. */
-  onOpenProfile?: () => void;
+  className?: string;
 }) {
-  const dog = member.dogName?.trim();
-  const owner = member.ownerFirst?.trim();
-  const initial = (dog || owner || '?').charAt(0).toUpperCase();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const owner = member.ownerFirst?.trim();
 
   // organizátora vieme adresovať vždy (máme jeho id), účastníka len cez číslo psa
   const canMessage = !!dm && !dm.isMe
     && (member.role === 'organizer' || member.packNumber != null);
+  if (!canMessage) return null;
 
   const openDm = async () => {
     if (!dm || busy) return;
     setBusy(true);
     setFailed(false);
     try {
-      // dynamický import — packMessaging ťahá pri module-load MOCK_MEMBER_POOL
-      // a celý katalóg trás; statický import by ich vtiahol do triplistu aj mapy
+      // dynamický import — packMessaging ťahá pri module-load celý katalóg trás;
+      // statický import by ho vtiahol do triplistu aj mapy
       const m = await import('@/components/pack/messaging/packMessaging');
       const convId = await m.startTripDM({
         tripSlug: dm.tripSlug,
@@ -100,6 +102,31 @@ export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
       setBusy(false);
     }
   };
+
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={openDm}
+      disabled={busy}
+      aria-label={`Message ${owner ?? 'this Dogyptian'}`}
+    >
+      {busy ? '…' : failed ? 'Unavailable' : 'Message'}
+    </button>
+  );
+}
+
+export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
+  member: PartyMember;
+  roleLabel?: string;
+  dm?: PartyDmContext;
+  /** issue #41 — klik na ikonku otvorí TripProfileCard (majiteľ + pes). Bez neho ostáva
+   *  avatar čisto zobrazovací, ako doteraz. */
+  onOpenProfile?: () => void;
+}) {
+  const dog = member.dogName?.trim();
+  const owner = member.ownerFirst?.trim();
+  const initial = (dog || owner || '?').charAt(0).toUpperCase();
 
   const avatar = member.dogPhoto
     ? <img src={member.dogPhoto} alt={dog ?? 'Dog'} loading="lazy" draggable={false} />
@@ -127,17 +154,7 @@ export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
           {member.packNumber ? <span className="pmc-num"> · #{member.packNumber}</span> : null}
         </span>
       </span>
-      {canMessage && (
-        <button
-          type="button"
-          className="pmc-msg"
-          onClick={openDm}
-          disabled={busy}
-          aria-label={`Message ${owner ?? 'this Dogyptian'}`}
-        >
-          {busy ? '…' : failed ? 'Unavailable' : 'Message'}
-        </button>
-      )}
+      <PartyDmButton member={member} dm={dm} />
     </div>
   );
 }

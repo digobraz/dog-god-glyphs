@@ -198,9 +198,9 @@ const App = () => (
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
               {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
               <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
-              {/* Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). Self +
-                  mock členovia (MOCK_MEMBER_POOL) fungujú v1; reálny cudzí user = graceful fallback
-                  (localStorage limit, žiaden crash). */}
+              {/* Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). Funguje
+                  self; cudzí člen = graceful fallback („profile isn't public yet"), žiaden crash.
+                  Fabrikovaní členovia zmazaní 2026-08-03. */}
               <Route path="/pack/u/:id" element={DEV_FULL ? <PublicProfile /> : <Navigate to="/pack" replace />} />
               {/* Map = povrch výletov (mapa + reálne tripy), LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva.
                   Statické segmenty (triplist) vyhrávajú nad :slug. */}

@@ -5,7 +5,7 @@ import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { DEV_FULL } from '@/lib/packFlags';
-// `import type` (nie runtime import) — packMessaging.ts ťahá pri module-load MOCK_MEMBER_POOL,
+// `import type` (nie runtime import) — packMessaging.ts ťahá pri module-load
 // HERO_TRAILS (1,5 MB) a HERO_JOURNEYS; esbuild/Vite `import type` úplne vytrasí (isolatedModules),
 // takže tento riadok sa do bundlu nedostane. Runtime funkcie (getMe/unreadCount/…) sa nahrádzajú
 // dynamickým import()-om nižšie, vyhodnoteným až v efekte, keď je DEV_FULL true.

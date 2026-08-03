@@ -89,9 +89,6 @@ export const TRIP_COMMENTS_CSS = `
 
 /* per-review like/heart */
 .tcm-review-footer{display:flex;justify-content:flex-end;margin-top:6px;}
-.tcm-like{display:inline-flex;align-items:center;gap:5px;background:none;border:none;cursor:pointer;padding:2px 4px;color:${T.onDarkDim};font-size:11px;font-family:inherit;}
-.tcm-like:hover{color:${T.onDark};}
-.tcm-like.on{color:#E0796D;}
 
 /* add review CTA */
 .tcm-addrow{margin-bottom:14px;}

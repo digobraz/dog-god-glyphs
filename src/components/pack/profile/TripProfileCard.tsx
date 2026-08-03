@@ -11,7 +11,7 @@ import {
   type CentralProfile,
   type ProfileFieldKey,
   getTier,
-  deriveDefaultDogAttrs,
+  emptyDogAttrs,
   ENERGY_OPTIONS,
   PERSONALITY_OPTIONS,
   SMOKE_OPTIONS,
@@ -143,7 +143,7 @@ export function TripProfileCard({
       {dogs.length > 0 && (
         <div className="flex flex-col gap-2" style={{ marginTop: 14 }}>
           {dogs.map((d) => {
-            const attrs = profile.dogs[d.id] ?? deriveDefaultDogAttrs(d.id);
+            const attrs = profile.dogs[d.id] ?? emptyDogAttrs(d.id);
             const energyLabel = ENERGY_OPTIONS.find((o) => o.value === attrs.energy)?.labelEN;
             const goodWithDogs = attrs.goodWith.includes('dogs');
             return (

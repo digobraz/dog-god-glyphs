@@ -377,7 +377,9 @@ function startRealtime(): void {
  */
 export async function startTripDM(opts: {
   tripSlug: string;
-  organizerId: string;
+  /** `null` = trasu nikto nevypísal (dataset autor) → server adresuje ZAKLADATEĽA
+   *  (migrácia 20260803_dm_founder.sql). Klient tak nemusí poznať jeho uuid. */
+  organizerId: string | null;
   packNumber?: number | null;
 }): Promise<string | null> {
   const me = await ensureMe();

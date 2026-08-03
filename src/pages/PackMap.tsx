@@ -60,7 +60,9 @@ import { trailCountry, flagUrl, flagEmoji } from '@/lib/countryGeo';
 import { PackBottomNav, HieroglyphBg, MessagingOverlayHost } from '@/components/pack/PackLayout';
 import { PackNotifications } from '@/components/pack/PackNotifications';
 import { TripComments } from '@/components/pack/trip/TripComments';
+import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { useToast } from '@/hooks/use-toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress } from '@/lib/tripPoints';
 import { useT } from '@/i18n/LanguageContext';
@@ -80,7 +82,7 @@ import {
 } from '@/components/pack/packCommunity';
 import { packStorage } from '@/lib/packStore';
 import {
-  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup, WishlistIntentPopup, PartnerAdForm, DMStub,
+  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup, WishlistIntentPopup, PartnerAdForm,
   EventsView,
   type WalkedInput, type PartnerAdInput,
 } from '@/components/pack/packCommunityUI';
@@ -824,6 +826,10 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    inline text vedľa avatarov, nie vlastný blok (margin presunutý na wrapper riadok). */
 .trp-bigcard-authorrow{display:flex;align-items:center;gap:6px;margin-top:4px;}
 .trp-bigcard-author{font-size:10px;color:rgba(245,240,228,0.45);}
+/* #41 / A4 — autor je odteraz tlačidlo (otvára popup tvorcu). Reset UA štýlov, nech
+   riadok vyzerá presne ako predtým; zlatý podčiarkovník napovie, že sa dá kliknúť. */
+button.trp-authorbtn{background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-decoration:underline;text-decoration-color:rgba(201,154,63,0.45);text-underline-offset:3px;}
+button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-bigcard-meta2{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
 .trp-bigcard-meta2 span{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;white-space:nowrap;}
 .trp-bigcard-meta2-row{color:rgba(245,240,228,0.55);}
@@ -1275,6 +1281,7 @@ export default function PackMap() {
   // živou mapou, nie samostatná obrazovka. Pathname rozhoduje, či sa formulár otvorí pri mounte.
   const onAddRoute = useLocation().pathname.startsWith('/pack/add');
   const id = usePackIdentity();
+  const { toast } = useToast();
 
   const [hoverId, setHoverId] = useState<string | null>(null);
   // Matej 2026-07-31: „pri dotyku myšou trasa vybledne aby bolo vidno turistické značenie farby".
@@ -1419,15 +1426,16 @@ export default function PackMap() {
     setEvents((prev) => { const stored = readEvents(); return stored.length ? stored : prev; });
   }, [storeEpoch]);
 
-  // flow modaly (design §A/§B/§D): walked popup, wishlist zámer, partner ad, DM stub, dashboard.
+  // flow modaly (design §A/§B/§D): walked popup, wishlist zámer, partner ad.
   const [walkedPopupId, setWalkedPopupId] = useState<string | null>(null);
   const [wishlistPopupId, setWishlistPopupId] = useState<string | null>(null);
   const [partnerAdCtx, setPartnerAdCtx] = useState<{ tripId: string } | null>(null);
-  const [dmName, setDmName] = useState<string | null>(null);
   // #41 — klik na ikonku tvorcu/účastníka v „Open trip from the pack" rozbalí TripProfileCard
   // pod jeho riadkom. Kľúč = `${h.key}:org` alebo `${h.key}:joiner:${i}`, nie len id člena —
   // tá istá trasa môže byť naraz otvorená viacerými organizátormi.
   const [expandedPartyKey, setExpandedPartyKey] = useState<string | null>(null);
+  // #41 / A4 — klik na „by <autor>" otvorí popup tvorcu (Message + reálni účastníci).
+  const [creatorTrail, setCreatorTrail] = useState<HeroTrail | null>(null);
   // Portal kategória (design §D): Trips ↔ Events (Events pill sa aktivoval).
   const [activeCat, setActiveCat] = useState<'trips' | 'events'>('trips');
   const allTrails = useMemo(() => [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
@@ -1482,12 +1490,15 @@ export default function PackMap() {
   const { trips: openTrips } = useOpenTrips();
   const openTripParties = useTripParties(openTrips.map((o) => ({ slug: o.slug, organizerId: o.organizerId })));
   const openHostsBySlug = useMemo(() => {
-    const m = new Map<string, { key: string; date: string | null; organizer: PartyMember; joiners: PartyMember[] }[]>();
+    // `organizerId` sa nesie ďalej zámerne: bez neho sa členovi partie nedá napísať
+    // (`startTripDM` adresuje `trip_requests.organizer_id`) a karty by tu ostali bez
+    // tlačidla Message — na článku výletu (PackTripArticle.tsx) pritom funguje.
+    const m = new Map<string, { key: string; organizerId: string; date: string | null; organizer: PartyMember; joiners: PartyMember[] }[]>();
     for (const o of openTrips) {
       const party = openTripParties[partyKey(o.slug, o.organizerId)];
       if (!party?.organizer) continue;
       const arr = m.get(o.slug) ?? [];
-      arr.push({ key: partyKey(o.slug, o.organizerId), date: o.date, organizer: party.organizer, joiners: party.joiners });
+      arr.push({ key: partyKey(o.slug, o.organizerId), organizerId: o.organizerId, date: o.date, organizer: party.organizer, joiners: party.joiners });
       m.set(o.slug, arr);
     }
     return m;
@@ -1615,6 +1626,23 @@ export default function PackMap() {
     setHeroBounds(tr.path);
   };
   const expandDetail = (tid: string) => navigate(tripPathById(tid, allTrails));
+  // #55 — prázdna partia pod vlastným inzerátom potrebuje akciu. Odkaz na výlet je jediná vec,
+  // ktorú s tým člen môže spraviť sám (rovnaký postup ako zdieľanie v článku výletu).
+  const shareTripLink = async (tid: string) => {
+    const tr = trailsById(tid);
+    if (!tr) return;
+    const url = `${window.location.origin}${tripPath(tr)}`;
+    const shareData = { title: tr.name, text: `${tr.name} — ${tr.km} km, ${tr.diff}`, url };
+    if (typeof navigator.share === 'function') {
+      try { await navigator.share(shareData); return; } catch { /* cancelled */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ description: 'Link copied' });
+    } catch {
+      toast({ description: url });
+    }
+  };
   // ── design §B: klik na ★ → ak už NIE je na wishliste, otvor „zámer" popup (Solo/Buddy);
   // ak už je, odober (aj z planning). Priame pridanie ide až cez chooseSolo/choosePartner. ──
   const toggleFav = (tid: string) => {
@@ -1672,7 +1700,7 @@ export default function PackMap() {
       id: `ad-${nowMs}-${partnerAdCtx.tripId}`,
       tripId: partnerAdCtx.tripId,
       dates: ad.dates, month: ad.month, socialization: ad.socialization,
-      host: `${firstName} & your dog`, at: nowMs, joinedByMe: true, seedGoing: 0, hostIsMe: true,
+      host: `${firstName} & your dog`, at: nowMs, joinedByMe: true, hostIsMe: true,
     };
     setEvents((prev) => [ev, ...prev]);
     const firstDate = ad.dates[0] ?? ad.month;
@@ -1849,7 +1877,7 @@ export default function PackMap() {
         dates: dateStr.length >= 7 ? [dateStr] : [],
         month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
         socialization: '', host: `${firstName} & your dog`, hostIsMe: true,
-        at: now, joinedByMe: true, seedGoing: 0,
+        at: now, joinedByMe: true,
       };
       setEvents((prev) => [ev, ...prev]);
     }
@@ -2089,7 +2117,11 @@ export default function PackMap() {
                 (Matej 2026-07-22 — walked count sa presunul sem z crowd stĺpca). */}
             <div className="trp-bigcard-authorrow">
               <AuthorAvatars author={authorOf(tr)} size={16} />
-              <span className="trp-bigcard-author">by {authorOf(tr)}{others > 0 ? ` · +${others} Dogyptians` : ''}</span>
+              <button
+                type="button"
+                className="trp-bigcard-author trp-authorbtn"
+                onClick={(e) => { e.stopPropagation(); setCreatorTrail(tr); }}
+              >by {authorOf(tr)}{others > 0 ? ` · +${others} Dogyptians` : ''}</button>
             </div>
           </div>
           {/* bod 3 (Matej 2026-07-22): pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2197,7 +2229,11 @@ export default function PackMap() {
                     {/* bod 6 (iterácia 16): dva avatary (majiteľ+pes) vedľa "by {author}" */}
                     <div className="trp-inldet-authorrow">
                       <AuthorAvatars author={authorOf(dt)} size={22} />
-                      <span className="trp-inldet-author">by {authorOf(dt)}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · +${dtAgg.walkedCount - FOUNDER_WALKERS} Dogyptians` : ''}</span>
+                      <button
+                        type="button"
+                        className="trp-inldet-author trp-authorbtn"
+                        onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
+                      >by {authorOf(dt)}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · +${dtAgg.walkedCount - FOUNDER_WALKERS} Dogyptians` : ''}</button>
                     </div>
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2233,6 +2269,7 @@ export default function PackMap() {
                           <PartyMemberCard
                             member={h.organizer}
                             roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'}
+                            dm={{ tripSlug: dt.id, organizerId: h.organizerId, isMe: h.organizerId === id.session?.user?.id }}
                             onOpenProfile={() => setExpandedPartyKey((cur) => (cur === orgKey ? null : orgKey))}
                           />
                           {expandedPartyKey === orgKey && (
@@ -2246,6 +2283,7 @@ export default function PackMap() {
                               <Fragment key={jKey}>
                                 <PartyMemberCard
                                   member={j}
+                                  dm={{ tripSlug: dt.id, organizerId: h.organizerId }}
                                   onOpenProfile={() => setExpandedPartyKey((cur) => (cur === jKey ? null : jKey))}
                                 />
                                 {expandedPartyKey === jKey && (
@@ -2378,7 +2416,7 @@ export default function PackMap() {
           <div className="trp-cards">
             {activeCat === 'trips'
               ? renderTripList(true)
-              : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} />}
+              : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} />}
           </div>
         </div>
         </>
@@ -2609,7 +2647,7 @@ export default function PackMap() {
         <div className="trp-cards">
           {activeCat === 'trips'
             ? renderTripList(false)
-            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} />}
+            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} />}
         </div>
       </div>
 
@@ -2963,7 +3001,15 @@ export default function PackMap() {
           onClose={() => setPartnerAdCtx(null)}
         />
       )}
-      {dmName && <DMStub toName={dmName} onClose={() => setDmName(null)} />}
+      {creatorTrail && (
+        <TripCreatorPopup
+          tripSlug={creatorTrail.id}
+          authorName={authorOf(creatorTrail)}
+          organizerId={(openHostsBySlug.get(creatorTrail.id) ?? [])[0]?.organizerId ?? null}
+          joiners={(openHostsBySlug.get(creatorTrail.id) ?? [])[0]?.joiners ?? []}
+          onClose={() => setCreatorTrail(null)}
+        />
+      )}
 
       <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
       {/* PackMap je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže

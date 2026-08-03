@@ -31,6 +31,10 @@ export const INBOX_CSS = `
 .msg-dot{flex-shrink:0;width:9px;height:9px;border-radius:50%;background:${GOLD};box-shadow:0 0 6px rgba(201,154,63,0.6);}
 .msg-tagchip{display:inline-flex;align-items:center;gap:4px;margin-top:7px;font-family:'Cinzel',serif;font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);color:${GOLD};white-space:nowrap;}
 .msg-empty{text-align:center;padding:40px 16px;color:${T.onDarkDim};font-size:12.5px;font-style:italic;}
+/* #55 — prázdny inbox je celá čierna obrazovka s jednou vetou; bez akcie je to slepá ulička. */
+.msg-emptybox{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 16px;text-align:center;}
+.msg-emptybox p{margin:0;color:${T.onDarkDim};font-size:12.5px;font-style:italic;line-height:1.5;max-width:320px;}
+.msg-emptybtn{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid rgba(250,244,236,0.30);background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};cursor:pointer;}
 `;
 
 // koľko % konverzácií, kde má "me" neprečítanú správu — rovnaká logika ako
@@ -49,7 +53,12 @@ function fmtTime(iso: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function Inbox({ onOpenThread, onClose }: { onOpenThread: (convId: string) => void; onClose: () => void }) {
+export function Inbox({ onOpenThread, onClose, onBrowseTrips }: {
+  onOpenThread: (convId: string) => void;
+  onClose: () => void;
+  /** #55 — prázdny inbox potrebuje jednu akciu: rozhovor začína na tripe, nie tu. */
+  onBrowseTrips?: () => void;
+}) {
   const [convs, setConvs] = useState<Conversation[]>([]);
   const me = getMe();
 
@@ -70,7 +79,10 @@ export function Inbox({ onOpenThread, onClose }: { onOpenThread: (convId: string
       </div>
       <div className="msg-inbox-list">
         {convs.length === 0 ? (
-          <div className="msg-empty">No messages yet. Start a conversation with a fellow Dogyptian from a trip page.</div>
+          <div className="msg-emptybox">
+            <p>No messages yet. Conversations start on a trip — open one and write to whoever is going.</p>
+            {onBrowseTrips && <button type="button" className="msg-emptybtn" onClick={onBrowseTrips}>Find a trip</button>}
+          </div>
         ) : (
           convs.map((conv) => {
             const isGroup = conv.kind === 'group';

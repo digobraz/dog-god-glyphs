@@ -8,7 +8,7 @@ import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
-  DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE,
+  DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
   computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
@@ -19,9 +19,11 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
 import { HeroBadges } from '@/components/pack/HeroBadges';
 import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pack/profile/TripProfileCard';
+import { useProfile } from '@/components/pack/profile/packProfile';
 // #41 — reálna partia (get_trip_party), namiesto fabrikovaného MOCK_MEMBER_POOL zoznamu.
 // Real len pre MOJE vlastné inzeráty (organizátor = ja) — pozri BuddyList nižšie.
-import { useTripParty } from '@/components/pack/triplist/useTripParty';
+import { useTripParty, type TripParty } from '@/components/pack/triplist/useTripParty';
+import { PartyDmButton } from '@/components/pack/triplist/PartyMemberCard';
 
 // ── Companion (Matej 2026-07-23) — vybratý spoločník do „kto bol so mnou": môj pes (zo svorky,
 // reálna cloudinary fotka) alebo iný člen (mock, initial avatar). key = unikát pre dedup/remove. ──
@@ -381,6 +383,11 @@ export const COMMUNITY_CSS = `
 .comm-lockbtn:hover{border-color:${GOLD};color:${GOLD};}
 .comm-lockbtn.on{border-color:${GOLD};color:${GOLD};}
 .comm-empty{text-align:center;padding:34px 16px;color:${T.onDarkDim};font-size:12.5px;font-style:italic;}
+/* #55 — prázdny stav = JEDNA veta faktu + JEDNA akcia. Bez tlačidla je to slepá ulička:
+   po zmazaní fabrikovaných dát (2026-08-03) je toto prvé, čo nový člen v paneli uvidí. */
+.comm-emptybox{display:flex;flex-direction:column;align-items:center;gap:14px;padding:34px 16px;text-align:center;}
+.comm-emptybox p{margin:0;color:${T.onDarkDim};font-size:12.5px;font-style:italic;line-height:1.5;}
+.comm-emptybtn{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:11px 20px;border-radius:8px;border:1px solid rgba(250,244,236,0.30);background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};cursor:pointer;}
 /* #41 — úprimná veta namiesto fabrikovaného člena/prázdneho bloku (issue #41, ČASŤ 2) */
 .comm-buddynote{font-size:11px;color:${T.onDarkDim};font-style:italic;padding:8px 0 2px;}
 
@@ -651,7 +658,13 @@ export function PartnerAdForm({ trailName, onSubmit, onClose }: {
 }) {
   const [dates, setDates] = useState<string[]>(['']);
   const [month, setMonth] = useState('');
-  const [socialization, setSocialization] = useState(MOCK_PROFILE.dog);
+  // LOCKED 2026-08-03 (Matej: „nesmie sa nič dogenerovať!") — pole štartuje PRÁZDNE.
+  // Doteraz sa predvyplnilo MOCK_PROFILE.dog ('chill trail dog, good with everyone') a keďže
+  // odtiaľto ide text rovno do verejného inzerátu, appka za člena zverejňovala vetu o psovi,
+  // ktorú nikdy nenapísal — a o psovi, ktorého nepozná.
+  const [socialization, setSocialization] = useState('');
+  const { profile } = useProfile();
+  const aboutMe = (profile?.human.dogVoiceBio ?? profile?.human.bio ?? '').trim();
   const setDate = (i: number, v: string) => setDates((prev) => prev.map((d, idx) => (idx === i ? v : d)));
   const addDate = () => setDates((prev) => (prev.length < 3 ? [...prev, ''] : prev));
   const removeDate = (i: number) => setDates((prev) => prev.filter((_, idx) => idx !== i));
@@ -664,8 +677,9 @@ export function PartnerAdForm({ trailName, onSubmit, onClose }: {
         <span className="comm-profile-av">🐾</span>
         <span>
           <span className="comm-profile-t">About you (from your profile)</span>
-          <span className="comm-profile-b">{MOCK_PROFILE.blurb}</span>
-          <span className="comm-profile-edit">Edit once in your tourist profile — shows on every shout.</span>
+          {/* prázdny profil = prázdny riadok + výzva, NIE vymyslená veta o sebe */}
+          <span className="comm-profile-b">{aboutMe || 'Nothing written yet — the pack will see just your name and your dog.'}</span>
+          <span className="comm-profile-edit">Edit once in your profile — shows on every shout.</span>
         </span>
       </div>
       <div className="comm-field">
@@ -693,25 +707,11 @@ export function PartnerAdForm({ trailName, onSubmit, onClose }: {
   );
 }
 
-// ── DM stub (minimal, design „OTVORENÉ": kým nie je social fáza) ──────────────────────────────
-export function DMStub({ toName, onClose }: { toName: string; onClose: () => void }) {
-  const [msg, setMsg] = useState('');
-  const [sent, setSent] = useState(false);
-  return (
-    <Modal title={`Message ${toName}`} sub="Direct messages arrive with the social layer — this is a preview." onClose={onClose}>
-      {sent ? (
-        <div className="comm-empty">Sent (mock) — {toName} will see it once messaging goes live. 🐾</div>
-      ) : (
-        <>
-          <div className="comm-field">
-            <textarea className="comm-textarea" value={msg} onChange={(e) => setMsg(e.target.value)} placeholder={`Hi ${toName}, fancy walking this one together?`} />
-          </div>
-          <button type="button" className="comm-submit" disabled={!msg.trim()} onClick={() => setSent(true)}>Send</button>
-        </>
-      )}
-    </Modal>
-  );
-}
+// -- ZMAZANE 2026-08-04: DMStub (18 r.) --------------------------------------------------------
+// Falosny composer: po odoslani napisal "Sent (mock) - ... will see it once messaging goes live."
+// a spravu zahodil. Realny messaging medzitym bezi (pack_conversations, start_dm) -- kazdy, kto
+// sa v partii da napisat, ide cez PartyMemberCard `dm` kontext, teda skutocne vlakno.
+// Kod je v historii: git log -- src/components/pack/packCommunityUI.tsx
 
 // -- ZMAZANE 2026-08-03: MySlovakiaDashboard (166 r.) a AddModeChoice (22 r.) ----------------
 // Ani jeden nemal volajuceho: dashboard od zrusenia vstupu v PackTriplist (2026-07-22),
@@ -1140,6 +1140,15 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         <div className="comm-wstat"><b style={{ fontSize: highest === '—' ? undefined : 14 }}>{highest}</b><span>Highest point</span></div>
       </div>
 
+      {/* #55 — štyri nuly a deväť zhasnutých odznakov sú konštatovanie bez pokračovania.
+          Jedna veta + jedno tlačidlo; mizne hneď po prvom zapísanom výlete. */}
+      {walkedTrails.length === 0 && (
+        <div className="comm-emptybox" style={{ paddingTop: 8, paddingBottom: 4 }}>
+          <p>Nothing walked yet — your first trip starts the record.</p>
+          <button type="button" className="comm-emptybtn" onClick={() => onAddTrip()}>Log your first trip</button>
+        </div>
+      )}
+
       {/* HERO BADGES — globálna zbierka deviatich hrdinov (trip míľniky, nie per-krajina). */}
       <HeroBadges walkedCount={walkedTrails.length} />
       </section>
@@ -1386,87 +1395,137 @@ function HostNameLink({ host }: { host: string }) {
   return <>{host}</>;
 }
 
-export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessage, onOpenTrip, onOpenProfile, photoFor }: {
+export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, onBrowseTrips, myId, onShareTrip }: {
   events: PartnerEvent[];
   trailsById: (id: string) => HeroTrail | undefined;
   onJoin: (id: string) => void;
   onToggleClosed?: (id: string) => void; // zavrieť/otvoriť skupinu — len pre členov skupiny
-  onMessage: (name: string) => void;
   onOpenTrip: (id: string) => void;
   onOpenProfile?: (memberId: string) => void; // avatar/host klik → /pack/u/:id — čaká na reálny členský adresár, host v tomto view sám odkaz nevyrába
   photoFor?: (tr: HeroTrail) => string;
+  /** #55 — prázdny stav potrebuje akciu; jediná cesta k inzerátu vedie cez trip. */
+  onBrowseTrips?: () => void;
+  /** moje `auth.uid()`. Inzeráty v tomto paneli sú VŽDY moje, takže som organizátor —
+   *  a `start_dm()` bez id organizátora účastníka nenájde (party CTE, 20260803_dm_founder.sql). */
+  myId?: string | null;
+  /** #55 — prázdna partia potrebuje akciu: pozvať niekoho = zdieľať odkaz na výlet. */
+  onShareTrip?: (tripId: string) => void;
 }) {
   if (events.length === 0) {
-    return <div className="comm-empty">No planned walks yet. Save a trip and pick “Find a buddy”, or add a trip you're planning.</div>;
+    // ⚠️ Tento zoznam drží LEN MOJE inzeráty — `trip_events` sa ťahá s `.eq('host_id', uid)`
+    // a cudzie sa sem zámerne neťahajú (packStore.ts:508). Veta preto nesmie znieť „nikto
+    // nič neplánuje" — pack môže mať otvorených výletov koľko chce a tento panel ich nevidí.
+    // Cudzie otvorené výlety žijú v Triplist → OPEN TRIPS FROM THE PACK (useOpenTrips.ts).
+    return (
+      <div className="comm-emptybox">
+        <p>You haven’t announced a walk yet. Open a trip, pick “Find a buddy”, and the pack will see it.</p>
+        {onBrowseTrips && <button type="button" className="comm-emptybtn" onClick={onBrowseTrips}>Browse trips</button>}
+      </div>
+    );
   }
   return (
     <>
-      {events.map((ev) => {
-        const tr = trailsById(ev.tripId);
-        const going = ev.seedGoing + (ev.joinedByMe ? 1 : 0);
-        const whenLabel = ev.dates.length > 0 ? ev.dates.join(' or ') : (ev.month ? `${ev.month} (flexible)` : 'Flexible');
-        const photo = tr && photoFor ? photoFor(tr) : '';
-        return (
-          <div key={ev.id} className="comm-plan">
-            {/* fotka (placeholder podľa aktivity) — plán vyzerá ako bežná karta. Rating = pomlčky
-                (výlet sa ešte neodohral → nehodnotený). Matej 2026-07-24. */}
-            {photo && (
-              <div className="comm-plan-photo" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.5)), url('${photo}')` }} onClick={() => onOpenTrip(ev.tripId)}>
-                <span className="comm-plan-planned">🗓️ Planned · —</span>
-              </div>
-            )}
-            <div className="comm-plan-top">
-              <div>
-                <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
-                <div className="comm-plan-meta">
-                  {whenLabel} · hosted by{' '}
-                  <HostNameLink host={ev.host} />
-                  {tr ? ` · ${tr.region}` : ''}
-                </div>
-              </div>
-              {/* Zavretá skupina: inzerát ostáva viditeľný, len sa nedá pridať.
-                  Kto je vnútri, vidí namiesto toho svoje „✓ Going". */}
-              {ev.closed && !ev.joinedByMe ? (
-                <button type="button" className="comm-joinbtn closed" disabled>
-                  🔒 Closed
-                </button>
-              ) : (
-                <button type="button" className={`comm-joinbtn${ev.joinedByMe ? ' joined' : ''}`} onClick={() => onJoin(ev.id)}>
-                  {ev.joinedByMe ? '✓ Going' : 'Join'}
-                </button>
-              )}
-            </div>
-            {ev.socialization && <div className="comm-plan-meta" style={{ marginTop: 8 }}>🤝 {ev.socialization}</div>}
-            <div className="comm-plan-people">
-              <div className="comm-person">
-                {/* host bez známeho profil id (žiadny členský adresár) → statický avatar, nie klik do prázdna */}
-                <span className="comm-person-av">
-                  {ev.host.charAt(0)}
-                </span>
-                <span className="comm-person-txt"><b>{going}</b> <span>{going === 1 ? 'Dogyptian going' : 'Dogyptians going'}</span></span>
-                <button type="button" className="comm-msgbtn" onClick={() => onMessage(ev.host)}>Message host</button>
-              </div>
-              {/* FÁZA 3 — buddy list: „kto ide" už nie je len počet, rozbalí sa na TripProfileCard
-                  každého účastníka (trip-tier polia, teda presne to, čo o sebe na výlet pustil). */}
-              <BuddyList event={ev} onMessage={onMessage} onOpenProfile={onOpenProfile} />
-              {/* Zámok — VÝHRADNE autor inzerátu (Matej 2026-07-25: „close to môže len
-                  autor tripu nie ten čo sa pridá"), a až keď sú aspoň dvaja. Sám sebe
-                  skupinu zavrieť nemôžeš — nie je pred kým. */}
-              {isMyEvent(ev) && going >= 2 && onToggleClosed && (
-                <button
-                  type="button"
-                  className={`comm-lockbtn${ev.closed ? ' on' : ''}`}
-                  onClick={() => onToggleClosed(ev.id)}
-                  style={{ marginTop: 8 }}
-                >
-                  {ev.closed ? '🔒 Closed — reopen' : '🔒 Close to others'}
-                </button>
-              )}
-            </div>
-          </div>
-        );
-      })}
+      {events.map((ev) => (
+        <EventCard
+          key={ev.id}
+          ev={ev}
+          tr={trailsById(ev.tripId)}
+          onJoin={onJoin}
+          onToggleClosed={onToggleClosed}
+          onOpenTrip={onOpenTrip}
+          onOpenProfile={onOpenProfile}
+          photoFor={photoFor}
+          myId={myId}
+          onShareTrip={onShareTrip}
+        />
+      ))}
     </>
+  );
+}
+
+// Jeden inzerát. Vydelené z `EventsView`, lebo partia (`get_trip_party`) je hook — a počet
+// „ide N Dogypťanov" musí sedieť s tým, čo rozbalí buddy list. Predtým to bolo `seedGoing`
+// (vymyslený počet ostatných) a po purge už len konštantná 1.
+function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, myId, onShareTrip }: {
+  ev: PartnerEvent;
+  tr: HeroTrail | undefined;
+  onJoin: (id: string) => void;
+  onToggleClosed?: (id: string) => void;
+  onOpenTrip: (id: string) => void;
+  onOpenProfile?: (memberId: string) => void;
+  photoFor?: (tr: HeroTrail) => string;
+  myId?: string | null;
+  onShareTrip?: (tripId: string) => void;
+}) {
+  const isMine = isMyEvent(ev);
+  // partiu vieme dotiahnuť len pre VLASTNÝ inzerát (organizátor = auth.uid(), default v RPC)
+  const party = useTripParty(isMine ? ev.tripId : null);
+  // organizátor + tí, čo sa reálne pridali. `joiners` organizátora nevracia (useTripParty),
+  // takže seba pripočítavam podľa `joinedByMe` — presne ako doteraz, len bez mock zvyšku.
+  const going = party.joiners.length + (ev.joinedByMe ? 1 : 0);
+  const whenLabel = ev.dates.length > 0 ? ev.dates.join(' or ') : (ev.month ? `${ev.month} (flexible)` : 'Flexible');
+  const photo = tr && photoFor ? photoFor(tr) : '';
+  return (
+    <div className="comm-plan">
+      {/* fotka (placeholder podľa aktivity) — plán vyzerá ako bežná karta. Rating = pomlčky
+          (výlet sa ešte neodohral → nehodnotený). Matej 2026-07-24. */}
+      {photo && (
+        <div className="comm-plan-photo" style={{ backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.05),rgba(0,0,0,0.5)), url('${photo}')` }} onClick={() => onOpenTrip(ev.tripId)}>
+          <span className="comm-plan-planned">🗓️ Planned · —</span>
+        </div>
+      )}
+      <div className="comm-plan-top">
+        <div>
+          <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
+          <div className="comm-plan-meta">
+            {whenLabel} · hosted by{' '}
+            <HostNameLink host={ev.host} />
+            {tr ? ` · ${tr.region}` : ''}
+          </div>
+        </div>
+        {/* Zavretá skupina: inzerát ostáva viditeľný, len sa nedá pridať.
+            Kto je vnútri, vidí namiesto toho svoje „✓ Going". */}
+        {ev.closed && !ev.joinedByMe ? (
+          <button type="button" className="comm-joinbtn closed" disabled>
+            🔒 Closed
+          </button>
+        ) : (
+          <button type="button" className={`comm-joinbtn${ev.joinedByMe ? ' joined' : ''}`} onClick={() => onJoin(ev.id)}>
+            {ev.joinedByMe ? '✓ Going' : 'Join'}
+          </button>
+        )}
+      </div>
+      {ev.socialization && <div className="comm-plan-meta" style={{ marginTop: 8 }}>🤝 {ev.socialization}</div>}
+      <div className="comm-plan-people">
+        <div className="comm-person">
+          {/* host bez známeho profil id (žiadny členský adresár) → statický avatar, nie klik do prázdna */}
+          <span className="comm-person-av">
+            {ev.host.charAt(0)}
+          </span>
+          {/* „Message host" tu bolo do 2026-08-04 a otváralo mock composer. Tento panel drží
+              VÝHRADNE moje inzeráty (`trip_events` sa ťahá s `.eq('host_id', uid)`), takže
+              hostiteľ som ja — `start_dm()` na seba samého vracia null. Písať sa dá tomu,
+              kto sa pridal, a to je v buddy liste pod týmto riadkom. */}
+          <span className="comm-person-txt"><b>{going}</b> <span>{going === 1 ? 'Dogyptian going' : 'Dogyptians going'}</span></span>
+        </div>
+        {/* FÁZA 3 — buddy list: „kto ide" už nie je len počet, rozbalí sa na TripProfileCard
+            každého účastníka (trip-tier polia, teda presne to, čo o sebe na výlet pustil). */}
+        <BuddyList event={ev} party={party} isMine={isMine} myId={myId} onOpenProfile={onOpenProfile} onShareTrip={onShareTrip} />
+        {/* Zámok — VÝHRADNE autor inzerátu (Matej 2026-07-25: „close to môže len
+            autor tripu nie ten čo sa pridá"), a až keď sú aspoň dvaja. Sám sebe
+            skupinu zavrieť nemôžeš — nie je pred kým. */}
+        {isMine && going >= 2 && onToggleClosed && (
+          <button
+            type="button"
+            className={`comm-lockbtn${ev.closed ? ' on' : ''}`}
+            onClick={() => onToggleClosed(ev.id)}
+            style={{ marginTop: 8 }}
+          >
+            {ev.closed ? '🔒 Closed — reopen' : '🔒 Close to others'}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -1476,14 +1535,16 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
 // inzeráty — organizátor je tam ja (auth.uid(), default v RPC); demo seed „hostia" nemajú
 // reálne uuid, appka pre nich žiadnu skutočnú partiu vytiahnuť nemá odkiaľ. Pre tie namiesto
 // vymysleného človeka ide úprimná veta (issue #41, bod 3).
-function BuddyList({ event, onMessage }: {
+function BuddyList({ event, party, isMine, myId, onShareTrip }: {
   event: PartnerEvent;
-  onMessage: (name: string) => void;
+  /** partiu ťahá rodič (`EventCard`) — počet „ide N" a tento zoznam musia byť to isté číslo */
+  party: TripParty;
+  isMine: boolean;
+  myId?: string | null;
   onOpenProfile?: (memberId: string) => void;
+  onShareTrip?: (tripId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const isMine = isMyEvent(event);
-  const party = useTripParty(isMine ? event.tripId : null);
   if (!isMine) {
     return <div className="comm-buddynote">Preview listing — real participants aren't tracked here yet.</div>;
   }
@@ -1495,7 +1556,12 @@ function BuddyList({ event, onMessage }: {
       </button>
       {open && (
         members.length === 0 ? (
-          <div className="comm-buddynote">Nobody's joined this trip yet.</div>
+          // #55 — prázdny stav dostal akciu: inzerát je vypísaný, chýba už len to, aby ho
+          // niekto videl. Odkaz na výlet je jediná vec, ktorú s tým člen môže spraviť sám.
+          <div className="comm-emptybox" style={{ paddingTop: 10, paddingBottom: 4 }}>
+            <p>Nobody has joined yet. Your listing is live in the pack — share the trip and someone will.</p>
+            {onShareTrip && <button type="button" className="comm-emptybtn" onClick={() => onShareTrip(event.tripId)}>Share this trip</button>}
+          </div>
         ) : (
           <div className="flex flex-col gap-2" style={{ marginTop: 10 }}>
             {members.map((m, i) => {
@@ -1504,7 +1570,10 @@ function BuddyList({ event, onMessage }: {
                 <div key={i}>
                   <TripProfileCard {...cardProps} />
                   <div className="flex gap-2" style={{ marginTop: 6 }}>
-                    <button type="button" className="comm-msgbtn" onClick={() => onMessage(cardProps.name)}>Message</button>
+                    {/* reálne vlákno (`start_dm`) — organizátor som ja, takže adresa je
+                        moje uuid + poradové číslo psa účastníka. Bez `myId` server účastníka
+                        v party CTE nenájde a tlačidlo sa radšej nevykreslí, než by malo klamať. */}
+                    <PartyDmButton member={m} dm={myId ? { tripSlug: event.tripId, organizerId: myId } : undefined} className="comm-msgbtn" />
                   </div>
                 </div>
               );

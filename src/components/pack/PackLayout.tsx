@@ -12,8 +12,8 @@ import statBars from '@/assets/icons/stat-bars.svg';
 import { useT } from '@/i18n/LanguageContext';
 import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge';
 
-// Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: MOCK_MEMBER_POOL,
-// HERO_TRAILS 1,5 MB, HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
+// Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
+// HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
 // nikdy nevykreslí nič (DEV_FULL je runtime konštanta, Rollup ju nevytrasí). Lazy = stiahne sa
 // až pri reálnom otvorení overlaya (teda na LIVE nikdy).
 const Inbox = lazy(() => import('./messaging/Inbox').then((m) => ({ default: m.Inbox })));
@@ -147,6 +147,9 @@ type MessagingOverlayState = { mode: 'closed' } | { mode: 'inbox' } | { mode: 't
 
 export function MessagingOverlayHost() {
   const [overlay, setOverlay] = useState<MessagingOverlayState>({ mode: 'closed' });
+  // ⚠️ hook MUSÍ byť nad `if (!DEV_FULL …) return null` nižšie — pod ním by sa poradie
+  // hookov medzi rendermi menilo (Rules of Hooks) a overlay by zhodil stránku.
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!DEV_FULL) return;
@@ -165,6 +168,7 @@ export function MessagingOverlayHost() {
         <Inbox
           onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
           onClose={() => setOverlay({ mode: 'closed' })}
+          onBrowseTrips={() => { setOverlay({ mode: 'closed' }); navigate('/pack/map'); }}
         />
       </Suspense>
     );

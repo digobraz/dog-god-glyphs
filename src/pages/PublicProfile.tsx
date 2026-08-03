@@ -22,7 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { usePackUser } from '@/hooks/usePackUser';
-import { useProfile, deriveDefaultDogAttrs, NATIONALITY_OPTIONS } from '@/components/pack/profile/packProfile';
+import { useProfile, emptyDogAttrs, NATIONALITY_OPTIONS } from '@/components/pack/profile/packProfile';
 import { computeCompletion } from '@/components/pack/packCommunity';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
 import { readWalkedIds, tripPath } from '@/components/pack/tripShared';
@@ -133,7 +133,7 @@ export default function PublicProfile() {
     name: d.dog_name || 'Unnamed',
     photoUrl: d.cloudinary_main_url,
     packNumber: d.pack_number,
-    attrs: profile?.dogs[d.id] ?? deriveDefaultDogAttrs(d.id),
+    attrs: profile?.dogs[d.id] ?? emptyDogAttrs(d.id),
     heroglyph: {
       gender: d.selections?.dogGender,
       colour: d.selections?.dogColour,

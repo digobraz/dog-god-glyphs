@@ -1,12 +1,11 @@
 // /pack komunitná vrstva — logika + MOCK ľudia (design: plany/pack-community-features-design.md).
 // Perzistencia (2026-07-30, issue #32): hodnotenia / plány / inzeráty už NIE sú sessionStorage
 // mirror — idú cez `@/lib/packStore` (localStorage + write-through do Supabase: trip_votes,
-// user_trips, trip_events). MOCK ostáva len tam, kde ide o CUDZÍCH ľudí a ich obsah (mock crowd,
-// MOCK_MEMBER_POOL) — to je deterministicky odvodené z trip id, aby sa hover %-rozpad a completion
-// nemenili medzi rendermi. Wiring reálnych členov = Slice B (#41).
+// user_trips, trip_events). Fabrikovaní členovia a ich obsah sú PREČ (2026-08-03, viď nižšie);
+// deterministicky odvodený z trip id ostáva len mock crowd %-rozpad, nech hover neposkakuje.
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
-  ACTIVITY_OPTIONS, VIBE_OPTIONS, deriveDefaultDogAttrs,
+  ACTIVITY_OPTIONS, VIBE_OPTIONS,
   type ActivityTag, type TripVibe, type DogProfileAttrs,
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
@@ -44,13 +43,10 @@ export const FOUNDER_WALKERS = 2;
 // level sa počíta z BODOV, menoslov hodností ostáva voľný pre DEVOTION a rebrík je jedno meno
 // (PILGRIM) + číslo bez stropu. Duplicita s odznakmi (tie tiež rátali výlety) tým zaniká.
 
-// Turistický profil = JEDEN zdroj naprieč platformou (design: Matej 2026-07-22 — needituje sa
-// per-kategória, ale na jednom mieste). Zatiaľ MOCK placeholder; reálny profil = budúca feature.
-export interface TouristProfile { blurb: string; dog: string; }
-export const MOCK_PROFILE: TouristProfile = {
-  blurb: 'Weekend ridge-walker, always up for a muddy climb.',
-  dog: 'chill trail dog, good with everyone',
-};
+// MOCK_PROFILE (vymyslené „About you" + vymyslená veta o psovi) ZMAZANÝ 2026-08-03
+// (Matej: „nesmie sa nič dogenerovať!"). Reálny profil žije v `profile/packProfile.ts`
+// (`useProfile()` → `human.dogVoiceBio` / `human.bio`) a formulár inzerátu ho číta odtiaľ;
+// keď je prázdny, ostane prázdny.
 
 // „Volume guard" (design doc §A): kým trip nemá aspoň toľkoto reálnych hlasov, drží sa
 // seed hodnota z nahadzovača (Matejov rating/diff/crowd), nie počítaný priemer.
@@ -96,7 +92,9 @@ export interface TripPlan { tripId: string; date: string; intent: PlanIntent; at
 export interface PartnerEvent {
   id: string; tripId: string; dates: string[]; month: string; socialization: string;
   host: string; at: number; joinedByMe: boolean;
-  seedGoing: number; // mock počet ostatných čo idú (deterministický pre seed eventy)
+  // `seedGoing` (mock počet ostatných, čo idú) zmazané 2026-08-04 — po purge sa všade
+  // zapisovala 0 a jediné, čo robilo, bolo že karta vedela ukázať účastníkov, ktorí
+  // neexistujú. Počet „ide N" sa teraz ráta z reálnej partie (`get_trip_party`).
   // Zavretá skupina (Matej 2026-07-25): „ktorýkoľvek člen v packu vidí výlet ALE ak
   // sú dvaja v skupine vedia tento trip vypnúť aby sa už nikto nepridal." Inzerát
   // teda ostáva VIDITEĽNÝ pre celý pack (nemení sa pravidlo z 2026-07-22), len sa

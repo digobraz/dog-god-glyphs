@@ -14,7 +14,7 @@ import {
   useProfile,
   saveHuman,
   saveDogAttrs,
-  deriveDefaultDogAttrs,
+  emptyDogAttrs,
   emptyDogCard,
   type DogCard,
   type HumanProfile,
@@ -927,7 +927,7 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
     name: d.dog_name || 'Unnamed',
     photoUrl: d.cloudinary_main_url,
     packNumber: d.pack_number,
-    attrs: profile?.dogs[d.id] ?? deriveDefaultDogAttrs(d.id),
+    attrs: profile?.dogs[d.id] ?? emptyDogAttrs(d.id),
     heroglyph: {
       gender: d.selections?.dogGender,
       colour: d.selections?.dogColour,
@@ -939,12 +939,12 @@ function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loadin
   // Psia karta — patch merge do existujúcej karty (accordion posiela vždy len
   // zmenené pole; `compat` prichádza už zlúčený z DogGallery).
   const saveCard = (dogId: string, patch: Partial<DogCard>) => {
-    const current = profile?.dogs[dogId] ?? deriveDefaultDogAttrs(dogId);
+    const current = profile?.dogs[dogId] ?? emptyDogAttrs(dogId);
     saveDogAttrs(dogId, { card: { ...(current.card ?? emptyDogCard()), ...patch } });
   };
 
   const toggleTag = (dogId: string, group: 'temperament' | 'trail', tag: string) => {
-    const current = profile?.dogs[dogId] ?? deriveDefaultDogAttrs(dogId);
+    const current = profile?.dogs[dogId] ?? emptyDogAttrs(dogId);
     if (group === 'temperament') {
       const list = current.tags.temperament;
       const next: DogTemperamentTag[] = list.includes(tag as DogTemperamentTag)
