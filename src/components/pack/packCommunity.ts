@@ -6,13 +6,13 @@
 // nemenili medzi rendermi. Wiring reálnych členov = Slice B (#41).
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
-  ACTIVITY_OPTIONS, VIBE_OPTIONS, PERSONALITY_OPTIONS, deriveDefaultDogAttrs,
-  type ActivityTag, type TripVibe, type DogProfileAttrs, type CentralProfile,
+  ACTIVITY_OPTIONS, VIBE_OPTIONS, deriveDefaultDogAttrs,
+  type ActivityTag, type TripVibe, type DogProfileAttrs,
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
-import type { PackDogFull } from '@/hooks/usePackUser';
 import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents } from '@/lib/packStore';
 import { calculateProfilePoints, type TripPointsResult } from '@/lib/tripPoints';
+import { authorOf, AUTHOR_FALLBACK } from '@/components/pack/tripShared';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
 // D2 (LOCKED 2026-07-24): feature „Vibe" → Crowd / Ruch. Jedna jasná os = počet ľudí, žiadny
@@ -31,8 +31,11 @@ export type Hazard = 'Ticks' | 'Vipers' | 'Wildlife';
 export const HAZARDS: Hazard[] = ['Ticks', 'Vipers', 'Wildlife'];
 export const HAZARD_EMOJI: Record<Hazard, string> = { Ticks: '🪱', Vipers: '🐍', Wildlife: '🦌' };
 
-// Zakladatelia — každú trasu prešli minimálne 2 Dogyptians (Matej + Hekthor). Baseline walked
-// count nikdy neklesne pod 2 (design: Matej 2026-07-22).
+// Zakladatelia — koľko Dogyptianov (Matej + Hekthor) je v hlase VŽDY dvaja, pre trasy z
+// `founderWalkers()` nižšie. Matej 2026-08-03: „začíname so všetkým do nuly" — toto číslo
+// je len konštanta na počítanie labelu („+X Dogyptians"), NIE záruka, že KAŽDÁ trasa má
+// aspoň toľkoto hlasov. Magistrály, ktoré zakladatelia neprešli, a ADD-flow tripy iných
+// členov majú `founderWalkers(trail) === 0` → `walkedCount` môže byť 0.
 export const FOUNDER_WALKERS = 2;
 
 // LEVELY sú v `@/lib/tripPoints` (issue #33, 2026-07-30).
@@ -120,31 +123,36 @@ export interface CrowdAgg {
   hazardBreakdown: CrowdSlice<Hazard>[]; // % chodcov čo nahlásili dané nebezpečenstvo
 }
 
-// deterministicky vygeneruje N mock hlasov (diff+ruch) sústredených okolo seed hodnoty, s
-// rozptylom nech %-rozpad vyzerá živo (napr. „67% Moderate · 20% Hard · 13% Easy").
-function mockVotes(trail: HeroTrail): { diffs: Difficulty[]; crowds: Crowd[]; ratings: number[]; hazards: Hazard[][] } {
-  const rnd = mulberry32(hashStr(trail.id));
-  // min FOUNDER_WALKERS (Matej + Hekthor) + 0..14 komunitných → nikdy pod 2 (Matej 2026-07-22).
-  const n = FOUNDER_WALKERS + Math.floor(rnd() * 15);
+// Magistrály, ktoré zakladatelia (Matej + Hekthor) reálne prešli — Matej 2026-08-03: „iba SNP
+// a Poloniny". POZOR: `FOUNDER_WALKED_JOURNEY_IDS` v `tripShared.tsx:282` je DRUHÁ kópia tohto
+// zoznamu a dnes navyše obsahuje `'stefanikova-magistrala'` (nesprávne) — needituje sa tu (import
+// odtiaľ by nezaviedol cyklus, ale kým sa tá kópia neopraví, obe musia byť ručne držané v zhode;
+// tá oprava patrí ďalšej vlne, nie tomuto súboru).
+const FOUNDER_WALKED_JOURNEY_IDS: string[] = ['snp-cesta-hrdinov', 'poloniny'];
+
+// Koľko zakladateľských (Matej + Hekthor) hlasov trasa má. 0 keď:
+//  · je to magistrála/journey (Odyssey), ktorú zakladatelia neprešli (nie je v zozname vyššie),
+//  · trasu pridal iný člen cez ADD TRIP flow (`authorOf(trail)` nie je fallback — pozná meno).
+// Inak 2 (design: Matej 2026-07-22, potvrdené 2026-08-03: „začíname so všetkým do nuly").
+export function founderWalkers(trail: HeroTrail): number {
+  if (trail.diff === 'Odyssey' && !FOUNDER_WALKED_JOURNEY_IDS.includes(trail.id)) return 0;
+  if (authorOf(trail) !== AUTHOR_FALLBACK) return 0;
+  return FOUNDER_WALKERS;
+}
+
+// PRAVDIVÉ hlasy — žiadna fabrikácia. Presne `founderWalkers(trail)` hlasov, každý = presné
+// seed hodnoty výletu (trail.diff, seedCrowd(trail), trail.stars). Predtým (do 2026-08-03) tu
+// bolo FOUNDER_WALKERS + 0..14 náhodných komunitných hlasov s rozptylom náročnosti/ruchu/ratingu
+// a 22 % šancou na hazard — VŠETKO vymyslené (Matej: „začíname so všetkým do nuly"). Hazardy sú
+// odteraz VŽDY prázdne — zdroj pravdy (nahadzovač) žiadne dáta o kliešťoch/vretenicach/zveri
+// nemá; jediný zdroj hazardu je `userVote.hazards`.
+function founderVotes(trail: HeroTrail): { diffs: Difficulty[]; crowds: Crowd[]; ratings: number[]; hazards: Hazard[][] } {
+  const n = founderWalkers(trail);
   const sCrowd = seedCrowd(trail);
-  const diffs: Difficulty[] = [];
-  const crowds: Crowd[] = [];
-  const ratings: number[] = [];
-  const hazards: Hazard[][] = [];
-  for (let i = 0; i < n; i++) {
-    // prvé 2 hlasy = zakladatelia (presne seed hodnoty), zvyšok komunita s rozptylom
-    const founder = i < FOUNDER_WALKERS;
-    // Odyssey (journey) = intrinsická náročnosť, NIE komunitou hlasovaná — vždy trail.diff,
-    // žiadny random rozptyl na Easy/Moderate/Hard (inak by 770 km magistrála ukázala „13% Easy").
-    diffs.push(trail.diff === 'Odyssey' || founder || rnd() < 0.62 ? trail.diff : DIFFICULTIES[Math.floor(rnd() * 3)]);
-    if (sCrowd) crowds.push(founder || rnd() < 0.6 ? sCrowd : CROWDS[Math.floor(rnd() * 3)]);
-    else crowds.push(CROWDS[Math.floor(rnd() * 3)]);
-    ratings.push(founder ? trail.stars : Math.min(5, Math.max(1, trail.stars + (rnd() < 0.5 ? 0 : rnd() < 0.5 ? 1 : -1))));
-    // nebezpečenstvá: každý chodec nahlási 0..2 (deterministicky) — agregujú sa na %
-    const hz: Hazard[] = [];
-    for (const h of HAZARDS) if (rnd() < 0.22) hz.push(h);
-    hazards.push(hz);
-  }
+  const diffs: Difficulty[] = new Array(n).fill(trail.diff);
+  const crowds: Crowd[] = sCrowd ? new Array(n).fill(sCrowd) : [];
+  const ratings: number[] = new Array(n).fill(trail.stars);
+  const hazards: Hazard[][] = new Array(n).fill(null).map(() => []);
   return { diffs, crowds, ratings, hazards };
 }
 
@@ -157,16 +165,38 @@ function breakdown<T extends string>(votes: T[], order: T[]): CrowdSlice<T>[] {
     .sort((a, b) => b.count - a.count);
 }
 
-// Crowd-sourced agregát = seed (nahadzovač) + deterministické mock hlasy + prípadný hlas usera.
-// Pod prahom (VOLUME_THRESHOLD) sa vracia seed (rating=stars, difficulty=seed, crowd=seedCrowd).
+// Crowd-sourced agregát = seed (nahadzovač) + PRAVDIVÉ zakladateľské hlasy (founderVotes) +
+// prípadný hlas usera. Pod prahom (VOLUME_THRESHOLD) sa vracia seed (rating=stars,
+// difficulty=seed, crowd=seedCrowd). walkedCount už NIE JE zaručene ≥ FOUNDER_WALKERS (to
+// platilo, kým každá trasa mala navyše fabrikované komunitné hlasy) — magistrála, ktorú
+// zakladatelia neprešli, alebo ADD-flow trip bez hlasov má walkedCount 0.
 export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): CrowdAgg {
-  const { diffs, crowds, ratings, hazards } = mockVotes(trail);
+  const { diffs, crowds, ratings, hazards } = founderVotes(trail);
   if (userVote) {
     diffs.push(userVote.difficulty); crowds.push(userVote.crowd); ratings.push(userVote.rating);
     hazards.push(userVote.hazards ?? []);
   }
-  const walkedCount = ratings.length; // vždy ≥ FOUNDER_WALKERS
+  const walkedCount = ratings.length;
   const sCrowd = seedCrowd(trail);
+  if (walkedCount === 0) {
+    // Poctivý prázdny agregát — žiadny hlas, nič na agregáciu (a delenie walkedCount by dalo
+    // NaN/Infinity).
+    // rating = 0 znamená ŽIADNY RATING, nie „nula hviezdičiek" (Matej 2026-08-03: „neprešli =
+    // žiadny rating"). Predtým sa sem dosadzovalo `trail.stars`, takže magistrála, ktorú nikto
+    // neprešiel, ukazovala „★★★★★ 5.0" hneď vedľa vety, že ju nikto neprešiel. `trail.stars` je
+    // pri journeys redakčná hodnota z `heroJourneys.ts`, nie hodnotenie chodca.
+    // ⚠️ Konzumenti MUSIA rating skryť pri `rating <= 0` (PackMap.tsx, PackTripArticle.tsx,
+    // packCommunityUI.tsx) — inak sa vykreslí „0.0" a prázdne labky.
+    return {
+      walkedCount: 0, belowThreshold: true,
+      rating: 0,
+      difficulty: trail.diff,
+      difficultyBreakdown: [],
+      crowd: sCrowd,
+      crowdBreakdown: [],
+      hazardBreakdown: [],
+    };
+  }
   // hazard % = koľko % CHODCOV nahlásilo dané nebezpečenstvo (denominátor = walkedCount, nie
   // počet zmienok — jeden chodec môže nahlásiť viac). Nezávisí od seed guardu.
   const hB: CrowdSlice<Hazard>[] = HAZARDS
@@ -453,122 +483,14 @@ export function profilePointsFor(
   });
 }
 
-// ── mock „ostatní ľudia" (design §C2 „kto sa tiež chystá" + §D účastníci eventu) ──
+// ── „ostatní ľudia" — 2026-08-03 ZMAZANÉ (Matej: „začíname so všetkým do nuly").
+// Tu žil `MOCK_MEMBER_POOL`: 10 vymyslených ľudí s vymyslenými psami, pack číslami a povahami.
+// Appka z nich skladala recenzie výletov, skupinové konverzácie v Inboxe, účastníkov výletov
+// aj cudzie verejné profily (/pack/u/:id). Reálny zoznam členov príde z DB (`pack_members`);
+// dovtedy platí, že sa radšej nezobrazí NIKTO než vymyslený niekto.
+// `MockPerson` ostáva — je to len tvar dát pre plánovačov, nie fabrikovaný obsah.
 export interface MockPerson { name: string; dog: string; date: string; }
-const NAME_POOL = ['Zuzka', 'Peter', 'Lucia', 'Martin', 'Katka', 'Tomáš', 'Ivana', 'Jozef', 'Simona', 'Andrej'];
-const DOG_POOL = ['Bady', 'Cézar', 'Lola', 'Rocky', 'Bella', 'Max', 'Daisy', 'Argo', 'Nela', 'Tobi'];
 
-// ── mock zoznam členov pre companion autocomplete (Matej 2026-07-23 — „fotky iných členov ak
-// začneš písať ich meno"). Reálny zoznam členov príde z DB (pack_members) po zamknutí UX.
-// A0 (Fable-5 amendment, plany/zadanie-profil-messaging-2026-07-23.md §10) — rozšírené o id,
-// packNumber, avatarUrl a odvodené profil-atribúty (dog + human), aby messaging dedup/perzistencia
-// a profil snippet na tripe mali čo zobraziť bez ďalšieho kola. ──
-export interface MockMember {
-  name: string;
-  dog: string;
-  id: string;                                    // stabilný slug z mena, dedup kľúč pre konverzácie
-  packNumber: number;                             // deterministické poradové číslo (Dogyptian #N)
-  avatarUrl?: string;                             // doplní sa neskôr (avatar upload)
-  attrs: DogProfileAttrs;                         // pes: training/socialization/energy/… (packProfile.ts)
-  human: { interests: ActivityTag[]; vibes: TripVibe[] }; // človek: záujmy + preferovaný vibe tripov
-}
-
-// slug z mena + stabilný suffix pri kolízii (dnes NAME_POOL nemá duplicity, ale zoznam sa môže rozrásť)
-function slugify(name: string): string {
-  return name.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
-function uniqueSlug(base: string, taken: Set<string>): string {
-  let slug = base;
-  let n = 2;
-  while (taken.has(slug)) { slug = `${base}-${n}`; n += 1; }
-  taken.add(slug);
-  return slug;
-}
-
-const takenSlugs = new Set<string>();
-export const MOCK_MEMBER_POOL: MockMember[] = NAME_POOL.map((name, i) => {
-  const dog = DOG_POOL[i];
-  const id = uniqueSlug(slugify(name) || `member-${i}`, takenSlugs);
-  const rnd = mulberry32(hashStr(`${id}:member`));
-  const packNumber = 12 + Math.floor(rnd() * (4800 - 12));
-  const interests = pickN(ACTIVITY_OPTIONS.map((o) => o.value), 2 + Math.floor(rnd() * 2), rnd); // 2–3
-  const vibes = pickN(VIBE_OPTIONS.map((o) => o.value), 1 + Math.floor(rnd() * 2), rnd);          // 1–2
-  return {
-    name, dog, id, packNumber,
-    avatarUrl: undefined,
-    attrs: deriveDefaultDogAttrs(id),
-    human: { interests, vibes },
-  };
-});
-
-// Demo seed — pár mock členov s vyplneným psím BIO + tagmi, aby read-profil (/pack/u/:id)
-// nebol prázdny pri prehliadke. Placeholder content (reálni useri dostanú vlastné dáta po
-// Supabase perzistencii profilu). Hodnoty musia byť z DOG_TEMPERAMENT_TAGS / DOG_TRAIL_TAGS.
-const MOCK_DOG_BIOS: Record<string, { bio: string; temperament: DogTemperamentTag[]; trail: DogTrailTag[] }> = {
-  martin: {
-    bio: 'Rescue mutt with more energy than sense. Will find every puddle within 2 km and lie down in it.',
-    temperament: ['playful', 'friendly', 'social'],
-    trail: ['dogs_ok', 'kids_ok', 'loves_water', 'long_distance'],
-  },
-  zuzka: {
-    bio: 'Calm old soul. Prefers a slow, sniff-heavy walk over any summit. Great with pups.',
-    temperament: ['calm', 'friendly'],
-    trail: ['dogs_ok', 'kids_ok', 'slow_pace'],
-  },
-};
-MOCK_MEMBER_POOL.forEach((m) => {
-  const seed = MOCK_DOG_BIOS[m.id];
-  if (seed) m.attrs = { ...m.attrs, bio: seed.bio, tags: { temperament: seed.temperament, trail: seed.trail } };
-});
-
-// ── FÁZA 3: TripProfileCard → buddy list (zadanie-trips-launch-2026-07-24) ──────────────────
-// „Prepojiť pripravené profily do TRIP vrstvy." Karta existovala len ako preview na spodku
-// PackProfile; tu sa dopĺňa to, čo jej chýbalo, aby sa dala vykresliť pre CUDZIEHO člena:
-//   1. KTO ide na výlet — `ev.seedGoing` bol len POČET, nie zoznam ľudí.
-//   2. PREKLAD MockMember → CentralProfile + PackDogFull[], čo karta žiada.
-// Oboje deterministické z `id` (mulberry32), rovnako ako mockVotes/deriveDefaultDogAttrs —
-// zoznam ľudí sa nesmie medzi rendermi prehadzovať.
-
-/** Kto ide na plánovaný výlet (mock). Host je zvlášť — je to meno, nie člen poolu. */
-export function eventGoingMembers(ev: PartnerEvent): MockMember[] {
-  const rnd = mulberry32(hashStr(`${ev.id}:going`));
-  const hostFirst = ev.host.split(' ')[0];
-  const pool = MOCK_MEMBER_POOL.filter((m) => m.name !== hostFirst);
-  return pickN(pool, Math.min(ev.seedGoing, pool.length), rnd);
-}
-
-/** MockMember → čo TripProfileCard žiada. Trip-tier polia (languages/personality/smoke)
- *  sa dopĺňajú deterministicky, inak by karta cudzieho člena bola prázdna a vyzeralo by to
- *  ako rozbité — rovnaký dôvod, prečo MOCK_DOG_BIOS seeduje psie BIO. */
-export function mockMemberProfile(m: MockMember): { profile: CentralProfile; dogs: PackDogFull[] } {
-  const rnd = mulberry32(hashStr(`${m.id}:tripcard`));
-  const personality = pickN(PERSONALITY_OPTIONS.map((o) => o.value), 3 + Math.floor(rnd() * 3), rnd);
-  const languages = ['SK', ...(rnd() < 0.6 ? ['EN'] : []), ...(rnd() < 0.25 ? ['DE'] : [])];
-  const dogId = `${m.id}-dog`;
-  return {
-    profile: {
-      human: {
-        interests: m.human.interests,
-        vibes: m.human.vibes,
-        languages,
-        intents: [],
-        personality,
-        smoke: rnd() < 0.25 ? 'yes' : 'no',
-        visibility: {}, // žiadne override → platí DEFAULT_VISIBILITY (languages/interests/vibes = trip)
-      },
-      dogs: { [dogId]: m.attrs },
-      updatedAt: new Date(0).toISOString(),
-    },
-    dogs: [{
-      id: dogId,
-      dog_name: m.dog,
-      cloudinary_main_url: null,
-      selections: null,
-      created_at: new Date(0).toISOString(),
-      pack_number: m.packNumber,
-    }],
-  };
-}
 
 // deterministicky vyberie n unikátnych prvkov z pool pomocou danej PRNG inštancie (rnd musí byť
 // zdieľaná so zvyškom volania, inak by sa poradie hashov posunulo).
@@ -585,42 +507,12 @@ function pickN<T>(pool: T[], n: number, rnd: () => number): T[] {
 
 const DAY_MS = 86400000;
 
-// deterministický zoznam 0..3 ľudí čo sa tiež chystajú na daný trip
-export function mockPlannersFor(tripId: string, nowMs: number): MockPerson[] {
-  const rnd = mulberry32(hashStr(`${tripId}:planners`));
-  const count = Math.floor(rnd() * 4); // 0..3
-  const out: MockPerson[] = [];
-  for (let i = 0; i < count; i++) {
-    const name = NAME_POOL[Math.floor(rnd() * NAME_POOL.length)];
-    const dog = DOG_POOL[Math.floor(rnd() * DOG_POOL.length)];
-    const date = new Date(nowMs + (2 + Math.floor(rnd() * 20)) * DAY_MS).toISOString().slice(0, 10);
-    out.push({ name, dog, date });
-  }
-  return out;
-}
-
-// pár seed VEREJNÝCH eventov (design §D — EVENTS sa „aktivuje", nesmie byť prázdne pri prvom
-// otvorení). Referencuje reálne tripy z HERO_TRAILS. nowMs kvôli deterministickým budúcim dátam.
-export function mockEventsSeed(trails: HeroTrail[], nowMs: number): PartnerEvent[] {
-  const picks = trails.slice(0, 3);
-  return picks.map((tr, i) => {
-    const rnd = mulberry32(hashStr(`${tr.id}:event`));
-    // benevolentný termín: 2 navrhnuté dátumy (Matej 2026-07-22 — nemusí byť presný)
-    const d1 = new Date(nowMs + (3 + i * 4) * DAY_MS).toISOString().slice(0, 10);
-    const d2 = new Date(nowMs + (6 + i * 4) * DAY_MS).toISOString().slice(0, 10);
-    return {
-      id: `seed-event-${i}`,
-      tripId: tr.id,
-      dates: [d1, d2],
-      month: d1.slice(0, 7),
-      socialization: ['Great with everyone', 'Prefers small calm dogs', 'Needs active playmates'][i] ?? 'Open to all',
-      host: ['Zuzka & Bady', 'Martin & Cézar', 'Lucia & Lola'][i] ?? 'Dogyptian',
-      at: nowMs - i * DAY_MS,
-      joinedByMe: false,
-      seedGoing: 1 + Math.floor(rnd() * 4), // 1..4 už idú
-    };
-  });
-}
+// mockPlannersFor() a mockEventsSeed() ZMAZANÉ (Matej 2026-08-03: „začíname so všetkým do
+// nuly" — 3 fiktívne verejné eventy s fake hostmi „Zuzka & Bady"/„Martin & Cézar"/„Lucia & Lola"
+// sa natrvalo zapisovali do localStorage `trp-events-v2`, plus deterministický zoznam 0..3 ľudí
+// „čo sa tiež chystajú" bez akéhokoľvek reálneho zdroja). Volanie `mockEventsSeed(HERO_TRAILS,
+// Date.now())` v `PackMap.tsx:1376` treba odstrániť v ďalšej vlne — dovtedy je to build error
+// v cudzom súbore, nie v tomto module.
 
 // ── perzistencia (2026-07-30, issue #32) ────────────────────────────────────
 // PREDTÝM: sessionStorage → hodnotenia, plány aj inzeráty zmizli používateľovi pri

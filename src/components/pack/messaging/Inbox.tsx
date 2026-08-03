@@ -70,7 +70,7 @@ export function Inbox({ onOpenThread, onClose }: { onOpenThread: (convId: string
       </div>
       <div className="msg-inbox-list">
         {convs.length === 0 ? (
-          <div className="msg-empty">No conversations yet. Say hi to a fellow Dogyptian from a trip. 🐾</div>
+          <div className="msg-empty">No messages yet. Start a conversation with a fellow Dogyptian from a trip page.</div>
         ) : (
           convs.map((conv) => {
             const isGroup = conv.kind === 'group';

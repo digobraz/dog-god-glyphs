@@ -2,33 +2,27 @@
 // plany/zadanie-profil-messaging-2026-07-23.md §12 (MESSAGING MODEL v2 — DM +
 // OPEN GROUPS, nahrádza pôvodný §4.1 tvar).
 //
-// ── 2026-08-03, issue #53: DM SÚ V DB, SKUPINY OSTÁVAJÚ MOCK ──────────────────
+// ── 2026-08-03, issue #53: DM SÚ V DB ─────────────────────────────────────────
 // Matej 25.7.: „správy chcem v launchi". Do dnes bol backend 100 % localStorage —
 // napíšeš správu, zavrieš tab a je preč; druhému nikdy nedôjde.
 //
-// Vrstva je odteraz HYBRID a delí sa presne podľa toho, či na druhej strane je
-// SKUTOČNÝ ČLOVEK:
 //   • `kind='dm'`   → Supabase (`pack_conversations` / `pack_conv_members` /
 //                     `pack_messages`, migrácia 20260803_pack_messaging.sql),
 //                     realtime doručenie, prežije odhlásenie aj výmenu zariadenia.
-//   • `kind='group'`→ ostáva mock v localStorage. Sú to fiktívne vlákna
-//                     s MOCK_MEMBER_POOL; zapísať ich do DB by znamenalo vyrobiť
-//                     dáta o neexistujúcich ľuďoch. Skupinový čet = issue #62
-//                     (PO LAUNCHI) a vtedy vzniknú nanovo, s reálnymi členmi.
 //
-// Dôsledok, ktorý si treba všimnúť: `maybeAutoReply()` beží LEN nad skupinami.
-// V DM by fabrikoval správy menom skutočného človeka — to nie je demo, to je
-// podvrh. Stráži to podmienka priamo v tej funkcii.
+// ── 2026-08-03, "začíname so všetkým do nuly": SKUPINY (mock) PREČ ───────────
+// Matej: appka pred launchom nesmie ukazovať vymyslených ľudí ani vymyslené
+// správy. Do dnes `kind='group'` žilo ako fiktívne vlákno (jedna skupina na
+// výlet, 3–6 vymyslených členov z MOCK_MEMBER_POOL, 4–8 vymyslených správ,
+// nafúknutý "X members" label) — generátor (`buildTripGroups`), auto-reply
+// (`maybeAutoReply`) aj nafúknutie `memberCount` boli zmazané, vrátane
+// jednorazovej migrácie, ktorá tie isté dáta vyčistí aj z localStorage u ľudí,
+// čo appku už otvorili predtým (`purgeMockGroupConversations` nižšie).
+// `kind='group'` ostáva v type systéme pre issue #62 (skupinový čet PO
+// LAUNCHI, s reálnymi členmi) — dnes ho už nič negeneruje.
 //
 // Verejné API sa nezmenilo (UI komponenty ho volajú rovnako), pribudlo len
 // `startTripDM()` — založenie vlákna nad výletom.
-//
-// Model: 1:1 DM + otvorené obsahové skupiny (voľný join, kedykoľvek). Trip =
-// jeden podtyp skupiny. Skupiny sa z UI NEzakladajú, len sa seedujú (§12) a
-// pripájaš sa k nim (joinGroup) — skupina žije aj bez teba.
-import { MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
-import { HERO_TRAILS } from '@/data/heroTrails.generated';
-import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { supabase } from '@/integrations/supabase/client';
 
 // ── typy (§12, presné znenie zo zadania) ──
@@ -66,9 +60,11 @@ export interface Conversation {
   postPolicy?: PostPolicy;     // group only, default 'all'
   members: Participant[];      // DM=2, group=N (vrátane 'me' po join)
   memberIds: string[];         // rýchly join-check
-  // Nie v pôvodnom typovom bloku §12, ale explicitne vyžiadané seed-správaním
-  // ("memberCount odvoď väčší než reálny members[] ... na 'X members' label").
-  // group only — flag pre volajúceho, ak sa toto rozhodnutie nepáči, ľahko sa zmaže.
+  // group only. Skutočný počet členov skupiny (nie `members.length`, ktoré nesie len
+  // tie, čo appka aktuálne drží in-memory) — kým skupiny negeneruje nič (2026-08-03,
+  // zmazaná fabrikácia, viď hlavička súboru), toto pole nikto nenastavuje a UI padá
+  // na `members.length`. Keď sa vráti issue #62, sem ide REÁLNY počet z DB, nikdy nie
+  // odhad "nech to vyzerá živo".
   memberCount?: number;
   tag?: MsgTag;                // štítok (trip/region/…) — nesie sa aj do budúceho feedu
   messages: Message[];
@@ -79,121 +75,6 @@ export interface Conversation {
   // dôvod ten smer poznať (a z blokovaného by sa nemalo dať vyčítať, že blokol on).
   blocked?: boolean;
 }
-
-// ── deterministický hash → PRNG (mulberry32 + FNV-1a) — rovnaký vzor ako
-// packCommunity.ts / packProfile.ts, zámerne duplikovaný (nie import) — modul
-// stojí samostatne, mock skupinové dáta musia byť stabilné medzi rendermi. ──
-function hashStr(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function pickN<T>(pool: readonly T[], n: number, rnd: () => number): T[] {
-  const remaining = [...pool];
-  const out: T[] = [];
-  const count = Math.min(n, remaining.length);
-  for (let i = 0; i < count; i++) {
-    const idx = Math.floor(rnd() * remaining.length);
-    out.push(remaining.splice(idx, 1)[0]);
-  }
-  return out;
-}
-
-const DAY_MS = 86400000;
-
-// ── canned text palettes (EN, deterministicky vybrané — web texty = EN) ──
-const SEED_MSG_POOL: string[] = [
-  'Just got back from this one — the views up top were worth every step.',
-  "Anyone know if the trail is muddy after rain?",
-  'My dog loved this route, plenty of shade for the summer.',
-  'Doing this again next weekend if anyone wants to join.',
-  "Watch out for the last climb, it's steeper than it looks.",
-  'Best trail I have done with the pack so far.',
-  'Water source about halfway — good to know for the pups.',
-  'Perfect for an early morning walk before it gets crowded.',
-];
-
-const DM_AUTOREPLY_POOL: string[] = [
-  'Sounds good — what time works for you?',
-  'Yes! Count me and my dog in.',
-  'Let me check the weather and get back to you.',
-  'Awesome, see you there!',
-];
-
-const GROUP_AUTOREPLY_POOL: string[] = [
-  "Same here, can't wait for the next one.",
-  "Good question — I'll check the trail conditions.",
-  'Following this thread, thinking of doing it too.',
-  'Ha, that last climb almost killed my legs.',
-];
-
-// ── group seed builders (§12 taxonómia skupín, poradie stavby) ──
-// 1) trip-groups (implementované, nula extra dát — každý trip z HERO_TRAILS +
-//    HERO_JOURNEYS = jedna otvorená skupina).
-// TODO: region (SK_GEO 8 krajov) + ritual (Daily Devotion, Founders' Pack) —
-// čaká na Matejovo poradie (§12: "⏳ Na Matejovo slovo"). interest = až po
-// profile module (§12), tiež odložené.
-function buildTripGroups(nowMs: number): Conversation[] {
-  const trips: { id: string; name: string }[] = [...HERO_TRAILS, ...HERO_JOURNEYS];
-  return trips.map((trip) => {
-    const convId = `group:trip:${trip.id}`;
-
-    const memberRnd = mulberry32(hashStr(`${convId}:members`));
-    const memberTarget = 3 + Math.floor(memberRnd() * 4); // 3..6
-    const picked = pickN(MOCK_MEMBER_POOL, memberTarget, memberRnd);
-    const members: Participant[] = picked.map((m) => ({
-      id: m.id, name: m.name, avatarUrl: m.avatarUrl, packNumber: m.packNumber, kind: 'member' as const,
-    }));
-    const memberIds = members.map((m) => m.id);
-
-    const msgRnd = mulberry32(hashStr(`${convId}:messages`));
-    const msgCount = 4 + Math.floor(msgRnd() * 5); // 4..8
-    const messages: Message[] = [];
-    for (let i = 0; i < msgCount && members.length > 0; i++) {
-      const sender = members[Math.floor(msgRnd() * members.length)];
-      const text = SEED_MSG_POOL[Math.floor(msgRnd() * SEED_MSG_POOL.length)];
-      const offsetMs = Math.floor(msgRnd() * 5 * DAY_MS); // spread over last ~5 days
-      const createdAt = new Date(nowMs - offsetMs).toISOString();
-      messages.push({ id: `${convId}:seed:${i}`, convId, senderId: sender.id, text, createdAt });
-    }
-    messages.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-    const last = messages[messages.length - 1];
-
-    // display-only "X members" — bigger than the seeded members[] we actually
-    // model (5..40 extra, deterministic per trip).
-    const memberCount = members.length + 5 + Math.floor(msgRnd() * 36);
-
-    return {
-      id: convId,
-      kind: 'group',
-      title: trip.name,
-      membership: 'open',
-      postPolicy: 'all',
-      members,
-      memberIds,
-      memberCount,
-      tag: { kind: 'trip', id: trip.id, label: trip.name },
-      messages,
-      lastReadAt: {},
-      updatedAt: last ? last.createdAt : new Date(nowMs).toISOString(),
-    } satisfies Conversation;
-  });
-}
-
-type GroupSeedBuilder = (nowMs: number) => Conversation[];
-export const GROUP_SEED_BUILDERS: GroupSeedBuilder[] = [
-  buildTripGroups,
-  // TODO: region (SK_GEO 8 krajov) + ritual (Daily Devotion, Founders' Pack) — čaká na Matejovo poradie
-];
 
 // ── úložisko ──
 // Cache drží OBA druhy vlákien, ale na disk ide len skupinová (mock) časť. DM
@@ -235,19 +116,35 @@ function persist(): void {
 // Supabase backend will need, and is what makes unreadCount() safely sync.
 const cache: StoredState = loadRaw();
 
-// Naseeduje skupiny ak je localStorage prázdny (prvý load). Nedotýka sa
-// existujúcich dát (user-created DMs / už naseedované skupiny).
-export function ensureSeeded(): void {
-  // pýtame sa výslovne na SKUPINY — po hydratácii DM z DB by „už tu niečo je"
-  // znamenalo, že sa skupiny nenaseedujú nikdy
-  if (Object.values(cache.conversations).some(isGroupConv)) return;
-  const nowMs = Date.now();
-  for (const build of GROUP_SEED_BUILDERS) {
-    for (const conv of build(nowMs)) cache.conversations[conv.id] = conv;
-  }
-  persist();
+// ── jednorazová migrácia: fiktívne skupinové vlákna preč z localStorage ──────
+// (2026-08-03, "začíname so všetkým do nuly"). Predtým sem `ensureSeeded()`
+// zapisovala vymyslené trip-skupiny pri prvom otvorení appky; ten generátor je
+// zmazaný (viď hlavička súboru), ale u ľudí, čo appku medzičasom otvorili, tie
+// isté dáta ešte ležia v localStorage a treba ich stiahnuť aj odtiaľ.
+//
+// Prečo je bezpečné mazať bez rozlišovania per-konverzácia: `loadRaw()`/`persist()`
+// vyššie filtrujú VŠETKO pod STORAGE_KEY na `isGroupConv` — DM sa do localStorage
+// od issue #53 nikdy nezapisujú (žijú výhradne v Supabase, `pack_conversations` /
+// `pack_messages`) a staršie DM z localStorage éry loadRaw() zahadzuje ešte pred
+// touto migráciou. Zároveň appka dnes nemá ŽIADNU legitímnu cestu, ako by
+// `kind='group'` vlákno mohlo vzniknúť inak než cez zmazaný `buildTripGroups()`
+// (skupiny sa z UI nezakladajú, len sa seedovali). Preto: čokoľvek `isGroupConv`
+// pod STORAGE_KEY = 100 % fabrikované, nikdy reálna správa skutočného človeka.
+// Guard flag = beží raz; keby niekedy pribudol reálny skupinový čet (issue #62),
+// táto migrácia už dávno doběhla predtým, než by mohla vzniknúť prvá reálna
+// skupina, takže riziko zámeny nehrozí.
+const MOCK_GROUPS_PURGED_KEY = 'dogypt.messages.mockgroups-purged.v1';
+function purgeMockGroupConversations(): void {
+  try {
+    if (localStorage.getItem(MOCK_GROUPS_PURGED_KEY)) return;
+    for (const [id, conv] of Object.entries(cache.conversations)) {
+      if (isGroupConv(conv)) delete cache.conversations[id];
+    }
+    persist();
+    localStorage.setItem(MOCK_GROUPS_PURGED_KEY, '1');
+  } catch { /* private mode / quota — non-fatal, appka beží aj bez migrácie */ }
 }
-ensureSeeded(); // hydrate at module load — localStorage read is sync, safe here
+purgeMockGroupConversations(); // hydrate at module load — localStorage read is sync, safe here
 
 // ── in-tab event emitter — notifications/badge reagujú bez reloadu ──
 type Listener = () => void;
@@ -642,7 +539,6 @@ export async function sendMessage(convId: string, text: string): Promise<Convers
   conv.lastReadAt = { ...conv.lastReadAt, [me.id]: msg.createdAt }; // sender implicitly "read" their own message
   persist();
   emitChange();
-  maybeAutoReply(convId); // demo obojsmernosť (§4.4) — no-op ak MSG_AUTOREPLY=false
   return snapshot(conv);
 }
 
@@ -674,49 +570,13 @@ export function unreadCount(): number {
   return count;
 }
 
-// ── demo obojsmernosť (§4.4 + Fable amendment §10) — po sendMessage od "me"
-// pošle po 2–4s canned odpoveď: DM = druhý účastník, group = náhodný člen
-// skupiny. 3–4 varianty per typ, vybrané deterministicky podľa convId + počet
-// správ (nie 1 veta — inak to pri viacerých konverzáciách vyzerá ako bot).
-// Vypnuteľné cez MSG_AUTOREPLY. ──
-export const MSG_AUTOREPLY = true;
-
-export function maybeAutoReply(convId: string): void {
-  if (!MSG_AUTOREPLY) return;
-  const conv = cache.conversations[convId];
-  if (!conv) return;
-  // 🔒 NIKDY v DM. Na druhej strane je skutočný človek — canned odpoveď jeho
-  // menom nie je demo, je to podvrh, a od 2026-08-03 by sa navyše tvárila ako
-  // správa z DB. Autoreply žije výhradne v mock skupinách.
-  if (conv.kind !== 'group') return;
-  const meId = meCache.id;
-  const seed = `${convId}:${conv.messages.length}`;
-  const delay = 2000 + Math.floor(mulberry32(hashStr(`${seed}:delay`))() * 2000); // 2–4s
-
-  setTimeout(() => {
-    const c = cache.conversations[convId];
-    if (!c) return;
-    let senderId: string;
-    let text: string;
-    if (c.kind === 'dm') {
-      const other = c.members.find((p) => p.id !== meId) ?? c.members[0];
-      if (!other) return;
-      senderId = other.id;
-      text = DM_AUTOREPLY_POOL[hashStr(`${seed}:dm-text`) % DM_AUTOREPLY_POOL.length];
-    } else {
-      const others = c.members.filter((p) => p.id !== meId);
-      if (others.length === 0) return;
-      senderId = others[hashStr(`${seed}:group-sender`) % others.length].id;
-      text = GROUP_AUTOREPLY_POOL[hashStr(`${seed}:group-text`) % GROUP_AUTOREPLY_POOL.length];
-    }
-    const msg: Message = { id: `${convId}:auto:${Date.now()}`, convId, senderId, text, createdAt: new Date().toISOString() };
-    c.messages = [...c.messages, msg];
-    c.updatedAt = msg.createdAt;
-    persist();
-    emitChange();
-  }, delay);
-}
+// Bývalé `maybeAutoReply()`/`MSG_AUTOREPLY` (§4.4 + Fable amendment §10) —
+// canned odpoveď od "iného člena" 2–4s po odoslaní — zmazané 2026-08-03
+// ("začíname so všetkým do nuly"): kým bežalo len nad mock skupinami, bola to
+// fabrikovaná správa od vymysleného človeka a Matej presne také dáta chce preč
+// pred launchom. DM to nikdy nesmelo robiť (canned odpoveď menom skutočného
+// človeka by bol podvrh) a od issue #53 aj tak ide výhradne cez DB.
 
 // SWAP HOTOVÝ pre DM (2026-08-03, #53): `pack_conversations` / `pack_conv_members`
-// / `pack_messages` + realtime. Zostáva swap SKUPÍN — ten čaká na issue #62
-// (skupinový čet po launchi), lebo dnešné skupiny sú fikcia s MOCK_MEMBER_POOL.
+// / `pack_messages` + realtime. Skupiny (mock) sú od toho istého dňa zmazané —
+// zostáva čakať na issue #62 (skupinový čet po launchi, s reálnymi členmi).

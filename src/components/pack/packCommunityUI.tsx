@@ -8,7 +8,7 @@ import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
-  DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE, MOCK_MEMBER_POOL,
+  DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI, MOCK_PROFILE,
   computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
@@ -32,15 +32,6 @@ const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 // Papyrus lock (2026-07-26): žiadny hardcoded bledý hex — plná bledá farba ide cez token.
 const CARD = PACK_THEME.card;
-
-// meno → MOCK_MEMBER_POOL id slug (zadanie-profil-read-dog-2026-07-25 §4 — klikateľnosť
-// planners/companion avatarov do /pack/u/:id). Mock crowd (mockPlannersFor/mockEventsSeed) berie
-// mená z rovnakého NAME_POOL ako MOCK_MEMBER_POOL, takže meno vždy jednoznačne mapuje na id;
-// `host` stringy majú tvar "Meno & Pes" — zober časť pred " & ".
-function mockMemberIdByName(name: string): string | undefined {
-  const first = name.split(' & ')[0]?.trim() ?? name;
-  return MOCK_MEMBER_POOL.find((m) => m.name === first)?.id;
-}
 
 // prvé meno z user_metadata (full_name/name), fallback e-mail local-part — rovnaký vzor ako
 // firstNameFrom() v Pack.tsx / PackMap.tsx, len lokálna kópia (usePackIdentity meno
@@ -736,19 +727,36 @@ function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) =
 
 // crowd agregát na karte/detaile. „N walked" počet sa TU už NEzobrazuje — presunul sa k autorom
 // (svorka čo prešla trip + „+N Dogyptians", Matej 2026-07-22). Hazardy (%) len v detaile.
+// belowThreshold/walkedCount:0 (2026-08-03, „začíname so všetkým do nuly") necháva
+// difficultyBreakdown/crowdBreakdown prázdne — tooltip sa vtedy nedáva (žiadny prázdny
+// rámik na hover), zobrazuje sa len seedová hodnota (difficulty/crowd) bez %-rozpadu.
 export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; compact?: boolean }) {
   const rSize = compact ? 10 : 15;
   const fs = compact ? 10.5 : 11.5;
+  const hasDiffTip = agg.difficultyBreakdown.length > 0;
+  const hasCrowdTip = agg.crowdBreakdown.length > 0;
   return (
     <div className={`comm-crowd${compact ? '' : ' detail'}`}>
-      <span className="comm-crowd-rating" style={{ fontSize: fs }}>
-        <RatingPaws stars={agg.rating} size={rSize} gap={compact ? 2 : 4} /> {agg.rating.toFixed(1)}
-      </span>
-      <span className="comm-crowd-row comm-hastip" style={{ fontSize: fs }} data-tip={diffTip(agg)}>
+      {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating") — labky
+          vôbec nevykresľuj, inak sa ukáže „0.0" a prázdna päťka. */}
+      {agg.rating > 0 && (
+        <span className="comm-crowd-rating" style={{ fontSize: fs }}>
+          <RatingPaws stars={agg.rating} size={rSize} gap={compact ? 2 : 4} /> {agg.rating.toFixed(1)}
+        </span>
+      )}
+      <span
+        className={`comm-crowd-row${hasDiffTip ? ' comm-hastip' : ''}`}
+        style={{ fontSize: fs }}
+        data-tip={hasDiffTip ? diffTip(agg) : undefined}
+      >
         <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km
       </span>
       {agg.crowd && (
-        <span className="comm-crowd-row comm-hastip" style={{ fontSize: fs }} data-tip={crowdTip(agg)}>
+        <span
+          className={`comm-crowd-row${hasCrowdTip ? ' comm-hastip' : ''}`}
+          style={{ fontSize: fs }}
+          data-tip={hasCrowdTip ? crowdTip(agg) : undefined}
+        >
           {CROWD_EMOJI[agg.crowd]} {agg.crowd}
         </span>
       )}
@@ -781,16 +789,26 @@ export function BigRating({ rating, compact }: { rating: number; compact?: boole
 // Hazard TU NIE (ten je len v detaile vedľa tagov — HazardTags). Hover na pilulku = %-rozpad
 // hlasov členov. Zdieľané karta + inline detail. ──
 export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string; ascentM?: number }) {
+  // Prázdny breakdown (walkedCount 0, „začíname so všetkým do nuly") → žiadny %-rozpad na
+  // ponuku, takže žiadny tooltip (inak by hover ukázal prázdny rámik „Difficulty — ").
+  const hasDiffTip = agg.difficultyBreakdown.length > 0;
+  const hasCrowdTip = agg.crowdBreakdown.length > 0;
   return (
     <div className="comm-photometa">
       <span className="comm-mpill">
         ↔ {km} km{ascentM != null ? ` · ↑ ${ascentM} m` : ''}
       </span>
-      <span className="comm-mpill comm-hastip" data-tip={`Difficulty — ${diffTip(agg)}`}>
+      <span
+        className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}`}
+        data-tip={hasDiffTip ? `Difficulty — ${diffTip(agg)}` : undefined}
+      >
         <DiffMark diff={agg.difficulty} /> {agg.difficulty}
       </span>
       {agg.crowd && (
-        <span className="comm-mpill comm-hastip" data-tip={`Crowd — ${crowdTip(agg)}`}>
+        <span
+          className={`comm-mpill${hasCrowdTip ? ' comm-hastip' : ''}`}
+          data-tip={hasCrowdTip ? `Crowd — ${crowdTip(agg)}` : undefined}
+        >
           {CROWD_EMOJI[agg.crowd]} {agg.crowd}
         </span>
       )}
@@ -814,13 +832,16 @@ export function HazardTags({ agg }: { agg: CrowdAgg }) {
 }
 
 // ── CompanionPicker (Matej 2026-07-23) — „kto bol so mnou": jasný + a výber zo SVORKY (moje
-// psy, reálne fotky) + iní ČLENOVIA podľa mena (mock autocomplete, fotka = initial avatar).
+// psy, reálne fotky) + iní ČLENOVIA podľa mena. Matej 2026-08-03 „začíname so všetkým do
+// nuly" — reálny zoznam členov (`pack_members`) ešte neexistuje, takže autocomplete zo
+// zmazaného MOCK_MEMBER_POOL padá: pole je odteraz VOĽNÝ TEXT (Enter pridá napísané meno ako
+// chip). Keď raz bude členský adresár, sem príde skutočný lookup + dropdown návrhov.
 // Vybraté ako avatar chipy. Zdieľané done aj planning ADD flow. ──
 export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
   myDogs: { id: string; name: string; photo?: string | null }[];
   selected: Companion[];
   onChange: (next: Companion[]) => void;
-  onOpenProfile?: (memberId: string) => void; // avatar klik → /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §4)
+  onOpenProfile?: (memberId: string) => void; // avatar klik → /pack/u/:id, zatiaľ bez zdroja id (žiadny členský adresár)
 }) {
   const [q, setQ] = useState('');
   const selectedKeys = new Set(selected.map((c) => c.key));
@@ -831,29 +852,30 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
     if (selectedKeys.has(key)) remove(key);
     else add({ key, name: d.name || 'My dog', sub: 'your pack', photo: d.photo });
   };
-  const sugs = q.trim().length > 0
-    ? MOCK_MEMBER_POOL.filter((m) => m.name.toLowerCase().includes(q.trim().toLowerCase()) && !selectedKeys.has(`member-${m.name}`)).slice(0, 6)
-    : [];
+  // Voľný text: Enter pridá napísané meno ako companion chip (žiadny reálny profil za ním).
+  const addTyped = () => {
+    const name = q.trim();
+    if (!name || selectedKeys.has(`member-${name}`)) return;
+    add({ key: `member-${name}`, name });
+    setQ('');
+  };
   return (
     <div>
       {selected.length > 0 && (
         <div className="comm-comp-selected">
-          {selected.map((c) => {
-            const memberId = c.key.startsWith('member-') ? mockMemberIdByName(c.name) : undefined;
-            return (
-              <span key={c.key} className="comm-comp-chip">
-                <span
-                  className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`}
-                  style={{ ...(c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined), cursor: memberId && onOpenProfile ? 'pointer' : undefined }}
-                  onClick={memberId ? () => onOpenProfile?.(memberId) : undefined}
-                >
-                  {c.photo ? '' : c.name.charAt(0).toUpperCase()}
-                </span>
-                <b>{c.name}</b>
-                <button type="button" onClick={() => remove(c.key)} aria-label={`Remove ${c.name}`}>×</button>
+          {selected.map((c) => (
+            <span key={c.key} className="comm-comp-chip">
+              {/* meno reálneho člena bez známeho id nie je klikateľné — žiadny odkaz do prázdna. */}
+              <span
+                className={`comm-comp-chip-av${c.photo ? '' : ' ph'}`}
+                style={c.photo ? { backgroundImage: `url('${c.photo}')` } : undefined}
+              >
+                {c.photo ? '' : c.name.charAt(0).toUpperCase()}
               </span>
-            );
-          })}
+              <b>{c.name}</b>
+              <button type="button" onClick={() => remove(c.key)} aria-label={`Remove ${c.name}`}>×</button>
+            </span>
+          ))}
         </div>
       )}
       {myDogs.length > 0 && (
@@ -875,25 +897,15 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
           </div>
         </>
       )}
-      <div className="comm-comp-grouplabel">Add other members</div>
+      <div className="comm-comp-grouplabel">Add other companions</div>
       <div className="comm-comp-searchwrap">
-        <input className="comm-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Type a member's name…" />
-        {sugs.length > 0 && (
-          <div className="comm-comp-sug">
-            {sugs.map((m) => (
-              <div key={m.name} className="comm-comp-sugitem" onClick={() => { add({ key: `member-${m.name}`, name: m.name, sub: `& ${m.dog}` }); setQ(''); }}>
-                <span
-                  className="comm-comp-sugitem-av"
-                  style={{ cursor: onOpenProfile ? 'pointer' : undefined }}
-                  onClick={onOpenProfile ? (e) => { e.stopPropagation(); onOpenProfile(m.id); } : undefined}
-                >
-                  {m.name.charAt(0)}
-                </span>
-                <span className="comm-comp-sugitem-tx">{m.name} <span>&amp; {m.dog}</span></span>
-              </div>
-            ))}
-          </div>
-        )}
+        <input
+          className="comm-input"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
+          placeholder="Type a name and press Enter…"
+        />
       </div>
     </div>
   );
@@ -1367,19 +1379,11 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
 function SK_GEO_UNITS(key: GeoCategory): string[] { return SK_GEO.find((c) => c.key === key)?.units ?? []; }
 
 // ── D · Events view (zoznam plánovaných spoločných výletov + join) ────────────────────────────
-// "hosted by X" — clickable when X resolves to a mock member (v1 scope, §4). Plain text otherwise
-// (real cross-account hosts aren't resolvable in v1 — no dead link).
-function HostNameLink({ host, onOpenProfile }: { host: string; onOpenProfile?: (memberId: string) => void }) {
-  const memberId = mockMemberIdByName(host);
-  if (!onOpenProfile || !memberId) return <>{host}</>;
-  return (
-    <span
-      onClick={() => onOpenProfile(memberId)}
-      style={{ cursor: 'pointer', textDecoration: 'underline', textUnderlineOffset: 2 }}
-    >
-      {host}
-    </span>
-  );
+// "hosted by X" — Matej 2026-08-03 „začíname so všetkým do nuly": bez členského adresára
+// (pack_members) niet odkiaľ zobrať profil id pre cudzie meno, takže plain text vždy —
+// žiadny odkaz do prázdna. `onOpenProfile` ostáva v props pre budúci reálny lookup.
+function HostNameLink({ host }: { host: string }) {
+  return <>{host}</>;
 }
 
 export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessage, onOpenTrip, onOpenProfile, photoFor }: {
@@ -1389,7 +1393,7 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
   onToggleClosed?: (id: string) => void; // zavrieť/otvoriť skupinu — len pre členov skupiny
   onMessage: (name: string) => void;
   onOpenTrip: (id: string) => void;
-  onOpenProfile?: (memberId: string) => void; // avatar/host klik → /pack/u/:id (mock members only, v1)
+  onOpenProfile?: (memberId: string) => void; // avatar/host klik → /pack/u/:id — čaká na reálny členský adresár, host v tomto view sám odkaz nevyrába
   photoFor?: (tr: HeroTrail) => string;
 }) {
   if (events.length === 0) {
@@ -1416,7 +1420,7 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
                 <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
                 <div className="comm-plan-meta">
                   {whenLabel} · hosted by{' '}
-                  <HostNameLink host={ev.host} onOpenProfile={onOpenProfile} />
+                  <HostNameLink host={ev.host} />
                   {tr ? ` · ${tr.region}` : ''}
                 </div>
               </div>
@@ -1435,11 +1439,8 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onMessa
             {ev.socialization && <div className="comm-plan-meta" style={{ marginTop: 8 }}>🤝 {ev.socialization}</div>}
             <div className="comm-plan-people">
               <div className="comm-person">
-                <span
-                  className="comm-person-av"
-                  onClick={() => { const mid = mockMemberIdByName(ev.host); if (mid) onOpenProfile?.(mid); }}
-                  style={{ cursor: onOpenProfile && mockMemberIdByName(ev.host) ? 'pointer' : undefined }}
-                >
+                {/* host bez známeho profil id (žiadny členský adresár) → statický avatar, nie klik do prázdna */}
+                <span className="comm-person-av">
                   {ev.host.charAt(0)}
                 </span>
                 <span className="comm-person-txt"><b>{going}</b> <span>{going === 1 ? 'Dogyptian going' : 'Dogyptians going'}</span></span>

@@ -208,7 +208,13 @@ const App = () => (
               {/* TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md) */}
               <Route path="/pack/map/triplist" element={DEV_FULL ? <PackTriplist /> : <Navigate to="/pack" replace />} />
               {/* iterácia 12 bod 5: ⤢ expand → SAMOSTATNÁ full-page article route (nie modal
-                  v PackMap) — PackMap už nikdy nemountuje so slugom. */}
+                  v PackMap) — PackMap už nikdy nemountuje so slugom.
+                  Krajina je vlastný segment (Matej 2026-08-03): `/pack/map/svk/:slug`. ISO3, lebo
+                  ISO2 `sk` by sa v ceste čítalo ako jazyková mutácia. Stavať výhradne cez
+                  tripPath() / tripPathById() z tripShared. */}
+              <Route path="/pack/map/:country/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
+              {/* Starý tvar bez krajiny — drží staré odkazy nažive, PackTripArticle si sám
+                  doplní krajinu a prepíše URL (replace). Statické segmenty vyššie vyhrávajú. */}
               <Route path="/pack/map/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
               {/* ADD flow má vlastnú URL od začiatku (issue #35): `/pack/add/trip`, NIE `/pack/add`.
                   Medzikrok ADD → (trip · event · place · service) sa teraz nestavia, ale keď pribudne,

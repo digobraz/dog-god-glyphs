@@ -4,6 +4,7 @@
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME } from '@/components/pack/packTheme';
+import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
   persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
@@ -214,12 +215,117 @@ const WALKED_IDS_KEY = PACK_KEYS.walked;
 export const RENAMED_TRIP_IDS: Record<string, string> = {
   // preklep v názve obce (2026-07-25) — obec je Chtelnica, nie Chtalnica
   'male-karpaty-chtalnica-klenova': 'male-karpaty-chtelnica-klenova',
+  // Prehodené poradie v slugu (2026-08-03, Matej): bolo `<pohorie>-<lokalita>`, teraz
+  // `<lokalita>-<pohorie>` — lokalita je to, čo človek hľadá, a pohorie ako PREFIX navyše
+  // klamalo, keď bol výlet zaradený zle (Havrania skala bola v `male-karpaty`, hoci leží
+  // v Slovenskom raji). Krajina do slugu NEIDE — je samostatný segment cesty.
+  // Migrácia bola bezpečná: mapa je za DEV_FULL, slugy nikdy neboli verejné. Tento zoznam
+  // je poistka pre uložený lokálny stav (Matejov testovací prehliadač) + staré rozpracované
+  // odkazy; po pár týždňoch v prevádzke sa dá zmazať.
+  'male-karpaty-zaruby-1-kostol-certov-zlab-zaruby': 'zaruby-1-kostol-certov-zlab-zaruby-male-karpaty',
+  'male-karpaty-zaruby-2-smolenice-stanica-havranica-zaruby': 'zaruby-2-smolenice-stanica-havranica-zaruby-male-karpaty',
+  'male-karpaty-zaruby-3-bukova-ostry-kamen-zaruby': 'zaruby-3-bukova-ostry-kamen-zaruby-male-karpaty',
+  'male-karpaty-zaruby-4-jahodnik-certov-zlab-zaruby': 'zaruby-4-jahodnik-certov-zlab-zaruby-male-karpaty',
+  'male-karpaty-zaruby-5-kostol-kaluza-zaruby': 'zaruby-5-kostol-kaluza-zaruby-male-karpaty',
+  'male-karpaty-vapenna-rostun': 'vapenna-rostun-male-karpaty',
+  'male-karpaty-slepy-vrch': 'slepy-vrch-male-karpaty',
+  'male-karpaty-kukla': 'kukla-male-karpaty',
+  'male-karpaty-chtelnica-klenova': 'chtelnica-vyhlad-klenova-male-karpaty',
+  'male-karpaty-celo-veterlin': 'celo-veterlin-male-karpaty',
+  'male-karpaty-amonova-luka': 'amonova-luka-male-karpaty',
+  'male-karpaty-cierna-skala': 'cierna-skala-male-karpaty',
+  'male-karpaty-plavecky-hrad': 'plavecky-hrad-male-karpaty',
+  'male-karpaty-jelenec-a-keltek': 'jelenec-a-keltek-male-karpaty',
+  'male-karpaty-majdan-klasicky-okruh': 'majdan-klasicky-okruh-male-karpaty',
+  'male-karpaty-vysoka-na-steroidoch-tajne-skaly': 'vysoka-na-steroidoch-tajne-skaly-male-karpaty',
+  'male-karpaty-casta-pila': 'casta-pila-male-karpaty',
+  'male-karpaty-egres': 'egres-male-karpaty',
+  'male-karpaty-budmerice': 'budmerice-kastiel-park-male-karpaty',
+  'male-karpaty-chtelnica-rajska-zahrada': 'dobra-voda-vyhlad-male-karpaty',
+  'male-karpaty-chtelnica-rajska-zahrada-2': 'chtelnica-rajska-zahrada-male-karpaty',
+  'male-karpaty-dechtice': 'dechtice-male-karpaty',
+  'male-karpaty-chtelnica-priehrada': 'chtelnica-priehrada-male-karpaty',
+  'male-karpaty-chtelnica-plesiva-nadrz': 'chtelnica-plesiva-male-karpaty',
+  'chtelnica-nadrz': 'chtelnica-nadrz-male-karpaty',
+  'male-karpaty-lancarska-luka': 'lancarska-luka-male-karpaty',
+  'male-karpaty-cachticky-hrad-plesivce': 'cachticky-hrad-plesivce-male-karpaty',
+  'male-karpaty-orlie-skaly': 'orlie-skaly-male-karpaty',
+  'male-karpaty-medvedie-udolie-limbach': 'medvedie-udolie-limbach-male-karpaty',
+  'male-karpaty-bukova-priehrada': 'bukova-priehrada-male-karpaty',
+  'male-karpaty-jelenia-hora': 'jelenia-hora-male-karpaty',
+  'male-karpaty-stary-plast': 'stary-plast-male-karpaty',
+  'biele-karpaty-vrsatecke-podhradie-chelova-okruh': 'vrsatecke-podhradie-chelova-okruh-biele-karpaty',
+  'biele-karpaty-velky-lopenik-rozhladna': 'velky-lopenik-rozhladna-biele-karpaty',
+  'biele-karpaty-haluzicka-tiesnava': 'haluzicka-tiesnava-biele-karpaty',
+  'biele-karpaty-dracia-studna-biely-vrch': 'dracia-studna-biely-vrch-biele-karpaty',
+  'biele-karpaty-zlatnicka-dolina': 'zlatnicka-dolina-biele-karpaty',
+  'povazsky-inovec-inovec': 'inovec-povazsky-inovec',
+  'povazsky-inovec-hradok-bezovec': 'hradok-bezovec-povazsky-inovec',
+  'povazsky-inovec-sokolie-skaly-marhat': 'sokolie-skaly-marhat-povazsky-inovec',
+  'povazsky-inovec-tesare': 'tesare-povazsky-inovec',
+  'strazovske-vrchy-strazov': 'strazov-strazovske-vrchy',
+  'strazovske-vrchy-rokos': 'rokos-strazovske-vrchy',
+  'strazovske-vrchy-vapec': 'vapec-strazovske-vrchy',
+  'strazovske-vrchy-sulovske-skaly': 'sulovske-skaly-strazovske-vrchy',
+  'strazovske-vrchy-zbynovsky-budzogan': 'zbynovsky-budzogan-strazovske-vrchy',
+  'tribec-zobor': 'zobor-tribec',
+  'mala-fatra-velky-krivan': 'velky-krivan-mala-fatra',
+  'mala-fatra-maly-rozsutec': 'maly-rozsutec-mala-fatra',
+  'mala-fatra-janosikove-diery-stefanova': 'janosikove-diery-stefanova-mala-fatra',
+  'mala-fatra-sokolie': 'sokolie-mala-fatra',
+  'mala-fatra-klak': 'klak-mala-fatra',
+  'mala-fatra-sutovsky-vodopad-buchta': 'sutovsky-vodopad-buchta-mala-fatra',
+  'mala-fatra-mincol': 'mincol-mala-fatra',
+  'velka-fatra-ostredok': 'ostredok-velka-fatra',
+  'velka-fatra-tlsta-ostra': 'tlsta-ostra-velka-fatra',
+  'velka-fatra-gaderska-dolina': 'gaderska-dolina-velka-fatra',
+  'chocske-vrchy-velky-choc': 'velky-choc-chocske-vrchy',
+  'chocske-vrchy-sip': 'sip',
+  'chocske-vrchy-kvacianska-dolina': 'kvacianska-dolina-chocske-vrchy',
+  'nizke-tatry-chopok-dumbier': 'chopok-dumbier-nizke-tatry',
+  'nizke-tatry-ohniste': 'ohniste-nizke-tatry',
+  'zapadne-tatry-sivy-vrch': 'sivy-vrch-zapadne-tatry',
+  'vysoke-tatry-bielovodska-dolina': 'bielovodska-dolina-vysoke-tatry',
+  'vysoke-tatry-zelene-pleso': 'zelene-pleso-vysoke-tatry',
+  'slovensky-raj-tomasovsky-vyhlad': 'tomasovsky-vyhlad-slovensky-raj',
+  'poloniny-poloniny-5-dni': 'poloniny-5-dni',
+  'vodne-diela-liptovska-mara': 'liptovska-mara',
+  'vodne-diela-kralova': 'kralova',
+  'vodne-diela-slnava': 'slnava',
+  'vodne-diela-oresianska-priehrada': 'oresianska-priehrada',
+  'vodne-diela-palcmanska-masa': 'palcmanska-masa',
+  'zahranicie-bled': 'bled',
+  'zahranicie-vintgar-radovna-tiesnava': 'vintgar-radovna-tiesnava',
+  'zahranicie-bibione': 'bibione',
+  'zahranicie-balkan': 'balkan',
+  'zahranicie-srbsko': 'srbsko',
+  'slovensky-raj-slovensky-raj-gacovska-skala': 'gacovska-skala-slovensky-raj',
+  'male-karpaty-havrania-skala-slovensky-raj': 'havrania-skala-slovensky-raj',
 };
 export const currentTripId = (id: string): string => RENAMED_TRIP_IDS[id] ?? id;
 
+// ── URL výletu ────────────────────────────────────────────────────────────────────────────────
+// `/pack/map/:country/:slug` — krajina je SEGMENT CESTY, nie časť slugu (Matej 2026-08-03).
+// Dôvod: pri globálnom rozšírení sa dá `/pack/map/svk/` linkovať a filtrovať ako rozcestník,
+// a slug ostane krátky. V ceste je ISO3 (`svk`), lebo ISO2 `sk` sa v URL číta ako jazyk.
+// Dataset drží krajinu v ISO2 — preklad robí iso2ToISO3(), aby konvencia žila na jednom mieste.
+// VŽDY stavať URL cez tento helper; ručne skladané `/pack/map/${id}` stratí krajinu.
+export function tripPath(t: { id: string; country?: string | null; path?: readonly (readonly number[])[] }): string {
+  return `/pack/map/${iso2ToISO3(trailCountry(t)).toLowerCase()}/${t.id}`;
+}
+
+// Verzia pre miesta, kde je po ruke len id (callbacky typu `onOpenTrip(tid)`). Zoznam trás sa
+// podáva ZVONKU zámerne — hodnotový import HERO_TRAILS by vtiahol celý dataset trás do každého
+// chunku, ktorý siahne na tripShared. Keď sa trip nenájde (lokálny ADD-flow výlet), padá na
+// `svk`; appka je SK-first a zlá krajina v ceste je kozmetika — routa sa matchuje podľa slugu.
+export function tripPathById(id: string, trails: readonly HeroTrail[]): string {
+  const t = trails.find((x) => x.id === id);
+  return t ? tripPath(t) : `/pack/map/svk/${id}`;
+}
+
 // Jednorazová migrácia uloženého stavu. Prepíše staré id vo VŠETKÝCH úložiskách, ktoré kľúčujú
 // podľa trip id. Guard flag = beží raz; keby pribudol ďalší prepis, stačí zvýšiť verziu kľúča.
-const RENAME_MIGRATED_KEY = 'trp-id-rename-v1';
+const RENAME_MIGRATED_KEY = 'trp-id-rename-v2';
 export function migrateRenamedTripIds(): void {
   try {
     if (trpStore.getItem(RENAME_MIGRATED_KEY)) return;
@@ -277,9 +383,35 @@ export const writeWalkedIds = (s: Set<string>) => persistWalked(s);
 
 // Founder walked logika (Matej 2026-07-24, LOCKED): „čo nahodím, to som aj prešiel".
 // Každá nahodená (čierna, non-journey) trasa = walked. Z červených journeys sú reálne prejdené
-// len tieto. Štefánikova magistrála = prejdená CEZ SNP (geo-audit: SNP⊇Štefánikova 90 %,
-// hrebeň Malé/Biele Karpaty–Javorníky sa prekrýva) — Matej 2026-07-24. Ostatné magistrály neprejdené.
-export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny', 'stefanikova-magistrala'];
+// len tieto dve. 2026-08-03 (Matej, explicitne): s Hektorom prešli LEN SNP + Poloniny —
+// `'stefanikova-magistrala'` tu bola nesprávne (geo-odvodenie cez prekryv s SNP, nie reálna
+// prejdená trasa). Ostatné magistrály neprejdené.
+// POZOR: `packCommunity.ts` má DRUHÚ kópiu tohto zoznamu (`FOUNDER_WALKED_JOURNEY_IDS`) — obe
+// musia byť ručne držané v zhode.
+export const FOUNDER_WALKED_JOURNEY_IDS = ['snp-cesta-hrdinov', 'poloniny'];
+
+// ── Jednorazové odstránenie nesprávne naseedovanej Štefánikovej (2026-08-03) ────────────────
+// FOUNDER_WALKED_JOURNEY_IDS vyššie donedávna obsahovala 'stefanikova-magistrala'. Kto sa stihol
+// naseedovať (scheduleFounderSeed nižšie, PRED touto opravou) má ju už zapísanú v localStorage
+// (WALKED_IDS_KEY) aj v DB (`trip_walked`, source `founder_seed`). `writeWalkedIds` je
+// write-through (persistWalked → persistSetDiff), takže jeden lokálny zápis tu zároveň zaradí
+// DB delete do sync frontu — netreba druhú migráciu v packStore.ts.
+// Bez founder-gate: bezpečné, lebo Mapa (`/pack/map*`) je zatiaľ za DEV_FULL — v produkcii
+// walked dáta zatiaľ nemá nikto okrem foundera (viď KONTEXT.md). Ak sa Mapa pustí členom PRED
+// týmto guardom, treba tu doplniť rovnaký founder-only check ako v packStore.ts scheduleFounderSeed.
+const STEFANIKOVA_UNSEED_KEY = 'trp-stefanikova-unseed-v1';
+function unseedStefanikovaMigration(): void {
+  try {
+    if (trpStore.getItem(STEFANIKOVA_UNSEED_KEY)) return;
+    trpStore.setItem(STEFANIKOVA_UNSEED_KEY, '1');
+    const walked = readWalkedIds();
+    if (walked.has('stefanikova-magistrala')) {
+      walked.delete('stefanikova-magistrala');
+      writeWalkedIds(walked);
+    }
+  } catch { /* private mode / quota — non-fatal */ }
+}
+unseedStefanikovaMigration();
 
 // Seed sa od 2026-07-30 (issue #32) NEROBÍ per-prehliadač na slepo — rozhoduje o ňom packStore
 // PO hydratácii z DB: dostane ho iba founder účet a iba keď v DB nemá ani jednu prejdenú trasu.

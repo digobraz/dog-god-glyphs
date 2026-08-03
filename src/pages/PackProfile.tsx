@@ -919,6 +919,9 @@ export default function PackProfile() {
 // Identity bloku. Detail (zdravie/dokumenty/PDF) ostáva na `/pack/dogs/:id` (PackDogDetail) —
 // accordion tu rieši len BIO+tagy, needuplikuje zvyšok toho panelu.
 function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loading: boolean; profile: CentralProfile | null }) {
+  // Vlastný hook, nie prop-drilling z PackProfile() — resetFlow tu bol predtým referencovaný
+  // z rodičovského scope (ReferenceError, tsc TS2304), MyGodsContent je samostatná funkcia.
+  const resetFlow = useDogyptStore((s) => s.reset);
   const entries: DogGalleryEntry[] = dogs.map((d) => ({
     id: d.id,
     name: d.dog_name || 'Unnamed',

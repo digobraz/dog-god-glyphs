@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { PACK_THEME, FONT_UI } from './packTheme';
 import { BrandIcon } from './BrandIcon';
@@ -120,7 +120,7 @@ export function NextTripCard() {
 
   return (
     <Link
-      to={`/pack/map/${trail.id}`}
+      to={tripPath(trail)}
       className="pack-card-hover ntc-card"
       style={{
         background: T.cardGrad,

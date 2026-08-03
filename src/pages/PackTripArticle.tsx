@@ -29,10 +29,10 @@ import { useToast } from '@/hooks/use-toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile,
-  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS,
+  readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
 } from '@/components/pack/tripShared';
 import {
-  crowdAggregate, FOUNDER_WALKERS, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
+  crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import {
@@ -227,7 +227,7 @@ function voteTip(slices: CrowdSlice<string>[]): string {
 export default function PackTripArticle() {
   const t = useT();
   const navigate = useNavigate();
-  const { slug } = useParams<{ slug: string }>();
+  const { slug, country } = useParams<{ slug: string; country?: string }>();
   const id = usePackIdentity();
   const { toast } = useToast();
 
@@ -239,8 +239,13 @@ export default function PackTripArticle() {
   // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
   const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;
   useEffect(() => {
-    if (renamedTo) navigate(`/pack/map/${renamedTo}`, { replace: true });
+    if (renamedTo) navigate(`/pack/map/svk/${renamedTo}`, { replace: true });
   }, [renamedTo, navigate]);
+  // Odkaz bez krajiny (`/pack/map/:slug`, tvar spred 3.8.2026) → doplň segment a prepíš URL.
+  // `replace`, aby sa späť tlačidlo nezasekalo na starom tvare.
+  useEffect(() => {
+    if (trail && !country) navigate(tripPath(trail), { replace: true });
+  }, [trail, country, navigate]);
 
   // #41 — KTO TENTO VÝLET VYPÍSAL. Na desktope to rieši inline detail v PackMap, ale
   // MOBIL sem naviguje na celú routu (`/pack/map/:slug`), takže bez tohto by na
@@ -422,7 +427,7 @@ export default function PackTripArticle() {
 
   const handleShare = async () => {
     if (!trail) return;
-    const url = `${window.location.origin}/pack/map/${trail.id}`;
+    const url = `${window.location.origin}${tripPath(trail)}`;
     const shareData = { title: trail.name, text: `${trail.name} — ${trail.km} km, ${trail.diff}`, url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
@@ -466,6 +471,12 @@ export default function PackTripArticle() {
   const cover = trail.photos[0];
   // crowd agregát (design §A) — konzistentné s kartami v PackMap
   const agg = crowdAggregate(trail, votes[trail.id]);
+  // audit #45 (2026-08-03, „začíname so všetkým do nuly"): FOUNDER_WALKERS bola globálna
+  // konštanta (2) a fungovala len kým KAŽDÁ trasa mala garantovaných aspoň toľko hlasov.
+  // Teraz je zakladateľských hlasov na trasu 0 alebo 2 (founderWalkers(trail)), takže base na
+  // odčítanie musí byť per-trail, inak by sa „+X Dogyptians" buď nezobrazilo pri reálnom hlase
+  // (0 zakladateľov + 1 user vote by dalo 1-2=-1), alebo počítalo z nesprávneho základu.
+  const extraWalkers = agg.walkedCount - founderWalkers(trail);
   // bod 2 (iterácia 14): rovnaká chip-skladačka ako inline detail v PackMap.tsx (acts + tags,
   // emoji prefix keď existuje mapovanie).
   const tripChips = [
@@ -568,7 +579,7 @@ export default function PackTripArticle() {
         <div className="pta-title">{trail.name}</div>
         {/* bod 4 (iterácia 13): samostatný DiffMark+diff riadok pod titulom ZMAZANÝ —
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
-        <div className="pta-author">by {authorOf(trail)}{agg.walkedCount - FOUNDER_WALKERS > 0 ? ` · +${agg.walkedCount - FOUNDER_WALKERS} Dogyptians` : ''}</div>
+        <div className="pta-author">by {authorOf(trail)}{extraWalkers > 0 ? ` · +${extraWalkers} Dogyptians` : ''}</div>
 
         {/* iterácia 15 (Matej 2026-07-27): AKCIE — von z fotky, nad stat tabuľku.
             Stavová logika:
@@ -613,7 +624,11 @@ export default function PackTripArticle() {
               <b>{CROWD_EMOJI[agg.crowd]} {agg.crowd}</b><span>Crowd</span>
             </div>
           )}
-          <div className="pta-stat"><b className="pta-ratingstack"><RatingPaws stars={agg.rating} size={11} gap={2} />{agg.rating.toFixed(1)}</b><span>Rating</span></div>
+          {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating") —
+              dlaždicu vôbec nevykresľuj, inak ukáže „0.0" a prázdne labky. */}
+          {agg.rating > 0 && (
+            <div className="pta-stat"><b className="pta-ratingstack"><RatingPaws stars={agg.rating} size={11} gap={2} />{agg.rating.toFixed(1)}</b><span>Rating</span></div>
+          )}
         </div>
 
         {/* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */}
@@ -725,8 +740,15 @@ export default function PackTripArticle() {
         )}
 
         <div className="pta-section">
-          <h3>Walked by {agg.walkedCount} Dogyptian{agg.walkedCount === 1 ? '' : 's'}</h3>
-          {agg.walkedCount === 0 && <div className="pta-empty">Be the first to walk this.</div>}
+          {/* audit #45 (2026-08-03): fabrikované hlasy sú preč, walkedCount môže byť 0 (magistrála/
+              trip bez zakladateľských hlasov) — „Walked by 0 Dogyptians" by bola nepravdivá veta.
+              Matej 2026-08-03: pri nule JEDEN riadok, a nech je to výzva, nie konštatovanie —
+              „No Dogyptian has walked this yet." + „Be the first to walk this." hovorili to isté. */}
+          {agg.walkedCount === 0 ? (
+            <h3>Be the first to walk this.</h3>
+          ) : (
+            <h3>Walked by {agg.walkedCount} Dogyptian{agg.walkedCount === 1 ? '' : 's'}</h3>
+          )}
         </div>
         </div>
       </div>

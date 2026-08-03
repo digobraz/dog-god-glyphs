@@ -1,8 +1,9 @@
 // Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). JEDEN profil =
 // MAJITEĽ (klik na psa aj človeka vedie sem, žiadny samostatný psí profil). v1 rozsah: dáta žijú
-// v localStorage (CentralProfile) → funguje len pre SELF a MOCK_MEMBER_POOL členov. Reálny cudzí
-// user (iný prehliadač/zariadenie) = graceful fallback, čaká na Supabase perzistenciu profilu
-// (ďalší slice).
+// v localStorage (CentralProfile) → funguje len pre SELF. Reálny cudzí user (iný prehliadač/
+// zariadenie) = graceful fallback, čaká na Supabase perzistenciu profilu (ďalší slice).
+// 2026-08-03 (Matej: „začíname so všetkým do nuly"): fiktívny MOCK_MEMBER_POOL vetva odstránená
+// — neexistujúci reálny profil teraz vždy padne na fallback nižšie.
 //
 // D3 visibility: owner hlavička tu ukazuje len bazálne identity polia (avatar/meno/nickname/
 // nationalita/pack#/badges) — ŽIADNE z nich nemá tier v ProfileFieldKey/DEFAULT_VISIBILITY, takže
@@ -22,9 +23,9 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { usePackUser } from '@/hooks/usePackUser';
 import { useProfile, deriveDefaultDogAttrs, NATIONALITY_OPTIONS } from '@/components/pack/profile/packProfile';
-import { MOCK_MEMBER_POOL, computeCompletion } from '@/components/pack/packCommunity';
+import { computeCompletion } from '@/components/pack/packCommunity';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
-import { readWalkedIds } from '@/components/pack/tripShared';
+import { readWalkedIds, tripPath } from '@/components/pack/tripShared';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { flagUrl, countryISO2 } from '@/lib/countryGeo';
@@ -58,10 +59,8 @@ export default function PublicProfile() {
   const { dogs, loading: dogsLoading } = usePackUser(isSelf ? session!.user.id : null);
   const { profile } = useProfile();
 
-  const mockMember = useMemo(() => MOCK_MEMBER_POOL.find((m) => m.id === id), [id]);
-
   // Aggregované badges (trips walked + NP medaily) — reálne dáta pre self (sessionStorage
-  // walked-ids, per-browser), placeholder pre mock (žiadna walked-história v MockMember model).
+  // walked-ids, per-browser).
   const selfBadges = useMemo(() => {
     if (!isSelf) return null;
     try {
@@ -89,7 +88,7 @@ export default function PublicProfile() {
   }
 
   // ── Fallback — reálny cudzí user, žiadne dáta na serveri (zámerný v1 limit, §3.4) ──
-  if (!isSelf && !mockMember) {
+  if (!isSelf) {
     return (
       <PackLayout>
         <BackLink />
@@ -120,39 +119,27 @@ export default function PublicProfile() {
     );
   }
 
+  // isSelf je tu vždy true — !isSelf sa vrátil na fallback vyššie.
   const human = profile?.human;
-  const displayName = isSelf
-    ? (human?.displayAs === 'nickname' && human?.nickname ? human.nickname : (fullName || 'A Dogyptian'))
-    : (mockMember?.name ?? 'A Dogyptian');
-  const headerAvatar = isSelf ? avatarUrl : (mockMember?.avatarUrl ?? null);
-  const packNumber = isSelf ? (dogs[0]?.pack_number ?? null) : (mockMember?.packNumber ?? null);
-  // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj
-  // viditeľné furt"). Mock členovia národnosť v dátach nemajú.
-  const nationality = isSelf ? (human?.nationality ?? 'SK') : null;
-  const nationalityLabel = nationality ? NATIONALITY_OPTIONS.find((o) => o.value === nationality)?.labelEN : undefined;
+  const displayName = human?.displayAs === 'nickname' && human?.nickname ? human.nickname : (fullName || 'A Dogyptian');
+  const headerAvatar = avatarUrl;
+  const packNumber = dogs[0]?.pack_number ?? null;
+  // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj viditeľné furt").
+  const nationality = human?.nationality ?? 'SK';
+  const nationalityLabel = NATIONALITY_OPTIONS.find((o) => o.value === nationality)?.labelEN;
 
-  const dogEntries: DogGalleryEntry[] = isSelf
-    ? dogs.map((d) => ({
-        id: d.id,
-        name: d.dog_name || 'Unnamed',
-        photoUrl: d.cloudinary_main_url,
-        packNumber: d.pack_number,
-        attrs: profile?.dogs[d.id] ?? deriveDefaultDogAttrs(d.id),
-        heroglyph: {
-          gender: d.selections?.dogGender,
-          colour: d.selections?.dogColour,
-          bloodline: d.selections?.dogBloodline,
-        },
-      }))
-    : mockMember
-      ? [{
-          id: `${mockMember.id}-dog`,
-          name: mockMember.dog,
-          photoUrl: mockMember.avatarUrl ?? null,
-          packNumber: mockMember.packNumber,
-          attrs: mockMember.attrs,
-        }]
-      : [];
+  const dogEntries: DogGalleryEntry[] = dogs.map((d) => ({
+    id: d.id,
+    name: d.dog_name || 'Unnamed',
+    photoUrl: d.cloudinary_main_url,
+    packNumber: d.pack_number,
+    attrs: profile?.dogs[d.id] ?? deriveDefaultDogAttrs(d.id),
+    heroglyph: {
+      gender: d.selections?.dogGender,
+      colour: d.selections?.dogColour,
+      bloodline: d.selections?.dogBloodline,
+    },
+  }));
 
   const loadingDogs = isSelf && dogsLoading;
 
@@ -219,8 +206,8 @@ export default function PublicProfile() {
             )}
           </div>
 
-          {/* Badges — agregované (trips walked + NP medaily); mock = placeholder „—" (žiadna
-              walked-história v MockMember modeli, viď report). */}
+          {/* Badges — agregované (trips walked + NP medaily); „—" len keď selfBadges zlyhá
+              (try/catch vyššie). */}
           <div style={{ borderTop: `1px solid ${T.hairline}`, marginTop: 18, paddingTop: 16 }}>
             <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.28em', textTransform: 'uppercase', color: T.inkFaint, display: 'block', marginBottom: 10 }}>
               {t('pack.publicProfile.badgesLabel')}
@@ -254,7 +241,7 @@ export default function PublicProfile() {
           )}
         </section>
 
-        {/* Kadiaľ šli — voliteľné, vynechá sa ak nemáme dáta (mock nemá walked-históriu v1) */}
+        {/* Kadiaľ šli — voliteľné, vynechá sa ak nemáme walked dáta (selfBadges null/prázdne) */}
         {isSelf && selfBadges && selfBadges.walkedTrails.length > 0 && (
           <section
             style={{
@@ -269,7 +256,7 @@ export default function PublicProfile() {
               {selfBadges.walkedTrails.map((tr) => (
                 <Link
                   key={tr.id}
-                  to={`/pack/map/${tr.id}`}
+                  to={tripPath(tr)}
                   className="flex items-center justify-between"
                   style={{
                     padding: '9px 12px', border: `1px solid ${T.hairline}`, borderRadius: 10,

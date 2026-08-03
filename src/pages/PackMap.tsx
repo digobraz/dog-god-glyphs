@@ -70,13 +70,15 @@ import {
   TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
+  tripPath, tripPathById,
 } from '@/components/pack/tripShared';
 import {
-  crowdAggregate, mockEventsSeed, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
+  crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profilePointsFor, addedByMeIds, isFounderEmail,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
+import { packStorage } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup, WishlistIntentPopup, PartnerAdForm, DMStub,
   EventsView,
@@ -136,6 +138,33 @@ function regionCenter(region: string): LatLngTuple {
   if (trail) return trail.path[Math.floor(trail.path.length / 2)];
   return [48.7, 19.5];
 }
+
+// ── Jednorazová migrácia: zmaže 3 fiktívne seed eventy (Matej 2026-08-03: „začíname so
+// všetkým do nuly"). `mockEventsSeed()` (packCommunity.ts, commit 45dc14b) generovala presne
+// tri eventy s pevným id `seed-event-0`/`seed-event-1`/`seed-event-2` a vymyslenými hostmi
+// („Zuzka & Bady" / „Martin & Cézar" / „Lucia & Lola") — tie sa pri prvom otvorení appky
+// natrvalo zapísali do localStorage `trp-events-v2` (writeEvents efekt nižšie v komponente).
+// Odstránenie seedu z packCommunity.ts uložený stav samo nevyčistí.
+// Rozlíšenie od reálnych eventov je spoľahlivé: partner-ad aj plan-open flow (nižšie v tomto
+// súbore) generujú id `ad-${nowMs}-${tripId}` resp. `plan-event-${now}` — nikdy `seed-event-N`.
+// Filter teda maže PRESNE tie tri id, nič iné sa nezmestí do zoznamu → žiadny reálny event sa
+// nezmaže. Guard flag (rovnaký vzor ako `migrateRenamedTripIds` v tripShared.tsx) zaisťuje, že
+// beží raz — ak by si niekto v budúcnosti eventy s takým id vytvoril ručne (nemal by), migrácia
+// ich už znova nespustí.
+const SEED_EVENT_IDS = new Set(['seed-event-0', 'seed-event-1', 'seed-event-2']);
+const EVENTS_SEED_MIGRATED_KEY = 'trp-events-seed-migrated-v1';
+function migrateSeedEvents(): void {
+  try {
+    if (packStorage.getItem(EVENTS_SEED_MIGRATED_KEY)) return;
+    const stored = readEvents();
+    const cleaned = stored.filter((ev) => !SEED_EVENT_IDS.has(ev.id));
+    if (cleaned.length !== stored.length) writeEvents(cleaned);
+    packStorage.setItem(EVENTS_SEED_MIGRATED_KEY, '1');
+  } catch { /* private mode / quota — non-fatal, appka beží aj bez migrácie */ }
+}
+// Beží pri načítaní modulu, teda PRED prvým `readEvents()` v useState inicializátore nižšie —
+// inak by prvý render ešte videl staré fiktívne eventy.
+migrateSeedEvents();
 
 // bod 6 (iterácia 16): dva malé kruhové avatary (majiteľ + pes) pri "by {author}" riadku, karta
 // aj inline detail. Seed dáta nemajú per-trip owner/dog foto — pes používa reálny Hekthor asset
@@ -249,10 +278,12 @@ const ACTIVITY_PLACEHOLDERS: Record<string, string[]> = {
   overnight: [`${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`],
   skating: [`${CLD}/skating-1.webp`, `${CLD}/skating-2.webp`, `${CLD}/skating-3.webp`],
   paddleboard: [`${CLD}/paddleboard-1.webp`, `${CLD}/paddleboard-2.webp`, `${CLD}/paddleboard-3.webp`],
-  // explore-1/2/3 v Cloudinary NEEXISTUJÚ — nateraz požičané z picnic (najbližší neutrálny
-  // outdoor-spot vizuál, bez turistickej výbavy ako hiking-set). Matej má doplniť vlastné
-  // explore-1/2/3.webp do pack/placeholders, potom vymeniť tento riadok.
-  explore: [`${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`],
+  // ✅ 2026-08-03 (#39): vlastné explore fotky nahraté do Cloudinary `pack/placeholders`,
+  // požičané `picnic-*` zrušené. Motívy: 1 hrad-zrúcanina · 2 historické námestie ·
+  // 3 kaštieľ s parkom — presne tri povrchy, kvôli ktorým explore kategória vznikla.
+  // Štýl držaný na existujúcich placeholderoch (fotoreal 35 mm, zlatá hodina, bez ľudí
+  // a bez psov, 1600×893) — pri dopĺňaní ďalších sa naň pozri, nehádaj ho.
+  explore: [`${CLD}/explore-1.webp`, `${CLD}/explore-2.webp`, `${CLD}/explore-3.webp`],
 };
 // vyber 1 z 3 stabilne podľa seedu (id tripu / názov) → variety naprieč kartami, ale nemení sa pri re-renderi
 function placeholderFor(actIds: string[] | undefined, seed: string): string {
@@ -1371,10 +1402,7 @@ export default function PackMap() {
   const nowMs = useMemo(() => Date.now(), []);
   const [votes, setVotes] = useState<Record<string, TripVote>>(() => readVotes());
   const [plans, setPlans] = useState<TripPlan[]>(() => readPlans());
-  const [events, setEvents] = useState<PartnerEvent[]>(() => {
-    const stored = readEvents();
-    return stored.length ? stored : mockEventsSeed(HERO_TRAILS, Date.now());
-  });
+  const [events, setEvents] = useState<PartnerEvent[]>(() => readEvents());
   useEffect(() => { writeVotes(votes); }, [votes]);
   useEffect(() => { writePlans(plans); }, [plans]);
   useEffect(() => { writeEvents(events); }, [events]);
@@ -1579,14 +1607,14 @@ export default function PackMap() {
   // priama navigácia rovno na článok (jediné miesto, kde sa klik na kartu líši podľa šírky).
   const selectTrail = (tr: HeroTrail) => {
     if (typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP) {
-      navigate(`/pack/map/${tr.id}`);
+      navigate(tripPath(tr));
       return;
     }
     setAddFlow(null);
     setInlineDetailId(tr.id);
     setHeroBounds(tr.path);
   };
-  const expandDetail = (tid: string) => navigate(`/pack/map/${tid}`);
+  const expandDetail = (tid: string) => navigate(tripPathById(tid, allTrails));
   // ── design §B: klik na ★ → ak už NIE je na wishliste, otvor „zámer" popup (Solo/Buddy);
   // ak už je, odober (aj z planning). Priame pridanie ide až cez chooseSolo/choosePartner. ──
   const toggleFav = (tid: string) => {
@@ -2066,8 +2094,9 @@ export default function PackMap() {
           </div>
           {/* bod 3 (Matej 2026-07-22): pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
               popularita/hazard sa presunuli na fotku (PhotoMetaPills vyššie).
-              Plán = žiadne hodnotenie (výlet sa neodohral). */}
-          {!isUnwalkedPlan && <BigRating rating={agg.rating} compact />}
+              Plán = žiadne hodnotenie (výlet sa neodohral).
+              rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating"). */}
+          {!isUnwalkedPlan && agg.rating > 0 && <BigRating rating={agg.rating} compact />}
         </div>
       </div>
     );
@@ -2173,8 +2202,10 @@ export default function PackMap() {
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
                       popularita/hazard sú na fotke (PhotoMetaPills). */}
-                  {isUnwalkedPlan
-                    ? <span className="trp-norating" title="Not rated yet — the trip hasn't happened">— —</span>
+                  {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating")
+                      — rovnaká pomlčka ako pri nekonanom pláne, nie „0.0". */}
+                  {isUnwalkedPlan || dtAgg.rating <= 0
+                    ? <span className="trp-norating" title={isUnwalkedPlan ? "Not rated yet — the trip hasn't happened" : 'Not rated yet — nobody has walked this'}>— —</span>
                     : <BigRating rating={dtAgg.rating} />}
                 </div>
 
@@ -2242,8 +2273,11 @@ export default function PackMap() {
                 )}
 
                 <div className="trp-inldet-section">
-                  <h4>Walked by {dtAgg.walkedCount} Dogyptian{dtAgg.walkedCount === 1 ? '' : 's'}</h4>
-                  {dtAgg.walkedCount === 0 && <div className="trp-inldet-empty">Be the first to walk this.</div>}
+                  {/* Matej 2026-08-03: pri nule chodcov JEDEN riadok a nech je to výzva, nie
+                      konštatovanie — drží sa v zhode s PackTripArticle.tsx. */}
+                  {dtAgg.walkedCount === 0
+                    ? <h4>Be the first to walk this.</h4>
+                    : <h4>Walked by {dtAgg.walkedCount} Dogyptian{dtAgg.walkedCount === 1 ? '' : 's'}</h4>}
                 </div>
                 {/* §14 zadania (2026-07-23): komentová sekcia nahrádza staré "Message owner" /
                     "Open trip group" placeholdery — reviews (paw rating + voliteľný text) + advice.
@@ -2575,7 +2609,7 @@ export default function PackMap() {
         <div className="trp-cards">
           {activeCat === 'trips'
             ? renderTripList(false)
-            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)} />}
+            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onMessage={setDmName} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} />}
         </div>
       </div>
 

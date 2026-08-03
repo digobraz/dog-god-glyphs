@@ -1,11 +1,14 @@
 // Trip detail comment section — Reviews (paw rating + optional text) + Advice (Q&A). Replaces the
 // old "Message owner" / "Open trip group" placeholder buttons (§14 zadanie 2026-07-23 — "komentová
 // sekcia namiesto trip-group chatu"). Isolated component, mounted in PackMap trip detail panel.
-// Same visual language as messaging (Inbox.tsx/Thread.tsx) — gold accents,
-// papyrus-on-dark. Mock data = deterministic per tripId (mulberry32 + FNV-1a hash, same pattern as
-// packCommunity.ts) — no Math.random, so counts/content stay stable across renders. Mock rows are
-// DECORATIVE FILLER about fictional MOCK_MEMBER_POOL people and stay exactly as they were — real
-// content only comes from the DB layer below.
+// Same visual language as messaging (Inbox.tsx/Thread.tsx) — gold accents, papyrus-on-dark.
+//
+// ── 2026-08-03: FABRIKOVANÉ RECENZIE/RADY ZMAZANÉ PRED LAUNCHOM ──────────────────────
+// Až doteraz mala táto komponenta aj deterministicky generovaný "mock" filler (fiktívni ľudia
+// z MOCK_MEMBER_POOL, náhodné hodnotenia/texty/lajky z mulberry32 PRNG). Matej 2026-08-03:
+// "začíname so všetkým do nuly" — appka pred launchom ukazuje LEN reálne dáta z DB, žiadne
+// vymyslené mená, hodnotenia ani lajky. Všetok mock kód bol odstránený; prázdny stav (0 reálnych
+// recenzií/otázok) rieši explicitný empty state nižšie namiesto tichého dofukovania fillerom.
 //
 // §15 zadanie 2026-07-23: pagination (5/page, "‹ 1/N ›") + "my review"/"my question" write flow.
 //
@@ -20,10 +23,9 @@
 // Writes are NEVER optimistic: insert/upsert/delete await the DB response, and on RLS rejection
 // (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
 // rule as `sendMessage()` in packMessaging.ts.
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { MOCK_MEMBER_POOL, type MockMember } from '@/components/pack/packCommunity';
 import {
   getAuthedUserId,
   fetchTripReviews,
@@ -135,95 +137,6 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-reportcancel:hover{color:${T.onDark};}
 `;
 
-// ── deterministický PRNG z tripId (mulberry32 + FNV-1a hash) — rovnaký vzor ako
-// packCommunity.ts/PackMap.tsx tripOwnerMember(). Mock reviews/advice musia byť stabilné
-// medzi rendermi, žiadny Math.random. ──
-function hashStr(s: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-  return h >>> 0;
-}
-function mulberry32(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// realistický rozptyl labkového skóre — väčšina 4-5, zopár nižšie.
-const RATING_POOL = [5, 5, 5, 5, 4, 4, 4, 4, 4, 3, 3, 2, 1];
-
-const REVIEW_TEXT_POOL = [
-  'Loved every minute of this one — dog was exhausted in the best way.',
-  'Steep in parts but so worth the view at the top.',
-  'Perfect pace for an older dog, plenty of shade breaks.',
-  'We got soaked halfway through — bring a rain jacket.',
-  'My dog found three streams to jump in. 10/10 trail.',
-  'Quiet, barely any people. Great for a reactive dog.',
-  'A bit too crowded on weekends for my taste.',
-  'The last stretch nearly killed my legs, dog did not care one bit.',
-  'Would do this again just for the smells my dog discovered.',
-  'Well marked, easy to follow even with a young puppy.',
-  'Bring extra water, no stream near the top this time of year.',
-  'Beautiful views, tough climb — not for beginners or short legs.',
-  'My old boy needed a few extra breaks but made it all the way.',
-  'Ticks were bad this season, check your dog thoroughly after.',
-  'Short and sweet, good first trail for a new pack.',
-  'Ended up carrying my dog the last kilometer, still worth it.',
-];
-
-const ADVICE_TEXT_POOL = [
-  'Is this trail okay for a dog with hip dysplasia?',
-  'Bring a harness — some narrow ledges near the top.',
-  'Anyone know if there is shade for the first hour?',
-  'Parking fills up fast on weekends, go early.',
-  'Found a great swimming spot halfway, worth the detour.',
-  'Is it safe to let dogs off leash on this one?',
-  'Watch for loose gravel on the way down.',
-  'Best time to go is early morning before the heat hits.',
-  'Are there any water sources along the way for the dogs?',
-  'First time doing this with a puppy — any tips on pacing?',
-];
-
-interface MockReview { member: MockMember; rating: number; text: string | null; likes: number; }
-interface MockAdvice { member: MockMember; text: string; }
-
-function pickMember(rnd: () => number): MockMember {
-  return MOCK_MEMBER_POOL[Math.floor(rnd() * MOCK_MEMBER_POOL.length)];
-}
-
-function buildReviews(tripId: string): MockReview[] {
-  const countRnd = mulberry32(hashStr(`${tripId}:reviews-count`));
-  const count = 15 + Math.floor(countRnd() * 8); // 15..22
-  const rnd = mulberry32(hashStr(`${tripId}:reviews`));
-  const out: MockReview[] = [];
-  for (let i = 0; i < count; i++) {
-    const member = pickMember(rnd);
-    const rating = RATING_POOL[Math.floor(rnd() * RATING_POOL.length)];
-    const hasText = rnd() < 0.55;
-    const text = hasText ? REVIEW_TEXT_POOL[Math.floor(rnd() * REVIEW_TEXT_POOL.length)] : null;
-    const likes = Math.floor(rnd() * 13); // 0..12, same deterministic PRNG as rating/text
-    out.push({ member, rating, text, likes });
-  }
-  return out;
-}
-
-function buildAdvice(tripId: string): MockAdvice[] {
-  const countRnd = mulberry32(hashStr(`${tripId}:advice-count`));
-  const count = 3 + Math.floor(countRnd() * 4); // 3..6
-  const rnd = mulberry32(hashStr(`${tripId}:advice`));
-  const out: MockAdvice[] = [];
-  for (let i = 0; i < count; i++) {
-    const member = pickMember(rnd);
-    const text = ADVICE_TEXT_POOL[Math.floor(rnd() * ADVICE_TEXT_POOL.length)];
-    out.push({ member, text });
-  }
-  return out;
-}
-
 function Paws({ rating }: { rating: number }) {
   return (
     <span className="tcm-paws" aria-label={`${rating} out of 5 paws`}>
@@ -246,27 +159,6 @@ function PawPicker({ value, onChange }: { value: number; onChange: (n: number) =
       ))}
     </div>
   );
-}
-
-// clickable heart on a review — liked state persisted in localStorage (see LIKES_KEY below).
-// tint flips gold-dim → danger(red) on like, same convention as a "favourited" heart elsewhere.
-function LikeButton({ liked, count, onClick }: { liked: boolean; count: number; onClick: () => void }) {
-  return (
-    <button type="button" className={`tcm-like${liked ? ' on' : ''}`} onClick={onClick} aria-label={liked ? 'Unlike review' : 'Like review'}>
-      <BrandIcon name="heart" size={13} tint={liked ? 'danger' : 'dim'} />
-      <span>{count}</span>
-    </button>
-  );
-}
-
-// ── review likes persistence (localStorage) — flat set of `${tripId}#${reviewKey}` strings,
-// same pattern as myReviews/myQuestions below (no Supabase yet). ──
-const LIKES_KEY = 'dogypt.tripReviewLikes.v1';
-function readLikedKeys(): Set<string> {
-  try { return new Set(JSON.parse(localStorage.getItem(LIKES_KEY) || '[]') as string[]); } catch { return new Set(); }
-}
-function writeLikedKeys(s: Set<string>) {
-  try { localStorage.setItem(LIKES_KEY, JSON.stringify([...s])); } catch { /* best-effort */ }
 }
 
 // ── pager — "‹ 1/N ›", edges disabled (no wrap) ──
@@ -401,11 +293,10 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   const [askText, setAskText] = useState('');
   const [questionPosting, setQuestionPosting] = useState(false);
   const [questionError, setQuestionError] = useState<string | null>(null);
-  const [likedKeys, setLikedKeys] = useState<Set<string>>(() => readLikedKeys());
 
   // ── report (issue #54) — `reportRef` = id komentára (review.id / question.id) aktuálne
   // otváraného sheetu, null = zavreté. Len na REÁLNE cudzie komentáre (viď render nižšie) —
-  // mock riadky sú fiktívni ľudia, nahlásenie by nemalo koho/čo riešiť. ──
+  // vlastný komentár sa nedá nahlásiť sám na seba. ──
   const [reportRef, setReportRef] = useState<string | null>(null);
   const [reportBusy, setReportBusy] = useState(false);
   const [reportError, setReportError] = useState<string | null>(null);
@@ -426,25 +317,13 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
 
   useEffect(() => { void refreshReviews(); void refreshQuestions(); }, [refreshReviews, refreshQuestions]);
 
-  const toggleLike = (key: string) => {
-    setLikedKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      writeLikedKeys(next);
-      return next;
-    });
-  };
-
   const myReview = realReviews.find((r) => r.isMine) ?? null;
   const otherReviews = realReviews.filter((r) => !r.isMine);
   const myQuestionsForTrip = realQuestions.filter((q) => q.isMine);
   const otherQuestions = realQuestions.filter((q) => !q.isMine);
 
-  const mockReviews = useMemo(() => buildReviews(tripId), [tripId]);
-  const mockAdvice = useMemo(() => buildAdvice(tripId), [tripId]);
-
-  const reviewCount = realReviews.length + mockReviews.length;
-  const adviceCount = realQuestions.length + mockAdvice.length;
+  const reviewCount = realReviews.length;
+  const adviceCount = realQuestions.length;
 
   const reviewPages = Math.max(1, Math.ceil(reviewCount / PAGE_SIZE));
   const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
@@ -521,30 +400,26 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     }
   };
 
-  // ── combined render lists: mine (real, pinned first) → other real members → mock filler.
-  // Single array + one slice replaces the old "mine pinned to page 1" offset math, which only
-  // had to handle a single localStorage row — the DB can hold reviews/questions from any number
-  // of real members, so the list needs to generalize instead of special-casing one row. ──
+  // ── combined render lists: mine (real, pinned first) → other real members. Single array +
+  // one slice replaces the old "mine pinned to page 1" offset math, which only had to handle a
+  // single localStorage row — the DB can hold reviews/questions from any number of real members,
+  // so the list needs to generalize instead of special-casing one row. ──
   type ReviewItem =
     | { kind: 'mine'; review: RealReview }
-    | { kind: 'real'; review: RealReview }
-    | { kind: 'mock'; review: MockReview; mockIdx: number };
+    | { kind: 'real'; review: RealReview };
   const reviewItems: ReviewItem[] = [
     ...(myReview ? [{ kind: 'mine' as const, review: myReview }] : []),
     ...otherReviews.map((review) => ({ kind: 'real' as const, review })),
-    ...mockReviews.map((review, mockIdx) => ({ kind: 'mock' as const, review, mockIdx })),
   ];
   const reviewStart = (page - 1) * PAGE_SIZE;
   const reviewPageItems = reviewItems.slice(reviewStart, reviewStart + PAGE_SIZE);
 
   type QuestionItem =
     | { kind: 'mine'; q: RealQuestion }
-    | { kind: 'real'; q: RealQuestion }
-    | { kind: 'mock'; a: MockAdvice; mockIdx: number };
+    | { kind: 'real'; q: RealQuestion };
   const questionItems: QuestionItem[] = [
     ...myQuestionsForTrip.map((q) => ({ kind: 'mine' as const, q })),
     ...otherQuestions.map((q) => ({ kind: 'real' as const, q })),
-    ...mockAdvice.map((a, mockIdx) => ({ kind: 'mock' as const, a, mockIdx })),
   ];
   const adviceStart = (page - 1) * PAGE_SIZE;
   const advicePageItems = questionItems.slice(adviceStart, adviceStart + PAGE_SIZE);
@@ -583,7 +458,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
               </button>
             )}
 
-            {reviewCount === 0 && <div className="tcm-empty">No reviews yet. Be the first to rate this trip.</div>}
+            {reviewCount === 0 && <div className="tcm-empty">Be the first Dogyptian to review this trail.</div>}
 
             {reviewsOpen && (
               <>
@@ -626,25 +501,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                       </div>
                     );
                   }
-                  const { review: mr, mockIdx } = item;
-                  const key = `${tripId}#${mockIdx}`;
-                  const liked = likedKeys.has(key);
-                  return (
-                    <div className="tcm-review" key={`${mr.member.id}-${mockIdx}`}>
-                      <span className="tcm-avatar">{mr.member.name.charAt(0).toUpperCase()}</span>
-                      <div className="tcm-review-main">
-                        <div className="tcm-review-top">
-                          <span className="tcm-review-name">{mr.member.name}</span>
-                          <span className="tcm-review-pack">· Dogyptian #{mr.member.packNumber}</span>
-                        </div>
-                        <Paws rating={mr.rating} />
-                        {mr.text && <div className="tcm-review-text">{mr.text}</div>}
-                        <div className="tcm-review-footer">
-                          <LikeButton liked={liked} count={mr.likes + (liked ? 1 : 0)} onClick={() => toggleLike(key)} />
-                        </div>
-                      </div>
-                    </div>
-                  );
+                  return null;
                 })}
                 <Pager page={page} totalPages={reviewPages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(reviewPages, p + 1))} />
               </>
@@ -669,7 +526,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
             </div>
 
             {adviceCount === 0 ? (
-              <div className="tcm-empty">No advice yet. Ask the pack something.</div>
+              <div className="tcm-empty">No questions yet — ask the pack.</div>
             ) : (
               advicePageItems.map((item) => {
                 if (item.kind === 'mine') {
@@ -697,15 +554,7 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                     </div>
                   );
                 }
-                const { a, mockIdx } = item;
-                return (
-                  <div className="tcm-advice" key={`${a.member.id}-${mockIdx}`}>
-                    <div className="tcm-advice-text">{a.text}</div>
-                    <div className="tcm-advice-meta">
-                      <span>{a.member.name} · Dogyptian #{a.member.packNumber}</span>
-                    </div>
-                  </div>
-                );
+                return null;
               })
             )}
             <Pager page={page} totalPages={advicePages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(advicePages, p + 1))} />

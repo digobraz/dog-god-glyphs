@@ -20,12 +20,11 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById } from '@/components/pack/tripShared';
 import { closeMyTripEvents } from '@/lib/packStore';
-import { readPlans, MOCK_MEMBER_POOL } from '@/components/pack/packCommunity';
+import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl } from '@/lib/countryGeo';
-import { TripAnnouncePopup } from '@/components/pack/triplist/TripAnnouncePopup';
 import { useMyTripParties, useTripParties, partyKey, type TripParty, type PartyMember } from '@/components/pack/triplist/useTripParty';
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
 import {
@@ -34,16 +33,15 @@ import {
 } from '@/components/pack/triplist/tripRequests';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 import {
-  readTriplist, upsertMyTrip, seedTriplistFromPlans, buildPublicTrips,
+  readTriplist, upsertMyTrip, seedTriplistFromPlans,
   trailWCE, WCE_LABEL, type WCE,
-  type TriplistTrip, type TripStatus, type PublicTrip,
+  type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
 const T = PACK_THEME;
 const DAY_MS = 86400000;
-const isoDate = (ms: number) => new Date(ms).toISOString().slice(0, 10);
 
 const CSS = `
 .tl-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:${FONT_UI};position:relative;padding-bottom:110px;}
@@ -188,22 +186,15 @@ const CSS = `
 // status pilulka. done = walked (prejdené) má prednosť pred statusom.
 // Farebné triedy: done/with/looking/solo.
 //
-// #41: mená účastníkov idú z DB (`get_trip_party`), nie z lokálneho `entry.joiners`
-// — ten drží len mock/placeholder. Keď má výlet reálnu partiu, vyhráva ona; lokálna
-// vetva ostáva pre placeholder riadky (prázdny triplist) a offline.
+// #41: mená účastníkov idú z DB (`get_trip_party`) — jediný zdroj. Lokálny `entry.joiners`
+// je rezervované pole pre budúce Slice B (viď triplist.ts), reálne prihlásenia ním nejdú,
+// takže sa z neho meno nikdy neodvodzuje.
 function statusLabel(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
   if (done) return 'Done';
   const real = party?.joiners ?? [];
   if (real.length === 1) return `With ${real[0].ownerFirst ?? 'a Dogyptian'}`;
   if (real.length > 1) return `With ${real.length}`;
-  if (entry.status === 'going') {
-    if (entry.joiners.length === 1) {
-      const name = MOCK_MEMBER_POOL.find((m) => m.id === entry.joiners[0].memberId)?.name ?? 'a Dogyptian';
-      return `With ${name}`;
-    }
-    if (entry.joiners.length > 1) return `With ${entry.joiners.length}`;
-    return 'Going';
-  }
+  if (entry.status === 'going') return 'Going';
   if (entry.status === 'looking') {
     // organizátor vidí, koľko ľudí čaká na jeho odpoveď — inak by o žiadosti nevedel
     const waiting = party?.requests.length ?? 0;
@@ -250,9 +241,8 @@ function sortMyTrips(rows: MyTripRow[], nowMs: number): MyTripRow[] {
 
 type MyTripRow = { entry: TriplistTrip; trail: HeroTrail; placeholder?: boolean; done?: boolean };
 
-// Jedna karta v OPEN TRIPS. Dva pôvody, jeden tvar: `real` = inzerát z DB (dá sa
-// oň požiadať), `mock` = deterministická demo náplň z triplist.ts (otvára starý
-// oznamový popup s vymyslenými profilmi). Mock sa ukáže LEN keď v DB nie je nič.
+// Jedna karta v OPEN TRIPS — vždy reálny inzerát z DB (`user_trips` cez useOpenTrips).
+// Žiadny fiktívny fallback: keď DB nemá otvorené výlety, sekcia zobrazí prázdny stav.
 type OpenCard = {
   key: string;
   trail: HeroTrail;
@@ -260,9 +250,7 @@ type OpenCard = {
   joiners: number;
   ownerName: string;
   ownerInitial: string;
-  message?: string;
-  real?: { slug: string; organizerId: string };
-  mock?: PublicTrip;
+  real: { slug: string; organizerId: string };
 };
 
 // stav tlačidla „požiadať" podľa mojej existujúcej žiadosti na ten výlet
@@ -324,9 +312,6 @@ export default function PackTriplist() {
   const [publicWCE, setPublicWCE] = useState<WCE | 'all'>('all'); // OPEN TRIPS filter (region)
   const [publicPage, setPublicPage] = useState(0);                // OPEN TRIPS stránkovanie (9/stránku)
   const PUBLIC_PER_PAGE = 9;
-  // OPEN TRIP oznamový popup (flow A) — klik na kartu otvorí oznam, join = mock session stav.
-  const [announceTrip, setAnnounceTrip] = useState<PublicTrip | null>(null);
-  const [joinedIds, setJoinedIds] = useState<Set<string>>(() => new Set());
 
   const walkedSet = useMemo(() => readWalkedIds(), [allTrails, storeEpoch]);
 
@@ -338,40 +323,9 @@ export default function PackTriplist() {
       .sort((a, b) => b.entry.addedAt - a.entry.addedAt);
   }, [triplist, allTrails, walkedSet]);
 
-  // PLACEHOLDER MY TRIPS (design simulácia — keď užívateľ ešte nič nemá). Deterministické, aby sa
-  // sekcia dala vidieť „naživo" (aj DONE badge). Klik navigujе na reálny článok. Zmizne akonáhle pribudne 1 reálny.
-  const placeholderMyTrips = useMemo<MyTripRow[]>(() => {
-    const withPhotos = allTrails.filter((tr) => tr.photos[0]);
-    if (withPhotos.length === 0) return [];
-    // days = offset od dnes (záporné = minulosť pre DONE). Poradie sa aj tak prepočíta sortMyTrips.
-    const specs: { status: TripStatus; days: number | null; done?: boolean }[] = [
-      { status: 'going', days: 2 },        // blíži sa
-      { status: 'looking', days: 6 },
-      { status: 'solo', days: 13 },
-      { status: 'looking', days: 24 },
-      { status: 'solo', days: null },      // bez dátumu
-      { status: 'going', days: -9, done: true },   // hotové (minulosť)
-      { status: 'solo', days: -28, done: true },
-    ];
-    return specs.map((s, i) => {
-      const trail = withPhotos[(i * 7 + 3) % withPhotos.length];
-      const joiner = MOCK_MEMBER_POOL[(i * 5 + 2) % MOCK_MEMBER_POOL.length];
-      const entry: TriplistTrip = {
-        tripId: trail.id,
-        date: s.days !== null ? isoDate(nowMs + s.days * DAY_MS) : undefined,
-        status: s.status,
-        openness: s.status === 'solo' ? 'closed' : 'open',
-        joiners: s.status === 'going' ? [{ memberId: joiner.id, acceptedAt: nowMs }] : [],
-        requests: [],
-        addedAt: nowMs - i * 1000,
-      };
-      return { entry, trail, placeholder: true, done: s.done };
-    });
-  }, [allTrails, nowMs]);
-
   const myTrips = useMemo(
-    () => sortMyTrips(realMyTrips.length > 0 ? realMyTrips : placeholderMyTrips, nowMs),
-    [realMyTrips, placeholderMyTrips, nowMs],
+    () => sortMyTrips(realMyTrips, nowMs),
+    [realMyTrips, nowMs],
   );
   // #41 — ŽIADOSTI. `reqEpoch` je ručný refresh: prijatie/odmietnutie zmení riadok
   // v DB, ale RPC ani zoznamy o tom samy nevedia. `reqBusy` drží id práve
@@ -407,12 +361,7 @@ export default function PackTriplist() {
     return up ? daysFromNow(up.entry.date, nowMs) : null;
   }, [myTrips, nowMs]);
 
-  // depends on `triplist` — trip pridaný do vlastného zoznamu vypadne z PUBLIC (buildPublicTrips
-  // excludes tripIds v readTriplist()).
-  const publicTripsAll: PublicTrip[] = useMemo(() => buildPublicTrips(allTrails, nowMs), [allTrails, nowMs, triplist]);
-
-  // #41: DB inzeráty majú prednosť pred mockom — mock je len demo náplň, kým reálne
-  // inzeráty nie sú (rovnaký vzor ako placeholderMyTrips vyššie).
+  // #41: reálne inzeráty z `user_trips` (RLS `user_trips_read_open`) cez useOpenTrips.
   const realOpenCards = useMemo<OpenCard[]>(() => dbOpenTrips.flatMap((o) => {
     const trail = allTrails.find((tr) => tr.id === o.slug);
     // cudzia LOKÁLNA trasa — jej geometriu ani fotky appka nemá, kartu nepostaví
@@ -431,18 +380,7 @@ export default function PackTriplist() {
     }];
   }), [dbOpenTrips, openParties, allTrails]);
 
-  const mockOpenCards = useMemo<OpenCard[]>(() => publicTripsAll.map((pt) => ({
-    key: pt.trail.id,
-    trail: pt.trail,
-    date: pt.date,
-    joiners: pt.joinersCount,
-    ownerName: `${pt.owner.name} & ${pt.owner.dog}`,
-    ownerInitial: pt.owner.name.charAt(0).toUpperCase(),
-    message: pt.message,
-    mock: pt,
-  })), [publicTripsAll]);
-
-  const openCardsAll = realOpenCards.length > 0 ? realOpenCards : mockOpenCards;
+  const openCardsAll = realOpenCards;
   const openCards = useMemo(
     () => (publicWCE === 'all' ? openCardsAll : openCardsAll.filter((c) => trailWCE(c.trail) === publicWCE)),
     [openCardsAll, publicWCE],
@@ -552,7 +490,7 @@ export default function PackTriplist() {
           <TripStatsPanel
             walkedTrails={walkedTrails}
             walkedKm={walkedKm}
-            onOpenTrip={(tid) => navigate(`/pack/map/${tid}`)}
+            onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))}
             onAddTrip={(region) => navigate('/pack/add/trip' + (region ? `?region=${encodeURIComponent(region)}` : ''))}
           />
         ) : (
@@ -628,7 +566,7 @@ export default function PackTriplist() {
               <h3>My trips</h3>
             </div>
             {myTrips.length === 0 ? (
-              <div className="tl-empty">No trips in your list yet. Add a trail to start planning.</div>
+              <div className="tl-empty">You haven't logged a trip yet.</div>
             ) : (
               <div className="tl-hscroll">
                 {myTrips.map(({ entry, trail, done, placeholder }) => {
@@ -647,7 +585,7 @@ export default function PackTriplist() {
                     {dleft !== null && dleft >= 0 && (
                       <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(dleft)}</span>
                     )}
-                  <div className="pk-glass-block tl-block" onClick={() => navigate(`/pack/map/${trail.id}`)}>
+                  <div className="pk-glass-block tl-block" onClick={() => navigate(tripPath(trail))}>
                     <div className="tl-block-cover" style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
                       {canToggleVis ? (
@@ -705,7 +643,7 @@ export default function PackTriplist() {
               </select>
             </div>
             {openCards.length === 0 ? (
-              <div className="tl-empty">No open trips in this region right now.</div>
+              <div className="tl-empty">No open trips right now. Announce one and the pack will see it.</div>
             ) : (
               <>
               <div className="tl-grid">
@@ -718,7 +656,7 @@ export default function PackTriplist() {
                   <div
                     key={c.key}
                     className="pk-glass-block tl-block"
-                    onClick={() => (c.mock ? setAnnounceTrip(c.mock) : navigate(`/pack/map/${c.trail.id}`))}
+                    onClick={() => navigate(tripPath(c.trail))}
                   >
                     <div className="tl-block-cover" style={c.trail.photos[0] ? { backgroundImage: `url('${c.trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
@@ -731,7 +669,6 @@ export default function PackTriplist() {
                         <span className="tl-block-avatar">{c.ownerInitial}</span>
                         <span>{c.ownerName}</span>
                       </div>
-                      {c.message && <div className="tl-msg" title={c.message}>{c.message}</div>}
                       <div className="tl-block-foot">
                         {c.date ? <span className="tl-datepill">{c.date}</span> : <span className="tl-date">No date yet</span>}
                       </div>
@@ -826,17 +763,6 @@ export default function PackTriplist() {
           </div>
         );
       })()}
-
-      {announceTrip && (
-        <TripAnnouncePopup
-          trip={announceTrip}
-          nowMs={nowMs}
-          joined={joinedIds.has(announceTrip.trail.id)}
-          onRequestJoin={() => setJoinedIds((prev) => new Set(prev).add(announceTrip.trail.id))}
-          onViewTrail={() => { const id = announceTrip.trail.id; setAnnounceTrip(null); navigate(`/pack/map/${id}`); }}
-          onClose={() => setAnnounceTrip(null)}
-        />
-      )}
 
       <PackBottomNav />
     </div>

@@ -4,10 +4,11 @@
 // (`dogypt.tripReviews.v1` / `dogypt.tripQuestions.v1`) — zavri tab a je preč,
 // druhý člen ju nikdy neuvidel.
 //
-// Mock recenzie/rady (`buildReviews`/`buildAdvice`, fiktívni ľudia z
-// `MOCK_MEMBER_POOL`) v `TripComments.tsx` sa NEDOTÝKAme — sú to len
-// deterministicky generované decorácie, rovnaké rozhodnutie ako mock skupiny v
-// `packMessaging.ts`.
+// 2026-08-03 (Matej: „začíname so všetkým do nuly"): mock recenzie/rady
+// (`buildReviews`/`buildAdvice`, fiktívni ľudia z `MOCK_MEMBER_POOL`) v
+// `TripComments.tsx` sú ZMAZANÉ, rovnako ako mock skupiny v `packMessaging.ts`.
+// Táto vrstva je odteraz JEDINÝ zdroj recenzií a otázok — čo nie je v DB, sa
+// nezobrazí. Prázdny výlet ukáže empty state, nie výplň.
 //
 // Vzor je rovnaký ako `packMessaging.ts`: zápis je NIKDY optimistický naslepo —
 // insert/update/delete čaká na odpoveď z DB a až po úspechu sa prejaví v UI.
