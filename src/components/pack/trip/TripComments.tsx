@@ -3,16 +3,41 @@
 // sekcia namiesto trip-group chatu"). Isolated component, mounted in PackMap trip detail panel.
 // Same visual language as messaging (Inbox.tsx/Thread.tsx) — gold accents,
 // papyrus-on-dark. Mock data = deterministic per tripId (mulberry32 + FNV-1a hash, same pattern as
-// packCommunity.ts) — no Math.random, so counts/content stay stable across renders.
+// packCommunity.ts) — no Math.random, so counts/content stay stable across renders. Mock rows are
+// DECORATIVE FILLER about fictional MOCK_MEMBER_POOL people and stay exactly as they were — real
+// content only comes from the DB layer below.
 //
 // §15 zadanie 2026-07-23: pagination (5/page, "‹ 1/N ›") + "my review"/"my question" write flow.
-// Both persist to localStorage (dogypt.tripReviews.v1 / dogypt.tripQuestions.v1) — no Supabase yet,
-// same pattern as packCommunity.ts sessionStorage mirrors. Reviewing is gated on `walked` (passed
-// down from PackMap's existing walkedIds state) — see PawReviewPopup below.
-import { useEffect, useMemo, useState } from 'react';
+//
+// ── 2026-08-03, issue #52: MY REVIEW / MY QUESTIONS ARE NOW REAL DB ROWS ──────────────
+// Until today this was 100% localStorage (dogypt.tripReviews.v1 / dogypt.tripQuestions.v1):
+// write a review, close the tab, it's gone — no other member could ever see it. That's the whole
+// point of a comment under a trip ("let's meet up here"), so it had to survive the browser and be
+// visible to a second real member. Data now lives in `trip_reviews` / `trip_questions`
+// (migration `20260803_trip_comments.sql`) via `tripCommentsData.ts`, read through
+// `list_trip_reviews()`/`list_trip_questions()` (RPC — vends only first name + pack number of the
+// author, same whitelist convention as `get_trip_party()`/`list_my_conversations()`).
+// Writes are NEVER optimistic: insert/upsert/delete await the DB response, and on RLS rejection
+// (signed out, unpaid, DEV_NOAUTH) the popup shows an error instead of pretending it saved — same
+// rule as `sendMessage()` in packMessaging.ts.
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { MOCK_MEMBER_POOL, type MockMember } from '@/components/pack/packCommunity';
+import {
+  getAuthedUserId,
+  fetchTripReviews,
+  fetchTripQuestions,
+  upsertMyReview,
+  deleteMyReview,
+  postTripQuestion,
+  deleteTripQuestion,
+  type RealReview,
+  type RealQuestion,
+} from '@/components/pack/trip/tripCommentsData';
+// Nahlásenie (issue #54) — infra (RPC `report_content` + `pack_reports`) žije v messaging module,
+// odtiaľ sa len importuje (needituje sa, iní agenti na ňom pracujú súbežne).
+import { reportContent, type ReportReason } from '@/components/pack/messaging/packMessaging';
 
 const T = PACK_THEME;
 const GOLD = '#C99A3F';
@@ -99,6 +124,15 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-submit:disabled{opacity:.4;cursor:default;}
 .tcm-deletebtn{width:100%;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;padding:10px;border-radius:10px;background:rgba(178,38,30,0.14);color:#E0796D;border:1px solid rgba(206,75,60,0.4);cursor:pointer;}
 .tcm-deletebtn:hover{background:rgba(178,38,30,0.22);}
+
+/* nenápadné "Report" na cudzom (reálnom, nie mock) komentári — issue #54 */
+.tcm-reportlink{background:none;border:none;padding:0;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.05em;color:${T.onDarkDim};cursor:pointer;text-decoration:underline;text-underline-offset:2px;}
+.tcm-reportlink:hover{color:${GOLD};}
+.tcm-reportreason{width:100%;text-align:left;font-size:13px;padding:12px 14px;border-radius:10px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;margin-bottom:8px;}
+.tcm-reportreason:hover{border-color:${GOLD};}
+.tcm-reportreason.on{border-color:${GOLD};color:${GOLD};}
+.tcm-reportcancel{width:100%;margin-top:8px;background:none;border:0;color:${T.onDarkDim};font-family:inherit;font-size:12.5px;padding:9px;cursor:pointer;}
+.tcm-reportcancel:hover{color:${T.onDark};}
 `;
 
 // ── deterministický PRNG z tripId (mulberry32 + FNV-1a hash) — rovnaký vzor ako
@@ -235,30 +269,6 @@ function writeLikedKeys(s: Set<string>) {
   try { localStorage.setItem(LIKES_KEY, JSON.stringify([...s])); } catch { /* best-effort */ }
 }
 
-// ── my review persistence (localStorage — no Supabase yet, same pattern as packCommunity.ts
-// sessionStorage mirrors, just a different storage since it must survive across the whole
-// browser, not just a tab session). ──
-export interface MyReview { paws: number; text?: string; updatedAt: string; }
-type MyReviewsMap = Record<string, MyReview>;
-const REVIEWS_KEY = 'dogypt.tripReviews.v1';
-function readMyReviews(): MyReviewsMap {
-  try { return JSON.parse(localStorage.getItem(REVIEWS_KEY) || '{}') as MyReviewsMap; } catch { return {}; }
-}
-function writeMyReviews(m: MyReviewsMap) {
-  try { localStorage.setItem(REVIEWS_KEY, JSON.stringify(m)); } catch { /* best-effort */ }
-}
-
-// ── my questions persistence ──
-export interface MyQuestion { id: string; text: string; createdAt: string; }
-type MyQuestionsMap = Record<string, MyQuestion[]>;
-const QUESTIONS_KEY = 'dogypt.tripQuestions.v1';
-function readMyQuestions(): MyQuestionsMap {
-  try { return JSON.parse(localStorage.getItem(QUESTIONS_KEY) || '{}') as MyQuestionsMap; } catch { return {}; }
-}
-function writeMyQuestions(m: MyQuestionsMap) {
-  try { localStorage.setItem(QUESTIONS_KEY, JSON.stringify(m)); } catch { /* best-effort */ }
-}
-
 // ── pager — "‹ 1/N ›", edges disabled (no wrap) ──
 function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages: number; onPrev: () => void; onNext: () => void }) {
   if (totalPages <= 1) return null;
@@ -275,12 +285,13 @@ function Pager({ page, totalPages, onPrev, onNext }: { page: number; totalPages:
 // (packCommunityUI.tsx): dark glass overlay + card, gold title, gold submit. Deliberately
 // lighter than WalkedPopup's full form (no difficulty/vibe/hazards) — this is a rating+opinion,
 // not a walk log. ──
-function ReviewPopup({ trailName, initial, onSubmit, onDelete, onClose }: {
-  trailName: string; initial?: MyReview | null; onSubmit: (v: { paws: number; text?: string }) => void; onDelete?: () => void; onClose: () => void;
+function ReviewPopup({ trailName, initial, canWrite, saving, error, onSubmit, onDelete, onClose }: {
+  trailName: string; initial?: RealReview | null; canWrite: boolean; saving: boolean; error: string | null;
+  onSubmit: (v: { paws: number; text?: string }) => void; onDelete?: () => void; onClose: () => void;
 }) {
   const [paws, setPaws] = useState(initial?.paws ?? 0);
-  const [text, setText] = useState(initial?.text ?? '');
-  const canSubmit = paws > 0;
+  const [text, setText] = useState(initial?.body ?? '');
+  const canSubmit = paws > 0 && canWrite && !saving;
   return (
     <div className="tcm-overlay" onClick={onClose}>
       <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
@@ -300,10 +311,66 @@ function ReviewPopup({ trailName, initial, onSubmit, onDelete, onClose }: {
           <textarea className="tcm-textarea" value={text} onChange={(e) => setText(e.target.value)} placeholder="Muddy after rain, great off-leash stretch near the top…" />
         </div>
         <button type="button" className="tcm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ paws, text: text.trim() || undefined })}>
-          {initial ? 'Update review' : 'Post review'}
+          {saving ? 'Saving…' : initial ? 'Update review' : 'Post review'}
         </button>
         {initial && onDelete && (
-          <button type="button" className="tcm-deletebtn" onClick={onDelete}>Delete review</button>
+          <button type="button" className="tcm-deletebtn" disabled={saving} onClick={onDelete}>Delete review</button>
+        )}
+        {!canWrite && <div className="tcm-gatehint">Sign in to post a review.</div>}
+        {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
+      </div>
+    </div>
+  );
+}
+
+// Dôvody nahlásenia — rovnaké znenie ako Thread.tsx (§54), duplikované zámerne: ten súbor sa
+// needituje (pracujú na ňom iní agenti) a `REPORT_REASONS` v ňom nie je exportovaný.
+const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
+  { id: 'harassment', label: 'Harassment or abuse' },
+  { id: 'spam', label: 'Spam or advertising' },
+  { id: 'unsafe', label: 'Unsafe for people or dogs' },
+  { id: 'not_dog_related', label: 'Not dog related' },
+  { id: 'other', label: 'Something else' },
+];
+
+// ── nahlásenie cudzieho (reálneho, nie mock) komentára — issue #54. Vzor prevzatý z
+// Thread.tsx (msg-modsheet: dôvod → poznámka → odoslať → potvrdenie), znovupostavené lokálne
+// nad tcm-* triedami, lebo Thread.tsx sa needituje/neexportuje odtiaľ nič použiteľné. ──
+function ReportSheet({ onClose, onSend, busy, error, sent }: {
+  onClose: () => void; onSend: (reason: ReportReason, note?: string) => void; busy: boolean; error: string | null; sent: boolean;
+}) {
+  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [note, setNote] = useState('');
+  return (
+    <div className="tcm-overlay" onClick={onClose}>
+      <div className="tcm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="tcm-modal-head">
+          <div className="tcm-modal-title">{sent ? 'Report sent' : 'Why are you reporting this?'}</div>
+          <button type="button" className="tcm-x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        {sent ? (
+          <div className="tcm-modal-sub">Matej reads every report himself.</div>
+        ) : (
+          <>
+            <div className="tcm-field">
+              {REPORT_REASONS.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  className={`tcm-reportreason${reason === r.id ? ' on' : ''}`}
+                  onClick={() => setReason(r.id)}
+                >{r.label}</button>
+              ))}
+            </div>
+            <div className="tcm-field">
+              <textarea className="tcm-textarea" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything Matej should know (optional)" />
+            </div>
+            {error && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{error}</div>}
+            <button type="button" className="tcm-submit" disabled={!reason || busy} onClick={() => reason && onSend(reason, note.trim() || undefined)}>
+              {busy ? 'Sending…' : 'Send report'}
+            </button>
+            <button type="button" className="tcm-reportcancel" onClick={onClose}>Cancel</button>
+          </>
         )}
       </div>
     </div>
@@ -320,11 +387,44 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   // reviews collapse behind a dropdown by default — "Add review" CTA stays visible above it.
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
-  const [myReviews, setMyReviews] = useState<MyReviewsMap>(() => readMyReviews());
-  const [myQuestions, setMyQuestions] = useState<MyQuestionsMap>(() => readMyQuestions());
+  // ── real content (issue #52) — `undefined` = auth not checked yet, `null` = signed out /
+  // DEV_NOAUTH. Reviews/questions from the DB are fetched regardless (RLS/RPC returns empty for a
+  // signed-out caller, same "appka beží ďalej" pattern as packMessaging.ts). ──
+  const [authedUserId, setAuthedUserId] = useState<string | null | undefined>(undefined);
+  const [realReviews, setRealReviews] = useState<RealReview[]>([]);
+  const [realQuestions, setRealQuestions] = useState<RealQuestion[]>([]);
+  const canWrite = authedUserId != null;
+
   const [reviewPopupOpen, setReviewPopupOpen] = useState(false);
+  const [reviewSaving, setReviewSaving] = useState(false);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [askText, setAskText] = useState('');
+  const [questionPosting, setQuestionPosting] = useState(false);
+  const [questionError, setQuestionError] = useState<string | null>(null);
   const [likedKeys, setLikedKeys] = useState<Set<string>>(() => readLikedKeys());
+
+  // ── report (issue #54) — `reportRef` = id komentára (review.id / question.id) aktuálne
+  // otváraného sheetu, null = zavreté. Len na REÁLNE cudzie komentáre (viď render nižšie) —
+  // mock riadky sú fiktívni ľudia, nahlásenie by nemalo koho/čo riešiť. ──
+  const [reportRef, setReportRef] = useState<string | null>(null);
+  const [reportBusy, setReportBusy] = useState(false);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [reportSent, setReportSent] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    void getAuthedUserId().then((uid) => { if (alive) setAuthedUserId(uid); });
+    return () => { alive = false; };
+  }, []);
+
+  const refreshReviews = useCallback(async () => {
+    setRealReviews(await fetchTripReviews(tripId));
+  }, [tripId]);
+  const refreshQuestions = useCallback(async () => {
+    setRealQuestions(await fetchTripQuestions(tripId));
+  }, [tripId]);
+
+  useEffect(() => { void refreshReviews(); void refreshQuestions(); }, [refreshReviews, refreshQuestions]);
 
   const toggleLike = (key: string) => {
     setLikedKeys((prev) => {
@@ -335,14 +435,16 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
     });
   };
 
-  const myReview = myReviews[tripId] ?? null;
-  const myQuestionsForTrip = myQuestions[tripId] ?? [];
+  const myReview = realReviews.find((r) => r.isMine) ?? null;
+  const otherReviews = realReviews.filter((r) => !r.isMine);
+  const myQuestionsForTrip = realQuestions.filter((q) => q.isMine);
+  const otherQuestions = realQuestions.filter((q) => !q.isMine);
 
   const mockReviews = useMemo(() => buildReviews(tripId), [tripId]);
   const mockAdvice = useMemo(() => buildAdvice(tripId), [tripId]);
 
-  const reviewCount = mockReviews.length + (myReview ? 1 : 0);
-  const adviceCount = mockAdvice.length + myQuestionsForTrip.length;
+  const reviewCount = realReviews.length + mockReviews.length;
+  const adviceCount = realQuestions.length + mockAdvice.length;
 
   const reviewPages = Math.max(1, Math.ceil(reviewCount / PAGE_SIZE));
   const advicePages = Math.max(1, Math.ceil(adviceCount / PAGE_SIZE));
@@ -351,50 +453,101 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
   useEffect(() => { if (page > reviewPages) setPage(reviewPages); }, [reviewPages, page]);
   useEffect(() => { if (page > advicePages) setPage(advicePages); }, [advicePages, page]);
 
-  const saveReview = (v: { paws: number; text?: string }) => {
-    const next: MyReviewsMap = { ...myReviews, [tripId]: { paws: v.paws, text: v.text, updatedAt: new Date().toISOString() } };
-    setMyReviews(next);
-    writeMyReviews(next);
-    onMarkWalked?.(); // reviewing implies (and guarantees) the trip is marked walked
-    setReviewPopupOpen(false);
+  const saveReview = async (v: { paws: number; text?: string }) => {
+    setReviewError(null);
+    setReviewSaving(true);
+    try {
+      await upsertMyReview(tripId, v.paws, v.text);
+      await refreshReviews();
+      onMarkWalked?.(); // reviewing implies (and guarantees) the trip is marked walked
+      setReviewPopupOpen(false);
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Could not save your review — try again.');
+    } finally {
+      setReviewSaving(false);
+    }
   };
-  const deleteReview = () => {
-    const next = { ...myReviews };
-    delete next[tripId];
-    setMyReviews(next);
-    writeMyReviews(next);
-    setReviewPopupOpen(false);
+  const deleteReview = async () => {
+    setReviewError(null);
+    setReviewSaving(true);
+    try {
+      await deleteMyReview(tripId);
+      await refreshReviews();
+      setReviewPopupOpen(false);
+    } catch (err) {
+      setReviewError(err instanceof Error ? err.message : 'Could not delete your review — try again.');
+    } finally {
+      setReviewSaving(false);
+    }
   };
 
-  const postQuestion = () => {
+  const postQuestion = async () => {
     const text = askText.trim();
     if (!text) return;
-    const q: MyQuestion = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, text, createdAt: new Date().toISOString() };
-    const next: MyQuestionsMap = { ...myQuestions, [tripId]: [q, ...myQuestionsForTrip] };
-    setMyQuestions(next);
-    writeMyQuestions(next);
-    setAskText('');
+    setQuestionError(null);
+    setQuestionPosting(true);
+    try {
+      await postTripQuestion(tripId, text);
+      await refreshQuestions();
+      setAskText('');
+    } catch (err) {
+      setQuestionError(err instanceof Error ? err.message : 'Could not post — try again.');
+    } finally {
+      setQuestionPosting(false);
+    }
   };
-  const deleteQuestion = (id: string) => {
-    const next: MyQuestionsMap = { ...myQuestions, [tripId]: myQuestionsForTrip.filter((q) => q.id !== id) };
-    setMyQuestions(next);
-    writeMyQuestions(next);
+  const deleteQuestion = async (id: string) => {
+    try {
+      await deleteTripQuestion(id);
+      await refreshQuestions();
+    } catch {
+      setQuestionError('Could not delete — try again.');
+    }
   };
 
-  // reviews page slice — my review (if any) always pinned first, so it's on page 1.
+  const openReport = (ref: string) => { setReportRef(ref); setReportSent(false); setReportError(null); };
+  const closeReport = () => setReportRef(null);
+  const sendReport = async (reason: ReportReason, note?: string) => {
+    if (!reportRef) return;
+    setReportBusy(true);
+    setReportError(null);
+    try {
+      await reportContent('comment', reportRef, reason, note);
+      setReportSent(true);
+    } catch {
+      setReportError('Could not send the report. Check your connection and try again.');
+    } finally {
+      setReportBusy(false);
+    }
+  };
+
+  // ── combined render lists: mine (real, pinned first) → other real members → mock filler.
+  // Single array + one slice replaces the old "mine pinned to page 1" offset math, which only
+  // had to handle a single localStorage row — the DB can hold reviews/questions from any number
+  // of real members, so the list needs to generalize instead of special-casing one row. ──
+  type ReviewItem =
+    | { kind: 'mine'; review: RealReview }
+    | { kind: 'real'; review: RealReview }
+    | { kind: 'mock'; review: MockReview; mockIdx: number };
+  const reviewItems: ReviewItem[] = [
+    ...(myReview ? [{ kind: 'mine' as const, review: myReview }] : []),
+    ...otherReviews.map((review) => ({ kind: 'real' as const, review })),
+    ...mockReviews.map((review, mockIdx) => ({ kind: 'mock' as const, review, mockIdx })),
+  ];
   const reviewStart = (page - 1) * PAGE_SIZE;
-  const reviewSliceMine = myReview && reviewStart === 0; // only page 1 shows "mine"
-  const reviewMockOffset = myReview ? Math.max(0, reviewStart - 1) : reviewStart;
-  const reviewMockTake = PAGE_SIZE - (reviewSliceMine ? 1 : 0);
-  const reviewMockSlice = mockReviews.slice(reviewMockOffset, reviewMockOffset + reviewMockTake);
+  const reviewPageItems = reviewItems.slice(reviewStart, reviewStart + PAGE_SIZE);
 
-  // advice page slice — my questions (newest first) pinned above mock advice.
+  type QuestionItem =
+    | { kind: 'mine'; q: RealQuestion }
+    | { kind: 'real'; q: RealQuestion }
+    | { kind: 'mock'; a: MockAdvice; mockIdx: number };
+  const questionItems: QuestionItem[] = [
+    ...myQuestionsForTrip.map((q) => ({ kind: 'mine' as const, q })),
+    ...otherQuestions.map((q) => ({ kind: 'real' as const, q })),
+    ...mockAdvice.map((a, mockIdx) => ({ kind: 'mock' as const, a, mockIdx })),
+  ];
   const adviceStart = (page - 1) * PAGE_SIZE;
-  const mineTake = Math.max(0, Math.min(myQuestionsForTrip.length - adviceStart, PAGE_SIZE));
-  const mineSlice = mineTake > 0 ? myQuestionsForTrip.slice(adviceStart, adviceStart + mineTake) : [];
-  const mockOffset = Math.max(0, adviceStart - myQuestionsForTrip.length);
-  const mockTake = PAGE_SIZE - mineSlice.length;
-  const mockSlice = mockTake > 0 ? mockAdvice.slice(mockOffset, mockOffset + mockTake) : [];
+  const advicePageItems = questionItems.slice(adviceStart, adviceStart + PAGE_SIZE);
 
   return (
     <div className="tcm-wrap" aria-label={`Reviews and advice for ${tripName ?? 'this trip'}`}>
@@ -434,35 +587,60 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
 
             {reviewsOpen && (
               <>
-                {reviewSliceMine && myReview && (
-                  <div className="tcm-review mine" onClick={() => setReviewPopupOpen(true)}>
-                    <span className="tcm-avatar"><BrandIcon name="paw" size={16} tint="dark" /></span>
-                    <div className="tcm-review-main">
-                      <div className="tcm-review-top">
-                        <span className="tcm-review-name">You</span>
-                        <span className="tcm-review-badge">Your review</span>
+                {reviewPageItems.map((item) => {
+                  if (item.kind === 'mine') {
+                    const r = item.review;
+                    return (
+                      <div className="tcm-review mine" key="mine" onClick={() => setReviewPopupOpen(true)}>
+                        <span className="tcm-avatar"><BrandIcon name="paw" size={16} tint="dark" /></span>
+                        <div className="tcm-review-main">
+                          <div className="tcm-review-top">
+                            <span className="tcm-review-name">You</span>
+                            <span className="tcm-review-badge">Your review</span>
+                          </div>
+                          <Paws rating={r.paws} />
+                          {r.body && <div className="tcm-review-text">{r.body}</div>}
+                        </div>
                       </div>
-                      <Paws rating={myReview.paws} />
-                      {myReview.text && <div className="tcm-review-text">{myReview.text}</div>}
-                    </div>
-                  </div>
-                )}
-
-                {reviewMockSlice.map((r, i) => {
-                  const key = `${tripId}#${reviewMockOffset + i}`;
+                    );
+                  }
+                  if (item.kind === 'real') {
+                    const r = item.review;
+                    const name = r.ownerFirst ?? 'Dogyptian';
+                    return (
+                      <div className="tcm-review" key={r.id}>
+                        <span className="tcm-avatar">{name.charAt(0).toUpperCase()}</span>
+                        <div className="tcm-review-main">
+                          <div className="tcm-review-top">
+                            <span className="tcm-review-name">{name}</span>
+                            {r.packNumber != null && <span className="tcm-review-pack">· Dogyptian #{r.packNumber}</span>}
+                          </div>
+                          <Paws rating={r.paws} />
+                          {r.body && <div className="tcm-review-text">{r.body}</div>}
+                          {canWrite && (
+                            <div className="tcm-review-footer">
+                              <button type="button" className="tcm-reportlink" onClick={() => openReport(r.id)}>Report</button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  const { review: mr, mockIdx } = item;
+                  const key = `${tripId}#${mockIdx}`;
                   const liked = likedKeys.has(key);
                   return (
-                    <div className="tcm-review" key={`${r.member.id}-${reviewMockOffset + i}`}>
-                      <span className="tcm-avatar">{r.member.name.charAt(0).toUpperCase()}</span>
+                    <div className="tcm-review" key={`${mr.member.id}-${mockIdx}`}>
+                      <span className="tcm-avatar">{mr.member.name.charAt(0).toUpperCase()}</span>
                       <div className="tcm-review-main">
                         <div className="tcm-review-top">
-                          <span className="tcm-review-name">{r.member.name}</span>
-                          <span className="tcm-review-pack">· Dogyptian #{r.member.packNumber}</span>
+                          <span className="tcm-review-name">{mr.member.name}</span>
+                          <span className="tcm-review-pack">· Dogyptian #{mr.member.packNumber}</span>
                         </div>
-                        <Paws rating={r.rating} />
-                        {r.text && <div className="tcm-review-text">{r.text}</div>}
+                        <Paws rating={mr.rating} />
+                        {mr.text && <div className="tcm-review-text">{mr.text}</div>}
                         <div className="tcm-review-footer">
-                          <LikeButton liked={liked} count={r.likes + (liked ? 1 : 0)} onClick={() => toggleLike(key)} />
+                          <LikeButton liked={liked} count={mr.likes + (liked ? 1 : 0)} onClick={() => toggleLike(key)} />
                         </div>
                       </div>
                     </div>
@@ -482,31 +660,53 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
                 placeholder="Ask a question…"
               />
               <div className="tcm-ask-actions">
-                <button type="button" className="tcm-postbtn" disabled={!askText.trim()} onClick={postQuestion}>Post</button>
+                <button type="button" className="tcm-postbtn" disabled={!askText.trim() || !canWrite || questionPosting} onClick={postQuestion}>
+                  {questionPosting ? 'Posting…' : 'Post'}
+                </button>
               </div>
+              {!canWrite && <div className="tcm-gatehint">Sign in to ask a question.</div>}
+              {questionError && <div className="tcm-gatehint" style={{ color: '#E0796D' }}>{questionError}</div>}
             </div>
-
-            {mineSlice.map((q) => (
-              <div className="tcm-advice mine" key={q.id}>
-                <div className="tcm-advice-text">{q.text}</div>
-                <div className="tcm-advice-meta">
-                  <span>You</span>
-                  <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(q.id)} aria-label="Delete question">✕</button>
-                </div>
-              </div>
-            ))}
 
             {adviceCount === 0 ? (
               <div className="tcm-empty">No advice yet. Ask the pack something.</div>
             ) : (
-              mockSlice.map((a, i) => (
-                <div className="tcm-advice" key={`${a.member.id}-${mockOffset + i}`}>
-                  <div className="tcm-advice-text">{a.text}</div>
-                  <div className="tcm-advice-meta">
-                    <span>{a.member.name} · Dogyptian #{a.member.packNumber}</span>
+              advicePageItems.map((item) => {
+                if (item.kind === 'mine') {
+                  return (
+                    <div className="tcm-advice mine" key={item.q.id}>
+                      <div className="tcm-advice-text">{item.q.body}</div>
+                      <div className="tcm-advice-meta">
+                        <span>You</span>
+                        <button type="button" className="tcm-advice-del" onClick={() => deleteQuestion(item.q.id)} aria-label="Delete question">✕</button>
+                      </div>
+                    </div>
+                  );
+                }
+                if (item.kind === 'real') {
+                  const name = item.q.ownerFirst ?? 'Dogyptian';
+                  return (
+                    <div className="tcm-advice" key={item.q.id}>
+                      <div className="tcm-advice-text">{item.q.body}</div>
+                      <div className="tcm-advice-meta">
+                        <span>{name}{item.q.packNumber != null ? ` · Dogyptian #${item.q.packNumber}` : ''}</span>
+                        {canWrite && (
+                          <button type="button" className="tcm-reportlink" onClick={() => openReport(item.q.id)}>Report</button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                const { a, mockIdx } = item;
+                return (
+                  <div className="tcm-advice" key={`${a.member.id}-${mockIdx}`}>
+                    <div className="tcm-advice-text">{a.text}</div>
+                    <div className="tcm-advice-meta">
+                      <span>{a.member.name} · Dogyptian #{a.member.packNumber}</span>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
             <Pager page={page} totalPages={advicePages} onPrev={() => setPage((p) => Math.max(1, p - 1))} onNext={() => setPage((p) => Math.min(advicePages, p + 1))} />
           </>
@@ -517,9 +717,22 @@ export function TripComments({ tripId, tripName, walked, onMarkWalked, onRequest
         <ReviewPopup
           trailName={tripName ?? 'this trip'}
           initial={myReview}
+          canWrite={canWrite}
+          saving={reviewSaving}
+          error={reviewError}
           onSubmit={saveReview}
           onDelete={myReview ? deleteReview : undefined}
           onClose={() => setReviewPopupOpen(false)}
+        />
+      )}
+
+      {reportRef && (
+        <ReportSheet
+          onClose={closeReport}
+          onSend={sendReport}
+          busy={reportBusy}
+          error={reportError}
+          sent={reportSent}
         />
       )}
     </div>
