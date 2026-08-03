@@ -103,7 +103,21 @@ interface PackReport {
   handled_at: string | null;
 }
 
-type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'reports' | 'ainubis';
+// Výlet nahodený členom (#32). `status` je `pending`, kým ho niekto neschváli —
+// a schvaľovať sa dá len tu: RLS pustí cudzí výlet ostatným až po `approved`.
+// Bez tejto obrazovky by každý členom pridaný výlet ostal neviditeľný navždy.
+interface PackTripRow {
+  id: string;
+  created_at: string;
+  slug: string;
+  author_id: string | null;
+  status: string;
+  km: number | null;
+  country: string | null;
+  payload: { name?: string; region?: string; photos?: string[] } | null;
+}
+
+type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'reports' | 'trips' | 'ainubis';
 
 // role id → council ikona (mapovanie podľa CouncilSection prihlášky)
 const ROLE_ICONS: Record<string, string> = {
@@ -160,6 +174,7 @@ export default function Admin() {
   const [packMembers, setPackMembers] = useState<PackMember[]>([]);
   const [visionVotes, setVisionVotes] = useState<VisionVote[]>([]);
   const [reports, setReports] = useState<PackReport[]>([]);
+  const [memberTrips, setMemberTrips] = useState<PackTripRow[]>([]);
   const [dataErr, setDataErr] = useState('');
   const [loadingData, setLoadingData] = useState(false);
 
@@ -187,7 +202,7 @@ export default function Admin() {
     setLoadingData(true);
     setDataErr('');
     (async () => {
-      const [d, c, p, v, r] = await Promise.all([
+      const [d, c, p, v, r, mt] = await Promise.all([
         supabase.from('dogs').select('*').order('created_at', { ascending: false }),
         supabase.from('contacts').select('*').order('created_at', { ascending: false }),
         supabase.from('pack_members').select('*').order('created_at', { ascending: false }),
@@ -195,6 +210,8 @@ export default function Admin() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- generované typy poznajú
         // len `pack_members`, celý /pack ide cez `as any` (viď packStore.ts)
         (supabase as any).from('pack_reports').select('*').order('created_at', { ascending: false }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- viď vyššie
+        (supabase as any).from('pack_trips').select('*').order('created_at', { ascending: false }),
       ]);
       if (cancelled) return;
       const err = d.error || c.error || p.error || v.error;
@@ -206,6 +223,7 @@ export default function Admin() {
       // Nahlásenia sa načítavajú zvlášť a ticho: keď migrácia ešte nie je na tomto
       // projekte, nesmie to zhodiť celý admin (ostatné tabuľky s tým nemajú nič spoločné).
       setReports((r.data as PackReport[]) ?? []);
+      setMemberTrips((mt.data as PackTripRow[]) ?? []);
       setLoadingData(false);
     })();
     return () => { cancelled = true; };
@@ -326,9 +344,20 @@ export default function Admin() {
     setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'handled', handled_at: new Date().toISOString() } : r)));
   };
 
+  const pendingTrips = memberTrips.filter((t) => t.status === 'pending').length;
+
+  const setTripStatus = async (id: string, status: 'approved' | 'rejected') => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- viď načítanie vyššie
+    const { error } = await (supabase as any).from('pack_trips')
+      .update({ status, reviewed_at: new Date().toISOString() }).eq('id', id);
+    if (error) { setDataErr(error.message); return; }
+    setMemberTrips((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
+  };
+
   const tabs: [Tab, string][] = [
     ['orders', 'Orders'], ['dogs', 'Dogs'], ['photos', 'Photos'], ['emails', 'Council'], ['vision', 'Vision'], ['bugs', 'Bugs'],
-    ['reports', openReports > 0 ? `Reports (${openReports})` : 'Reports'], ['ainubis', 'Ainubis'],
+    ['reports', openReports > 0 ? `Reports (${openReports})` : 'Reports'],
+    ['trips', pendingTrips > 0 ? `Member trips (${pendingTrips})` : 'Member trips'], ['ainubis', 'Ainubis'],
   ];
 
   // user_id → owner label (from dogs) for the vision-votes list.
@@ -538,6 +567,42 @@ export default function Admin() {
               ) : '',
             ])}
             empty="No reports. Good."
+          />
+        </>
+      )}
+
+      {!loadingData && tab === 'trips' && (
+        <>
+          <div style={{ opacity: 0.6, fontSize: 13, lineHeight: 1.6, maxWidth: 620, marginBottom: 16 }}>
+            Trips added by members. Until you approve one, only its author can see it — that's the
+            rule in the database, not a setting. Rejecting keeps the trip for the author, it just
+            never reaches the pack.
+          </div>
+          <DataTable
+            cols={['Date', 'Trip', 'Region', 'Author', 'Km', 'Country', 'Photos', 'Status', '']}
+            rows={memberTrips.map((t) => [
+              fmtDate(t.created_at),
+              t.payload?.name ?? t.slug,
+              t.payload?.region ?? '—',
+              t.author_id ? (ownerByUser.get(t.author_id) || short(t.author_id, 10)) : '—',
+              t.km ?? '—',
+              t.country ?? '—',
+              String(t.payload?.photos?.length ?? 0),
+              <Pill key="s" ok={t.status === 'approved'}>{t.status}</Pill>,
+              t.status === 'pending' ? (
+                <span key="a" style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
+                  <button
+                    onClick={() => void setTripStatus(t.id, 'approved')}
+                    style={{ background: 'none', border: `1px solid ${GOLD}`, color: GOLD, borderRadius: 6, padding: '5px 11px', fontSize: 12, cursor: 'pointer', fontFamily: GROTESK }}
+                  >Approve</button>
+                  <button
+                    onClick={() => void setTripStatus(t.id, 'rejected')}
+                    style={{ background: 'none', border: '1px solid rgba(224,163,163,0.5)', color: '#e0a3a3', borderRadius: 6, padding: '5px 11px', fontSize: 12, cursor: 'pointer', fontFamily: GROTESK }}
+                  >Reject</button>
+                </span>
+              ) : '',
+            ])}
+            empty="No member trips yet."
           />
         </>
       )}
