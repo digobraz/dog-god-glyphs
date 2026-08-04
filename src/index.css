@@ -256,16 +256,27 @@ body {
   position: relative;
   background-color: #050505;
 }
+/* PRAVIDLO (Matej 2026-08-04): tabuľa je POZADIE — drží sa okna, NIKDY sa neprispôsobuje
+   výške obsahu. `position: absolute; inset: 0` to porušovalo: na dlhej stránke (Terms mal
+   3822 px) dostal pseudo-element výšku celého dokumentu a `cover` obrázok úmerne nafúkol —
+   psy a hieroglyfy vyšli niekoľkonásobne väčšie než na krátkej obrazovke.
+   `fixed` + `100vw/100lvh` = rovnaký rozmer nezávisle od dĺžky stránky. Rovnaký vzor drží
+   `HieroglyphBg()` v PackLayout.tsx; `100lvh` (nie `100vh`/`inset:0`) je zámer — na mobile
+   nepreskakuje pri zmene viewportu, keď sa schová URL bar. */
 .dark-bg::before {
   content: '';
-  position: absolute;
-  inset: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100lvh;
   background-image: url('/images/bg-dark.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   filter: blur(3px);
   z-index: 0;
+  pointer-events: none;
 }
 .dark-bg > * {
   position: relative;
