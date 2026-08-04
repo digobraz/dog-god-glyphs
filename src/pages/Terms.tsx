@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 import { useT } from "@/i18n/LanguageContext";
 
-// 11 sekcií — texty žijú v i18n slovníkoch (terms.sN.title / terms.sN.body).
+// 14 sekcií — texty žijú v i18n slovníkoch (terms.sN.title / terms.sN.body).
 // Právne záväzná je EN verzia (legal.langNote).
-const SECTION_COUNT = 11;
+// 12–14 (obsah / správy / moderácia) pribudli 2026-08-04 pre /pack — pripojené na koniec
+// zámerne, prečíslovanie by znamenalo prepísať názvy vo všetkých 18 slovníkoch.
+const SECTION_COUNT = 14;
 
 export default function Terms() {
   const t = useT();

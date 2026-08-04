@@ -720,7 +720,7 @@ export const sk: Partial<Dict> = {
 
   // ── /terms + /privacy — STROJOVÝ PREKLAD (právne texty), čaká review ──
   // legal.eyebrow + legal.motto = brand → EN fallback by design (nezapisovať sem)
-  'legal.updated': 'Posledná aktualizácia: 4. mája 2026 · v1.0',
+  'legal.updated': 'Posledná aktualizácia: 4. augusta 2026 · v1.1',
   'legal.langNote':
     'Tento dokument poskytujeme vo viacerých jazykoch pre pohodlie. V prípade rozdielov medzi verziami má prednosť anglické znenie.',
 
@@ -761,6 +761,16 @@ export const sk: Partial<Dict> = {
   'terms.s11.body':
     'Všeobecné otázky: info@dogypt.com · Súkromie a osobné údaje: privacy@dogypt.com · Refundácie a podpora: support@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
 
+  'terms.s12.title': '12. Obsah, ktorý zverejňujete',
+  'terms.s12.body':
+    'Popri svojom HEROGLYPHe môžete vo svorke zverejňovať obsah: fotografie z výletov, trasy a miesta, popisy výletov, hodnotenia, komentáre a otázky a čokoľvek napíšete na svojom profile. Všetko, čo zverejníte, ostáva vaše. Zverejnením udeľujete spoločnosti DOGYPT s.r.o. celosvetovú, bezodplatnú, nevýhradnú licenciu tento obsah uchovávať, zobrazovať a upravovať na účely prevádzky a propagácie Služby — napríklad zobraziť vašu fotografiu z výletu na mape, vo výpise výletov alebo na zdieľacej karte. Licencia trvá, kým je obsah v Službe; odstránením obsahu alebo účtu zaniká, s výnimkou záloh, ktoré expirujú vo svojom bežnom cykle. Váš obsah nepredávame a neposkytujeme naň licenciu nikomu inému na jeho vlastné použitie. Zverejňujte len to, na čo máte právo — vrátane fotografií, ktoré urobil niekto iný, a ľudí, ktorí sú na nich rozpoznateľní.',
+  'terms.s13.title': '13. Správy medzi členmi',
+  'terms.s13.body':
+    'Členovia si môžu písať priamo. Správy sú súkromné medzi účastníkmi — bežne ich nečítame a nikdy ich nepoužívame na reklamu. Uchovávajú sa na našich serveroch, aby tam konverzácia bola aj po vašom návrate, a prečítať si ju môžeme v troch prípadoch: keď ju niekto nahlási, keď vyšetrujeme konkrétne zneužitie alebo bezpečnostný incident, alebo keď to vyžaduje zákon. Iného Člena môžete kedykoľvek zablokovať; blokovanie je okamžité a platí obojstranne. So správami zaobchádzajte ako s akoukoľvek online konverzáciou — neposielajte platobné údaje, heslá ani dokumenty, o ktorých nechcete, aby boli uložené.',
+  'terms.s14.title': '14. Nahlasovanie a moderovanie',
+  'terms.s14.body':
+    'Profily, výlety aj konverzácie sa dajú nahlásiť. Nahlásenie príde k nám a prečíta ho človek — dnes je to zakladateľ Matej Stacho. Naším cieľom je pozrieť si každé nahlásenie do 7 dní. Podľa toho, čo zistíme, môžeme neurobiť nič, obsah odstrániť, Člena upozorniť, obmedziť, čo môže zverejňovať, alebo mu účet zrušiť. Ak zasiahneme do vášho obsahu, dôvod vám oznámime e-mailom a môžete odpovedať a namietať. Obsah môžeme odstrániť aj z vlastnej iniciatívy, ak porušuje článok 7. Úmyselné alebo opakované zneužitie — obťažovanie, spam, falošné výlety, obsah týkajúci sa maloletých — znamená zrušenie účtu bez ďalšieho upozornenia.',
+
   // ── /privacy ──
   'privacy.title': 'Zásady ochrany súkromia',
   'privacy.linkTerms': 'Podmienky používania →',
@@ -769,7 +779,7 @@ export const sk: Partial<Dict> = {
     'DOGYPT s.r.o., slovenská spoločnosť s ručením obmedzeným (IČO 54 444 594), sídlo Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko. Sme prevádzkovateľom osobných údajov opísaných nižšie. S akoukoľvek otázkou o súkromí nám píšte na privacy@dogypt.com. Zodpovednú osobu (DPO) sme nevymenovali, pretože naše spracúvanie nedosahuje prahové hodnoty čl. 37 GDPR. Dátum účinnosti: 4. mája 2026.',
   'privacy.s2.title': '2. Aké údaje zbierame',
   'privacy.s2.body':
-    'Pri používaní HEROGLYPH procesu zbierame: vašu e-mailovú adresu, meno psa, nahranú fotografiu psa (uloženú na Cloudinary), symbolické odpovede, ktoré vyberiete (pohlavie, farba, osud, pokrvná línia, charakter, váš horoskop, vaša iniciála), a dátum narodenia psa, ak ho uvediete. Platobné údaje zbiera priamo Stripe — my dostávame len potvrdenie platby, posledné 4 číslice karty a krajinu. Naše servery automaticky zaznamenávajú technické údaje (IP adresa, user-agent, čas požiadavky) na účely bezpečnosti a prevencie zneužitia. Zbierame aj údaje o používaní o tom, ako sa pohybujete po stránke (zobrazené stránky, kliknutia, typ zariadenia a prehliadača) — predvolene anonymizované a priradené k vám len vtedy, ak udelíte súhlas s analytikou alebo nahrávaniami.',
+    'Pri používaní HEROGLYPH procesu zbierame: vašu e-mailovú adresu, meno psa, nahranú fotografiu psa (uloženú na Cloudinary), symbolické odpovede, ktoré vyberiete (pohlavie, farba, osud, pokrvná línia, charakter, váš horoskop, vaša iniciála), a dátum narodenia psa, ak ho uvediete. Platobné údaje zbiera priamo Stripe — my dostávame len potvrdenie platby, posledné 4 číslice karty a krajinu. Naše servery automaticky zaznamenávajú technické údaje (IP adresa, user-agent, čas požiadavky) na účely bezpečnosti a prevencie zneužitia. Zbierame aj údaje o používaní o tom, ako sa pohybujete po stránke (zobrazené stránky, kliknutia, typ zariadenia a prehliadača) — predvolene anonymizované a priradené k vám len vtedy, ak udelíte súhlas s analytikou alebo nahrávaniami. Ak ste členom svorky, ukladáme aj to, čo vo svorke vytvoríte: odpovede vo vašom profile, profil vášho psa, výlety, ktoré zaznamenáte alebo ohlásite (trasa, miesto, dátum a fotografie, ktoré nahráte), vaše hodnotenia, komentáre a otázky, vaše správy s ostatnými Členmi a nahlásenia, ktoré nám pošlete.',
   'privacy.s3.title': '3. Ako ich používame',
   'privacy.s3.body':
     'Vaše údaje používame na: vygenerovanie a doručenie HEROGLYPH certifikátu; odoslanie e-mailu s certifikátom a malého počtu nadväzujúcich správ svorky; zobrazenie záznamu vášho psa vo verejnom GodsGrid (verejne sa zobrazuje len meno psa, fotografia a HEROGLYPH symbol — nikdy nie váš e-mail, vaše meno ani súkromný kód); prevádzku, zabezpečenie a zlepšovanie Služby; plnenie zákonných povinností, ako sú účtovníctvo a ochrana spotrebiteľa.',
@@ -784,7 +794,7 @@ export const sk: Partial<Dict> = {
     'Cookies a lokálne úložisko udržiavame na minime potrebnom na fungovanie Služby — relácia, jazyk a rozpracované HEROGLYPH voľby. Na produktovú analytiku používame PostHog, hostovaný v EÚ. Predvolene beží v režime bez cookies a anonymizovane — bez sledovania naprieč stránkami a bez reklamy, model v štýle Plausible — na základe nášho oprávneného záujmu nájsť a opraviť to, čo nefunguje. Len ak udelíte súhlas, zapneme identifikovanú analytiku a nahrávanie relácií; a samostatne reklamné cookies, ako sú Google Analytics 4 a Meta Pixel, ktoré merajú kampane a budujú marketingové publiká. Ktorýkoľvek z týchto súhlasov môžete kedykoľvek udeliť alebo odvolať cez „Nastavenia cookies" v pätičke. Všetky analytické údaje sa spracúvajú na serveroch v EÚ.',
   'privacy.s7.title': '7. Uchovávanie údajov',
   'privacy.s7.body':
-    'Váš HEROGLYPH a profil svorky uchovávame, kým existuje váš účet, pretože GodsGrid je doživotný register každého člena svorky. Záznamy o transakčných e-mailoch uchovávame 12 mesiacov na účely podpory a prevencie podvodov. Účtovné záznamy uchovávame 10 rokov, ako vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Keď požiadate o vymazanie účtu, osobné identifikátory odstránime do 30 dní a ponecháme len zákonom vyžadované minimum.',
+    'Váš HEROGLYPH a profil svorky uchovávame, kým existuje váš účet, pretože GodsGrid je doživotný register každého člena svorky. Záznamy o transakčných e-mailoch uchovávame 12 mesiacov na účely podpory a prevencie podvodov. Účtovné záznamy uchovávame 10 rokov, ako vyžaduje slovenské právo (zákon č. 431/2002 Z. z.). Keď požiadate o vymazanie účtu, osobné identifikátory odstránime do 30 dní a ponecháme len zákonom vyžadované minimum. Správy uchovávame, kým existuje konverzácia, a pri zmazaní účtu odídú s ním, okrem kópie vo vlákne druhého účastníka. Nahlásenia a záznam o moderovaní uchovávame, kým existuje účet nahlasovateľa, aby sme vedeli rozpoznať opakované správanie.',
   'privacy.s8.title': '8. Vaše práva',
   'privacy.s8.body':
     'Podľa GDPR máte právo na prístup k svojim údajom, ich opravu, vymazanie, obmedzenie spracúvania alebo námietku proti nemu, prenosnosť údajov a kedykoľvek odvolať súhlas. Sťažnosť môžete podať aj slovenskému dozornému orgánu — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. Na uplatnenie ktoréhokoľvek z týchto práv napíšte na privacy@dogypt.com — odpovieme do 30 dní.',
@@ -797,6 +807,13 @@ export const sk: Partial<Dict> = {
   'privacy.s11.title': '11. Kontakt',
   'privacy.s11.body':
     'Súkromie a osobné údaje: privacy@dogypt.com · Všeobecné otázky: info@dogypt.com · Pošta: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovensko.',
+
+  'privacy.s12.title': '12. Vo vnútri svorky: čo vidia ostatní členovia',
+  'privacy.s12.body':
+    'Článok 3 opisuje verejný GodsGrid. Vo vnútri svorky — v členskej zóne — vidia ostatní prihlásení Členovia viac: vaše krstné meno, vaše dogyptské poradové číslo, meno a fotografiu vášho psa, atribúty, ktoré ste o psovi vyplnili, výlety, ktoré ste zaznamenali alebo ohlásili, vaše hodnotenia a komentáre a čokoľvek ste napísali na svoj profil. Nevidia vašu e-mailovú adresu, poštovú adresu, platobné údaje ani vaše správy s kýmkoľvek iným. Keď ohlásite výlet ako otvorený, trasa, dátum a váš pes sa stanú viditeľnými pre každého Člena, aby mohol požiadať o pridanie — to ohlásenie znamená. Výlet, ktorý si necháte súkromný, vidíte len vy a ľudia, ktorí už idú. Ktorá z tých dvoch možností to bude, si vyberáte vy a môžete to kedykoľvek zmeniť.',
+  'privacy.s13.title': '13. Správy a nahlásenia',
+  'privacy.s13.body':
+    'Súkromné správy medzi Členmi sa ukladajú v našej databáze (Supabase), aby konverzácie prežili medzi reláciami. Právny základ: čl. 6 ods. 1 písm. b) GDPR — sú súčasťou členstva, ktoré ste si zaplatili. Bežne ich nečítame a nikdy ich nepoužívame na reklamu ani profilovanie. Konverzáciu otvoríme len vtedy, keď je nahlásená, keď vyšetrujeme konkrétne zneužitie alebo bezpečnostný incident, alebo keď to vyžaduje zákon. Nahlásenie ukladá dôvod, ktorý ste vybrali, vašu voliteľnú poznámku a odkaz na to, čo ste nahlásili — nie samostatnú kópiu. Blokovanie sa ukladá ako dvojica identifikátorov členov. Ak si zmažete účet, vaše správy odídú s ním; kópia vo vlákne druhej osoby ostáva, zobrazená ako od odstráneného člena, pretože tá konverzácia je aj jej.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Nastavenia cookies") ──
   'consent.title': 'Ľudské povinnosti',

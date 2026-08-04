@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 import { useT } from "@/i18n/LanguageContext";
 
-// 11 sekcií — texty žijú v i18n slovníkoch (privacy.sN.title / privacy.sN.body).
+// 13 sekcií — texty žijú v i18n slovníkoch (privacy.sN.title / privacy.sN.body).
 // Právne záväzná je EN verzia (legal.langNote).
-const SECTION_COUNT = 11;
+// 12–13 (viditeľnosť v packu / správy a nahlásenia) pribudli 2026-08-04 pre /pack —
+// pripojené na koniec zámerne, prečíslovanie by znamenalo prepísať 18 slovníkov.
+const SECTION_COUNT = 13;
 
 export default function Privacy() {
   const t = useT();

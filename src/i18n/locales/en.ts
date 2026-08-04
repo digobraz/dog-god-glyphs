@@ -831,7 +831,7 @@ export const en = {
   // eyebrow + motto = brand → stay EN across locales (sk/cs fall back here by design)
   'legal.eyebrow': 'DOGYPT · Legal',
   'legal.motto': 'DOGYPT · In DOG We Trust',
-  'legal.updated': 'Last updated: 4 May 2026 · v1.0',
+  'legal.updated': 'Last updated: 4 August 2026 · v1.1',
   // legally binding version = EN; translations are convenience (rendered in all langs)
   'legal.langNote':
     'This document is provided in multiple languages for convenience. If the versions differ, the English version prevails.',
@@ -873,6 +873,16 @@ export const en = {
   'terms.s11.body':
     'General questions: info@dogypt.com · Privacy & data requests: privacy@dogypt.com · Refunds & support: support@dogypt.com · Postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia.',
 
+  'terms.s12.title': '12. Content You Post',
+  'terms.s12.body':
+    'Alongside your HEROGLYPH you can post content inside the Pack: trip photos, routes and locations, trip descriptions, ratings, comments and questions, and whatever you write on your profile. You keep ownership of everything you post. By posting it you give DOGYPT s.r.o. a worldwide, royalty-free, non-exclusive licence to store, display and adapt that content for the purpose of running and promoting the Service — for example showing your trip photo on the map, in a trip listing, or on a share card. The licence lasts while the content is on the Service; remove the content or your account and it ends, except for backups, which expire on their normal cycle. We do not sell your content and we do not license it to anyone else for their own use. Only post what you have the right to post — that includes photos taken by someone else and people who are recognisable in them.',
+  'terms.s13.title': '13. Messages Between Members',
+  'terms.s13.body':
+    'Members can write to each other directly. Messages are private between the participants — we do not read them routinely and never use them for advertising. They are stored on our servers so the conversation is still there when you come back, and we can read a conversation in three cases: when someone reports it, when we investigate a specific abuse or security incident, or when the law requires it. You can block another Member at any time; blocking is immediate and works both ways. Treat messages as you would any online conversation — do not send payment details, passwords, or documents you would not want stored.',
+  'terms.s14.title': '14. Reporting & Moderation',
+  'terms.s14.body':
+    'Profiles, trips and conversations can be reported. A report goes to us and a human reads it — today that is the founder, Matej Stacho. We aim to look at every report within 7 days. Depending on what we find we may do nothing, remove the content, warn the Member, limit what they can post, or close their account. If we act on your content we will tell you why by email, and you can reply and dispute it. We may also remove content on our own initiative when it breaks Section 7. Deliberate or repeated abuse — harassment, spam, fake trips, content involving minors — ends the account without further warning.',
+
   // ── /privacy ──
   'privacy.title': 'Privacy Policy',
   'privacy.linkTerms': 'Terms of Service →',
@@ -881,7 +891,7 @@ export const en = {
     'DOGYPT s.r.o., a Slovak limited liability company (IČO 54 444 594), registered seat Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia. We are the controller of the personal data described below. For any privacy-related question write to privacy@dogypt.com. We have not appointed a Data Protection Officer because our processing does not meet the GDPR Art. 37 thresholds. Effective date: 4 May 2026.',
   'privacy.s2.title': '2. Data We Collect',
   'privacy.s2.body':
-    'When you use the HEROGLYPH flow we collect: your email address, your dog’s name, the photo of your dog you upload (stored on Cloudinary), the symbolic answers you select (gender, colour, fate, bloodline, character, your zodiac, your initial), and your dog’s birth date if provided. Stripe collects your payment details directly — we receive only a payment confirmation, the last 4 digits of the card, and country. Our servers automatically log technical data (IP address, user-agent, request time) for security and abuse prevention. We also collect usage data about how you move through the site (pages viewed, clicks, device and browser type) — anonymised by default, and tied to you only if you consent to analytics or recordings.',
+    'When you use the HEROGLYPH flow we collect: your email address, your dog’s name, the photo of your dog you upload (stored on Cloudinary), the symbolic answers you select (gender, colour, fate, bloodline, character, your zodiac, your initial), and your dog’s birth date if provided. Stripe collects your payment details directly — we receive only a payment confirmation, the last 4 digits of the card, and country. Our servers automatically log technical data (IP address, user-agent, request time) for security and abuse prevention. We also collect usage data about how you move through the site (pages viewed, clicks, device and browser type) — anonymised by default, and tied to you only if you consent to analytics or recordings. If you are a Pack member we also store what you create inside the Pack: your profile answers, your dog’s profile, the trips you log or announce (route, location, date, and any photos you upload), your ratings, comments and questions, your messages with other Members, and any reports you send.',
   'privacy.s3.title': '3. How We Use It',
   'privacy.s3.body':
     'We use your data to: generate and deliver your HEROGLYPH certificate; send you the certificate email and a small number of follow-up Pack messages; display your dog’s entry in the public GodsGrid (only the dog’s name, photo, and HEROGLYPH symbol appear publicly — never your email, your name, or your private code); operate, secure, and improve the Service; comply with legal obligations such as accounting and consumer protection.',
@@ -896,7 +906,7 @@ export const en = {
     'We keep cookies and local storage to the minimum needed to make the Service work — session, language, and your in-progress HEROGLYPH selections. For product analytics we use PostHog, hosted in the EU. By default it runs in a cookieless, anonymised mode — no cross-site tracking and no advertising, the Plausible-style model — on the basis of our legitimate interest in finding and fixing what breaks. Only if you consent do we enable identified analytics and session recordings; and, separately, advertising cookies such as Google Analytics 4 and the Meta Pixel, which measure campaigns and build marketing audiences. You can grant or withdraw either of these at any time through “Cookie settings” in the footer. All analytics data is processed on EU servers.',
   'privacy.s7.title': '7. Retention',
   'privacy.s7.body':
-    'Your HEROGLYPH and Pack profile are kept for as long as your account exists, because the GodsGrid is the lifetime registry of every member of the Pack. Transactional email logs are kept for 12 months for support and fraud prevention. Accounting records are kept for 10 years as required by Slovak law (Act 431/2002 Coll.). When you ask us to delete your account, we remove personal identifiers within 30 days and keep only the legally required minimum.',
+    'Your HEROGLYPH and Pack profile are kept for as long as your account exists, because the GodsGrid is the lifetime registry of every member of the Pack. Transactional email logs are kept for 12 months for support and fraud prevention. Accounting records are kept for 10 years as required by Slovak law (Act 431/2002 Coll.). When you ask us to delete your account, we remove personal identifiers within 30 days and keep only the legally required minimum. Messages are kept while the conversation exists and go with your account when you delete it, except for the copy in the other participant’s thread. Reports and the moderation record are kept while the reporting account exists, so we can recognise repeat behaviour.',
   'privacy.s8.title': '8. Your Rights',
   'privacy.s8.body':
     'Under GDPR you have the right to access your data, to correct it, to have it erased, to restrict or object to processing, to data portability, and to withdraw consent at any time. You can also lodge a complaint with the Slovak supervisory authority — Úrad na ochranu osobných údajov SR, Hraničná 12, 820 07 Bratislava 27, statny.dozor@pdp.gov.sk. To exercise any of these rights write to privacy@dogypt.com — we reply within 30 days.',
@@ -909,6 +919,13 @@ export const en = {
   'privacy.s11.title': '11. Contact',
   'privacy.s11.body':
     'Privacy & data requests: privacy@dogypt.com · General questions: info@dogypt.com · Postal: DOGYPT s.r.o., Jaslovské Bohunice 335, 919 30 Jaslovské Bohunice, Slovakia.',
+
+  'privacy.s12.title': '12. Inside the Pack: What Other Members See',
+  'privacy.s12.body':
+    'Section 3 describes the public GodsGrid. Inside the Pack — the member-only area — other signed-in Members see more: your first name, your Dogyptian number, your dog’s name and photo, the attributes you filled in about your dog, the trips you logged or announced, your ratings and comments, and whatever you wrote on your profile. They do not see your email address, your postal address, your payment data, or your messages with anyone else. When you announce a trip as open, the trail, the date and your dog become visible to every Member so they can ask to join — that is what announcing it means. A trip you keep private is visible only to you and to the people already going. You choose which of the two it is, and you can change it at any time.',
+  'privacy.s13.title': '13. Messages & Reports',
+  'privacy.s13.body':
+    'Private messages between Members are stored in our database (Supabase) so conversations survive between sessions. Legal basis: Art. 6(1)(b) GDPR — they are part of the membership you paid for. We do not read them routinely and never use them for advertising or profiling. We open a conversation only when it is reported, when we investigate a specific abuse or security incident, or when the law requires it. A report stores the reason you picked, your optional note, and a reference to what you reported — not a separate copy of it. Blocking is stored as a pair of member identifiers. If you delete your account your messages go with it; the copy in the other person’s thread stays, shown as coming from a removed member, because that conversation is also theirs.',
 
   // ── Consent banner (ConsentBanner.tsx + Footer „Cookie settings") ──
   'consent.title': 'Human duties',
