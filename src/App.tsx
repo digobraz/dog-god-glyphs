@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { DEV_FULL } from "@/lib/packFlags";
+import { MapGate } from "@/components/pack/MapGate";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -204,24 +205,24 @@ const App = () => (
               <Route path="/pack/u/:id" element={DEV_FULL ? <PublicProfile /> : <Navigate to="/pack" replace />} />
               {/* Map = povrch výletov (mapa + reálne tripy), LIVE schovaný (Matej 2026-07-08). V DEV_FULL ostáva.
                   Statické segmenty (triplist) vyhrávajú nad :slug. */}
-              <Route path="/pack/map" element={DEV_FULL ? <PackMap /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/map" element={<MapGate><PackMap /></MapGate>} />
               {/* TRIPLIST hub — Slice A (plany/zadanie-triplist-sliceA-2026-07-23.md) */}
-              <Route path="/pack/map/triplist" element={DEV_FULL ? <PackTriplist /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/map/triplist" element={<MapGate><PackTriplist /></MapGate>} />
               {/* iterácia 12 bod 5: ⤢ expand → SAMOSTATNÁ full-page article route (nie modal
                   v PackMap) — PackMap už nikdy nemountuje so slugom.
                   Krajina je vlastný segment (Matej 2026-08-03): `/pack/map/svk/:slug`. ISO3, lebo
                   ISO2 `sk` by sa v ceste čítalo ako jazyková mutácia. Stavať výhradne cez
                   tripPath() / tripPathById() z tripShared. */}
-              <Route path="/pack/map/:country/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/map/:country/:slug" element={<MapGate><PackTripArticle /></MapGate>} />
               {/* Starý tvar bez krajiny — drží staré odkazy nažive, PackTripArticle si sám
                   doplní krajinu a prepíše URL (replace). Statické segmenty vyššie vyhrávajú. */}
-              <Route path="/pack/map/:slug" element={DEV_FULL ? <PackTripArticle /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/map/:slug" element={<MapGate><PackTripArticle /></MapGate>} />
               {/* ADD flow má vlastnú URL od začiatku (issue #35): `/pack/add/trip`, NIE `/pack/add`.
                   Medzikrok ADD → (trip · event · place · service) sa teraz nestavia, ale keď pribudne,
                   zasunie sa na `/pack/add` bez lámania uložených odkazov. Render = PackMap (ADD je
                   overlay nad živou leaflet mapou — GeometryPicker kreslí priamo do nej), stránka si
                   z pathname otvorí log formulár. */}
-              <Route path="/pack/add/trip" element={DEV_FULL ? <PackMap /> : <Navigate to="/pack" replace />} />
+              <Route path="/pack/add/trip" element={<MapGate><PackMap /></MapGate>} />
               <Route path="/pack/add" element={<Navigate to="/pack/add/trip" replace />} />
               <Route path="/pack/dogs" element={DEV_FULL ? <PackDogs /> : <Navigate to="/pack" replace />} />
 
