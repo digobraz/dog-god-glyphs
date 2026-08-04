@@ -53,6 +53,9 @@ import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
+import { metersPerPixel } from '@/components/geo/geoMath';
+import { FogLayer } from '@/components/geo/FogLayer';
+import { useFogSource } from '@/components/geo/useFogSource';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { SVK_BORDER } from '@/data/svkBorder';
 import { COUNTRY_BORDERS } from '@/data/countryBorders';
@@ -502,9 +505,8 @@ const TERRITORY_ZONE_MAX_PX = 160;
 // skok pri prekročení hranice zoomu): plná od z<=CASING_FADE_START, preč od z>=CASING_FADE_END.
 const CASING_FADE_START = 12;
 const CASING_FADE_END = 14;
-function metersPerPixel(lat: number, zoom: number) {
-  return (156543.03392 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoom);
-}
+// metersPerPixel žije teraz v `src/components/geo/geoMath.ts` — zdieľané s <FogLayer/>
+// (predtým dve kópie, viď spec-hmla.md bod 6 zadania).
 function TerritoryBorders({ countries }: { countries: string[] }) {
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -959,15 +961,28 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* pravý vertikálny ovládací stack (AllTrails vzor): štýl / zoom / poloha —
    z-index 800 musí prebiť Leaflet vlastné panes (idú až po 700). */
 .trp-ctlstack{position:absolute;top:16px;right:16px;z-index:800;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
-/* bod 2 (iterácia 12): Terrain/Satellite/Winter stack → JEDNO kruhové tlačidlo, prepína
-   len outdoor↔aerial (Winter úplne preč, aj z mapStyle typu aj z mapyTiles volania). */
+/* bod 2 (iterácia 12): Terrain/Satellite/Winter stack → JEDNO kruhové tlačidlo. Integračná vlna
+   (spec-hmla.md) ho prerobila na rozbaľovací panel vrstiev (.trp-layersdd nižšie) — trigger
+   ostáva vizuálne .trp-stylebtn, len teraz otvára panel namiesto priameho cyklovania. */
 /* Matej 2026-08-03: „bočné tlačítka na mape +- center a vrstvy... chcelo by to dať asi tmavé
    ako aj všetko ostatné" — papyrusový stack bol na tmavej appke JEDINÝ svetlý prvok a preto
    optický ťažisko obrazovky, hoci je najmenej dôležitý. Teraz rovnaké tmavé sklo ako
    .trp-mheader a PackBottomNav (T.glass + T.onDarkBorder), ikony biele cez invert filter. */
 .trp-stylebtn{width:38px;height:38px;border-radius:50%;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};box-shadow:0 3px 10px rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.trp-stylebtn:hover{border-color:${GOLD};}
+.trp-stylebtn:hover,.trp-stylebtn.on{border-color:${GOLD};}
 .trp-stylebtn img{width:18px;height:18px;filter:brightness(0) invert(1);opacity:.82;}
+/* Rozbaľovací panel vrstiev (spec-hmla.md, zdroj vzhľadu = plany/prototyp-hmla/index.html
+   #layers) — nahrádza staré jedno kruhové tlačidlo Outdoor↔Satelit. Trigger si necháva vzhľad
+   .trp-stylebtn, panel je tmavé sklo v rovnakom odtieni ako jediný established „dark dropdown"
+   v tomto súbore (.trp-tagdd-panel) — konzistencia namiesto nového hex kódu. */
+.trp-layersdd{position:relative;}
+.trp-layersdd-panel{position:absolute;top:0;right:calc(100% + 10px);z-index:41;width:238px;background:rgba(6,5,3,0.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,0.55);padding:12px;}
+.trp-layersdd-group + .trp-layersdd-group{margin-top:12px;padding-top:12px;border-top:1px solid ${T.onDarkHair};}
+.trp-layersdd-row{display:flex;align-items:center;gap:9px;width:100%;padding:6px 4px;font-family:${FONT_UI};font-size:12.5px;color:${T.onDark};cursor:pointer;}
+.trp-layersdd-row input{accent-color:${GOLD};width:14px;height:14px;flex-shrink:0;}
+.trp-layersdd-row span{flex:1;}
+.trp-layersdd-row.disabled{opacity:.4;cursor:default;}
+.trp-layersdd-hint{margin:0 0 6px 23px;font-family:${FONT_UI};font-size:10.5px;line-height:1.4;color:${T.onDarkDim};}
 .trp-zoomgroup{display:flex;flex-direction:column;background:${T.glass};backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid ${T.onDarkBorder};border-radius:9px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,0.45);}
 .trp-zoomgroup button{background:none;border:none;cursor:pointer;width:38px;height:36px;font-size:17px;font-weight:600;line-height:1;color:${T.onDark};display:flex;align-items:center;justify-content:center;}
 .trp-zoomgroup button:first-child{border-bottom:1px solid ${T.onDarkHair};}
@@ -1089,6 +1104,7 @@ ${TRAIL_LINE_CSS}
 
   .trp-stylebtn{width:34px;height:34px;}
   .trp-stylebtn img{width:16px;height:16px;}
+  .trp-layersdd-panel{width:206px;padding:10px;}
   .trp-zoomgroup button{width:34px;height:32px;font-size:15px;}
   .trp-locatebtn{width:34px;height:34px;}
   .trp-locatebtn img{width:16px;height:16px;}
@@ -1215,6 +1231,197 @@ ${TRAIL_LINE_CSS}
 
 `;
 
+// ── VRSTVY MAPY (spec-hmla.md §1/§9) — deklaratívne pole, NIE natvrdo naklikané JSX ──────────
+// Panel sa vygeneruje z MAP_LAYERS (filter podľa `type`), takže pridanie ďalšej vrstvy (veteriny,
+// fotky komunity — spomenuté v zadaní ako budúci prípad) je jeden nový objekt v poli, nie prepis
+// JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
+// naraz (checkbox).
+type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
+type MapOverlayId = 'names' | 'poi';
+
+/** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — zatiaľ len fog stav
+ *  (prázdny/loading, spec §4 bod 4), pri ďalšej vrstve sa pole rozšíri, nie prepíše. */
+interface MapLayerCtx {
+  fogTrailsCount: number;
+  fogLoading: boolean;
+}
+interface MapLayerDef {
+  id: MapBaseId | MapOverlayId;
+  type: 'base' | 'overlay';
+  /** i18n kľúč labelu — žiadny natvrdo napísaný SK/EN reťazec v JSX. */
+  labelKey: string;
+  /** i18n kľúč dôvodu nedostupnosti (runtime vyhodnotené), vráti null keď je layer dostupný.
+   *  Nie je to statická vlastnosť poľa — hmla je prázdna/plná podľa DB stavu, nie podľa configu. */
+  disabledReason?: (ctx: MapLayerCtx) => string | null;
+}
+const MAP_LAYERS: MapLayerDef[] = [
+  { id: 'outdoor', type: 'base', labelKey: 'pack.map.layerOutdoor' },
+  { id: 'aerial', type: 'base', labelKey: 'pack.map.layerAerial' },
+  {
+    id: 'dogypt',
+    type: 'base',
+    labelKey: 'pack.map.layerDogypt',
+    // 🔴 spec-hmla.md bod 4 zadania: na produkcii je `trip_walked` dnes 0 riadkov — bez tohto
+    // guardu by DOGYPT vrstva bola čierna plachta cez celú SR hneď pri prvom kliku. Loading aj
+    // prázdny stav sa NESMÚ dať zapnúť (žiadny blikajúci prechod do čiernej).
+    disabledReason: (ctx) => {
+      if (ctx.fogLoading) return 'pack.map.layerDogyptLoading';
+      if (ctx.fogTrailsCount === 0) return 'pack.map.layerDogyptEmpty';
+      return null;
+    },
+  },
+  { id: 'names', type: 'overlay', labelKey: 'pack.map.layerNames' },
+  { id: 'poi', type: 'overlay', labelKey: 'pack.map.layerPoi' },
+];
+// Overlaye majú default stav mimo poľa (poľe je o TOM ČO existuje, nie o tom čo je dnes zapnuté) —
+// `poi` ostáva zapnuté, nech sa nezmení dnešné správanie (PoiLayer bola predtým natvrdo ON).
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, poi: true };
+
+// Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
+// dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
+// prázdno. `maxNativeZoom` je štandardný Leaflet fix: nad hranicou sa nežiadajú nové dlaždice,
+// posledná dostupná sa len roztiahne — vybrané NAMIESTO tvrdého zoom-clampu, lebo by inak
+// používateľovi zamrzlo tlačidlo +/gesto priblíženia presne na hranici. Mapa dnes efektívne
+// necháva max zoom na Leaflet defaulte z <TileLayer> (18), takže ide o poistku do budúcna
+// (keby sa raz zvýšil), nie o opravu okamžite viditeľnej chyby.
+const AERIAL_MAX_NATIVE_ZOOM = 19;
+
+// Fade prahy zdieľané s <FogLayer/> DEFAULTS (fadeStart/fadeEnd) — spec §1 bod 4: podklad AJ
+// hmla sa majú rozplývať SPOLU. FogLayer.tsx je mimo rozsahu tejto úlohy (viď zadanie, dotýkať sa
+// smie len bod so zdieľaným metersPerPixel), takže hodnoty tu NIE sú importované, len ručne
+// zosynchronizované — ak sa raz zmenia default v FogLayer.tsx, treba zmeniť aj tieto dve čísla.
+const DOGYPT_FADE_START = 13;
+const DOGYPT_FADE_END = 15;
+
+// DOGYPT podklad = invert (spec-hmla.md §5) — DRUHÁ kópia tých istých dlaždíc vo vlastnom pane
+// `fx` (zIndex 250: nad tilePane 200, pod overlayPane 400, teda pod markermi/trasami aj pod
+// hmlou samotnou). CSS filter je NA PLNO stále, prelína sa VÝHRADNE opacitou vrstvy — priamo
+// interpolovať invert() sa nedá (invert(0.5) je šedá kaša, overené v prototype). Rovnaké URL ako
+// spodná (neupravená) vrstva → dlaždice z browser cache, 0 requestov navyše.
+function DogyptBaseLayer({ url }: { url: string }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map.getPane('fx')) map.createPane('fx');
+    const pane = map.getPane('fx')!;
+    pane.style.zIndex = '250';
+    pane.style.pointerEvents = 'none';
+    pane.style.filter = 'invert(1) hue-rotate(180deg) saturate(0.15) brightness(0.69) contrast(.95)';
+
+    const layer = L.tileLayer(url, { pane: 'fx', opacity: 0 }).addTo(map);
+    const applyFade = () => {
+      const z = map.getZoom();
+      const fade = DOGYPT_FADE_END <= DOGYPT_FADE_START
+        ? (z >= DOGYPT_FADE_END ? 0 : 1)
+        : 1 - Math.min(1, Math.max(0, (z - DOGYPT_FADE_START) / (DOGYPT_FADE_END - DOGYPT_FADE_START)));
+      layer.setOpacity(fade);
+    };
+    applyFade();
+    map.on('zoomend', applyFade);
+
+    return () => {
+      map.off('zoomend', applyFade);
+      map.removeLayer(layer);
+      // akceptačné kritérium (spec §10): prepnutie preč nesmie nechať zvyšok na mape. Leaflet
+      // nemá verejné removePane, tak pane ostáva v DOM, ale prázdny a bez filtra — vizuálne aj
+      // funkčne nulový, presne ako v prototype (`applyTreatment()`: `pane.style.filter = ''`).
+      pane.style.filter = '';
+    };
+  }, [map, url]);
+
+  return null;
+}
+
+// Rozbaľovací panel vrstiev — vygenerovaný z MAP_LAYERS (žiadne natvrdo napísané riadky).
+// Vzor (trigger → backdrop → absolútny panel) je rovnaký ako TripTagsDropdown nižšie a
+// IdentityVisibilityEye (PackProfile.tsx). Escape handler navyše — rovnaký vzor ako placeSug
+// efekt v PackMap() (klik-mimo tam backdrop nemá, lebo prekrýva mapu; tu backdrop MÔŽE byť,
+// panel je mimo mapy v ctlstacku).
+function LayersPanel({
+  mapBase,
+  onBaseChange,
+  overlayOn,
+  onOverlayToggle,
+  fogCtx,
+}: {
+  mapBase: MapBaseId;
+  onBaseChange: (id: MapBaseId) => void;
+  overlayOn: Record<MapOverlayId, boolean>;
+  onOverlayToggle: (id: MapOverlayId) => void;
+  fogCtx: MapLayerCtx;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  const baseLayers = MAP_LAYERS.filter((l) => l.type === 'base');
+  const overlayLayers = MAP_LAYERS.filter((l) => l.type === 'overlay');
+
+  return (
+    <div className="trp-layersdd">
+      <button
+        type="button"
+        className={`trp-stylebtn${open ? ' on' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-label={t('pack.map.layersAriaLabel')}
+        title={t('pack.map.layersAriaLabel')}
+      >
+        <img src={ICON('layers')} alt="" />
+      </button>
+      {open && (
+        <>
+          <span className="fixed inset-0" style={{ zIndex: 40 }} onClick={() => setOpen(false)} aria-hidden />
+          <div className="trp-layersdd-panel">
+            <div className="trp-layersdd-group">
+              <span className="trp-tagdd-eyebrow">{t('pack.map.layersBaseGroup')}</span>
+              {baseLayers.map((layer) => {
+                const reasonKey = layer.disabledReason?.(fogCtx) ?? null;
+                const disabled = !!reasonKey;
+                return (
+                  <div key={layer.id}>
+                    <label className={`trp-layersdd-row${disabled ? ' disabled' : ''}`}>
+                      <input
+                        type="radio"
+                        name="trp-mapbase"
+                        checked={mapBase === layer.id}
+                        disabled={disabled}
+                        onChange={() => onBaseChange(layer.id as MapBaseId)}
+                      />
+                      <span>{t(layer.labelKey)}</span>
+                    </label>
+                    {reasonKey && <p className="trp-layersdd-hint">{t(reasonKey)}</p>}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="trp-layersdd-group">
+              <span className="trp-tagdd-eyebrow">{t('pack.map.layersOverlayGroup')}</span>
+              {overlayLayers.map((layer) => (
+                <label key={layer.id} className="trp-layersdd-row">
+                  <input
+                    type="checkbox"
+                    checked={overlayOn[layer.id as MapOverlayId]}
+                    onChange={() => onOverlayToggle(layer.id as MapOverlayId)}
+                  />
+                  <span>{t(layer.labelKey)}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // Tags multi-select dropdown pre top filter bar — presunuté z chip-riadku v ľavom paneli
 // (Matej 2026-07-27). Vzor = IdentityVisibilityEye (PackProfile.tsx): trigger → backdrop →
 // absolútne pozicovaný panel, klik na položku IBA toggle-ne (multi-select, panel sa
@@ -1316,7 +1523,18 @@ export default function PackMap() {
   const pickedPlaceRef = useRef('');
   const placeBoxRef = useRef<HTMLDivElement | null>(null);
   const [mapTarget, setMapTarget] = useState<LatLngTuple | null>(null);
-  const [mapStyle, setMapStyle] = useState<'outdoor' | 'aerial'>('outdoor'); // bod 2: Winter preč
+  // Vrstvy mapy (integračná vlna, spec-hmla.md) — PODKLAD je vždy práve jeden (`mapBase`),
+  // OVERLAYE sa dajú kombinovať (`overlayOn`). Panel, ktorý toto ovláda, sa generuje z
+  // MAP_LAYERS (viď definícia vyššie), nie z tohto stavu.
+  const [mapBase, setMapBase] = useState<MapBaseId>('outdoor');
+  const [overlayOn, setOverlayOn] = useState<Record<MapOverlayId, boolean>>(OVERLAY_DEFAULTS);
+  const toggleOverlay = useCallback((id: MapOverlayId) => {
+    setOverlayOn((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+  // Hmla (spec-hmla.md) — geometria je VÝHRADNE z potvrdeného prejdenia (viď useFogSource
+  // komentár), nikdy z allTrails. `source` sa tu nepoužíva (dev-fallback beží ticho na pozadí),
+  // je v hooku hlavne na debug/console warny.
+  const fog = useFogSource();
   const [locating, setLocating] = useState(false);
   const leafletMapRef = useRef<L.Map | null>(null);
   // TRIPSTATS Slice A (bod 3) — fallback flyTo target keď ?add= príde skôr, než leafletMapRef
@@ -1480,6 +1698,10 @@ export default function PackMap() {
     for (const tr of allTrails) seen.add(trailCountry(tr));
     return [...seen].sort((a, b) => (a === 'sk' ? -1 : b === 'sk' ? 1 : a.localeCompare(b)));
   }, [allTrails]);
+  // DOGYPT podklad používa outdoor dlaždice (viď DogyptBaseLayer komentár) — spodná vrstva teda
+  // pozná len dva reálne mapsety, tretí (dogypt) je vizuálna nadstavba nad "outdoor".
+  const tileStyle: 'outdoor' | 'aerial' = mapBase === 'aerial' ? 'aerial' : 'outdoor';
+  const fogCtx: MapLayerCtx = { fogTrailsCount: fog.trails.length, fogLoading: fog.loading };
   const trailsById = useMemo(() => {
     const m = new Map<string, HeroTrail>();
     allTrails.forEach((t) => m.set(t.id, t));
@@ -2675,7 +2897,23 @@ export default function PackMap() {
       <div className="trp-mapregion">
           <div className="trp-mapfull">
             <MapContainer center={CENTER} zoom={9} zoomControl={false} attributionControl={false} style={{ width: '100%', height: '100%' }}>
-              <TileLayer key={mapStyle} url={mapyTiles(mapStyle)} />
+              {/* PODKLAD — DOGYPT vrstva používa TIE ISTÉ outdoor dlaždice ako spodnú (neupravenú)
+                  vrstvu, presne ako v prototype (`setLayer`: „aerial"→aerial, inak vždy outdoor).
+                  Invert sa nesie na DRUHEJ kópii (<DogyptBaseLayer/> nižšie), táto zostáva čistá. */}
+              <TileLayer
+                key={tileStyle}
+                url={mapyTiles(tileStyle)}
+                {...(tileStyle === 'aerial' ? { maxNativeZoom: AERIAL_MAX_NATIVE_ZOOM } : {})}
+              />
+              {/* Overlay „Popisky a hranice" — Mapy.com mapset names-overlay, transparentná
+                  vrstva NAD podkladom (default vypnutý — bod 1 zadania, viď MAP_LAYERS). */}
+              {overlayOn.names && <TileLayer url={mapyTiles('names-overlay')} />}
+              {mapBase === 'dogypt' && <DogyptBaseLayer url={mapyTiles(tileStyle)} />}
+              {/* Hmla — vnútri <MapContainer> (potrebuje useMap()), pod trasami/markermi (viď
+                  poradie nižšie), nechytá klik (viď FogLayer.tsx). Panel dovolí prepnúť na DOGYPT
+                  len keď fog.trails.length>0 (viď MAP_LAYERS `disabledReason`), takže tu netreba
+                  duplicitne kontrolovať prázdny stav — keď je vrstva aktívna, dáta už sú. */}
+              {mapBase === 'dogypt' && <FogLayer trails={fog.trails} />}
               {/* bod 1 (Matej 2026-07-22): SK je vybraná krajina → zvýraznená čierno-zlatým
                   obrysom. Dvojvrstvový casing (čierny podklad + zlatá čiara) + whisper zlatého
                   fillu. interactive=false — nesmie chytať klik (trip pod ním musí ísť vybrať). */}
@@ -2815,8 +3053,10 @@ export default function PackMap() {
                   Bez súradnice (0 bodov, napr. Buková priehrada) sa vodná plocha nezobrazí — čaká
                   na nahadzovač 📍 bod-miesto (mapPoints guard, viď komentár pri jeho definícii). */}
               {/* POI z OSM (issue #40) — pod trip markermi (zIndexOffset), viditeľné až od z14.
-                  Atribúcia „© OpenStreetMap" je podmienka licencie → .trp-attrib pod mapou. */}
-              <PoiLayer />
+                  Atribúcia „© OpenStreetMap" je podmienka licencie → .trp-attrib pod mapou.
+                  Teraz overlay „Body na trase" v paneli vrstiev (default ZAPNUTÝ — nemení dnešné
+                  správanie, vrstva bola predtým natvrdo ON). */}
+              {overlayOn.poi && <PoiLayer />}
               <TripMarkers
                 points={mapPoints}
                 hoverId={hoverId}
@@ -2838,8 +3078,9 @@ export default function PackMap() {
             {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
                 viď komentár pri .trp-legend v CSS. */}
             {/* POI vrstva beží na dátach OpenStreetMap (ODbL) — atribúcia je podmienka licencie,
-                preto je natvrdo v DOM a nedá sa vypnúť spolu s vrstvou. */}
-            <PoiAttribution style={{ bottom: 34 }} />
+                takže ide RUKA V RUKE s overlayOn.poi (keď je vrstva vypnutá, dáta sa nekreslia,
+                atribúcia teda ani nemá čo vysvetľovať). */}
+            {overlayOn.poi && <PoiAttribution style={{ bottom: 34 }} />}
 
             {/* top bar — floating status riadok + search-a-place + Activity/Difficulty/Crowd
                 filter, žije NA mape (AllTrails "Search map" vzor). Iterácia 10: status riadok
@@ -2927,17 +3168,16 @@ export default function PackMap() {
 
             {/* pravý vertikálny ovládací stack — vrstvy mapy, zoom, moja poloha (AllTrails vzor) */}
             <div className="trp-ctlstack">
-              {/* bod 2: Terrain/Satellite/Winter stack → jedno kruhové tlačidlo, prepína len
-                  outdoor↔aerial (Winter úplne odstránený z mapStyle typu aj z mapyTiles). */}
-              <button
-                type="button"
-                className="trp-stylebtn"
-                onClick={() => setMapStyle((v) => (v === 'outdoor' ? 'aerial' : 'outdoor'))}
-                aria-label={mapStyle === 'outdoor' ? t('pack.map.switchToSatellite') : t('pack.map.switchToTerrain')}
-                title={mapStyle === 'outdoor' ? t('pack.map.switchToSatellite') : t('pack.map.switchToTerrain')}
-              >
-                <img src={ICON('layers')} alt="" />
-              </button>
+              {/* Rozbaľovací panel vrstiev (integračná vlna, spec-hmla.md) — nahrádza staré jedno
+                  kruhové tlačidlo Outdoor↔Satelit. Tretia položka DOGYPT (hmla) + dva overlaye,
+                  vygenerované z deklaratívneho MAP_LAYERS poľa (viď definícia vyššie). */}
+              <LayersPanel
+                mapBase={mapBase}
+                onBaseChange={setMapBase}
+                overlayOn={overlayOn}
+                onOverlayToggle={toggleOverlay}
+                fogCtx={fogCtx}
+              />
               <div className="trp-zoomgroup">
                 <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label={t('pack.map.zoomIn')}>+</button>
                 <button type="button" onClick={() => leafletMapRef.current?.zoomOut()} aria-label={t('pack.map.zoomOut')}>−</button>
