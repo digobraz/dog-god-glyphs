@@ -15,6 +15,7 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { useT } from '@/i18n/LanguageContext';
 import {
   ACTIVITY_GEOMETRY,
   type GeometryKind,
@@ -100,6 +101,7 @@ export function GeometryPicker({
   onMetrics,
   mapRef,
 }: GeometryPickerProps) {
+  const t = useT();
   // legs[i] = geometria medzi kotvou i a i+1. Držané v ref, nie v state: undo musí prepočítať
   // stopu BEZ sieťového volania (§10.2 bod 2) a nesmie spustiť re-render uprostred kreslenia.
   const legsRef = useRef<Array<LatLngTuple[]>>([]);
@@ -157,9 +159,9 @@ export function GeometryPicker({
   }, []);
 
   const noticeFor = (reason: SnapReason): string | null => {
-    if (reason === 'paused') return 'Snapping is paused this month';
-    if (reason === 'ratelimited') return 'Slow down — too many requests';
-    if (reason === 'straight' || reason === 'error') return "Couldn't snap — using straight line";
+    if (reason === 'paused') return t('pack.addTrip.geo.noticePaused');
+    if (reason === 'ratelimited') return t('pack.addTrip.geo.noticeRatelimited');
+    if (reason === 'straight' || reason === 'error') return t('pack.addTrip.geo.noticeStraight');
     return null;
   };
 
@@ -351,9 +353,9 @@ export function GeometryPicker({
   // ── panel ─────────────────────────────────────────────────────────────────────────────
   const pointCount = value.kind === 'route' ? value.path.length : 0;
   const hint =
-    value.kind === 'route' ? 'Click along the map to draw your route'
-      : value.kind === 'point' ? 'Click the map to drop a pin'
-      : 'Click the map to place the area, then set its size';
+    value.kind === 'route' ? t('pack.addTrip.geo.hintRoute')
+      : value.kind === 'point' ? t('pack.addTrip.geo.hintSpot')
+      : t('pack.addTrip.geo.hintArea');
 
   return (
     <div style={{ display: 'grid', gap: 10 }}>
@@ -376,7 +378,7 @@ export function GeometryPicker({
                   color: on ? GOLD_BRIGHT : T.onDarkDim,
                 }}
               >
-                {k === 'route' ? 'Route' : k === 'point' ? 'Spot' : 'Area'}
+                {k === 'route' ? t('pack.addTrip.geo.kindRoute') : k === 'point' ? t('pack.addTrip.geo.kindSpot') : t('pack.addTrip.geo.kindArea')}
               </button>
             );
           })}
@@ -399,12 +401,12 @@ export function GeometryPicker({
                   {km.toFixed(1)} km
                   <span style={{ color: T.onDarkDim }}> · </span>
                   ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
-                  <span style={{ color: T.onDarkDim }}> · {pointCount} points</span>
+                  <span style={{ color: T.onDarkDim }}> · {t('pack.addTrip.geo.pointsSuffix', { n: pointCount })}</span>
                 </>
           ) : value.center ? (
             value.kind === 'area'
-              ? `Area · ${(value.radiusM / 1000).toFixed(1)} km radius`
-              : 'Spot set'
+              ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
+              : t('pack.addTrip.geo.spotSet')
           ) : (
             <span style={{ color: T.onDarkDim }}>{hint}</span>
           )}
@@ -412,8 +414,8 @@ export function GeometryPicker({
 
         {value.kind === 'route' && pointCount > 0 && (
           <span style={{ display: 'flex', gap: 6 }}>
-            <button type="button" onClick={undo} disabled={busy} style={miniBtn}>Undo</button>
-            <button type="button" onClick={clear} disabled={busy} style={miniBtn}>Clear</button>
+            <button type="button" onClick={undo} disabled={busy} style={miniBtn}>{t('pack.addTrip.geo.undo')}</button>
+            <button type="button" onClick={clear} disabled={busy} style={miniBtn}>{t('pack.addTrip.geo.clear')}</button>
           </span>
         )}
       </div>
@@ -438,11 +440,11 @@ export function GeometryPicker({
         </div>
       )}
       {busy && (
-        <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim }}>snapping…</div>
+        <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim }}>{t('pack.addTrip.geo.snappingBusy')}</div>
       )}
       {value.kind === 'route' && onPickExisting && pointCount === 0 && (
         <div style={{ fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '.1em', color: T.onDarkDim, textTransform: 'uppercase' }}>
-          Faded lines are existing trails — click one to log it instead
+          {t('pack.addTrip.geo.ghostHint')}
         </div>
       )}
     </div>

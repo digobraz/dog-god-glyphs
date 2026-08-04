@@ -192,18 +192,18 @@ const CSS = `
 // #41: mená účastníkov idú z DB (`get_trip_party`) — jediný zdroj. Lokálny `entry.joiners`
 // je rezervované pole pre budúce Slice B (viď triplist.ts), reálne prihlásenia ním nejdú,
 // takže sa z neho meno nikdy neodvodzuje.
-function statusLabel(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
-  if (done) return 'Done';
+function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boolean, party?: TripParty): string {
+  if (done) return t('pack.triplist.statusDone');
   const real = party?.joiners ?? [];
-  if (real.length === 1) return `With ${real[0].ownerFirst ?? 'a Dogyptian'}`;
-  if (real.length > 1) return `With ${real.length}`;
-  if (entry.status === 'going') return 'Going';
+  if (real.length === 1) return t('pack.triplist.statusWithName', { name: real[0].ownerFirst ?? t('pack.triplist.fallbackDogyptianLower') });
+  if (real.length > 1) return t('pack.triplist.statusWithCount', { n: real.length });
+  if (entry.status === 'going') return t('pack.triplist.statusGoing');
   if (entry.status === 'looking') {
     // organizátor vidí, koľko ľudí čaká na jeho odpoveď — inak by o žiadosti nevedel
     const waiting = party?.requests.length ?? 0;
-    return waiting ? `Looking · ${waiting} asked` : 'Looking for pack';
+    return waiting ? t('pack.triplist.statusLookingAsked', { n: waiting }) : t('pack.triplist.statusLookingForPack');
   }
-  return 'Solo';
+  return t('pack.triplist.statusSolo');
 }
 function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
   if (done) return 'done';
@@ -220,10 +220,10 @@ function daysFromNow(dateStr: string | undefined, nowMs: number): number | null 
   if (Number.isNaN(ms)) return null;
   return Math.round((ms - nowMs) / DAY_MS);
 }
-function countdownLabel(days: number): string {
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Tomorrow';
-  return `${days} days left`;
+function countdownLabel(t: ReturnType<typeof useT>, days: number): string {
+  if (days <= 0) return t('pack.triplist.countdownToday');
+  if (days === 1) return t('pack.triplist.countdownTomorrow');
+  return t('pack.triplist.countdownDaysLeft', { n: days });
 }
 // Poradie MY TRIPS (Matej 2026-07-23): blížiace sa PRVÉ (najbližší dátum), potom bez dátumu, DONE POSLEDNÉ.
 function sortMyTrips(rows: MyTripRow[], nowMs: number): MyTripRow[] {
@@ -257,15 +257,15 @@ type OpenCard = {
 };
 
 // stav tlačidla „požiadať" podľa mojej existujúcej žiadosti na ten výlet
-function joinLabel(status?: TripRequestStatus): { label: string; cls: string; disabled: boolean } {
+function joinLabel(t: ReturnType<typeof useT>, status?: TripRequestStatus): { label: string; cls: string; disabled: boolean } {
   switch (status) {
-    case 'requested': return { label: '✓ Requested', cls: ' pending', disabled: true };
-    case 'accepted': return { label: "✓ You're going", cls: ' done', disabled: true };
+    case 'requested': return { label: t('pack.triplist.joinRequested'), cls: ' pending', disabled: true };
+    case 'accepted': return { label: t('pack.triplist.joinAccepted'), cls: ' done', disabled: true };
     // odmietnutý aj odídený smie požiadať znova — starý riadok sa pri tom zmaže
     // a založí nanovo (viď tripRequests.ts, unique constraint)
-    case 'declined': return { label: 'Ask again', cls: '', disabled: false };
-    case 'left': return { label: 'Ask again', cls: '', disabled: false };
-    default: return { label: 'Request to join', cls: '', disabled: false };
+    case 'declined': return { label: t('pack.triplist.joinAskAgain'), cls: '', disabled: false };
+    case 'left': return { label: t('pack.triplist.joinAskAgain'), cls: '', disabled: false };
+    default: return { label: t('pack.triplist.joinRequestToJoin'), cls: '', disabled: false };
   }
 }
 
@@ -473,17 +473,17 @@ export default function PackTriplist() {
 
       <div className="tl-body">
         <div className="tl-backrow">
-          <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label="Back to map">←</button>
+          <button type="button" className="tl-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.triplist.backToMap')}>←</button>
         </div>
 
         {/* dve karty-prepínače (Matej 2026-07-23): naše ikony (paw/trophy), žiadne emoji, žiadne nadpisy nad.
             Matej 2026-07-26: poradie otočené — Tripstats vľavo, Triplist vpravo. */}
         <div className="tl-tabs">
           <button type="button" className={`tl-tab${view === 'stats' ? ' on' : ''}`} onClick={() => setView('stats')}>
-            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('trophy')} alt="" /></span> Tripstats</span>
+            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('trophy')} alt="" /></span> {t('pack.triplist.tabTripstats')}</span>
           </button>
           <button type="button" className={`tl-tab${view === 'list' ? ' on' : ''}`} onClick={() => setView('list')}>
-            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('clipboard')} alt="" /></span> Triplist</span>
+            <span className="tl-tab-label"><span className="tl-tab-ic"><img src={ICON('clipboard')} alt="" /></span> {t('pack.triplist.tabTriplist')}</span>
           </button>
         </div>
 
@@ -505,7 +505,7 @@ export default function PackTriplist() {
             <>
               <div className="tl-section">
                 <div className="tl-sechead">
-                  <h3>Requests to join · {incoming.count}</h3>
+                  <h3>{t('pack.triplist.requestsToJoin', { n: incoming.count })}</h3>
                 </div>
                 {Object.entries(incoming.bySlug).map(([slug, rows]) => {
                   const trail = allTrails.find((tr) => tr.id === slug);
@@ -527,13 +527,13 @@ export default function PackTriplist() {
                           className="tl-reqbtn yes"
                           disabled={reqBusy === row.id}
                           onClick={() => void onDecide(row.id, 'accepted', slug, member?.ownerFirst ?? member?.dogName ?? null)}
-                        >Accept</button>
+                        >{t('pack.triplist.accept')}</button>
                         <button
                           type="button"
                           className="tl-reqbtn no"
                           disabled={reqBusy === row.id}
                           onClick={() => void onDecide(row.id, 'declined')}
-                        >Decline</button>
+                        >{t('pack.triplist.decline')}</button>
                       </div>
                     </div>
                   ));
@@ -548,14 +548,14 @@ export default function PackTriplist() {
             <>
               <div className="tl-closebar">
                 <span className="tl-closebar-t">
-                  <b>{closeOffer.who ?? 'A Dogyptian'}</b> is going with you. Close this trip to new requests?
+                  <b>{closeOffer.who ?? t('pack.triplist.fallbackDogyptian')}</b> {t('pack.triplist.closeOfferBody')}
                 </span>
                 <div className="tl-req-acts">
                   <button type="button" className="tl-reqbtn yes" onClick={() => setVisibility(closeOffer.slug, false)}>
-                    Close it
+                    {t('pack.triplist.closeIt')}
                   </button>
                   <button type="button" className="tl-reqbtn" onClick={() => setCloseOffer(null)}>
-                    Keep looking
+                    {t('pack.triplist.keepLooking')}
                   </button>
                 </div>
               </div>
@@ -566,12 +566,12 @@ export default function PackTriplist() {
           {/* MY TRIPS — horizontálny slajd, status badge (farebný: done/with/looking/solo), vlajka */}
           <div className="tl-section">
             <div className="tl-sechead">
-              <h3>My trips</h3>
+              <h3>{t('pack.triplist.myTrips')}</h3>
             </div>
             {myTrips.length === 0 ? (
               <div className="tl-emptybox">
-                <span className="tl-empty">You haven’t logged a trip yet.</span>
-                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>Add your first trip</button>
+                <span className="tl-empty">{t('pack.triplist.emptyMyTrips')}</span>
+                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>{t('pack.triplist.addFirstTrip')}</button>
               </div>
             ) : (
               <div className="tl-hscroll">
@@ -589,20 +589,20 @@ export default function PackTriplist() {
                   return (
                   <div key={entry.tripId} className="tl-mycard">
                     {dleft !== null && dleft >= 0 && (
-                      <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(dleft)}</span>
+                      <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
                     )}
                   <div className="pk-glass-block tl-block" onClick={() => navigate(tripPath(trail))}>
                     <div className="tl-block-cover" style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
-                      <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
+                      <img className="tl-flag" src={flagUrl('sk')} alt={t('pack.triplist.slovakiaLabel')} title={t('pack.triplist.slovakiaLabel')} loading="lazy" draggable={false} />
                       {canToggleVis ? (
                         <button
                           type="button"
                           className={`tl-block-badge tap ${statusClass(entry, done, parties[entry.tripId])}`}
-                          title="Who can see this trip"
+                          title={t('pack.triplist.whoCanSee')}
                           onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
-                        >{statusLabel(entry, done, parties[entry.tripId])}</button>
+                        >{statusLabel(t, entry, done, parties[entry.tripId])}</button>
                       ) : (
-                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(entry, done, parties[entry.tripId])}</span>
+                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(t, entry, done, parties[entry.tripId])}</span>
                       )}
                     </div>
                     <div className="tl-block-info">
@@ -614,7 +614,7 @@ export default function PackTriplist() {
                           </button>
                         ) : (
                           <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId); }}>
-                            + Add date
+                            {t('pack.triplist.addDate')}
                           </button>
                         )}
                       </div>
@@ -632,26 +632,26 @@ export default function PackTriplist() {
           {/* OPEN TRIPS — filter (region WCE + krajina), grid, pohorie+lokalita, meno+pes, dátum v rámiku, správa */}
           <div className="tl-section">
             <div className="tl-sechead">
-              <h3>Open trips from the pack</h3>
+              <h3>{t('pack.triplist.openTripsFromPack')}</h3>
             </div>
             <div className="tl-filters">
               {(['all', 'W', 'C', 'E'] as const).map((k) => (
                 <button key={k} type="button" className={`tl-filter${publicWCE === k ? ' on' : ''}`} onClick={() => setRegion(k)}>
-                  {k === 'all' ? 'All regions' : WCE_LABEL[k]}
+                  {k === 'all' ? t('pack.triplist.allRegions') : WCE_LABEL[k]}
                 </button>
               ))}
               <span className="tl-filter-sep" />
               <select className="tl-filter-sel" defaultValue="SK">
-                <option value="SK">🇸🇰 Slovakia</option>
-                <option value="CZ" disabled>Czechia — soon</option>
-                <option value="PL" disabled>Poland — soon</option>
-                <option value="AT" disabled>Austria — soon</option>
+                <option value="SK">{t('pack.triplist.slovakiaOption')}</option>
+                <option value="CZ" disabled>{t('pack.triplist.czechiaSoon')}</option>
+                <option value="PL" disabled>{t('pack.triplist.polandSoon')}</option>
+                <option value="AT" disabled>{t('pack.triplist.austriaSoon')}</option>
               </select>
             </div>
             {openCards.length === 0 ? (
               <div className="tl-emptybox">
-                <span className="tl-empty">No open trips right now. Announce one and the pack will see it.</span>
-                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>Announce a trip</button>
+                <span className="tl-empty">{t('pack.triplist.emptyOpenTrips')}</span>
+                <button type="button" className="tl-emptybtn" onClick={() => navigate('/pack/add/trip')}>{t('pack.triplist.announceTrip')}</button>
               </div>
             ) : (
               <>
@@ -660,7 +660,7 @@ export default function PackTriplist() {
                   // `real` do lokálnej konštanty — TS si zúženie c.real do onClick closure neprenesie
                   const real = c.real;
                   const k = real ? requestKey(real.slug, real.organizerId) : '';
-                  const st = real ? joinLabel(myRequests[k]) : null;
+                  const st = real ? joinLabel(t, myRequests[k]) : null;
                   return (
                   <div
                     key={c.key}
@@ -668,8 +668,8 @@ export default function PackTriplist() {
                     onClick={() => navigate(tripPath(c.trail))}
                   >
                     <div className="tl-block-cover" style={c.trail.photos[0] ? { backgroundImage: `url('${c.trail.photos[0]}')` } : undefined}>
-                      <img className="tl-flag" src={flagUrl('sk')} alt="Slovakia" title="Slovakia" loading="lazy" draggable={false} />
-                      <span className="tl-block-badge looking">Looking for pack{c.joiners > 0 ? ` · +${c.joiners}` : ''}</span>
+                      <img className="tl-flag" src={flagUrl('sk')} alt={t('pack.triplist.slovakiaLabel')} title={t('pack.triplist.slovakiaLabel')} loading="lazy" draggable={false} />
+                      <span className="tl-block-badge looking">{c.joiners > 0 ? t('pack.triplist.lookingWithJoiners', { n: c.joiners }) : t('pack.triplist.statusLookingForPack')}</span>
                     </div>
                     <div className="tl-block-info">
                       <div className="tl-block-name">{c.trail.name}</div>
@@ -679,7 +679,7 @@ export default function PackTriplist() {
                         <span>{c.ownerName}</span>
                       </div>
                       <div className="tl-block-foot">
-                        {c.date ? <span className="tl-datepill">{c.date}</span> : <span className="tl-date">No date yet</span>}
+                        {c.date ? <span className="tl-datepill">{c.date}</span> : <span className="tl-date">{t('pack.triplist.noDateYet')}</span>}
                       </div>
                       {real && st && (
                         <>
@@ -699,9 +699,9 @@ export default function PackTriplist() {
               </div>
               {publicPageCount > 1 && (
                 <div className="tl-pager">
-                  <button type="button" className="tl-pagebtn" disabled={publicPage === 0} onClick={() => setPublicPage((p) => Math.max(0, p - 1))}>← Prev</button>
-                  <span className="tl-pageinfo">Page {publicPage + 1} / {publicPageCount}</span>
-                  <button type="button" className="tl-pagebtn" disabled={publicPage >= publicPageCount - 1} onClick={() => setPublicPage((p) => Math.min(publicPageCount - 1, p + 1))}>Next →</button>
+                  <button type="button" className="tl-pagebtn" disabled={publicPage === 0} onClick={() => setPublicPage((p) => Math.max(0, p - 1))}>{t('pack.triplist.prevPage')}</button>
+                  <span className="tl-pageinfo">{t('pack.triplist.pageInfo', { page: publicPage + 1, total: publicPageCount })}</span>
+                  <button type="button" className="tl-pagebtn" disabled={publicPage >= publicPageCount - 1} onClick={() => setPublicPage((p) => Math.min(publicPageCount - 1, p + 1))}>{t('pack.triplist.nextPage')}</button>
                 </div>
               )}
               </>
@@ -715,11 +715,11 @@ export default function PackTriplist() {
         <div className="tl-overlay" onClick={() => setDateTripId(null)}>
           <div className="tl-modal" onClick={(e) => e.stopPropagation()}>
             <div className="tl-modal-head">
-              <div className="tl-modal-title">Set a date</div>
-              <button type="button" className="tl-x" onClick={() => setDateTripId(null)} aria-label="Close">×</button>
+              <div className="tl-modal-title">{t('pack.triplist.setDate')}</div>
+              <button type="button" className="tl-x" onClick={() => setDateTripId(null)} aria-label={t('pack.triplist.close')}>×</button>
             </div>
             <input type="date" className="tl-dateinput" value={dateValue} onChange={(e) => setDateValue(e.target.value)} />
-            <button type="button" className="tl-modal-submit" onClick={saveDate}>Save date</button>
+            <button type="button" className="tl-modal-submit" onClick={saveDate}>{t('pack.triplist.saveDate')}</button>
           </div>
         </div>
       )}
@@ -738,34 +738,34 @@ export default function PackTriplist() {
             <div className="tl-modal" onClick={(e) => e.stopPropagation()}>
               <div className="tl-modal-head">
                 <div>
-                  <div className="tl-modal-title">Who can see this trip</div>
+                  <div className="tl-modal-title">{t('pack.triplist.whoCanSee')}</div>
                   <div className="tl-sub" style={{ textAlign: 'left', marginTop: 4 }}>{trail?.name ?? visTripId}</div>
                 </div>
-                <button type="button" className="tl-x" onClick={() => setVisTripId(null)} aria-label="Close">×</button>
+                <button type="button" className="tl-x" onClick={() => setVisTripId(null)} aria-label={t('pack.triplist.close')}>×</button>
               </div>
               <div className="tl-vis">
                 <button type="button" className={`tl-vischoice${!isOpen ? ' on' : ''}`} onClick={() => setVisibility(visTripId, false)}>
                   <span className="tl-vischoice-ic">🔒</span>
                   <span>
-                    <span className="tl-vischoice-t">Private</span>
+                    <span className="tl-vischoice-t">{t('pack.triplist.private')}</span>
                     <span className="tl-vischoice-d">
-                      Only you {joiners > 0 ? 'and the Dogyptians already going ' : ''}see this trip. Nobody new can ask to join.
+                      {joiners > 0 ? t('pack.triplist.privateDescWithParty') : t('pack.triplist.privateDescSolo')}
                     </span>
                   </span>
                 </button>
                 <button type="button" className={`tl-vischoice${isOpen ? ' on' : ''}`} onClick={() => setVisibility(visTripId, true)}>
                   <span className="tl-vischoice-ic">🐾</span>
                   <span>
-                    <span className="tl-vischoice-t">Looking for pack</span>
+                    <span className="tl-vischoice-t">{t('pack.triplist.statusLookingForPack')}</span>
                     <span className="tl-vischoice-d">
-                      Your pack sees the trail, the date{entry?.date ? ` (${entry.date})` : ''} and your dog — and any member can ask to join.
+                      {entry?.date ? t('pack.triplist.openDescWithDate', { date: entry.date }) : t('pack.triplist.openDescNoDate')}
                     </span>
                   </span>
                 </button>
               </div>
               {waiting > 0 && !isOpen && (
                 <div className="tl-sub" style={{ textAlign: 'left', marginTop: 12 }}>
-                  {waiting} pending request{waiting === 1 ? '' : 's'} stay{waiting === 1 ? 's' : ''} in your list — closing the trip doesn't answer them.
+                  {waiting === 1 ? t('pack.triplist.pendingRequestsOne', { n: waiting }) : t('pack.triplist.pendingRequestsMany', { n: waiting })}
                 </div>
               )}
             </div>

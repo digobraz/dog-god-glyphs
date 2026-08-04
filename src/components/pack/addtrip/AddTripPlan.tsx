@@ -11,6 +11,7 @@ import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packThem
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { trailCountry } from '@/lib/countryGeo';
+import { useT } from '@/i18n/LanguageContext';
 import { GeometryPicker, allowedKindsFor, defaultKindFor } from './GeometryPicker';
 import {
   missingFields,
@@ -40,19 +41,25 @@ export type AddTripPlanProps = {
 // ~riadky 190-201), ale needituje sa a nič z neho nie je exportované — Portal sám o sebe je
 // už lokálna kópia z __TrailsPreview.tsx (viď komentár tam), takže toto je tá istá, už zavedená
 // duplicačná konvencia, nie nový vzor.
-const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string }> = [
-  { id: 'hiking', label: 'Hiking', emoji: '🥾', dataId: 'hike' },
-  { id: 'journey', label: 'Journey', emoji: '🎒', dataId: 'journey' },
-  { id: 'picnic', label: 'Picnic', emoji: '🧺', dataId: 'picnic' },
-  { id: 'overnight', label: 'Overnight', emoji: '⛺', dataId: 'overnight' },
-  { id: 'skating', label: 'Skate', emoji: '🛼', dataId: 'skating' },
-  { id: 'paddleboard', label: 'SUP/swim', emoji: '🏄', dataId: 'paddleboard' },
-  { id: 'explore', label: 'Explore', emoji: '🧭', dataId: 'explore' },
+// labelKey → t() sa volá až v komponente (ACTIVITIES je modulová konštanta, useT() je hook).
+const ACTIVITIES: Array<{ id: string; labelKey: string; emoji: string; dataId: string }> = [
+  { id: 'hiking', labelKey: 'pack.addTrip.plan.activities.hiking', emoji: '🥾', dataId: 'hike' },
+  { id: 'journey', labelKey: 'pack.addTrip.plan.activities.journey', emoji: '🎒', dataId: 'journey' },
+  { id: 'picnic', labelKey: 'pack.addTrip.plan.activities.picnic', emoji: '🧺', dataId: 'picnic' },
+  { id: 'overnight', labelKey: 'pack.addTrip.plan.activities.overnight', emoji: '⛺', dataId: 'overnight' },
+  { id: 'skating', labelKey: 'pack.addTrip.plan.activities.skating', emoji: '🛼', dataId: 'skating' },
+  { id: 'paddleboard', labelKey: 'pack.addTrip.plan.activities.paddleboard', emoji: '🏄', dataId: 'paddleboard' },
+  { id: 'explore', labelKey: 'pack.addTrip.plan.activities.explore', emoji: '🧭', dataId: 'explore' },
 ];
 const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));
 
-// §4.2: „Placeholder rotuje z poolu" — EN copy (texty projektu = EN, CLAUDE.md).
-const NAME_PLACEHOLDERS = ['Barbecue at Chtelnica', 'Hike up Ostrá', 'Skating', 'Swimming'];
+// §4.2: „Placeholder rotuje z poolu" — kľúče, t() sa volá v komponente.
+const NAME_PLACEHOLDER_KEYS = [
+  'pack.addTrip.plan.namePlaceholder.barbecue',
+  'pack.addTrip.plan.namePlaceholder.hike',
+  'pack.addTrip.plan.namePlaceholder.skating',
+  'pack.addTrip.plan.namePlaceholder.swimming',
+];
 
 // Počiatočná prázdna geometria pre PLÁN — kind = `defaultKindFor(activity,'plan')`
 // (GeometryPicker.tsx, exportované), ktorý je vždy najvoľnejší povolený druh (§5: „nikto
@@ -90,6 +97,7 @@ function CompanionAvatarsOnly(props: {
 }
 
 export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef }: AddTripPlanProps) {
+  const t = useT();
   const [name, setName] = useState('');
   const [activity, setActivity] = useState<string>('hiking');
   const [geometry, setGeometry] = useState<TripGeometry>(() => emptyGeometryFor('hiking'));
@@ -107,8 +115,8 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
   // podmienkou (Rules of Hooks — žiadny hook smie byť pod podmieneným returnom, tento komponent
   // žiadny early return nemá).
   useEffect(() => {
-    const t = setInterval(() => setPhIdx((i) => (i + 1) % NAME_PLACEHOLDERS.length), 2600);
-    return () => clearInterval(t);
+    const iv = setInterval(() => setPhIdx((i) => (i + 1) % NAME_PLACEHOLDER_KEYS.length), 2600);
+    return () => clearInterval(iv);
   }, []);
 
   // aktivita mení povolené druhy geometrie (ACTIVITY_GEOMETRY) — ak aktuálny kind už nesedí
@@ -178,7 +186,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
             className="att-input"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder={NAME_PLACEHOLDERS[phIdx]}
+            placeholder={t(NAME_PLACEHOLDER_KEYS[phIdx])}
           />
         </div>
 
@@ -186,7 +194,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
           <div className="att-field">
             <label>Activity</label>
             <select className="att-input" value={activity} onChange={(e) => setActivity(e.target.value)}>
-              {ACTIVITIES.map((a) => <option key={a.id} value={a.id}>{a.emoji} {a.label}</option>)}
+              {ACTIVITIES.map((a) => <option key={a.id} value={a.id}>{a.emoji} {t(a.labelKey)}</option>)}
             </select>
           </div>
           <div className="att-field">

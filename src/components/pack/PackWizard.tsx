@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { useT } from '@/i18n/LanguageContext';
 
 // Portal — renders fixed wizard UI directly under <body> so it escapes the
 // PackLayout `relative z-10` stacking context. Without this the floating pill
@@ -125,40 +126,43 @@ function ProgressDots({ total, active }: { total: number; active: number }) {
 }
 
 // ─── Step definitions for /pack (steps 0, 1, 3, 4) ───────────────────────────
+// Fields hold i18n KEYS (not literal text) — the strings are resolved via
+// `t()` at render time, since this array lives outside the component (no
+// hook access here).
 interface StepDef {
   globalStep: number; // 0, 1, 3, 4
   targetId: string;
-  title: string;
-  body: string;
-  nextLabel?: string;
+  titleKey: string;
+  bodyKey: string;
+  nextLabelKey?: string;
 }
 
 const PACK_STEPS: StepDef[] = [
   {
     globalStep: 0,
     targetId: 'wiz-hero',
-    title: 'Devotion',
-    body: "This is your bond, made visible. Stray → Pup → … → Demigod. You don't buy levels — you earn them by showing up for your dog.",
+    titleKey: 'pack.profile.wizard.step.devotion.title',
+    bodyKey: 'pack.profile.wizard.step.devotion.body',
   },
   {
     globalStep: 1,
     targetId: 'wiz-pack',
-    title: 'My Pack',
-    body: 'Every dog you walk beside lives here. Tap your dog — prayers happen there, that\'s where Devotion is actually earned.',
-    nextLabel: 'Open My Dog →',
+    titleKey: 'pack.profile.wizard.step.myPack.title',
+    bodyKey: 'pack.profile.wizard.step.myPack.body',
+    nextLabelKey: 'pack.profile.wizard.step.myPack.nextLabel',
   },
   {
     globalStep: 3,
     targetId: 'wiz-globe',
-    title: 'Your world',
-    body: 'The pack grows worldwide. A verse each day, your founder link to bring other dog lovers in.',
+    titleKey: 'pack.profile.wizard.step.yourWorld.title',
+    bodyKey: 'pack.profile.wizard.step.yourWorld.body',
   },
   {
     globalStep: 4,
     targetId: 'wiz-steps',
-    title: 'Start here',
-    body: "A short checklist — finish all seven and earn <strong style=\"color:#F5C73D\">+10 ☥</strong>. Last task: discover what we're building in the block just below.",
-    nextLabel: 'Enter the Pack 🐾',
+    titleKey: 'pack.profile.wizard.step.startHere.title',
+    bodyKey: 'pack.profile.wizard.step.startHere.body',
+    nextLabelKey: 'pack.profile.wizard.step.startHere.nextLabel',
   },
 ];
 
@@ -174,6 +178,7 @@ interface PackWizardProps {
 
 export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
   const navigate = useNavigate();
+  const t = useT();
   const [step, setStep] = useState<WizStep>(getWizStep);
 
   // When the user comes back from the dog page (step=2 → now on /pack), re-read from localStorage.
@@ -264,29 +269,30 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
               color: '#C99A3F', fontSize: 15,
               marginBottom: 14, letterSpacing: '.4px',
             }}>
-              Welcome to the Pack.
+              {t('pack.profile.wizard.welcome.subtitle')}
             </div>
-            <h2 style={{
-              fontFamily: "'Cinzel',serif",
-              fontSize: 23, color: '#F4EFE6',
-              lineHeight: 1.3, marginBottom: 18,
-            }}>
-              You're not a user here.<br />You're a Dogyptian.
-            </h2>
+            <h2
+              style={{
+                fontFamily: "'Cinzel',serif",
+                fontSize: 23, color: '#F4EFE6',
+                lineHeight: 1.3, marginBottom: 18,
+              }}
+              dangerouslySetInnerHTML={{ __html: t('pack.profile.wizard.welcome.title') }}
+            />
             <p style={{
               color: '#a99f88', fontSize: 13.5,
               lineHeight: 1.65, marginBottom: 36,
               maxWidth: 300,
             }}>
-              Take 30 seconds — let me show you how your bond becomes visible.
+              {t('pack.profile.wizard.welcome.body')}
             </p>
             <button
               onClick={next}
               style={{ ...GOLD_BTN, flex: 'none', width: '100%', maxWidth: 300, marginBottom: 14 }}
             >
-              Show me
+              {t('pack.profile.wizard.welcome.cta')}
             </button>
-            <button onClick={skip} style={GHOST_BTN}>Skip for now</button>
+            <button onClick={skip} style={GHOST_BTN}>{t('pack.profile.wizard.skipForNow')}</button>
           </div>
         </div>
       )}
@@ -304,20 +310,20 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
               color: '#C99A3F', fontSize: 15,
               letterSpacing: '.4px', marginBottom: 6,
             }}>
-              {localDef.title}
+              {t(localDef.titleKey)}
             </div>
 
             <div
               style={{ fontSize: 13, lineHeight: 1.65, color: '#d8cdb4', marginBottom: 14 }}
-              dangerouslySetInnerHTML={{ __html: localDef.body }}
+              dangerouslySetInnerHTML={{ __html: t(localDef.bodyKey) }}
             />
 
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <button onClick={skip} style={GHOST_BTN}>Skip</button>
+              <button onClick={skip} style={GHOST_BTN}>{t('pack.profile.wizard.skip')}</button>
               <button onClick={next} style={GOLD_BTN}>
                 {step === 1
-                  ? (primaryDogName ? `Open ${primaryDogName} →` : 'Open My Dog →')
-                  : (localDef.nextLabel ?? 'Next →')}
+                  ? t('pack.profile.wizard.openDog', { name: primaryDogName || t('pack.profile.wizard.myDog') })
+                  : (localDef.nextLabelKey ? t(localDef.nextLabelKey) : t('pack.profile.wizard.next'))}
               </button>
             </div>
           </CoachCard>
@@ -330,6 +336,7 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
 // ─── PackDogWizard (step 2 — used in PackDogDetail) ──────────────────────────
 export function PackDogWizard() {
   const navigate = useNavigate();
+  const t = useT();
   const [visible, setVisible] = useState(() => getWizStep() === 2);
 
   if (!visible) return null;
@@ -358,18 +365,17 @@ export function PackDogWizard() {
           color: '#C99A3F', fontSize: 15,
           letterSpacing: '.4px', marginBottom: 6,
         }}>
-          The daily ritual
+          {t('pack.profile.wizard.dogStep.title')}
         </div>
 
-        <div style={{ fontSize: 13, lineHeight: 1.65, color: '#d8cdb4', marginBottom: 14 }}>
-          Show up — Presence, a walk — and Devotion grows. Try tapping{' '}
-          <strong style={{ color: '#F5C73D' }}>Prayer of Presence</strong> and watch
-          your XP rise in the bar above. ↑
-        </div>
+        <div
+          style={{ fontSize: 13, lineHeight: 1.65, color: '#d8cdb4', marginBottom: 14 }}
+          dangerouslySetInnerHTML={{ __html: t('pack.profile.wizard.dogStep.body') }}
+        />
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button onClick={skip} style={GHOST_BTN}>Skip</button>
-          <button onClick={goBack} style={GOLD_BTN}>Continue →</button>
+          <button onClick={skip} style={GHOST_BTN}>{t('pack.profile.wizard.skip')}</button>
+          <button onClick={goBack} style={GOLD_BTN}>{t('pack.profile.wizard.continue')}</button>
         </div>
       </CoachCard>
     </WizPortal>

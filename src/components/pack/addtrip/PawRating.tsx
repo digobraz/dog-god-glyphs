@@ -40,6 +40,7 @@
 import React, { useRef, useState } from 'react';
 import { ICON } from '@/components/pack/tripShared';
 import { PACK_THEME as T } from '@/components/pack/packTheme';
+import { useT } from '@/i18n/LanguageContext';
 
 const GOLD_ON_DARK = '#F5C73D'; // CLAUDE.md gold-cta-bg-rule — tmavé pozadie
 const GOLD_ON_LIGHT = T.accentGold; // '#C99A3F' — bledé pozadie
@@ -82,6 +83,7 @@ function PawShape({ filled, color, size, emptyOpacity }: {
 }
 
 export function PawRating({ value, onChange, size = 26, onDark = false, readOnly = false }: PawRatingProps) {
+  const t = useT();
   const [hover, setHover] = useState<number | null>(null);
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const gold = onDark ? GOLD_ON_DARK : GOLD_ON_LIGHT;
@@ -92,7 +94,7 @@ export function PawRating({ value, onChange, size = 26, onDark = false, readOnly
     return (
       <div
         role="img"
-        aria-label={`${value} out of 5 packs`}
+        aria-label={t('pack.addTrip.paws.ariaOutOf5', { n: value })}
         style={{ display: 'inline-flex', alignItems: 'center', gap }}
       >
         {PACKS.map((n) => (
@@ -123,7 +125,7 @@ export function PawRating({ value, onChange, size = 26, onDark = false, readOnly
   return (
     <div
       role="radiogroup"
-      aria-label="Rate this trip in packs"
+      aria-label={t('pack.addTrip.paws.ariaGroupLabel')}
       style={{ display: 'inline-flex', alignItems: 'center', gap }}
       onMouseLeave={() => setHover(null)}
     >
@@ -134,7 +136,7 @@ export function PawRating({ value, onChange, size = 26, onDark = false, readOnly
           type="button"
           role="radio"
           aria-checked={n === value}
-          aria-label={`${n} pack${n > 1 ? 's' : ''}`}
+          aria-label={n > 1 ? t('pack.addTrip.paws.ariaPackMany', { n }) : t('pack.addTrip.paws.ariaPackOne', { n })}
           tabIndex={idx === tabStop ? 0 : -1}
           onMouseEnter={() => setHover(n)}
           onFocus={() => setHover(n)}

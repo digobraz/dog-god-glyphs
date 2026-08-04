@@ -356,6 +356,7 @@ export function TrafficRow({
   editable: boolean;
   onChange: (v: TrafficLight | undefined) => void;
 }) {
+  const t = useT();
   if (!editable && !value) return null;
   return (
     <div
@@ -367,11 +368,13 @@ export function TrafficRow({
         {TRAFFIC_OPTIONS.map((o) => {
           const active = value === o.value;
           if (!editable && !active) return null;
+          const trafficKey = `pack.dogCard.traffic.${o.value}`;
+          const trafficLabel = t(trafficKey);
           return (
             <button
               key={o.value}
               type="button"
-              aria-label={o.labelEN}
+              aria-label={trafficLabel === trafficKey ? o.labelEN : trafficLabel}
               aria-pressed={active}
               onClick={editable ? () => onChange(active ? undefined : o.value) : undefined}
               style={{
@@ -497,7 +500,7 @@ export function OpenQuestion({
                 <button
                   type="button"
                   onClick={() => remove(v)}
-                  aria-label={`Remove ${label(v)}`}
+                  aria-label={t('pack.profileCard.removeTag', { tag: label(v) })}
                   style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex' }}
                 >
                   <X className="h-3 w-3" style={{ color: chipInk, opacity: 0.6 }} />

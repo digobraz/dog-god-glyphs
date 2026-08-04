@@ -4,6 +4,7 @@
 // Reusable — v tomto kole len ako živý PREVIEW na spodku PackProfile.tsx;
 // wiring do reálneho buddy-listu (PackMap.tsx) je samostatný krok.
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import type { PackDogFull } from '@/hooks/usePackUser';
 import type { PartyMember } from '@/components/pack/triplist/useTripParty';
@@ -36,7 +37,10 @@ export function partyMemberToProfileCardProps(member: PartyMember): {
       dogs: {},
       updatedAt: new Date(0).toISOString(),
     },
-    name: member.ownerFirst?.trim() || 'A Dogyptian',
+    // Fallback text left EMPTY here on purpose — this helper is a plain function
+    // (no Reactu, no useT()) so it can't translate. TripProfileCard fills in the
+    // translated "A Dogyptian" fallback itself when `name` is falsy.
+    name: member.ownerFirst?.trim() || '',
     // appka nemá fotku MAJITEĽA o cudzom človeku, len fotku PSA (get_trip_party whitelist) —
     // rovnaký kompromis ako .pmc-av v PartyMemberCard.tsx.
     avatarUrl: member.dogPhoto,
@@ -72,6 +76,7 @@ export function TripProfileCard({
   dogs: PackDogFull[];
   packNumber?: number; // ak nie je v scope (napr. mock/no-auth), vynechá sa gracefully
 }) {
+  const t = useT();
   const { human } = profile;
   const isTrip = (key: ProfileFieldKey) => getTier(profile, key) === 'trip';
 
@@ -89,7 +94,11 @@ export function TripProfileCard({
     })
     .filter((v): v is string => Boolean(v));
   const smokeOpt = human.smoke && isTrip('smoke') ? SMOKE_OPTIONS.find((o) => o.value === human.smoke) : undefined;
-  const smokeLabel = smokeOpt ? `Smoke: ${smokeOpt.emoji ?? ''} ${smokeOpt.labelEN}`.replace('  ', ' ') : undefined;
+  // "Smoke:" prefix is local text (translated); the value itself (emoji + labelEN)
+  // comes from SMOKE_OPTIONS in packProfile.ts — out of scope, stays EN (see SKIPPED).
+  const smokeLabel = smokeOpt
+    ? t('pack.profileCard.smokeLabel', { value: `${smokeOpt.emoji ?? ''} ${smokeOpt.labelEN}`.trim() })
+    : undefined;
   const languageLabels = isTrip('languages') ? human.languages : [];
 
   const tripPills = [...personalityLabels, smokeLabel, ...languageLabels]
@@ -129,11 +138,11 @@ export function TripProfileCard({
         </span>
         <div className="min-w-0">
           <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 15, fontWeight: 600, color: T.ink }}>
-            {name || 'A Dogyptian'}
+            {name || t('pack.profileCard.aDogyptian')}
           </div>
           {packNumber != null && (
             <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.inkFaint }}>
-              Dogyptian #{packNumber}
+              {t('pack.profileCard.dogyptianNumber', { n: packNumber })}
             </div>
           )}
         </div>
@@ -153,10 +162,12 @@ export function TripProfileCard({
                 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, color: T.inkDim }}
               >
                 <BrandIcon name="paw" size={13} tint="dim" />
-                <strong style={{ color: T.ink, fontWeight: 600 }}>{d.dog_name || 'Unnamed'}</strong>
+                <strong style={{ color: T.ink, fontWeight: 600 }}>{d.dog_name || t('pack.profileCard.unnamedDog')}</strong>
+                {/* energyLabel comes from ENERGY_OPTIONS.labelEN in packProfile.ts (out of
+                    scope for this pass) — stays EN, see SKIPPED in report. */}
                 {energyLabel && <span>· {energyLabel}</span>}
                 {attrs.sizeClass && <span>· {attrs.sizeClass}</span>}
-                <span>· {goodWithDogs ? 'good with dogs' : 'prefers space'}</span>
+                <span>· {goodWithDogs ? t('pack.profileCard.goodWithDogs') : t('pack.profileCard.prefersSpace')}</span>
               </div>
             );
           })}

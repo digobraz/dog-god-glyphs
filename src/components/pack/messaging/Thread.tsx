@@ -3,6 +3,7 @@
 // vľavo papyrus), send box (Enter=send), auto-scroll dole, markRead pri mounte/otvorení. Nejoinnutá
 // open group → "Join the pack" namiesto send boxu (§ zadanie bod 2 Thread). Web texty = EN.
 import { useEffect, useRef, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import {
@@ -65,13 +66,13 @@ export const THREAD_CSS = `
 .msg-unblock:hover{border-color:${GOLD};color:${GOLD};}
 `;
 
-// Dôvody nahlásenia — držané v angličtine (web je navonok EN, preklad = #65).
-const REPORT_REASONS: Array<{ id: ReportReason; label: string }> = [
-  { id: 'harassment', label: 'Harassment or abuse' },
-  { id: 'spam', label: 'Spam or advertising' },
-  { id: 'unsafe', label: 'Unsafe for people or dogs' },
-  { id: 'not_dog_related', label: 'Not dog related' },
-  { id: 'other', label: 'Something else' },
+// Dôvody nahlásenia — label sa berie cez t() v komponente, mapa drží len kľúč (i18n fáza A).
+const REPORT_REASONS: Array<{ id: ReportReason; labelKey: string }> = [
+  { id: 'harassment', labelKey: 'pack.msg.reportReasonHarassment' },
+  { id: 'spam', labelKey: 'pack.msg.reportReasonSpam' },
+  { id: 'unsafe', labelKey: 'pack.msg.reportReasonUnsafe' },
+  { id: 'not_dog_related', labelKey: 'pack.msg.reportReasonNotDogRelated' },
+  { id: 'other', labelKey: 'pack.msg.reportReasonOther' },
 ];
 
 export function Thread({ convId, onClose, onOpenTrip }: {
@@ -89,6 +90,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const [modBusy, setModBusy] = useState(false);
   const [modErr, setModErr] = useState<string | null>(null);
   const me = getMe();
+  const t = useT();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -122,8 +124,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       <div className="msg-thread">
         <style>{THREAD_CSS}</style>
         <div className="msg-thread-head">
-          <button type="button" className="msg-back" onClick={onClose} aria-label="Back">←</button>
-          <div className="msg-thread-headtxt"><div className="msg-thread-title">Loading…</div></div>
+          <button type="button" className="msg-back" onClick={onClose} aria-label={t('pack.msg.backAriaLabel')}>←</button>
+          <div className="msg-thread-headtxt"><div className="msg-thread-title">{t('pack.msg.loading')}</div></div>
         </div>
       </div>
     );
@@ -132,7 +134,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const isGroup = conv.kind === 'group';
   const iAmMember = conv.memberIds.includes(me.id);
   const other = !isGroup ? conv.members.find((p) => p.id !== me.id) : undefined;
-  const title = isGroup ? (conv.title ?? 'Pack group') : (other?.name ?? 'Dogyptian');
+  const title = isGroup ? (conv.title ?? t('pack.msg.fallbackGroupTitle')) : (other?.name ?? 'Dogyptian');
+  const memberCount = conv.memberCount ?? conv.members.length;
 
   const handleTagClick = () => {
     if (conv.tag?.kind === 'trip' && conv.tag.id) {
@@ -144,19 +147,19 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   };
 
   const send = async () => {
-    const t = text.trim();
-    if (!t) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
     setText('');
     setSendErr(null);
     try {
-      const updated = await sendMessage(convId, t);
+      const updated = await sendMessage(convId, trimmed);
       setConv(updated); // okamžitý refresh — nespoliehať sa len na emitter (ten dobehne o chvíľu tiež)
     } catch {
       // DM ide od 2026-08-03 do DB a zápis môže byť odmietnutý (blok, offline,
       // vypadnutá session). Text vraciame do inputu — správa, ktorá neodišla,
       // sa nesmie stratiť ani tváriť ako odoslaná.
-      setText(t);
-      setSendErr('Message not sent. Check your connection and try again.');
+      setText(trimmed);
+      setSendErr(t('pack.msg.sendFailed'));
     }
   };
 
@@ -177,8 +180,8 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       closeMod();
     } catch {
       // Zámok, ktorý sa nezapísal, sa nesmie tváriť ako platný.
-      setModErr(blocked ? 'Could not block. Check your connection and try again.'
-                        : 'Could not unblock. Check your connection and try again.');
+      setModErr(blocked ? t('pack.msg.blockFailed')
+                        : t('pack.msg.unblockFailed'));
     } finally {
       setModBusy(false);
     }
@@ -192,7 +195,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       await reportContent('conversation', convId, reason, reportNote.trim() || undefined);
       setModView('sent');
     } catch {
-      setModErr('Could not send the report. Check your connection and try again.');
+      setModErr(t('pack.msg.reportFailed'));
     } finally {
       setModBusy(false);
     }
@@ -202,10 +205,14 @@ export function Thread({ convId, onClose, onOpenTrip }: {
     <div className="msg-thread">
       <style>{THREAD_CSS}</style>
       <div className="msg-thread-head">
-        <button type="button" className="msg-back" onClick={onClose} aria-label="Back to inbox">←</button>
+        <button type="button" className="msg-back" onClick={onClose} aria-label={t('pack.msg.backToInboxAriaLabel')}>←</button>
         <div className="msg-thread-headtxt">
           <div className="msg-thread-title">{title}</div>
-          {isGroup && <div className="msg-thread-sub">{conv.memberCount ?? conv.members.length} members</div>}
+          {isGroup && (
+            <div className="msg-thread-sub">
+              {t(memberCount === 1 ? 'pack.msg.memberCountOne' : 'pack.msg.memberCountMany', { n: memberCount })}
+            </div>
+          )}
           {conv.tag?.kind === 'trip' && conv.tag.label && (
             <button type="button" className="msg-tagchip msg-tagchip--click" onClick={handleTagClick}>
               <BrandIcon name="walk" size={10} tint="gold" /> {conv.tag.label}
@@ -217,21 +224,24 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             type="button"
             className="msg-mod"
             onClick={() => setModView('menu')}
-            aria-label="Report or block this person"
-            title="Report or block"
+            aria-label={t('pack.msg.reportBlockAriaLabel')}
+            title={t('pack.msg.reportBlockTitle')}
           >⋯</button>
         )}
       </div>
 
       <div className="msg-thread-body">
-        {conv.messages.length === 0 && <div className="msg-empty">No messages yet. Say hi 🐾</div>}
+        {conv.messages.length === 0 && <div className="msg-empty">{t('pack.msg.emptyThread')}</div>}
         {conv.messages.map((m) => {
           const mine = m.senderId === me.id;
           const sender = conv.members.find((p) => p.id === m.senderId);
           return (
             <div key={m.id} className={`msg-bubblewrap${mine ? ' me' : ''}`}>
               {isGroup && !mine && (
-                <div className="msg-bubble-sender">{sender?.name ?? 'Dogyptian'}{sender?.packNumber ? ` · #${sender.packNumber}` : ''}</div>
+                <div className="msg-bubble-sender">
+                  {sender?.name ?? 'Dogyptian'}
+                  {sender?.packNumber ? ` ${t('pack.msg.senderPackNumberSuffix', { n: sender.packNumber })}` : ''}
+                </div>
               )}
               <div className={`msg-bubble${mine ? ' me' : ''}`}>{m.text}</div>
             </div>
@@ -245,10 +255,10 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       {conv.blocked ? (
         <div className="msg-blocked">
           <div className="msg-blockedtxt">
-            You and {title} can no longer write to each other.
+            {t('pack.msg.blockedNotice', { name: title })}
           </div>
           <button type="button" className="msg-unblock" disabled={modBusy} onClick={() => void handleBlock(false)}>
-            {modBusy ? 'Working…' : 'Unblock'}
+            {modBusy ? t('pack.msg.working') : t('pack.msg.unblock')}
           </button>
           {modErr && <div className="msg-blockedtxt" role="alert" style={{ marginTop: 10, color: '#E0A0A0' }}>{modErr}</div>}
         </div>
@@ -259,16 +269,16 @@ export function Thread({ convId, onClose, onOpenTrip }: {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void send(); } }}
-            placeholder="Write a message…"
+            placeholder={t('pack.msg.messageInputPlaceholder')}
           />
-          <button type="button" className="msg-sendbtn" onClick={() => void send()} disabled={!text.trim()} aria-label="Send message">
+          <button type="button" className="msg-sendbtn" onClick={() => void send()} disabled={!text.trim()} aria-label={t('pack.msg.sendMessageAriaLabel')}>
             <BrandIcon name="chat" size={16} tint="dark" />
           </button>
         </div>
       ) : (
         <div className="msg-thread-join">
           <button type="button" className="msg-joinbtn" onClick={() => void handleJoin()}>
-            {conv.tag?.kind === 'trip' ? 'Join the pack on this trip' : 'Join this pack'}
+            {conv.tag?.kind === 'trip' ? t('pack.msg.joinTripPack') : t('pack.msg.joinPack')}
           </button>
         </div>
       )}
@@ -280,25 +290,24 @@ export function Thread({ convId, onClose, onOpenTrip }: {
               <>
                 <div className="msg-modtitle">{title}</div>
                 <div className="msg-modsub">
-                  Blocking is instant and works both ways — neither of you can write to the other.
-                  Reporting sends the thread to Matej, who reads it himself.
+                  {t('pack.msg.modMenuExplain')}
                 </div>
                 <div className="msg-modrow">
                   <button type="button" className="msg-modbtn" onClick={() => setModView('report')}>
-                    Report this conversation
+                    {t('pack.msg.reportConversation')}
                   </button>
                   <button type="button" className="msg-modbtn msg-modbtn--danger" disabled={modBusy} onClick={() => void handleBlock(true)}>
-                    {modBusy ? 'Blocking…' : `Block ${title}`}
+                    {modBusy ? t('pack.msg.blocking') : t('pack.msg.blockButton', { name: title })}
                   </button>
                 </div>
                 {modErr && <div className="msg-modsub" role="alert" style={{ color: '#E8A79A' }}>{modErr}</div>}
-                <button type="button" className="msg-modcancel" onClick={closeMod}>Cancel</button>
+                <button type="button" className="msg-modcancel" onClick={closeMod}>{t('pack.msg.cancel')}</button>
               </>
             )}
 
             {modView === 'report' && (
               <>
-                <div className="msg-modtitle">Why are you reporting this?</div>
+                <div className="msg-modtitle">{t('pack.msg.reportReasonPrompt')}</div>
                 <div className="msg-modrow">
                   {REPORT_REASONS.map((r) => (
                     <button
@@ -307,20 +316,20 @@ export function Thread({ convId, onClose, onOpenTrip }: {
                       className="msg-modbtn"
                       style={reason === r.id ? { borderColor: GOLD, color: GOLD } : undefined}
                       onClick={() => setReason(r.id)}
-                    >{r.label}</button>
+                    >{t(r.labelKey)}</button>
                   ))}
                 </div>
                 <textarea
                   className="msg-modnote"
                   value={reportNote}
                   onChange={(e) => setReportNote(e.target.value)}
-                  placeholder="Anything Matej should know (optional)"
+                  placeholder={t('pack.msg.reportNotePlaceholder')}
                 />
                 {modErr && <div className="msg-modsub" role="alert" style={{ color: '#E8A79A' }}>{modErr}</div>}
                 <button type="button" className="msg-modsend" disabled={!reason || modBusy} onClick={() => void handleReport()}>
-                  {modBusy ? 'Sending…' : 'Send report'}
+                  {modBusy ? t('pack.msg.sending') : t('pack.msg.sendReport')}
                 </button>
-                <button type="button" className="msg-modcancel" onClick={closeMod}>Cancel</button>
+                <button type="button" className="msg-modcancel" onClick={closeMod}>{t('pack.msg.cancel')}</button>
               </>
             )}
 

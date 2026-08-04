@@ -3,6 +3,7 @@
 // Brand: tmavé glass pozadie + papyrusové karty + zlaté CTA (Cinzel), rovnaké tokeny ako Portal.
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
 import { useEffect, useMemo, useState } from 'react';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
@@ -508,6 +509,7 @@ export const COMMUNITY_CSS = `
 function Modal({ title, sub, onClose, wide, children }: {
   title: string; sub?: string; onClose: () => void; wide?: boolean; children: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="comm-overlay" onClick={onClose}>
       <div className={`comm-modal${wide ? ' wide' : ''}`} onClick={(e) => e.stopPropagation()}>
@@ -516,7 +518,7 @@ function Modal({ title, sub, onClose, wide, children }: {
             <div className="comm-modal-title">{title}</div>
             {sub && <div className="comm-modal-sub">{sub}</div>}
           </div>
-          <button type="button" className="comm-x" onClick={onClose} aria-label="Close">×</button>
+          <button type="button" className="comm-x" onClick={onClose} aria-label={t('pack.community.closeAriaLabel')}>×</button>
         </div>
         {children}
       </div>
@@ -527,10 +529,11 @@ function Modal({ title, sub, onClose, wide, children }: {
 // clickable rating packy (1..5) — Matej 2026-07-23: „naša packa" = brand Hekypaw (paw.svg,
 // jeden väčší prst), NIE generický paw-solid.
 function PawInput({ value, onChange }: { value: number; onChange: (n: number) => void }) {
+  const t = useT();
   return (
     <div className="comm-paws">
       {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" onClick={() => onChange(n)} aria-label={`${n} paws`}>
+        <button key={n} type="button" onClick={() => onChange(n)} aria-label={t('pack.community.pawsAriaLabel', { n })}>
           <img
             src={ICON('paw')}
             alt=""
@@ -550,6 +553,7 @@ export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Cr
 export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
   trailName: string; initial?: WalkedInput | null; onSubmit: (v: WalkedInput) => void; onClose: () => void;
 }) {
+  const t = useT();
   const [rating, setRating] = useState(initial?.rating ?? 0);
   const [difficulty, setDifficulty] = useState<Difficulty | ''>(initial?.difficulty ?? '');
   const [crowd, setCrowd] = useState<Crowd | ''>(initial?.crowd ?? '');
@@ -561,14 +565,14 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
   // Matej 2026-07-23: „urop popup širší aby sa zmestil na vh 100" → wide modal + 2-stĺpcový
   // layout, nech sa zmestí bez rolovania. Rating hore cez obe kolóny, zvyšok v 2 stĺpcoch.
   return (
-    <Modal title="Great job! You did it! 🐾" sub={trailName} onClose={onClose} wide>
+    <Modal title={t('pack.community.walkedTitle')} sub={trailName} onClose={onClose} wide>
       <div className="comm-field" style={{ textAlign: 'center' }}>
-        <label className="comm-label">How was it? (paws)</label>
+        <label className="comm-label">{t('pack.community.walkedRatingLabel')}</label>
         <div style={{ display: 'flex', justifyContent: 'center' }}><PawInput value={rating} onChange={setRating} /></div>
       </div>
       <div className="comm-walked-grid">
         <div className="comm-field">
-          <label className="comm-label">Difficulty</label>
+          <label className="comm-label">{t('pack.community.difficultyLabel')}</label>
           <div className="comm-seg">
             {DIFFICULTIES.map((d) => (
               <button key={d} type="button" className={difficulty === d ? 'on' : ''} onClick={() => setDifficulty(d)}>
@@ -578,7 +582,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
           </div>
         </div>
         <div className="comm-field">
-          <label className="comm-label">Crowd</label>
+          <label className="comm-label">{t('pack.community.crowdLabel')}</label>
           <div className="comm-seg">
             {CROWDS.map((v) => (
               <button key={v} type="button" className={crowd === v ? 'on' : ''} onClick={() => setCrowd(v)}>
@@ -589,7 +593,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
         </div>
         {/* nebezpečenstvá — multi-select, na tripe sa agregujú ako % (Matej 2026-07-22) */}
         <div className="comm-field">
-          <label className="comm-label">Any hazards? (helps the pack)</label>
+          <label className="comm-label">{t('pack.community.hazardsLabel')}</label>
           <div className="comm-chips">
             {HAZARDS.map((h) => (
               <button key={h} type="button" className={`comm-chip${hazards.includes(h) ? ' on' : ''}`} onClick={() => toggleHazard(h)}>
@@ -600,12 +604,12 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
         </div>
         {/* dátum benevolentný — stačí rok/mesiac (Matej 2026-07-22) */}
         <div className="comm-field">
-          <label className="comm-label">When? (roughly — month is enough)</label>
+          <label className="comm-label">{t('pack.community.whenLabel')}</label>
           <input type="month" className="comm-input" value={when} onChange={(e) => setWhen(e.target.value)} />
         </div>
         <div className="comm-field" style={{ gridColumn: '1 / -1' }}>
-          <label className="comm-label">Comment (optional)</label>
-          <textarea className="comm-textarea" value={comment} onChange={(e) => setComment(e.target.value)} placeholder="Muddy after rain, great off-leash stretch near the top…" />
+          <label className="comm-label">{t('pack.community.commentLabel')}</label>
+          <textarea className="comm-textarea" value={comment} onChange={(e) => setComment(e.target.value)} placeholder={t('pack.community.commentPlaceholder')} />
         </div>
       </div>
       <button
@@ -614,7 +618,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
         disabled={!canSubmit}
         onClick={() => canSubmit && onSubmit({ rating, difficulty: difficulty as Difficulty, crowd: crowd as Crowd, comment, when, hazards })}
       >
-        {initial ? 'Update my vote' : 'Log this walk'}
+        {initial ? t('pack.community.updateVoteBtn') : t('pack.community.logWalkBtn')}
       </button>
     </Modal>
   );

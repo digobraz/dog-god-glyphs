@@ -218,9 +218,9 @@ ${DIFF_MARK_CSS}
 // F1 (Matej 2026-07-24): „hover → info koľko ľudí tak hlasovalo". Počet ide PRVÝ — otázka je
 // koľko ľudí, nie aké percento; % ostáva v zátvorke ako druhotná informácia.
 // „walker/walkers" = jednotné/množné číslo, aby to nečítalo „1 walkers".
-function voteTip(slices: CrowdSlice<string>[]): string {
+function voteTip(t: ReturnType<typeof useT>, slices: CrowdSlice<string>[]): string {
   return slices
-    .map((s) => `${s.count} ${s.count === 1 ? 'walker' : 'walkers'}: ${s.value} (${s.pct}%)`)
+    .map((s) => `${s.count} ${s.count === 1 ? t('pack.trip.walkerSingular') : t('pack.trip.walkerPlural')}: ${s.value} (${s.pct}%)`)
     .join(' · ');
 }
 
@@ -422,7 +422,7 @@ export default function PackTripArticle() {
     setPartnerAdOpen(false);
     // Inzerát sa na TEJTO stránke nikde nevykresľuje (žije v triplist/OPEN TRIPS), takže bez
     // potvrdenia človek zavrie popup a nemá jediný signál, že je vonku. (audit #45)
-    toast({ description: 'Your trip is now open — the pack can join you.' });
+    toast({ description: t('pack.trip.toastTripOpen') });
   };
 
   const handleShare = async () => {
@@ -434,7 +434,7 @@ export default function PackTripArticle() {
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast({ description: 'Link copied' });
+      toast({ description: t('pack.trip.toastLinkCopied') });
     } catch {
       toast({ description: url });
     }
@@ -458,12 +458,12 @@ export default function PackTripArticle() {
     return (
       <div className="pta-notfound" style={{ backgroundColor: T.pageBg }}>
         <style>{CSS}</style>
-        <div style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Trip not found</div>
+        <div style={{ fontSize: 14, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t('pack.trip.notFound')}</div>
         <button
           type="button"
           onClick={() => navigate('/pack/map')}
           style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: GOLD, background: 'none', border: 'none', cursor: 'pointer' }}
-        >← Back to trips</button>
+        >{t('pack.trip.notFoundBackToTrips')}</button>
       </div>
     );
   }
@@ -495,10 +495,10 @@ export default function PackTripArticle() {
               type="button"
               className={`pta-actbtn pta-actbtn--gold${favIds.has(trail.id) ? ' on' : ''}`}
               onClick={() => toggleFav(trail.id)}
-              aria-label={favIds.has(trail.id) ? 'In triplist' : 'Add to triplist'}
+              aria-label={favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')}
             >
               <span className="pta-actbtn-icon pta-ic-mask" style={{ '--ic': `url(${ICON('clipboard')})` } as React.CSSProperties} />
-              <span className="pta-actbtn-label">{favIds.has(trail.id) ? 'In triplist' : 'Add to triplist'}</span>
+              <span className="pta-actbtn-label">{favIds.has(trail.id) ? t('pack.trip.inTriplist') : t('pack.trip.addToTriplist')}</span>
             </button>
           )}
           {walkedIds.has(trail.id) ? (
@@ -509,10 +509,10 @@ export default function PackTripArticle() {
                 onClick={() => setWalkedMenuOpen((o) => !o)}
                 aria-haspopup="menu"
                 aria-expanded={walkedMenuOpen}
-                aria-label="Walked"
+                aria-label={t('pack.trip.walkedAriaLabel')}
               >
                 <span className="pta-actbtn-icon">🐾</span>
-                <span className="pta-actbtn-label">Walked ✓</span>
+                <span className="pta-actbtn-label">{t('pack.trip.walkedCheck')}</span>
                 <span className="pta-caret">▾</span>
               </button>
               {walkedMenuOpen && (
@@ -522,7 +522,7 @@ export default function PackTripArticle() {
                     role="menuitem"
                     onClick={() => { setWalkedMenuOpen(false); toggleFav(trail.id); }}
                   >
-                    {favIds.has(trail.id) ? '✓ In triplist — remove' : '+ Add to triplist'}
+                    {favIds.has(trail.id) ? t('pack.trip.inTriplistRemove') : t('pack.trip.addToTriplistPlus')}
                   </button>
                   <button
                     type="button"
@@ -530,7 +530,7 @@ export default function PackTripArticle() {
                     className="pta-actmenu-off"
                     onClick={() => { setWalkedMenuOpen(false); toggleWalked(trail.id); }}
                   >
-                    ✕ Remove walked
+                    {t('pack.trip.removeWalked')}
                   </button>
                 </div>
               )}
@@ -542,12 +542,12 @@ export default function PackTripArticle() {
               onClick={() => toggleWalked(trail.id)}
             >
               <span className="pta-actbtn-icon">🐾</span>
-              <span className="pta-actbtn-label">Mark walked</span>
+              <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
             </button>
           )}
-          <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label="Share">
+          <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
             <span className="pta-actbtn-icon"><img src={ICON('link')} alt="" style={{ width: 12, height: 12, filter: 'brightness(0) invert(1)' }} /></span>
-            <span className="pta-actbtn-label">Share</span>
+            <span className="pta-actbtn-label">{t('pack.trip.share')}</span>
           </button>
         </div>
   );
@@ -612,14 +612,14 @@ export default function PackTripArticle() {
           </div>
           <div
             className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
-            data-tip={agg.belowThreshold ? undefined : voteTip(agg.difficultyBreakdown)}
+            data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
           >
             <b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span>
           </div>
           {agg.crowd && (
             <div
               className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
-              data-tip={agg.belowThreshold ? undefined : voteTip(agg.crowdBreakdown)}
+              data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
               <b>{CROWD_EMOJI[agg.crowd]} {agg.crowd}</b><span>Crowd</span>
             </div>

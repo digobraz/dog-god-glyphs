@@ -176,11 +176,12 @@ migrateSeedEvents();
 // typ nemá (viď report).
 const AUTHOR_DOG_AVATAR = '/images/about-hekthor.png';
 function AuthorAvatars({ author, size }: { author: string; size: number }) {
+  const t = useT();
   const pairStyle = { '--trp-av-size': `${size}px` } as React.CSSProperties;
   return (
     <span className="trp-avatarpair" style={pairStyle}>
-      <span className="trp-avatarcircle" style={{ backgroundImage: `url('${AUTHOR_DOG_AVATAR}')` }} title="Dog (placeholder)" />
-      <span className="trp-avatarcircle trp-avatarcircle--placeholder" title="Owner (placeholder)">
+      <span className="trp-avatarcircle" style={{ backgroundImage: `url('${AUTHOR_DOG_AVATAR}')` }} title={t('pack.map.authorDogPlaceholder')} />
+      <span className="trp-avatarcircle trp-avatarcircle--placeholder" title={t('pack.map.authorOwnerPlaceholder')}>
         {author.charAt(0).toUpperCase()}
       </span>
     </span>
@@ -1227,6 +1228,7 @@ function TripTagsDropdown({
   onToggle: (tag: string) => void;
   onClear: () => void;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const count = tags.size;
 
@@ -1237,9 +1239,9 @@ function TripTagsDropdown({
         className={`trp-tagdd-btn${count > 0 ? ' on' : ''}`}
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label="Tags"
+        aria-label={t('pack.map.tagsAriaLabel')}
       >
-        <span>{count > 0 ? `Tags · ${count}` : 'Tags'}</span>
+        <span>{count > 0 ? t('pack.map.tagsCount', { n: count }) : t('pack.map.tags')}</span>
         <span className="trp-tagdd-chevron" aria-hidden>▾</span>
       </button>
 
@@ -1248,7 +1250,7 @@ function TripTagsDropdown({
           {/* Backdrop — klik mimo zatvára, aj natívne <select>-y pod panelom ostanú nedostupné. */}
           <span className="fixed inset-0" style={{ zIndex: 40 }} onClick={() => setOpen(false)} aria-hidden />
           <div className="trp-tagdd-panel">
-            <span className="trp-tagdd-eyebrow">Filter by tag</span>
+            <span className="trp-tagdd-eyebrow">{t('pack.map.filterByTag')}</span>
             {TAG_VOCAB.map((tag) => {
               const on = tags.has(tag);
               return (
@@ -1264,7 +1266,7 @@ function TripTagsDropdown({
               );
             })}
             {count > 0 && (
-              <button type="button" className="trp-tagdd-clear" onClick={onClear}>Clear</button>
+              <button type="button" className="trp-tagdd-clear" onClick={onClear}>{t('pack.map.clear')}</button>
             )}
           </div>
         </>
@@ -1638,7 +1640,7 @@ export default function PackMap() {
     }
     try {
       await navigator.clipboard.writeText(url);
-      toast({ description: 'Link copied' });
+      toast({ description: t('pack.map.toastLinkCopied') });
     } catch {
       toast({ description: url });
     }
@@ -1700,7 +1702,7 @@ export default function PackMap() {
       id: `ad-${nowMs}-${partnerAdCtx.tripId}`,
       tripId: partnerAdCtx.tripId,
       dates: ad.dates, month: ad.month, socialization: ad.socialization,
-      host: `${firstName} & your dog`, at: nowMs, joinedByMe: true, hostIsMe: true,
+      host: t('pack.map.hostAndYourDog', { name: firstName }), at: nowMs, joinedByMe: true, hostIsMe: true,
     };
     setEvents((prev) => [ev, ...prev]);
     const firstDate = ad.dates[0] ?? ad.month;
@@ -1756,7 +1758,7 @@ export default function PackMap() {
   // CompanionPicker volanie v starom renderAddSetup. Plain expression, NIE useMemo — tento riadok
   // je ZA `if (id.loading)` / `if (!id.session) return null` vyššie (early return), takže hook by
   // tu porušil Rules of Hooks (biela stránka, tsc to nechytí — viď CLAUDE.md).
-  const myDogsForAdd = id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? 'My dog', photo: d.cloudinary_main_url }));
+  const myDogsForAdd = id.dogs.map((d) => ({ id: d.id, name: d.dog_name ?? t('pack.map.myDogFallback'), photo: d.cloudinary_main_url }));
   // Tlačidlo „+ Add trip" na mape NEnaviguje na `/pack/add/trip` zámerne — obe adresy sú iné
   // <Route>, takže navigácia by PackMap odmountovala a zhodila zoom/filtre/výrez mapy. Routa je
   // vstupný bod (deep link z Triplistu, TripStats, uložený odkaz), nie interný toggle.
@@ -1830,7 +1832,7 @@ export default function PackMap() {
       };
       const next = [newTrail, ...localTrails];
       if (!writeLocalTrails(next)) {
-        setAddError(`Couldn't save — photos are too large for this device's storage. Remove a few and try again.`);
+        setAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
       setAddError('');
@@ -1876,7 +1878,7 @@ export default function PackMap() {
         id: `plan-event-${now}`, tripId: tid,
         dates: dateStr.length >= 7 ? [dateStr] : [],
         month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
-        socialization: '', host: `${firstName} & your dog`, hostIsMe: true,
+        socialization: '', host: t('pack.map.hostAndYourDog', { name: firstName }), hostIsMe: true,
         at: now, joinedByMe: true,
       };
       setEvents((prev) => [ev, ...prev]);
@@ -1904,32 +1906,32 @@ export default function PackMap() {
     <div className="trp-status-left">
       <div
         className="trp-level"
-        title={`${levelInfo.points} pts · ${levelInfo.toNext} to ${levelInfo.level + 1}\n${profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ')}`}
+        title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ') })}
       >
         <span className="trp-level-name">{levelInfo.rank}</span>
-        <span className="trp-level-num"><i>Lvl</i><em>{levelInfo.level}</em></span>
+        <span className="trp-level-num"><i>{t('pack.map.lvl')}</i><em>{levelInfo.level}</em></span>
       </div>
     </div>
   );
 
   const renderStatusCenter = () => (
     <div className="trp-status-center">
-      <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist?tab=stats')} title="Your trip stats — world, home & walked">
+      <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist?tab=stats')} title={t('pack.map.tripStatsTitle')}>
         <img src={ICON('trophy')} alt="" />
         <b>{walkedIds.size} · {fmtKm(walkedKm)} km</b>
       </button>
       {/* Matej 2026-07-27: na mobile (a v kompaktnom desktope) je Triplist LEN ikonka — text
           by rozbil jednoriadkový status. Klikacia plocha, route aj title/aria zostávajú. */}
-      <button type="button" className="trp-stat-pill trp-stat-pill--icon" onClick={() => navigate('/pack/map/triplist')} title="Open your triplist" aria-label="Open your triplist">
+      <button type="button" className="trp-stat-pill trp-stat-pill--icon" onClick={() => navigate('/pack/map/triplist')} title={t('pack.map.openTriplist')} aria-label={t('pack.map.openTriplist')}>
         <img src={ICON('clipboard')} alt="" />
-        <b className="trp-triplist-label">Triplist</b>
+        <b className="trp-triplist-label">{t('pack.map.triplist')}</b>
       </button>
       {/* ADD TRIP patrí do stredného klastra (Matej 2026-07-26) — vedľa správ nemá čo robiť,
           a je to jediný vstup do ADD flow, takže sa nesmie stratiť. */}
       <button type="button" className="trp-addtrip-btn" onClick={openAddEntry}>
         <img src={ICON('plus')} alt="" className="trp-addtrip-icon" />
-        <span className="trp-addtrip-full">Add trip</span>
-        <span className="trp-addtrip-short" aria-hidden>Add</span>
+        <span className="trp-addtrip-full">{t('pack.map.addTrip')}</span>
+        <span className="trp-addtrip-short" aria-hidden>{t('pack.map.add')}</span>
       </button>
     </div>
   );
@@ -2021,7 +2023,7 @@ export default function PackMap() {
       {inViewTrails.map(({ tr }) => renderTripCard(tr, withRef))}
       {elsewhereTrails.length > 0 && (
         <div className="trp-cards-sep">
-          <span>{inViewTrails.length === 0 ? 'Nothing in this view' : 'Elsewhere on the map'}</span>
+          <span>{inViewTrails.length === 0 ? t('pack.map.nothingInThisView') : t('pack.map.elsewhereOnMap')}</span>
           <b>{elsewhereTrails.length}</b>
         </div>
       )}
@@ -2059,13 +2061,13 @@ export default function PackMap() {
                 type="button"
                 className="trp-bigcard-photobtn"
                 onClick={(e) => { e.stopPropagation(); cyclePhoto(tr.id, -1, tr.photos.length); }}
-                aria-label="Previous photo"
+                aria-label={t('pack.map.previousPhoto')}
               >‹</button>
               <button
                 type="button"
                 className="trp-bigcard-photobtn"
                 onClick={(e) => { e.stopPropagation(); cyclePhoto(tr.id, 1, tr.photos.length); }}
-                aria-label="Next photo"
+                aria-label={t('pack.map.nextPhoto')}
               >›</button>
             </div>
           )}
@@ -2087,21 +2089,21 @@ export default function PackMap() {
                 type="button"
                 className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleWalked(tr.id); }}
-              >✓ Walked</button>
+              >✓ {t('pack.map.walked')}</button>
             )}
             {!walkedIds.has(tr.id) && (
               <button
                 type="button"
                 className={`trp-bigcard-photoactbtn${favIds.has(tr.id) ? ' on' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleFav(tr.id); }}
-              >★ Triplist</button>
+              >★ {t('pack.map.triplist')}</button>
             )}
           </div>
           {/* bod 3: náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
               Plán = žiadne meta (výlet sa neodohral), len „Planned" pilulka. */}
           <div className="trp-bigcard-photometa">
             {isUnwalkedPlan
-              ? <span className="trp-plannedpill">🗓️ Planned</span>
+              ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
               : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} />}
           </div>
         </div>
@@ -2121,7 +2123,7 @@ export default function PackMap() {
                 type="button"
                 className="trp-bigcard-author trp-authorbtn"
                 onClick={(e) => { e.stopPropagation(); setCreatorTrail(tr); }}
-              >by {authorOf(tr)}{others > 0 ? ` · +${others} Dogyptians` : ''}</button>
+              >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians', { n: others })}` : ''}</button>
             </div>
           </div>
           {/* bod 3 (Matej 2026-07-22): pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2168,8 +2170,8 @@ export default function PackMap() {
           return (
             <div className="trp-inldet">
               <div className="trp-inldet-head">
-                <button type="button" className="trp-panelnav-btn" onClick={() => { setInlineDetailId(null); setHeroBounds(SVK_BORDER); }} aria-label="Back to list">←</button>
-                <button type="button" className="trp-panelnav-btn" onClick={() => expandDetail(dt.id)} aria-label="Expand to full page">⤢</button>
+                <button type="button" className="trp-panelnav-btn" onClick={() => { setInlineDetailId(null); setHeroBounds(SVK_BORDER); }} aria-label={t('pack.map.backToList')}>←</button>
+                <button type="button" className="trp-panelnav-btn" onClick={() => expandDetail(dt.id)} aria-label={t('pack.map.expandToFullPage')}>⤢</button>
               </div>
               <div className="trp-inldet-body">
                 {/* bod 4 (iterácia 15): fotka — avatar autora (initial, ľavý horný roh) + bočné
@@ -2177,7 +2179,7 @@ export default function PackMap() {
                     textové tlačidlo (dolný pravý roh, ako karta bod 3). */}
                 <div className="trp-inldet-photowrap">
                   {photo && <div className="trp-inldet-photo" style={{ backgroundImage: `url('${photo}')` }} />}
-                  <div className="trp-inldet-authoravatar" title={`by ${authorOf(dt)}`}>
+                  <div className="trp-inldet-authoravatar" title={t('pack.map.byAuthor', { author: authorOf(dt) })}>
                     <span>{authorOf(dt).charAt(0).toUpperCase()}</span>
                   </div>
                   {/* Matej 2026-07-22: ✓ walked + ★ wishlist v hornom pravom rohu fotky (rovnaký
@@ -2190,27 +2192,27 @@ export default function PackMap() {
                         type="button"
                         className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}`}
                         onClick={() => toggleWalked(dt.id)}
-                      >✓ {walkedIds.has(dt.id) ? 'Walked' : 'Mark walked'}</button>
+                      >✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}</button>
                     )}
                     {!walkedIds.has(dt.id) && (
                       <button
                         type="button"
                         className={`trp-bigcard-photoactbtn${favIds.has(dt.id) ? ' on' : ''}`}
                         onClick={() => toggleFav(dt.id)}
-                      >★ {favIds.has(dt.id) ? 'In triplist' : 'Triplist'}</button>
+                      >★ {favIds.has(dt.id) ? t('pack.map.inTriplist') : t('pack.map.triplist')}</button>
                     )}
                   </div>
                   {/* náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
                       Plán = žiadne meta, len „Planned" pilulka. */}
                   <div className="trp-bigcard-photometa">
                     {isUnwalkedPlan
-                      ? <span className="trp-plannedpill">🗓️ Planned</span>
+                      ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
                       : <PhotoMetaPills agg={dtAgg} km={dt.km} ascentM={(dt as { ascentM?: number }).ascentM} />}
                   </div>
                   {dt.photos.length > 1 && (
                     <div className="trp-bigcard-photonav">
-                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, -1, dt.photos.length)} aria-label="Previous photo">‹</button>
-                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, 1, dt.photos.length)} aria-label="Next photo">›</button>
+                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, -1, dt.photos.length)} aria-label={t('pack.map.previousPhoto')}>‹</button>
+                      <button type="button" className="trp-bigcard-photobtn" onClick={() => cyclePhoto(dt.id, 1, dt.photos.length)} aria-label={t('pack.map.nextPhoto')}>›</button>
                     </div>
                   )}
                   {dt.photos.length > 1 && (
@@ -2233,7 +2235,7 @@ export default function PackMap() {
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
                         onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
-                      >by {authorOf(dt)}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · +${dtAgg.walkedCount - FOUNDER_WALKERS} Dogyptians` : ''}</button>
+                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians', { n: dtAgg.walkedCount - FOUNDER_WALKERS })}` : ''}</button>
                     </div>
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2241,7 +2243,7 @@ export default function PackMap() {
                   {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating")
                       — rovnaká pomlčka ako pri nekonanom pláne, nie „0.0". */}
                   {isUnwalkedPlan || dtAgg.rating <= 0
-                    ? <span className="trp-norating" title={isUnwalkedPlan ? "Not rated yet — the trip hasn't happened" : 'Not rated yet — nobody has walked this'}>— —</span>
+                    ? <span className="trp-norating" title={isUnwalkedPlan ? t('pack.map.notRatedPlanned') : t('pack.map.notRatedUnwalked')}>— —</span>
                     : <BigRating rating={dtAgg.rating} />}
                 </div>
 
@@ -2261,14 +2263,14 @@ export default function PackMap() {
                     TripProfileCard toho istého člena (majiteľ + pes, žiadna druhá karta). */}
                 {(openHostsBySlug.get(dt.id) ?? []).length > 0 && (
                   <div className="trp-inldet-section">
-                    <h4>Open trip from the pack</h4>
+                    <h4>{t('pack.map.openTripFromPack')}</h4>
                     {(openHostsBySlug.get(dt.id) ?? []).map((h) => {
                       const orgKey = `${h.key}:org`;
                       return (
                         <div key={h.key} className="trp-inldet-host">
                           <PartyMemberCard
                             member={h.organizer}
-                            roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'}
+                            roleLabel={h.date ? t('pack.map.tripHostDate', { date: h.date }) : t('pack.map.tripHost')}
                             dm={{ tripSlug: dt.id, organizerId: h.organizerId, isMe: h.organizerId === id.session?.user?.id }}
                             onOpenProfile={() => setExpandedPartyKey((cur) => (cur === orgKey ? null : orgKey))}
                           />
@@ -2305,7 +2307,7 @@ export default function PackMap() {
 
                 {(dt as { elev?: number[] }).elev && (
                   <div className="trp-inldet-section">
-                    <h4>Elevation profile</h4>
+                    <h4>{t('pack.map.elevationProfile')}</h4>
                     <ElevationProfile elev={(dt as { elev?: number[] }).elev} km={parseFloat(dt.km) || 0} />
                   </div>
                 )}
@@ -2314,8 +2316,8 @@ export default function PackMap() {
                   {/* Matej 2026-08-03: pri nule chodcov JEDEN riadok a nech je to výzva, nie
                       konštatovanie — drží sa v zhode s PackTripArticle.tsx. */}
                   {dtAgg.walkedCount === 0
-                    ? <h4>Be the first to walk this.</h4>
-                    : <h4>Walked by {dtAgg.walkedCount} Dogyptian{dtAgg.walkedCount === 1 ? '' : 's'}</h4>}
+                    ? <h4>{t('pack.map.beFirstToWalk')}</h4>
+                    : <h4>{dtAgg.walkedCount === 1 ? t('pack.map.walkedByOne', { n: dtAgg.walkedCount }) : t('pack.map.walkedByMany', { n: dtAgg.walkedCount })}</h4>}
                 </div>
                 {/* §14 zadania (2026-07-23): komentová sekcia nahrádza staré "Message owner" /
                     "Open trip group" placeholdery — reviews (paw rating + voliteľný text) + advice.
@@ -2332,16 +2334,16 @@ export default function PackMap() {
               sort popover (Top rated/Easiest/Hardest), rovnaká ikonka ako mobilný filter. */}
           <div className="trp-greet-row">
             <div>
-              <div className="trp-greet-hi">Hi {firstName},</div>
-              <div className="trp-greet-sub">What are you exploring?</div>
+              <div className="trp-greet-hi">{t('pack.map.greetHi', { name: firstName })}</div>
+              <div className="trp-greet-sub">{t('pack.map.greetSub')}</div>
             </div>
             <div className="trp-greet-filterwrap">
-              <button type="button" className={`trp-greet-filter${mobileSort !== 'top' ? ' on' : ''}`} onClick={() => setSortOpen((v) => !v)} aria-label="Sort & filter">
+              <button type="button" className={`trp-greet-filter${mobileSort !== 'top' ? ' on' : ''}`} onClick={() => setSortOpen((v) => !v)} aria-label={t('pack.map.sortAndFilter')}>
                 <img src={ICON('sliders')} alt="" />
               </button>
               {sortOpen && (
                 <div className="trp-sortpop trp-sortpop--desk">
-                  {([['top', 'Top rated'], ['easiest', 'Easiest'], ['hardest', 'Hardest']] as const).map(([v, l]) => (
+                  {([['top', t('pack.map.sortTopRated')], ['easiest', t('pack.map.sortEasiest')], ['hardest', t('pack.map.sortHardest')]] as const).map(([v, l]) => (
                     <button
                       key={v}
                       type="button"
@@ -2355,12 +2357,12 @@ export default function PackMap() {
           </div>
 
           <div className="trp-cat-pills">
-            <button type="button" className={`trp-catpill${activeCat === 'trips' ? ' on' : ''}`} onClick={() => setActiveCat('trips')}>Trips</button>
+            <button type="button" className={`trp-catpill${activeCat === 'trips' ? ' on' : ''}`} onClick={() => setActiveCat('trips')}>{t('pack.map.catTrips')}</button>
             {/* design §D: Events sa aktivoval — zoznam plánovaných spoločných výletov + join.
                 Matej 2026-07-26: presunuté hneď vedľa Trips (pred Places/Services placeholdery). */}
-            <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>Events</button>
-            <button type="button" className="trp-catpill soon" disabled data-tip="Coming soon">Places</button>
-            <button type="button" className="trp-catpill soon" disabled data-tip="Coming soon">Services</button>
+            <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
+            <button type="button" className="trp-catpill soon" disabled data-tip={t('pack.map.comingSoon')}>{t('pack.map.catPlaces')}</button>
+            <button type="button" className="trp-catpill soon" disabled data-tip={t('pack.map.comingSoon')}>{t('pack.map.catServices')}</button>
           </div>
 
           {/* geo/tag filtre sú trip-specifické — pri Events kategórii sa skryjú. */}
@@ -2373,10 +2375,10 @@ export default function PackMap() {
             <select
               className="trp-country-select"
               value={selectedCountry}
-              aria-label="Country"
+              aria-label={t('pack.map.country')}
               onChange={(e) => applyCountry(e.target.value)}
             >
-              {availableCountries.length > 1 && <option value="">🌍 All</option>}
+              {availableCountries.length > 1 && <option value="">🌍 {t('pack.map.all')}</option>}
               {availableCountries.map((c) => (
                 <option key={c} value={c}>{flagEmoji(c)} {c.toUpperCase()}</option>
               ))}
@@ -2389,11 +2391,11 @@ export default function PackMap() {
               className="trp-filter-select"
               value={heroMacroRegion}
               onChange={(e) => setHeroMacroRegion(e.target.value as typeof heroMacroRegion)}
-              aria-label="Region"
+              aria-label={t('pack.map.region')}
             >
-              <option value="">All regions</option>
+              <option value="">{t('pack.map.allRegions')}</option>
               {MACRO_REGIONS.map((r) => (
-                <option key={r} value={r}>{r}</option>
+                <option key={r} value={r}>{t(`pack.map.macroRegion.${r}`)}</option>
               ))}
             </select>
             )}
@@ -2401,11 +2403,11 @@ export default function PackMap() {
               className="trp-filter-select"
               value={heroAct}
               onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}
-              aria-label="Activity"
+              aria-label={t('pack.map.activity')}
             >
-              <option value="">Activities</option>
+              <option value="">{t('pack.map.activities')}</option>
               {TRIP_ACTIVITIES.map((a) => (
-                <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>
+                <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {t(`pack.map.activityLabel.${a.id}`)}</option>
               ))}
             </select>
           </div>
@@ -2448,7 +2450,7 @@ export default function PackMap() {
             type="button"
             className="trp-midentity"
             onClick={() => navigate('/pack/map/triplist?tab=stats')}
-            title={`${levelInfo.points} pts · ${levelInfo.toNext} to ${levelInfo.level + 1}\n${profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ')}`}
+            title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ') })}
           >
             {id.avatarUrl
               ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
@@ -2460,9 +2462,9 @@ export default function PackMap() {
                     holé číslo v zlatej pilulke. Rang vedľa (PILGRIM) už povie, čo to je, takže
                     popisok bol len šum navyše. Desktop (renderStatusLeft) si „Lvl" NECHÁVA — tam
                     nie je pilulka, ale gradientový text, ktorý bez popisku nemá čo číslo ukotviť. */}
-                <span className="trp-level-num" aria-label={`Level ${levelInfo.level}`}><em>{levelInfo.level}</em></span>
+                <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>
               </span>
-              <span className="trp-mstats">{walkedIds.size} trips · {fmtKm(walkedKm)} km</span>
+              <span className="trp-mstats">{t('pack.map.mstats', { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
             </span>
           </button>
           {renderHeaderRight()}
@@ -2473,7 +2475,7 @@ export default function PackMap() {
             <input
               value={placeQuery}
               onChange={(e) => setPlaceQuery(e.target.value)}
-              placeholder="Search a place…"
+              placeholder={t('pack.map.searchAPlace')}
             />
           </div>
           {/* Matej 2026-07-27: jedna „Filters · N" pilulka namiesto troch selectov — všetky
@@ -2483,11 +2485,11 @@ export default function PackMap() {
               type="button"
               className={`trp-mfilterbtn${activeFilterCount > 0 ? ' on' : ''}`}
               onClick={() => setFilterSheetOpen(true)}
-              aria-label="Filters"
+              aria-label={t('pack.map.filters')}
               aria-expanded={filterSheetOpen}
             >
               <img src={ICON('sliders')} alt="" />
-              <span>{activeFilterCount > 0 ? `Filters · ${activeFilterCount}` : 'Filters'}</span>
+              <span>{activeFilterCount > 0 ? t('pack.map.filtersCount', { n: activeFilterCount }) : t('pack.map.filters')}</span>
             </button>
           </div>
         </div>
@@ -2501,19 +2503,19 @@ export default function PackMap() {
       {filterSheetOpen && (
         <>
           <div className="trp-msheet-back" onClick={() => setFilterSheetOpen(false)} aria-hidden />
-          <div className="trp-msheet" role="dialog" aria-label="Filters">
+          <div className="trp-msheet" role="dialog" aria-label={t('pack.map.filters')}>
             <div className="trp-msheet-grab" aria-hidden />
             <div className="trp-msheet-head">
-              <span className="trp-msheet-title">Filters</span>
-              <button type="button" className="trp-msheet-x" onClick={() => setFilterSheetOpen(false)} aria-label="Close filters">✕</button>
+              <span className="trp-msheet-title">{t('pack.map.filters')}</span>
+              <button type="button" className="trp-msheet-x" onClick={() => setFilterSheetOpen(false)} aria-label={t('pack.map.closeFilters')}>✕</button>
             </div>
 
             <div className="trp-msheet-body">
               <div className="trp-msheet-pair">
                 <div className="trp-msheet-field">
-                  <span className="trp-msheet-label">Country</span>
-                  <select className="trp-msheet-select" value={selectedCountry} aria-label="Country" onChange={(e) => applyCountry(e.target.value)}>
-                    {availableCountries.length > 1 && <option value="">🌍 All</option>}
+                  <span className="trp-msheet-label">{t('pack.map.country')}</span>
+                  <select className="trp-msheet-select" value={selectedCountry} aria-label={t('pack.map.country')} onChange={(e) => applyCountry(e.target.value)}>
+                    {availableCountries.length > 1 && <option value="">🌍 {t('pack.map.all')}</option>}
                     {availableCountries.map((c) => (
                       <option key={c} value={c}>{flagEmoji(c)} {c.toUpperCase()}</option>
                     ))}
@@ -2522,55 +2524,55 @@ export default function PackMap() {
                 {/* Región (West/Center/East) je SK-špecifický — rovnaká podmienka ako v paneli. */}
                 {(selectedCountry === '' || selectedCountry === 'sk') && (
                   <div className="trp-msheet-field">
-                    <span className="trp-msheet-label">Region</span>
+                    <span className="trp-msheet-label">{t('pack.map.region')}</span>
                     <select
                       className="trp-msheet-select"
                       value={heroMacroRegion}
-                      aria-label="Region"
+                      aria-label={t('pack.map.region')}
                       onChange={(e) => setHeroMacroRegion(e.target.value as typeof heroMacroRegion)}
                     >
-                      <option value="">All regions</option>
-                      {MACRO_REGIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      <option value="">{t('pack.map.allRegions')}</option>
+                      {MACRO_REGIONS.map((r) => <option key={r} value={r}>{t(`pack.map.macroRegion.${r}`)}</option>)}
                     </select>
                   </div>
                 )}
               </div>
 
               <div className="trp-msheet-field">
-                <span className="trp-msheet-label">Activity</span>
-                <select className="trp-msheet-select" value={heroAct} aria-label="Activity" onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}>
-                  <option value="">Activities</option>
+                <span className="trp-msheet-label">{t('pack.map.activity')}</span>
+                <select className="trp-msheet-select" value={heroAct} aria-label={t('pack.map.activity')} onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}>
+                  <option value="">{t('pack.map.activities')}</option>
                   {TRIP_ACTIVITIES.map((a) => (
-                    <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {a.label}</option>
+                    <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {t(`pack.map.activityLabel.${a.id}`)}</option>
                   ))}
                 </select>
               </div>
 
               <div className="trp-msheet-pair">
                 <div className="trp-msheet-field">
-                  <span className="trp-msheet-label">Difficulty</span>
-                  <select className="trp-msheet-select" value={heroDiff} aria-label="Difficulty" onChange={(e) => setHeroDiff(e.target.value as typeof heroDiff)}>
-                    <option value="">Any</option>
-                    <option value="Easy">Easy</option>
-                    <option value="Moderate">Moderate</option>
-                    <option value="Hard">Hard</option>
-                    <option value="Odyssey">Odyssey</option>
+                  <span className="trp-msheet-label">{t('pack.map.difficulty')}</span>
+                  <select className="trp-msheet-select" value={heroDiff} aria-label={t('pack.map.difficulty')} onChange={(e) => setHeroDiff(e.target.value as typeof heroDiff)}>
+                    <option value="">{t('pack.map.any')}</option>
+                    <option value="Easy">{t('pack.map.diff.Easy')}</option>
+                    <option value="Moderate">{t('pack.map.diff.Moderate')}</option>
+                    <option value="Hard">{t('pack.map.diff.Hard')}</option>
+                    <option value="Odyssey">{t('pack.map.diff.Odyssey')}</option>
                   </select>
                 </div>
                 <div className="trp-msheet-field">
                   {/* D2 (LOCKED 2026-07-24): Crowd = Empty · Calm · Busy */}
-                  <span className="trp-msheet-label">Crowd</span>
-                  <select className="trp-msheet-select" value={heroCrowd} aria-label="Crowd" onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}>
-                    <option value="">Any</option>
-                    {Object.entries(CROWD_LABELS).map(([sk, en]) => (
-                      <option key={sk} value={sk}>{en}</option>
+                  <span className="trp-msheet-label">{t('pack.map.crowd')}</span>
+                  <select className="trp-msheet-select" value={heroCrowd} aria-label={t('pack.map.crowd')} onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}>
+                    <option value="">{t('pack.map.any')}</option>
+                    {Object.entries(CROWD_LABELS).map(([sk]) => (
+                      <option key={sk} value={sk}>{t(`pack.map.crowdLabel.${sk}`)}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
               <div className="trp-msheet-field">
-                <span className="trp-msheet-label">Tags</span>
+                <span className="trp-msheet-label">{t('pack.map.tags')}</span>
                 <div className="trp-msheet-chips">
                   {TAG_VOCAB.map((tag) => (
                     <button
@@ -2585,9 +2587,9 @@ export default function PackMap() {
               </div>
 
               <div className="trp-msheet-field">
-                <span className="trp-msheet-label">Sort</span>
+                <span className="trp-msheet-label">{t('pack.map.sort')}</span>
                 <div className="trp-msheet-chips">
-                  {([['top', 'Top rated'], ['easiest', 'Easiest'], ['hardest', 'Hardest']] as const).map(([v, l]) => (
+                  {([['top', t('pack.map.sortTopRated')], ['easiest', t('pack.map.sortEasiest')], ['hardest', t('pack.map.sortHardest')]] as const).map(([v, l]) => (
                     <button
                       key={v}
                       type="button"
@@ -2601,9 +2603,9 @@ export default function PackMap() {
             </div>
 
             <div className="trp-msheet-foot">
-              <button type="button" className="trp-msheet-clear" disabled={activeFilterCount === 0} onClick={clearAllFilters}>Clear</button>
+              <button type="button" className="trp-msheet-clear" disabled={activeFilterCount === 0} onClick={clearAllFilters}>{t('pack.map.clear')}</button>
               <button type="button" className="trp-msheet-show" onClick={() => setFilterSheetOpen(false)}>
-                Show {sortedVisibleHeroTrails.length}
+                {t('pack.map.show', { n: sortedVisibleHeroTrails.length })}
               </button>
             </div>
           </div>
@@ -2620,14 +2622,14 @@ export default function PackMap() {
           onClick={() => setMobileView((v) => (v === 'map' ? 'list' : 'map'))}
         >
           <img src={ICON(mobileView === 'map' ? 'menu' : 'map')} alt="" />
-          {mobileView === 'map' ? 'List' : 'Map'}
+          {mobileView === 'map' ? t('pack.map.list') : t('pack.map.mapLabel')}
         </button>
         {/* ADD TRIP (mobile) — presunuté z .trp-mheader-status 2026-08-03. Zostáva viditeľné aj
             v LIST pohľade: dvojica je centrovaná ako celok, takže skrytie ADD by LIST vystrelilo
             z osi. */}
         <button type="button" className="trp-mfab" onClick={openAddEntry}>
           <img src={ICON('plus')} alt="" />
-          Add
+          {t('pack.map.add')}
         </button>
       </div>
 
@@ -2638,10 +2640,10 @@ export default function PackMap() {
             type="button"
             className="trp-mlist-triplist"
             onClick={() => navigate('/pack/map/triplist')}
-            title="Open your triplist"
+            title={t('pack.map.openTriplist')}
           >
             <img src={ICON('clipboard')} alt="" />
-            Triplist
+            {t('pack.map.triplist')}
           </button>
         </div>
         <div className="trp-cards">
@@ -2659,7 +2661,7 @@ export default function PackMap() {
       {!!addFlow && (
         <div className="trp-madd" style={mobileDrawing ? { display: 'none' } : undefined}>
           <button type="button" className="trp-madd-drawbtn" onClick={() => setMobileDrawing(true)}>
-            View map to place your route / pin
+            {t('pack.map.viewMapToPlaceRoute')}
           </button>
           {addFlow === 'planned' ? (
             <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
@@ -2863,7 +2865,7 @@ export default function PackMap() {
                     <input
                       value={placeQuery}
                       onChange={(e) => setPlaceQuery(e.target.value)}
-                      placeholder="Search a place…"
+                      placeholder={t('pack.map.searchAPlace')}
                     />
                   </div>
                   {placeSug.length > 0 && (
@@ -2894,24 +2896,24 @@ export default function PackMap() {
                   className="trp-toprow-select"
                   value={heroDiff}
                   onChange={(e) => setHeroDiff(e.target.value as typeof heroDiff)}
-                  aria-label="Difficulty"
+                  aria-label={t('pack.map.difficulty')}
                 >
-                  <option value="">Difficulty</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Moderate">Moderate</option>
-                  <option value="Hard">Hard</option>
-                  <option value="Odyssey">Odyssey</option>
+                  <option value="">{t('pack.map.difficulty')}</option>
+                  <option value="Easy">{t('pack.map.diff.Easy')}</option>
+                  <option value="Moderate">{t('pack.map.diff.Moderate')}</option>
+                  <option value="Hard">{t('pack.map.diff.Hard')}</option>
+                  <option value="Odyssey">{t('pack.map.diff.Odyssey')}</option>
                 </select>
                 {/* bod 2 (iterácia 15) → D2 2026-07-24: "Popularity" → "Vibe" → "Crowd" (Empty/Calm/Busy) */}
                 <select
                   className="trp-toprow-select"
                   value={heroCrowd}
                   onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}
-                  aria-label="Crowd"
+                  aria-label={t('pack.map.crowd')}
                 >
-                  <option value="">Crowd</option>
-                  {Object.entries(CROWD_LABELS).map(([sk, en]) => (
-                    <option key={sk} value={sk}>{en}</option>
+                  <option value="">{t('pack.map.crowd')}</option>
+                  {Object.entries(CROWD_LABELS).map(([sk]) => (
+                    <option key={sk} value={sk}>{t(`pack.map.crowdLabel.${sk}`)}</option>
                   ))}
                 </select>
                 {/* Tags presunuté z ľavého panelu sem ako multi-select dropdown (Matej 2026-07-27),
@@ -2931,21 +2933,21 @@ export default function PackMap() {
                 type="button"
                 className="trp-stylebtn"
                 onClick={() => setMapStyle((v) => (v === 'outdoor' ? 'aerial' : 'outdoor'))}
-                aria-label={mapStyle === 'outdoor' ? 'Switch to satellite view' : 'Switch to terrain view'}
-                title={mapStyle === 'outdoor' ? 'Switch to satellite view' : 'Switch to terrain view'}
+                aria-label={mapStyle === 'outdoor' ? t('pack.map.switchToSatellite') : t('pack.map.switchToTerrain')}
+                title={mapStyle === 'outdoor' ? t('pack.map.switchToSatellite') : t('pack.map.switchToTerrain')}
               >
                 <img src={ICON('layers')} alt="" />
               </button>
               <div className="trp-zoomgroup">
-                <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label="Zoom in">+</button>
-                <button type="button" onClick={() => leafletMapRef.current?.zoomOut()} aria-label="Zoom out">−</button>
+                <button type="button" onClick={() => leafletMapRef.current?.zoomIn()} aria-label={t('pack.map.zoomIn')}>+</button>
+                <button type="button" onClick={() => leafletMapRef.current?.zoomOut()} aria-label={t('pack.map.zoomOut')}>−</button>
               </div>
               <button
                 type="button"
                 className={`trp-locatebtn${locating ? ' loading' : ''}`}
                 onClick={handleLocate}
-                aria-label="My location"
-                title="My location"
+                aria-label={t('pack.map.myLocation')}
+                title={t('pack.map.myLocation')}
               >
                 <img src={ICON('locate')} alt="" />
               </button>
@@ -2961,9 +2963,9 @@ export default function PackMap() {
                 s ním (je jeho súčasťou) — táto bublina len drží "Done" návrat k formuláru. */}
             {mobileDrawing && (
               <div className="trp-drawhint">
-                <div className="trp-drawhint-txt">Tap the map to place your route or pin</div>
+                <div className="trp-drawhint-txt">{t('pack.map.tapMapToPlaceRoute')}</div>
                 <div className="trp-drawhint-actions">
-                  <button type="button" onClick={() => setMobileDrawing(false)}>Done</button>
+                  <button type="button" onClick={() => setMobileDrawing(false)}>{t('pack.map.done')}</button>
                 </div>
               </div>
             )}
@@ -2980,7 +2982,7 @@ export default function PackMap() {
       )}
       {walkedPopupId && (
         <WalkedPopup
-          trailName={trailsById(walkedPopupId)?.name ?? 'this trip'}
+          trailName={trailsById(walkedPopupId)?.name ?? t('pack.map.thisTrip')}
           initial={votes[walkedPopupId] ? { rating: votes[walkedPopupId].rating, difficulty: votes[walkedPopupId].difficulty, crowd: votes[walkedPopupId].crowd, comment: votes[walkedPopupId].comment, when: votes[walkedPopupId].when, hazards: votes[walkedPopupId].hazards } : null}
           onSubmit={submitWalked}
           onClose={() => setWalkedPopupId(null)}
@@ -2988,7 +2990,7 @@ export default function PackMap() {
       )}
       {wishlistPopupId && (
         <WishlistIntentPopup
-          trailName={trailsById(wishlistPopupId)?.name ?? 'this trip'}
+          trailName={trailsById(wishlistPopupId)?.name ?? t('pack.map.thisTrip')}
           onSolo={() => chooseSolo(wishlistPopupId)}
           onPartner={() => choosePartner(wishlistPopupId)}
           onClose={() => setWishlistPopupId(null)}
@@ -2996,7 +2998,7 @@ export default function PackMap() {
       )}
       {partnerAdCtx && (
         <PartnerAdForm
-          trailName={trailsById(partnerAdCtx.tripId)?.name ?? 'this trip'}
+          trailName={trailsById(partnerAdCtx.tripId)?.name ?? t('pack.map.thisTrip')}
           onSubmit={submitPartnerAd}
           onClose={() => setPartnerAdCtx(null)}
         />

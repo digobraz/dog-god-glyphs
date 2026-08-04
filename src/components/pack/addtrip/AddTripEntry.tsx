@@ -3,6 +3,7 @@
 // Žije na tmavom povrchu Portalu → pk-glass primitív z packTheme.ts (NIE papyrus — ten je pre
 // bledé bloky podľa Entry.tsx locku, sem nepatrí).
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { useT } from '@/i18n/LanguageContext';
 import type { TripState } from './addTripModel';
 
 const GOLD = '#C99A3F'; // §4.1 + §14: hover na blokoch = zlatý okraj, presne tento hex
@@ -13,25 +14,27 @@ export type AddTripEntryProps = {
 };
 
 // state = cieľový TripState (addTripModel.ts) po výbere bloku — 'planned' = „WE'RE HEADING OUT",
-// 'walked' = „WE'VE BEEN THERE" (§4.1 tabuľka).
-const BLOCKS: Array<{ state: TripState; emoji: string; title: string; text: string }> = [
-  { state: 'planned', emoji: '🗓️', title: "WE'RE HEADING OUT", text: 'Planning a trip — find people to walk with' },
-  { state: 'walked', emoji: '✅', title: "WE'VE BEEN THERE", text: 'Log a walk you already did' },
+// 'walked' = „WE'VE BEEN THERE" (§4.1 tabuľka). titleKey/textKey — literál sa vykresľuje cez t()
+// v komponente (BLOCKS je modulová konštanta, useT() je hook a nesmie sa volať mimo komponentu).
+const BLOCKS: Array<{ state: TripState; emoji: string; titleKey: string; textKey: string }> = [
+  { state: 'planned', emoji: '🗓️', titleKey: 'pack.addTrip.entry.planned.title', textKey: 'pack.addTrip.entry.planned.text' },
+  { state: 'walked', emoji: '✅', titleKey: 'pack.addTrip.entry.walked.title', textKey: 'pack.addTrip.entry.walked.text' },
 ];
 
 export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
+  const t = useT();
   return (
     <div className="att-entry-backdrop" onClick={onClose}>
       <style>{GLASS_CSS}</style>
       <style>{ENTRY_CSS}</style>
       <div className="att-entry-panel pk-glass" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="att-entry-close" onClick={onClose} aria-label="Close">×</button>
+        <button type="button" className="att-entry-close" onClick={onClose} aria-label={t('pack.addTrip.entry.closeAriaLabel')}>×</button>
         <div className="att-entry-blocks">
           {BLOCKS.map((b) => (
             <button key={b.state} type="button" className="att-entry-block" onClick={() => onPick(b.state)}>
               <span className="att-entry-emoji" aria-hidden="true">{b.emoji}</span>
-              <span className="att-entry-title">{b.title}</span>
-              <span className="att-entry-text">{b.text}</span>
+              <span className="att-entry-title">{t(b.titleKey)}</span>
+              <span className="att-entry-text">{t(b.textKey)}</span>
             </button>
           ))}
         </div>
