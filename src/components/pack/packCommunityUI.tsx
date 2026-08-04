@@ -1117,7 +1117,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                         <span className="comm-pts-rule" />
                         <span className="comm-pts-eyebrow">Your points</span>
                         {profilePoints.rows.map((r) => (
-                          <span key={r.label} className="comm-pts-row">{r.label}<b>{r.points}</b></span>
+                          <span key={r.labelKey} className="comm-pts-row">{t(r.labelKey, r.labelParams)}<b>{r.points}</b></span>
                         ))}
                         <span className="comm-pts-rule" />
                         <span className="comm-pts-tot">Total<b>{profilePoints.total}</b></span>

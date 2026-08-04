@@ -1239,11 +1239,14 @@ ${TRAIL_LINE_CSS}
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
 type MapOverlayId = 'names' | 'poi';
 
-/** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — zatiaľ len fog stav
- *  (prázdny/loading, spec §4 bod 4), pri ďalšej vrstve sa pole rozšíri, nie prepíše. */
+/** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
+ *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
+ *  a svetelné meče... žiadne písmo ani vysvetlivky" — v DOGYPT podklade sa overlaye NEDAJÚ
+ *  zapnúť, sú to práve tie „legendy a ikonky"). Pri ďalšej vrstve sa pole rozšíri, nie prepíše. */
 interface MapLayerCtx {
   fogTrailsCount: number;
   fogLoading: boolean;
+  isCleanMode: boolean;
 }
 interface MapLayerDef {
   id: MapBaseId | MapOverlayId;
@@ -1270,8 +1273,22 @@ const MAP_LAYERS: MapLayerDef[] = [
       return null;
     },
   },
-  { id: 'names', type: 'overlay', labelKey: 'pack.map.layerNames' },
-  { id: 'poi', type: 'overlay', labelKey: 'pack.map.layerPoi' },
+  {
+    id: 'names',
+    type: 'overlay',
+    labelKey: 'pack.map.layerNames',
+    // DOGYPT čistý vizuál (zadanie vyššie) — overlay ostáva VIDITEĽNÝ v paneli, len nedostupný,
+    // nech si užívateľ nemyslí, že mu zmizol. Skutočný stav (zapnuté/vypnuté) sa NEMENÍ, len sa
+    // ignoruje pri kreslení (viď `isCleanMode` pri <TileLayer names-overlay> a <PoiLayer>) —
+    // po návrate na Outdoor/Satelit je teda presne taký, aký bol pred vstupom do DOGYPT.
+    disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  },
+  {
+    id: 'poi',
+    type: 'overlay',
+    labelKey: 'pack.map.layerPoi',
+    disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  },
 ];
 // Overlaye majú default stav mimo poľa (poľe je o TOM ČO existuje, nie o tom čo je dnes zapnuté) —
 // `poi` ostáva zapnuté, nech sa nezmení dnešné správanie (PoiLayer bola predtým natvrdo ON).
@@ -1404,16 +1421,24 @@ function LayersPanel({
             </div>
             <div className="trp-layersdd-group">
               <span className="trp-tagdd-eyebrow">{t('pack.map.layersOverlayGroup')}</span>
-              {overlayLayers.map((layer) => (
-                <label key={layer.id} className="trp-layersdd-row">
-                  <input
-                    type="checkbox"
-                    checked={overlayOn[layer.id as MapOverlayId]}
-                    onChange={() => onOverlayToggle(layer.id as MapOverlayId)}
-                  />
-                  <span>{t(layer.labelKey)}</span>
-                </label>
-              ))}
+              {overlayLayers.map((layer) => {
+                const reasonKey = layer.disabledReason?.(fogCtx) ?? null;
+                const disabled = !!reasonKey;
+                return (
+                  <div key={layer.id}>
+                    <label className={`trp-layersdd-row${disabled ? ' disabled' : ''}`}>
+                      <input
+                        type="checkbox"
+                        checked={overlayOn[layer.id as MapOverlayId]}
+                        disabled={disabled}
+                        onChange={() => onOverlayToggle(layer.id as MapOverlayId)}
+                      />
+                      <span>{t(layer.labelKey)}</span>
+                    </label>
+                    {reasonKey && <p className="trp-layersdd-hint">{t(reasonKey)}</p>}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </>
@@ -1527,6 +1552,12 @@ export default function PackMap() {
   // OVERLAYE sa dajú kombinovať (`overlayOn`). Panel, ktorý toto ovláda, sa generuje z
   // MAP_LAYERS (viď definícia vyššie), nie z tohto stavu.
   const [mapBase, setMapBase] = useState<MapBaseId>('outdoor');
+  // Matej 2026-08-04 (doslova): „pri DOGYPT zobrazení bude vidno iba hmla a svetelné meče bez
+  // legiend, ikoniek, čísel... iba vizuál, žiadne písmo ani vysvetlivky". JEDNA odvodená
+  // podmienka namiesto desiatich roztrúsených ternárnych operátorov — všetko, čo v DOGYPT
+  // podklade skrýva text/číslo/piktogram (trip markery, POI, popisky, mierka), sa gatuje TOUTO
+  // premennou, nie porovnaním `mapBase === 'dogypt'` na každom mieste zvlášť.
+  const isCleanMode = mapBase === 'dogypt';
   const [overlayOn, setOverlayOn] = useState<Record<MapOverlayId, boolean>>(OVERLAY_DEFAULTS);
   const toggleOverlay = useCallback((id: MapOverlayId) => {
     setOverlayOn((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -1535,6 +1566,11 @@ export default function PackMap() {
   // komentár), nikdy z allTrails. `source` sa tu nepoužíva (dev-fallback beží ticho na pozadí),
   // je v hooku hlavne na debug/console warny.
   const fog = useFogSource();
+  // Matej 2026-08-04 (spresnenie): „nie všetky magistrály v svetelnom meči, iba SNP a poloniny —
+  // ostatné až keď prejdú Dogypťania!" — DOGYPT čistý vizuál kreslí VÝHRADNE trasy s potvrdeným
+  // prejdením, presne tú istú množinu, z ktorej sa skladá hmla (fog.trails). Platí to pre
+  // magistrály AJ bežné trasy rovnako — jedna množina pre hmlu aj pre čiary, žiadne dve pravidlá.
+  const walkedTrailIds = useMemo(() => new Set(fog.trails.map((t) => t.id)), [fog.trails]);
   const [locating, setLocating] = useState(false);
   const leafletMapRef = useRef<L.Map | null>(null);
   // TRIPSTATS Slice A (bod 3) — fallback flyTo target keď ?add= príde skôr, než leafletMapRef
@@ -1701,7 +1737,7 @@ export default function PackMap() {
   // DOGYPT podklad používa outdoor dlaždice (viď DogyptBaseLayer komentár) — spodná vrstva teda
   // pozná len dva reálne mapsety, tretí (dogypt) je vizuálna nadstavba nad "outdoor".
   const tileStyle: 'outdoor' | 'aerial' = mapBase === 'aerial' ? 'aerial' : 'outdoor';
-  const fogCtx: MapLayerCtx = { fogTrailsCount: fog.trails.length, fogLoading: fog.loading };
+  const fogCtx: MapLayerCtx = { fogTrailsCount: fog.trails.length, fogLoading: fog.loading, isCleanMode };
   const trailsById = useMemo(() => {
     const m = new Map<string, HeroTrail>();
     allTrails.forEach((t) => m.set(t.id, t));
@@ -2128,7 +2164,7 @@ export default function PackMap() {
     <div className="trp-status-left">
       <div
         className="trp-level"
-        title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ') })}
+        title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${t(r.labelKey, r.labelParams)} ${r.points}`).join(' · ') })}
       >
         <span className="trp-level-name">{levelInfo.rank}</span>
         <span className="trp-level-num"><i>{t('pack.map.lvl')}</i><em>{levelInfo.level}</em></span>
@@ -2672,7 +2708,7 @@ export default function PackMap() {
             type="button"
             className="trp-midentity"
             onClick={() => navigate('/pack/map/triplist?tab=stats')}
-            title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${r.label} ${r.points}`).join(' · ') })}
+            title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${t(r.labelKey, r.labelParams)} ${r.points}`).join(' · ') })}
           >
             {id.avatarUrl
               ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
@@ -2906,14 +2942,17 @@ export default function PackMap() {
                 {...(tileStyle === 'aerial' ? { maxNativeZoom: AERIAL_MAX_NATIVE_ZOOM } : {})}
               />
               {/* Overlay „Popisky a hranice" — Mapy.com mapset names-overlay, transparentná
-                  vrstva NAD podkladom (default vypnutý — bod 1 zadania, viď MAP_LAYERS). */}
-              {overlayOn.names && <TileLayer url={mapyTiles('names-overlay')} />}
-              {mapBase === 'dogypt' && <DogyptBaseLayer url={mapyTiles(tileStyle)} />}
+                  vrstva NAD podkladom (default vypnutý — bod 1 zadania, viď MAP_LAYERS).
+                  `!isCleanMode` (2026-08-04): v DOGYPT podklade je to presne to písmo/legenda,
+                  ktoré tam nemá byť — zapnutý stav sa NEMAŽE (overlayOn sa nemení), len sa
+                  ignoruje pri kreslení, nech sa po návrate na Outdoor/Satelit vráti sám. */}
+              {!isCleanMode && overlayOn.names && <TileLayer url={mapyTiles('names-overlay')} />}
+              {isCleanMode && <DogyptBaseLayer url={mapyTiles(tileStyle)} />}
               {/* Hmla — vnútri <MapContainer> (potrebuje useMap()), pod trasami/markermi (viď
                   poradie nižšie), nechytá klik (viď FogLayer.tsx). Panel dovolí prepnúť na DOGYPT
                   len keď fog.trails.length>0 (viď MAP_LAYERS `disabledReason`), takže tu netreba
                   duplicitne kontrolovať prázdny stav — keď je vrstva aktívna, dáta už sú. */}
-              {mapBase === 'dogypt' && <FogLayer trails={fog.trails} />}
+              {isCleanMode && <FogLayer trails={fog.trails} />}
               {/* bod 1 (Matej 2026-07-22): SK je vybraná krajina → zvýraznená čierno-zlatým
                   obrysom. Dvojvrstvový casing (čierny podklad + zlatá čiara) + whisper zlatého
                   fillu. interactive=false — nesmie chytať klik (trip pod ním musí ísť vybrať). */}
@@ -2926,7 +2965,8 @@ export default function PackMap() {
                   Cross-border legibility (Matej 2026-07-27, druhé kolo) → viď TerritoryBorders
                   vyššie (real-metrová priehľadná zóna namiesto dashArray, ktorý „nesadol"). */}
               <TerritoryBorders countries={availableCountries} />
-              <ScaleControl position="bottomleft" imperial={false} />
+              {/* mierka nesie čísla ("5 km") — v DOGYPT čistom vizuáli patrí medzi vysvetlivky. */}
+              {!isCleanMode && <ScaleControl position="bottomleft" imperial={false} />}
               <FlyTo target={mapTarget} />
               <FitBounds path={heroBounds} offset={!!inlineDetailId} />
               {/* ľavý zoznam podľa výrezu mapy (Matej 2026-07-27) — hlási bounds na moveend/zoomend */}
@@ -2947,7 +2987,11 @@ export default function PackMap() {
                   = AllTrails-style dvojvrstvový casing (čierny okraj + zlaté jadro), nie len
                   hrubšia zlatá čiara — dve <Polyline> na tých istých pozíciách (casing prvá =
                   pod, jadro druhá = nad). Nevybrané trasy ostávajú tenké čierne, bez casingu. */}
-              {allTrails.filter((tr) => tr.path.length > 1 && !isWaterTrail(tr)).map((tr) => {
+              {/* DOGYPT čistý vizuál (2026-08-04, Matej: „nie všetky magistrály v svetelnom meči,
+                  iba SNP a poloniny — ostatné až keď prejdú Dogypťania") — v `isCleanMode` sa
+                  kreslí LEN to, čo je aj v hmle (`walkedTrailIds`), platí pre magistrály aj bežné
+                  trasy rovnako. Mimo DOGYPT (Outdoor/Satelit) je to nedotknuté — vidno všetko. */}
+              {allTrails.filter((tr) => tr.path.length > 1 && !isWaterTrail(tr) && (!isCleanMode || walkedTrailIds.has(tr.id))).map((tr) => {
                 // myš NA ČIARE → trasa vybledne, nech je pod ňou vidno turistické značenie
                 // (Matej 2026-07-31). Hover zo zoznamu/markera ostáva zlaté zvýraznenie —
                 // tam trasu hľadáš, tu sa na ňu pozeráš. Rovnaký princíp ako `routeDimmed`
@@ -2969,7 +3013,16 @@ export default function PackMap() {
                 // V pokoji sa teda NEKRESLÍ nič, trasu drží len jej piktogram; hover naň (alebo
                 // výber) ju vykreslí. Handlery ostávajú aj na čiare, nech neblikne, keď z markera
                 // prejdeš myšou priamo na ňu.
-                if (tr.acts?.includes('journey')) {
+                // `!isCleanMode` (2026-08-04, Matej: „chýba svetelný meč na SNP a poloniny"): táto
+                // vetva (piktogram drží trasu, čiara len na hover) je Outdoor/Satelit špecifikum —
+                // piktogramy tam vôbec nekreslíme (DOGYPT čistý vizuál), takže v DOGYPT nemá čo
+                // trasu „držať" a magistrála by bola vidno len na hover. V DOGYPT sú prejdené
+                // journey navyše LEN dve (SNP, Poloniny, nie 10 magistrál) — surovosť viacerých
+                // naraz odpadá. Journey preto spadne do rovnakej vetvy nižšie ako ostatné trasy:
+                // vždy vykreslená, rovnaký fialový „svetelný meč" (TRAIL_SABER_LAYERS), nie
+                // vlastná červená farba — v čistom vizuáli nemá zmysel farbou rozlišovať „toto je
+                // diaľková cesta", to bol orientačný signál pre pracovnú mapu.
+                if (!isCleanMode && tr.acts?.includes('journey')) {
                   // pozor: `hot` je pri hoveri NA ČIARE zámerne false (trasa vybledá), takže
                   // magistrála musí ostať vykreslená aj v tomto stave — inak by zmizla presne
                   // v okamihu, keď na ňu ideš myšou.
@@ -3055,22 +3108,29 @@ export default function PackMap() {
               {/* POI z OSM (issue #40) — pod trip markermi (zIndexOffset), viditeľné až od z14.
                   Atribúcia „© OpenStreetMap" je podmienka licencie → .trp-attrib pod mapou.
                   Teraz overlay „Body na trase" v paneli vrstiev (default ZAPNUTÝ — nemení dnešné
-                  správanie, vrstva bola predtým natvrdo ON). */}
-              {overlayOn.poi && <PoiLayer />}
-              <TripMarkers
-                points={mapPoints}
-                hoverId={hoverId}
-                inlineDetailId={inlineDetailId}
-                onHover={setHoverId}
-                onSelect={selectTrail}
-              />
+                  správanie, vrstva bola predtým natvrdo ON). `!isCleanMode` (2026-08-04): sú to
+                  popisky bodov na trase, presne to, čo DOGYPT čistý vizuál nesmie ukázať. */}
+              {!isCleanMode && overlayOn.poi && <PoiLayer />}
+              {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
+                  DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
+                  písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
+              {!isCleanMode && (
+                <TripMarkers
+                  points={mapPoints}
+                  hoverId={hoverId}
+                  inlineDetailId={inlineDetailId}
+                  onHover={setHoverId}
+                  onSelect={selectTrail}
+                />
+              )}
               {/* krok 9: draft polyline/km-label/pin, ktoré tu predtým kreslil starý drawPoints
                   ADD flow, sú preč — GeometryPicker (vnútri AddTripPlan/AddTripLog) kreslí kotvy,
                   snapnutú stopu aj bod/územie imperatívne priamo na túto mapu cez mapRef, takže
                   duplicitné React vrstvy tu už nie sú potrebné (viď kontrakt §2.1 „vrstvy na mape"). */}
               {/* uložené PLÁNY (nie vodné plochy!) = jeden RUŽOVÝ bod na mape → Marker, klik vyberie
-                  trip. Gate na id 'plan-' — vodné plochy s 1 bodom nesmú dostať pin. */}
-              {allTrails.filter((tr) => tr.id.startsWith('plan-') && tr.path.length === 1).map((tr) => (
+                  trip. Gate na id 'plan-' — vodné plochy s 1 bodom nesmú dostať pin. Skryté v
+                  DOGYPT rovnako ako ostatné trip markery — je to pin, ktorý potrebuje legendu. */}
+              {!isCleanMode && allTrails.filter((tr) => tr.id.startsWith('plan-') && tr.path.length === 1).map((tr) => (
                 <Marker key={tr.id} position={tr.path[0]} icon={PLAN_PIN} eventHandlers={{ click: () => selectTrail(tr) }} />
               ))}
             </MapContainer>
@@ -3078,9 +3138,9 @@ export default function PackMap() {
             {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
                 viď komentár pri .trp-legend v CSS. */}
             {/* POI vrstva beží na dátach OpenStreetMap (ODbL) — atribúcia je podmienka licencie,
-                takže ide RUKA V RUKE s overlayOn.poi (keď je vrstva vypnutá, dáta sa nekreslia,
+                takže ide RUKA V RUKE s `!isCleanMode && overlayOn.poi` (keď sa vrstva nekreslí,
                 atribúcia teda ani nemá čo vysvetľovať). */}
-            {overlayOn.poi && <PoiAttribution style={{ bottom: 34 }} />}
+            {!isCleanMode && overlayOn.poi && <PoiAttribution style={{ bottom: 34 }} />}
 
             {/* top bar — floating status riadok + search-a-place + Activity/Difficulty/Crowd
                 filter, žije NA mape (AllTrails "Search map" vzor). Iterácia 10: status riadok

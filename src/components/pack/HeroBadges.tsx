@@ -25,6 +25,7 @@
 // "N more trips to unlock") a grayscale odznakom keď locked. Zdieľaný renderer = HeroRevealCard.
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useT } from '@/i18n/LanguageContext';
 import { HERO_BADGES, type HeroBadge } from '@/components/pack/heroBadgesData';
 import {
   readHeroEarned, persistHeroEarned, scheduleHeroBadgeBackfill, onPackStoreHydrated,
@@ -60,6 +61,7 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
   locked: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
   return createPortal(
     <div
       className="comm-reveal"
@@ -69,15 +71,15 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
         <button type="button" className="comm-reveal-x" aria-label="Close" onClick={onClose}>×</button>
         <div className="comm-reveal-left">
           <img className={`comm-reveal-badge${locked ? ' comm-reveal-badge--off' : ''}`} src={badge.img} alt={badge.name} />
-          <div className="comm-reveal-trips">{badge.trips} trips</div>
+          <div className="comm-reveal-trips">{t('pack.heroBadge.trips', { n: badge.trips })}</div>
         </div>
         <div className="comm-reveal-right">
           <div className={`comm-reveal-kicker${locked ? ' comm-reveal-kicker--locked' : ''}`}>{kicker}</div>
           <div className="comm-reveal-name">{badge.name}</div>
-          <p className="comm-reveal-story">{badge.story}</p>
+          <p className="comm-reveal-story">{t(`pack.heroBadge.${badge.id}.story`)}</p>
           {badge.source && (
             <a className="comm-reveal-source" href={badge.source.url} target="_blank" rel="noopener noreferrer">
-              Viac o príbehu → <span className="comm-reveal-source-label">{badge.source.label}</span>
+              {t('pack.heroBadge.more')} <span className="comm-reveal-source-label">{badge.source.label}</span>
             </a>
           )}
         </div>
@@ -88,6 +90,7 @@ function HeroRevealCard({ badge, kicker, locked, onClose }: {
 }
 
 export function HeroBadges({ walkedCount }: { walkedCount: number }) {
+  const t = useT();
   const [clicked, setClicked] = useState<HeroBadge | null>(null);
   const [queue, setQueue] = useState<HeroBadge[]>([]);
   // Perzistovaný stav (issue #48) — id-čka, ktoré NIKDY nezmiznú, aj keby walkedCount
@@ -163,10 +166,12 @@ export function HeroBadges({ walkedCount }: { walkedCount: number }) {
       </div>
 
       {revealing ? (
-        <HeroRevealCard badge={revealing} kicker="Milestone reached" locked={false} onClose={dismissReveal} />
+        <HeroRevealCard badge={revealing} kicker={t('pack.heroBadge.kickerMilestone')} locked={false} onClose={dismissReveal} />
       ) : clicked ? (() => {
         const earned = earnedIds.has(clicked.id);
-        const kicker = earned ? 'Hero badge' : `${clicked.trips - walkedCount} more trips to unlock`;
+        const kicker = earned
+          ? t('pack.heroBadge.kickerEarned')
+          : t('pack.heroBadge.kickerLocked', { n: clicked.trips - walkedCount });
         return (
           <HeroRevealCard badge={clicked} kicker={kicker} locked={!earned} onClose={() => setClicked(null)} />
         );

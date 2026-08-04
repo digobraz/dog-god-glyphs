@@ -137,7 +137,9 @@ export interface TripPointsInput {
   completedCollection?: boolean;
 }
 
-export interface PointsRow { label: string; points: number }
+// `labelKey` = i18n kľúč, NIE hotový text (#65) — tento modul je čistá funkcia bez prístupu
+// k prekladaču, preklad robí až ten, kto riadok renderuje (packCommunityUI.tsx, PackMap.tsx).
+export interface PointsRow { labelKey: string; labelParams?: Record<string, string | number>; points: number }
 export interface TripPointsResult { total: number; rows: PointsRow[] }
 
 /**
@@ -147,30 +149,32 @@ export interface TripPointsResult { total: number; rows: PointsRow[] }
 export function calculateTripPoints(input: TripPointsInput): TripPointsResult {
   const kind = input.kind ?? 'trail';
   const rows: PointsRow[] = [];
-  const add = (label: string, points: number) => { if (points > 0) rows.push({ label, points }); };
+  const add = (labelKey: string, points: number, labelParams?: Record<string, string | number>) => {
+    if (points > 0) rows.push({ labelKey, labelParams, points });
+  };
 
-  if (input.added) add(kind === 'place' ? 'pridanie miesta' : 'pridanie výletu', kind === 'place' ? POINTS.place : POINTS.add);
-  if (input.walked) add(kind === 'place' ? 'navštívené miesto' : 'prejdený výlet', kind === 'place' ? POINTS.visit : POINTS.walk);
+  if (input.added) add(kind === 'place' ? 'pack.points.addPlace' : 'pack.points.addTrip', kind === 'place' ? POINTS.place : POINTS.add);
+  if (input.walked) add(kind === 'place' ? 'pack.points.visitPlace' : 'pack.points.walkTrip', kind === 'place' ? POINTS.visit : POINTS.walk);
 
   // Magistrála: pevná cena NAMIESTO km a stúpania.
   const fixed = input.journeyId ? JOURNEY_POINTS[input.journeyId] : undefined;
   if (typeof fixed === 'number') {
-    add('magistrála (pevná cena)', fixed);
+    add('pack.points.journeyFixed', fixed);
   } else if (kind === 'trail') {
     const km = Math.max(0, Math.round(input.km ?? 0));
-    if (km > 0) add(`${km} km`, km * POINTS_PER_KM);
+    if (km > 0) add('pack.points.kmN', km * POINTS_PER_KM, { n: km });
     const asc = Math.max(0, Math.floor(input.ascentM ?? 0));
     const ascPts = Math.floor(asc / 100) * POINTS_PER_100M;
-    if (ascPts > 0) add(`${asc} m stúpania`, ascPts);
+    if (ascPts > 0) add('pack.points.ascentN', ascPts, { n: asc });
   }
 
-  if (input.newRange) add('nové pohorie', POINTS.range);
-  if (input.newNp) add('nový NP', POINTS.np);
-  if (input.newChko) add('nové CHKO', POINTS.chko);
-  if (input.newWater) add('nová vodná plocha', POINTS.water);
-  if (input.newCountry) add('nová krajina', POINTS.country);
-  if (input.completedCollection) add('kompletná zbierka', POINTS.collection);
-  if (input.rated) add('hodnotenie', POINTS.rate);
+  if (input.newRange) add('pack.points.newRange', POINTS.range);
+  if (input.newNp) add('pack.points.newNp', POINTS.np);
+  if (input.newChko) add('pack.points.newChko', POINTS.chko);
+  if (input.newWater) add('pack.points.newWater', POINTS.water);
+  if (input.newCountry) add('pack.points.newCountry', POINTS.country);
+  if (input.completedCollection) add('pack.points.collection', POINTS.collection);
+  if (input.rated) add('pack.points.rate', POINTS.rate);
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }
@@ -215,26 +219,26 @@ export function calculateProfilePoints(input: ProfilePointsInput): TripPointsRes
     if (input.addedIds?.has(tr.id)) { if (isPlace) addedPlaces += POINTS.place; else added += POINTS.add; }
   }
 
-  if (journeys) rows.push({ label: 'magistrály', points: journeys });
-  if (added) rows.push({ label: 'pridané trasy', points: added });
-  if (km) rows.push({ label: 'km', points: km });
-  if (ascent) rows.push({ label: 'stúpanie', points: ascent });
-  if (walks) rows.push({ label: 'prejdené trasy', points: walks });
-  if (addedPlaces) rows.push({ label: 'pridané miesta', points: addedPlaces });
-  if (visits) rows.push({ label: 'navštívené miesta', points: visits });
+  if (journeys) rows.push({ labelKey: 'pack.points.journeys', points: journeys });
+  if (added) rows.push({ labelKey: 'pack.points.addedTrails', points: added });
+  if (km) rows.push({ labelKey: 'pack.points.km', points: km });
+  if (ascent) rows.push({ labelKey: 'pack.points.ascent', points: ascent });
+  if (walks) rows.push({ labelKey: 'pack.points.walks', points: walks });
+  if (addedPlaces) rows.push({ labelKey: 'pack.points.addedPlaces', points: addedPlaces });
+  if (visits) rows.push({ labelKey: 'pack.points.visits', points: visits });
 
   const d = input.discovered ?? {};
   const geo: [string, number, number][] = [
-    ['pohoria', d.ranges ?? 0, POINTS.range],
-    ['národné parky', d.parks ?? 0, POINTS.np],
-    ['CHKO', d.chko ?? 0, POINTS.chko],
-    ['vodné plochy', d.waters ?? 0, POINTS.water],
-    ['krajiny', d.countries ?? 0, POINTS.country],
+    ['pack.points.ranges', d.ranges ?? 0, POINTS.range],
+    ['pack.points.parks', d.parks ?? 0, POINTS.np],
+    ['pack.points.chko', d.chko ?? 0, POINTS.chko],
+    ['pack.points.waters', d.waters ?? 0, POINTS.water],
+    ['pack.points.countries', d.countries ?? 0, POINTS.country],
   ];
-  for (const [label, count, price] of geo) if (count > 0) rows.push({ label, points: count * price });
+  for (const [labelKey, count, price] of geo) if (count > 0) rows.push({ labelKey, points: count * price });
 
   const ratings = input.ratings ?? 0;
-  if (ratings > 0) rows.push({ label: 'hodnotenia', points: ratings * POINTS.rate });
+  if (ratings > 0) rows.push({ labelKey: 'pack.points.ratings', points: ratings * POINTS.rate });
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }
