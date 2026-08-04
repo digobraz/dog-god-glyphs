@@ -30,8 +30,33 @@ export const GOLD_ICON_FILTER =
 // všade: karty, inline detail, článok (React <DiffMark>) aj mapové markery (raw Leaflet
 // divIcon html string cez diffMarkShape, ktoré len skladá tú istú .trp-diffmark-- triedu). ──
 // Odyssey (viacdňová journey, 4. stupeň) = trojuholník ako Hard, ale BIELY (viď DIFF_MARK_CSS).
+// ── Vodná plocha (jazero/priehrada) ─────────────────────────────────────────────────────────
+// Matejovo pravidlo: „JAZERA všeobecne budú označené klikom ako územie, jedine ak by sa jednalo
+// o splav rieky alebo trasa paddleboardom to bude výnimka = bude sa môcť aj kresliť ale iba ako
+// alternatíva k označeniu vodnej plochy — bez náročnosti." Vodná plocha teda NIKDY nemá
+// náročnosť, aj keby ju dáta niesli (viď použitie nižšie a v PackMap/PackTripArticle).
+// Dva signály, lebo ani jeden sám nestačí: aktivita 'paddleboard' (SUP) ALEBO tag 'Lake'/'Water'
+// (voda bez SUP aktivity — Bled dostal len 'explore' pri migrácii 2026-07-29, keď ešte nemal
+// nakreslenú trasu, a predtým prepadával cez isWaterTrail ako bežný hike). Jedno miesto,
+// používa sa všade (predtým lokálna kópia len v PackMap.tsx).
+const WATER_TAGS = new Set(['lake', 'water']);
+export const isWaterTrail = (tr: { acts?: string[]; tags?: string[] }): boolean =>
+  !tr.acts?.includes('journey') &&
+  (!!tr.acts?.includes('paddleboard') || !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase())));
+
 export const diffMarkShape = (diff: string): 'circle' | 'square' | 'triangle' =>
   diff === 'Easy' ? 'circle' : (diff === 'Hard' || diff === 'Odyssey') ? 'triangle' : 'square';
+
+// Zdieľaný share text (native share sheet aj clipboard fallback) — PackMap inline detail aj
+// PackTripArticle (predtým dve identické kópie `${tr.name} — ${tr.km} km, ${tr.diff}`).
+// Vodná plocha nemá km ani diff (viď isWaterTrail vyššie) — chýbajúce časti sa vynechajú, nie
+// fabrikuje sa „undefined" ani holé „ km".
+export function tripShareText(tr: { name: string; km: string; diff?: string }): string {
+  const parts: string[] = [];
+  if (tr.km && tr.km.trim()) parts.push(`${tr.km} km`);
+  if (tr.diff) parts.push(tr.diff);
+  return parts.length ? `${tr.name} — ${parts.join(', ')}` : tr.name;
+}
 
 export function DiffMark({ diff }: { diff: string }) {
   return <span className={`trp-diffmark trp-diffmark--${diffMarkShape(diff)}${diff === 'Odyssey' ? ' trp-diffmark--odyssey' : ''}`} aria-hidden="true" />;

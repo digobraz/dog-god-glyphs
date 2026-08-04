@@ -264,7 +264,9 @@ export default function PublicProfile() {
                   }}
                 >
                   <span style={{ color: T.ink, fontWeight: 600 }}>{tr.name}</span>
-                  <span style={{ color: T.inkFaint, fontSize: 11.5 }}>{tr.region} · {tr.km} km</span>
+                  {/* vodná plocha (isWaterTrail) má km: '' — bez podmienky by sa vykreslilo holé
+                      "region ·  km" (rovnaký audit #45 fix ako PackTripArticle/PublicProfile). */}
+                  <span style={{ color: T.inkFaint, fontSize: 11.5 }}>{tr.region}{tr.km?.trim() ? ` · ${tr.km} km` : ''}</span>
                 </Link>
               ))}
             </div>

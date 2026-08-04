@@ -4,7 +4,7 @@ import type { LatLngTuple } from 'leaflet';
 
 export type HeroTrail = {
   id: string; name: string; region: string;
-  diff: 'Easy' | 'Moderate' | 'Hard' | 'Odyssey'; km: string; stars: number;
+  diff?: 'Easy' | 'Moderate' | 'Hard' | 'Odyssey'; km: string; stars: number;
   path: LatLngTuple[]; photos: string[]; seasons: string[];
   desc: string; dogNote: string;
   acts?: string[]; surface?: string[]; crowd?: string; tags?: string[];
@@ -43061,7 +43061,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Buková priehrada",
     "region": "Malé Karpaty",
     "country": "sk",
-    "diff": "Moderate",
     "km": "",
     "stars": 4,
     "path": [
@@ -116077,7 +116076,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Liptovská Mara",
     "region": "",
     "country": "sk",
-    "diff": "Moderate",
     "km": "",
     "stars": 5,
     "path": [
@@ -116110,7 +116108,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Kráľová",
     "region": "",
     "country": "sk",
-    "diff": "Moderate",
     "km": "",
     "stars": 4,
     "path": [
@@ -116141,7 +116138,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Sĺňava",
     "region": "",
     "country": "sk",
-    "diff": "Moderate",
     "km": "",
     "stars": 5,
     "path": [
@@ -116175,7 +116171,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Orešianska priehrada",
     "region": "",
     "country": "sk",
-    "diff": "Moderate",
     "km": "",
     "stars": 5,
     "path": [
@@ -116213,7 +116208,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Palcmanská Maša",
     "region": "",
     "country": "sk",
-    "diff": "Moderate",
     "km": "",
     "stars": 5,
     "path": [
@@ -116256,7 +116250,6 @@ export const HERO_TRAILS: HeroTrail[] = [
     "name": "Bled",
     "region": "",
     "country": "si",
-    "diff": "Moderate",
     "km": "",
     "stars": 5,
     "path": [

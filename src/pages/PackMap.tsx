@@ -72,7 +72,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale,
+  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale, isWaterTrail, tripShareText,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById,
@@ -191,7 +191,9 @@ function AuthorAvatars({ author, size }: { author: string; size: number }) {
   );
 }
 
-const diffRank = (d: string) => (d === 'Easy' ? 0 : d === 'Moderate' ? 1 : d === 'Hard' ? 2 : 3);
+// bez náročnosti (vodná plocha, viď isWaterTrail) → radí sa na koniec bez ohľadu na smer
+// (Easiest aj Hardest), nie na 'Hard' pozíciu ako predtým fabrikovaný fallback 'Moderate' robil.
+const diffRank = (d?: string) => (d === 'Easy' ? 0 : d === 'Moderate' ? 1 : d === 'Hard' ? 2 : d === 'Odyssey' ? 3 : 4);
 
 // Haversine — rovnaký algoritmus ako AddTrailFlow.tsx (recyklované, nie importované:
 // Portal ADD flow stavia lokálny-session HeroTrail, nie `trails` DB riadok, tak si
@@ -359,8 +361,11 @@ const waterWaves = (waves?: number): string => {
   const ys = n === 1 ? [7.5] : n === 2 ? [5, 10] : [3.5, 7.5, 11.5];
   return `<svg viewBox="0 0 15.5 15" width="11" height="11" aria-hidden="true">${ys.map(wave).join('')}</svg>`;
 };
+// p.tr.diff chýba len pri vode (isWaterTrail vylúčené vyššie v points.push), ale typ je voliteľný
+// aj tu — bez diff sa piktogram jednoducho nevykreslí, žiadny fabrikovaný tvar.
 const pointPicto = (p: MapPoint): string =>
-  p.water ? waterWaves((p.tr as { waves?: number }).waves) : `<span class="trp-diffmark trp-diffmark--${diffMarkShape(p.tr.diff)}"></span>`;
+  p.water ? waterWaves((p.tr as { waves?: number }).waves)
+    : p.tr.diff ? `<span class="trp-diffmark trp-diffmark--${diffMarkShape(p.tr.diff)}"></span>` : '';
 const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.water ? '--water' : '');
 
 // bod = pilulka (km, vodná plocha bez km nesie NÁZOV — zadanie 2.3) alebo bodka (17px, len
@@ -386,8 +391,6 @@ const clusterIcon = (n: number) => {
   return L.divIcon({ className: 'trp-pinwrap', html: `<div class="trp-cluster" style="width:${s}px;height:${s}px;font-size:${n < 12 ? 12 : 13}px">${n}</div>` });
 };
 
-// vodná plocha = trip s aktivitou SUP/paddleboard → na mape 1 modrý bod (NIE čierny hike/trasa).
-const isWaterTrail = (tr: { acts?: string[] }) => !!tr.acts?.includes('paddleboard') && !tr.acts?.includes('journey');
 // reprezentatívny bod vodnej plochy = ťažisko nakreslených bodov (pri 1 bode = ten bod).
 const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
   const lat = path.reduce((s, p) => s + p[0], 0) / path.length;
@@ -1892,7 +1895,7 @@ export default function PackMap() {
     const tr = trailsById(tid);
     if (!tr) return;
     const url = `${window.location.origin}${tripPath(tr)}`;
-    const shareData = { title: tr.name, text: `${tr.name} — ${tr.km} km, ${tr.diff}`, url };
+    const shareData = { title: tr.name, text: tripShareText(tr), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
     }
@@ -2074,7 +2077,9 @@ export default function PackMap() {
         name: draft.name.trim(),
         region: draft.region ?? '',
         country: draft.country,
-        diff: draft.diff ?? 'Moderate',
+        // paddleboard/water tripy nemajú diff selector vôbec (HIKE_LIKE guard v addTripModel.ts) →
+        // draft.diff je undefined, nefabrikuje sa 'Moderate' (rovnaký bug ako v generátore).
+        ...(draft.diff ? { diff: draft.diff } : {}),
         km,
         stars: draft.paws ?? 0,
         path: line,
@@ -2360,8 +2365,12 @@ export default function PackMap() {
           {/* bod 3: náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
               Plán = žiadne meta (výlet sa neodohral), len „Planned" pilulka. */}
           <div className="trp-bigcard-photometa">
+            {/* vodná plocha (isWaterTrail) nikdy nemá náročnosť/km — PhotoMetaPills (packCommunityUI)
+                by ich vykreslilo naostro („↔  km", fake difficulty), preto sa tu pre vodu vôbec
+                nevolá namiesto snahy dotlačiť do neho prázdne hodnoty. */}
             {isUnwalkedPlan
               ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
+              : isWaterTrail(tr) ? null
               : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} />}
           </div>
         </div>
@@ -2463,8 +2472,10 @@ export default function PackMap() {
                   {/* náročnosť · km + popularita + hazard(červený) — dolný ľavý roh fotky.
                       Plán = žiadne meta, len „Planned" pilulka. */}
                   <div className="trp-bigcard-photometa">
+                    {/* vodná plocha nikdy nemá náročnosť/km, viď komentár pri karte vyššie. */}
                     {isUnwalkedPlan
                       ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
+                      : isWaterTrail(dt) ? null
                       : <PhotoMetaPills agg={dtAgg} km={dt.km} ascentM={(dt as { ascentM?: number }).ascentM} />}
                   </div>
                   {dt.photos.length > 1 && (

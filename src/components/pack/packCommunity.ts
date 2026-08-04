@@ -188,7 +188,10 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     return {
       walkedCount: 0, belowThreshold: true,
       rating: 0,
-      difficulty: trail.diff,
+      // trail.diff je teraz voliteľný (vodná plocha ho nemá, viď isWaterTrail v tripShared.tsx) —
+      // CrowdAgg.difficulty ostáva netknuté ako Difficulty (packCommunityUI.tsx ho tak číta),
+      // volajúci pre vodnú plochu UI stĺpec vôbec nezobrazí (hard rule, nie chýbajúca hodnota).
+      difficulty: trail.diff as Difficulty,
       difficultyBreakdown: [],
       crowd: sCrowd,
       crowdBreakdown: [],
@@ -206,8 +209,8 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     return {
       walkedCount, belowThreshold: true,
       rating: trail.stars,
-      difficulty: trail.diff,
-      difficultyBreakdown: [{ value: trail.diff, pct: 100, count: walkedCount }],
+      difficulty: trail.diff as Difficulty,
+      difficultyBreakdown: [{ value: trail.diff as Difficulty, pct: 100, count: walkedCount }],
       crowd: sCrowd,
       crowdBreakdown: sCrowd ? [{ value: sCrowd, pct: 100, count: walkedCount }] : [],
       hazardBreakdown: hB,
@@ -219,7 +222,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
   return {
     walkedCount, belowThreshold: false,
     rating: Math.round(avg * 10) / 10,
-    difficulty: dB[0]?.value ?? trail.diff,
+    difficulty: dB[0]?.value ?? (trail.diff as Difficulty),
     difficultyBreakdown: dB,
     crowd: cB[0]?.value ?? sCrowd,
     crowdBreakdown: cB,

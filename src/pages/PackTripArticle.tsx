@@ -28,8 +28,9 @@ import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/pa
 import { useToast } from '@/hooks/use-toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile,
+  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
+  tripShareText,
 } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -428,7 +429,7 @@ export default function PackTripArticle() {
   const handleShare = async () => {
     if (!trail) return;
     const url = `${window.location.origin}${tripPath(trail)}`;
-    const shareData = { title: trail.name, text: `${trail.name} — ${trail.km} km, ${trail.diff}`, url };
+    const shareData = { title: trail.name, text: tripShareText(trail), url };
     if (typeof navigator.share === 'function') {
       try { await navigator.share(shareData); return; } catch { /* cancelled */ }
     }
@@ -597,25 +598,31 @@ export default function PackTripArticle() {
             tak hlasovalo"). Pod prahom VOLUME_THRESHOLD sa hover nezobrazuje — je to seed, nie
             hlasovanie, tooltip „100% (2)" by tvrdil viac než dáta vedia. */}
         <div className="pta-statrow">
-          <div className="pta-stat">
-            <b className="pta-route">
-              {/* 6 výletov (vodné plochy: Bukovská priehrada, Liptovská Mara, Kráľová, Sĺňava,
-                  Orešianska, Palcmanská Maša) má `km: ""` — bez tejto podmienky sa vykreslilo
-                  holé „↔  km". Pri paddleboarde a pikniku pri vode vzdialenosť ani nedáva
-                  zmysel, preto sa riadok radšej nezobrazí vôbec. (audit #45) */}
-              {trail.km?.trim() && <span>↔ {trail.km} km</span>}
-              {(trail as { ascentM?: number }).ascentM != null && (<>
-                <i />
-                <span>↑ {(trail as { ascentM?: number }).ascentM} m</span>
-              </>)}
-            </b>
-          </div>
-          <div
-            className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
-            data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
-          >
-            <b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span>
-          </div>
+          {/* 6 výletov (vodné plochy: Bukovská priehrada, Liptovská Mara, Kráľová, Sĺňava,
+              Orešianska, Palcmanská Maša) má `km: ""` a žiadne ascentM — bez tejto podmienky na
+              CELEJ dlaždici (nie len na obsahu <b>) ostala prázdna .pta-stat bunka vedľa
+              Crowd/Rating (audit #45 + doplnené: prázdny obal, nie len prázdny text). */}
+          {(trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
+            <div className="pta-stat">
+              <b className="pta-route">
+                {trail.km?.trim() && <span>↔ {trail.km} km</span>}
+                {(trail as { ascentM?: number }).ascentM != null && (<>
+                  <i />
+                  <span>↑ {(trail as { ascentM?: number }).ascentM} m</span>
+                </>)}
+              </b>
+            </div>
+          )}
+          {/* vodná plocha (isWaterTrail) nikdy nemá náročnosť — tvrdé pravidlo, nie len chýbajúca
+              hodnota (audit #45, Bled ukazoval fabrikované „Moderate"). */}
+          {!isWaterTrail(trail) && (
+            <div
+              className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
+              data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
+            >
+              <b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span>
+            </div>
+          )}
           {agg.crowd && (
             <div
               className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
