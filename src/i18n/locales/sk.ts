@@ -1629,4 +1629,15 @@ export const sk: Partial<Dict> = {
   'entry.signed.prefix': 'Už podpísalo',
   'entry.signed.suffix': 'psíčkarov',
   'entry.cta': 'Pridať moje meno',
+  // ── Panel vrstiev mapy + hmla DOGYPTU (spec-hmla.md) ────────────────────────
+  'pack.map.layersAriaLabel': 'Vrstvy mapy',
+  'pack.map.layersBaseGroup': 'Podklad',
+  'pack.map.layersOverlayGroup': 'Vrstvy navyše',
+  'pack.map.layerOutdoor': 'Outdoor',
+  'pack.map.layerAerial': 'Satelit',
+  'pack.map.layerDogypt': 'DOGYPT',
+  'pack.map.layerDogyptLoading': 'Načítavam prejdené výlety…',
+  'pack.map.layerDogyptEmpty': 'Zatiaľ žiadne prejdené výlety — vrstva sa odomkne, keď niekto zapíše hotový výlet.',
+  'pack.map.layerNames': 'Popisky a hranice',
+  'pack.map.layerPoi': 'Body na trase',
 };

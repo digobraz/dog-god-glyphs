@@ -1669,4 +1669,15 @@ export const en = {
   'pack.publicProfile.myPack': "My Pack",
   'pack.publicProfile.badgesLabel': "Trips & badges",
   'pack.publicProfile.noBio': "No bio yet.",
+  // ── Panel vrstiev mapy + hmla DOGYPTU (spec-hmla.md) ──────────────────────────
+  'pack.map.layersAriaLabel': "Map layers",
+  'pack.map.layersBaseGroup': "Base map",
+  'pack.map.layersOverlayGroup': "Overlays",
+  'pack.map.layerOutdoor': "Outdoor",
+  'pack.map.layerAerial': "Satellite",
+  'pack.map.layerDogypt': "DOGYPT",
+  'pack.map.layerDogyptLoading': "Loading walked trips…",
+  'pack.map.layerDogyptEmpty': "No walked trips yet — this layer unlocks once someone logs a done trip.",
+  'pack.map.layerNames': "Labels & borders",
+  'pack.map.layerPoi': "Points on trail",
 } as const;
