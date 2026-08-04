@@ -1889,6 +1889,7 @@ export const en = {
   'pack.map.viewMapToPlaceRoute': "View map to place your route / pin",
   'pack.map.switchToSatellite': "Switch to satellite view",
   'pack.map.switchToTerrain': "Switch to terrain view",
+  // ── Panel vrstiev mapy + hmla DOGYPTU (spec-hmla.md) ──────────────────────────
   'pack.map.layersAriaLabel': "Map layers",
   'pack.map.layersBaseGroup': "Base map",
   'pack.map.layersOverlayGroup': "Overlays",
@@ -2018,4 +2019,5 @@ export const en = {
   'pack.points.chko': "protected areas",
   'pack.points.waters': "bodies of water",
   'pack.points.countries': "countries",
+
 } as const;

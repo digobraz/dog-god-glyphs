@@ -1978,4 +1978,5 @@ export const sk: Partial<Dict> = {
   'pack.points.chko': "CHKO",
   'pack.points.waters': "vodné plochy",
   'pack.points.countries': "krajiny",
+  // ── Panel vrstiev mapy + hmla DOGYPTU (spec-hmla.md) ────────────────────────
 };
