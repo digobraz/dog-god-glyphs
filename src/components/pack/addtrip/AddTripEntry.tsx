@@ -45,8 +45,11 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
 
 const ENTRY_CSS = `
 .att-entry-backdrop{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
-.att-entry-panel{position:relative;width:100%;max-width:640px;padding:40px 32px 32px;}
-.att-entry-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* Horný padding je väčší než ostatné strany zámerne: krížik sedí v rohu na vlastnom odsadení
+   (nie na paddingu panela), takže bez tejto rezervy sa dotýka rámu aj blokov pod ním.
+   Matej 2026-08-05: „krížik je nalepený na rámiku = nevkusné, treba dopriať tomu priestor." */
+.att-entry-panel{position:relative;width:100%;max-width:640px;padding:52px 32px 32px;}
+.att-entry-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .att-entry-close:hover{border-color:${GOLD};color:${GOLD};}
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
 .att-entry-block{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
