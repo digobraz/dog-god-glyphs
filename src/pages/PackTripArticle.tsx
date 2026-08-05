@@ -26,6 +26,7 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail,
@@ -366,23 +367,40 @@ export default function PackTripArticle() {
   // presné trafenie 4px čiary prstom je nespoľahlivé.
   const [routeDimmed, setRouteDimmed] = useState(false);
 
-  // ★ wishlist → zámer popup (ak nie je uložený); walked → povinný walked popup. Odznačenie
-  // = priame odobratie (aj hlas/plán). Rovnaká logika ako PackMap.
+  // ★ = jeden klik (uloží solo/closed), ✓ = jeden klik (zapíše prejdenie); hodnotenie aj
+  // zverejnenie sú ponuka v toaste, nie podmienka. Odznačenie = priame odobratie (aj hlas/plán).
+  // Rovnaká logika ako PackMap — dôvody sú popísané tam pri `toggleFav`/`toggleWalked`.
   const toggleFav = (tid: string) => {
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setPlans((prev) => prev.filter((p) => p.tripId !== tid));
-    } else {
-      setWishlistPopupOpen(true);
+      return;
     }
+    chooseSolo();
+    toast({
+      description: t('pack.map.toastSavedToTriplist'),
+      action: (
+        <ToastAction altText={t('pack.map.toastOpenTriplist')} onClick={() => navigate('/pack/map/triplist')}>
+          {t('pack.map.toastOpenTriplist')}
+        </ToastAction>
+      ),
+    });
   };
   const toggleWalked = (tid: string) => {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
-    } else {
-      setWalkedPopupOpen(true);
+      return;
     }
+    setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+    toast({
+      description: t('pack.map.toastMarkedWalked'),
+      action: (
+        <ToastAction altText={t('pack.map.toastRateIt')} onClick={() => setWalkedPopupOpen(true)}>
+          {t('pack.map.toastRateIt')}
+        </ToastAction>
+      ),
+    });
   };
   const submitWalked = (v: WalkedInput) => {
     if (!trail) return;

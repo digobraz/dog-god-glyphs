@@ -66,6 +66,7 @@ import { TripComments } from '@/components/pack/trip/TripComments';
 import { TripCreatorPopup } from '@/components/pack/trip/TripCreatorPopup';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useToast } from '@/hooks/use-toast';
+import { ToastAction } from '@/components/ui/toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress } from '@/lib/tripPoints';
 import { useT } from '@/i18n/LanguageContext';
@@ -1906,25 +1907,46 @@ export default function PackMap() {
       toast({ description: url });
     }
   };
-  // ── design §B: klik na ★ → ak už NIE je na wishliste, otvor „zámer" popup (Solo/Buddy);
-  // ak už je, odober (aj z planning). Priame pridanie ide až cez chooseSolo/choosePartner. ──
+  // ── ★ = JEDEN KLIK (2026-08-05). Predtým otvorila „zámer" popup Solo/Buddy — lenže uloženie
+  // a rozhodnutie „hľadám partiu" sú dve rôzne veci a popup ich zlepil do jednej otázky, ktorú
+  // musíš zodpovedať skôr, než si výlet vôbec odložíš. Hviezdička teraz len uloží (solo/closed);
+  // zverejnenie a dátum rieši Triplist, kde na to modal „Kto vidí tento výlet" už existuje
+  // (`PackTriplist.setVisibility`). Toast na to miesto rovno ukáže cestu, ale nevynucuje ju. ──
   const toggleFav = (tid: string) => {
     if (favIds.has(tid)) {
       setFavIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setPlans((prev) => prev.filter((p) => p.tripId !== tid));
-    } else {
-      setWishlistPopupId(tid);
+      return;
     }
+    chooseSolo(tid);
+    toast({
+      description: t('pack.map.toastSavedToTriplist'),
+      action: (
+        <ToastAction altText={t('pack.map.toastOpenTriplist')} onClick={() => navigate('/pack/map/triplist')}>
+          {t('pack.map.toastOpenTriplist')}
+        </ToastAction>
+      ),
+    });
   };
-  // ── design §A: klik na ✓ → ak už NIE je walked, otvor POVINNÝ walked popup (rating/diff/crowd/
-  // koment); zápis do walkedIds ide až po submite. Ak už je walked, odznač (aj hlas). ──
+  // ── ✓ = JEDEN KLIK (2026-08-05, Matej: „jedným klikom by sa mal dať označiť ako prejdený").
+  // Popup bol doteraz POVINNÝ — kto len chcel odškrtnúť prejdenú trasu, musel najprv vyplniť
+  // hodnotenie, náročnosť a ruch. Prejdenie sa teraz zapíše hneď a hodnotenie ponúkne toast:
+  // dáta z neho sú cenné, ale nie sú cena za odškrtnutie. ──
   const toggleWalked = (tid: string) => {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
-    } else {
-      setWalkedPopupId(tid);
+      return;
     }
+    setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+    toast({
+      description: t('pack.map.toastMarkedWalked'),
+      action: (
+        <ToastAction altText={t('pack.map.toastRateIt')} onClick={() => setWalkedPopupId(tid)}>
+          {t('pack.map.toastRateIt')}
+        </ToastAction>
+      ),
+    });
   };
   // additive-only walked setter (never toggles off) — used by TripComments (§15 zadania
   // 2026-07-23): posting a review implies the trip is walked, so submit calls this instead of
