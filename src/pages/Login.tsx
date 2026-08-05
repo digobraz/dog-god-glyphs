@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { DEV_FULL, isFullPackEmail } from "@/lib/packFlags";
 import { useT } from "@/i18n/LanguageContext";
 import dogyptLogo from "@/assets/dogypt-logo-gold.png";
 
@@ -72,6 +73,15 @@ export default function Login() {
       }
       if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
         setStatus("success");
+        // Founder výnimka (packFlags.ts): `DEV_FULL` sa vyhodnocuje raz pri načítaní modulu.
+        // Pri ČERSTVOM prihlásení bola session vtedy ešte prázdna, takže SPA navigate by
+        // pustil foundera do trimmed packu (bez mapy, správ a avatara) až do ručného F5.
+        // Tvrdý redirect vyhodnotí moduly znova. Týka sa VÝHRADNE účtov z allowlistu —
+        // pre ostatných členov ostáva login flow nezmenený.
+        if (!DEV_FULL && isFullPackEmail(session.user?.email)) {
+          window.location.replace(targetAfter);
+          return;
+        }
         navigate(targetAfter, { replace: true });
       }
     });
