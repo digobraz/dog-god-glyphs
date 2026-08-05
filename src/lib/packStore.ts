@@ -50,6 +50,11 @@ export const PACK_KEYS = {
   walked: 'trp-walked-ids',
   fav: 'trp-fav-ids',
   localTrails: 'trp-local-trails',
+  // Sprievodné údaje k `localTrails`, ktoré sa NEZMESTIA do `HeroTrail` (payload je obsah
+  // výletu, nie jeho stav v moderácii): kto ho nahodil a či je schválený. Bez toho appka
+  // z lokálneho zoznamu nevie odlíšiť MÔJ čakajúci návrh od CUDZIEHO schváleného výletu —
+  // `pack_trips_read` vracia oboje (viď migrácia 20260730_pack_trips_db.sql §8).
+  localTrailsMeta: 'trp-local-trails-meta-v1',
   votes: 'trp-votes-v2',
   plans: 'trp-plans',
   events: 'trp-events-v2',
@@ -68,6 +73,17 @@ export function writeJson(key: string, val: unknown): boolean {
   try { packStorage.setItem(key, JSON.stringify(val)); return true; }
   catch { return false; /* quota / private mode — volajúci nech to ošetrí */ }
 }
+/** Stav členmi nahodeného výletu v moderácii (`pack_trips.status`) + či je môj. */
+export interface LocalTrailMeta { status: 'pending' | 'approved' | 'rejected' | string; mine: boolean }
+
+/**
+ * Statusy k `trp-local-trails`. PRÁZDNA mapa = ešte sa nehydratovalo (alebo sa beží offline),
+ * NIE „nič nie je schválené" — volajúci to musí rozlíšiť, inak by po odhlásení/výpadku spadli
+ * body za nahodené výlety na nulu.
+ */
+export const readLocalTrailMeta = (): Record<string, LocalTrailMeta> =>
+  readJson<Record<string, LocalTrailMeta>>(PACK_KEYS.localTrailsMeta, {});
+
 export const readStringSet = (key: string): Set<string> => new Set(readJson<string[]>(key, []));
 export const writeStringSet = (key: string, s: Set<string>): boolean => writeJson(key, Array.from(s));
 
@@ -466,7 +482,7 @@ export function hydratePackStore(): Promise<boolean> {
         (supabase as any).from('user_trips').select('trip_slug,trip_date,status,openness,added_at').eq('user_id', uid),
         (supabase as any).from('trip_votes').select('*'),
         (supabase as any).from('trip_events').select('*').eq('host_id', uid),
-        (supabase as any).from('pack_trips').select('slug,payload'),
+        (supabase as any).from('pack_trips').select('slug,payload,status,author_id'),
         (supabase as any).from('hero_badges_earned').select('badge_id,earned_at'),
       ]);
 
@@ -525,6 +541,11 @@ export function hydratePackStore(): Promise<boolean> {
       if (!tripsBlocked && !packTrips.error && packTrips.data) {
         const fromDb = (packTrips.data as any[]).map((r) => r.payload as HeroTrail);
         writeJson(PACK_KEYS.localTrails, fromDb);
+        // Meta ide RUKA V RUKE s payloadom (ten istý guard, ten istý zápis) — dva zápisy do
+        // rôznych vetiev by vyrobili stav, kde zoznam výletov a ich statusy patria k inému pullu.
+        const meta: Record<string, LocalTrailMeta> = {};
+        for (const r of packTrips.data as any[]) meta[r.slug] = { status: r.status, mine: r.author_id === uid };
+        writeJson(PACK_KEYS.localTrailsMeta, meta);
       }
       // hero_badges_earned je append-only (issue #48) → MERGE, nikdy overwrite: lokálny
       // záznam môže byť čerstvejší než posledný pull (napr. práve odomknuté touto session,

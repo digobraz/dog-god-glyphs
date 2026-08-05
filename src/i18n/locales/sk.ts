@@ -1757,6 +1757,8 @@ export const sk: Partial<Dict> = {
   'pack.community.commentPlaceholder': "Po daždi blato, pekný úsek na voľno pri vrchole…",
   'pack.community.updateVoteBtn': "Upraviť moje hodnotenie",
   'pack.community.logWalkBtn': "Zapísať túto prechádzku",
+  'pack.community.rateRewardTitle': "Ohodnoť a získaj +{n} 🐾",
+  'pack.community.notNowBtn': "Teraz nie",
   'pack.profileCard.removeTag': "Odstrániť {tag}",
   'pack.profileCard.smokeLabel': "Fajčenie: {value}",
   'pack.profileCard.aDogyptian': "Dogypťan",

@@ -82,13 +82,15 @@ import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profilePointsFor, addedByMeIds, isFounderEmail,
+  approvedAddedIds, ratedCountFor, walkPointsFor,
+  RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import { packStorage } from '@/lib/packStore';
 import {
-  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup, WishlistIntentPopup, PartnerAdForm,
+  COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
-  type WalkedInput, type PartnerAdInput,
+  type WalkedInput,
 } from '@/components/pack/packCommunityUI';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
@@ -819,6 +821,10 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    výletu, kotvená na T.growGreen #3D7A4E. Zlatá ostáva Triplistu = dve akcie, dve farby. */
 .trp-bigcard-photoactbtn--walked.on{background:linear-gradient(135deg,#4A8F5D,#2F6440);border-color:rgba(255,255,255,0.28);color:#fff;}
 .trp-bigcard-photoactbtn--walked.on:hover{border-color:rgba(255,255,255,0.5);}
+/* Body za prejdenie na chipe — číslo, teda FONT_UI a zlatá, nech sa dá prečítať oddelene od
+   slova a nenafúkne chip (chip je white-space:nowrap v rohu fotky). */
+.trp-photoact-pts{font-family:${FONT_UI};font-weight:600;font-size:10px;color:${GOLD};}
+.trp-bigcard-photoactbtn.on .trp-photoact-pts{color:inherit;}
 /* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo rating·difficulty·Crowd */
 /* align-items:center (Matej 2026-07-22) — rating (pravý stĺpec) vertikálne na STRED karty,
    nie pri hornom okraji. */
@@ -1686,10 +1692,9 @@ export default function PackMap() {
     setEvents((prev) => { const stored = readEvents(); return stored.length ? stored : prev; });
   }, [storeEpoch]);
 
-  // flow modaly (design §A/§B/§D): walked popup, wishlist zámer, partner ad.
+  // flow modal (design §A): ponuka hodnotenia po ✓. Zámer wishlistu a inzerát na parťáka
+  // sú preč (2026-08-05, viď chooseSolo nižšie) — ★ ukladá jedným klikom.
   const [walkedPopupId, setWalkedPopupId] = useState<string | null>(null);
-  const [wishlistPopupId, setWishlistPopupId] = useState<string | null>(null);
-  const [partnerAdCtx, setPartnerAdCtx] = useState<{ tripId: string } | null>(null);
   // #41 — klik na ikonku tvorcu/účastníka v „Open trip from the pack" rozbalí TripProfileCard
   // pod jeho riadkom. Kľúč = `${h.key}:org` alebo `${h.key}:joiner:${i}`, nie len id člena —
   // tá istá trasa môže byť naraz otvorená viacerými organizátormi.
@@ -1836,9 +1841,11 @@ export default function PackMap() {
     };
   }, [placeSug.length]);
 
-  // BODY + LEVEL (issue #33) — z prejdených trás, ich km/stúpania, pevných cien magistrál a
-  // odškrtnutých geo jednotiek. `localTrails` = to, čo člen sám nahodil → počíta sa aj ako
-  // „pridaná trasa" (20 b).
+  // BODY + LEVEL (issue #33) — z prejdených trás, ich km/stúpania, pevných cien magistrál,
+  // odškrtnutých geo jednotiek a daných hodnotení. Z `localTrails` sa +20 pripíše len za MOJE
+  // a SCHVÁLENÉ výlety (`approvedAddedIds`, 2026-08-05) — predtým tu stálo slepé
+  // `localTrails.forEach(addedIds.add)`, ktoré platilo aj za cudzie výlety a za vlastné návrhy,
+  // ktoré Matej v /admin ešte len uvidí (alebo zamietol).
   // ⚠️ MUSÍ ostať NAD `if (!id.session) return null` — useMemo je hook a beží počas renderu:
   // pod podmieneným returnom by menil počet hookov medzi rendermi (Rules of Hooks) a zároveň
   // by siahal na `firstName` v TDZ. Meno člena si preto skladá sám z session (bezpečné cez ?.).
@@ -1847,10 +1854,12 @@ export default function PackMap() {
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
     const owner = firstNameFrom(email, (meta.full_name || meta.name) as string | undefined);
     const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
-    const addedIds = addedByMeIds(walkedTrails, { ownerName: owner, isFounder: isFounderEmail(email) });
-    localTrails.forEach((tr) => addedIds.add(tr.id));
-    return profilePointsFor(walkedTrails, { addedIds });
-  }, [allTrails, walkedIds, localTrails, id.session]);
+    const byAuthor = addedByMeIds(walkedTrails, { ownerName: owner, isFounder: isFounderEmail(email) });
+    const addedIds = approvedAddedIds([...byAuthor, ...localTrails.map((tr) => tr.id)]);
+    return profilePointsFor(walkedTrails, { addedIds, ratings: ratedCountFor(walkedTrails, votes) });
+    // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
+    // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
+  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session]);
   const levelInfo = levelProgress(profilePoints.total);
 
   if (id.loading) {
@@ -1930,8 +1939,10 @@ export default function PackMap() {
   };
   // ── ✓ = JEDEN KLIK (2026-08-05, Matej: „jedným klikom by sa mal dať označiť ako prejdený").
   // Popup bol doteraz POVINNÝ — kto len chcel odškrtnúť prejdenú trasu, musel najprv vyplniť
-  // hodnotenie, náročnosť a ruch. Prejdenie sa teraz zapíše hneď a hodnotenie ponúkne toast:
-  // dáta z neho sú cenné, ale nie sú cena za odškrtnutie. ──
+  // hodnotenie, náročnosť a ruch. Prejdenie sa teraz zapíše HNEĎ a hodnotenie sa PONÚKNE
+  // (Matej: „nebolo by povinné ale vyskočilo by povinne") — popup vyskočí sám, zavretie
+  // nezruší nič, prejdenie je už zapísané. Kto práve odškrtáva dávku trás a jeden popup zavrel,
+  // ten ďalšiu minútu dostane len toast (`shouldPromptRating`), nie dvadsať modalov za sebou. ──
   const toggleWalked = (tid: string) => {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
@@ -1939,6 +1950,7 @@ export default function PackMap() {
       return;
     }
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+    if (shouldPromptRating()) { setWalkedPopupId(tid); return; }
     toast({
       description: t('pack.map.toastMarkedWalked'),
       action: (
@@ -1947,6 +1959,12 @@ export default function PackMap() {
         </ToastAction>
       ),
     });
+  };
+  // Zavretie ponuky bez vyplnenia — utíši ju na minútu (poistka proti dávke) a zapíše sa
+  // len vtedy, keď hlas ešte nemám; „upravujem staré hodnotenie" nie je odmietnutie ponuky.
+  const closeWalkedPopup = () => {
+    if (walkedPopupId && !votes[walkedPopupId]) muteRatePrompt();
+    setWalkedPopupId(null);
   };
   // additive-only walked setter (never toggles off) — used by TripComments (§15 zadania
   // 2026-07-23): posting a review implies the trip is walked, so submit calls this instead of
@@ -1964,33 +1982,16 @@ export default function PackMap() {
   };
   const addPlan = (tid: string, intent: 'solo' | 'partner', date = '') =>
     setPlans((prev) => [{ tripId: tid, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== tid)]);
+  // ★ ukladá VŽDY solo/closed. `choosePartner` + `submitPartnerAd` (druhá cesta k inzerátu:
+  // 2–3 návrhy termínov + socializácia) sú ZMAZANÉ 2026-08-05 — po zlúčení vstupov ich nemal
+  // kto zavolať (jediným volajúcim bol WishlistIntentPopup, ktorý ★ už neotvára). Verejný
+  // inzerát dnes vzniká v AddTripPlan („Looking for pack" → user_trips + trip_events) a
+  // zverejniť uložený výlet sa dá v Triplistе („Who can see this trip").
   const chooseSolo = (tid: string) => {
     setFavIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
     addPlan(tid, 'solo');
     // TRIPLIST (Slice A): rename wishlist → triplist, star popup navyše upsertne triplist entry.
     upsertMyTrip(tid, { status: 'solo', openness: 'closed', date: '' });
-    setWishlistPopupId(null);
-  };
-  const choosePartner = (tid: string) => {
-    setFavIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
-    addPlan(tid, 'partner');
-    upsertMyTrip(tid, { status: 'looking', openness: 'open', date: '' });
-    setWishlistPopupId(null);
-    setPartnerAdCtx({ tripId: tid });
-  };
-  const submitPartnerAd = (ad: PartnerAdInput) => {
-    if (!partnerAdCtx) return;
-    // partner inzerát je VŽDY public → Events (Matej 2026-07-22).
-    const ev: PartnerEvent = {
-      id: `ad-${nowMs}-${partnerAdCtx.tripId}`,
-      tripId: partnerAdCtx.tripId,
-      dates: ad.dates, month: ad.month, socialization: ad.socialization,
-      host: t('pack.map.hostAndYourDog', { name: firstName }), at: nowMs, joinedByMe: true, hostIsMe: true,
-    };
-    setEvents((prev) => [ev, ...prev]);
-    const firstDate = ad.dates[0] ?? ad.month;
-    setPlans((prev) => prev.map((p) => (p.tripId === partnerAdCtx.tripId ? { ...p, date: firstDate } : p)));
-    setPartnerAdCtx(null);
   };
   const joinEvent = (eid: string) =>
     setEvents((prev) => prev.map((e) => (e.id === eid ? { ...e, joinedByMe: !e.joinedByMe } : e)));
@@ -2374,7 +2375,13 @@ export default function PackMap() {
                 type="button"
                 className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}`}
                 onClick={(e) => { e.stopPropagation(); toggleWalked(tr.id); }}
-              >✓ {t('pack.map.walked')}</button>
+              >
+                ✓ {t('pack.map.walked')}
+                {/* Koľko bodov ten klik naozaj dá — SKUTOČNÉ číslo tejto trasy (5 + km +
+                    stúpanie / pevná cena magistrály), nie paušál. Po odškrtnutí zmizne: body
+                    už padli. */}
+                {!walkedIds.has(tr.id) && <span className="trp-photoact-pts">+{walkPointsFor(tr)}</span>}
+              </button>
             )}
             {!walkedIds.has(tr.id) && (
               <button
@@ -2481,7 +2488,10 @@ export default function PackMap() {
                         type="button"
                         className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}`}
                         onClick={() => toggleWalked(dt.id)}
-                      >✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}</button>
+                      >
+                        ✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}
+                        {!walkedIds.has(dt.id) && <span className="trp-photoact-pts">+{walkPointsFor(dt)}</span>}
+                      </button>
                     )}
                     {!walkedIds.has(dt.id) && (
                       <button
@@ -3318,22 +3328,8 @@ export default function PackMap() {
           trailName={trailsById(walkedPopupId)?.name ?? t('pack.map.thisTrip')}
           initial={votes[walkedPopupId] ? { rating: votes[walkedPopupId].rating, difficulty: votes[walkedPopupId].difficulty, crowd: votes[walkedPopupId].crowd, comment: votes[walkedPopupId].comment, when: votes[walkedPopupId].when, hazards: votes[walkedPopupId].hazards } : null}
           onSubmit={submitWalked}
-          onClose={() => setWalkedPopupId(null)}
-        />
-      )}
-      {wishlistPopupId && (
-        <WishlistIntentPopup
-          trailName={trailsById(wishlistPopupId)?.name ?? t('pack.map.thisTrip')}
-          onSolo={() => chooseSolo(wishlistPopupId)}
-          onPartner={() => choosePartner(wishlistPopupId)}
-          onClose={() => setWishlistPopupId(null)}
-        />
-      )}
-      {partnerAdCtx && (
-        <PartnerAdForm
-          trailName={trailsById(partnerAdCtx.tripId)?.name ?? t('pack.map.thisTrip')}
-          onSubmit={submitPartnerAd}
-          onClose={() => setPartnerAdCtx(null)}
+          onClose={closeWalkedPopup}
+          rewardPoints={votes[walkedPopupId] ? undefined : RATE_PROMPT_POINTS}
         />
       )}
       {creatorTrail && (

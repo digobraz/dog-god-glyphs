@@ -11,10 +11,12 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
   computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
+  approvedAddedIds, ratedCountFor, readVotes,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
+import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS } from '@/lib/tripPoints';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
@@ -133,14 +135,6 @@ export const COMMUNITY_CSS = `
 .comm-ghostbtn{width:100%;margin-top:9px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;padding:11px;border-radius:10px;background:rgba(245,240,228,0.06);color:${T.onDark};border:1px solid ${T.onDarkBorder};cursor:pointer;}
 .comm-ghostbtn:hover{border-color:${GOLD};color:${GOLD};}
 
-/* ── wishlist intent — 2 veľké voľby ── */
-.comm-choicerow{display:flex;flex-direction:column;gap:12px;}
-.comm-choice{display:flex;align-items:center;gap:14px;text-align:left;padding:16px;border-radius:14px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.04);cursor:pointer;transition:all .15s;}
-.comm-choice:hover{border-color:${GOLD};background:rgba(201,154,63,0.08);}
-.comm-choice-ic{width:44px;height:44px;border-radius:50%;flex-shrink:0;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);display:flex;align-items:center;justify-content:center;}
-.comm-choice-ic img{width:22px;height:22px;filter:brightness(0) invert(1);opacity:.85;}
-.comm-choice-t{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
-.comm-choice-d{display:block;font-size:11.5px;color:${T.onDarkDim};margin-top:3px;line-height:1.4;}
 
 /* multi-select chips (hazards, atď.) */
 .comm-chips{display:flex;flex-wrap:wrap;gap:7px;}
@@ -148,19 +142,6 @@ export const COMMUNITY_CSS = `
 .comm-chip:hover{border-color:${GOLD};}
 .comm-chip.on{background:rgba(201,154,63,0.16);border-color:${GOLD};color:${GOLD};font-weight:600;}
 
-/* profil blurb (read-only, z turistického profilu — jeden zdroj naprieč platformou) */
-.comm-profile{display:flex;gap:11px;align-items:flex-start;background:rgba(201,154,63,0.08);border:1px solid rgba(201,154,63,0.3);border-radius:12px;padding:12px 14px;margin-bottom:18px;}
-.comm-profile-av{width:34px;height:34px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:14px;color:${INK};}
-.comm-profile-t{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:${GOLD};margin-bottom:3px;}
-.comm-profile-b{display:block;font-size:12px;color:${T.onDark};line-height:1.45;}
-.comm-profile-edit{display:block;font-size:10.5px;color:${T.onDarkDim};margin-top:5px;font-style:italic;}
-
-/* repeatable date navrhy */
-.comm-daterow{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
-.comm-daterow input{flex:1;}
-.comm-daterow button{flex-shrink:0;width:34px;height:34px;border-radius:9px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};font-size:16px;cursor:pointer;}
-.comm-addbtn{width:100%;padding:9px;border-radius:9px;border:1px dashed ${T.onDarkBorder};background:transparent;color:${T.onDarkDim};font-family:inherit;font-size:11.5px;cursor:pointer;}
-.comm-addbtn:hover{border-color:${GOLD};color:${GOLD};}
 
 /* ── crowd meta (agregát na karte + inline detaile) ── */
 .comm-crowd{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
@@ -548,10 +529,15 @@ function PawInput({ value, onChange }: { value: number; onChange: (n: number) =>
   );
 }
 
-// ── A · Walked popup (povinný po označení „walked") ──────────────────────────────────────────
+// ── A · Walked popup ─────────────────────────────────────────────────────────────────────────
+// UŽ NIE JE POVINNÝ (2026-08-05): prejdenie zapisuje sám ✓ a tento popup je PONUKA hodnotenia.
+// `rewardPoints` = režim ponuky — nadpis povie, koľko bodov za hodnotenie padne, a vedľa
+// odoslania stojí rovnocenné „Teraz nie". Bez neho je to obyčajná úprava hlasu (klik na
+// „Ohodnotiť" z toastu / úprava starého hodnotenia), kde by sľubovanie bodov klamalo.
 export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Crowd; comment: string; when: string; hazards: Hazard[]; }
-export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
+export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoints }: {
   trailName: string; initial?: WalkedInput | null; onSubmit: (v: WalkedInput) => void; onClose: () => void;
+  rewardPoints?: number;
 }) {
   const t = useT();
   const [rating, setRating] = useState(initial?.rating ?? 0);
@@ -565,7 +551,12 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
   // Matej 2026-07-23: „urop popup širší aby sa zmestil na vh 100" → wide modal + 2-stĺpcový
   // layout, nech sa zmestí bez rolovania. Rating hore cez obe kolóny, zvyšok v 2 stĺpcoch.
   return (
-    <Modal title={t('pack.community.walkedTitle')} sub={trailName} onClose={onClose} wide>
+    <Modal
+      title={rewardPoints ? t('pack.community.rateRewardTitle', { n: rewardPoints }) : t('pack.community.walkedTitle')}
+      sub={trailName}
+      onClose={onClose}
+      wide
+    >
       <div className="comm-field" style={{ textAlign: 'center' }}>
         <label className="comm-label">{t('pack.community.walkedRatingLabel')}</label>
         <div style={{ display: 'flex', justifyContent: 'center' }}><PawInput value={rating} onChange={setRating} /></div>
@@ -620,96 +611,26 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose }: {
       >
         {initial ? t('pack.community.updateVoteBtn') : t('pack.community.logWalkBtn')}
       </button>
+      {/* Zavrieť je pri ponuke ROVNOCENNÁ voľba, nie ✕ v rohu — hodnotenie je dobrovoľné a človek
+          to musí vidieť bez hľadania (Matej: „alebo zatvor"). Pod sebou, nie vedľa seba: dve
+          tlačidlá v rade sa v dlhších jazykoch na 360 px zlomia. */}
+      {rewardPoints ? (
+        <button type="button" className="comm-ghostbtn" onClick={onClose}>
+          {t('pack.community.notNowBtn')}
+        </button>
+      ) : null}
     </Modal>
   );
 }
 
-// ── B · Wishlist zámer popup ─────────────────────────────────────────────────────────────────
-export function WishlistIntentPopup({ trailName, onSolo, onPartner, onClose }: {
-  trailName: string; onSolo: () => void; onPartner: () => void; onClose: () => void;
-}) {
-  return (
-    <Modal title="Save this trip" sub={trailName} onClose={onClose}>
-      <div className="comm-choicerow">
-        <button type="button" className="comm-choice" onClick={onSolo}>
-          <span className="comm-choice-ic"><img src={ICON('paw')} alt="" /></span>
-          <span>
-            <span className="comm-choice-t">Go solo</span>
-            <span className="comm-choice-d">Just save it to your wishlist for later.</span>
-          </span>
-        </button>
-        <button type="button" className="comm-choice" onClick={onPartner}>
-          <span className="comm-choice-ic"><img src={ICON('people')} alt="" /></span>
-          <span>
-            <span className="comm-choice-t">Find a walk buddy</span>
-            {/* #42: povedať NAHLAS, čo sa zverejňuje. Doteraz tu stálo len „post a shout" —
-                z toho sa nedalo vyčítať, že s trasou ide von aj dátum a pes. Znenie sedí na
-                to, čo reálne vydá `user_trips_read_open` + `get_trip_party`. */}
-            <span className="comm-choice-d">Your pack sees the trail, the date and your dog — and any member can ask to join. You can switch it back to private in your triplist.</span>
-          </span>
-        </button>
-      </div>
-    </Modal>
-  );
-}
-
-// ── D · Partner ad form (aj z „Plánujem" v ADD flow) — VŽDY public (keď hľadáš parťáka, nemôže
-// byť private, Matej 2026-07-22). „Pár slov o mne" ťahá z turistického profilu (jeden zdroj),
-// tu sa len zobrazí; editovateľná je len socializácia pre tento výlet. Dátum benevolentný. ──
-export interface PartnerAdInput { dates: string[]; month: string; socialization: string; }
-export function PartnerAdForm({ trailName, onSubmit, onClose }: {
-  trailName: string; onSubmit: (ad: PartnerAdInput) => void; onClose: () => void;
-}) {
-  const [dates, setDates] = useState<string[]>(['']);
-  const [month, setMonth] = useState('');
-  // LOCKED 2026-08-03 (Matej: „nesmie sa nič dogenerovať!") — pole štartuje PRÁZDNE.
-  // Doteraz sa predvyplnilo MOCK_PROFILE.dog ('chill trail dog, good with everyone') a keďže
-  // odtiaľto ide text rovno do verejného inzerátu, appka za člena zverejňovala vetu o psovi,
-  // ktorú nikdy nenapísal — a o psovi, ktorého nepozná.
-  const [socialization, setSocialization] = useState('');
-  const { profile } = useProfile();
-  const aboutMe = (profile?.human.dogVoiceBio ?? profile?.human.bio ?? '').trim();
-  const setDate = (i: number, v: string) => setDates((prev) => prev.map((d, idx) => (idx === i ? v : d)));
-  const addDate = () => setDates((prev) => (prev.length < 3 ? [...prev, ''] : prev));
-  const removeDate = (i: number) => setDates((prev) => prev.filter((_, idx) => idx !== i));
-  const filledDates = dates.map((d) => d.trim()).filter(Boolean);
-  const canSubmit = filledDates.length > 0 || month.trim().length > 0; // aspoň termín ALEBO mesiac
-  return (
-    <Modal title="Find a walk buddy" sub={`${trailName} · your shout goes public to Events`} onClose={onClose}>
-      {/* pár slov o tebe — z profilu, read-only (jeden zdroj naprieč platformou) */}
-      <div className="comm-profile">
-        <span className="comm-profile-av">🐾</span>
-        <span>
-          <span className="comm-profile-t">About you (from your profile)</span>
-          {/* prázdny profil = prázdny riadok + výzva, NIE vymyslená veta o sebe */}
-          <span className="comm-profile-b">{aboutMe || 'Nothing written yet — the pack will see just your name and your dog.'}</span>
-          <span className="comm-profile-edit">Edit once in your profile — shows on every shout.</span>
-        </span>
-      </div>
-      <div className="comm-field">
-        <label className="comm-label">Suggest a few dates (pick 1–3, or just a month below)</label>
-        {dates.map((d, i) => (
-          <div key={i} className="comm-daterow">
-            <input type="date" className="comm-input" value={d} onChange={(e) => setDate(i, e.target.value)} />
-            {dates.length > 1 && <button type="button" onClick={() => removeDate(i)} aria-label="Remove date">×</button>}
-          </div>
-        ))}
-        {dates.length < 3 && <button type="button" className="comm-addbtn" onClick={addDate}>+ Add another date</button>}
-      </div>
-      <div className="comm-field">
-        <label className="comm-label">…or just a month (flexible)</label>
-        <input type="month" className="comm-input" value={month} onChange={(e) => setMonth(e.target.value)} />
-      </div>
-      <div className="comm-field">
-        <label className="comm-label">Socialization for this walk</label>
-        <textarea className="comm-textarea" value={socialization} onChange={(e) => setSocialization(e.target.value)} placeholder="Great with big dogs, a bit shy with small ones…" />
-      </div>
-      <button type="button" className="comm-submit" disabled={!canSubmit} onClick={() => canSubmit && onSubmit({ dates: filledDates, month, socialization })}>
-        Publish to Events
-      </button>
-    </Modal>
-  );
-}
+// -- ZMAZANE 2026-08-05: WishlistIntentPopup (27 r.) a PartnerAdForm (56 r.) ----------------
+// Po zluceni vstupov (★ = jeden klik) nemal WishlistIntentPopup volajuceho, a s nim padol aj
+// jediny vstup do PartnerAdForm (otvaral ho `choosePartner`). Verejny inzerat dnes vznika v
+// AddTripPlan ("Looking for pack" -> user_trips + trip_events) a zverejnit ulozeny vylet sa da
+// v Triplist ("Who can see this trip").
+// ⚠️ Co s tym odislo a AddTripPlan to zatial NEVIE: 2-3 navrhy terminov naraz a pole
+// "Socialization for this walk". Ak to ma byt sucastou planovaca, je to samostatne zadanie.
+// Kod je v historii: git log -- src/components/pack/packCommunityUI.tsx
 
 // -- ZMAZANE 2026-08-04: DMStub (18 r.) --------------------------------------------------------
 // Falosny composer: po odoslani napisal "Sent (mock) - ... will see it once messaging goes live."
@@ -983,6 +904,10 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   onOpenTrip: (id: string) => void;
   onAddTrip: (region?: string) => void; // klik na jednotku → ADD TRIP pre-filled na dané pohorie/park (Slice A bod 3)
 }) {
+  // ⚠️ 2026-08-05: `t` tu CHÝBALO, hoci rozpad bodov v ⓘ popupe ho volá (`t(r.labelKey…)`) —
+  // popup teda spadol na ReferenceError každému, kto má aspoň jeden bod. tsc to hlásil, vite
+  // build nie (netypuje). Nájdené pri zapájaní hodnotení do bodov.
+  const t = useT();
   const fmtKm = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(1));
 
   // V3 (#47): vysvedčenie je PER KRAJINU. Delí sa cez trailCountry() — tou istou funkciou triedi
@@ -1059,8 +984,16 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // 25. 7.). Body sa počítajú z toho, čo človek reálne má — prejdené trasy, ich km/stúpanie,
   // pevné ceny magistrál a odškrtnuté geo jednotky. Vďaka tomu sa level nemôže rozísť s dátami.
   // Zdroj cien + krivky = dashboard tab Mapa, sekcia 03/05 (viď src/lib/tripPoints.ts).
-  const addedByMe = addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(id.session?.user?.email) });
-  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, countries: countriesTraveled });
+  // `approvedAddedIds` (2026-08-05) — +20 len za MOJE a SCHVÁLENÉ výlety; bez neho stačilo
+  // nahodiť výlet a level vyskočil skôr, než ho Matej v /admin vôbec videl. `ratings` musia ísť
+  // dnu tiež, inak legenda nižšie sľubuje „+3 za hodnotenie", ktoré sa v súčte nikdy neobjaví.
+  // `storeEpoch` = prepočet v momente, keď dobehne hydratácia z DB (obe čítajú z úložiska).
+  const storeEpoch = usePackStoreEpoch();
+  const { addedByMe, myRatings } = useMemo(() => ({
+    addedByMe: approvedAddedIds(addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(id.session?.user?.email) })),
+    myRatings: ratedCountFor(walkedTrails, readVotes()),
+  }), [walkedTrails, ownerName, id.session, storeEpoch]);
+  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled });
   const lvl = levelProgress(profilePoints.total);
 
   return (

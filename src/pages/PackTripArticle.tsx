@@ -35,11 +35,12 @@ import {
 } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
+  walkPointsFor, RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import {
-  COMMUNITY_CSS, WalkedPopup, WishlistIntentPopup, PartnerAdForm,
-  type WalkedInput, type PartnerAdInput,
+  COMMUNITY_CSS, WalkedPopup,
+  type WalkedInput,
 } from '@/components/pack/packCommunityUI';
 import { TripComments } from '@/components/pack/trip/TripComments';
 import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
@@ -126,6 +127,11 @@ const CSS = `
 .pta-actmenu .pta-actmenu-off{color:${T.onDarkDim};}
 .pta-caret{font-size:9px;opacity:0.8;}
 .pta-actbtn-label{white-space:nowrap;}
+/* Body za prejdenie — číslo, teda FONT_UI (tlačidlo je Cinzel) a zlatá, nech nesplynie s textom.
+   NA MOBILE SA NEZOBRAZUJE (mediaquery nižšie): rad troch tlačidiel sa na 390 px do šírky
+   nezmestí už dnes (merané 2026-08-05: potrebuje ~434 px v 312 px rade) a +24 px navyše by
+   ten stav len zhoršilo. Číslo tam nesie karta na mape — chip v rohu fotky naň miesto má. */
+.pta-actbtn-pts{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0;color:${GOLD};}
 /* F1 (Matej 2026-07-24): „Ikonka srdiečka ≠ ikonka checklistu z headra → zladiť." Unicode ♡/♥
    vymenené za brand clipboard.svg — rovnaká ikonka ako Triplist v status pruhu/headri.
    Mask + currentColor namiesto <img filter:…>: ikonka tak drží PRESNÚ farbu textu tlačidla
@@ -134,10 +140,11 @@ const CSS = `
 @media (max-width:760px){
   .pta-acts-slot{min-height:44px;}
   .pta-actbtn{font-size:10px;padding:12px 4px;}
+  .pta-actbtn-pts{display:none;}
   .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
   .pta-acts.collapsed .pta-actwrap{flex:0 0 auto;}
   .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
-  .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret{display:none;}
+  .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret,.pta-acts.collapsed .pta-actbtn-pts{display:none;}
   /* v raile je rad pri pravom okraji → menu sa musí otvárať doľava, nie pod tlačidlo */
   .pta-acts.collapsed .pta-actmenu{left:auto;right:calc(100% + 8px);top:0;}
 }
@@ -300,18 +307,6 @@ export default function PackTripArticle() {
   // Dôvod (Matej 2026-07-27): odznačenie zmaže aj hlas o obtiažnosti, nesmie sa stať omylom.
   const [walkedMenuOpen, setWalkedMenuOpen] = useState(false);
   const walkedMenuRef = useRef<HTMLDivElement | null>(null);
-  const [wishlistPopupOpen, setWishlistPopupOpen] = useState(false);
-  const [partnerAdOpen, setPartnerAdOpen] = useState(false);
-
-  // greeting meno pre partner-ad host (rovnaký vzor ako PackMap firstNameFrom)
-  const firstName = useMemo(() => {
-    const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
-    const full = (meta.full_name || meta.name) as string | undefined;
-    if (full && full.trim()) return full.trim().split(' ')[0];
-    const local = (id.session?.user?.email ?? '').split('@')[0] || '';
-    const base = local.split('+')[0].replace(/[._-]/g, ' ').replace(/\d+/g, '').trim();
-    return base ? base.charAt(0).toUpperCase() + base.slice(1) : 'Dogyptian';
-  }, [id.session]);
 
   // bod 1 (iterácia 14): mobile sticky icon-only rail — keď .pta-hero vyscrolluje z viewportu
   // (IntersectionObserver), akčné tlačidlá sa "odtrhnú" z fotky a prilepia napravo (viď CSS
@@ -393,6 +388,9 @@ export default function PackTripArticle() {
       return;
     }
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+    // Ponuka hodnotenia vyskočí sama (2026-08-05) — a pri odškrtávaní dávky sa utíši, viď
+    // `shouldPromptRating` v packCommunity.ts. Popup nič nepodmieňuje, prejdenie je zapísané.
+    if (shouldPromptRating()) { setWalkedPopupOpen(true); return; }
     toast({
       description: t('pack.map.toastMarkedWalked'),
       action: (
@@ -401,6 +399,10 @@ export default function PackTripArticle() {
         </ToastAction>
       ),
     });
+  };
+  const closeWalkedPopup = () => {
+    if (trail && !votes[trail.id]) muteRatePrompt();
+    setWalkedPopupOpen(false);
   };
   const submitWalked = (v: WalkedInput) => {
     if (!trail) return;
@@ -412,36 +414,16 @@ export default function PackTripArticle() {
     if (!trail) return;
     setPlans((prev) => [{ tripId: trail.id, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== trail.id)]);
   };
+  // `choosePartner` + `submitPartnerAd` ZMAZANÉ 2026-08-05 spolu s WishlistIntentPopupom, ktorý
+  // ich ako jediný volal — ★ po zlúčení vstupov ukladá jedným klikom (solo/closed). Verejný
+  // inzerát vzniká v AddTripPlan („Looking for pack") a zverejniť uložený výlet sa dá
+  // v Triplistе. Rovnaká zmena ako v PackMap.tsx.
   const chooseSolo = () => {
     if (!trail) return;
     setFavIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
     addPlan('solo');
     // TRIPLIST (Slice A): rename wishlist → triplist, star popup navyše upsertne triplist entry.
     upsertMyTrip(trail.id, { status: 'solo', openness: 'closed', date: '' });
-    setWishlistPopupOpen(false);
-  };
-  const choosePartner = () => {
-    if (!trail) return;
-    setFavIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
-    addPlan('partner');
-    upsertMyTrip(trail.id, { status: 'looking', openness: 'open', date: '' });
-    setWishlistPopupOpen(false);
-    setPartnerAdOpen(true);
-  };
-  const submitPartnerAd = (ad: PartnerAdInput) => {
-    if (!trail) return;
-    // partner inzerát je VŽDY public → Events (Matej 2026-07-22).
-    const ev: PartnerEvent = {
-      id: `ad-${nowMs}-${trail.id}`, tripId: trail.id, dates: ad.dates, month: ad.month,
-      socialization: ad.socialization, host: `${firstName} & your dog`, hostIsMe: true,
-      at: nowMs, joinedByMe: true,
-    };
-    setEvents((prev) => [ev, ...prev]);
-    setPlans((prev) => prev.map((p) => (p.tripId === trail.id ? { ...p, date: ad.dates[0] ?? ad.month } : p)));
-    setPartnerAdOpen(false);
-    // Inzerát sa na TEJTO stránke nikde nevykresľuje (žije v triplist/OPEN TRIPS), takže bez
-    // potvrdenia človek zavrie popup a nemá jediný signál, že je vonku. (audit #45)
-    toast({ description: t('pack.trip.toastTripOpen') });
   };
 
   const handleShare = async () => {
@@ -562,6 +544,9 @@ export default function PackTripArticle() {
             >
               <span className="pta-actbtn-icon">🐾</span>
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
+              {/* Skutočné body za TÚTO trasu (5 + km + stúpanie / pevná cena magistrály) —
+                  paušálne „+5" by klamalo, viď walkPointsFor. */}
+              <span className="pta-actbtn-pts">+{walkPointsFor(trail)}</span>
             </button>
           )}
           <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
@@ -811,22 +796,8 @@ export default function PackTripArticle() {
           trailName={trail.name}
           initial={votes[trail.id] ? { rating: votes[trail.id].rating, difficulty: votes[trail.id].difficulty, crowd: votes[trail.id].crowd, comment: votes[trail.id].comment, when: votes[trail.id].when, hazards: votes[trail.id].hazards } : null}
           onSubmit={submitWalked}
-          onClose={() => setWalkedPopupOpen(false)}
-        />
-      )}
-      {wishlistPopupOpen && (
-        <WishlistIntentPopup
-          trailName={trail.name}
-          onSolo={chooseSolo}
-          onPartner={choosePartner}
-          onClose={() => setWishlistPopupOpen(false)}
-        />
-      )}
-      {partnerAdOpen && (
-        <PartnerAdForm
-          trailName={trail.name}
-          onSubmit={submitPartnerAd}
-          onClose={() => setPartnerAdOpen(false)}
+          onClose={closeWalkedPopup}
+          rewardPoints={votes[trail.id] ? undefined : RATE_PROMPT_POINTS}
         />
       )}
 

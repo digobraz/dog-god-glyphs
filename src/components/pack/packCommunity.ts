@@ -9,8 +9,8 @@ import {
   type ActivityTag, type TripVibe, type DogProfileAttrs,
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
-import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents } from '@/lib/packStore';
-import { calculateProfilePoints, type TripPointsResult } from '@/lib/tripPoints';
+import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents, readLocalTrailMeta } from '@/lib/packStore';
+import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, type TripPointsResult } from '@/lib/tripPoints';
 import { authorOf, AUTHOR_FALLBACK } from '@/components/pack/tripShared';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
@@ -457,6 +457,67 @@ export function addedByMeIds(
       .map((tr) => tr.id),
   );
 }
+
+// Z členmi nahodených výletov (`trp-local-trails`) sa +20 smie pripísať len za MOJE a len za
+// SCHVÁLENÉ (2026-08-05). Dva dôvody, obidva sú dnes reálne zle:
+//  · `pack_trips_read` vracia KAŽDÝ schválený výlet — teda aj cudzí. Lokálny zoznam preto nie je
+//    „moje návrhy", ale katalóg členov, a slepé `addedIds.add(tr.id)` platilo za cudziu prácu.
+//  · Body padali okamžite po nahodení, hoci `pack_trips.status` je 'pending' a Matej ho v /admin
+//    môže zamietnuť. Zamietnutý výlet body nechával.
+// NEZNÁMY slug (nie je v meta) sa počíta ĎALEJ — je to čerstvo nahodený alebo nezosynchronizovaný
+// stav, a offline/nezalogovaný člen nesmie prísť o skóre (viď readLocalTrailMeta).
+// Berie kandidátov (z `addedByMeIds` aj z lokálneho zoznamu) a prepustí len tie, ktoré moderácia
+// nezhodila. JEDNA funkcia pre mapu aj vysvedčenie — dva rôzne filtre by ukázali dva rôzne levely.
+export function approvedAddedIds(ids: Iterable<string>): Set<string> {
+  const meta = readLocalTrailMeta();
+  const out = new Set<string>();
+  for (const id of ids) {
+    const m = meta[id];
+    if (!m || (m.mine && m.status === 'approved')) out.add(id);
+  }
+  return out;
+}
+
+// Koľko hodnotení dal TENTO človek (3 b za každé, `POINTS.rate`). Ráta sa z hlasov k PREJDENÝM
+// trasám a len tie s labkami — hlas bez ratingu (samotné hazardy/komentár) nie je hodnotenie.
+// Jedna funkcia pre mapu aj vysvedčenie; každý povrch si nesie vlastný zdroj hlasov (PackMap má
+// stav, TripStatsPanel `readVotes()`), lebo v tejto vrstve nesmie byť hook.
+export function ratedCountFor(
+  walkedTrails: Array<{ id: string }>,
+  votes: Record<string, { rating?: number } | undefined>,
+): number {
+  return walkedTrails.reduce((n, tr) => n + ((votes[tr.id]?.rating ?? 0) > 0 ? 1 : 0), 0);
+}
+
+/**
+ * Koľko bodov padne za PREJDENIE tejto konkrétnej trasy — číslo na ✓ tlačidlo (2026-08-05).
+ * Paušálne „+5" by klamalo: 5 je len sadzba za prejdenie, k nej ide 1 b/km a 2 b za každých
+ * celých 100 m stúpania (magistrála má namiesto toho pevnú cenu). Záruby 1 = 5 + 12 + 10 = 27.
+ * Objavenia (nové pohorie/NP/krajina) sa zámerne NEPOČÍTAJÚ — závisia od toho, čo už člen má,
+ * a tlačidlo nesmie sľúbiť bonus, ktorý mu druhýkrát nepadne.
+ */
+export function walkPointsFor(tr: { id: string; km?: string | number; ascentM?: number; acts?: string[] }): number {
+  return calculateTripPoints({
+    kind: tr.acts?.includes('hike') ? 'trail' : 'place',
+    km: Number(tr.km) || 0,
+    ascentM: tr.ascentM ?? 0,
+    journeyId: JOURNEY_POINTS[tr.id] ? tr.id : undefined,
+    walked: true,
+  }).total;
+}
+
+// ── Ponuka hodnotenia po ✓ (2026-08-05) ─────────────────────────────────────
+// Matej: „to hodnotenie by som asi dal na popup... nebolo by povinné ale vyskočilo by povinne."
+// Popup teda vyskočí sám, ale prejdenie je zapísané už pred ním a zavretie nič neruší.
+// POISTKA PROTI DÁVKE: kto odškrtáva víkendovú dávku trás, nesmie dostať dvadsať popupov za
+// sebou. Jedno zavretie bez vyplnenia utíši ponuku na minútu — potom sa pýta znova.
+// Zámerne v pamäti modulu, nie v localStorage: je to stav jedného sedenia, nie nastavenie.
+export const RATE_PROMPT_POINTS = POINTS.rate;
+const RATE_PROMPT_QUIET_MS = 60_000;
+let ratePromptQuietUntil = 0;
+/** Zavretie ponuky BEZ vyplnenia (submit ju neutíši — kto hodnotí, ten ju chce). */
+export const muteRatePrompt = (now = Date.now()): void => { ratePromptQuietUntil = now + RATE_PROMPT_QUIET_MS; };
+export const shouldPromptRating = (now = Date.now()): boolean => now >= ratePromptQuietUntil;
 
 export const FOUNDER_ACCOUNT_EMAIL = 'hekthorsk@gmail.com';
 export const isFounderEmail = (email?: string | null) =>

@@ -1797,6 +1797,8 @@ export const en = {
   'pack.community.commentPlaceholder': "Muddy after rain, great off-leash stretch near the top…",
   'pack.community.updateVoteBtn': "Update my vote",
   'pack.community.logWalkBtn': "Log this walk",
+  'pack.community.rateRewardTitle': "Rate it, earn +{n} 🐾",
+  'pack.community.notNowBtn': "Not now",
   'pack.profileCard.removeTag': "Remove {tag}",
   'pack.profileCard.smokeLabel': "Smoke: {value}",
   'pack.profileCard.aDogyptian': "A Dogyptian",
