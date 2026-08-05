@@ -17,6 +17,7 @@ import {
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
+import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS } from '@/lib/tripPoints';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
@@ -110,11 +111,7 @@ export const COMMUNITY_CSS = `
 .comm-field{margin-bottom:18px;}
 .comm-label{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
 
-/* rating packy (klikateľné) — Matej 2026-07-23: naša brand packa, väčšia. */
-.comm-paws{display:flex;gap:10px;}
-.comm-paws button{background:none;border:none;cursor:pointer;padding:2px;line-height:0;}
-.comm-paws img{width:40px;height:40px;transition:transform .1s;}
-.comm-paws button:hover img{transform:scale(1.12);}
+/* rating packy (klikateľné) žijú v PawRating (addtrip/PawRating.tsx) — vlastné inline štýly. */
 
 /* WalkedPopup 2-stĺpcový layout (Matej 2026-07-23 — širší popup, zmestí sa na výšku bez rolovania) */
 .comm-walked-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
@@ -509,25 +506,14 @@ function Modal({ title, sub, onClose, wide, children }: {
 
 // clickable rating packy (1..5) — Matej 2026-07-23: „naša packa" = brand Hekypaw (paw.svg,
 // jeden väčší prst), NIE generický paw-solid.
-function PawInput({ value, onChange }: { value: number; onChange: (n: number) => void }) {
-  const t = useT();
-  return (
-    <div className="comm-paws">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" onClick={() => onChange(n)} aria-label={t('pack.community.pawsAriaLabel', { n })}>
-          <img
-            src={ICON('paw')}
-            alt=""
-            style={{
-              filter: n <= value ? GOLD_ICON_FILTER : 'brightness(0) invert(1)',
-              opacity: n <= value ? 1 : 0.28,
-            }}
-          />
-        </button>
-      ))}
-    </div>
-  );
-}
+// PawInput ZMAZANÝ 2026-08-05 (Matej: „chcem aby pri hodnotení a kontakte myšou alebo dotykom
+// sa packy vyplnili na ploche ako to už niekde máme nie len outline"). Kreslil VŽDY obrysový
+// `paw.svg` a vybrané odlišoval len zlatým filtrom + opacity — takže rad packiek ostal obrysový
+// aj po výbere a pri prejdení myšou sa nedialo nič okrem `scale(1.12)`.
+// Náhrada = `PawRating` (`addtrip/PawRating.tsx`), ktorý presne toto vie od 27. 7.: prepína
+// medzi `paw.svg` (obrys) a `paw-full.svg` (PLNÁ kresba) cez CSS masku, vypĺňa už pri hoveri
+// aj fokuse (`display = hover ?? value`), má klávesnicu a ARIA radiogroup. Bol napísaný pre
+// AddTripLog a čakal na zapojenie inde — toto je to „inde".
 
 // ── A · Walked popup ─────────────────────────────────────────────────────────────────────────
 // UŽ NIE JE POVINNÝ (2026-08-05): prejdenie zapisuje sám ✓ a tento popup je PONUKA hodnotenia.
@@ -559,7 +545,9 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
     >
       <div className="comm-field" style={{ textAlign: 'center' }}>
         <label className="comm-label">{t('pack.community.walkedRatingLabel')}</label>
-        <div style={{ display: 'flex', justifyContent: 'center' }}><PawInput value={rating} onChange={setRating} /></div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <PawRating value={rating} onChange={setRating} onDark size={40} />
+        </div>
       </div>
       <div className="comm-walked-grid">
         <div className="comm-field">

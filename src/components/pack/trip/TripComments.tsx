@@ -26,6 +26,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { PawRating } from '@/components/pack/addtrip/PawRating';
 import {
   getAuthedUserId,
   fetchTripReviews,
@@ -113,10 +114,7 @@ export const TRIP_COMMENTS_CSS = `
 .tcm-x:hover{border-color:${GOLD};color:${GOLD};}
 .tcm-field{margin-bottom:16px;}
 .tcm-label{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
-.tcm-pawpick{display:flex;justify-content:center;gap:10px;}
-.tcm-pawpick button{background:none;border:none;cursor:pointer;padding:2px;line-height:0;}
-.tcm-pawpick button:hover img{transform:scale(1.12);}
-.tcm-pawpick img{transition:transform .1s;}
+.tcm-pawpick{display:flex;justify-content:center;}
 .tcm-textarea{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:10px 12px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;resize:vertical;min-height:72px;}
 .tcm-textarea:focus{border-color:${GOLD};}
 .tcm-submit{width:100%;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:13px;border-radius:10px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);color:#000;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
@@ -144,16 +142,15 @@ function Paws({ rating }: { rating: number }) {
   );
 }
 
-// clickable 1..5 paw picker — visual match to PawInput in packCommunityUI.tsx (WalkedPopup),
-// re-implemented locally so TripComments stays a self-contained, independently-mountable unit.
+// clickable 1..5 paw picker. Lokálna kópia ZMAZANÁ 2026-08-05 spolu s `PawInput`
+// (packCommunityUI.tsx) — obe kreslili len OBRYS a vybrané odlišovali zlatým filtrom.
+// Matej: „chcem aby pri hodnotení a kontakte myšou alebo dotykom sa packy vyplnili na ploche."
+// Jediný interaktívny picker packiek je odteraz `PawRating` — samostatná mountovateľnosť
+// TripComments tým netrpí (je to čistý komponent bez kontextu, ako `BrandIcon` vedľa).
 function PawPicker({ value, onChange }: { value: number; onChange: (n: number) => void }) {
   return (
     <div className="tcm-pawpick">
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button key={n} type="button" onClick={() => onChange(n)} aria-label={`${n} paws`}>
-          <BrandIcon name="paw" size={30} tint={n <= value ? 'gold' : 'white'} style={{ opacity: n <= value ? 1 : 0.28 }} />
-        </button>
-      ))}
+      <PawRating value={value} onChange={onChange} onDark size={30} />
     </div>
   );
 }
