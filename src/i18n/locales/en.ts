@@ -1720,6 +1720,9 @@ export const en = {
   'pack.map.toastSavedToTriplist': "Saved to your triplist. Set a date or open it to the pack in Triplist.",
   'pack.map.toastOpenTriplist': "Triplist",
   'pack.map.toastMarkedWalked': "Marked as walked.",
+  'pack.map.toastMarkedWalkedPts': "Walked · +{pts}",
+  'pack.map.toastBonusOne': "+{pts} {kind}: {unit}",
+  'pack.map.toastBonusMany': "bonus +{pts} from {n} discoveries",
   'pack.map.toastRateIt': "Rate it",
   'pack.addTrip.entry.closeAriaLabel': "Close",
   'pack.addTrip.entry.planned.title': "PLAN A TRIP",
@@ -1804,7 +1807,10 @@ export const en = {
   'pack.community.commentPlaceholder': "Muddy after rain, great off-leash stretch near the top…",
   'pack.community.updateVoteBtn': "Update my vote",
   'pack.community.logWalkBtn': "Log this walk",
-  'pack.community.rateRewardTitle': "Rate it, earn +{n} 🐾",
+  // 2026-08-05: číslo vyšlo z nadpisu von do béžovej pilulky nad labkami (Matej: „to rate it
+  // +3? je úplne stratené"). Nadpis ostal vetou — bez `{n}`.
+  'pack.community.rateRewardTitle': "Rate it and earn 🐾",
+  'pack.community.rewardEyebrow': "You earned",
   'pack.community.notNowBtn': "Not now",
   'pack.profileCard.removeTag': "Remove {tag}",
   'pack.profileCard.smokeLabel': "Smoke: {value}",

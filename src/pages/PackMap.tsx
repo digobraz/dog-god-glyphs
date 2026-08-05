@@ -83,15 +83,16 @@ import {
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profilePointsFor, addedByMeIds, isFounderEmail,
   approvedAddedIds, ratedCountFor, walkPointsFor,
-  RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating,
+  RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating, discoveryBonusFor, bonusToastText,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import { packStorage } from '@/lib/packStore';
 import {
   COMMUNITY_CSS, BigRating, PhotoMetaPills, HazardTags, WalkedPopup,
   EventsView,
-  type WalkedInput,
+  type WalkedInput, type WalkReward,
 } from '@/components/pack/packCommunityUI';
+import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
 // `useTripParties` k nim mená (get_trip_party), karta ich vykreslí.
@@ -705,18 +706,44 @@ button.trp-stat-pill{cursor:pointer;transition:all .15s;}
 button.trp-stat-pill:hover{border-color:${GOLD};}
 button.trp-stat-pill.on{background:${GOLD};border-color:${GOLD};}
 button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
-/* LEVEL (Matej 2026-07-26): NIE pilulka — holý text v status riadku. „Zatraktívnené" cez
-   typografiu, nie cez rámik. Tri role, tri roly písma (Matej 2026-07-26 „ten level si odflákol"
-   — pôvodne bolo všetko Cinzel, takže tam nebol žiadny kontrast, len rozdiel veľkostí):
-     PÚTNIK = rang → FONT_TITLE (identita)
-     LVL    = eyebrow → FONT_UI 500 / .26em ako .religion-eyebrow v Entry.tsx
-     1      = číslo → FONT_UI 600, veľké, gold gradient
-   Gradient ide cez background-clip:text (glyf je transparentný) → glow MUSÍ byť
-   filter:drop-shadow, text-shadow by presvital cez dieru v glyfe. */
+/* LEVEL — rang + číslo. Dve role, dve roly písma (Matej 2026-07-26 „ten level si odflákol" —
+   pôvodne bolo všetko Cinzel, takže tam nebol žiadny kontrast, len rozdiel veľkostí):
+     PÚTNIK = rang  → FONT_TITLE (identita)
+     1      = číslo → FONT_UI 600, veľké
+   Základ tu je gradientový TEXT (background-clip:text, glyf priehľadný → glow musí byť
+   filter:drop-shadow, nie text-shadow). V hlavičke mapy ho .trp-midentity .trp-level-num
+   nižšie prebíja na PLNÚ zlatú pilulku — na oboch šírkach (Matej 2026-08-05). Popisok „Lvl"
+   sa už nerenderuje nikde (Matej 2026-08-03: „to LVL ma ruší"). */
 .trp-level{display:inline-flex;align-items:baseline;gap:9px;flex-shrink:0;padding-right:2px;white-space:nowrap;}
+/* ── IDENTITA V HLAVIČKE MAPY — JEDEN BLOK PRE OBE ŠÍRKY (2026-08-05) ──────────
+   Matej: „pri PILGRIM nie je profilová foto ako sme si povedali je to len na mobile… aj ten
+   level (urob to tak aj na PC)". Desktop mal do 5. 8. vlastný kus kódu (rang + „Lvl N" ako
+   holý gradientový text, bez avatara, bez podriadku, neklikateľný) a rozišiel sa s mobilom.
+   Teraz je to jeden renderIdentity() a JEDNA sada tried — preto tieto pravidlá žijú TU,
+   v globálnom CSS, a nie v @media (max-width:760px).
+   Klik vedie na /pack/map/triplist?tab=stats (tam žije ⓘ s legendou bodov) — z PC sa tam
+   predtým nedalo dostať vôbec. Blok je klikací, ale nevyzerá ako tlačidlo: je to identita,
+   nie akcia. */
+.trp-midentity{display:flex;align-items:center;gap:9px;min-width:0;background:none;border:none;padding:0;cursor:pointer;text-align:left;}
+.trp-mavatar{width:34px;height:34px;border-radius:50%;flex:0 0 auto;object-fit:cover;border:1.5px solid ${GOLD};box-shadow:0 0 0 1px rgba(0,0,0,0.5);}
+.trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1;}
+.trp-midentity-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.trp-midentity .trp-level{gap:7px;}
+.trp-midentity .trp-level-name{font-size:11px;letter-spacing:.14em;}
+/* Matej 2026-08-03: „LVL daj do oranžovej pill alebo inak vizuálne zvýrazni" — level je PLNÁ
+   zlatá pilulka (nie gradientový text), a od 5. 8. aj na PC („daj tiež lvl do pils ako na
+   mobile"). Preto sa musí zhasnúť aj background-clip aj -webkit-text-fill-color — samotné
+   color: by pri background-clip:text neprebilo priehľadnú výplň písma.
+   Popisok „Lvl" je preč na OBOCH šírkach (Matej 3. 8.: „to LVL ma ruší") — v pilulke je holé
+   číslo a rang vedľa (PILGRIM) povie, čo to je. */
+.trp-midentity .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:border-box;background-clip:border-box;color:${INK};-webkit-text-fill-color:${INK};filter:none;box-shadow:0 2px 8px rgba(245,199,61,0.28);}
+.trp-midentity .trp-level-num em{font-size:14px;}
+/* Podriadok „N trips · X km" nahradil trophy pilulku (Matej 2026-08-03): číslo ostáva viditeľné
+   bez ťuknutia, ale prestalo byť ďalším prvkom v rade. Space Grotesk — sú to dáta, nie identita. */
+.trp-mstats{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};white-space:nowrap;}
+.trp-midentity:hover .trp-level-name{color:#fff;}
 .trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
 .trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px rgba(245,199,61,0.35));}
-.trp-level-num i{font-style:normal;font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;}
 .trp-level-num em{font-style:normal;font-weight:600;font-size:21px;letter-spacing:0;}
 /* CTA tlačidlo → Cinzel ostáva: .btn-gold (SpiralLanding.css) je LOCKED brand CTA a ten je
    Cinzel 700 uppercase. Grotesk sem nepatrí. */
@@ -821,10 +848,10 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    výletu, kotvená na T.growGreen #3D7A4E. Zlatá ostáva Triplistu = dve akcie, dve farby. */
 .trp-bigcard-photoactbtn--walked.on{background:linear-gradient(135deg,#4A8F5D,#2F6440);border-color:rgba(255,255,255,0.28);color:#fff;}
 .trp-bigcard-photoactbtn--walked.on:hover{border-color:rgba(255,255,255,0.5);}
-/* Body za prejdenie na chipe — číslo, teda FONT_UI a zlatá, nech sa dá prečítať oddelene od
-   slova a nenafúkne chip (chip je white-space:nowrap v rohu fotky). */
-.trp-photoact-pts{font-family:${FONT_UI};font-weight:600;font-size:10px;color:${GOLD};}
-.trp-bigcard-photoactbtn.on .trp-photoact-pts{color:inherit;}
+/* Body za prejdenie na chipe = <PointsPill> (components/pack/PointsPill.tsx). Zlatý <span>
+   .trp-photoact-pts ZMAZANÝ 2026-08-05 — Matej: „je to nevýrazné… tie body musia byť výrazné".
+   Zlaté číslo na tmavom chipe splývalo s okolím; béžová pilulka je najsvetlejšia plocha na fotke.
+   Chip má white-space:nowrap, takže pilulka musí ostať flex-shrink:0 (rieši .pts-pill). */
 /* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo rating·difficulty·Crowd */
 /* align-items:center (Matej 2026-07-22) — rating (pravý stĺpec) vertikálne na STRED karty,
    nie pri hornom okraji. */
@@ -1137,25 +1164,9 @@ ${TRAIL_LINE_CSS}
   .trp-mheader-status .trp-headright{gap:5px;flex:0 0 auto;justify-content:flex-end;}
   /* PackNotifications má rozmery v inline style (38px) → prebiť sa dá len !important. */
   .trp-mheader-status .trp-header-notif button{width:32px!important;height:32px!important;}
-  /* IDENTITA = avatar + [rang Lvl N / staty]. Celý blok je klikací (→ triplist?tab=stats),
-     ale nevyzerá ako tlačidlo — je to identita, nie akcia (rovnaká logika, prečo .trp-level
-     nikdy nebol pilulka). */
-  .trp-midentity{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto;background:none;border:none;padding:0;cursor:pointer;text-align:left;}
-  .trp-mavatar{width:34px;height:34px;border-radius:50%;flex:0 0 auto;object-fit:cover;border:1.5px solid ${GOLD};box-shadow:0 0 0 1px rgba(0,0,0,0.5);}
-  .trp-mavatar--initial{display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#2a2317,#14110b);color:${GOLD};font-family:${FONT_TITLE};font-weight:700;font-size:14px;line-height:1;}
-  .trp-midentity-txt{display:flex;flex-direction:column;gap:2px;min-width:0;}
-  .trp-mheader-status .trp-level{gap:7px;}
-  .trp-mheader-status .trp-level-name{font-size:11px;letter-spacing:.14em;}
-  /* Matej 2026-08-03: „LVL daj do oranžovej pill alebo inak vizuálne zvýrazni" — desktop necháva
-     level ako zlatý gradient TEXT (.trp-level-num vyššie: background-clip:text + color:transparent),
-     na mobile je z neho plná zlatá pilulka. Preto sa musí zhasnúť aj clip aj -webkit-text-fill-color
-     — samotné color: by pri background-clip:text neprebilo priehľadnú výplň písma. */
-  .trp-mheader-status .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:border-box;background-clip:border-box;color:${INK};-webkit-text-fill-color:${INK};filter:none;box-shadow:0 2px 8px rgba(245,199,61,0.28);}
-  .trp-mheader-status .trp-level-num em{font-size:14px;}
-  /* Podriadok nahradil trophy pilulku „64 · 1550.4 km" (Matej 2026-08-03, rozhodnutie o tvare
-     ponechané na mne): číslo ostáva viditeľné bez ťuknutia, ale prestalo byť ďalším prvkom
-     v rade. Space Grotesk — je to dáta, nie identita (typografický poriadok v CLAUDE.md). */
-  .trp-mstats{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};white-space:nowrap;}
+  /* Identita samotná je v GLOBÁLNOM CSS vyššie (.trp-midentity a spol.) — jeden blok na oboch
+     šírkach. Tu ostáva len to, čo je naozaj mobilné: na mobile ide identita cez celú voľnú šírku. */
+  .trp-mheader-status .trp-midentity{flex:1 1 auto;}
   /* Riadok 2 (Matej 2026-07-27, prestavané): predtým tu boli 3 natívne selecty
      (Activities/Difficulty/Crowd) v horizontálnom scrolli — a country, región a Tagy sa na
      mobile NEZOBRAZOVALI VÔBEC (žijú v .trp-sidebar / .trp-topbar, oboje display:none).
@@ -1695,6 +1706,9 @@ export default function PackMap() {
   // flow modal (design §A): ponuka hodnotenia po ✓. Zámer wishlistu a inzerát na parťáka
   // sú preč (2026-08-05, viď chooseSolo nižšie) — ★ ukladá jedným klikom.
   const [walkedPopupId, setWalkedPopupId] = useState<string | null>(null);
+  // Odmena za PRÁVE zapísané prejdenie (§3b) — nie je odvoditeľná spätne (bonus závisí od
+  // toho, čo bolo prejdené PRED klikom), takže sa musí zapamätať v momente kliku.
+  const [walkedReward, setWalkedReward] = useState<WalkReward | null>(null);
   // #41 — klik na ikonku tvorcu/účastníka v „Open trip from the pack" rozbalí TripProfileCard
   // pod jeho riadkom. Kľúč = `${h.key}:org` alebo `${h.key}:joiner:${i}`, nie len id člena —
   // tá istá trasa môže byť naraz otvorená viacerými organizátormi.
@@ -1947,12 +1961,26 @@ export default function PackMap() {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
+      setWalkedReward(null);
       return;
     }
+    // ODMENA (2026-08-05, zadanie §3b): základ = to isté číslo, aké sľubovalo tlačidlo (padne
+    // vždy) · bonus = objavenia, ktoré sa dopočítajú TERAZ, voči tomu, čo bolo prejdené PREDTÝM.
+    // `walkedIds` je v tomto momente ešte stará množina — presne to potrebujeme.
+    const tr = trailsById(tid);
+    const reward: WalkReward | null = tr
+      ? { base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
+      : null;
+    setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
     if (shouldPromptRating()) { setWalkedPopupId(tid); return; }
+    // Utíšená ponuka (odškrtávanie dávky) → odmena sa musí objaviť aspoň v toaste, inak by sa
+    // objavenie nového pohoria stratilo úplne. Bez animácie — toast na ňu nie je miesto.
+    const bonusTxt = bonusToastText(reward?.bonuses ?? [], t);
     toast({
-      description: t('pack.map.toastMarkedWalked'),
+      description: reward
+        ? `${t('pack.map.toastMarkedWalkedPts', { pts: reward.base })}${bonusTxt ? ` · ${bonusTxt}` : ''}`
+        : t('pack.map.toastMarkedWalked'),
       action: (
         <ToastAction altText={t('pack.map.toastRateIt')} onClick={() => setWalkedPopupId(tid)}>
           {t('pack.map.toastRateIt')}
@@ -1965,6 +1993,7 @@ export default function PackMap() {
   const closeWalkedPopup = () => {
     if (walkedPopupId && !votes[walkedPopupId]) muteRatePrompt();
     setWalkedPopupId(null);
+    setWalkedReward(null);
   };
   // additive-only walked setter (never toggles off) — used by TripComments (§15 zadania
   // 2026-07-23): posting a review implies the trip is walked, so submit calls this instead of
@@ -1979,6 +2008,7 @@ export default function PackMap() {
     setVotes((prev) => ({ ...prev, [tid]: { tripId: tid, ...v, at: nowMs } }));
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
     setWalkedPopupId(null);
+    setWalkedReward(null);
   };
   const addPlan = (tid: string, intent: 'solo' | 'partner', date = '') =>
     setPlans((prev) => [{ tripId: tid, intent, date, at: nowMs }, ...prev.filter((p) => p.tripId !== tid)]);
@@ -2183,21 +2213,42 @@ export default function PackMap() {
   // Matej 2026-07-26 (tretie kolo): header rozdelený na TRI časti — ĽAVÁ = LEVEL, STRED =
   // TRIPSTATS + TRIPLIST + ADD TRIP (centrované v riadku), PRAVÁ = messages + zvonček.
   // Krajné bloky majú flex:1, stredný len svoju šírku → stred je naozaj v osi riadku, nie
-  // „niekde medzi". LEVEL nie je pilulka ani tlačidlo — klasický text (.trp-level), lebo nič
-  // neotvára; pilulky sú vyhradené akciám/routám.
+  // „niekde medzi". ĽAVÁ časť = identita (avatar + PILGRIM + level v pilulke + N trips · X km),
+  // klikacia na /pack/map/triplist?tab=stats — od 2026-08-05 rovnaká ako na mobile.
   // 2026-07-30 (issue #33): rang + level UŽ NIE JE hardcoded „Pútnik Lvl 1" — počíta sa z bodov
   // (`profilePointsFor` → `@/lib/tripPoints`, ceny a krivka = dashboard tab Mapa). Rovnaké číslo
   // ako vo vysvedčení, jedna funkcia pre oba povrchy. Tooltip nesie rozpad „za čo".
+  //
+  // 2026-08-05: IDENTITA JE JEDEN BLOK PRE PC AJ MOBIL. Matej: „pri PILGRIM nie je profilová foto
+  // ako sme si povedali je to len na mobile… aj ten level (urob to tak aj na PC)" + „zosúlaď to
+  // aby bolo aj na PC a daj tiež lvl do pills ako na mobile".
+  // Predtým to boli DVA kusy kódu (desktop `renderStatusLeft` bez avatara, bez podriadku,
+  // neklikateľný, s popiskom „Lvl"; mobil `.trp-midentity` s avatarom a pilulkou) — a presne
+  // preto sa rozišli. Teraz jedna funkcia, jedna sada tried; nedá sa to rozísť po treťom redizajne.
+  const renderIdentity = () => (
+    <button
+      type="button"
+      className="trp-midentity"
+      onClick={() => navigate('/pack/map/triplist?tab=stats')}
+      title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${t(r.labelKey, r.labelParams)} ${r.points}`).join(' · ') })}
+    >
+      {id.avatarUrl
+        ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
+        : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
+      <span className="trp-midentity-txt">
+        <span className="trp-level">
+          <span className="trp-level-name">{levelInfo.rank}</span>
+          {/* Matej 2026-08-03: „to LVL ma ruší" → popisok preč, ostáva holé číslo v zlatej
+              pilulke. Po zjednotení (5. 8.) to platí aj na PC. */}
+          <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>
+        </span>
+        <span className="trp-mstats">{t('pack.map.mstats', { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
+      </span>
+    </button>
+  );
+
   const renderStatusLeft = () => (
-    <div className="trp-status-left">
-      <div
-        className="trp-level"
-        title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${t(r.labelKey, r.labelParams)} ${r.points}`).join(' · ') })}
-      >
-        <span className="trp-level-name">{levelInfo.rank}</span>
-        <span className="trp-level-num"><i>{t('pack.map.lvl')}</i><em>{levelInfo.level}</em></span>
-      </div>
-    </div>
+    <div className="trp-status-left">{renderIdentity()}</div>
   );
 
   const renderStatusCenter = () => (
@@ -2380,7 +2431,7 @@ export default function PackMap() {
                 {/* Koľko bodov ten klik naozaj dá — SKUTOČNÉ číslo tejto trasy (5 + km +
                     stúpanie / pevná cena magistrály), nie paušál. Po odškrtnutí zmizne: body
                     už padli. */}
-                {!walkedIds.has(tr.id) && <span className="trp-photoact-pts">+{walkPointsFor(tr)}</span>}
+                {!walkedIds.has(tr.id) && <PointsPill value={walkPointsFor(tr)} />}
               </button>
             )}
             {!walkedIds.has(tr.id) && (
@@ -2436,6 +2487,7 @@ export default function PackMap() {
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
+      <style>{POINTS_PILL_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
 
       {/* floating dark "Explore" panel — no header, margined off top/left/bottom. Bod 4/6:
@@ -2490,7 +2542,7 @@ export default function PackMap() {
                         onClick={() => toggleWalked(dt.id)}
                       >
                         ✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}
-                        {!walkedIds.has(dt.id) && <span className="trp-photoact-pts">+{walkPointsFor(dt)}</span>}
+                        {!walkedIds.has(dt.id) && <PointsPill value={walkPointsFor(dt)} />}
                       </button>
                     )}
                     {!walkedIds.has(dt.id) && (
@@ -2747,27 +2799,8 @@ export default function PackMap() {
             užívateľa") — v D4 nav reworku 2026-07-24 bol odsťahovaný do PackBottomNav; tam
             zostáva ako navigácia, tu je identita, nie duplicita ovládania. */}
         <div className="trp-mheader-status">
-          <button
-            type="button"
-            className="trp-midentity"
-            onClick={() => navigate('/pack/map/triplist?tab=stats')}
-            title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${t(r.labelKey, r.labelParams)} ${r.points}`).join(' · ') })}
-          >
-            {id.avatarUrl
-              ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
-              : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
-            <span className="trp-midentity-txt">
-              <span className="trp-level">
-                <span className="trp-level-name">{levelInfo.rank}</span>
-                {/* Matej 2026-08-03 (tretie kolo): „to LVL ma ruší" → popisok „Lvl" preč, ostáva
-                    holé číslo v zlatej pilulke. Rang vedľa (PILGRIM) už povie, čo to je, takže
-                    popisok bol len šum navyše. Desktop (renderStatusLeft) si „Lvl" NECHÁVA — tam
-                    nie je pilulka, ale gradientový text, ktorý bez popisku nemá čo číslo ukotviť. */}
-                <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>
-              </span>
-              <span className="trp-mstats">{t('pack.map.mstats', { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
-            </span>
-          </button>
+          {/* tá istá identita ako na PC — `renderIdentity()` vyššie */}
+          {renderIdentity()}
           {renderHeaderRight()}
         </div>
         <div className="trp-mheader-row2">
@@ -3330,6 +3363,7 @@ export default function PackMap() {
           onSubmit={submitWalked}
           onClose={closeWalkedPopup}
           rewardPoints={votes[walkedPopupId] ? undefined : RATE_PROMPT_POINTS}
+          reward={walkedReward}
         />
       )}
       {creatorTrail && (

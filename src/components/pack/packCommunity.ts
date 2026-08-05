@@ -12,6 +12,7 @@ import {
 import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents, readLocalTrailMeta } from '@/lib/packStore';
 import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, type TripPointsResult } from '@/lib/tripPoints';
 import { authorOf, AUTHOR_FALLBACK } from '@/components/pack/tripShared';
+import { countryName, trailCountry } from '@/lib/countryGeo';
 
 export type Difficulty = 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
 // D2 (LOCKED 2026-07-24): feature „Vibe" → Crowd / Ruch. Jedna jasná os = počet ľudí, žiadny
@@ -504,6 +505,86 @@ export function walkPointsFor(tr: { id: string; km?: string | number; ascentM?: 
     journeyId: JOURNEY_POINTS[tr.id] ? tr.id : undefined,
     walked: true,
   }).total;
+}
+
+// ── ODMENA PO ✓: ZÁKLAD + BONUS ZA OBJAVENIE (2026-08-05, zadanie §3b) ──────
+// Tlačidlo je SĽUB pred akciou, a sľub musí platiť VŽDY — preto na ňom stojí len `walkPointsFor`
+// (5 + km + stúpanie). Keby prvý Choč sľuboval +37 a druhý +27, appka pri druhom výlete vyzerá,
+// že klame, hoci ráta správne.
+// Bonus za objavenie sa preto ODHALÍ až po ✓ — je to prekvapenie, nie sľub. A je to jediné
+// miesto v appke, kde sa človek dozvie, že objavil nové pohorie, takže sa POMENÚVA, nie len
+// spočíta („prvýkrát v Malých Karpatoch", nie „+10").
+export interface DiscoveryBonus {
+  /** i18n kľúč pre druh objavenia (pack.points.newRange, …) — text skladá až renderer. */
+  labelKey: string;
+  /** Konkrétna jednotka: „Malé Karpaty", „NP Slovenský raj", „Slovensko". */
+  unit: string;
+  points: number;
+}
+
+/** Kategórie, za ktoré padá bonus. `peaks` = 0 bodov (kryje ho prevýšenie), `journeys` majú pevnú cenu. */
+const BONUS_CATS: Array<[GeoCategory, string, number]> = [
+  ['ranges', 'pack.points.newRange', POINTS.range],
+  ['parks', 'pack.points.newNp', POINTS.np],
+  ['chko', 'pack.points.newChko', POINTS.chko],
+  ['waters', 'pack.points.newWater', POINTS.water],
+];
+
+/**
+ * Čo NOVÉ odomkne prejdenie tejto trasy — voči tomu, čo už človek prešiel PREDTÝM.
+ * `previouslyWalked` NESMIE obsahovať `trail` samotný (inak je všetko „už objavené").
+ *
+ * Krajina: nová, ak medzi predošlými trasami žiadna nebola z tej istej krajiny (30 b).
+ * Zbierka: ak sa práve teraz doplnila celá kategória (9 NP / 26 pohorí / CHKO) — 50 b.
+ */
+export function discoveryBonusFor(trail: HeroTrail, previouslyWalked: HeroTrail[]): DiscoveryBonus[] {
+  const out: DiscoveryBonus[] = [];
+  const before = computeCompletion(previouslyWalked);
+  const after = computeCompletion([...previouslyWalked, trail]);
+  const doneOf = (c: SlovakiaCompletion, key: GeoCategory) =>
+    new Set(c.categories.find((x) => x.key === key)?.done ?? []);
+
+  for (const [key, labelKey, points] of BONUS_CATS) {
+    const had = doneOf(before, key);
+    for (const unit of doneOf(after, key)) if (!had.has(unit)) out.push({ labelKey, unit, points });
+  }
+
+  // Nová krajina — porovnáva sa ISO2 z datasetu (`trailCountry`), nie názov regiónu.
+  const iso = trailCountry(trail);
+  if (!previouslyWalked.some((t) => trailCountry(t) === iso)) {
+    out.push({ labelKey: 'pack.points.newCountry', unit: countryName(iso), points: POINTS.country });
+  }
+
+  // ⚠️ KOMPLETNÁ ZBIERKA (+50) TU ZÁMERNE NIE JE — a je to príznak diery, nie rozhodnutie.
+  // `POINTS.collection` existuje, legenda v TripStatsPanel ju sľubuje („Complete a collection
+  // +50") a `calculateTripPoints` ju vie spočítať — ale `calculateProfilePoints` ju NEPOČÍTA
+  // do súčtu vôbec. Keby ju odhalenie po ✓ ukázalo, sľúbilo by 50 bodov, o ktoré sa level
+  // nikdy neposunie. Kým sa nedoplní do súčtu profilu, radšej mlčať než klamať.
+  // (Dnes to nikoho neškrtí — žiadna kategória nie je kompletná.)
+  return out;
+}
+
+/**
+ * Text odmeny do TOASTU (utíšená ponuka — popup nevyskočí, a objavenie sa nesmie stratiť).
+ * `tr` = prekladač volajúceho; tento modul prekladač nemá (rovnaké pravidlo ako `labelKey`
+ * v tripPoints.ts).
+ *
+ * ⚠️ Prečo sa NEVYPISUJÚ všetky názvy: jedna jednotka môže byť naraz pohorie AJ CHKO
+ * (Poľana, Malé Karpaty, Biele Karpaty, Vihorlat, Štiavnické vrchy). Oba body sú správne —
+ * sú to dve rôzne zbierky — ale holý zoznam názvov by čítal „+10 Poľana · +10 Poľana"
+ * a vyzeral by ako chyba. Preto: jedno objavenie sa pomenuje aj s druhom, viac sa spočíta
+ * a menoslov ostáva popupu, kde má každý riadok svoj druh pod názvom.
+ */
+export function bonusToastText(
+  bonuses: DiscoveryBonus[],
+  tr: (key: string, params?: Record<string, string | number>) => string,
+): string {
+  if (bonuses.length === 0) return '';
+  const pts = bonuses.reduce((s, b) => s + b.points, 0);
+  if (bonuses.length === 1) {
+    return tr('pack.map.toastBonusOne', { pts, kind: tr(bonuses[0].labelKey), unit: bonuses[0].unit });
+  }
+  return tr('pack.map.toastBonusMany', { pts, n: bonuses.length });
 }
 
 // ── Ponuka hodnotenia po ✓ (2026-08-05) ─────────────────────────────────────

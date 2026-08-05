@@ -13,11 +13,12 @@ import {
   computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
   approvedAddedIds, ratedCountFor, readVotes,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
-  type SlovakiaCompletion, type MockPerson, type GeoCategory,
+  type SlovakiaCompletion, type MockPerson, type GeoCategory, type DiscoveryBonus,
 } from '@/components/pack/packCommunity';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
+import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS } from '@/lib/tripPoints';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
@@ -112,6 +113,18 @@ export const COMMUNITY_CSS = `
 .comm-label{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
 
 /* rating packy (klikateľné) žijú v PawRating (addtrip/PawRating.tsx) — vlastné inline štýly. */
+
+/* ── ODMENA PO ✓ (2026-08-05, zadanie §3b) — béžová = zarobené nohami, zlatá = objavenie.
+   Dve farby, dva druhy bodov. Blok sedí HORE v popupe, nad ponukou hodnotenia: najprv sa
+   dozvieš, čo ti padlo, až potom ťa appka o niečo prosí. */
+.comm-reward{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;padding:14px 15px;border-radius:14px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkHair};}
+.comm-reward-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:${T.onDarkDim};}
+.comm-reward-row{display:flex;align-items:center;gap:11px;min-width:0;}
+.comm-reward-txt{font-family:${FONT_UI};font-weight:500;font-size:12.5px;color:${T.onDark};min-width:0;overflow:hidden;text-overflow:ellipsis;}
+/* Bonusový riadok je „objav" — meno jednotky nesie väčšiu váhu než druh objavenia. */
+.comm-reward-row--bonus .comm-reward-txt{color:rgba(245,240,228,0.96);}
+.comm-reward-unit{font-family:${FONT_TITLE};font-weight:700;}
+.comm-reward-kind{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${GOLD};margin-top:2px;}
 
 /* WalkedPopup 2-stĺpcový layout (Matej 2026-07-23 — širší popup, zmestí sa na výšku bez rolovania) */
 .comm-walked-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
@@ -213,8 +226,8 @@ export const COMMUNITY_CSS = `
 .comm-vavatar img{width:100%;height:100%;object-fit:cover;display:block;}
 .comm-vavatar img.comm-vavatar-fallback{width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1);opacity:.85;}
 .comm-vavatar--owner{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);font-family:${FONT_UI};font-weight:600;font-size:16px;color:${INK};}
-.comm-vavatar--slot{background:rgba(245,240,228,0.04);border-style:dashed;opacity:.5;}
-.comm-vavatar--slot img{width:16px;height:16px;object-fit:contain;filter:brightness(0) invert(1);opacity:.6;}
+/* .comm-vavatar--slot (prerušovaný „+" krúžok = priestor pre budúceho member, Matej 23. 7.)
+   ZMAZANÝ 2026-08-05 — Matej: „to plus daj preč tu sa psy nebudú pridávať". */
 .comm-vhead-name{flex:1;min-width:140px;font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.onDark};}
 .comm-level{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
 .comm-level-pill{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);border-radius:999px;padding:7px 14px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:${INK};white-space:nowrap;}
@@ -521,9 +534,43 @@ function Modal({ title, sub, onClose, wide, children }: {
 // odoslania stojí rovnocenné „Teraz nie". Bez neho je to obyčajná úprava hlasu (klik na
 // „Ohodnotiť" z toastu / úprava starého hodnotenia), kde by sľubovanie bodov klamalo.
 export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Crowd; comment: string; when: string; hazards: Hazard[]; }
-export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoints }: {
+
+/** Čo padlo za práve zapísané prejdenie: základ (vždy) + objavenia (len prvýkrát). */
+export interface WalkReward { base: number; bonuses: DiscoveryBonus[] }
+
+/**
+ * ODMENA PO ✓ — základ béžovo, objavenia zlato a s dopočítaním (zadanie §3b).
+ * Bonus sa POMENÚVA („Malé Karpaty · nové pohorie"), nie len spočíta: toto je jediné miesto
+ * v appke, kde sa človek dozvie, že objavil nové pohorie. Keď žiadny bonus nepadol, riadok sa
+ * nezobrazí — žiadne „+0".
+ */
+export function WalkRewardBlock({ trailName, reward }: { trailName: string; reward: WalkReward }) {
+  const t = useT();
+  return (
+    <div className="comm-reward">
+      <span className="comm-reward-eyebrow">{t('pack.community.rewardEyebrow')}</span>
+      <div className="comm-reward-row">
+        <PointsPill value={reward.base} tone="base" size="md" />
+        <span className="comm-reward-txt">{trailName}</span>
+      </div>
+      {reward.bonuses.map((b) => (
+        <div key={`${b.labelKey}:${b.unit}`} className="comm-reward-row comm-reward-row--bonus">
+          <PointsPill value={b.points} tone="bonus" size="md" animate />
+          <span className="comm-reward-txt">
+            <span className="comm-reward-unit">{b.unit}</span>
+            <span className="comm-reward-kind">{t(b.labelKey)}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoints, reward }: {
   trailName: string; initial?: WalkedInput | null; onSubmit: (v: WalkedInput) => void; onClose: () => void;
   rewardPoints?: number;
+  /** Odmena za PRÁVE zapísané prejdenie — blok hore. Bez nej je to obyčajná úprava hlasu. */
+  reward?: WalkReward | null;
 }) {
   const t = useT();
   const [rating, setRating] = useState(initial?.rating ?? 0);
@@ -538,13 +585,22 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
   // layout, nech sa zmestí bez rolovania. Rating hore cez obe kolóny, zvyšok v 2 stĺpcoch.
   return (
     <Modal
-      title={rewardPoints ? t('pack.community.rateRewardTitle', { n: rewardPoints }) : t('pack.community.walkedTitle')}
+      title={rewardPoints ? t('pack.community.rateRewardTitle') : t('pack.community.walkedTitle')}
       sub={trailName}
       onClose={onClose}
       wide
     >
+      <style>{POINTS_PILL_CSS}</style>
+      {reward && <WalkRewardBlock trailName={trailName} reward={reward} />}
       <div className="comm-field" style={{ textAlign: 'center' }}>
         <label className="comm-label">{t('pack.community.walkedRatingLabel')}</label>
+        {/* Matej 2026-08-05: „to rate it +3? je úplne stratené" — odmena vyšla z nadpisu von
+            ako vycentrovaná pilulka nad labkami. Nadpis ostal vetou, číslo je prvok. */}
+        {rewardPoints ? (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 11 }}>
+            <PointsPill value={rewardPoints} tone="base" size="lg" />
+          </div>
+        ) : null}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <PawRating value={rating} onChange={setRating} onDark size={40} />
         </div>
@@ -967,7 +1023,11 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
     ? firstNameFrom(id.session.user.email, authFullName)
     : id.avatarInitial;
   const dogNames = id.dogs.map((d) => d.dog_name).filter((n): n is string => !!n);
-  const packName = dogNames.length > 0 ? [...dogNames, ownerName].join(' & ') : ownerName;
+  // Matej 2026-08-05: „pes je veľmi uctievaný ale usecase je stavaný pre človeka" → v TRIPSTATS
+  // hlavičke ide MAJITEĽ PRVÝ a psy za ním („Matej & Hektor"), nie naopak.
+  // ⚠️ Vedomá výnimka z pravidla „pes je nadradený" — platí IBA tu. Heroglyf (majiteľ vnútri
+  // rámiku psa), share karty ani certifikát sa nemenia.
+  const packName = dogNames.length > 0 ? [ownerName, ...dogNames].join(' & ') : ownerName;
   // LEVEL z BODOV, nie z počtu tripov (issue #33; lock „level = počet tripov" z 23. 7. padol
   // 25. 7.). Body sa počítajú z toho, čo človek reálne má — prejdené trasy, ich km/stúpanie,
   // pevné ceny magistrál a odškrtnuté geo jednotky. Vďaka tomu sa level nemôže rozísť s dátami.
@@ -991,7 +1051,11 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       <section className="pk-glass tl-panel">
       {/* IDENTITY header — foto svorky (psy + owner, priestor pre budúceho member) + level odznak. */}
       <div className="comm-vhead">
+        {/* Poradie fotiek = poradie mien (Matej 2026-08-05): človek prvý, psy za ním. */}
         <div className="comm-vhead-pack">
+          <span className="comm-vavatar comm-vavatar--owner">
+            {id.avatarUrl ? <img src={id.avatarUrl} alt="" /> : id.avatarInitial}
+          </span>
           {id.dogs.map((dog) => (
             <span key={dog.id} className="comm-vavatar comm-vavatar--dog">
               {dog.cloudinary_main_url ? (
@@ -1001,13 +1065,6 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
               )}
             </span>
           ))}
-          <span className="comm-vavatar comm-vavatar--owner">
-            {id.avatarUrl ? <img src={id.avatarUrl} alt="" /> : id.avatarInitial}
-          </span>
-          {/* priestor pre budúceho member (Matej: „member prípadne treba tam na to priestor") */}
-          <span className="comm-vavatar comm-vavatar--slot" aria-hidden="true">
-            <img src={ICON('plus')} alt="" />
-          </span>
         </div>
         <div className="comm-vhead-name">{packName}</div>
         {/* #46 — level + progressbar do ďalšieho levelu na celú šírku hlavičky, nie schovaný

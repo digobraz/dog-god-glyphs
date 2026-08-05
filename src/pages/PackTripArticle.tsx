@@ -35,13 +35,14 @@ import {
 } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  walkPointsFor, RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating,
+  walkPointsFor, RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating, discoveryBonusFor, bonusToastText,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import {
   COMMUNITY_CSS, WalkedPopup,
-  type WalkedInput,
+  type WalkedInput, type WalkReward,
 } from '@/components/pack/packCommunityUI';
+import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { TripComments } from '@/components/pack/trip/TripComments';
 import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
@@ -127,11 +128,12 @@ const CSS = `
 .pta-actmenu .pta-actmenu-off{color:${T.onDarkDim};}
 .pta-caret{font-size:9px;opacity:0.8;}
 .pta-actbtn-label{white-space:nowrap;}
-/* Body za prejdenie — číslo, teda FONT_UI (tlačidlo je Cinzel) a zlatá, nech nesplynie s textom.
-   NA MOBILE SA NEZOBRAZUJE (mediaquery nižšie): rad troch tlačidiel sa na 390 px do šírky
-   nezmestí už dnes (merané 2026-08-05: potrebuje ~434 px v 312 px rade) a +24 px navyše by
-   ten stav len zhoršilo. Číslo tam nesie karta na mape — chip v rohu fotky naň miesto má. */
-.pta-actbtn-pts{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:0;color:${GOLD};}
+/* Body za prejdenie = <PointsPill> (components/pack/PointsPill.tsx). Zlatý <span>
+   .pta-actbtn-pts ZMAZANÝ 2026-08-05 (Matej: „tie body musia byť výrazné… je to úplne
+   stratené") — zlatá na zlatom/priehľadnom tlačidle splývala.
+   NA MOBILE bolo číslo do 5. 8. ÚPLNE SKRYTÉ, lebo sa rad troch tlačidiel na 390 px nezmestil
+   (merané: ~434 px do 312 px radu). Nezmestil sa kvôli TEXTOM, nie kvôli číslu — preto sú
+   sekundárne akcie (Triplist, Share) na mobile icon-only a číslo je konečne vidieť. */
 /* F1 (Matej 2026-07-24): „Ikonka srdiečka ≠ ikonka checklistu z headra → zladiť." Unicode ♡/♥
    vymenené za brand clipboard.svg — rovnaká ikonka ako Triplist v status pruhu/headri.
    Mask + currentColor namiesto <img filter:…>: ikonka tak drží PRESNÚ farbu textu tlačidla
@@ -140,11 +142,28 @@ const CSS = `
 @media (max-width:760px){
   .pta-acts-slot{min-height:44px;}
   .pta-actbtn{font-size:10px;padding:12px 4px;}
-  .pta-actbtn-pts{display:none;}
+  /* ── 390 px rad (2026-08-05) ─────────────────────────────────────────────────
+     Hlavná akcia (✓ prejdené) drží text AJ pilulku bodov; Triplist a Share sa zmrštia na
+     štvorcovú ikonku. Obe majú aria-label od začiatku, takže sa nestráca nič okrem slova,
+     ktoré sa aj tak nezmestilo.
+     ⚠️ Selektory MUSIA byť dvojtriedne (.pta-acts .pta-actbtn--gold). Media query nepridáva
+     špecificitu a základné .pta-actbtn{flex:1} stojí v tomto súbore NIŽŠIE — jednotriedny
+     override by prehral na poradí a tlačidlá by ostali tretinové. */
+  .pta-acts{gap:7px;}
+  .pta-acts .pta-actbtn--gold,.pta-acts .pta-actbtn--blue{flex:0 0 42px;padding:12px 0;}
+  /* Cinzel 700 uppercase s .06em sa v SK („Označiť ako prejdené", 20 znakov) na 390 px nezmestí
+     ani po zmrštení susedov — chýbalo 16 px. Rozpal písmen je jediné, čo sa dá ubrať bez toho,
+     aby sa buď skrátil text, alebo zmizla pilulka. Cinzel a veľkosť ostávajú. */
+  .pta-acts .pta-actbtn-label{letter-spacing:.01em;}
+  .pta-acts .pta-actbtn--gold .pta-actbtn-label,.pta-acts .pta-actbtn--blue .pta-actbtn-label{display:none;}
+  .pta-acts .pta-actbtn--ghost,.pta-acts .pta-actbtn--green{flex:1 1 auto;min-width:0;overflow:hidden;}
+  .pta-acts .pta-actbtn-label{overflow:hidden;text-overflow:ellipsis;}
   .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
   .pta-acts.collapsed .pta-actwrap{flex:0 0 auto;}
   .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
-  .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret,.pta-acts.collapsed .pta-actbtn-pts{display:none;}
+  /* Rail = kruhové ikonky pri okraji → text, šípka aj pilulka bodov idú preč (kruh má 42 px). */
+  .pta-acts.collapsed .pta-actbtn-label,.pta-acts.collapsed .pta-caret,.pta-acts.collapsed .pts-pill{display:none;}
+  .pta-acts.collapsed .pta-actbtn,.pta-acts.collapsed .pta-actbtn--gold,.pta-acts.collapsed .pta-actbtn--blue{flex:0 0 auto;padding:0;}
   /* v raile je rad pri pravom okraji → menu sa musí otvárať doľava, nie pod tlačidlo */
   .pta-acts.collapsed .pta-actmenu{left:auto;right:calc(100% + 8px);top:0;}
 }
@@ -303,6 +322,9 @@ export default function PackTripArticle() {
     setEvents(readEvents());
   }, [storeEpoch]);
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
+  // Odmena za práve zapísané prejdenie (§3b) — spätne sa nedá dopočítať, bonus závisí od stavu
+  // PRED klikom.
+  const [walkedReward, setWalkedReward] = useState<WalkReward | null>(null);
   // Zelené WALKED ✓ nie je toggle — klik otvorí menu (Add to triplist / Remove walked).
   // Dôvod (Matej 2026-07-27): odznačenie zmaže aj hlas o obtiažnosti, nesmie sa stať omylom.
   const [walkedMenuOpen, setWalkedMenuOpen] = useState(false);
@@ -385,14 +407,26 @@ export default function PackTripArticle() {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
       setVotes((prev) => { const n = { ...prev }; delete n[tid]; return n; });
+      setWalkedReward(null);
       return;
     }
+    // ODMENA (§3b): základ = presne to, čo sľubovalo tlačidlo · bonus = objavenia dopočítané
+    // voči trasám prejdeným PREDTÝM (`walkedIds` je tu ešte stará množina). Rovnaká logika
+    // ako v PackMap.tsx — jedna funkcia `discoveryBonusFor`, dva povrchy.
+    const tr = allTrails.find((x) => x.id === tid);
+    const reward: WalkReward | null = tr
+      ? { base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
+      : null;
+    setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
     // Ponuka hodnotenia vyskočí sama (2026-08-05) — a pri odškrtávaní dávky sa utíši, viď
     // `shouldPromptRating` v packCommunity.ts. Popup nič nepodmieňuje, prejdenie je zapísané.
     if (shouldPromptRating()) { setWalkedPopupOpen(true); return; }
+    const bonusTxt = bonusToastText(reward?.bonuses ?? [], t);
     toast({
-      description: t('pack.map.toastMarkedWalked'),
+      description: reward
+        ? `${t('pack.map.toastMarkedWalkedPts', { pts: reward.base })}${bonusTxt ? ` · ${bonusTxt}` : ''}`
+        : t('pack.map.toastMarkedWalked'),
       action: (
         <ToastAction altText={t('pack.map.toastRateIt')} onClick={() => setWalkedPopupOpen(true)}>
           {t('pack.map.toastRateIt')}
@@ -403,12 +437,14 @@ export default function PackTripArticle() {
   const closeWalkedPopup = () => {
     if (trail && !votes[trail.id]) muteRatePrompt();
     setWalkedPopupOpen(false);
+    setWalkedReward(null);
   };
   const submitWalked = (v: WalkedInput) => {
     if (!trail) return;
     setVotes((prev) => ({ ...prev, [trail.id]: { tripId: trail.id, ...v, at: nowMs } }));
     setWalkedIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
     setWalkedPopupOpen(false);
+    setWalkedReward(null);
   };
   const addPlan = (intent: 'solo' | 'partner', date = '') => {
     if (!trail) return;
@@ -545,8 +581,10 @@ export default function PackTripArticle() {
               <span className="pta-actbtn-icon">🐾</span>
               <span className="pta-actbtn-label">{t('pack.trip.markWalked')}</span>
               {/* Skutočné body za TÚTO trasu (5 + km + stúpanie / pevná cena magistrály) —
-                  paušálne „+5" by klamalo, viď walkPointsFor. */}
-              <span className="pta-actbtn-pts">+{walkPointsFor(trail)}</span>
+                  paušálne „+5" by klamalo, viď walkPointsFor. Objavenia (nové pohorie/NP)
+                  tu ZÁMERNE nie sú: tlačidlo je sľub pred akciou a ten musí platiť vždy,
+                  aj pri druhom prechode. Bonus sa odhalí až po ✓ (zadanie §3b). */}
+              <PointsPill value={walkPointsFor(trail)} />
             </button>
           )}
           <button type="button" className="pta-actbtn pta-actbtn--blue" onClick={handleShare} aria-label={t('pack.trip.share')}>
@@ -560,6 +598,7 @@ export default function PackTripArticle() {
     <div className="pta-root">
       <style>{CSS}</style>
       <style>{COMMUNITY_CSS}</style>
+      <style>{POINTS_PILL_CSS}</style>
       <style>{GLASS_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
       {/* §16 (2026-07-23): heroglyf textúra ZA obsahom — bez nej glass panel nemá čo rozmazať
@@ -798,6 +837,7 @@ export default function PackTripArticle() {
           onSubmit={submitWalked}
           onClose={closeWalkedPopup}
           rewardPoints={votes[trail.id] ? undefined : RATE_PROMPT_POINTS}
+          reward={walkedReward}
         />
       )}
 
