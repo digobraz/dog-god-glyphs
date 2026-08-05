@@ -83,7 +83,7 @@ import {
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profilePointsFor, addedByMeIds, isFounderEmail,
   approvedAddedIds, ratedCountFor, walkPointsFor,
-  RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating, discoveryBonusFor, bonusToastText,
+  RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import { packStorage } from '@/lib/packStore';
@@ -1870,7 +1870,10 @@ export default function PackMap() {
     const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
     const byAuthor = addedByMeIds(walkedTrails, { ownerName: owner, isFounder: isFounderEmail(email) });
     const addedIds = approvedAddedIds([...byAuthor, ...localTrails.map((tr) => tr.id)]);
-    return profilePointsFor(walkedTrails, { addedIds, ratings: ratedCountFor(walkedTrails, votes) });
+    // `countries` MUSÍ ísť dnu (2026-08-06): bez neho padá `profilePointsFor` na default „1 krajina",
+    // takže level v hlavičke mapy ignoroval +30 za každú ďalšiu krajinu — a odhalenie po ✓ ich
+    // pritom sľubuje. Vysvedčenie (TripStatsPanel) ich počítalo správne → dva rôzne levely.
+    return profilePointsFor(walkedTrails, { addedIds, ratings: ratedCountFor(walkedTrails, votes), countries: walkedCountries(walkedTrails) });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
   }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session]);
@@ -1969,7 +1972,7 @@ export default function PackMap() {
     // `walkedIds` je v tomto momente ešte stará množina — presne to potrebujeme.
     const tr = trailsById(tid);
     const reward: WalkReward | null = tr
-      ? { base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
+      ? { tid, base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
       : null;
     setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
@@ -3356,6 +3359,8 @@ export default function PackMap() {
       {addEntryOpen && (
         <AddTripEntry onPick={pickAddFlow} onClose={closeAddEntry} />
       )}
+      {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by
+          odmena za trasu A vyskočila v popupe trasy B. */}
       {walkedPopupId && (
         <WalkedPopup
           trailName={trailsById(walkedPopupId)?.name ?? t('pack.map.thisTrip')}
@@ -3363,7 +3368,7 @@ export default function PackMap() {
           onSubmit={submitWalked}
           onClose={closeWalkedPopup}
           rewardPoints={votes[walkedPopupId] ? undefined : RATE_PROMPT_POINTS}
-          reward={walkedReward}
+          reward={walkedReward?.tid === walkedPopupId ? walkedReward : null}
         />
       )}
       {creatorTrail && (

@@ -1809,7 +1809,7 @@ export const en = {
   'pack.community.logWalkBtn': "Log this walk",
   // 2026-08-05: číslo vyšlo z nadpisu von do béžovej pilulky nad labkami (Matej: „to rate it
   // +3? je úplne stratené"). Nadpis ostal vetou — bez `{n}`.
-  'pack.community.rateRewardTitle': "Rate it and earn 🐾",
+  'pack.community.rateRewardTitle': "Rate it and earn points",
   'pack.community.rewardEyebrow': "You earned",
   'pack.community.notNowBtn': "Not now",
   'pack.profileCard.removeTag': "Remove {tag}",
@@ -1831,7 +1831,6 @@ export const en = {
   'pack.map.myDogFallback': "My dog",
   'pack.map.errorPhotosStorage': "Couldn't save — photos are too large for this device's storage. Remove a few and try again.",
   'pack.map.levelTooltip': "{points} pts · {toNext} to {nextLevel}\n{rows}",
-  'pack.map.lvl': "Lvl",
   'pack.map.tripStatsTitle': "Your trip stats — world, home & walked",
   'pack.map.openTriplist': "Open your triplist",
   'pack.map.triplist': "Triplist",

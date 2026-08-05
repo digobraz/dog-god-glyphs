@@ -11,7 +11,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import {
   DIFFICULTIES, CROWDS, CROWD_EMOJI, VOLUME_THRESHOLD, SK_GEO, HAZARDS, HAZARD_EMOJI,
   computeCompletion, unitsForTrail, isMyEvent, profilePointsFor, addedByMeIds, isFounderEmail,
-  approvedAddedIds, ratedCountFor, readVotes,
+  approvedAddedIds, ratedCountFor, readVotes, walkedCountries,
   type Difficulty, type Crowd, type Hazard, type CrowdAgg, type PartnerEvent, type TripPlan,
   type SlovakiaCompletion, type MockPerson, type GeoCategory, type DiscoveryBonus,
 } from '@/components/pack/packCommunity';
@@ -535,8 +535,13 @@ function Modal({ title, sub, onClose, wide, children }: {
 // „Ohodnotiť" z toastu / úprava starého hodnotenia), kde by sľubovanie bodov klamalo.
 export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Crowd; comment: string; when: string; hazards: Hazard[]; }
 
-/** Čo padlo za práve zapísané prejdenie: základ (vždy) + objavenia (len prvýkrát). */
-export interface WalkReward { base: number; bonuses: DiscoveryBonus[] }
+/**
+ * Čo padlo za práve zapísané prejdenie: základ (vždy) + objavenia (len prvýkrát).
+ * `tid` je povinné — odmena patrí KONKRÉTNEMU výletu, nie „poslednému, čo sa odškrtol".
+ * Bez neho vedela odmena za trasu A vyskočiť v popupe trasy B (utíšená ponuka → ✓ A skončí
+ * v toaste, `walkedReward` ostane visieť, a `onRequestWalk` z komentárov otvorí popup pre B).
+ */
+export interface WalkReward { tid: string; base: number; bonuses: DiscoveryBonus[] }
 
 /**
  * ODMENA PO ✓ — základ béžovo, objavenia zlato a s dopočítaním (zadanie §3b).
@@ -987,7 +992,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // SK taxonómia (pohoria/NP/CHKO/vrcholy/vody) sa počíta LEN zo slovenských výletov — je to
   // slovenský zoznam a cudzí výlet doň aj tak nikdy nič nepridal.
   const completion = useMemo(() => computeCompletion(byCountry.get('sk') ?? []), [byCountry]);
-  const countriesTraveled = byCountry.size;
+  // `walkedCountries()`, nie `byCountry.size` — to isté číslo musí mať hlavička mapy aj tento
+  // panel z JEDNEJ funkcie, inak sa levely rozídu (stalo sa, 2026-08-06).
+  const countriesTraveled = walkedCountries(walkedTrails);
   const peaksDone = completion.categories.find((c) => c.key === 'peaks')?.done ?? [];
   const highest = peaksDone[0] ?? '—';
   // per-unit rozbaliteľný dropdown (Slice A bod 2) — jedna otvorená naraz, identifikovaná

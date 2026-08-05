@@ -507,6 +507,16 @@ export function walkPointsFor(tr: { id: string; km?: string | number; ascentM?: 
   }).total;
 }
 
+/**
+ * Koľko RÔZNYCH krajín človek prešiel. Vlastná funkcia zámerne (2026-08-06): dovtedy si to
+ * TripStatsPanel počítal sám a hlavička mapy VÔBEC — `profilePointsFor` tam dostávala default
+ * „1 krajina", takže mapa a vysvedčenie ukazovali iný level, len čo mal niekto výlet v druhej
+ * krajine. Presne ten rozchod, kvôli ktorému už raz vznikla `profilePointsFor` (mapa mala
+ * zadrôtované „Pútnik Lvl 1") a kvôli ktorému zomrel PawInput/PawPicker/PawRating.
+ */
+export const walkedCountries = (walkedTrails: HeroTrail[]): number =>
+  new Set(walkedTrails.map((tr) => trailCountry(tr))).size;
+
 // ── ODMENA PO ✓: ZÁKLAD + BONUS ZA OBJAVENIE (2026-08-05, zadanie §3b) ──────
 // Tlačidlo je SĽUB pred akciou, a sľub musí platiť VŽDY — preto na ňom stojí len `walkPointsFor`
 // (5 + km + stúpanie). Keby prvý Choč sľuboval +37 a druhý +27, appka pri druhom výlete vyzerá,

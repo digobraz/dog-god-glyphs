@@ -154,10 +154,9 @@ const CSS = `
   /* Cinzel 700 uppercase s .06em sa v SK („Označiť ako prejdené", 20 znakov) na 390 px nezmestí
      ani po zmrštení susedov — chýbalo 16 px. Rozpal písmen je jediné, čo sa dá ubrať bez toho,
      aby sa buď skrátil text, alebo zmizla pilulka. Cinzel a veľkosť ostávajú. */
-  .pta-acts .pta-actbtn-label{letter-spacing:.01em;}
+  .pta-acts .pta-actbtn-label{letter-spacing:.01em;min-width:0;overflow:hidden;text-overflow:ellipsis;}
   .pta-acts .pta-actbtn--gold .pta-actbtn-label,.pta-acts .pta-actbtn--blue .pta-actbtn-label{display:none;}
   .pta-acts .pta-actbtn--ghost,.pta-acts .pta-actbtn--green{flex:1 1 auto;min-width:0;overflow:hidden;}
-  .pta-acts .pta-actbtn-label{overflow:hidden;text-overflow:ellipsis;}
   .pta-acts.collapsed{position:fixed;left:auto;right:14px;bottom:auto;top:50%;transform:translateY(-50%);flex-direction:column;padding:0;gap:10px;z-index:45;}
   .pta-acts.collapsed .pta-actwrap{flex:0 0 auto;}
   .pta-acts.collapsed .pta-actbtn{flex:0 0 auto;width:42px;height:42px;padding:0;border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45);}
@@ -415,7 +414,7 @@ export default function PackTripArticle() {
     // ako v PackMap.tsx — jedna funkcia `discoveryBonusFor`, dva povrchy.
     const tr = allTrails.find((x) => x.id === tid);
     const reward: WalkReward | null = tr
-      ? { base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
+      ? { tid, base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
       : null;
     setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
@@ -837,7 +836,7 @@ export default function PackTripArticle() {
           onSubmit={submitWalked}
           onClose={closeWalkedPopup}
           rewardPoints={votes[trail.id] ? undefined : RATE_PROMPT_POINTS}
-          reward={walkedReward}
+          reward={walkedReward?.tid === trail.id ? walkedReward : null}
         />
       )}
 
