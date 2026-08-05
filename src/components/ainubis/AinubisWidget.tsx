@@ -4,6 +4,7 @@ import { X, Send, Paperclip, Mic, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
+import { AINUBIS_OPEN_EVENT } from '@/lib/ainubisBus';
 import ainubisFace from '@/assets/ainubis-badge.png';
 import './AinubisWidget.css';
 
@@ -350,6 +351,23 @@ function AinubisWidgetInner() {
   useEffect(() => {
     openRef.current = open;
   }, [open]);
+
+  // Otvorenie zvonku (dlaždica AINUBIS na `/pack` homepage, neskôr wizard) — viď
+  // `lib/ainubisBus.ts`. Zámerne len OTVÁRA, netoggluje: keď je panel už otvorený,
+  // druhý klik na dlaždicu ho nesmie zavrieť (človek klikol „chcem poradiť", nie
+  // „zavri to"). Nezávislé od `handleToggleOpen`, ktoré patrí launcheru.
+  useEffect(() => {
+    const onOpen = () => {
+      if (openRef.current) return;
+      setOpen(true);
+      setUnreadCount(0);
+      safeLocalStorageSet(LS_OPEN, '1');
+      safeLocalStorageSet(LS_LAST_SEEN, new Date().toISOString());
+      window.setTimeout(() => textareaRef.current?.focus(), 50);
+    };
+    window.addEventListener(AINUBIS_OPEN_EVENT, onOpen);
+    return () => window.removeEventListener(AINUBIS_OPEN_EVENT, onOpen);
+  }, []);
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);

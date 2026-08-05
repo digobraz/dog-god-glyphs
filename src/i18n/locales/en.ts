@@ -1094,6 +1094,13 @@ export const en = {
   'pack.layout.profileAriaLabel': "Profile",
   'pack.layout.yourAvatarAlt': "Your avatar",
   // pack.tree
+  'pack.tiles.ariaLabel': "Quick access",
+  'pack.tiles.map.title': "Map",
+  'pack.tiles.map.sub': "{count} trails to walk",
+  'pack.tiles.dogma.title': "DOGMA",
+  'pack.tiles.dogma.sub': "Constitution",
+  'pack.tiles.ainubis.title': "AINUBIS",
+  'pack.tiles.ainubis.sub': "Ask anything",
   'pack.tree.addDog': "Add dog",
   'pack.tree.addHumanMember': "Add human member",
   'pack.tree.addHumanMemberTooltip': "Coming soon — invite one human member",

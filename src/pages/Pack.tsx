@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
@@ -6,23 +6,40 @@ import { PACK_THEME } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
 import { PackSettings } from '@/components/pack/PackSettings';
 import { PackTree } from '@/components/pack/PackTree';
-import { FeatureSurveyCard } from '@/components/pack/FeatureSurveyCard';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
-import { OnboardingProgress, type OnboardingStep } from '@/components/pack/OnboardingProgress';
-import { ConstitutionCard } from '@/components/pack/ConstitutionCard';
-import { BuildNotice } from '@/components/pack/BuildNotice';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { PackShareCard } from '@/components/pack/PackShareCard';
 import { NextTripCard } from '@/components/pack/NextTripCard';
+import { QuickTiles } from '@/components/pack/QuickTiles';
 import { DEV_FULL } from '@/lib/packFlags';
-import { markConstitutionOpened } from '@/lib/constitutionRead';
 import { EDGE_BASE } from '@/lib/env';
 
 const T = PACK_THEME;
 
 const STATS_EDGE = `${EDGE_BASE}/get-pack-stats`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HOMEPAGE /pack — prestavba 2026-08-05 (Matej: „juicy ale nie preplnený…
+// menej je viac"). Oblúk stránky: JA → DNES → KAM IDEM → KTO SME → ŠÍR TO.
+//
+// ČO ODIŠLO A PREČO (nemazať späť bez Mateja):
+//   · OnboardingProgress („First Steps")  → preberá AINUBIS v úvodnom wizarde.
+//     S ním odišiel aj jednorazový `grant-devotion { kind: 'first_steps' }` (+10 ☥)
+//     — bez zoznamu krokov nemá čo odmeňovať. Edge funkcia zostáva nedotknutá.
+//   · BuildNotice („thank you for patience") → Matej: „je vlastne ai nubis".
+//   · FeatureSurveyCard („shape the app")   → odložené, nie zmazané; komponent žije.
+//   · ConstitutionCard (veľká karta DOGMY)  → zmenšená do dlaždice v `QuickTiles`
+//     (rovnaká obálka knihy, rovnaký `markConstitutionOpened` zápis).
+//
+// ČO ZOSTALO ZÁMERNE:
+//   · GlobePulse — TransparentStats (pokladnica €11) žije VNÚTRI neho; vyhodiť
+//     planétu = vyhodiť transparentnosť financií, čo je pilier misie.
+//   · PackSettings — NEMÔŽE odísť do `/pack/profile`, kým je profil za `DEV_FULL`:
+//     člen by stratil odhlásenie aj zmenu hesla a rozbil by sa post-payment
+//     deep-link `/pack?welcome=1`, ktorý tu otvára modál na nastavenie hesla.
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface DogRow {
   id: string;
@@ -75,31 +92,6 @@ export default function Pack() {
   const [dogs, setDogs] = useState<DogRow[] | null>(null);
   const [stats, setStats] = useState<PackStats | null>(null);
   const [user, setUser] = useState<UserMeta | null>(null);
-  const [featureVotes, setFeatureVotes] = useState<Record<string, number>>({});
-  const [hasVoted, setHasVoted] = useState(false);
-  const [hasReferral, setHasReferral] = useState(false);
-  // „Prelistuj DOGMU" — flag píše ConstitutionCard / ConstitutionBook. localStorage = okamžitá
-  // odozva na tomto zariadení, user_metadata.constitution_opened = trvalý per-user zdroj
-  // (bez neho quest na druhom zariadení/prehliadači zmizol — sťažnosť zákazníčky 2026-07-30).
-  const [constitutionOpened, setConstitutionOpened] = useState(() => {
-    try { return localStorage.getItem('dogypt_constitution_opened') === '1'; } catch { return false; }
-  });
-
-  // Karta DOGMA sa otvára v novom tabe (target="_blank") → po návrate sa /pack sám
-  // neprekreslí a fajočka zostala prázdna aj po prečítaní. Pri návrate flag prečítame znova.
-  useEffect(() => {
-    const sync = () => {
-      try {
-        if (localStorage.getItem('dogypt_constitution_opened') === '1') setConstitutionOpened(true);
-      } catch { /* ignore */ }
-    };
-    window.addEventListener('focus', sync);
-    document.addEventListener('visibilitychange', sync);
-    return () => {
-      window.removeEventListener('focus', sync);
-      document.removeEventListener('visibilitychange', sync);
-    };
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -116,29 +108,14 @@ export default function Pack() {
       const devotion = Number(meta.devotion) || 100;
       const display = firstNameFrom(u.email ?? '', fullName);
       if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones: 0 });
-      if (mounted && meta.constitution_opened) setConstitutionOpened(true);
 
-      // First Steps — extra completion signals (best-effort, non-blocking).
-      // "Cast your vote in Shape" → any row in feature_votes for this user.
-      (supabase as unknown as {
-        from: (t: string) => {
-          select: (cols: string) => {
-            eq: (col: string, val: string) => Promise<{ data: { feature_key: string }[] | null }>;
-          };
-        };
-      })
-        .from('feature_votes')
-        .select('feature_key')
-        .eq('user_id', u.id)
-        .then(({ data }) => { if (mounted) setHasVoted((data ?? []).length > 0); });
-
-      // Affiliate → referral signal + BONES balance (affiliates.points).
+      // BONES balance (affiliates.points) — zdroj čísla v HeroCard. Referral count
+      // sa tu už nečíta: živil len „Invite a dog lover" krok vo First Steps.
       supabase
         .rpc('get_or_create_my_affiliate')
         .then(({ data }) => {
-          const row = (data as { referral_count?: number; points?: number }[] | null)?.[0];
+          const row = (data as { points?: number }[] | null)?.[0];
           if (!mounted) return;
-          setHasReferral((row?.referral_count ?? 0) > 0);
           setUser((u) => (u ? { ...u, bones: Number(row?.points) || 0 } : u));
         });
 
@@ -174,7 +151,6 @@ export default function Pack() {
         const j = (await res.json()) as PackStats;
         if (!mounted) return;
         setStats(j);
-        setFeatureVotes(j.featureVotes ?? {});
       } catch {
         // best-effort
       }
@@ -186,54 +162,6 @@ export default function Pack() {
       mounted = false;
     };
   }, []);
-
-  const onboardingSteps: OnboardingStep[] = (() => {
-    const list = dogs ?? [];
-    const hasDog = list.length > 0;
-    const hasExtras = list.some((d) => (d.cloudinary_extras ?? []).length > 0);
-    const hasAvatar = !!user?.avatarUrl;
-    return [
-      { label: t('pack.steps.forgeHeroglyph'), done: hasDog },
-      { label: t('pack.steps.addPhoto'), done: hasAvatar },
-      { label: t('pack.steps.addExtraPhotos'), done: hasExtras },
-      { label: t('pack.steps.castVote'), done: hasVoted },
-      {
-        label: t('pack.steps.flipConstitution'),
-        done: constitutionOpened,
-        href: 'https://dogma.dogypt.com',
-        onAction: markConstitutionOpened,
-      },
-      { label: t('pack.steps.inviteDogLover'), done: hasReferral },
-    ];
-  })();
-
-  // When every First Step is done, credit the one-time +10 ☥ (idempotent server-side).
-  const allStepsDone = onboardingSteps.every((s) => s.done);
-  const firstStepsGranted = useRef(false);
-  useEffect(() => {
-    if (!allStepsDone || firstStepsGranted.current) return;
-    firstStepsGranted.current = true;
-    (async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const res = await fetch(`${EDGE_BASE}/grant-devotion`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session?.access_token ?? ''}`,
-            apikey: (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ?? '',
-          },
-          body: JSON.stringify({ kind: 'first_steps' }),
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (typeof json?.total === 'number') {
-            window.dispatchEvent(new CustomEvent('dogypt:devotion', { detail: { total: json.total } }));
-          }
-        }
-      } catch { /* non-blocking */ }
-    })();
-  }, [allStepsDone]);
 
   const ownerInitial = (user?.name?.[0] || user?.email?.[0] || 'D').toUpperCase();
   const treeDogs = (dogs ?? []).map((d) => ({
@@ -274,7 +202,9 @@ export default function Pack() {
     <PackLayout wide>
       <PackAnimations />
       {/* PackWizard PARKED z launchu (2026-06-22) — DEV-only, v produkčnom Lovable builde
-          sa nevykreslí. NEMAZAŤ: po launchi sa vráti (možno upravený). Návrat = zmaž import.meta.env.DEV gate. */}
+          sa nevykreslí. NEMAZAŤ: po launchi sa vráti ako AINUBIS sprievodca (Matej 5.8.).
+          ⚠️ Jeho posledný krok mieril na `#wiz-steps` (First Steps), ktoré týmto redizajnom
+          zanikli — spotlight tam už nemá čo zvýrazniť. Rieši sa pri prestavbe na AINUBISA. */}
       {import.meta.env.DEV && (
         <PackWizard primaryDogId={primaryDog?.id ?? null} primaryDogName={primaryDog?.dog_name ?? null} />
       )}
@@ -283,7 +213,7 @@ export default function Pack() {
         {/* Ambient drifting orbs */}
         <AmbientOrbs />
 
-        {/* Row 1 — Owner LEFT, Pack RIGHT — equal heights */}
+        {/* ── JA — majiteľ VĽAVO, svorka VPRAVO, rovnaké výšky ── */}
         <div className="relative grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-stretch">
           <div id="wiz-hero" style={{ display: 'flex', flexDirection: 'column' }}>
             {user && (
@@ -313,43 +243,36 @@ export default function Pack() {
           </div>
         </div>
 
-        {/* Next up — nearest planned trip (or an invite into the map when nothing's planned yet).
-            ⚠️ Za DEV_FULL zámerne: `/pack` je LIVE, ale `/pack/map` ešte nie. Bez tejto podmienky
-            by každý platiaci člen videl kartu, ktorej jediné tlačidlo („Explore the map") vedie na
-            routu, čo ho hodí späť na `/pack` — slepá ulička. Karta sa objaví v ten istý moment ako
-            mapa, keď flag padne. */}
+        {/* ── DNES — najbližší plánovaný výlet (alebo pozvánka do mapy) ──
+            ⚠️ Za DEV_FULL zámerne: `/pack` je LIVE, ale `/pack/map` ešte nie. Bez tejto
+            podmienky by každý platiaci člen videl kartu, ktorej jediné tlačidlo („Explore
+            the map") vedie na routu, čo ho hodí späť na `/pack` — slepá ulička. Karta sa
+            objaví v ten istý moment ako mapa, keď flag padne. */}
         {DEV_FULL && <NextTripCard />}
 
-        {/* Share card — primary dog's ready-made social image (SHARE + DOWNLOAD) */}
-        {primaryDog && (
-          <PackShareCard dogName={primaryDog.dog_name} packNumber={primaryDog.pack_number ?? null} shareCardUrl={primaryDog.share_card_url} />
-        )}
+        {/* ── KAM IDEM — pás rýchleho prístupu (MAPA · DOGMA · AINUBIS) ──
+            Jediné miesto, kam sa pridávajú nové ciele appky. Rastie o objekt v poli,
+            nie o novú sekciu na homepage. */}
+        <QuickTiles />
 
-        {/* Sacred interlude — verse of the day from the Constitution (rotates daily) */}
+        {/* Sacred interlude — verš dňa z ústavy (rotuje denne) */}
         <VerseOfTheDay />
 
-        {/* Full-width — planéta + počítadlo + TOP krajiny */}
+        {/* ── KTO SME — planéta + míľniky + TOP krajiny + POKLADNICA ── */}
         <div id="wiz-globe">
           <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
         </div>
 
-        {/* Row 2 — dotazník (blok 4) LEFT | Hekthor pozvánka (blok 5) RIGHT.
-            Mobile: survey nad Hekthorom. */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-7 items-stretch">
-          <FeatureSurveyCard votes={featureVotes} onVotesChange={setFeatureVotes} />
-          <FounderInvite />
-        </div>
+        {/* ── ŠÍR TO ĎALEJ — pozvánka do svorky + hotová share karta psa ──
+            Zámerne až tu (Matej 5.8.: „grow the pack sa hodí, ale skombinovať to aj so
+            share hekthor"): najprv nech člen vidí, čo dostal a prečo to existuje, až
+            potom ho žiadame, aby pozval kamaráta. */}
+        <FounderInvite />
+        {primaryDog && (
+          <PackShareCard dogName={primaryDog.dog_name} packNumber={primaryDog.pack_number ?? null} shareCardUrl={primaryDog.share_card_url} />
+        )}
 
-        {/* Row 3 — First Steps | Constitution (DOGMA) | Build notice — rovnaké výšky */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-7 items-stretch">
-          <div id="wiz-steps" style={{ display: 'flex', flexDirection: 'column' }}>
-            <OnboardingProgress steps={onboardingSteps} />
-          </div>
-          <ConstitutionCard />
-          <BuildNotice ownerName={displayName} email={user?.email ?? null} />
-        </div>
-
-        {/* Account / settings — celý profil presunutý sem (profil stránka zrušená z live) */}
+        {/* Účet / nastavenia — ostáva na homepage, kým je `/pack/profile` za DEV_FULL */}
         <PackSettings />
 
         <div style={{ height: 32 }} />
