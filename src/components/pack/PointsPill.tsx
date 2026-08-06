@@ -12,11 +12,13 @@
 // (`.trp-photoact-pts` v PackMap, `.pta-actbtn-pts` v PackTripArticle, číslo v nadpise
 // WalkedPopupu) a všetky tri vyzerali inak. Rovnaká chyba ako PawInput/PawPicker/PawRating.
 //
-// DVE FARBY = DVA DRUHY BODOV (zadanie §3b):
+// DRUH BODOV URČUJE FARBU (zadanie §3b):
 //   base  → béžová · body zarobené nohami (5 + km + stúpanie). Vieš ich dopredu, sľubuje ich
 //           tlačidlo, padnú VŽDY.
 //   bonus → zlatá  · objavenie (nové pohorie / NP / CHKO / voda / krajina / zbierka). Padne
 //           LEN prvýkrát, preto na tlačidle nesmie byť — odhalí sa až po ✓.
+//   lapis → modrá  · to isté čo `base`, ale NA PAPYRUSOVOM podklade (bledý blok), kde by
+//           béžová zanikla. Nie je to tretí DRUH bodov, je to `base` na inom pozadí.
 //
 // Použitie si musí injektnúť `POINTS_PILL_CSS` (rovnaký vzor ako GLASS_CSS v packTheme.ts).
 
@@ -44,6 +46,21 @@ export const POINTS_PILL_CSS = `
   background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#241a06;
   border:1px solid rgba(250,244,236,0.30);
   box-shadow:0 2px 10px rgba(230,158,26,0.45);
+}
+/* NA PAPYRUSE — LAPIS LAZULI. Béžová pilulka na béžovom podklade zanikne; čierna to vyriešila,
+   ale Matej 2026-08-06: „ta pils s tými bodmi daj ju farebne nie čierne! modrá/zelená".
+   Vybraná MODRÁ, nie zelená, z dvoch dôvodov:
+   1. zelená je v tomto UI už obsadená — chip „Easy" v Náročnosti má zelenú bodku, druhý
+      zelený prvok na tej istej obrazovke by niesol falošný vzťah;
+   2. lapis lazuli je ikonický egyptský pigment (Tutanchamónova maska), takže to nie je cudzia
+      farba nalepená na brand, ale rozšírenie, ktoré do sveta DOGYPTU patrí.
+   Gradient v rovnakom uhle 135deg ako .btn-gold a .pts-pill--bonus — nový uhol sa nezavádza.
+   ⚠️ Toto je PRVÁ farba mimo trojice zlatá/čierna/papyrus v brand v3.2. Keď sa bude paleta
+   dopĺňať inde, vychádzaj odtiaľto, nevymýšľaj druhú modrú. */
+.pts-pill--lapis{
+  background:linear-gradient(135deg,#3A7BC8,#1E5AA8);color:${PILL_BEIGE};
+  border:1px solid rgba(245,240,228,0.28);
+  box-shadow:0 2px 10px rgba(30,90,168,0.45);
 }
 .pts-pill--sm{font-size:10.5px;padding:3px 7px;}
 .pts-pill--md{font-size:13px;padding:6px 13px;}
@@ -83,8 +100,8 @@ function useCountUp(value: number, animate: boolean, ms = 620): number {
 export interface PointsPillProps {
   /** Kladné celé číslo bodov. `+` sa dopisuje sám. */
   value: number;
-  /** base = zarobené nohami (béžová) · bonus = objavenie (zlatá). */
-  tone?: 'base' | 'bonus';
+  /** base = zarobené nohami (béžová) · bonus = objavenie (zlatá) · lapis = base NA PAPYRUSE (modrá). */
+  tone?: 'base' | 'bonus' | 'lapis';
   size?: 'sm' | 'md' | 'lg';
   /** Dopočítať 0 → value pri objavení sa (len bonus po ✓). */
   animate?: boolean;

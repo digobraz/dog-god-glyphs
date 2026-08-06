@@ -35,7 +35,7 @@ import {
 } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  walkPointsFor, RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating, discoveryBonusFor, bonusToastText,
+  walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
   type TripVote, type TripPlan, type PartnerEvent, type CrowdSlice,
 } from '@/components/pack/packCommunity';
 import {
@@ -414,27 +414,15 @@ export default function PackTripArticle() {
     // ako v PackMap.tsx — jedna funkcia `discoveryBonusFor`, dva povrchy.
     const tr = allTrails.find((x) => x.id === tid);
     const reward: WalkReward | null = tr
-      ? { tid, base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
+      ? { tid, ...walkRewardBase(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
       : null;
     setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
-    // Ponuka hodnotenia vyskočí sama (2026-08-05) — a pri odškrtávaní dávky sa utíši, viď
-    // `shouldPromptRating` v packCommunity.ts. Popup nič nepodmieňuje, prejdenie je zapísané.
-    if (shouldPromptRating()) { setWalkedPopupOpen(true); return; }
-    const bonusTxt = bonusToastText(reward?.bonuses ?? [], t);
-    toast({
-      description: reward
-        ? `${t('pack.map.toastMarkedWalkedPts', { pts: reward.base })}${bonusTxt ? ` · ${bonusTxt}` : ''}`
-        : t('pack.map.toastMarkedWalked'),
-      action: (
-        <ToastAction altText={t('pack.map.toastRateIt')} onClick={() => setWalkedPopupOpen(true)}>
-          {t('pack.map.toastRateIt')}
-        </ToastAction>
-      ),
-    });
+    // Ponuka hodnotenia ide VŽDY (2026-08-06) — rovnako ako na mape. Odmenu aj objavenia
+    // ukáže samotný popup, takže toast by len zdvojoval to isté číslo.
+    setWalkedPopupOpen(true);
   };
   const closeWalkedPopup = () => {
-    if (trail && !votes[trail.id]) muteRatePrompt();
     setWalkedPopupOpen(false);
     setWalkedReward(null);
   };

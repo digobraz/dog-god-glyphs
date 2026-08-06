@@ -338,9 +338,14 @@ function AvatarNavButton({ avatarUrl, avatarInitial, dogs = [] }: { avatarUrl?: 
             onClick={() => { setOpen(false); navigate('/pack/profile'); }}
             thumb={<MiniAvatar avatarUrl={avatarUrl} avatarInitial={avatarInitial} />}
           />
+          {/* ⚠️ Cieľ opravený 2026-08-06: mierilo to na `/pack/profile#my-gods` — kotvu bloku
+              „OH, MY DOG!", ktorý v ten deň z profilu ZANIKOL. Odkaz teda nespadol na 404, ale
+              ticho otvoril profil bez toho bloku a vyzeralo to, že hub neexistuje (Matej:
+              „po kliknutí na moja svorka = otvorí mi profil nevidím ten náš hub"). Mŕtva kotva
+              je horšia než mŕtvy odkaz — nič nezlyhá, len ťa to odvedie inam. */}
           <AvatarMenuItem
             label={t('pack.tree.title')}
-            onClick={() => { setOpen(false); navigate('/pack/profile#my-gods'); }}
+            onClick={() => { setOpen(false); navigate('/pack/dogs'); }}
             thumb={<MiniDogStack dogs={dogs} />}
           />
         </div>

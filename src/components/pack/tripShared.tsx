@@ -17,9 +17,38 @@ export const ICON = (n: string) => `/icons/pack/${n}.svg`;
 export const AUTHOR_FALLBACK = 'Hekthor & Matej';
 export const authorOf = (tr: HeroTrail) => tr.author || AUTHOR_FALLBACK;
 
-// macro-región (West/Center/East) pre pohorie (tr.region) — zatiaľ len Malé/Biele Karpaty
-// namapované (jediné pohoria v aktuálnych dátach), Center/East čakajú na budúce tripy.
-export const REGION_OF: Record<string, 'West' | 'Center' | 'East'> = { 'Malé Karpaty': 'West', 'Biele Karpaty': 'West' };
+// macro-región (West/Center/East) pre pohorie (`tr.region`).
+//
+// ⚠️ OPRAVENÉ 2026-08-06 (Matej: „ked dam filter region a stred nenajde žiadny vylet"). Tabuľka
+// niesla LEN Malé + Biele Karpaty s komentárom „jediné pohoria v aktuálnych dátach" — to platilo
+// pri jej vzniku, ale dataset medzitým narástol na 12 pohorí. Filter regiónu preto na Stred aj
+// Východ vracal prázdno, hoci výlety tam sú. Nebola to chyba filtra, ale ZASTARANÝ ČÍSELNÍK.
+//
+// Pri pridaní pohoria do `plany/trails-nahadzovac-state.json` sem MUSÍ pribudnúť riadok, inak
+// výlet vypadne z regiónového filtra a nikto si toho nevšimne (chýbajúci kľúč = `undefined`,
+// čo sa nikdy nerovná zvolenému regiónu → ticho zmizne).
+// Kontrola po zmene datasetu:
+//   node -e "…heroTrails.generated.ts → unikátne tr.region → porovnaj s kľúčmi nižšie"
+//
+// Delenie je turistické, nie administratívne: Vysoké Tatry ležia v Prešovskom kraji (teda
+// „východ" podľa krajov), ale patria do tatranského oblúka spolu so Západnými a Nízkymi
+// Tatrami — rozdeliť Tatry medzi dva regióny by človeka, ktorý ich hľadá, len mýlilo.
+export const REGION_OF: Record<string, 'West' | 'Center' | 'East'> = {
+  // ZÁPAD
+  'Malé Karpaty': 'West',
+  'Biele Karpaty': 'West',
+  'Považský Inovec': 'West',
+  'Strážovské vrchy': 'West',
+  // STRED
+  'Malá Fatra': 'Center',
+  'Veľká Fatra': 'Center',
+  'Chočské vrchy': 'Center',
+  'Nízke Tatry': 'Center',
+  'Západné Tatry': 'Center',
+  'Vysoké Tatry': 'Center',
+  // VÝCHOD
+  'Volovské vrchy': 'East',
+};
 
 // gold-tint filter pre čierne SVG ikony na tmavom pozadí — rovnaká hodnota ako BrandIcon.tsx
 // `gold` variant (viď src/components/pack/BrandIcon.tsx). Potrebné pre rating packy (bod 4).

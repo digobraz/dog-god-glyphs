@@ -267,6 +267,11 @@ export default function Pack() {
           </div>
         </div>
 
+        {/* MODLITBY (denný rituál) — ZATIAĽ CELKOM PREČ (Matej 6.8.2026: „tieto motlitby
+            sme si povedali že sa rušia (zatial celkom preč)"). Z karty psa odišli a na homepage
+            sa NEMOUNTUJÚ. Kód nie je zmazaný — parkuje v `components/pack/DailyPrayers.tsx`,
+            aby sa dal vrátiť, až keď bude denný rituál naozaj na rade. NEMOUNTOVAŤ bez Mateja. */}
+
         {/* ── DNES — najbližší plánovaný výlet (alebo pozvánka do mapy) ──
             ⚠️ Za DEV_FULL zámerne: `/pack` je LIVE, ale `/pack/map` ešte nie. Bez tejto
             podmienky by každý platiaci člen videl kartu, ktorej jediné tlačidlo („Explore

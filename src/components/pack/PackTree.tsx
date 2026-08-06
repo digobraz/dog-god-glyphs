@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PACK_THEME } from './packTheme';
@@ -8,8 +9,21 @@ import { dogLifeLine } from '@/lib/dogAge';
 import { flagUrl, countryISO2 } from '@/lib/countryGeo';
 import { Sparkles } from 'lucide-react';
 import { HEALTH_COLORS, healthKeyOf, healthLabelKey } from '@/lib/dogHealth';  // bodka statusu v mriežke/stene
+import { DEV_FULL } from '@/lib/packFlags';
 
 const T = PACK_THEME;
+
+/** Nadpis bloku svorky. Zdieľaný oboma vetvami nižšie (Link vs. div), aby sa vzhľad nerozišiel. */
+const TREE_TITLE_STYLE: CSSProperties = {
+  fontFamily: "'Cinzel', serif",
+  fontSize: 17,
+  fontWeight: 700,
+  letterSpacing: '0.30em',
+  textTransform: 'uppercase',
+  color: 'hsl(45 75% 92%)',
+  marginBottom: 14,
+  textDecoration: 'none',
+};
 
 interface DogNode {
   id: string;
@@ -53,20 +67,21 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
         flexDirection: 'column',
       }}
     >
-      <div
-        className="text-center"
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 17,
-          fontWeight: 700,
-          letterSpacing: '0.30em',
-          textTransform: 'uppercase',
-          color: 'hsl(45 75% 92%)',
-          marginBottom: 14,
-        }}
-      >
-        {t('pack.tree.title')}
-      </div>
+      {/* Nadpis = DRUHÝ vstup do hubu `/pack/dogs` (Matej 6.8.: „oboje" — aj dropdown pod
+          avatarom, aj tento blok). Zámerne len nadpis, nie celý blok: kliky na psa vnútri
+          musia ísť ďalej rovno na jeho pas, nie do hubu.
+          ⚠️ Odkaz LEN za `DEV_FULL`: hub je v `App.tsx` gatovaný a bez flagu redirectuje späť
+          na `/pack` — člen by klikal na nadpis a nič by sa nedialo. Bez flagu teda ostáva
+          obyčajný nadpis, presne ako pred 6.8. */}
+      {DEV_FULL ? (
+        <Link to="/pack/dogs" className="text-center block" style={TREE_TITLE_STYLE}>
+          {t('pack.tree.title')}
+        </Link>
+      ) : (
+        <div className="text-center" style={TREE_TITLE_STYLE}>
+          {t('pack.tree.title')}
+        </div>
+      )}
 
       <div className="flex flex-col items-center flex-1 justify-center">
         {/* Owner node — hidden in 2-col layout where owner sits in HeroCard */}

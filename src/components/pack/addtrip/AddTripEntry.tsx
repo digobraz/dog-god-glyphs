@@ -1,43 +1,114 @@
-// ADD TRIP — vstupný popup (vlna 1, plany/zadanie-addtrip-flow-2026-07-27.md §4.1).
-// Dva bloky, bez nadpisu popupu: „WE'RE HEADING OUT" (plán) vs „WE'VE BEEN THERE" (log).
+// ADD — vstupný popup (vlna 1 reštruktúra, plany/zadanie-eventy-2026-08-06.md §2).
+// Dve úrovne: 1) TRIP / EVENT (Matejov feedback 2026-08-06: SERVICE dlaždica bola disabled a pri
+// troch dlaždiciach jej flex-wrap dal celú šírku popupu — vizuálne najväčší prvok bol mŕtvy. Von
+// z renderu, i18n kľúče `pack.addTrip.entry.kind.service.*` a `Kind`/`KINDS` tvar OSTÁVAJÚ —
+// SERVICE sa vráti vo vlne 2, len sa nevykresľuje). 2) pre TRIP „WE'VE BEEN THERE" (log) vs
+// „WE'RE HEADING OUT" (plán); pre EVENT „OUR OWN EVENT" vs „FROM A LINK" — rovnaký vzor druhej
+// úrovne, obe rovnako veľké a klikateľné, s tlačidlom späť.
 // Žije na tmavom povrchu Portalu → pk-glass primitív z packTheme.ts (NIE papyrus — ten je pre
 // bledé bloky podľa Entry.tsx locku, sem nepatrí).
+import { useState } from 'react';
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import type { TripState } from './addTripModel';
 
-const GOLD = '#C99A3F'; // §4.1 + §14: hover na blokoch = zlatý okraj, presne tento hex
+const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
+
+// §2: kontrakt komponentu rozšírený nad rámec TRIP-only. `kind: 'event'` teraz emituje reálnu
+// voľbu (druhá úroveň EVENT_BLOCKS) — volajúci (PackMap.tsx) ju napája na `AddEvent` formulár
+// (components/pack/events/AddEvent.tsx, krok 3 zadania).
+export type AddChoice =
+  | { kind: 'trip'; state: TripState }
+  | { kind: 'event'; origin: 'own' | 'tip' };
 
 export type AddTripEntryProps = {
-  onPick: (state: TripState) => void;
+  onPick: (choice: AddChoice) => void;
   onClose: () => void;
 };
 
-// state = cieľový TripState (addTripModel.ts) po výbere bloku — 'planned' = „WE'RE HEADING OUT",
-// 'walked' = „WE'VE BEEN THERE" (§4.1 tabuľka). titleKey/textKey — literál sa vykresľuje cez t()
-// v komponente (BLOCKS je modulová konštanta, useT() je hook a nesmie sa volať mimo komponentu).
-const BLOCKS: Array<{ state: TripState; emoji: string; titleKey: string; textKey: string }> = [
+type Kind = 'trip' | 'event' | 'service';
+
+// Prvá úroveň — dve dlaždice (Matej 2026-08-06: SERVICE preč z renderu, viď hlavičkový
+// komentár). `Kind`/`disabled` tvar ostáva nezmenený pre vlnu 2 — SERVICE sa vtedy len pridá
+// späť do tohto poľa, nič iné sa v komponente meniť nemusí.
+const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean }> = [
+  { kind: 'trip', emoji: '🥾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text' },
+  { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text' },
+];
+
+// Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa
+// presúva sem, §2.2).
+const TRIP_BLOCKS: Array<{ state: TripState; emoji: string; titleKey: string; textKey: string }> = [
   { state: 'planned', emoji: '🗓️', titleKey: 'pack.addTrip.entry.planned.title', textKey: 'pack.addTrip.entry.planned.text' },
   { state: 'walked', emoji: '✅', titleKey: 'pack.addTrip.entry.walked.title', textKey: 'pack.addTrip.entry.walked.text' },
 ];
 
+// Druhá úroveň pre EVENT (§2.2 + Matejov feedback 2026-08-06) — rovnaký vzor ako TRIP_BLOCKS.
+const EVENT_BLOCKS: Array<{ origin: 'own' | 'tip'; emoji: string; titleKey: string; textKey: string }> = [
+  { origin: 'own', emoji: '📝', titleKey: 'pack.addTrip.entry.event.own.title', textKey: 'pack.addTrip.entry.event.own.text' },
+  { origin: 'tip', emoji: '🔗', titleKey: 'pack.addTrip.entry.event.tip.title', textKey: 'pack.addTrip.entry.event.tip.text' },
+];
+
 export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
   const t = useT();
+  const [step, setStep] = useState<'kind' | 'trip' | 'event'>('kind');
+
   return (
     <div className="att-entry-backdrop" onClick={onClose}>
       <style>{GLASS_CSS}</style>
       <style>{ENTRY_CSS}</style>
       <div className="att-entry-panel pk-glass" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <button type="button" className="att-entry-close" onClick={onClose} aria-label={t('pack.addTrip.entry.closeAriaLabel')}>×</button>
-        <div className="att-entry-blocks">
-          {BLOCKS.map((b) => (
-            <button key={b.state} type="button" className="att-entry-block" onClick={() => onPick(b.state)}>
-              <span className="att-entry-emoji" aria-hidden="true">{b.emoji}</span>
-              <span className="att-entry-title">{t(b.titleKey)}</span>
-              <span className="att-entry-text">{t(b.textKey)}</span>
-            </button>
-          ))}
-        </div>
+        {step !== 'kind' && (
+          <button type="button" className="att-entry-back" onClick={() => setStep('kind')} aria-label={t('pack.addTrip.entry.backAriaLabel')}>
+            ‹ {t('pack.addTrip.entry.backAriaLabel')}
+          </button>
+        )}
+        {step === 'kind' && (
+          <div className="att-entry-blocks att-entry-blocks-kind">
+            {KINDS.map((k) => (
+              <button
+                key={k.kind}
+                type="button"
+                className={`att-entry-block${k.disabled ? ' att-entry-block-disabled' : ''}`}
+                disabled={k.disabled}
+                aria-disabled={k.disabled}
+                onClick={() => {
+                  if (k.disabled) return;
+                  if (k.kind === 'trip') setStep('trip');
+                  if (k.kind === 'event') setStep('event');
+                }}
+              >
+                {k.disabled && <span className="att-entry-soon">{t('pack.map.comingSoon')}</span>}
+                <span className="att-entry-emoji" aria-hidden="true">{k.emoji}</span>
+                <span className="att-entry-title">{t(k.titleKey)}</span>
+                <span className="att-entry-text">{t(k.textKey)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {step === 'trip' && (
+          <div className="att-entry-blocks">
+            {TRIP_BLOCKS.map((b) => (
+              <button key={b.state} type="button" className="att-entry-block" onClick={() => onPick({ kind: 'trip', state: b.state })}>
+                <span className="att-entry-emoji" aria-hidden="true">{b.emoji}</span>
+                <span className="att-entry-title">{t(b.titleKey)}</span>
+                <span className="att-entry-text">{t(b.textKey)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+        {step === 'event' && (
+          <div className="att-entry-blocks">
+            {EVENT_BLOCKS.map((b) => (
+              <button key={b.origin} type="button" className="att-entry-block" onClick={() => onPick({ kind: 'event', origin: b.origin })}>
+                <span className="att-entry-emoji" aria-hidden="true">{b.emoji}</span>
+                <span className="att-entry-title">{t(b.titleKey)}</span>
+                <span className="att-entry-text">{t(b.textKey)}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -54,14 +125,22 @@ const ENTRY_CSS = `
 .att-entry-panel{position:relative;width:100%;max-width:640px;padding:52px 32px 32px;}
 .att-entry-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border:0;background:transparent;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
 .att-entry-close:hover{color:${GOLD};}
+.att-entry-back{position:absolute;top:18px;left:32px;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
+.att-entry-back:hover{color:${GOLD};}
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
-.att-entry-block{flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
+.att-entry-blocks-kind{flex-wrap:wrap;}
+.att-entry-blocks-kind .att-entry-block{flex:1 1 calc(50% - 9px);min-width:160px;}
+.att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
 .att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
+.att-entry-block-disabled{opacity:.42;cursor:default;}
+.att-entry-block-disabled:hover,.att-entry-block-disabled:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
+.att-entry-soon{position:absolute;top:10px;right:10px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:3px 8px;}
 .att-entry-emoji{font-size:38px;line-height:1;margin-bottom:10px;}
 .att-entry-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};margin-bottom:10px;}
 .att-entry-text{font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:210px;min-height:2.9em;display:flex;align-items:center;justify-content:center;}
 @media (max-width:640px){
   .att-entry-blocks{flex-direction:column;}
+  .att-entry-blocks-kind .att-entry-block{flex:1 1 auto;}
   .att-entry-block{padding:26px 18px;}
 }
 `;

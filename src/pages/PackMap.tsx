@@ -82,8 +82,8 @@ import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profilePointsFor, addedByMeIds, isFounderEmail,
-  approvedAddedIds, ratedCountFor, walkPointsFor,
-  RATE_PROMPT_POINTS, muteRatePrompt, shouldPromptRating, discoveryBonusFor, bonusToastText, walkedCountries,
+  approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
+  RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
 } from '@/components/pack/packCommunity';
 import { packStorage } from '@/lib/packStore';
@@ -104,10 +104,20 @@ import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pac
 // ADD TRIP flow (krok 9, plany/zadanie-addtrip-flow-2026-07-27.md §15 bod 8) — vytiahnuté z
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
-import { AddTripEntry } from '@/components/pack/addtrip/AddTripEntry';
+import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripEntry';
 import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
+// EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
+// adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
+import { AddEvent } from '@/components/pack/events/AddEvent';
+import {
+  readLocalEvents, writeLocalEvents, upcomingEvents, archivedEvents, type AddEventDraft,
+} from '@/components/pack/events/eventModel';
+// zoznam eventov v ľavom paneli + piny na mape (krok 5, plany/zadanie-eventy-2026-08-06.md §9
+// krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
+// panel ostal viazaný len na TRIP vetvu).
+import { EventsPanel } from '@/components/pack/events/EventsPanel';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -309,6 +319,14 @@ function placeholderFor(actIds: string[] | undefined, seed: string): string {
 const PLAN_PIN = L.divIcon({
   className: 'trp-planmarker',
   html: '<div class="trp-planmarker-dot"></div>',
+  iconSize: [20, 20], iconAnchor: [10, 18],
+});
+// Zlatý pin pre EVENTY (krok 5, zadanie-eventy §9 krok 5) — rovnaký teardrop tvar ako PLAN_PIN
+// (odlíšenie od trip pilulky/bodky), ALE gold namiesto ružovej — podujatie nie je výlet, farba
+// to musí povedať na prvý pohľad. `hot` = zodpovedajúca karta je vybraná (pin ↔ karta sync).
+const EVENT_PIN = (hot: boolean) => L.divIcon({
+  className: 'trp-planmarker',
+  html: `<div class="trp-eventmarker-dot${hot ? ' hot' : ''}"></div>`,
   iconSize: [20, 20], iconAnchor: [10, 18],
 });
 const DATA_TAG_TO_UI: Record<string, string> = {
@@ -782,9 +800,13 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    tooltip on hover ("Coming soon"), no inline "Soon" label anymore. Iterácia 7
    (Matejov feedback bod 1): FULL-WIDTH grid, 4 rovnaké stĺpce, edge-to-edge —
    rovnako široké ako dropdowny pod nimi. */
-.trp-cat-pills{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+/* flex + flex:1 1 0 na pilloch (NIE grid s pevným počtom stĺpcov) — rad sa sám rozdelí
+   rovnakým dielom na celú šírku pri ľubovoľnom počte. Pôvodné repeat(4,1fr) tu nechalo
+   po odobraní MIESTA prázdny štvrtý stĺpec (Matej 2026-08-06: „daj tak aby boli na celu
+   šírku nech to je pekne zrovnané"). Platí ako pravidlo pre každý rad rovnocenných prvkov. */
+.trp-cat-pills{display:flex;gap:9px;}
 /* Kategórie (Trips/Events/Places/Services) sú nadpisy sekcií, nie dáta → FONT_TITLE. */
-.trp-catpill{width:100%;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
+.trp-catpill{flex:1 1 0;min-width:0;padding:12px 8px;border-radius:10px;border:1px solid rgba(245,240,228,0.22);background:rgba(245,240,228,0.07);font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.78);cursor:pointer;white-space:nowrap;transition:all .15s;text-align:center;}
 .trp-catpill.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:#1c160c;box-shadow:0 4px 14px rgba(201,154,63,0.3);}
 .trp-catpill.soon{border-style:dashed;opacity:.5;cursor:default;position:relative;}
 .trp-catpill.soon:hover{opacity:.8;}
@@ -800,7 +822,11 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    activity. Flexbox namiesto grid-u 3 pevných stĺpcov, lebo activity musí ostať v riadku
    aj keď je región skrytý (mimo SK) — grid s 3 stĺpcami by vtedy nechal prázdnu medzeru. */
 .trp-georow{display:flex;gap:7px;}
-.trp-georow .trp-country-select{flex:0 0 72px;padding:8px 6px;}
+/* Matej 2026-08-06: „pri prvom dropdowne kde je všetko = je krátky a šípka splýva s písmom".
+   72px nestačilo na vlajku + text + natívnu šípku selectu, takže sa prekrývali. Širší základ
+   + pravý padding, ktorý drží text mimo šípky (tú kreslí OS, posunúť sa nedá — dá sa len
+   uvoľniť miesto). Ostatné dva selecty sú flex 1 1 0, takže sa o zvyšok podelia samy. */
+.trp-georow .trp-country-select{flex:0 0 104px;padding:8px 22px 8px 8px;}
 .trp-georow .trp-filter-select{flex:1 1 0;min-width:0;}
 
 /* tag chips — iterácia 8: Activity/Difficulty/Popularity presunuté hore do top filter
@@ -952,6 +978,13 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-plannedpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
 .trp-norating{font-size:22px;font-weight:600;color:rgba(245,240,228,0.35);letter-spacing:.05em;}
 .trp-planmarker-dot{width:16px;height:16px;border-radius:50% 50% 50% 0;background:#FF5FA2;border:2.5px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 7px rgba(0,0,0,0.5);}
+/* EVENT pin (krok 5, zadanie-eventy §9 krok 5) — rovnaký teardrop tvar ako trp-planmarker-dot,
+   GOLD namiesto ružovej (podujatie ≠ výlet). Trieda .hot = karta v paneli je práve vybraná.
+   ⚠️ NIKDY sem nepíš spätný apostrof — sme VNÚTRI template literalu const CSS (riadok 644)
+   a ten znak v komentári ho predčasne ukončí. Zvyšok CSS sa potom vyhodnotí ako JS a stránka
+   spadne na "... is not a function". TypeScript ani build to nechytia — je to validný JS. */
+.trp-eventmarker-dot{width:16px;height:16px;border-radius:50% 50% 50% 0;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:2.5px solid #fff;transform:rotate(-45deg);box-shadow:0 2px 7px rgba(0,0,0,0.5);}
+.trp-eventmarker-dot.hot{border-color:#000;box-shadow:0 0 0 3px rgba(245,199,61,0.45),0 2px 10px rgba(0,0,0,0.6);}
 /* plánovanie (Matej 2026-07-23): 3 date dropdowny (deň/mesiac/rok) + profil note. */
 .trp-addsetup-daterow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
 .trp-addsetup-profilenote{font-size:11.5px;line-height:1.5;color:${GOLD};background:rgba(201,154,63,0.1);border:1px solid rgba(201,154,63,0.3);border-radius:10px;padding:11px 13px;}
@@ -1608,6 +1641,9 @@ export default function PackMap() {
   // map-reveal toggle.
   const [addEntryOpen, setAddEntryOpen] = useState(false);
   const [addFlow, setAddFlow] = useState<TripState | null>(null);
+  // EVENT flow (krok 3 zadania-eventy) — rovnaký vzor ako addFlow, drží len origin ('own'/'tip');
+  // formulár samotný (AddEvent) si drží vlastný interný state.
+  const [addEventFlow, setAddEventFlow] = useState<'own' | 'tip' | null>(null);
   const [addError, setAddError] = useState('');           // chyba pri ukladaní (napr. plný localStorage)
   // bod 4 (iterácia 14, zachované): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku
   // vrátane mapy — mobileDrawing dočasne SCHOVÁ formulár (CSS display, NIE unmount — inak by
@@ -1620,6 +1656,11 @@ export default function PackMap() {
   // sessionStorage mirror (viď vyššie) nech expand na čerstvo pridaný trip nájde aj po navigate.
   const [localTrails, setLocalTrails] = useState<HeroTrail[]>(() => readLocalTrails());
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
+
+  // EVENTY pridané v tejto session (krok 3 zadania-eventy) — rovnaký lokálny mirror vzor ako
+  // localTrails vyššie; DB zápis príde až po nasadení migrácie (§9 zadania krok 2→ďalšie).
+  const [localEvents, setLocalEvents] = useState<AddEventDraft[]>(() => readLocalEvents());
+  useEffect(() => { writeLocalEvents(localEvents); }, [localEvents]);
 
   // TRIPSTATS Slice A (bod 3, Matej 2026-07-23) — add-trip z pohoria: TripStatsPanel „+ Add a
   // trip here" navigate-uje sem s ?add=<region>. Raz na mount: otvor ADD flow (log formulár —
@@ -1717,6 +1758,24 @@ export default function PackMap() {
   const [creatorTrail, setCreatorTrail] = useState<HeroTrail | null>(null);
   // Portal kategória (design §D): Trips ↔ Events (Events pill sa aktivoval).
   const [activeCat, setActiveCat] = useState<'trips' | 'events'>('trips');
+  // EVENT zoznam v paneli (krok 5, zadanie-eventy §9 krok 5) — rovnaký trojicový vzor ako trip
+  // hoverId/inlineDetailId + heroCardRefs nižšie, len na vlastnom lokálnom localEvents stave.
+  // `eventsView`: default = nadchádzajúce, 'archive' = filter na ends_at < now (§4.5, NIKDY delete).
+  const [eventsView, setEventsView] = useState<'upcoming' | 'archive'>('upcoming');
+  // pin na mape kliknutý → zodpovedajúca karta v paneli sa zvýrazní + scrollne (rovnaký vzor ako
+  // hoverId/heroCardRefs pri trip pinoch, viď efekt nižšie pri handleLocate).
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  // origin:'own' karta rozbalená (ukazuje popis) — origin:'tip' klik namiesto toho otvára sourceUrl.
+  const [expandedEventId, setExpandedEventId] = useState<string | null>(null);
+  const eventCardRefs = useRef<Record<string, HTMLElement | null>>({});
+  const visibleEvents = useMemo(
+    () => (eventsView === 'upcoming' ? upcomingEvents(localEvents, nowMs) : archivedEvents(localEvents, nowMs)),
+    [localEvents, eventsView, nowMs],
+  );
+  const handleEventCardClick = (draft: AddEventDraft) => {
+    setSelectedEventId(draft.id);
+    if (draft.origin === 'own') setExpandedEventId((cur) => (cur === draft.id ? null : draft.id));
+  };
   const allTrails = useMemo(() => [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
   // vstup pre <TripMarkers> (zoomové vrstvy + zhlukovanie, zadanie 2.3/2.4) — jeden bod na trip:
   // hike = štart trasy, journey = stred (rovnaká logika ako pôvodný pillIcon Marker), vodná
@@ -1806,6 +1865,12 @@ export default function PackMap() {
   useEffect(() => {
     if (hoverId) heroCardRefs.current[hoverId]?.scrollIntoView({ block: 'nearest' });
   }, [hoverId]);
+
+  // EVENT pin kliknutý (nie hover — eventy nemajú km-pilulku ani hover-scroll trip vzor, len
+  // klik) → zvýrazní a doscrolluje zodpovedajúcu kartu (krok 5, § „Piny na mape").
+  useEffect(() => {
+    if (selectedEventId) eventCardRefs.current[selectedEventId]?.scrollIntoView({ block: 'nearest' });
+  }, [selectedEventId]);
 
   // vyhľadávanie miesta na mape (Mapy.com Suggest) — real API, no mock
   useEffect(() => {
@@ -1958,8 +2023,8 @@ export default function PackMap() {
   // Popup bol doteraz POVINNÝ — kto len chcel odškrtnúť prejdenú trasu, musel najprv vyplniť
   // hodnotenie, náročnosť a ruch. Prejdenie sa teraz zapíše HNEĎ a hodnotenie sa PONÚKNE
   // (Matej: „nebolo by povinné ale vyskočilo by povinne") — popup vyskočí sám, zavretie
-  // nezruší nič, prejdenie je už zapísané. Kto práve odškrtáva dávku trás a jeden popup zavrel,
-  // ten ďalšiu minútu dostane len toast (`shouldPromptRating`), nie dvadsať modalov za sebou. ──
+  // nezruší nič, prejdenie je už zapísané. Od 2026-08-06 sa ponúka pri KAŽDOM prejdení, bez
+  // tichého obdobia — dôvod a čo robiť namiesto neho pri dávke: packCommunity.ts. ──
   const toggleWalked = (tid: string) => {
     if (walkedIds.has(tid)) {
       setWalkedIds((prev) => { const n = new Set(prev); n.delete(tid); return n; });
@@ -1972,29 +2037,18 @@ export default function PackMap() {
     // `walkedIds` je v tomto momente ešte stará množina — presne to potrebujeme.
     const tr = trailsById(tid);
     const reward: WalkReward | null = tr
-      ? { tid, base: walkPointsFor(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
+      ? { tid, ...walkRewardBase(tr), bonuses: discoveryBonusFor(tr, allTrails.filter((x) => walkedIds.has(x.id))) }
       : null;
     setWalkedReward(reward);
     setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
-    if (shouldPromptRating()) { setWalkedPopupId(tid); return; }
-    // Utíšená ponuka (odškrtávanie dávky) → odmena sa musí objaviť aspoň v toaste, inak by sa
-    // objavenie nového pohoria stratilo úplne. Bez animácie — toast na ňu nie je miesto.
-    const bonusTxt = bonusToastText(reward?.bonuses ?? [], t);
-    toast({
-      description: reward
-        ? `${t('pack.map.toastMarkedWalkedPts', { pts: reward.base })}${bonusTxt ? ` · ${bonusTxt}` : ''}`
-        : t('pack.map.toastMarkedWalked'),
-      action: (
-        <ToastAction altText={t('pack.map.toastRateIt')} onClick={() => setWalkedPopupId(tid)}>
-          {t('pack.map.toastRateIt')}
-        </ToastAction>
-      ),
-    });
+    // Ponuka hodnotenia ide VŽDY (tiché obdobie zrušené 2026-08-06, viď packCommunity.ts) —
+    // hodnotenie je platené bodmi, takže je to príležitosť, nie otrava. Toast s odmenou tu
+    // preto už netreba: to isté číslo aj prípadné objavenie ukáže popup, ktorý sa práve otvára.
+    setWalkedPopupId(tid);
   };
-  // Zavretie ponuky bez vyplnenia — utíši ju na minútu (poistka proti dávke) a zapíše sa
-  // len vtedy, keď hlas ešte nemám; „upravujem staré hodnotenie" nie je odmietnutie ponuky.
+  // Zavretie ponuky bez vyplnenia. Od 2026-08-06 sa NIČ neutišuje — ponuka príde pri každom
+  // ďalšom prejdení znova (Matej: „pri každom prejdenom daj popup s hodnotením nie random").
   const closeWalkedPopup = () => {
-    if (walkedPopupId && !votes[walkedPopupId]) muteRatePrompt();
     setWalkedPopupId(null);
     setWalkedReward(null);
   };
@@ -2084,11 +2138,17 @@ export default function PackMap() {
     setAddEntryOpen(false);
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
-  const pickAddFlow = (state: TripState) => {
+  // §2/§9 zadania-eventy-2026-08-06: AddTripEntry teraz vracia AddChoice (kind: 'trip' | 'event').
+  // `kind: 'event'` otvára AddEvent formulár (krok 3) namiesto TRIP flow.
+  const pickAddFlow = (choice: AddChoice) => {
     setAddEntryOpen(false);
     setInlineDetailId(null);
     setMobileDrawing(false);
-    setAddFlow(state);
+    if (choice.kind === 'event') {
+      setAddEventFlow(choice.origin);
+      return;
+    }
+    setAddFlow(choice.state);
   };
   const closeAdd = () => {
     setAddFlow(null);
@@ -2097,6 +2157,25 @@ export default function PackMap() {
     // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
     // inak by na mape visela adresa ADD flow a reload/back by formulár otvoril znova.
     if (onAddRoute) navigate('/pack/map', { replace: true });
+  };
+  const closeAddEvent = () => {
+    setAddEventFlow(null);
+    setMobileDrawing(false);
+    setAddError('');
+    if (onAddRoute) navigate('/pack/map', { replace: true });
+  };
+  // AddEventDraft → zápis. Rovnaký vzor ako submitAddTripDraft (walked vetva): over zápis PRED
+  // pridaním do state, nech sa neobjaví trip/event ktorý po reloade zmizne (plná localStorage).
+  const submitAddEventDraft = (draft: AddEventDraft): boolean => {
+    const next = [draft, ...localEvents];
+    if (!writeLocalEvents(next)) {
+      setAddError(t('pack.map.errorPhotosStorage'));
+      return false;
+    }
+    setAddError('');
+    setLocalEvents(next);
+    closeAddEvent();
+    return true;
   };
 
   // AddTripDraft → zápis. `walked` drží PRESNE to isté poradie ako pôvodný submitAdd (#1: over
@@ -2503,6 +2582,8 @@ export default function PackMap() {
           ) : (
             <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
           )
+        ) : addEventFlow ? (
+          <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
         ) : inlineDetailId ? (() => {
           const dt = allTrails.find((x) => x.id === inlineDetailId);
           if (!dt) return null;
@@ -2717,7 +2798,9 @@ export default function PackMap() {
             {/* design §D: Events sa aktivoval — zoznam plánovaných spoločných výletov + join.
                 Matej 2026-07-26: presunuté hneď vedľa Trips (pred Places/Services placeholdery). */}
             <button type="button" className={`trp-catpill${activeCat === 'events' ? ' on' : ''}`} onClick={() => setActiveCat('events')}>{t('pack.map.catEvents')}</button>
-            <button type="button" className="trp-catpill soon" disabled data-tip={t('pack.map.comingSoon')}>{t('pack.map.catPlaces')}</button>
+            {/* Matej 2026-08-06: MIESTA (Places) pill preč — PLACE ako filter kategória bola
+                zrušená (pláže/lúky/parky sú TRIP cez aktivitu `explore`, viď zadanie-eventy §A).
+                i18n kľúč `pack.map.catPlaces` ostáva v locale súboroch pre prípadné budúce použitie. */}
             <button type="button" className="trp-catpill soon" disabled data-tip={t('pack.map.comingSoon')}>{t('pack.map.catServices')}</button>
           </div>
 
@@ -2774,7 +2857,29 @@ export default function PackMap() {
           <div className="trp-cards">
             {activeCat === 'trips'
               ? renderTripList(true)
-              : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} />}
+              : (<>
+                  {/* EVENT zoznam (krok 5, zadanie-eventy §9 krok 5) — pridané NAD existujúci
+                      „looking for pack" EventsView nižšie (iná entita, § zadania §1: EVENT nemá
+                      väzbu na trip). withRef=true = registruje card-refy pre pin→scroll (desktop). */}
+                  <EventsPanel
+                    events={visibleEvents}
+                    view={eventsView}
+                    onViewChange={setEventsView}
+                    selectedId={selectedEventId}
+                    expandedId={expandedEventId}
+                    onCardClick={handleEventCardClick}
+                    onAddEvent={openAddEntry}
+                    withRef
+                    cardRefs={eventCardRefs}
+                  />
+                  {/* 🔴 EVENTRIPY (looking-for-pack) LEN v „upcoming" (Matej 2026-08-06:
+                      „v archive nebudu predsa tripy tie sa loguju len do tripov"). Naplánovaný
+                      výlet po termíne NEIDE do archívu podujatí — vsiakne sa do tripu ako log
+                      v jeho histórii. Archív patrí VÝHRADNE podujatiam. */}
+                  {eventsView === 'upcoming' && (
+                    <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => { setActiveCat('trips'); selectTrail(trailsById(tid) ?? HERO_TRAILS[0]); }} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} />
+                  )}
+                </>)}
           </div>
         </div>
         </>
@@ -2986,7 +3091,22 @@ export default function PackMap() {
         <div className="trp-cards">
           {activeCat === 'trips'
             ? renderTripList(false)
-            : <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} />}
+            : (<>
+                {/* mobile — rovnaký zoznam, bez card-refov (withRef=false, žiadny hover-scroll na touch). */}
+                <EventsPanel
+                  events={visibleEvents}
+                  view={eventsView}
+                  onViewChange={setEventsView}
+                  selectedId={selectedEventId}
+                  expandedId={expandedEventId}
+                  onCardClick={handleEventCardClick}
+                  onAddEvent={openAddEntry}
+                />
+                {/* 🔴 to isté gatovanie ako na desktope (~2882): eventripy do archívu NEPATRIA. */}
+                {eventsView === 'upcoming' && (
+                  <EventsView events={events} trailsById={trailsById} onJoin={joinEvent} onToggleClosed={toggleEventClosed} onOpenProfile={(mid) => navigate('/pack/u/' + mid)} photoFor={(tr) => tr.photos[0] ?? placeholderFor(tr.acts, tr.id)} onOpenTrip={(tid) => navigate(tripPathById(tid, allTrails))} onBrowseTrips={() => setActiveCat('trips')} myId={id.session?.user?.id ?? null} onShareTrip={shareTripLink} />
+                )}
+              </>)}
         </div>
       </div>
 
@@ -2995,16 +3115,20 @@ export default function PackMap() {
           overlayi. mobileDrawing=true CSS-schová overlay (display:none, NIE unmount — inak by
           AddTripPlan/AddTripLog stratili svoj interný state) nech je mapa pod ním klikateľná pre
           GeometryPicker; "View map" tlačidlo ju schová, "Done" v .trp-drawhint nižšie ju vráti. */}
-      {!!addFlow && (
+      {(!!addFlow || !!addEventFlow) && (
         <div className="trp-madd" style={mobileDrawing ? { display: 'none' } : undefined}>
           <button type="button" className="trp-madd-drawbtn" onClick={() => setMobileDrawing(true)}>
             {t('pack.map.viewMapToPlaceRoute')}
           </button>
-          {addFlow === 'planned' ? (
-            <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
-          ) : (
-            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
-          )}
+          {addFlow ? (
+            addFlow === 'planned' ? (
+              <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+            ) : (
+              <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+            )
+          ) : addEventFlow ? (
+            <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
+          ) : null}
         </div>
       )}
 
@@ -3211,6 +3335,20 @@ export default function PackMap() {
                   DOGYPT rovnako ako ostatné trip markery — je to pin, ktorý potrebuje legendu. */}
               {!isCleanMode && allTrails.filter((tr) => tr.id.startsWith('plan-') && tr.path.length === 1).map((tr) => (
                 <Marker key={tr.id} position={tr.path[0]} icon={PLAN_PIN} eventHandlers={{ click: () => selectTrail(tr) }} />
+              ))}
+              {/* EVENT piny (krok 5, zadanie-eventy §9 krok 5) — LEN kým je aktívna kategória
+                  Events (§ „Piny na mape... pri prepnutí na trips sa musia odstrániť"); podmienené
+                  renderovanie stačí, react-leaflet <Marker> odstráni sa z mapy sám pri unmounte
+                  (rovnaký vzor ako ostatné podmienené vrstvy vyššie, žiadny manuálny cleanup).
+                  Zdieľa presne ten istý filtrovaný/zoradený zoznam ako panel (visibleEvents) —
+                  pin existuje len pre event, ktorý je práve vidieť v zozname (nadchádzajúce/archív). */}
+              {!isCleanMode && activeCat === 'events' && visibleEvents.filter((ev) => ev.center).map((ev) => (
+                <Marker
+                  key={ev.id}
+                  position={ev.center as LatLngTuple}
+                  icon={EVENT_PIN(selectedEventId === ev.id)}
+                  eventHandlers={{ click: () => setSelectedEventId(ev.id) }}
+                />
               ))}
             </MapContainer>
 

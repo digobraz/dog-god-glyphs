@@ -19,9 +19,10 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { PawRating } from '@/components/pack/addtrip/PawRating';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
-import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS } from '@/lib/tripPoints';
+import { levelProgress, POINTS, POINTS_PER_KM, POINTS_PER_100M, JOURNEY_POINTS, type PointsRow } from '@/lib/tripPoints';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { trailCountry, flagUrl, flagEmojiFromISO2, countryName } from '@/lib/countryGeo';
+import { FlagCircle } from './FlagCircle';
 import { HeroBadges } from '@/components/pack/HeroBadges';
 import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pack/profile/TripProfileCard';
 import { useProfile } from '@/components/pack/profile/packProfile';
@@ -104,10 +105,15 @@ export const COMMUNITY_CSS = `
 .comm-overlay{position:fixed;inset:0;z-index:1200;background:rgba(3,2,1,0.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
 .comm-modal{width:100%;max-width:420px;max-height:calc(100dvh - 40px);overflow-y:auto;background:${T.glass};backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 30px 80px rgba(0,0,0,0.6),inset 0 1px 0 rgba(245,240,228,0.06);padding:24px;}
 .comm-modal.wide{max-width:640px;}
-.comm-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;}
-.comm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${GOLD};line-height:1.25;}
-.comm-modal-sub{font-size:12px;color:${T.onDarkDim};margin-top:4px;}
-.comm-x{flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+/* Matej 2026-08-06 („konsolidujeme zjednodušujeme"): nadpis je CENTROVANÝ a nesie priamo názov
+   tripu — dvojica „OHODNOŤ A ZÍSKAJ BODY" + podnadpis s názvom bola dva riadky na to isté.
+   Krížik ide do absolútnej pozície, aby nadpis mohol byť naozaj na strede panela, nie na strede
+   zvyšku po odčítaní tlačidla. Preto position relative na hlavičke a bočný padding, ktorý
+   drží dlhý názov mimo krížika. */
+.comm-modal-head{position:relative;display:flex;align-items:flex-start;justify-content:center;gap:12px;margin-bottom:18px;padding:0 40px;}
+.comm-modal-title{font-family:${FONT_TITLE};font-weight:700;font-size:18px;color:${GOLD};line-height:1.25;text-align:center;}
+.comm-modal-sub{font-size:12px;color:${T.onDarkDim};margin-top:4px;text-align:center;}
+.comm-x{position:absolute;top:0;right:0;flex-shrink:0;width:32px;height:32px;border-radius:50%;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
 .comm-x:hover{border-color:${GOLD};color:${GOLD};}
 .comm-field{margin-bottom:18px;}
 .comm-label{display:block;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:9px;}
@@ -117,14 +123,35 @@ export const COMMUNITY_CSS = `
 /* ── ODMENA PO ✓ (2026-08-05, zadanie §3b) — béžová = zarobené nohami, zlatá = objavenie.
    Dve farby, dva druhy bodov. Blok sedí HORE v popupe, nad ponukou hodnotenia: najprv sa
    dozvieš, čo ti padlo, až potom ťa appka o niečo prosí. */
-.comm-reward{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;padding:14px 15px;border-radius:14px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkHair};}
-.comm-reward-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:${T.onDarkDim};}
+/* ODMENA = PAPYRUSOVÝ BLOK (Matej 2026-08-06: „tieto body sa mi stále nepáčia nie je to dobre
+   zvýraznené… skúsme to dať do bežoveho pozadia… urob to krajšie a vizuálnejšie aj
+   pochopiteľnejšie"). Predtým bol blok tmavý (rgba(245,240,228,0.05)) a jediná svetlá vec v ňom
+   bola béžová pilulka — číslo tak plávalo bez ukotvenia. Teraz je bledý celý blok podľa locku
+   z Entry.tsx (T.cardGrad + 1.5px T.cardEdge + radius 16 + T.cardShadow), takže v tmavom modale
+   je to najsvetlejšia plocha a číslo na ňom sedí v tmavom inkouste. */
+.comm-reward{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;padding:15px 16px;border-radius:16px;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.cardShadow};}
+.comm-reward-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};}
 .comm-reward-row{display:flex;align-items:center;gap:11px;min-width:0;}
-.comm-reward-txt{font-family:${FONT_UI};font-weight:500;font-size:12.5px;color:${T.onDark};min-width:0;overflow:hidden;text-overflow:ellipsis;}
-/* Bonusový riadok je „objav" — meno jednotky nesie väčšiu váhu než druh objavenia. */
-.comm-reward-row--bonus .comm-reward-txt{color:rgba(245,240,228,0.96);}
+.comm-reward-txt{font-family:${FONT_UI};font-weight:600;font-size:12.5px;color:${T.inkStrong};min-width:0;overflow:hidden;text-overflow:ellipsis;}
+/* Bonusový riadok je „objav" — meno jednotky nesie väčšiu váhu než druh objavenia.
+   Na papyruse ide inkoust, nie svetlý text; druh objavenia ostáva zlatý (drží aj na bledom). */
+.comm-reward-row--bonus .comm-reward-txt{color:${T.inkStrong};}
+/* ROZPAD ZÁKLADU — odsadený POD pilulku, nie vedľa nej: je to vysvetlivka k číslu nad ním,
+   nie ďalšia odmena. Preto žiadne pilulky, len holé čísla v tlmenom inkouste — inak by
+   „5 · 11 · 10" vyzeralo ako tri ďalšie výplaty popri +26. */
+/* ⚠️ zvislá čiara NESMIE byť ${'T.rule'} — ten je gradient, a border:2px solid <gradient> je
+   neplatné CSS, ktoré prehliadač ticho zahodí (čiara by zmizla bez chyby). Preto vyblednutá
+   zlatá ako plná farba. */
+.comm-reward-break{display:flex;flex-direction:column;gap:3px;margin:-4px 0 0 8px;padding-left:11px;border-left:2px solid rgba(201,154,63,0.45);}
+.comm-reward-breakrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};}
+.comm-reward-breakrow b{font-weight:600;color:${T.inkStrong};font-variant-numeric:tabular-nums;white-space:nowrap;}
 .comm-reward-unit{font-family:${FONT_TITLE};font-weight:700;}
-.comm-reward-kind{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${GOLD};margin-top:2px;}
+.comm-reward-kind{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:${T.cardEdge};margin-top:2px;}
+/* deliaca čiara vnútri bledej karty = zlatá, vyblednutá do strán (lock z Entry.tsx),
+   NIE šedý hairline. Oddeľuje „čo už padlo" od „čo ešte môžeš získať". */
+.comm-reward-rule{height:2px;border:0;margin:2px 0 0;background:${T.rule};}
+.comm-reward-next{display:flex;align-items:center;gap:10px;min-width:0;}
+.comm-reward-nexttxt{font-family:${FONT_UI};font-weight:500;font-size:11.5px;line-height:1.35;color:${T.inkWarm};min-width:0;}
 
 /* WalkedPopup 2-stĺpcový layout (Matej 2026-07-23 — širší popup, zmestí sa na výšku bez rolovania) */
 .comm-walked-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;}
@@ -218,21 +245,37 @@ export const COMMUNITY_CSS = `
 .comm-dash-tab{padding:9px 18px;border-radius:999px;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.05);color:${T.onDark};font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
 .comm-dash-tab.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.3);color:${INK};}
 
-/* identity header — foto svorky + level odznak (TRIPSTATS Slice B, Matej 2026-07-23) */
-.comm-vhead{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.glass};border:1px solid ${T.onDarkBorder};border-radius:18px;padding:18px 20px;margin-bottom:22px;}
+/* IDENTITY header = PAPYRUSOVÝ BLOK (Matej 2026-08-06: „BLOK s profilom dajme do papyrusovej
+   nech vynikne a pils dajme vedla nie pod, ikonku info daj do horneho praveho rohu").
+   Predtým to bolo tmavé sklo v tmavom paneli — profil sa vizuálne nelíšil od štatistík pod ním.
+   Papyrus podľa locku z Entry.tsx (T.cardGrad + 1.5px T.cardEdge + radius 16 + T.cardShadow);
+   "position:relative" je kvôli info tlačidlu v rohu. */
+.comm-vhead{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-radius:16px;box-shadow:${T.cardShadow};padding:18px 20px;margin-bottom:22px;}
 .comm-vhead-pack{display:flex;align-items:center;flex-shrink:0;}
-.comm-vavatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid rgba(201,154,63,0.45);box-shadow:0 0 0 3px ${T.pageBg};background:rgba(245,240,228,0.08);margin-left:-14px;}
+/* prstenec okolo avatara = farba PODKLADU, nie čierna stránka — na papyruse by čierny krúžok
+   vyzeral ako dier(k)a. T.card je plná papyrusová, T.cardGrad by sa v box-shadow nedal použiť. */
+.comm-vavatar{width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid ${T.cardEdge};box-shadow:0 0 0 3px ${T.card};background:rgba(201,154,63,0.12);margin-left:-14px;}
 .comm-vhead-pack .comm-vavatar:first-child{margin-left:0;}
 .comm-vavatar img{width:100%;height:100%;object-fit:cover;display:block;}
-.comm-vavatar img.comm-vavatar-fallback{width:18px;height:18px;object-fit:contain;filter:brightness(0) invert(1);opacity:.85;}
+.comm-vavatar img.comm-vavatar-fallback{width:18px;height:18px;object-fit:contain;filter:none;opacity:.6;}
 .comm-vavatar--owner{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);font-family:${FONT_UI};font-weight:600;font-size:16px;color:${INK};}
 /* .comm-vavatar--slot (prerušovaný „+" krúžok = priestor pre budúceho member, Matej 23. 7.)
    ZMAZANÝ 2026-08-05 — Matej: „to plus daj preč tu sa psy nebudú pridávať". */
-.comm-vhead-name{flex:1;min-width:140px;font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.onDark};}
-.comm-level{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
-.comm-level-pill{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);border-radius:999px;padding:7px 14px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:${INK};white-space:nowrap;}
+/* MENO + PILULKA V JEDNOM RADE (Matej 2026-08-06: „pils dajme vedla nie pod"). Meno berie
+   zvyšok šírky, pilulka sa nezmenší; "padding-right" drží text mimo info tlačidla v rohu. */
+.comm-vhead-id{flex:1;min-width:180px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-right:30px;}
+/* vlajky precestovaných krajín — trofej, ktorá rastie. Krúžok má vlastný zlatý rám z FlagCircle,
+   takže tu ide len o rozostup, klikateľnosť a zvýraznenie práve zvolenej krajiny. */
+.comm-vflags{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.comm-vflag{display:inline-flex;padding:0;border:0;background:none;cursor:pointer;border-radius:50%;line-height:0;transition:transform .15s;}
+.comm-vflag:hover{transform:translateY(-1px);}
+/* zvolená krajina = zlatý prstenec OKOLO krúžku (box-shadow, nie border — border by vlajku
+   zmenšil a rad by poskakoval pri každom prepnutí). */
+.comm-vflag.on{box-shadow:0 0 0 2px ${T.card},0 0 0 4px ${GOLD};}
+
+.comm-vhead-name{font-family:${FONT_TITLE};font-weight:700;font-size:16px;color:${T.inkStrong};min-width:0;}
+.comm-level-pill{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);border-radius:999px;padding:7px 14px;font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:${INK};white-space:nowrap;flex-shrink:0;}
 .comm-level-ic{width:14px;height:14px;flex-shrink:0;filter:brightness(0);}
-.comm-level-next{display:flex;align-items:center;gap:4px;font-size:10.5px;color:${T.onDarkDim};white-space:nowrap;}
 @media (max-width:560px){ .comm-vhead{padding:14px 16px;gap:12px;} .comm-vhead-name{font-size:14px;} }
 
 /* svetový prehľad — easy dashboard (Matej 2026-07-23) */
@@ -247,6 +290,14 @@ export const COMMUNITY_CSS = `
 .comm-cat--click{display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;transition:border-color .15s;}
 .comm-cat--click:hover{border-color:${GOLD};}
 .comm-cat-head{display:flex;align-items:center;gap:10px;margin-bottom:11px;}
+/* zbaliteľná hlavička (magistrály) — vyzerá ako ostatné hlavičky kategórií, len je klikacia
+   a nesie šípku. "width:100%" + "margin:0" prebíjajú default <button>, aby zavretá kategória
+   nemala pod sebou dieru po "margin-bottom". */
+.comm-cat-head--btn{width:100%;background:none;border:0;padding:0;font-family:inherit;text-align:left;cursor:pointer;margin-bottom:0;}
+.comm-cat-head--btn.on{margin-bottom:11px;}
+.comm-cat-head--btn:hover .comm-cat-name{color:${GOLD};}
+.comm-cat-head--btn .comm-drop-chev{flex-shrink:0;transition:transform .2s;}
+.comm-cat-head--btn.on .comm-drop-chev{transform:translateY(1px) rotate(-135deg);}
 .comm-cat-ic{width:26px;height:26px;flex-shrink:0;filter:brightness(0) invert(1);opacity:.7;}
 .comm-cat-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;color:${T.onDark};flex:1;}
 .comm-cat-pct{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${GOLD};}
@@ -354,6 +405,9 @@ export const COMMUNITY_CSS = `
 .comm-plan-photo{position:relative;margin:-15px -17px 13px;height:150px;background-size:cover;background-position:center;border-radius:14px 14px 0 0;cursor:pointer;}
 .comm-plan-planned{position:absolute;left:12px;bottom:10px;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
 .comm-plan-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+/* NEUTRÁLNY typový štítok (výlet). Protipól je zlatý .pev-typechip (podujatie) v
+   events/EventCard.tsx — dvojica sa musí líšiť farbou, nielen textom. */
+.comm-plan-type{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};margin-bottom:5px;}
 .comm-plan-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;color:${T.onDark};}
 .comm-plan-meta{font-size:11.5px;color:${T.onDarkDim};margin-top:3px;}
 .comm-plan-tag{font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:999px;flex-shrink:0;}
@@ -425,22 +479,46 @@ export const COMMUNITY_CSS = `
     · #50 magistrála je odkaz na svoj detail, nie rozbaľovacia položka.
    POZOR: toto je template literál — v komentároch ŽIADNE spätné apostrofy. */
 
-/* level + progressbar (#46). Pruh berie percentá z levelProgress(), nie z počtu tripov. */
+/* level + progressbar (#46) — od 2026-08-06 NA PAPYRUSE, takže všetky farby sú inkoustové.
+   Pruh berie percentá z levelProgress(), nie z počtu tripov. */
 .comm-lvlwrap{flex-basis:100%;display:flex;flex-direction:column;gap:7px;}
-.comm-lvlhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-.comm-lvlbar{height:8px;border-radius:999px;background:rgba(245,240,228,0.09);overflow:hidden;}
+/* koľajnica pruhu = tmavý inkoust s nízkou alfou. Svetlá koľajnica (rgba papyrus) by na
+   papyrusovom podklade zmizla a pruh by vyzeral, akoby začínal odnikiaľ. */
+.comm-lvlbar{height:8px;border-radius:999px;background:rgba(42,22,8,0.14);overflow:hidden;}
 .comm-lvlbar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);transition:width .45s;}
-.comm-lvlfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${T.onDarkDim};}
-.comm-lvlinfo{position:relative;flex-shrink:0;display:inline-flex;margin-left:auto;}
-.comm-lvlinfo-btn{width:22px;height:22px;border-radius:50%;border:1px solid ${T.onDarkBorder};background:rgba(245,240,228,0.06);color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.comm-lvlinfo-btn:hover,.comm-lvlinfo-btn.on{border-color:${GOLD};color:${GOLD};}
-/* cenník = papyrusový panel (rovnaká vrstva ako comm-hastip), nie ďalšie tmavé sklo */
-.comm-pts{position:absolute;top:calc(100% + 9px);right:0;z-index:30;width:min(280px,78vw);max-height:320px;overflow-y:auto;text-align:left;cursor:default;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:14px 15px;}
-.comm-pts-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
+.comm-lvlfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;color:${T.inkWarm};}
+/* INFO tlačidlo = PRAVÝ HORNÝ ROH BLOKU (Matej 2026-08-06), nie koniec riadku s levelom.
+   Kotví ho "position:relative" na .comm-vhead; popup si preto nesie vlastný "right:0". */
+.comm-lvlinfo{position:absolute;top:12px;right:12px;z-index:31;display:inline-flex;}
+.comm-lvlinfo-btn{width:22px;height:22px;border-radius:50%;border:1px solid ${T.cardEdge};background:rgba(201,154,63,0.10);color:${T.inkWarm};font-family:${FONT_UI};font-weight:600;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;}
+.comm-lvlinfo-btn:hover,.comm-lvlinfo-btn.on{background:${T.cardEdge};color:${T.card};}
+/* CENNÍK = papyrusový panel, DVA STĹPCE (Matej 2026-08-06: „na lavej strane daj všeobecné za čo
+   všetko sú boody a na pravo celkovo za čo má biody ten človek + TOTAL"). Predtým to bol jeden
+   úzky stĺpec, kde sa cenník a vlastné body oddeľovali linajkami — dva zoznamy pod sebou vyzerali
+   ako jeden dlhý. Šírka je preto väčšia než pri jednom stĺpci; na mobile padá pod seba. */
+/* ⚠️ max-height NIE 70vh: popup začína ~300 px pod horným okrajom okna (visí pod hlavičkou
+   profilu), takže 70vh mu preteká POD spodok okna — a vnútorný overflow s tým nič nespraví,
+   lebo neoreže ho vlastná výška, ale viewport. Presne takto bola sekcia "Country ranks"
+   neviditeľná. 52vh sa zmestí aj na notebooku a zvyšok sa roluje vnútri. */
+.comm-pts{position:absolute;top:calc(100% + 9px);right:0;z-index:30;width:min(520px,88vw);max-height:52vh;overflow-y:auto;overscroll-behavior:contain;text-align:left;cursor:default;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:16px 18px;}
+.comm-pts-cols{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+/* zvislý predel medzi stĺpcami = zlatý, nie šedý hairline (lock bledého bloku). */
+.comm-pts-col + .comm-pts-col{padding-left:18px;border-left:1.5px solid rgba(201,154,63,0.35);}
+@media (max-width:560px){
+  .comm-pts-cols{grid-template-columns:1fr;gap:12px;}
+  .comm-pts-col + .comm-pts-col{padding-left:0;border-left:0;padding-top:12px;border-top:1.5px solid rgba(201,154,63,0.35);}
+}
+.comm-pts-eyebrow{display:block;font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.26em;text-transform:uppercase;color:${T.cardEdge};margin-bottom:9px;}
 .comm-pts-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_UI};font-weight:500;font-size:11px;color:${T.inkWarm};padding:3px 0;}
-.comm-pts-row b{font-weight:600;color:${T.inkStrong};white-space:nowrap;}
-.comm-pts-rule{height:2px;margin:10px 0;background:${T.rule};}
-.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:${T.inkStrong};}
+.comm-pts-row b{font-weight:600;color:${T.inkStrong};white-space:nowrap;font-variant-numeric:tabular-nums;}
+.comm-pts-rule{display:block;height:2px;margin:10px 0;background:${T.rule};}
+.comm-pts-tot{display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:${T.inkStrong};}
+/* prázdny pravý stĺpec — nový člen nemá ani bod, a prázdna polovica bez vysvetlenia vyzerá
+   ako chyba renderu. */
+.comm-pts-none{font-family:${FONT_UI};font-weight:500;font-size:11px;font-style:italic;line-height:1.5;color:${T.inkWarm};}
+/* jednoveté vysvetlenie pod nadpisom sekcie (ranky krajiny) — menšie a kurzívou, aby sa
+   nečítalo ako ďalšia položka zoznamu s chýbajúcim číslom vpravo. */
+.comm-pts-note{display:block;font-family:${FONT_UI};font-weight:500;font-size:10px;font-style:italic;line-height:1.45;color:${T.inkWarm};margin:-4px 0 7px;}
 
 /* countries — VŠETKY štáty s vlajkou, aj tie bez výletu (#46) */
 .comm-ctrys{display:flex;gap:8px;overflow-x:auto;padding:2px 0 8px;margin-bottom:14px;-webkit-overflow-scrolling:touch;}
@@ -454,8 +532,13 @@ export const COMMUNITY_CSS = `
 .comm-ctry span{font-family:${FONT_UI};font-weight:500;font-size:10px;color:${T.onDarkDim};white-space:nowrap;}
 
 /* hero krajiny + dropdown (#47) — zaoblený obrázok ako v tripovom článku */
-.comm-chero{position:relative;border-radius:18px;overflow:hidden;border:1px solid ${T.onDarkBorder};background:${T.glass};background-size:cover;background-position:center;min-height:172px;display:flex;align-items:flex-end;padding:18px;margin-bottom:16px;}
-.comm-chero::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.78) 100%);}
+/* ⚠️ ŽIADNY overflow:hidden (odstránený 2026-08-06). Mal ho kvôli zaobleniu fotky, ale
+   OREZÁVAL AJ popup ranku, ktorý sa otvára nahor — zmizla mu celá hlavička a vyzeralo to,
+   akoby sa nadpis nevykreslil. Fotka je background, ten border-radius rešpektuje sám;
+   stačilo dorobiť radius prekryvu ::before, ktorý by inak trčal rohmi. Viď
+   feedback_overflow_hidden_clips_dropdowns. */
+.comm-chero{position:relative;border-radius:18px;border:1px solid ${T.onDarkBorder};background:${T.glass};background-size:cover;background-position:center;min-height:172px;display:flex;align-items:flex-end;padding:18px;margin-bottom:16px;}
+.comm-chero::before{content:'';position:absolute;inset:0;border-radius:18px;background:linear-gradient(180deg,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.78) 100%);}
 /* krajina bez vlastnej fotky: vlajka NEsmie ísť cez background cover — roztiahnutá rakúska
    alebo švajčiarska vlajka je len biela plocha. Ostáva tmavý panel + vlajka ako odznak. */
 .comm-chero--noimg{background-image:none;}
@@ -468,7 +551,22 @@ export const COMMUNITY_CSS = `
 .comm-chero-name{font-family:${FONT_TITLE};font-weight:700;font-size:28px;line-height:1;letter-spacing:.07em;text-transform:uppercase;color:#F5F0E4;text-shadow:0 2px 14px rgba(0,0,0,0.7);}
 .comm-chero-sub{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(245,240,228,0.85);margin-top:7px;}
 .comm-chero-goal{margin-top:11px;max-width:340px;}
-.comm-chero-goaltxt{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
+.comm-chero-goaltxt{display:flex;align-items:center;gap:8px;font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:rgba(245,240,228,0.8);margin-bottom:5px;}
+/* ⓘ pri titule krajiny — na FOTKE, takže svetlý obrys a tmavé sklo, nie inkoust ako v profile. */
+.comm-rankinfo{position:relative;display:inline-flex;flex-shrink:0;}
+.comm-rankinfo-btn{width:19px;height:19px;border-radius:50%;border:1px solid rgba(245,240,228,0.5);background:rgba(3,2,1,0.45);color:#F5F0E4;font-family:${FONT_UI};font-weight:600;font-size:10px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s;}
+.comm-rankinfo-btn:hover,.comm-rankinfo-btn.on{background:${GOLD};border-color:${GOLD};color:#241a06;}
+/* Otvára sa NAHOR (bottom:100%): titul sedí na spodku hera, smerom dole by popup prekryl
+   kategórie pod ním a na nižšom okne by pretiekol pod okraj viewportu — presne tá chyba,
+   ktorú už raz spravil cenník bodov. Nahor má nad sebou celú fotku hera. */
+.comm-ranks{position:absolute;bottom:calc(100% + 9px);left:0;z-index:30;width:min(290px,78vw);text-align:left;cursor:default;text-transform:none;letter-spacing:normal;background:${T.panelGrad};border:1.5px solid ${T.cardEdge};border-radius:14px;box-shadow:${T.panelShadow};padding:14px 15px;}
+.comm-rankrow b{font-variant-numeric:tabular-nums;}
+/* dosiahnutý rank = zelená (rovnaká ako odškrtnutá jednotka), nasledujúci = zlatý a zvýraznený;
+   ostatné ostávajú tlmené, aby bolo na prvý pohľad vidieť, kde človek stojí. */
+.comm-rankrow.done{color:${T.inkStrong};}
+.comm-rankrow.done b{color:${UNIT_DONE_COLOR};}
+.comm-rankrow.next{color:${T.inkStrong};font-weight:600;}
+.comm-rankrow.next b{color:${T.cardEdge};}
 .comm-chero-bar{height:6px;border-radius:999px;background:rgba(245,240,228,0.18);overflow:hidden;}
 .comm-chero-bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);}
 @media (max-width:560px){ .comm-chero{min-height:150px;padding:14px;} .comm-chero-name{font-size:22px;} }
@@ -541,7 +639,14 @@ export interface WalkedInput { rating: number; difficulty: Difficulty; crowd: Cr
  * Bez neho vedela odmena za trasu A vyskočiť v popupe trasy B (utíšená ponuka → ✓ A skončí
  * v toaste, `walkedReward` ostane visieť, a `onRequestWalk` z komentárov otvorí popup pre B).
  */
-export interface WalkReward { tid: string; base: number; bonuses: DiscoveryBonus[] }
+export interface WalkReward {
+  tid: string;
+  base: number;
+  /** Z čoho sa `base` skladá (5 prejdenie + km + stúpanie / pevná cena magistrály).
+   *  Dodáva `walkPointsBreakdown()` — nikdy sa neskladá ručne, inak sa rozíde so súčtom. */
+  baseRows?: PointsRow[];
+  bonuses: DiscoveryBonus[];
+}
 
 /**
  * ODMENA PO ✓ — základ béžovo, objavenia zlato a s dopočítaním (zadanie §3b).
@@ -549,15 +654,37 @@ export interface WalkReward { tid: string; base: number; bonuses: DiscoveryBonus
  * v appke, kde sa človek dozvie, že objavil nové pohorie. Keď žiadny bonus nepadol, riadok sa
  * nezobrazí — žiadne „+0".
  */
-export function WalkRewardBlock({ trailName, reward }: { trailName: string; reward: WalkReward }) {
+export function WalkRewardBlock({ trailName, reward, ratingPoints }: {
+  trailName: string; reward: WalkReward;
+  /** Body, ktoré ešte MÔŽE získať za hodnotenie — vykreslia sa pod čiarou v tom istom bloku.
+   *  Matej 2026-08-06: dve bodové čísla na dvoch miestach popupu boli neprehľadné, toto ich
+   *  spája do jedného príbehu „toto ti padlo · toto ešte môžeš dostať". */
+  ratingPoints?: number;
+}) {
   const t = useT();
   return (
     <div className="comm-reward">
       <span className="comm-reward-eyebrow">{t('pack.community.rewardEyebrow')}</span>
       <div className="comm-reward-row">
-        <PointsPill value={reward.base} tone="base" size="md" />
+        <PointsPill value={reward.base} tone="lapis" size="md" />
         <span className="comm-reward-txt">{trailName}</span>
       </div>
+      {/* ROZPAD ZÁKLADU (Matej 2026-08-06: „človek nevie prečo 26… ukáž ten rozpad pri pridávaní
+          hodnotenia, tam je dosť priestoru"). Riadky dáva bodový engine (`walkPointsBreakdown`),
+          NIE tento komponent — súčet nad nimi a ich sedmička sa preto nemôžu rozísť.
+          Pri magistrále je to jediný riadok „pevná cena", čo je presne tá informácia, ktorú
+          človek pri 1400 bodoch hľadá. Jednopoložkový rozpad (miesto = len návšteva) sa
+          nevykresľuje — zopakovať to isté číslo pod sebou nič nevysvetlí. */}
+      {(reward.baseRows?.length ?? 0) > 1 && (
+        <div className="comm-reward-break">
+          {reward.baseRows!.map((r) => (
+            <div key={r.labelKey} className="comm-reward-breakrow">
+              <span>{t(r.labelKey, r.labelParams)}</span>
+              <b>{r.points}</b>
+            </div>
+          ))}
+        </div>
+      )}
       {reward.bonuses.map((b) => (
         <div key={`${b.labelKey}:${b.unit}`} className="comm-reward-row comm-reward-row--bonus">
           <PointsPill value={b.points} tone="bonus" size="md" animate />
@@ -567,6 +694,15 @@ export function WalkRewardBlock({ trailName, reward }: { trailName: string; rewa
           </span>
         </div>
       ))}
+      {!!ratingPoints && (
+        <>
+          <hr className="comm-reward-rule" />
+          <div className="comm-reward-next">
+            <PointsPill value={ratingPoints} tone="bonus" size="md" />
+            <span className="comm-reward-nexttxt">{t('pack.community.rewardNextRating')}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -588,20 +724,30 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
   const canSubmit = rating > 0 && difficulty !== '' && crowd !== '';
   // Matej 2026-07-23: „urop popup širší aby sa zmestil na vh 100" → wide modal + 2-stĺpcový
   // layout, nech sa zmestí bez rolovania. Rating hore cez obe kolóny, zvyšok v 2 stĺpcoch.
+  // Matej 2026-08-06: „horný nadpis ohodnoť... daj celý preč resp nahraď to tým že v tom istom
+  // fonte aj velkosti to centruj na stred a daj nazov tripu (EGREŠ)". Nadpis „Ohodnoť a získaj
+  // body" hovoril to isté, čo papyrusový blok pod labkami, len horšie — a názov tripu bol
+  // zbytočne odsunutý do podnadpisu. Teraz je názov JEDINÝ nadpis, `sub` sa už nepoužíva.
   return (
     <Modal
-      title={rewardPoints ? t('pack.community.rateRewardTitle') : t('pack.community.walkedTitle')}
-      sub={trailName}
+      title={trailName}
       onClose={onClose}
       wide
     >
       <style>{POINTS_PILL_CSS}</style>
-      {reward && <WalkRewardBlock trailName={trailName} reward={reward} />}
+      {/* PORADIE (Matej 2026-08-06): názov tripu (sub v hlavičke) → HODNOTENIE → vysvetlenie
+          odmeny. Labky sú to jediné, čo sa od človeka v tomto kroku chce, takže stoja hore;
+          papyrusový blok pod nimi je odpoveď na „a čo z toho mám", nie vstupná bariéra.
+          Predtým bol blok prvý a hodnotenie sa strácalo pod ním. */}
       <div className="comm-field" style={{ textAlign: 'center' }}>
         <label className="comm-label">{t('pack.community.walkedRatingLabel')}</label>
         {/* Matej 2026-08-05: „to rate it +3? je úplne stratené" — odmena vyšla z nadpisu von
-            ako vycentrovaná pilulka nad labkami. Nadpis ostal vetou, číslo je prvok. */}
-        {rewardPoints ? (
+            ako vycentrovaná pilulka nad labkami.
+            2026-08-06: keď je HORE papyrusový blok odmeny, číslo je už v ňom pod čiarou —
+            druhá pilulka tu by bola to isté číslo dvakrát na jednej obrazovke (presne tá
+            neprehľadnosť, na ktorú Matej ukázal). Zostáva LEN keď blok hore nie je, teda pri
+            obyčajnej úprave hlasu bez čerstvej odmeny. */}
+        {rewardPoints && !reward ? (
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 11 }}>
             <PointsPill value={rewardPoints} tone="base" size="lg" />
           </div>
@@ -610,6 +756,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <PawRating value={rating} onChange={setRating} onDark size={40} />
         </div>
       </div>
+      {reward && <WalkRewardBlock trailName={trailName} reward={reward} ratingPoints={rewardPoints} />}
       <div className="comm-walked-grid">
         <div className="comm-field">
           <label className="comm-label">{t('pack.community.difficultyLabel')}</label>
@@ -979,6 +1126,10 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
       .sort((a, b) => (a.iso === 'sk' ? -1 : b.iso === 'sk' ? 1 : (b.trips - a.trips) || a.name.localeCompare(b.name)))
   ), [byCountry]);
 
+  // Vlajky do hlavičky profilu: LEN krajiny, kde človek naozaj bol. `countries` obsahuje aj
+  // ponúkané prázdne štáty (pás chipov nižšie ich zobrazuje ako "not yet"), tie sem nepatria.
+  const walkedCountryList = useMemo(() => countries.filter((c) => c.trips > 0), [countries]);
+
   const [country, setCountry] = useState('sk');
   const cTrails = byCountry.get(country) ?? [];
   const cKm = cTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0);
@@ -1004,6 +1155,19 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
   // Fáza 2 (Matej 2026-07-24): „Trips you walked" schovať za dropdown — pri 60 prejdených
   // tripoch to bol nekonečný zoznam pod celým panelom. Zbalené default, počet v hlavičke.
   const [walkedOpen, setWalkedOpen] = useState(false);
+  // Magistrály zbalené (Matej 2026-08-06) — zoznam pre menšinu nesmie tlačiť pohoria pod okraj.
+  const [journeysOpen, setJourneysOpen] = useState(false);
+  // ⓘ pri titule krajiny (Matej 2026-08-06: „nevidím ten popup v krajine"). Zatvára sa klikom
+  // kamkoľvek — rovnaký document listener ako `ptsOpen`, z rovnakého dôvodu (backdrop-filter
+  // na .pk-glass robí containing block aj pre position:fixed, priesvitný backdrop by nepokryl
+  // stránku). Popup si klik na seba zastavuje sám.
+  const [ranksOpen, setRanksOpen] = useState(false);
+  useEffect(() => {
+    if (!ranksOpen) return;
+    const close = () => setRanksOpen(false);
+    const tm = window.setTimeout(() => document.addEventListener('click', close), 0);
+    return () => { window.clearTimeout(tm); document.removeEventListener('click', close); };
+  }, [ranksOpen]);
   // #46 — ⓘ pri leveli: čo koľko dáva. Zatvára sa klikom KAMKOĽVEK cez document listener, nie
   // priesvitným backdropom: `.pk-glass` má backdrop-filter, a ten robí z panelu containing block
   // aj pre `position:fixed` deti — backdrop by nepokryl stránku, len panel.
@@ -1015,7 +1179,9 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
     const t = window.setTimeout(() => document.addEventListener('click', close), 0);
     return () => { window.clearTimeout(t); document.removeEventListener('click', close); };
   }, [ptsOpen]);
-  const pickCountry = (iso: string) => { setCountry(iso); setExpanded(null); setWalkedOpen(false); };
+  // `setRanksOpen(false)` — popup ranku nesie meno krajiny v nadpise; nechať ho otvorený cez
+  // prepnutie krajiny by ukazoval prahy pod iným menom, než na aké sa človek díval.
+  const pickCountry = (iso: string) => { setCountry(iso); setExpanded(null); setWalkedOpen(false); setRanksOpen(false); };
 
   // ── identity header (Slice B, Matej 2026-07-23) — foto svorky + meno svorky + level odznak.
   // usePackIdentity() je vlastný hook call (spec: „TripStatsPanel volá usePackIdentity() priamo"),
@@ -1073,45 +1239,84 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             </span>
           ))}
         </div>
-        <div className="comm-vhead-name">{packName}</div>
-        {/* #46 — level + progressbar do ďalšieho levelu na celú šírku hlavičky, nie schovaný
-            do rohovej pilulky. Percento pruhu aj chýbajúce body dáva levelProgress() z bodového
-            enginu; panel si nič nepočíta sám. */}
+        {/* MENO + LEVEL PILULKA VEDĽA SEBA (Matej 2026-08-06: „pils dajme vedla nie pod").
+            Predtým bola pilulka o riadok nižšie a meno stálo samo — dva riadky na to, čo je
+            jedna informácia: kto som a kde som. */}
+        <div className="comm-vhead-id">
+          <div className="comm-vhead-name">{packName}</div>
+          <span className="comm-level-pill">
+            <img className="comm-level-ic" src={ICON('trophy')} alt="" />
+            {lvl.rank} · Level {lvl.level}
+          </span>
+          {/* VLAJKY PRECESTOVANÝCH KRAJÍN (Matej 2026-08-06: „za pil levelu by sme mohli dať
+              vlajky štátov kde sme boli a tam by sa pridávaly"). Zbierka, ktorá rastie sama —
+              nič sa nenastavuje, vlajka pribudne prvým výletom v novej krajine.
+              LEN prejdené: prázdne štáty patria do pásu chipov nižšie („not yet" = pozvánka),
+              tu by z trofeje spravili checklist. Klik = prepnutie vysvedčenia na tú krajinu,
+              takže to nie je len ozdoba. */}
+          {walkedCountryList.length > 0 && (
+            <span className="comm-vflags">
+              {walkedCountryList.map((c) => (
+                <button
+                  key={c.iso}
+                  type="button"
+                  className={`comm-vflag${c.iso === country ? ' on' : ''}`}
+                  onClick={() => pickCountry(c.iso)}
+                  title={`${c.name} · ${c.trips} trip${c.trips === 1 ? '' : 's'}`}
+                  aria-label={`${c.name}, ${c.trips} trips`}
+                >
+                  <FlagCircle iso2={c.iso} label={c.name} size={22} />
+                </button>
+              ))}
+            </span>
+          )}
+        </div>
+        {/* ⓘ v PRAVOM HORNOM ROHU bloku (Matej 2026-08-06). Je `position:absolute` voči
+            .comm-vhead, preto stojí mimo .comm-lvlwrap — vnútri by ho odsúval progressbar. */}
+        <span className="comm-lvlinfo">
+          <button
+            type="button"
+            className={`comm-lvlinfo-btn${ptsOpen ? ' on' : ''}`}
+            onClick={() => setPtsOpen((v) => !v)}
+            aria-expanded={ptsOpen}
+            aria-label="How points work"
+          >i</button>
+          {ptsOpen && (
+            <span className="comm-pts" onClick={(e) => e.stopPropagation()}>
+              {/* DVA STĹPCE: vľavo cenník (platí pre každého), vpravo MOJE body + TOTAL.
+                  Sú to dve odpovede na dve rôzne otázky — „za čo sa dávajú" a „za čo mám ja" —
+                  takže patria vedľa seba, nie pod seba oddelené linajkou. */}
+              <span className="comm-pts-cols">
+                <span className="comm-pts-col">
+                  <span className="comm-pts-eyebrow">How points work</span>
+                  {pointsLegend().map(([label, val]) => (
+                    <span key={label} className="comm-pts-row">{label}<b>{val}</b></span>
+                  ))}
+                  {/* ⚠️ Ranky krajiny tu BOLI a sú PREČ (Matej 2026-08-06: „odtialto to coutry
+                      zruš"). Žijú pri titule krajiny, kde ten rank aj svieti — mať ich na dvoch
+                      miestach znamená dva zoznamy, ktoré sa raz rozídu. Nevracaj ich sem. */}
+                </span>
+                <span className="comm-pts-col">
+                  <span className="comm-pts-eyebrow">Your points</span>
+                  {profilePoints.rows.length > 0 ? (
+                    <>
+                      {profilePoints.rows.map((r) => (
+                        <span key={r.labelKey} className="comm-pts-row">{t(r.labelKey, r.labelParams)}<b>{r.points}</b></span>
+                      ))}
+                      <span className="comm-pts-rule" />
+                      <span className="comm-pts-tot">Total<b>{profilePoints.total}</b></span>
+                    </>
+                  ) : (
+                    <span className="comm-pts-none">Nothing yet — your first walked trip starts the count.</span>
+                  )}
+                </span>
+              </span>
+            </span>
+          )}
+        </span>
+        {/* #46 — progressbar do ďalšieho levelu na celú šírku hlavičky. Percento pruhu aj
+            chýbajúce body dáva levelProgress() z bodového enginu; panel si nič nepočíta sám. */}
         <div className="comm-lvlwrap">
-          <div className="comm-lvlhead">
-            <span className="comm-level-pill">
-              <img className="comm-level-ic" src={ICON('trophy')} alt="" />
-              {lvl.rank} · Level {lvl.level}
-            </span>
-            <span className="comm-lvlinfo">
-              <button
-                type="button"
-                className={`comm-lvlinfo-btn${ptsOpen ? ' on' : ''}`}
-                onClick={() => setPtsOpen((v) => !v)}
-                aria-expanded={ptsOpen}
-                aria-label="How points work"
-              >i</button>
-              {ptsOpen && (
-                  <span className="comm-pts" onClick={(e) => e.stopPropagation()}>
-                    <span className="comm-pts-eyebrow">How points work</span>
-                    {pointsLegend().map(([label, val]) => (
-                      <span key={label} className="comm-pts-row">{label}<b>{val}</b></span>
-                    ))}
-                    {profilePoints.rows.length > 0 && (
-                      <>
-                        <span className="comm-pts-rule" />
-                        <span className="comm-pts-eyebrow">Your points</span>
-                        {profilePoints.rows.map((r) => (
-                          <span key={r.labelKey} className="comm-pts-row">{t(r.labelKey, r.labelParams)}<b>{r.points}</b></span>
-                        ))}
-                        <span className="comm-pts-rule" />
-                        <span className="comm-pts-tot">Total<b>{profilePoints.total}</b></span>
-                      </>
-                    )}
-                  </span>
-              )}
-            </span>
-          </div>
           <div className="comm-lvlbar"><i style={{ width: `${lvl.pct}%` }} /></div>
           {/* Rebrík nemá strop (rozhodnuté 29. 7.) → žiadny „Top rank" stav, vždy je kam ísť. */}
           <div className="comm-lvlfoot">
@@ -1183,9 +1388,41 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
             {country === 'sk' ? ` · ${completion.doneUnits}/${completion.totalUnits} places ticked` : ''}
           </div>
           <div className="comm-chero-goal">
+            {/* ⓘ PRI SAMOTNOM TITULE (Matej 2026-08-06: „nevidím ten popup v krajine").
+                Vysvetlivku ranku som najprv dal len do profilového ⓘ hore — lenže titul svieti
+                TU, o obrazovku nižšie, takže to nikto nespojí. Vysvetlenie patrí k veci, ktorú
+                vysvetľuje. Prahy priamo z COUNTRY_TIERS — toto je JEDINÉ miesto, kde sú
+                vypísané (v profilovom ⓘ boli krátko a Matej ich odtiaľ dal preč). */}
             <div className="comm-chero-goaltxt">
-              {tier.earned ? `${tier.earned} · ` : ''}
-              {tier.next ? `${cTrails.length}/${tier.nextAt} trips to ${tier.next}` : 'every tier taken'}
+              <span>
+                {tier.earned ? `${tier.earned} · ` : ''}
+                {tier.next ? `${cTrails.length}/${tier.nextAt} trips to ${tier.next}` : 'every tier taken'}
+              </span>
+              <span className="comm-rankinfo">
+                <button
+                  type="button"
+                  className={`comm-rankinfo-btn${ranksOpen ? ' on' : ''}`}
+                  onClick={(e) => { e.stopPropagation(); setRanksOpen((v) => !v); }}
+                  aria-expanded={ranksOpen}
+                  aria-label="How country ranks work"
+                >i</button>
+                {ranksOpen && (
+                  <span className="comm-ranks" onClick={(e) => e.stopPropagation()}>
+                    <span className="comm-pts-eyebrow">{cName} ranks</span>
+                    <span className="comm-pts-note">Earned separately in every country, by trips walked there.</span>
+                    {COUNTRY_TIERS.map((ct) => {
+                      const done = cTrails.length >= ct.trips;
+                      const isNext = !done && ct.trips === tier.nextAt;
+                      return (
+                        <span key={ct.title} className={`comm-pts-row comm-rankrow${done ? ' done' : ''}${isNext ? ' next' : ''}`}>
+                          {ct.title.charAt(0).toUpperCase() + ct.title.slice(1)}
+                          <b>{done ? `✓ ${ct.trips}` : `${cTrails.length}/${ct.trips}`}</b>
+                        </span>
+                      );
+                    })}
+                  </span>
+                )}
+              </span>
             </div>
             <div className="comm-chero-bar"><i style={{ width: `${tier.pct}%` }} /></div>
           </div>
@@ -1225,11 +1462,23 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
         if (c.key === 'journeys') {
           return (
             <div key={c.key} className="comm-cat">
-              <div className="comm-cat-head">
+              {/* Matej 2026-08-06: „na dropdown, teraz je to strašne dlhé neforemné". Jedenásť
+                  magistrál je zoznam pre menšinu — zbalený je z neho jeden riadok so zlomkom,
+                  rozbalený je to presne to, čo bolo predtým. Default ZAVRETÝ. */}
+              <button
+                type="button"
+                className={`comm-cat-head comm-cat-head--btn${journeysOpen ? ' on' : ''}`}
+                onClick={() => setJourneysOpen((v) => !v)}
+                aria-expanded={journeysOpen}
+              >
                 <img className="comm-cat-ic" src={ICON(c.icon)} alt="" />
                 <span className="comm-cat-name">{c.label}</span>
                 <span className="comm-cat-count">{c.done.length}/{c.total}</span>
-              </div>
+                <span className="comm-drop-chev" />
+              </button>
+              {/* ⚠️ NIE `hidden={!open}` — `.comm-jrows` má `display:flex`, ktorý atribút
+                  `hidden` (display:none z UA štýlov) prebije, a zoznam by ostal viditeľný. */}
+              {journeysOpen && (
               <div className="comm-jrows">
                 {SK_GEO_UNITS(c.key).map((u) => {
                   const slug = JOURNEY_SLUG[u];
@@ -1251,6 +1500,7 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
                   );
                 })}
               </div>
+              )}
             </div>
           );
         }
@@ -1446,6 +1696,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
   myId?: string | null;
   onShareTrip?: (tripId: string) => void;
 }) {
+  const t = useT();
   const isMine = isMyEvent(ev);
   // partiu vieme dotiahnuť len pre VLASTNÝ inzerát (organizátor = auth.uid(), default v RPC)
   const party = useTripParty(isMine ? ev.tripId : null);
@@ -1465,6 +1716,10 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
       )}
       <div className="comm-plan-top">
         <div>
+          {/* Typový štítok (Matej 2026-08-06) — zoznam UDALOSTÍ vedome mieša naplánované
+              výlety (toto) s podujatiami (EventCard.tsx). Rozdiel: po tomto zostane MIESTO
+              (vsiakne sa do tripu ako log), po podujatí len záznam v archíve. */}
+          <div className="comm-plan-type">{t('pack.eventsList.typeTrip')}</div>
           <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
           <div className="comm-plan-meta">
             {whenLabel} · hosted by{' '}

@@ -36,7 +36,6 @@ import {
   humanProfileCompletion,
   type ProfileFieldKey,
 } from '@/components/pack/profile/packProfile';
-import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
 import { useDogyptStore } from '@/store/dogyptStore';
 
 const T = PACK_THEME;
@@ -327,12 +326,28 @@ export default function PackProfile() {
   // #my-gods deep-link (avatar menu "My Pack" → /pack/profile#my-gods) — client-side nav does NOT
   // auto-scroll to a hash like a full page load does, so scroll it into view manually once dogs
   // are on screen (dogsLoading gate avoids scrolling to a still-empty section).
+  // ⚠️ Jeden pokus nestačí: sekcie NAD ňou (avatar, bio, chipy) sa dorenderujú až po nej, takže
+  // v čase scrollu leží #my-gods pár desiatok px pod vrchom a stránka ostane stáť tam, kým sa
+  // cieľ odsunie o ~800 px nižšie (Matej 2026-08-06 — „nejde mi otvoriť my pack"). Preto
+  // scrollujeme opakovane, kým sa pozícia cieľa medzi dvoma meraniami neustáli. `instant` je
+  // zámerne: CSS má `scroll-behavior: smooth`, a rozbehnutú smooth animáciu by každá ďalšia
+  // korekcia aj tak zrušila.
   useEffect(() => {
     if (location.hash !== '#my-gods' || dogsLoading) return;
-    const t = setTimeout(() => {
-      document.getElementById('my-gods')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 150);
-    return () => clearTimeout(t);
+    let lastTop = -1;
+    let tries = 0;
+    let timer = 0;
+    const tick = () => {
+      const el = document.getElementById('my-gods');
+      if (!el) return;
+      const top = Math.round(el.getBoundingClientRect().top + window.scrollY);
+      el.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'start' });
+      if (top === lastTop || ++tries > 12) return; // ustálené, alebo strop ~1,3 s
+      lastTop = top;
+      timer = window.setTimeout(tick, 100);
+    };
+    timer = window.setTimeout(tick, 100);
+    return () => clearTimeout(timer);
   }, [location.hash, dogsLoading]);
 
   const email = session?.user?.email ?? '—';
@@ -750,14 +765,16 @@ export default function PackProfile() {
 
         </PapyrusCard>
 
-        {/* ── SEKCIA 2 — OH, MY DOG! (psy) ─────────────────────────────────
-            Vlastná karta POD sekciou 1 (Matej 2026-07-26, tretí pokus — vedľa
-            seba nevydržalo, „vráť to"). Pôvodný dôvod vlastnej karty (25.7.:
-            prázdny stĺpec v predtým zlúčenej dvojstĺpcovej karte) platí ďalej —
-            len teraz sú karty pod sebou, nie vedľa seba. */}
-        <PapyrusCard id="my-gods">
-          <MyGodsContent dogs={dogs} loading={dogsLoading} profile={profile} />
-        </PapyrusCard>
+        {/* SEKCIA „OH, MY DOG!" (profily psov) ZRUŠENÁ 2026-08-06 — Matej: „týmto
+            rozhodnutím vlastne v /profile rušíme 2. blok, kde boli predtým profily psov…
+            zostane to len pre majiteľa." Profil je odteraz VÝHRADNE o majiteľovi
+            (fotka, meno, účet, heslo, jazyk, notifikácie).
+
+            Všetko psie sa presunulo: VSTUP → MY PACK (`/pack/dogs`, dlaždice kvízov),
+            VÝSTUP → karta psa (`/pack/dogs/:id`, pet pas).
+            ⚠️ Polia a taxonómie v `components/pack/profile/packProfile.ts` NEZANIKLI —
+            len sa pýtajú inde. `DogGallery.tsx` / `DogCardFields.tsx` ostávajú v repe
+            (používa ich read-profil `/pack/u/:id`), tu sa už nemountujú. */}
 
         {/* Bones + your network — split two-column block */}
         <PackNetwork />
@@ -914,177 +931,10 @@ export default function PackProfile() {
   );
 }
 
-// My Gods — psia galéria ako accordion editor (zbalené foto·meno·heroglyf# → rozbalené BIO+tagy,
-// zadanie-profil-read-dog-2026-07-25 §2). Inner obsah (bez karty), sedí v pravej časti zlúčeného
-// Identity bloku. Detail (zdravie/dokumenty/PDF) ostáva na `/pack/dogs/:id` (PackDogDetail) —
-// accordion tu rieši len BIO+tagy, needuplikuje zvyšok toho panelu.
-function MyGodsContent({ dogs, loading, profile }: { dogs: PackDogFull[]; loading: boolean; profile: CentralProfile | null }) {
-  // Vlastný hook, nie prop-drilling z PackProfile() — resetFlow tu bol predtým referencovaný
-  // z rodičovského scope (ReferenceError, tsc TS2304), MyGodsContent je samostatná funkcia.
-  const resetFlow = useDogyptStore((s) => s.reset);
-  const entries: DogGalleryEntry[] = dogs.map((d) => ({
-    id: d.id,
-    name: d.dog_name || 'Unnamed',
-    photoUrl: d.cloudinary_main_url,
-    packNumber: d.pack_number,
-    attrs: profile?.dogs[d.id] ?? emptyDogAttrs(d.id),
-    heroglyph: {
-      gender: d.selections?.dogGender,
-      colour: d.selections?.dogColour,
-      bloodline: d.selections?.dogBloodline,
-    },
-    heroglyphUrl: d.heroglyph_png_url ?? null,
-  }));
-
-  // Psia karta — patch merge do existujúcej karty (accordion posiela vždy len
-  // zmenené pole; `compat` prichádza už zlúčený z DogGallery).
-  const saveCard = (dogId: string, patch: Partial<DogCard>) => {
-    const current = profile?.dogs[dogId] ?? emptyDogAttrs(dogId);
-    saveDogAttrs(dogId, { card: { ...(current.card ?? emptyDogCard()), ...patch } });
-  };
-
-  const toggleTag = (dogId: string, group: 'temperament' | 'trail', tag: string) => {
-    const current = profile?.dogs[dogId] ?? emptyDogAttrs(dogId);
-    if (group === 'temperament') {
-      const list = current.tags.temperament;
-      const next: DogTemperamentTag[] = list.includes(tag as DogTemperamentTag)
-        ? list.filter((v) => v !== tag)
-        : [...list, tag as DogTemperamentTag];
-      saveDogAttrs(dogId, { tags: { ...current.tags, temperament: next } });
-    } else {
-      const list = current.tags.trail;
-      const next: DogTrailTag[] = list.includes(tag as DogTrailTag)
-        ? list.filter((v) => v !== tag)
-        : [...list, tag as DogTrailTag];
-      saveDogAttrs(dogId, { tags: { ...current.tags, trail: next } });
-    }
-  };
-
-  return (
-    <>
-      {/* Nadpis sekcie — Matej 2026-07-26: „namiesto názvu my gods daj vacsím
-          nadpis OH, MY DOG!". Bol to 10px Cinzel eyebrow, teda vizuálne label
-          formulára; teraz je to hlavný nadpis stránky (pes > majiteľ).
-          Nadnadpis („Your pantheon" + heartpaw ikonka) aj podnadpis („The ones
-          who chose you…") sú PREČ — Matej 2026-07-26: „oh my dog (preč
-          nadnadpis aj podnadpis". Zostal jeden nadpis a počítadlo psov. */}
-      {/* Matej 2026-07-29: „nadpis musím centrovať a dajme ho menším."
-          `justify-between` (nadpis vľavo, počítadlo vypchané na opačný koniec)
-          → `justify-center`: nadpis a počítadlo idú do stredu ako jeden celok.
-          Počítadlo si drží `shrink-0`, takže sa pri dlhom nadpise nezrazí. */}
-      <div className="flex items-center justify-center" style={{ gap: 12, marginBottom: 4 }}>
-        <div style={{ minWidth: 0 }}>
-          <h2
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontWeight: 700,
-              /* Matej 2026-07-26: „ten nadpis Oh my dog je teraz neprimerane
-                 veľký" — strop 2.6rem (41.6px) znížený na 2rem (32px),
-                 spodok 1.75→1.5rem. Matej 2026-07-29: „dajme ho menším" —
-                 ďalšie kolo, 2rem→1.5rem (24px) / spodok 1.5→1.2rem. */
-              fontSize: 'clamp(1.2rem, 3.2vw, 1.5rem)',
-              letterSpacing: '0.03em',
-              textTransform: 'uppercase',
-              lineHeight: 1.05,
-              color: T.inkStrong,
-              margin: 0,
-            }}
-          >
-            Oh, my dog!
-          </h2>
-        </div>
-        {!loading && dogs.length > 0 && (
-          <span
-            className="inline-flex items-center justify-center shrink-0"
-            style={{
-              minWidth: 30,
-              height: 30,
-              padding: '0 9px',
-              borderRadius: 999,
-              background: T.tileBg,
-              border: `1px solid ${T.border}`,
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 13,
-              fontWeight: 700,
-              color: T.cardEdge,
-            }}
-          >
-            {dogs.length}
-          </span>
-        )}
-      </div>
-      <p
-        style={{
-          fontFamily: "'Space Grotesk', sans-serif",
-          fontSize: 13.5,
-          lineHeight: 1.5,
-          color: T.inkWarm,
-          margin: '0 0 2px',
-          /* Ide s centrovaným nadpisom — vľavo zarovnaná veta pod centrovaným
-             nadpisom číta ako chyba. Vidno ju len v prázdnom stave. */
-          textAlign: 'center',
-        }}
-      >
-        {loading
-          ? ' '
-          : dogs.length === 0
-            ? 'No god yet. Every Dogyptian starts with one.'
-            /* Podnadpis „The one(s) who chose you. Tell the pack who they are."
-               je PREČ (Matej 2026-07-26: „preč nadnadpis aj podnadpis").
-               Prázdny stav si vetu drží — bez psa by pod nadpisom visela len
-               dashed výzva bez vysvetlenia. */
-            : ''}
-      </p>
-      <GoldRule width="100%" my={14} />
-
-      {loading ? (
-        <div className="flex items-center gap-2 py-2" style={{ color: T.inkFaint }}>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13 }}>Loading your gods…</span>
-        </div>
-      ) : (
-        <DogGalleryAccordion
-          dogs={entries}
-          editable
-          layout="open"
-          onSaveBio={(dogId, bio) => saveDogAttrs(dogId, { bio: bio.slice(0, 200) })}
-          onToggleTag={toggleTag}
-          onSaveCard={saveCard}
-          addSlot={
-            /* „Add a god" má ZÁMERNE nižšiu váhu než pes — dashed okraj, bez
-               fotky. Je to VODOROVNÝ PÁS, nie štvorec: ako štvorcová dlaždica sa
-               pri nula psoch roztiahla na celú šírku karty a `aspect-ratio 1/1`
-               z nej urobil ~950 px vysoký prázdny box — presne to videl každý
-               nový člen bez psa. */
-            <Link
-              to="/heroglyph/intro"
-              onClick={resetFlow}
-              className="flex flex-row items-center justify-center"
-              style={{
-                gap: 10,
-                padding: '16px 18px',
-                textDecoration: 'none',
-                border: `1.5px dashed ${T.border}`,
-                borderRadius: 14,
-                background: 'rgba(201,154,63,0.04)',
-              }}
-            >
-              <span
-                className="inline-flex items-center justify-center shrink-0"
-                style={{ width: 42, height: 42, borderRadius: '50%', border: `1.5px dashed ${T.border}`, color: T.inkFaint, fontSize: 22, lineHeight: 1 }}
-              >
-                +
-              </span>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.18em', textTransform: 'uppercase', color: T.inkFaint, textAlign: 'center', padding: '0 6px' }}>
-                Add a god
-              </span>
-            </Link>
-          }
-        />
-      )}
-    </>
-  );
-}
+// `MyGodsContent` (psia galéria — accordion editor BIO+tagov) ZMAZANÝ 2026-08-06
+// spolu so sekciou „OH, MY DOG!" (viď komentár pri jej bývalom mieste vyššie).
+// Komponent `DogGalleryAccordion` sám NEZANIKOL — read-only ho ďalej používa
+// `PublicProfile.tsx` (`/pack/u/:id`). Editovanie psích polí patrí do kvízov v MY PACK.
 
 function Field({
   icon,

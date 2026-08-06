@@ -10,7 +10,7 @@ import {
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
 import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents, readLocalTrailMeta } from '@/lib/packStore';
-import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, type TripPointsResult } from '@/lib/tripPoints';
+import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, type PointsRow, type TripPointsResult } from '@/lib/tripPoints';
 import { authorOf, AUTHOR_FALLBACK } from '@/components/pack/tripShared';
 import { countryName, trailCountry } from '@/lib/countryGeo';
 
@@ -243,15 +243,6 @@ export interface GeoCategoryDef { key: GeoCategory; label: string; icon: string;
 // nehodil) · chko → `badge` (chránené = pečať/odznak) · peaks → `trophy` · waters → vlnky.
 // Všetko z existujúcej brand sady, žiadny nový asset.
 export const SK_GEO: GeoCategoryDef[] = [
-  { key: 'journeys', label: 'Long-distance trails', icon: 'walk', units: [
-    // POZOR: názvy sa párujú 1:1 s `name` v heroJourneys.ts (unitsForTrail). Čo tu nie je, sa nedá
-    // odškrtnúť; čo tu je navyše, robí menovateľ nedosiahnuteľným. Audit 2026-07-29: vyhodená
-    // 'Tatranská magistrála' (v datasete NIE JE — vyradená, psy zakázané v TANAPe), doplnený
-    // 'Malofatranský okruh' (v datasete JE, ale nedal sa odškrtnúť).
-    'Cesta hrdinov SNP', 'Rudná magistrála', 'Východokarpatská magistrála', 'Nízkotatranská hrebeňovka',
-    'Veľkofatranská magistrála', 'Ponitrianska magistrála', 'Kysucká magistrála', 'Záhorácka magistrála',
-    'Štefánikova magistrála', 'Poloniny', 'Malofatranský okruh',
-  ] },
   { key: 'ranges', label: 'Mountain ranges', icon: 'layers', units: [
     // 26 kurátorovaných pohorí = zhodné s POHORIA v regions.ts (chrbtica filtra), zoradené podľa výšky dominanty.
     'Vysoké Tatry', 'Západné Tatry', 'Belianske Tatry', 'Nízke Tatry', 'Malá Fatra', 'Chočské vrchy',
@@ -270,12 +261,25 @@ export const SK_GEO: GeoCategoryDef[] = [
     'Ponitrie', 'Poľana', 'Cerová vrchovina', 'Vihorlat', 'Latorica',
     'Štiavnické vrchy', 'Východné Karpaty', 'Dunajské luhy', 'Záhorie',
   ] },
+  // PORADIE (Matej 2026-08-06): magistrály boli PRVÉ — *„nikoho to nezaujíma (resp len málo
+  // ľudí to zvládne), všetkých skôr zaujme to v akých pohoriach boli"*. Najprv išli úplne
+  // dozadu, upresnenie o pár minút neskôr: *„long distance daj nad high peaks"*, teda pod
+  // CHKO. Poradie kategórií = poradie relevancie pre bežného člena, nie poradie vzniku.
+  { key: 'journeys', label: 'Long-distance trails', icon: 'walk', units: [
+    // POZOR: názvy sa párujú 1:1 s `name` v heroJourneys.ts (unitsForTrail). Čo tu nie je, sa nedá
+    // odškrtnúť; čo tu je navyše, robí menovateľ nedosiahnuteľným. Audit 2026-07-29: vyhodená
+    // 'Tatranská magistrála' (v datasete NIE JE — vyradená, psy zakázané v TANAPe), doplnený
+    // 'Malofatranský okruh' (v datasete JE, ale nedal sa odškrtnúť).
+    'Cesta hrdinov SNP', 'Rudná magistrála', 'Východokarpatská magistrála', 'Nízkotatranská hrebeňovka',
+    'Veľkofatranská magistrála', 'Ponitrianska magistrála', 'Kysucká magistrála', 'Záhorácka magistrála',
+    'Štefánikova magistrála', 'Poloniny', 'Malofatranský okruh',
+  ] },
+  // F2 (Matej 2026-07-24): ikonka `water` vykresľovala DŽBÁN → `water-waves` = tri vlnky,
+  // rovnaká geometria ako modrý vodný pin na mape (waterIcon() v PackMap).
   { key: 'peaks', label: 'Highest peaks', icon: 'trophy', units: [
     'Gerlachovský štít', 'Ďumbier', 'Veľký Kriváň', 'Ostrá (V. Fatra)', 'Záruby',
     'Vápeč', 'Inovec', 'Poľana (vrchol)', 'Kľak',
   ] },
-  // F2 (Matej 2026-07-24): ikonka `water` vykresľovala DŽBÁN → `water-waves` = tri vlnky,
-  // rovnaká geometria ako modrý vodný pin na mape (waterIcon() v PackMap).
   { key: 'waters', label: 'Top waters', icon: 'water-waves', units: [
     'Liptovská Mara', 'Oravská priehrada', 'Zemplínska šírava', 'Sĺňava', 'Domaša',
     'Ružín', 'Štrbské pleso', 'Zelené pleso',
@@ -498,13 +502,37 @@ export function ratedCountFor(
  * a tlačidlo nesmie sľúbiť bonus, ktorý mu druhýkrát nepadne.
  */
 export function walkPointsFor(tr: { id: string; km?: string | number; ascentM?: number; acts?: string[] }): number {
+  return walkPointsBreakdown(tr).total;
+}
+
+/**
+ * To isté číslo AJ S ROZPADOM (Matej 2026-08-06: „za body napr havrania skala je 26… človek nevie
+ * prečo 26… ukáž to pri pridávaní hodnotenia, tam je dosť priestoru").
+ *
+ * Havrania skala = 5 (prejdenie) + 11 (11,3 km) + 10 (556 m ↑) = 26.
+ *
+ * ⚠️ `walkPointsFor` z toho ODVODZUJE svoj súčet, nepočíta si ho druhýkrát — inak by tlačidlo
+ * sľubovalo jedno číslo a rozpad pod ním sa skladal na iné. Rovnaký dôvod, prečo vznikla
+ * `walkedCountries()` (mapa vs. vysvedčenie).
+ */
+export function walkPointsBreakdown(tr: { id: string; km?: string | number; ascentM?: number; acts?: string[] }): TripPointsResult {
   return calculateTripPoints({
     kind: tr.acts?.includes('hike') ? 'trail' : 'place',
     km: Number(tr.km) || 0,
     ascentM: tr.ascentM ?? 0,
     journeyId: JOURNEY_POINTS[tr.id] ? tr.id : undefined,
     walked: true,
-  }).total;
+  });
+}
+
+/**
+ * Základ odmeny do `WalkReward` — súčet AJ rozpad z JEDNÉHO volania enginu.
+ * Volá sa `{ tid, ...walkRewardBase(tr), bonuses }`, takže sa nedá omylom naplniť `base`
+ * z jedného výpočtu a `baseRows` z druhého.
+ */
+export function walkRewardBase(tr: { id: string; km?: string | number; ascentM?: number; acts?: string[] }): { base: number; baseRows: PointsRow[] } {
+  const r = walkPointsBreakdown(tr);
+  return { base: r.total, baseRows: r.rows };
 }
 
 /**
@@ -599,16 +627,16 @@ export function bonusToastText(
 
 // ── Ponuka hodnotenia po ✓ (2026-08-05) ─────────────────────────────────────
 // Matej: „to hodnotenie by som asi dal na popup... nebolo by povinné ale vyskočilo by povinne."
-// Popup teda vyskočí sám, ale prejdenie je zapísané už pred ním a zavretie nič neruší.
-// POISTKA PROTI DÁVKE: kto odškrtáva víkendovú dávku trás, nesmie dostať dvadsať popupov za
-// sebou. Jedno zavretie bez vyplnenia utíši ponuku na minútu — potom sa pýta znova.
-// Zámerne v pamäti modulu, nie v localStorage: je to stav jedného sedenia, nie nastavenie.
+// Popup vyskočí sám, ale prejdenie je zapísané už pred ním a zavretie nič neruší.
+//
+// ⚠️ TICHÉ OBDOBIE ZRUŠENÉ 2026-08-06 (Matej: „pri každom prejdenom daj popup s hodnotením nie
+// random, ved človek to rád ohodnotí za body"). Predtým platilo: jedno zavretie bez vyplnenia
+// utíšilo ponuku na 60 s (poistka proti odškrtávaniu víkendovej dávky). Z pohľadu človeka to
+// ale vyzeralo NÁHODNE — raz popup prišiel, raz nie, a dôvod nebol nikde vidieť.
+// Hodnotenie je platené bodmi, takže je to ponuka, nie otrava → ponúka sa VŽDY.
+// Ak sa raz ukáže, že dávkové odškrtávanie je reálny problém, riešením NIE je návrat k tichu
+// (to len skryje body), ale hromadné hodnotenie viacerých trás naraz.
 export const RATE_PROMPT_POINTS = POINTS.rate;
-const RATE_PROMPT_QUIET_MS = 60_000;
-let ratePromptQuietUntil = 0;
-/** Zavretie ponuky BEZ vyplnenia (submit ju neutíši — kto hodnotí, ten ju chce). */
-export const muteRatePrompt = (now = Date.now()): void => { ratePromptQuietUntil = now + RATE_PROMPT_QUIET_MS; };
-export const shouldPromptRating = (now = Date.now()): boolean => now >= ratePromptQuietUntil;
 
 export const FOUNDER_ACCOUNT_EMAIL = 'hekthorsk@gmail.com';
 export const isFounderEmail = (email?: string | null) =>
