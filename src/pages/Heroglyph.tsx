@@ -250,6 +250,61 @@ export default function Heroglyph() {
     };
   }, []);
 
+  // MERANIE (2026-08-06): 67% bounce na tejto stránke, dnes trackujeme len CTA klik —
+  // nevieme či ľudia vôbec scrollujú a kam dočítajú. Prah = raz za návštevu (Set, nie
+  // state → žiadny re-render). rAF throttle namiesto setInterval, aby sa to nespúšťalo
+  // rýchlejšie než repaint. Mobile-first vzorec (scrollY + innerHeight) — na 95% mobilnej
+  // návštevnosti samotné scrollY klame (viewport je malý voči celej výške stránky).
+  useEffect(() => {
+    const THRESHOLDS = [25, 50, 75, 100] as const;
+    const seen = new Set<number>();
+    let ticking = false;
+    const check = () => {
+      ticking = false;
+      const doc = document.documentElement;
+      const pct = ((window.scrollY + window.innerHeight) / doc.scrollHeight) * 100;
+      THRESHOLDS.forEach((t) => {
+        if (pct >= t && !seen.has(t)) {
+          seen.add(t);
+          track('heroglyph_scroll_depth', { pct: t });
+        }
+      });
+    };
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(check);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    check(); // krátka stránka/mobil môže byť už pri mounte na 100% bez scrollu
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // MERANIE (2026-08-06): ktoré bloky stránky ľudia reálne uvidia pred bounce —
+  // hero/symbol/benefits/cta (jediné sekcie, ktoré tu reálne existujú, stránka je
+  // jedna karta bez samostatných <section>). data-section atribúty pridané na
+  // existujúce elementy vyššie, žiadny nový wrapper. Raz za sekciu → unobserve.
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>('[data-section]'));
+    if (!els.length) return;
+    const seen = new Set<string>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const section = entry.target.getAttribute('data-section');
+          if (!section || seen.has(section)) return;
+          seen.add(section);
+          track('heroglyph_section_view', { section, index: els.indexOf(entry.target as HTMLElement) });
+          observer.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.5 },
+    );
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
   const meaning = tooltipSymbol ? MEANINGS[tooltipSymbol] : null;
 
   const enterFlow = () => {
@@ -924,13 +979,13 @@ export default function Heroglyph() {
             <img src="/icons/heroglyph-page/ticket-gold.svg" alt="" className="eyebrow-icon" style={{ transform: 'none' }} />
             {t('heroglyph.sales.eyebrow')}
           </p>
-          <h1 className="religion-title">{t('heroglyph.sales.title')}</h1>
+          <h1 className="religion-title" data-section="hero">{t('heroglyph.sales.title')}</h1>
           <hr className="religion-rule" />
           <p className="religion-sub">
             {t('heroglyph.sales.subtitle')}
           </p>
 
-          <div ref={svgWrapRef} className="heroglyph-svg-wrap">
+          <div ref={svgWrapRef} className="heroglyph-svg-wrap" data-section="symbol">
             <div
               className={`heroglyph-svg-wrap-inner${svgMarkup ? ' is-loaded' : ''}`}
               dangerouslySetInnerHTML={{ __html: svgMarkup }}
@@ -996,7 +1051,7 @@ export default function Heroglyph() {
             <path d="M250 16 V30" />
           </svg>
 
-          <div className="hg-benefits">
+          <div className="hg-benefits" data-section="benefits">
             {BLOCKS.map((b, i) => (
               <button
                 key={b.id}
@@ -1018,7 +1073,7 @@ export default function Heroglyph() {
             ))}
           </div>
 
-          <button onClick={enterFlow} className="entry-cta">
+          <button onClick={enterFlow} className="entry-cta" data-section="cta">
             {t('heroglyph.sales.cta')}
           </button>
 
