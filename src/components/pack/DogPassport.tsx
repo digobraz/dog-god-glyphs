@@ -237,6 +237,12 @@ function PassRow({
 // ── formátovanie hodnôt ──────────────────────────────────────────────────────
 function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => string) {
   const label = (val: string) => {
+    // Vlastné labely poľa majú PREDNOSŤ pred zdieľanými priestormi. Bez toho by
+    // `nature.specials: ['loner']` spadlo na `pack.dogTag.loner` = „Samotár",
+    // čo je TAG POVAHY, nie zvláštna úloha „The Loner" — presne tá kolízia,
+    // kvôli ktorej sa zvláštna úloha nikdy neukazuje ako holý chip.
+    const own = step.valueLabels?.[val];
+    if (own) return tx(own.i18n, own.labelEN);
     // Rovnaký kľúčový priestor ako `DogCardFields.tsx` — preklady možností už existujú.
     const fromOpt = tx(`pack.dogCard.opt.${val}`, '');
     if (fromOpt) return fromOpt;
