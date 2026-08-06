@@ -29,9 +29,17 @@ export const EDGE_BASE = `${SUPABASE_URL}/functions/v1`;
 // PostHog (EU cloud). Project API key je VEREJNÝ write-only (phc_...), rovnako ako
 // Supabase anon key — bezpečný vo verejnom bundli. Projekt 218037. Keychain: dogypt-posthog-key.
 const LIVE_POSTHOG_KEY = 'phc_uz2yLbgP6oxs5CapQsj4jyLwDegrbjB5ueAcTvLc4coM';
+// DEV ZÁMERNE BEZ FALLBACKU NA LIVE KĽÚČ (2026-08-06). Predtým tu bolo
+// `|| LIVE_POSTHOG_KEY`, takže `npm run web` posielal eventy z localhostu do
+// produkčného projektu 218037 — návštevnosť sa musela pri každej otázke ručne
+// filtrovať cez `$host`, a keď sa na to zabudlo, čísla boli nafúknuté a trend
+// obrátený (30.7.: dashboard hlásil −30 %, realita +46 %). Prázdny kľúč =
+// `main.tsx` nezavolá posthog.init() = `enabled()` je false = všetky track()
+// volania sú bezpečný no-op. dataLayer beží ďalej, takže GTM sa v deve ladiť dá.
+// Debug proti LIVE projektu: dopíš VITE_POSTHOG_KEY do .env.development.
 export const POSTHOG_KEY = import.meta.env.PROD
   ? LIVE_POSTHOG_KEY
-  : ((import.meta.env.VITE_POSTHOG_KEY as string) || LIVE_POSTHOG_KEY);
+  : ((import.meta.env.VITE_POSTHOG_KEY as string) || '');
 export const POSTHOG_HOST = 'https://eu.i.posthog.com';
 
 // Mapy.com (Seznam.cz) tiles for DOGYPT Trails (/pack/trails). Key is

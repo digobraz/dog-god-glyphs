@@ -407,6 +407,7 @@ export const cs: Partial<Dict> = {
   'heroglyph.checkout.firstName': 'Křestní jméno',
   'heroglyph.checkout.lastName': 'Příjmení',
   'heroglyph.checkout.email': 'E-mail',
+  'heroglyph.checkout.emailTypo': 'Nemá tam být {suggestion}?',
   'heroglyph.checkout.country': 'Země',
   'heroglyph.checkout.street': 'Ulice a číslo',
   'heroglyph.checkout.city': 'Město',
@@ -691,6 +692,8 @@ export const cs: Partial<Dict> = {
   'payment.promo.applied': 'Promo kód použit',
   'payment.promo.apply': 'Použít',
   'payment.promo.invalid': 'Tento kód neplatí.',
+  'payment.emailNotice': 'Certifikát a přístup pošleme sem',
+  'payment.emailFix': 'Špatná adresa? Opravit',
   'payment.promo.note':
     'Pejskaři, díky, že nám pomáháte testovat. Jako tester můžete uplatnit svůj promo kód a zaplatit jen 1 €. Ale pokud byste rádi nechali plnou částku, každé euro jde na dobrou věc a my si toho upřímně vážíme. 🐾',
   // transparency treasury block

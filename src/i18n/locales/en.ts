@@ -497,6 +497,7 @@ export const en = {
   'heroglyph.checkout.firstName': 'First Name',
   'heroglyph.checkout.lastName': 'Last Name',
   'heroglyph.checkout.email': 'Email',
+  'heroglyph.checkout.emailTypo': 'Did you mean {suggestion}?',
   'heroglyph.checkout.country': 'Country',
   'heroglyph.checkout.street': 'Street & Number',
   'heroglyph.checkout.city': 'City',
@@ -809,6 +810,8 @@ export const en = {
   'payment.promo.applied': 'Promo applied',
   'payment.promo.apply': 'Apply',
   'payment.promo.invalid': 'This code is not valid.',
+  'payment.emailNotice': 'Certificate and access go here',
+  'payment.emailFix': 'Wrong address? Change it',
   'payment.promo.note':
     'Dog lover, thanks for helping us test. As a tester you can apply your promo code and pay just €1. But if you’d like to leave the full amount, every euro goes to a good cause and we truly appreciate it. 🐾',
   // transparency treasury block

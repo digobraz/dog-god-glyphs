@@ -1,6 +1,6 @@
 // Consent storage + effects — Vlna B (Časť 1, infra).
 // localStorage kľúč `dogypt_consent`. Aplikuje účinky voľby (analytics/marketing).
-import { upgradeToTier1, downgradeToTier0 } from './analytics';
+import { track, upgradeToTier1, downgradeToTier0 } from './analytics';
 
 const STORAGE_KEY = 'dogypt_consent';
 
@@ -26,6 +26,17 @@ export function saveConsent(c: { analytics: boolean; marketing: boolean }): void
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
   } catch { /* ignore */ }
+  // Meranie accept rate (2026-08-06). Do 6.8. sa voľba hlásila IBA do dataLayera,
+  // takže sme nevedeli, koľko ľudí analytics prijme — a teda ani akú časť session
+  // replay pokrytia strácame (replay beží až po `analytics: true`). Event ide
+  // ZÁMERNE odtiaľto, nie z applyConsent(): applyConsent sa volá aj pri každom
+  // mounte ConsentBanneru z uloženej voľby, takže by rátal návštevy, nie voľby.
+  // `change` odlíši prvú voľbu od neskoršej úpravy v Cookie settings.
+  track('consent_choice', {
+    analytics: c.analytics,
+    marketing: c.marketing,
+    change: prev ? 'update' : 'first',
+  });
   applyConsent(consent, prev);
 }
 
