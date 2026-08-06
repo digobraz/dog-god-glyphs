@@ -1301,6 +1301,22 @@ export default function PackDogDetail() {
             Odstrániť SPOLU s odomknutím hubu, nie skôr. */}
         {DEV_FULL && <DogPassport dogId={dog.id} />}
 
+        {/* ČLENSKÁ VETVA — tri „čoskoro" dlaždice, presne ako pred 6.8.2026.
+            Sú tu preto, že pas o riadok vyššie je za flagom: bez nich by členovi na
+            `/pack/dogs/:id` zostal len blok identity a stránka by sa skončila — dostal by
+            ODOBRATIE (zmizli mu dlaždice) bez PRIDANIA (pas nevidí). Panely pod nimi sa
+            NEVRACAJÚ, vstup je natrvalo v MY PACK; toto je len sľub, že tie tri veci existujú.
+            Modlitbová coming-soon karta sa zámerne NEVRACIA — tá funkcia je zrušená
+            („zatial celkom preč"), a sľubovať zrušené je horšie než nesľubovať nič.
+            ZMAZAŤ celý tento blok pri odomknutí hubu členom. */}
+        {!DEV_FULL && (
+          <div className="grid grid-cols-3 gap-4 md:gap-6">
+            <HubTile icon="heartpaw" label={t('pack.dog.tileHealth')} sub={t('pack.dog.tileHealthSub')} soon />
+            <HubTile icon="trophy" label={t('pack.dog.tileTraining')} sub={t('pack.dog.tileTrainingSub')} soon />
+            <HubTile icon="feather" label={t('pack.dog.tileJournal')} sub={t('pack.dog.tileJournalSub')} soon />
+          </div>
+        )}
+
 
         {/* ŠTATISTIKY (ročný kalendár) PRESUNUTÉ 6.8.2026 do MY PACK (`/pack/dogs`) ako
             posledný blok — Matej: „premiestni STATS do /DOGS ako posledné (coming soon)".
