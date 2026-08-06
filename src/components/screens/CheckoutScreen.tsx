@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { PageTopBar } from '@/components/PageTopBar';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { buildHeroglyphCode, countryISO3 } from '@/lib/heroglyphCode';
+import { suggestEmailFix } from '@/lib/emailTypo';
 import { getStoredRef } from '@/lib/refCapture';
 import { getAttribution } from '@/lib/attribution';
 import { track, identifyUser } from '@/lib/analytics';
@@ -95,6 +96,14 @@ export function CheckoutScreen() {
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const isEmailValid = EMAIL_RE.test(email.trim());
+
+  // Preklep v doméne (`gmial.com`) — jeden klik ho opraví. Lokálnu časť
+  // (`cabane` vs `cabanek`, člen #60) takto chytiť NEJDE; tú si musí prečítať
+  // človek na /payment. Viď lib/emailTypo.ts.
+  const emailSuggestion = useMemo(
+    () => (isEmailValid ? suggestEmailFix(email) : null),
+    [email, isEmailValid],
+  );
 
   // ── Abandoned-cart zber (2026-07-10) ──────────────────────────────────────
   // 14 z 22 checkout-odídencov nikdy neklikne Continue → email zachytávame hneď,
@@ -327,6 +336,16 @@ export function CheckoutScreen() {
                 <p className="text-[11px] text-red-400/80 px-1 -mt-0.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   Enter a valid email address
                 </p>
+              )}
+              {emailSuggestion && (
+                <button
+                  type="button"
+                  onClick={() => { setLocalEmail(emailSuggestion); track('checkout_email_typo_fixed'); }}
+                  className="text-[11px] text-primary/90 hover:text-primary underline underline-offset-2 px-1 -mt-0.5 text-left"
+                  style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+                >
+                  {t('heroglyph.checkout.emailTypo').replace('{suggestion}', emailSuggestion)}
+                </button>
               )}
               {/* Billing address — required for invoice (SK law) */}
               <input ref={billStreetRef} aria-invalid={invalidField === 'billStreet'} type="text" placeholder={t('heroglyph.checkout.street')} value={billStreet} onChange={(e) => { setBillStreet(e.target.value); clearInvalid('billStreet'); }} className={fieldClass('billStreet')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="street-address" />

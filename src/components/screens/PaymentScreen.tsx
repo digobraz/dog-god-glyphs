@@ -399,6 +399,62 @@ export function PaymentScreen() {
 
             {/* ── 3b. PAY BUTTON + SECURED ── */}
             <div className="px-6 pt-4 pb-1">
+              {/* Posledná šanca prečítať si vlastnú adresu.
+                  PREČO (člen #60, 2026-08-06): preklep `cabane@` namiesto `cabanek@`
+                  je platná adresa — validácia ani typo-guard ho nechytia. Certifikát,
+                  faktúra aj prístup do /pack potom odišli cudziemu človeku a v /pack
+                  nevidel nič. Do zadania mailu na /checkout sa už nikdy nepozrel,
+                  lebo mu ho nikto nezopakoval. Tu ho vidí naposledy pred platbou. */}
+              <div
+                style={{
+                  textAlign: 'center',
+                  margin: '0 0 14px',
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  background: 'rgba(201,154,63,0.07)',
+                  border: '1px solid rgba(201,154,63,0.28)',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontWeight: 500,
+                    fontSize: 9.5,
+                    letterSpacing: '.22em',
+                    textTransform: 'uppercase',
+                    color: '#C99A3F',
+                    marginBottom: 3,
+                  }}
+                >
+                  {t('payment.emailNotice')}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 13.5,
+                    color: '#2a1608',
+                    wordBreak: 'break-all',
+                    lineHeight: 1.35,
+                  }}
+                >
+                  {email}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/checkout')}
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 11,
+                    color: '#7a5a2a',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: 2,
+                    marginTop: 4,
+                  }}
+                >
+                  {t('payment.emailFix')}
+                </button>
+              </div>
               <Button
                 onClick={handlePay}
                 disabled={loading}
