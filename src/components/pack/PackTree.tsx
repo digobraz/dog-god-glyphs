@@ -4,6 +4,10 @@ import { PACK_THEME } from './packTheme';
 import { BrandIcon } from './BrandIcon';
 import heroglyphFrame from '@/assets/heroglyph-frame.svg';
 import { useT } from '@/i18n/LanguageContext';
+import { dogLifeLine } from '@/lib/dogAge';
+import { flagUrl, countryISO2 } from '@/lib/countryGeo';
+import { Sparkles } from 'lucide-react';
+import { HEALTH_COLORS, healthKeyOf, healthLabelKey } from '@/lib/dogHealth';  // bodka statusu v mriežke/stene
 
 const T = PACK_THEME;
 
@@ -15,6 +19,14 @@ interface DogNode {
   heroglyph_png_url?: string | null;
   breed: string | null;
   pack_number?: number | null;
+  country?: string | null;
+  // „Dni nažive" + health status priamo na homepage (Matej 2026-08-06: „to musí byť
+  // ihneď dostupné na homepage"). Bez týchto polí by sa dali zistiť až v profile psa.
+  selections?: Record<string, string> | null;
+  birth_year?: number | null;
+  life_status?: string | null;
+  death_date?: string | null;
+  health_status?: string | null;
 }
 
 interface PackTreeProps {
@@ -33,7 +45,7 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
         // Hekthor fialovo-zlatá (paywall/welcome gradient) — psy = posvätné
         background: 'var(--brand-gradient)',
         borderRadius: 24,
-        padding: '26px 22px 22px',
+        padding: '20px 18px 18px',
         border: '1px solid hsl(45 80% 60% / 0.28)',
         boxShadow: '0 20px 50px -22px rgba(40, 18, 60, 0.55)',
         position: 'relative',
@@ -50,7 +62,7 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
           letterSpacing: '0.30em',
           textTransform: 'uppercase',
           color: 'hsl(45 75% 92%)',
-          marginBottom: 20,
+          marginBottom: 14,
         }}
       >
         {t('pack.tree.title')}
@@ -70,6 +82,102 @@ export function PackTree({ ownerAvatarUrl, ownerInitial, dogs, hideOwner }: Pack
   );
 }
 
+// ── Život psa na homepage ────────────────────────────────────────────────────
+// Hláška aj dizajn sú PREVZATÉ z profilu psa (`BestLifeBadge` + eyebrow v
+// PackDogDetail) — Matej 2026-08-06: „chcem túto hlášku aj dizajn (livin my best
+// life) v tej pills". Ten istý pes nesmie mať na dvoch povrchoch dva jazyky.
+// Rozdiel oproti profilu: tu je to len text, nie tlačidlo — celá karta je link
+// a vnorené tlačidlo by mu kradlo klik.
+function LifeLine({ dog, center = false }: { dog: DogNode; center?: boolean }) {
+  const t = useT();
+  const life = dogLifeLine(dog);
+  if (life.days === null) return null;
+
+  return (
+    <div
+      className={`flex flex-wrap items-center gap-x-2 gap-y-1 ${center ? 'justify-center' : ''}`}
+      style={{ marginTop: center ? 10 : 6 }}
+    >
+      <span
+        className="inline-flex items-center gap-1.5"
+        style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: T.inkDim }}
+      >
+        {life.isAngel ? (
+          <>🕊 {t('pack.dog.inAngelForm')}</>
+        ) : (
+          <>
+            <Sparkles className="h-3 w-3" style={{ color: T.accentGold }} />
+            {t('pack.dog.livingBestLife')}
+          </>
+        )}
+      </span>
+      <span
+        style={{
+          padding: '4px 12px',
+          borderRadius: 999,
+          background: 'linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%)',
+          color: '#3d1f00',
+          fontFamily: "'Cinzel', serif",
+          fontSize: 13.5,
+          fontWeight: 700,
+          letterSpacing: '0.02em',
+          boxShadow: '0 6px 16px -6px rgba(201, 154, 63, 0.6)',
+          lineHeight: 1.1,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {t('pack.tree.daysUnit', { days: life.days.toLocaleString('en-US') })}
+      </span>
+    </div>
+  );
+}
+
+// Vlajka patrí k ČÍSLU, nie k menu (Matej 2026-08-06: „pri čísle vedľa daj vlajku
+// — v spojitosti s číslom"). Presne ako na profile psa: `#1` · vlajka · status.
+// w160 (nie w40) — malý krúžok na retine potrebuje 2–3× hustotu, inak je rozmazaný.
+function FlagChip({ country, size = 20 }: { country?: string | null; size?: number }) {
+  const iso = countryISO2(country || '');
+  if (!iso) return null;
+  return (
+    <img
+      src={flagUrl(iso, 160)}
+      alt=""
+      aria-hidden
+      style={{
+        width: size, height: size, borderRadius: '50%', objectFit: 'cover',
+        border: '1px solid rgba(201,154,63,0.55)', flexShrink: 0, display: 'block',
+      }}
+    />
+  );
+}
+
+// Mriežka a stena nemajú miesto na text — status nesie farebná bodka s tooltipom.
+function StatusDot({ dog, size = 8, absolute = false }: { dog: DogNode; size?: number; absolute?: boolean }) {
+  const t = useT();
+  const isAngel = dog.life_status === 'deceased';
+  const health = healthKeyOf(dog.health_status);
+  const color = isAngel ? T.partHek : HEALTH_COLORS[health];
+  return (
+    <i
+      aria-hidden
+      title={isAngel ? t('pack.tree.angel') : t(healthLabelKey(health))}
+      style={{
+        width: size, height: size, borderRadius: '50%', background: color, flexShrink: 0,
+        border: '1.5px solid #FBF5E6',
+        ...(absolute ? { position: 'absolute' as const, top: 3, right: 4, zIndex: 2 } : {}),
+      }}
+    />
+  );
+}
+
+// Vyrovnané riadky mriežky: skús 5 → 4 → 3 stĺpcov a vezmi prvý, ktorý delí počet
+// psov bezo zvyšku. Fixné 3 stĺpce dávali pri niektorých počtoch osirelý posledný
+// riadok (Matej 2026-08-06: „nerob chujoviny", 10 psov = 5 a 5).
+function balancedCols(n: number): number {
+  for (const c of [5, 4, 3]) if (n % c === 0) return c;
+  return 4;
+}
+
 function PrimaryDog({ dog }: { dog: DogNode }) {
   const t = useT();
   const name = (dog.dog_name || 'Unnamed').toUpperCase();
@@ -83,32 +191,34 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
         background: T.cardGrad,
         border: `1.5px solid ${T.cardEdge}`,
         borderRadius: 16,
-        padding: '24px 20px',
+        padding: '18px 18px 16px',
         boxShadow: T.cardShadow,
       }}
     >
         {/* # poradové číslo v Dogypte — badge v ľavom hornom rohu */}
-        {founder && (
-          <span
-            className="absolute inline-flex items-center"
-            style={{
-              top: 14,
-              left: 14,
-              padding: '5px 11px',
-              borderRadius: 999,
-              background: 'rgba(201, 154, 63, 0.14)',
-              border: '1px solid rgba(201, 154, 63, 0.50)',
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 13,
-              fontWeight: 700,
-              letterSpacing: '0.04em',
-              color: T.accentGold,
-              lineHeight: 1,
-            }}
-          >
-            {founder}
-          </span>
-        )}
+        {/* # poradové číslo + vlajka — dvojica, presne ako na profile psa. */}
+        <div className="absolute inline-flex items-center gap-2" style={{ top: 14, left: 14 }}>
+          {founder && (
+            <span
+              className="inline-flex items-center"
+              style={{
+                padding: '5px 11px',
+                borderRadius: 999,
+                background: 'rgba(201, 154, 63, 0.14)',
+                border: '1px solid rgba(201, 154, 63, 0.50)',
+                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                color: T.accentGold,
+                lineHeight: 1,
+              }}
+            >
+              {founder}
+            </span>
+          )}
+          <FlagChip country={dog.country} size={22} />
+        </div>
 
         {/* Profil link — ikonka vpravo hore (certifikáty / PDF / foto / protokol) */}
         <Link
@@ -135,8 +245,8 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
         <div
           className="relative"
           style={{
-            width: 120,
-            height: 120,
+            width: 104,
+            height: 104,
             borderRadius: '50%',
             background: T.bg,
             overflow: 'hidden',
@@ -165,29 +275,31 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
           className="text-center"
           style={{
             fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-            fontSize: 26,
+            fontSize: 23,
             fontWeight: 700,
             letterSpacing: '0.04em',
             color: T.ink,
-            marginTop: 16,
+            marginTop: 12,
           }}
         >
           {name}
         </div>
 
+        <LifeLine dog={dog} center />
+
         {/* Heroglyf — čierny horizontálny na bledej karte */}
-        <div className="flex items-center justify-center w-full" style={{ marginTop: 16 }}>
+        <div className="flex items-center justify-center w-full" style={{ marginTop: 12 }}>
           {dog.heroglyph_png_url ? (
             <img
               src={dog.heroglyph_png_url}
               alt={`${name} heroglyph`}
-              style={{ width: '100%', maxWidth: 260, height: 'auto', objectFit: 'contain', display: 'block' }}
+              style={{ width: '100%', maxWidth: 230, height: 'auto', objectFit: 'contain', display: 'block' }}
             />
           ) : (
             <img
               src={heroglyphFrame}
               alt=""
-              style={{ height: 88, width: 'auto', objectFit: 'contain', filter: 'brightness(0) opacity(0.7)' }}
+              style={{ height: 76, width: 'auto', objectFit: 'contain', filter: 'brightness(0) opacity(0.7)' }}
             />
           )}
         </div>
@@ -196,6 +308,7 @@ function PrimaryDog({ dog }: { dog: DogNode }) {
 }
 
 // Adaptívna hustota podľa počtu psov — všetko v jednom rámci bez scrollu.
+// Prahy: 1 · 2–4 · 5–9 · 10+ (zmenené 2026-08-06, predtým 5–12 / 13+).
 function DogCollection({ dogs }: { dogs: DogNode[] }) {
   const t = useT();
   if (dogs.length === 0) {
@@ -221,10 +334,10 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
       (a.pack_number ?? Number.MAX_SAFE_INTEGER) - (b.pack_number ?? Number.MAX_SAFE_INTEGER),
   );
 
-  // 1 pes = hero karta (foto + meno + plný heroglyf)
+  // 1 pes = hero karta (foto + meno + dni nažive/status + plný heroglyf)
   if (ordered.length === 1) return <PrimaryDog dog={ordered[0]} />;
 
-  // 2–4 = plné riadky (foto + meno + # + heroglyf + ikonka)
+  // 2–4 = plné riadky (foto + meno + # + dni nažive/status + heroglyf + ikonka)
   if (ordered.length <= 4) {
     return (
       <div className="w-full flex flex-col gap-3">
@@ -235,10 +348,14 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
     );
   }
 
-  // 5–12 = štvorcová mriežka (foto + meno + malé #)
-  if (ordered.length <= 12) {
+  // 5–9 = štvorcová mriežka (foto + meno + malé # + status bodka). Počet stĺpcov
+  // z balancedCols(), NIE fixné 3 — inak zostane osirelý posledný riadok.
+  if (ordered.length <= 9) {
     return (
-      <div className="w-full grid grid-cols-3 gap-2.5">
+      <div
+        className="w-full grid gap-2.5"
+        style={{ gridTemplateColumns: `repeat(${balancedCols(ordered.length)}, minmax(0, 1fr))` }}
+      >
         {ordered.map((d) => (
           <DogGridCard key={d.id} dog={d} />
         ))}
@@ -246,11 +363,14 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
     );
   }
 
-  // 13+ = stena (len foto + # v rohu)
+  // 10+ = stena (len foto v krúžku + status bodka). Hranica posunutá z 13 na 10
+  // (Matej 2026-08-06: „10 psov už nedávajme do blokov ale len fotky v krúžku").
+  // PEVNÝCH 5 stĺpcov, NIE auto-fill — ten napchal do riadku toľko, koľko sa zmestilo
+  // podľa šírky bloku (pri 10 psoch 7+3). Riadky sa musia vyrovnať: 10 = 5+5.
   return (
     <div
-      className="w-full grid gap-2"
-      style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}
+      className="w-full grid gap-2.5"
+      style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}
     >
       {ordered.map((d) => (
         <DogAvatar key={d.id} dog={d} />
@@ -259,7 +379,7 @@ function DogCollection({ dogs }: { dogs: DogNode[] }) {
   );
 }
 
-// 5–12 psov: štvorcová karta — foto + meno + malé #
+// 5–9 psov: štvorcová karta — foto + meno + malé # + status bodka
 function DogGridCard({ dog }: { dog: DogNode }) {
   const t = useT();
   const name = (dog.dog_name || 'Unnamed').toUpperCase();
@@ -311,25 +431,28 @@ function DogGridCard({ dog }: { dog: DogNode }) {
       >
         {name}
       </div>
-      {founder && (
-        <div
-          style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 9.5,
-            fontWeight: 700,
-            color: T.accentGold,
-            marginTop: 3,
-            lineHeight: 1,
-          }}
-        >
-          {founder}
-        </div>
-      )}
+      <div className="flex items-center justify-center gap-1.5" style={{ marginTop: 4 }}>
+        {founder && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+              fontSize: 9.5,
+              fontWeight: 700,
+              color: T.accentGold,
+              lineHeight: 1,
+            }}
+          >
+            {founder}
+          </span>
+        )}
+        <FlagChip country={dog.country} size={13} />
+        <StatusDot dog={dog} size={7} />
+      </div>
     </Link>
   );
 }
 
-// 13+ psov: stena — IBA foto (kruh). Bez #, bez mena. Tap = profil.
+// 10+ psov: stena — IBA foto (kruh) + status bodka. Bez #, bez mena. Tap = profil.
 function DogAvatar({ dog }: { dog: DogNode }) {
   const t = useT();
   const name = (dog.dog_name || 'Unnamed').toUpperCase();
@@ -355,6 +478,7 @@ function DogAvatar({ dog }: { dog: DogNode }) {
           {t('pack.tree.noPhoto')}
         </div>
       )}
+      <StatusDot dog={dog} size={9} absolute />
     </Link>
   );
 }
@@ -428,24 +552,28 @@ function DogRow({ dog }: { dog: DogNode }) {
         >
           {name}
         </div>
-        {founder && (
-          <span
-            className="inline-flex items-center mt-0 sm:mt-[7px]"
-            style={{
-              padding: '2px 9px',
-              borderRadius: 999,
-              background: 'rgba(201, 154, 63, 0.14)',
-              border: '1px solid rgba(201, 154, 63, 0.50)',
-              fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              fontSize: 11,
-              fontWeight: 700,
-              color: T.accentGold,
-              lineHeight: 1,
-            }}
-          >
-            {founder}
-          </span>
-        )}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0 sm:mt-[7px]">
+          {founder && (
+            <span
+              className="inline-flex items-center"
+              style={{
+                padding: '2px 9px',
+                borderRadius: 999,
+                background: 'rgba(201, 154, 63, 0.14)',
+                border: '1px solid rgba(201, 154, 63, 0.50)',
+                fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                fontSize: 11,
+                fontWeight: 700,
+                color: T.accentGold,
+                lineHeight: 1,
+              }}
+            >
+              {founder}
+            </span>
+          )}
+          <FlagChip country={dog.country} size={17} />
+        </div>
+        <LifeLine dog={dog} />
       </div>
 
       {/* Heroglyf — na mobile dostane uvoľnené miesto po mene (väčší), desktop drží 40px */}

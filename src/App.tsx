@@ -197,8 +197,11 @@ const App = () => (
               {/* /pack — buyer backoffice (auth-gated) */}
               <Route path="/pack" element={<Pack />} />
               <Route path="/pack/dogs/:id" element={<PackDogDetail />} />
-              {/* Profil zrušený z LIVE — všetko je na homepage. V DEV_FULL ostáva (frozen). */}
-              <Route path="/pack/profile" element={DEV_FULL ? <PackProfile /> : <Navigate to="/pack" replace />} />
+              {/* Profil je na LIVE od 2026-08-06 (Matej: „profil sa bude upravovať v /profile").
+                  Podmienka pre ceruzku v HeroCard — homepage je odteraz read-only a JEDINÉ miesto,
+                  kde sa mení fotka a meno, je tu. Gate sa vrátiť nesmie bez vrátenia editácie
+                  do HeroCard, inak si člen fotku nezmení vôbec. */}
+              <Route path="/pack/profile" element={<PackProfile />} />
               {/* Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). Funguje
                   self; cudzí člen = graceful fallback („profile isn't public yet"), žiaden crash.
                   Fabrikovaní členovia zmazaní 2026-08-03. */}

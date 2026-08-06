@@ -66,9 +66,9 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
           dogs={dogs}
           wide={wide}
           onProfile={() => {
-            // LIVE: profil zrušený → avatar skroluje na settings blok dole na homepage.
-            navigate('/pack');
-            setTimeout(() => document.getElementById('pack-settings')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
+            // Profil je na LIVE od 2026-08-06 → avatar ide rovno tam, už neskroluje
+            // na settings blok na homepage.
+            navigate('/pack/profile');
           }}
           onDog={(id) => navigate(`/pack/dogs/${id}`)}
         />
@@ -231,27 +231,36 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
       className="fixed z-40"
       style={{ left: '50%', transform: 'translateX(-50%)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
     >
-      <div
-        className="flex items-center gap-1"
-        style={{
-          background: T.glass,
-          border: `1px solid ${T.onDarkBorder}`,
-          borderRadius: 999,
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
-          padding: 6,
-          boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
-          // issue #51 (Instagram-style fade): top rim of the pill dissolves into transparent
-          // instead of cutting the blur off with a hard line, so page content scrolling up
-          // from behind it disappears gradually. Mask only on the existing blur layer — no
-          // extra backdrop-filter surface, so it stays cheap on older phones.
-          maskImage: 'linear-gradient(to bottom, transparent 0%, black 16%, black 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 16%, black 100%)',
-        }}
-      >
-        <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-        <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
-        <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+      <div className="relative">
+        {/* Sklenená vrstva pill-u — VLASTNÝ element, nie pozadie riadku s ikonami.
+            issue #51 (Instagram-style fade): horný okraj pill-u sa rozplýva do priehľadna
+            namiesto tvrdej hrany, takže obsah stránky pod ním mizne postupne. Maska sedí len
+            na tejto blur vrstve — žiadny extra backdrop-filter povrch, na starších telefónoch
+            to ostáva lacné.
+            ⚠️ Maska NESMIE byť na kontajneri s obsahom: `mask-image` klipuje celý podstrom na
+            svoj box, takže dropdown avatara (visí nad pill-om) sa vôbec nenamaľoval — DOM ho
+            mal, geometriu mal správnu, ale bol odmaskovaný preč (Matej 2026-08-06). */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 999,
+            background: T.glass,
+            border: `1px solid ${T.onDarkBorder}`,
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            boxShadow: '0 12px 36px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,240,228,0.06)',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 16%, black 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 16%, black 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div className="relative flex items-center gap-1" style={{ padding: 6 }}>
+          <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
+          <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+          <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
+        </div>
       </div>
     </nav>
   );

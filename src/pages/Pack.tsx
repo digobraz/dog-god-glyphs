@@ -58,6 +58,12 @@ interface DogRow {
   created_at: string;
   pack_number?: number | null;
   selections?: { ownerGender?: string | null } | null;
+  // Svorka na homepage (blok 2) ukazuje dni nažive + health status — bez týchto
+  // polí by sa oboje muselo dopočítať až na profile psa.
+  birth_year?: number | null;
+  life_status?: string | null;   // 'alive' | 'deceased'
+  death_date?: string | null;
+  health_status?: string | null;
 }
 
 interface PackStats {
@@ -72,6 +78,9 @@ interface PackStats {
 
 interface UserMeta {
   name: string;
+  /** Surové `full_name` z účtu, alebo null. `name` padá na meno odvodené z e-mailu,
+      takže sa z neho nedá zistiť, či člen meno naozaj vyplnil. */
+  fullName: string | null;
   email: string;
   avatarUrl: string | null;
   devotion: number;
@@ -107,7 +116,7 @@ export default function Pack() {
       // BONES = affiliate currency (affiliates.points) — fetched below, not metadata.
       const devotion = Number(meta.devotion) || 100;
       const display = firstNameFrom(u.email ?? '', fullName);
-      if (mounted) setUser({ name: display, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones: 0 });
+      if (mounted) setUser({ name: display, fullName: fullName?.trim() || null, email: u.email ?? '', avatarUrl: avatarUrl ?? null, devotion, bones: 0 });
 
       // BONES balance (affiliates.points) — zdroj čísla v HeroCard. Referral count
       // sa tu už nečíta: živil len „Invite a dog lover" krok vo First Steps.
@@ -134,7 +143,7 @@ export default function Pack() {
         };
       })
         .from('dogs')
-        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, share_card_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections')
+        .select('id, user_id, dog_name, owner_name, cloudinary_main_url, cloudinary_extras, heroglyph_code, heroglyph_png_url, share_card_url, breed, country, grid_message, stripe_session_id, pack_number, created_at, selections, birth_year, life_status, death_date, health_status')
         .eq('user_id', u.id)
         .eq('payment_status', 'paid')
         .order('created_at', { ascending: false });
@@ -172,15 +181,30 @@ export default function Pack() {
     heroglyph_png_url: d.heroglyph_png_url,
     breed: d.breed,
     pack_number: d.pack_number ?? null,
+    country: d.country,
+    selections: (d.selections ?? null) as Record<string, string> | null,
+    birth_year: d.birth_year ?? null,
+    life_status: d.life_status ?? null,
+    death_date: d.death_date ?? null,
+    health_status: d.health_status ?? null,
   }));
 
-  // Meno majiteľa = owner_name z primárneho psa (fallback na email-derived)
-  const ownerName = (dogs ?? [])
+  // Meno majiteľa — ZDROJ PRAVDY = `full_name` z účtu (mení sa v /pack/profile).
+  // Predtým vyhrával `dogs.owner_name` (kartuša z checkoutu) a prebíjal ho, takže
+  // zmena mena sa po reloade vrátila späť = editácia bola fakticky mŕtva.
+  // `owner_name` ostáva nedotknuté — je to kartuša na certifikáte a faktúre (doklad),
+  // slúži tu už len ako fallback pre účet bez vyplneného mena.
+  const firstName = (raw: string) =>
+    raw.split(' ')[0].charAt(0).toUpperCase() + raw.split(' ')[0].slice(1).toLowerCase();
+  const cartoucheName = (dogs ?? [])
     .map((d) => (d.owner_name ?? '').trim())
     .find((n) => n.length > 0);
-  const displayName = ownerName
-    ? ownerName.split(' ')[0].charAt(0).toUpperCase() + ownerName.split(' ')[0].slice(1).toLowerCase()
-    : (user?.name ?? 'Dogyptian');
+  // Poradie: účet (/pack/profile) → kartuša z checkoutu → meno odvodené z e-mailu.
+  const displayName = user?.fullName
+    ? firstName(user.fullName)
+    : cartoucheName
+      ? firstName(cartoucheName)
+      : (user?.name ?? 'Dogyptian');
 
   // Faraón placeholder podľa pohlavia majiteľa (z heroglyph selections), keď chýba reálna fotka
   const ownerGender = (dogs ?? [])
@@ -272,7 +296,12 @@ export default function Pack() {
           <PackShareCard dogName={primaryDog.dog_name} packNumber={primaryDog.pack_number ?? null} shareCardUrl={primaryDog.share_card_url} />
         )}
 
-        {/* Účet / nastavenia — ostáva na homepage, kým je `/pack/profile` za DEV_FULL */}
+        {/* Účet / nastavenia — ostáva na homepage AJ po odomknutí `/pack/profile` (2026-08-06).
+            ⚠️ NEODSTRAŇOVAŤ bez zmeny edge fn `send-certificate`: welcome e-mail po platbe
+            linkuje na `/pack?welcome=1` (`profileNext`) a práve PackSettings ten parameter
+            číta a otvára modál na nastavenie hesla. Bez neho by nový platiaci člen nemal
+            kde nastaviť heslo. PackProfile vie `?welcome=1` tiež — až keď sa prepíše link
+            v edge funkcii, môže tento blok z homepage odísť. */}
         <PackSettings />
 
         <div style={{ height: 32 }} />

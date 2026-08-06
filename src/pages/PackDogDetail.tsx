@@ -40,49 +40,12 @@ import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
 import { EDGE_BASE } from '@/lib/env';
 import { DEV_FULL } from '@/lib/packFlags';
+// Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
+import { computeAge, type DogAge } from '@/lib/dogAge';
+import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/lib/dogHealth';
 
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
-
-// ---------------------------------------------------------------------------
-// "Living my best life" — age since birth
-// ---------------------------------------------------------------------------
-interface DogAge {
-  years: number;
-  months: number;
-  days: number;
-  totalDays: number;
-  humanYears: number; // the golden "≈ N in human years" (×7)
-}
-
-function computeAge(
-  selections: Record<string, string> | null,
-  fallbackYear: number | null,
-  asOf?: Date,           // FIX9: pre deceased psa = dátum úmrtia → vek zamrzne k tomu dňu
-): DogAge | null {
-  const y = parseInt(selections?.birthdayYear || '', 10) || fallbackYear || 0;
-  if (!y || y < 1990) return null;
-  const m = parseInt(selections?.birthdayMonth || '', 10) || 1;
-  const d = parseInt(selections?.birthdayDay || '', 10) || 1;
-  const birth = new Date(y, m - 1, d);
-  const now = asOf ?? new Date();
-  if (birth > now) return null;
-
-  let years = now.getFullYear() - birth.getFullYear();
-  let months = now.getMonth() - birth.getMonth();
-  let days = now.getDate() - birth.getDate();
-  if (days < 0) {
-    months -= 1;
-    days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
-  }
-  if (months < 0) {
-    years -= 1;
-    months += 12;
-  }
-  const totalDays = Math.floor((now.getTime() - birth.getTime()) / 86_400_000);
-  const humanYears = Math.max(1, Math.round((totalDays / 365.25) * 7));
-  return { years, months, days, totalDays, humanYears };
-}
 
 // "labrador retriever" → "Labrador Retriever"
 function capWords(s: string): string {
@@ -363,7 +326,7 @@ export default function PackDogDetail() {
         setDietDb(data.diet ?? '');
         // Pre-fill healthStatus from DB if set
         if (data.health_status) {
-          const validKeys: HealthKey[] = ['healthy', 'injury', 'gastro', 'allergy', 'other'];
+          const validKeys: HealthKey[] = HEALTH_KEYS;
           if (validKeys.includes(data.health_status as HealthKey)) {
             setHealthStatus(data.health_status as HealthKey);
           }
@@ -2876,16 +2839,9 @@ function PrayerRow({
 // HEALTH STATUS — meniteľný badge (v1 placeholder, neodosiela sa). Vízia cez
 // vysvetlivku: liečitelia + AI outreach = severka fáza „1M+ First Aid".
 // ---------------------------------------------------------------------------
-type HealthKey = 'healthy' | 'injury' | 'gastro' | 'allergy' | 'other';
-
+// Kľúče + farby žijú v lib/dogHealth.ts — tie isté potrebuje svorka na `/pack`.
 function getHealthOptions(t: ReturnType<typeof useT>): { key: HealthKey; label: string; color: string }[] {
-  return [
-    { key: 'healthy', label: t('pack.dog.healthHealthy'), color: '#22A35E' },
-    { key: 'injury', label: t('pack.dog.healthInjury'), color: '#E0892B' },
-    { key: 'gastro', label: t('pack.dog.healthGastro'), color: '#C2683B' },
-    { key: 'allergy', label: t('pack.dog.healthAllergy'), color: '#B5573E' },
-    { key: 'other', label: t('pack.dog.healthOther'), color: '#7A6A52' },
-  ];
+  return HEALTH_KEYS.map((key) => ({ key, label: t(healthLabelKey(key)), color: HEALTH_COLORS[key] }));
 }
 
 function HealthBadge({
