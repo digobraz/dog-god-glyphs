@@ -115,19 +115,22 @@ const CSS = `
    scripts/make-ainubis-circle.py). Na tmavej karte ju neprezradí farba, ale HRANA: preto
    maska, ktorá ľavý okraj platne rozpustí do pozadia. Bez nej tam stojí čierny zvislý zlom. */
 .gw-ainubis .gw-art{
+  /* ⚠️ z-index 2 = NAD mriežkou aj závojom (Matej 9.8.: „ainubis logo nesmie byt priesvitné
+     musí byt nad tým holografom"). Mriežka je hologram POZADIA, logo je pevný objekt pred ním.
+     Preto tu ani žiadny mix-blend-mode: screen by čiernu platňu síce vypol, ale zároveň by
+     kresbu spriehľadnil a mriežka by cez ňu presvitala. */
+  z-index:2;
   right:-40%; width:82%; top:50%; transform:translateY(-50%);
   -webkit-mask-image:linear-gradient(to left, #000 52%, rgba(0,0,0,0) 96%);
   mask-image:linear-gradient(to left, #000 52%, rgba(0,0,0,0) 96%);
   /* Hlava je tmavá modrá na takmer čiernom pozadí — bez svetla za ňou splynie. Žiara +
      jemné zosvetlenie ju vytiahnu, aby ostala kresbou, nie siluetou. */
-  filter:drop-shadow(0 0 40px rgba(91,224,240,0.55)) brightness(1.3) saturate(1.15);
+  /* Brightness len jemne — vyššia hodnota zdvihne čiernu platňu badge-u na šedú a tá sa na
+     tmavej karte prezradí ako obdĺžnik. Vytiahnuť hlavu má SVETLO ZA ŇOU (radiála v pozadí
+     karty), nie zosvetlenie samotného obrázka. */
+  filter:drop-shadow(0 0 40px rgba(91,224,240,0.55)) brightness(1.06) saturate(1.12);
 }
-.gw-ainubis .gw-art img{
-  width:100%; height:auto;
-  /* screen = čierna z platne sa na tmavom pozadí VYPNE úplne (black + screen = bez zmeny),
-     takže z badge-u ostane len kresba a hlava sa číta ako projekcia, nie ako nálepka. */
-  mix-blend-mode:screen;
-}
+.gw-ainubis .gw-art img{ width:100%; height:auto; }
 /* Typografia NIE JE zlatá (Matej 9.8.: „nadpis musí byt brandovY AI inej farby… pozri si ako
    sme to spravili inde"). Zdroj pravdy = hlavička widgetu v AinubisWidget.css: meno = Cinzel 700
    v ľadovo bielej #E6FAFF s cyan žiarou, rola pod ním = JetBrains Mono uppercase v cyan.
@@ -140,7 +143,7 @@ const CSS = `
   font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:500;
   letter-spacing:.20em; color:rgba(91,224,240,0.78);
 }
-.gw-ainubis .gw-text{ color:rgba(230,250,255,0.80); }
+.gw-ainubis .gw-text{ color:rgba(230,250,255,0.80); text-shadow:0 2px 10px rgba(3,7,12,0.85); }
 
 /* Závoj drží text čitateľný tam, kde obrázok podlieza — smeruje VŽDY od textovej strany. */
 .gw::before{ content:''; position:absolute; inset:0; z-index:1; pointer-events:none; }
@@ -181,7 +184,9 @@ const CSS = `
      v % vlastnej výšky obrázka. */
   .gw-dogma .gw-art{ left:-30%; width:104%; top:0; bottom:auto; transform:translateY(34%); }
   .gw-dogma:hover .gw-art{ transform:translateY(34%); }
-  .gw-ainubis .gw-art{ right:-40%; top:auto; bottom:-10%; transform:none; width:104%; }
+  /* Hlava je od 3. kola NEPRIESVITNÁ a nad závojom, takže si už text nemôže sadnúť na ňu —
+     posúva sa hlbšie do pravého dolného rohu, aby dva riadky textu ostali na čistom. */
+  .gw-ainubis .gw-art{ right:-48%; top:auto; bottom:-14%; transform:none; width:96%; }
   /* Závoj ide zhora — text je hore, obrázok dole. Každá karta vo svojej farbe. */
   .gw-dogma::before{
     background:linear-gradient(to bottom, ${T.cardSoft} 30%, rgba(250,244,236,0.55) 46%, rgba(250,244,236,0) 62%);
