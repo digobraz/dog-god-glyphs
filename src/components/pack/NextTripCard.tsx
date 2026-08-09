@@ -19,6 +19,7 @@ import { readLocalTrails, readWalkedIds, tripPath } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { PACK_THEME, FONT_UI } from './packTheme';
 import { BrandIcon } from './BrandIcon';
+import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 const DAY_MS = 86400000;
@@ -34,15 +35,20 @@ function daysFromNow(dateStr: string, nowMs: number): number {
   return Math.round((target - today.getTime()) / DAY_MS);
 }
 
-// today = 0, tomorrow = 1, else "N days" (singular/plural handled here — the translation
-// layer can't pluralize on its own, per this issue's spec).
-function countdownLabel(days: number): string {
-  if (days <= 0) return 'Today';
-  if (days === 1) return 'Tomorrow';
-  return `${days} days`;
+// today = 0, tomorrow = 1, else "N days". Preložené 2026-08-08 — dovtedy bola karta
+// jediný natvrdo anglický blok na homepage, takže v SK vyšlo „VITAJ SPÄŤ … NEXT UP /
+// 14 days" (Matej: „daj to po slovensky alebo eng a nie mix"). Počet dní ide cez
+// existujúci `pack.tree.daysUnit` — ten istý údaj má mať na oboch povrchoch ten istý
+// tvar. Prekladová vrstva nevie skloňovať, takže SK má jeden tvar („14 dní") presne
+// ako svorka; to je zavedený kompromis, nie prehliadnutie.
+function countdownLabel(days: number, t: ReturnType<typeof useT>): string {
+  if (days <= 0) return t('pack.nextTrip.today');
+  if (days === 1) return t('pack.nextTrip.tomorrow');
+  return t('pack.tree.daysUnit', { days: String(days) });
 }
 
 export function NextTripCard() {
+  const t = useT();
   const next = useMemo(() => {
     const nowMs = Date.now();
     const allTrails: HeroTrail[] = [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS];
@@ -87,7 +93,7 @@ export function NextTripCard() {
           <BrandIcon name="map" size={20} tint="dark" />
         </span>
         <span style={{ flex: 1, minWidth: 200, fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.5, color: T.inkWarm }}>
-          No trip planned yet — find a trail and add it to your list.
+          {t('pack.nextTrip.empty')}
         </span>
         <Link
           to="/pack/map"
@@ -109,7 +115,7 @@ export function NextTripCard() {
             flexShrink: 0,
           }}
         >
-          Explore the map
+          {t('pack.nextTrip.exploreMap')}
         </Link>
       </div>
     );
@@ -158,7 +164,7 @@ export function NextTripCard() {
             color: T.cardEdge,
           }}
         >
-          Next up
+          {t('pack.nextTrip.eyebrow')}
         </span>
         <span
           style={{
@@ -176,7 +182,7 @@ export function NextTripCard() {
           {trail.name}
         </span>
         <span style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 700, color: T.cardEdge }}>
-          {countdownLabel(days)}
+          {countdownLabel(days, t)}
         </span>
       </div>
     </Link>

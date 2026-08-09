@@ -81,7 +81,7 @@ import {
 import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  profilePointsFor, addedByMeIds, isFounderEmail,
+  profileLevelFor, addedByMeIds, isFounderEmail,
   approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
   RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
@@ -1928,21 +1928,24 @@ export default function PackMap() {
   // ⚠️ MUSÍ ostať NAD `if (!id.session) return null` — useMemo je hook a beží počas renderu:
   // pod podmieneným returnom by menil počet hookov medzi rendermi (Rules of Hooks) a zároveň
   // by siahal na `firstName` v TDZ. Meno člena si preto skladá sám z session (bezpečné cez ?.).
-  const profilePoints = useMemo(() => {
+  // 2026-08-09: samotný výpočet sa presťahoval do `profileLevelFor` (packCommunity), lebo to
+  // isté číslo ukazuje aj `TripSpotlight` na homepage. Druhá kópia týchto riadkov = dva rôzne
+  // levely na dvoch povrchoch, presne ten rozchod, ktorý tu už raz bol.
+  const profile = useMemo(() => {
     const email = id.session?.user?.email ?? '';
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
-    const owner = firstNameFrom(email, (meta.full_name || meta.name) as string | undefined);
-    const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
-    const byAuthor = addedByMeIds(walkedTrails, { ownerName: owner, isFounder: isFounderEmail(email) });
-    const addedIds = approvedAddedIds([...byAuthor, ...localTrails.map((tr) => tr.id)]);
-    // `countries` MUSÍ ísť dnu (2026-08-06): bez neho padá `profilePointsFor` na default „1 krajina",
-    // takže level v hlavičke mapy ignoroval +30 za každú ďalšiu krajinu — a odhalenie po ✓ ich
-    // pritom sľubuje. Vysvedčenie (TripStatsPanel) ich počítalo správne → dva rôzne levely.
-    return profilePointsFor(walkedTrails, { addedIds, ratings: ratedCountFor(walkedTrails, votes), countries: walkedCountries(walkedTrails) });
+    return profileLevelFor({
+      walkedTrails: allTrails.filter((tr) => walkedIds.has(tr.id)),
+      localTrailIds: localTrails.map((tr) => tr.id),
+      votes,
+      email,
+      ownerName: firstNameFrom(email, (meta.full_name || meta.name) as string | undefined),
+    });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
   }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session]);
-  const levelInfo = levelProgress(profilePoints.total);
+  const profilePoints = profile.points;
+  const levelInfo = profile.level;
 
   if (id.loading) {
     return (
@@ -2319,7 +2322,10 @@ export default function PackMap() {
         : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
       <span className="trp-midentity-txt">
         <span className="trp-level">
-          <span className="trp-level-name">{levelInfo.rank}</span>
+          {/* 2026-08-09: rang ide cez i18n (`pack.map.rankPilgrim`), nie cez natvrdo anglické
+              `levelInfo.rank` — to isté slovo ukazuje aj karta na `/pack` a v SK to má byť
+              „Pútnik", nie „Pilgrim". */}
+          <span className="trp-level-name">{t('pack.map.rankPilgrim')}</span>
           {/* Matej 2026-08-03: „to LVL ma ruší" → popisok preč, ostáva holé číslo v zlatej
               pilulke. Po zjednotení (5. 8.) to platí aj na PC. */}
           <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>

@@ -1,30 +1,55 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Pencil, X } from 'lucide-react';
+import { PawPrint, Pencil, Plus, X } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
 import { PACK_THEME } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { DEV_FULL } from '@/lib/packFlags';
 import { devotionLevel } from '@/lib/devotion';
+import { useDogyptStore } from '@/store/dogyptStore';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
 
 const AVATAR_SIZE = 132;
+/** Pes je vedľa majiteľa ZÁMERNE menší — homepage hovorí „toto si ty a toto je tvoja
+ *  svorka", nie naopak. Detail psa má vlastný povrch (`/pack/dogs`). */
+const DOG_SIZE = 100;
 // Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
 const STORY_RING = 'var(--brand-gradient)';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HeroCard = blok 1 „JA" na /pack. READ-ONLY od 2026-08-06 (Matej: „na homepage
-// musí byť viditeľný absolutny zaklad + linky na editáciu").
+// HeroCard = JEDINÝ horný blok na /pack. READ-ONLY od 2026-08-06 (Matej: „na
+// homepage musí byť viditeľný absolutny zaklad + linky na editáciu").
 //
-// Editácia fotky aj mena sa presunula do `/pack/profile` — jediný odchod odtiaľto
-// je nenápadná ceruzka vpravo hore. ⚠️ Nevracať sem in-place upload skôr, než sa
-// zavrie route `/pack/profile` v App.tsx; inak si člen fotku nezmení nikde.
+// KONSOLIDÁCIA 2026-08-08 (Matej: „ideme zjednodušiť, 1 blok nie dva v riadku"):
+// fialový `PackTree` (blok „MY PACK") sa na homepage UŽ NEMOUNTUJE. Jeho obsah je
+// tu ako rad avatarov: [majiteľ] [pes] [pes] … [+ prázdny slot].
+//   · heroglyf, pilulka dní nažive, vlajka, status bodka → zostali v `/pack/dogs`,
+//     na homepage sa opakovali. Homepage má byť rýchla, nie úplná.
+//   · ADD DOG tlačidlo nahradil prázdny slot s „+" (rovnaký cieľ `/heroglyph/intro`
+//     + rovnaký `reset()` flow storu — bez neho by druhý pes zdedil dáta prvého).
+//   · „Add human member" (disabled coming-soon) odišlo bez náhrady.
+//   · PackTree.tsx sa NEMAZAL — parkuje, presne ako DailyPrayers.
+// ⚠️ Všetci psi musia byť viditeľní VŽDY — žiadne „+3 more". Rad preto wrapuje,
+//    nescrolluje. Pri vysokých počtoch psov to bude chcieť ďalší model (Matej to vie).
+//
+// Editácia fotky aj mena je v `/pack/profile` — jediný odchod odtiaľto je nenápadná
+// ceruzka vpravo hore. ⚠️ Nevracať sem in-place upload skôr, než sa zavrie route
+// `/pack/profile` v App.tsx; inak si člen fotku nezmení nikde.
 //
 // Badge (Pawtner · level · BONES) a devotion bar sú klikateľné a KAŽDÝ má popup —
 // dovtedy to boli nevysvetlené ozdoby.
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** Minimum, ktoré rad avatarov potrebuje. Celý DogRow z `Pack.tsx` sem netreba —
+ *  dni nažive / health / breed sú na tomto povrchu zámerne nezobrazené. */
+export interface HeroDog {
+  id: string;
+  dog_name: string | null;
+  cloudinary_main_url: string | null;
+  pack_number?: number | null;
+}
 
 interface HeroCardProps {
   name: string;
@@ -38,11 +63,13 @@ interface HeroCardProps {
   bones?: number;
   /** Pack pulse pre notifikačný bell (top-right). Nezobrazí sa kým nedôjdu stats. */
   stats?: { last24h: number; last30d: number; total: number } | null;
+  /** Svorka vedľa majiteľa. `null` = ešte sa načítava (rad sa nevykreslí, aby neblikol „+"). */
+  dogs?: HeroDog[] | null;
 }
 
 type PopKey = 'pawtner' | 'level' | 'bones' | 'devotion';
 
-export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null }: HeroCardProps) {
+export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, devotion = 100, bones = 0, stats = null, dogs = null }: HeroCardProps) {
   const t = useT();
   const [pop, setPop] = useState<PopKey | null>(null);
 
@@ -50,6 +77,14 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   const initial = displayName?.[0]?.toUpperCase() || email?.[0]?.toUpperCase() || 'D';
   const hasAvatar = !!avatarUrl;
   const placeholderSrc = genderPlaceholder ? `/images/avatars/pharaoh-${genderPlaceholder}.png` : null;
+
+  // Kam vedie „EDIT DOGS" — hub je za DEV_FULL, bez neho DOG ID prvého psa. Viď komentár
+  // pri pilulke nižšie.
+  const dogsHref = DEV_FULL
+    ? '/pack/dogs'
+    : dogs && dogs.length > 0
+      ? `/pack/dogs/${dogs[0].id}`
+      : null;
 
   // DEVOTION úroveň počítaná z bodov → poháňa LEVEL badge (žiadny hardcode „Pharaoh" pre všetkých).
   const lv = devotionLevel(devotion);
@@ -105,128 +140,143 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         <PackNotifications last24h={stats.last24h} last30d={stats.last30d} total={stats.total} />
       )}
 
-      {/* Odchod na profil — nenápadná ceruzka, NIE veľké zlaté CTA (Matej 2026-08-06:
-          „CTA uprav profil pri človeku je zbytočne veľké"). Keď je v rohu bell od
-          notifikácií, ceruzka sa posunie vedľa neho, nie pod. */}
-      <Link
-        to="/pack/profile"
-        className="inline-flex items-center gap-1.5"
-        style={{
-          position: 'absolute',
-          top: 14,
-          right: stats && !DEV_FULL ? 60 : 14,
-          zIndex: 3,
-          padding: '7px 12px',
-          borderRadius: 999,
-          background: 'rgba(201, 154, 63, 0.10)',
-          border: '1px solid rgba(201, 154, 63, 0.42)',
-          color: T.inkWarm,
-          textDecoration: 'none',
-          fontFamily: "'Space Grotesk', sans-serif",
-          fontWeight: 500,
-          fontSize: 10,
-          letterSpacing: '0.14em',
-          textTransform: 'uppercase',
-        }}
+      {/* Odchody na editáciu — DVE nenápadné pilulky, NIE veľké zlaté CTA (Matej
+          2026-08-06: „CTA uprav profil pri človeku je zbytočne veľké"). Keď je v rohu
+          bell od notifikácií, posunú sa vedľa neho, nie pod.
+          ⚠️ EDIT DOGS má DVA ciele zámerne: hub `/pack/dogs` je v `App.tsx` za `DEV_FULL`
+          a bez flagu redirectuje späť na `/pack` — bežný člen by klikal do slepej ulice.
+          Bez flagu preto mieri na DOG ID prvého psa (`/pack/dogs/:id`), ktoré je živé pre
+          všetkých. Žiadny pes = pilulka sa nevykreslí, nie je čo upravovať. */}
+      {/* Mobil = vedľa seba (sú to len ikonky, stĺpec by kradol výšku). Desktop = pod
+          sebou (Matej 2026-08-08) — `sm:` je ten istý breakpoint, na ktorom pilulkám
+          pribudnú texty. `items-stretch` v stĺpci ich zrovná na šírku tej širšej;
+          bez neho by mali každá inú a pravý okraj by sa rozstrapkal. */}
+      <div
+        className="absolute inline-flex items-center gap-2 sm:flex-col sm:items-stretch"
+        style={{ top: 14, right: stats && !DEV_FULL ? 60 : 14, zIndex: 3 }}
       >
-        <Pencil className="h-3 w-3" />
-        <span className="hidden sm:inline">{t('pack.hero.editProfile')}</span>
-      </Link>
+        <Link to="/pack/profile" className="hc-edit inline-flex items-center gap-1.5">
+          <Pencil className="h-3 w-3 shrink-0" />
+          <span className="hidden sm:inline">{t('pack.hero.editProfile')}</span>
+        </Link>
+        {dogsHref && (
+          <Link to={dogsHref} className="hc-edit inline-flex items-center gap-1.5">
+            <PawPrint className="h-3 w-3 shrink-0" />
+            <span className="hidden sm:inline">{t('pack.hero.editDogs')}</span>
+          </Link>
+        )}
+      </div>
 
       <div className="flex flex-col items-center text-center flex-1 justify-center relative">
-        {/* Avatar — fialový gradient ring. Read-only: klik už neotvára file picker. */}
-        <div className="relative" style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}>
-          {/* pulsing purple glow behind */}
-          <span
-            aria-hidden
-            className="absolute inset-0 rounded-full"
-            style={{
-              animation: 'pack-breathe 3.8s ease-in-out infinite',
-              boxShadow: '0 0 26px 2px rgba(124, 58, 237, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
-            }}
-          />
-          {/* gradient ring */}
-          <div
-            className="relative rounded-full"
-            style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, padding: 4, background: STORY_RING }}
-          >
-            {/* gap ring (papyrus) */}
-            <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
-              <div
-                className="relative block h-full w-full"
-                style={{
-                  borderRadius: '50%',
-                  background: hasAvatar
-                    ? 'transparent'
-                    : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
-                  overflow: 'hidden',
-                }}
-              >
-                {hasAvatar ? (
-                  <img
-                    src={avatarUrl!}
-                    alt={displayName}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : placeholderSrc ? (
-                  <span className="flex items-center justify-center h-full w-full" style={{ padding: 20 }}>
-                    <img
-                      src={placeholderSrc}
-                      alt={displayName}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                    />
-                  </span>
-                ) : (
-                  <span
-                    className="flex items-center justify-center h-full w-full"
-                    style={{
-                      fontFamily: "'Cinzel', serif",
-                      fontSize: 54,
-                      fontWeight: 700,
-                      color: T.inkDim,
-                    }}
-                  >
-                    {initial}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div
-          className="mt-4"
           style={{
             fontFamily: "'Cinzel', serif",
             fontSize: 10,
             letterSpacing: '0.34em',
             textTransform: 'uppercase',
             color: T.inkDim,
-            marginBottom: 4,
+            marginBottom: 18,
           }}
         >
           {t('pack.hero.welcomeBack')}
         </div>
-        <div
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 25,
-            fontWeight: 700,
-            letterSpacing: '0.02em',
-            color: T.ink,
-            lineHeight: 1.1,
-            maxWidth: '92%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {displayName}
+
+        {/* ── RAD: majiteľ · psy · prázdny slot „+" ──────────────────────────────
+            `items-start` + fotka centrovaná v boxe výšky AVATAR_SIZE = kruhy sedia
+            na spoločnej osi a VŠETKY menovky začínajú na rovnakej y, aj keď je pes
+            menší. Zarovnanie zhora by menovky psov vytiahlo nad meno majiteľa. */}
+        <div className="flex flex-wrap items-start justify-center" style={{ columnGap: 22, rowGap: 26 }}>
+          <div className="flex flex-col items-center" style={{ width: AVATAR_SIZE }}>
+            {/* Avatar — fialový gradient ring. Read-only: klik už neotvára file picker. */}
+            <div className="relative" style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}>
+              {/* pulsing purple glow behind */}
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-full"
+                style={{
+                  animation: 'pack-breathe 3.8s ease-in-out infinite',
+                  boxShadow: '0 0 26px 2px rgba(124, 58, 237, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
+                }}
+              />
+              {/* gradient ring */}
+              <div
+                className="relative rounded-full"
+                style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, padding: 4, background: STORY_RING }}
+              >
+                {/* gap ring (papyrus) */}
+                <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
+                  <div
+                    className="relative block h-full w-full"
+                    style={{
+                      borderRadius: '50%',
+                      background: hasAvatar
+                        ? 'transparent'
+                        : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {hasAvatar ? (
+                      <img
+                        src={avatarUrl!}
+                        alt={displayName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : placeholderSrc ? (
+                      <span className="flex items-center justify-center h-full w-full" style={{ padding: 20 }}>
+                        <img
+                          src={placeholderSrc}
+                          alt={displayName}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
+                      </span>
+                    ) : (
+                      <span
+                        className="flex items-center justify-center h-full w-full"
+                        style={{
+                          fontFamily: "'Cinzel', serif",
+                          fontSize: 54,
+                          fontWeight: 700,
+                          color: T.inkDim,
+                        }}
+                      >
+                        {initial}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="w-full"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 20,
+                fontWeight: 700,
+                letterSpacing: '0.02em',
+                color: T.ink,
+                lineHeight: 1.15,
+                marginTop: 12,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {displayName}
+            </div>
+          </div>
+
+          {(dogs ?? []).map((d) => (
+            <DogSlot key={d.id} dog={d} />
+          ))}
+          {dogs && <AddDogSlot />}
         </div>
 
         {/* Badge riadok — STATUS (Pawtner) + LEVEL + BONES. Každý = tlačidlo s popupom.
-            grid-cols-3 = tri totožné stĺpce; každý badge w-full + centrovaný = rovnaká veľkosť. */}
-        <div className="mt-3 grid grid-cols-3 gap-2 w-full">
+            grid-cols-3 = tri totožné stĺpce; každý badge w-full + centrovaný = rovnaká veľkosť.
+            maxWidth: blok je po zlúčení na celú šírku stránky — bez stropu by sa tri pilulky
+            roztiahli na 900+ px a rad by prestal pôsobiť ako skupina. */}
+        <div className="mt-7 grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 620 }}>
           {/* STATUS */}
           <button
             type="button"
@@ -334,8 +384,19 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
         {/* DEVOTION status bar + progress. Zbieranie je zamknuté do launchu appky —
             zámok a popup to hovoria priamo, namiesto merania prázdna. */}
-        <div className="hc-dev mt-3 w-full">
+        <div className="hc-dev mt-3 w-full" style={{ maxWidth: 620 }}>
           <style>{`
+            .hc-edit{
+              padding: 7px 12px; border-radius: 999px;
+              background: rgba(201, 154, 63, 0.10);
+              border: 1px solid rgba(201, 154, 63, 0.42);
+              color: ${T.inkWarm}; text-decoration: none;
+              font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+              font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+              white-space: nowrap;
+              transition: background .15s ease, border-color .15s ease;
+            }
+            .hc-edit:hover{ background: rgba(201, 154, 63, 0.20); border-color: ${T.cardEdge}; }
             .hc-badge{ transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
             .hc-badge:hover{ transform: translateY(-1px); box-shadow: 0 3px 12px rgba(122,90,42,0.24); }
             .hc-bar { position: relative; cursor: pointer; outline: none; width: 100%; padding: 0; }
@@ -381,6 +442,138 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 
       {pop && <HeroPopup which={pop} bones={bones} level={t('pack.ladder.' + lv.key)} levelIndex={lv.index} onClose={() => setPop(null)} />}
     </section>
+  );
+}
+
+// ── Slot psa v rade ──────────────────────────────────────────────────────────
+// Fotka + meno + `#poradové číslo`. Nič viac: heroglyf, dni nažive, vlajka a health
+// bodka žijú v `/pack/dogs` — na homepage sa opakovali (Matej 2026-08-08:
+// „chceme to skonsolidovať tak aby sa veci neopakovali").
+function DogSlot({ dog }: { dog: HeroDog }) {
+  const t = useT();
+  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+  const founder = dog.pack_number ? `#${dog.pack_number}` : null;
+
+  return (
+    <Link
+      to={`/pack/dogs/${dog.id}`}
+      className="flex flex-col items-center"
+      style={{ width: DOG_SIZE, textDecoration: 'none' }}
+      title={name}
+    >
+      {/* Box výšky majiteľovho avatara — menšia fotka sa v ňom centruje, takže
+          menovky celého radu začínajú na jednej y. */}
+      <div className="flex items-center justify-center" style={{ height: AVATAR_SIZE }}>
+        <div
+          style={{
+            width: DOG_SIZE,
+            height: DOG_SIZE,
+            borderRadius: '50%',
+            background: T.bg,
+            overflow: 'hidden',
+            border: `2px solid ${T.accentGold}`,
+            boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px rgba(201, 154, 63, 0.24)',
+          }}
+        >
+          {dog.cloudinary_main_url ? (
+            <img
+              src={dog.cloudinary_main_url}
+              alt={name}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <div
+              className="flex items-center justify-center h-full"
+              style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.18em' }}
+            >
+              {t('pack.tree.noPhoto')}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        className="w-full"
+        style={{
+          fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+          fontSize: 14,
+          fontWeight: 700,
+          letterSpacing: '0.02em',
+          color: T.ink,
+          lineHeight: 1.15,
+          marginTop: 12,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {name}
+      </div>
+      {founder && (
+        <span
+          style={{
+            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+            fontSize: 11,
+            fontWeight: 700,
+            color: T.accentGold,
+            lineHeight: 1,
+            marginTop: 5,
+          }}
+        >
+          {founder}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+// Prázdny slot „+" = pridať ďalšieho psa. Nahradil zlaté ADD DOG tlačidlo z PackTree.
+// issue #34: kto už má heroglyf, NEmá prechádzať `/entry` (to je conviction gate pre
+// ľudí zvonku) — ide rovno do tvorby. `reset()` je súčasť fixu, nie navyše: store
+// nepersistuje buyer dáta, ale v tej istej SPA session v ňom visí prvý pes → druhý by
+// mal predvyplnené meno a dátum.
+function AddDogSlot() {
+  const t = useT();
+  const resetFlow = useDogyptStore((s) => s.reset);
+  return (
+    <Link
+      to="/heroglyph/intro"
+      onClick={resetFlow}
+      className="flex flex-col items-center group"
+      style={{ width: DOG_SIZE, textDecoration: 'none' }}
+    >
+      <div className="flex items-center justify-center" style={{ height: AVATAR_SIZE }}>
+        <div
+          className="flex items-center justify-center"
+          style={{
+            width: DOG_SIZE,
+            height: DOG_SIZE,
+            borderRadius: '50%',
+            border: `2px dashed ${T.border}`,
+            background: T.tileBg,
+            color: T.accentGold,
+            transition: 'border-color .18s ease, background .18s ease',
+          }}
+        >
+          <Plus className="h-8 w-8" strokeWidth={1.6} />
+        </div>
+      </div>
+      <div
+        className="w-full"
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: '0.16em',
+          textTransform: 'uppercase',
+          color: T.inkDim,
+          lineHeight: 1.2,
+          marginTop: 12,
+        }}
+      >
+        {t('pack.tree.addDog')}
+      </div>
+    </Link>
   );
 }
 

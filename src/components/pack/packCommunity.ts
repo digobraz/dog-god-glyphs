@@ -10,7 +10,7 @@ import {
   type DogTemperamentTag, type DogTrailTag,
 } from '@/components/pack/profile/packProfile';
 import { PACK_KEYS, readJson, persistVotes, persistPlans, persistEvents, readLocalTrailMeta } from '@/lib/packStore';
-import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, type PointsRow, type TripPointsResult } from '@/lib/tripPoints';
+import { calculateProfilePoints, calculateTripPoints, JOURNEY_POINTS, POINTS, levelProgress, type LevelProgress, type PointsRow, type TripPointsResult } from '@/lib/tripPoints';
 import { authorOf, AUTHOR_FALLBACK } from '@/components/pack/tripShared';
 import { countryName, trailCountry } from '@/lib/countryGeo';
 
@@ -662,6 +662,40 @@ export function profilePointsFor(
       countries: opts?.countries ?? (walkedTrails.length > 0 ? 1 : 0),
     },
   });
+}
+
+/**
+ * RANG + LEVEL — jedna funkcia pre hlavičku mapy aj pre kartu na homepage (2026-08-09).
+ *
+ * Dovtedy tento výpočet žil rozpísaný v `PackMap.tsx` (useMemo ~1931). Keď mal to isté číslo
+ * ukázať aj `TripSpotlight`, mal som na výber prepísať tých pár riadkov druhýkrát — a presne
+ * tak sa už raz rozišla mapa s vysvedčením (mapa mala zadrôtované „Pútnik Lvl 1"). Preto to
+ * tu stojí RAZ a oba povrchy volajú toto.
+ *
+ * ⚠️ Každý vstup má dôvod, žiadny sa nesmie „ušetriť":
+ *   · `addedIds` prejdú cez `approvedAddedIds` — zamietnutý návrh výletu body nedáva
+ *   · `ratings` = len hlasy s labkami na PREJDENÝCH trasách
+ *   · `countries` MUSÍ ísť dnu, inak `profilePointsFor` spadne na default „1 krajina" a level
+ *     bude nižší než na inom povrchu (rozchod z 6. 8.)
+ */
+export function profileLevelFor(input: {
+  walkedTrails: HeroTrail[];
+  /** id lokálne nahodených výletov (kandidáti na +body, moderácia ich ešte filtruje) */
+  localTrailIds?: string[];
+  votes: Record<string, { rating?: number } | undefined>;
+  email: string;
+  /** krstné meno člena — `addedByMeIds` ním páruje autora výletu */
+  ownerName: string;
+}): { points: TripPointsResult; level: LevelProgress } {
+  const { walkedTrails, localTrailIds = [], votes, email, ownerName } = input;
+  const byAuthor = addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(email) });
+  const addedIds = approvedAddedIds([...byAuthor, ...localTrailIds]);
+  const points = profilePointsFor(walkedTrails, {
+    addedIds,
+    ratings: ratedCountFor(walkedTrails, votes),
+    countries: walkedCountries(walkedTrails),
+  });
+  return { points, level: levelProgress(points.total) };
 }
 
 // ── „ostatní ľudia" — 2026-08-03 ZMAZANÉ (Matej: „začíname so všetkým do nuly").

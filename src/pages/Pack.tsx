@@ -5,13 +5,13 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { HeroCard } from '@/components/pack/HeroCard';
 import { PackSettings } from '@/components/pack/PackSettings';
-import { PackTree } from '@/components/pack/PackTree';
 import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
 import { PackShareCard } from '@/components/pack/PackShareCard';
-import { NextTripCard } from '@/components/pack/NextTripCard';
+// NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
+import { TripSpotlight } from '@/components/pack/TripSpotlight';
 import { QuickTiles } from '@/components/pack/QuickTiles';
 import { DEV_FULL } from '@/lib/packFlags';
 import { EDGE_BASE } from '@/lib/env';
@@ -172,7 +172,6 @@ export default function Pack() {
     };
   }, []);
 
-  const ownerInitial = (user?.name?.[0] || user?.email?.[0] || 'D').toUpperCase();
   const treeDogs = (dogs ?? []).map((d) => ({
     id: d.id,
     dog_name: d.dog_name,
@@ -237,10 +236,17 @@ export default function Pack() {
         {/* Ambient drifting orbs */}
         <AmbientOrbs />
 
-        {/* ── JA — majiteľ VĽAVO, svorka VPRAVO, rovnaké výšky ── */}
-        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-10 items-stretch">
-          <div id="wiz-hero" style={{ display: 'flex', flexDirection: 'column' }}>
-            {user && (
+        {/* ── JA + SVORKA — JEDEN blok (konsolidácia 2026-08-08, Matej: „ideme
+            zjednodušiť, 1 blok nie dva v riadku… nakoniec tie veci sú aj v /dogs").
+            Fialový `PackTree` sa tu už nemountuje; rad [majiteľ] [psy] [+] je vnútri
+            HeroCard. `PackTree.tsx` NEMAZAŤ — parkuje, tak ako DailyPrayers.
+            ⚠️ `wiz-pack` kotva ostáva na tom istom bloku ako `wiz-hero` — PackWizard
+            na ňu ukazuje spotlightom a bez nej by mieril do prázdna. */}
+        <div id="wiz-hero" className="relative">
+          <div id="wiz-pack">
+            {!user ? (
+              <TreeSkeleton />
+            ) : (
               <HeroCard
                 name={displayName}
                 email={user.email}
@@ -249,21 +255,10 @@ export default function Pack() {
                 devotion={user.devotion}
                 bones={user.bones}
                 stats={stats ? { last24h: stats.last24h, last30d: stats.last30d, total: stats.total } : null}
+                dogs={dogs === null ? null : treeDogs}
               />
             )}
-          </div>
 
-          <div id="wiz-pack" style={{ display: 'flex', flexDirection: 'column' }}>
-            {dogs === null ? (
-              <TreeSkeleton />
-            ) : (
-              <PackTree
-                ownerAvatarUrl={user?.avatarUrl ?? null}
-                ownerInitial={ownerInitial}
-                dogs={treeDogs}
-                hideOwner
-              />
-            )}
           </div>
         </div>
 
@@ -272,12 +267,15 @@ export default function Pack() {
             sa NEMOUNTUJÚ. Kód nie je zmazaný — parkuje v `components/pack/DailyPrayers.tsx`,
             aby sa dal vrátiť, až keď bude denný rituál naozaj na rade. NEMOUNTOVAŤ bez Mateja. */}
 
-        {/* ── DNES — najbližší plánovaný výlet (alebo pozvánka do mapy) ──
+        {/* ── DNES — plagát výletu (70 %) + planéta s mapou (30 %) ──
             ⚠️ Za DEV_FULL zámerne: `/pack` je LIVE, ale `/pack/map` ešte nie. Bez tejto
             podmienky by každý platiaci člen videl kartu, ktorej jediné tlačidlo („Explore
-            the map") vedie na routu, čo ho hodí späť na `/pack` — slepá ulička. Karta sa
-            objaví v ten istý moment ako mapa, keď flag padne. */}
-        {DEV_FULL && <NextTripCard />}
+            the map") vedie na routu, čo ho hodí späť na `/pack` — slepá ulička. Blok sa
+            objaví v ten istý moment ako mapa, keď flag padne.
+            ⚠️ `NextTripCard` tu bol do 9.8.2026 a robil ten istý odpočet — `TripSpotlight`
+            ho NAHRADIL, nie doplnil. Nemountovať oba naraz (odpočet dvakrát). Starý
+            komponent parkuje ako `PackTree`/`DailyPrayers`. */}
+        {DEV_FULL && <TripSpotlight email={user?.email} ownerName={user?.name} />}
 
         {/* ── KAM IDEM — pás rýchleho prístupu (MAPA · DOGMA · AINUBIS) ──
             Jediné miesto, kam sa pridávajú nové ciele appky. Rastie o objekt v poli,
