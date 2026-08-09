@@ -99,6 +99,8 @@ const Login = lazy(() => import("./pages/Login.tsx"));
 const Admin = lazy(() => import("./pages/Admin.tsx"));
 const Vision = lazy(() => import("./pages/Vision.tsx"));
 const BetaVision = lazy(() => import("./pages/BetaVision.tsx"));
+// DEV-only dielňa hero radu — pyramída svorky pri 1–20 psoch (route nižšie za import.meta.env.DEV)
+const HeroLab = lazy(() => import("./pages/HeroLab.tsx"));
 const Religion = lazy(() => import("./pages/Religion.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Entry = lazy(() => import("./pages/Entry.tsx"));
@@ -187,6 +189,9 @@ const App = () => (
               <Route path="/vision" element={<Vision />} />
               {import.meta.env.DEV && (
                 <Route path="/betavision" element={<BetaVision />} />
+              )}
+              {import.meta.env.DEV && (
+                <Route path="/pack/_herolab" element={<HeroLab />} />
               )}
               <Route path="/religion" element={<Religion />} />
               <Route path="/about" element={<About />} />

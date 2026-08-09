@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PawPrint, Pencil, Plus, X } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
@@ -18,6 +18,75 @@ const DOG_SIZE = 100;
 // Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
 const STORY_RING = 'var(--brand-gradient)';
 
+// ── PYRAMÍDA SVORKY (Matej 2026-08-09, po klikacom nákrese) ──────────────────
+// Rad avatarov NIE JE `flex-wrap` — ten sa pri 5+ psoch lámal náhodne. Rozloženie
+// počíta `planRow()` ROVNICOU z počtu psov a šírky kontajnera; nič sa nemeria po
+// vykreslení (tá istá pasca ako v psom bloku na `/pack/dogs`, viď CLAUDE.md lock 8. 8.).
+//   · horný rad = majiteľ + MAX 2 psy vo veľkom — jedno pravidlo pre mobil aj desktop,
+//     aby tvar pyramídy nezávisel od šírky okna (Matejov výber, alternatíva bola 3 na PC)
+//   · zvyšok padá do max 3 spodných radov v menšom tieri, delených čo najrovnomernejšie
+//     (širší rad hore): 12 psov → 6/5, 20 → 7/6/6
+//   · „+" slot sa počíta DO delenia a je vždy posledný, inak visí sám na novom riadku
+//   · spodný rad nesmie byť len osamotené „+" → stiahne sa dolu jeden pes z horného radu
+//     a dvojica sa NEZMENŠUJE (vznikne súmerná 2×2 mriežka, nie zmenšený zvyšok)
+//   · všetci psi sú viditeľní VŽDY — žiadne „+3 more", žiadny scroll
+const MAX_TOP_DOGS = 2;
+const MOBILE_SCALE = 0.76;          // majiteľ 100 / pes 76 → majiteľ + 2 psy sa vojdú do 390 px
+const MOBILE_INNER = 480;           // pod touto šírkou obsahu = mobilné veľkosti
+const TIERS_DESKTOP = [84, 70, 60, 52, 46];
+const TIERS_MOBILE = [64, 56, 50, 44, 38];
+
+interface RowPlan {
+  owner: number;
+  big: number;
+  gap: number;
+  topDogs: number;
+  plusInTop: boolean;
+  /** počty slotov v spodných radoch, posledný slot posledného radu je „+" */
+  rows: number[];
+  rowSize: number;
+}
+
+/** `inner` = čistá šírka obsahu karty (bez paddingu). */
+function planRow(n: number, inner: number): RowPlan {
+  const mobile = inner < MOBILE_INNER;
+  const s = mobile ? MOBILE_SCALE : 1;
+  const owner = Math.round(AVATAR_SIZE * s);
+  const big = Math.round(DOG_SIZE * s);
+  const gap = mobile ? 14 : 22;
+  const fits = (count: number, size: number) => owner + count * (size + gap) <= inner;
+
+  // Malá svorka → majiteľ + psy + „+" v jednom rade, spodný rad nevznikne
+  if (n <= MAX_TOP_DOGS && fits(n + 1, big)) {
+    return { owner, big, gap, topDogs: n, plusInTop: true, rows: [], rowSize: big };
+  }
+
+  let topDogs = Math.min(MAX_TOP_DOGS, n);
+  let items = n - topDogs + 1;                    // zvyšok psov + miesto pre „+"
+  if (items === 1 && topDogs > 0) { topDogs -= 1; items = 2; }
+
+  if (items <= 2 && items * (big + gap) - gap <= inner) {
+    return { owner, big, gap, topDogs, plusInTop: false, rows: [items], rowSize: big };
+  }
+
+  const tiers = mobile ? TIERS_MOBILE : TIERS_DESKTOP;
+  let size = tiers[tiers.length - 1];
+  let rows = 99;
+  for (const tier of tiers) {
+    const perRow = Math.max(2, Math.floor((inner + gap) / (tier + gap)));
+    const r = Math.ceil(items / perRow);
+    size = tier;
+    rows = r;
+    if (r <= 3) break;                            // fallback = najmenší tier
+  }
+
+  const base = Math.floor(items / rows);
+  const extra = items % rows;
+  const split = Array.from({ length: rows }, (_, i) => base + (i < extra ? 1 : 0));
+
+  return { owner, big, gap: Math.max(12, Math.round(gap * 0.8)), topDogs, plusInTop: false, rows: split, rowSize: size };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // HeroCard = JEDINÝ horný blok na /pack. READ-ONLY od 2026-08-06 (Matej: „na
 // homepage musí byť viditeľný absolutny zaklad + linky na editáciu").
@@ -31,8 +100,8 @@ const STORY_RING = 'var(--brand-gradient)';
 //     + rovnaký `reset()` flow storu — bez neho by druhý pes zdedil dáta prvého).
 //   · „Add human member" (disabled coming-soon) odišlo bez náhrady.
 //   · PackTree.tsx sa NEMAZAL — parkuje, presne ako DailyPrayers.
-// ⚠️ Všetci psi musia byť viditeľní VŽDY — žiadne „+3 more". Rad preto wrapuje,
-//    nescrolluje. Pri vysokých počtoch psov to bude chcieť ďalší model (Matej to vie).
+// ⚠️ Všetci psi musia byť viditeľní VŽDY — žiadne „+3 more", žiadny scroll. Rad UŽ
+//    NEWRAPUJE: od 2026-08-09 je to pyramída počítaná `planRow()` (viď nižšie).
 //
 // Editácia fotky aj mena je v `/pack/profile` — jediný odchod odtiaľto je nenápadná
 // ceruzka vpravo hore. ⚠️ Nevracať sem in-place upload skôr, než sa zavrie route
@@ -89,6 +158,31 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   // DEVOTION úroveň počítaná z bodov → poháňa LEVEL badge (žiadny hardcode „Pharaoh" pre všetkých).
   const lv = devotionLevel(devotion);
   const topTier = lv.key === 'pharaoh' || lv.key === 'demigod';
+
+  // Jediný VSTUP do rovnice pyramídy = šírka obsahu karty. Wrapper je `w-full` blok,
+  // takže jeho šírka NEZÁVISÍ od toho, čo doň rovnica vloží — inak by ResizeObserver
+  // krúžil dokola. Nič iné sa nemeria.
+  const rowRef = useRef<HTMLDivElement>(null);
+  const [innerW, setInnerW] = useState(0);
+  useLayoutEffect(() => {
+    const el = rowRef.current;
+    if (!el) return;
+    const read = () => setInnerW(el.clientWidth);
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pack = dogs ?? [];
+  // `dogs === null` = ešte sa načítava → majiteľ sám, žiadny „+" (nesmie bliknúť).
+  const plan = planRow(pack.length, innerW);
+  let cursor = plan.topDogs;
+  const bottomRows = plan.rows.map((count) => {
+    const slice = pack.slice(cursor, cursor + count);
+    cursor += slice.length;
+    return slice;
+  });
 
   return (
     <section
@@ -181,95 +275,46 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           {t('pack.hero.welcomeBack')}
         </div>
 
-        {/* ── RAD: majiteľ · psy · prázdny slot „+" ──────────────────────────────
-            `items-start` + fotka centrovaná v boxe výšky AVATAR_SIZE = kruhy sedia
-            na spoločnej osi a VŠETKY menovky začínajú na rovnakej y, aj keď je pes
-            menší. Zarovnanie zhora by menovky psov vytiahlo nad meno majiteľa. */}
-        <div className="flex flex-wrap items-start justify-center" style={{ columnGap: 22, rowGap: 26 }}>
-          <div className="flex flex-col items-center" style={{ width: AVATAR_SIZE }}>
-            {/* Avatar — fialový gradient ring. Read-only: klik už neotvára file picker. */}
-            <div className="relative" style={{ width: AVATAR_SIZE, height: AVATAR_SIZE }}>
-              {/* pulsing purple glow behind */}
-              <span
-                aria-hidden
-                className="absolute inset-0 rounded-full"
-                style={{
-                  animation: 'pack-breathe 3.8s ease-in-out infinite',
-                  boxShadow: '0 0 26px 2px rgba(124, 58, 237, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
-                }}
-              />
-              {/* gradient ring */}
-              <div
-                className="relative rounded-full"
-                style={{ width: AVATAR_SIZE, height: AVATAR_SIZE, padding: 4, background: STORY_RING }}
-              >
-                {/* gap ring (papyrus) */}
-                <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
+        {/* ── PYRAMÍDA: [majiteľ + max 2 psy] / spodné rady / „+" ────────────────
+            `items-start` + fotka centrovaná v boxe výšky najväčšieho prvku radu =
+            kruhy sedia na spoločnej osi a VŠETKY menovky radu začínajú na rovnakej y,
+            aj keď je pes menší. Zarovnanie zhora by menovky psov vytiahlo nad meno
+            majiteľa. Rozdelenie do radov počíta `planRow()` — viď komentár hore. */}
+        <div ref={rowRef} className="w-full">
+          {innerW > 0 && (
+            <>
+              <div className="flex items-start justify-center" style={{ gap: plan.gap }}>
+                <OwnerSlot
+                  size={plan.owner}
+                  name={displayName}
+                  initial={initial}
+                  avatarUrl={avatarUrl}
+                  placeholderSrc={placeholderSrc}
+                />
+                {pack.slice(0, plan.topDogs).map((d) => (
+                  <DogSlot key={d.id} dog={d} size={plan.big} boxH={plan.owner} gap={plan.gap} />
+                ))}
+                {dogs && plan.plusInTop && <AddDogSlot size={plan.big} boxH={plan.owner} gap={plan.gap} />}
+              </div>
+
+              {dogs &&
+                bottomRows.map((row, r) => (
                   <div
-                    className="relative block h-full w-full"
-                    style={{
-                      borderRadius: '50%',
-                      background: hasAvatar
-                        ? 'transparent'
-                        : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
-                      overflow: 'hidden',
-                    }}
+                    key={r}
+                    className="flex items-start justify-center"
+                    style={{ gap: plan.gap, marginTop: Math.round(plan.rowSize * 0.3) }}
                   >
-                    {hasAvatar ? (
-                      <img
-                        src={avatarUrl!}
-                        alt={displayName}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                    ) : placeholderSrc ? (
-                      <span className="flex items-center justify-center h-full w-full" style={{ padding: 20 }}>
-                        <img
-                          src={placeholderSrc}
-                          alt={displayName}
-                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                        />
-                      </span>
-                    ) : (
-                      <span
-                        className="flex items-center justify-center h-full w-full"
-                        style={{
-                          fontFamily: "'Cinzel', serif",
-                          fontSize: 54,
-                          fontWeight: 700,
-                          color: T.inkDim,
-                        }}
-                      >
-                        {initial}
-                      </span>
+                    {row.map((d) => (
+                      <DogSlot key={d.id} dog={d} size={plan.rowSize} boxH={plan.rowSize} gap={plan.gap} />
+                    ))}
+                    {/* „+" je vždy posledný slot posledného radu — je zarátaný do delenia */}
+                    {r === bottomRows.length - 1 && (
+                      <AddDogSlot size={plan.rowSize} boxH={plan.rowSize} gap={plan.gap} />
                     )}
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="w-full"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 20,
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                color: T.ink,
-                lineHeight: 1.15,
-                marginTop: 12,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {displayName}
-            </div>
-          </div>
-
-          {(dogs ?? []).map((d) => (
-            <DogSlot key={d.id} dog={d} />
-          ))}
-          {dogs && <AddDogSlot />}
+                ))}
+            </>
+          )}
         </div>
 
         {/* Badge riadok — STATUS (Pawtner) + LEVEL + BONES. Každý = tlačidlo s popupom.
@@ -445,58 +490,65 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
   );
 }
 
-// ── Slot psa v rade ──────────────────────────────────────────────────────────
-// Fotka + meno + `#poradové číslo`. Nič viac: heroglyf, dni nažive, vlajka a health
-// bodka žijú v `/pack/dogs` — na homepage sa opakovali (Matej 2026-08-08:
-// „chceme to skonsolidovať tak aby sa veci neopakovali").
-function DogSlot({ dog }: { dog: HeroDog }) {
-  const t = useT();
-  const name = (dog.dog_name || 'Unnamed').toUpperCase();
-  const founder = dog.pack_number ? `#${dog.pack_number}` : null;
-
+// ── Slot majiteľa ────────────────────────────────────────────────────────────
+// Avatar — fialový gradient ring. Read-only: klik už neotvára file picker.
+// Veľkosť ide z rovnice (mobil zmenšuje), typografia sa škáluje s ňou, aby pomer
+// meno : kruh ostal rovnaký na každej šírke.
+function OwnerSlot({
+  size, name, initial, avatarUrl, placeholderSrc,
+}: { size: number; name: string; initial: string; avatarUrl: string | null; placeholderSrc: string | null }) {
+  const hasAvatar = !!avatarUrl;
   return (
-    <Link
-      to={`/pack/dogs/${dog.id}`}
-      className="flex flex-col items-center"
-      style={{ width: DOG_SIZE, textDecoration: 'none' }}
-      title={name}
-    >
-      {/* Box výšky majiteľovho avatara — menšia fotka sa v ňom centruje, takže
-          menovky celého radu začínajú na jednej y. */}
-      <div className="flex items-center justify-center" style={{ height: AVATAR_SIZE }}>
-        <div
+    <div className="flex flex-col items-center" style={{ width: size }}>
+      <div className="relative" style={{ width: size, height: size }}>
+        {/* pulsing purple glow behind */}
+        <span
+          aria-hidden
+          className="absolute inset-0 rounded-full"
           style={{
-            width: DOG_SIZE,
-            height: DOG_SIZE,
-            borderRadius: '50%',
-            background: T.bg,
-            overflow: 'hidden',
-            border: `2px solid ${T.accentGold}`,
-            boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px rgba(201, 154, 63, 0.24)',
+            animation: 'pack-breathe 3.8s ease-in-out infinite',
+            boxShadow: '0 0 26px 2px rgba(124, 58, 237, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
           }}
+        />
+        {/* gradient ring */}
+        <div
+          className="relative rounded-full"
+          style={{ width: size, height: size, padding: 4, background: STORY_RING }}
         >
-          {dog.cloudinary_main_url ? (
-            <img
-              src={dog.cloudinary_main_url}
-              alt={name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
+          {/* gap ring (papyrus) */}
+          <div className="rounded-full h-full w-full" style={{ padding: 3, background: T.card }}>
             <div
-              className="flex items-center justify-center h-full"
-              style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.18em' }}
+              className="relative block h-full w-full"
+              style={{
+                borderRadius: '50%',
+                background: hasAvatar ? 'transparent' : `linear-gradient(135deg, ${T.cardSoft} 0%, ${T.bgTop} 100%)`,
+                overflow: 'hidden',
+              }}
             >
-              {t('pack.tree.noPhoto')}
+              {hasAvatar ? (
+                <img src={avatarUrl!} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : placeholderSrc ? (
+                <span className="flex items-center justify-center h-full w-full" style={{ padding: Math.round(size * 0.15) }}>
+                  <img src={placeholderSrc} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </span>
+              ) : (
+                <span
+                  className="flex items-center justify-center h-full w-full"
+                  style={{ fontFamily: "'Cinzel', serif", fontSize: Math.round(size * 0.41), fontWeight: 700, color: T.inkDim }}
+                >
+                  {initial}
+                </span>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
       <div
         className="w-full"
         style={{
-          fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-          fontSize: 14,
+          fontFamily: "'Cinzel', serif",
+          fontSize: Math.round(size * 0.152),
           fontWeight: 700,
           letterSpacing: '0.02em',
           color: T.ink,
@@ -509,20 +561,113 @@ function DogSlot({ dog }: { dog: HeroDog }) {
       >
         {name}
       </div>
-      {founder && (
-        <span
-          style={{
-            fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-            fontSize: 11,
-            fontWeight: 700,
-            color: T.accentGold,
-            lineHeight: 1,
-            marginTop: 5,
-          }}
-        >
-          {founder}
-        </span>
-      )}
+    </div>
+  );
+}
+
+// ── Slot psa v rade ──────────────────────────────────────────────────────────
+// Fotka + meno + `#poradové číslo`. Nič viac: heroglyf, dni nažive, vlajka a health
+// bodka žijú v `/pack/dogs` — na homepage sa opakovali (Matej 2026-08-08:
+// „chceme to skonsolidovať tak aby sa veci neopakovali").
+// Veľkosť je PARAMETER (rovnica), nie konštanta — v spodných radoch je pes menší.
+function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: number; gap: number }) {
+  const t = useT();
+  const name = (dog.dog_name || 'Unnamed').toUpperCase();
+
+  return (
+    <Link
+      to={`/pack/dogs/${dog.id}`}
+      className="flex flex-col items-center"
+      style={{ width: size, textDecoration: 'none' }}
+      title={name}
+    >
+      {/* Box výšky najväčšieho prvku radu — menšia fotka sa v ňom centruje, takže
+          menovky celého radu začínajú na jednej y. */}
+      <div className="flex items-center justify-center" style={{ height: boxH }}>
+        {/* Relatívny obal MIMO kruhu s `overflow:hidden` — pilulka s číslom sadá na
+            spodný okraj fotky a vnútri kruhu by sa orezala. */}
+        <div className="relative" style={{ width: size, height: size }}>
+          <div
+            style={{
+              width: size,
+              height: size,
+              borderRadius: '50%',
+              background: T.bg,
+              overflow: 'hidden',
+              border: `2px solid ${T.accentGold}`,
+              boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px rgba(201, 154, 63, 0.24)',
+            }}
+          >
+            {dog.cloudinary_main_url ? (
+              <img
+                src={dog.cloudinary_main_url}
+                alt={name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div
+                className="flex items-center justify-center h-full"
+                style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.18em' }}
+              >
+                {t('pack.tree.noPhoto')}
+              </div>
+            )}
+          </div>
+          {/* Poradové číslo NA KRUHU (Matej 2026-08-09) — nekradne výšku menovky, takže
+              pri 12+ psoch rady nenarastú, a ostáva čitateľné aj pri 46 px ikonke.
+              Vizuál = locknutá pilulka dní (gradient #F5C73D→#E69E1A, ink #3d1f00, Cinzel
+              700); svetlý hairline je JEDINÝ rozdiel — pilulka tu leží na fotke a bez neho
+              splynie s tmavým psom. */}
+          {dog.pack_number ? (
+            <span
+              style={{
+                position: 'absolute',
+                bottom: -4,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontFamily: "'Cinzel', serif",
+                fontWeight: 700,
+                fontSize: Math.max(8, Math.round(size * 0.115)),
+                letterSpacing: '0.02em',
+                lineHeight: 1,
+                whiteSpace: 'nowrap',
+                padding: `${Math.max(3, Math.round(size * 0.035))}px ${Math.max(6, Math.round(size * 0.072))}px`,
+                borderRadius: 999,
+                background: 'linear-gradient(180deg, #F5C73D, #E69E1A)',
+                color: '#3d1f00',
+                border: '1px solid rgba(250, 244, 236, 0.55)',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.28)',
+              }}
+            >
+              #{dog.pack_number}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div
+        style={{
+          // Menovka smie mierne presiahnuť kruh (mená sú dlhšie než fotka), ale nikdy
+          // nie do medzery vedľa — inak by sa v spodných radoch mená dotýkali.
+          width: size + Math.max(0, Math.min(18, gap - 6)),
+          fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
+          fontSize: Math.max(8, Math.round(size * 0.145)),
+          fontWeight: 700,
+          letterSpacing: '0.02em',
+          color: T.ink,
+          lineHeight: 1.15,
+          textAlign: 'center',
+          marginTop: 12,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {name}
+      </div>
     </Link>
   );
 }
@@ -532,7 +677,7 @@ function DogSlot({ dog }: { dog: HeroDog }) {
 // ľudí zvonku) — ide rovno do tvorby. `reset()` je súčasť fixu, nie navyše: store
 // nepersistuje buyer dáta, ale v tej istej SPA session v ňom visí prvý pes → druhý by
 // mal predvyplnené meno a dátum.
-function AddDogSlot() {
+function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: number }) {
   const t = useT();
   const resetFlow = useDogyptStore((s) => s.reset);
   return (
@@ -540,14 +685,14 @@ function AddDogSlot() {
       to="/heroglyph/intro"
       onClick={resetFlow}
       className="flex flex-col items-center group"
-      style={{ width: DOG_SIZE, textDecoration: 'none' }}
+      style={{ width: size, textDecoration: 'none' }}
     >
-      <div className="flex items-center justify-center" style={{ height: AVATAR_SIZE }}>
+      <div className="flex items-center justify-center" style={{ height: boxH }}>
         <div
           className="flex items-center justify-center"
           style={{
-            width: DOG_SIZE,
-            height: DOG_SIZE,
+            width: size,
+            height: size,
             borderRadius: '50%',
             border: `2px dashed ${T.border}`,
             background: T.tileBg,
@@ -555,19 +700,20 @@ function AddDogSlot() {
             transition: 'border-color .18s ease, background .18s ease',
           }}
         >
-          <Plus className="h-8 w-8" strokeWidth={1.6} />
+          <Plus style={{ width: Math.round(size * 0.32), height: Math.round(size * 0.32) }} strokeWidth={1.6} />
         </div>
       </div>
       <div
-        className="w-full"
         style={{
+          width: size + Math.max(0, Math.min(18, gap - 6)),
           fontFamily: "'Cinzel', serif",
-          fontSize: 10,
+          fontSize: Math.max(8, Math.round(size * 0.1)),
           fontWeight: 700,
           letterSpacing: '0.16em',
           textTransform: 'uppercase',
           color: T.inkDim,
           lineHeight: 1.2,
+          textAlign: 'center',
           marginTop: 12,
         }}
       >
