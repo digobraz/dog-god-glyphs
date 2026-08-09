@@ -88,9 +88,26 @@ const CSS = `
    Cyan #5BE0F0 = cyborg paleta AINUBISA, vedomá odchýlka od brand v3.2
    (reference_dogypt_ainubis_cyborg_palette). */
 .gw-ainubis{
-  background:radial-gradient(circle at 82% 28%, #14304f 0%, #0a1a2e 46%, #050b16 100%);
-  border:1.5px solid rgba(201,154,63,0.55);
-  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(91,224,240,0.16);
+  /* Pozadie = to isté, čo panel widgetu (AinubisWidget.css .ainubis-panel), plus dúhový
+     nádych — AINUBIS je stroj, nie chrámový povrch. */
+  background:
+    linear-gradient(118deg, rgba(91,224,240,0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(245,199,61,0.05) 100%),
+    radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(59,158,255,0.12) 52%, rgba(59,158,255,0) 74%),
+    linear-gradient(160deg, #08131f 0%, #04090f 62%, #061119 100%);
+  border:1.5px solid rgba(91,224,240,0.34);
+  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(91,224,240,0.20);
+}
+/* Holografická mriežka (Matej 9.8.: „pozadie ainubisa urob atraktívnejšie, holografická
+   mriežka"). Dva 1px rastre + maska, ktorá ich rozpustí do rohov — mriežka cez celú plochu
+   pôsobí ako tabuľka, nie ako projekcia. ::before je obsadené závojom, preto ::after. */
+.gw-ainubis::after{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background-image:
+    linear-gradient(rgba(91,224,240,0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91,224,240,0.16) 1px, transparent 1px);
+  background-size:28px 28px, 28px 28px;
+  -webkit-mask-image:radial-gradient(115% 95% at 72% 26%, #000 0%, rgba(0,0,0,0.45) 52%, rgba(0,0,0,0) 84%);
+  mask-image:radial-gradient(115% 95% at 72% 26%, #000 0%, rgba(0,0,0,0.45) 52%, rgba(0,0,0,0) 84%);
 }
 /* Hlava je VEĽKÁ a orezaná hranou karty — vidno z nej asi polovicu (Matej: „väčšia ikonka,
    viditeľná len polovica hlavy AI(NUBIS)").
@@ -101,13 +118,29 @@ const CSS = `
   right:-40%; width:82%; top:50%; transform:translateY(-50%);
   -webkit-mask-image:linear-gradient(to left, #000 52%, rgba(0,0,0,0) 96%);
   mask-image:linear-gradient(to left, #000 52%, rgba(0,0,0,0) 96%);
-  filter:drop-shadow(0 0 34px rgba(91,224,240,0.28));
+  /* Hlava je tmavá modrá na takmer čiernom pozadí — bez svetla za ňou splynie. Žiara +
+     jemné zosvetlenie ju vytiahnu, aby ostala kresbou, nie siluetou. */
+  filter:drop-shadow(0 0 40px rgba(91,224,240,0.55)) brightness(1.3) saturate(1.15);
 }
-.gw-ainubis .gw-art img{ width:100%; height:auto; }
-/* Text na tmavom — zlatý nadpis, cyan popisok, teplé svetlé telo. */
-.gw-ainubis .gw-title{ color:#F5C73D; text-shadow:0 3px 18px rgba(0,0,0,0.7); }
-.gw-ainubis .gw-sub{ color:#5BE0F0; }
-.gw-ainubis .gw-text{ color:rgba(245,240,228,0.82); }
+.gw-ainubis .gw-art img{
+  width:100%; height:auto;
+  /* screen = čierna z platne sa na tmavom pozadí VYPNE úplne (black + screen = bez zmeny),
+     takže z badge-u ostane len kresba a hlava sa číta ako projekcia, nie ako nálepka. */
+  mix-blend-mode:screen;
+}
+/* Typografia NIE JE zlatá (Matej 9.8.: „nadpis musí byt brandovY AI inej farby… pozri si ako
+   sme to spravili inde"). Zdroj pravdy = hlavička widgetu v AinubisWidget.css: meno = Cinzel 700
+   v ľadovo bielej #E6FAFF s cyan žiarou, rola pod ním = JetBrains Mono uppercase v cyan.
+   Zlatá v cyborg palete patrí ČLOVEKU, nie strojovi. */
+.gw-ainubis .gw-title{
+  color:#E6FAFF; letter-spacing:.22em; text-indent:.22em;
+  text-shadow:0 0 18px rgba(91,224,240,0.55);
+}
+.gw-ainubis .gw-sub{
+  font-family:'JetBrains Mono', ui-monospace, monospace; font-weight:500;
+  letter-spacing:.20em; color:rgba(91,224,240,0.78);
+}
+.gw-ainubis .gw-text{ color:rgba(230,250,255,0.80); }
 
 /* Závoj drží text čitateľný tam, kde obrázok podlieza — smeruje VŽDY od textovej strany. */
 .gw::before{ content:''; position:absolute; inset:0; z-index:1; pointer-events:none; }
@@ -143,14 +176,25 @@ const CSS = `
   .gw-body{ width:100%; }
   .gw-art{ top:auto; bottom:-14%; transform:none; }
   .gw:hover .gw-art{ transform:none; }
-  .gw-dogma .gw-art{ left:-30%; width:104%; bottom:-18%; }
+  /* Kniha ide NIŽŠIE (Matej 9.8.: „na mobile nie je vidno nápis knihy dogma = posun ju
+     nižšie") — nápis na obálke tak vyjde POD textový blok, nie pod závoj. Posun je opäť
+     v % vlastnej výšky obrázka. */
+  .gw-dogma .gw-art{ left:-30%; width:104%; top:0; bottom:auto; transform:translateY(34%); }
+  .gw-dogma:hover .gw-art{ transform:translateY(34%); }
   .gw-ainubis .gw-art{ right:-40%; top:auto; bottom:-10%; transform:none; width:104%; }
   /* Závoj ide zhora — text je hore, obrázok dole. Každá karta vo svojej farbe. */
   .gw-dogma::before{
-    background:linear-gradient(to bottom, ${T.cardSoft} 26%, rgba(250,244,236,0.62) 54%, rgba(250,244,236,0) 80%);
+    background:linear-gradient(to bottom, ${T.cardSoft} 30%, rgba(250,244,236,0.55) 46%, rgba(250,244,236,0) 62%);
   }
   .gw-ainubis::before{
     background:linear-gradient(to bottom, rgba(5,11,22,0.94) 24%, rgba(5,11,22,0.62) 52%, rgba(5,11,22,0) 82%);
+  }
+  /* Svetlo musí sedieť tam, kde je hlava — na mobile v pravom DOLNOM rohu, nie v strede. */
+  .gw-ainubis{
+    background:
+      linear-gradient(118deg, rgba(91,224,240,0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(245,199,61,0.05) 100%),
+      radial-gradient(78% 62% at 78% 80%, rgba(70,168,255,0.55) 0%, rgba(59,158,255,0.12) 52%, rgba(59,158,255,0) 74%),
+      linear-gradient(160deg, #08131f 0%, #04090f 58%, #071522 100%);
   }
   .gw-title{ font-size:15px; letter-spacing:.1em; }
   .gw-text{ font-size:10.5px; line-height:1.45; margin-top:8px; }
