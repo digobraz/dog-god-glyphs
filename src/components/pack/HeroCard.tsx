@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PawPrint, Pencil, Plus, X } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, FONT_UI } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { DEV_FULL } from '@/lib/packFlags';
 import { devotionLevel } from '@/lib/devotion';
@@ -426,7 +426,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             >
               <BrandIcon name="bone" size={9} tint="dark" />
             </span>
-            <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: T.ink }}>
+            {/* Číslo = DÁTA → Space Grotesk (typo lock: Cinzel = identita, Grotesk = čísla).
+                ⚠️ Váha STROP 600 — Grotesk je načítaný len v 300–600, 700 by bol fake bold. */}
+            <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em', color: T.ink }}>
               {bones.toLocaleString('en-US')}
             </span>
           </button>
@@ -470,7 +472,9 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           >
             <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
             <div className="relative h-full flex items-center justify-center gap-1.5">
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 17, fontWeight: 700, color: T.ink, lineHeight: 1, letterSpacing: '0.02em', textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>
+              {/* Číslo devotionu = DÁTA → Space Grotesk 600 (strop váhy), nie Cinzel.
+                  Ankh ostáva Cinzelom — je to znak, nie údaj. */}
+              <span style={{ fontFamily: FONT_UI, fontSize: 18, fontWeight: 600, color: T.ink, lineHeight: 1, letterSpacing: '0.01em', textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>
                 {devotion.toLocaleString('en-US')}
               </span>
               <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, color: T.ink, lineHeight: 1, textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>☥</span>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { HeroCard, type HeroDog } from '@/components/pack/HeroCard';
+import { Gateways } from '@/components/pack/Gateways';
 import { PACK_THEME } from '@/components/pack/packTheme';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -64,7 +65,7 @@ export default function HeroLab() {
           <button type="button" style={btn(photos)} onClick={() => setPhotos((p) => !p)}>fotky</button>
         </div>
 
-        <div style={{ maxWidth: w, margin: '0 auto' }}>
+        <div style={{ maxWidth: w, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
           <HeroCard
             name="Matej"
             email="matej@dogypt.com"
@@ -73,6 +74,11 @@ export default function HeroLab() {
             bones={1240}
             dogs={makeDogs(n, photos)}
           />
+          {/* Tretí riadok homepage — zrkadlové bloky DOGMA / AINUBIS.
+              ⚠️ Ich mobilné pravidlá sú `@media (max-width:720px)`, teda podľa VIEWPORTU.
+              Prepínač šírky hore mení len šírku obalu — mobilnú kompozíciu overíš
+              zúžením okna prehliadača, nie tlačidlom „mobil 390". */}
+          <Gateways />
         </div>
       </div>
     </div>

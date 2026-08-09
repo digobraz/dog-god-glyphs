@@ -1992,6 +1992,9 @@ export const sk: Partial<Dict> = {
   'pack.tiles.dogma.sub': "Ústava viery",
   'pack.tiles.ainubis.title': "AINUBIS",
   'pack.tiles.ainubis.sub': "Spýtaj sa",
+  // Bloky DOGMA / AINUBIS v treťom riadku homepage (components/pack/Gateways.tsx)
+  'pack.gateway.dogma.text': "Ústava dogyptizmu — päť vrstiev, dvanásť častí.",
+  'pack.gateway.ainubis.text': "Spýtaj sa na čokoľvek o svojom psovi. AINUBIS odpovie kedykoľvek.",
   'pack.trip.walkerSingular': "človek",
   'pack.trip.walkerPlural': "ľudí",
   'pack.trip.toastTripOpen': "Tvoj výlet je otvorený — Pack sa k tebe môže pridať.",

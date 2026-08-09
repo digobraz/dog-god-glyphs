@@ -12,7 +12,7 @@ import { PackWizard } from '@/components/pack/PackWizard';
 import { PackShareCard } from '@/components/pack/PackShareCard';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
 import { TripSpotlight } from '@/components/pack/TripSpotlight';
-import { QuickTiles } from '@/components/pack/QuickTiles';
+import { Gateways } from '@/components/pack/Gateways';
 import { DEV_FULL } from '@/lib/packFlags';
 import { EDGE_BASE } from '@/lib/env';
 
@@ -277,10 +277,13 @@ export default function Pack() {
             komponent parkuje ako `PackTree`/`DailyPrayers`. */}
         {DEV_FULL && <TripSpotlight email={user?.email} ownerName={user?.name} />}
 
-        {/* ── KAM IDEM — pás rýchleho prístupu (MAPA · DOGMA · AINUBIS) ──
-            Jediné miesto, kam sa pridávajú nové ciele appky. Rastie o objekt v poli,
-            nie o novú sekciu na homepage. */}
-        <QuickTiles />
+        {/* ── KAM IDEM — dva zrkadlové bloky: DOGMA · AINUBIS (Matej 9.8.) ──
+            Obrázky sedia na vonkajších okrajoch riadku, texty vnútri; na mobile bloky
+            NEZALAMUJÚ pod seba, obrázok sa stane výrezom na pozadí karty.
+            ⚠️ `QuickTiles` (pás MAPA · DOGMA · AINUBIS) tým skončil — súbor NEMAZAŤ,
+            parkuje ako `PackTree`/`DailyPrayers`. Dlaždica MAPA nie je diera: na mapu
+            vedie celá pravá karta bloku 2 vyššie. */}
+        <Gateways />
 
         {/* Sacred interlude — verš dňa z ústavy (rotuje denne) */}
         <VerseOfTheDay />

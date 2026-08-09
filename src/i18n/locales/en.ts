@@ -1104,6 +1104,9 @@ export const en = {
   'pack.tiles.dogma.sub': "Constitution",
   'pack.tiles.ainubis.title': "AINUBIS",
   'pack.tiles.ainubis.sub': "Ask anything",
+  // Bloky DOGMA / AINUBIS v treťom riadku homepage (components/pack/Gateways.tsx)
+  'pack.gateway.dogma.text': "The constitution of Dogyptism — five layers, twelve parts.",
+  'pack.gateway.ainubis.text': "Ask anything about your dog. AINUBIS answers day or night.",
   'pack.tree.addDog': "Add dog",
   'pack.tree.addHumanMember': "Add human member",
   'pack.tree.addHumanMemberTooltip': "Coming soon — invite one human member",
