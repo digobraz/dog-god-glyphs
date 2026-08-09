@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { X, Send, Paperclip, Mic, Square } from 'lucide-react';
+import { X, Send, Paperclip, Mic, Square, Move, LayoutDashboard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLang } from '@/i18n/LanguageContext';
 import { getAinubisCopy } from './ainubisCopy';
@@ -17,6 +17,10 @@ const LS_OPEN = 'ainubis.open';
 // (posiela sa v každom requeste na ainubis-chat) — vlastný kľúč v tom istom
 // „ainubis.*" mennom priestore.
 const LS_VISITOR = 'ainubis.visitor';
+/** Ručne posunutý panel (Matej 2026-08-09: „ikonku kríž so šípkami ktorý po kliknutí
+ *  bude vedieť premiestniť chatovacie okno rozne po obrazovke"). Pozícia prežije reload —
+ *  keby sa po každom otvorení vrátila do rohu, presúvanie by nemalo zmysel. */
+const LS_POS = 'ainubis.pos';
 
 const MAX_IMAGE_DIM = 1568; // px, dlhšia strana — zhoduje sa s limitom na backende
 const JPEG_QUALITY = 0.82;
@@ -287,6 +291,32 @@ function AinubisEyePlaceholder() {
   return <img src={ainubisFace} className="ainubis-eye" alt="" aria-hidden="true" />;
 }
 
+// ── Presúvanie panelu ────────────────────────────────────────────────────
+/** ⚠️ JEDNA hranica v CSS aj v JS. Pod 768 px je panel fullscreen sheet
+ *  (`@media (max-width: 767px)` v AinubisWidget.css) — presúvať celoobrazovkový
+ *  sheet nemá čo, takže tam sa tlačidlo nevykreslí a uložená pozícia sa IGNORUJE.
+ *  Keby tu bolo iné číslo než v CSS, vznikne pásmo šírok, kde sa inline `left/top`
+ *  bije s pravidlami sheetu. */
+const MOVE_MIN_WIDTH = 768;
+/** Koľko px panelu musí ostať v obraze — chráni pred „zahodením" okna za okraj. */
+const PANEL_EDGE_GAP = 8;
+
+type PanelPos = { x: number; y: number };
+
+function readStoredPanelPos(): PanelPos | null {
+  const raw = safeLocalStorageGet(LS_POS);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<PanelPos>;
+    if (typeof parsed?.x === 'number' && typeof parsed?.y === 'number') {
+      return { x: parsed.x, y: parsed.y };
+    }
+  } catch {
+    /* poškodený zápis = žiadna pozícia, panel sa vráti do rohu */
+  }
+  return null;
+}
+
 // ── Vnútorná implementácia (mountuje sa len na povolených routách) ───────
 function AinubisWidgetInner() {
   const { lang } = useLang();
@@ -331,6 +361,24 @@ function AinubisWidgetInner() {
    *  ONLINE a krížik neposkakovali). */
   const [headerIdentity, setHeaderIdentity] = useState(false);
 
+  /** Režim presúvania: klik na kríž so šípkami ho zapne, hlavička sa stane úchytom,
+   *  druhý klik pozíciu zamkne. Dvojstavovo zámerne — keby bola hlavička úchytom
+   *  vždy, každé nechcené potiahnutie pri klikaní na krížik by okno odsunulo. */
+  /** Bublina „Dashboard — čoskoro". Na myši ju drží hover, na dotyku klik na 2,2 s —
+   *  mobil hover nemá, takže bez kliku by ikonka mlčala. */
+  const [dashHint, setDashHint] = useState(false);
+  const dashHintTimer = useRef<number | null>(null);
+
+  const [movable, setMovable] = useState(false);
+  const [panelPos, setPanelPos] = useState<PanelPos | null>(readStoredPanelPos);
+  const [canMove, setCanMove] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= MOVE_MIN_WIDTH,
+  );
+  const panelRef = useRef<HTMLDivElement>(null);
+  /** Odstup kurzora od ľavého horného rohu panelu — bez neho by okno pri chytení
+   *  skočilo rohom pod kurzor. */
+  const dragOffsetRef = useRef<{ dx: number; dy: number } | null>(null);
+
   // Hlasovka: tlačidlo sa vôbec nevykreslí tam, kde prehliadač diktovanie nevie
   // (Firefox) — mŕtve tlačidlo je horšie ako žiadne.
   const speechCtor = useState(() => getSpeechRecognitionCtor())[0];
@@ -351,6 +399,96 @@ function AinubisWidgetInner() {
   useEffect(() => {
     openRef.current = open;
   }, [open]);
+
+  // ── Presúvanie panelu ─────────────────────────────────────────────────
+  // Hranica je tá istá ako v CSS; pri zúžení okna pod ňu sa režim vypne, inak by
+  // ostal zapnutý neviditeľný stav (hlavička ako úchyt bez tlačidla, ktoré ho vráti).
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${MOVE_MIN_WIDTH}px)`);
+    const sync = () => {
+      setCanMove(mq.matches);
+      if (!mq.matches) setMovable(false);
+    };
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
+  /** Drží panel v obraze. Rozmer čítame z DOM (panel má šírku aj výšku z `min()`,
+   *  takže ho nemožno predpočítať) — fallbacky sedia s CSS pre prípad, že ešte
+   *  nie je vykreslený. */
+  const clampPanelPos = (x: number, y: number): PanelPos => {
+    const el = panelRef.current;
+    const w = el?.offsetWidth ?? 380;
+    const h = el?.offsetHeight ?? 560;
+    const maxX = Math.max(PANEL_EDGE_GAP, window.innerWidth - w - PANEL_EDGE_GAP);
+    const maxY = Math.max(PANEL_EDGE_GAP, window.innerHeight - h - PANEL_EDGE_GAP);
+    return {
+      x: Math.min(Math.max(x, PANEL_EDGE_GAP), maxX),
+      y: Math.min(Math.max(y, PANEL_EDGE_GAP), maxY),
+    };
+  };
+
+  useEffect(() => {
+    if (panelPos) safeLocalStorageSet(LS_POS, JSON.stringify(panelPos));
+  }, [panelPos]);
+
+  // Zmenšené okno nesmie nechať panel vonku — po resize ho vtiahneme späť.
+  useEffect(() => {
+    const onResize = () => setPanelPos((p) => (p ? clampPanelPos(p.x, p.y) : p));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const handleHeaderPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!movable || !canMove) return;
+    // Tlačidlá v hlavičke (krížik, presun, dashboard) ostávajú klikateľné aj
+    // v režime presúvania — bez tejto výnimky by sa panel nedal zavrieť.
+    if ((e.target as HTMLElement).closest('button')) return;
+    const el = panelRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    dragOffsetRef.current = { dx: e.clientX - r.left, dy: e.clientY - r.top };
+    // Prechod z CSS kotvy (right/bottom) na súradnice ešte PRED prvým pohybom —
+    // inak by prvý `move` prepol pozicovanie a panel by viditeľne poskočil.
+    setPanelPos(clampPanelPos(r.left, r.top));
+    e.currentTarget.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+
+  const handleHeaderPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const off = dragOffsetRef.current;
+    if (!off) return;
+    setPanelPos(clampPanelPos(e.clientX - off.dx, e.clientY - off.dy));
+  };
+
+  const handleHeaderPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragOffsetRef.current) return;
+    dragOffsetRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const pokeDashHint = () => {
+    setDashHint(true);
+    if (dashHintTimer.current) window.clearTimeout(dashHintTimer.current);
+    dashHintTimer.current = window.setTimeout(() => setDashHint(false), 2200);
+  };
+
+  useEffect(() => () => {
+    if (dashHintTimer.current) window.clearTimeout(dashHintTimer.current);
+  }, []);
+
+  const resetPanelPos = () => {
+    setPanelPos(null);
+    setMovable(false);
+    try {
+      window.localStorage.removeItem(LS_POS);
+    } catch {
+      /* privátny režim — pozícia sa aj tak resetuje v stave */
+    }
+  };
 
   // Otvorenie zvonku (dlaždica AINUBIS na `/pack` homepage, neskôr wizard) — viď
   // `lib/ainubisBus.ts`. Zámerne len OTVÁRA, netoggluje: keď je panel už otvorený,
@@ -877,7 +1015,17 @@ function AinubisWidgetInner() {
 
       {open && (
         <div
-          className="ainubis-panel"
+          ref={panelRef}
+          className={`ainubis-panel${movable ? ' ainubis-panel--movable' : ''}`}
+          /* ⚠️ Inline `left/top` MUSÍ vypnúť aj `right/bottom` — základné pravidlo
+             kotví panel vpravo dole a `body.has-pack-nav` mu prepisuje `left`.
+             Pod hranicou `MOVE_MIN_WIDTH` sa pozícia ignoruje: tam vládne
+             fullscreen sheet z CSS. */
+          style={
+            canMove && panelPos
+              ? { left: panelPos.x, top: panelPos.y, right: 'auto', bottom: 'auto' }
+              : undefined
+          }
           role="dialog"
           aria-label={copy.panelTitle}
           onClick={skipTypewriter}
@@ -888,7 +1036,35 @@ function AinubisWidgetInner() {
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <div className={`ainubis-panel__header${headerIdentity ? ' ainubis-panel__header--identity' : ''}`}>
+          <div
+            className={`ainubis-panel__header${headerIdentity ? ' ainubis-panel__header--identity' : ''}`}
+            onPointerDown={handleHeaderPointerDown}
+            onPointerMove={handleHeaderPointerMove}
+            onPointerUp={handleHeaderPointerUp}
+            onPointerCancel={handleHeaderPointerUp}
+          >
+            {/* Dashboard = SĽUB, nie funkcia (Matej 2026-08-09: „to dashboard zvačši a daj
+                na lavu stranu headru v chate bez toho dashboard — pri prechode myšou na to
+                alebo klikom na mobile = dashboard comming soon"). Stojí PRED portrétom, takže
+                sa číta ako nástroj okna, nie ako súčasť identity AINUBISA.
+                ⚠️ NIE `disabled` — zakázané tlačidlo v prehliadači nevydá `click` ani
+                `mouseenter`, takže by sa bublina nikdy neukázala. Nedostupnosť nesie
+                `aria-disabled` + to, že `onClick` nikam nevedie. */}
+            <button
+              type="button"
+              className={`ainubis-panel__dash${dashHint ? ' ainubis-panel__dash--hint' : ''}`}
+              aria-disabled="true"
+              aria-label={copy.dashboardHint}
+              onMouseEnter={() => setDashHint(true)}
+              onMouseLeave={() => setDashHint(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                pokeDashHint();
+              }}
+            >
+              <LayoutDashboard size={20} aria-hidden />
+              {dashHint && <span className="ainubis-panel__dashtip">{copy.dashboardHint}</span>}
+            </button>
             <img className="ainubis-panel__avatar" src={ainubisFace} alt="" aria-hidden="true" />
             <div className="ainubis-panel__ident">
               <p className="ainubis-panel__title">
@@ -902,6 +1078,23 @@ function AinubisWidgetInner() {
               <i />
               {takeoverActive ? copy.statusTakeover : copy.statusOnline}
             </span>
+            {/* Kríž so šípkami vľavo od krížika. Na mobile sa nevykreslí — panel je tam
+                fullscreen sheet, presúvať ho nie je kam. */}
+            {canMove && (
+              <button
+                type="button"
+                className={`ainubis-panel__move${movable ? ' ainubis-panel__move--on' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMovable((v) => !v);
+                }}
+                title={movable ? copy.moveStop : copy.moveStart}
+                aria-label={movable ? copy.moveStop : copy.moveStart}
+                aria-pressed={movable}
+              >
+                <Move size={16} />
+              </button>
+            )}
             <button
               type="button"
               className="ainubis-panel__close"
@@ -914,6 +1107,24 @@ function AinubisWidgetInner() {
               <X size={18} />
             </button>
           </div>
+
+          {/* Prúžok sa ukáže len v režime presúvania — hovorí, ČÍM sa ťahá (hlavičkou,
+              nie tlačidlom) a ponúka návrat do rohu. Bez neho je zapnutý režim
+              neviditeľný stav a človek hľadá, prečo mu hlavička uteká pod myšou. */}
+          {movable && (
+            <div className="ainubis-panel__movehint">
+              <span>{copy.moveHint}</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  resetPanelPos();
+                }}
+              >
+                {copy.moveReset}
+              </button>
+            </div>
+          )}
 
           <div className="ainubis-panel__body" ref={bodyRef}>
             {/* Intro karta — len kým je konverzácia prázdna (rovnaká podmienka
@@ -931,7 +1142,7 @@ function AinubisWidgetInner() {
                 <div className="ainubis-intro__rule" />
               </div>
             )}
-            {messages.map((m) => {
+            {messages.map((m, i) => {
               if (m.role === 'system') {
                 return (
                   <div key={m.id} className="ainubis-msg ainubis-msg--system">
@@ -942,8 +1153,8 @@ function AinubisWidgetInner() {
               const isUser = m.role === 'user';
               const isTypingThis = typewriter?.id === m.id;
               const shownContent = isTypingThis ? m.content.slice(0, typewriter.shown) : m.content;
-              return (
-                <div key={m.id} className={`ainubis-msg ${isUser ? 'ainubis-msg--user' : 'ainubis-msg--assistant'}`}>
+              const bubble = (
+                <div className={`ainubis-msg ${isUser ? 'ainubis-msg--user' : 'ainubis-msg--assistant'}`}>
                   {m.imagePreviewUrl && (
                     <img className="ainubis-msg__image" src={m.imagePreviewUrl} alt={copy.imagePreviewAlt} />
                   )}
@@ -956,9 +1167,32 @@ function AinubisWidgetInner() {
                   )}
                 </div>
               );
+              if (isUser) return <div key={m.id} className="ainubis-row ainubis-row--user">{bubble}</div>;
+
+              // Portrét sedí pri POSLEDNEJ bubline súvislej série AINUBISA — tak to
+              // robí IG/Messenger. Uvítanie sú dve bubliny po sebe; dva portréty pod
+              // sebou by z rozhovoru urobili zoznam. Keď za sériou práve beží „…píše",
+              // portrét patrí tomu riadku, nie bubline nad ním.
+              const next = messages[i + 1];
+              const busy = waitingReply || welcomeTyping;
+              const showAvatar =
+                (!next || next.role === 'user') && !(i === messages.length - 1 && busy);
+              return (
+                <div key={m.id} className="ainubis-row">
+                  {showAvatar ? (
+                    <img className="ainubis-row__avatar" src={ainubisFace} alt="" aria-hidden="true" />
+                  ) : (
+                    <span className="ainubis-row__avatar ainubis-row__avatar--gap" aria-hidden="true" />
+                  )}
+                  {bubble}
+                </div>
+              );
             })}
             {(waitingReply || welcomeTyping) && (
-              <div className="ainubis-typing">{copy.typing}</div>
+              <div className="ainubis-row">
+                <img className="ainubis-row__avatar" src={ainubisFace} alt="" aria-hidden="true" />
+                <div className="ainubis-typing">{copy.typing}</div>
+              </div>
             )}
           </div>
 

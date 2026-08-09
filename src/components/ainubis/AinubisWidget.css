@@ -135,7 +135,12 @@ body.has-pack-nav .ainubis-launcher {
   right: 16px;
   top: auto;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 84px);
-  width: min(380px, calc(100vw - 32px));
+  /* ⚠️ 380 → 420 px kvôli hlavičke (2026-08-09). Po pridaní dashboardu a presunu
+     nesie hlavička šesť prvkov a pri 380 px sa meno orezalo na „AINUBI" —
+     zmerané, nie odhadnuté. Alternatívy boli horšie: zahodiť „ONLINE" (Matej ho
+     berie ako orientačný bod) alebo skrátiť podtitul na „DIGITÁLNY S…".
+     Pri zmene šírky treba prepísať aj 436 v `has-pack-nav` nižšie (= šírka + 16). */
+  width: min(420px, calc(100vw - 32px));
   height: min(560px, calc(100vh - 150px));
   z-index: 61;
   /* CYBORG povrch: čierna so studeným nádychom + slabý modrý svit zhora, aby
@@ -159,7 +164,7 @@ body.has-pack-nav .ainubis-launcher {
    Len desktop: pod 768 px je panel fullscreen sheet a to má prednosť. */
 @media (min-width: 768px) {
   body.has-pack-nav .ainubis-panel {
-    left: min(calc(50% + var(--pack-nav-half, 0px) + 10px), calc(100vw - 396px));
+    left: min(calc(50% + var(--pack-nav-half, 0px) + 10px), calc(100vw - 436px));
     right: auto;
   }
 }
@@ -182,15 +187,38 @@ body.has-pack-nav .ainubis-launcher {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* V režime presúvania je celá hlavička úchyt — okrem tlačidiel v nej (tie si
+   `pointerdown` odchytáva komponent). Prerušovaný cyan rám hovorí, že okno je
+   „odopnuté" od svojej kotvy. */
+.ainubis-panel--movable {
+  outline: 1px dashed rgba(91, 224, 240, 0.55);
+  outline-offset: 3px;
+  /* Ťahanie nesmie chytať text správ ani spúšťať natívny drag obrázkov. */
+  user-select: none;
+}
+
+.ainubis-panel--movable .ainubis-panel__header {
+  cursor: grab;
+  touch-action: none;
+}
+
+.ainubis-panel--movable .ainubis-panel__header:active {
+  cursor: grabbing;
+}
+
 .ainubis-panel__header {
   flex-shrink: 0;
-  padding: 14px 14px 13px;
+  /* ⚠️ Padding a `gap` sú stiesnené ZÁMERNE. Hlavička nesie pri 380 px šírky šesť
+     prvkov (portrét · meno · dashboard · stav · presun · krížik) a meno AINUBIS je
+     Cinzel 18 px s `letter-spacing:.22em`, teda ~106 px, ktoré sa nesmú orezať.
+     Pôvodné `14px` a `gap:10` boli o ~50 px štedrejšie, než sa dnes zmestí. */
+  padding: 12px 12px 11px;
   /* Deliaca čiara ako svetelná stopa — jasná v strede, mizne do strán. */
   border-bottom: 1px solid transparent;
   border-image: linear-gradient(90deg, rgba(91, 224, 240, 0) 0%, rgba(91, 224, 240, 0.45) 50%, rgba(91, 224, 240, 0) 100%) 1;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 /* „AI" v mene je modré — kúsok stroja v mene strážcu. Platí v hlavičke aj
@@ -258,14 +286,19 @@ body.has-pack-nav .ainubis-launcher {
 .ainubis-panel__title {
   font-family: 'Cinzel', serif;
   font-weight: 700;
-  letter-spacing: 0.22em;
-  text-indent: 0.22em;
+  /* .16em = tá istá hodnota ako `.gw-title` na karte AINUBIS na homepage —
+     jedno meno, jedno prestrkanie. Pôvodných .22em bolo o ~9 px širších. */
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
   text-transform: uppercase;
   font-size: 18px;
   line-height: 1.1;
   color: #E6FAFF;
   text-shadow: 0 0 16px rgba(91, 224, 240, 0.5);
   margin: 0;
+  /* Zalomené „AINU / BIS" by v hlavičke vyzeralo ako chyba renderu — radšej
+     nech sa tlačí na susedov (tí majú `flex-shrink: 0`, takže neustúpia). */
+  white-space: nowrap;
 }
 
 /* Rola pod menom = technický výpis stroja (mono, uppercase), nie veta. */
@@ -311,6 +344,120 @@ body.has-pack-nav .ainubis-launcher {
 @keyframes ainubis-blip {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.35; }
+}
+
+/* ── Nástroje v hlavičke ─────────────────────────────────────────────── */
+
+/* Dashboard: samotná ikonka VĽAVO od portrétu (Matej 2026-08-09: „zvačši a daj na lavu
+   stranu headru v chate bez toho dashboard"). Nápis odišiel, ikonka vyrástla 13 → 20 px —
+   bez textu musí uniesť význam sama.
+   ⚠️ V TSX to NIE JE `disabled`: zakázané tlačidlo nevydá `click` ani `mouseenter`, takže
+   by sa bublina „čoskoro" nikdy neukázala. Nedostupnosť nesie `aria-disabled` + kurzor. */
+.ainubis-panel__dash {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 3px;
+  color: rgba(207, 243, 250, 0.40);
+  cursor: not-allowed;
+  transition: color 0.15s ease;
+}
+
+/* Pri prechode myšou zosvetlie — sľub sa má „prebrať", nie ostať mŕtvy. */
+.ainubis-panel__dash:hover,
+.ainubis-panel__dash--hint {
+  color: rgba(91, 224, 240, 0.85);
+}
+
+/* Bublina visí POD ikonkou a je `pointer-events:none` — inak by si pod kurzorom
+   vypla vlastný hover a blikala. */
+.ainubis-panel__dashtip {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(4, 16, 24, 0.96);
+  border: 1px solid rgba(91, 224, 240, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(207, 243, 250, 0.85);
+  animation: ainubis-dashtip-in 0.14s ease-out;
+}
+
+@keyframes ainubis-dashtip-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Kríž so šípkami — vľavo od krížika. Zapnutý režim svieti cyan, aby bolo
+   vidieť, že hlavička je teraz úchyt a nie len hlavička. */
+.ainubis-panel__move {
+  background: none;
+  border: none;
+  color: rgba(207, 243, 250, 0.55);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ainubis-panel__move:hover {
+  color: #5BE0F0;
+}
+
+.ainubis-panel__move--on {
+  color: #5BE0F0;
+  text-shadow: 0 0 12px rgba(91, 224, 240, 0.8);
+}
+
+/* Prúžok s návodom — len počas presúvania. Mono, lebo je to systémový výpis. */
+.ainubis-panel__movehint {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(91, 224, 240, 0.07);
+  border-bottom: 1px solid rgba(91, 224, 240, 0.20);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(91, 224, 240, 0.75);
+}
+
+/* Návrat do rohu je ZLATÝ — je to ľudská akcia, nie stav stroja (deliaca čiara
+   modrá/zlatá z hlavičky tohto súboru). */
+.ainubis-panel__movehint button {
+  background: none;
+  border: 1px solid rgba(245, 199, 61, 0.42);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font: inherit;
+  color: #F0CE72;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ainubis-panel__movehint button:hover {
+  background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+  color: #2a1608;
 }
 
 .ainubis-panel__close {
@@ -392,12 +539,64 @@ body.has-pack-nav .ainubis-launcher {
   gap: 10px;
 }
 
+/* ── Riadok správy = portrét + bublina (IG/Messenger vzor) ───────────────
+   Matej 2026-08-09: „pridaj malinký avatar pred správy… ako je to pri chatoch na ig".
+   Portrét sa ukazuje pri POSLEDNEJ bubline súvislej série AINUBISA; ostatné dostanú
+   medzeru rovnakej šírky, aby bubliny v sérii stáli v jednej zvislici. Dva portréty
+   pod sebou (uvítanie sú dve bubliny) by z rozhovoru urobili zoznam. */
+.ainubis-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 92%;
+}
+
+.ainubis-row--user {
+  align-self: flex-end;
+  max-width: 100%;
+}
+
+/* Rovnaký recept ako portrét v hlavičke: `contain` + tmavé kruhové pozadie.
+   ⚠️ `ainubis-badge.png` je ČIERNA PLATŇA, nie priehľadné PNG — orezanie do kruhu
+   bez tohto pozadia odsekne čelenku. */
+.ainubis-row__avatar {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  object-fit: contain;
+  background: radial-gradient(circle at 35% 30%, #101d2b 0%, #000 72%);
+  border: 1px solid rgba(91, 224, 240, 0.30);
+  /* Portrét sedí na spodnej hrane bubliny, nie na účaří textu. */
+  margin-bottom: 1px;
+}
+
+/* Medzera namiesto portrétu — drží zvislicu série. */
+.ainubis-row__avatar--gap {
+  background: none;
+  border: none;
+}
+
+/* V riadku už šírku obmedzuje sám riadok; `84%` z riadku by bublinu zbytočne
+   zúžilo druhýkrát. `align-self` prepíname na `auto`, inak by prebilo `align-items`. */
+.ainubis-row .ainubis-msg {
+  max-width: 100%;
+  align-self: auto;
+}
+
+.ainubis-row .ainubis-typing {
+  align-self: auto;
+}
+
 .ainubis-msg {
   max-width: 84%;
   padding: 9px 12px;
   border-radius: 8px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13.5px;
+  /* Menší stupeň zámerne (Matej 9.8.: „písmo v chate zmenši, nechceme pôsobiť že hneď
+     tam príde veľa textu"). Prvá odpoveď má vyzerať ako poznámka, nie ako stena textu. */
+  font-size: 12px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -426,7 +625,7 @@ body.has-pack-nav .ainubis-launcher {
   background: transparent;
   border: 1px dashed rgba(91, 224, 240, 0.35);
   color: rgba(226, 240, 248, 0.65);
-  font-size: 12px;
+  font-size: 10.5px;
   text-align: center;
 }
 
@@ -472,7 +671,7 @@ body.has-pack-nav .ainubis-launcher {
   border-radius: 999px;
   padding: 6px 12px;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
 }
@@ -594,7 +793,7 @@ body.has-pack-nav .ainubis-launcher {
   padding: 8px 10px;
   color: #E2F0F8;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
   max-height: 88px;
   min-height: 38px;

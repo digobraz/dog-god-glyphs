@@ -1106,9 +1106,9 @@ export const en = {
   'pack.tiles.ainubis.sub': "Ask anything",
   // Bloky DOGMA / AINUBIS v treťom riadku homepage (components/pack/Gateways.tsx)
   'pack.gateway.dogma.title': "The bible for dog people",
-  'pack.gateway.dogma.eyebrow': "Our philosophy",
-  'pack.gateway.dogma.text': "Five layers, twelve parts. Read what the pack believes — and why.",
-  'pack.gateway.ainubis.text': "Ask anything about your dog. AINUBIS answers day or night.",
+  'pack.gateway.dogma.lead': "Read the philosophy of the Dogyptians and learn the whole DNA of DOGYPT.",
+  'pack.gateway.ainubis.lead': "A virtual member of your pack. An AI helper that knows your dogs and gives advice made for them.",
+  'pack.gateway.comingSoon': "Full version coming soon",
   'pack.tree.addDog': "Add dog",
   'pack.tree.addHumanMember': "Add human member",
   'pack.tree.addHumanMemberTooltip': "Coming soon — invite one human member",
@@ -1149,7 +1149,7 @@ export const en = {
   'pack.spotlight.open': "Open the trip",
   'pack.spotlight.plan': "Plan this trip",
   'pack.spotlight.joiners': "{count} packs are coming with you",
-  'pack.spotlight.mapTitle': "Explore the map",
+  'pack.spotlight.mapTitle': "Expand your borders",
   // Tri tvary na jednotku (CLDR: one / few = 2–4 / other). Angličtina má len dva,
   // takže Few = Many; slovenčina ich potrebuje všetky tri („2 krajiny" vs „20 krajín").
   'pack.spotlight.pillTripsOne': "Trip",

@@ -46,6 +46,14 @@ export interface AinubisCopy {
   unreadBadgeLabel: (n: number) => string;
   openAria: string;
   closeAria: string;
+  /** Ikonka dashboardu v hlavičke nemá popisku — text nesie až bublina pri hoveri
+   *  (na dotyku pri kliku). Tlačidlo nikam nevedie: sľubuje smer, kam widget rastie. */
+  dashboardHint: string;
+  /** Presúvanie panelu po obrazovke — dvojstavové (zapni → ťahaj → zamkni). */
+  moveStart: string;
+  moveStop: string;
+  moveHint: string;
+  moveReset: string;
 }
 
 const sk: AinubisCopy = {
@@ -87,6 +95,11 @@ const sk: AinubisCopy = {
   unreadBadgeLabel: (n) => `${n} neprečítaných správ`,
   openAria: 'Otvoriť chat s AINUBISOM',
   closeAria: 'Zavrieť chat',
+  dashboardHint: 'Dashboard — čoskoro',
+  moveStart: 'Presunúť okno chatu',
+  moveStop: 'Zamknúť pozíciu okna',
+  moveHint: 'Ťahaj za hlavičku · klik zamkne',
+  moveReset: 'Späť do rohu',
 };
 
 const en: AinubisCopy = {
@@ -126,6 +139,11 @@ const en: AinubisCopy = {
   unreadBadgeLabel: (n) => `${n} unread messages`,
   openAria: 'Open chat with AINUBIS',
   closeAria: 'Close chat',
+  dashboardHint: 'Dashboard — coming soon',
+  moveStart: 'Move the chat window',
+  moveStop: 'Lock the window in place',
+  moveHint: 'Drag by the header · click locks',
+  moveReset: 'Back to corner',
 };
 
 /** SK pre `sk`, inak EN default — rovnaký fallback princíp ako `LanguageContext`. */
