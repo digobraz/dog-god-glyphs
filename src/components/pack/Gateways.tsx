@@ -55,35 +55,66 @@ const CSS = `
 .gw:hover .gw-art{ transform:translateY(-50%) scale(1.05); }
 @media (prefers-reduced-motion: reduce){ .gw:hover .gw-art{ transform:translateY(-50%); } }
 
-/* Kniha je na výšku, medailón je kruh — spoločné % by dalo dve rôzne optické váhy,
-   preto má každý svoju mieru aj ukotvenie.
-   ⚠️ Miera je zo ŠÍRKY karty, nie z výšky: pri výške sa obrázok pri úzkom okne rozšíril
+/* ⚠️ Miera je zo ŠÍRKY karty, nie z výšky: pri výške sa obrázok pri úzkom okne rozšíril
    pod text (karta ostáva vysoká, ale úzka) a nadpis začínal na knihe. Zo šírky sa obrázok
-   a textový stĺpec nikdy neprekryjú — art 42 % + odsadenie -13 % končí tam, kde text (44 %)
-   začína. */
-.gw-dogma .gw-art{ left:-13%; width:42%; }
-.gw-dogma .gw-art img{ width:100%; height:auto; filter:drop-shadow(0 16px 34px rgba(10,10,10,0.40)); }
+   a textový stĺpec nikdy neprekryjú.
 
-/* ⚠️ AINUBIS badge NIE JE štvorec s priehľadným okolím — je to ČIERNA PLATŇA 136×160
-   (viď scripts/make-ainubis-circle.py). Voľne položený na papyrus vyzerá ako čierny
-   obdĺžnik. Riešenie je to isté ako pri kruhovom odznaku do e-mailu: ČIERNY kruh, v ktorom
-   hranica platne zmizne. Vedľajší efekt je vítaný — tmavý medailón presahujúci hranu karty
-   je ten istý objekt ako orezaná planéta v bloku vyššie.
-   Prstenec je CYAN, nie zlatý: AINUBIS má vlastnú cyborg paletu #5BE0F0 (vedomá odchýlka
-   od brand v3.2, reference_dogypt_ainubis_cyborg_palette). */
-.gw-ainubis .gw-art{
-  right:-13%; width:40%; aspect-ratio:1 / 1; border-radius:50%; overflow:hidden;
-  background:#000; border:1px solid rgba(91,224,240,0.42);
-  box-shadow:0 0 0 7px rgba(91,224,240,0.07), 0 20px 44px -20px rgba(0,0,0,0.75);
+   Kniha je ZÁMERNE väčšia než karta a padá cez jej DOLNÚ hranu (Matej 9.8.: „knihu zväčši ju
+   ešte viac — zachovaj aby bol viditeľný nápis DOGMA ale kľudne ju posuň tak že logo bude
+   takmer na spodnom okraji alebo aj cez okraj").
+   ⚠️ Posun je translateY v % VLASTNEJ výšky obrázka, nie top/bottom v % karty. Percento v
+   transforme sa počíta z vlastného boxu, takže -11 % vždy postaví hornú hranu obálky tesne
+   nad nápis DOGMA (ten začína na ~14,5 % výšky obálky) — nezávisle od toho, aká vysoká je
+   karta. Pri offsete viazanom na VÝŠKU karty (bottom:-30%) sa nápis pri inej šírke stratil,
+   lebo veľkosť knihy ide zo ŠÍRKY. */
+.gw-dogma .gw-art{ left:-14%; width:60%; top:0; bottom:auto; transform:translateY(-11%); }
+.gw-dogma .gw-art img{ width:100%; height:auto; filter:drop-shadow(0 18px 38px rgba(10,10,10,0.45)); }
+.gw-dogma:hover .gw-art{ transform:translateY(-11%) scale(1.03); }
+@media (prefers-reduced-motion: reduce){ .gw-dogma:hover .gw-art{ transform:translateY(-11%); } }
+
+/* Doska z ústavy ako slabá textúra pozadia (Matej: „do pozadia môžu byť slabo viditeľné tie
+   obrázky čo sú v dogme"). Zdroj = explainers/01-2-god-is-dog z embedu ústavy, zmenšený.
+   Sedí POD knihou aj textom, preto nízka krytie + papyrusový závoj nad ňou. */
+.gw-plate{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background-image:url('/images/dogma-plate.webp');
+  background-size:cover; background-position:64% 42%;
+  opacity:0.30; mix-blend-mode:multiply;
 }
-.gw-ainubis .gw-art img{ width:76%; height:auto; }
+
+/* ── AINUBIS = VLASTNÝ BRAND, nie papyrus (Matej 9.8.: „musí byť v jeho brande, modro
+   zlatá, AI vibe… farebne odlíšiteľné"). Tmavá modrá karta so zlatým rámom a cyan svetlom;
+   papyrusový dvojník vedľa (DOGMA) tak ostáva rozoznateľný na prvý pohľad.
+   Cyan #5BE0F0 = cyborg paleta AINUBISA, vedomá odchýlka od brand v3.2
+   (reference_dogypt_ainubis_cyborg_palette). */
+.gw-ainubis{
+  background:radial-gradient(circle at 82% 28%, #14304f 0%, #0a1a2e 46%, #050b16 100%);
+  border:1.5px solid rgba(201,154,63,0.55);
+  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(91,224,240,0.16);
+}
+/* Hlava je VEĽKÁ a orezaná hranou karty — vidno z nej asi polovicu (Matej: „väčšia ikonka,
+   viditeľná len polovica hlavy AI(NUBIS)").
+   ⚠️ Badge NIE JE priehľadné PNG — je to ČIERNA PLATŇA 136×160 (viď
+   scripts/make-ainubis-circle.py). Na tmavej karte ju neprezradí farba, ale HRANA: preto
+   maska, ktorá ľavý okraj platne rozpustí do pozadia. Bez nej tam stojí čierny zvislý zlom. */
+.gw-ainubis .gw-art{
+  right:-40%; width:82%; top:50%; transform:translateY(-50%);
+  -webkit-mask-image:linear-gradient(to left, #000 52%, rgba(0,0,0,0) 96%);
+  mask-image:linear-gradient(to left, #000 52%, rgba(0,0,0,0) 96%);
+  filter:drop-shadow(0 0 34px rgba(91,224,240,0.28));
+}
+.gw-ainubis .gw-art img{ width:100%; height:auto; }
+/* Text na tmavom — zlatý nadpis, cyan popisok, teplé svetlé telo. */
+.gw-ainubis .gw-title{ color:#F5C73D; text-shadow:0 3px 18px rgba(0,0,0,0.7); }
+.gw-ainubis .gw-sub{ color:#5BE0F0; }
+.gw-ainubis .gw-text{ color:rgba(245,240,228,0.82); }
 
 /* Závoj drží text čitateľný tam, kde obrázok podlieza — smeruje VŽDY od textovej strany. */
 .gw::before{ content:''; position:absolute; inset:0; z-index:1; pointer-events:none; }
-.gw-dogma::before{ background:linear-gradient(to left, ${T.cardSoft} 34%, rgba(250,244,236,0) 72%); }
-.gw-ainubis::before{ background:linear-gradient(to right, ${T.cardSoft} 34%, rgba(250,244,236,0) 72%); }
+.gw-dogma::before{ background:linear-gradient(to left, rgba(250,244,236,0.86) 26%, rgba(250,244,236,0.52) 54%, rgba(250,244,236,0) 82%); }
+.gw-ainubis::before{ background:linear-gradient(to right, rgba(5,11,22,0.92) 26%, rgba(5,11,22,0.55) 52%, rgba(5,11,22,0) 80%); }
 
-.gw-body{ position:relative; z-index:2; width:56%; }
+.gw-body{ position:relative; z-index:2; width:52%; }
 .gw-dogma .gw-body{ margin-left:auto; }    /* text vpravo */
 .gw-ainubis .gw-body{ margin-right:auto; } /* text vľavo */
 
@@ -112,12 +143,14 @@ const CSS = `
   .gw-body{ width:100%; }
   .gw-art{ top:auto; bottom:-14%; transform:none; }
   .gw:hover .gw-art{ transform:none; }
-  .gw-dogma .gw-art{ left:-34%; width:86%; }
-  .gw-ainubis .gw-art{ right:-32%; bottom:-16%; width:78%; }
-  /* Závoj ide zhora — text je hore, obrázok dole. */
-  .gw-dogma::before,
+  .gw-dogma .gw-art{ left:-30%; width:104%; bottom:-18%; }
+  .gw-ainubis .gw-art{ right:-40%; top:auto; bottom:-10%; transform:none; width:104%; }
+  /* Závoj ide zhora — text je hore, obrázok dole. Každá karta vo svojej farbe. */
+  .gw-dogma::before{
+    background:linear-gradient(to bottom, ${T.cardSoft} 26%, rgba(250,244,236,0.62) 54%, rgba(250,244,236,0) 80%);
+  }
   .gw-ainubis::before{
-    background:linear-gradient(to bottom, ${T.cardSoft} 26%, rgba(250,244,236,0.55) 52%, rgba(250,244,236,0) 78%);
+    background:linear-gradient(to bottom, rgba(5,11,22,0.94) 24%, rgba(5,11,22,0.62) 52%, rgba(5,11,22,0) 82%);
   }
   .gw-title{ font-size:15px; letter-spacing:.1em; }
   .gw-text{ font-size:10.5px; line-height:1.45; margin-top:8px; }
@@ -139,11 +172,15 @@ export function Gateways() {
           rel="noopener noreferrer"
           onClick={markConstitutionOpened}
         >
-          {/* Tá istá obálka ako veľká ConstitutionCard — knihu si člen spojí s DOGMOU. */}
+          {/* Slabá doska z ústavy v pozadí + tá istá obálka ako veľká ConstitutionCard —
+              knihu si člen spojí s DOGMOU. */}
+          <span className="gw-plate" aria-hidden />
           <span className="gw-art"><img src="/images/dogma-cover.png" alt="" aria-hidden /></span>
           <span className="gw-body">
-            <span className="gw-title">{t('pack.tiles.dogma.title')}</span>
-            <span className="gw-sub">{t('pack.tiles.dogma.sub')}</span>
+            {/* ⚠️ Nadpis NESMIE byť „DOGMA" (Matej 9.8.: „v nadpise už neopakuj slovo dogma") —
+                to slovo svieti na obálke knihy vedľa. Nadpis preto hovorí, ČO to je. */}
+            <span className="gw-title">{t('pack.gateway.dogma.title')}</span>
+            <span className="gw-sub">{t('pack.gateway.dogma.eyebrow')}</span>
             <span className="gw-text">{t('pack.gateway.dogma.text')}</span>
           </span>
         </a>

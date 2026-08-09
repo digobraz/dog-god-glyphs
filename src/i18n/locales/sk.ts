@@ -1993,7 +1993,9 @@ export const sk: Partial<Dict> = {
   'pack.tiles.ainubis.title': "AINUBIS",
   'pack.tiles.ainubis.sub': "Spýtaj sa",
   // Bloky DOGMA / AINUBIS v treťom riadku homepage (components/pack/Gateways.tsx)
-  'pack.gateway.dogma.text': "Ústava dogyptizmu — päť vrstiev, dvanásť častí.",
+  'pack.gateway.dogma.title': "Biblia pre psíčkarov",
+  'pack.gateway.dogma.eyebrow': "Naša filozofia",
+  'pack.gateway.dogma.text': "Päť vrstiev, dvanásť častí. Prečítaj si, v čo svorka verí — a prečo.",
   'pack.gateway.ainubis.text': "Spýtaj sa na čokoľvek o svojom psovi. AINUBIS odpovie kedykoľvek.",
   'pack.trip.walkerSingular': "človek",
   'pack.trip.walkerPlural': "ľudí",
