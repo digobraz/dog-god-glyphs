@@ -27,8 +27,9 @@ const STORY_RING = 'var(--brand-gradient)';
 //   · zvyšok padá do max 3 spodných radov v menšom tieri, delených čo najrovnomernejšie
 //     (širší rad hore): 12 psov → 6/5, 20 → 7/6/6
 //   · „+" slot sa počíta DO delenia a je vždy posledný, inak visí sám na novom riadku
-//   · spodný rad nesmie byť len osamotené „+" → stiahne sa dolu jeden pes z horného radu
-//     a dvojica sa NEZMENŠUJE (vznikne súmerná 2×2 mriežka, nie zmenšený zvyšok)
+//   · pyramída sa rozširuje NADOL — spodný rad nikdy nemá menej slotov než horný (3 psy =
+//     jeden hore, dvaja dolu). Tým sa rieši aj to, že spodný rad nesmie byť len osamotené „+"
+//   · dvojica dolu sa NEZMENŠUJE (vznikne súmerná 2×2 mriežka, nie zmenšený zvyšok)
 //   · všetci psi sú viditeľní VŽDY — žiadne „+3 more", žiadny scroll
 const MAX_TOP_DOGS = 2;
 const MOBILE_SCALE = 0.76;          // majiteľ 100 / pes 76 → majiteľ + 2 psy sa vojdú do 390 px
@@ -62,8 +63,12 @@ function planRow(n: number, inner: number): RowPlan {
   }
 
   let topDogs = Math.min(MAX_TOP_DOGS, n);
-  let items = n - topDogs + 1;                    // zvyšok psov + miesto pre „+"
-  if (items === 1 && topDogs > 0) { topDogs -= 1; items = 2; }
+  // Spodný rad nesmie byť UŽŠÍ než horný — pyramída sa rozširuje NADOL (Matej 2026-08-09:
+  // „ked su 3 psy tak jeden hore dvaja dolu"). Rieši to zároveň starší prípad, keď by v
+  // spodnom rade zostalo osamotené „+" („aby v 2 riadku bol pes a plus nie len + samotné").
+  // Horný rad má `topDogs + 1` slotov (majiteľ sa počíta), spodný `n - topDogs + 1` („+").
+  while (topDogs > 0 && n - topDogs + 1 < topDogs + 1) topDogs -= 1;
+  const items = n - topDogs + 1;                  // zvyšok psov + miesto pre „+"
 
   if (items <= 2 && items * (big + gap) - gap <= inner) {
     return { owner, big, gap, topDogs, plusInTop: false, rows: [items], rowSize: big };
