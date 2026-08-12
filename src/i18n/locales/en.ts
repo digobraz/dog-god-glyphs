@@ -756,6 +756,12 @@ export const en = {
   'dogPage.foundingDogyptian': 'Founding Dogyptian',
   'dogPage.pawtner': 'Pawtner',
   'dogPage.joinUs': 'Join Us',
+  // Dogpage = the member's recruiting page (Matej 12.8.2026). The invitation is
+  // spoken by the OWNER (first name only — that is all the public feed exposes).
+  'dogPage.invitedBy': '{name} invites you to DOGYPT',
+  'dogPage.invitedByFallback': 'You are invited to DOGYPT',
+  'dogPage.bonesForDog': 'Join through this page and {dog} gets 20 bones.',
+  'dogPage.bonesNote': 'Bones are the currency of DOGYPT — they land in the owner\'s account.',
   'dogPage.backToWall': 'Back to WALL →',
   'dogPage.daysCount': '{days} days',
   'dogPage.notFoundTitle': "This dog isn't in the pack yet.",
