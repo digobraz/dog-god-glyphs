@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { KeyRound, BellOff, LogOut, Loader2, X, Check } from 'lucide-react';
+import { Loader2, X, Check } from 'lucide-react';
+// `Loader2`, `X`, `Check` ostávajú lucide — systémové ovládače (spinner, zavrieť, potvrdiť).
+import { HandExit, HandKey } from './HandIcons';
 import { BrandIcon } from './BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { useToast } from '@/hooks/use-toast';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
@@ -85,9 +87,10 @@ export function PackSettings() {
           : T.cardShadow,
       }}
     >
+      <style>{PILL_CSS}</style>
       <div
         style={{
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_TITLE,
           fontSize: 10,
           letterSpacing: '0.32em',
           textTransform: 'uppercase',
@@ -99,20 +102,23 @@ export function PackSettings() {
       </div>
 
       <Field icon={<BrandIcon name="envelope" size={16} tint="dim" />} label={t('pack.settings.email')}>
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: T.ink }}>
+        <span style={{ fontFamily: FONT_UI, fontSize: 14, color: T.ink }}>
           {email}
         </span>
       </Field>
-      <Field icon={<KeyRound className="h-4 w-4" />} label={t('pack.settings.password')}>
+      <Field icon={<HandKey size={16} />} label={t('pack.settings.password')}>
         <button
           type="button"
+          className="pf-tap"
           onClick={() => setPwModalOpen(true)}
           style={{
             background: 'none',
-            border: `1px solid ${T.hairline}`,
+            // Sekundárne tlačidlo = zlatý rám matrice, nie šedý hairline. Hairline je
+            // pre deliace čiary; na ohraničenie prvku pôsobí ako nedokončený návrh.
+            border: `1px solid ${T.border}`,
             borderRadius: 8,
             padding: '6px 14px',
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_TITLE,
             fontSize: 10,
             letterSpacing: '0.28em',
             textTransform: 'uppercase',
@@ -126,20 +132,23 @@ export function PackSettings() {
       <Field icon={<BrandIcon name="globe" size={16} tint="gold" />} label={t('pack.settings.language')}>
         <LanguagePicker variant="settings" />
       </Field>
-      <Field icon={<BellOff className="h-4 w-4" />} label={t('pack.settings.notifications')}>
-        <Badge label={t('pack.settings.comingSoon')} />
-      </Field>
-      <Field icon={<LogOut className="h-4 w-4" />} label={t('pack.settings.signOut')} last>
+      {/* Riadok „Upozornenia · UŽ ČOSKORO" zmazaný 13. 8. 2026 (audit D2, Matej:
+          „Preč, kým to nefunguje"). Vráti sa aj s `Badge`, keď notifikácie reálne pôjdu —
+          kľúče `pack.settings.notifications` / `comingSoon` sú v locale nechané. */}
+      <Field icon={<HandExit size={16} />} label={t('pack.settings.signOut')} last>
         <button
           type="button"
+          className="pf-tap"
           onClick={handleSignOut}
           disabled={signingOut}
           style={{
             background: 'none',
-            border: `1px solid ${T.hairline}`,
+            // Sekundárne tlačidlo = zlatý rám matrice, nie šedý hairline. Hairline je
+            // pre deliace čiary; na ohraničenie prvku pôsobí ako nedokončený návrh.
+            border: `1px solid ${T.border}`,
             borderRadius: 8,
             padding: '6px 14px',
-            fontFamily: "'Cinzel', serif",
+            fontFamily: FONT_TITLE,
             fontSize: 10,
             letterSpacing: '0.28em',
             textTransform: 'uppercase',
@@ -176,7 +185,7 @@ export function PackSettings() {
             }}
           >
             <div className="flex items-center justify-between" style={{ marginBottom: 6 }}>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim }}>
+              <span style={{ fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.32em', textTransform: 'uppercase', color: T.inkDim }}>
                 {t('pack.settings.password')}
               </span>
               <button
@@ -189,7 +198,7 @@ export function PackSettings() {
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim, margin: '0 0 16px' }}>
+            <p style={{ fontFamily: FONT_UI, fontSize: 13, color: T.inkDim, margin: '0 0 16px' }}>
               {fromWelcome
                 ? t('pack.settings.pwDescWelcome')
                 : t('pack.settings.pwDesc')}
@@ -201,7 +210,11 @@ export function PackSettings() {
                 value={pwValue}
                 onChange={(e) => { setPwValue(e.target.value); setPwDone(false); }}
                 placeholder={t('pack.settings.pwNewPlaceholder')}
-                style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
+                /* Úroveň 4 MATRICE — to isté pole ako všade inde v /packu. Do 13. 8. tu
+                   bol ručne písaný štýl (`T.bg` výplň, hairline rám, radius 10), takže
+                   jediné dve textové polia v settings vyzerali inak než celý zvyšok appky. */
+                className="pf-field pf-field--flat"
+                style={{ width: '100%', borderRadius: 8, padding: '12px 14px', color: T.ink, fontFamily: FONT_UI, fontSize: 14, outline: 'none' }}
               />
               <input
                 type="password"
@@ -209,17 +222,18 @@ export function PackSettings() {
                 value={pwConfirm}
                 onChange={(e) => setPwConfirm(e.target.value)}
                 placeholder={t('pack.settings.pwConfirmPlaceholder')}
-                style={{ width: '100%', background: T.bg, border: `1px solid ${T.hairline}`, borderRadius: 10, padding: '12px 14px', color: T.ink, fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, outline: 'none' }}
+                className="pf-field pf-field--flat"
+                style={{ width: '100%', borderRadius: 8, padding: '12px 14px', color: T.ink, fontFamily: FONT_UI, fontSize: 14, outline: 'none' }}
               />
               {pwError && (
-                <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: '#A04040' }}>{pwError}</span>
+                <span style={{ fontFamily: FONT_UI, fontSize: 12, color: '#A04040' }}>{pwError}</span>
               )}
               <button
                 type="button"
                 onClick={handleSetPassword}
                 disabled={pwSaving || pwValue.length === 0}
                 className="inline-flex items-center justify-center gap-2"
-                style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: "'Cinzel', serif", fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
+                style={{ background: T.ink, color: T.card, border: 'none', padding: '12px 16px', borderRadius: 10, fontFamily: FONT_TITLE, fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', fontWeight: 700, cursor: 'pointer', opacity: (pwSaving || pwValue.length === 0) ? 0.6 : 1 }}
               >
                 {pwSaving ? <Loader2 className="h-3 w-3 animate-spin" /> : pwDone ? <Check className="h-3 w-3" /> : null}
                 {t('pack.settings.pwSubmit')}
@@ -240,7 +254,7 @@ function Field({ icon, label, children, last }: { icon: React.ReactNode; label: 
     >
       <div className="flex items-center gap-3" style={{ color: T.inkDim }}>
         {icon}
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
+        <span style={{ fontFamily: FONT_TITLE, fontSize: 10, letterSpacing: '0.32em', textTransform: 'uppercase' }}>
           {label}
         </span>
       </div>
@@ -249,21 +263,3 @@ function Field({ icon, label, children, last }: { icon: React.ReactNode; label: 
   );
 }
 
-function Badge({ label }: { label: string }) {
-  return (
-    <span
-      style={{
-        fontFamily: "'Cinzel', serif",
-        fontSize: 9,
-        letterSpacing: '0.28em',
-        textTransform: 'uppercase',
-        color: T.inkDim,
-        border: `1px solid ${T.hairline}`,
-        padding: '5px 10px',
-        borderRadius: 999,
-      }}
-    >
-      {label}
-    </span>
-  );
-}
