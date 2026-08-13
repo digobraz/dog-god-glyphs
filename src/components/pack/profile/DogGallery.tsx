@@ -855,10 +855,11 @@ function BioTextarea({ value, onSave }: { value: string; onSave: (v: string) => 
         className="pf-field"
         style={{
           width: '100%',
-          // Biela, nie zlatý gradient — rovnaké pravidlo ako bio v bloku 1
-          // (Matej 2026-07-26: „texta area daj biele"). `.pf-field` okraj/
-          // focus glow ostávajú, mení sa len výplň (inline vždy prebije triedu).
-          background: '#FFFFFF',
+          // Svetlejšia než zlatý gradient — rovnaké pravidlo ako bio v bloku 1
+          // (Matej 2026-07-26: „texta area daj biele"). Od 13. 8. papyrusový
+          // `#FBF5E6` namiesto čistej bielej, viď `WordLimitTextarea`
+          // v `PackProfile.tsx`. `.pf-field` okraj/focus glow ostávajú.
+          background: '#FBF5E6',
           borderRadius: 10,
           padding: '8px 12px 20px',
           minHeight: 48,

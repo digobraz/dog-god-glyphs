@@ -19,7 +19,7 @@ import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD } from '@/components/pack/packTheme';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById } from '@/components/pack/tripShared';
 import { closeMyTripEvents } from '@/lib/packStore';
 import { readPlans } from '@/components/pack/packCommunity';
@@ -45,7 +45,11 @@ const DAY_MS = 86400000;
 
 const CSS = `
 .tl-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:${FONT_UI};position:relative;padding-bottom:110px;}
-.tl-body{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) 20px 0;position:relative;z-index:2;}
+/* Šírka aj vodorovný padding sú TIE ISTÉ ako v PackLayout (PACK_COL) — táto stránka
+   PackLayout nemountuje, tak si ich musí vziať z konštanty. Do 13. 8. tu bolo 860px
+   a preklik z profilu (1024px) stránku viditeľne zúžil. */
+.tl-body{max-width:${PACK_COL.wide}px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) ${PACK_COL_PAD.desktop}px 0;position:relative;z-index:2;}
+@media (max-width:640px){ .tl-body{padding-left:${PACK_COL_PAD.mobile}px;padding-right:${PACK_COL_PAD.mobile}px;} }
 /* back = holá šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty) */
 .tl-backrow{display:flex;justify-content:center;margin-bottom:16px;}
 .tl-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:19px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s;}

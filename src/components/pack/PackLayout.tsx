@@ -1,7 +1,7 @@
 import { lazy, ReactNode, Suspense, useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { BrandIcon as PackBrandIcon } from './BrandIcon';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, PACK_COL } from './packTheme';
 import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
@@ -11,6 +11,10 @@ import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
 import { useT } from '@/i18n/LanguageContext';
 import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge';
+// `tripPathById` samo dataset trás neimportuje (berie ho parametrom) — tento
+// import je preto lacný, na rozdiel od `heroTrails.generated`, ktorý sa načíta
+// lazy až pri kliku na štítok výletu.
+import { currentTripId, tripPathById } from './tripShared';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -74,9 +78,18 @@ export function PackLayout({ children, title, subtitle, wide }: PackLayoutProps)
         />
       )}
 
+      {/* `pb-40` na mobile (audit 13. 8., B4): plávajúca spodná lišta + AINUBIS
+          prekrývali pri 390px posledný riadok chipov a počítadlo `0/10` — dalo sa
+          doscrollovať, ale prvý dojem bol „obsah je odseknutý". Desktop ostáva `pb-32`,
+          tam lišta neplává nad obsahom. */}
       <div
-        className={`relative z-10 mx-auto w-full ${wide ? 'max-w-5xl' : 'max-w-2xl'} px-4 sm:px-6 pb-32`}
-        style={{ paddingTop: DEV_FULL ? 'calc(env(safe-area-inset-top, 0px) + 28px)' : 'calc(env(safe-area-inset-top, 0px) + 106px)' }}
+        className="relative z-10 mx-auto w-full px-4 sm:px-6 pb-40 sm:pb-32"
+        style={{
+          // Šírka z PACK_COL, nie z Tailwind triedy — to isté číslo drží aj PackTriplist,
+          // ktorý PackLayout nemountuje (vlastný tmavý root). Dve čísla by sa rozišli.
+          maxWidth: wide ? PACK_COL.wide : PACK_COL.narrow,
+          paddingTop: DEV_FULL ? 'calc(env(safe-area-inset-top, 0px) + 28px)' : 'calc(env(safe-area-inset-top, 0px) + 106px)',
+        }}
       >
         {/* Global top-right hub — notif + messages, on EVERY narrow-column pack page
             (D4 nav rework, DEV_FULL-only). Matej amendment 2026-07-24: lives IN the content
@@ -160,6 +173,20 @@ export function MessagingOverlayHost() {
 
   if (!DEV_FULL || overlay.mode === 'closed') return null;
 
+  // Klik na štítok výletu nad konverzáciou. Predtým sa `onOpenTrip` neodovzdávalo
+  // vôbec, takže Thread padal do svojej TODO vetvy (`console.log`) a v Inboxe bol
+  // štítok len text — na oboch povrchoch teda „klik nič nerobí".
+  // Dataset trás sa načíta lazy: `tripPathById` ho berie parametrom práve preto,
+  // aby sa megabajt trás nevtiahol do globálneho chrome.
+  // `currentTripId` — slug uložený vo vlákne môže byť spred premenovania (3. 8.);
+  // do Supabase sa mapa `RENAMED_TRIP_IDS` nikdy nepremietla, takže sa prekladá tu.
+  // Bez toho by odkaz smeroval na mŕtvy slug a zachránil by ho až redirect v článku.
+  const openTrip = async (tripId: string) => {
+    setOverlay({ mode: 'closed' });
+    const { HERO_TRAILS } = await import('@/data/heroTrails.generated');
+    navigate(tripPathById(currentTripId(tripId), HERO_TRAILS));
+  };
+
   // Suspense fallback=null — Inbox/Thread sú lazy (viď import vyššie), krátky async gap pri
   // prvom otvorení overlaya je tichý (žiadny spinner v zadaní), nie chýbajúci chunk.
   if (overlay.mode === 'inbox') {
@@ -169,6 +196,7 @@ export function MessagingOverlayHost() {
           onOpenThread={(convId) => setOverlay({ mode: 'thread', convId })}
           onClose={() => setOverlay({ mode: 'closed' })}
           onBrowseTrips={() => { setOverlay({ mode: 'closed' }); navigate('/pack/map'); }}
+          onOpenTrip={(tripId) => void openTrip(tripId)}
         />
       </Suspense>
     );
@@ -178,7 +206,11 @@ export function MessagingOverlayHost() {
   // overlay úplne.
   return (
     <Suspense fallback={null}>
-      <Thread convId={overlay.convId} onClose={() => setOverlay({ mode: 'inbox' })} />
+      <Thread
+        convId={overlay.convId}
+        onClose={() => setOverlay({ mode: 'inbox' })}
+        onOpenTrip={(tripId) => void openTrip(tripId)}
+      />
     </Suspense>
   );
 }
@@ -716,7 +748,8 @@ const pillStyle = (active: boolean): React.CSSProperties => ({
     ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(224 50% 42%) 100%)'
     : 'transparent',
   boxShadow: active
-    ? '0 5px 16px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255,255,255,0.25)'
+    // Tieň drží farbu vlastného gradientu (zlatá → modrá), nie zdedenú fialovú.
+    ? '0 5px 16px -5px rgba(16, 52, 166, 0.55), inset 0 1px 0 rgba(255,255,255,0.25)'
     : 'none',
   textDecoration: 'none',
 });
