@@ -72,9 +72,42 @@ const PHOTO_K = 1.1;
 const NAME_K = 0.62;
 // Doladenie 8.8., 5. kolo: „zmenši text ešte o 10% a heroglyph o 5% ale nechaj ho zarovnaný
 // na okraji progresbaru ako je teraz." Uvoľnená šírka ide do MEDZIER (rozdelí sa na dve
-// rovnaké), nie do fotky — inak by sa glyf odlepil od okraja progresbaru.
+// rovnaké), nie do fotky — inak by sa glyf odlepil od pravého okraja riadka.
+// ⚠️ 12.8.: „okraj progresbaru" je odvtedy okraj LIŠTY s posterom — progresbar zanikol,
+// referencia sa presunula, konštanty ostali.
 const TEXT_K = 0.9;
 const GLYPH_K = 0.95;
+
+// MOBIL (≤720). Zadanie 12.8., 4. kolo (Matej): „malo by to byť rozdelené na 3 stĺpce,
+// fotka bude väčšia a bude začínať na ľavej strane a DOG ID bude na pravej."
+//
+// Predtým mala fotka pevných 88 px a dvojica meno+glyf strop 175 px. Nad ~500 px sa ten
+// strop zapol a VŠETKO uvoľnené miesto skončilo v dvoch dierach po stranách
+// (`justify-content:center`): pri 680 px stála fotka 152 px od ľavého okraja karty a lišta
+// 128 px od pravého. Blok tak vyzeral ako vycentrovaný zhluk, nie ako riadok.
+//
+// Teraz držia kraje fotka a lišta (`justify-content:space-between`) a rovnica má dve
+// neznáme namiesto jednej:
+//   MOBILE_PHOTO_K    = podiel dostupnej šírky, ktorý dostane fotka,
+//   MOBILE_PHOTO_MIN/MAX = jej medze. Strop je tu preto, že od istej veľkosti je fotka
+//                     zároveň VÝŠKA bloku: stredný stĺpec (meno+glyf+pilulky) meria pri
+//                     plnom strope ~142 px, takže 132 px sa doň ešte zmestí a blok kvôli
+//                     fotke nenarastie. Spodok 96 px drží úzke telefóny (360–430), kde
+//                     každý pixel navyše uberá menu — pri 360 px by fotka 108 px zrazila
+//                     meno z 20 px na 15.
+//   MOBILE_MAX_IDW    = strop dvojice meno+glyf. NIE je kozmetika: na mobile stoja pod
+//                     sebou, takže ich výška rastie so šírkou dvakrát rýchlejšie než na
+//                     PC. 230 px vyjde na blok ~169 px, čiže ešte pod PC blokom (172 px);
+//                     280 px z neho spraví 190+ a mobil bude vyšší než desktop.
+//
+// Zvyšok, ktorý nad stropmi ostane, ide do DVOCH MEDZIER (space-between), nie do jednej
+// diery a nie do okrajov — fotka teda ostáva na ľavej hrane a lišta na pravej vždy.
+//
+// ⚠️ PC vetva má vlastné štyri konštanty (PHOTO_K…GLYPH_K) a týchto sa NETÝKA.
+const MOBILE_PHOTO_K = 0.30;
+const MOBILE_PHOTO_MIN = 96;
+const MOBILE_PHOTO_MAX = 132;
+const MOBILE_MAX_IDW = 230;
 
 // Ilustrácia kvízovej karty. ⚠️ ZÁMERNE NIE fotka psa (Matej 6.8.: „nemôže tam byť
 // foto psa, čo ak má majiteľ 3?") — dlaždica platí pre celú svorku.
@@ -124,101 +157,72 @@ const HUB_CSS = `
 .hub-gold:active{ transform:scale(0.98); }
 
 /* ── psí blok ───────────────────────────────────────────────────────────────── */
-/* TRI ČASTI, na KAŽDEJ šírke rovnako (Matej 7.8., 2. kolo — mobil sa NESMIE
-   preskupovať): 1 fotka · 2 meno + dni a POD tým heroglyf · 3 stĺpec piluliek
-   pod sebou (krajina · #číslo · úloha · element · osobnosť). Mobil to isté, len
-   menšie — preto tu nie je žiadna zmena grid-template-areas v media query.
-   Šípka › zanikla: blok má byť na tri časti a celý je klikateľný. */
-/* Tri stĺpce ako FLEX, nie grid s dvoma riadkami: „foto a počet dní má byť na výšku
-   ako meno a heroglyph" (Matej 7.8.) sa robí align-items:stretch + space-between
-   v strednom stĺpci. V dvojriadkovom gride sa dorovnať nedali — riadky sú spoločné
-   pre všetky stĺpce, takže vyšší ľavý stĺpec nechal pod heroglyfom dieru. */
-.dogblk{ display:flex; align-items:stretch; gap:18px; }
-/* Od 8.8. je v ľavom stĺpci LEN fotka (pilulka s dňami odišla doprava ako prvá), takže
-   šírku stĺpca určuje priamo fotka. Predtým tu bolo min-width:108/150px kvôli tomu, že
-   „3,731 DNÍ" (≈100 px) je širšie než fotka — teraz by to isté min-width nechalo vedľa
-   zmenšenej fotky prázdny pruh. */
-.dogblk-left{
-  flex:0 0 auto;
-  display:flex; flex-direction:column; align-items:center; gap:9px;
-}
-/* Stred: meno TESNE nad heroglyfom, dvojica zarovnaná na spodok (Matej 7.8.: „meno je
-   daleko od heroglyfu velka medzera"). flex-end, nie space-between — space-between
-   rozhadzoval meno a glyf na opačné konce stĺpca a medzera rástla s tým, ako bol ľavý
-   stĺpec vyšší. Spodná hrana glyfu tak stále sedí na spodnej hrane pilulky s dňami. */
-.dogblk-main{
-  flex:1 1 auto; min-width:0;
-  display:flex; flex-direction:column; justify-content:flex-end;
-}
-/* Meno a glyf zdieľajú JEDEN obal so šírkou glyfu — tým je „šírka mena prispôsobená
-   heroglyfu" (Matej). Obal je container, takže sa v ňom dá merať v cqw. */
-/* Šírka obalu = šírka mena AJ heroglyfu naraz. Konkrétnu hodnotu nastavuje useFitName
-   za behu tak, aby PRAVÝ OKRAJ glyfu sedel na pravom okraji progresbaru dole — na KAŽDEJ
-   šírke rovnako, mobil aj PC. Predtým tu boli dve rôzne pravidlá (mobil calc(100% - 44px),
-   PC pevných 380 px) a blok sa preto pri každej šírke správal inak.
-   ⚠️ To 44px bola šírka tlačidla mínus šírka stĺpca piluliek — teda číslo závislé od
-   DĹŽKY TEXTU v CTA. Keď sa „ŽIVOTOPIS" premenoval na kratšie „DOG ID", lemovanie sa
-   rozišlo. Preto sa to už nepočíta ručne, ale meria. */
+/* TRI STĹPCE (Matej 12.8., 3. kolo — papyrus):
+     1 fotka s poradovým číslom NA KRUHU
+     2 meno + heroglyf a POD nimi rad pilulek
+     3 lišta: pilulka s percentom · dogposter · popisok DOG ID
+   Pilulky sú v STREDNOM stĺpci, teda začínajú pod menom a nie pod fotkou — blok tým
+   stratil celý riadok (Matej: „ušetríme priestor"). Predtým mali vlastný pravý stĺpec
+   (.dogblk-side) a pod fotkou ostávala mŕtva plocha.
+   ZANIKLO 12.8.: progresbar (.dogblk-prog), zlaté CTA (.dogblk-open), stĺpec pilulek
+   (.dogblk-side) aj spodný riadok (.dogblk-foot). Nehľadaj ich, nie sú parkované. */
+.dogblk{ display:flex; align-items:center; gap:18px; }
+/* Ľavý stĺpec je LEN fotka. position:relative tu je kvôli pilulke s číslom, ktorá
+   sadá na spodný okraj kruhu a vnútri neho by sa orezala. */
+.dogblk-left{ position:relative; flex:0 0 auto; line-height:0; }
+.dogblk-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:12px; }
+
+/* Meno a glyf zdieľajú jeden obal — konkrétne rozmery dopočíta useFitName tak, aby
+   pravý okraj glyfu sedel na hrane lišty s posterom. */
 .dogblk-idw{
   width:100%;
   display:flex; flex-direction:column; gap:4px;
   /* Hranice veľkosti mena. Sú TU, nie v JS, aby breakpoint zostal jediný a v CSS;
-     useFitName si ich prečíta cez getComputedStyle. Strop je zámerne vysoký — má
-     brániť len absurditám, nie vypĺňaniu šírky. */
+     useFitName si ich prečíta cez getComputedStyle. */
   --fit-min:24px; --fit-max:200px;
   container-type:inline-size;   /* len kvôli cqw fallbacku v .dogblk-name */
 }
-/* Veľkosť písma sa odvodzuje od POČTU ZNAKOV mena, nie je pevná: krátke meno by pri
-   pevnej veľkosti nechalo pod sebou širokú medzeru, dlhé by pretieklo. --len posiela
-   komponent, 0.86 je šírka znaku Cinzel Decorative v em s rezervou — ODMERANÉ v prehliadači
-   cez Range (namerané 0.727–0.833 podľa mena, HEKTHOR presne 0.781). Pri 0.62 pretekali
-   MAXIMILIÁN aj BARTOLOMEJKO; pri presnom 0.78 zas vzorec vrátil hraničnú veľkosť a meno
-   sa o vlások zalamovalo na dva riadky. Koeficient teda musí byť NAD najširším menom,
-   nie priemerom — inak je zalomenie pravidlo, nie výnimka. Strop drží meno v rozumnej veľkosti pri
-   dvojpísmenových menách. Zalomenie je povolené zámerne: keby vzorec pri nejakom mene
-   predsa nesedel, meno sa radšej zlomí do dvoch riadkov, než by vytieklo cez pilulky. */
-/* Veľkosť písma nastavuje useFitName PRESNÝM meraním po vykreslení (Matej 7.8. si
-   vybral presné meranie namiesto odhadu podľa počtu znakov). Hodnota nižšie je len
-   štartovacia, aby meno pred prvým meraním neblikalo — odhad --len × 0.86 je zámerne
-   podstrelený, teda skôr malé písmo než pretečené.
+/* Veľkosť písma nastavuje useFitName PRESNÝM meraním po vykreslení. Hodnota nižšie je
+   len štartovacia, aby meno pred prvým meraním neblikalo — odhad --len × 0.86 je
+   zámerne podstrelený, teda skôr malé písmo než pretečené.
    ⚠️ Prečo meranie: odhad podľa počtu znakov nemôže sedieť naprieč písmami. V ostrej
-   databáze sú 奥莉 (Aoli) (čínske znaky, Cinzel Decorative ich NEMÁ a padá na systémový
-   font) aj BABY (МАЛЮК) (cyrilika) — tam je šírka znaku úplne iná než v latinke. */
+   databáze sú 奥莉 (Aoli) (Cinzel Decorative ich NEMÁ a padá na systémový font) aj
+   BABY (МАЛЮК) — tam je šírka znaku úplne iná než v latinke. */
 .dogblk-name{
   font-size:clamp(24px, calc(100cqw / (var(--len,7) * 0.86)), 100px);
   line-height:1.02;
-  /* Poistka: keby meranie zlyhalo, meno sa radšej zlomí, než pôjde cez pilulky. */
+  /* Poistka: keby meranie zlyhalo, meno sa radšej zlomí, než pôjde cez lištu. */
   overflow-wrap:anywhere;
 }
+/* Kruh = ten istý recept ako HeroCard na homepage (Matej 12.8.: „aplikujem tú istú
+   logiku ako je to pri homepage"). Prstenec progresu, ktorý tu žil jedno kolo, zanikol
+   — progres sa presunul do pilulky v lište. */
 .dogblk-photo{
-  width:108px; height:108px; border-radius:50%; object-fit:cover; flex:0 0 auto;
+  width:132px; height:132px; border-radius:50%; object-fit:cover; display:block;
   border:2px solid #C99A3F;
-  box-shadow:0 0 0 4px rgba(201,154,63,0.16), 0 8px 22px rgba(0,0,0,0.5);
+  box-shadow:0 0 0 1px rgba(201,154,63,0.45), 0 8px 24px rgba(201,154,63,0.24);
 }
-/* Keď glyf dostal celú šírku stĺpca, stred bloku narástol na ~286 px a fotka 108 px
-   vedľa neho vyzerala ako miniatúra. Na širokom okne teda rastie aj ona.
-   ⚠️ Tento blok musí stáť ZA .dogblk-photo — rovnaká špecificita, rozhoduje poradie
-   v súbore. Nad ňou sa ticho neuplatní (stalo sa). */
-/* ⚠️ 721px, NIE 900px. Hranica musí byť tá istá, akú používa useFitName — kým tu bolo 900
-   a v mobilnej vetve 720, ostalo medzi nimi pásmo 721–899 bez pravidiel: rozloženie zostalo
-   stĺpcové, ale strop písma platil desktopový, takže sa meno lámalo na „HEKTHO/R"
-   (Matej 8.8.: „pri shrinku sa to správa divne"). */
+/* Poradové číslo NA KRUHU — recept 1:1 z HeroCard.tsx (~riadky 598–624): locknutá
+   pilulka dní, navyše svetlý hairline, lebo leží na fotke a bez neho splynie s tmavým
+   psom. Z radu pilulek preto #N VYPADLO, aby tam nebolo dvakrát. */
+.dogblk-num{
+  position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);
+  display:inline-flex; align-items:center; justify-content:center;
+  font-family:'Cinzel',serif; font-weight:700; font-size:14px; letter-spacing:0.02em;
+  line-height:1; white-space:nowrap; padding:5px 10px; border-radius:999px;
+  background:linear-gradient(180deg,#F5C73D,#E69E1A); color:#3d1f00;
+  border:1px solid rgba(250,244,236,0.55);
+  box-shadow:0 2px 6px rgba(0,0,0,0.28);
+}
+/* ⚠️ 721px, NIE 900px. Hranica musí byť tá istá, akú používa useFitName — kým tu bolo
+   900 a v mobilnej vetve 720, ostalo medzi nimi pásmo 721–899 bez pravidiel a meno sa
+   lámalo na „HEKTHO/R" (Matej 8.8.: „pri shrinku sa to správa divne"). */
 @media (min-width:721px){
-  .dogblk-photo{ width:150px; height:150px; }
-  /* PC (Matej 8.8.): fotka · meno · glyf VEDĽA SEBA, spolu na šírku progresbaru.
-     Na mobile ostáva meno NAD glyfom — preto je to media query, nie zmena základu.
-     Konkrétne rozmery dopočíta useFitName, tu je len smer a zarovnanie. */
+  /* PC: fotka · meno · glyf VEDĽA SEBA. Na mobile ostáva meno NAD glyfom — preto je to
+     media query, nie zmena základu. Konkrétne rozmery dopočíta useFitName. */
   .dogblk-idw{ flex-direction:row; align-items:center; }
   .dogblk-idw > .dogblk-name{ flex:0 0 auto; white-space:nowrap; }
   .dogblk-idw > .dogblk-glyph{ flex:0 0 auto; width:auto; }
-  /* Výšku riadka určuje stĺpec pilulek, takže fotka aj dvojica meno+glyf sú od neho nižšie
-     a musia sa v ňom VYCENTROVAŤ. Bez toho fotka visela na hornej hrane a pri zmenšovaní
-     okna sa od obsahu odlepovala tým viac, čím menšia bola (Matej 8.8.: „prečo ide pri
-     shrinku tá fotka takto hore"). .dogblk-main má v základe justify-content:flex-end
-     — to je pravidlo pre MOBILNÉ rozloženie (spodná hrana glyfu lemuje pilulku), v riadku
-     by ho tlačilo dole. */
-  .dogblk-left{ justify-content:center; }
-  .dogblk-main{ justify-content:center; }
   /* ⚠️ TIETO DVE HODNOTY MUSIA BYŤ ZHODNÉ (Matej 8.8.: „meno … aby z každej strany malo
      dostatočný a totožný rozostup od fotky aj heroglyfu"). Prvá je medzera fotka↔meno,
      druhá meno↔glyf — sú to dva RÔZNE flex kontajnery, takže sa nedajú zapísať raz.
@@ -226,96 +230,111 @@ const HUB_CSS = `
   .dogblk{ gap:22px; }
   .dogblk-idw{ gap:22px; }
 }
-/* Vnútorný odsadenie karty je TU, nie v inline štýle — inak by ho media query nižšie
-   nemala ako prebiť. */
-.dogblk-card{ padding:22px 24px; }
-/* Úzke telefóny (iPhone SE 375, staršie 360): pri troch stĺpcoch ostávalo strednému
-   90 px a meno sa lámalo na „HEKTH/OR" aj na spodnej hranici 18 px. Ustupuje všetko
-   ostatné — odsadenie karty, fotka, stĺpec piluliek — meno a glyf nie. */
-@media (max-width:430px){
-  .dogblk-card{ padding:16px 14px; }
-  .dogblk{ gap:8px; }
-  .dogblk-left{ min-width:0; }
-  .dogblk-photo{ width:56px; height:56px; }
-  .dogblk-side{ flex-basis:68px; }
-}
-/* Stĺpec piluliek — šírka fotky (118 ≈ 108 + rám), pilulky pod sebou a na plnú
-   šírku stĺpca, nie zarovnané na obsah (rad prvkov = rovnaké diely). */
-.dogblk-side{ flex:0 0 102px; align-self:flex-start; display:flex; flex-direction:column; gap:7px; }
-.dogblk-side > *{ width:100%; }
+/* PAPYRUS (lock 2026-07-26, zdroj pravdy Entry.tsx): odsadenie je TU, nie v inline
+   štýle — inak by ho media query nižšie nemala ako prebiť. */
+.dogblk-card{ padding:20px 22px; }
+
+/* Rad pilulek pod menom. Rovnaké diely sa tu ZÁMERNE nepoužívajú — pilulky sú rôzne
+   dlhé údaje, nie tlačidlá, a naťahovanie na rovnakú šírku by z „SVK" spravilo prázdny
+   pruh. Šírku určuje obsah, zalamujú sa. */
+.dogblk-pills{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 /* Rozmery pilulky žijú TU, nie v inline štýle komponentu — inline by triedu prebil
    a mobilné zmenšenie by ticho nezabralo. */
-.dogblk-pill{ padding:5px 8px; font-size:9px; letter-spacing:.12em; }
-/* Dni majú vlastnú veľkosť — sú to hlavné číslo bloku, nie tag. 13.5 px je hodnota
-   z PackTree, aby bol ten istý údaj rovnako veľký aj rovnako farebný. */
-.dogblk-days{ padding:4px 12px; font-size:13.5px; }
-@media (max-width:720px){
-  .dogblk-pill{ padding:4px 5px; font-size:8.5px; letter-spacing:.04em; }
-  .dogblk-days{ padding:4px 10px; font-size:12px; }
+.dogblk-pill{ padding:5px 11px; font-size:9px; letter-spacing:.12em; }
+/* Dni majú vlastnú veľkosť — sú to hlavné číslo bloku, nie tag. Hodnota z PackTree,
+   aby bol ten istý údaj rovnako veľký aj rovnako farebný. */
+.dogblk-days{ padding:5px 12px; font-size:12.5px; }
+
+/* ── lišta na pravom kraji ──────────────────────────────────────────────────── */
+/* Nesie progres, poster a slovo DOG ID. Jej šírku určuje POSTER a pilulka s pevným
+   min-width — teda nič, čo by záviselo od fotky alebo mena. Práve preto sa z nej dá
+   v useFitName počítať dostupná šírka bez rizika kruhu. */
+.dogblk-rail{
+  position:relative;
+  flex:0 0 auto; align-self:stretch;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px;
+  padding-left:20px;
+  --poster-h:78px;
 }
-/* Výzva na klik. Blok bol celý odkaz už predtým, ale nič to nehovorilo — vyzeral ako
-   informačná karta (Matej 7.8.: „niekde musí byť ikonka, tlačítko … aby človek chcel
-   kliknúť"). NIE je to <button>: celý blok je <Link>, takže by šlo o vnorený
-   interaktívny prvok. Je to LEN vizuálna značka, klik obsluhuje blok. */
-.dogblk-foot{ display:flex; align-items:center; gap:12px; margin-top:16px; }
-.dogblk-prog{ flex:1 1 auto; min-width:0; }
-/* PLNOFAREBNÉ HNEĎ, nie až po prejdení myšou (Matej 7.8.) — na dotykových zariadeniach
-   hover neexistuje, takže výzva na klik viditeľná len pri hoveri je na mobile neviditeľná.
-   Hodnoty = recept .btn-gold (LOCKED CTA), len menší rozmer. */
-.dogblk-open{
-  flex:0 0 auto; display:inline-flex; align-items:center; gap:7px;
-  padding:9px 14px; border-radius:8px;
-  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
-  border:1px solid rgba(250,244,236,0.30);
-  color:#000; font-family:'Cinzel',serif; font-weight:800;
-  font-size:10px; letter-spacing:.14em; text-transform:uppercase; white-space:nowrap;
-  box-shadow:0 0 22px rgba(230,158,26,0.30), inset 0 1px 0 rgba(255,255,255,0.3);
-  transition:box-shadow .2s ease, transform .2s ease;
+/* Deliaca čiara = papyrusový lock (2026-07-26): zlatá, 2px, VYBLEDNUTÁ DO STRÁN — nie
+   šedý ani priehľadný 1px hairline. T.rule je vodorovná (90deg), toto je jej zvislá
+   dvojička (Matej 12.8.: „zvýrazni viac vertikálu … teraz ju skoro nevidno, urob ju
+   takú aby bola na krajoch tenšia").
+   ⚠️ Je to ::before, NIE border — border má rovnakú sýtosť po celej dĺžke a nedá sa
+   vyblednúť. Zároveň nezaberá miesto v layoute, takže sa nemení šírka lišty, z ktorej
+   useFitName počíta dostupnú šírku riadka. */
+.dogblk-rail::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:2px;
+  background:linear-gradient(180deg, transparent 0%, #C99A3F 28%, #C99A3F 72%, transparent 100%);
+  border-radius:2px; pointer-events:none;
 }
-.hub-hover:hover .dogblk-open{
-  box-shadow:0 0 40px rgba(230,158,26,0.5), inset 0 1px 0 rgba(255,255,255,0.3);
-  transform:translateX(2px);
+.dogblk-poster{ opacity:.88; transition:transform .2s ease, opacity .2s ease; }
+.hub-hover:hover .dogblk-poster{ transform:translateX(3px); opacity:1; }
+.dogblk-railcap{
+  font-family:${FONT_TITLE}; font-weight:800; font-size:10px; letter-spacing:.16em;
+  text-transform:uppercase; color:#2a1608; white-space:nowrap;
 }
-/* Ikonka musí byť tmavá už v základnom stave — leží na zlate.
-   Filter = presne tint 'dark' z BrandIcon.tsx (#5A3F12). */
-.dogblk-open img{
-  filter:brightness(0) saturate(100%) invert(20%) sepia(30%) saturate(800%)
-    hue-rotate(2deg) brightness(75%) contrast(90%);
+/* Progres = pilulka NAD posterom (Matej 12.8.). Percento je ÚDAJ, takže Space Grotesk
+   600 (strop načítanej váhy), nie Cinzel. TRI STAVY, farby z brand tokenov:
+     0 %      červená  T.alertRed  #B25640
+     1–99 %   modrá    T.partHek   #2E5FD0
+     100 %    zelená   T.growGreen #3D7A4E
+   ⚠️ min-width je nutnosť, nie kozmetika: bez neho je „24%" o polovicu užšie než
+   „COMPLETE" a poster by sa v zozname psov pri každom bloku posunul inam. */
+.dogblk-fill{
+  min-width:78px; text-align:center;
+  padding:4px 10px; border-radius:999px; white-space:nowrap;
+  background:#2E5FD0; color:#EAF0FF;
+  font-family:${FONT_UI}; font-weight:600;
+  font-size:9.5px; letter-spacing:.08em; text-transform:uppercase;
+  box-shadow:0 4px 12px rgba(46,95,208,0.4);
 }
-@media (max-width:720px){
-  .dogblk-foot{ gap:10px; margin-top:13px; }
-  .dogblk-open{ padding:8px 11px; font-size:9px; letter-spacing:.1em; }
-}
-/* Heroglyf: zdrojový PNG má ČIERNE ťahy — bez prefarbenia je na tmavom neviditeľný.
-   Recept 1:1 z components/gods/GodsGrid.tsx (.card-open-heroglyph / .dog-heroglyph).
-   Šírku určuje obal .dogblk-idw (100 % stĺpca, strop 300 px na PC / 180 na mobile) —
-   glyf aj meno tak majú VŽDY tú istú šírku. Strop je tam preto, aby glyf pri veľmi
-   širokom okne neprerástol fotku a blok nezmenil proporcie. */
+.dogblk-fill.is-zero{ background:#B25640; color:#FDECE7; box-shadow:0 4px 12px rgba(178,86,64,0.4); }
+.dogblk-fill.is-done{ background:#3D7A4E; color:#EAF7ED; box-shadow:0 4px 12px rgba(61,122,78,0.4); }
+
+/* Heroglyf: zdrojový PNG má ČIERNE ťahy. Na tmavom podklade sa musel prefarbovať na
+   zlato — na PAPYRUSE sa filter ZRUŠIL a glyf ostáva čierny (Matej 12.8.: „čierny
+   heroglyf aj meno"). Šírku aj výšku určuje useFitName. */
 .dogblk-glyph{
   width:100%; height:auto; object-fit:contain; display:block;
   pointer-events:none;
-  filter:
-    brightness(0) invert(1)
-    sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
-    drop-shadow(0 0 14px rgba(201,154,63,0.95))
-    drop-shadow(0 0 32px rgba(201,154,63,0.55));
 }
-/* Mobil = TIE ISTÉ tri stĺpce, len zmenšené. Rozpočet pri 390 px: 14 px padding
-   bloku + 72 fotka + 10 + stred + 10 + 92 stĺpec ≈ zostáva ~140 px na heroglyf,
-   preto tu má width:100% so stropom, nie pevných 200 px. */
+
+/* Mobil = tie isté tri stĺpce, len zmenšené. Meno ide NAD glyf (vlastná vetva rovnice
+   v useFitName).
+   ⚠️ POSTER SA NEZMENŠUJE — --poster-h ostáva 78 px ako na PC (Matej 12.8.). Zmenšuje sa
+   meno a heroglyf; šírku, ktorú tým uvoľnia, dostane lišta a poster sa v nej vycentruje. */
 @media (max-width:720px){
-  /* 16, nie 10 — Matej 8.8.: „obsah (meno a hero) posuň od foto do prava trochu viac,
-     je to moc nalepené". Číslo je zároveň vstup do rovnice v useFitName (číta sa
-     zo štýlu, nie je nikde zapísané druhýkrát). */
-  .dogblk{ gap:16px; }
-  /* flex-basis fotky sa NEurčuje — jej rozmer dopočíta useFitName na výšku dvojice
-     meno+glyf. Pevných 72 px by rovnicu prebilo a fotka by ostala malá. */
-  .dogblk-side{ flex-basis:84px; }
-  .dogblk-photo{ width:72px; height:72px; }
-  .dogblk-left{ gap:7px; }
+  .dogblk-card{ padding:15px 13px; }
+  /* KRAJE DRŽIA FOTKA A LIŠTA (Matej 12.8., 4. kolo). space-between, NIE center:
+     nad stropmi MOBILE_PHOTO_MAX a MOBILE_MAX_IDW ostane voľné miesto a musí ísť do
+     dvoch MEDZIER medzi stĺpcami, nie do okrajov. S center stála pri 680 px fotka
+     152 px od ľavej hrany karty a lišta 128 px od pravej — blok vyzeral vycentrovaný.
+     flex:0 1 auto na strednom stĺpci musí ostať: s flex:1 by sa celý zvyšok nalepil
+     doň a vznikla by jedna diera medzi glyfom a deliacou čiarou. */
+  .dogblk{ gap:16px; justify-content:space-between; }
+  .dogblk-main{ gap:9px; flex:0 1 auto; }
+  /* Štartovacia hodnota = MOBILE_PHOTO_MIN. Konkrétny rozmer dopočíta useFitName
+     (rastie s dostupnou šírkou po MOBILE_PHOTO_MAX); toto je len to, čo platí, kým sa
+     nenačíta glyf a rovnica nemá pomer strán. */
+  .dogblk-photo{ width:96px; height:96px; }
+  .dogblk-num{ font-size:11px; padding:4px 8px; bottom:-3px; }
   .dogblk-idw{ --fit-min:14px; --fit-max:60px; }
   .dogblk-name{ font-size:clamp(14px, calc(100cqw / (var(--len,7) * 0.86)), 36px); }
-  .dogblk-side{ gap:5px; }
+  /* O chlp menšie než predtým: stredný stĺpec sa zúžil kvôli väčšej lište a rad
+     „3 736 DNÍ + SK" sa doň pri pôvodných rozmeroch nezmestil na jeden riadok. */
+  .dogblk-pill{ padding:4px 7px; font-size:8px; letter-spacing:.05em; }
+  .dogblk-days{ padding:4px 9px; font-size:10px; }
+  .dogblk-rail{ padding-left:12px; gap:5px; }
+  .dogblk-railcap{ font-size:8px; letter-spacing:.1em; }
+  .dogblk-fill{ min-width:58px; font-size:8px; padding:3px 7px; letter-spacing:.04em; }
+}
+/* Úzke telefóny (iPhone SE 375, staršie 360): ustupuje odsadenie karty a medzery,
+   meno a glyf nie. */
+@media (max-width:430px){
+  .dogblk-card{ padding:14px 11px; }
+  .dogblk{ gap:10px; }
+  .dogblk-rail{ padding-left:9px; }
 }
 
 /* ── kvíz hero (stav A) ───────────────────────────────────── */
@@ -607,33 +626,24 @@ function useFitName(
     const fit = () => {
       if (!alive) return;
 
-      // 1 · ŠÍRKA OBALU sa MERIA, nepočíta. Cieľ: pravý okraj heroglyfu sedí na pravom
-      // okraji progresbaru dole — na každej šírke rovnako, mobil aj PC. Rozdiel medzi
-      // tými dvoma koncami je „šírka tlačidla mínus šírka stĺpca piluliek", teda hodnota
-      // závislá od TEXTU v CTA: ručné `calc(100% - 44px)` sa rozišlo v tej istej chvíli,
-      // ako sa „ŽIVOTOPIS" premenoval na kratšie „DOG ID".
+      // 1 · REFERENČNÁ ŠÍRKA. Doteraz ju meral progresbar (`.dogblk-prog`), lebo pravý
+      // okraj glyfu mal sedieť na jeho hrane. Progresbar 12.8. zanikol — meria sa teda
+      // samotný riadok mínus lišta s posterom:
+      //     availW = šírka `.dogblk` − šírka `.dogblk-rail` − medzera
+      // ⚠️ Toto NIE JE kruh, hoci sa meria súrodenec: lišta má šírku danú posterom a
+      // pilulkou s pevným `min-width`, teda ničím, čo by záviselo od fotky alebo mena.
+      // Keby jej šírku určoval obsah premenlivej dĺžky, vrátila by hodnotu, ktorú sama
+      // spôsobila — a blok by sa opäť „nejak divne správal".
       const main = wrap.parentElement;
+      const row = (main?.parentElement ?? null) as HTMLElement | null;
       const card = main?.closest('.dogblk-card');
-      const prog = card?.querySelector('.dogblk-prog');
-      if (main && prog) {
-        wrap.style.maxWidth = 'none';
-        const trim = main.getBoundingClientRect().right - prog.getBoundingClientRect().right;
-        wrap.style.maxWidth = trim > 0 ? `calc(100% - ${Math.round(trim)}px)` : 'none';
-      }
+      const rail = row?.querySelector('.dogblk-rail') as HTMLElement | null;
+      // Obal sa neoreže — jeho šírku nastavuje rovnica nižšie explicitne.
+      wrap.style.maxWidth = 'none';
 
-      // 1b · VÝŠKU BLOKU URČUJE STĹPEC PILULIEK (Matej 8.8.: „potrebujem docieliť to aby sa
-      // celý blok zmenšil o priestor ktorý je medzi posledným pilom a CTA = foto pils meno
-      // aj hero zmenši"). Pod pilulkami ostávala mŕtva plocha ~90 px, lebo výšku bloku
-      // diktovala fotka (150 px) a dvojica meno+glyf, nie najkratší stĺpec. Miera je preto
-      // `.dogblk-side` a VŠETKO ostatné sa doňho zmestí: fotka aj dvojica meno+glyf.
-      //
-      // ⚠️ `.dogblk-side` sa smie merať len preto, že má `align-self:flex-start` — teda
-      // sa NEŤAHÁ na výšku najvyššieho stĺpca a jeho výška je daná len počtom pilulek.
-      // Keby stretchoval (ako `.dogblk-left`), vracal by výšku, ktorú sám spôsobil,
-      // a vznikol by kruh — presne ten, po ktorom sa to 7.8. „nejak divne správalo".
-      //
-      // Zo stropu výšky sa počíta strop ŠÍRKY obalu, lebo výška oboch prvkov je
-      // úmerná šírke: glyf má pevný pomer strán, meno vypĺňa šírku obalu.
+      // Zo šírky sa počíta všetko ostatné, lebo výška oboch prvkov je jej úmerná:
+      // glyf má pevný pomer strán, meno vypĺňa šírku obalu.
+
       const photo = card?.querySelector('.dogblk-photo') as HTMLElement | null;
       const glyph = wrap.querySelector('.dogblk-glyph') as HTMLImageElement | null;
 
@@ -692,8 +702,19 @@ function useFitName(
         ? glyph.naturalWidth / glyph.naturalHeight
         : 0;
       const idwGap = parseFloat(cs.rowGap) || parseFloat(cs.columnGap) || 0;
-      const rowGapPx = main ? (parseFloat(getComputedStyle(main.parentElement as HTMLElement).columnGap) || 0) : 0;
-      const availW = prog ? prog.getBoundingClientRect().width : 0;
+      const rowGapPx = row ? (parseFloat(getComputedStyle(row).columnGap) || 0) : 0;
+      // ⚠️ RESET LIŠTY MUSÍ BYŤ PRED JEJ MERANÍM. Na mobile jej nižšie nastavíme šírku,
+      // takže keby sa merala aj s ňou, vrátila by hodnotu, ktorú sme sami spôsobili — a pri
+      // každom prekreslení by narástla. Meria sa teda jej PRIRODZENÁ šírka, ktorú drží
+      // poster (alebo pilulka s min-width, ak je širšia).
+      // ⚠️ Posterovi sa inline štýl NESMIE mazať — vlastní ho React (width:auto +
+      //    height:var(--poster-h)). Keď sa vyčistil, img stratil rozmer, natiahol sa na
+      //    šírku lišty a rástol s ňou pri každom prekreslení (84×95 namiesto 69×78).
+      if (rail) rail.style.width = '';
+      const railW = rail ? rail.getBoundingClientRect().width : 0;
+      const availW = row
+        ? Math.max(0, row.clientWidth - railW - (railW ? rowGapPx : 0))
+        : 0;
 
       // Reset pred výpočtom — inak by vstupom bol vlastný predošlý výsledok.
       if (photo) { photo.style.width = ''; photo.style.height = ''; }
@@ -708,7 +729,7 @@ function useFitName(
           // PC — fotka · meno · glyf VEDĽA SEBA. Kotvou je výška GLYFU (G), ostatné dve
           // sú jej násobky, aby sa dali ladiť bez prepisovania rovnice (Matej 8.8., 4. kolo:
           // „PC = zvačši foto a zmenši meno"). Rovnica šírky:
-          //   PHOTO_K·G + medzera + perPx·(NAME_K·G/lhRatio) + medzera + G·pomer = progresbar
+          //   PHOTO_K·G + medzera + perPx·(NAME_K·G/lhRatio) + medzera + G·pomer = availW
           const G = (availW - 2 * rowGapPx)
             / (PHOTO_K + (perPx * NAME_K) / lhRatio + ratio);
           if (G > 30) {
@@ -733,19 +754,29 @@ function useFitName(
             return;
           }
         } else {
-          // Mobil — meno NAD glyfom (stĺpec), fotka na výšku tej dvojice:
-          //   výška dvojice = W·(lhRatio/perPx) + medzera + W/pomer
-          //   fotka + medzera + W = šírka progresbaru
-          const k = lhRatio / perPx + 1 / ratio;
-          const W = (availW - rowGapPx - idwGap) / (1 + k);
-          const photoH = Math.round(W * k + idwGap);
-          if (W > 40 && photoH > 40) {
-            if (photo) { photo.style.width = `${photoH}px`; photo.style.height = `${photoH}px`; }
+          // ── MOBIL — meno NAD glyfom ────────────────────────────────────────────
+          // Matej 12.8., 4. kolo: „rozdelené na 3 stĺpce, fotka väčšia a začína na ľavej
+          // strane, DOG ID na pravej."
+          //
+          // Fotka sa POČÍTA, nemeria: jej vstupom je `availW`, čo je šírka riadka mínus
+          // lišta — teda hodnota, ktorú fotka sama neovplyvňuje. Kruh sa tak nezavrie.
+          // Merať ju (ako doteraz `getBoundingClientRect`) by po pridaní vlastného
+          // rozmeru znamenalo čítať vlastný predošlý výsledok.
+          const photoPx = Math.round(Math.min(
+            MOBILE_PHOTO_MAX,
+            Math.max(MOBILE_PHOTO_MIN, availW * MOBILE_PHOTO_K),
+          ));
+          if (photo) { photo.style.width = `${photoPx}px`; photo.style.height = `${photoPx}px`; }
+          const free = availW - photoPx - rowGapPx;
+          // Dvojica meno+glyf berie CELÝ zvyšok, kým nenarazí na strop. Nad stropom sa
+          // uvoľnené miesto rozdelí do dvoch medzier (`justify-content:space-between`),
+          // takže fotka ostane na ľavej hrane a lišta na pravej.
+          const W = Math.min(free, MOBILE_MAX_IDW);
+          if (W > 40) {
             wrap.style.maxWidth = 'none';
             wrap.style.width = `${Math.round(W)}px`;
-            // ⚠️ `W - 1`, nie `W`: pri presnom podiele vyjde text o zlomok bodu širší než
-            // obal, zalomí sa a meno sa opticky zmenší na polovicu. Tu to chýbalo a meno
-            // sa lámalo na „HEKTHO/R".
+            // ⚠️ `W - 1`, nie `W`: pri presnom podiele vyjde text o zlomok bodu širší
+            // než obal, zalomí sa a meno sa opticky zmenší na polovicu.
             el.style.fontSize = `${Math.max(min, Math.min(max, (W - 1) / perPx))}px`;
             return;
           }
@@ -771,15 +802,14 @@ function useFitName(
       raf = requestAnimationFrame(fit);
     });
     ro.observe(wrap);
-    // Aj na progresbar: keď sa zmení šírka tlačidla (iný jazyk, dlhší text), musí sa
-    // prepočítať orezanie obalu — inak lemovanie ostane na starej hodnote.
+    // Aj na lištu: keď sa zmení jej šírka (iný jazyk v slove DOG ID, dlhšie percento),
+    // zmení sa dostupná šírka riadka a rovnica musí prebehnúť znova.
     const cardEl = wrap.parentElement?.closest('.dogblk-card');
-    const progEl = cardEl?.querySelector('.dogblk-prog');
-    if (progEl) ro.observe(progEl);
-    // Aj na stĺpec pilulek: on určuje výšku celého bloku, takže keď pribudne pilulka
-    // (doplnený element, osobnosť z kvízu), musí sa prepočítať fotka aj dvojica meno+glyf.
-    const sideEl = cardEl?.querySelector('.dogblk-side');
-    if (sideEl) ro.observe(sideEl);
+    const railEl = cardEl?.querySelector('.dogblk-rail');
+    if (railEl) ro.observe(railEl);
+    // Aj na celý riadok: jeho šírka je vstup rovnice.
+    const rowEl = cardEl?.querySelector('.dogblk');
+    if (rowEl) ro.observe(rowEl);
     return () => { alive = false; ro.disconnect(); cancelAnimationFrame(raf); };
   }, [wrapRef, textRef, text]);
 }
@@ -834,42 +864,52 @@ function DogBlock({
     ? null
     : t('pack.tree.daysUnit', { days: life.days.toLocaleString('en-US') });
 
-  // Stĺpec 3: dni · krajina · #číslo · úloha · element · zvláštne úlohy — ale VYKRESLIA
-  // SA LEN PRVÉ ŠTYRI („na pravo budú len 4 pils pod sebou", Matej 7.8.). Poradie je
-  // teda zároveň prioritou.
-  // Matej 8.8.: pilulka s DŇAMI je PRVÁ a sedí tu, nie v ľavom stĺpci pod fotkou —
-  // ľavý stĺpec je odteraz len fotka. Tagy povahy (POKOJNÝ, PLACHÝ) sú zrušené.
+  // Rad pilulek POD MENOM (Matej 12.8.: „pils čo sú pod to premiestni vedľa aby začínali
+  // pod menom psa nie pod foto — ušetríme priestor"). Predtým to bol zvislý stĺpec vpravo
+  // so stropom 4 položky; vodorovný rad zalamuje, takže strop odpadol.
+  // ⚠️ `#poradové číslo` tu UŽ NIE JE — presunulo sa na kruh fotky (`.dogblk-num`), aby
+  // nebolo v bloku dvakrát.
   const pills = [
     days ? <Pill key="days" solid>{life.isAngel ? `🕊 ${days}` : days}</Pill> : null,
     <Pill key="country">
       <FlagCircle iso2={iso2} label={iso2.toUpperCase()} size={13} />
       {iso2.toUpperCase()}
     </Pill>,
-    dog.pack_number !== null ? <Pill key="num" mono>{`#${dog.pack_number}`}</Pill> : null,
     roleLabel ? <Pill key="role">{roleLabel}</Pill> : null,
     elementLabel ? <Pill key="el">{elementLabel}</Pill> : null,
     ...specials.map((k) => {
       const l = label('nature.specials', k);
       return l ? <Pill key={k} dashed>{`${specialPrefix}: ${l}`}</Pill> : null;
     }),
-  ].filter(Boolean).slice(0, 4);
+  ].filter(Boolean);
+
+  // Progres = pilulka v lište, tri stavy (Matej 12.8.). Slovo je len pri 100 %; ostatné
+  // stavy sú holé percento, aby nad posterom nestáli dva druhy nápisu.
+  // ⚠️ Menovateľ je `PROGRESS_STEPS.length` (dnes 34) — to isté číslo, aké ukazuje karta
+  // psa. Rastie SÁM, keď do kvízu pribudne pole; nikde sa nezapisuje ručne. Preto
+  // percento a nie zlomok: „23/34" znamená po rozšírení kvízu zakaždým niečo iné.
+  const fillDone = total > 0 && filled >= total;
+  const fillClass = fillDone ? ' is-done' : (pct <= 0 ? ' is-zero' : '');
+  const fillText = fillDone ? tx('pack.hub.passComplete', 'Complete') : `${pct}%`;
 
   return (
     <Link
       to={`/pack/dogs/${dog.id}`}
       className="hub-hover dogblk-card"
       style={{
+        // PAPYRUS (Matej 12.8.: „switchneme to bledého bloku, nie gradient ale papyrus").
+        // Hodnoty sú z locku 2026-07-26, zdroj pravdy `Entry.tsx` / `packTheme.ts` —
+        // NIE plochá biela so šedým hairlinom.
         display: 'block', textDecoration: 'none',
-        background: 'var(--brand-gradient)',
-        borderRadius: 24,
-        border: '1px solid hsl(45 80% 60% / 0.28)',
-        boxShadow: '0 20px 50px -22px rgba(40, 18, 60, 0.55)',
+        background: T.cardGrad,
+        borderRadius: 16,
+        border: `1.5px solid ${T.cardEdge}`,
+        boxShadow: T.cardShadow,
       }}
     >
-      {/* Mriežka: fotka · meno + heroglyf pod ním · stĺpec piluliek (Matej 7.8.). */}
+      {/* Tri stĺpce: fotka · (meno+glyf nad pilulkami) · lišta s posterom. */}
       <div className="dogblk">
-        {/* Stĺpec 1 — LEN fotka (Matej 8.8.: dni sa presunuli do stĺpca piluliek vpravo,
-            fotka sa o ich miesto zväčšila na výšku dvojice meno+heroglyf). */}
+        {/* Stĺpec 1 — fotka s poradovým číslom na kruhu. */}
         <div className="dogblk-left">
           {dog.cloudinary_main_url ? (
             <img className="dogblk-photo" src={dog.cloudinary_main_url} alt="" />
@@ -884,73 +924,64 @@ function DogBlock({
               <BrandIcon name="paw" size={36} tint="gold" />
             </div>
           )}
+          {dog.pack_number !== null && (
+            <span className="dogblk-num">{`#${dog.pack_number}`}</span>
+          )}
         </div>
 
-        {/* Stĺpec 2, riadok 1: len MENO. Vlajka, #číslo a dni sa presunuli inam. */}
+        {/* Stĺpec 2 — meno + heroglyf, pod nimi rad pilulek. */}
         <div className="dogblk-main">
           {/* Meno a heroglyf v jednom obale = rovnaká šírka. `--len` je dĺžka mena,
-              z nej si CSS dopočíta veľkosť písma tak, aby meno šírku obalu vyplnilo. */}
+              z nej si CSS dopočíta štartovaciu veľkosť písma, kým nezmeria useFitName. */}
           <div ref={idwRef} className="dogblk-idw" style={{ '--len': Math.max(name.length, 3) } as React.CSSProperties}>
             <span
               ref={nameRef}
               className="dogblk-name"
               style={{
-                fontFamily: NAME_FONT, fontWeight: 700,
-                color: 'hsl(45 75% 94%)', textShadow: '0 3px 14px rgba(0,0,0,0.55)',
+                // Čierny inkoust na papyruse (Matej 12.8.), nie svetlé písmo s tieňom.
+                fontFamily: NAME_FONT, fontWeight: 700, color: T.inkStrong,
               }}
             >
               {name}
             </span>
 
-            {/* Svietiaci heroglyf — ten istý, čo je na walle a na dogpage (Matej 6.8.). */}
+            {/* Heroglyf ostáva ČIERNY — filter na zlato zanikol spolu s tmavým pozadím. */}
             {dog.heroglyph_png_url && (
               <img className="dogblk-glyph" src={dog.heroglyph_png_url} alt="" aria-hidden />
             )}
           </div>
+
+          <div className="dogblk-pills">{pills}</div>
         </div>
 
-        {/* Stĺpec 3 — pilulky pod sebou. Ďalšie veci pribúdajú SEM. */}
-        <div className="dogblk-side">{pills}</div>
-      </div>
-
-      <div className="dogblk-foot">
-        <div className="dogblk-prog">
-          <div style={{ height: 6, borderRadius: 999, background: 'rgba(245,240,228,0.14)', overflow: 'hidden', position: 'relative' }}>
-            <i
-              style={{
-                position: 'absolute', top: 0, bottom: 0, left: 0, width: `${pct}%`,
-                background: 'linear-gradient(90deg, #F5C73D, #E69E1A)',
-                borderRadius: 999, display: 'block',
-              }}
-            />
-          </div>
-          <span
-            style={{
-              fontFamily: FONT_UI, fontSize: 10.5, color: 'hsl(45 70% 90% / 0.6)',
-              marginTop: 5, display: 'block',
-            }}
-          >
-            {filled === total
-              ? tx('pack.hub.passComplete', 'DOG ID complete')
-              : `${tx('pack.hub.passProgress', 'DOG ID')} ${filled} / ${total}`}
-          </span>
+        {/* Stĺpec 3 — lišta: progres · poster · DOG ID. Nahradila spodný riadok
+            s progresbarom a zlatým CTA (Matej 12.8.: „DOG ID CTA zmizne a nahradí ho
+            iba ikonka dog poster"). Nie je to <button>: celý blok je <Link>. */}
+        <div className="dogblk-rail">
+          <span className={`dogblk-fill${fillClass}`}>{fillText}</span>
+          <BrandIcon
+            name="dogposter"
+            size={78}
+            tint="dark"
+            className="dogblk-poster"
+            style={{ width: 'auto', height: 'var(--poster-h, 78px)' }}
+          />
+          <span className="dogblk-railcap">{tx('pack.hub.profileTitle', 'DOG ID')}</span>
         </div>
-
-        {/* Vizuálne tlačidlo, nie <button> — klik obsluhuje celý blok. */}
-        <span className="dogblk-open" aria-hidden>
-          <BrandIcon name="document" size={13} tint="gold" />
-          {tx('pack.hub.openStory', 'DOG ID')}
-          <span style={{ fontSize: 12, lineHeight: 1 }}>→</span>
-        </span>
       </div>
     </Link>
   );
 }
 
-/** Pilulka v psom bloku — vzor = badge rad v `HeroCard.tsx`, len na tmavom podklade.
- *  `mono` = poradové číslo (čísla patria do mono, nie do Cinzelu).
+/** Pilulka v psom bloku — vzor = badge rad v `HeroCard.tsx`.
+ *  ⚠️ Od 12.8. leží na PAPYRUSE, nie na tmavom gradiente: farby sú preto inkoustové
+ *  (`T.inkStrong` / `T.inkWarm`) a nie svetlé. Keby tu ostali staré `#F7EFDD`, text by
+ *  na bledom podklade zmizol.
+ *  `mono` = poradové číslo. V psom bloku sa UŽ NEPOUŽÍVA (číslo sedí na kruhu fotky),
+ *  variant ostáva pre prípad ďalšieho číselného údaja.
  *  `solid` = vyfarbená zlatá (dni — Matej 7.8. „DNI pils vyfarbi"). Jediný údaj v bloku,
- *  ktorý rastie každý deň, takže má niesť farbu; ostatné pilulky sú tiché.
+ *  ktorý rastie každý deň, takže má niesť farbu; ostatné pilulky sú tiché. Zlatá pilulka
+ *  je locknutá naprieč appkou, papyrus sa jej NETÝKA.
  *  ⚠️ Rozmery sú v triede .dogblk-pill, nie tu — inline štýl by ju prebil a mobil
  *  by sa nezmenšil. */
 function Pill({ children, dashed = false, mono = false, solid = false }: {
@@ -958,7 +989,7 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
 }) {
   const bg = solid
     ? DAYS_PILL.background
-    : (dashed ? 'transparent' : 'rgba(201,154,63,0.20)');
+    : (dashed ? 'transparent' : T.tileBg);
   return (
     <span
       className={`dogblk-pill${solid ? ' dogblk-days' : ''}`}
@@ -966,7 +997,7 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 5,
         borderRadius: 999, textAlign: 'center',
         background: bg,
-        border: solid ? 'none' : `1px solid ${dashed ? 'rgba(245,240,228,0.34)' : T.border}`,
+        border: solid ? 'none' : `1px solid ${dashed ? 'rgba(179,130,45,0.6)' : T.border}`,
         borderStyle: dashed ? 'dashed' : 'solid',
         fontFamily: mono ? "'JetBrains Mono', ui-monospace, monospace" : FONT_TITLE,
         fontWeight: 700,
@@ -974,7 +1005,7 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
         lineHeight: solid ? 1.1 : 1.25,
         letterSpacing: solid ? DAYS_PILL.letterSpacing : undefined,
         boxShadow: solid ? DAYS_PILL.boxShadow : undefined,
-        color: solid ? DAYS_PILL.color : (dashed ? 'hsl(45 70% 90% / 0.75)' : (mono ? '#F5C73D' : '#F7EFDD')),
+        color: solid ? DAYS_PILL.color : (dashed ? T.inkWarm : (mono ? '#8a5a12' : T.inkStrong)),
       }}
     >
       {children}

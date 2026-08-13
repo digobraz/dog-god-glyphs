@@ -9,7 +9,9 @@
 
 export interface AinubisCopy {
   panelTitle: string;
-  panelSubtitle: string;
+  /** Prúžok pod hlavičkou, keď pán prevzal slovo. Hlavička sama má od 9. 8. 2026 len tri
+   *  ikonky (bez mena, podtitulu a stavu ONLINE), takže toto je JEDINÉ miesto, kde sa
+   *  prevzatie slova zobrazí — nemazať bez náhrady. */
   takeoverActive: string;
   /** Intro karta = badge + meno + JEDEN riadok s dvoma rolami (Matej 2026-07-26:
    *  „tu mi chýba pod anubisom tie dve veci čo tam mal takle podnadpisy
@@ -20,8 +22,6 @@ export interface AinubisCopy {
   micStop: string;
   micListening: string;
   micDenied: string;
-  statusOnline: string;
-  statusTakeover: string;
   /** Dve bubliny, nie jedna — viď 04-copy-a-vizual.md §1. */
   welcome: string[];
   suggestions: {
@@ -49,29 +49,24 @@ export interface AinubisCopy {
   /** Ikonka dashboardu v hlavičke nemá popisku — text nesie až bublina pri hoveri
    *  (na dotyku pri kliku). Tlačidlo nikam nevedie: sľubuje smer, kam widget rastie. */
   dashboardHint: string;
-  /** Presúvanie panelu po obrazovke — dvojstavové (zapni → ťahaj → zamkni). */
+  /** Kríž v hlavičke = úchyt okna: stlač a ťahaj, dvojklik vráti do rohu.
+   *  Žiadny režim na zapnutie ⇒ žiadne `moveStop`/`moveHint`/`moveReset`. */
   moveStart: string;
-  moveStop: string;
-  moveHint: string;
-  moveReset: string;
 }
 
 const sk: AinubisCopy = {
   panelTitle: 'AINUBIS',
   // Riadok pod menom v hlavičke sa renderuje mono uppercase ako technický
   // výpis — preto krátko, nie veta (dlhší text sa oreže tromi bodkami).
-  panelSubtitle: 'Digitálny strážca',
   takeoverActive: 'Pán prevzal slovo',
   introRole: 'Strážca chrámu · AI podpora',
   micStart: 'Nahovoriť správu',
   micStop: 'Ukončiť nahrávanie',
   micListening: 'Počúvam… klikni znova, keď dopovieš.',
   micDenied: 'K mikrofónu sa neviem dostať — povoľ ho v prehliadači, alebo mi to napíš.',
-  statusOnline: 'Online',
-  statusTakeover: 'Pán pri slove',
   welcome: [
     'Ahoj, ja som AInubis — digitálny strážca DOGYPTU.',
-    'Toto miesto stavia hŕstka ľudí, jeden pes a ja. Chrám ešte rastie, takže tvoje oči sú tu vzácne: ak niečo nefunguje alebo ťa napadne niečo krajšie, napíš mi (pokojne so screenshotom). Pozriem sa hneď a odovzdám to pánovi.',
+    'Náš virtuálny chrám je stále vo výstavbe. Tvoje oči sú tu veľmi vzácne: ak niečo nefunguje alebo nájdeš nejaký preklep či chybu, napíš mi (pokojne so screenshotom). Pozriem sa na to a odovzdám pánovi na posúdenie a opravu.',
   ],
   suggestions: {
     problem: 'Mám problém',
@@ -96,26 +91,20 @@ const sk: AinubisCopy = {
   openAria: 'Otvoriť chat s AINUBISOM',
   closeAria: 'Zavrieť chat',
   dashboardHint: 'Dashboard — čoskoro',
-  moveStart: 'Presunúť okno chatu',
-  moveStop: 'Zamknúť pozíciu okna',
-  moveHint: 'Ťahaj za hlavičku · klik zamkne',
-  moveReset: 'Späť do rohu',
+  moveStart: 'Chyť a ťahaj — dvojklik vráti okno do rohu',
 };
 
 const en: AinubisCopy = {
   panelTitle: 'AINUBIS',
-  panelSubtitle: 'Digital guardian',
   takeoverActive: 'Master has the word',
   introRole: 'Guardian of the temple · AI support',
   micStart: 'Record a message',
   micStop: 'Stop recording',
   micListening: 'Listening… click again when you are done.',
   micDenied: "I can't reach the microphone — allow it in your browser, or just type it.",
-  statusOnline: 'Online',
-  statusTakeover: 'Master speaking',
   welcome: [
     "Hi, I'm AInubis — digital guardian of DOGYPT.",
-    "This place is built by a handful of people, one dog and me. The temple is still growing, so your eyes are precious here: if something does not work, or you think of something better, tell me (a screenshot is welcome). I will look right away and pass it on to my master.",
+    "Our virtual temple is still under construction. Your eyes are precious here: if something does not work, or you find a typo or a bug, tell me (a screenshot is welcome). I will look into it and pass it on to my master to judge and fix.",
   ],
   suggestions: {
     problem: 'I have a problem',
@@ -140,10 +129,7 @@ const en: AinubisCopy = {
   openAria: 'Open chat with AINUBIS',
   closeAria: 'Close chat',
   dashboardHint: 'Dashboard — coming soon',
-  moveStart: 'Move the chat window',
-  moveStop: 'Lock the window in place',
-  moveHint: 'Drag by the header · click locks',
-  moveReset: 'Back to corner',
+  moveStart: 'Grab and drag — double-click returns it to the corner',
 };
 
 /** SK pre `sk`, inak EN default — rovnaký fallback princíp ako `LanguageContext`. */

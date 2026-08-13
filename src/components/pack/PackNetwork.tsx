@@ -581,7 +581,7 @@ export function PackNetwork({ avatarUrl, initial }: { avatarUrl?: string | null;
           label={tx('pack.network.inLine', 'In your line')}
           sub={
             lineCount > 0
-              ? tx('pack.network.lineSplit', '{l1} in first circle · {l2} in second', {
+              ? tx('pack.network.lineSplit', '{l1} in first paw · {l2} in second', {
                   l1: demo ? l1.length : net?.level1_count ?? l1.length,
                   l2: demo ? l2.length : net?.level2_count ?? l2.length,
                 })
@@ -1424,8 +1424,8 @@ function MemberRow({ m, lvl, full }: { m: Member; lvl: number; full?: boolean })
           PRVÝ / DRUHÝ KRUH (rozhodnutie 13. 8.). Rímska číslica drží poradie aj v 10 px. */}
       <span
         title={lvl === 1
-          ? tx('pack.network.circle1', 'First circle — you brought them in')
-          : tx('pack.network.circle2', 'Second circle — they were brought by your first circle')}
+          ? tx('pack.network.circle1', 'First paw — you brought them in')
+          : tx('pack.network.circle2', 'Second paw — they were brought by your first paw')}
         style={{
           fontFamily: FONT_UI, fontWeight: 600, fontSize: 10,
           letterSpacing: '0.08em',

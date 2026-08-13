@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { HeroCard, type HeroDog } from '@/components/pack/HeroCard';
 import { Gateways } from '@/components/pack/Gateways';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { GlobePulse } from '@/components/pack/GlobePulse';
+import { FounderInvite } from '@/components/pack/FounderInvite';
+import { PackSettings } from '@/components/pack/PackSettings';
+import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
+import { TripSpotlight } from '@/components/pack/TripSpotlight';
+import { PACK_THEME, FONT_UI } from '@/components/pack/packTheme';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DEV-ONLY dielňa hero radu (`/pack/_herolab`). Route je v `App.tsx` za
@@ -45,13 +50,16 @@ export default function HeroLab() {
     border: `1px solid ${active ? T.cardEdge : T.border}`,
     background: active ? 'rgba(201,154,63,0.18)' : 'transparent',
     color: T.inkWarm,
-    fontFamily: "'Space Grotesk', sans-serif",
+    fontFamily: FONT_UI,
     fontSize: 12,
     cursor: 'pointer',
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: T.bg, padding: '26px 18px 60px' }}>
+    // Pozadie = `T.pageBg` (#050505) ako reálna `/pack`. Do 12.8.2026 tu bol papyrusový
+    // `T.bg` a to klame dvakrát: bledé karty nemajú kontrast, ktorý naživo majú, a svetlý
+    // text (verš dňa) na papyruse takmer zmizne, hoci na čiernej je čitateľný.
+    <div style={{ minHeight: '100vh', background: T.pageBg, padding: '26px 18px 60px' }}>
       <div style={{ maxWidth: 1040, margin: '0 auto' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
           {COUNTS.map((c) => (
@@ -79,6 +87,31 @@ export default function HeroLab() {
               Prepínač šírky hore mení len šírku obalu — mobilnú kompozíciu overíš
               zúžením okna prehliadača, nie tlačidlom „mobil 390". */}
           <Gateways />
+
+          {/* ── Zvyšok homepage (12.8.2026) — dielňa prestala byť len o pyramíde psov ──
+              Dôvod: zjednocovanie vizuálnej DNA sa nedá robiť naslepo, a `/pack` sa bez
+              prihlásenej session vôbec nevykreslí (`Pack.tsx` si ťahá usera vlastným
+              `getUser()`). Tu vidno bloky KOMUNITA, ROZŠÍR SVORKU aj ÚČET pohromade,
+              takže je vidieť, či majú tie isté okraje, pilulky a fonty.
+              ⚠️ Dáta sú vymyslené (`GlobePulse`) alebo prázdne (`FounderInvite` beží na
+              Supabase RPC, ktoré bez session vráti nič → dlaždice ukazujú „—"). Na
+              KOMPOZÍCIU to stačí, na obsah nie. */}
+          {/* ⚠️ Dielňa musí mountovať VŠETKY bloky homepage, nie vybrané. 12.8.2026 tu chýbali
+              `VerseOfTheDay` a `TripSpotlight` — a práve vo `VerseOfTheDay` som po prepise
+              fontov na tokeny zabudol import, takže `/pack` padla na error boundary
+              („SOMETHING WENT WRONG"), kým dielňa aj `npm run build` boli zelené. Vite
+              neresolvuje neznáme identifikátory pri builde, spadne to až pri renderi.
+              Keď na homepage pridáš blok, pridaj ho aj SEM. */}
+          <TripSpotlight email="matej@dogypt.com" ownerName="Matej" />
+          <VerseOfTheDay />
+          <GlobePulse
+            total={3245}
+            topCountries={[{ country: 'SK', count: 2810 }, { country: 'CZ', count: 260 }, { country: 'PL', count: 175 }]}
+            topBreeds={[{ breed: 'Mix', count: 1240 }, { breed: 'German Shepherd', count: 410 }]}
+            ownerCountry="SK"
+          />
+          <FounderInvite dogName="HEKTHOR" packNumber={1} shareCardUrl={null} />
+          <PackSettings />
         </div>
       </div>
     </div>

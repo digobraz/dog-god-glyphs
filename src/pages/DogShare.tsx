@@ -252,10 +252,12 @@ export default function DogShare() {
         if (found) {
           setDog(found);
           setStatus('found');
-          // Visiting a dog's public page is a structural referral, even
-          // without an explicit ?ref= — first-touch never overwrites an
-          // earlier explicit ref, so precedence is preserved automatically.
-          captureDogPageRef(packNum);
+          // ⚠️ TU SA UŽ ODPORÚČATEĽ NEZAPISUJE (Matej 12.8.2026, po nasadení:
+          // „to nie je ok, lebo ľudia si len čítajú odkazy majiteľov… musíme to
+          // opraviť a dať to za CTA na prísno"). Psia stránka je aj ČÍTANIE —
+          // odkaz majiteľa je obsah, na ktorý sa chodí zo zvedavosti, nie pozvánka.
+          // Samotná návšteva (ani zvonku) teda nie je nábor; kredit vzniká až
+          // vedomým klikom na CTA nižšie (`handleJoin`).
           // Canonicalize the URL in place (no reload) once we know the real
           // name — covers /d/23, /dog/23 and /dog/wrong-name-23.
           const canonicalPath = dogPagePath(found.dog_name, packNum);
@@ -292,6 +294,17 @@ export default function DogShare() {
     status === 'found'
       ? `${dogName} is one of the first 1,000,000 dogs of DOGYPT. Find your dog's place in the global pack.`
       : "Join the first 1,000,000 dogs of DOGYPT. Find your dog's place in the global pack.";
+
+  // JEDINÝ okamih, kedy stránka psa pripíše odporúčateľa: návštevník klikol
+  // „Pridaj sa". Zapíše sa PACK ČÍSLO (backend `resolve_ref_code` si ho preloží
+  // na majiteľov affiliate účet) a až potom sa ide do flow.
+  // ⚠️ Plná navigácia, nie React Router: `/entry` je vstup do heroglyph flowu a
+  //    doterajšie CTA sem chodilo cez <a href> — zápis do localStorage prebehne
+  //    synchrónne pred odchodom, takže sa nemá čo stratiť.
+  const handleJoin = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (dog?.pack_number) captureDogPageRef(dog.pack_number);
+    void e;
+  };
 
   const flagIso = dog ? countryISO2(dog.country) : null;
   const age = dog ? computeDogAge(dog.birth_date, dog.life_status, dog.death_date) : null;
@@ -365,6 +378,34 @@ export default function DogShare() {
           border-radius: 8px;
           box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,154,63,0.45), 0 0 60px rgba(201,154,63,0.14);
         }
+        /* Pozvánka od majiteľa — Cinzel, teplá zlatá, nad tlačidlom. Je to podpis
+           človeka, preto identita (Cinzel), nie dátový text. */
+        .dogshare-invite {
+          margin: 0;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: clamp(13px, 2.4vw, 15px);
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          text-align: center;
+          color: #F0D08A;
+          text-shadow: 0 2px 18px rgba(201,154,63,0.35);
+        }
+        /* Kosti pre psa — dáta a vysvetlenie, teda Space Grotesk (strop váhy 600). */
+        .dogshare-bones {
+          display: flex; flex-direction: column; align-items: center; gap: 3px;
+          text-align: center; max-width: 390px;
+        }
+        .dogshare-bones-main {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600; font-size: 12.5px; line-height: 1.35;
+          color: rgba(255,246,226,0.92);
+        }
+        .dogshare-bones-note {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 400; font-size: 10.5px; line-height: 1.4;
+          color: rgba(255,246,226,0.52);
+        }
         .dogshare-info-card {
           background-image: url('/images/vision/papyrus-vision.webp');
           background-size: 100% 100%;
@@ -430,12 +471,37 @@ export default function DogShare() {
                 <img
                   src={ogImage}
                   alt={`${dogName} — DOGYPT share card`}
-                  className="dogshare-photo w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_280px))] md:max-w-none"
+                  className="dogshare-photo w-full max-w-[390px] md:w-[min(390px,calc(100dvh_-_380px))] md:max-w-none"
                 />
               )}
-              <a href="/entry" className="btn-gold w-full text-center">
+              {/* ── POZVÁNKA — dogpage je náborová stránka majiteľa (Matej 12.8.2026:
+                  „mal by tam byť CTA 'meno ťa pozýva do dogyptu' = KLIK = flow =
+                  registrácia = úspešný regruting"). Hovorí ju ČLOVEK, nie značka —
+                  preto krstné meno majiteľa; verejný feed `get-grid-dogs` iné ani
+                  nevydáva (`owner_first_name`, plné meno neopúšťa DB). Bez mena sa
+                  veta nezlomí, len stratí podpis. */}
+              <p className="dogshare-invite">
+                {alphaName
+                  ? t('dogPage.invitedBy', { name: alphaName.toUpperCase() })
+                  : t('dogPage.invitedByFallback')}
+              </p>
+
+              <a href="/entry" className="btn-gold w-full text-center" onClick={handleJoin}>
                 {t('dogPage.joinUs')}
               </a>
+
+              {/* ── +20 KOSTÍ PRE PSA (Matej 12.8.) — dôvod kliknúť PRÁVE TU.
+                  BONES sú doslova kosti, takže odmena znie ako podpora psa, nie ako
+                  affiliate provízia. ⚠️ Druhý riadok je povinný, nie ozdoba:
+                  transparentnosť je pilier misie a kosti reálne pristanú na účte
+                  MAJITEĽA (10 BONES = 1 €). Bez tej vety by veta nad ňou klamala.
+                  ⚠️ Nesmie znieť, že návštevník platí navyše — platí to systém. */}
+              <div className="dogshare-bones">
+                <span className="dogshare-bones-main">
+                  {t('dogPage.bonesForDog', { dog: dogName.toUpperCase() })}
+                </span>
+                <span className="dogshare-bones-note">{t('dogPage.bonesNote')}</span>
+              </div>
               {/* Back to WALL — desktop: right under Join Us (mobile copy sits after the papyrus) */}
               <Link
                 to="/"
@@ -449,7 +515,7 @@ export default function DogShare() {
             {/* Right column — papyrus scroll, height = photo + Join Us button */}
             <div className="flex flex-col items-center gap-4 w-full md:w-auto">
               <div
-                className="dogshare-info-card w-full max-w-[360px] md:max-w-none md:w-[min(390px,calc(100dvh_-_280px))] md:h-[calc(min(390px,100dvh_-_280px)_+_76px)] flex flex-col justify-center gap-2 md:gap-1.5"
+                className="dogshare-info-card w-full max-w-[360px] md:max-w-none md:w-[min(390px,calc(100dvh_-_380px))] md:h-[calc(min(390px,100dvh_-_380px)_+_178px)] flex flex-col justify-center gap-2 md:gap-1.5"
                 style={{ aspectRatio: '0.8', padding: '66px 46px' }}
               >
                   {/* Rank pill + name + living-my-best-life pill */}

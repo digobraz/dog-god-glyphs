@@ -50,6 +50,11 @@ export interface Participant {
   avatarUrl?: string;
   packNumber?: number;
   kind: 'me' | 'member';
+  /** `name` je meno PSA, nie človeka — rozhoduje o fonte na povrchu.
+   *  Brand lock: meno psa = Cinzel Decorative, meno človeka = Cinzel.
+   *  Bez tohto príznaku by sa buď psom bral Decorative (dnešný stav = bug),
+   *  alebo by ho dostali aj ľudia bez psa (rovnaká chyba naopak). */
+  isDogName?: boolean;
 }
 
 export interface Conversation {
@@ -228,10 +233,29 @@ interface MsgRow { id: string; conv_id: string; sender_id: string; body: string;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
 
+/**
+ * Odošle „nezaujíma ma výsledok" volanie do Supabase.
+ *
+ * ⚠️ `void db.rpc(...)` POŽIADAVKU NEODOŠLE. PostgrestBuilder je lazy — HTTP
+ * request vzniká až v jeho `.then()`. Bez tohto helpera sa `mark_conv_read`
+ * nikdy nezavolal: badge zhasol lokálne, ale `last_read_at` v DB ostalo staré,
+ * takže po reloade sa prečítaná správa vrátila ako neprečítaná.
+ * (Zmerané 12. 8. 2026: 0 volaní `/rpc/mark_conv_read` v sieti, `last_read_at`
+ * zamrznuté na 7. 8., badge po refreshi znova „1".)
+ *
+ * Chyba sa preglgne zámerne — je to doplnková operácia, používateľ už výsledok
+ * vidí lokálne a pád siete nesmie zhodiť odoslanie správy.
+ */
+function fireAndForget(builder: { then: (ok: () => void, err: () => void) => unknown }): void {
+  builder.then(() => {}, () => {});
+}
+
 /** protistrana DM — meno psa je to, čo človek v packu pozná (D1: účet, pes = zobrazenie) */
 function otherFromRow(row: ConvRow): Participant {
-  const name = row.other_dog?.trim() || row.other_first?.trim() || 'Dogyptian';
+  const dog = row.other_dog?.trim();
+  const name = dog || row.other_first?.trim() || 'Dogyptian';
   return {
+    isDogName: !!dog,
     // cudzí `user_id` appka nedostáva (get_trip_party ani list_my_conversations ho
     // nevydávajú) — na rozlíšenie „ja vs. on" v bubline stačí stabilný kľúč vlákna
     id: `other:${row.conv_id}`,
@@ -304,8 +328,19 @@ async function refreshDMs(): Promise<void> {
   }
 }
 
-/** plné vlákno správ jednej DM konverzácie */
-async function loadDMMessages(convId: string): Promise<void> {
+/**
+ * Plné vlákno správ jednej DM konverzácie.
+ *
+ * ⚠️ `silent` NIE JE optimalizácia, je to zámok proti nekonečnej slučke.
+ * Thread je prihlásený na emitter (`subscribe(load)`) a jeho `load()` volá
+ * `getConversation()`. Keby `getConversation` → `loadDMMessages` na konci
+ * emitoval, emitter by zobudil Thread, ten by znova zavolal `getConversation`
+ * a tak dokola — otvorené vlákno pumpovalo `GET /pack_messages` bez konca
+ * (nameraných ~190 requestov za pár sekúnd, 12. 8. 2026). Volajúci, ktorý si
+ * výsledok aj tak berie návratovou hodnotou, emit nepotrebuje; realtime cesta
+ * (INSERT z druhého zariadenia) áno, tam sa volá bez `silent`.
+ */
+async function loadDMMessages(convId: string, silent = false): Promise<void> {
   const me = await ensureMe();
   const conv = cache.conversations[convId];
   if (!conv || conv.kind !== 'dm') return;
@@ -324,7 +359,7 @@ async function loadDMMessages(convId: string): Promise<void> {
     text: m.body,
     createdAt: m.created_at,
   }));
-  emitChange();
+  if (!silent) emitChange();
 }
 
 // ── realtime: doručenie na druhé zariadenie bez refreshu ──
@@ -423,7 +458,9 @@ export async function getConversation(convId: string): Promise<Conversation | un
   if (!c) return undefined;
   if (c.kind === 'dm') {
     startRealtime();
-    await loadDMMessages(convId);  // Inbox drží len preview, vlákno chce celú históriu
+    // `silent` — výsledok si volajúci berie návratovou hodnotou; emit by cez
+    // Threadov `subscribe(load)` spustil ďalší `getConversation` a tak dokola.
+    await loadDMMessages(convId, true);  // Inbox drží len preview, vlákno chce celú históriu
     c = cache.conversations[convId] ?? c;
   }
   return snapshot(c);
@@ -527,7 +564,7 @@ export async function sendMessage(convId: string, text: string): Promise<Convers
     }
     conv.updatedAt = data.created_at;
     conv.lastReadAt = { ...conv.lastReadAt, [me.id]: data.created_at };
-    void db.rpc('mark_conv_read', { p_conv_id: convId });
+    fireAndForget(db.rpc('mark_conv_read', { p_conv_id: convId }));
     emitChange();
     return snapshot(conv);
   }
@@ -552,7 +589,7 @@ export async function markRead(convId: string): Promise<void> {
   // DM: čas určuje server (`mark_conv_read`), lokálna hodnota je len okamžitá
   // odozva pre badge. Rozladené hodiny v prehliadači by inak vyrobili trvalo
   // neprečítané alebo trvalo prečítané vlákno.
-  if (conv.kind === 'dm') void db.rpc('mark_conv_read', { p_conv_id: convId });
+  if (conv.kind === 'dm') fireAndForget(db.rpc('mark_conv_read', { p_conv_id: convId }));
   else persist();
   emitChange();
 }

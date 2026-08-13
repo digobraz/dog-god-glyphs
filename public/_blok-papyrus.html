@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Psí blok — papyrus (nákres)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Cinzel+Decorative:wght@700;900&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══ NÁKRES, NIE PRODUKČNÝ KÓD ══════════════════════════════════════════════
+   2. kolo (Matej 12.8.):
+    • `#číslo` psa NA KRUHU fotky — tá istá logika ako homepage HeroCard.tsx
+    • pilulky sa presunuli VEDĽA fotky a začínajú pod MENOM, nie pod fotkou
+    • DOG ID sa vracia ako popisok POD ikonkou dogposter
+   Tokeny opísané z packTheme.ts (papyrusový lock 2026-07-26). */
+:root{
+  --card-grad: linear-gradient(160deg, #FBF5E6 0%, #F3E4C4 55%, #EAD6A6 100%);
+  --card-edge:#C99A3F;
+  --card-shadow: 0 14px 44px rgba(0,0,0,0.55), 0 0 0 4px rgba(201,154,63,0.12), inset 0 1px 0 rgba(255,255,255,0.5);
+  --tile-bg: rgba(201,154,63,0.06);
+  --border: rgba(201,154,63,0.45);
+  --ink-strong:#2a1608;
+  --ink-warm:#7a5a2a;
+  --blue:#2E5FD0;
+  --gold-grad: linear-gradient(180deg,#F5C73D 0%,#E69E1A 100%);
+}
+*{box-sizing:border-box}
+body{margin:0;padding:40px 22px 90px;background:#000;color:#F7EFDD;font-family:'Space Grotesk',system-ui,sans-serif}
+.page{max-width:940px;margin:0 auto}
+h1{font-family:'Cinzel',serif;font-weight:700;font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:#E6C87A;margin:0 0 6px}
+.lede{font-size:13px;color:rgba(247,239,221,.6);margin:0 0 30px;line-height:1.6}
+.lede b{color:#E6C87A;font-weight:600}
+.step{margin:0 0 12px;font-family:'Space Grotesk';font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:#C99A3F}
+.note{font-size:12px;color:rgba(247,239,221,.5);margin:10px 0 32px;line-height:1.6}
+.note b{color:#E6C87A;font-weight:600}
+hr.sep{border:0;height:1px;background:linear-gradient(90deg,transparent,rgba(201,154,63,.45),transparent);margin:38px 0}
+
+/* ── PSÍ BLOK ─────────────────────────────────────────────────────────────── */
+/* Tri stĺpce: fotka · (meno+glyf NAD pilulkami) · lišta s posterom.
+   Pilulky sú v STREDNOM stĺpci, preto začínajú pod menom a nie pod fotkou —
+   blok tým stratil celý jeden riadok na výšku (Matej 12.8.: „ušetríme priestor"). */
+.blk{
+  display:flex;align-items:center;gap:20px;
+  text-decoration:none;
+  background:var(--card-grad);
+  border:1.5px solid var(--card-edge);
+  border-radius:16px;
+  box-shadow:var(--card-shadow);
+  padding:20px 22px;
+  margin-bottom:18px;
+}
+.blk-mid{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:12px}
+
+/* fotka + číslo psa. Prstenec 12.8. ZRUŠENÝ — progres sa presunul do modrej pilulky
+   nad posterom, fotka teda ostáva čistá presne ako na homepage. */
+.ringwrap{position:relative;flex:0 0 auto;width:132px;height:132px}
+/* ⚠️ NIE `inset:0` — na <img> sa pri auto šírke `right/bottom` ignoruje a obrázok
+   sa vykreslí v natívnej veľkosti. Musí byť explicitná šírka aj výška. */
+.photo{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  border-radius:50%;object-fit:cover;
+  border:2px solid var(--card-edge);
+  box-shadow:0 0 0 1px rgba(201,154,63,.45), 0 8px 24px rgba(201,154,63,.24);
+}
+
+/* Poradové číslo NA KRUHU — recept 1:1 z HeroCard.tsx (homepage): locknutá pilulka
+   dní + svetlý hairline navyše, lebo leží na fotke. Sadá na spodný okraj prstenca. */
+.num{
+  position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-family:'Cinzel',serif;font-weight:700;font-size:14px;letter-spacing:.02em;
+  line-height:1;white-space:nowrap;padding:5px 10px;border-radius:999px;
+  background:var(--gold-grad);color:#3d1f00;
+  border:1px solid rgba(250,244,236,.55);
+  box-shadow:0 2px 6px rgba(0,0,0,.28);
+}
+
+/* meno + heroglyf */
+.idw{display:flex;align-items:center;gap:20px;min-width:0}
+.name{
+  flex:0 0 auto;white-space:nowrap;
+  font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;
+  font-size:40px;line-height:1.02;color:var(--ink-strong);
+}
+/* Glyf sa SCVRKÁVA (flex:1 1 auto + min-width:0), inak pri pevnej výške drží ~390 px
+   natívnej šírky a pretečie do lišty. */
+.glyph{
+  flex:1 1 auto;min-width:0;
+  width:100%;height:auto;max-height:92px;
+  display:block;object-fit:contain;object-position:right center;
+}
+
+/* pilulky — v strednom stĺpci, teda začínajú pod menom */
+.pills{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:5px 11px;border-radius:999px;
+  background:var(--tile-bg);border:1px solid var(--border);
+  font-family:'Cinzel',serif;font-weight:700;font-size:9px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-strong);
+}
+.pill.days{
+  background:var(--gold-grad);border:none;color:#3d1f00;
+  padding:5px 12px;font-size:12.5px;letter-spacing:.02em;text-transform:none;line-height:1.1;
+  box-shadow:0 6px 16px -6px rgba(201,154,63,.6);
+}
+
+/* ── lišta na pravom kraji: dogposter + popisok DOG ID ───────────────────── */
+.rail{
+  flex:0 0 auto;align-self:stretch;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  padding-left:20px;border-left:1px solid rgba(201,154,63,.32);
+}
+.rail img{width:74px;height:auto;display:block;opacity:.88;
+  transition:transform .2s ease, opacity .2s ease}
+.rail .lbl{
+  font-family:'Cinzel',serif;font-weight:800;font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-strong);white-space:nowrap;
+}
+/* Progres = pilulka NAD posterom (Matej 12.8.). Percento je ÚDAJ, takže Space Grotesk 600
+   (strop načítanej váhy), nie Cinzel. TRI STAVY, farby z brand tokenov:
+     0 %      → červená  T.alertRed  #B25640
+     1–99 %   → modrá    T.partHek   #2E5FD0
+     100 %    → zelená   T.growGreen #3D7A4E
+   Pilulka teda pri dokončení NEZMIZNE (zmena oproti prvému kolu) — zozelenie. */
+.rail .prog{
+  padding:4px 10px;border-radius:999px;white-space:nowrap;
+  background:var(--blue);color:#EAF0FF;
+  font-family:'Space Grotesk',sans-serif;font-weight:600;
+  font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  box-shadow:0 4px 12px rgba(46,95,208,.4);
+  /* Šírka podľa najdlhšieho stavu (COMPLETE), inak by lišta pri každom psovi tancovala. */
+  min-width:78px;text-align:center;
+}
+.rail .prog.is-zero{background:#B25640;color:#FDECE7;box-shadow:0 4px 12px rgba(178,86,64,.4)}
+.rail .prog.is-done{background:#3D7A4E;color:#EAF7ED;box-shadow:0 4px 12px rgba(61,122,78,.4)}
+.blk:hover .rail img{transform:translateX(3px);opacity:1}
+
+/* ── MOBIL — meno NAD glyfom (vetva z locku 8.8.) ────────────────────────── */
+@media (max-width:720px){
+  .blk{padding:15px 13px;gap:13px}
+  .blk-mid{gap:9px}
+  .ringwrap{width:92px;height:92px}
+  .num{font-size:11px;padding:4px 8px;bottom:-3px}
+  .idw{flex-direction:column;align-items:flex-start;gap:5px}
+  .name{font-size:24px}
+  .glyph{max-height:46px;object-position:left center}
+  .pill{font-size:8.5px;padding:4px 8px;letter-spacing:.06em}
+  .pill.days{font-size:11px;padding:4px 10px}
+  .rail{padding-left:12px;gap:5px}
+  .rail img{width:44px}
+  .rail .lbl{font-size:8px;letter-spacing:.1em}
+  .rail .prog{font-size:8px;padding:3px 7px;letter-spacing:.04em}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Psí blok — papyrus</h1>
+  <p class="lede">
+    Nákres, nie appka. Progres nesie pilulka nad posterom: <b style="color:#E39684">0% červená</b> ·
+    <b style="color:#7FA0EE">holé percento modrou</b> · <b style="color:#8FCBA1">COMPLETE zelenou</b>.
+    Menovateľ je <b>34</b> = <b>PROGRESS_STEPS.length</b> — to isté číslo, aké vidíš na DOG ID
+    stránke, a rastie samo.
+  </p>
+
+  <div id="out"></div>
+
+</div>
+
+<script>
+var PHOTO_A = 'dogs/674217085_2017938565600603_1628924000932422561_n.jpg';
+var PHOTO_B = 'dogs/676350379_1291545516408636_2106587402269937449_n.jpg';
+var GLYPH   = '_certassets/heroglyf-hektor.png';
+var POSTER  = 'icons/pack/dogposter.svg';
+
+// name, num, photo, filled, total, pills
+var BLOCKS = [
+  { step:'1 · Prázdny profil — 0%', photo:PHOTO_A, name:'HEKTHOR', num:1, filled:0, total:34,
+    pills:[['days','3 731 dní'],['','🇸🇰 SVK']],
+    note:'Nula je <b style="color:#E39684">červená</b> — pes bez vyplneného DOG ID na seba upozorní z celého zoznamu. Fotka je čistá, žiadny prstenec.' },
+
+  { step:'2 · Rozpracované — 50%', photo:PHOTO_A, name:'HEKTHOR', num:1, filled:17, total:34,
+    pills:[['days','3 731 dní'],['','🇸🇰 SVK'],['','Strážca']],
+    note:'Rozpracované = <b style="color:#7FA0EE">modrá</b>, holé percento. Pilulka má pevnú šírku podľa najdlhšieho stavu, takže lišta nepreskakuje od psa k psovi.' },
+
+  { step:'3 · Takmer hotové — 91%', photo:PHOTO_A, name:'HEKTHOR', num:1, filled:31, total:34,
+    pills:[['days','3 731 dní'],['','🇸🇰 SVK'],['','Strážca'],['','Voda']],
+    note:'31 z 34. Menovateľ je <b>PROGRESS_STEPS.length</b> — rastie sám, keď do kvízu pribudne pole, takže percento znamená vždy to isté.' },
+
+  { step:'4 · Hotovo — COMPLETE', photo:PHOTO_A, name:'HEKTHOR', num:1, filled:34, total:34,
+    pills:[['days','3 731 dní'],['','🇸🇰 SVK'],['','Strážca'],['','Voda']],
+    note:'Jediný stav, kde je slovo namiesto čísla. <b style="color:#8FCBA1">COMPLETE</b> nie je nový pojem — kľúč <b>pack.hub.passComplete</b> už dnes nesie „DOG ID complete". Zlatá <b>#1</b> ostáva; tá nie je progres, tá je identita.' },
+
+  { step:'5 · Dvaja psi pod sebou', photo:PHOTO_A, name:'HEKTHOR', num:1, filled:34, total:34,
+    pills:[['days','3 731 dní'],['','🇸🇰 SVK'],['','Strážca']], note:null },
+
+  { step:null, photo:PHOTO_B, name:'BUBKO', num:39, filled:8, total:34,
+    pills:[['days','612 dní'],['','🇸🇰 SVK']],
+    note:'Zelený hotový, modrý rozrobený, červený nezačatý. <b>Farba roztriedi zoznam skôr, než človek prečíta čo i len jedno meno.</b>' },
+];
+
+var out = document.getElementById('out');
+
+BLOCKS.forEach(function (b, i) {
+  var html = '';
+  if (b.step) html += '<div class="step">' + b.step + '</div>';
+
+  var pct = Math.round(b.filled / b.total * 100);
+  // Pilulka je VZDY pritomna, meni sa farba aj znenie:
+  //   0 %    cervena  T.alertRed  #B25640  -> "0%"
+  //   1-99 % modra    T.partHek   #2E5FD0  -> "50%"
+  //   100 %  zelena   T.growGreen #3D7A4E  -> "COMPLETE"
+  // Text je EN a JEDNOSLOVNY pri dokonceni; ostatne stavy su holé cislo, aby lista
+  // nemenila sirku od psa k psovi. "COMPLETE" nie je novy pojem — kluc
+  // `pack.hub.passComplete` uz dnes nesie fallback 'DOG ID complete'.
+  var cls = pct >= 100 ? ' is-done' : (pct <= 0 ? ' is-zero' : '');
+  var txt = pct >= 100 ? 'Complete' : pct + '%';
+  var prog = '<span class="prog' + cls + '">' + txt + '</span>';
+
+  var pills = b.pills.map(function (p) {
+    return '<span class="pill' + (p[0] ? ' ' + p[0] : '') + '">' + p[1] + '</span>';
+  }).join('');
+
+  html +=
+    '<a class="blk" href="#">' +
+      '<div class="ringwrap">' +
+        '<img class="photo" src="' + b.photo + '" alt="">' +
+        '<span class="num">#' + b.num + '</span>' +
+      '</div>' +
+      '<div class="blk-mid">' +
+        '<div class="idw">' +
+          '<span class="name">' + b.name + '</span>' +
+          '<img class="glyph" src="' + GLYPH + '" alt="">' +
+        '</div>' +
+        '<div class="pills">' + pills + '</div>' +
+      '</div>' +
+      '<div class="rail">' + prog +
+        '<img src="' + POSTER + '" alt=""><span class="lbl">DOG ID</span>' +
+      '</div>' +
+    '</a>';
+
+  if (b.note) html += '<p class="note">' + b.note + '</p>';
+  if (b.note && i < BLOCKS.length - 1) html += '<hr class="sep">';
+  out.insertAdjacentHTML('beforeend', html);
+});
+</script>
+</body>
+</html>

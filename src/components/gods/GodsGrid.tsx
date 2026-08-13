@@ -69,6 +69,17 @@ const REVEAL_ROW = 1;
 
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
 
+const WALL_THEME_KEY = 'dogypt.wall.theme';
+// Poradie = poradie klikania v prepínači. 'dark' = dnešný stav (default),
+// 'darkcalm' = to isté bez žiar, 'light' = papyrus.
+const WALL_THEMES = ['dark', 'darkcalm', 'light'] as const;
+type WallTheme = typeof WALL_THEMES[number];
+const WALL_THEME_LABEL: Record<WallTheme, string> = {
+  dark: 'GOLD',
+  darkcalm: 'CALM',
+  light: 'PAPYRUS',
+};
+
 const FLAG_NAMES: Record<string, string> = {
   sk: 'Slovakia',
   cz: 'Czechia',
@@ -211,6 +222,17 @@ export function GodsGrid() {
   const [dogsReady, setDogsReady] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterValue, setFilterValue] = useState('');
+  // WALL témy — experiment 2026-08-09 k feedbacku „vyzerá to ako podvod".
+  // Tri polohy zámerne: hypotéza je, že dojem nerobí ČIERNA, ale čierna + zlatá
+  // + pulzujúca žiara. 'darkcalm' = dnešná tmavá s vypnutými žiarami = kontrolná
+  // vzorka, ktorá tú hypotézu overí bez prekopania homepage.
+  // Voľba prežije reload, default ostáva dnešná tmavá.
+  const [theme, setTheme] = useState<WallTheme>(() => {
+    try {
+      const saved = localStorage.getItem(WALL_THEME_KEY);
+      return WALL_THEMES.includes(saved as WallTheme) ? (saved as WallTheme) : 'dark';
+    } catch { return 'dark'; }
+  });
   // Štatistika krajín pre filter popup: [{ iso2, iso3, count }], zoradené od najviac.
   const [countryStats, setCountryStats] = useState<{ iso2: string; iso3: string; count: number }[]>([]);
   const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
@@ -2160,9 +2182,201 @@ export function GodsGrid() {
                    drop-shadow(0 0 70px rgba(196,155,66,0.4));
                  transform: scale(1); }
         }
+
+        /* ════════════════════════════════════════════════════════════════
+           TMAVÁ BEZ ŽIARY ('darkcalm') — kontrolná vzorka k feedbacku
+           „vyzerá to ako podvod" (Matej 2026-08-09: povedal PODVOD, nie tmavé).
+           Hypotéza: dojem crypto/NFT mintu nerobí čierne pozadie, ale
+           čierna + zlatá + PULZUJÚCA ŽIARA + veľký číselník. Tu ostáva
+           všetko ako dnes, zhasnú sa len vždy-zapnuté žiary a pulzy.
+           Hover žiara heroglyfov ostáva — tá nie je súčasťou prvého dojmu.
+           ════════════════════════════════════════════════════════════════ */
+        .theme-darkcalm .join-btn {
+          box-shadow:
+            0 8px 24px rgba(0,0,0,0.55),
+            inset 0 1px 0 rgba(255,255,255,0.35);
+          text-shadow: none;
+          animation: none;
+        }
+        .theme-darkcalm .join-btn:hover {
+          box-shadow:
+            0 10px 30px rgba(0,0,0,0.62),
+            inset 0 1px 0 rgba(255,255,255,0.45);
+        }
+        /* Hektor si nechá zlatý rám (jediný signál že je founder), stratí len žiaru a pulz */
+        .theme-darkcalm .hektor-card {
+          box-shadow: 0 0 0 2px rgba(196,155,66,0.85);
+          animation: none;
+        }
+        .theme-darkcalm .hektor-card:not(.is-open):hover {
+          box-shadow: 0 0 0 2px rgba(244,199,90,1);
+        }
+        .theme-darkcalm .hero-logo-icon { filter: none; }
+        .theme-darkcalm .hero-tagline .gold {
+          animation: none;
+          background-position: 50% 0;
+          filter: none;
+        }
+        .theme-darkcalm .hero-count {
+          box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+
+        /* ════════════════════════════════════════════════════════════════
+           SVETLÁ WALL — experiment 2026-08-09
+           Rovnaká tabuľa glyfov, len papyrusový podklad, čierny atrament
+           a BLEDÁ vignette (okraje sa strácajú do svetla, nie do tmy).
+           Karty psov sú fotky → tie ostávajú, mení sa len „chrome".
+           ════════════════════════════════════════════════════════════════ */
+        .gods-root.theme-light { background-color: #F5EBD5; }
+        .gods-root.theme-light::before {
+          background-image: url('/images/bg-light.webp');
+          filter: blur(4px);
+          /* blur zosvetlí okraje o polomer rozmazania → mierne pretiahnuť za viewport */
+          inset: -8px;
+        }
+        /* Papyrusový odtieň cez celé pozadie — zjednotí glyfy do jednej teplej plochy.
+           z-index 0 = nad ::before (kreslí sa neskôr), pod #gods-canvas (z-index 1). */
+        .gods-root.theme-light::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          /* Multiply tmavne úmerne sile odtieňa → v strede sýty papyrus, na okrajoch
+             takmer čistý, aby bledá vignette ostala bledá a nie blatistá. */
+          background:
+            radial-gradient(ellipse at 52% 58%, rgba(223,196,144,0.62) 0%, rgba(238,221,186,0.34) 52%, rgba(255,252,244,0.10) 100%),
+            linear-gradient(135deg, rgba(250,243,225,0.35) 0%, rgba(244,231,199,0.40) 50%, rgba(236,218,175,0.45) 100%);
+          mix-blend-mode: multiply;
+        }
+
+        /* Hero — bledý opar namiesto čierneho */
+        .theme-light .center-hero::before {
+          background: radial-gradient(ellipse at center, rgba(253,248,236,0.94) 20%, transparent 68%);
+        }
+        .theme-light .center-hero::after {
+          border-color: rgba(140,96,20,0.9);
+          box-shadow: 0 0 24px rgba(140,96,20,0.30);
+        }
+        /* Logo čierne namiesto zlatého (rovnaký súbor, len odfarbený) */
+        .theme-light .hero-logo-icon {
+          filter: brightness(0) drop-shadow(0 2px 10px rgba(80,55,15,0.22));
+        }
+        .theme-light .hero-tagline { color: rgba(35,22,8,0.62); }
+        /* ⚠️ background shorthand resetuje background-clip → musí sa zopakovať,
+           inak sa z gradientového textu stane plná zlatá plocha. */
+        .theme-light .hero-tagline .gold {
+          background: linear-gradient(100deg, #6E4A12 0%, #A3782B 30%, #D8A93F 50%, #A3782B 70%, #6E4A12 100%);
+          background-size: 200% 100%;
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: none;
+        }
+        /* ── Tmavý liquid glass — horné menu, spodná lišta, pilulka pod CTA ──
+           Papyrusové pilulky na papyrusovom pozadí zanikali; tmavé sklo ich
+           odlepí od podkladu a zároveň zopakuje jazyk fotiek psov. */
+        .theme-light .main-nav,
+        .theme-light .nav-login,
+        .theme-light .theme-toggle,
+        .theme-light .filter-btn,
+        .theme-light .center-btn-mobile,
+        .theme-light .lang-btn-mobile,
+        .theme-light .hero-count {
+          background: linear-gradient(150deg, rgba(28,20,10,0.62) 0%, rgba(14,10,5,0.72) 100%);
+          border: 1px solid rgba(255,240,210,0.22);
+          -webkit-backdrop-filter: blur(20px) saturate(150%);
+          backdrop-filter: blur(20px) saturate(150%);
+          box-shadow:
+            0 8px 28px rgba(30,20,6,0.30),
+            inset 0 1px 0 rgba(255,246,225,0.26);
+          color: rgba(250,244,236,0.92);
+        }
+        .theme-light .main-nav a,
+        .theme-light .main-nav button,
+        .theme-light .main-nav .lang-trigger { color: rgba(250,244,236,0.94); }
+        .theme-light .main-nav .lang-trigger__chev { color: rgba(250,244,236,0.7); }
+        .theme-light .main-nav-sep { background: rgba(255,240,210,0.28); }
+        /* ikony v kruhových tlačidlách boli sčernené pre papyrus → na skle musia zosvetlieť */
+        .theme-light .nav-login-icon { filter: brightness(0) invert(1); opacity: 0.9; }
+        .theme-light .filter-btn,
+        .theme-light .center-btn-mobile,
+        .theme-light .theme-toggle { color: rgba(250,244,236,0.88); }
+        .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger { color: rgba(250,244,236,0.92); }
+        .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger__chev { color: rgba(250,244,236,0.7); }
+        .theme-light .filter-btn.active { border-color: rgba(255,240,210,0.5); }
+
+        .theme-light .hero-count {
+          text-shadow: none;
+        }
+        .theme-light .hero-count-num {
+          background: linear-gradient(180deg, #F4C75A 0%, #D8821F 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .theme-light .hero-count-sep { color: rgba(250,244,236,0.55); }
+        .theme-light .hero-count-total { color: rgba(250,244,236,0.72); }
+        /* CTA drží .btn-gold gradient (LOCKED) — na papyruse len stlmíme žiaru */
+        .theme-light .join-btn {
+          box-shadow:
+            0 6px 18px rgba(140,96,20,0.30),
+            inset 0 1px 0 rgba(255,255,255,0.45);
+          animation: none;
+        }
+        .theme-light .join-btn:hover {
+          box-shadow:
+            0 8px 24px rgba(140,96,20,0.42),
+            inset 0 1px 0 rgba(255,255,255,0.55);
+        }
+        /* Info overlay — papyrus namiesto čiernej */
+        .theme-light .info-overlay { background: rgba(250,243,225,0.96); }
+        .theme-light .info-content h2 { color: #2a1608; }
+        .theme-light .info-content p { color: rgba(42,22,8,0.68); }
+        .theme-light .info-close { background: rgba(42,22,8,0.10); color: #2a1608; }
+        .theme-light .info-close:hover { background: rgba(42,22,8,0.20); }
+
+        /* ── Prepínač témy — pilulka vedľa LOGIN. Tri polohy potrebujú NÁZOV,
+              samotná ikona by nepovedala, v ktorej z dvoch tmavých práve si. ── */
+        .theme-toggle {
+          position: fixed;
+          top: 12px;
+          right: 64px;
+          z-index: 50;
+          height: 40px;
+          padding: 0 14px 0 11px;
+          gap: 7px;
+          border-radius: 999px;
+          display: flex; align-items: center; justify-content: center;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.62rem;
+          letter-spacing: 0.14em;
+          white-space: nowrap;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.45);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+          color: rgba(0,0,0,0.72);
+          cursor: pointer;
+          transition: opacity 150ms;
+        }
+        .theme-toggle:hover { opacity: 0.75; }
+        .theme-toggle svg { flex-shrink: 0; }
+        /* Na mobile by prepínač vedľa LOGIN prekryl ABOUT v nav pilulke
+           (pilulka končí ~290px, tlačidlo začínalo na 290px) → ide dole vľavo,
+           kde je popri vycentrovanej spodnej lište voľno. */
+        @media (max-width: 720px) {
+          .theme-toggle {
+            top: auto; right: auto;
+            bottom: 16px; left: 16px;
+            height: 36px;
+            padding: 0 12px 0 9px;
+            font-size: 0.56rem;
+          }
+        }
       `}</style>
 
-      <div className="gods-root">
+      <div className={`gods-root theme-${theme}`}>
         <div className="nav-left">
           <nav className="main-nav">
             <a href="/vision">{t('nav.vision')}</a>
@@ -2175,6 +2389,40 @@ export function GodsGrid() {
             <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
+        {/* Prepínač WALL tém — experiment, vedľa LOGIN. Klik = ďalšia z WALL_THEMES. */}
+        <button
+          className="theme-toggle"
+          onClick={() => {
+            const next = WALL_THEMES[(WALL_THEMES.indexOf(theme) + 1) % WALL_THEMES.length];
+            setTheme(next);
+            try { localStorage.setItem(WALL_THEME_KEY, next); } catch { /* private mode */ }
+          }}
+          aria-label={`Wall style: ${WALL_THEME_LABEL[theme]} — click to switch`}
+          title={`Wall style: ${WALL_THEME_LABEL[theme]}`}
+        >
+          {theme === 'dark' && (
+            /* iskra = dnešná tmavá so žiarami */
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M12 3.2l1.9 4.9 4.9 1.9-4.9 1.9L12 16.8l-1.9-4.9L5.2 10l4.9-1.9z" />
+              <path d="M18.6 16.4l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
+            </svg>
+          )}
+          {theme === 'darkcalm' && (
+            /* mesiac = tmavá bez žiar */
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z" />
+            </svg>
+          )}
+          {theme === 'light' && (
+            /* slnko = papyrus */
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
+              <circle cx="12" cy="12" r="4.2" />
+              <path d="M12 2.4v2.2M12 19.4v2.2M2.4 12h2.2M19.4 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6" />
+            </svg>
+          )}
+          {WALL_THEME_LABEL[theme]}
+        </button>
+
         {/* LOGIN — round house-with-heart (home = entry/belonging) icon button, top-right corner */}
         <a href="/login" className="nav-login" aria-label={t('nav.login')}>
           <img src="/icons/pack/house-heart.svg" alt="" className="nav-login-icon" draggable="false" />
