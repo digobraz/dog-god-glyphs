@@ -1,20 +1,47 @@
 import { useEffect, useState } from 'react';
-import { Copy, Check, Sparkles, X, Info } from 'lucide-react';
+import { Check } from 'lucide-react';
+// `Check` ostáva lucide — systémové potvrdenie, nie brandový prvok.
+import { HandClipboard, HandStar } from './HandIcons';
 import { BrandIcon } from './BrandIcon';
-import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import hekthorImg from '@/assets/hekthor.png';
-import dogyptLogoGold from '@/assets/dogypt-logo-gold.png';
 import { useT } from '@/i18n/LanguageContext';
-import { TRANSPARENCY_SPLIT } from '@/lib/transparency';
 import { track } from '@/lib/analytics';
+import { shareDog, downloadCard } from '@/lib/useShareCard';
+import { dogPagePath } from '@/lib/dogSlug';
+import { FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 
 const APP_ORIGIN = 'https://dogypt.com';
 
-// Heroglyph price — €11 for launch (Europe first). Switch back to $ for the US:
-// see the price map in the session notes (create-checkout currency + display strings).
-const PRICE = '€11';
+// ─────────────────────────────────────────────────────────────────────────────
+// ROZŠÍR SVORKU — posledný blok homepage `/pack`. Od 2026-08-12 je to JEDEN gradientový
+// blok o dvoch poloviciach (Matej: „rozdel tento gradient blok na 2 časti… týmto krokom
+// zlúčime blok 7-8 do jedného"):
+//
+//   ĽAVÁ  = share karta psa + zdieľanie (native / FB / WhatsApp / kópia / stiahnutie)
+//           + odkaz na WALL. Toto je celý obsah bývalej sekcie `PackShareCard`.
+//   PRAVÁ = AFFILIATE — RÝCHLY STAV: BONES, dve úrovne línie, čistý odkaz na psa
+//           a preklik do profilu. Nič, čo treba čítať — homepage informuje a zdieľa.
+//
+// ČO ODIŠLO A PREČO (nemazať späť bez Mateja):
+//   · FOTKA HEKTHORA nad nadpisom → Matej: „Zmaž foto hektora". Miesto zabrala share
+//     karta vľavo, ktorá ukazuje TVOJHO psa — silnejší dôvod zdieľať než cudzí pes.
+//   · Zadná strana karty „(?) TRANSPARENCY" (celoplošný flip) → rozpad €11 odišiel
+//     CELÝ do `TransparentStats` v bloku nad týmto (Matej 12.8.: „ten rozpad 11 eur sa
+//     hodí skôr do bloku nad týmto"). Pás 11 dielov aj poznámky (`noteKey`) tam žijú
+//     pri POKLADNICI, teda pri číslach, ktoré ten pomer napĺňajú. Sem sa nevracia —
+//     boli by to dva rozpady tej istej jedenástky na jednej stránke.
+//   · PILULKA „(i) TVOJA LÍNIA" + jej explainer levelov → `/pack/profile#network`
+//     (Matej 12.8.: „na homepage bude len rýchla info o stave a možnosti zdielať").
+//     Vysvetlenie stojí pri dátach, ktoré vysvetľuje; dve miesta = dve pravdy.
+//   · `PackShareCard.tsx` sa NEMAZAL — parkuje ako `PackTree`/`DailyPrayers`; keby sa
+//     zdieľanie niekedy vrátilo ako samostatná sekcia, komponent je pripravený.
+//
+// ⚠️ `Pack.tsx` už `PackShareCard` NEMOUNTUJE. Keby sa vrátil, zdieľanie by bolo na
+//    homepage dvakrát pod sebou.
+// ⚠️ JEDNA hranica mobil/desktop = 721 px, rovnako ako `Gateways`/`TripSpotlight`.
+// ─────────────────────────────────────────────────────────────────────────────
 
 interface Affiliate {
   code: string;
@@ -25,14 +52,77 @@ interface Affiliate {
   referral_count_l2?: number;
 }
 
-export function FounderInvite() {
+/** Kotva bloku „ŠÍR TO ĎALEJ" — z popupu BONES v `HeroCard` sa naň skroluje.
+ *  JEDEN zdroj pravdy: id patrí tomuto bloku, nie stránke, ktorá ho mountuje. */
+export const INVITE_ANCHOR_ID = 'pack-invite';
+
+interface FounderInviteProps {
+  /** Primárny pes majiteľa — jeho share karta stojí v ľavej polovici. */
+  dogName: string | null;
+  packNumber: number | null;
+  /** `null` = karta sa ešte negeneruje (starší pes bez backfillu) → miesto tlačidiel hláška. */
+  shareCardUrl: string | null;
+}
+
+// ⚠️ Template literal — spätný apostrof v komentári vnútri zhodí build a tsc to nechytí.
+const CSS = `
+.fi-grid{ display:grid; grid-template-columns:1fr; gap:22px; }
+.fi-right{ padding-top:22px; border-top:1px solid rgba(245,199,61,0.22); }
+@media (min-width:721px){
+  .fi-grid{ grid-template-columns:1fr 1fr; gap:28px; }
+  .fi-right{ padding-top:0; border-top:0; padding-left:28px; border-left:1px solid rgba(245,199,61,0.22); }
+  /* Obsah pravej polovice sa centruje ZVISLE voči karte psa vľavo (Matej 13.8.:
+     „obsah z pravej strany gradient bloku centrovať"). Karta psa je vyššia než stĺpec
+     s BONES, takže bez tohto visel obsah pri hornej hrane a pod ním ostávala diera.
+     Vodorovné centrovanie rieši utility trieda items-center v JSX, toto je druhá os.
+     Platí LEN v dvojstĺpcovom režime — pod 721 px sú bloky pod sebou a centrovať
+     nie je voči čomu. */
+  .fi-right{ justify-content:center; }
+}
+.fi-h{
+  font-family:${FONT_TITLE}; font-weight:700; font-size:clamp(16px,3.2vw,19px); line-height:1.25;
+  letter-spacing:0.06em; text-transform:uppercase; color:hsl(45 95% 92%); margin:0;
+}
+/* Rad tlačidiel = CELÁ šírka karty v ROVNAKÝCH dieloch. Nezalamuje sa ani na mobile:
+   tri krátke slová sa do 300 px zmestia a zalomený rad by vyzeral ako tri rôzne akcie. */
+.fi-row{ display:flex; gap:8px; width:100%; }
+.fi-btn{
+  flex:1 1 0; min-width:0;
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:12px 6px; border-radius:8px; text-decoration:none; cursor:pointer;
+  font-family:${FONT_TITLE}; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase;
+  white-space:nowrap;
+  transition:background .18s ease, border-color .18s ease;
+}
+/* .btn-gold (brand manuál v3.2 — LOCKED): gradient, radius 8, papyrusový okraj. */
+.fi-btn-gold{
+  background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
+  border:1px solid rgba(250,244,236,0.30); color:#000; font-weight:700;
+  box-shadow:0 0 28px rgba(230,158,26,0.34), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.fi-btn-ghost{
+  background:transparent; border:1px solid rgba(245,199,61,0.45);
+  color:hsl(45 95% 90%); font-weight:700;
+}
+.fi-btn-ghost:hover{ background:rgba(245,199,61,0.14); border-color:hsl(45 80% 60%); }
+/* Pilulka „ZOBRAZIŤ SIEŤ" — jediná akcia pod tromi číslami; vedie do profilu. */
+/* Pilulka = primitív .pk-pill v tmavej variante (packTheme.ts). Tu ostal len font —
+   okraj, radius aj hover má spoločné s pilulkami na papyruse, aby homepage nemala dve
+   rôzne pilulky vedľa seba. */
+.fi-pill{
+  font-family:${FONT_UI}; font-size:10.5px; font-weight:500;
+  letter-spacing:0.08em; text-transform:uppercase; text-decoration:none;
+}
+`;
+
+export function FounderInvite({ dogName, packNumber, shareCardUrl }: FounderInviteProps) {
   const t = useT();
   const [aff, setAff] = useState<Affiliate | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  const [showLevels, setShowLevels] = useState(false);
-  const [openTile, setOpenTile] = useState<number | null>(null);
+  const [busy, setBusy] = useState<'share' | 'download' | null>(null);
+
+  const name = dogName || 'Dogyptian';
 
   useEffect(() => {
     let mounted = true;
@@ -52,7 +142,15 @@ export function FounderInvite() {
     };
   }, []);
 
-  const link = aff ? `${APP_ORIGIN}/?ref=${aff.code}` : '';
+  // ⚠️ ČISTÝ ODKAZ = STRÁNKA PSA, nie `?ref=<kód>` (dogpage kánon, Matej 12.8.2026:
+  // „dogpage by bola fajn referal stránka"). Každý člen má psa, takže holý affiliate
+  // odkaz nemal komu slúžiť — a stránka s fotkou, menom a pozvánkou presvedčí viac
+  // než kód v URL. Affiliate kód NEZANIKOL: ostáva identitou účtu, na ktorý sa
+  // pripisujú BONES, a staré rozposlané `?ref=` odkazy fungujú ďalej.
+  // ⚠️ Atribúcia NEVZNIKÁ otvorením stránky — až keď návštevník klikne na CTA
+  // „Pridaj sa" (Matej 12.8.: „ľudia si len čítajú odkazy majiteľov"). Vtedy sa
+  // uloží pack číslo a backend (`resolve_ref_code`) ho preloží na majiteľa.
+  const link = packNumber ? `${APP_ORIGIN}${dogPagePath(dogName, packNumber)}` : '';
 
   // Two-level network counts. referral_count = direct (Level 1) until the backend
   // splits levels; Level 2 (their brings) stays 0 until the network map ships.
@@ -72,43 +170,70 @@ export function FounderInvite() {
     }
   };
 
-  const handleShare = async () => {
-    if (!link) return;
-    const nativeShare = typeof navigator.share === 'function';
-    track('share_clicked', { channel: nativeShare ? 'native' : 'copy_fallback' });
-    const shareData = {
-      title: 'DOGYPT',
-      text: t('pack.invite.shareNativeText'),
-      url: link,
-    };
-    // Native share sheet on mobile (Instagram, WhatsApp, Facebook, Messages…);
-    // desktops without the API fall back to copy.
-    if (nativeShare) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch {
-        /* user cancelled — no-op */
-      }
+  // ── Zdieľanie SHARE KARTY psa (prebraté z `PackShareCard` bez zmeny logiky) ──
+  // Zdieľa sa LINK na psa, ktorého OG obrázok je share karta — príjemca tak pristane
+  // na stránke, nie na holom súbore s obrázkom.
+  const handleCardShare = async () => {
+    if (!shareCardUrl || !packNumber || busy) return;
+    setBusy('share');
+    try {
+      const shareText = t('share.dogVoice', { dog: name.toUpperCase() });
+      const result = await shareDog({
+        pack: packNumber,
+        dogName: name,
+        imageUrl: shareCardUrl,
+        channel: 'native',
+        shareText,
+      });
+      track('share_clicked', { channel: result, type: 'sharecard', location: 'pack' });
+      if (result === 'copied') toast(t('sharecard.linkCopied'));
+    } catch (err) {
+      // NIE `sharecard.saved` — to je hláška úspechu. Zlyhané zdieľanie hlásilo „Karta
+      // uložená" a chybu dávalo len do popisku pod ňou (Matej 2026-08-12).
+      toast(t('sharecard.failed'), { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(null);
     }
-    handleCopy();
   };
+
+  const handleCardDownload = async () => {
+    if (!shareCardUrl || busy) return;
+    setBusy('download');
+    try {
+      await downloadCard({ imageUrl: shareCardUrl, dogName: name });
+      track('share_clicked', { channel: 'download', type: 'sharecard', location: 'pack' });
+      toast(t('sharecard.saved'));
+    } catch (err) {
+      toast(t('sharecard.failed'), { description: err instanceof Error ? err.message : undefined });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // WALL deep-link — `/?focus=N` zaostrí mriežku na psa #N (obsluhuje `GodsGrid.tsx`).
+  // Bez čísla psa vedie odkaz na WALL bez zaostrenia, nie do prázdna.
+  const wallHref = packNumber ? `/?focus=${packNumber}` : '/';
 
   return (
     <section
-      className="pack-card-hover w-full h-full"
+      id={INVITE_ANCHOR_ID}
+      className="pack-card-hover w-full"
       style={{
+        scrollMarginTop: 24,
         background: 'var(--brand-gradient)',
-        border: '1px solid hsl(45 80% 60% / 0.22)',
-        borderRadius: 24,
+        // Hrúbka okraja = 1.5px ako každý iný blok homepage (Matej 12.8.: „hrúbky okrajov
+        // nesedia"). Karta ostáva TMAVÁ — to je jeho rozhodnutie z toho istého dňa.
+        border: '1.5px solid rgba(201,154,63,0.34)',
+        borderRadius: 16,
         padding: '28px 24px',
         boxShadow: '0 24px 55px -28px rgba(31, 26, 14, 0.45)',
         position: 'relative',
         overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
       }}
     >
+      <style>{PILL_CSS}</style>
+      <style>{CSS}</style>
+
       {/* soft glow top-right */}
       <div
         aria-hidden
@@ -120,595 +245,220 @@ export function FounderInvite() {
         }}
       />
 
-      {/* (i) — ako rastie tvoja línia (levely) · ľavý horný roh */}
-      <button
-        type="button"
-        onClick={() => {
-          setShowLevels((p) => !p);
-          setShowInfo(false);
-          setOpenTile(null);
-        }}
-        aria-label={showLevels ? t('pack.invite.close') : t('pack.invite.ariaHowLineWorks')}
-        className="absolute top-3 left-3 z-30 flex items-center justify-center"
-        style={{ width: 40, height: 40 }}
-      >
-        <span
-          className="flex items-center justify-center transition-colors"
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            border: '1.5px solid rgba(245,199,61,0.55)',
-            color: 'hsl(45 95% 88%)',
-          }}
-        >
-          {showLevels ? <X className="h-4 w-4" /> : <Info className="h-4 w-4" />}
-        </span>
-      </button>
+      <div className="fi-grid relative">
+        {/* ── ĽAVÁ POLOVICA — share karta psa + zdieľanie + WALL ──────────────── */}
+        <div className="flex flex-col items-center text-center gap-4">
+          <h3 className="fi-h">{t('sharecard.shareTitle', { name })}</h3>
 
-      {/* (?) — DOGYPT transparency model (same pattern as the heroglyph flow) */}
-      <button
-        type="button"
-        onClick={() => {
-          setShowInfo((p) => !p);
-          setShowLevels(false);
-          setOpenTile(null);
-        }}
-        aria-label={showInfo ? t('pack.invite.close') : t('pack.invite.ariaWhereMoneyGoes')}
-        className="absolute top-3 right-3 z-30 flex items-center justify-center"
-        style={{ width: 40, height: 40 }}
-      >
-        <span
-          className="flex items-center justify-center transition-colors"
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: '50%',
-            border: '1.5px solid rgba(245,199,61,0.55)',
-            color: 'hsl(45 95% 88%)',
-          }}
-        >
-          {showInfo ? <X className="h-4 w-4" /> : <BrandIcon name="question" size={16} tint="gold" />}
-        </span>
-      </button>
-
-      <div className="relative flex flex-col items-center text-center gap-4 h-full justify-center">
-        {/* Hekthor with his heroglyph — same asset as the flow */}
-        <div
-          className="shrink-0"
-          style={{
-            width: 116,
-            height: 116,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <img
-            src={hekthorImg}
-            alt={t('pack.invite.hekthorAlt')}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
-              filter: 'drop-shadow(0 10px 24px rgba(0,0,0,0.45))',
-            }}
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.visibility = 'hidden';
-            }}
-          />
-        </div>
-
-        <div className="text-center">
-          <h3
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 'clamp(18px, 3.6vw, 22px)',
-              fontWeight: 700,
-              lineHeight: 1.25,
-              color: 'hsl(45 95% 92%)',
-              marginBottom: 8,
-            }}
-          >
-            {t('pack.invite.heading')}
-          </h3>
-          <p
-            style={{
-              fontFamily: "'Space Grotesk', sans-serif",
-              fontSize: 13,
-              lineHeight: 1.55,
-              color: 'hsl(45 40% 90% / 0.9)',
-              marginBottom: 4,
-            }}
-          >
-            {t('pack.invite.bodyPart1')}{' '}
-            <strong style={{ color: 'hsl(45 95% 88%)' }}>BONES</strong>
-            {t('pack.invite.bodyPart2')}
-          </p>
-        </div>
-
-        {/* Network stats — Points · Level 1 · Level 2 (your whole tree) */}
-        <div className="grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 340 }}>
-          <StatTile
-            value={loading ? '—' : (aff?.points ?? 0).toLocaleString('en-US')}
-            label="BONES"
-            highlight
-          />
-          <StatTile value={loading ? '—' : String(level1)} label={t('pack.invite.statLevel1')} sub={t('pack.invite.statLevel1Sub')} />
-          <StatTile value={loading ? '—' : String(level2)} label={t('pack.invite.statLevel2')} sub={t('pack.invite.statLevel2Sub')} />
-        </div>
-
-        {/* View network — prepared hook for the future people+dogs map (not yet live) */}
-        <button
-          type="button"
-          disabled
-          aria-label={t('pack.invite.ariaViewNetwork')}
-          className="inline-flex items-center justify-center gap-1.5"
-          style={{
-            background: 'transparent',
-            border: '1px dashed rgba(245,199,61,0.4)',
-            borderRadius: 999,
-            color: 'hsl(45 60% 88% / 0.72)',
-            padding: '5px 14px',
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 10.5,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            cursor: 'default',
-          }}
-        >
-          <BrandIcon name="cycle" size={14} tint="gold" />
-          {t('pack.invite.viewNetworkSoon')}
-        </button>
-
-        {/* Referral link box */}
-        <div className="w-full" style={{ maxWidth: 320 }}>
-          <div
-            className="flex items-center gap-1"
-            style={{
-              background: 'rgba(0,0,0,0.28)',
-              border: '1px solid rgba(245,199,61,0.32)',
-              borderRadius: 10,
-              padding: '4px 4px 4px 12px',
-            }}
-          >
-            <span
-              className="flex-1 truncate text-left"
+          {shareCardUrl ? (
+            <div
               style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 12.5,
-                color: 'hsl(45 60% 92%)',
-                letterSpacing: '0.01em',
+                width: '100%',
+                maxWidth: 360,
+                borderRadius: 16,
+                overflow: 'hidden',
+                border: '1px solid rgba(245,199,61,0.32)',
+                background: '#000',
+                boxShadow: '0 18px 44px -22px rgba(0,0,0,0.8)',
               }}
             >
-              {loading ? t('pack.invite.generatingLink') : link.replace(/^https?:\/\//, '')}
-            </span>
+              <img
+                src={shareCardUrl}
+                alt={t('sharecard.shareTitle', { name })}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
+            </div>
+          ) : (
+            <p
+              style={{
+                fontFamily: FONT_UI,
+                fontSize: 13,
+                color: 'hsl(45 40% 88% / 0.8)',
+                margin: 0,
+              }}
+            >
+              {t('sharecard.preparing')}
+            </p>
+          )}
+
+          {/* TRI tlačidlá, rovnaké diely na šírku karty (Matej 12.8.: „ponechajme zdielať
+              stiahnuť a wall = iba tri tlačítka"). Kolieska FB / WhatsApp / kópia odišli —
+              robili to isté, čo systémové share menu, ktoré otvorí ZDIEĽAŤ.
+              ⚠️ Rad stojí MIMO podmienky na share kartu: bez nej sa prvé dve stmavia, ale
+              WALL ostáva funkčný — inak by pes bez vygenerovanej karty stratil aj mriežku. */}
+          <div className="fi-row" style={{ maxWidth: 360 }}>
             <button
               type="button"
-              onClick={handleCopy}
-              disabled={!link}
-              aria-label={t('pack.invite.ariaCopyLink')}
-              className="inline-flex items-center justify-center shrink-0"
-              style={{
-                background: 'linear-gradient(to right, hsl(45 92% 62%), hsl(45 96% 52%))',
-                border: 'none',
-                borderRadius: 8,
-                color: '#1F1A0E',
-                width: 38,
-                height: 34,
-                cursor: link ? 'pointer' : 'default',
-                opacity: link ? 1 : 0.5,
-                boxShadow: '0 6px 16px -8px rgba(0,0,0,0.6)',
-              }}
+              onClick={handleCardShare}
+              disabled={!shareCardUrl || busy !== null}
+              className="fi-btn fi-btn-gold"
+              style={{ opacity: !shareCardUrl || busy !== null ? 0.55 : 1 }}
             >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <BrandIcon name="link" size={14} tint="dark" />
+              {t('sharecard.shareButton')}
             </button>
-          </div>
 
-          <button
-            type="button"
-            onClick={handleShare}
-            disabled={!link}
-            className="inline-flex items-center justify-center gap-2 w-full mt-2"
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(245,199,61,0.45)',
-              borderRadius: 8,
-              color: 'hsl(45 95% 90%)',
-              padding: '10px 18px',
-              fontFamily: "'Cinzel', serif",
-              fontSize: 11.5,
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              cursor: link ? 'pointer' : 'default',
-              opacity: link ? 1 : 0.5,
-            }}
-          >
-            <BrandIcon name="link" size={16} tint="gold" />
-            {t('pack.invite.shareLink')}
-          </button>
+            <button
+              type="button"
+              onClick={handleCardDownload}
+              disabled={!shareCardUrl || busy !== null}
+              className="fi-btn fi-btn-ghost"
+              style={{ opacity: !shareCardUrl || busy !== null ? 0.55 : 1 }}
+            >
+              <BrandIcon name="document" size={14} tint="gold" />
+              {t('sharecard.download')}
+            </button>
+
+            {/* Popis s číslom psa nesie title/aria — do tlačidla sa v rade troch nezmestí. */}
+            <a
+              className="fi-btn fi-btn-ghost"
+              href={wallHref}
+              title={t('pack.dog.viewOnWall', { certNumber: packNumber ? `#${packNumber}` : '' })}
+              aria-label={t('pack.dog.viewOnWall', { certNumber: packNumber ? `#${packNumber}` : '' })}
+            >
+              <BrandIcon name="world-grid" size={14} tint="gold" />
+              WALL
+            </a>
+          </div>
         </div>
 
-        <div
-          className="inline-flex items-center gap-1.5"
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 11,
-            color: 'hsl(45 40% 88% / 0.7)',
-          }}
-        >
-          <Sparkles className="h-3 w-3" />
-          {t('pack.invite.rewardsNote')}
+        {/* ── PRAVÁ POLOVICA — AFFILIATE: rýchly stav + odkaz + preklik do profilu ── */}
+        <div className="fi-right flex flex-col items-center text-center gap-4">
+          <div>
+            <h3 className="fi-h" style={{ marginBottom: 8 }}>{t('pack.invite.heading')}</h3>
+            <p
+              style={{
+                fontFamily: FONT_UI,
+                fontSize: 13,
+                lineHeight: 1.55,
+                color: 'hsl(45 40% 90% / 0.9)',
+                margin: 0,
+              }}
+            >
+              {t('pack.invite.bodyPart1')}{' '}
+              {/* `<strong>` dedí weight 700, Space Grotesk je načítaný len 300–600 ⇒ prehliadač
+                  tučnosť domýšľa (fake bold). Sémantika ostáva, váhu držíme na strope 600. */}
+              <strong style={{ color: 'hsl(45 95% 88%)', fontWeight: 600 }}>BONES</strong>
+              {t('pack.invite.bodyPart2')}
+            </p>
+          </div>
+
+          {/* Network stats — Points · Level 1 · Level 2 (your whole tree) */}
+          <div className="grid grid-cols-3 gap-2 w-full" style={{ maxWidth: 360 }}>
+            <StatTile
+              value={loading ? '—' : (aff?.points ?? 0).toLocaleString('en-US')}
+              label="BONES"
+              highlight
+            />
+            <StatTile value={loading ? '—' : String(level1)} label={t('pack.invite.statLevel1')} sub={t('pack.invite.statLevel1Sub')} />
+            <StatTile value={loading ? '—' : String(level2)} label={t('pack.invite.statLevel2')} sub={t('pack.invite.statLevel2Sub')} />
+          </div>
+
+          {/* ZOBRAZIŤ SIEŤ = PREKLIK DO PROFILU, nie popup (Matej 12.8.2026: „premserovanie
+              na /profil na 2 blok kde budeme centralizovať tieto info aby sme ich nemali na
+              viacerých miestach… na homepage bude len rýchla info o stave a možnosti zdielať").
+              Zoznam ľudí (meno, pes, dátum, BONES) aj vysvetlenie úrovní žijú v `PackNetwork`
+              na `/pack/profile#network`. S tým odišla aj pilulka „(i) TVOJA LÍNIA" —
+              vysvetľovač je tam, kde sú dáta. Sem sa nevracajú ani jedno. */}
+          <Link
+            to="/pack/profile#network"
+            aria-label={t('pack.invite.ariaViewNetwork')}
+            className="pk-pill pk-pill--dark pk-pill--tap fi-pill"
+          >
+            {/* PORT symbol (Matej 12.8.2026) — uzol vetviaci sa na tri, teda presne to, čo
+                odkaz otvára. Zdroj: ručne kreslený set `vstupy/vizualna-identita/Icons hand
+                drawn/port-hand-drawn-symbol-svgrepo-com.svg`, skopírovaný do
+                `public/icons/pack/port.svg` — `BrandIcon` číta VÝHRADNE z tohto adresára
+                a rieši aj zlaté tónovanie.
+                ⚠️ NIE `nav-portal.svg` (glóbus s lupou) — to je ikona sekcie PORTÁL, iná vec. */}
+            <BrandIcon name="port" size={15} tint="gold" />
+            {t('pack.invite.viewNetwork')}
+          </Link>
+
+          {/* ── ČISTÝ ODKAZ — už len KOPÍROVAŤ, žiadne druhé zdieľanie ──────────
+              Matej 12.8.: „na pravej strane je referal aj zdielat odkaz a to isté je
+              aj naľavo… musíme konsolidovať". Tlačidlo „Zdieľaj svoj odkaz" tu robilo
+              presne to, čo zlaté ZDIEĽAŤ vľavo, len bez psa. Ostal jeden riadok na
+              vloženie odkazu tam, kde sa obrázok psa nehodí: IG bio, QR, podpis mailu.
+              ⚠️ Je to odkaz na STRÁNKU PSA, nie `?ref=` — viď poznámka pri `link`. */}
+          <div className="w-full" style={{ maxWidth: 360 }}>
+            <div
+              className="flex items-center gap-1"
+              style={{
+                background: 'rgba(0,0,0,0.28)',
+                border: '1px solid rgba(245,199,61,0.32)',
+                borderRadius: 10,
+                padding: '4px 4px 4px 12px',
+              }}
+            >
+              <span
+                className="flex-1 truncate text-left"
+                style={{
+                  fontFamily: FONT_UI,
+                  fontSize: 12.5,
+                  color: 'hsl(45 60% 92%)',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {link ? link.replace(/^https?:\/\//, '') : t('pack.invite.generatingLink')}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopy}
+                disabled={!link}
+                aria-label={t('pack.invite.ariaCopyLink')}
+                className="inline-flex items-center justify-center shrink-0"
+                style={{
+                  background: 'linear-gradient(to right, hsl(45 92% 62%), hsl(45 96% 52%))',
+                  border: 'none',
+                  borderRadius: 8,
+                  color: '#1F1A0E',
+                  width: 38,
+                  height: 34,
+                  cursor: link ? 'pointer' : 'default',
+                  opacity: link ? 1 : 0.5,
+                  boxShadow: '0 6px 16px -8px rgba(0,0,0,0.6)',
+                }}
+              >
+                {copied ? <Check className="h-4 w-4" /> : <HandClipboard size={16} />}
+              </button>
+            </div>
+            <p
+              style={{
+                fontFamily: FONT_UI,
+                fontSize: 10.5,
+                lineHeight: 1.4,
+                color: 'hsl(45 30% 84% / 0.6)',
+                margin: '7px 0 0',
+              }}
+            >
+              {t('pack.invite.cleanLinkNote')}
+            </p>
+          </div>
+
+          <div
+            className="inline-flex items-center gap-1.5"
+            style={{
+              fontFamily: FONT_UI,
+              fontSize: 11,
+              color: 'hsl(45 40% 88% / 0.7)',
+            }}
+          >
+            <HandStar size={12} />
+            {t('pack.invite.rewardsNote')}
+          </div>
         </div>
       </div>
 
-      {/* ── Back of the card: DOGYPT TRANSPARENCY (inšpirované nation blokom) ── */}
-      <AnimatePresence>
-        {showInfo && (
-          <motion.div
-            key="transparency-model"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.32 }}
-            className="absolute inset-0 z-20 flex flex-col"
-            style={{
-              background: 'linear-gradient(160deg, #14101f 0%, #1d1530 100%)',
-              padding: '24px 22px 20px',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Header — gold DOGYPT wordmark (rovnaké ako /vision /religion header) */}
-            <div className="relative flex flex-col items-center" style={{ marginBottom: 14, zIndex: 1 }}>
-              <img
-                src={dogyptLogoGold}
-                alt="DOGYPT"
-                style={{
-                  height: 'clamp(29px, 5.9vw, 37px)',
-                  width: 'auto',
-                }}
-              />
-              <span
-                style={{
-                  fontFamily: "'Cinzel', serif",
-                  fontStyle: 'italic',
-                  fontSize: 'clamp(15px, 3.2vw, 19px)',
-                  fontWeight: 600,
-                  letterSpacing: '0.06em',
-                  color: 'hsl(45 90% 80%)',
-                  marginTop: 7,
-                  lineHeight: 1,
-                }}
-              >
-                {t('pack.invite.transparencyTitle')}
-              </span>
-              <div
-                aria-hidden
-                style={{ width: 48, height: 1, background: 'hsl(45 80% 60%)', opacity: 0.5, margin: '11px auto 0' }}
-              />
-              <p
-                style={{
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  fontSize: 12.5,
-                  color: 'hsl(45 35% 88% / 0.82)',
-                  textAlign: 'center',
-                  margin: '10px 0 0',
-                }}
-              >
-                {t('pack.invite.transparencySubtitle', { price: PRICE })}
-              </p>
-            </div>
-
-            {/* 11-segment share bar — the parts, graphically */}
-            <div className="relative flex w-full gap-[3px]" style={{ marginBottom: 14, zIndex: 1 }}>
-              {TRANSPARENCY_SPLIT.flatMap((s, si) =>
-                Array.from({ length: s.share }).map((_, i) => (
-                  <span
-                    key={`${si}-${i}`}
-                    style={{ flex: 1, height: 7, borderRadius: 2, background: s.color }}
-                  />
-                )),
-              )}
-            </div>
-
-            {/* 4 blocks, 2×2 — vyplnia výšku karty; name visible, click reveals detail */}
-            <div
-              className="relative grid grid-cols-2 gap-2.5"
-              style={{ zIndex: 1, flex: 1, minHeight: 0, gridTemplateRows: '1fr 1fr' }}
-            >
-              {TRANSPARENCY_SPLIT.map((s, si) => {
-                const open = openTile === si;
-                return (
-                  <button
-                    key={s.labelKey}
-                    type="button"
-                    onClick={() => setOpenTile(si)}
-                    className="text-left flex flex-col"
-                    style={{
-                      background: open ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.045)',
-                      border: `1px solid ${open ? s.color : 'rgba(245,240,228,0.14)'}`,
-                      borderRadius: 16,
-                      padding: '16px 16px 15px',
-                      cursor: 'pointer',
-                      overflow: 'hidden',
-                      transition: 'border-color 0.2s ease, background 0.2s ease',
-                    }}
-                  >
-                    {/* top — share dots + tap affordance */}
-                    <div className="flex items-center justify-between">
-                      <span className="flex gap-[4px]">
-                        {Array.from({ length: s.share }).map((_, i) => (
-                          <span
-                            key={i}
-                            style={{ width: 7, height: 7, borderRadius: 999, background: s.color }}
-                          />
-                        ))}
-                      </span>
-                      <span
-                        className="flex items-center justify-center"
-                        style={{
-                          width: 20,
-                          height: 20,
-                          borderRadius: 999,
-                          border: `1px solid ${s.color}`,
-                          color: s.color,
-                        }}
-                      >
-                        <BrandIcon name="plus" size={12} tint="gold" />
-                      </span>
-                    </div>
-
-                    {/* bottom — big share + label, anchored to floor */}
-                    <div style={{ marginTop: 'auto' }}>
-                      <div
-                        style={{
-                          fontFamily: "'Cinzel', serif",
-                          fontSize: 'clamp(30px, 6.6vw, 40px)',
-                          fontWeight: 700,
-                          lineHeight: 1,
-                          color: s.color,
-                        }}
-                      >
-                        {s.share}
-                        <span style={{ fontSize: '0.42em', opacity: 0.65 }}>/11</span>
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'Cinzel', serif",
-                          fontSize: 13.5,
-                          fontWeight: 700,
-                          letterSpacing: '0.05em',
-                          textTransform: 'uppercase',
-                          color: 'hsl(45 92% 90%)',
-                          marginTop: 7,
-                        }}
-                      >
-                        {t(s.labelKey)}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div
-              className="relative"
-              style={{
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 10.5,
-                color: 'hsl(45 30% 84% / 0.55)',
-                textAlign: 'center',
-                marginTop: 14,
-                zIndex: 1,
-              }}
-            >
-              {t('pack.invite.tapBlockHint')}
-            </div>
-
-            {/* Detail popup — full note, no scroll/clip regardless of length */}
-            <AnimatePresence>
-              {openTile !== null && (
-                <motion.div
-                  key="tile-popup"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  onClick={() => setOpenTile(null)}
-                  className="absolute inset-0 flex items-center justify-center"
-                  style={{
-                    zIndex: 40,
-                    background: 'rgba(8, 6, 16, 0.74)',
-                    backdropFilter: 'blur(3px)',
-                    WebkitBackdropFilter: 'blur(3px)',
-                    padding: 22,
-                  }}
-                >
-                  <motion.div
-                    initial={{ scale: 0.92, y: 8 }}
-                    animate={{ scale: 1, y: 0 }}
-                    exit={{ scale: 0.92, y: 8 }}
-                    transition={{ duration: 0.2 }}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      position: 'relative',
-                      width: '100%',
-                      maxWidth: 300,
-                      background: 'linear-gradient(160deg, #1b1530 0%, #241a3c 100%)',
-                      border: `1px solid ${TRANSPARENCY_SPLIT[openTile].color}`,
-                      borderRadius: 18,
-                      padding: '22px 20px 20px',
-                      boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7)',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setOpenTile(null)}
-                      aria-label={t('pack.invite.close')}
-                      className="absolute flex items-center justify-center"
-                      style={{ top: 12, right: 12, width: 26, height: 26, borderRadius: 999, border: '1px solid rgba(245,240,228,0.25)', color: 'hsl(45 40% 86% / 0.8)' }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-
-                    <span className="flex gap-[5px]" style={{ marginBottom: 10 }}>
-                      {Array.from({ length: TRANSPARENCY_SPLIT[openTile].share }).map((_, i) => (
-                        <span
-                          key={i}
-                          style={{ width: 8, height: 8, borderRadius: 999, background: TRANSPARENCY_SPLIT[openTile].color }}
-                        />
-                      ))}
-                    </span>
-                    <div
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        fontSize: 30,
-                        fontWeight: 700,
-                        lineHeight: 1,
-                        color: TRANSPARENCY_SPLIT[openTile].color,
-                      }}
-                    >
-                      {TRANSPARENCY_SPLIT[openTile].share}
-                      <span style={{ fontSize: '0.42em', opacity: 0.65 }}>/11</span>
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Cinzel', serif",
-                        fontSize: 14,
-                        fontWeight: 700,
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        color: 'hsl(45 95% 92%)',
-                        margin: '6px 0 10px',
-                      }}
-                    >
-                      {t(TRANSPARENCY_SPLIT[openTile].labelKey)}
-                    </div>
-                    <p
-                      style={{
-                        fontFamily: "'Space Grotesk', sans-serif",
-                        fontSize: 12.5,
-                        lineHeight: 1.55,
-                        color: 'hsl(45 28% 86% / 0.88)',
-                        margin: 0,
-                      }}
-                    >
-                      {t(TRANSPARENCY_SPLIT[openTile].noteKey)}
-                    </p>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── (i) BACK: ako rastie tvoja línia — trojuholník levelov ── */}
-      <AnimatePresence>
-        {showLevels && (
-          <motion.div
-            key="levels-explainer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.32 }}
-            className="absolute inset-0 z-20 flex flex-col"
-            style={{ background: 'linear-gradient(160deg, #14101f 0%, #1d1530 100%)', padding: '24px 22px 18px', overflow: 'hidden' }}
-          >
-            {/* Header */}
-            <div className="flex flex-col items-center" style={{ marginBottom: 12 }}>
-              <img src={dogyptLogoGold} alt="DOGYPT" style={{ height: 'clamp(27px, 5.6vw, 34px)', width: 'auto' }} />
-              <span style={{ fontFamily: "'Cinzel', serif", fontStyle: 'italic', fontSize: 'clamp(15px, 3.2vw, 19px)', fontWeight: 600, letterSpacing: '0.06em', color: 'hsl(45 90% 80%)', marginTop: 6, lineHeight: 1 }}>
-                {t('pack.invite.yourLineTitle')}
-              </span>
-              <div aria-hidden style={{ width: 48, height: 1, background: 'hsl(45 80% 60%)', opacity: 0.5, margin: '10px auto 0' }} />
-              <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, color: 'hsl(45 35% 88% / 0.82)', textAlign: 'center', margin: '9px 0 0', lineHeight: 1.45 }}>
-                {t('pack.invite.yourLineDesc')}
-              </p>
-            </div>
-
-            {/* Rad vedľa seba: TY → kamoš (L1, +20) → jeho kamoš (L2, +10), farebne odlíšené */}
-            <div className="flex-1 flex flex-col items-center justify-center" style={{ minHeight: 0, gap: 16 }}>
-              <div className="flex items-start justify-center" style={{ gap: 2 }}>
-                <LineNode icon="star" label={t('pack.invite.lineNodeYou')} accent="#C99A3F" tint="dark" solid />
-                <Arrow />
-                <LineNode icon="add-user" label={t('pack.invite.lineNodeFriend')} sub={t('pack.invite.statLevel1')} reward="+20" accent="#2E5FD0" tint="violet" />
-                <Arrow />
-                <LineNode icon="add-user" label={t('pack.invite.lineNodeTheirFriend')} sub={t('pack.invite.statLevel2')} reward="+10" accent="#C0392B" tint="danger" />
-              </div>
-
-              {/* Textový príklad */}
-              <div style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(245,240,228,0.14)', borderRadius: 14, padding: '13px 15px', maxWidth: 304 }}>
-                <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 12, lineHeight: 1.6, color: 'hsl(45 35% 90% / 0.92)', margin: 0 }}>
-                  {t('pack.invite.examplePart1')} <strong style={{ color: '#7FA8FF' }}>Mia</strong> → {t('pack.invite.examplePart2')} <strong style={{ color: '#7FA8FF' }}>+20 BONES</strong>.
-                  {' '}Mia {t('pack.invite.examplePart3')} <strong style={{ color: '#E8836F' }}>Jakub</strong> → {t('pack.invite.examplePart4')} <strong style={{ color: '#E8836F' }}>+10</strong> {t('pack.invite.examplePart5')}
-                  {' '}{t('pack.invite.examplePart6')}
-                </p>
-              </div>
-            </div>
-
-            <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10.5, color: 'hsl(45 30% 84% / 0.6)', textAlign: 'center', marginTop: 10 }}>
-              {t('pack.invite.bonesRate')}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 }
 
-function Arrow() {
-  const t = useT();
-  return (
-    <div className="flex flex-col items-center" style={{ marginTop: 16, gap: 2, width: 26 }}>
-      <span aria-hidden style={{ color: 'hsl(45 80% 70%)', fontSize: 18, lineHeight: 1 }}>→</span>
-      <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 7.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'hsl(45 35% 84% / 0.5)' }}>{t('pack.invite.brings')}</span>
-    </div>
-  );
-}
-
-function LineNode({ icon, label, sub, reward, accent, tint, solid }: {
-  icon: string; label: string; sub?: string; reward?: string; accent: string; tint: 'gold' | 'violet' | 'danger' | 'dark'; solid?: boolean;
-}) {
-  const d = solid ? 56 : 50;
-  return (
-    <div className="flex flex-col items-center" style={{ gap: 5, width: 74 }}>
-      <span
-        style={{
-          width: d,
-          height: d,
-          borderRadius: '50%',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          background: solid ? `radial-gradient(circle at 35% 30%, #F7DD92 0%, ${accent} 72%, #8A6520 100%)` : `${accent}26`,
-          border: `1.5px solid ${solid ? 'rgba(120,90,30,0.7)' : accent}`,
-          boxShadow: solid ? `0 6px 18px -6px ${accent}b3` : 'none',
-        }}
-      >
-        <BrandIcon name={icon} size={solid ? 26 : 22} tint={tint} />
-      </span>
-      <span style={{ fontFamily: "'Cinzel', serif", fontSize: 9.5, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'hsl(45 55% 90% / 0.95)', textAlign: 'center', lineHeight: 1.1 }}>
-        {label}
-      </span>
-      {sub && (
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 8, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'hsl(45 35% 84% / 0.55)' }}>
-          {sub}
-        </span>
-      )}
-      {reward && (
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: 10.5, fontWeight: 700, color: '#fff', background: accent, borderRadius: 999, padding: '2px 9px', display: 'inline-flex', alignItems: 'center', gap: 3, boxShadow: `0 3px 10px -4px ${accent}` }}>
-          {reward}
-          <BrandIcon name="bone" size={9} tint="white" />
-        </span>
-      )}
-    </div>
-  );
-}
-
+// Tri bloky = ČÍSLA, ktoré má člen vidieť ako prvé (Matej 12.8.: „tie tri bloky vedľa seba
+// musia byť viac výrazné, počet bones a počet ľudí"). Predtým mali rovnakú váhu ako popiska
+// pod nimi: 22px Cinzel na takmer neviditeľnom podklade. Teraz nesú zlatý rám, tmavšiu
+// výplň a číslo je clamp(26–34) — popiska ostala malá zámerne, aby číslo dominovalo.
+// ⚠️ Číslo = DÁTA → Space Grotesk, STROP váhy 600 (načítané sú len 300–600).
 function StatTile({
   value,
   label,
@@ -724,26 +474,33 @@ function StatTile({
     <div
       className="flex flex-col items-center justify-center"
       style={{
-        background: highlight ? 'rgba(245,199,61,0.16)' : 'rgba(0,0,0,0.22)',
-        border: `1px solid ${highlight ? 'rgba(245,199,61,0.4)' : 'rgba(245,240,228,0.18)'}`,
-        borderRadius: 12,
-        padding: '12px 6px',
+        background: highlight
+          ? 'linear-gradient(180deg, rgba(245,199,61,0.26) 0%, rgba(245,199,61,0.08) 100%)'
+          : 'linear-gradient(180deg, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0.18) 100%)',
+        border: `1px solid ${highlight ? 'rgba(245,199,61,0.62)' : 'rgba(245,199,61,0.34)'}`,
+        borderRadius: 10,
+        padding: '14px 6px 12px',
+        boxShadow: highlight
+          ? '0 10px 26px -16px rgba(245,199,61,0.75), inset 0 1px 0 rgba(255,246,226,0.22)'
+          : 'inset 0 1px 0 rgba(255,246,226,0.12)',
       }}
     >
       <span
         style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 22,
-          fontWeight: 700,
+          fontFamily: FONT_UI,
+          fontSize: 'clamp(26px, 5.4vw, 34px)',
+          fontWeight: 600,
           lineHeight: 1,
-          color: highlight ? 'hsl(45 96% 78%)' : 'hsl(45 90% 92%)',
+          letterSpacing: '-0.01em',
+          color: highlight ? 'hsl(45 96% 76%)' : 'hsl(45 92% 94%)',
+          textShadow: highlight ? '0 2px 14px rgba(245,199,61,0.45)' : 'none',
         }}
       >
         {value}
       </span>
       <span
         style={{
-          fontFamily: "'Space Grotesk', sans-serif",
+          fontFamily: FONT_UI,
           fontSize: 9.5,
           letterSpacing: '0.1em',
           textTransform: 'uppercase',
@@ -757,7 +514,7 @@ function StatTile({
       {sub && (
         <span
           style={{
-            fontFamily: "'Space Grotesk', sans-serif",
+            fontFamily: FONT_UI,
             fontSize: 8.5,
             color: 'hsl(45 35% 86% / 0.5)',
             marginTop: 2,

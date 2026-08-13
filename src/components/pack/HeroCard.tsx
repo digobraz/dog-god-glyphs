@@ -1,8 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PawPrint, Pencil, Plus, X } from 'lucide-react';
+import { X } from 'lucide-react';
+// Brandové hand-drawn ikonky namiesto lucide (audit 12.8., nasadené 13.8.). `X` ostáva
+// lucide zámerne — systémový ovládač zavretia, brand glyf by tam pridal len šum.
+import { HandLink, HandPaw, HandPencil, HandPlus } from './HandIcons';
+import { INVITE_ANCHOR_ID } from './FounderInvite';
 import { BrandIcon } from './BrandIcon';
-import { PACK_THEME, FONT_UI } from './packTheme';
+import { PACK_THEME, FONT_TITLE, FONT_UI, PILL_CSS } from './packTheme';
 import { PackNotifications } from './PackNotifications';
 import { DEV_FULL } from '@/lib/packFlags';
 import { devotionLevel } from '@/lib/devotion';
@@ -15,7 +19,8 @@ const AVATAR_SIZE = 132;
 /** Pes je vedľa majiteľa ZÁMERNE menší — homepage hovorí „toto si ty a toto je tvoja
  *  svorka", nie naopak. Detail psa má vlastný povrch (`/pack/dogs`). */
 const DOG_SIZE = 100;
-// Ring = náš fialovo-zlatý gradient (rovnaký ako MY PACK blok vedľa)
+// Ring = náš brandový gradient `--brand-gradient` (egyptská modrá → čierna → zlatá;
+// do 2026-06-15 bol fialový, odtiaľ staré „fialovo-zlatý" v komentároch)
 const STORY_RING = 'var(--brand-gradient)';
 
 // ── PYRAMÍDA SVORKY (Matej 2026-08-09, po klikacom nákrese) ──────────────────
@@ -254,13 +259,28 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
         className="absolute inline-flex items-center gap-2 sm:flex-col sm:items-stretch"
         style={{ top: 14, right: stats && !DEV_FULL ? 60 : 14, zIndex: 3 }}
       >
-        <Link to="/pack/profile" className="hc-edit inline-flex items-center gap-1.5">
-          <Pencil className="h-3 w-3 shrink-0" />
+        {/* ⚠️ Popisok na mobile NEVRÁTIŤ (overené meraním 2026-08-12): s textom má rad
+            275 px a prejde priamo cez centrovaný eyebrow „VITAJ SPÄŤ" — na 360, 390 aj 430.
+            Matej: „ak je tam miesto ok ale by sa ničoho nedotýkali ani nezavadzali" → miesto
+            nie je. Namiesto toho aspoň `aria-label` + `title`, aby ikonka nebola nemá pre
+            čítačku a dala sa podržať pre popis. Skutočná oprava = presunúť pilulky inam. */}
+        <Link
+          to="/pack/profile"
+          className="pk-pill pk-pill--tap hc-edit"
+          aria-label={t('pack.hero.editProfile')}
+          title={t('pack.hero.editProfile')}
+        >
+          <HandPencil size={12} className="shrink-0" />
           <span className="hidden sm:inline">{t('pack.hero.editProfile')}</span>
         </Link>
         {dogsHref && (
-          <Link to={dogsHref} className="hc-edit inline-flex items-center gap-1.5">
-            <PawPrint className="h-3 w-3 shrink-0" />
+          <Link
+            to={dogsHref}
+            className="pk-pill pk-pill--tap hc-edit"
+            aria-label={t('pack.hero.editDogs')}
+            title={t('pack.hero.editDogs')}
+          >
+            <HandPaw size={12} className="shrink-0" />
             <span className="hidden sm:inline">{t('pack.hero.editDogs')}</span>
           </Link>
         )}
@@ -269,11 +289,12 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
       <div className="flex flex-col items-center text-center flex-1 justify-center relative">
         <div
           style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 10,
-            letterSpacing: '0.34em',
+            fontFamily: FONT_TITLE,
+            fontWeight: 700,
+            fontSize: 16,
+            letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: T.inkDim,
+            color: T.inkStrong,
             marginBottom: 18,
           }}
         >
@@ -331,14 +352,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           <button
             type="button"
             onClick={() => setPop('pawtner')}
-            className="hc-badge flex w-full items-center justify-center gap-1.5"
-            style={{
-              padding: '7px 6px',
-              borderRadius: 999,
-              background: 'transparent',
-              border: `1px solid ${T.border}`,
-              cursor: 'pointer',
-            }}
+            className="pk-pill pk-pill--tap w-full"
           >
             <span
               aria-hidden
@@ -351,51 +365,20 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
                 boxShadow: '0 0 6px rgba(201, 154, 63, 0.6)',
               }}
             />
-            <span
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                color: T.ink,
-              }}
-            >
+            <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
               Pawtner
             </span>
           </button>
 
-          {/* LEVEL — počítaný z DEVOTION (nie natvrdo). Top tier (Pharaoh/Demigod) = zlato-fialový
-              gradient + Crown; nižšie úrovne = jemný outline bez koruny. */}
+          {/* LEVEL — počítaný z DEVOTION (nie natvrdo). Top tier (Pharaoh/Demigod) = zlatá
+              varianta pilulky (`.pk-pill--gold`) + trofej; nižšie úrovne = neutrálna pilulka. */}
           <button
             type="button"
             onClick={() => setPop('level')}
-            className="hc-badge flex w-full items-center justify-center gap-1.5"
-            style={{
-              padding: '7px 6px',
-              borderRadius: 999,
-              cursor: 'pointer',
-              background: topTier
-                ? 'linear-gradient(135deg, hsl(45 80% 48%) 0%, hsl(224 50% 42%) 100%)'
-                : 'transparent',
-              border: topTier ? '1px solid rgba(201, 154, 63, 0.55)' : `1px solid ${T.border}`,
-              boxShadow: topTier
-                ? '0 5px 18px -5px rgba(124, 58, 237, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25)'
-                : 'none',
-            }}
+            className={`pk-pill pk-pill--tap w-full${topTier ? ' pk-pill--gold' : ''}`}
           >
             {topTier && <BrandIcon name="trophy" size={12} tint="gold" className="shrink-0" />}
-            <span
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: '0.16em',
-                textTransform: 'uppercase',
-                color: topTier ? '#FFF6E6' : T.ink,
-                textShadow: topTier ? '0 1px 4px rgba(0,0,0,0.35)' : 'none',
-              }}
-            >
+            <span style={{ fontFamily: FONT_TITLE, fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
               {t('pack.ladder.' + lv.key)}
             </span>
           </button>
@@ -404,15 +387,8 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
           <button
             type="button"
             onClick={() => setPop('bones')}
-            className="hc-badge flex w-full items-center justify-center gap-1.5"
+            className="pk-pill pk-pill--tap w-full"
             aria-label={`${bones} BONES`}
-            style={{
-              padding: '7px 6px',
-              borderRadius: 999,
-              background: 'transparent',
-              border: `1px solid ${T.border}`,
-              cursor: 'pointer',
-            }}
           >
             <span
               aria-hidden
@@ -428,69 +404,35 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
             </span>
             {/* Číslo = DÁTA → Space Grotesk (typo lock: Cinzel = identita, Grotesk = čísla).
                 ⚠️ Váha STROP 600 — Grotesk je načítaný len v 300–600, 700 by bol fake bold. */}
-            <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em', color: T.ink }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: '0.02em' }}>
               {bones.toLocaleString('en-US')}
             </span>
           </button>
         </div>
 
-        {/* DEVOTION status bar + progress. Zbieranie je zamknuté do launchu appky —
-            zámok a popup to hovoria priamo, namiesto merania prázdna. */}
-        <div className="hc-dev mt-3 w-full" style={{ maxWidth: 620 }}>
-          <style>{`
+        {/* ⚠️ DEVOTION BAR ZRUŠENÝ 2026-08-12 (Matej: „zruš len progres bar, a uprav texting
+            po kliku na rank používateľa"). Meral zbieranie, ktoré sa zapne až s mobilnou
+            appkou — ostal po ňom zámok a číslo, teda merateľ merajúci prázdno. Vysvetlenie
+            sa presunulo do popupu po kliku na pilulku RANGU (`pack.hero.popLevel*`).
+            Pilulka rangu ani placeholder faraóna sa NERUŠIA — Matej ich nechal.
+            ⚠️ Zostal tu len `<style>` blok — trieda `.hc-edit` ju používajú prvky VYŠŠIE
+            v karte, preto sa nesmie odstrániť s barom. `.hc-badge` zanikla 12.8.2026:
+            tri pilulky rangu/statusu/BONES prešli na primitív `.pk-pill` (`packTheme.ts`). Popup `devotion`
+            (`PopKey`) tým stratil spúšťač a
+            kľúče `pack.hero.popDevotion*` / `devotionToNext` / `devotionMaxReached` /
+            `ariaDevotionBar` osireli — NEMAZAŤ, bar sa vráti s appkou. */}
+        <style>{PILL_CSS}</style>
+        <style>{`
+            /* Odchody na editáciu = TÁ ISTÁ pilulka ako rang/BONES nižšie (primitív
+               .pk-pill), len s UI fontom — dovtedy to bola tretia varianta pilulky
+               na jednej karte (priehľadná so slabým zlatým okrajom).
+               POZOR: toto je JS template literal, spätný apostrof v komentári ho ukončí. */
             .hc-edit{
-              padding: 7px 12px; border-radius: 999px;
-              background: rgba(201, 154, 63, 0.10);
-              border: 1px solid rgba(201, 154, 63, 0.42);
-              color: ${T.inkWarm}; text-decoration: none;
-              font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+              font-family: ${FONT_UI}; font-weight: 500;
               font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-              white-space: nowrap;
-              transition: background .15s ease, border-color .15s ease;
+              text-decoration: none;
             }
-            .hc-edit:hover{ background: rgba(201, 154, 63, 0.20); border-color: ${T.cardEdge}; }
-            .hc-badge{ transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease; }
-            .hc-badge:hover{ transform: translateY(-1px); box-shadow: 0 3px 12px rgba(122,90,42,0.24); }
-            .hc-bar { position: relative; cursor: pointer; outline: none; width: 100%; padding: 0; }
-            .hc-bar .hc-tip {
-              position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%);
-              white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s ease;
-              background: rgba(20,16,8,0.96); color: #FAF4EC; z-index: 5;
-              font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
-              padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(201,154,63,0.45);
-              box-shadow: 0 8px 22px -8px rgba(0,0,0,0.6);
-            }
-            .hc-bar:hover .hc-tip, .hc-bar:focus-visible .hc-tip { opacity: 1; }
-          `}</style>
-
-          <button
-            type="button"
-            className="hc-bar"
-            onClick={() => setPop('devotion')}
-            aria-label={t('pack.hero.ariaDevotionBar', { points: devotion.toLocaleString('en-US'), index: lv.index, name: t('pack.ladder.' + lv.key) })}
-            style={{ position: 'relative', height: 34, borderRadius: 999, overflow: 'hidden', background: T.hairline, border: `1px solid ${T.border}` }}
-          >
-            <div style={{ position: 'absolute', inset: 0, width: `${lv.pct}%`, background: 'linear-gradient(90deg, hsl(224 42% 42%), hsl(45 82% 55%))', transition: 'width .5s ease' }} />
-            <div className="relative h-full flex items-center justify-center gap-1.5">
-              {/* Číslo devotionu = DÁTA → Space Grotesk 600 (strop váhy), nie Cinzel.
-                  Ankh ostáva Cinzelom — je to znak, nie údaj. */}
-              <span style={{ fontFamily: FONT_UI, fontSize: 18, fontWeight: 600, color: T.ink, lineHeight: 1, letterSpacing: '0.01em', textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>
-                {devotion.toLocaleString('en-US')}
-              </span>
-              <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, fontWeight: 700, color: T.ink, lineHeight: 1, textShadow: '0 1px 2px rgba(250,244,236,0.5)' }}>☥</span>
-            </div>
-            {/* zámok = zbieranie zatiaľ nebeží */}
-            <span aria-hidden style={{ position: 'absolute', right: 11, top: '50%', transform: 'translateY(-50%)', fontSize: 12, opacity: 0.75, lineHeight: 1 }}>🔒</span>
-            <span className="hc-tip">Devotion</span>
-          </button>
-
-          {/* body do ďalšej úrovne — vpravo pod barom, malým */}
-          <div style={{ textAlign: 'right', marginTop: 5 }}>
-            <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, color: T.inkDim }}>
-              {lv.next ? <>{t('pack.hero.devotionToNext', { toNext: lv.toNext.toLocaleString('en-US'), nextName: t('pack.ladder.' + lv.next.key) })}</> : t('pack.hero.devotionMaxReached')}
-            </span>
-          </div>
-        </div>
+        `}</style>
 
       </div>
 
@@ -500,7 +442,7 @@ export function HeroCard({ name, email, avatarUrl, genderPlaceholder = null, dev
 }
 
 // ── Slot majiteľa ────────────────────────────────────────────────────────────
-// Avatar — fialový gradient ring. Read-only: klik už neotvára file picker.
+// Avatar — ring z `--brand-gradient` (modrá→čierna→zlatá). Read-only: klik už neotvára file picker.
 // Veľkosť ide z rovnice (mobil zmenšuje), typografia sa škáluje s ňou, aby pomer
 // meno : kruh ostal rovnaký na každej šírke.
 function OwnerSlot({
@@ -516,7 +458,10 @@ function OwnerSlot({
           className="absolute inset-0 rounded-full"
           style={{
             animation: 'pack-breathe 3.8s ease-in-out infinite',
-            boxShadow: '0 0 26px 2px rgba(124, 58, 237, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
+            // Halo = dvojica z brandového gradientu (egyptská modrá + zlatá). Do 12.8.2026
+            // tu svietila fialová (124,58,237) z palety, ktorú brand opustil 15.6.2026 —
+            // na modro-zlatom ringu to bola tretia farba.
+            boxShadow: '0 0 26px 2px rgba(16, 52, 166, 0.30), 0 0 18px 2px rgba(201, 154, 63, 0.22)',
           }}
         />
         {/* gradient ring */}
@@ -543,7 +488,7 @@ function OwnerSlot({
               ) : (
                 <span
                   className="flex items-center justify-center h-full w-full"
-                  style={{ fontFamily: "'Cinzel', serif", fontSize: Math.round(size * 0.41), fontWeight: 700, color: T.inkDim }}
+                  style={{ fontFamily: FONT_TITLE, fontSize: Math.round(size * 0.41), fontWeight: 700, color: T.inkDim }}
                 >
                   {initial}
                 </span>
@@ -556,7 +501,7 @@ function OwnerSlot({
       <div
         className="w-full"
         style={{
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_TITLE,
           fontSize: Math.round(size * 0.152),
           fontWeight: 700,
           letterSpacing: '0.02em',
@@ -616,7 +561,7 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
             ) : (
               <div
                 className="flex items-center justify-center h-full"
-                style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.18em' }}
+                style={{ color: T.inkFaint, fontFamily: FONT_TITLE, fontSize: Math.max(7, Math.round(size * 0.09)), letterSpacing: '0.18em' }}
               >
                 {t('pack.tree.noPhoto')}
               </div>
@@ -637,7 +582,7 @@ function DogSlot({ dog, size, boxH, gap }: { dog: HeroDog; size: number; boxH: n
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontFamily: "'Cinzel', serif",
+                fontFamily: FONT_TITLE,
                 fontWeight: 700,
                 fontSize: Math.max(8, Math.round(size * 0.115)),
                 letterSpacing: '0.02em',
@@ -709,13 +654,13 @@ function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: numb
             transition: 'border-color .18s ease, background .18s ease',
           }}
         >
-          <Plus style={{ width: Math.round(size * 0.32), height: Math.round(size * 0.32) }} strokeWidth={1.6} />
+          <HandPlus size={Math.round(size * 0.32)} />
         </div>
       </div>
       <div
         style={{
           width: size + Math.max(0, Math.min(18, gap - 6)),
-          fontFamily: "'Cinzel', serif",
+          fontFamily: FONT_TITLE,
           fontSize: Math.max(8, Math.round(size * 0.1)),
           fontWeight: 700,
           letterSpacing: '0.16em',
@@ -732,7 +677,16 @@ function AddDogSlot({ size, boxH, gap }: { size: number; boxH: number; gap: numb
   );
 }
 
-// ── Popup — papyrusový panel (T.panelGrad / radius 14 / T.panelShadow) ────────
+// ── Popup — PREKRYJE CELÝ 1. BLOK, nie malý modál v strede obrazovky ──────────
+// Matej 12.8.2026: *„sa info otvoria priamo v 1. bloku ako teraz ALE cez celý blok, nie ako
+// malý popup v bloku — vyzerá to zle; celý blok sa zmení na popup."*
+// Preto `position:absolute; inset:0` vnútri `<section>` karty (tá má `position:relative`
+// + `overflow:hidden`, takže sa overlay sám oreže na radius 16) a papyrusový `T.panelGrad`.
+// ⚠️ TOTO NIE JE prípad na `createPortal` — tam ide modál, ktorý má prekryť STRÁNKU
+// (rozpad €11 vo `FounderInvite`, viď [[feedback_fixed_inside_transformed_parent]]). Tu je
+// zámerom prekryť práve tento blok, takže `absolute` je správne a `fixed` by bolo chybou.
+// ⚠️ Text má strop šírky (`maxWidth`) — blok je na celú šírku stránky a riadky cez 900 px
+// sa nečítajú. Overlay je `overflow:auto`, aby sa dlhší text v nízkom bloku dal doskrolovať.
 function HeroPopup({
   which, bones, level, levelIndex, onClose,
 }: { which: PopKey; bones: number; level: string; levelIndex: number; onClose: () => void }) {
@@ -744,10 +698,14 @@ function HeroPopup({
       title: 'Pawtner',
       body: [t('pack.hero.popPawtner1'), t('pack.hero.popPawtner2')],
     },
+    // Od 12.8.2026 je toto JEDINÉ miesto, kde sa oddanosť vysvetľuje — devotion bar
+    // s vlastným popupom z karty odišiel. Preto tu pribudla aj pečiatka „začne rátať
+    // s appkou": bez nej by rebríček vyzeral ako niečo, čo beží už dnes.
     level: {
       eyebrow: t('pack.hero.popLevelEyebrow'),
       title: t('pack.hero.popLevelTitle', { name: level, index: levelIndex }),
       body: [t('pack.hero.popLevel1'), t('pack.hero.popLevel2')],
+      stamp: t('pack.hero.popLevelStamp'),
     },
     bones: {
       eyebrow: t('pack.hero.popBonesEyebrow'),
@@ -763,41 +721,56 @@ function HeroPopup({
   };
   const c = COPY[which];
 
+  // BONES sa dnes dajú získať JEDINE privedením ďalšieho člena — popup to hovorí, ale bez
+  // odkazu bola veta bez akcie. Tlačidlo zavrie popup a doskroluje na blok „ŠÍR TO ĎALEJ"
+  // (`FounderInvite`), kde odkaz reálne žije — druhá kópia odkazu by bola druhý zdroj pravdy.
+  // Keď blok na stránke nie je (dielňa `/pack/_herolab`), klik popup len zavrie.
+  const goToInvite = () => {
+    onClose();
+    requestAnimationFrame(() => {
+      document.getElementById(INVITE_ANCHOR_ID)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
+
   return (
     <div
       role="dialog"
-      aria-modal="true"
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 120, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 22, background: 'rgba(5,5,5,0.72)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)',
+        // Prekrýva PRESNE tento blok. zIndex 20 = nad ornamentmi aj pilulkami editácie (zIndex 3).
+        position: 'absolute', inset: 0, zIndex: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '26px 24px', overflowY: 'auto',
+        background: T.panelGrad,
       }}
     >
+      {/* Krížik sedí v ROHU BLOKU (nie panela s textom) — je to zatvorenie celého prekrytia. */}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t('pack.hero.popClose')}
+        style={{ position: 'absolute', top: 14, right: 16, background: 'none', border: 0, cursor: 'pointer', color: T.inkFaint, lineHeight: 1 }}
+      >
+        <X className="h-5 w-5" />
+      </button>
+
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          position: 'relative', width: '100%', maxWidth: 430, color: T.ink,
-          background: T.panelGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 14,
-          boxShadow: T.panelShadow, padding: '26px 24px',
+          // Žiadny rám ani tieň — rám má už samotný blok. Panel je len text v strede bloku.
+          // `textAlign:center` = blok je centrovaná kompozícia (welcome / pyramída / pilulky);
+          // vľavo zarovnaný stĺpec textu v širokom poli vyzeral ako odseknutý kus obsahu.
+          // Pečiatka aj CTA sú inline prvky → centrovanie zdedia, netreba im vlastný flex.
+          position: 'relative', width: '100%', maxWidth: 520, color: T.ink, textAlign: 'center',
         }}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t('pack.hero.popClose')}
-          style={{ position: 'absolute', top: 12, right: 14, background: 'none', border: 0, cursor: 'pointer', color: T.inkFaint, lineHeight: 1 }}
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 500, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.cardEdge }}>
+        <span style={{ fontFamily: FONT_UI, fontWeight: 500, fontSize: 10, letterSpacing: '0.26em', textTransform: 'uppercase', color: T.cardEdge }}>
           {c.eyebrow}
         </span>
-        <h3 style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 17, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 10px' }}>
+        <h3 style={{ fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 17, letterSpacing: '0.06em', textTransform: 'uppercase', color: T.inkStrong, margin: '8px 0 10px' }}>
           {c.title}
         </h3>
         {c.body.map((line, i) => (
-          <p key={i} style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13.5, lineHeight: 1.65, color: T.inkWarm, margin: '0 0 10px' }}>
+          <p key={i} style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.65, color: T.inkWarm, margin: '0 0 10px' }}>
             {line}
           </p>
         ))}
@@ -805,10 +778,30 @@ function HeroPopup({
           <span style={{
             display: 'inline-block', marginTop: 6, padding: '5px 12px', borderRadius: 999,
             border: '1px dashed rgba(179,130,45,0.6)', color: T.inkWarm,
-            fontFamily: "'Space Grotesk', sans-serif", fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
+            fontFamily: FONT_UI, fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase',
           }}>
             {c.stamp}
           </span>
+        )}
+
+        {which === 'bones' && (
+          <button
+            type="button"
+            onClick={goToInvite}
+            style={{
+              // .btn-gold (brand manuál v3.2 — LOCKED): gradient 135°, radius 8, papyrusový okraj.
+              display: 'inline-flex', alignItems: 'center', gap: 8, marginTop: 8,
+              padding: '11px 18px', borderRadius: 8, cursor: 'pointer',
+              background: 'linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%)',
+              border: '1px solid rgba(250,244,236,0.30)', color: '#000',
+              fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 11.5,
+              letterSpacing: '0.14em', textTransform: 'uppercase',
+              boxShadow: '0 0 24px rgba(230,158,26,0.28), inset 0 1px 0 rgba(255,255,255,0.3)',
+            }}
+          >
+            <HandLink size={16} />
+            {t('pack.hero.popBonesCta')}
+          </button>
         )}
       </div>
     </div>

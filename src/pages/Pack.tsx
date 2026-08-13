@@ -9,7 +9,6 @@ import { GlobePulse } from '@/components/pack/GlobePulse';
 import { FounderInvite } from '@/components/pack/FounderInvite';
 import { VerseOfTheDay } from '@/components/pack/VerseOfTheDay';
 import { PackWizard } from '@/components/pack/PackWizard';
-import { PackShareCard } from '@/components/pack/PackShareCard';
 // NextTripCard parkuje (nahradený TripSpotlightom 9.8.2026) — pozri komentár pri bloku nižšie.
 import { TripSpotlight } from '@/components/pack/TripSpotlight';
 import { Gateways } from '@/components/pack/Gateways';
@@ -293,14 +292,18 @@ export default function Pack() {
           <GlobePulse total={stats?.total ?? 0} topCountries={stats?.topCountries ?? []} topBreeds={stats?.topBreeds ?? []} ownerCountry={ownerCountry} />
         </div>
 
-        {/* ── ŠÍR TO ĎALEJ — pozvánka do svorky + hotová share karta psa ──
-            Zámerne až tu (Matej 5.8.: „grow the pack sa hodí, ale skombinovať to aj so
-            share hekthor"): najprv nech člen vidí, čo dostal a prečo to existuje, až
-            potom ho žiadame, aby pozval kamaráta. */}
-        <FounderInvite />
-        {primaryDog && (
-          <PackShareCard dogName={primaryDog.dog_name} packNumber={primaryDog.pack_number ?? null} shareCardUrl={primaryDog.share_card_url} />
-        )}
+        {/* ── ŠÍR TO ĎALEJ — JEDEN blok o dvoch poloviciach (Matej 12.8.: „rozdel tento
+            gradient blok na 2 časti… týmto krokom zlúčime blok 7-8 do jedného").
+            Vľavo share karta psa + zdieľanie + odkaz na WALL, vpravo affiliate a rozpad
+            milodaru. Zámerne až tu (Matej 5.8.): najprv nech člen vidí, čo dostal a prečo
+            to existuje, až potom ho žiadame, aby pozval kamaráta.
+            ⚠️ `PackShareCard` sa tu UŽ NEMOUNTUJE — jeho obsah je v ľavej polovici. Súbor
+            parkuje (ako `PackTree`/`DailyPrayers`); vrátiť ho sem = zdieľanie dvakrát. */}
+        <FounderInvite
+          dogName={primaryDog?.dog_name ?? null}
+          packNumber={primaryDog?.pack_number ?? null}
+          shareCardUrl={primaryDog?.share_card_url ?? null}
+        />
 
         {/* Účet / nastavenia — ostáva na homepage AJ po odomknutí `/pack/profile` (2026-08-06).
             ⚠️ NEODSTRAŇOVAŤ bez zmeny edge fn `send-certificate`: welcome e-mail po platbe

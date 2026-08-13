@@ -105,15 +105,54 @@ const CSS = `
    Cyan #5BE0F0 = cyborg paleta AINUBISA, vedomá odchýlka od brand v3.2
    (reference_dogypt_ainubis_cyborg_palette). */
 .gw-ainubis{
+  /* ŠEDÝ FADE = „ešte nefunkčné" (Matej 12.8.: „len tam daj taký šedý fade ako keby
+     nefunkčné ešte"). Karta klikom OTVÁRA chat, takže sa nesmie zamknúť ani stlmiť na
+     nulu — spí, ale zobudí sa: pri hoveri/fokuse sa farba vráti. Rovnaký odkaz nesie
+     cyan čip „plná verzia čoskoro" v tele karty.
+     ⚠️ FILTER NIE JE NA KARTE (zmena 13.8.2026). Bol, a strhával so sebou aj čip
+     „plná verzia čoskoro" — Matej: „chcem aby bol v plnej farbe ako pri hovery".
+     Prerátať ho späť cez saturate() nestačí, grayscale je stratový a čip ostal bledý.
+     Preto fade sedí na KONKRÉTNYCH deťoch (hlava, mriežka, nadpis, popis) a čip nie je
+     medzi nimi. Keď sem niekto vráti filter na .gw-ainubis, čip zase zhasne. */
+  transition:filter .4s ease;
   /* Pozadie = to isté, čo panel widgetu (AinubisWidget.css .ainubis-panel), plus dúhový
      nádych — AINUBIS je stroj, nie chrámový povrch. */
+  background:
+    /* Tlmiaca vrstva spiacej karty — nahrádza to, čo predtým robil grayscale na celej karte.
+       Je to POZADIE, takže na deti (a teda ani na čip) nesiaha. Pri hoveri mizne. */
+    linear-gradient(rgba(16,20,26,0.52), rgba(16,20,26,0.52)),
+    linear-gradient(118deg, rgba(91,224,240,0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(245,199,61,0.05) 100%),
+    radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(59,158,255,0.12) 52%, rgba(59,158,255,0) 74%),
+    linear-gradient(160deg, #08131f 0%, #04090f 62%, #061119 100%);
+  transition:filter .4s ease, background .4s ease;
+  border:1.5px solid rgba(91,224,240,0.34);
+  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(91,224,240,0.20);
+}
+/* Fade nesú deti, nie karta — zoznam je úplný a ZÁMERNE bez .gw-flag. */
+/* ⚠️ Na hlavu ide filter cez IMG, nie cez .gw-art — ten span má o 35 riadkov nižšie
+   vlastný filter:drop-shadow(). Rovnaká špecificita + neskoršie poradie = moja hodnota
+   by sa ticho prepísala a hlava by sa prestala odšedievať (overené v prehliadači:
+   computed filter na .gw-art vrátil len drop-shadow). */
+.gw-ainubis .gw-art img,
+.gw-ainubis .gw-title,
+.gw-ainubis .gw-lead,
+.gw-ainubis::after{
+  filter:grayscale(0.78) brightness(0.86);
+  transition:filter .4s ease;
+}
+.gw-ainubis:hover .gw-art img, .gw-ainubis:focus-visible .gw-art img,
+.gw-ainubis:hover .gw-title, .gw-ainubis:focus-visible .gw-title,
+.gw-ainubis:hover .gw-lead, .gw-ainubis:focus-visible .gw-lead,
+.gw-ainubis:hover::after, .gw-ainubis:focus-visible::after{ filter:none; }
+.gw-ainubis:hover, .gw-ainubis:focus-visible{
   background:
     linear-gradient(118deg, rgba(91,224,240,0.10) 0%, rgba(126,90,240,0.08) 42%, rgba(245,199,61,0.05) 100%),
     radial-gradient(78% 105% at 76% 54%, rgba(70,168,255,0.52) 0%, rgba(59,158,255,0.12) 52%, rgba(59,158,255,0) 74%),
     linear-gradient(160deg, #08131f 0%, #04090f 62%, #061119 100%);
-  border:1.5px solid rgba(91,224,240,0.34);
-  box-shadow:0 26px 60px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(91,224,240,0.20);
 }
+/* ⚠️ Dotykové zariadenia hover nemajú — tam karta ostáva šedá natrvalo. To je v poriadku:
+   šedá je stav („zatiaľ nehotové"), nie odmena za hover. */
+
 /* Holografická mriežka (Matej 9.8.: „pozadie ainubisa urob atraktívnejšie, holografická
    mriežka"). Dva 1px rastre + maska, ktorá ich rozpustí do rohov — mriežka cez celú plochu
    pôsobí ako tabuľka, nie ako projekcia. ::before je obsadené závojom, preto ::after.
@@ -158,6 +197,15 @@ const CSS = `
   box-shadow:0 4px 14px rgba(0,0,0,0.45);
 }
 @media (min-width:721px){ .gw-flag{ font-size:9.5px; padding:4px 11px; margin-bottom:10px; } }
+
+/* ČIP „PLNÁ VERZIA ČOSKORO" — PLNÁ CYAN VŽDY, aj keď karta spí (Matej 13.8.: „chcem aby bol
+   v plnej farbe ako pri hovery"). Fade hovorí „karta ešte nie je hotová", čip hovorí PREČO —
+   a to je jediná informácia, ktorá má v šedom stave žiť naplno.
+   Drží to zoznam selektorov pri .gw-ainubis vyššie: čip v ňom NIE JE, takže naň žiadny
+   filter nesadá. Nič sa tu neprepočítava. */
+.gw-ainubis .gw-flag{
+  box-shadow:0 4px 14px rgba(0,0,0,0.45), 0 0 18px rgba(91,224,240,0.55);
+}
 
 /* Typografia NIE JE zlatá (Matej 9.8.: „nadpis musí byt brandovY AI inej farby… pozri si ako
    sme to spravili inde"). Zdroj pravdy = hlavička widgetu v AinubisWidget.css: meno = Cinzel 700

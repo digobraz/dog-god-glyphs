@@ -39,11 +39,13 @@ const DAYS_PILL = {
   letterSpacing: '0.02em',
 } as const;
 
-// Guľa je TMAVÁ a ZLATÁ, na rozdiel od bledej v `GlobePulse` (Matej 9.8.: „urob to
-// v brande"). Dve svetlé gule pod sebou vyzerali ako duplicita; zlatá na čiernej je
-// brand v3.2 (#C99A3F na #050505) a zároveň iný objekt než tá bledá nižšie.
-const GLOBE_GOLD: [number, number, number] = [1.0, 0.86, 0.42];   // pin prejdeného výletu — najsvetlejšie zlato
-const GLOBE_INK: [number, number, number] = [0.62, 0.45, 0.18];   // neprejdené — tlmená zlatá, nie modrá
+// ⚠️ Guľa je BLEDÁ (2026-08-12, Matej: „zmeňme to na bledú verziu pretože to na tom
+// čiernom pozadí zaniká"). Tým padol lock z 9.8., že karta je tmavá zámerne — dôvodom
+// bola obava z duplicity s bledou guľou v `GlobePulse` nižšie. Odlíšenie teraz nerobí
+// FARBA, ale KOMPOZÍCIA: tu je guľa orezaná hranou karty (vidno ~štvrtinu) a nesie
+// tri tmavé pilulky, dole je celá guľa v strede karty. Farebne sú obe papyrusové.
+const GLOBE_GOLD: [number, number, number] = [1.0, 0.80, 0.30];   // pin prejdeného výletu — zlato viditeľné na béžovom oceáne
+const GLOBE_INK: [number, number, number] = [0.42, 0.30, 0.10];   // neprejdené — tmavá zem, nie modrá
 const PHI_EUROPE = 4.7;  // Európa čelom k divákovi (rovnaká konštanta ako v GlobePulse)
 const THETA = 0.42;      // väčší sklon než v GlobePulse — naše piny sedia na 47–49° s. š.
 const SPIN = 0.0011;     // rad/frame, ~jedna otáčka za 95 s
@@ -82,7 +84,7 @@ const CSS = `
 .ts-ribbon{
   position:absolute; top:24px; right:-56px; z-index:3; pointer-events:none;
   width:200px; text-align:center; transform:rotate(45deg); padding:6px 0;
-  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:10px;
+  font-family:${FONT_UI}; font-weight:600; font-size:10px;
   letter-spacing:0.22em; text-transform:uppercase; color:#04140f;
   background:#1AA39A; box-shadow:0 6px 18px rgba(0,0,0,0.5);
 }
@@ -90,7 +92,7 @@ const CSS = `
   position:absolute; top:22px; left:24px; z-index:3;
   display:inline-flex; align-items:center; gap:7px;
   padding:8px 15px; border-radius:999px; white-space:nowrap;
-  font-family:'Cinzel',serif; font-weight:700; font-size:13px;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:13px;
   box-shadow:0 6px 20px -6px rgba(0,0,0,0.9);
   animation: ts-glow 2.6s ease-in-out infinite;
 }
@@ -100,7 +102,7 @@ const CSS = `
 }
 @media (prefers-reduced-motion: reduce){ .ts-count{ animation:none; } }
 .ts-chip{
-  font-family:'Space Grotesk',sans-serif; font-size:10.5px; letter-spacing:0.1em;
+  font-family:${FONT_UI}; font-size:10.5px; letter-spacing:0.1em;
   text-transform:uppercase; color:rgba(255,246,226,0.9);
   background:rgba(4,2,0,0.42); border:1px solid rgba(245,240,228,0.28);
   border-radius:999px; padding:4px 11px;
@@ -112,14 +114,16 @@ const CSS = `
   padding:11px 20px; border-radius:8px;
   background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
   border:1px solid rgba(250,244,236,0.30); color:#000;
-  font-family:'Cinzel',serif; font-weight:700; font-size:11.5px;
+  font-family:${FONT_TITLE}; font-weight:700; font-size:11.5px;
   letter-spacing:0.14em; text-transform:uppercase;
 }
-/* TMAVÁ karta (Matej 9.8.: „skús to urobiť v tmavom vydaní"). Papyrus tu prehral zámerne:
-   nižšie na stránke stojí GlobePulse s BLEDOU guľou a dve svetlé gule pod sebou vyzerali
-   ako duplicita. Tmavá + orezaná = iný objekt, nie druhá kópia tej istej planéty. */
+/* BLEDÁ karta = papyrus lock (Entry.tsx): T.cardGrad · 1.5px T.cardEdge · radius 16.
+   ⚠️ Do 12.8.2026 bola TMAVÁ. Matej: „zmeňme to na bledú verziu pretože to na tom čiernom
+   pozadí zaniká" — tmavá karta na čiernej stránke nemala hranu a splývala s pozadím,
+   zatiaľ čo plagát vedľa ju má z fotky. Späť na tmavú NEVRACAŤ bez Mateja. */
 .ts-globe{
   position:relative; overflow:hidden; border-radius:16px; min-height:340px;
+  background:${T.cardGrad}; border:1.5px solid ${T.cardEdge}; box-shadow:${T.cardShadow};
   display:flex; flex-direction:column; justify-content:space-between;
   /* Väčší odstup od okrajov (Matej 9.8.: „je to moc na kraji") — rovnaký rád ako plagát vľavo. */
   padding:26px 24px 22px; text-decoration:none; cursor:pointer;
@@ -135,38 +139,71 @@ const CSS = `
   position:absolute; left:-52%; bottom:-54%; width:148%; aspect-ratio:1 / 1;
   z-index:0; pointer-events:none;
 }
-.ts-canvas{ position:absolute; inset:0; }
-/* DVE vrstvy závoja, nie jedna. Vodorovná drží voľný pravý okraj pod pilulkami,
+/* Kontrast kontinentov. Bez neho je guľa béžová na béžovej karte a vyzerá ako nedonačítaný
+   obrázok (Matej 13.8.). Príčina NIE JE cobe — oceán má baseColor ≈ farbu karty, takže guľa
+   nemá okraj, a navrch ju zrážal závoj s krytím 0,94. Rieši sa TU a v .ts-scrim nižšie;
+   do konfigurácie cobe sa nesiaha, aby ostala zhodná s guľou v GlobePulse. */
+.ts-canvas{ position:absolute; inset:0; filter:contrast(1.45) brightness(0.96) saturate(1.1); }
+
+/* ZLATÝ OBLÚK — obežná dráha po obvode gule (Matej 13.8.: „skus dať na mapu zlatý oblúk").
+   Dáva guli hranu, ktorú jej farba oceánu nedokáže dať, takže sa číta ako planéta, nie ako
+   svetlá škvrna v pozadí.
+   ⚠️ inset:7% NIE JE ozdobná hodnota — cobe kreslí guľu menšiu než buffer. Pri inset:0
+   je kruh väčší než vykreslená guľa a oblúk prejde krížom cez nadpis karty (overené).
+   Ak sa mení width alebo aspect-ratio na .ts-canvas-wrap, treba ho premerať znova. */
+.ts-orbit{
+  position:absolute; inset:7%; border-radius:50%; z-index:1; pointer-events:none;
+  border:1.5px solid rgba(201,154,63,0.65);
+  box-shadow:
+    inset 0 0 50px rgba(122,90,42,0.26),
+    inset -24px -24px 70px rgba(122,90,42,0.20);
+}
+/* ⚠️ Závoj je v PAPYRUSOVÝCH tónoch karty (#FBF5E6 → #F3E4C4 → #EAD6A6), NIE v bielej
+   (Matej 12.8.: „bledá brand nie biela! má to byť podklad ako pri 1 bloku"). Predtým
+   tu ležala rgba(250,244,236) cez celú plochu — to je skoro čistá biela a prebila
+   papyrusový gradient karty pod ňou, takže karta vyzerala ako biely papier.
+   DVE vrstvy závoja, nie jedna. Vodorovná drží voľný pravý okraj pod pilulkami,
    zvislá drží čitateľný nadpis hore a popisku dole — tie sedia nad guľou a na
    rozsvietených kontinentoch by zanikli. */
 .ts-scrim{
   position:absolute; inset:0; z-index:1; pointer-events:none;
   background:
-    linear-gradient(to left, rgba(3,6,14,0.94) 20%, rgba(3,6,14,0.34) 54%, rgba(3,6,14,0) 80%),
-    linear-gradient(to bottom, rgba(3,6,14,0.90) 0%, rgba(3,6,14,0.62) 22%, rgba(3,6,14,0.10) 42%, rgba(3,6,14,0.10) 66%, rgba(3,6,14,0.88) 100%);
+    linear-gradient(to left, rgba(243,228,196,0.88) 4%, rgba(243,228,196,0.18) 44%, rgba(243,228,196,0) 72%),
+    linear-gradient(to bottom, rgba(251,245,230,0.80) 0%, rgba(243,228,196,0.34) 20%, rgba(243,228,196,0) 40%, rgba(234,214,166,0.06) 66%, rgba(234,214,166,0.72) 100%);
 }
 .ts-globe-head{ position:relative; z-index:2; }
 /* Nadpis má ROVNAKÚ veľkosť ako názov výletu v susednej karte (30px Cinzel 700) — dva bloky
    v jednom riadku musia mať jednu typografickú úroveň, inak menší vyzerá ako podradený.
-   Dva riadky robí JSX (prvé slovo / zvyšok), nie max-width v ch: znaky Cinzelu sú širšie než
-   jednotka ch, takže by nadpis raz zalomil a inokedy pretiekol podľa prekladu. */
+   ⚠️ TRI riadky = JEDNO SLOVO NA RIADOK (Matej 12.8.: „daj tam 3 riadky - Rozšír hranice
+   DOGYPTU"). Láme to JSX, nie CSS: znaky Cinzelu sú širšie než jednotka ch, takže max-width
+   v ch by nadpis raz zalomil a inokedy pretiekol podľa prekladu. Preklad teda MUSÍ mať tri
+   slová (SK „Rozšír hranice DOGYPTU", EN „Expand DOGYPT's borders") — pri dvoch vyjdú dva
+   riadky a karta ostane hore prázdna, pri štyroch pretečie. */
 .ts-globe-title{
-  font-family:'Cinzel',serif; font-weight:700; font-size:30px; line-height:1.08;
-  letter-spacing:0.04em; text-transform:uppercase; color:#FFF6E2; margin:0;
-  text-shadow:0 4px 26px rgba(0,0,0,0.95);
+  font-family:${FONT_TITLE}; font-weight:700; font-size:30px; line-height:1.08;
+  letter-spacing:0.04em; text-transform:uppercase; color:${T.inkStrong}; margin:0;
+  /* Svetlé halo, nie tmavý tieň — nadpis stojí nad kontinentmi, ktoré sú v bledej
+     verzii TMAVÉ, takže ho drží čitateľný rozžiarený papyrus okolo písmen. */
+  text-shadow:0 2px 14px rgba(250,244,236,0.95);
 }
 .ts-globe-title span{ display:block; }
 /* Rang + level — PRESNE ten istý vzor ako v hlavičke mapy (.trp-level-name / .trp-level-num):
-   meno rangu Cinzel, číslo v PLNEJ zlatej pilulke bez popisky „Lvl" (Matej 3.8.: „to LVL ma ruší"). */
-.ts-rank{ position:relative; z-index:2; display:inline-flex; align-items:center; gap:9px; margin-top:12px; }
+   meno rangu Cinzel, číslo v PLNEJ zlatej pilulke bez popisky „Lvl" (Matej 3.8.: „to LVL ma ruší").
+   ⚠️ Od 12.8.2026 sedí v PRAVOM HORNOM ROHU karty (Matej: „pútnika daj do pravého horného
+   rohu"), nie pod nadpisom — nadpis má odvtedy tri riadky a dvojica pod sebou robila stĺpec
+   textu cez pol karty. Preto je absolútny; nadpis si tým drží celú ľavú stranu. */
+.ts-rank{
+  position:absolute; top:22px; right:22px; z-index:3;
+  display:inline-flex; align-items:center; gap:9px;
+}
 .ts-rank-name{
-  font-family:'Cinzel',serif; font-weight:700; font-size:13px; letter-spacing:0.16em;
-  text-transform:uppercase; color:rgba(245,240,228,0.92);
+  font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.16em;
+  text-transform:uppercase; color:${T.inkStrong}; text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
 .ts-rank-num{
   display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
   background:linear-gradient(135deg,#F5C73D,#E69E1A); color:#1F1A0E;
-  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14px; line-height:1;
+  font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
   box-shadow:0 2px 8px rgba(245,199,61,0.28);
 }
 /* TRI bloky vedľa seba na SPODNOM okraji karty (Matej 9.8.) — level odišiel hore k rangu.
@@ -176,12 +213,15 @@ const CSS = `
   position:relative; z-index:2; margin-top:auto; width:100%;
   display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;
 }
+/* Pilulky ostávajú TMAVÉ so svetlým číslom (Matej 12.8.: „tie 3 pills viac výrazné resp
+   ponechaj ich v tej farbe") — na bledej karte sú tým jediný tmavý prvok, takže sa z
+   priesvitného skla stal kontrastný akcent. Preto tu už nie je backdrop-filter: pod
+   plnou výplňou nemá čo rozostrovať a stál výkon pri každom prekreslení gule. */
 .ts-pill{
   position:relative; overflow:hidden; border-radius:12px; padding:10px 12px; text-align:center;
-  background:linear-gradient(180deg, rgba(245,240,228,0.13) 0%, rgba(245,240,228,0.035) 100%);
-  border:1px solid rgba(201,154,63,0.45);
-  box-shadow:inset 0 1px 0 rgba(255,246,226,0.18), 0 8px 22px -14px rgba(0,0,0,0.9);
-  backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px);
+  background:linear-gradient(180deg, #15110B 0%, #070604 100%);
+  border:1px solid rgba(201,154,63,0.55);
+  box-shadow:inset 0 1px 0 rgba(255,246,226,0.14), 0 10px 24px -14px rgba(31,26,14,0.75);
 }
 /* Zlatý svetelný pruh po hornej hrane — to je celý „šperk" pilulky, nie ďalší rám. */
 .ts-pill::before{
@@ -194,12 +234,12 @@ const CSS = `
    ⚠️ Váha STROP 600: Space Grotesk je načítaný len v 300–600, 700 by prehliadač dosyntetizoval
    (fake bold, rozmazané hrany). */
 .ts-pill b{
-  display:block; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:22px;
+  display:block; font-family:${FONT_UI}; font-weight:600; font-size:22px;
   line-height:1; color:#FFF6E2; letter-spacing:0; text-shadow:0 2px 10px rgba(0,0,0,0.6);
 }
 .ts-pill span{
-  display:block; margin-top:6px; font-family:'Space Grotesk',sans-serif; font-weight:500;
-  font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,240,228,0.52);
+  display:block; margin-top:6px; font-family:${FONT_UI}; font-weight:500;
+  font-size:8.5px; letter-spacing:0.2em; text-transform:uppercase; color:rgba(245,240,228,0.62);
 }
 
 @media (max-width: 860px){
@@ -216,10 +256,12 @@ const CSS = `
   .ts-canvas-wrap{ left:-44%; bottom:auto; top:-16%; width:148%; }
   .ts-scrim{
     background:
-      linear-gradient(to left, rgba(3,6,14,0.90) 6%, rgba(3,6,14,0.30) 46%, rgba(3,6,14,0) 76%),
-      linear-gradient(to top, rgba(3,6,14,0.92) 24%, rgba(3,6,14,0.20) 66%, rgba(3,6,14,0.55) 100%);
+      linear-gradient(to left, rgba(243,228,196,0.90) 6%, rgba(243,228,196,0.30) 46%, rgba(243,228,196,0) 76%),
+      linear-gradient(to top, rgba(234,214,166,0.92) 24%, rgba(243,228,196,0.20) 66%, rgba(251,245,230,0.55) 100%);
   }
-  .ts-globe-head{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; }
+  /* Rang sedí v pravom hornom rohu aj tu, preto hlavička začína pod ním — inak by sa
+     prvý riadok nadpisu (zarovnaný doprava) prekryl s pilulkou levelu. */
+  .ts-globe-head{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; padding-top:28px; }
   .ts-globe-title{ font-size:28px; }
   .ts-pills{ grid-template-columns:repeat(3, 1fr); }
 }
@@ -450,34 +492,30 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
         {/* Guľa je pozadie karty (z-index 0), nie ilustrácia v rámčeku. */}
         <div className="ts-canvas-wrap">
           <TripGlobe markers={view.markers} />
+          <span className="ts-orbit" aria-hidden />
         </div>
         <span className="ts-scrim" aria-hidden />
 
         {/* JEDEN nadpis, žiadny podnadpis a žiadna popiska dole (Matej 9.8.:
             „nadpis daj PRESKÚMAJ MAPU, 71 výletov daj preč a aj preskúmaj mapu zdola
             vyhoď — konsolidujeme"). Počet výletov už svieti v dlaždici MAPA nižšie. */}
-        <div className="ts-globe-head">
-          {/* Prvé slovo na prvý riadok, zvyšok na druhý — dva riadky bez ohľadu na preklad
-              (SK „Preskúmaj / mapu", EN „Explore / the map"). */}
-          <p className="ts-globe-title">
-            {(() => {
-              const words = t('pack.spotlight.mapTitle').split(' ');
-              const head = words[0];
-              const rest = words.slice(1).join(' ');
-              return <>
-                <span>{head}</span>
-                {rest && <span>{rest}</span>}
-              </>;
-            })()}
-          </p>
-
-          {/* Rang + level — ten istý výpočet ako hlavička mapy (`profileLevelFor`). */}
-          <span className="ts-rank">
-            <span className="ts-rank-name">{t('pack.map.rankPilgrim')}</span>
-            <span className="ts-rank-num" aria-label={t('pack.map.levelAriaLabel', { level: view.level })}>
-              {view.level}
-            </span>
+        {/* Rang + level — ten istý výpočet ako hlavička mapy (`profileLevelFor`).
+            Stojí MIMO hlavičky, lebo je absolútne ukotvený v pravom hornom rohu karty. */}
+        <span className="ts-rank">
+          <span className="ts-rank-name">{t('pack.map.rankPilgrim')}</span>
+          <span className="ts-rank-num" aria-label={t('pack.map.levelAriaLabel', { level: view.level })}>
+            {view.level}
           </span>
+        </span>
+
+        <div className="ts-globe-head">
+          {/* JEDNO SLOVO = JEDEN RIADOK. Preklad `pack.spotlight.mapTitle` musí mať tri
+              slová, inak nevyjdú tri riadky (viď poznámka pri .ts-globe-title). */}
+          <p className="ts-globe-title">
+            {t('pack.spotlight.mapTitle').split(' ').filter(Boolean).map((word, i) => (
+              <span key={i}>{word}</span>
+            ))}
+          </p>
         </div>
 
         {/* Tri bloky = TVOJ záznam. Poradie krajiny → kilometre → výlety je Matejovo
@@ -530,17 +568,17 @@ function TripGlobe({ markers }: { markers: { location: [number, number]; size: n
         height: w * 2,
         phi: PHI_EUROPE,
         theta: THETA,
-        dark: 1,
-        diffuse: 1.15,
+        // Presne vzor `GlobePulse`: dark:0 = béžový oceán z `baseColor` + TMAVÉ kontinenty.
+        // Béžová sedí na papyrusovej karte, takže guľa pôsobí ako výrez do nej, nie ako
+        // nalepený widget — to je celý zmysel bledej verzie.
+        dark: 0,
+        diffuse: 1.3,
         mapSamples: 16000,
-        // Kontinenty sa v cobe kreslia z `baseColor` × `mapBrightness` — zlatá guľa
-        // teda nevzniká cez markerColor, ale cez zlatý baseColor. `dark:1` stmaví oceán
-        // na brand čiernu, takže ostanú svietiť len zlaté body pevniny.
-        mapBrightness: 3.4,
-        mapBaseBrightness: 0.03,
-        baseColor: [0.79, 0.60, 0.25],   // #C99A3F v lineárnom priestore
+        mapBrightness: 9,                // ostré tmavé kontinenty
+        mapBaseBrightness: 0,            // odvrátená strana ostáva v tieni
+        baseColor: [0.95, 0.89, 0.77],   // ≈ #F3E4C4, stredný tón papyrusu karty (nie biela)
         markerColor: GLOBE_GOLD,
-        glowColor: [0.26, 0.19, 0.08],   // teplá aura, nie modrá atmosféra
+        glowColor: [0.12, 0.10, 0.06],   // tmavá jemná aura, nie svetelný prstenec
         markerElevation: 0,
         markers,
       });
