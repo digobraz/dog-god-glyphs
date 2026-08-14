@@ -44,8 +44,12 @@ export const POSTHOG_HOST = 'https://eu.i.posthog.com';
 
 // Mapy.com (Seznam.cz) tiles for DOGYPT Trails (/pack/trails). Key is
 // referrer-protected (like the Supabase publishable key) — safe to hard-pin
-// in the public bundle. Restrict to dogypt.com in Mapy.com admin before wide
-// public launch (currently unrestricted — see zadanie-trails-f1.md §4).
+// in the public bundle.
+// Referrer lock is LIVE since 2026-08-14 (project `dogypt-trails`, id 17895,
+// developer.mapy.com → API klíče → NASTAVENÍ KLÍČE → Omezení API klíče):
+// allowed = dogypt.com · *.dogypt.com · localhost · localhost:8080–8083.
+// Everything else gets 403 — including `*.lovable.app` previews and dev
+// servers on other ports (5173 etc.), so run `/pack/map` on 8080–8083.
 export const MAPY_API_KEY = 'GoBI7Tac9Hjr0cCbkAiUl28bZyrPYz_ZHb90sFkTCG0';
 export const mapyTiles = (style: string = 'outdoor') =>
   `https://api.mapy.com/v1/maptiles/${style}/256/{z}/{x}/{y}?apikey=${MAPY_API_KEY}`;
