@@ -41,6 +41,7 @@ const T = PACK_THEME;
 // nižšie sú TIE ISTÉ čísla ako v matrici, len prepísané do CSS (blok potrebuje
 // `break-inside`, takže inline `style={{...PACK_BOX.subblock}}` sem nesadne).
 const B = PACK_BOX.subblock;
+const BD = PACK_BOX.subblockDark;
 const PASS_CSS = `
 /* ✎ a „zdieľať" = pilulky. DNA .pk-pill (papyrusový gradient + 1.5px rgba(179,130,45,.55)
    + hover lift) — rozdiel medzi nimi nesie len veľkosť písma a výplň, nie iný rám. */
@@ -58,7 +59,32 @@ const PASS_CSS = `
 @media (max-width:720px){ .pass-groups{ columns:1; } }
 .pass-block{ break-inside:avoid; -webkit-column-break-inside:avoid; margin:0 0 14px;
   background:${B.background}; border:${B.border}; border-radius:${B.borderRadius}px;
-  padding:16px 17px 15px; box-shadow:${B.boxShadow}; }
+  padding:16px 17px 15px; box-shadow:${B.boxShadow};
+  /* Inkoust bloku je premenná, nie natvrdo písaná farba v každom riadku — inak by sa
+     tmavá varianta nedala prefarbiť: riadky si farbu nesú v inline style a ten CSS
+     trieda neprebije. Takto stačí prepísať tri premenné na obale. */
+  --pass-lbl:${T.inkWarm}; --pass-val:${T.inkStrong}; --pass-faint:${T.inkFaint}; }
+/* ZÁVET JE ČIERNY (Matej 13.8.2026). Nie je to štýlová obmena — je to jediná sekcia
+   dokladu, ktorá hovorí o smrti psa, a na papyruse mala rovnakú váhu ako obľúbená
+   maškrta. Recept berie matrica (PACK_BOX.subblockDark), tu sa dolaďuje len inkoust.
+   Rám a radius ostávajú zhodné so svetlými blokmi — v mriežke to má byť ich súrodenec.
+   Panel na PÍSANIE závetu ostáva papyrusový zámerne: čierna je na čítanie dokladu,
+   nie na vypĺňanie formulára. */
+.pass-block--dark{ background:${BD.background}; border:${BD.border};
+  box-shadow:${BD.boxShadow};
+  --pass-lbl:${T.onDarkDim}; --pass-val:${T.onDark}; --pass-faint:rgba(245,240,228,0.34); }
+.pass-block--dark .pass-btitle{ color:rgba(245,240,228,0.92); }
+.pass-block--dark .pass-brule{ opacity:.55; }
+/* Červená chýbajúceho poľa musí na čiernej zosvetliť — #B25640 na #050505 je pod
+   čitateľnou hranicou. Rovnaký odtieň, len vyššia svetlosť. */
+.pass-block--dark .pass-missing{ color:#D9705C; }
+.pass-block--dark .pass-missing--optional{ color:rgba(245,240,228,0.34); }
+.pass-block--dark .pass-fixed{ color:${T.onDark}; }
+.pass-block--dark .pass-fixed--empty{ color:rgba(245,240,228,0.34); }
+.pass-block--dark .pass-note{ border-top-color:${T.onDarkBorder}; }
+.pass-block--dark .pass-notetext{ color:rgba(245,240,228,0.62); }
+.pass-block--dark .pass-noteadd{ color:rgba(245,240,228,0.42); }
+.pass-block--dark .pass-noteadd:hover{ color:rgba(245,240,228,0.88); }
 .pass-bhead{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
 .pass-btitle{ display:flex; align-items:center; gap:9px; font-family:'Cinzel',serif; font-weight:700;
   font-size:16.5px; letter-spacing:.12em; text-transform:uppercase; color:#2a1608; margin:0; }
@@ -235,8 +261,13 @@ export function DogPassport({
       )}
 
       <div className="pass-groups">
-      {groups.map(({ group, rows }, i) => (
-        <div key={group.key} className="pass-block">
+      {groups.map(({ group, rows }, i) => {
+        // ČIERNY JE PRÁVE JEDEN BLOK — závet. Podmienka je na `key`, nie na `editPanel`:
+        // panel je technická vlastnosť (edituje sa inde než kvízom) a keby ho zajtra dostala
+        // ďalšia sekcia, sčernela by bez rozhodnutia. Čierna je tu za VÝZNAM, nie za mechaniku.
+        const dark = group.key === 'will';
+        return (
+        <div key={group.key} className={`pass-block${dark ? ' pass-block--dark' : ''}`}>
           <div className="pass-bhead">
             <h5 className="pass-btitle">
               <span className="pass-bnum">{String(i + 1).padStart(2, '0')}</span>
@@ -249,7 +280,7 @@ export function DogPassport({
             {group.editPanel ? (
               <button
                 type="button"
-                className="pk-pill pk-pill--tap pass-edit"
+                className={`pk-pill pk-pill--tap pass-edit${dark ? ' pk-pill--dark' : ''}`}
                 onClick={() => onEditPanel?.(group.editPanel!)}
               >
                 ✎ {tx('pack.pass.edit', 'edit')}
@@ -307,7 +338,8 @@ export function DogPassport({
             tx={tx}
           />
         </div>
-      ))}
+        );
+      })}
       </div>
 
       {/* Druhý rovnaký rad dole — pri dlhom dokumente je scroll späť hore réžia navyše.
@@ -385,7 +417,7 @@ function ShareRow({
 function FixedPassRow({ row, tx }: { row: FixedRow; tx: (k: string, f: string) => string }) {
   return (
     <>
-      <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.inkWarm, whiteSpace: 'nowrap' }}>
+      <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
         {tx(row.i18n, row.labelEN)}
       </dt>
       <dd style={{ margin: 0 }}>
@@ -416,7 +448,7 @@ function PassRow({
     const optional = !!step.noProgress || !!step.optional;
     return (
       <>
-        <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.inkWarm, whiteSpace: 'nowrap' }}>
+        <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
           {tx(step.rowI18n, step.rowEN)}
         </dt>
         <dd style={{ margin: 0 }}>
@@ -446,10 +478,10 @@ function PassRow({
 
   return (
     <>
-      <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: T.inkWarm, whiteSpace: 'nowrap' }}>
+      <dt style={{ fontFamily: FONT_UI, fontSize: 11.5, color: 'var(--pass-lbl)', whiteSpace: 'nowrap' }}>
         {tx(step.rowI18n, step.rowEN)}
       </dt>
-      <dd style={{ margin: 0, fontFamily: FONT_UI, fontSize: 13, color: T.inkStrong, fontWeight: 500 }}>
+      <dd style={{ margin: 0, fontFamily: FONT_UI, fontSize: 13, color: 'var(--pass-val)', fontWeight: 500 }}>
         {renderValue(step, value.value, tx)}
         {trend && (
           <span style={{ fontFamily: FONT_UI, fontSize: 10.5, color: T.growGreen, marginLeft: 6 }}>{trend}</span>
@@ -458,7 +490,7 @@ function PassRow({
         <span
           style={{
             fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: 9.5,
-            color: T.inkFaint, marginLeft: 7, whiteSpace: 'nowrap',
+            color: 'var(--pass-faint)', marginLeft: 7, whiteSpace: 'nowrap',
           }}
         >
           {shortDate(value.recordedAt)}

@@ -118,6 +118,21 @@ export const PACK_BOX = {
     borderRadius: 12,
     boxShadow: '0 1px 3px rgba(122,90,42,0.10), inset 0 1px 0 rgba(255,255,255,0.40)',
   },
+  /** 2b — TMAVÝ PODBLOK: tá istá sekcia, ale čierna. VÝNIMKA Z PAPYRUSOVÉHO LOCKU,
+   *  a to zámerne úzka — jediný dôvod ju siahnuť je VÝZNAM, nie vkus: ZÁVET na doklade
+   *  DOG ID („keby si tu nebol") je jediné miesto, kde sa hovorí o smrti, a papyrus ho
+   *  robil rovnakým riadkom ako obľúbené maškrty (Matej 13.8.2026).
+   *  GEOMETRIA JE ZHODNÁ s úrovňou 2 — 1px zlatý rám, radius 12 — takže v mriežke blokov
+   *  to ostáva SÚRODENEC, len čierny; iný radius alebo iný rám by z toho spravil cudzí
+   *  komponent. Mení sa výplň a inkoust, nič iné.
+   *  Text na ňom: `onDark` / `onDarkDim`, pilulky `.pk-pill--dark`. NEROZŠIRUJ na písacie
+   *  povrchy — vstupy ostávajú `.pf-field--flat` (papyrus), písať sa má do svetla. */
+  subblockDark: {
+    background: `linear-gradient(135deg, #171009 0%, ${PACK_THEME.pageBg} 100%)`,
+    border: `1px solid ${PACK_THEME.cardEdge}`,
+    borderRadius: 12,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.45), inset 0 1px 0 rgba(245,240,228,0.10)',
+  },
   /** 3 — RIADOK: položka zoznamu (člen línie, riadok knihy). Plochá, aby ich desať pod
    *  sebou nerobilo z karty schodisko. */
   row: {

@@ -438,15 +438,27 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
     // len na header hore + nav/toggle dole. maxZoom len pri výbere jedného tripu (offset),
     // nech sa krátka trasa neodzoomuje zbytočne blízko; celé Slovensko sa zmestí bez capu.
     const mobile = typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP;
+    // Mobilný padding drží HORNÝ blok (avatar+search+pilulky ≈ 180px) a dolnú navigáciu (≈ 96px)
+    // — nie symetrických 150/150. Symetria brala 300px z 844px výšky a zároveň hore nezakryla
+    // dosť, takže SR skončilo pod panelom a nad ním svietilo Poľsko.
     const pad = mobile
-      ? { paddingTopLeft: [28, 150] as [number, number], paddingBottomRight: [28, 150] as [number, number] }
+      ? { paddingTopLeft: [24, 186] as [number, number], paddingBottomRight: [24, 96] as [number, number] }
       : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] };
+    // Na portréte fitBounds bez desatinného zoomu nestačí: Leaflet snapuje na celé stupne, takže
+    // buď je SR vpol obrazovky (stupeň nadol), alebo orezané zboku (stupeň nahor) — medzi tým nie
+    // je nič. `zoomSnap = 0` dovolí presnú medzihodnotu, ktorá dostupnú plochu vyplní. Nastavuje sa
+    // LEN na mobile a desktop si necháva default 1, aby ostal jeho `+1` krok nižšie presný.
+    map.options.zoomSnap = mobile ? 0 : 1;
     map.fitBounds(bounds, { ...pad, animate: false, ...(offset ? { maxZoom: 14 } : {}) });
     // Matej 2026-07-23: celokrajinný pohľad bol „moc malý" → o JEDEN stupeň bližšie. DÔLEŽITÉ:
     // zoomovať okolo stredu VIDITEĽNEJ plochy (vpravo od panela, medzi topbarom a navom), nie
     // okolo stredu celého kontajnera — inak sa krajina posunie doľava ZA panel. setZoomAround
     // drží ten pixel fixný, takže po priblížení ostane centrovaná v okne. Len „celé SR".
-    if (!offset) {
+    // ⚠️ LEN DESKTOP (2026-08-14): oboje doladenie vzniklo nad širokým oknom s panelom vľavo.
+    // Na portréte je limitujúci rozmer ŠÍRKA — `+1` stupeň tam SR oreže zľava aj sprava a `panBy`
+    // ho ešte stlačí pod dolnú hranu, takže vrchné dve tretiny obrazovky vyplní Poľsko.
+    // Mobilu stačí čistý fitBounds; rezervu na chrome už drží padding vyššie.
+    if (!offset && !mobile) {
       const size = map.getSize();
       const [pl, pt] = pad.paddingTopLeft;
       const [pr, pb] = pad.paddingBottomRight;
