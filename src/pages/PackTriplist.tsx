@@ -21,7 +21,7 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD } from '@/components/pack/packTheme';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById } from '@/components/pack/tripShared';
-import { closeMyTripEvents } from '@/lib/packStore';
+import { closeMyTripEvents, readLocalTrailMeta } from '@/lib/packStore';
 import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
 import { flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -130,6 +130,10 @@ const CSS = `
    bolo treba preložiť do 18 jazykov a v každom by hrozilo, že sa oreže znova. */
 .tl-block-badge.done-open{background:rgba(20,14,4,0.92);color:#E8B84B;border:1.5px solid ${GOLD};white-space:normal;line-height:1.25;border-radius:9px;text-align:center;padding:4px 8px;}
 .tl-block-badge.solo{background:rgba(20,14,4,0.82);color:rgba(239,230,214,0.72);}
+/* moderácia členom nahodeného výletu — pending je čakanie (tiché), rejected uzavretá vec */
+.tl-block-badge.pending{background:rgba(20,14,4,0.92);color:#E8B84B;border:1px dashed rgba(201,154,63,0.75);}
+.tl-block-badge.rejected{background:rgba(20,14,4,0.92);color:rgba(239,230,214,0.6);border:1px solid rgba(239,230,214,0.28);}
+.tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:9.5px;line-height:1.35;color:rgba(239,230,214,0.55);}
 .tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid rgba(201,154,63,0.55);}
 .tl-block-badge.looking{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#3d1f00;}
 .tl-block-info{padding:9px 11px 11px;}
@@ -214,7 +218,11 @@ const CSS = `
 // #41: mená účastníkov idú z DB (`get_trip_party`) — jediný zdroj. Lokálny `entry.joiners`
 // je rezervované pole pre budúce Slice B (viď triplist.ts), reálne prihlásenia ním nejdú,
 // takže sa z neho meno nikdy neodvodzuje.
-function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boolean, party?: TripParty): string {
+function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boolean, party?: TripParty, mod?: string): string {
+  // Moderácia prebíja VŠETKO ostatné: kým výlet nie je schválený, pack ho nevidí, takže
+  // „Hľadám partiu" by bola nepravda — nikto ho nemá ako nájsť.
+  if (mod === 'pending') return t('pack.triplist.statusPendingReview');
+  if (mod === 'rejected') return t('pack.triplist.statusRejected');
   if (done) {
     // ⚠️ `walked` NEPREPÍNA `openness` (viď komentár pri MY TRIPS nižšie): prejdený výlet ostáva
     // visieť celému packu ako inzerát — aj s dátumom. Samotné „Hotovo" tú pascu zakrylo, majiteľ
@@ -234,7 +242,9 @@ function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boo
   }
   return t('pack.triplist.statusSolo');
 }
-function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
+function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty, mod?: string): string {
+  if (mod === 'pending') return 'pending';
+  if (mod === 'rejected') return 'rejected';
   // prejdený + stále zverejnený = vlastný stav, nie „done" (viď statusLabel) — badge musí
   // vyzerať ako upozornenie, nie ako uzavretá vec
   if (done) return entry.status === 'looking' ? 'done-open' : 'done';
@@ -348,6 +358,12 @@ export default function PackTriplist() {
   const PUBLIC_PER_PAGE = 9;
 
   const walkedSet = useMemo(() => readWalkedIds(), [allTrails, storeEpoch]);
+  // Stav členom nahodeného výletu v moderácii. `readLocalTrailMeta` existovalo od #32, ale
+  // nikde sa nerenderovalo — autor teda videl „Hľadám partiu" na výlete, ktorý pack NEVIDÍ
+  // (RLS pustí cudzí trip až po `approved`), a nemal ako zistiť, že sa čaká na schválenie.
+  // ⚠️ Prázdna mapa NEZNAMENÁ „nič nie je schválené" — znamená „ešte sa nehydratovalo"
+  // (viď packStore.ts). Preto sa značka kreslí LEN pri explicitnom pending/rejected.
+  const trailMeta = useMemo(() => readLocalTrailMeta(), [storeEpoch]);
 
   const realMyTrips = useMemo<MyTripRow[]>(() => {
     return Object.values(triplist)
@@ -617,6 +633,8 @@ export default function PackTriplist() {
                   // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
                   // „Looking", takže o tom ani nevie.
                   const canToggleVis = !placeholder;
+                  // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
+                  const mod = trailMeta[entry.tripId]?.status;
                   return (
                   <div key={entry.tripId} className="tl-mycard">
                     {dleft !== null && dleft >= 0 && (
@@ -625,7 +643,9 @@ export default function PackTriplist() {
                   <div className="pk-glass-block tl-block" onClick={() => navigate(tripPath(trail))}>
                     <div className={`tl-block-cover${trail.photos[0] ? '' : ' nophoto'}`} style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
                       <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
-                      {canToggleVis ? (
+                      {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
+                          prepínať nie je čo, pack ho aj tak nevidí. */}
+                      {canToggleVis && !mod ? (
                         <button
                           type="button"
                           className={`tl-block-badge tap ${statusClass(entry, done, parties[entry.tripId])}`}
@@ -633,11 +653,12 @@ export default function PackTriplist() {
                           onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
                         >{statusLabel(t, entry, done, parties[entry.tripId])}</button>
                       ) : (
-                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(t, entry, done, parties[entry.tripId])}</span>
+                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId], mod)}`}>{statusLabel(t, entry, done, parties[entry.tripId], mod)}</span>
                       )}
                     </div>
                     <div className="tl-block-info">
                       <div className="tl-block-name">{trail.name}</div>
+                      {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
                       <div className="tl-block-foot">
                         {entry.date ? (
                           <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId, entry.date); }}>
