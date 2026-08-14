@@ -69,15 +69,14 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress } from '@/lib/tripPoints';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale, isWaterTrail, tripShareText,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
-  tripPath, tripPathById,
-} from '@/components/pack/tripShared';
+  tripPath, tripPathById, tripText } from '@/components/pack/tripShared';
 import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -1575,6 +1574,7 @@ function TripTagsDropdown({
 
 export default function PackMap() {
   const t = useT();
+  const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // issue #35: `/pack/add/trip` mountuje TÚ ISTÚ stránku ako `/pack/map` — ADD flow je overlay nad
@@ -2757,8 +2757,8 @@ export default function PackMap() {
                   </div>
                 )}
 
-                {dt.desc && <p className="trp-inldet-desc">{dt.desc}</p>}
-                {dt.dogNote && <p className="trp-inldet-desc">🐾 {dt.dogNote}</p>}
+                {tripText(dt, 'desc', lang) && <p className="trp-inldet-desc">{tripText(dt, 'desc', lang)}</p>}
+                {tripText(dt, 'dogNote', lang) && <p className="trp-inldet-desc">🐾 {tripText(dt, 'dogNote', lang)}</p>}
 
                 {(dt as { elev?: number[] }).elev && (
                   <div className="trp-inldet-section">

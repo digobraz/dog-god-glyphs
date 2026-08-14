@@ -23,7 +23,7 @@ import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
@@ -31,8 +31,7 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
-  tripShareText,
-} from '@/components/pack/tripShared';
+  tripShareText, tripText } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -253,6 +252,7 @@ function voteTip(t: ReturnType<typeof useT>, slices: CrowdSlice<string>[]): stri
 
 export default function PackTripArticle() {
   const t = useT();
+  const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   const navigate = useNavigate();
   const { slug, country } = useParams<{ slug: string; country?: string }>();
   const id = usePackIdentity();
@@ -690,8 +690,8 @@ export default function PackTripArticle() {
           </div>
         )}
 
-        {trail.desc && <p className="pta-desc">{trail.desc}</p>}
-        {trail.dogNote && <p className="pta-dognote">🐾 {trail.dogNote}</p>}
+        {tripText(trail, 'desc', lang) && <p className="pta-desc">{tripText(trail, 'desc', lang)}</p>}
+        {tripText(trail, 'dogNote', lang) && <p className="pta-dognote">🐾 {tripText(trail, 'dogNote', lang)}</p>}
 
         {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackMap)
             NAD mapou — nahrádza starú spodnú „Comments" sekciu (zmazaná). walked/onRequestWalk
