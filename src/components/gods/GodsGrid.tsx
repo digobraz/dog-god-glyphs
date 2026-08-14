@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
 import { BrandIcon } from '../pack/BrandIcon';
+import { DEV_FULL } from '@/lib/packFlags';
 import './WhatNextPopup.css';
 
 const GRID_DOGS_URL = `${EDGE_BASE}/get-grid-dogs`;
@@ -2389,8 +2390,13 @@ export function GodsGrid() {
             <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
-        {/* Prepínač WALL tém — experiment, vedľa LOGIN. Klik = ďalšia z WALL_THEMES. */}
-        <button
+        {/* Prepínač WALL tém — experiment, vedľa LOGIN. Klik = ďalšia z WALL_THEMES.
+            ⚠️ LEN PRE FOUNDERA (2026-08-14). Homepage `/` je verejná — toto tlačidlo je nástroj
+            na porovnanie troch variantov, nie funkcia pre návštevníka. Pri feedbacku „vyzerá to
+            ako podvod" by možnosť prepínať vzhľad cudzej stránky dôveryhodnosti nepomohla.
+            Vybraná téma sa aplikuje ďalej pre všetkých (drží ju `theme` vyššie) — skrytý je iba
+            OVLÁDAČ, takže keď sa Matej rozhodne, stačí prepísať default vo `WALL_THEMES`. */}
+        {DEV_FULL && <button
           className="theme-toggle"
           onClick={() => {
             const next = WALL_THEMES[(WALL_THEMES.indexOf(theme) + 1) % WALL_THEMES.length];
@@ -2421,7 +2427,7 @@ export function GodsGrid() {
             </svg>
           )}
           {WALL_THEME_LABEL[theme]}
-        </button>
+        </button>}
 
         {/* LOGIN — round house-with-heart (home = entry/belonging) icon button, top-right corner */}
         <a href="/login" className="nav-login" aria-label={t('nav.login')}>
