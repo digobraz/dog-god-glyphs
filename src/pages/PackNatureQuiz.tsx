@@ -21,7 +21,7 @@
 //
 // Glyfy (5 elementov + 9 úloh) NEEXISTUJÚ — výsledok je zatiaľ textový, miesto pre
 // glyf je pripravené v `ResultHead`.
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { X, ChevronLeft, RotateCcw, Check } from 'lucide-react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -30,10 +30,14 @@ import {
   SPECIAL_KEYS, NATURE_ATTRIBUTION, scoreNature, natureTitleEN,
   type SpecialAnswer, type SpecialKey, type NatureResult,
 } from '@/components/pack/natureQuiz';
-import { appendDogEvents } from '@/lib/dogEvents';
+import { appendDogEvents, type DogEventInput } from '@/lib/dogEvents';
+import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
+const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
+
+interface QuizDog { id: string; dog_name: string | null; cloudinary_main_url: string | null }
 
 const NQ_CSS = `
 .nq-gold{
@@ -75,6 +79,71 @@ const NQ_CSS = `
   font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:500; color:#2a1608;
 }
 .nq-tri.is-on{ border-color:#C99A3F; background:linear-gradient(135deg,rgba(245,199,61,0.22),rgba(230,158,26,0.14)); }
+
+/* ── VIACPSÍ VÝBER: STĹPEC NA PSA, NIE BLOK NA PSA ────────────────────────────
+   Matej 14.8.2026: „chcem zabrániť multiplikovaniu textových možností, chcem verziu
+   aby zostala jedna možnosť ale s multivýberom pre každého psa." Riadok na psa (vzor
+   z DOG ID kvízu) zopakuje aj to, čo sa nemení — pri troch psoch je z 18 otázok stena.
+   Tu text stojí RAZ a pribúdajú len krúžky vpravo. Zvisle sa číta jeden pes, vodorovne
+   sa porovnáva svorka.
+   Povahový kvíz to znesie preto, že každá otázka má práve JEDNU odpoveď na psa —
+   krúžok sa správa ako prepínač. Na polia s viacnásobným výberom (chips v DOG ID kvíze,
+   kde pes má osem povelov + vlastný text) tento vzor NESADNE. */
+/* Hlavička je len tak široká ako stĺpce, ktoré popisuje — nie pás cez celú kartu.
+   Roztiahnutá na plnú šírku z nej robí veľký prázdny biely blok nad možnosťami. */
+.nq-head{
+  position:sticky; top:0; z-index:3;
+  width:fit-content; margin:10px 0 8px auto;
+  display:flex; align-items:flex-end; justify-content:flex-end; gap:10px;
+  padding:6px 2px 8px; background:#FBF5E6; border-radius:10px;
+}
+.nq-hcell{ width:54px; display:flex; flex-direction:column; align-items:center; gap:5px; }
+/* Meno psa = Cinzel Decorative (brand lock), nie Cinzel a nie Grotesk.
+   ⚠️ overflow-wrap:anywhere tu NEPATRÍ — pri 46px stĺpci rozlomil KLEOPATRA na
+   „KLEOPA / TRA" a HEKTHOR na „HEKTH / OR". Meno je jeden riadok; čo sa nezmestí,
+   odreže sa trojbodkou a celé ostáva v atribúte title.
+   ⚠️ ŽIADNY SPÄTNÝ APOSTROF v tomto bloku — je to JS template literal a zhodí build
+   (tsc prejde, padne až Vite). To isté pravidlo ako HUB_CSS v PackDogs.tsx. */
+.nq-hname{
+  font-family:'Cinzel Decorative','Cinzel',serif; font-weight:700; font-size:8.5px;
+  letter-spacing:.02em; text-transform:uppercase; color:#2a1608; text-align:center;
+  line-height:1.1; max-width:62px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.nq-optrow{ display:flex; align-items:center; gap:10px; }
+/* Klik na SAMOTNÚ VETU = tá istá odpoveď pre celú svorku. Nahrádza to checkbox
+   „rovnako pre všetkých" z DOG ID kvízu — tu je prirodzenejší, lebo cieľ je vidieť. */
+.nq-optlbl{
+  flex:1 1 auto; text-align:left; cursor:pointer; padding:13px 15px; border-radius:10px;
+  background:rgba(201,154,63,0.06); border:1px solid rgba(201,154,63,0.45);
+  font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.45; color:#2a1608;
+  transition:border-color .18s, background .18s;
+}
+.nq-optlbl:hover{ border-color:#C99A3F; background:rgba(201,154,63,0.12); }
+.nq-dogs{ display:flex; gap:10px; flex:0 0 auto; }
+/* Nevybraté = odfarbené a stlmené, ale NIE tak, aby to čítalo ako vypnuté;
+   vybraté = plná farba + zlatý prstenec. 46px je nad hranicou 36px na dotyk. */
+.nq-dog{
+  width:54px; height:54px; border-radius:999px; cursor:pointer; padding:0; overflow:hidden;
+  border:2px solid rgba(201,154,63,0.35); background:#EDDCBD;
+  filter:grayscale(1); opacity:.45;
+  transition:opacity .18s, filter .18s, border-color .18s, box-shadow .18s;
+}
+.nq-dog img{ width:100%; height:100%; object-fit:cover; display:block; }
+.nq-dog:hover{ opacity:.8; filter:grayscale(.35); }
+.nq-dog.is-on{
+  opacity:1; filter:none; border-color:#C99A3F; box-shadow:0 0 0 3px rgba(201,154,63,0.22);
+}
+.nq-dogfb{
+  display:grid; place-items:center; width:100%; height:100%;
+  font-family:'Cinzel',serif; font-weight:700; font-size:15px; color:#7a5a2a;
+}
+/* Pod 500px sa veta a dva krúžky do riadku nezmestia — rad ide POD text.
+   Ostáva vpravo, takže hlavička sedí nad krúžkami aj tu. */
+@media (max-width:500px){
+  .nq-optrow{ flex-wrap:wrap; }
+  .nq-dogs{ width:100%; justify-content:flex-end; }
+}
 `;
 
 /* ── malé stavebné prvky (bledý blok podľa locku z /entry) ─────────────────── */
@@ -129,6 +198,102 @@ function Attribution({ tx }: { tx: (k: string, f: string) => string }) {
           </a>
         </>
       ) : null}
+    </p>
+  );
+}
+
+/* ── stĺpce psov ──────────────────────────────────────────────────────────── */
+
+/** Prilepená hlavička: meno + fotka nad každým stĺpcom. Bez nej po tretej otázke
+ *  nevieš, ktorý krúžok je čí — a v časti so zvláštnymi úlohami je 12 riadkov pod sebou. */
+function DogHead({ dogs }: { dogs: QuizDog[] }) {
+  return (
+    <div className="nq-head">
+      {dogs.map((d) => (
+        <div key={d.id} className="nq-hcell">
+          <div className="nq-hname" title={d.dog_name ?? ''}>{(d.dog_name || '?').toUpperCase()}</div>
+          <DogFace dog={d} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Fotka psa v krúžku. Bez fotky ostáva iniciála — prázdny krúžok by v hlavičke
+ *  vyzeral ako chýbajúci stĺpec. */
+function DogFace({ dog, on = true }: { dog: QuizDog; on?: boolean }) {
+  const initial = (dog.dog_name || '?').trim().charAt(0).toUpperCase();
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 34, height: 34, borderRadius: 999, overflow: 'hidden', display: 'block',
+        border: `1.5px solid ${T.border}`, background: T.bg, opacity: on ? 1 : 0.5,
+      }}
+    >
+      {dog.cloudinary_main_url
+        ? <img src={dog.cloudinary_main_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+        : <span className="nq-dogfb" style={{ fontSize: 13 }}>{initial}</span>}
+    </span>
+  );
+}
+
+/**
+ * Jedna možnosť = JEDEN riadok textu + krúžok na psa.
+ *
+ * `onPickAll` (klik na vetu) je zámerne na tom istom prvku ako text: pri viacerých
+ * psoch je „rovnako pre všetkých" najčastejší úkon a nemá zmysel naň robiť ďalší
+ * ovládač. Pri jednom psovi sa krúžky nekreslia vôbec — 18× fotka toho istého psa
+ * nič nehovorí — a riadok sa správa presne ako pôvodné tlačidlo možnosti.
+ */
+function OptionRow({
+  label, dogs, solo, isOn, onPickDog, onPickAll,
+}: {
+  label: string;
+  dogs: QuizDog[];
+  solo: boolean;
+  isOn: (dogId: string) => boolean;
+  onPickDog: (dogId: string) => void;
+  onPickAll: () => void;
+}) {
+  if (solo) {
+    return (
+      <button type="button" className={`nq-opt${isOn(dogs[0]?.id ?? '') ? ' is-on' : ''}`} onClick={onPickAll}>
+        {label}
+      </button>
+    );
+  }
+  return (
+    <div className="nq-optrow">
+      <button type="button" className="nq-optlbl" onClick={onPickAll}>{label}</button>
+      <div className="nq-dogs">
+        {dogs.map((d) => (
+          <button
+            key={d.id}
+            type="button"
+            className={`nq-dog${isOn(d.id) ? ' is-on' : ''}`}
+            aria-label={`${d.dog_name ?? ''}: ${label}`}
+            aria-pressed={isOn(d.id)}
+            onClick={() => onPickDog(d.id)}
+          >
+            {d.cloudinary_main_url
+              ? <img src={d.cloudinary_main_url} alt="" />
+              : <span className="nq-dogfb">{(d.dog_name || '?').trim().charAt(0).toUpperCase()}</span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Krúžok a veta robia dve rôzne veci — bez jednej vety to nikto neuhádne. */
+function PackHint({ tx }: { tx: (k: string, f: string) => string }) {
+  return (
+    <p style={{
+      fontFamily: FONT_UI, fontSize: 11.5, lineHeight: 1.5, color: T.inkWarm,
+      margin: '10px 0 0',
+    }}>
+      {tx('pack.nature.pickHint', 'Tap a dog to answer for them — tap the sentence to answer for the whole pack.')}
     </p>
   );
 }
@@ -328,57 +493,142 @@ export default function PackNatureQuiz() {
   const t = useT();
   const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
 
-  const dogId = params.get('dog');
+  // `?dog=` je FILTER, nie podmienka (rovnako ako v DOG ID kvíze). Predtým to bol
+  // jediný zdroj cieľového psa — a `PackDogs` ho pri viacerých psoch zámerne
+  // neposielal, takže `dogId` bolo `null`, zápis sa ticho preskočil a človek prešiel
+  // 18 otázok do prázdna. Odteraz sa svorka načíta a parameter ju len zúži.
+  const onlyDogId = params.get('dog');
 
+  const [dogs, setDogs] = useState<QuizDog[] | null>(null);
   const [phase, setPhase] = useState<Phase>('intro');
   const [idx, setIdx] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [specials, setSpecials] = useState<Partial<Record<SpecialKey, SpecialAnswer>>>({});
+  /** dogId → qid → optionId */
+  const [answers, setAnswers] = useState<Record<string, Record<string, string>>>({});
+  /** dogId → zvláštna úloha → yes/sometimes/no */
+  const [specials, setSpecials] = useState<Record<string, Partial<Record<SpecialKey, SpecialAnswer>>>>({});
   const [saved, setSaved] = useState(false);
+  // Zrkadlo stavu pre kliky, ktoré prídu skôr, než React stihne prekresliť.
+  const answersRef = useRef<Record<string, Record<string, string>>>({});
+  const specialsRef = useRef<Record<string, Partial<Record<SpecialKey, SpecialAnswer>>>>({});
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth?.user?.id;
+      if (!uid) { if (alive) setDogs([]); return; }
+      let q = supabase
+        .from('dogs')
+        .select('id, dog_name, cloudinary_main_url')
+        .eq('user_id', uid)
+        .eq('payment_status', 'paid')
+        .order('created_at', { ascending: true });
+      if (onlyDogId) q = q.eq('id', onlyDogId);
+      const { data } = await q;
+      if (alive) setDogs((data as QuizDog[]) ?? []);
+    })();
+    return () => { alive = false; };
+  }, [onlyDogId]);
+
+  const list = useMemo(() => dogs ?? [], [dogs]);
+  const solo = list.length === 1;
 
   const total = NATURE_QUESTIONS.length + SPECIAL_KEYS.length;
-  const done = Object.keys(answers).length + Object.keys(specials).length;
+  // Otázka je hotová, až keď na ňu odpovedali VŠETCI psy — inak by prúžok sľuboval
+  // hotovo pri svorke, kde je vyplnený jeden pes z troch.
+  const done = useMemo(() => {
+    if (list.length === 0) return 0;
+    const core = NATURE_QUESTIONS.filter((q) => list.every((d) => answers[d.id]?.[q.id])).length;
+    const spec = SPECIAL_KEYS.filter((k) => list.every((d) => specials[d.id]?.[k])).length;
+    return core + spec;
+  }, [list, answers, specials]);
 
-  const result = useMemo(
-    () => (phase === 'result' ? scoreNature(answers, specials) : null),
-    [phase, answers, specials],
-  );
+  const allSpecialsDone = list.length > 0
+    && list.every((d) => SPECIAL_KEYS.every((k) => specials[d.id]?.[k]));
 
-  const finish = async (r: NatureResult) => {
-    // Výsledok ide na psiu kartu ako polia — nie do druhého profilu. Bez psa
-    // v URL sa kvíz dá prejsť aj tak (verejný náhľad), len sa nič nezapíše.
-    if (!dogId || saved) return;
+  /** Jeden výsledok na psa — `scoreNature` je čistá funkcia, takže sa len zavolá N×. */
+  const results = useMemo(() => {
+    if (phase !== 'result') return [];
+    return list.map((d) => ({ dog: d, r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}) }));
+  }, [phase, list, answers, specials]);
+
+  const finish = async (rs: { dog: QuizDog; r: NatureResult }[]) => {
+    if (saved || rs.length === 0) return;
+    const inputs: DogEventInput[] = [];
+    for (const { dog, r } of rs) {
+      inputs.push({ dogId: dog.id, field: 'nature.element', value: r.element, source: 'quiz' });
+      inputs.push({ dogId: dog.id, field: 'nature.role', value: r.role, source: 'quiz' });
+      inputs.push({ dogId: dog.id, field: 'nature.specials', value: r.specials, source: 'quiz' });
+    }
     try {
-      await appendDogEvents([
-        { dogId, field: 'nature.element', value: r.element, source: 'quiz' },
-        { dogId, field: 'nature.role', value: r.role, source: 'quiz' },
-        { dogId, field: 'nature.specials', value: r.specials, source: 'quiz' },
-      ]);
+      await appendDogEvents(inputs);
       setSaved(true);
     } catch {
       /* zápis je bonus — výsledok sa ukáže aj keď zlyhá */
     }
   };
 
-  const pick = (qid: string, oid: string) => {
-    setAnswers((p) => ({ ...p, [qid]: oid }));
-    if (idx < NATURE_QUESTIONS.length - 1) setTimeout(() => setIdx((i) => i + 1), 180);
-    else setTimeout(() => setPhase('special'), 180);
+  /** `dogId === null` = celá svorka (klik na vetu). Inak jeden pes (klik na krúžok). */
+  const pick = (qid: string, oid: string, dogId: string | null) => {
+    const targets = dogId ? [dogId] : list.map((d) => d.id);
+    // ⚠️ Číta sa z REFU, nie zo `answers`. Dva kliky v jednom ticku (Hekthor hneď po
+    // Kleopatre) by zo stavu čítali tú istú zastaranú hodnotu a druhý by prvý prepísal —
+    // presne to sa dialo pri prvom teste: klik na prvého psa sa stratil.
+    const next = { ...answersRef.current };
+    for (const id of targets) next[id] = { ...next[id], [qid]: oid };
+    answersRef.current = next;
+    setAnswers(next);
+    // Ďalej sa ide, až keď má odpoveď KAŽDÝ pes — pri svorke by posun po prvom
+    // kliku odniesol obrazovku spod ruky, kým sú ostatné krúžky prázdne.
+    const q = NATURE_QUESTIONS[idx];
+    if (!q || q.id !== qid) return;
+    if (!list.every((d) => next[d.id]?.[qid])) return;
+    setTimeout(() => {
+      if (idx < NATURE_QUESTIONS.length - 1) setIdx((i) => i + 1);
+      else setPhase('special');
+    }, 220);
   };
 
-  const pickSpecial = (k: SpecialKey, a: SpecialAnswer) => {
-    const next = { ...specials, [k]: a };
+  const pickSpecial = (k: SpecialKey, a: SpecialAnswer, dogId: string | null) => {
+    const targets = dogId ? [dogId] : list.map((d) => d.id);
+    const next = { ...specialsRef.current };   // ten istý dôvod ako v `pick`
+    for (const id of targets) next[id] = { ...next[id], [k]: a };
+    specialsRef.current = next;
     setSpecials(next);
-    if (Object.keys(next).length === SPECIAL_KEYS.length) {
-      const r = scoreNature(answers, next);
+    const complete = list.length > 0
+      && list.every((d) => SPECIAL_KEYS.every((sk) => next[d.id]?.[sk]));
+    if (complete) {
+      const rs = list.map((d) => ({ dog: d, r: scoreNature(answers[d.id] ?? {}, next[d.id] ?? {}) }));
       setPhase('result');
-      void finish(r);
+      void finish(rs);
     }
   };
 
   const restart = () => {
+    answersRef.current = {}; specialsRef.current = {};
     setAnswers({}); setSpecials({}); setIdx(0); setSaved(false); setPhase('intro');
   };
+
+  // Bez psa sa nedá nič zapísať. Predtým to bola TICHÁ strata celého priebehu —
+  // preto je to odteraz vidieť hneď na začiatku, nie až (ne)uložením na konci.
+  if (dogs !== null && list.length === 0) {
+    return (
+      <Shell onClose={() => navigate('/pack')}>
+        <Card>
+          <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Two questions in one')}</Eyebrow>
+          <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, margin: 0 }}>
+            {tx('pack.nature.noDogs', 'This quiz writes its result onto a dog’s card, and there is no dog on your account yet.')}
+          </p>
+          <div style={{ marginTop: 16, textAlign: 'center' }}>
+            <button type="button" className="nq-gold" onClick={() => navigate('/pack/dogs')}>
+              {tx('pack.nature.noDogsCta', 'Back to my dogs')}
+            </button>
+          </div>
+        </Card>
+        <Attribution tx={tx} />
+      </Shell>
+    );
+  }
 
   /* — intro — */
   if (phase === 'intro') {
@@ -427,7 +677,6 @@ export default function PackNatureQuiz() {
   /* — 14 jadrových otázok — */
   if (phase === 'core') {
     const q = NATURE_QUESTIONS[idx];
-    const picked = answers[q.id];
     return (
       <Shell onClose={() => navigate('/pack')}>
         <Card>
@@ -454,16 +703,20 @@ export default function PackNatureQuiz() {
             lineHeight: 1.3, color: T.inkStrong,
           }}>{tx(q.i18n, q.labelEN)}</h2>
 
-          <div style={{ display: 'grid', gap: 9, marginTop: 16 }}>
+          {!solo && <PackHint tx={tx} />}
+          {!solo && <DogHead dogs={list} />}
+
+          <div style={{ display: 'grid', gap: 9, marginTop: solo ? 16 : 0 }}>
             {q.options.map((o) => (
-              <button
+              <OptionRow
                 key={o.id}
-                type="button"
-                className={`nq-opt${picked === o.id ? ' is-on' : ''}`}
-                onClick={() => pick(q.id, o.id)}
-              >
-                {tx(o.i18n, o.labelEN)}
-              </button>
+                label={tx(o.i18n, o.labelEN)}
+                dogs={list}
+                solo={solo}
+                isOn={(dogId) => answers[dogId]?.[q.id] === o.id}
+                onPickDog={(dogId) => pick(q.id, o.id, dogId)}
+                onPickAll={() => pick(q.id, o.id, null)}
+              />
             ))}
           </div>
         </Card>
@@ -482,27 +735,47 @@ export default function PackNatureQuiz() {
             {tx('pack.nature.special.body',
               'These four roles sit on top of the main one. Most dogs carry none — that is normal.')}
           </p>
-          <div style={{ display: 'grid', gap: 14 }}>
+          {!solo && <PackHint tx={tx} />}
+          {!solo && <DogHead dogs={list} />}
+          <div style={{ display: 'grid', gap: 14, marginTop: solo ? 0 : 2 }}>
             {SPECIAL_KEYS.map((k) => {
               const s = NATURE_SPECIALS[k];
-              const cur = specials[k];
               return (
                 <div key={k}>
                   <div style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.45, color: T.inkStrong, marginBottom: 8 }}>
                     {tx(s.qI18n, s.questionEN)}
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {(['yes', 'sometimes', 'no'] as SpecialAnswer[]).map((a) => (
-                      <button
-                        key={a}
-                        type="button"
-                        className={`nq-tri${cur === a ? ' is-on' : ''}`}
-                        onClick={() => pickSpecial(k, a)}
-                      >
-                        {tx(`pack.nature.ans.${a}`, a === 'yes' ? 'Yes' : a === 'no' ? 'No' : 'Sometimes')}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Pri svorke idú áno/občas/nie POD SEBA ako v jadre kvízu — tri
+                      vodorovné tlačidlá plus krúžky by sa do riadku nezmestili.
+                      Sólo si ponecháva pôvodný vodorovný trojlístok. */}
+                  {solo ? (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {(['yes', 'sometimes', 'no'] as SpecialAnswer[]).map((a) => (
+                        <button
+                          key={a}
+                          type="button"
+                          className={`nq-tri${specials[list[0]?.id]?.[k] === a ? ' is-on' : ''}`}
+                          onClick={() => pickSpecial(k, a, null)}
+                        >
+                          {tx(`pack.nature.ans.${a}`, a === 'yes' ? 'Yes' : a === 'no' ? 'No' : 'Sometimes')}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gap: 7 }}>
+                      {(['yes', 'sometimes', 'no'] as SpecialAnswer[]).map((a) => (
+                        <OptionRow
+                          key={a}
+                          label={tx(`pack.nature.ans.${a}`, a === 'yes' ? 'Yes' : a === 'no' ? 'No' : 'Sometimes')}
+                          dogs={list}
+                          solo={false}
+                          isOn={(dogId) => specials[dogId]?.[k] === a}
+                          onPickDog={(dogId) => pickSpecial(k, a, dogId)}
+                          onPickAll={() => pickSpecial(k, a, null)}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -511,8 +784,12 @@ export default function PackNatureQuiz() {
             <button
               type="button"
               className="nq-gold"
-              disabled={Object.keys(specials).length < SPECIAL_KEYS.length}
-              onClick={() => { const r = scoreNature(answers, specials); setPhase('result'); void finish(r); }}
+              disabled={!allSpecialsDone}
+              onClick={() => {
+                const rs = list.map((d) => ({ dog: d, r: scoreNature(answers[d.id] ?? {}, specials[d.id] ?? {}) }));
+                setPhase('result');
+                void finish(rs);
+              }}
             >
               {tx('pack.nature.special.cta', 'Show the result')}
             </button>
@@ -523,14 +800,32 @@ export default function PackNatureQuiz() {
     );
   }
 
-  /* — výsledok — */
-  if (!result) return null;
+  /* — výsledok: jeden na psa — */
+  if (results.length === 0) return null;
   return (
     <Shell onClose={() => navigate('/pack')}>
-      <Card>
-        <ResultHead r={result} tx={tx} />
-      </Card>
-      <ResultBody r={result} tx={tx} />
+      {results.map(({ dog, r }, i) => (
+        <div key={dog.id} style={{ marginTop: i === 0 ? 0 : 26 }}>
+          {/* Meno psa nad výsledkom sa pri svorke pridáva zámerne — bez neho sú
+              dve karty pod sebou nerozlíšiteľné. Sólo ho nepotrebuje. */}
+          {!solo && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+              marginBottom: 10,
+            }}>
+              <DogFace dog={dog} />
+              <span style={{
+                fontFamily: NAME_FONT, fontWeight: 700, fontSize: 15, letterSpacing: '.03em',
+                textTransform: 'uppercase', color: T.onDark,
+              }}>{(dog.dog_name || '').toUpperCase()}</span>
+            </div>
+          )}
+          <Card>
+            <ResultHead r={r} tx={tx} />
+          </Card>
+          <ResultBody r={r} tx={tx} />
+        </div>
+      ))}
       <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button type="button" className="nq-ghost" onClick={restart}>
           <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
@@ -539,9 +834,12 @@ export default function PackNatureQuiz() {
           {tx('pack.nature.result.done', 'Done')}
         </button>
       </div>
-      {dogId && saved && (
-        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkFaint, marginTop: 12, textAlign: 'center' }}>
-          <Check className="h-3 w-3 inline" /> {tx('pack.nature.result.saved', 'Saved to your dog’s card')}
+      {saved && (
+        <p style={{ fontFamily: FONT_UI, fontSize: 11, color: 'rgba(245,240,228,0.55)', marginTop: 12, textAlign: 'center' }}>
+          <Check className="h-3 w-3 inline" />{' '}
+          {solo
+            ? tx('pack.nature.result.saved', 'Saved to your dog’s card')
+            : tx('pack.nature.result.savedAll', 'Saved to every dog’s card')}
         </p>
       )}
       <Attribution tx={tx} />
