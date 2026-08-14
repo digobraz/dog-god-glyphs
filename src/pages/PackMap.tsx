@@ -390,8 +390,17 @@ const pointPicto = (p: MapPoint): string =>
 const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.water ? '--water' : '');
 
 // bod = pilulka (km, vodná plocha bez km nesie NÁZOV — zadanie 2.3) alebo bodka (17px, len
-// piktogram) podľa vrstvy. iconSize/iconAnchor zámerne neuvedené — centrovanie cez CSS
-// (left:-50%/top:-100%|-50%), rovnaký vzor ako pôvodný pillIcon/waterIcon.
+// piktogram) podľa vrstvy. iconSize/iconAnchor zámerne neuvedené — centrovanie robí CSS
+// `transform: translate(...)`.
+// ⚠️ 2026-08-14: predtým tu bolo `left:-50%; top:-100%|-50%` a ZVISLÁ zložka NIKDY NEFUNGOVALA.
+// Percentuálny `top` sa počíta z výšky rodiča, ale `.trp-pinwrap` má `height:auto!important`
+// → hodnota je neurčitá a ticho padne na 0. Vodorovný `left:-50%` fungoval (šírka je
+// shrink-to-fit), takže to vyzeralo zapojené. Dôsledok: každá značka sedela o polovicu svojej
+// výšky NIŽŠIE, než kam patrí (bodka ~8 px, bublina až 21 px ≈ 2 km pri z9), a pilulka visela
+// pod bodom namiesto nad ním. Odhalilo sa to až pri zhlukovaní, keď kolízna matematika
+// počítala s vycentrovaním, ktoré sa nedialo. `transform` percentá berie z VLASTNEJ veľkosti
+// prvku, takže na rodičovi nezávisí. Pri pridávaní :hover so `scale` nezabudni translate
+// zopakovať — `transform` sa neskladá, prepisuje sa.
 const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
@@ -407,10 +416,34 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
   });
 };
 // zhluk (zadanie 2.4) — veľkosť bubliny rastie s počtom bodov v nej.
+const clusterSize = (n: number) => (n < 5 ? 30 : n < 12 ? 36 : 42);
 const clusterIcon = (n: number) => {
-  const s = n < 5 ? 30 : n < 12 ? 36 : 42;
+  const s = clusterSize(n);
   return L.divIcon({ className: 'trp-pinwrap', html: `<div class="trp-cluster" style="width:${s}px;height:${s}px;font-size:${n < 12 ? 12 : 13}px">${n}</div>` });
 };
+
+// ── geometria značiek v PIXELOCH (2026-08-14) ────────────────────────────────
+// Prečo to tu vôbec je: zhlukovanie pôvodne sypalo body do mriežky s pevnou bunkou
+// (48/58 px) a bublinu kládlo do ŤAŽISKA bunky. Ťažisko ale nie je stred bunky —
+// dve susedné bunky vedia mať ťažiská pár pixelov od seba, takže „3 / 8 / 6 / 6"
+// okolo Bratislavy ležali na sebe. Bunka navyše o priemere bubliny (30–42 px)
+// nevedela nič, takže veľkosť sa do rozostupu nikdy nepremietla.
+// Riešenie: zhlukuj podľa VZDIALENOSTI a rozostup odvoď z veľkosti oboch bublín.
+//
+// ⚠️ Rozmery sa počítajú ROVNICOU z fontu a paddingu, nemerajú sa po vykreslení —
+// meranie po nastavení je kruh (poloha → veľkosť → poloha), tá istá pasca ako
+// pri psom bloku na /pack/dogs.
+const MARK_GAP = 6;        // vzduch medzi dvoma bublinami
+const PILL_GAP = 5;        // vzduch medzi bublinou a km pilulkou
+const NUDGE_MAX = 30;      // koľko px smie bublina ustúpiť pilulke (viac = už klame o polohe)
+// .trp-pill--journey: Space Grotesk 600 @11.5px ≈ 6.6 px/znak + piktogram 11 + gap 6
+// + padding 18 + rám 3. Výška: riadok ~14 + padding 10 + rám 3.
+// (overené na 9 pilulkách v deve: rovnica dá 71,0–77,6 px, realita 70,4–77,9 px)
+const PILL_CHAR_PX = 6.6;
+const PILL_PAD_PX = 38;
+const PILL_H = 30;
+// bodka (.trp-dot) je 17 px + rám; bublina rastie s počtom
+const markSize = (n: number) => (n === 1 ? 19 : clusterSize(n));
 
 // reprezentatívny bod vodnej plochy = ťažisko nakreslených bodov (pri 1 bode = ten bod).
 const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
@@ -603,27 +636,118 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     const bounds = map.getBounds().pad(0.35);
     const vis = points.filter((p) => bounds.contains([p.lat, p.lon]));
     if (tier === 2) return vis.map((p) => ({ kind: 'single', p }));
-    const cell = tier === 0 ? 58 : 48;
-    const buckets = new Map<string, MapPoint[]>();
+
     // Diaľkové sa NEZHLUKUJÚ, kým nesú km (Matej 2026-07-27) — majú vyzerať dôležito a vzácne,
     // a pohltenie do bubliny s počtom by ich z mapy zmazalo. Mimo toho pásma (celá Európa) sú to
     // už len bodky a zhlukujú sa ako všetko ostatné — inak sa na seba nakopia.
-    const solo: MapMarkerItem[] = vis.filter((p) => pointIsPill(p, zoom)).map((p) => ({ kind: 'single', p }));
-    vis.filter((p) => !pointIsPill(p, zoom)).forEach((p) => {
+    const pillPts = vis.filter((p) => pointIsPill(p, zoom));
+    const rest = vis.filter((p) => !pointIsPill(p, zoom));
+
+    // 1) hrubé zhluky — greedy podľa vzdialenosti v pixeloch (stabilné poradie zľava dole,
+    //    nech ten istý výrez dá vždy ten istý výsledok a bubliny pri pane neposkakujú).
+    type Cl = { x: number; y: number; pts: MapPoint[] };
+    const seedR = tier === 0 ? 34 : 28;
+    const proj = rest
+      .map((p) => { const pt = map.latLngToContainerPoint([p.lat, p.lon]); return { p, x: pt.x, y: pt.y }; })
+      .sort((a, b) => a.x - b.x || a.y - b.y);
+    const taken = new Array<boolean>(proj.length).fill(false);
+    const cls: Cl[] = [];
+    for (let i = 0; i < proj.length; i++) {
+      if (taken[i]) continue;
+      taken[i] = true;
+      const group = [proj[i]];
+      for (let j = i + 1; j < proj.length; j++) {
+        if (taken[j]) continue;
+        if (Math.hypot(proj[j].x - proj[i].x, proj[j].y - proj[i].y) <= seedR) { taken[j] = true; group.push(proj[j]); }
+      }
+      cls.push({
+        x: group.reduce((s, g) => s + g.x, 0) / group.length,
+        y: group.reduce((s, g) => s + g.y, 0) / group.length,
+        pts: group.map((g) => g.p),
+      });
+    }
+
+    // pilulky sú prekážky so známym obdĺžnikom — ustúpenie sa počíta voči nim
+    // (.trp-pill má top:-100% → sedí NAD bodom, preto je stred obdĺžnika o PILL_H/2 vyššie)
+    const pillBoxes = pillPts.map((p) => {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
-      const key = `${Math.floor(pt.x / cell)}:${Math.floor(pt.y / cell)}`;
-      let bucket = buckets.get(key);
-      if (!bucket) { bucket = []; buckets.set(key, bucket); }
-      bucket.push(p);
+      const w = `${p.tr.km} km`.length * PILL_CHAR_PX + PILL_PAD_PX;
+      return { cx: pt.x, cy: pt.y - PILL_H / 2, hw: w / 2 + PILL_GAP, hh: PILL_H / 2 + PILL_GAP };
     });
-    return solo.concat(Array.from(buckets.values()).map((g): MapMarkerItem => (g.length === 1
-      ? { kind: 'single', p: g[0] }
-      : {
-          kind: 'cluster',
-          lat: g.reduce((s, p) => s + p.lat, 0) / g.length,
-          lon: g.reduce((s, p) => s + p.lon, 0) / g.length,
-          count: g.length,
-        })));
+    // Bublina je súhrn, nie konkrétna trasa — posunúť ju o pár pixelov je prijateľné.
+    // Pilulka je konkrétny výlet a NEHÝBE SA. Bodka (zhluk s 1 bodom) tiež nie — je to reálna
+    // poloha jedného výletu, radšej prekryv než lož o tom, kde ten výlet je.
+    const dodgeOne = (c: { x: number; y: number; pts: MapPoint[] }) => {
+      if (c.pts.length === 1) return;
+      const r = markSize(c.pts.length) / 2;
+      pillBoxes.forEach((b) => {
+        const dx = c.x - b.cx, dy = c.y - b.cy;
+        const ox = b.hw + r - Math.abs(dx), oy = b.hh + r - Math.abs(dy);
+        if (ox <= 0 || oy <= 0) return;
+        // ustúp po kratšej osi — najmenší pohyb, ktorý prekryv rozviaže
+        if (oy <= ox) c.y += (dy >= 0 ? 1 : -1) * Math.min(oy, NUDGE_MAX);
+        else c.x += (dx >= 0 ? 1 : -1) * Math.min(ox, NUDGE_MAX);
+      });
+    };
+
+    // 2) usadenie — kým sa dve bubliny dotýkajú, zlúč ich. Rozostup vychádza z PRIEMEROV
+    //    oboch, takže veľká bublina si urobí viac miesta než malá. Guard je poistka proti
+    //    cyklu, nie očakávaný stav (n je rádovo desiatky).
+    //    ⚠️ Zlúčená bublina hneď ustúpi pilulkám — inak posledné zlúčenie posunie ťažisko
+    //    späť pod pilulku a už to nikto neprepočíta (merané: takto prežil jeden prekryv
+    //    `pill"113 km" × cluster"3" = 10px` aj po troch kolách ustupovania).
+    //    Cyklus nehrozí: každé zlúčenie zmenší počet bublín o jednu.
+    const settle = () => {
+      for (let guard = 0; guard < 40; guard++) {
+        let hit = false;
+        for (let i = 0; i < cls.length && !hit; i++) {
+          for (let j = i + 1; j < cls.length; j++) {
+            const need = markSize(cls[i].pts.length) / 2 + markSize(cls[j].pts.length) / 2 + MARK_GAP;
+            if (Math.hypot(cls[i].x - cls[j].x, cls[i].y - cls[j].y) < need) {
+              const ni = cls[i].pts.length, nj = cls[j].pts.length;
+              cls[i] = {
+                x: (cls[i].x * ni + cls[j].x * nj) / (ni + nj),
+                y: (cls[i].y * ni + cls[j].y * nj) / (ni + nj),
+                pts: cls[i].pts.concat(cls[j].pts),
+              };
+              cls.splice(j, 1);
+              dodgeOne(cls[i]);
+              hit = true;
+              break;
+            }
+          }
+        }
+        if (!hit) return;
+      }
+    };
+    settle();
+
+    // 3) ustúpiť km pilulkám aj bublinám, ktoré zlučovanie nespojilo (ležia ďalej než MARK_GAP,
+    //    ale pilulka medzi nimi zavadzia). Ustúpenie vie dve bubliny priblížiť → settle() to
+    //    dorieši zlúčením a to si samo znova ustúpi (viď dodgeOne v settle vyššie).
+    cls.forEach(dodgeOne);
+    settle();
+
+    // 4) bublinu, ktorej stred je na obrazovke, vtiahni celú dovnútra — inak ju okraj preseká
+    //    a z „13" ostane „3" (na mobile najviditeľnejšie). Bublinu so stredom MIMO obrazovky
+    //    neťaháme: bola by to lož o polohe a na okraji by vznikla kopa.
+    const size = map.getSize();
+    cls.forEach((c) => {
+      if (c.pts.length === 1) return;
+      if (c.x < 0 || c.x > size.x || c.y < 0 || c.y > size.y) return;
+      const r = markSize(c.pts.length) / 2 + 3;
+      c.x = Math.min(Math.max(c.x, r), size.x - r);
+      c.y = Math.min(Math.max(c.y, r), size.y - r);
+    });
+    cls.forEach(dodgeOne);
+    settle();
+
+    const solo: MapMarkerItem[] = pillPts.map((p) => ({ kind: 'single', p }));
+    return solo.concat(cls.map((c): MapMarkerItem => {
+      if (c.pts.length === 1) return { kind: 'single', p: c.pts[0] };
+      const ll = map.containerPointToLatLng([c.x, c.y]);
+      return { kind: 'cluster', lat: ll.lat, lon: ll.lng, count: c.pts.length };
+    }));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- moveTick je zámerný trigger prepočtu (pan), nie dáta sama
   }, [points, tier, zoom, map, moveTick]);
 
@@ -641,6 +765,10 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
           key={it.p.id}
           position={[it.p.lat, it.p.lon]}
           icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom)}
+          // pilulka nesie konkrétny údaj (km / názov plochy) a nehýbe sa, tak nech je aspoň
+          // navrchu — prekryv s bublinou sa síce rieši ustúpením v bode 3, ale keď sa ustúpiť
+          // nedá (NUDGE_MAX), nesmie skončiť tak, že číslo prekrojí polovica pilulky.
+          zIndexOffset={pointIsPill(it.p, zoom) ? 1000 : 0}
           eventHandlers={{
             mouseover: () => onHover(it.p.id),
             mouseout: () => onHover(null),
@@ -1092,7 +1220,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* Markery na mape nesú ČÍSLA (km) v 10.5px — Cinzel serifka sa tu zlievala, Grotesk 600 má
    pri tejto veľkosti výrazne lepšiu čitateľnosť. 2026-07-27: štýl A z prototypu (tmavá glass +
    zlatý lem) — plná zlatá sa šetrí len na hot/vybraté (a len pre bežný, nie journey/water typ). */
-.trp-pill{position:relative;left:-50%;top:-100%;display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
+.trp-pill{position:relative;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
 .trp-pill.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;border-color:rgba(250,244,236,0.55);box-shadow:0 0 0 3px rgba(245,199,61,0.3),0 4px 12px rgba(0,0,0,0.6);}
 /* diaľkové (journey) — 2026-07-27: #E01B22 → stlmená bordová (Matej "stlmiť odtiene"); voda
    ostáva jasne modrá (.trp-pill--water nižšie), lebo stlmenie by oslabilo novú asociáciu. */
@@ -1109,7 +1237,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-pill--water{background:${WATER_COLOR};color:#fff;border-color:rgba(255,255,255,0.55);}
 .trp-pill--water.hot{background:${WATER_COLOR};border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
-.trp-dot{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
+.trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
 .trp-dot.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.55);}
 .trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}
 .trp-dot--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;}
@@ -1118,11 +1246,11 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* vodná bodka — zachováva pôvodný .trp-waterdot hover-pop (jediný CSS :hover efekt v pôvodnom
    kóde), teraz na zdieľanej .trp-dot základni. */
 .trp-dot--water{background:${WATER_COLOR};border-color:rgba(255,255,255,0.55);}
-.trp-dot--water:hover{transform:scale(1.12);}
+.trp-dot--water:hover{transform:translate(-50%,-50%) scale(1.12);}
 .trp-dot--water.hot{background:${WATER_COLOR};border-color:#fff;}
 /* zhluk (zadanie 2.4) — rovnaký glass+zlatý lem, veľkosť rastie s počtom bodov (clusterIcon). */
-.trp-cluster{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
-.trp-cluster:hover{transform:scale(1.09);}
+.trp-cluster{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
+.trp-cluster:hover{transform:translate(-50%,-50%) scale(1.09);}
 /* Farebná legenda mapy (.trp-legend / .trp-legrow / .trp-legdot) ZRUŠENÁ 2026-08-03 —
    Matej: „a folný blok s legendami daj preč celkom". Zaberala 126×93 px vpravo dole a na
    mobile kolidovala s atribúciou aj spodnou navigáciou. Ak by farby niekedy bolo treba
@@ -1130,7 +1258,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* bod 2 (iterácia 17): live "{km} km" label pri konci kreslenej trasy (ADD flow draw) —
    rovnaká centrovacia technika ako .trp-pill (left:-50%/top:-100%), o kúsok vyššie (-10px
    extra gap), nech nesedí priamo na poslednom bode trasy. */
-.trp-drawlabel{position:relative;left:-50%;top:calc(-100% - 10px);background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
+.trp-drawlabel{position:relative;transform:translate(-50%,calc(-100% - 10px));background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
 ${DIFF_MARK_CSS}
 ${TRAIL_LINE_CSS}
 
