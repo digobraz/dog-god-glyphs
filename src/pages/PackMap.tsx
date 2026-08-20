@@ -1241,13 +1241,19 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    viac priestoru, plný zlatý prsteň (bežné pilulky majú lem na 55 % — zlatý RING je vyhradený
    práve im) a väčší trojuholník náročnosti. */
 .trp-pill--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;font-size:11.5px;padding:5px 10px 5px 8px;gap:6px;border-width:1.5px;border-color:${GOLD};box-shadow:0 0 0 2px rgba(201,154,63,0.20),0 3px 10px rgba(0,0,0,0.42);}
-.trp-pill--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;box-shadow:0 0 0 4px rgba(245,199,61,0.45),0 4px 14px rgba(0,0,0,0.6);}
+/* ⚠️ FARBU PÍSMA MUSIA OBE VÝNIMKY VRÁTIŤ SPÄŤ NA BIELU. Trieda .trp-pill.hot nastavuje tmavý
+   inkoust (patrí k bielej výplni), ale magistrála a vodná plocha si pod myšou necháva
+   SVOJU tmavú výplň — a keďže color v ich .hot vetve nebol, zdedil sa tmavý a text
+   na bordovej/modrej zmizol (Matej 2026-08-20: „pri prejdení myšou na magistrálu sa text
+   začierni a nie je dobre vidno"). Rovnaká pasca čaká každú ďalšiu farebnú výnimku:
+   keď preberáš background, prevezmi aj color. */
+.trp-pill--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;border-color:#fff;box-shadow:0 0 0 4px rgba(179,107,255,0.45),0 4px 14px rgba(0,0,0,0.6);}
 .trp-pill--journey .trp-diffmark--triangle{border-bottom-color:#fff;border-left-width:5.5px;border-right-width:5.5px;border-bottom-width:10px;}
 .trp-pill--journey .trp-diffmark--circle,.trp-pill--journey .trp-diffmark--square{background:#fff;}
 /* vodná plocha — bez stlmenia (zadanie 2.5). Väčšina plôch nemá km → pilulka nesie NÁZOV
    (viď pointIcon), vlnky vo vnútri = rovnaká krivka ako pôvodný .trp-waterdot. */
 .trp-pill--water{background:${WATER_COLOR};color:#fff;border-color:rgba(255,255,255,0.55);}
-.trp-pill--water.hot{background:${WATER_COLOR};border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
+.trp-pill--water.hot{background:${WATER_COLOR};color:#fff;border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
 .trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(122,47,191,0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
