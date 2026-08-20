@@ -43,6 +43,12 @@ import {
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { TripComments } from '@/components/pack/trip/TripComments';
+// ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
+// Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
+import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
+import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
+import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
+import { intlLocale } from '@/i18n/bcp47';
 import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — karta tvorcu výletu. Tá istá trojica ako v PackMap (inline detail), lebo
@@ -271,6 +277,8 @@ function voteTip(t: ReturnType<typeof useT>, slices: CrowdSlice<string>[]): stri
 export default function PackTripArticle() {
   const t = useT();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
+  const mapNotes = useMapNotes(true);
+  const dateLocale = intlLocale(lang);
   const navigate = useNavigate();
   const { slug, country } = useParams<{ slug: string; country?: string }>();
   const id = usePackIdentity();
@@ -611,6 +619,8 @@ export default function PackTripArticle() {
       <style>{POINTS_PILL_CSS}</style>
       <style>{GLASS_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
+      <style>{MAP_NOTES_SECTION_CSS}</style>
+      <style>{MAP_NOTES_CSS}</style>
       {/* §16 (2026-07-23): heroglyf textúra ZA obsahom — bez nej glass panel nemá čo rozmazať
           (predtým holá čierna = „všetko na čiernej"). Rovnaké pozadie ako triplist/pack. */}
       <HieroglyphBg />
@@ -716,6 +726,11 @@ export default function PackTripArticle() {
         {tripText(trail, 'desc', lang) && <p className="pta-desc">{tripText(trail, 'desc', lang)}</p>}
         {tripText(trail, 'dogNote', lang) && <p className="pta-dognote">🐾 {tripText(trail, 'dogNote', lang)}</p>}
 
+        {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
+            informácia „než vyrazíš", nie rozhovor. Pridávanie odtiaľto pribudne
+            vo vlne B; zatiaľ sa zapisuje gestom priamo v mape. */}
+        <MapNotesSection trail={trail} notes={mapNotes.notes} locale={dateLocale} />
+
         {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackMap)
             NAD mapou — nahrádza starú spodnú „Comments" sekciu (zmazaná). walked/onRequestWalk
             napojené na tunajší walked-popup: keď trip nie je walked, CTA otvorí „you did it" popup. */}
@@ -794,6 +809,7 @@ export default function PackTripArticle() {
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
                   Atribúcia je podmienka licencie ODbL, preto ide s vrstvou vždy v páre. */}
               <PoiLayer />
+              <MapNotesLayer notes={mapNotes.notes} locale={dateLocale} />
             </MapContainer>
           ) : (
             <div className="pta-mapempty">Route map coming soon</div>

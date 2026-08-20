@@ -70,6 +70,7 @@ import { ToastAction } from '@/components/ui/toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress } from '@/lib/tripPoints';
 import { useT, useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
@@ -104,6 +105,16 @@ import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pac
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
 import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripEntry';
+// ZÁPISY DO MAPY (2026-08-20) — parkovisko/výstraha/poznámka od členov + datasetové
+// body (`customPoi`), ktoré appka doteraz nikde nekreslila.
+// Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
+import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
+import { AddMapNotePin, AddMapNotePanel, MapNoteHint, ADD_NOTE_CSS, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
+import { useLongPressPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
+import { MapNoteFab, MAP_NOTE_FAB_CSS } from '@/components/pack/mapnotes/MapNoteFab';
+import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
+import type { NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
@@ -1803,6 +1814,44 @@ export default function PackMap() {
   // formulár samotný (AddEvent) si drží vlastný interný state.
   const [addEventFlow, setAddEventFlow] = useState<'own' | 'tip' | null>(null);
   const [addError, setAddError] = useState('');           // chyba pri ukladaní (napr. plný localStorage)
+
+  // ── ZÁPISY DO MAPY (2026-08-20) ────────────────────────────────────────────
+  // `mapInstance` je STATE, nie ref: `useLongPressPoint` musí prihlásiť listenery
+  // až keď mapa reálne existuje, a ref zmenu nevyrenderuje. `leafletMapRef` ostáva
+  // nedotknutý — používajú ho GeometryPicker/AddEvent imperatívne.
+  const dateLocale = intlLocale(lang);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const mapNotes = useMapNotes(true);
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; kind: NoteKind; pinnedSlug: string | null } | null>(null);
+  const [noteTooFar, setNoteTooFar] = useState(false);
+  const [noteHint, setNoteHint] = useState(false);
+
+  // Nápoveda sa ukáže RAZ, a až keď je mapa dosť priblížená na to, aby gesto
+  // vôbec fungovalo — inak by radila niečo, čo v tej chvíli nejde spustiť.
+  // ⚠️ Wizard je parkovaný na po launchi, takže toto je jediné miesto, kde sa
+  // človek o písaní po mape dozvie.
+  useEffect(() => {
+    if (!mapInstance || hintSeen()) return;
+    const check = () => { if (mapInstance.getZoom() >= MIN_ZOOM_FOR_NOTE) setNoteHint(true); };
+    check();
+    mapInstance.on('zoomend', check);
+    return () => { mapInstance.off('zoomend', check); };
+  }, [mapInstance]);
+
+  const addBusy = addEntryOpen || addFlow !== null || addEventFlow !== null;
+  useLongPressPoint(mapInstance, !noteDraft && !addBusy, {
+    onPoint: (lat, lng) => {
+      setNoteTooFar(false);
+      setNoteHint(false);
+      markHintSeen();
+      // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce
+      // spraví geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
+      // s konkrétnym výletom na mysli.
+      setNoteDraft({ lat, lon: lng, kind: 'parking', pinnedSlug: nearestTrailId(lat, lng, 'parking', allTrails) });
+    },
+    onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
+  });
+
   // bod 4 (iterácia 14, zachované): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku
   // vrátane mapy — mobileDrawing dočasne SCHOVÁ formulár (CSS display, NIE unmount — inak by
   // AddTripPlan/AddTripLog stratili svoj interný state pri každom "choď na mapu"), nech je mapa
@@ -2732,6 +2781,10 @@ export default function PackMap() {
   return (
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
       <style>{CSS}</style>
+      <style>{MAP_NOTES_CSS}</style>
+      <style>{LONG_PRESS_CSS}</style>
+      <style>{ADD_NOTE_CSS}</style>
+      <style>{MAP_NOTE_FAB_CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{POINTS_PILL_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
@@ -3341,6 +3394,7 @@ export default function PackMap() {
               <SaberScaleWatcher onChange={setSaberScale} />
               <MapRefBridge onReady={(map) => {
                 leafletMapRef.current = map;
+                setMapInstance(map);
                 if (pendingFlyRef.current) { map.flyTo(pendingFlyRef.current, 11, { duration: 1.2 }); pendingFlyRef.current = null; }
               }} />
               {/* krok 9 (zadanie §2 kontraktu GeometryPicker): DrawClickCatcher tu už netreba pre
@@ -3509,7 +3563,40 @@ export default function PackMap() {
                   eventHandlers={{ click: () => setSelectedEventId(ev.id) }}
                 />
               ))}
+              {/* ZÁPISY DO MAPY — nad trip markermi (sú to konkrétne miesta, nie súhrn).
+                  DOGYPT čistý vizuál ich skrýva rovnako ako ostatné značky s textom. */}
+              {!isCleanMode && (
+                <MapNotesLayer
+                  notes={mapNotes.notes}
+                  onVote={(id, v) => { void mapNotes.vote(id, v); }}
+                  onDelete={(id) => { void mapNotes.remove(id); }}
+                  locale={dateLocale}
+                />
+              )}
+              {noteDraft && (
+                <AddMapNotePin
+                  lat={noteDraft.lat}
+                  lon={noteDraft.lon}
+                  kind={noteDraft.kind}
+                  onMove={(lat, lon) => setNoteDraft((d) => (d ? { ...d, lat, lon } : d))}
+                />
+              )}
             </MapContainer>
+
+            {/* Tlačidlo „+" s prstencom, ktorý sa uzavrie priblížením (Matej 2026-08-20).
+                Je vidieť stále — aj nehotové — aby človek vedel, že sa dá odomknúť. */}
+            {!isCleanMode && (
+              <MapNoteFab
+                map={mapInstance}
+                hidden={!!noteDraft || addBusy}
+                onPlace={(lat, lon) => {
+                  setNoteHint(false);
+                  markHintSeen();
+                  setNoteDraft({ lat, lon, kind: 'parking', pinnedSlug: nearestTrailId(lat, lon, 'parking', allTrails) });
+                }}
+                onLocked={() => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); }}
+              />
+            )}
 
             {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
                 viď komentár pri .trp-legend v CSS. */}
@@ -3655,6 +3742,25 @@ export default function PackMap() {
       {/* ── KOMUNITNÉ modaly / dashboard (design plany/pack-community-features-design.md) ── */}
       {addEntryOpen && (
         <AddTripEntry onPick={pickAddFlow} onClose={closeAddEntry} />
+      )}
+
+      {/* ZÁPISY DO MAPY — panel žije MIMO <MapContainer> (formulár nie je vrstva mapy),
+          ťahateľná značka je vnútri. Viď hlavičku AddMapNote.tsx. */}
+      {noteDraft && (
+        <AddMapNotePanel
+          lat={noteDraft.lat}
+          lon={noteDraft.lon}
+          pinnedSlug={noteDraft.pinnedSlug}
+          pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
+          onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
+          onCancel={() => setNoteDraft(null)}
+        />
+      )}
+      {noteHint && !noteDraft && (
+        <MapNoteHint onDismiss={() => { setNoteHint(false); markHintSeen(); }} />
+      )}
+      {noteTooFar && (
+        <div className="mna-tip pk-glass" role="status">{t('pack.mapNotes.tooFar')}</div>
       )}
       {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by
           odmena za trasu A vyskočila v popupe trasy B. */}
