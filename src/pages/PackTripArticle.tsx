@@ -16,7 +16,7 @@ import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí 
 // dlaždice kaskádujú dole ako bloky (Matej 2026-07-22 „mapa sa vykresľuje zle"). PackMap ho
 // importuje, ale pri PRIAMOM otvorení článku (deep-link / ⤢ expand) PackMap nie je mountnutý.
 import { mapyTiles } from '@/lib/env';
-import { placeIcon } from '@/components/geo/trailIcons';
+import { tripPillIcon } from '@/components/geo/trailIcons';
 import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
@@ -80,6 +80,24 @@ const TAG_EMOJI: Record<string, string> = {
 // ešte doťahujú a posúvajú layout, takže dlaždice sa napozicujú podľa zastaralej/nulovej veľkosti
 // (Matej 2026-07-22: „mapa sa vykresľuje zle" — dva odsadené útržky). Fix = invalidateSize až keď
 // sa layout ustáli: rAF + oneskorený tik + ResizeObserver na kontajner (chytí aj neskorý reflow).
+// ZÁBER MAPY SA POČÍTA Z TRASY, nie z pevného zoomu (Matej 2026-08-20: „zaruby bukova je
+// nejaka divna a zle nevidno v screene trasu"). Predtým tu bolo `center = stred poľa bodov`
+// + `zoom={13}` natvrdo — pri trase, ktorá je dlhšia alebo inak tvarovaná než tá, na ktorej
+// sa to kedysi nastavilo, časť stopy jednoducho vypadla z výrezu. Stred poľa bodov navyše NIE
+// JE stred trasy: je to bod v polovici ZOZNAMU, čo pri nerovnomerne hustej stope sedí inde.
+// `fitBounds` s odsadením drží celú trasu vnútri vždy; `maxZoom` bráni tomu, aby sa krátky
+// výlet priblížil tak, že z mapy ostane textúra bez orientačných bodov.
+function FitRoute({ path }: { path: [number, number][] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (path.length < 2) return;
+    // Hore je odsadenie VÄČŠIE: na prvom bode trasy stojí pilulka s km a tá rastie NAHOR
+    // (`translate(-50%,-100%)`). So symetrickým odsadením ju horná hrana mapy orezala.
+    map.fitBounds(path, { paddingTopLeft: [28, 48], paddingBottomRight: [28, 28], maxZoom: 15 });
+  }, [map, path]);
+  return null;
+}
+
 function InvalidateSizeOnMount() {
   const map = useMap();
   useEffect(() => {
@@ -723,6 +741,9 @@ export default function PackTripArticle() {
             >
               <TileLayer url={mapyTiles('outdoor')} />
               <InvalidateSizeOnMount />
+              {/* `center`/`zoom` vyššie sú len počiatočné — skutočný záber dá FitRoute. Ostávajú
+                  kvôli jedinému bodu (vodné plochy), kde sa niet čo zmestiť. */}
+              <FitRoute path={trail.path} />
               {/* FARBA TRASY = FIALOVÝ MEČ, ROVNAKO AKO NA MAPE (Matej 2026-08-20:
                   „ak je blogovy clanok tak tam moze byt fialova, lebo bude vzdy iba jedna").
                   Predtým tu bol čierno-zlatý casing, takže tá istá trasa vyzerala na mape
@@ -758,7 +779,18 @@ export default function PackTripArticle() {
                   />
                 ))}
               </>)}
-              <Marker position={trail.path[0]} icon={placeIcon('walk', true)} />
+              {/* Začiatok trasy nesie ÚDAJ (km, resp. názov pri vodnej ploche), nie packu —
+                  Matej 2026-08-20: „daj preč tú packu a nechaj tam ten pils s km radšej".
+                  Rovnaký tvar, aký má výlet na `/pack/map`, takže dva povrchy hovoria rovnako. */}
+              <Marker
+                position={trail.path[0]}
+                icon={tripPillIcon({
+                  km: trail.km,
+                  diff: trail.diff,
+                  label: trail.name,
+                  water: isWaterTrail(trail),
+                })}
+              />
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
                   Atribúcia je podmienka licencie ODbL, preto ide s vrstvou vždy v páre. */}
               <PoiLayer />

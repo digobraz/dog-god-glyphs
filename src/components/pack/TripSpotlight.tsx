@@ -21,7 +21,7 @@ import createGlobe from 'cobe';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, pluralKey } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { trailCountry } from '@/lib/countryGeo';
@@ -284,11 +284,6 @@ function daysFromNow(dateStr: string, nowMs: number): number {
  * ⚠️ Nie je to „posledná číslica 2–4": podľa CLDR ide 22 do `other`, teda „22 krajín".
  * Angličtina má len dva tvary, preto tam Few = Many.
  */
-function pluralKey(n: number): 'One' | 'Few' | 'Many' {
-  if (n === 1) return 'One';
-  return n >= 2 && n <= 4 ? 'Few' : 'Many';
-}
-
 /** `2026-08-22` → `22. 8.` Surový ISO dátum vedľa odpočtu vyzerá ako debug výpis. */
 function shortDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00');

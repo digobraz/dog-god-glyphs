@@ -16,7 +16,7 @@ import { DEV_FULL } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, pluralKey } from '@/components/pack/tripShared';
 import { profileLevelFor, readVotes } from '@/components/pack/packCommunity';
 import {
   useProfile,
@@ -685,7 +685,7 @@ export default function PackProfile() {
                     {pilgrim.level}
                   </span>
                   <span style={{ fontFamily: FONT_UI, fontSize: 13, color: T.onDarkDim }}>
-                    {t('pack.map.mstats', { n: pilgrim.count, km: String(pilgrim.km) })}
+                    {t('pack.map.mstats' + pluralKey(pilgrim.count), { n: pilgrim.count, km: String(pilgrim.km) })}
                   </span>
                 </span>
                 {/* Text pri šípke — bez neho riadok nepovie, kam vedie. */}

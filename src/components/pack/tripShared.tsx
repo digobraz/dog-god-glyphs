@@ -68,10 +68,38 @@ export const GOLD_ICON_FILTER =
 // (voda bez SUP aktivity — Bled dostal len 'explore' pri migrácii 2026-07-29, keď ešte nemal
 // nakreslenú trasu, a predtým prepadával cez isWaterTrail ako bežný hike). Jedno miesto,
 // používa sa všade (predtým lokálna kópia len v PackMap.tsx).
+// ⚠️ 2026-08-20 — SAMOTNÝ ŠTÍTOK `Lake` NESTAČI. Predtým stačil a robil z každej pešej trasy,
+// ktorá ide okolo jazera, VODNÚ PLOCHU: Záruby 3, Budmerice, Seealpsee a Havrania skala tak na
+// mape dostali modrú pilulku s názvom namiesto km a ich trasa sa NEVYKRESLILA VÔBEC
+// (`PackMap` vodné plochy z kreslenia čiar zámerne vylučuje). Vidno ju bolo až v článku, kde
+// sa kreslí bez tejto podmienky. Matej 2026-08-20: „Záruby 3 sú označené na modro a na mape
+// nie je vidno trasa! až po rozkliknutí na blog je vidno trasa".
+//
+// Rozhodujúce je Matejovo pôvodné pravidlo hore: vodná plocha sa označuje ako ÚZEMIE, teda
+// KLIKOM, nie kreslením. Výlet s nakreslenou stopou preto vodná plocha NIE JE — štítok `Lake`
+// na ňom znamená len „ide sa popri jazere". Výnimka ostáva presne tá, ktorú Matej vymenoval:
+// paddleboard (splav/SUP) SA kresliť smie a vodou zostáva aj so stopou.
+// Kontrola po zmene: 8 skutočných plôch (0 bodov) ostalo vodou, 4 pešie trasy sa vrátili medzi trasy.
 const WATER_TAGS = new Set(['lake', 'water']);
-export const isWaterTrail = (tr: { acts?: string[]; tags?: string[] }): boolean =>
-  !tr.acts?.includes('journey') &&
-  (!!tr.acts?.includes('paddleboard') || !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase())));
+export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unknown[] }): boolean => {
+  if (tr.acts?.includes('journey')) return false;
+  if (tr.acts?.includes('paddleboard')) return true;
+  const hasRoute = (tr.path?.length ?? 0) > 1;
+  return !hasRoute && !!tr.tags?.some((tag) => WATER_TAGS.has(tag.toLowerCase()));
+};
+
+// SLOVENSKÉ SKLOŇOVANIE POČTU — 1 výlet · 2–4 výlety · 5+ výletov.
+// Prečo tu a nie v každom komponente zvlášť: kópia tejto funkcie žila v `TripSpotlight.tsx`
+// a mapa ju nemala vôbec, takže sa na nej písalo „1 výletov" (Matej 2026-08-20).
+// Používa sa ako SUFIX kľúča: `t('kluc' + pluralKey(n))` → `klucOne|Few|Many`.
+// Jazyky, ktoré tri tvary nemajú (EN), majú Few a Many rovnaké — netreba pre ne vetvu v kóde.
+// ⚠️ Kľúče musia existovať vo VŠETKÝCH troch tvaroch, inak sa pri konkrétnom počte zobrazí
+// holý kľúč. Jazyky bez vlastného prekladu padajú na EN, čo je správne aj pre CS (rovnaké
+// pravidlá ako SK, ale vlastné texty zatiaľ nemá).
+export function pluralKey(n: number): 'One' | 'Few' | 'Many' {
+  if (n === 1) return 'One';
+  return n >= 2 && n <= 4 ? 'Few' : 'Many';
+}
 
 export const diffMarkShape = (diff: string): 'circle' | 'square' | 'triangle' =>
   diff === 'Easy' ? 'circle' : (diff === 'Hard' || diff === 'Odyssey') ? 'triangle' : 'square';
@@ -141,6 +169,15 @@ export const TRAIL_SABER_LAYERS = [
   { key: 'light', color: TRAIL_LINE.light, weight: 4, opacity: 1 },
   { key: 'core', color: TRAIL_LINE.core, weight: 1.8, opacity: 0.97 },
 ] as const;
+
+// POKOJNÁ TRASA JE PRIEHĽADNÁ, SVIETI AŽ POD MYŠOU (Matej 2026-08-20: „trasy nebudú tak žiariť,
+// svetelný meč bude žiariť len pri kliknutí alebo prejdení myšou"). Násobí sa LEN priehľadnosť,
+// nie farby ani hrúbky — meč tak ostáva ten istý predmet, len stlmený, a pri rozsvietení
+// nepreskočí do iného tvaru.
+// Vedľajší efekt, ktorý ruší staršie pravidlo: turistické značenie je pod trasami vidno TRVALE,
+// takže „myš na čiare → trasa vybledne" (Matej 2026-07-31) stratilo dôvod a je odstránené.
+// Rovnaké číslo si berie mapa aj GeometryPicker — inak by tá istá trasa mala dva pokojné stavy.
+export const SABER_REST_OPACITY = 0.42;
 
 // PackMap si `TRAIL_LINE_CSS` vlieva do svojho <style> bloku, ale meč kreslí aj ADD TRIP
 // (GeometryPicker), ktorý žije na vlastnej route — bez tejto poistky by mu dosvit ticho chýbal.

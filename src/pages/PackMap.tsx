@@ -73,7 +73,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale, isWaterTrail, tripShareText,
+  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText } from '@/components/pack/tripShared';
@@ -768,7 +768,15 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
           // pilulka nesie konkrétny údaj (km / názov plochy) a nehýbe sa, tak nech je aspoň
           // navrchu — prekryv s bublinou sa síce rieši ustúpením v bode 3, ale keď sa ustúpiť
           // nedá (NUDGE_MAX), nesmie skončiť tak, že číslo prekrojí polovica pilulky.
-          zIndexOffset={pointIsPill(it.p, zoom) ? 1000 : 0}
+          // ⚠️ 2026-08-20 — VYBRANÁ/PODMYŠOU IDE NAD VŠETKO OSTATNÉ (Matej: „vždy musí byť
+          // navrchu číslo s pils trasy ktorú označím"). Bez toho ju prekryl ktorýkoľvek sused,
+          // ktorý má väčšiu zemepisnú šírku — Leaflet radí markery podľa Y súradnice, takže
+          // poradie určuje NÁHODA polohy, nie dôležitosť. Zhoda s čiarou: tá ide dopredu cez
+          // `bringToFront()` v tej istej situácii.
+          zIndexOffset={
+            (hoverId === it.p.id || inlineDetailId === it.p.id) ? 100000
+              : pointIsPill(it.p, zoom) ? 1000 : 0
+          }
           eventHandlers={{
             mouseover: () => onHover(it.p.id),
             mouseout: () => onHover(null),
@@ -1221,7 +1229,11 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    pri tejto veľkosti výrazne lepšiu čitateľnosť. 2026-07-27: štýl A z prototypu (tmavá glass +
    zlatý lem) — plná zlatá sa šetrí len na hot/vybraté (a len pre bežný, nie journey/water typ). */
 .trp-pill{position:relative;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
-.trp-pill.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;border-color:rgba(250,244,236,0.55);box-shadow:0 0 0 3px rgba(245,199,61,0.3),0 4px 12px rgba(0,0,0,0.6);}
+/* ⚠️ 2026-08-20 — POD MYŠOU JE PILULKA BIELA, nie zlatá (Matej: „pri prejdení myšou na
+   náročnosť/alebo trasu sa pill s km zmení na bielu nie žltú"). Zlatá na mape ostáva
+   len tam, kde nesie brand (lem), nie ako signál stavu — ten dnes nesie rozsvietený meč.
+   Prsteň je fialový, nech je pilulka viditeľne spojená s trasou, ktorá sa zároveň rozsvieti. */
+.trp-pill.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);color:#1c160c;border-color:rgba(122,47,191,0.55);box-shadow:0 0 0 3px rgba(179,107,255,0.35),0 4px 12px rgba(0,0,0,0.5);}
 /* diaľkové (journey) — 2026-07-27: #E01B22 → stlmená bordová (Matej "stlmiť odtiene"); voda
    ostáva jasne modrá (.trp-pill--water nižšie), lebo stlmenie by oslabilo novú asociáciu. */
 /* Matej 2026-07-27: „ten piktogram by sme mohli zväčšiť — nech vyzerá dôležito, vzácne, teraz je
@@ -1238,7 +1250,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-pill--water.hot{background:${WATER_COLOR};border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
 .trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
-.trp-dot.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.55);}
+.trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(122,47,191,0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
 .trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}
 .trp-dot--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;}
 .trp-dot--journey .trp-diffmark--triangle{border-bottom-color:#fff;}
@@ -2470,7 +2482,7 @@ export default function PackMap() {
               pilulke. Po zjednotení (5. 8.) to platí aj na PC. */}
           <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>
         </span>
-        <span className="trp-mstats">{t('pack.map.mstats', { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
+        <span className="trp-mstats">{t('pack.map.mstats' + pluralKey(walkedIds.size), { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
       </span>
     </button>
   );
@@ -2698,7 +2710,7 @@ export default function PackMap() {
                 type="button"
                 className="trp-bigcard-author trp-authorbtn"
                 onClick={(e) => { e.stopPropagation(); setCreatorTrail(tr); }}
-              >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians', { n: others })}` : ''}</button>
+              >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(others), { n: others })}` : ''}</button>
             </div>
           </div>
           {/* bod 3 (Matej 2026-07-22): pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2818,7 +2830,7 @@ export default function PackMap() {
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
                         onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
-                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians', { n: dtAgg.walkedCount - FOUNDER_WALKERS })}` : ''}</button>
+                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.walkedCount - FOUNDER_WALKERS), { n: dtAgg.walkedCount - FOUNDER_WALKERS })}` : ''}</button>
                     </div>
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2900,7 +2912,7 @@ export default function PackMap() {
                       konštatovanie — drží sa v zhode s PackTripArticle.tsx. */}
                   {dtAgg.walkedCount === 0
                     ? <h4>{t('pack.map.beFirstToWalk')}</h4>
-                    : <h4>{dtAgg.walkedCount === 1 ? t('pack.map.walkedByOne', { n: dtAgg.walkedCount }) : t('pack.map.walkedByMany', { n: dtAgg.walkedCount })}</h4>}
+                    : <h4>{t('pack.map.walkedBy' + pluralKey(dtAgg.walkedCount), { n: dtAgg.walkedCount })}</h4>}
                 </div>
                 {/* §14 zadania (2026-07-23): komentová sekcia nahrádza staré "Message owner" /
                     "Open trip group" placeholdery — reviews (paw rating + voliteľný text) + advice.
@@ -3347,8 +3359,13 @@ export default function PackMap() {
                 // v PackTripArticle (tam sa stlmí vybraná trasa pri dotyku mapy).
                 const selected = inlineDetailId === tr.id;
                 const lineHover = lineHoverId === tr.id;
-                const hot = selected || (hoverId === tr.id && !lineHover);
-                const dim = lineHover ? 0.3 : 1;
+                // ⚠️ 2026-08-20 OBRÁTENÉ. Predtým: hover NA ČIARE trasu STLMIL (`dim = 0.3`),
+                // aby bolo pod ňou vidno turistické značenie (Matej 31. 7.). Odvtedy je pokojná
+                // trasa priehľadná stále, takže značenie vidno aj bez toho — a stlmenie pod myšou
+                // pôsobilo ako chyba: ideš na trasu a ona zmizne. Teraz je hover na čiare
+                // rovnocenný s hoverom zo zoznamu aj s výberom: všetky tri ju ROZSVIETIA.
+                const hot = selected || hoverId === tr.id || lineHover;
+                const dim = 1;
                 const handlers = {
                   mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
                   mouseout: () => { setHoverId(null); setLineHoverId(null); },
@@ -3392,71 +3409,51 @@ export default function PackMap() {
                     </Fragment>
                   );
                 }
-                if (!hot) {
-                  // issue #49 (Matej 2026-07-31, vybral z porovnania `plany/farba-trasy.html`):
-                  // pokojná trasa = FIALOVÝ „svetelný meč" — štyri vrstvy na tých istých bodoch
-                  // (tmavý okraj → sýta s dosvitom → svetlá → biele jadro), tokeny v tripShared.
-                  // Farba čiary je odteraz VLASTNÁ os; náročnosť nesú markery/pilulky (DIFF_COLOR),
-                  // ktoré ostali nedotknuté. Hot/vybraný stav je stále čierno-zlatý (brand) nižšie.
-                  // Dosvit len od z12 hore: dole je čiara aj tak stenčená na ~polovicu a 77 paths
-                  // s SVG filtrom je zbytočná záťaž na mobile.
-                  return (
-                    <Fragment key={tr.id}>
-                      {TRAIL_SABER_LAYERS.map((ly) => (
-                        <Polyline
-                          key={ly.key}
-                          positions={tr.path}
-                          // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
-                          // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
-                          // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj
-                          // v GeometryPickeri funguje). Dosvit preto nasadzujeme priamo na SVG
-                          // element. Inline ref beží pri každom renderi, takže prepnutie podľa
-                          // zoomu netreba riešiť remountom vrstvy.
-                          ref={(layer) => {
-                            const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
-                            if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && saberScale >= 0.7);
-                          }}
-                          pathOptions={{
-                            color: ly.color,
-                            weight: Math.max(0.8, ly.weight * saberScale),
-                            opacity: ly.opacity * dim,
-                            lineCap: 'round',
-                            lineJoin: 'round',
-                            // dosvit (trieda vyššie cez ref) beží až od z12 — nižšie je čiara aj
-                            // tak stenčená a 77 paths s SVG filtrom je na mobile zbytočná záťaž.
-                            // Pri vyblednutí sa stlmí sám: drop-shadow polopriehľadnej čiary je
-                            // tiež polopriehľadný.
-                          }}
-                          eventHandlers={handlers}
-                        />
-                      ))}
-                    </Fragment>
-                  );
-                }
+                // issue #49 (Matej 2026-07-31, vybral z porovnania `plany/farba-trasy.html`):
+                // trasa = FIALOVÝ „svetelný meč" — štyri vrstvy na tých istých bodoch (tmavý
+                // okraj → sýta s dosvitom → svetlá → biele jadro), tokeny v tripShared.
+                // Farba čiary je VLASTNÁ os; náročnosť nesú markery/pilulky (DIFF_COLOR).
+                //
+                // ⚠️ 2026-08-20 — MEČ MÁ DVA STAVY, nie dve rôzne čiary (Matej: „trasy nebudú tak
+                // žiariť, svetelný meč bude žiariť len pri kliknutí alebo prejdení myšou").
+                // V POKOJI: tie isté štyri vrstvy, len priehľadnejšie (`SABER_REST_OPACITY`)
+                //           a BEZ dosvitu. Mapa so 77 trasami tak prestala svietiť celá naraz.
+                // POD MYŠOU / VYBRANÁ: plná sýtosť + dosvit — teda presne dnešný vzhľad.
+                // Zlatá z ČIARY tým odišla: keď svieti len tá, na ktorú sa pozeráš, druhá farba
+                // na rozlíšenie netreba. Zlatú nesie ďalej pilulka (a tá je pod myšou BIELA).
+                const alpha = hot ? 1 : SABER_REST_OPACITY;
                 return (
                   <Fragment key={tr.id}>
-                    {/* vybraná trasa: casing aj jadro blednú SPOLU (dim), inak by čierny casing
-                        ostal nepriehľadný sám a značenie by aj tak nebolo vidno */}
-                    {/* ⚠️ `bringToFront()` — bez neho vybraná trasa NIE JE navrchu. SVG nepozná
-                        z-index, kreslí sa v poradí, v akom prvky ležia v DOM, a to je poradie
-                        `allTrails`. Trasa, ktorá je v datasete NESKÔR, teda prekreslí zlatú
-                        zhora a z „vybranej" ostane pár kúskov medzi cudzími čiarami. Vidno to
-                        len tam, kde sa trasy prekrývajú — Záruby 1/2/3 idú na ten istý vrchol
-                        a zdieľajú záverečný úsek (Matej 2026-08-20: „ak je ich tam viac treba
-                        ju lepšie označiť"). Casing ide dopredu prvý, jadro druhé, nech ostanú
-                        v správnom poradí voči sebe. */}
-                    <Polyline
-                      positions={tr.path}
-                      ref={(layer) => { (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.(); }}
-                      pathOptions={{ color: '#0A0A0A', weight: 8, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
-                      eventHandlers={handlers}
-                    />
-                    <Polyline
-                      positions={tr.path}
-                      ref={(layer) => { (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.(); }}
-                      pathOptions={{ color: '#F5C73D', weight: 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
-                      eventHandlers={handlers}
-                    />
+                    {TRAIL_SABER_LAYERS.map((ly) => (
+                      <Polyline
+                        key={ly.key}
+                        positions={tr.path}
+                        // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
+                        // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
+                        // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj
+                        // v GeometryPickeri funguje). Dosvit preto nasadzujeme priamo na SVG
+                        // element. Inline ref beží pri každom renderi, takže prepnutie podľa
+                        // zoomu ani podľa stavu netreba riešiť remountom vrstvy.
+                        // `bringToFront` pri rozsvietení: SVG nepozná z-index a kreslí v poradí
+                        // datasetu, takže trasa, ktorá je v dátach neskôr, by rozsvietenú
+                        // prekreslila zhora (Záruby 1/2/3 zdieľajú záverečný úsek).
+                        ref={(layer) => {
+                          const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
+                          if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && hot && saberScale >= 0.7);
+                          if (hot) (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.();
+                        }}
+                        pathOptions={{
+                          color: ly.color,
+                          weight: Math.max(0.8, ly.weight * saberScale),
+                          opacity: ly.opacity * alpha * dim,
+                          lineCap: 'round',
+                          lineJoin: 'round',
+                          // dosvit (trieda vyššie cez ref) beží až od z12 — nižšie je čiara aj
+                          // tak stenčená a 77 paths s SVG filtrom je na mobile zbytočná záťaž.
+                        }}
+                        eventHandlers={handlers}
+                      />
+                    ))}
                   </Fragment>
                 );
               })}
