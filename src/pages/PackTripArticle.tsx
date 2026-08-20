@@ -31,7 +31,7 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText } from '@/components/pack/tripShared';
+  tripShareText, tripText, TRAIL_SABER_LAYERS, ensureTrailLineCss } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -268,6 +268,11 @@ export default function PackTripArticle() {
   useEffect(() => {
     if (renamedTo) navigate(`/pack/map/svk/${renamedTo}`, { replace: true });
   }, [renamedTo, navigate]);
+  // Dosvit fialového meča žije v `TRAIL_LINE_CSS`, ktorý si PackMap vlieva do vlastného
+  // <style>. Článok je vlastná routa, takže bez tohto by mu trieda `trp-saber-glow`
+  // ticho nič nerobila. Idempotentné — štýl sa vloží raz na dokument.
+  useEffect(() => { ensureTrailLineCss(); }, []);
+
   // Odkaz bez krajiny (`/pack/map/:slug`, tvar spred 3.8.2026) → doplň segment a prepíš URL.
   // `replace`, aby sa späť tlačidlo nezasekalo na starom tvare.
   useEffect(() => {
@@ -718,18 +723,40 @@ export default function PackTripArticle() {
             >
               <TileLayer url={mapyTiles('outdoor')} />
               <InvalidateSizeOnMount />
-              {/* bod 1 (iterácia 17): article route mapa = trasa je vždy "tá" → plný AllTrails-
-                  style čierno-zlatý casing (rovnaké dve vrstvy ako zvýraznená trasa v PackMap).
-                  Hover/dotyk (routeDimmed) stiahne opacity oboch vrstiev na 50%, nech je vidno
-                  podklad — obe vrstvy naraz, inak by čierny casing ostal nepriehľadný sám. */}
+              {/* FARBA TRASY = FIALOVÝ MEČ, ROVNAKO AKO NA MAPE (Matej 2026-08-20:
+                  „ak je blogovy clanok tak tam moze byt fialova, lebo bude vzdy iba jedna").
+                  Predtým tu bol čierno-zlatý casing, takže tá istá trasa vyzerala na mape
+                  fialovo a v článku žlto a človek nevedel, či sa pozerá na to isté. Zlatá
+                  ostáva REZERVOVANÁ pre „táto je vybraná" — to má zmysel len tam, kde je
+                  trás viac vedľa seba, čiže na mape. Tu je trasa vždy jedna.
+                  Hover/dotyk (routeDimmed) stiahne opacity VŠETKÝCH vrstiev naraz, nech je
+                  vidno turistické značenie pod nimi — jedna vrstva sama by ostala krytá. */}
               {/* Trasu kreslíme len keď to trasa naozaj JE. 6 výletov k vodným plochám má
                   v `path` jediný bod — dve polyline z jedného bodu vykreslili neviditeľnú
                   čiaru a mapa tvárila, že trasa existuje. Pri jednom bode ostáva mapa
                   s markerom: pri paddleboarde je odpoveď „kde to je", nie „kadiaľ ísť".
                   (audit #45) */}
               {trail.path.length > 1 && (<>
-                <Polyline positions={trail.path} pathOptions={{ color: '#0A0A0A', weight: 8, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
-                <Polyline positions={trail.path} pathOptions={{ color: '#F5C73D', weight: 4, opacity: routeDimmed ? 0.5 : 1, lineCap: 'round', lineJoin: 'round' }} />
+                {TRAIL_SABER_LAYERS.map((ly) => (
+                  <Polyline
+                    key={ly.key}
+                    positions={trail.path}
+                    // dosvit sa vlieva priamo na SVG element — react-leaflet posiela
+                    // `pathOptions` cez `setStyle`, a ten `className` ignoruje (rovnaká
+                    // pasca ako v PackMap, preto ten istý ref trik).
+                    ref={(layer) => {
+                      const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
+                      if (el) el.classList.toggle('trp-saber-glow', 'glow' in ly && !!ly.glow);
+                    }}
+                    pathOptions={{
+                      color: ly.color,
+                      weight: ly.weight,
+                      opacity: ly.opacity * (routeDimmed ? 0.5 : 1),
+                      lineCap: 'round',
+                      lineJoin: 'round',
+                    }}
+                  />
+                ))}
               </>)}
               <Marker position={trail.path[0]} icon={placeIcon('walk', true)} />
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.

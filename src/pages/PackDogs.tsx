@@ -109,6 +109,15 @@ const MOBILE_PHOTO_MIN = 96;
 const MOBILE_PHOTO_MAX = 132;
 const MOBILE_MAX_IDW = 230;
 
+// PES BEZ HEROGLYFU (Matej 2026-08-20: „musíme tam dať nejaký placeholder vo velkosti
+// heroglyfu"). Prázdna kartuša musí mať PRESNE pomer strán skutočného glyfu, inak by sa
+// blok bez neho staval podľa iných pravidiel než blok s ním. Zdroj čísla je `viewBox`
+// vodorovného rámu v `components/HeroglyphFrame.tsx` — teda ten istý tvar, aký vyrenderuje
+// `/cert-render/:id?type=horizontal`, z ktorého `heroglyph_png_url` vzniká.
+// Bez placeholderu padla rovnica do zálohy „meno vyplní obal" a meno sa roztiahlo cez celý
+// riadok — blok vyzeral rozbito.
+const GLYPH_RATIO = 13100 / 3500;
+
 // Ilustrácia kvízovej karty. ⚠️ ZÁMERNE NIE fotka psa (Matej 6.8.: „nemôže tam byť
 // foto psa, čo ak má majiteľ 3?") — dlaždica platí pre celú svorku.
 const NATURE_ART = '/images/nature-quiz-art.webp';
@@ -298,6 +307,17 @@ const HUB_CSS = `
 .dogblk-glyph{
   width:100%; height:auto; object-fit:contain; display:block;
   pointer-events:none;
+}
+/* Prázdna kartuša, keď pes glyf ešte nemá. Pomer strán drží tvar v OBOCH vetvách naraz:
+   na PC mu useFitName nastaví výšku (šírku dopočíta prehliadač), na mobile je široký na celý
+   obal a výšku si dopočíta sám. Vizuál je zámerne tichý — je to chýbajúci doklad, nie prvok,
+   ktorý má súťažiť s menom. Rám aj radius podľa brandu (kartuša 8px, zlatý rám polí). */
+.dogblk-glyph--empty{
+  aspect-ratio:${GLYPH_RATIO};
+  border:1px dashed rgba(179,130,45,0.55);
+  border-radius:8px;
+  background:rgba(201,154,63,0.06);
+  box-sizing:border-box;
 }
 
 /* Mobil = tie isté tri stĺpce, len zmenšené. Meno ide NAD glyf (vlastná vetva rovnice
@@ -645,7 +665,9 @@ function useFitName(
       // glyf má pevný pomer strán, meno vypĺňa šírku obalu.
 
       const photo = card?.querySelector('.dogblk-photo') as HTMLElement | null;
-      const glyph = wrap.querySelector('.dogblk-glyph') as HTMLImageElement | null;
+      const glyph = wrap.querySelector('.dogblk-glyph') as HTMLElement | null;
+      // Placeholder je <div>, nie <img> — nemá `naturalWidth`, pomer strán mu drží CSS.
+      const glyphImg = glyph instanceof HTMLImageElement ? glyph : null;
 
       const target = wrap.clientWidth;
       if (!target) return;
@@ -698,9 +720,14 @@ function useFitName(
       // (Matej 8.8.: „pri shrinku sa to správa divne"). Dva breakpointy = dve pravdy.
       const wide = typeof window !== 'undefined'
         && window.matchMedia('(min-width:721px)').matches;
-      const ratio = glyph?.naturalWidth && glyph?.naturalHeight
-        ? glyph.naturalWidth / glyph.naturalHeight
-        : 0;
+      // ⚠️ Pri <img> ostáva 0, kým sa obrázok nenačíta — vtedy sa MÁ počkať (rovnica by
+      // inak bežala s hádaným pomerom a meno by po doskočení glyfu poskočilo). Pri
+      // placeholderi sa čakať nedá na čo, tam ide pevný pomer rovno.
+      const ratio = glyphImg
+        ? (glyphImg.naturalWidth && glyphImg.naturalHeight
+          ? glyphImg.naturalWidth / glyphImg.naturalHeight
+          : 0)
+        : (glyph ? GLYPH_RATIO : 0);
       const idwGap = parseFloat(cs.rowGap) || parseFloat(cs.columnGap) || 0;
       const rowGapPx = row ? (parseFloat(getComputedStyle(row).columnGap) || 0) : 0;
       // ⚠️ RESET LIŠTY MUSÍ BYŤ PRED JEJ MERANÍM. Na mobile jej nižšie nastavíme šírku,
@@ -945,9 +972,13 @@ function DogBlock({
               {name}
             </span>
 
-            {/* Heroglyf ostáva ČIERNY — filter na zlato zanikol spolu s tmavým pozadím. */}
-            {dog.heroglyph_png_url && (
+            {/* Heroglyf ostáva ČIERNY — filter na zlato zanikol spolu s tmavým pozadím.
+                Bez glyfu sa kreslí prázdna kartuša rovnakého tvaru — miesto si drží vždy,
+                nech blok nemá dve rôzne geometrie podľa toho, či sa render podaril. */}
+            {dog.heroglyph_png_url ? (
               <img className="dogblk-glyph" src={dog.heroglyph_png_url} alt="" aria-hidden />
+            ) : (
+              <div className="dogblk-glyph dogblk-glyph--empty" aria-hidden />
             )}
           </div>
 

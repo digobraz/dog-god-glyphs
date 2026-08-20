@@ -3437,13 +3437,23 @@ export default function PackMap() {
                   <Fragment key={tr.id}>
                     {/* vybraná trasa: casing aj jadro blednú SPOLU (dim), inak by čierny casing
                         ostal nepriehľadný sám a značenie by aj tak nebolo vidno */}
+                    {/* ⚠️ `bringToFront()` — bez neho vybraná trasa NIE JE navrchu. SVG nepozná
+                        z-index, kreslí sa v poradí, v akom prvky ležia v DOM, a to je poradie
+                        `allTrails`. Trasa, ktorá je v datasete NESKÔR, teda prekreslí zlatú
+                        zhora a z „vybranej" ostane pár kúskov medzi cudzími čiarami. Vidno to
+                        len tam, kde sa trasy prekrývajú — Záruby 1/2/3 idú na ten istý vrchol
+                        a zdieľajú záverečný úsek (Matej 2026-08-20: „ak je ich tam viac treba
+                        ju lepšie označiť"). Casing ide dopredu prvý, jadro druhé, nech ostanú
+                        v správnom poradí voči sebe. */}
                     <Polyline
                       positions={tr.path}
+                      ref={(layer) => { (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.(); }}
                       pathOptions={{ color: '#0A0A0A', weight: 8, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                       eventHandlers={handlers}
                     />
                     <Polyline
                       positions={tr.path}
+                      ref={(layer) => { (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.(); }}
                       pathOptions={{ color: '#F5C73D', weight: 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
                       eventHandlers={handlers}
                     />
