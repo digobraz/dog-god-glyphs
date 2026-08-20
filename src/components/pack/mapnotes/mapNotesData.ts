@@ -19,9 +19,47 @@ import { supabase } from '@/integrations/supabase/client';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as any;
 
-/** Druhy zápisov. Poradie = poradie v palete. `parking` je vlna A, zvyšok vlna B. */
-export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife'] as const;
+/** Druhy zápisov — hodnoty stĺpca `kind`, teda aj CHECK v migrácii. */
+export const NOTE_KINDS = ['parking', 'hazard', 'note', 'water', 'viewpoint', 'wildlife', 'ticks'] as const;
 export type NoteKind = (typeof NOTE_KINDS)[number];
+
+// ── PALETA: TRI SKUPINY, NIE SEDEM TLAČIDIEL (Matej 2026-08-20) ─────────────
+// „dajme len 3, dalšie doplníme neskor (parkovisko, upozornenie -zver, kliešte,
+// ine, komentar)". Skupina NIE JE nový stĺpec — je to zoskupenie hodnôt `kind`,
+// ktoré človek pri zakladaní vidí ako jednu voľbu:
+//
+//   PARKOVISKO   → parking
+//   UPOZORNENIE  → wildlife (zver) · ticks (kliešte) · hazard (iné)
+//   KOMENTÁR     → note
+//
+// `water` a `viewpoint` v palete NIE SÚ zámerne: pramene a výhľady už na mape
+// kreslí OSM vrstva (`components/geo/PoiLayer.tsx`), takže ručné pridávanie by
+// vyrábalo druhú sadu tých istých bodov. V číselníku ostávajú kvôli datasetovým
+// bodom (`customPoi`) a starším zápisom.
+export const NOTE_GROUPS = ['parking', 'warning', 'comment'] as const;
+export type NoteGroup = (typeof NOTE_GROUPS)[number];
+
+/** Podtypy skupiny. Prvý je predvolený. */
+export const GROUP_KINDS: Record<NoteGroup, NoteKind[]> = {
+  parking: ['parking'],
+  warning: ['wildlife', 'ticks', 'hazard'],
+  comment: ['note'],
+};
+
+/** Do ktorej skupiny druh patrí (aj pre staré zápisy a datasetové body). */
+export function groupOf(kind: NoteKind): NoteGroup {
+  if (kind === 'parking') return 'parking';
+  if (kind === 'wildlife' || kind === 'ticks' || kind === 'hazard') return 'warning';
+  return 'comment';
+}
+
+/**
+ * Text je povinný len tam, kde bez neho značka nič nehovorí (Matej 2026-08-20:
+ * na otázku „povinný text všade, alebo len pri komentári a upozornení?" → „ok").
+ * Pri parkovisku ikonka aj tak povie všetko podstatné a povinné pole je len
+ * prekážka medzi človekom a zápisom.
+ */
+export const bodyRequired = (kind: NoteKind): boolean => groupOf(kind) !== 'parking';
 
 export interface MapNote {
   id: string;

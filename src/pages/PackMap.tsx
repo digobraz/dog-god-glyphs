@@ -109,12 +109,13 @@ import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripE
 // body (`customPoi`), ktoré appka doteraz nikde nekreslila.
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
-import { AddMapNotePin, AddMapNotePanel, MapNoteHint, ADD_NOTE_CSS, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, ADD_NOTE_CSS, NOTE_PANEL_H, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
-import { useLongPressPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
-import { MapNoteFab, MAP_NOTE_FAB_CSS } from '@/components/pack/mapnotes/MapNoteFab';
+import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
+import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
-import type { NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_KINDS, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
@@ -1822,9 +1823,49 @@ export default function PackMap() {
   const dateLocale = intlLocale(lang);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const mapNotes = useMapNotes(true);
-  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; kind: NoteKind; pinnedSlug: string | null } | null>(null);
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; pinnedSlug: string | null } | null>(null);
   const [noteTooFar, setNoteTooFar] = useState(false);
   const [noteHint, setNoteHint] = useState(false);
+  // POMALÁ CESTA: typ je vybraný z palety a čaká sa, kde človek klikne na mape.
+  const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
+  // RÝCHLA CESTA: dlhé podržanie dalo bod a paleta sa pýta, čo to je.
+  const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
+  const [noteZoom, setNoteZoom] = useState(0);
+
+  // Priblíženie ako STATE, nech lišta „ukáž miesto" vie prepnúť text na „priblíž
+  // si mapu" v tej chvíli, keď človek odzoomuje — nie až po kliknutí naprázdno.
+  useEffect(() => {
+    if (!mapInstance) return;
+    const sync = () => setNoteZoom(mapInstance.getZoom());
+    sync();
+    mapInstance.on('zoomend', sync);
+    return () => { mapInstance.off('zoomend', sync); };
+  }, [mapInstance]);
+
+  /**
+   * Položí značku a odpanuje mapu tak, aby ostala NAD panelom.
+   *
+   * Toto je jadro opravy zamietnutého UX: bez posunu by značka pri kliknutí do
+   * dolnej tretiny obrazovky skončila pod formulárom a človek by potvrdzoval
+   * miesto, ktoré nevidí.
+   */
+  const placeNote = (group: NoteGroup, lat: number, lon: number) => {
+    const kind = GROUP_KINDS[group][0];
+    setNoteTooFar(false);
+    setNoteHint(false);
+    setNotePlacing(null);
+    setNoteSpot(null);
+    markHintSeen();
+    // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce spraví
+    // geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
+    // s konkrétnym výletom na mysli.
+    setNoteDraft({ lat, lon, group, kind, pinnedSlug: nearestTrailId(lat, lon, kind, allTrails) });
+    const map = mapInstance;
+    if (!map) return;
+    const pt = map.latLngToContainerPoint([lat, lon]);
+    const safeY = map.getSize().y - NOTE_PANEL_H - 40;
+    if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
+  };
 
   // Nápoveda sa ukáže RAZ, a až keď je mapa dosť priblížená na to, aby gesto
   // vôbec fungovalo — inak by radila niečo, čo v tej chvíli nejde spustiť.
@@ -1839,16 +1880,24 @@ export default function PackMap() {
   }, [mapInstance]);
 
   const addBusy = addEntryOpen || addFlow !== null || addEventFlow !== null;
-  useLongPressPoint(mapInstance, !noteDraft && !addBusy, {
+  const noteBusy = !!noteDraft || !!noteSpot || addBusy;
+
+  // RÝCHLA CESTA — podržanie dá miesto, paleta sa spýta na typ. Beží len keď
+  // NEPREBIEHA pomalá cesta: v režime „ukáž miesto" by dlhé podržanie a klik
+  // súperili o ten istý dotyk.
+  useLongPressPoint(mapInstance, !noteBusy && !notePlacing, {
     onPoint: (lat, lng) => {
       setNoteTooFar(false);
       setNoteHint(false);
       markHintSeen();
-      // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce
-      // spraví geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
-      // s konkrétnym výletom na mysli.
-      setNoteDraft({ lat, lon: lng, kind: 'parking', pinnedSlug: nearestTrailId(lat, lng, 'parking', allTrails) });
+      setNoteSpot({ lat, lon: lng });
     },
+    onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
+  });
+
+  // POMALÁ CESTA — typ už je vybraný, stačí jeden klik do mapy.
+  useMapClickPoint(mapInstance, !!notePlacing && !noteBusy, {
+    onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
     onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
   });
 
@@ -2358,6 +2407,14 @@ export default function PackMap() {
       setAddEventFlow(choice.origin);
       return;
     }
+    // ODKAZ: popup sa zavrie a mapa ostane CELÁ VIDITEĽNÁ — typ je vybraný,
+    // teraz človek ukazuje miesto. Na mobile sa navyše prepne z listu na mapu,
+    // inak by po výbere typu čakal klik do zoznamu výletov.
+    if (choice.kind === 'note') {
+      setMobileView('map');
+      setNotePlacing(choice.group);
+      return;
+    }
     setAddFlow(choice.state);
   };
   const closeAdd = () => {
@@ -2784,7 +2841,8 @@ export default function PackMap() {
       <style>{MAP_NOTES_CSS}</style>
       <style>{LONG_PRESS_CSS}</style>
       <style>{ADD_NOTE_CSS}</style>
-      <style>{MAP_NOTE_FAB_CSS}</style>
+      <style>{MAP_NOTE_CURSOR_CSS}</style>
+      <style>{NOTE_PALETTE_CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{POINTS_PILL_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
@@ -3573,6 +3631,8 @@ export default function PackMap() {
                   locale={dateLocale}
                 />
               )}
+              {/* bod z dlhého podržania, kým sa vyberá typ */}
+              {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
               {noteDraft && (
                 <AddMapNotePin
                   lat={noteDraft.lat}
@@ -3583,20 +3643,10 @@ export default function PackMap() {
               )}
             </MapContainer>
 
-            {/* Tlačidlo „+" s prstencom, ktorý sa uzavrie priblížením (Matej 2026-08-20).
-                Je vidieť stále — aj nehotové — aby človek vedel, že sa dá odomknúť. */}
-            {!isCleanMode && (
-              <MapNoteFab
-                map={mapInstance}
-                hidden={!!noteDraft || addBusy}
-                onPlace={(lat, lon) => {
-                  setNoteHint(false);
-                  markHintSeen();
-                  setNoteDraft({ lat, lon, kind: 'parking', pinnedSlug: nearestTrailId(lat, lon, 'parking', allTrails) });
-                }}
-                onLocked={() => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); }}
-              />
-            )}
+            {/* Plusko s prstencom PRI KURZORE (Matej 2026-08-20) — nahradilo pevné
+                tlačidlo v rohu, ktoré bolo slabo viditeľné a súperilo s tlačidlom
+                PRIDAŤ o tú istú úlohu. Na dotyku sa nekreslí (kurzor neexistuje). */}
+            {!isCleanMode && <MapNoteCursor map={mapInstance} hidden={noteBusy || !!notePlacing} />}
 
             {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
                 viď komentár pri .trp-legend v CSS. */}
@@ -3748,6 +3798,7 @@ export default function PackMap() {
           ťahateľná značka je vnútri. Viď hlavičku AddMapNote.tsx. */}
       {noteDraft && (
         <AddMapNotePanel
+          group={noteDraft.group}
           lat={noteDraft.lat}
           lon={noteDraft.lon}
           pinnedSlug={noteDraft.pinnedSlug}
@@ -3756,11 +3807,26 @@ export default function PackMap() {
           onCancel={() => setNoteDraft(null)}
         />
       )}
-      {noteHint && !noteDraft && (
+      {/* Medzikrok pomalej cesty: typ vybraný, mapa voľná, čaká sa na klik. */}
+      {notePlacing && !noteDraft && (
+        <MapNotePlacing
+          group={notePlacing}
+          ready={noteZoom >= MIN_ZOOM_FOR_NOTE}
+          onCancel={() => setNotePlacing(null)}
+        />
+      )}
+      {/* Rýchla cesta: bod je z dlhého podržania, pýta sa typ. */}
+      {noteSpot && !noteDraft && (
+        <NoteQuickPalette
+          onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
+          onCancel={() => setNoteSpot(null)}
+        />
+      )}
+      {noteHint && !noteDraft && !notePlacing && !noteSpot && (
         <MapNoteHint onDismiss={() => { setNoteHint(false); markHintSeen(); }} />
       )}
       {noteTooFar && (
-        <div className="mna-tip pk-glass" role="status">{t('pack.mapNotes.tooFar')}</div>
+        <div className="mna-tip" role="status">{t('pack.mapNotes.tooFar')}</div>
       )}
       {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by
           odmena za trasu A vyskočila v popupe trasy B. */}

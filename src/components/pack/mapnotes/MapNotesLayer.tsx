@@ -23,7 +23,7 @@ import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
-import type { MapNote, NoteKind } from './mapNotesData';
+import { groupOf, type MapNote, type NoteKind } from './mapNotesData';
 import { isDatasetNote } from './mapNotesGeo';
 import { noteGlyphSvg } from './noteIcons';
 
@@ -39,10 +39,15 @@ const GOLD = '#C99A3F';
 const PARK_BLUE = T.brandBlueLite;
 const HAZARD_RED = '#CE4B3C';
 
-/** Farba značky podľa významu. Zlatá je STAV (výber/hover), nie farba veci. */
+/**
+ * Farba značky podľa významu. Zlatá je STAV (výber/hover), nie farba veci.
+ * Červenú dostáva CELÁ skupina upozornení (zver · kliešte · iné) — pre oko na
+ * mape je to jedna vec, podtyp sa dočíta v bubline.
+ */
 function tintFor(kind: NoteKind): string {
-  if (kind === 'parking') return PARK_BLUE;
-  if (kind === 'hazard') return HAZARD_RED;
+  const g = groupOf(kind);
+  if (g === 'parking') return PARK_BLUE;
+  if (g === 'warning') return HAZARD_RED;
   return GOLD;
 }
 

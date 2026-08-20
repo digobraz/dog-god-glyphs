@@ -26,7 +26,7 @@
 // vôbec nemusí poslať. Vlastné meranie je dlhšie, ale správa sa rovnako na
 // všetkých zariadeniach.
 import { useEffect, useRef } from 'react';
-import type { Map as LeafletMap } from 'leaflet';
+import type { LeafletMouseEvent, Map as LeafletMap } from 'leaflet';
 
 /** Priblíženie, od ktorého má klik zmysel (~9 m na pixel). */
 export const MIN_ZOOM_FOR_NOTE = 14;
@@ -119,8 +119,9 @@ export function useLongPressPoint(
       cb.current.onPoint(pt.lat, pt.lng);
     };
 
-    // „Plusko pri kurzore" (Matej 2026-08-20) — na PC to je crosshair, ktorý sa
-    // objaví len nad zoomovým prahom, teda presne vtedy, keď gesto naozaj ide.
+    // Nad zoomovým prahom je kurzor KLASICKÁ ŠÍPKA (Matej 2026-08-20: „klasická
+    // šípka a vedľa +") — plusko s prstencom vedľa nej kreslí `MapNoteCursor`.
+    // Predtým tu bol `crosshair`, ktorý sa s pluskom bil o tú istú úlohu.
     // Na mobile kurzor neexistuje a nápovedu tam nesie `MapNoteHint`.
     const syncArmed = () => el.classList.toggle('mn-armed', map.getZoom() >= MIN_ZOOM_FOR_NOTE);
     syncArmed();
@@ -157,11 +158,47 @@ export function useLongPressPoint(
   }, [map, enabled]);
 }
 
-// `.mn-holding` = vizuálna spätná väzba počas držania (kurzor + jemné stmavnutie),
-// aby človek videl, že sa niečo deje, a nepustil to o 200 ms skôr.
-// ⚠️ `cursor:crosshair` na PC nahrádza „plusko pri kurzore" — na mobile kurzor
-// neexistuje, tam nápovedu nesie jednorazový pruh (`MapNoteHint`).
+// `.mn-holding` = vizuálna spätná väzba počas držania (kurzor), aby človek videl,
+// že sa niečo deje, a nepustil to o 200 ms skôr.
 export const LONG_PRESS_CSS = `
-.leaflet-container.mn-armed{cursor:crosshair;}
+.leaflet-container.mn-armed{cursor:default;}
 .leaflet-container.mn-holding{cursor:progress;}
+/* Režim „ukáž miesto" — typ je vybraný a čaká sa na jediný klik. Zameriavač je
+   tu na mieste (na rozdiel od stavu vyššie): mapa v tej chvíli neposúva, ale
+   MIERI. */
+.leaflet-container.mn-placing{cursor:crosshair;}
 `;
+
+/**
+ * Režim „ukáž miesto": typ odkazu je už vybraný a čaká sa na JEDINÝ klik.
+ *
+ * Je to samostatný hook, nie prepínač v `useLongPressPoint`, lebo ide o opačné
+ * poradie krokov (typ → miesto vs. miesto → typ) a miešanie oboch do jedného
+ * efektu by znamenalo, že sa počas držania rieši aj klik.
+ *
+ * ⚠️ Leafletový `click` sa neemituje pri ťahaní mapy ani pri dvojkliku (zoom),
+ * takže sa nemusí rozlišovať ručne — na rozdiel od natívneho `click` na elemente.
+ */
+export function useMapClickPoint(
+  map: LeafletMap | null,
+  enabled: boolean,
+  { onPoint, onTooFar }: LongPressHandlers,
+) {
+  const cb = useRef({ onPoint, onTooFar });
+  cb.current = { onPoint, onTooFar };
+
+  useEffect(() => {
+    if (!map || !enabled) return;
+    const el = map.getContainer();
+    el.classList.add('mn-placing');
+    const onClick = (e: LeafletMouseEvent) => {
+      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(); return; }
+      cb.current.onPoint(e.latlng.lat, e.latlng.lng);
+    };
+    map.on('click', onClick);
+    return () => {
+      el.classList.remove('mn-placing');
+      map.off('click', onClick);
+    };
+  }, [map, enabled]);
+}

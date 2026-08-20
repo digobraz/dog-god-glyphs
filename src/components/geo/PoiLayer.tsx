@@ -25,8 +25,7 @@ const POI_PRIORITY: Record<TrailPoi['t'], number> = { spring: 0, shelter: 1, vie
 const PILL_W = 78;
 const PILL_H = 22;
 
-// brand hand-drawn ikonky (NIE lucide) — rovnaký tmavý „ink" filter ako v trailIcons.ts
-const INK_FILTER = 'brightness(0) saturate(100%) invert(20%) sepia(30%) saturate(800%) hue-rotate(2deg) brightness(75%) contrast(90%)';
+// brand hand-drawn ikonky (NIE lucide)
 // Matej 2026-07-30: „človek nevie čo to je" → každý bod nesie POPIS TYPU priamo na mape.
 // Meno z OSM sa ako label nedá použiť — má ho len 11 % bodov (lavička 6/317, prameň 41/209),
 // takže meno ide do tooltipu a na mape je vždy čitateľné, ČO to je.
@@ -39,6 +38,25 @@ const POI_LABEL: Record<TrailPoi['t'], string> = {
   spring: 'Water', viewpoint: 'Viewpoint', shelter: 'Shelter', bench: 'Bench',
 };
 
+// ── FARBA PODĽA TYPU (Matej 2026-08-20) ─────────────────────────────────────
+// „vadí mi to farebné prevedenie a tá suchosť, potrebuje to byť viac výrazné,
+// farebné" — všetky štyri druhy bodov mali dovtedy identickú bledú pilulku, takže
+// vrstva na prvý pohľad nič nerozlišovala a na svetlej mape splývala.
+// Farbu NESIE GLYFOVÝ KRÚŽOK, nie celá pilulka: papyrusový podklad ostáva (lock
+// bledých blokov), farebný je len akcent so znakom. Je to ten istý jazyk, akým
+// hovorí modrý štvorec „P" pri odkazoch — plná farba ako význam, papyrus ako povrch.
+// Modrá pri vode je konvencia (a zhoduje sa s tokenom brandBlueLite), zlatá pri
+// výhľade je brandová, hnedá pri prístrešku je materiál. Lavička farbu nedostáva:
+// nemá glyf, takže by farbiť nebolo čo.
+const POI_TINT: Record<Exclude<TrailPoi['t'], 'bench'>, string> = {
+  spring: '#2E5FD0',
+  viewpoint: '#C99A3F',
+  shelter: '#8A5A2B',
+};
+// Glyf vnútri farebného krúžku musí byť BIELY, nie tmavý ink — inak je na plnej
+// farbe nečitateľný.
+const GLYPH_WHITE = 'brightness(0) saturate(100%) invert(100%)';
+
 // Štýly sú inline v divIcon HTML (nie CSS trieda) zámerne — rovnaký vzor ako badgeIcon
 // v trailIcons.ts. Vrstva takto funguje na KTOREJKOĽVEK mape bez ťahania CSS za sebou.
 // Papyrusová pilulka = rovnaký jazyk ako .trp-pill pri tripoch, len menšia a bez zlatého CTA.
@@ -46,12 +64,14 @@ const POI_LABEL: Record<TrailPoi['t'], string> = {
 // GLYF (≈11 px od ľavého okraja), inak by bod ležal niekde uprostred popisku a prameň by na
 // mape ukazoval o 35 px vedľa. Lavička glyf nemá → tá sa centruje (viď poiIcon nižšie).
 const PILL = `position:relative;left:-11px;top:-50%;display:flex;align-items:center;gap:4px;padding:2px 7px 2px 4px;border-radius:999px;background:linear-gradient(180deg,#F7EFDF,#E8D9BC);border:1.5px solid rgba(201,154,63,0.85);box-shadow:0 2px 7px rgba(0,0,0,0.4);font-family:${FONT_UI};font-size:9.5px;font-weight:500;line-height:1.4;color:#2a1608;white-space:nowrap;letter-spacing:.02em;`;
-const GLYPH = `width:13px;height:13px;object-fit:contain;flex:0 0 auto;filter:${INK_FILTER};`;
+const GLYPH = `width:11px;height:11px;object-fit:contain;flex:0 0 auto;filter:${GLYPH_WHITE};`;
+/** Farebný krúžok pod glyfom — nositeľ významu, preto plná farba a biely obrys. */
+const DOT = (tint: string) => `display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:${tint};border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 1px 3px rgba(0,0,0,0.35);flex:0 0 auto;`;
 // lavička nemá v brand hand-drawn sade ikonu → pilulka bez glyfu (čestné), nie cudzí piktogram
 const poiIcon = (t: TrailPoi['t']) => L.divIcon({
   className: 'trp-pinwrap',
   html: `<div style="${PILL}${t === 'bench' ? 'padding-left:7px;left:-50%;' : ''}">`
-    + (t === 'bench' ? '' : `<img src="${POI_ICON_SRC[t]}" alt="" style="${GLYPH}" />`)
+    + (t === 'bench' ? '' : `<span style="${DOT(POI_TINT[t])}"><img src="${POI_ICON_SRC[t]}" alt="" style="${GLYPH}" /></span>`)
     + `<span>${POI_LABEL[t]}</span></div>`,
 });
 

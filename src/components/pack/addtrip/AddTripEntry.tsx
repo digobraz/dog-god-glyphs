@@ -10,6 +10,8 @@
 import { useState } from 'react';
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
+import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
+import type { NoteGroup } from '@/components/pack/mapnotes/mapNotesData';
 import type { TripState } from './addTripModel';
 
 const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
@@ -19,14 +21,18 @@ const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, pre
 // (components/pack/events/AddEvent.tsx, krok 3 zadania).
 export type AddChoice =
   | { kind: 'trip'; state: TripState }
-  | { kind: 'event'; origin: 'own' | 'tip' };
+  | { kind: 'event'; origin: 'own' | 'tip' }
+  // ODKAZ (2026-08-20) — tretia dlaždica. Nevracia hotový zápis, ale ZVOLENÚ SKUPINU:
+  // po nej sa popup zavrie a človek ukazuje miesto na odkrytej mape. Poradie
+  // „najprv čo, potom kde" je zámer — človek prichádza s úmyslom, nie s bodom.
+  | { kind: 'note'; group: NoteGroup };
 
 export type AddTripEntryProps = {
   onPick: (choice: AddChoice) => void;
   onClose: () => void;
 };
 
-type Kind = 'trip' | 'event' | 'service';
+type Kind = 'trip' | 'event' | 'note' | 'service';
 
 // Prvá úroveň — dve dlaždice (Matej 2026-08-06: SERVICE preč z renderu, viď hlavičkový
 // komentár). `Kind`/`disabled` tvar ostáva nezmenený pre vlnu 2 — SERVICE sa vtedy len pridá
@@ -34,6 +40,7 @@ type Kind = 'trip' | 'event' | 'service';
 const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean }> = [
   { kind: 'trip', emoji: '🥾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text' },
   { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text' },
+  { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text' },
 ];
 
 // Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa
@@ -51,7 +58,7 @@ const EVENT_BLOCKS: Array<{ origin: 'own' | 'tip'; emoji: string; titleKey: stri
 
 export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
   const t = useT();
-  const [step, setStep] = useState<'kind' | 'trip' | 'event'>('kind');
+  const [step, setStep] = useState<'kind' | 'trip' | 'event' | 'note'>('kind');
 
   return (
     <div className="att-entry-backdrop" onClick={onClose}>
@@ -77,6 +84,7 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                   if (k.disabled) return;
                   if (k.kind === 'trip') setStep('trip');
                   if (k.kind === 'event') setStep('event');
+                  if (k.kind === 'note') setStep('note');
                 }}
               >
                 {k.disabled && <span className="att-entry-soon">{t('pack.map.comingSoon')}</span>}
@@ -96,6 +104,12 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                 <span className="att-entry-text">{t(b.textKey)}</span>
               </button>
             ))}
+          </div>
+        )}
+        {step === 'note' && (
+          <div className="att-entry-note">
+            <p className="att-entry-lead">{t('pack.mapNotes.palette.lead')}</p>
+            <NotePalette onPick={(group) => onPick({ kind: 'note', group })} />
           </div>
         )}
         {step === 'event' && (
@@ -128,14 +142,21 @@ const ENTRY_CSS = `
 .att-entry-back{position:absolute;top:18px;left:32px;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
 .att-entry-back:hover{color:${GOLD};}
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}
+.att-entry-lead{margin:0 0 14px;font-family:${FONT_UI};font-size:12.5px;line-height:1.5;color:${T.onDarkDim};}
 .att-entry-blocks-kind{flex-wrap:wrap;}
-.att-entry-blocks-kind .att-entry-block{flex:1 1 calc(50% - 9px);min-width:160px;}
+/* TRI dlaždice od 2026-08-20 (pribudol ODKAZ). Základ MUSÍ byť tretina, nie polovica:
+   pri calc(50% - 9px) sa tretia zalomí na vlastný riadok a flex-grow ju roztiahne na celú
+   šírku — presne tá vizuálna chyba, na ktorej padol SERVICE (viď hlavičku súboru). */
+.att-entry-blocks-kind .att-entry-block{flex:1 1 calc(33.333% - 12px);min-width:150px;}
+.att-entry-blocks-kind .att-entry-text{max-width:none;}
 .att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
 .att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
 .att-entry-block-disabled{opacity:.42;cursor:default;}
 .att-entry-block-disabled:hover,.att-entry-block-disabled:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 .att-entry-soon{position:absolute;top:10px;right:10px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:3px 8px;}
-.att-entry-emoji{font-size:38px;line-height:1;margin-bottom:10px;}
+/* Pevná výška riadku s emoji: jednotlivé emoji majú rôzne metriky (📍 kreslí
+   menší glyf než 🥾) a bez nej by nadpisy susedných dlaždíc sedeli inde. */
+.att-entry-emoji{font-size:38px;line-height:1;height:44px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
 .att-entry-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};margin-bottom:10px;}
 .att-entry-text{font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:210px;min-height:2.9em;display:flex;align-items:center;justify-content:center;}
 @media (max-width:640px){

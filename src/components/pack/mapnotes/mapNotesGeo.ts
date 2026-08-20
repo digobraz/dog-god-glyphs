@@ -23,7 +23,7 @@
 import type { LatLngTuple } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { hav } from '@/components/pack/addtrip/addTripGeo';
-import type { MapNote, NoteKind } from './mapNotesData';
+import { groupOf, type MapNote, type NoteGroup, type NoteKind } from './mapNotesData';
 
 /** Parkovisko: vzdialenosť od štartu alebo cieľa trasy. */
 export const PARKING_RADIUS_M = 500;
@@ -81,12 +81,15 @@ export function noteBelongsToTrail(note: MapNote, trail: HeroTrail): boolean {
  * prestávajú byť to prvé, čo človek vidí.
  */
 export function notesForTrail(notes: MapNote[], trail: HeroTrail): MapNote[] {
-  const rank: Record<string, number> = { parking: 0, hazard: 1, water: 2, note: 3, viewpoint: 4, wildlife: 5 };
+  // Poradie sa riadi SKUPINOU, nie jednotlivým druhom: keby sa vymenúvali druhy,
+  // každý nový podtyp upozornenia (pribudli `ticks`) by ticho vypadol na koniec
+  // zoznamu za komentáre — teda presne to najdôležitejšie by kleslo najnižšie.
+  const rank: Record<NoteGroup, number> = { parking: 0, warning: 1, comment: 2 };
   return notes
     .filter((n) => noteBelongsToTrail(n, trail))
     .sort((a, b) => {
       if (a.isStale !== b.isStale) return a.isStale ? 1 : -1;
-      const r = (rank[a.kind] ?? 9) - (rank[b.kind] ?? 9);
+      const r = rank[groupOf(a.kind)] - rank[groupOf(b.kind)];
       if (r !== 0) return r;
       return b.createdAt.localeCompare(a.createdAt);
     });
