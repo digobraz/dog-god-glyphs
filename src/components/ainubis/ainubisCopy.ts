@@ -34,17 +34,19 @@ export interface AinubisCopy {
    * nie je to len filter témy, je to rozdiel ~5,5k vs ~25,7k tokenov na výmenu.
    * Zadanie: plany/zadanie-ainubis-vetvy-2026-08-21.md
    *
-   * ⚠️ V úvode sú vždy DVE dvere (Matejov nákres), nie tri: hosťovi nemá zmysel
-   * ponúkať svorku (nemá psa) a členovi nemá zmysel začínať ústavou. Tretia
-   * vetva nie je nedostupná — prepínač nad písaním ukazuje všetky a AINUBIS
-   * sám ponúkne prepnutie, keď otázka nesedí do otvorenej vetvy.
+   * ⚠️ DVE dvere, rovnaké pre hosťa aj člena (Matej 21. 8. 2026: „je zle
+   * rozdelenie daj len podpora a personalizácia"). Delenie na support/faith/pack
+   * kopírovalo stavbu promptu, nie to, s čím človek prichádza.
+   * `personal` je VIP — nesie korunku a má mesačnú dávku; `support` je voľná
+   * a má v sebe aj ústavu, lebo tá je magnet, nie odmena za členstvo.
    */
   branches: {
     ask: string;
     support: { label: string; hint: string };
-    faith: { label: string; hint: string };
-    pack: { label: string; hint: string };
+    personal: { label: string; hint: string };
     switchLabel: string;
+    /** Popiska korunky pri VIP dverách — nesmie ostať len ikonka bez mena. */
+    vip: string;
   };
   inputPlaceholder: string;
   typing: string;
@@ -92,10 +94,10 @@ const sk: AinubisCopy = {
   },
   branches: {
     ask: 'Čo dnes riešime?',
-    support: { label: 'Podpora', hint: 'Niečo nefunguje, našiel si chybu alebo máš nápad. Píš koľkokrát chceš.' },
-    faith: { label: 'Viera', hint: 'Ústava, obrady, čo Dogyptizmus vlastne hovorí. Odpovedám z textu, nie spamäti.' },
-    pack: { label: 'Moja svorka', hint: 'Poradím ti s tvojím psom. Poznám jeho meno, vek aj to, čo si o ňom zapísal.' },
+    support: { label: 'Podpora', hint: 'Niečo nefunguje, máš nápad, alebo sa pýtaš na DOGYPT a ústavu. Píš koľkokrát chceš.' },
+    personal: { label: 'Personalizácia', hint: 'Poradím ti s tvojím psom. Poznám jeho meno, vek aj to, čo si o ňom zapísal.' },
     switchLabel: 'O čom sa bavíme',
+    vip: 'VIP',
   },
   inputPlaceholder: 'Napíš strážcovi…',
   typing: 'AINUBIS ňuchá stopu…',
@@ -137,10 +139,10 @@ const en: AinubisCopy = {
   },
   branches: {
     ask: 'What are we dealing with today?',
-    support: { label: 'Support', hint: 'Something is broken, you found a bug, or you have an idea. Write as often as you like.' },
-    faith: { label: 'Faith', hint: 'The Constitution, the rites, what Dogyptism actually says. I answer from the text, not from memory.' },
-    pack: { label: 'My pack', hint: 'I will help you with your dog. I know their name, their age and what you wrote about them.' },
+    support: { label: 'Support', hint: 'Something is broken, you have an idea, or you are asking about DOGYPT and the Constitution. Write as often as you like.' },
+    personal: { label: 'Personal', hint: 'I will help you with your dog. I know their name, their age and what you wrote about them.' },
     switchLabel: "What we're on",
+    vip: 'VIP',
   },
   inputPlaceholder: 'Write to the guardian…',
   typing: 'AINUBIS is on the scent…',

@@ -820,14 +820,42 @@ body.has-pack-nav .ainubis-launcher {
   color: rgba(226, 240, 248, 0.62);
 }
 
-/* Dvere do svorky nesú farbu vetvy, do ktorej vedú — inak by klik vyzeral ako
-   preblik do iného dizajnu bez varovania. */
-.ainubis-door--pack .ainubis-door__label { color: #C6A2FA; }
-.ainubis-door--pack {
+/* Riadok s menom dverí a VIP značkou — značka doprava, meno drží ľavý okraj. */
+.ainubis-door__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* VIP značka. ⚠️ Ikonka je DOČASNE hviezda-odznak z hand-drawn kitu; Matej
+   dokreslí korunku (21. 8. 2026). Zlatá zámerne: VIP je hodnota pre ČLOVEKA,
+   a človek má na tomto povrchu zlatú — deliaca čiara modrá/zlatá z 26. 7. */
+.ainubis-door__vip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: #F0CE72;
+  border: 1px solid rgba(245, 199, 61, 0.42);
+  border-radius: 999px;
+  padding: 2px 7px 2px 5px;
+}
+
+.ainubis-door__vip svg { width: 10px; height: 10px; display: block; }
+
+/* Dvere do personalizácie nesú farbu vetvy, do ktorej vedú — inak by klik
+   vyzeral ako preblik do iného dizajnu bez varovania. */
+.ainubis-door--personal .ainubis-door__label { color: #C6A2FA; }
+.ainubis-door--personal {
   background: linear-gradient(180deg, rgba(164, 107, 245, 0.10) 0%, rgba(164, 107, 245, 0.04) 100%);
   border-color: rgba(164, 107, 245, 0.34);
 }
-.ainubis-door--pack:hover {
+.ainubis-door--personal:hover {
   border-color: rgba(164, 107, 245, 0.60);
   box-shadow: 0 0 18px rgba(164, 107, 245, 0.22);
 }
@@ -863,7 +891,7 @@ body.has-pack-nav .ainubis-launcher {
 }
 
 /* --- FIALOVÝ MÓD — vetva `pack` ------------------------------------------ */
-.ainubis-panel--pack {
+.ainubis-panel--personal {
   background:
     radial-gradient(120% 80% at 50% -10%, rgba(164, 107, 245, 0.20) 0%, rgba(164, 107, 245, 0) 60%),
     linear-gradient(180deg, #0D0716 0%, #05030A 100%);
@@ -872,26 +900,26 @@ body.has-pack-nav .ainubis-launcher {
     0 0 40px rgba(109, 63, 199, 0.22);
 }
 
-.ainubis-panel--pack .ainubis-panel__header { border-bottom-color: rgba(164, 107, 245, 0.26); }
+.ainubis-panel--personal .ainubis-panel__header { border-bottom-color: rgba(164, 107, 245, 0.26); }
 
 /* Bublina AINUBISA = stroj ⇒ fialová. Bublina človeka (`--user`) sa tu ZÁMERNE
    nespomína: ostáva zlatá, to je celý zmysel deliacej čiary. */
-.ainubis-panel--pack .ainubis-msg--assistant {
+.ainubis-panel--personal .ainubis-msg--assistant {
   background: linear-gradient(180deg, rgba(164, 107, 245, 0.12) 0%, rgba(164, 107, 245, 0.05) 100%);
   border-color: rgba(164, 107, 245, 0.26);
   color: #EDE4FA;
 }
 
-.ainubis-panel--pack .ainubis-msg--system {
+.ainubis-panel--personal .ainubis-msg--system {
   border-color: rgba(164, 107, 245, 0.35);
   color: rgba(237, 228, 250, 0.65);
 }
 
-.ainubis-panel--pack .ainubis-composer { border-top-color: rgba(164, 107, 245, 0.22); }
+.ainubis-panel--personal .ainubis-composer { border-top-color: rgba(164, 107, 245, 0.22); }
 
-.ainubis-panel--pack .ainubis-switch__pill { border-color: rgba(164, 107, 245, 0.20); }
-.ainubis-panel--pack .ainubis-switch__pill:hover { color: #C6A2FA; border-color: rgba(164, 107, 245, 0.45); }
-.ainubis-panel--pack .ainubis-switch__pill--on {
+.ainubis-panel--personal .ainubis-switch__pill { border-color: rgba(164, 107, 245, 0.20); }
+.ainubis-panel--personal .ainubis-switch__pill:hover { color: #C6A2FA; border-color: rgba(164, 107, 245, 0.45); }
+.ainubis-panel--personal .ainubis-switch__pill--on {
   background: rgba(164, 107, 245, 0.14);
   border-color: rgba(164, 107, 245, 0.55);
   color: #C6A2FA;
