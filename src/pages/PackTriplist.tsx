@@ -19,12 +19,12 @@ import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
-import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD } from '@/components/pack/packTheme';
 import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById } from '@/components/pack/tripShared';
-import { closeMyTripEvents } from '@/lib/packStore';
+import { closeMyTripEvents, readLocalTrailMeta } from '@/lib/packStore';
 import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
-import { flagUrl } from '@/lib/countryGeo';
+import { flagUrl, trailCountry } from '@/lib/countryGeo';
 import { useMyTripParties, useTripParties, partyKey, type TripParty, type PartyMember } from '@/components/pack/triplist/useTripParty';
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
 import {
@@ -45,7 +45,11 @@ const DAY_MS = 86400000;
 
 const CSS = `
 .tl-root{min-height:100dvh;background:${T.pageBg};color:${T.onDark};font-family:${FONT_UI};position:relative;padding-bottom:110px;}
-.tl-body{max-width:860px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) 20px 0;position:relative;z-index:2;}
+/* Šírka aj vodorovný padding sú TIE ISTÉ ako v PackLayout (PACK_COL) — táto stránka
+   PackLayout nemountuje, tak si ich musí vziať z konštanty. Do 13. 8. tu bolo 860px
+   a preklik z profilu (1024px) stránku viditeľne zúžil. */
+.tl-body{max-width:${PACK_COL.wide}px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 26px) ${PACK_COL_PAD.desktop}px 0;position:relative;z-index:2;}
+@media (max-width:640px){ .tl-body{padding-left:${PACK_COL_PAD.mobile}px;padding-right:${PACK_COL_PAD.mobile}px;} }
 /* back = holá šípka v STREDE, NAD blokmi (flow, nie absolute — neprekrýva karty) */
 .tl-backrow{display:flex;justify-content:center;margin-bottom:16px;}
 .tl-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:19px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s;}
@@ -99,17 +103,39 @@ const CSS = `
 .tl-block{cursor:pointer;transition:border-color .15s,transform .15s;}
 .tl-block:hover{border-color:rgba(201,154,63,0.5);transform:translateY(-2px);}
 .tl-block-cover{position:relative;aspect-ratio:4/3;background-size:cover;background-position:center;background-color:#111;}
+/* Výlet bez fotky (2026-08-14). Členom nahodený trip fotku nemá takmer nikdy, takže z holého
+   holého background-color:#111 bola v prvom rade MY TRIPS čierna diera. Fallback je brandový: tmavý
+   zlatý nádych + hand-drawn hora v tlmenej zlatej (ikonka ide cez ::after, nie cez
+   background-image — ten už drží fotka a background-size:cover by ju roztiahol). */
+.tl-block-cover.nophoto{background:radial-gradient(120% 90% at 50% 15%,rgba(201,154,63,0.16),rgba(12,9,3,0.96) 70%),#0C0903;}
+.tl-block-cover.nophoto::after{content:'';position:absolute;left:50%;top:50%;width:36%;height:36%;transform:translate(-50%,-50%);background:url('/icons/pack/mountain.svg') no-repeat center/contain;filter:${GOLD_ICON_FILTER};opacity:.34;pointer-events:none;}
 /* vlajka do kruhu — ľavý horný roh, vzor z /wall .card-flag */
 .tl-flag{position:absolute;top:8px;left:8px;width:24px;height:24px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.45);background:#1a1a1a;z-index:2;}
 /* výrazný odpočet dní — VYTŔČA nad horný okraj karty (dôležitý údaj), na wrapperi .tl-mycard */
 .tl-countdown{position:absolute;top:-11px;right:8px;z-index:6;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:5px 11px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1a1305;box-shadow:0 4px 14px rgba(230,158,26,0.6),0 0 0 3px ${T.pageBg};white-space:nowrap;pointer-events:none;}
 .tl-countdown.soon{background:linear-gradient(135deg,#FF7A45,#E5502A);color:#fff;box-shadow:0 4px 16px rgba(229,80,42,0.65),0 0 0 3px ${T.pageBg};}
 .tl-block-badge{position:absolute;right:8px;bottom:8px;font-family:${FONT_UI};font-weight:600;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:rgba(201,154,63,0.92);color:#1a1305;box-shadow:0 2px 8px rgba(0,0,0,0.45);max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* status farby (Matej 2026-07-23): done=zelená · solo=biela · s niekým=modrá · hľadanie=tyrkys */
-.tl-block-badge.done{background:#37B26A;color:#062611;}
-.tl-block-badge.solo{background:rgba(245,240,228,0.94);color:#1a1305;}
-.tl-block-badge.with{background:#3B82F6;color:#03102b;}
-.tl-block-badge.looking{background:#2ED3C3;color:#032420;}
+/* Status badge v BRANDE (2026-08-14). Pôvodná sada (done=#37B26A zelená · with=#3B82F6 modrá ·
+   looking=#2ED3C3 tyrkys, Matej 2026-07-23) dávala tri cudzie farby na jednu obrazovku. Stavy sa
+   teraz rozlišujú v zlato-papyrusovej palete tým, čo badge znamená: výzva svieti plnou zlatou,
+   uzavreté stavy sú tmavé a tiché, potvrdená účasť je papyrusová.
+     looking   — otvorená výzva packu → gradient .btn-gold
+     with      — partia je potvrdená → plný papyrus
+     done      — uzavreté, tiché → tmavá výplň, papyrusový text
+     done-open — PREJDENÉ, ALE INZERÁT STÁLE BEŽÍ → zlatý rám + zlatý text = upozornenie
+     solo      — najtichší stav, bez rámu */
+.tl-block-badge.done{background:rgba(20,14,4,0.9);color:#EFE6D6;border:1px solid rgba(201,154,63,0.45);}
+/* done-open nesie DVE informácie naraz, takže sa do jedného riadku pilulky nezmestí a orezal by
+   sa na „Hotovo · Hľadám par…". Zalomenie je tu správnejšie než skratka: nový jednoslovný kľúč by
+   bolo treba preložiť do 18 jazykov a v každom by hrozilo, že sa oreže znova. */
+.tl-block-badge.done-open{background:rgba(20,14,4,0.92);color:#E8B84B;border:1.5px solid ${GOLD};white-space:normal;line-height:1.25;border-radius:9px;text-align:center;padding:4px 8px;}
+.tl-block-badge.solo{background:rgba(20,14,4,0.82);color:rgba(239,230,214,0.72);}
+/* moderácia členom nahodeného výletu — pending je čakanie (tiché), rejected uzavretá vec */
+.tl-block-badge.pending{background:rgba(20,14,4,0.92);color:#E8B84B;border:1px dashed rgba(201,154,63,0.75);}
+.tl-block-badge.rejected{background:rgba(20,14,4,0.92);color:rgba(239,230,214,0.6);border:1px solid rgba(239,230,214,0.28);}
+.tl-block-pendhint{margin-top:3px;font-family:${FONT_UI};font-size:9.5px;line-height:1.35;color:rgba(239,230,214,0.55);}
+.tl-block-badge.with{background:#F0E6D2;color:#1a1305;border:1px solid rgba(201,154,63,0.55);}
+.tl-block-badge.looking{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#3d1f00;}
 .tl-block-info{padding:9px 11px 11px;}
 .tl-block-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;line-height:1.25;color:${T.onDark};display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:30px;}
 .tl-block-sub{font-size:9.5px;color:${T.onDarkDim};margin-top:3px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
@@ -192,8 +218,19 @@ const CSS = `
 // #41: mená účastníkov idú z DB (`get_trip_party`) — jediný zdroj. Lokálny `entry.joiners`
 // je rezervované pole pre budúce Slice B (viď triplist.ts), reálne prihlásenia ním nejdú,
 // takže sa z neho meno nikdy neodvodzuje.
-function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boolean, party?: TripParty): string {
-  if (done) return t('pack.triplist.statusDone');
+function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boolean, party?: TripParty, mod?: string): string {
+  // Moderácia prebíja VŠETKO ostatné: kým výlet nie je schválený, pack ho nevidí, takže
+  // „Hľadám partiu" by bola nepravda — nikto ho nemá ako nájsť.
+  if (mod === 'pending') return t('pack.triplist.statusPendingReview');
+  if (mod === 'rejected') return t('pack.triplist.statusRejected');
+  if (done) {
+    // ⚠️ `walked` NEPREPÍNA `openness` (viď komentár pri MY TRIPS nižšie): prejdený výlet ostáva
+    // visieť celému packu ako inzerát — aj s dátumom. Samotné „Hotovo" tú pascu zakrylo, majiteľ
+    // o bežiacom inzeráte nevedel. Label preto povie oboje. Skladá sa z DVOCH existujúcich kľúčov
+    // zámerne: nový string by bolo treba preložiť do všetkých 18 jazykov, takto je pokrytý hneď.
+    if (entry.status === 'looking') return `${t('pack.triplist.statusDone')} · ${t('pack.triplist.statusLookingForPack')}`;
+    return t('pack.triplist.statusDone');
+  }
   const real = party?.joiners ?? [];
   if (real.length === 1) return t('pack.triplist.statusWithName', { name: real[0].ownerFirst ?? t('pack.triplist.fallbackDogyptianLower') });
   if (real.length > 1) return t('pack.triplist.statusWithCount', { n: real.length });
@@ -205,8 +242,12 @@ function statusLabel(t: ReturnType<typeof useT>, entry: TriplistTrip, done?: boo
   }
   return t('pack.triplist.statusSolo');
 }
-function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty): string {
-  if (done) return 'done';
+function statusClass(entry: TriplistTrip, done?: boolean, party?: TripParty, mod?: string): string {
+  if (mod === 'pending') return 'pending';
+  if (mod === 'rejected') return 'rejected';
+  // prejdený + stále zverejnený = vlastný stav, nie „done" (viď statusLabel) — badge musí
+  // vyzerať ako upozornenie, nie ako uzavretá vec
+  if (done) return entry.status === 'looking' ? 'done-open' : 'done';
   if ((party?.joiners.length ?? 0) > 0) return 'with';
   if (entry.status === 'going') return 'with';
   if (entry.status === 'looking') return 'looking';
@@ -317,6 +358,12 @@ export default function PackTriplist() {
   const PUBLIC_PER_PAGE = 9;
 
   const walkedSet = useMemo(() => readWalkedIds(), [allTrails, storeEpoch]);
+  // Stav členom nahodeného výletu v moderácii. `readLocalTrailMeta` existovalo od #32, ale
+  // nikde sa nerenderovalo — autor teda videl „Hľadám partiu" na výlete, ktorý pack NEVIDÍ
+  // (RLS pustí cudzí trip až po `approved`), a nemal ako zistiť, že sa čaká na schválenie.
+  // ⚠️ Prázdna mapa NEZNAMENÁ „nič nie je schválené" — znamená „ešte sa nehydratovalo"
+  // (viď packStore.ts). Preto sa značka kreslí LEN pri explicitnom pending/rejected.
+  const trailMeta = useMemo(() => readLocalTrailMeta(), [storeEpoch]);
 
   const realMyTrips = useMemo<MyTripRow[]>(() => {
     return Object.values(triplist)
@@ -586,15 +633,19 @@ export default function PackTriplist() {
                   // dátumom — a majiteľ ho nemá ako stiahnuť. Badge vtedy hlási „Done", nie
                   // „Looking", takže o tom ani nevie.
                   const canToggleVis = !placeholder;
+                  // stav v moderácii — len pre členom nahodené výlety, generovaný dataset ho nemá
+                  const mod = trailMeta[entry.tripId]?.status;
                   return (
                   <div key={entry.tripId} className="tl-mycard">
                     {dleft !== null && dleft >= 0 && (
                       <span className={`tl-countdown${dleft <= 3 ? ' soon' : ''}`}>{countdownLabel(t, dleft)}</span>
                     )}
                   <div className="pk-glass-block tl-block" onClick={() => navigate(tripPath(trail))}>
-                    <div className="tl-block-cover" style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
-                      <img className="tl-flag" src={flagUrl('sk')} alt={t('pack.triplist.slovakiaLabel')} title={t('pack.triplist.slovakiaLabel')} loading="lazy" draggable={false} />
-                      {canToggleVis ? (
+                    <div className={`tl-block-cover${trail.photos[0] ? '' : ' nophoto'}`} style={trail.photos[0] ? { backgroundImage: `url('${trail.photos[0]}')` } : undefined}>
+                      <img className="tl-flag" src={flagUrl(trailCountry(trail))} alt="" loading="lazy" draggable={false} />
+                      {/* Kým výlet čaká na schválenie, badge NIE JE prepínač viditeľnosti —
+                          prepínať nie je čo, pack ho aj tak nevidí. */}
+                      {canToggleVis && !mod ? (
                         <button
                           type="button"
                           className={`tl-block-badge tap ${statusClass(entry, done, parties[entry.tripId])}`}
@@ -602,11 +653,12 @@ export default function PackTriplist() {
                           onClick={(e) => { e.stopPropagation(); setVisTripId(entry.tripId); }}
                         >{statusLabel(t, entry, done, parties[entry.tripId])}</button>
                       ) : (
-                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId])}`}>{statusLabel(t, entry, done, parties[entry.tripId])}</span>
+                        <span className={`tl-block-badge ${statusClass(entry, done, parties[entry.tripId], mod)}`}>{statusLabel(t, entry, done, parties[entry.tripId], mod)}</span>
                       )}
                     </div>
                     <div className="tl-block-info">
                       <div className="tl-block-name">{trail.name}</div>
+                      {mod === 'pending' && <div className="tl-block-pendhint">{t('pack.triplist.pendingHint')}</div>}
                       <div className="tl-block-foot">
                         {entry.date ? (
                           <button type="button" className="tl-datebtn" onClick={(e) => { e.stopPropagation(); openAddDate(entry.tripId, entry.date); }}>
@@ -667,8 +719,8 @@ export default function PackTriplist() {
                     className="pk-glass-block tl-block"
                     onClick={() => navigate(tripPath(c.trail))}
                   >
-                    <div className="tl-block-cover" style={c.trail.photos[0] ? { backgroundImage: `url('${c.trail.photos[0]}')` } : undefined}>
-                      <img className="tl-flag" src={flagUrl('sk')} alt={t('pack.triplist.slovakiaLabel')} title={t('pack.triplist.slovakiaLabel')} loading="lazy" draggable={false} />
+                    <div className={`tl-block-cover${c.trail.photos[0] ? '' : ' nophoto'}`} style={c.trail.photos[0] ? { backgroundImage: `url('${c.trail.photos[0]}')` } : undefined}>
+                      <img className="tl-flag" src={flagUrl(trailCountry(c.trail))} alt="" loading="lazy" draggable={false} />
                       <span className="tl-block-badge looking">{c.joiners > 0 ? t('pack.triplist.lookingWithJoiners', { n: c.joiners }) : t('pack.triplist.statusLookingForPack')}</span>
                     </div>
                     <div className="tl-block-info">

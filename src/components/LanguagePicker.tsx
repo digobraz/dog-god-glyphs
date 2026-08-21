@@ -280,7 +280,10 @@ export default function LanguagePicker({ variant = 'nav' }: { variant?: 'nav' | 
         .lang-picker--settings .lang-trigger {
           color: #1f1a0e;
           gap: 7px;
-          border: 1px solid rgba(31,26,14,0.16);
+          /* Zlatý rám matrice /pack (T.border), nie neutrálna šedá. Prepínač stojí
+             v tom istom stĺpci ako NASTAVIŤ/ZMENIŤ a ODHLÁSIŤ SA — tie tri majú
+             odteraz jeden rám. (13. 8. 2026, zjednotenie DNA.) */
+          border: 1px solid rgba(201,154,63,0.45);
           border-radius: 8px;
           padding: 6px 12px;
           font-size: 0.72rem;

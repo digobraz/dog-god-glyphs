@@ -17,7 +17,6 @@ import {
   ChevronDown,
   Images,
   Check,
-  QrCode,
   Camera,
   Syringe,
   Shield,
@@ -30,8 +29,9 @@ import {
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
-import { DogPassport } from '@/components/pack/DogPassport';
-import { PACK_THEME } from '@/components/pack/packTheme';
+import { DogPassport, type FixedRow } from '@/components/pack/DogPassport';
+import { WillPanel } from '@/components/pack/WillPanel';
+import { PACK_THEME, PILL_CSS } from '@/components/pack/packTheme';
 import { CertificateCard } from '@/components/CertificateCard';
 import { HeroglyphFrame } from '@/components/HeroglyphFrame';
 import { MemorialControl } from '@/components/pack/MemorialControl';
@@ -48,6 +48,60 @@ import { HEALTH_KEYS, HEALTH_COLORS, healthLabelKey, type HealthKey } from '@/li
 const T = PACK_THEME;
 const MESSAGE_MAX = 150;
 
+// ── DOG ID — vzhľad dokladu (2026-08-12) ────────────────────────────────────
+// Ladí sa TÝMTO blokom, nie inline štýlmi v JSX: layout má dve vetvy (PC / mobil)
+// a inline styly by druhú vetvu nevedeli obslúžiť.
+// Rovnica namiesto merania: meno rastie cez clamp(), fotka a QR majú pevné
+// rozmery, stredný stĺpec je minmax(0,1fr) — nič sa po vykreslení nedomeriava.
+// ⚠️ Toto je JS template literal — spätný apostrof v komentári zhodí build.
+// ⚠️ Breakpoint 720/721 px je to isté číslo ako v psom bloku na /pack/dogs.
+const DOGID_CSS = `
+@keyframes did-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.did-card{position:relative;animation:did-in .32s cubic-bezier(.16,1,.3,1) both;}
+/* dvojitý rám — doklady majú vnútornú linku, nie jednu hranu */
+.did-card::before{content:'';position:absolute;inset:7px;border:1px solid rgba(201,154,63,.20);border-radius:11px;pointer-events:none;}
+.did-idzone{position:relative;}
+
+/* CENTROVANÁ OS — vzor je certifikát: všetko na jednej osi, zhora nadol. */
+.did-stack{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:4px;}
+/* HLAVIČKA DOKLADU (Matej 13.8.2026: „úplne hore bude v pils len DOG ID ako názov
+   dokumentu. číslo psa bude v pils pred slovenskou vlajkou.") — názov dokumentu je
+   PILULKA z matrice (.pk-pill v packTheme.ts), nie holý eyebrow text; poradové číslo
+   sa presunulo dolu do čipového radu. Tie dve pilulky preto nesmú vyzerať inak než
+   pilulky na homepage a v profile — DNA nesie .pk-pill, tu je len typografia a
+   rozostupy. */
+.did-head{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
+.did-idpill{font-family:'Cinzel',serif;font-weight:700;font-size:11px;letter-spacing:.28em;text-transform:uppercase;padding:6px 18px;}
+/* Poradové číslo = ČÍSLO ⇒ Space Grotesk 600 (strop načítanej váhy), nie Cinzel —
+   pravidlo pilulky z packTheme.ts: názov Cinzel, číslo Grotesk. */
+/* Výška 30px je spoločná pre všetky TRI čipy v rade (číslo · vlajka · zdravie) —
+   inak je jeden o 6 px vyšší a rad vyzerá nedbalo. Preto pevná výška, nie padding. */
+.did-numpill{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:12.5px;letter-spacing:.02em;height:30px;padding:0 13px;}
+
+/* fotka = KRUH so zlatým prsteňom (ako na certifikáte a na GRIDE) */
+.did-photoframe{position:relative;display:block;width:136px;height:136px;border-radius:50%;overflow:hidden;padding:0;background:${T.bg};border:2px solid ${T.accentGold};box-shadow:0 0 0 1px rgba(201,154,63,.45),0 10px 26px rgba(201,154,63,.24);}
+
+.did-main{margin-top:14px;width:100%;}
+.did-name{font-family:'Cinzel Decorative','Cinzel',serif;font-weight:700;font-size:clamp(24px,4.4vw,34px);line-height:1.05;letter-spacing:.03em;text-transform:uppercase;color:${T.ink};overflow-wrap:anywhere;}
+.did-chips{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;margin-top:12px;}
+.did-health{width:150px;flex:0 0 auto;}
+
+.did-glyph{width:100%;max-width:360px;margin-top:16px;}
+.did-meta{margin-top:14px;width:100%;}
+
+/* zlatá vyblednutá čiara medzi identitou a údajmi */
+.did-rule{height:2px;margin:20px 0 4px;background:${T.rule};opacity:.9;}
+
+/* späť = holá šípka v STREDE nad blokom (rovnaký tvar ako .tl-back v TRIPSTATS) */
+.did-backrow{display:flex;justify-content:center;margin-bottom:16px;}
+.did-back{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.42);border:1px solid ${T.onDarkBorder};color:${T.onDark};cursor:pointer;transition:border-color .15s,color .15s;}
+.did-back:hover{border-color:${T.accentGold};color:${T.accentGold};}
+
+@media (max-width:720px){
+  .did-photoframe{width:112px;height:112px;}
+}
+`;
+
 // "labrador retriever" → "Labrador Retriever"
 function capWords(s: string): string {
   return s
@@ -58,18 +112,11 @@ function capWords(s: string): string {
     .join(' ');
 }
 
-// Health protection shields — illustrative states (PREVIEW; real schedule + DB
-// post-launch). state: 'active' (green) · 'due' (amber, time is near) · 'off' (grey).
-type ShieldState = 'active' | 'due' | 'off';
-function getHealthShields(t: ReturnType<typeof useT>): { key: string; label: string; state: ShieldState; note: string; lucide: React.ReactNode }[] {
-  return [
-    { key: 'parasites', label: t('pack.dog.shieldParasites'), state: 'active', note: t('pack.dog.shieldParasitesNote'), lucide: <Bug className="h-5 w-5" /> },
-    { key: 'vaccine', label: t('pack.dog.shieldVaccination'), state: 'due', note: t('pack.dog.shieldVaccinationNote'), lucide: <Syringe className="h-5 w-5" /> },
-    { key: 'immunity', label: t('pack.dog.shieldImmunity'), state: 'active', note: t('pack.dog.shieldImmunityNote'), lucide: <ShieldPlus className="h-5 w-5" /> },
-    { key: 'joints', label: t('pack.dog.shieldJoints'), state: 'off', note: t('pack.dog.shieldJointsNote'), lucide: <Bone className="h-5 w-5" /> },
-  ];
-}
-
+// Zdravotné štíty (parazity/očkovanie/imunita/kĺby) ZANIKLI 13.8.2026. Mali stavy
+// `active/due/off` natvrdo — teda vymyslený údaj na dokumente, ktorý má byť
+// vysvedčením. Navyše sa `HEALTH_SHIELDS` vyrobili a NIKDE nevykreslili, takže to bol
+// mŕtvy kód. Skutočné dátumy sú v `dog_events` (`health.vaxRabies` a spol.) a doklad
+// ich už ukazuje v bloku OČKOVANIA — vrátane pečiatky, kedy boli naposledy zapísané.
 interface DogRow {
   id: string;
   user_id: string | null;
@@ -110,8 +157,9 @@ type Status = 'loading' | 'ready' | 'not-found' | 'error';
 function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: string }) {
   const [failed, setFailed] = useState(false);
   const base: React.CSSProperties = {
-    width: 28,
-    height: 28,
+    // 30px = spoločná výška čipového radu (číslo · vlajka · zdravie).
+    width: 30,
+    height: 30,
     borderRadius: '50%',
     justifySelf: 'center',
     border: '1.5px solid rgba(201, 154, 63, 0.55)',
@@ -155,6 +203,8 @@ function FlagCircle({ src, iso2, label }: { src: string; iso2: string; label: st
 
 export default function PackDogDetail() {
   const t = useT();
+  // Fallback pre kľúče, ktoré ešte nie sú v i18n — inak by na karte svietil holý kľúč.
+  const tx = (k: string, f: string) => { const v = t(k); return v === k ? f : v; };
   const { id } = useParams<{ id: string }>();
   const [dog, setDog] = useState<DogRow | null>(null);
   const [status, setStatus] = useState<Status>('loading');
@@ -174,6 +224,9 @@ export default function PackDogDetail() {
   const [showCert, setShowCert] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [wallOpen, setWallOpen] = useState(false);
+  // Závet — panel nad dokladom. Otvára ho ✎ pri bloku ZÁVET, jeho červené pomlčky
+  // aj tlačidlo v zdieľacom rade; všetky tri vedú na to isté miesto.
+  const [willOpen, setWillOpen] = useState(false);
   const [memorialOpen, setMemorialOpen] = useState(false);
   const [memorialStep, setMemorialStep] = useState<'confirm' | 'date'>('confirm');
   // SECTIONS NAV — jedna otvorená dlaždica naraz (Health/Training/Journal). accordion.
@@ -391,6 +444,21 @@ export default function PackDogDetail() {
       return new Date(dog.created_at).toLocaleDateString('en-GB', {
         day: '2-digit',
         month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return '';
+    }
+  }, [dog]);
+
+  // Ten istý dátum v jazyku používateľa — pre tooltip „V Dogypte od…". `issuedDate`
+  // vyššie ostáva en-GB zámerne: ide na CERTIFIKÁT, a ten je anglický dokument.
+  const issuedDateLocal = useMemo(() => {
+    if (!dog?.created_at) return '';
+    try {
+      return new Date(dog.created_at).toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'long',
         year: 'numeric',
       });
     } catch {
@@ -686,7 +754,6 @@ export default function PackDogDetail() {
     ? deathDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
     : null;
   const WALK_LEVELS = getWalkLevels(t);
-  const HEALTH_SHIELDS = getHealthShields(t);
 
   // Daily-prayers header + provisional points (placeholder; rolls up to stats later).
   const todayLabel = new Date()
@@ -701,16 +768,22 @@ export default function PackDogDetail() {
   const birthDay = Number(sel.birthdayDay) || null;
   const birthYear = Number(sel.birthdayYear) || dog.birth_year || null;
 
-  // Health overview — real facts where we have them, the rest is a styled preview.
+  // PLEMENO · NARODENIE · POHLAVIE (13.8.2026). Tieto tri sa dovtedy vypočítali a NIKDE
+  // sa nevykreslili — `breed` aj `birthDateLabel` boli mŕtve premenné po zrušenom
+  // zdravotnom prehľade. Doklad psa bez nich neobstojí: veterinár sa pýta práve na ne.
+  // Nejdú cez kvíz, sedia v `dogs`/`selections` od kúpy heroglyfu (plemeno je zapečené
+  // v samotnom glyfe) — preto sa na doklad posielajú ako read-only `FixedRow`.
   const breed = (dog.breed || (typeof sel.breed === 'string' ? sel.breed : '') || '').trim();
   const birthDateLabel =
     birthYear && birthMonth && birthDay
-      ? new Date(birthYear, birthMonth - 1, birthDay).toLocaleDateString('en-US', {
+      ? new Date(birthYear, birthMonth - 1, birthDay).toLocaleDateString(undefined, {
           day: 'numeric',
-          month: 'short',
+          month: 'long',
           year: 'numeric',
         })
-      : null;
+      : birthYear
+        ? String(birthYear)
+        : null;
 
   // Pronouns — derived from dog gender (king=he / queen=she); neutral they/their
   // when unknown. dogGender values: 'king' | 'queen' (see heroglyphSymbols).
@@ -729,6 +802,24 @@ export default function PackDogDetail() {
   // w160 (nie w40) — 28px krúžok na retine potrebuje 2–3× hustotu, inak rozmazané.
   const dogFlagUrl = flagUrl(flagIso, 160);
 
+  // Read-only riadky navrch IDENTITY. `null` = údaj chýba → doklad ukáže TLMENÚ pomlčku,
+  // nie červenú: červená znamená „doplň to", a tieto sa doplniť nedajú (heroglyph dáta).
+  const fixedIdentityRows: Record<string, FixedRow[]> = {
+    identity: [
+      { i18n: 'pack.dog.rowBreed', labelEN: 'Breed', value: breed ? capWords(breed) : null },
+      { i18n: 'pack.dog.rowBorn', labelEN: 'Born', value: birthDateLabel },
+      {
+        i18n: 'pack.dog.rowSex',
+        labelEN: 'Sex',
+        value: dogGender === 'queen'
+          ? tx('pack.dog.sexFemale', 'Female')
+          : dogGender === 'king'
+            ? tx('pack.dog.sexMale', 'Male')
+            : null,
+      },
+    ],
+  };
+
   return (
     <PackLayout wide>
       {/* PackDogWizard vypnutý úplne (Matej, 2026-08-03) — NIE DEV gate, lebo tento
@@ -741,56 +832,53 @@ export default function PackDogDetail() {
       {/* Späť do MY PACK — jediná vec, ktorá v tomto riadku zostala (Matej 6.8.:
           „pri kliknutí na psa by mala byť hore šípka dozadu na /dogs nie? dáva mi to
           celkom zmysel"). Mieri na `/pack/dogs`, nie na `/pack`: k psovi sa chodí z hubu.
-          ⚠️ Farba MUSÍ byť `onDark*` — riadok leží MIMO bledej karty, priamo na tmavom
-          pozadí. Predtým tu bol papyrusový `T.inkDim` (takmer čierna na čiernej) a link
-          bol fakticky neviditeľný.
+          12.8.2026: z textového odkazu vľavo sa stala HOLÁ ŠÍPKA V STREDE NAD BLOKOM —
+          rovnaký tvar ako `.tl-back` v PackTriplist (TRIPSTATS), aby mal `/pack` jeden
+          spôsob návratu. Kruh má vlastné tmavé pozadie, lebo leží MIMO bledej karty.
           ZMAZANÉ 6.8.: odkaz „POZRI NA WALL #<n>" (Matej: „daj to celkom preč mne to tam
           nedáva zmysel"). */}
-      <div className="mb-4">
-        <Link
-          to="/pack/dogs"
-          className="inline-flex items-center gap-2"
-          style={{
-            fontFamily: "'Cinzel', serif",
-            letterSpacing: '0.22em',
-            fontSize: 11,
-            textTransform: 'uppercase',
-            color: T.onDarkDim,
-            textDecoration: 'none',
-          }}
-        >
-          <ArrowLeft className="h-3 w-3" />
-          {t('pack.tree.title')}
+      <div className="did-backrow">
+        <Link to="/pack/dogs" className="did-back" aria-label={t('pack.tree.title')}>
+          <ArrowLeft className="h-4 w-4" />
         </Link>
       </div>
 
       <div className="flex flex-col gap-5 md:gap-6">
 
-        {/* HLAVIČKA PASU — od 6.8.2026 JEDEN stĺpec: pravý blok (modlitby) odišiel na
-            homepage, dvojstĺpec by tu nechal prázdnu polovicu. */}
+        {/* DOG ID — JEDNA KARTA (Matej 2026-08-12: „bude to len jedna karta, 1 blok
+            podobajúci sa na ID"). Predtým to boli DVA bloky pod sebou: identita
+            (fotka v strede) + pas (DogPassport s vlastným rámom). Doklad má jeden
+            rám, jednu hlavičku a jedno sériové číslo — preto sa zlúčili a fotka
+            išla DOĽAVA, ako na občianskom. Poradie čítania: kto (foto) → meno a
+            stav → heroglyf → QR → údaje. */}
         <div className="grid grid-cols-1 gap-5 md:gap-6 items-stretch">
 
-          {/* — BLOCK 1: Identita + vek (kopíruje /pack handler blok, centrované) — */}
           <section
-            className="relative"
+            className="did-card"
             style={{
               background: T.cardGrad,
               border: `1.5px solid ${T.cardEdge}`,
               borderRadius: 16,
-              padding: '20px 20px',
+              padding: '18px 20px 22px',
               boxShadow: T.cardShadow,
             }}
           >
+            {/* Pilulky doklade sú TIE ISTÉ ako na homepage/profile — DNA je v matrici,
+                nie tu. PILL_CSS musí stáť PRED DOGID_CSS, aby ho typografia pilulky
+                nižšie prebila (rovnaká špecificita, rozhoduje poradie). */}
+            <style>{PILL_CSS}</style>
+            <style>{DOGID_CSS}</style>
+
+            {/* Identitná zóna je vlastný `relative` obal — dokumentový panel
+                (profileOpen) sa prekrýva LEN cez ňu. Keby ostal na `<section>`,
+                po zlúčení s pasom by prekryl celý dokument (aj 1500 px údajov). */}
+            <div className="did-idzone">
+
             {/* FRONT — identity (always rendered; defines the block height) */}
-            <div className="flex flex-col items-center justify-center text-center" style={{ height: '100%' }}>
-            {/* — Inaktívne (Pass · Lost) vľavo hore — */}
-            <div className="absolute flex items-center gap-2" style={{ top: 16, left: 16, zIndex: 4 }}>
-              <IconBtn
-                icon={<QrCode className="h-4 w-4" />}
-                label={t('pack.dog.passportTooltip')}
-                tooltipSide="right"
-                soon
-              />
+            <div className="did-front">
+
+            {/* — Ikony v rohoch (Lost · Dokumenty) — */}
+            <div className="absolute flex items-center gap-2" style={{ top: 4, left: 4, zIndex: 4 }}>
               {/* FIX9: deceased pes sa nestráca — schovaj "Report lost dog" ikonu. */}
               {!isDeceased && (
                 <IconBtn
@@ -802,8 +890,7 @@ export default function PackDogDetail() {
                 />
               )}
             </div>
-            {/* — Papyrus (profil & dokumenty) vpravo hore — */}
-            <div className="absolute flex items-center gap-2" style={{ top: 16, right: 16, zIndex: 4 }}>
+            <div className="absolute flex items-center gap-2" style={{ top: 4, right: 4, zIndex: 4 }}>
               <IconBtn
                 icon={<BrandIcon name="document" size={16} tint="gold" />}
                 label={t('pack.dog.profileDocumentsTooltip')}
@@ -812,27 +899,26 @@ export default function PackDogDetail() {
               />
             </div>
 
+            {/* CENTROVANÁ OS ako na certifikáte (Matej 12.8.: „skúsme to teda predsa
+                len centrovať podobne ako je to na certifikáte"). Fotka je KRUH —
+                obdĺžnikový pokus bol chyba, ktorú si nikto neobjednal. */}
+            <div className="did-stack">
+
+            <div className="did-head">
+              <span className="pk-pill did-idpill">{tx('pack.dog.idTitle', 'DOG ID')}</span>
+            </div>
+
             {/* Foto — kruh, zlatý prsteň; hover (PC) / tap (mobile) = zmena, ako avatar majiteľa */}
             <button
               type="button"
               onClick={handleChangeMainPhoto}
               disabled={uploadingMain}
               aria-label={t('pack.dog.ariaChangePhoto')}
-              className="relative group"
-              style={{
-                width: 125,
-                height: 125,
-                borderRadius: '50%',
-                background: T.bg,
-                overflow: 'hidden',
-                padding: 0,
-                border: `2px solid ${T.accentGold}`,
-                boxShadow: '0 0 0 1px rgba(201, 154, 63, 0.45), 0 8px 24px rgba(201, 154, 63, 0.28)',
-                cursor: uploadingMain ? 'progress' : 'pointer',
-              }}
+              className="did-photoframe group"
+              style={{ cursor: uploadingMain ? 'progress' : 'pointer' }}
             >
               {dog.cloudinary_main_url ? (
-                <img src={dog.cloudinary_main_url} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={dog.cloudinary_main_url} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               ) : (
                 <div
                   className="flex items-center justify-center h-full"
@@ -857,88 +943,67 @@ export default function PackDogDetail() {
             />
 
             {/* Meno + pulzujúca „alive" bodka vľavo (FIX9: deceased → statický anjelský znak, žiadny pulz) */}
-            <div className="flex items-center justify-center" style={{ marginTop: 12, gap: 10 }}>
-              {isDeceased ? <AngelDot /> : <AliveDot />}
-              <h1
-                style={{
-                  fontFamily: "'Cinzel Decorative', 'Cinzel', serif",
-                  fontSize: 28,
-                  letterSpacing: '0.03em',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  color: T.ink,
-                  lineHeight: 1.05,
-                }}
-              >
-                {dogName}
-              </h1>
-            </div>
-
-            {/* — Badges + heroglyf zdieľajú jednu šírku → badges = presne šírka heroglyfu — */}
-            <div style={{ width: '100%', maxWidth: 320, marginInline: 'auto' }}>
-            {/* Badge riadok: # · vlajka (krúžok ako na GRIDE) · Health */}
-            <div className="mt-3 grid items-center gap-2 w-full" style={{ gridTemplateColumns: '1fr auto 1fr' }}>
-              {/* # */}
-              <div
-                className="flex w-full items-center justify-center"
-                style={{
-                  padding: '7px 6px',
-                  borderRadius: 999,
-                  background: 'transparent',
-                  border: `1px solid ${T.border}`,
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: T.accentGold,
-                    letterSpacing: '0.02em',
-                    lineHeight: 1,
-                  }}
-                >
-                  {certNumber}
-                </span>
+            <div className="did-main">
+              <div className="flex items-center justify-center" style={{ gap: 10 }}>
+                {isDeceased ? <AngelDot /> : <AliveDot />}
+                <h1 className="did-name">{dogName}</h1>
               </div>
-              {/* Vlajka — krúžok ako na GRIDE (flagcdn), bez badge rámu.
-                  Emoji fallback: flagcdn je cudzí CDN a nie je dostupný všade
-                  (Gmail in-app browser, 2026-07-26 → namiesto vlajky sa kreslil
-                  iOS „?"). Bez fallbacku ostane po zlyhaní tmavý štvorec s
-                  otáznikom, čo vyzerá ako rozbitá stránka. */}
-              <FlagCircle
-                src={dogFlagUrl}
-                iso2={flagIso}
-                label={origin || t('pack.dog.defaultCountry')}
-              />
-              {/* Health — FIX9: deceased pes = needitovateľný memoriálny čip, žiadny dropdown */}
-              {isDeceased ? <InLovingMemoryBadge /> : (
-                <HealthBadge
-                  status={healthStatus}
-                  open={healthOpen}
-                  onToggle={() => setHealthOpen((v) => !v)}
-                  onSelect={(k) => {
-                    setHealthStatus(k);
-                    setHealthOpen(false);
-                    void saveHealthFields({ health_status: k });
-                  }}
+
+              {/* Čipy: číslo · vlajka (krúžok ako na GRIDE) · Health.
+                  Vlajka — bez badge rámu. Emoji fallback: flagcdn je cudzí CDN a nie
+                  je dostupný všade (Gmail in-app browser, 2026-07-26 → namiesto
+                  vlajky sa kreslil iOS „?"). Bez fallbacku ostane po zlyhaní tmavý
+                  štvorec s otáznikom, čo vyzerá ako rozbitá stránka. */}
+              <div className="did-chips">
+                {/* Poradové číslo psa — pilulka PRED vlajkou (Matej 13.8.2026). Hore
+                    v hlavičke ostáva len názov dokumentu. Dátum vstupu do DOGYPTU visí
+                    na tejto pilulke ako tooltip: číslo aj dátum odpovedajú na to isté
+                    („odkedy je pes v Dogypte"), takže patria k sebe, nie pod nadpis. */}
+                <NumberPill number={certNumber} since={issuedDateLocal} />
+                <FlagCircle
+                  src={dogFlagUrl}
+                  iso2={flagIso}
+                  label={origin || t('pack.dog.defaultCountry')}
                 />
-              )}
+                {/* Health — FIX9: deceased pes = needitovateľný memoriálny čip, žiadny dropdown.
+                    Obal s pevnou šírkou je nutný: HealthBadge má vnútri `w-full` (dedičstvo po
+                    starom rade, kde bol v grid stĺpci `1fr`) a bez obalu by v čipovom rade
+                    roztiahol zelený pruh cez celý stredný stĺpec. */}
+                <div className="did-health">
+                {isDeceased ? <InLovingMemoryBadge /> : (
+                  <HealthBadge
+                    status={healthStatus}
+                    open={healthOpen}
+                    onToggle={() => setHealthOpen((v) => !v)}
+                    onSelect={(k) => {
+                      setHealthStatus(k);
+                      setHealthOpen(false);
+                      void saveHealthFields({ health_status: k });
+                    }}
+                  />
+                )}
+                </div>
+              </div>
             </div>
 
-            {/* Heroglyf — čierny (vyplní spoločný wrapper, takže = šírka badge riadku) */}
-            <div className="flex items-center justify-center w-full" style={{ marginTop: 12 }}>
+            {/* Heroglyf — čierny, na šírku stredného stĺpca */}
+            <div className="did-glyph">
               <HeroglyphFrame
                 showOwner
                 style={{ width: '100%', maxWidth: '100%', height: 'auto', color: T.ink } as React.CSSProperties}
               />
             </div>
-            </div>
+
+            {/* QR ODLOŽENÉ 12.8.2026 (Matej: „zatial to dajme bez QR"). Zámer aj cieľová
+                URL sú popísané v pamäti `project_dogypt_dogid_karta_2026-08-12` — mierilo
+                to na verejnú `/dog/<slug>?ref=<pack>`, ktorá existuje a sama zbiera
+                referral. Dep `qrcode.react` ostáva v package.json pre návrat. */}
 
             {/* "Living my best life" — hlavný údaj = dni (badge, podčiarknuté); roky+ľudské roky v tooltipe (hover PC / tap mobile).
                 FIX9: deceased pes → zmrazené "Lived his best life" + živé "In angel form" počítadlo. */}
+            <div className="did-meta">
             {isDeceased ? (
-              <div className="flex flex-col items-center gap-2" style={{ marginTop: 12 }}>
+              <div className="flex flex-col items-center gap-2">
                 <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
                   {age && (
                     <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
@@ -966,7 +1031,7 @@ export default function PackDogDetail() {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-1.5" style={{ marginTop: 12 }}>
+              <div className="flex flex-col items-center gap-1.5">
                 {age ? (
                   <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
                     <span
@@ -979,13 +1044,20 @@ export default function PackDogDetail() {
                     <BestLifeBadge age={age} />
                   </div>
                 ) : (
-                  <div style={{ marginTop: 6, fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
+                  <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, color: T.inkDim }}>
                     {t('pack.dog.birthdayUnknown')}
                   </div>
                 )}
               </div>
             )}
             </div>
+            {/* /did-meta */}
+
+            </div>
+            {/* /did-stack */}
+
+            </div>
+            {/* /did-front */}
 
             {/* BACK — documents + Wall word; absolute overlay = block keeps its height */}
             {profileOpen && (
@@ -1165,7 +1237,30 @@ export default function PackDogDetail() {
               </div>
             </div>
             )}
+            </div>
+            {/* /did-idzone */}
+
+            {/* ÚDAJE — ten istý doklad, druhá polovica. `bare` = DogPassport
+                nekreslí vlastný rám; rám je jeden, tento. Zlatá vyblednutá čiara
+                (T.rule) je predpísaný oddeľovač vnútri bledej karty. */}
+            {DEV_FULL && (
+              <>
+                <div className="did-rule" />
+                <DogPassport
+                  dogId={dog.id}
+                  bare
+                  fixedRows={fixedIdentityRows}
+                  onEditPanel={(p) => { if (p === 'will') setWillOpen(true); }}
+                />
+              </>
+            )}
           </section>
+
+          {/* ZÁVET — panel nad dokladom. Otvára ho ✎ pri bloku ZÁVET, jeho červené
+              pomlčky aj tlačidlo v zdieľacom rade. */}
+          {willOpen && (
+            <WillPanel dogId={dog.id} dogName={dogName} onClose={() => setWillOpen(false)} />
+          )}
 
           {/* Wall word popup — writing/saving the Wall message off the card, so the
               back panel stays short and never scrolls (Matej 2026-07-07). */}
@@ -1298,8 +1393,9 @@ export default function PackDogDetail() {
             každý platiaci člen. Pas ale plnia kvízy v `/pack/dogs`, a tie za flagom SÚ. Bez tejto
             podmienky by člen dostal prázdnu kartu „Nothing filled in yet" so štyrmi vypnutými
             share tlačidlami a nemal by ako ju naplniť — horšie než keby tam nebola.
-            Odstrániť SPOLU s odomknutím hubu, nie skôr. */}
-        {DEV_FULL && <DogPassport dogId={dog.id} />}
+            Odstrániť SPOLU s odomknutím hubu, nie skôr.
+            12.8.2026: pas sa presunul DOVNÚTRA karty vyššie (jedna karta = jedno ID),
+            gate ostal na tom istom mieste v strome, len o pár riadkov vyššie. */}
 
         {/* ČLENSKÁ VETVA — tri „čoskoro" dlaždice, presne ako pred 6.8.2026.
             Sú tu preto, že pas o riadok vyššie je za flagom: bez nich by členovi na
@@ -1528,6 +1624,54 @@ function StatsLegend({ onAdd }: { onAdd: () => void }) {
         </div>
       </button>
     </div>
+  );
+}
+
+// Poradové číslo + „v Dogypte od" v tooltipe (Matej 13.8.2026: „odkedy je pes v dogypte
+// nebude viditeľné pod DOG ID nadpisom, ale pri prechode myšou na pils s číslom #").
+// Tooltip má rovnakú mechaniku ako BestLifeBadge: hover na PC, tap na mobile — bez tapu
+// by bol údaj na telefóne nedostupný.
+function NumberPill({ number, since }: { number: string; since: string }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  if (!since) return <span className="pk-pill did-numpill">{number}</span>;
+  return (
+    <span
+      className="relative inline-flex"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className="pk-pill pk-pill--tap did-numpill"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={t('pack.dog.inDogyptSince', { date: since })}
+      >
+        {number}
+      </button>
+      {open && (
+        <span
+          className="absolute"
+          style={{
+            top: 'calc(100% + 9px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            whiteSpace: 'nowrap',
+            padding: '9px 15px',
+            borderRadius: 10,
+            background: T.ink,
+            color: T.card,
+            fontFamily: "'Space Grotesk', sans-serif",
+            fontSize: 12.5,
+            fontWeight: 500,
+            boxShadow: '0 10px 28px rgba(10,10,10,0.28)',
+            zIndex: 6,
+          }}
+        >
+          {t('pack.dog.inDogyptSince', { date: since })}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -2011,10 +2155,13 @@ function HealthBadge({
         onClick={onToggle}
         className="flex w-full items-center justify-center gap-1.5"
         style={{
-          padding: '7px 6px',
+          height: 30,
+          padding: '0 10px',
           borderRadius: 999,
           background: `${current.color}1F`,
-          border: `1px solid ${current.color}`,
+          // 1.5px = tá istá hrúbka ako .pk-pill vedľa (číslo, vlajka). Pilulka mení
+          // len výplň a farbu, nie hrúbku okraja — inak rad vyzerá nedbalo.
+          border: `1.5px solid ${current.color}`,
           fontFamily: "'Cinzel', serif",
           fontSize: 9,
           letterSpacing: '0.16em',
@@ -2105,10 +2252,11 @@ function InLovingMemoryBadge() {
     <div
       className="flex w-full items-center justify-center gap-1.5"
       style={{
-        padding: '7px 6px',
+        height: 30,
+        padding: '0 10px',
         borderRadius: 999,
         background: 'linear-gradient(180deg, #F4F6FB 0%, #D9DEE8 100%)',
-        border: '1px solid rgba(180,190,210,0.6)',
+        border: '1.5px solid rgba(180,190,210,0.6)',
         fontFamily: "'Cinzel', serif",
         fontSize: 9,
         letterSpacing: '0.16em',
@@ -2562,58 +2710,6 @@ function OverviewFact({
         )}
       </span>
     </div>
-  );
-}
-
-// ShieldBadge — one protection shield. active=green glow · due=amber · off=grey.
-function ShieldBadge({
-  lucide,
-  label,
-  state,
-  onClick,
-}: {
-  lucide: React.ReactNode;
-  label: string;
-  state: ShieldState;
-  onClick?: () => void;
-}) {
-  const palette =
-    state === 'active'
-      ? { fg: '#3D7A4E', bg: 'rgba(61, 122, 78, 0.12)', bd: 'rgba(61, 122, 78, 0.40)' }
-      : state === 'due'
-        ? { fg: '#B8862F', bg: 'rgba(201, 154, 63, 0.14)', bd: 'rgba(201, 154, 63, 0.45)' }
-        : { fg: T.inkFaint, bg: T.tileBg, bd: T.border };
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex flex-col items-center justify-center text-center"
-      style={{
-        padding: '14px 6px',
-        minHeight: 74,
-        borderRadius: 14,
-        background: palette.bg,
-        border: `1px solid ${palette.bd}`,
-        gap: 7,
-        cursor: 'pointer',
-        boxShadow: state === 'active' ? '0 0 0 3px rgba(61, 122, 78, 0.07)' : 'none',
-      }}
-    >
-      <span style={{ color: palette.fg, display: 'inline-flex' }}>{lucide}</span>
-      <span
-        style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 8.5,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          color: palette.fg,
-          lineHeight: 1.1,
-          fontWeight: 700,
-        }}
-      >
-        {label}
-      </span>
-    </button>
   );
 }
 

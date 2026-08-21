@@ -1,26 +1,7 @@
 import { useLang } from '@/i18n/LanguageContext';
-
-// Custom lang codes → BCP-47 locale
-const LANG_TO_BCP47: Record<string, string> = {
-  ara: 'ar',
-  chn: 'zh',
-  cs:  'cs',
-  deu: 'de',
-  en:  'en',
-  esp: 'es',
-  fra: 'fr',
-  ind: 'hi',
-  ita: 'it',
-  jpn: 'ja',
-  kor: 'ko',
-  nld: 'nl',
-  pol: 'pl',
-  prt: 'pt',
-  rus: 'ru',
-  sk:  'sk',
-  tur: 'tr',
-  ukr: 'uk',
-};
+// Mapa jazyk → BCP-47 žila tu; vytiahnutá do `@/i18n/bcp47` 2026-08-12,
+// keď ju potreboval aj Inbox. Jedna kópia, nie dve.
+import { intlLocale } from '@/i18n/bcp47';
 
 function daysInMonth(m: number, y: number): number {
   return new Date(y, m, 0).getDate();
@@ -82,7 +63,7 @@ export interface DateDropdownsProps {
 
 export function DateDropdowns({ day, month, year, minYear, maxYear, maxDate, onChange }: DateDropdownsProps) {
   const { lang } = useLang();
-  const locale = LANG_TO_BCP47[lang] ?? 'en';
+  const locale = intlLocale(lang);
 
   const monthName = (m: number) =>
     new Intl.DateTimeFormat(locale, { month: 'long' }).format(new Date(2000, m - 1, 1));

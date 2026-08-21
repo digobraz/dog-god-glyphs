@@ -87,6 +87,23 @@ export interface QuizStep {
    * 100 % a progres by klamal.
    */
   noProgress?: boolean;
+  /**
+   * Pole, ktoré je BONUS, nie diera (13.8.2026). Odkedy DOG ID ukazuje všetky položky
+   * a nevyplnené sfarbí načerveno, rozhoduje sa tu, čo je „chýba ti to" a čo len
+   * „keď budeš mať čas" — inak je červená všade a tým prestane niečo znamenať.
+   * Prejav: tlmená pomlčka namiesto červenej (`.pass-missing--optional`).
+   * ⚠️ NIE JE to `noProgress`. `noProgress` = pole sa nedá vyplniť vôľou (pes zvláštnu
+   * úlohu buď má, alebo nemá). `optional` = vyplniť sa dá, len to nikoho neohrozí.
+   */
+  optional?: boolean;
+  /**
+   * Kam vedie oprava TOHTO poľa, keď sa needituje cez kvíz svojej skupiny.
+   * Vzniklo 13.8.2026 s presunom `nature.*` do skupiny IDENTITA (Matej: „do identity
+   * by mali pribudnúť dve možnosti, a síce postavenie vo svorke, element"): skupina má
+   * jeden ✎ pre celú sekciu, ale tieto tri polia sa vypĺňajú osobnostným kvízom na
+   * vlastnom povrchu. Bez tohto by ✎ pri nich viedol do kvízu ZÁKLAD, kde nie sú.
+   */
+  editHref?: string;
 }
 
 // 'scored' = kvíz s VÁHAMI a vlastným povrchom (osobnostný kvíz `/pack/nature`).
@@ -94,7 +111,7 @@ export interface QuizStep {
 // `options`, takže by ponúkol otázku bez odpovedí. Odmieta ho `section.kind !== 'quiz'`
 // v `PackDogQuiz.tsx`; kroky tu sú len preto, aby sa výsledok vedel vykresliť na
 // karte psa (`STEP_BY_FIELD` je derivované odtiaľto — pole bez kroku nemá label).
-export type QuizSectionKind = 'quiz' | 'gallery' | 'journal' | 'scored';
+export type QuizSectionKind = 'quiz' | 'gallery' | 'journal' | 'scored' | 'will';
 
 export interface QuizSection {
   key: string;
@@ -211,7 +228,7 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         suggestions: ['sit', 'down', 'come', 'stay', 'place', 'heel', 'leave_it', 'paw'],
         labelEN: 'Which commands do they know?', i18n: 'pack.quiz.howWorks.commands.q',
         rowEN: 'Commands', rowI18n: 'pack.quiz.howWorks.commands.row',
-        views: ['sitter'],
+        views: ['sitter'], optional: true,
       },
     ],
   },
@@ -285,7 +302,9 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         field: 'temperament.joys', kind: 'chips', suggestions: DOG_JOY_SUGGESTIONS,
         labelEN: 'What makes them happy?', i18n: 'pack.quiz.temperament.joys.q',
         rowEN: 'Loves', rowI18n: 'pack.quiz.temperament.joys.row',
-        views: ['sitter', 'story'],
+        // BONUS, nie diera: „čo ho teší" nikoho neohrozí. Spúšťače (`triggers`) a
+        // „nikdy nedávať" (`food.forbidden`) ZÁMERNE bonus NIE SÚ — tie sú bezpečnostné.
+        views: ['sitter', 'story'], optional: true,
       },
     ],
   },
@@ -315,6 +334,19 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         views: ['vet', 'sitter'],
       },
       {
+        // DIAGNÓZY, NIE LEN LIEKY (13.8.2026). Dovtedy pas ukazoval „berie fenobarbital",
+        // ale nie „má epilepsiu" — veterinár z toho musel hádať. Legacy stĺpec
+        // `dogs.conditions` existoval, kvízové pole k nemu nie.
+        field: 'health.conditions', kind: 'chips',
+        suggestions: ['epilepsy', 'hip_dysplasia', 'heart', 'thyroid', 'diabetes',
+          'kidney', 'skin', 'arthritis', 'none'],
+        labelEN: 'Any diagnosed conditions?', i18n: 'pack.quiz.health.conditions.q',
+        hintEN: 'What a vet already named. Not symptoms — diagnoses.',
+        hintI18n: 'pack.quiz.health.conditions.hint',
+        rowEN: 'Conditions', rowI18n: 'pack.quiz.health.conditions.row',
+        views: ['vet', 'sitter'],
+      },
+      {
         field: 'health.meds', kind: 'text',
         labelEN: 'Any medication?', i18n: 'pack.quiz.health.meds.q',
         hintEN: 'Name and dose. Leave empty if none.', hintI18n: 'pack.quiz.health.meds.hint',
@@ -339,6 +371,18 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         labelEN: 'Last deworming', i18n: 'pack.quiz.health.deworm.q',
         rowEN: 'Deworming', rowI18n: 'pack.quiz.health.deworm.row',
         views: ['vet'],
+      },
+      {
+        // TELEFÓN NA MAJITEĽA (13.8.2026). Pas mal kontakt na veterinára aj na záložnú
+        // osobu, ale nie na majiteľa — pritom prvý telefonát opatrovateľa aj nálezcu
+        // strateného psa ide práve jemu. Do pohľadu `story` NEPATRÍ: ten sa zdieľa
+        // najširšie a súkromné číslo v ňom nemá čo robiť.
+        field: 'health.ownerPhone', kind: 'text',
+        labelEN: 'Your phone', i18n: 'pack.quiz.health.ownerPhone.q',
+        hintEN: 'The number someone should ring first — a sitter, or whoever finds them.',
+        hintI18n: 'pack.quiz.health.ownerPhone.hint',
+        rowEN: 'Owner', rowI18n: 'pack.quiz.health.ownerPhone.row',
+        views: ['vet', 'sitter'],
       },
       {
         field: 'health.vetContact', kind: 'text',
@@ -428,20 +472,27 @@ export const QUIZ_SECTIONS: QuizSection[] = [
     emoji: '🜂', kind: 'scored', href: '/pack/nature',
     steps: [
       {
+        // Názvy RIADKOV sú krátke (1–3 slová), lebo od 13.8.2026 stoja v IDENTITE
+        // vedľa „Veľkosť" a „Kastrácia" — „Role in the pack" bol na tom mieste
+        // dvakrát dlhší než susedia a rozhodil ľavý stĺpec.
         field: 'nature.role', kind: 'single',
         valueLabels: natureLabels(ROLE_KEYS, NATURE_ROLES),
         labelEN: 'Role in the pack', i18n: 'pack.quiz.nature.role.q',
-        rowEN: 'Role in the pack', rowI18n: 'pack.quiz.nature.role.row',
+        rowEN: 'Pack role', rowI18n: 'pack.quiz.nature.role.row',
         views: ['story', 'sitter'],
+        editHref: '/pack/nature',
       },
       {
         // Element ide aj veterinárovi — je to konštitúcia a predispozície, teda
-        // vstup do výživy a longevity, nie povahová nálepka.
+        // vstup do výživy a longevity, nie povahová nálepka. Riadok sa napriek tomu
+        // volá ELEMENT, nie „Constitution" (Matej 13.8.2026) — tak sa to volá všade
+        // inde v appke (pilulka v psom bloku, výsledok kvízu).
         field: 'nature.element', kind: 'single',
         valueLabels: natureLabels(ELEMENT_KEYS, NATURE_ELEMENTS),
         labelEN: 'Constitution', i18n: 'pack.quiz.nature.element.q',
-        rowEN: 'Constitution', rowI18n: 'pack.quiz.nature.element.row',
+        rowEN: 'Element', rowI18n: 'pack.quiz.nature.element.row',
         views: ['story', 'sitter', 'vet'],
+        editHref: '/pack/nature',
       },
       {
         // Riadok „Special roles" JE ten povinný prefix z locku — zvláštna úloha
@@ -449,8 +500,9 @@ export const QUIZ_SECTIONS: QuizSection[] = [
         field: 'nature.specials', kind: 'multi', noProgress: true,
         valueLabels: natureLabels(SPECIAL_KEYS, NATURE_SPECIALS),
         labelEN: 'Special roles', i18n: 'pack.quiz.nature.specials.q',
-        rowEN: 'Special roles', rowI18n: 'pack.quiz.nature.specials.row',
+        rowEN: 'Special role', rowI18n: 'pack.quiz.nature.specials.row',
         views: ['story'],
+        editHref: '/pack/nature',
       },
     ],
   },
@@ -469,6 +521,55 @@ export const QUIZ_SECTIONS: QuizSection[] = [
     labelEN: 'Journal', i18n: 'pack.quiz.journal.label',
     subEN: 'Write once, tag the dogs it applies to.', subI18n: 'pack.quiz.journal.sub',
     emoji: '📖', kind: 'journal', steps: [],
+  },
+
+  // ── 10 ZÁVET ───────────────────────────────────────────────────────────────
+  // Matej 13.8.2026: „vymyslime aj mechanizmus závetu. po kliku sa zobrazí správa
+  // o psíkovi, odkaz novému majiteľovi, ktorý sa uloží, a s emailami — a všetko sa
+  // to uloží, prípadne sa to môže odoslať."
+  //
+  // Prečo je to `kind: 'will'` a nie bežný kvíz: závet sa nepýta po jednej otázke na
+  // obrazovku. Je to JEDEN list — komu, na aký e-mail a čo mu odkazuješ — a človek ho
+  // píše naraz, so všetkým pred očami. Preto má vlastný panel (`WillPanel`) priamo na
+  // doklade a starý kvízový engine ho MUSÍ odmietnuť (rovnaký dôvod ako pri 'scored').
+  //
+  // Kroky tu napriek tomu SÚ — `STEP_BY_FIELD` je z nich derivované, takže bez nich by
+  // závetové polia nemali na doklade label a nevykreslili by sa ani ako pomlčky.
+  {
+    key: 'will',
+    labelEN: 'Will', i18n: 'pack.quiz.will.label',
+    subEN: 'Who takes them, and what you want that person to know.',
+    subI18n: 'pack.quiz.will.sub',
+    emoji: '🕊', kind: 'will', steps: [
+      {
+        field: 'will.heirName', kind: 'text',
+        labelEN: 'Who takes them', i18n: 'pack.quiz.will.heirName.q',
+        rowEN: 'Successor', rowI18n: 'pack.quiz.will.heirName.row',
+        // Závet vidí LEN majiteľ (pohľad `full`) — meno dediča nepatrí veterinárovi
+        // ani opatrovateľovi. `views: []` = v žiadnom zdieľanom pohľade.
+        views: [],
+      },
+      {
+        field: 'will.heirEmail', kind: 'text',
+        labelEN: 'Their e-mail', i18n: 'pack.quiz.will.heirEmail.q',
+        rowEN: 'E-mail', rowI18n: 'pack.quiz.will.heirEmail.row',
+        views: [],
+      },
+      {
+        // Druhý e-mail nie je duplikát — je to poistka. Závet, ktorý sa dá doručiť len
+        // na jednu adresu, zlyhá, keď tá adresa prestane existovať.
+        field: 'will.heirEmail2', kind: 'text',
+        labelEN: 'Second e-mail', i18n: 'pack.quiz.will.heirEmail2.q',
+        rowEN: 'Backup e-mail', rowI18n: 'pack.quiz.will.heirEmail2.row',
+        views: [], optional: true,
+      },
+      {
+        field: 'will.letter', kind: 'text',
+        labelEN: 'Your message', i18n: 'pack.quiz.will.letter.q',
+        rowEN: 'Message', rowI18n: 'pack.quiz.will.letter.row',
+        views: [],
+      },
+    ],
   },
 ];
 
@@ -492,18 +593,27 @@ export interface PassGroup {
    * scoringom, takže deep-link `?field=` by tam nedával zmysel.
    */
   editHref?: string;
+  /**
+   * Skupina sa needituje inde, ale PRIAMO NA DOKLADE vo vlastnom paneli.
+   * `DogPassport` v tom prípade nevykreslí odkaz, ale zavolá `onEditPanel(key)`.
+   * Zatiaľ jediný prípad: `will` — závet je jeden list, nie rad otázok.
+   */
+  editPanel?: string;
   fields: string[];
 }
 
 export const PASS_GROUPS: PassGroup[] = [
+  // POSTAVENIE VO SVORKE A ELEMENT SÚ SÚČASŤ IDENTITY (Matej 13.8.2026: „do identity
+  // by mali pribudnúť dve možnosti, a síce postavenie vo svorke, element"). Samostatná
+  // skupina `nature` tým zanikla — po presune tých dvoch by v nej ostala jediná
+  // „Zvláštna úloha", ktorá je navyše zámerne prázdna u väčšiny psov, čiže z bloku by
+  // bol trvalo prázdny rám. Ide tam s nimi. Editáciu všetkých troch drží `editHref`
+  // na kroku (osobnostný kvíz), nie ✎ skupiny — ten vedie do kvízu ZÁKLAD.
   { key: 'identity', labelEN: 'Identity', i18n: 'pack.pass.group.identity', editSection: 'basics',
-    fields: ['basics.size', 'basics.neutered', 'basics.chip', 'basics.origin', 'basics.since'] },
-  // Hneď za identitou: „kto ten pes je" patrí k tomu, čím je — nie medzi zdravie.
-  { key: 'nature', labelEN: 'Nature', i18n: 'pack.pass.group.nature', editSection: 'nature',
-    editHref: '/pack/nature',
-    fields: ['nature.role', 'nature.element', 'nature.specials'] },
+    fields: ['basics.size', 'basics.neutered', 'basics.chip', 'basics.origin', 'basics.since',
+      'nature.role', 'nature.element', 'nature.specials'] },
   { key: 'health', labelEN: 'Health', i18n: 'pack.pass.group.health', editSection: 'health',
-    fields: ['health.weightKg', 'health.allergies', 'health.meds'] },
+    fields: ['health.weightKg', 'health.conditions', 'health.allergies', 'health.meds'] },
   { key: 'vax', labelEN: 'Vaccinations', i18n: 'pack.pass.group.vax', editSection: 'health',
     fields: ['health.vaxRabies', 'health.vaxCombo', 'health.deworm'] },
   { key: 'food', labelEN: 'Food & routine', i18n: 'pack.pass.group.food', editSection: 'food',
@@ -515,7 +625,13 @@ export const PASS_GROUPS: PassGroup[] = [
   { key: 'temperament', labelEN: 'Temperament', i18n: 'pack.pass.group.temperament', editSection: 'temperament',
     fields: ['temperament.tags', 'temperament.fears', 'temperament.triggers', 'temperament.joys'] },
   { key: 'contacts', labelEN: 'Contacts', i18n: 'pack.pass.group.contacts', editSection: 'health',
-    fields: ['health.vetContact', 'health.backupContact'] },
+    fields: ['health.ownerPhone', 'health.vetContact', 'health.backupContact'] },
+  // ZÁVET je posledný blok dokladu — číta sa naposledy a je to jediná časť, ktorá
+  // nehovorí o psovi, ale o tom, čo sa má stať. `editPanel` = ✎ aj červené pomlčky
+  // otvárajú panel na doklade, nie kvíz (závet sa píše naraz, nie po otázkach).
+  { key: 'will', labelEN: 'Will', i18n: 'pack.pass.group.will', editSection: 'will',
+    editPanel: 'will',
+    fields: ['will.heirName', 'will.heirEmail', 'will.heirEmail2', 'will.letter'] },
 ];
 
 export const STEP_BY_FIELD: Record<string, QuizStep> =
@@ -531,7 +647,10 @@ export const ALL_STEPS: QuizStep[] = QUIZ_SECTIONS.flatMap((s) => s.steps);
  * Kroky, ktoré sa počítajú do progresu pasu („12 z 30"). Menovateľ musí byť
  * dosiahnuteľný, inak progres klame — viď `noProgress` pri `nature.specials`.
  */
-export const PROGRESS_STEPS: QuizStep[] = ALL_STEPS.filter((s) => !s.noProgress);
+// Do progresu idú len polia, ktoré sa DAJÚ vyplniť a ktorých absencia niečo znamená.
+// `optional` je vylúčené z rovnakého dôvodu ako `noProgress`: bonusové pole nesmie
+// držať doklad pod 100 %, inak sa 100 % nikdy nedosiahne a číslo klame.
+export const PROGRESS_STEPS: QuizStep[] = ALL_STEPS.filter((s) => !s.noProgress && !s.optional);
 
 /** Sekcia, do ktorej krok patrí — pohon „✎" deep-linku z karty psa do kvízu. */
 export function sectionOfField(field: string): QuizSection | undefined {

@@ -17,12 +17,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { countryLabel } from '@/lib/countryOptions';
 import { supabase } from '@/integrations/supabase/client';
 import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { usePackUser } from '@/hooks/usePackUser';
-import { useProfile, emptyDogAttrs, NATIONALITY_OPTIONS } from '@/components/pack/profile/packProfile';
+import { useProfile, emptyDogAttrs } from '@/components/pack/profile/packProfile';
 import { computeCompletion } from '@/components/pack/packCommunity';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
 import { readWalkedIds, tripPath } from '@/components/pack/tripShared';
@@ -34,6 +35,7 @@ const T = PACK_THEME;
 
 export default function PublicProfile() {
   const t = useT();
+  const { lang } = useLang();
   const { id } = useParams<{ id: string }>();
 
   // Session — potrebujeme vedieť KTO sa pozerá (isSelf porovnáva session.user.id s :id).
@@ -126,7 +128,10 @@ export default function PublicProfile() {
   const packNumber = dogs[0]?.pack_number ?? null;
   // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj viditeľné furt").
   const nationality = human?.nationality ?? 'SK';
-  const nationalityLabel = NATIONALITY_OPTIONS.find((o) => o.value === nationality)?.labelEN;
+  // Zoznam krajín už nie je ručných 19 — názov sa preloží podľa aktívneho jazyka
+  // (`lib/countryOptions.ts`). Bez toho by profil s krajinou mimo pôvodného zoznamu
+  // ukázal prázdno, nie „iná krajina".
+  const nationalityLabel = countryLabel(nationality, lang);
 
   const dogEntries: DogGalleryEntry[] = dogs.map((d) => ({
     id: d.id,

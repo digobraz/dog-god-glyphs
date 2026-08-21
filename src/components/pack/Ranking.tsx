@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import { PACK_THEME } from './packTheme';
+import { PACK_THEME, FONT_UI } from './packTheme';
 import { countryFlag } from '@/lib/countryGeo';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -24,11 +25,16 @@ export function Ranking({
   rows,
   slots = 5,
   kind,
+  onViewAll,
 }: {
   title: string;
   rows: RankRow[];
   slots?: number;
   kind: 'country' | 'breed';
+  /** Keď je zadané, „Zobraziť všetko" NEOTVÁRA vlastný modál tejto tabuľky, ale zavolá
+   *  rodiča — ten ukáže OBA rebríčky naraz (Matej 13.8.: „je jedno kam človek klikne").
+   *  Bez neho si komponent otvorí svoj jednotabuľkový modál ako predtým. */
+  onViewAll?: () => void;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -39,38 +45,6 @@ export function Ranking({
 
   return (
     <div>
-      {/* header — title + view all */}
-      <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-        <div
-          style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 10,
-            letterSpacing: '0.34em',
-            textTransform: 'uppercase',
-            color: T.inkDim,
-          }}
-        >
-          {title}
-        </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          style={{
-            fontFamily: "'Space Grotesk', sans-serif",
-            fontSize: 11,
-            fontWeight: 600,
-            letterSpacing: '0.02em',
-            color: T.accentGold,
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 0,
-          }}
-        >
-          {t('pack.rank.viewAll')}
-        </button>
-      </div>
-
       <div
         style={{
           background: T.cardGrad,
@@ -80,6 +54,49 @@ export function Ranking({
           boxShadow: T.cardShadow,
         }}
       >
+        {/* Hlavička ŽIJE VNÚTRI karty (Matej 2026-08-12: „nepáčia sa mi tie nadpisy ako sú
+            zle viditelné a pod sú tabuľky — schovajme to do tej tabuľky, oddelme to čiarou").
+            Predtým plávala nad kartou v Cinzel 10 px / inkDim a strácala sa na pozadí.
+            Teraz: Space Grotesk 500 (eyebrow lock z 26.7.), tmavší inkWarm, a pod ňou
+            zlatá `T.rule` — NIE šedý hairline, ten je na riadky tabuľky. */}
+        <div
+          className="flex items-center justify-between"
+          style={{ padding: '13px 16px 11px' }}
+        >
+          <div
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 11,
+              fontWeight: 500,
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              color: T.inkWarm,
+            }}
+          >
+            {title}
+          </div>
+          <button
+            type="button"
+            onClick={() => (onViewAll ? onViewAll() : setOpen(true))}
+            style={{
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 11,
+              fontWeight: 600,
+              letterSpacing: '0.02em',
+              color: T.accentGold,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
+            {t('pack.rank.viewAll')}
+          </button>
+        </div>
+
+        {/* deliaca čiara hlavička ↔ tabuľka (papyrus lock: zlatá, vyblednutá do strán, 2px) */}
+        <div style={{ height: 2, background: T.rule }} />
+
         {filled.map((r, i) => (
           <RankRowView key={`f-${i}`} rank={i + 1} row={r} max={max} kind={kind} first={i === 0} />
         ))}
@@ -150,7 +167,10 @@ function RankRowView({
       </div>
       <span
         style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          // JetBrains Mono odišiel 13.8.2026 — rovnako ako z `GlobePulse` a `TransparentStats`:
+          // je to hlas AINUBISA (stroj) a tu bol štvrtým fontom na stránke. Číslo = dáta → FONT_UI.
+          // Weight 600 je strop, Space Grotesk je načítaný len 300–600.
+          fontFamily: FONT_UI,
           fontSize: 14,
           color: T.ink,
           minWidth: 30,
@@ -187,7 +207,7 @@ function PlaceholderRow({ rank, first }: { rank: number; first: boolean }) {
       </div>
       <span
         style={{
-          fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+          fontFamily: FONT_UI,
           fontSize: 14,
           color: T.inkFaint,
           minWidth: 30,
@@ -200,22 +220,45 @@ function PlaceholderRow({ rank, first }: { rank: number; first: boolean }) {
   );
 }
 
-function RankingModal({
-  title,
-  rows,
-  kind,
+// ─────────────────────────────────────────────────────────────────────────
+// Obal modálov rebríčkov — portál, Esc, klik mimo, centrovanie.
+//
+// ⚠️ `createPortal(…, document.body)` je POVINNÝ, nie kozmetika. Karty homepage majú
+//    `.pack-card-hover { will-change: transform }` a to z karty robí containing block
+//    pre `position: fixed`. Modál vykreslený vnútri karty preto pristál na `top: 1253px`
+//    pri okne 885 px, zatváracie tlačidlo na 1758 px, a `overflow: hidden` na karte
+//    zvyšok orezal — človek nevidel nič a musel reloadnúť stránku. Presne toto bol
+//    blocker z auditu 12. 8. 2026. Ak sa portál niekedy zruší, porucha sa vráti.
+// ─────────────────────────────────────────────────────────────────────────
+function ModalShell({
   onClose,
+  maxWidth,
+  children,
 }: {
-  title: string;
-  rows: RankRow[];
-  kind: 'country' | 'breed';
   onClose: () => void;
+  maxWidth: number;
+  children: React.ReactNode;
 }) {
-  const t = useT();
-  const max = Math.max(1, ...rows.map((r) => r.count));
-  return (
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    // Pozadie sa pod modálom nesmie scrollovať — inak sa pri swipe na mobile hýbe
+    // stránka a modál pôsobí zaseknuto.
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return createPortal(
     <div
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
       style={{
         position: 'fixed',
         inset: 0,
@@ -232,8 +275,8 @@ function RankingModal({
         onClick={(e) => e.stopPropagation()}
         style={{
           width: '100%',
-          maxWidth: 420,
-          maxHeight: '80vh',
+          maxWidth,
+          maxHeight: '86vh',
           display: 'flex',
           flexDirection: 'column',
           background: T.panelGrad,
@@ -243,59 +286,173 @@ function RankingModal({
           overflow: 'hidden',
         }}
       >
-        <div
-          className="flex items-center justify-between"
-          style={{ padding: '18px 20px', borderBottom: `1px solid ${T.hairline}` }}
-        >
-          <div
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontSize: 13,
-              letterSpacing: '0.22em',
-              textTransform: 'uppercase',
-              color: T.ink,
-            }}
-          >
-            {title}
-            <span style={{ color: T.inkFaint, marginLeft: 8, fontSize: 11 }}>{rows.length}</span>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t('pack.rank.ariaClose')}
-            className="inline-flex items-center justify-center"
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 999,
-              background: T.tileBg,
-              border: 'none',
-              cursor: 'pointer',
-              color: T.inkDim,
-            }}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
-        <div style={{ overflowY: 'auto' }}>
-          {rows.length === 0 ? (
+function ModalHeader({ title, count, onClose }: { title: string; count?: number; onClose: () => void }) {
+  const t = useT();
+  return (
+    <div
+      className="flex items-center justify-between"
+      style={{ padding: '18px 20px', borderBottom: `1px solid ${T.hairline}` }}
+    >
+      <div
+        style={{
+          fontFamily: "'Cinzel', serif",
+          fontSize: 13,
+          letterSpacing: '0.22em',
+          textTransform: 'uppercase',
+          color: T.ink,
+        }}
+      >
+        {title}
+        {count !== undefined && (
+          <span style={{ color: T.inkFaint, marginLeft: 8, fontSize: 11 }}>{count}</span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={t('pack.rank.ariaClose')}
+        className="inline-flex items-center justify-center"
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 999,
+          background: T.tileBg,
+          border: 'none',
+          cursor: 'pointer',
+          color: T.inkDim,
+        }}
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function RankList({ rows, kind }: { rows: RankRow[]; kind: 'country' | 'breed' }) {
+  const t = useT();
+  const max = Math.max(1, ...rows.map((r) => r.count));
+  if (rows.length === 0) {
+    return (
+      <div
+        style={{
+          padding: '28px 20px',
+          textAlign: 'center',
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontSize: 13,
+          color: T.inkDim,
+        }}
+      >
+        {t('pack.rank.noData')}
+      </div>
+    );
+  }
+  return (
+    <>
+      {rows.map((r, i) => (
+        <RankRowView key={i} rank={i + 1} row={r} max={max} kind={kind} first={i === 0} />
+      ))}
+    </>
+  );
+}
+
+/** Jednotabuľkový modál — ostáva pre povrchy, ktoré `onViewAll` nepoužívajú. */
+function RankingModal({
+  title,
+  rows,
+  kind,
+  onClose,
+}: {
+  title: string;
+  rows: RankRow[];
+  kind: 'country' | 'breed';
+  onClose: () => void;
+}) {
+  return (
+    <ModalShell onClose={onClose} maxWidth={420}>
+      <ModalHeader title={title} count={rows.length} onClose={onClose} />
+      <div style={{ overflowY: 'auto' }}>
+        <RankList rows={rows} kind={kind} />
+      </div>
+    </ModalShell>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// OBA rebríčky v JEDNOM modáli (Matej 13.8.2026: „prerob na velky popup ktorý ukáže
+// top krajiny a top plemená naraz = je jedno kam človek klikne na zobraziť všetko").
+// Nad 720 px dva stĺpce vedľa seba, pod tým pod sebou. Scrolluje CELÉ telo, nie
+// každý stĺpec zvlášť — dva nezávislé scrolly v jednom okne sa na mobile navzájom
+// kradnú a človek nevie, čo práve ťahá.
+// ─────────────────────────────────────────────────────────────────────────
+export function RankingBoardsModal({
+  title,
+  boards,
+  onClose,
+}: {
+  title: string;
+  boards: { title: string; rows: RankRow[]; kind: 'country' | 'breed' }[];
+  onClose: () => void;
+}) {
+  return (
+    <ModalShell onClose={onClose} maxWidth={820}>
+      <ModalHeader title={title} onClose={onClose} />
+      <div style={{ overflowY: 'auto', padding: 16 }}>
+        <div className="rank-boards">
+          {boards.map((b) => (
             <div
+              key={b.title}
               style={{
-                padding: '28px 20px',
-                textAlign: 'center',
-                fontFamily: "'Space Grotesk', sans-serif",
-                fontSize: 13,
-                color: T.inkDim,
+                background: T.cardGrad,
+                border: `1.5px solid ${T.cardEdge}`,
+                borderRadius: 16,
+                overflow: 'hidden',
+                boxShadow: T.cardShadow,
               }}
             >
-              {t('pack.rank.noData')}
+              <div
+                className="flex items-center justify-between"
+                style={{ padding: '13px 16px 11px' }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: T.inkWarm,
+                  }}
+                >
+                  {b.title}
+                </div>
+                <span
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontSize: 11,
+                    fontWeight: 500,
+                    color: T.inkFaint,
+                  }}
+                >
+                  {b.rows.length}
+                </span>
+              </div>
+              <div style={{ height: 2, background: T.rule }} />
+              <RankList rows={b.rows} kind={b.kind} />
             </div>
-          ) : (
-            rows.map((r, i) => <RankRowView key={i} rank={i + 1} row={r} max={max} kind={kind} first={i === 0} />)
-          )}
+          ))}
         </div>
       </div>
-    </div>
+      <style>{`
+        .rank-boards{ display:grid; grid-template-columns:1fr; gap:16px; }
+        @media (min-width:721px){ .rank-boards{ grid-template-columns:1fr 1fr; align-items:start; } }
+      `}</style>
+    </ModalShell>
   );
 }

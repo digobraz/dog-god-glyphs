@@ -7,6 +7,7 @@ export type HeroTrail = {
   diff?: 'Easy' | 'Moderate' | 'Hard' | 'Odyssey'; km: string; stars: number;
   path: LatLngTuple[]; photos: string[]; seasons: string[];
   desc: string; dogNote: string;
+  descEN?: string; dogNoteEN?: string;   // EN preklad popisu/psej poznámky (SK je zdroj)
   acts?: string[]; surface?: string[]; crowd?: string; tags?: string[];
   ascentM?: number;   // prevýšenie z DEM eudem25m (m), kalibrované na SNP=29403
   elev?: number[];    // výškový profil (m), downsamplovaný na ~50 bodov rovnomerne po km trasy
@@ -1910,6 +1911,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Cesta vedie od kostola cez krásne zámocké lúky následne cez lúku s altánkom na opekanie a pokračuje cez Čertov žľab – skalnatý priesmyk do sedla, odkiaľ vedie cestička priamo na Záruby.",
     "dogNote": "",
+    "descEN": "The trail starts at the church, crosses the beautiful manor meadows, then a meadow with a barbecue shelter, and continues through Čertov žľab — a rocky pass up to the saddle, where a path leads straight to Záruby.",
     "acts": [
       "hike"
     ],
@@ -3884,6 +3886,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Asi najkratšia cesta. Na jar sú po hrebeni nádherné lesné chodníčky lemované medvedím cesnakom :)",
     "dogNote": "",
+    "descEN": "Probably the shortest way up. In spring the ridge is lined with gorgeous forest paths full of wild garlic :)",
     "acts": [
       "hike"
     ],
@@ -5182,6 +5185,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Asi najnáročnejšia cesta ale za to pre mnohých aj najkrajšia. Trasa vedie cez zrúcaninu hradu Ostrý kameň.",
     "dogNote": "Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
+    "descEN": "Probably the hardest way up, but for many also the most beautiful. The route passes the ruins of Ostrý Kameň castle.",
+    "dogNoteEN": "No trouble for a dog, but sadly no water source.",
     "acts": [
       "hike"
     ],
@@ -6522,6 +6527,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Príjemná prechádzka, na tejto trase sme vždy videli najviac zveri.",
     "dogNote": "Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
+    "descEN": "A pleasant walk — this is the trail where we've always seen the most wildlife.",
+    "dogNoteEN": "No trouble for a dog, but sadly no water source.",
     "acts": [
       "hike"
     ],
@@ -8190,6 +8197,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Cesta vedie cez peknú lúku s altánkom na opekanie a pokračuje cez Čertov žľab – skalnatý priesmyk do sedla, odkiaľ vedie cestička priamo na Záruby.",
     "dogNote": "Cesta pre psíka bezproblémová, žiaľ bez vodného zdroja.",
+    "descEN": "The trail crosses a lovely meadow with a barbecue shelter and continues through Čertov žľab — a rocky pass up to the saddle, where a path leads straight to Záruby.",
+    "dogNoteEN": "No trouble for a dog, but sadly no water source.",
     "acts": [
       "hike"
     ],
@@ -9380,6 +9389,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Výstup na jeden z najvyšších bodov v Malých Karpatoch, ktorý pokračuje po hrebeni na Mesačnú lúku.",
     "dogNote": "Bez vodného zdroja...",
+    "descEN": "A climb to one of the highest points in the Little Carpathians, continuing along the ridge to Mesačná lúka.",
+    "dogNoteEN": "No water source…",
     "acts": [
       "hike"
     ],
@@ -10412,6 +10423,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Nenáročná trasa na malebný kopček s pekným výhľadom.",
     "dogNote": "Pozor na psov na začiatku trasy v Majdánskom – niektorí sa dokázali dostať za plot a prenasledovať nás (možno už sú diery v plotoch opravené).",
+    "descEN": "An easy route up a picturesque little hill with a nice view.",
+    "dogNoteEN": "Watch out for dogs at the start of the trail in Majdánske — some of them managed to get through the fence and chase us (the holes may well be fixed by now).",
     "acts": [
       "hike"
     ],
@@ -12435,6 +12448,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Príjemná pokojná prechádzka - zaručene nestretne nikoho. Krásny výhľad na hrad Červený Kameň.",
     "dogNote": "",
+    "descEN": "A pleasant, quiet walk — you're guaranteed to meet nobody. Beautiful view of Červený Kameň castle.",
     "acts": [
       "hike"
     ],
@@ -13367,6 +13381,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Ľahká nenáročná prechádzka v krásnom lesíku s pekným výhľadom pri opekanisku.",
     "dogNote": "",
+    "descEN": "An easy, undemanding walk through a lovely little forest, with a nice view by the fire pit.",
     "acts": [
       "hike",
       "picnic"
@@ -15605,6 +15620,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Tuto uvidíte o veľa krajší výhľad ako zo Zárub. Na trase však môžu byť obmedzenia – je to chránené vtáčie územie, preto tam treba ísť na vlastné riziko :) ",
     "dogNote": "Pri výstupe na Čelo a Veterlín majte psíka na vôdzke. Na Veterlíne vždy fúka :)",
+    "descEN": "The view here is far better than from Záruby. There may be restrictions along the way though — it's a protected bird area, so go at your own risk :)",
+    "dogNoteEN": "Keep your dog on a leash on the climb to Čelo and Veterlín. It's always windy on Veterlín :)",
     "acts": [
       "hike"
     ],
@@ -16348,6 +16365,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásna lúka v strede lesa s altánkom aj prameňom.",
     "dogNote": "",
+    "descEN": "A beautiful meadow in the middle of the forest, with a shelter and a spring.",
     "acts": [
       "hike",
       "picnic"
@@ -18853,6 +18871,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Pekná prechádzka s krásnym výhľadom. Pozor, posledný výstup je dosť ostrý :)",
     "dogNote": "",
+    "descEN": "A nice walk with a beautiful view. Careful — the final climb is fairly steep :)",
     "acts": [
       "hike"
     ],
@@ -19114,6 +19133,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Jednoduchá prechádzka, prístupná zrúcanina (mňa moc nenadchla).",
     "dogNote": "",
+    "descEN": "A simple walk to an accessible ruin (it didn't do much for me).",
     "acts": [
       "explore"
     ],
@@ -21384,6 +21404,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Tajný klenot Malých Karpát. Zabudnuté miestečko, bez turistov. Jeden z najkrajších západov slnka v Malých Karpatoch - výborné miestečko na prespatie (Jelenec). Na Keltek vedie extréééééémny strmák, ale ten výhľad za to (ne)stojí :)",
     "dogNote": "",
+    "descEN": "The secret gem of the Little Carpathians. A forgotten little place with no tourists. One of the finest sunsets in the whole range — an excellent spot to sleep out (Jelenec). The path to Keltek is an exteeeeeeme grind, but the view is (not) worth it :)",
     "acts": [
       "hike",
       "overnight"
@@ -23118,6 +23139,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Nádherná prechádzka po novej asfaltovej ceste v strede lesa pri potôčiku – vhodná aj na korčule. Pozor na cyklistov. Najlepšie ísť cez týždeň, víkendy bývajú pomerne plné.",
     "dogNote": "",
+    "descEN": "A gorgeous walk along a new asphalt road in the middle of the forest, following a brook — good for skating too. Watch out for cyclists. Best on a weekday; weekends get fairly busy.",
     "acts": [
       "hike",
       "picnic",
@@ -24567,6 +24589,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Vysoká je jedno z najrušnejších miest v Malých Karpatoch, ale takmer nikto nevie o krásnom mieste kúsok od nej. Výhľady sú možno ešte krajšie. Treba skúsiť.",
     "dogNote": "",
+    "descEN": "Vysoká is one of the busiest spots in the Little Carpathians, but almost nobody knows about the beautiful place just next to it. The views might be even better. Worth a try.",
     "acts": [
       "hike"
     ],
@@ -25214,6 +25237,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásna prechádzka v absolútnom pokoji po asfaltovej ceste. Odporúčam ísť až k prameňu Žobrák. Po trase je veľká Kobylská lúka. POZOR: celé územie je zvernica – množstvo divokej zveri na každom kroku.",
     "dogNote": "Pes lovec – na vôdzke!",
+    "descEN": "A beautiful walk in absolute peace along an asphalt road. I'd go all the way to the Žobrák spring. The large Kobylská meadow lies along the route. WARNING: the whole area is a game preserve — wildlife at every step.",
+    "dogNoteEN": "Got a hunter? Leash!",
     "acts": [
       "hike",
       "picnic",
@@ -26157,6 +26182,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Nenápadný kopec, pekné výhľady, pokojná príroda.",
     "dogNote": "",
+    "descEN": "An unassuming hill, nice views, calm nature.",
     "acts": [
       "hike"
     ],
@@ -27202,6 +27228,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásny a nenápadne obrovský park s discgolfovým ihriskom. Veľmi veľa uličiek na prieskum!",
     "dogNote": "",
+    "descEN": "A beautiful and quietly enormous park with a disc golf course. So many little paths to explore!",
     "acts": [
       "hike",
       "picnic",
@@ -28109,6 +28136,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Pekná asfaltová cestička cez les vedúca ku krásnemu výhľadu na vysokú skalnú stenu. Hore na výhľade je aj húpačka a ohnisko :) Je dosť možné, že nestretnete nikoho.",
     "dogNote": "Pozor  na zver je jej tu fakt dosť (diviaky, líšky, vyoká)",
+    "descEN": "A nice asphalt path through the forest leading to a beautiful view of a tall rock face. There's a swing and a fire pit up at the viewpoint :) There's a fair chance you won't meet a soul.",
+    "dogNoteEN": "Watch out for wildlife, there's a lot of it here (boar, foxes, deer).",
     "acts": [
       "hike",
       "picnic",
@@ -28964,6 +28993,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Naše najobľúbenejšie miestečko na planéte. Krásna tajná lúka v strede lesa, v sterde lúky sa pýšia dva krásne stromy, ktoré sú na jeseň nádherne sfarbené. Celá lúka je dokonale vidno zo skalného brala, ktoré je nedaľeko. Za zmienku stojí aj magická vyvieračka - toto miesto je naozaj úžasné.",
     "dogNote": "Pozor je tu dosť zvery - zajace, vysoká ",
+    "descEN": "Our favourite little place on the planet. A beautiful secret meadow in the middle of the forest, with two magnificent trees standing in the middle of it that turn gorgeous colours in autumn. The whole meadow is perfectly visible from the rock face nearby. The magical spring is worth a mention too — this place is genuinely amazing.",
+    "dogNoteEN": "Careful, there's plenty of wildlife here — hares, deer.",
     "acts": [
       "hike",
       "picnic",
@@ -30225,6 +30256,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krátka prechádzka cez pekný ihličnatý lesík a lúku vedúca ku gigantickej lavičke a soche Panny Márie. V okolí sú rôzne cestičky vedúce nad kameňolom s peknými výhľadmi na Dechtice a okolie.",
     "dogNote": "Bez vodného zdroja, čo je škoda – prameň býva vyschnutý.",
+    "descEN": "A short walk through a nice conifer wood and a meadow, leading to a giant bench and a statue of the Virgin Mary. Various paths in the area lead above the quarry, with nice views of Dechtice and the surroundings.",
+    "dogNoteEN": "No water source, which is a shame — the spring is usually dry.",
     "acts": [
       "hike"
     ],
@@ -30329,6 +30362,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     ],
     "desc": "Krásna priehrada na \"konci sveta\". Je prekvapivo ďaľeko od obce. Žiadna civilizácia pár rybárov a božský kľud. V okolí veľmi veľa priestoru na turistiky v krásnych lesoch. Voda výborná aj na paddleboard, okolie priehrady vhodné aj na korčule :)",
     "dogNote": "",
+    "descEN": "A beautiful reservoir at the \"end of the world\". Surprisingly far from the village. No civilisation, a few anglers and divine quiet. Plenty of room for hiking in the beautiful forests around. The water is great for paddleboarding, and the shoreline works for skating too :)",
     "acts": [
       "skating",
       "paddleboard"
@@ -31971,6 +32005,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Veľmi podarená lokalita. Krásne výhľady, možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"nočné dobrodružstvo\" v aute pre zamilovaných :)",
     "dogNote": "Pozor na zver :) ",
+    "descEN": "A really successful spot. Beautiful views, a place to barbecue and several walks to choose from. Made for a \"night adventure\" in the car, if you're in love :)",
+    "dogNoteEN": "Watch out for wildlife :)",
     "acts": [
       "hike",
       "picnic",
@@ -33662,6 +33698,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Veľmi podarená lokalita. Krásne výhľady, možnosť opekania aj viacerých prechádzok. Miesto ako stvorené na \"dobrodružstvo\" v aute pre zamilovaných :)",
     "dogNote": "",
+    "descEN": "A really successful spot. Beautiful views, a place to barbecue and several walks to choose from. Made for an \"adventure\" in the car, if you're in love :)",
     "acts": [
       "hike",
       "picnic",
@@ -35205,6 +35242,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Zaujímavá lesná prechádzka v súkromí. Trasa vedie cez nádhernú lúku v strede lesa - pripomína obrovské futbalové ihrisko - tu sa žiada stanovať! Určite to raz vyskúšame!",
     "dogNote": "",
+    "descEN": "An interesting forest walk in complete privacy. The route crosses a gorgeous meadow in the middle of the woods — it looks like a huge football pitch and it's begging to be camped on! We'll definitely try it one day.",
     "acts": [
       "hike",
       "picnic",
@@ -40318,6 +40356,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Jednoduchá, ale celkom dlhá prechádzka na Malý aj Veľký Plešivec cez Čachtický hrad :) Krásne ale vždy veterné výhľady.",
     "dogNote": "",
+    "descEN": "A simple but fairly long walk to both Malý and Veľký Plešivec via Čachtice castle :) Beautiful, if always windy, views.",
     "acts": [
       "hike"
     ],
@@ -41273,6 +41312,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásna prechádzka s majestátnym výhľadom na Malé Karpaty",
     "dogNote": "",
+    "descEN": "A beautiful walk with a majestic view over the Little Carpathians.",
     "acts": [
       "hike"
     ],
@@ -42986,6 +43026,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásna pokojná prechádzka :) Cez Covid obdobie som tu stretol na prechádzke dvoch ľudí čo mali rúško a plastový ochranný štít na hlave - boli sme v strede lesa a v okolí 10 km žiadna živá duša :)))) ľuďom je*e :)))))",
     "dogNote": "",
+    "descEN": "A beautiful, peaceful walk :) During Covid I met two people out here wearing masks and plastic face shields — we were in the middle of the forest with not a living soul within 10 km :)))) people have lost the plot :)))))",
     "acts": [
       "hike"
     ],
@@ -43077,6 +43118,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Malebná priehrada obklopená lesom",
     "dogNote": "",
+    "descEN": "A picturesque reservoir surrounded by forest.",
     "acts": [
       "paddleboard"
     ],
@@ -45176,6 +45218,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Celodenný výlet. Nenápadný kopček s prekvapivým výhľadom - takmer bez ľudí :))",
     "dogNote": "",
+    "descEN": "A full-day trip. An unassuming little hill with a surprising view — and almost nobody around :))",
     "acts": [
       "hike",
       "picnic"
@@ -47305,6 +47348,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásny výlet, prekvapí vás už samotná cesta ale aj samotné majestátne skalné bralá. V okolí je kopu ďalších možností krásnych turistík a výhľadov :)",
     "dogNote": "",
+    "descEN": "A beautiful trip — the drive there will surprise you, and so will the majestic rock faces themselves. There are plenty of other great hikes and viewpoints in the area :)",
     "acts": [
       "hike",
       "picnic"
@@ -47961,6 +48005,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Celkom pekný výlet, neustále stúpanie - človek sa zapotí. V cieli čaká parádna rozhľadňa. ",
     "dogNote": "",
+    "descEN": "A pretty nice trip, climbing the whole way — you'll break a sweat. A cracking lookout tower waits at the top.",
     "acts": [
       "hike",
       "picnic"
@@ -48697,6 +48742,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Vhodné ako krátka zástavka. Aj napriek krátkej trase je to fakt nádherné miesto.",
     "dogNote": "",
+    "descEN": "Good as a short stop. Short as it is, it's a genuinely gorgeous place.",
     "acts": [
       "hike",
       "explore"
@@ -49818,6 +49864,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Nekonečná asfaltová cesta pomedzi krásny prasličkový prales -úplne bez ľudí...  ( na biely vrch môžte ale nemusíte :) )",
     "dogNote": "",
+    "descEN": "An endless asphalt road through a beautiful horsetail jungle — completely free of people… (Biely vrch is optional :) )",
     "acts": [
       "hike"
     ],
@@ -50851,6 +50898,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Veľmi krásna prechádzka, super asfalt na korčule, vedľa potôčik. Z Kamennej búdy odporúčam ísť naspäť po žltej lesnej cestičke... magická prechádzka!",
     "dogNote": "",
+    "descEN": "A very beautiful walk, great asphalt for skating, a brook running alongside. From Kamenná búda I'd go back along the yellow forest path… a magical walk!",
     "acts": [
       "hike",
       "picnic",
@@ -52709,6 +52757,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Príjemná prechádzka po krásnych lesoch a lúkach – pekné výhľady.",
     "dogNote": "",
+    "descEN": "A pleasant walk through beautiful forests and meadows — nice views.",
     "acts": [
       "hike"
     ],
@@ -55455,6 +55504,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásna prechádzka, pekné výhľady.",
     "dogNote": "",
+    "descEN": "A beautiful walk, nice views.",
     "acts": [
       "hike"
     ],
@@ -57531,6 +57581,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Celkom výživná prechádzka neďaleko Bojnej :)",
     "dogNote": "",
+    "descEN": "A properly filling walk not far from Bojná :)",
     "acts": [
       "hike"
     ],
@@ -59266,6 +59317,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Jeden z najkrajších vrchov na Slovensku.",
     "dogNote": "",
+    "descEN": "One of the most beautiful peaks in Slovakia.",
     "acts": [
       "hike"
     ],
@@ -61483,6 +61535,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Jedna z najkrajších turistík na SVK s krásnym 360 stupňovým výhľadom! Je relatívne krátka = máte dosť času vychutnať si všetko čo trasa ponúka = výhľady, potôčik, jazierko...",
     "dogNote": "",
+    "descEN": "One of the finest hikes in Slovakia, with a beautiful 360-degree view! It's relatively short = you'll have plenty of time to enjoy everything the route offers = views, a brook, a small lake…",
     "acts": [
       "hike"
     ],
@@ -64161,6 +64214,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Ikonické miesto s miliónom ľudí. Ultimátna rada = ak sem ideš nechoď cez víkend! V strede trasy sa cesta rozvetvuje a naspäť sa dá zísť aj žltou značkou cez Šarkaniu dieru, ale vraj je tam rebrík =  pre psa nebezpečné/neschodné. Ale neviem nikdy som to neskúšal - kľudne pridajte koment! ",
     "dogNote": "",
+    "descEN": "An iconic place with a million people. Ultimate tip = if you're going, don't go at the weekend! The path forks halfway and you can also come back on the yellow trail through Šarkania diera, but apparently there's a ladder there = dangerous/impassable for a dog. I don't know though, I've never tried it — feel free to leave a comment!",
     "acts": [
       "hike"
     ],
@@ -65957,6 +66011,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Stratený budzogáň sa rozhodne oplatí vidieť :))",
     "dogNote": "",
+    "descEN": "The lost mace is definitely worth seeing :))",
     "acts": [
       "hike"
     ],
@@ -67509,6 +67564,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Je to zaujímavý strmáčik, ale výhľady stoja za to!",
     "dogNote": "",
+    "descEN": "It's a proper grind of a climb, but the views are worth it!",
     "acts": [
       "hike"
     ],
@@ -68733,6 +68789,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Pekný výlet ale cez zimu... Pri peknom slnečnom počasí by to mohlo byť ešte lepšie :))",
     "dogNote": "",
+    "descEN": "A nice trip, but ours was in winter… In good sunny weather it could be even better :))",
     "acts": [
       "hike",
       "explore"
@@ -69920,6 +69977,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásny trip cez skalnaté územie.",
     "dogNote": "",
+    "descEN": "A beautiful trip through rocky terrain.",
     "acts": [
       "hike"
     ],
@@ -71338,6 +71396,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Jeden z najikonickejších kopcov, naozaj fotogenický s krásnymi výhľadmi.",
     "dogNote": "",
+    "descEN": "One of the most iconic hills — genuinely photogenic, with beautiful views.",
     "acts": [
       "hike"
     ],
@@ -77993,6 +78052,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Jeden z najkrajších vodopádov na Slovensku - ideálna turistika v letných horúčavách. Trasa vedie celý čas v tieni pri zurčajúcom potoku, prvá polovica je vhodná aj pre kočíky (asfalt). Pre maškrtných odporúčam vybehnúť na chatu pod Chlebom - cesta vedie cez krásne lúky, Mojžišove pramene a buchta stojí za to! (2024)",
     "dogNote": "",
+    "descEN": "One of the most beautiful waterfalls in Slovakia — the ideal hike in summer heat. The route stays in the shade the whole way beside a babbling stream, and the first half works for pushchairs too (asphalt). If you've got a sweet tooth, carry on up to the Chata pod Chlebom hut — the path crosses beautiful meadows and the Mojžišove pramene springs, and the cake is worth it! (2024)",
     "acts": [
       "hike"
     ],
@@ -79107,6 +79167,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Výstup sa konal cez polmetra snehu v krátkom tričku, takže sme si moc prírodu neužili a nevideli pod nánosom bielej pokrývky ale výhľady aj atmosféra boli super, určite by sme sa chceli vrátiť aj mimo zimy!",
     "dogNote": "",
+    "descEN": "We made the climb through half a metre of snow in a T-shirt, so we didn't get much out of the scenery and saw little under all that white — but the views and the atmosphere were great, and we'd definitely like to come back outside winter!",
     "acts": [
       "hike"
     ],
@@ -84484,6 +84545,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Zo všetkých turistík, tu sme boli asi najbližšie k smrti. Išli sme po značenom chodníku, ktorý bol zapadnutý v metre snehu. Zistili sme to, keď sme zišli do doliny... zrazu nebola vidno značka... každý druhý nášľap = prepadnutie do metra, s nohami do potoka. Fakt masaker, nikdy nezabudnem ako sme to všetci prežili. Večerná vírivka potom padla vhod :))) nelozte tam, keď je sneh a zima!!!  Inak kolosálne výhľady 10/10",
     "dogNote": "",
+    "descEN": "Of all our hikes, this is the closest we've come to dying. We were following a marked trail buried under a metre of snow. We only realised once we'd dropped into the valley… suddenly no markers in sight… every second step = falling through up to your waist, feet in the stream. An absolute massacre — I'll never forget that we all made it out. The hot tub that evening was well earned :))) don't go up there in snow and cold!!! Otherwise, colossal views, 10/10.",
     "acts": [
       "hike"
     ],
@@ -88628,6 +88690,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Dychberúca turistika, škoda, že na vrchole pršalo aj keď vrchol sme stihli v jaskyni - if you know what I mean :D Odporúčam! Je to fakt bomba.",
     "dogNote": "",
+    "descEN": "A breathtaking hike. Shame it rained at the summit, though we made it into a cave in time — if you know what I mean :D Recommended! It's an absolute belter.",
     "acts": [
       "hike"
     ],
@@ -89845,6 +89908,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Nádherná asfaltová cestička v zajatí lesa a potoka - ideálna na korčule. Neodporúčam návštevu cez víkend.",
     "dogNote": "",
+    "descEN": "A gorgeous asphalt path held between forest and stream — ideal for skating. I wouldn't come at the weekend.",
     "acts": [
       "hike",
       "picnic",
@@ -91498,6 +91562,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Vraj najkrajší vrchol na Slovensku. Asi to tak bude... Chystám sa tam opäť bez snehu! Aj keď so snehom to malo krásne čaro :)",
     "dogNote": "",
+    "descEN": "They say it's the most beautiful summit in Slovakia. It probably is… I'm planning to go back without the snow! Though the snow gave it its own beautiful magic :)",
     "acts": [
       "hike"
     ],
@@ -92518,6 +92583,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krátka turistika na celkom pekný nenápadný kopček :)",
     "dogNote": "",
+    "descEN": "A short hike up a rather nice, unassuming little hill :)",
     "acts": [
       "hike",
       "picnic"
@@ -97118,6 +97184,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásne miesto na konci Kvačianskej doliny je obrovský rebrík do Prosieckej... s veľkým psom to nedáte a neodporúčal by som to ani s malým. Tam cesta končí... vrátiť sa môžete tak isto alebo ísť cez Prosečné a trošku si zamakať :)",
     "dogNote": "So psom neprejdete celý úsek... odporúčam začať v Prosieckej :)",
+    "descEN": "The beautiful place at the end of Kvačianska dolina is a huge ladder into Prosiecka… you won't manage it with a big dog and I wouldn't recommend it with a small one either. That's where the path ends… you can go back the same way, or take the route via Prosečné and put in a bit of work :)",
+    "dogNoteEN": "You won't get through the whole stretch with a dog… I'd start from Prosiecka :)",
     "acts": [
       "hike"
     ],
@@ -101659,6 +101727,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Epická vysokohorská turistika. Dá sa to síce aj lanovkou ale odporúčam túto časť Nízkych Tatier prejsť pešo, boli sme tam asi 4x :) Klasika z Trangošky...",
     "dogNote": "",
+    "descEN": "An epic high-mountain hike. You can take the cable car, but I'd walk this part of the Low Tatras — we've been up there about 4 times :) The classic from Trangoška…",
     "acts": [
       "hike"
     ],
@@ -103456,6 +103525,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Najkrajšie skalné okno na Slovensku - bez pochyby. Predtým, ako tam pôjdeš, si zisti, či je to povolené, počul som že niekedy to zvyknú uzatvoriť... takže na vlastné riziko! Ale tento rok som žiadne upozornenie nevidel :) Na mapy.cz to býva uvedené...alebo priamo značka v teréne :) Určite odporúčam!",
     "dogNote": "",
+    "descEN": "The most beautiful rock window in Slovakia — no question. Before you go, check whether it's allowed; I've heard they close it off sometimes… so, at your own risk! I didn't see any notice this year though :) It's usually flagged on mapy.cz… or on a sign out in the field :) Highly recommended!",
     "acts": [
       "hike"
     ],
@@ -105187,6 +105257,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Ako z iného sveta. Krásna príroda aj výhľady - na vrchole už cez skaly so psom celkom neprejdete, ale oplatí sa to vidieť :)",
     "dogNote": "",
+    "descEN": "Like another world. Beautiful nature and views — you won't quite get through the rocks at the top with a dog, but it's worth seeing :)",
     "acts": [
       "hike"
     ],
@@ -108578,6 +108649,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Naša prvá Vysokotatranská túra - nič sa na ňu nechytá bola DOKONALÁ. Dostali sme sa po Litvorové pleso a to sme riadne šlapali takmer stále! Pán prsteňov VIBE a málo ľudí. Potôčik, skaly, lesy, ticho fakt krása - toto odštartovalo našu kariéru turistov :)",
     "dogNote": "",
+    "descEN": "Our first hike in the High Tatras — nothing touches it, it was PERFECT. We got as far as Litvorové pleso and we were putting in the work almost the whole way! Lord of the Rings VIBE and few people. A brook, rocks, forest, silence — genuinely beautiful. This is what kicked off our hiking career :)",
     "acts": [
       "hike"
     ],
@@ -111611,6 +111683,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásne pleso. Je fakt zelené! Hektor sa v ňom okúpal ešte skôr než to bola poburujúca téma :) Nádherná turistika-fakt.",
     "dogNote": "",
+    "descEN": "A beautiful lake. It really is green! Hektor swam in it before that became a scandalous thing to do :) A gorgeous hike, really.",
     "acts": [
       "hike"
     ],
@@ -115988,6 +116061,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Toto bola fakt luxusná ale aj veľmi náročná turistika. Na výhľad sa dá ísť aj kratšou cestičkou - toto odporúčam len pokročilým dobrodruhom :) bolo to cez 30 km! Mladosť – pochabosť. Ale za to prejdený Slovenský Raj skrz na skrz!",
     "dogNote": "",
+    "descEN": "This was a truly luxurious but also very demanding hike. You can reach the viewpoint by a shorter path — I'd recommend this one only to seasoned adventurers :) it was over 30 km! Young and foolish. But we got Slovenský raj from end to end!",
     "acts": [
       "hike"
     ],
@@ -116092,6 +116166,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Epické kúpanie v krásnej a celkom studenej vode :)",
     "dogNote": "",
+    "descEN": "Epic swimming in beautiful and rather cold water :)",
     "acts": [
       "paddleboard"
     ],
@@ -116122,6 +116197,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Fakt obrovské dielo = súkromie na hladine. (opaľovanie bez plaviek - bezpečné)",
     "dogNote": "",
+    "descEN": "A genuinely enormous body of water = privacy on the surface. (sunbathing without swimwear — safe)",
     "acts": [
       "skating",
       "paddleboard"
@@ -116153,6 +116229,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Zaujímavá vodná nádrž - s vtáčím ostrovom :)) Stojí za to urobiť si okružnú jazdu. Na mape som označil super miesto na parking - hneď pri vode.",
     "dogNote": "",
+    "descEN": "An interesting reservoir — with a bird island :)) Worth doing the full loop. I've marked a great parking spot on the map — right by the water.",
     "acts": [
       "picnic",
       "skating",
@@ -116192,6 +116269,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Asi najkrajšia vodná plocha na západe - v strede prírody, málo ľudí, možnosť vylodiť sa na opustených zátokách, kopce vrhajú tieň, čistá voda... skrátka naša obľúbená priehrada, ktorú máme kúsok od domu! ",
     "dogNote": "",
+    "descEN": "Probably the most beautiful stretch of water in western Slovakia — in the middle of nature, few people, coves you can land in, hills casting shade, clean water… in short, our favourite reservoir, and it's just down the road from home!",
     "acts": [
       "picnic",
       "paddleboard"
@@ -116233,6 +116311,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Za nás: Najkrajšia vodná plocha na SVK kde sa vraciame každý rok od 2019 :)) Výborný kemp hneď na brehu - dokonalosť.",
     "dogNote": "",
+    "descEN": "For us: the most beautiful water in Slovakia, and we've come back every year since 2019 :)) Excellent campsite right on the shore — perfection.",
     "acts": [
       "picnic",
       "overnight",
@@ -116265,6 +116344,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Nádherné ale aj dosť komerčné jazero v Slovinsku. Bola to príjemná prechádzka na našej ceste aj keď smetam boli len na skok a nenašli sme vstup do vody :)",
     "dogNote": "",
+    "descEN": "A gorgeous but rather commercial lake in Slovenia. It was a pleasant walk on our road trip, even though we were only stopping by and never found a way into the water :)",
     "acts": [
       "explore"
     ],
@@ -118055,6 +118135,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Dychberúca tiesňava. Pozor dosť sa šmýka! ",
     "dogNote": "",
+    "descEN": "A breathtaking gorge. Careful, it gets very slippery!",
     "acts": [
       "hike"
     ],
@@ -120673,6 +120754,8 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásny výlet, zo začiatku celkom strmák ale za to po celý čas je na čo pozerať. Jazero je super dá sa tam osviežiť. Krásne výhľady na okolité štíty hôr. My sme to stihli absolvovať za 3 hodinky a to som 2 hodinky ležal pri jazere :) Inak parkovné len okolo 3€ (za 3 hodiny). Určite odporúčam.",
     "dogNote": "Ako býva zvykom aj tu sa kravičky aj kozy voľne pasú tak majte psíkov na vôdzke. ",
+    "descEN": "A beautiful trip — fairly steep at the start, but there's something to look at the whole way. The lake is great and you can cool off in it. Beautiful views of the surrounding peaks. We managed the whole thing in 3 hours, and I spent 2 of those lying by the lake :) Parking is only around €3 (for 3 hours). Definitely recommended.",
+    "dogNoteEN": "As usual, the cows and goats graze freely here too, so keep your dogs on a leash.",
     "acts": [
       "hike"
     ],
@@ -122899,6 +122982,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Nenáročná príjemná turistika v raji",
     "dogNote": "",
+    "descEN": "An easy, pleasant hike in Slovenský raj.",
     "acts": [
       "hike"
     ],
@@ -125356,6 +125440,7 @@ export const HERO_TRAILS: HeroTrail[] = [
     "seasons": [],
     "desc": "Krásna turistika, bolimse dávno a išli sme aj cez pašu za pílou - psík na vôdzke :)",
     "dogNote": "",
+    "descEN": "A beautiful hike — it was a long time ago and we went through the pasture past the sawmill, dog on a leash :)",
     "acts": [
       "hike"
     ],

@@ -435,10 +435,23 @@ export default function Login() {
                     onClick={() => {
                       if (!emailInput.trim()) return;
                       setEmailSending(true);
+                      setPasswordError("");
+                      // `shouldCreateUser: false` (Matej 2026-08-20: „nepustit dnu") — bez
+                      // neho Supabase pri neznamom e-maile UCET VYTVORI, takze sa do /pack
+                      // dostal ktokolvek: route je len auth-gated, kupu heroglyfu nekontroluje.
+                      // Platiacich to nerozbije — ucet im zaklada uz `stripe-webhook`
+                      // (`generateLink`), pripadne `set-pack-password`. Prvy login teda vzdy
+                      // trafi existujuceho pouzivatela.
                       supabase.auth.signInWithOtp({
                         email: emailInput.trim(),
-                        options: { emailRedirectTo: `${window.location.origin}/login` },
-                      }).then(() => { setEmailSent(true); }).finally(() => setEmailSending(false));
+                        options: {
+                          emailRedirectTo: `${window.location.origin}/login`,
+                          shouldCreateUser: false,
+                        },
+                      }).then(({ error }) => {
+                        if (error) setPasswordError(t('login.magicLink.noAccount'));
+                        else setEmailSent(true);
+                      }).finally(() => setEmailSending(false));
                     }}
                   >
                     {emailSending ? t('login.magicLink.submitting') : t('login.password.magicLinkAlt')}

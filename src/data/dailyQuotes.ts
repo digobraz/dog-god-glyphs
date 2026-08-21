@@ -389,6 +389,43 @@ function localize(base: DailyQuote, key: string, lang?: string): DailyQuote {
   return text ? { ...base, text } : base;
 }
 
+// Verš tak, ako ho číta člen od 13. 8. 2026: KÁNON JE ANGLICKÝ ORIGINÁL, preklad je barla
+// pod hoverom/ťuknutím (Matej: „nech máme všade ok originál"). Preto sa vracajú OBA texty
+// zvlášť + `key` — ten ide do nahlásenia zlého prekladu ako `target_ref`.
+//
+// `translation` je undefined, keď preklad neexistuje (dnes 16 z 17 jazykov) ALEBO keď je
+// zhodný s originálom — vtedy sa nemá čo odkrývať a komponent hover vôbec neponúkne.
+export type DailyVerse = {
+  key: string;
+  original: string;
+  translation?: string;
+  author: string;
+  anchor?: string;
+};
+
+export function verseForDay(d: Date = new Date(), lang?: string): DailyVerse {
+  const key = resolveKey(d);
+  const base = DAILY_QUOTES[key];
+  const translated = lang ? TEXT_OVERLAYS[lang]?.[key] : undefined;
+  return {
+    key,
+    original: base.text,
+    translation: translated && translated !== base.text ? translated : undefined,
+    author: base.author,
+    anchor: base.anchor,
+  };
+}
+
+// Rovnaká voľba dňa pre `quoteForDay` aj `verseForDay` — jedno miesto, aby sa nemohli rozísť.
+function resolveKey(d: Date): string {
+  const key = `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  if (DAILY_QUOTES[key]) return key;
+  const keys = Object.keys(DAILY_QUOTES);
+  const start = new Date(d.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((d.getTime() - start.getTime()) / 86400000);
+  return keys[dayOfYear % keys.length];
+}
+
 // Deterministic quote for a given calendar day; rotates at midnight, same all day.
 // Fallback (e.g. 02-29 in a leap year, or a missing key) → deterministic day-of-year pick.
 export function quoteForDay(d: Date = new Date(), lang?: string): DailyQuote {

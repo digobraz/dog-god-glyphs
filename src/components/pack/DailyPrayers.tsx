@@ -14,7 +14,8 @@ import { Check, ChevronDown, Lock, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE } from '@/lib/env';
 import { PACK_THEME } from './packTheme';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { toast } from '@/hooks/use-toast';
 import { DEV_FULL } from '@/lib/packFlags';
 
@@ -22,6 +23,7 @@ const T = PACK_THEME;
 
 export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: string }) {
   const t = useT();
+  const { lang } = useLang();
 
   // DAILY PRAYERS — the three acts of devotion from the Constitution (Part IV).
   const [presenceDone, setPresenceDone] = useState(false);
@@ -31,7 +33,9 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
   const [showPrayerConfirm, setShowPrayerConfirm] = useState(false);
 
   const WALK_LEVELS = getWalkLevels(t);
-  const todayLabel = new Date().toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  // Locale z appky, NIE z prehliadača (audit A1, 12. 8.): `undefined` dá Slovákovi
+  // s anglickým systémom „August 13" v slovenskom rozhraní.
+  const todayLabel = new Date().toLocaleDateString(intlLocale(lang), { day: 'numeric', month: 'long', year: 'numeric' });
   const walkPts = walkHours !== null ? walkPointsFor(walkHours) : 0;
   const todayPoints = (presenceDone ? 3 : 0) + walkPts;
 

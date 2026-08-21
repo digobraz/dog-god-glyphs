@@ -50,35 +50,42 @@ export interface NatureElement {
   bodyEN: string;
   /** „Na čo dávať pozor" — NIE diagnóza. */
   watchEN: string;
+  /** Odznak. Kruh so zlatou obručou, 256 px webp s alfou. */
+  art: string;
 }
 
 export const NATURE_ELEMENTS: Record<ElementKey, NatureElement> = {
   fire: {
     key: 'fire', labelEN: 'Fire', ofEN: 'of Fire', i18n: 'pack.nature.el.fire',
+    art: '/images/nature/el-fire.webp',
     summaryEN: 'The life of the party — loud, affectionate, needs to be seen, and hard to switch off.',
     bodyEN: 'Strong compact body, small head, restless sleeper, seeks out cold tiles and shade.',
     watchEN: 'Heat, restlessness, separation distress. Cooling food suits them better than warming meat.',
   },
   earth: {
     key: 'earth', labelEN: 'Earth', ofEN: 'of Earth', i18n: 'pack.nature.el.earth',
+    art: '/images/nature/el-earth.webp',
     summaryEN: 'Calm, loyal, motherly — and lives for food.',
     bodyEN: 'Round and large, big head, slow deliberate movement, relaxes anywhere.',
     watchEN: 'Digestion, appetite, teeth and gums, putting on weight. Damp and cold food does not suit them.',
   },
   metal: {
     key: 'metal', labelEN: 'Metal', ofEN: 'of Metal', i18n: 'pack.nature.el.metal',
+    art: '/images/nature/el-metal.webp',
     summaryEN: 'Orderly, reserved, disciplined — affection on their own schedule.',
     bodyEN: 'Broad chest and forehead, good coat, sleeps still, learns by repetition.',
     watchEN: 'Breathing, skin dryness, brittle nails. Moisture in the diet matters for them.',
   },
   water: {
     key: 'water', labelEN: 'Water', ofEN: 'of Water', i18n: 'pack.nature.el.water',
+    art: '/images/nature/el-water.webp',
     summaryEN: 'Cautious, quiet, watchful — retreats before the unfamiliar rather than facing it.',
     bodyEN: 'Thin to mid-size, quiet on their feet, feels the cold, wakes often at night.',
     watchEN: 'Bladder and kidneys, bones and hind end, hearing. Warmth and a hideaway help them.',
   },
   wood: {
     key: 'wood', labelEN: 'Wood', ofEN: 'of Wood', i18n: 'pack.nature.el.wood',
+    art: '/images/nature/el-wood.webp',
     summaryEN: 'Out in front — competitive, impatient, fast, and needs to win.',
     bodyEN: 'Lean, quick movements, big eyes, sleep comes second to whatever needs doing.',
     watchEN: 'Liver, ligaments, eyes and ears. Wind and weather changes unsettle them.',
@@ -111,11 +118,14 @@ export interface NatureRole {
   /** EMOČNÝ ZÁSAH: veta, ktorú majiteľ o svojom psovi celý život slýcha — vyvrátená. */
   mythEN: string;
   mythAnswerEN: string;
+  /** Odznak. U štít so zlatým povrazom, 256 px webp s alfou. */
+  art: string;
 }
 
 export const NATURE_ROLES: Record<RoleKey, NatureRole> = {
   companion: {
     key: 'companion', labelEN: 'The Companion', i18n: 'pack.nature.role.companion',
+    art: '/images/nature/role-companion.webp',
     originEN: 'Pro-Social',
     functionEN: 'Emotional support and enrichment — the glue of the family.',
     signsEN: [
@@ -131,6 +141,7 @@ export const NATURE_ROLES: Record<RoleKey, NatureRole> = {
   },
   herald: {
     key: 'herald', labelEN: 'The Herald', i18n: 'pack.nature.role.herald',
+    art: '/images/nature/role-herald.webp',
     originEN: 'Early Warner',
     functionEN: 'Notices change first and announces it.',
     signsEN: [
@@ -145,6 +156,7 @@ export const NATURE_ROLES: Record<RoleKey, NatureRole> = {
   },
   diviner: {
     key: 'diviner', labelEN: 'The Diviner', i18n: 'pack.nature.role.diviner',
+    art: '/images/nature/role-diviner.webp',
     originEN: 'Seer',
     functionEN: "The family's quality controller — finds what does not add up.",
     signsEN: [
@@ -159,6 +171,7 @@ export const NATURE_ROLES: Record<RoleKey, NatureRole> = {
   },
   defender: {
     key: 'defender', labelEN: 'The Defender', i18n: 'pack.nature.role.defender',
+    art: '/images/nature/role-defender.webp',
     originEN: 'Protector',
     functionEN: 'Holds safety — physical and emotional.',
     signsEN: [
@@ -173,6 +186,7 @@ export const NATURE_ROLES: Record<RoleKey, NatureRole> = {
   },
   captain: {
     key: 'captain', labelEN: 'The Captain', i18n: 'pack.nature.role.captain',
+    art: '/images/nature/role-captain.webp',
     originEN: 'Decision Maker',
     functionEN: 'Sets the emotional tone and decides what is safe for the family.',
     signsEN: [
@@ -198,11 +212,15 @@ export interface NatureSpecial {
   /** Doplnková otázka na konci kvízu (áno / niekedy / nie). */
   questionEN: string;
   qI18n: string;
+  /** Odznak. U štít s BRONZOVÝM povrazom a 0,88× — zvláštna úloha sedí na
+   *  základnej navrch, nie je jej súper, a veľkosť to má priznať. */
+  art: string;
 }
 
 export const NATURE_SPECIALS: Record<SpecialKey, NatureSpecial> = {
   peacemaker: {
     key: 'peacemaker', labelEN: 'The Peacemaker', i18n: 'pack.nature.special.peacemaker',
+    art: '/images/nature/spec-peacemaker.webp',
     originEN: 'Diffuser',
     // Meno má oporu priamo v ústave — DOGMA 2.1: „Pes vždy odpustí… Pes je živé zmierenie."
     descEN: 'Tension dissolves around them without them doing anything at all. Rare — because these days humans usually do this job for the dog.',
@@ -211,6 +229,7 @@ export const NATURE_SPECIALS: Record<SpecialKey, NatureSpecial> = {
   },
   nurturer: {
     key: 'nurturer', labelEN: 'The Nurturer', i18n: 'pack.nature.special.nurturer',
+    art: '/images/nature/spec-nurturer.webp',
     originEN: 'Nanny',
     descEN: 'Takes anything puppies and children throw at them. Gentle, forgiving, steady. This is earned rather than born — it can sit on top of any of the five roles.',
     questionEN: 'They tolerate things from puppies and children that another dog would not.',
@@ -218,6 +237,7 @@ export const NATURE_SPECIALS: Record<SpecialKey, NatureSpecial> = {
   },
   hunter: {
     key: 'hunter', labelEN: 'The Hunter', i18n: 'pack.nature.special.hunter',
+    art: '/images/nature/spec-hunter.webp',
     originEN: 'Hunter',
     descEN: 'Built for pursuit — locks on and commits. They do not need more mileage; they need purpose and regulation.',
     questionEN: 'Movement — a bird, a bike, a cat — flips a switch and they stop hearing you.',
@@ -225,6 +245,7 @@ export const NATURE_SPECIALS: Record<SpecialKey, NatureSpecial> = {
   },
   loner: {
     key: 'loner', labelEN: 'The Loner', i18n: 'pack.nature.special.loner',
+    art: '/images/nature/spec-loner.webp',
     originEN: 'Lone Wolf',
     // ⚠️ Zdroj je tu dôrazný a text výsledku to MUSÍ povedať:
     // „Sometimes that's not identity — it's adaptation." Nie hrdý titul.
@@ -235,6 +256,24 @@ export const NATURE_SPECIALS: Record<SpecialKey, NatureSpecial> = {
 };
 
 export const SPECIAL_KEYS: SpecialKey[] = ['peacemaker', 'nurturer', 'hunter', 'loner'];
+
+/**
+ * Cesta k odznaku pre HODNOTU ULOŽENÚ NA KARTE PSA (`nature.role` = 'captain'…).
+ *
+ * Existuje preto, že doklad DOG ID nevie, ktorá z troch tabuliek k poľu patrí —
+ * má v ruke len názov poľa a reťazec. `null` je legitímna odpoveď: pole môže byť
+ * prázdne alebo niesť kľúč, ktorý sa medzitým z datasetu stratil.
+ *
+ * ⚠️ Kľúče sa NESMÚ premenovať bez premenovania súborov v `public/images/nature/` —
+ * väzba je názvom, nie odkazom, a rozpadne sa ticho (obrázok proste nepríde).
+ */
+export function natureArt(field: string, value: unknown): string | null {
+  if (typeof value !== 'string' || !value) return null;
+  if (field === 'nature.role') return NATURE_ROLES[value as RoleKey]?.art ?? null;
+  if (field === 'nature.element') return NATURE_ELEMENTS[value as ElementKey]?.art ?? null;
+  if (field === 'nature.specials') return NATURE_SPECIALS[value as SpecialKey]?.art ?? null;
+  return null;
+}
 
 // ── OTÁZKY ───────────────────────────────────────────────────────────────────
 // Váhy: elementy pod `el`, základné úlohy pod `role`, zvláštne pod `spec`.

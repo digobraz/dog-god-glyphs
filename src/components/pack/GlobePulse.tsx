@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import createGlobe from 'cobe';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { PACK_THEME } from './packTheme';
-import { Ranking } from './Ranking';
+import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
+import { Ranking, RankingBoardsModal } from './Ranking';
 import { TransparentStats } from './TransparentStats';
 import { countryCentroid, countryISO2 } from '@/lib/countryGeo';
 import dogSilhouette from '@/assets/dogypt-logo-mobile.png';
@@ -242,8 +242,8 @@ function MilestoneSwiper({
     width: 30,
     height: 30,
     borderRadius: 999,
-    background: 'rgba(255,255,255,0.16)',
-    border: '1px solid rgba(255,255,255,0.32)',
+    background: 'rgba(0,0,0,0.30)',
+    border: '1.5px solid rgba(245,199,61,0.45)',
     color: 'hsl(45 95% 92%)',
   };
 
@@ -271,11 +271,12 @@ function MilestoneSwiper({
       {/* Label — nad bodkami */}
       <div
         style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: 8.5,
-          letterSpacing: '0.36em',
+          fontFamily: FONT_UI,
+          fontWeight: 500,
+          fontSize: 9.5,
+          letterSpacing: '0.26em',
           textTransform: 'uppercase',
-          color: T.inkDim,
+          color: T.inkWarm,
           textAlign: 'center',
           marginBottom: 9,
         }}
@@ -283,8 +284,17 @@ function MilestoneSwiper({
         {t('pack.globe.roadToMillion')}
       </div>
 
-      {/* Bodky — NAD rámikom (na béžovej) */}
-      <div className="flex items-center justify-center gap-1.5" style={{ marginBottom: 10 }}>
+      {/* Bodky — NAD rámikom (na béžovej).
+          ⚠️ Klikací cieľ je BUTTON s paddingom (12 × 32 px), vizuálna bodka je SPAN vnútri.
+          Samotných 6 px sa na dotyk netrafí. Padding je vykompenzovaný negatívnym marginom
+          kontajnera (13 hore, 13 dole z pôvodných 10), takže bodky sedia opticky tam, kde
+          sedeli — layout sa nehýbe.
+          ⚠️ `gap` je NULA zámerne: 3 px padding z každej strany dá medzi bodkami presne tých
+          6 px, ktoré tam boli s `gap-1.5`. Ponechať triedu aj padding = dvojnásobný rozostup. */}
+      <div
+        className="flex items-center justify-center"
+        style={{ gap: 0, marginTop: -13, marginBottom: -3, position: 'relative', zIndex: 2 }}
+      >
         {MILESTONES.map((_, i) => (
           <button
             key={i}
@@ -292,20 +302,33 @@ function MilestoneSwiper({
             aria-label={t('pack.globe.ariaMilestone', { n: i + 1 })}
             onClick={() => onGo(i)}
             style={{
-              width: i === idx ? 18 : 6,
-              height: 6,
-              borderRadius: 999,
+              display: 'block',
               border: 'none',
-              padding: 0,
+              padding: '13px 3px',
+              background: 'transparent',
               cursor: 'pointer',
-              background: i === idx ? T.accentGold : 'rgba(31,26,14,0.22)',
-              transition: 'width 0.3s ease, background 0.3s ease',
+              lineHeight: 0,
             }}
-          />
+          >
+            <span
+              style={{
+                display: 'block',
+                width: i === idx ? 18 : 6,
+                height: 6,
+                borderRadius: 999,
+                background: i === idx ? T.accentGold : 'rgba(31,26,14,0.22)',
+                transition: 'width 0.3s ease, background 0.3s ease',
+              }}
+            />
+          </button>
         ))}
       </div>
 
-      {/* Rámik — plná fialovo-zlatá (ako blok 5), kompaktný; celý swipovateľný */}
+      {/* Rámik — tmavý modro-čierno-zlatý `--brand-gradient` (ako blok ROZŠÍR SVORKU),
+          kompaktný; celý swipovateľný.
+          ⚠️ NIE fialová — `--brand-gradient` je od 2026-06-15 `#1034A6` (egyptská modrá)
+          → `#0a0805` → `#C99A3F`. Komentáre, ktoré tu hovorili „fialovo-zlatá", boli
+          zdedené z pôvodnej palety a zavádzali. */}
       <div
         onPointerDown={onDown}
         onPointerUp={onUp}
@@ -315,8 +338,10 @@ function MilestoneSwiper({
           borderRadius: 16,
           padding: '11px 12px',
           background: 'var(--brand-gradient)',
-          border: '1px solid hsl(45 80% 60% / 0.25)',
-          boxShadow: '0 16px 36px -20px rgba(124,58,237,0.6)',
+          border: '1.5px solid rgba(201,154,63,0.34)',
+          // Tieň bol fialový (124,58,237) z pôvodnej palety — gradient je pritom modro-zlatý,
+          // takže žiaril inou farbou než plocha, na ktorej ležal.
+          boxShadow: '0 16px 36px -20px rgba(16,52,166,0.6)',
           touchAction: 'pan-y',
         }}
       >
@@ -335,7 +360,8 @@ function MilestoneSwiper({
           <div className="flex-1 text-center" style={{ cursor: 'grab' }}>
             <div
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: FONT_UI,
+                fontWeight: 500,
                 fontSize: 10.5,
                 letterSpacing: '0.26em',
                 textTransform: 'uppercase',
@@ -351,7 +377,7 @@ function MilestoneSwiper({
                 <div
                   className="inline-flex items-center justify-center gap-1.5"
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: FONT_TITLE,
                     fontSize: 'clamp(19px, 4.6vw, 24px)',
                     fontWeight: 700,
                     letterSpacing: '0.1em',
@@ -364,12 +390,12 @@ function MilestoneSwiper({
               ) : (
                 <div
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: FONT_UI,
                     fontSize: 'clamp(26px, 5.6vw, 33px)',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     lineHeight: 1,
                     color: 'hsl(45 97% 92%)',
-                    textShadow: '0 2px 12px rgba(124,58,237,0.5)',
+                    textShadow: '0 2px 12px rgba(16,52,166,0.5)',
                   }}
                 >
                   {pct < 0.1 ? pct.toFixed(2) : pct.toFixed(1)}%
@@ -377,7 +403,9 @@ function MilestoneSwiper({
               )}
               <div
                 style={{
-                  fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+                  // JetBrains Mono odišiel 12.8.2026: je to hlas AINUBISA (stroj) a tu bol
+                  // štvrtým fontom na jednej stránke. Číslo = dáta → Space Grotesk.
+                  fontFamily: FONT_UI,
                   fontSize: 10.5,
                   letterSpacing: '0.04em',
                   color: 'hsl(45 40% 90% / 0.8)',
@@ -409,6 +437,17 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
   const t = useT();
   const { lang } = useLang();
   const animated = useCountUp(total);
+
+  // Modál s OBOMA rebríčkami — otvárajú ho obe tlačidlá „Zobraziť všetko".
+  const [boardsOpen, setBoardsOpen] = useState(false);
+  const countryRows = useMemo(
+    () => topCountries.map((r) => ({ label: r.country, count: r.count })),
+    [topCountries],
+  );
+  const breedRows = useMemo(
+    () => topBreeds.map((r) => ({ label: localizeBreed(r.breed, lang), count: r.count })),
+    [topBreeds, lang],
+  );
 
   // Swajpovateľný míľnik — default = prvý nesplnený. Sync-uje prstenec aj % dole.
   const activeIdx = (() => {
@@ -452,30 +491,26 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
         }}
       />
 
-      {/* Centered block title — black DOGYPT logo + italic "nation" */}
+      {/* Nadpis bloku = jedno slovo KOMUNITA (Matej 12.8.2026: „namiesto DOGYPT národ daj
+          len KOMUNITA"). Predtým tu bolo lockup [čierne logo DOGYPT] + kurzívou „národ" —
+          jediný nadpis na homepage, ktorý bol obrázok a kurzíva; ostatné bloky majú Cinzel
+          700 uppercase. Zmena teda zároveň sedí do zjednotenia DNA.
+          ⚠️ Slovo „Národ" NEZANIKLO — ostáva ako názov 100k fázy pyramídy v páse míľnikov
+          nižšie (`pack.globe.milestoneNation`, kánon `plany/severka.md`). */}
       <div className="relative w-full flex flex-col items-center" style={{ marginBottom: 22 }}>
-        <h2 className="flex items-center justify-center gap-2.5" style={{ margin: 0, lineHeight: 1 }}>
-          <img
-            src="/images/dogypt-logo-black-w.png"
-            alt="DOGYPT"
-            style={{
-              height: 'clamp(28px, 5.6vw, 40px)',
-              width: 'auto',
-              display: 'block',
-            }}
-          />
-          <span
-            style={{
-              fontFamily: "'Cinzel', serif",
-              fontStyle: 'italic',
-              fontSize: 'clamp(16px, 3.4vw, 24px)',
-              fontWeight: 600,
-              color: T.ink,
-              lineHeight: 1,
-            }}
-          >
-            {t('pack.globe.nationLockup')}
-          </span>
+        <h2
+          style={{
+            margin: 0,
+            lineHeight: 1,
+            fontFamily: FONT_TITLE,
+            fontWeight: 700,
+            fontSize: 'clamp(18px, 3.8vw, 26px)',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            color: T.inkStrong,
+          }}
+        >
+          {t('pack.globe.communityTitle')}
         </h2>
         <div
           aria-hidden
@@ -501,7 +536,7 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
               <PackGlobe topCountries={topCountries} ownerCountry={ownerCountry} />
             </div>
 
-            {/* Progress prstenec — fialovo-zlatý, 270° gauge s medzerou dole */}
+            {/* Progress prstenec — modro-zlatý (`--brand-gradient`), 270° gauge s medzerou dole */}
             <svg
               aria-hidden
               viewBox="0 0 100 100"
@@ -510,7 +545,11 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
             >
               <defs>
                 <linearGradient id="packArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="#7c3aed" />
+                  {/* Egyptská modrá → zlatá, teda tá istá dvojica ako `--brand-gradient`.
+                      Do 12.8.2026 tu začínala fialová #7c3aed — jediná fialová plocha,
+                      ktorá na homepage ešte svietila po tom, čo brand fialovú opustil
+                      15.6.2026 (`T.partHek` = #2E5FD0). */}
+                  <stop offset="0%" stopColor="#1034A6" />
                   <stop offset="100%" stopColor="#C99A3F" />
                 </linearGradient>
               </defs>
@@ -572,7 +611,8 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
               <div className="relative">
                 <div
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: FONT_UI,
+                    fontWeight: 500,
                     fontSize: 9.5,
                     letterSpacing: '0.34em',
                     textTransform: 'uppercase',
@@ -588,9 +628,13 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
                 </div>
                 <div
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    // Číslo = DÁTA → Space Grotesk 600 (strop). Do 12.8.2026 to bol Cinzel
+                    // 700, takže v jednom bloku stálo serifové 58px číslo nad bezserifovým
+                    // percentom v páse míľnikov. Späť na Cinzel = jeden riadok, ak sa
+                    // Matejovi rytina zdá lepšia než dáta.
+                    fontFamily: FONT_UI,
                     fontSize: 'clamp(40px, 9.4vw, 58px)',
-                    fontWeight: 700,
+                    fontWeight: 600,
                     color: T.ink,
                     lineHeight: 1,
                     textShadow:
@@ -608,22 +652,37 @@ export function GlobePulse({ total, topCountries, topBreeds = [], ownerCountry }
 
         </div>
 
-        {/* RIGHT — dva rebríčky: krajiny (5) + plemená (3) → výška ≈ ľavý stĺpec */}
+        {/* RIGHT — dva rebríčky: krajiny (5) + plemená (3) → výška ≈ ľavý stĺpec.
+            Obe „Zobraziť všetko" otvárajú TEN ISTÝ modál s oboma tabuľkami (Matej 13.8.) —
+            preto stav sedí tu, nie v jednotlivých kartách. */}
         <div className="flex flex-col gap-6">
           <Ranking
             title={t('pack.globe.topCountries')}
-            rows={topCountries.map((r) => ({ label: r.country, count: r.count }))}
+            rows={countryRows}
             slots={5}
             kind="country"
+            onViewAll={() => setBoardsOpen(true)}
           />
           <Ranking
             title={t('pack.globe.topBreeds')}
-            rows={topBreeds.map((r) => ({ label: localizeBreed(r.breed, lang), count: r.count }))}
+            rows={breedRows}
             slots={3}
             kind="breed"
+            onViewAll={() => setBoardsOpen(true)}
           />
         </div>
       </div>
+
+      {boardsOpen && (
+        <RankingBoardsModal
+          title={t('pack.rank.allBoards')}
+          boards={[
+            { title: t('pack.globe.topCountries'), rows: countryRows, kind: 'country' },
+            { title: t('pack.globe.topBreeds'), rows: breedRows, kind: 'breed' },
+          ]}
+          onClose={() => setBoardsOpen(false)}
+        />
+      )}
 
       {/* Transparent Stats — the money in the open (current month) */}
       <TransparentStats />

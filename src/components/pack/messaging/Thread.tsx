@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { BrandIcon } from '@/components/pack/BrandIcon';
+import { tripNames, tripNameSync } from './tripLabel';
 import {
   getConversation, getMe, joinGroup, markRead, reportContent, sendMessage, setPeerBlocked,
   subscribe, type Conversation, type ReportReason,
@@ -14,6 +15,11 @@ import {
 const T = PACK_THEME;
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
+
+// Brand lock: meno psa je VŽDY Cinzel Decorative, na každom povrchu.
+// Meno človeka (účet bez psa) ostáva Cinzel — Decorative je vyhradený psom.
+const DOG_NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
+const HUMAN_NAME_FONT = "'Cinzel', serif";
 
 export const THREAD_CSS = `
 .msg-thread{position:fixed;inset:0;z-index:1300;background:${T.pageBg};display:flex;flex-direction:column;}
@@ -115,6 +121,17 @@ export function Thread({ convId, onClose, onOpenTrip }: {
     if (conv) void markRead(convId);
   }, [convId, conv?.messages.length]);
 
+  // Názov výletu pre štítok. Dataset trás je veľký a sťahuje sa lazy — kým
+  // dobehne, štítok ukazuje to, čo prišlo z DB (slug). `namesReady` len vynúti
+  // prekreslenie; vlákno bez výletu dataset nesťahuje vôbec.
+  const [namesReady, setNamesReady] = useState(false);
+  useEffect(() => {
+    if (namesReady || conv?.tag?.kind !== 'trip' || !conv.tag.id) return;
+    let alive = true;
+    tripNames().then(() => { if (alive) setNamesReady(true); });
+    return () => { alive = false; };
+  }, [conv?.tag?.kind, conv?.tag?.id, namesReady]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: 'end' });
   }, [conv?.messages.length]);
@@ -134,7 +151,10 @@ export function Thread({ convId, onClose, onOpenTrip }: {
   const isGroup = conv.kind === 'group';
   const iAmMember = conv.memberIds.includes(me.id);
   const other = !isGroup ? conv.members.find((p) => p.id !== me.id) : undefined;
-  const title = isGroup ? (conv.title ?? t('pack.msg.fallbackGroupTitle')) : (other?.name ?? 'Dogyptian');
+  const title = isGroup ? (conv.title ?? t('pack.msg.fallbackGroupTitle')) : (other?.name ?? t('pack.msg.fallbackMemberName'));
+  // Skupina má názov, nie meno psa → Cinzel. DM dostane Decorative len vtedy,
+  // keď je meno naozaj psie (`isDogName` z packMessaging).
+  const titleFont = !isGroup && other?.isDogName ? DOG_NAME_FONT : HUMAN_NAME_FONT;
   const memberCount = conv.memberCount ?? conv.members.length;
 
   const handleTagClick = () => {
@@ -207,7 +227,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
       <div className="msg-thread-head">
         <button type="button" className="msg-back" onClick={onClose} aria-label={t('pack.msg.backToInboxAriaLabel')}>←</button>
         <div className="msg-thread-headtxt">
-          <div className="msg-thread-title">{title}</div>
+          <div className="msg-thread-title" style={{ fontFamily: titleFont }}>{title}</div>
           {isGroup && (
             <div className="msg-thread-sub">
               {t(memberCount === 1 ? 'pack.msg.memberCountOne' : 'pack.msg.memberCountMany', { n: memberCount })}
@@ -215,7 +235,7 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           )}
           {conv.tag?.kind === 'trip' && conv.tag.label && (
             <button type="button" className="msg-tagchip msg-tagchip--click" onClick={handleTagClick}>
-              <BrandIcon name="walk" size={10} tint="gold" /> {conv.tag.label}
+              <BrandIcon name="walk" size={10} tint="gold" /> {tripNameSync(conv.tag.id, conv.tag.label)}
             </button>
           )}
         </div>
@@ -238,8 +258,11 @@ export function Thread({ convId, onClose, onOpenTrip }: {
           return (
             <div key={m.id} className={`msg-bubblewrap${mine ? ' me' : ''}`}>
               {isGroup && !mine && (
-                <div className="msg-bubble-sender">
-                  {sender?.name ?? 'Dogyptian'}
+                <div
+                  className="msg-bubble-sender"
+                  style={{ fontFamily: sender?.isDogName ? DOG_NAME_FONT : HUMAN_NAME_FONT }}
+                >
+                  {sender?.name ?? t('pack.msg.fallbackMemberName')}
                   {sender?.packNumber ? ` ${t('pack.msg.senderPackNumberSuffix', { n: sender.packNumber })}` : ''}
                 </div>
               )}

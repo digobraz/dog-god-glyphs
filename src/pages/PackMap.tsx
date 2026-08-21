@@ -69,19 +69,19 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress } from '@/lib/tripPoints';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, trailSaberScale, isWaterTrail, tripShareText,
+  TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
-  tripPath, tripPathById,
-} from '@/components/pack/tripShared';
+  tripPath, tripPathById, tripText } from '@/components/pack/tripShared';
 import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  profilePointsFor, addedByMeIds, isFounderEmail,
+  profileLevelFor, addedByMeIds, isFounderEmail,
   approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
   RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
@@ -105,6 +105,17 @@ import { TripProfileCard, partyMemberToProfileCardProps } from '@/components/pac
 // tohto súboru do vlastného adresára (§2 zadania). Portal len zapája vstupný popup + oba
 // formuláre a konvertuje AddTripDraft → HeroTrail zápis (§3 tam), formuláre samotné sa needitujú.
 import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripEntry';
+// ZÁPISY DO MAPY (2026-08-20) — parkovisko/výstraha/poznámka od členov + datasetové
+// body (`customPoi`), ktoré appka doteraz nikde nekreslila.
+// Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
+import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
+import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, ADD_NOTE_CSS, NOTE_PANEL_H, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
+import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
+import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
+import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
+import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
+import { GROUP_KINDS, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
@@ -391,8 +402,17 @@ const pointPicto = (p: MapPoint): string =>
 const pointTypeClass = (p: MapPoint): string => (p.journey ? '--journey' : p.water ? '--water' : '');
 
 // bod = pilulka (km, vodná plocha bez km nesie NÁZOV — zadanie 2.3) alebo bodka (17px, len
-// piktogram) podľa vrstvy. iconSize/iconAnchor zámerne neuvedené — centrovanie cez CSS
-// (left:-50%/top:-100%|-50%), rovnaký vzor ako pôvodný pillIcon/waterIcon.
+// piktogram) podľa vrstvy. iconSize/iconAnchor zámerne neuvedené — centrovanie robí CSS
+// `transform: translate(...)`.
+// ⚠️ 2026-08-14: predtým tu bolo `left:-50%; top:-100%|-50%` a ZVISLÁ zložka NIKDY NEFUNGOVALA.
+// Percentuálny `top` sa počíta z výšky rodiča, ale `.trp-pinwrap` má `height:auto!important`
+// → hodnota je neurčitá a ticho padne na 0. Vodorovný `left:-50%` fungoval (šírka je
+// shrink-to-fit), takže to vyzeralo zapojené. Dôsledok: každá značka sedela o polovicu svojej
+// výšky NIŽŠIE, než kam patrí (bodka ~8 px, bublina až 21 px ≈ 2 km pri z9), a pilulka visela
+// pod bodom namiesto nad ním. Odhalilo sa to až pri zhlukovaní, keď kolízna matematika
+// počítala s vycentrovaním, ktoré sa nedialo. `transform` percentá berie z VLASTNEJ veľkosti
+// prvku, takže na rodičovi nezávisí. Pri pridávaní :hover so `scale` nezabudni translate
+// zopakovať — `transform` sa neskladá, prepisuje sa.
 const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
   const type = pointTypeClass(p);
   if (pointIsPill(p, zoom)) {
@@ -408,10 +428,34 @@ const pointIcon = (p: MapPoint, hot: boolean, zoom: number) => {
   });
 };
 // zhluk (zadanie 2.4) — veľkosť bubliny rastie s počtom bodov v nej.
+const clusterSize = (n: number) => (n < 5 ? 30 : n < 12 ? 36 : 42);
 const clusterIcon = (n: number) => {
-  const s = n < 5 ? 30 : n < 12 ? 36 : 42;
+  const s = clusterSize(n);
   return L.divIcon({ className: 'trp-pinwrap', html: `<div class="trp-cluster" style="width:${s}px;height:${s}px;font-size:${n < 12 ? 12 : 13}px">${n}</div>` });
 };
+
+// ── geometria značiek v PIXELOCH (2026-08-14) ────────────────────────────────
+// Prečo to tu vôbec je: zhlukovanie pôvodne sypalo body do mriežky s pevnou bunkou
+// (48/58 px) a bublinu kládlo do ŤAŽISKA bunky. Ťažisko ale nie je stred bunky —
+// dve susedné bunky vedia mať ťažiská pár pixelov od seba, takže „3 / 8 / 6 / 6"
+// okolo Bratislavy ležali na sebe. Bunka navyše o priemere bubliny (30–42 px)
+// nevedela nič, takže veľkosť sa do rozostupu nikdy nepremietla.
+// Riešenie: zhlukuj podľa VZDIALENOSTI a rozostup odvoď z veľkosti oboch bublín.
+//
+// ⚠️ Rozmery sa počítajú ROVNICOU z fontu a paddingu, nemerajú sa po vykreslení —
+// meranie po nastavení je kruh (poloha → veľkosť → poloha), tá istá pasca ako
+// pri psom bloku na /pack/dogs.
+const MARK_GAP = 6;        // vzduch medzi dvoma bublinami
+const PILL_GAP = 5;        // vzduch medzi bublinou a km pilulkou
+const NUDGE_MAX = 30;      // koľko px smie bublina ustúpiť pilulke (viac = už klame o polohe)
+// .trp-pill--journey: Space Grotesk 600 @11.5px ≈ 6.6 px/znak + piktogram 11 + gap 6
+// + padding 18 + rám 3. Výška: riadok ~14 + padding 10 + rám 3.
+// (overené na 9 pilulkách v deve: rovnica dá 71,0–77,6 px, realita 70,4–77,9 px)
+const PILL_CHAR_PX = 6.6;
+const PILL_PAD_PX = 38;
+const PILL_H = 30;
+// bodka (.trp-dot) je 17 px + rám; bublina rastie s počtom
+const markSize = (n: number) => (n === 1 ? 19 : clusterSize(n));
 
 // reprezentatívny bod vodnej plochy = ťažisko nakreslených bodov (pri 1 bode = ten bod).
 const waterPoint = (path: LatLngTuple[]): LatLngTuple => {
@@ -438,15 +482,27 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
     // len na header hore + nav/toggle dole. maxZoom len pri výbere jedného tripu (offset),
     // nech sa krátka trasa neodzoomuje zbytočne blízko; celé Slovensko sa zmestí bez capu.
     const mobile = typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP;
+    // Mobilný padding drží HORNÝ blok (avatar+search+pilulky ≈ 180px) a dolnú navigáciu (≈ 96px)
+    // — nie symetrických 150/150. Symetria brala 300px z 844px výšky a zároveň hore nezakryla
+    // dosť, takže SR skončilo pod panelom a nad ním svietilo Poľsko.
     const pad = mobile
-      ? { paddingTopLeft: [28, 150] as [number, number], paddingBottomRight: [28, 150] as [number, number] }
+      ? { paddingTopLeft: [24, 186] as [number, number], paddingBottomRight: [24, 96] as [number, number] }
       : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] };
+    // Na portréte fitBounds bez desatinného zoomu nestačí: Leaflet snapuje na celé stupne, takže
+    // buď je SR vpol obrazovky (stupeň nadol), alebo orezané zboku (stupeň nahor) — medzi tým nie
+    // je nič. `zoomSnap = 0` dovolí presnú medzihodnotu, ktorá dostupnú plochu vyplní. Nastavuje sa
+    // LEN na mobile a desktop si necháva default 1, aby ostal jeho `+1` krok nižšie presný.
+    map.options.zoomSnap = mobile ? 0 : 1;
     map.fitBounds(bounds, { ...pad, animate: false, ...(offset ? { maxZoom: 14 } : {}) });
     // Matej 2026-07-23: celokrajinný pohľad bol „moc malý" → o JEDEN stupeň bližšie. DÔLEŽITÉ:
     // zoomovať okolo stredu VIDITEĽNEJ plochy (vpravo od panela, medzi topbarom a navom), nie
     // okolo stredu celého kontajnera — inak sa krajina posunie doľava ZA panel. setZoomAround
     // drží ten pixel fixný, takže po priblížení ostane centrovaná v okne. Len „celé SR".
-    if (!offset) {
+    // ⚠️ LEN DESKTOP (2026-08-14): oboje doladenie vzniklo nad širokým oknom s panelom vľavo.
+    // Na portréte je limitujúci rozmer ŠÍRKA — `+1` stupeň tam SR oreže zľava aj sprava a `panBy`
+    // ho ešte stlačí pod dolnú hranu, takže vrchné dve tretiny obrazovky vyplní Poľsko.
+    // Mobilu stačí čistý fitBounds; rezervu na chrome už drží padding vyššie.
+    if (!offset && !mobile) {
       const size = map.getSize();
       const [pl, pt] = pad.paddingTopLeft;
       const [pr, pb] = pad.paddingBottomRight;
@@ -592,27 +648,118 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
     const bounds = map.getBounds().pad(0.35);
     const vis = points.filter((p) => bounds.contains([p.lat, p.lon]));
     if (tier === 2) return vis.map((p) => ({ kind: 'single', p }));
-    const cell = tier === 0 ? 58 : 48;
-    const buckets = new Map<string, MapPoint[]>();
+
     // Diaľkové sa NEZHLUKUJÚ, kým nesú km (Matej 2026-07-27) — majú vyzerať dôležito a vzácne,
     // a pohltenie do bubliny s počtom by ich z mapy zmazalo. Mimo toho pásma (celá Európa) sú to
     // už len bodky a zhlukujú sa ako všetko ostatné — inak sa na seba nakopia.
-    const solo: MapMarkerItem[] = vis.filter((p) => pointIsPill(p, zoom)).map((p) => ({ kind: 'single', p }));
-    vis.filter((p) => !pointIsPill(p, zoom)).forEach((p) => {
+    const pillPts = vis.filter((p) => pointIsPill(p, zoom));
+    const rest = vis.filter((p) => !pointIsPill(p, zoom));
+
+    // 1) hrubé zhluky — greedy podľa vzdialenosti v pixeloch (stabilné poradie zľava dole,
+    //    nech ten istý výrez dá vždy ten istý výsledok a bubliny pri pane neposkakujú).
+    type Cl = { x: number; y: number; pts: MapPoint[] };
+    const seedR = tier === 0 ? 34 : 28;
+    const proj = rest
+      .map((p) => { const pt = map.latLngToContainerPoint([p.lat, p.lon]); return { p, x: pt.x, y: pt.y }; })
+      .sort((a, b) => a.x - b.x || a.y - b.y);
+    const taken = new Array<boolean>(proj.length).fill(false);
+    const cls: Cl[] = [];
+    for (let i = 0; i < proj.length; i++) {
+      if (taken[i]) continue;
+      taken[i] = true;
+      const group = [proj[i]];
+      for (let j = i + 1; j < proj.length; j++) {
+        if (taken[j]) continue;
+        if (Math.hypot(proj[j].x - proj[i].x, proj[j].y - proj[i].y) <= seedR) { taken[j] = true; group.push(proj[j]); }
+      }
+      cls.push({
+        x: group.reduce((s, g) => s + g.x, 0) / group.length,
+        y: group.reduce((s, g) => s + g.y, 0) / group.length,
+        pts: group.map((g) => g.p),
+      });
+    }
+
+    // pilulky sú prekážky so známym obdĺžnikom — ustúpenie sa počíta voči nim
+    // (.trp-pill má top:-100% → sedí NAD bodom, preto je stred obdĺžnika o PILL_H/2 vyššie)
+    const pillBoxes = pillPts.map((p) => {
       const pt = map.latLngToContainerPoint([p.lat, p.lon]);
-      const key = `${Math.floor(pt.x / cell)}:${Math.floor(pt.y / cell)}`;
-      let bucket = buckets.get(key);
-      if (!bucket) { bucket = []; buckets.set(key, bucket); }
-      bucket.push(p);
+      const w = `${p.tr.km} km`.length * PILL_CHAR_PX + PILL_PAD_PX;
+      return { cx: pt.x, cy: pt.y - PILL_H / 2, hw: w / 2 + PILL_GAP, hh: PILL_H / 2 + PILL_GAP };
     });
-    return solo.concat(Array.from(buckets.values()).map((g): MapMarkerItem => (g.length === 1
-      ? { kind: 'single', p: g[0] }
-      : {
-          kind: 'cluster',
-          lat: g.reduce((s, p) => s + p.lat, 0) / g.length,
-          lon: g.reduce((s, p) => s + p.lon, 0) / g.length,
-          count: g.length,
-        })));
+    // Bublina je súhrn, nie konkrétna trasa — posunúť ju o pár pixelov je prijateľné.
+    // Pilulka je konkrétny výlet a NEHÝBE SA. Bodka (zhluk s 1 bodom) tiež nie — je to reálna
+    // poloha jedného výletu, radšej prekryv než lož o tom, kde ten výlet je.
+    const dodgeOne = (c: { x: number; y: number; pts: MapPoint[] }) => {
+      if (c.pts.length === 1) return;
+      const r = markSize(c.pts.length) / 2;
+      pillBoxes.forEach((b) => {
+        const dx = c.x - b.cx, dy = c.y - b.cy;
+        const ox = b.hw + r - Math.abs(dx), oy = b.hh + r - Math.abs(dy);
+        if (ox <= 0 || oy <= 0) return;
+        // ustúp po kratšej osi — najmenší pohyb, ktorý prekryv rozviaže
+        if (oy <= ox) c.y += (dy >= 0 ? 1 : -1) * Math.min(oy, NUDGE_MAX);
+        else c.x += (dx >= 0 ? 1 : -1) * Math.min(ox, NUDGE_MAX);
+      });
+    };
+
+    // 2) usadenie — kým sa dve bubliny dotýkajú, zlúč ich. Rozostup vychádza z PRIEMEROV
+    //    oboch, takže veľká bublina si urobí viac miesta než malá. Guard je poistka proti
+    //    cyklu, nie očakávaný stav (n je rádovo desiatky).
+    //    ⚠️ Zlúčená bublina hneď ustúpi pilulkám — inak posledné zlúčenie posunie ťažisko
+    //    späť pod pilulku a už to nikto neprepočíta (merané: takto prežil jeden prekryv
+    //    `pill"113 km" × cluster"3" = 10px` aj po troch kolách ustupovania).
+    //    Cyklus nehrozí: každé zlúčenie zmenší počet bublín o jednu.
+    const settle = () => {
+      for (let guard = 0; guard < 40; guard++) {
+        let hit = false;
+        for (let i = 0; i < cls.length && !hit; i++) {
+          for (let j = i + 1; j < cls.length; j++) {
+            const need = markSize(cls[i].pts.length) / 2 + markSize(cls[j].pts.length) / 2 + MARK_GAP;
+            if (Math.hypot(cls[i].x - cls[j].x, cls[i].y - cls[j].y) < need) {
+              const ni = cls[i].pts.length, nj = cls[j].pts.length;
+              cls[i] = {
+                x: (cls[i].x * ni + cls[j].x * nj) / (ni + nj),
+                y: (cls[i].y * ni + cls[j].y * nj) / (ni + nj),
+                pts: cls[i].pts.concat(cls[j].pts),
+              };
+              cls.splice(j, 1);
+              dodgeOne(cls[i]);
+              hit = true;
+              break;
+            }
+          }
+        }
+        if (!hit) return;
+      }
+    };
+    settle();
+
+    // 3) ustúpiť km pilulkám aj bublinám, ktoré zlučovanie nespojilo (ležia ďalej než MARK_GAP,
+    //    ale pilulka medzi nimi zavadzia). Ustúpenie vie dve bubliny priblížiť → settle() to
+    //    dorieši zlúčením a to si samo znova ustúpi (viď dodgeOne v settle vyššie).
+    cls.forEach(dodgeOne);
+    settle();
+
+    // 4) bublinu, ktorej stred je na obrazovke, vtiahni celú dovnútra — inak ju okraj preseká
+    //    a z „13" ostane „3" (na mobile najviditeľnejšie). Bublinu so stredom MIMO obrazovky
+    //    neťaháme: bola by to lož o polohe a na okraji by vznikla kopa.
+    const size = map.getSize();
+    cls.forEach((c) => {
+      if (c.pts.length === 1) return;
+      if (c.x < 0 || c.x > size.x || c.y < 0 || c.y > size.y) return;
+      const r = markSize(c.pts.length) / 2 + 3;
+      c.x = Math.min(Math.max(c.x, r), size.x - r);
+      c.y = Math.min(Math.max(c.y, r), size.y - r);
+    });
+    cls.forEach(dodgeOne);
+    settle();
+
+    const solo: MapMarkerItem[] = pillPts.map((p) => ({ kind: 'single', p }));
+    return solo.concat(cls.map((c): MapMarkerItem => {
+      if (c.pts.length === 1) return { kind: 'single', p: c.pts[0] };
+      const ll = map.containerPointToLatLng([c.x, c.y]);
+      return { kind: 'cluster', lat: ll.lat, lon: ll.lng, count: c.pts.length };
+    }));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- moveTick je zámerný trigger prepočtu (pan), nie dáta sama
   }, [points, tier, zoom, map, moveTick]);
 
@@ -630,6 +777,18 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
           key={it.p.id}
           position={[it.p.lat, it.p.lon]}
           icon={pointIcon(it.p, hoverId === it.p.id || inlineDetailId === it.p.id, zoom)}
+          // pilulka nesie konkrétny údaj (km / názov plochy) a nehýbe sa, tak nech je aspoň
+          // navrchu — prekryv s bublinou sa síce rieši ustúpením v bode 3, ale keď sa ustúpiť
+          // nedá (NUDGE_MAX), nesmie skončiť tak, že číslo prekrojí polovica pilulky.
+          // ⚠️ 2026-08-20 — VYBRANÁ/PODMYŠOU IDE NAD VŠETKO OSTATNÉ (Matej: „vždy musí byť
+          // navrchu číslo s pils trasy ktorú označím"). Bez toho ju prekryl ktorýkoľvek sused,
+          // ktorý má väčšiu zemepisnú šírku — Leaflet radí markery podľa Y súradnice, takže
+          // poradie určuje NÁHODA polohy, nie dôležitosť. Zhoda s čiarou: tá ide dopredu cez
+          // `bringToFront()` v tej istej situácii.
+          zIndexOffset={
+            (hoverId === it.p.id || inlineDetailId === it.p.id) ? 100000
+              : pointIsPill(it.p, zoom) ? 1000 : 0
+          }
           eventHandlers={{
             mouseover: () => onHover(it.p.id),
             mouseout: () => onHover(null),
@@ -1081,8 +1240,12 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* Markery na mape nesú ČÍSLA (km) v 10.5px — Cinzel serifka sa tu zlievala, Grotesk 600 má
    pri tejto veľkosti výrazne lepšiu čitateľnosť. 2026-07-27: štýl A z prototypu (tmavá glass +
    zlatý lem) — plná zlatá sa šetrí len na hot/vybraté (a len pre bežný, nie journey/water typ). */
-.trp-pill{position:relative;left:-50%;top:-100%;display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
-.trp-pill.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;border-color:rgba(250,244,236,0.55);box-shadow:0 0 0 3px rgba(245,199,61,0.3),0 4px 12px rgba(0,0,0,0.6);}
+.trp-pill{position:relative;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:5px;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));color:#F6F1E4;font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:5px 9px 5px 7px;border-radius:999px;border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 7px rgba(0,0,0,0.34);white-space:nowrap;transition:all .15s;}
+/* ⚠️ 2026-08-20 — POD MYŠOU JE PILULKA BIELA, nie zlatá (Matej: „pri prejdení myšou na
+   náročnosť/alebo trasu sa pill s km zmení na bielu nie žltú"). Zlatá na mape ostáva
+   len tam, kde nesie brand (lem), nie ako signál stavu — ten dnes nesie rozsvietený meč.
+   Prsteň je fialový, nech je pilulka viditeľne spojená s trasou, ktorá sa zároveň rozsvieti. */
+.trp-pill.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);color:#1c160c;border-color:rgba(122,47,191,0.55);box-shadow:0 0 0 3px rgba(179,107,255,0.35),0 4px 12px rgba(0,0,0,0.5);}
 /* diaľkové (journey) — 2026-07-27: #E01B22 → stlmená bordová (Matej "stlmiť odtiene"); voda
    ostáva jasne modrá (.trp-pill--water nižšie), lebo stlmenie by oslabilo novú asociáciu. */
 /* Matej 2026-07-27: „ten piktogram by sme mohli zväčšiť — nech vyzerá dôležito, vzácne, teraz je
@@ -1090,16 +1253,22 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    viac priestoru, plný zlatý prsteň (bežné pilulky majú lem na 55 % — zlatý RING je vyhradený
    práve im) a väčší trojuholník náročnosti. */
 .trp-pill--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;font-size:11.5px;padding:5px 10px 5px 8px;gap:6px;border-width:1.5px;border-color:${GOLD};box-shadow:0 0 0 2px rgba(201,154,63,0.20),0 3px 10px rgba(0,0,0,0.42);}
-.trp-pill--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;box-shadow:0 0 0 4px rgba(245,199,61,0.45),0 4px 14px rgba(0,0,0,0.6);}
+/* ⚠️ FARBU PÍSMA MUSIA OBE VÝNIMKY VRÁTIŤ SPÄŤ NA BIELU. Trieda .trp-pill.hot nastavuje tmavý
+   inkoust (patrí k bielej výplni), ale magistrála a vodná plocha si pod myšou necháva
+   SVOJU tmavú výplň — a keďže color v ich .hot vetve nebol, zdedil sa tmavý a text
+   na bordovej/modrej zmizol (Matej 2026-08-20: „pri prejdení myšou na magistrálu sa text
+   začierni a nie je dobre vidno"). Rovnaká pasca čaká každú ďalšiu farebnú výnimku:
+   keď preberáš background, prevezmi aj color. */
+.trp-pill--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);color:#fff;border-color:#fff;box-shadow:0 0 0 4px rgba(179,107,255,0.45),0 4px 14px rgba(0,0,0,0.6);}
 .trp-pill--journey .trp-diffmark--triangle{border-bottom-color:#fff;border-left-width:5.5px;border-right-width:5.5px;border-bottom-width:10px;}
 .trp-pill--journey .trp-diffmark--circle,.trp-pill--journey .trp-diffmark--square{background:#fff;}
 /* vodná plocha — bez stlmenia (zadanie 2.5). Väčšina plôch nemá km → pilulka nesie NÁZOV
    (viď pointIcon), vlnky vo vnútri = rovnaká krivka ako pôvodný .trp-waterdot. */
 .trp-pill--water{background:${WATER_COLOR};color:#fff;border-color:rgba(255,255,255,0.55);}
-.trp-pill--water.hot{background:${WATER_COLOR};border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
+.trp-pill--water.hot{background:${WATER_COLOR};color:#fff;border-color:#fff;box-shadow:0 0 0 3px rgba(46,111,214,0.35),0 4px 12px rgba(0,0,0,0.6);}
 /* bodka (z<=9, zadanie 2.3) — 17px kruh, rovnaký glass+zlatý lem ako pilulka, len piktogram. */
-.trp-dot{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
-.trp-dot.hot{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.55);}
+.trp-dot{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:linear-gradient(180deg,rgba(23,20,14,.94),rgba(11,9,6,.94));border:1px solid rgba(201,154,63,0.55);box-shadow:0 2px 6px rgba(0,0,0,0.32);transition:transform .12s;}
+.trp-dot.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);border-color:rgba(122,47,191,0.6);box-shadow:0 0 0 2px rgba(179,107,255,0.3),0 2px 6px rgba(0,0,0,0.4);}
 .trp-dot--journey{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:rgba(201,154,63,0.5);}
 .trp-dot--journey.hot{background:linear-gradient(135deg,#8C1C22,#4a0f13);border-color:#fff;}
 .trp-dot--journey .trp-diffmark--triangle{border-bottom-color:#fff;}
@@ -1107,11 +1276,11 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* vodná bodka — zachováva pôvodný .trp-waterdot hover-pop (jediný CSS :hover efekt v pôvodnom
    kóde), teraz na zdieľanej .trp-dot základni. */
 .trp-dot--water{background:${WATER_COLOR};border-color:rgba(255,255,255,0.55);}
-.trp-dot--water:hover{transform:scale(1.12);}
+.trp-dot--water:hover{transform:translate(-50%,-50%) scale(1.12);}
 .trp-dot--water.hot{background:${WATER_COLOR};border-color:#fff;}
 /* zhluk (zadanie 2.4) — rovnaký glass+zlatý lem, veľkosť rastie s počtom bodov (clusterIcon). */
-.trp-cluster{position:relative;left:-50%;top:-50%;display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
-.trp-cluster:hover{transform:scale(1.09);}
+.trp-cluster{position:relative;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:999px;font-family:${FONT_UI};font-weight:600;color:#F6F1E4;background:linear-gradient(180deg,rgba(23,20,14,.95),rgba(11,9,6,.95));border:1px solid rgba(201,154,63,0.6);box-shadow:0 3px 12px rgba(0,0,0,0.45);cursor:pointer;transition:transform .12s;}
+.trp-cluster:hover{transform:translate(-50%,-50%) scale(1.09);}
 /* Farebná legenda mapy (.trp-legend / .trp-legrow / .trp-legdot) ZRUŠENÁ 2026-08-03 —
    Matej: „a folný blok s legendami daj preč celkom". Zaberala 126×93 px vpravo dole a na
    mobile kolidovala s atribúciou aj spodnou navigáciou. Ak by farby niekedy bolo treba
@@ -1119,7 +1288,7 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* bod 2 (iterácia 17): live "{km} km" label pri konci kreslenej trasy (ADD flow draw) —
    rovnaká centrovacia technika ako .trp-pill (left:-50%/top:-100%), o kúsok vyššie (-10px
    extra gap), nech nesedí priamo na poslednom bode trasy. */
-.trp-drawlabel{position:relative;left:-50%;top:calc(-100% - 10px);background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
+.trp-drawlabel{position:relative;transform:translate(-50%,calc(-100% - 10px));background:rgba(6,5,3,0.92);color:${GOLD};font-family:${FONT_UI};font-weight:600;font-size:10.5px;padding:4px 10px;border-radius:999px;border:1.5px solid ${GOLD};box-shadow:0 3px 10px rgba(0,0,0,0.5);white-space:nowrap;}
 ${DIFF_MARK_CSS}
 ${TRAIL_LINE_CSS}
 
@@ -1563,6 +1732,7 @@ function TripTagsDropdown({
 
 export default function PackMap() {
   const t = useT();
+  const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   // issue #35: `/pack/add/trip` mountuje TÚ ISTÚ stránku ako `/pack/map` — ADD flow je overlay nad
@@ -1645,6 +1815,92 @@ export default function PackMap() {
   // formulár samotný (AddEvent) si drží vlastný interný state.
   const [addEventFlow, setAddEventFlow] = useState<'own' | 'tip' | null>(null);
   const [addError, setAddError] = useState('');           // chyba pri ukladaní (napr. plný localStorage)
+
+  // ── ZÁPISY DO MAPY (2026-08-20) ────────────────────────────────────────────
+  // `mapInstance` je STATE, nie ref: `useLongPressPoint` musí prihlásiť listenery
+  // až keď mapa reálne existuje, a ref zmenu nevyrenderuje. `leafletMapRef` ostáva
+  // nedotknutý — používajú ho GeometryPicker/AddEvent imperatívne.
+  const dateLocale = intlLocale(lang);
+  const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
+  const mapNotes = useMapNotes(true);
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; pinnedSlug: string | null } | null>(null);
+  const [noteTooFar, setNoteTooFar] = useState(false);
+  const [noteHint, setNoteHint] = useState(false);
+  // POMALÁ CESTA: typ je vybraný z palety a čaká sa, kde človek klikne na mape.
+  const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
+  // RÝCHLA CESTA: dlhé podržanie dalo bod a paleta sa pýta, čo to je.
+  const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
+  const [noteZoom, setNoteZoom] = useState(0);
+
+  // Priblíženie ako STATE, nech lišta „ukáž miesto" vie prepnúť text na „priblíž
+  // si mapu" v tej chvíli, keď človek odzoomuje — nie až po kliknutí naprázdno.
+  useEffect(() => {
+    if (!mapInstance) return;
+    const sync = () => setNoteZoom(mapInstance.getZoom());
+    sync();
+    mapInstance.on('zoomend', sync);
+    return () => { mapInstance.off('zoomend', sync); };
+  }, [mapInstance]);
+
+  /**
+   * Položí značku a odpanuje mapu tak, aby ostala NAD panelom.
+   *
+   * Toto je jadro opravy zamietnutého UX: bez posunu by značka pri kliknutí do
+   * dolnej tretiny obrazovky skončila pod formulárom a človek by potvrdzoval
+   * miesto, ktoré nevidí.
+   */
+  const placeNote = (group: NoteGroup, lat: number, lon: number) => {
+    const kind = GROUP_KINDS[group][0];
+    setNoteTooFar(false);
+    setNoteHint(false);
+    setNotePlacing(null);
+    setNoteSpot(null);
+    markHintSeen();
+    // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce spraví
+    // geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
+    // s konkrétnym výletom na mysli.
+    setNoteDraft({ lat, lon, group, kind, pinnedSlug: nearestTrailId(lat, lon, kind, allTrails) });
+    const map = mapInstance;
+    if (!map) return;
+    const pt = map.latLngToContainerPoint([lat, lon]);
+    const safeY = map.getSize().y - NOTE_PANEL_H - 40;
+    if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
+  };
+
+  // Nápoveda sa ukáže RAZ, a až keď je mapa dosť priblížená na to, aby gesto
+  // vôbec fungovalo — inak by radila niečo, čo v tej chvíli nejde spustiť.
+  // ⚠️ Wizard je parkovaný na po launchi, takže toto je jediné miesto, kde sa
+  // človek o písaní po mape dozvie.
+  useEffect(() => {
+    if (!mapInstance || hintSeen()) return;
+    const check = () => { if (mapInstance.getZoom() >= MIN_ZOOM_FOR_NOTE) setNoteHint(true); };
+    check();
+    mapInstance.on('zoomend', check);
+    return () => { mapInstance.off('zoomend', check); };
+  }, [mapInstance]);
+
+  const addBusy = addEntryOpen || addFlow !== null || addEventFlow !== null;
+  const noteBusy = !!noteDraft || !!noteSpot || addBusy;
+
+  // RÝCHLA CESTA — podržanie dá miesto, paleta sa spýta na typ. Beží len keď
+  // NEPREBIEHA pomalá cesta: v režime „ukáž miesto" by dlhé podržanie a klik
+  // súperili o ten istý dotyk.
+  useLongPressPoint(mapInstance, !noteBusy && !notePlacing, {
+    onPoint: (lat, lng) => {
+      setNoteTooFar(false);
+      setNoteHint(false);
+      markHintSeen();
+      setNoteSpot({ lat, lon: lng });
+    },
+    onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
+  });
+
+  // POMALÁ CESTA — typ už je vybraný, stačí jeden klik do mapy.
+  useMapClickPoint(mapInstance, !!notePlacing && !noteBusy, {
+    onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
+    onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
+  });
+
   // bod 4 (iterácia 14, zachované): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku
   // vrátane mapy — mobileDrawing dočasne SCHOVÁ formulár (CSS display, NIE unmount — inak by
   // AddTripPlan/AddTripLog stratili svoj interný state pri každom "choď na mapu"), nech je mapa
@@ -1928,21 +2184,24 @@ export default function PackMap() {
   // ⚠️ MUSÍ ostať NAD `if (!id.session) return null` — useMemo je hook a beží počas renderu:
   // pod podmieneným returnom by menil počet hookov medzi rendermi (Rules of Hooks) a zároveň
   // by siahal na `firstName` v TDZ. Meno člena si preto skladá sám z session (bezpečné cez ?.).
-  const profilePoints = useMemo(() => {
+  // 2026-08-09: samotný výpočet sa presťahoval do `profileLevelFor` (packCommunity), lebo to
+  // isté číslo ukazuje aj `TripSpotlight` na homepage. Druhá kópia týchto riadkov = dva rôzne
+  // levely na dvoch povrchoch, presne ten rozchod, ktorý tu už raz bol.
+  const profile = useMemo(() => {
     const email = id.session?.user?.email ?? '';
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
-    const owner = firstNameFrom(email, (meta.full_name || meta.name) as string | undefined);
-    const walkedTrails = allTrails.filter((tr) => walkedIds.has(tr.id));
-    const byAuthor = addedByMeIds(walkedTrails, { ownerName: owner, isFounder: isFounderEmail(email) });
-    const addedIds = approvedAddedIds([...byAuthor, ...localTrails.map((tr) => tr.id)]);
-    // `countries` MUSÍ ísť dnu (2026-08-06): bez neho padá `profilePointsFor` na default „1 krajina",
-    // takže level v hlavičke mapy ignoroval +30 za každú ďalšiu krajinu — a odhalenie po ✓ ich
-    // pritom sľubuje. Vysvedčenie (TripStatsPanel) ich počítalo správne → dva rôzne levely.
-    return profilePointsFor(walkedTrails, { addedIds, ratings: ratedCountFor(walkedTrails, votes), countries: walkedCountries(walkedTrails) });
+    return profileLevelFor({
+      walkedTrails: allTrails.filter((tr) => walkedIds.has(tr.id)),
+      localTrailIds: localTrails.map((tr) => tr.id),
+      votes,
+      email,
+      ownerName: firstNameFrom(email, (meta.full_name || meta.name) as string | undefined),
+    });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
   }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session]);
-  const levelInfo = levelProgress(profilePoints.total);
+  const profilePoints = profile.points;
+  const levelInfo = profile.level;
 
   if (id.loading) {
     return (
@@ -2148,6 +2407,14 @@ export default function PackMap() {
       setAddEventFlow(choice.origin);
       return;
     }
+    // ODKAZ: popup sa zavrie a mapa ostane CELÁ VIDITEĽNÁ — typ je vybraný,
+    // teraz človek ukazuje miesto. Na mobile sa navyše prepne z listu na mapu,
+    // inak by po výbere typu čakal klik do zoznamu výletov.
+    if (choice.kind === 'note') {
+      setMobileView('map');
+      setNotePlacing(choice.group);
+      return;
+    }
     setAddFlow(choice.state);
   };
   const closeAdd = () => {
@@ -2319,12 +2586,15 @@ export default function PackMap() {
         : <span className="trp-mavatar trp-mavatar--initial">{id.avatarInitial}</span>}
       <span className="trp-midentity-txt">
         <span className="trp-level">
-          <span className="trp-level-name">{levelInfo.rank}</span>
+          {/* 2026-08-09: rang ide cez i18n (`pack.map.rankPilgrim`), nie cez natvrdo anglické
+              `levelInfo.rank` — to isté slovo ukazuje aj karta na `/pack` a v SK to má byť
+              „Pútnik", nie „Pilgrim". */}
+          <span className="trp-level-name">{t('pack.map.rankPilgrim')}</span>
           {/* Matej 2026-08-03: „to LVL ma ruší" → popisok preč, ostáva holé číslo v zlatej
               pilulke. Po zjednotení (5. 8.) to platí aj na PC. */}
           <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>
         </span>
-        <span className="trp-mstats">{t('pack.map.mstats', { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
+        <span className="trp-mstats">{t('pack.map.mstats' + pluralKey(walkedIds.size), { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
       </span>
     </button>
   );
@@ -2552,7 +2822,7 @@ export default function PackMap() {
                 type="button"
                 className="trp-bigcard-author trp-authorbtn"
                 onClick={(e) => { e.stopPropagation(); setCreatorTrail(tr); }}
-              >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians', { n: others })}` : ''}</button>
+              >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(others), { n: others })}` : ''}</button>
             </div>
           </div>
           {/* bod 3 (Matej 2026-07-22): pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2568,6 +2838,11 @@ export default function PackMap() {
   return (
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
       <style>{CSS}</style>
+      <style>{MAP_NOTES_CSS}</style>
+      <style>{LONG_PRESS_CSS}</style>
+      <style>{ADD_NOTE_CSS}</style>
+      <style>{MAP_NOTE_CURSOR_CSS}</style>
+      <style>{NOTE_PALETTE_CSS}</style>
       <style>{COMMUNITY_CSS}</style>
       <style>{POINTS_PILL_CSS}</style>
       <style>{PARTY_CARD_CSS}</style>
@@ -2672,7 +2947,7 @@ export default function PackMap() {
                         type="button"
                         className="trp-inldet-author trp-authorbtn"
                         onClick={(e) => { e.stopPropagation(); setCreatorTrail(dt); }}
-                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians', { n: dtAgg.walkedCount - FOUNDER_WALKERS })}` : ''}</button>
+                      >{t('pack.map.byAuthor', { author: authorOf(dt) })}{dtAgg.walkedCount - FOUNDER_WALKERS > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(dtAgg.walkedCount - FOUNDER_WALKERS), { n: dtAgg.walkedCount - FOUNDER_WALKERS })}` : ''}</button>
                     </div>
                   </div>
                   {/* Matej 2026-07-22: pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
@@ -2739,8 +3014,8 @@ export default function PackMap() {
                   </div>
                 )}
 
-                {dt.desc && <p className="trp-inldet-desc">{dt.desc}</p>}
-                {dt.dogNote && <p className="trp-inldet-desc">🐾 {dt.dogNote}</p>}
+                {tripText(dt, 'desc', lang) && <p className="trp-inldet-desc">{tripText(dt, 'desc', lang)}</p>}
+                {tripText(dt, 'dogNote', lang) && <p className="trp-inldet-desc">🐾 {tripText(dt, 'dogNote', lang)}</p>}
 
                 {(dt as { elev?: number[] }).elev && (
                   <div className="trp-inldet-section">
@@ -2754,7 +3029,7 @@ export default function PackMap() {
                       konštatovanie — drží sa v zhode s PackTripArticle.tsx. */}
                   {dtAgg.walkedCount === 0
                     ? <h4>{t('pack.map.beFirstToWalk')}</h4>
-                    : <h4>{dtAgg.walkedCount === 1 ? t('pack.map.walkedByOne', { n: dtAgg.walkedCount }) : t('pack.map.walkedByMany', { n: dtAgg.walkedCount })}</h4>}
+                    : <h4>{t('pack.map.walkedBy' + pluralKey(dtAgg.walkedCount), { n: dtAgg.walkedCount })}</h4>}
                 </div>
                 {/* §14 zadania (2026-07-23): komentová sekcia nahrádza staré "Message owner" /
                     "Open trip group" placeholdery — reviews (paw rating + voliteľný text) + advice.
@@ -3177,6 +3452,7 @@ export default function PackMap() {
               <SaberScaleWatcher onChange={setSaberScale} />
               <MapRefBridge onReady={(map) => {
                 leafletMapRef.current = map;
+                setMapInstance(map);
                 if (pendingFlyRef.current) { map.flyTo(pendingFlyRef.current, 11, { duration: 1.2 }); pendingFlyRef.current = null; }
               }} />
               {/* krok 9 (zadanie §2 kontraktu GeometryPicker): DrawClickCatcher tu už netreba pre
@@ -3201,8 +3477,13 @@ export default function PackMap() {
                 // v PackTripArticle (tam sa stlmí vybraná trasa pri dotyku mapy).
                 const selected = inlineDetailId === tr.id;
                 const lineHover = lineHoverId === tr.id;
-                const hot = selected || (hoverId === tr.id && !lineHover);
-                const dim = lineHover ? 0.3 : 1;
+                // ⚠️ 2026-08-20 OBRÁTENÉ. Predtým: hover NA ČIARE trasu STLMIL (`dim = 0.3`),
+                // aby bolo pod ňou vidno turistické značenie (Matej 31. 7.). Odvtedy je pokojná
+                // trasa priehľadná stále, takže značenie vidno aj bez toho — a stlmenie pod myšou
+                // pôsobilo ako chyba: ideš na trasu a ona zmizne. Teraz je hover na čiare
+                // rovnocenný s hoverom zo zoznamu aj s výberom: všetky tri ju ROZSVIETIA.
+                const hot = selected || hoverId === tr.id || lineHover;
+                const dim = 1;
                 const handlers = {
                   mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
                   mouseout: () => { setHoverId(null); setLineHoverId(null); },
@@ -3246,61 +3527,51 @@ export default function PackMap() {
                     </Fragment>
                   );
                 }
-                if (!hot) {
-                  // issue #49 (Matej 2026-07-31, vybral z porovnania `plany/farba-trasy.html`):
-                  // pokojná trasa = FIALOVÝ „svetelný meč" — štyri vrstvy na tých istých bodoch
-                  // (tmavý okraj → sýta s dosvitom → svetlá → biele jadro), tokeny v tripShared.
-                  // Farba čiary je odteraz VLASTNÁ os; náročnosť nesú markery/pilulky (DIFF_COLOR),
-                  // ktoré ostali nedotknuté. Hot/vybraný stav je stále čierno-zlatý (brand) nižšie.
-                  // Dosvit len od z12 hore: dole je čiara aj tak stenčená na ~polovicu a 77 paths
-                  // s SVG filtrom je zbytočná záťaž na mobile.
-                  return (
-                    <Fragment key={tr.id}>
-                      {TRAIL_SABER_LAYERS.map((ly) => (
-                        <Polyline
-                          key={ly.key}
-                          positions={tr.path}
-                          // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
-                          // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
-                          // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj
-                          // v GeometryPickeri funguje). Dosvit preto nasadzujeme priamo na SVG
-                          // element. Inline ref beží pri každom renderi, takže prepnutie podľa
-                          // zoomu netreba riešiť remountom vrstvy.
-                          ref={(layer) => {
-                            const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
-                            if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && saberScale >= 0.7);
-                          }}
-                          pathOptions={{
-                            color: ly.color,
-                            weight: Math.max(0.8, ly.weight * saberScale),
-                            opacity: ly.opacity * dim,
-                            lineCap: 'round',
-                            lineJoin: 'round',
-                            // dosvit (trieda vyššie cez ref) beží až od z12 — nižšie je čiara aj
-                            // tak stenčená a 77 paths s SVG filtrom je na mobile zbytočná záťaž.
-                            // Pri vyblednutí sa stlmí sám: drop-shadow polopriehľadnej čiary je
-                            // tiež polopriehľadný.
-                          }}
-                          eventHandlers={handlers}
-                        />
-                      ))}
-                    </Fragment>
-                  );
-                }
+                // issue #49 (Matej 2026-07-31, vybral z porovnania `plany/farba-trasy.html`):
+                // trasa = FIALOVÝ „svetelný meč" — štyri vrstvy na tých istých bodoch (tmavý
+                // okraj → sýta s dosvitom → svetlá → biele jadro), tokeny v tripShared.
+                // Farba čiary je VLASTNÁ os; náročnosť nesú markery/pilulky (DIFF_COLOR).
+                //
+                // ⚠️ 2026-08-20 — MEČ MÁ DVA STAVY, nie dve rôzne čiary (Matej: „trasy nebudú tak
+                // žiariť, svetelný meč bude žiariť len pri kliknutí alebo prejdení myšou").
+                // V POKOJI: tie isté štyri vrstvy, len priehľadnejšie (`SABER_REST_OPACITY`)
+                //           a BEZ dosvitu. Mapa so 77 trasami tak prestala svietiť celá naraz.
+                // POD MYŠOU / VYBRANÁ: plná sýtosť + dosvit — teda presne dnešný vzhľad.
+                // Zlatá z ČIARY tým odišla: keď svieti len tá, na ktorú sa pozeráš, druhá farba
+                // na rozlíšenie netreba. Zlatú nesie ďalej pilulka (a tá je pod myšou BIELA).
+                const alpha = hot ? 1 : SABER_REST_OPACITY;
                 return (
                   <Fragment key={tr.id}>
-                    {/* vybraná trasa: casing aj jadro blednú SPOLU (dim), inak by čierny casing
-                        ostal nepriehľadný sám a značenie by aj tak nebolo vidno */}
-                    <Polyline
-                      positions={tr.path}
-                      pathOptions={{ color: '#0A0A0A', weight: 8, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
-                      eventHandlers={handlers}
-                    />
-                    <Polyline
-                      positions={tr.path}
-                      pathOptions={{ color: '#F5C73D', weight: 4, opacity: dim, lineCap: 'round', lineJoin: 'round' }}
-                      eventHandlers={handlers}
-                    />
+                    {TRAIL_SABER_LAYERS.map((ly) => (
+                      <Polyline
+                        key={ly.key}
+                        positions={tr.path}
+                        // POZOR (overené v prehliadači): react-leaflet vlieva `pathOptions` cez
+                        // `setStyle`, a ten `className` IGNORUJE — cez pathOptions sa trieda do
+                        // DOM nikdy nedostane (v čistom Leaflete áno, preto to v audite aj
+                        // v GeometryPickeri funguje). Dosvit preto nasadzujeme priamo na SVG
+                        // element. Inline ref beží pri každom renderi, takže prepnutie podľa
+                        // zoomu ani podľa stavu netreba riešiť remountom vrstvy.
+                        // `bringToFront` pri rozsvietení: SVG nepozná z-index a kreslí v poradí
+                        // datasetu, takže trasa, ktorá je v dátach neskôr, by rozsvietenú
+                        // prekreslila zhora (Záruby 1/2/3 zdieľajú záverečný úsek).
+                        ref={(layer) => {
+                          const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
+                          if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && hot && saberScale >= 0.7);
+                          if (hot) (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.();
+                        }}
+                        pathOptions={{
+                          color: ly.color,
+                          weight: Math.max(0.8, ly.weight * saberScale),
+                          opacity: ly.opacity * alpha * dim,
+                          lineCap: 'round',
+                          lineJoin: 'round',
+                          // dosvit (trieda vyššie cez ref) beží až od z12 — nižšie je čiara aj
+                          // tak stenčená a 77 paths s SVG filtrom je na mobile zbytočná záťaž.
+                        }}
+                        eventHandlers={handlers}
+                      />
+                    ))}
                   </Fragment>
                 );
               })}
@@ -3350,7 +3621,32 @@ export default function PackMap() {
                   eventHandlers={{ click: () => setSelectedEventId(ev.id) }}
                 />
               ))}
+              {/* ZÁPISY DO MAPY — nad trip markermi (sú to konkrétne miesta, nie súhrn).
+                  DOGYPT čistý vizuál ich skrýva rovnako ako ostatné značky s textom. */}
+              {!isCleanMode && (
+                <MapNotesLayer
+                  notes={mapNotes.notes}
+                  onVote={(id, v) => { void mapNotes.vote(id, v); }}
+                  onDelete={(id) => { void mapNotes.remove(id); }}
+                  locale={dateLocale}
+                />
+              )}
+              {/* bod z dlhého podržania, kým sa vyberá typ */}
+              {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
+              {noteDraft && (
+                <AddMapNotePin
+                  lat={noteDraft.lat}
+                  lon={noteDraft.lon}
+                  kind={noteDraft.kind}
+                  onMove={(lat, lon) => setNoteDraft((d) => (d ? { ...d, lat, lon } : d))}
+                />
+              )}
             </MapContainer>
+
+            {/* Plusko s prstencom PRI KURZORE (Matej 2026-08-20) — nahradilo pevné
+                tlačidlo v rohu, ktoré bolo slabo viditeľné a súperilo s tlačidlom
+                PRIDAŤ o tú istú úlohu. Na dotyku sa nekreslí (kurzor neexistuje). */}
+            {!isCleanMode && <MapNoteCursor map={mapInstance} hidden={noteBusy || !!notePlacing} />}
 
             {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
                 viď komentár pri .trp-legend v CSS. */}
@@ -3496,6 +3792,41 @@ export default function PackMap() {
       {/* ── KOMUNITNÉ modaly / dashboard (design plany/pack-community-features-design.md) ── */}
       {addEntryOpen && (
         <AddTripEntry onPick={pickAddFlow} onClose={closeAddEntry} />
+      )}
+
+      {/* ZÁPISY DO MAPY — panel žije MIMO <MapContainer> (formulár nie je vrstva mapy),
+          ťahateľná značka je vnútri. Viď hlavičku AddMapNote.tsx. */}
+      {noteDraft && (
+        <AddMapNotePanel
+          group={noteDraft.group}
+          lat={noteDraft.lat}
+          lon={noteDraft.lon}
+          pinnedSlug={noteDraft.pinnedSlug}
+          pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
+          onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
+          onCancel={() => setNoteDraft(null)}
+        />
+      )}
+      {/* Medzikrok pomalej cesty: typ vybraný, mapa voľná, čaká sa na klik. */}
+      {notePlacing && !noteDraft && (
+        <MapNotePlacing
+          group={notePlacing}
+          ready={noteZoom >= MIN_ZOOM_FOR_NOTE}
+          onCancel={() => setNotePlacing(null)}
+        />
+      )}
+      {/* Rýchla cesta: bod je z dlhého podržania, pýta sa typ. */}
+      {noteSpot && !noteDraft && (
+        <NoteQuickPalette
+          onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
+          onCancel={() => setNoteSpot(null)}
+        />
+      )}
+      {noteHint && !noteDraft && !notePlacing && !noteSpot && (
+        <MapNoteHint onDismiss={() => { setNoteHint(false); markHintSeen(); }} />
+      )}
+      {noteTooFar && (
+        <div className="mna-tip" role="status">{t('pack.mapNotes.tooFar')}</div>
       )}
       {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by
           odmena za trasu A vyskočila v popupe trasy B. */}
