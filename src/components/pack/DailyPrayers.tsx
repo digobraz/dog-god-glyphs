@@ -12,7 +12,7 @@
 import React, { useState } from 'react';
 import { Check, ChevronDown, Lock, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { PACK_THEME } from './packTheme';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
@@ -51,7 +51,7 @@ export function DailyPrayers({ dogId, dogName }: { dogId: string; dogName: strin
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session?.access_token ?? ''}`,
-          apikey: (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ?? '',
+          apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ kind: 'prayer', dog_id: dogId, presence: presenceDone, walk_hours: walkHours }),
       });

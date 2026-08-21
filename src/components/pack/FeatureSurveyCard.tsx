@@ -5,7 +5,7 @@ import { PACK_THEME } from './packTheme';
 import imgMobileApp from '@/assets/pack-survey/mobile-app.webp';
 import imgHealth from '@/assets/pack-survey/health.webp';
 import imgMerch from '@/assets/pack-survey/merch.webp';
-import { EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -120,7 +120,7 @@ export function FeatureSurveyCard({ votes, onVotesChange }: FeatureSurveyCardPro
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '',
+            apikey: SUPABASE_ANON_KEY,
           },
           body: JSON.stringify({ feature_key: k }),
         });

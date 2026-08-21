@@ -39,7 +39,7 @@ import { useToast } from '@/hooks/use-toast';
 import { uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { flagUrl, countryISO2, flagEmojiFromISO2 } from '@/lib/countryGeo';
-import { EDGE_BASE } from '@/lib/env';
+import { EDGE_BASE, SUPABASE_ANON_KEY } from '@/lib/env';
 import { DEV_FULL } from '@/lib/packFlags';
 // Vek psa žije v lib/dogAge.ts — tú istú matematiku potrebuje aj svorka na `/pack`.
 import { computeAge, type DogAge } from '@/lib/dogAge';
@@ -272,7 +272,7 @@ export default function PackDogDetail() {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session?.access_token ?? ''}`,
-          apikey: (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) ?? '',
+          apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ kind: 'prayer', dog_id: id, presence: presenceDone, walk_hours: walkHours }),
       });

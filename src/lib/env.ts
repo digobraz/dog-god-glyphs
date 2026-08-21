@@ -11,6 +11,16 @@
 // DEV still reads the env vars, so `npm run web` against .env.development keeps
 // pointing local dev at the DOGYPT DEV project. To debug against LIVE locally,
 // rename .env.development (e.g. .env.development.off).
+//
+// NOTHING OUTSIDE THIS FILE MAY READ VITE_SUPABASE_* (rule added 2026-08-21).
+// The pin only covers callers that go through SUPABASE_URL / SUPABASE_ANON_KEY.
+// Three files used to read VITE_SUPABASE_PUBLISHABLE_KEY straight from the env
+// (DailyPrayers, FeatureSurveyCard, PackDogDetail) and so sent Lovable's anon
+// key to the pinned LIVE url -> 401 "No suitable key was found to decode the
+// JWT" on those surfaces only, while the rest of the app looked healthy. That
+// is worse than the 2026-06-27 outage, not better: it fails quietly. Import
+// SUPABASE_ANON_KEY from here instead. `scripts/go-live.sh` fails the preflight
+// if a new direct reader shows up.
 
 const LIVE_SUPABASE_URL = 'https://lnzurwmdgvzlqhsbhrvi.supabase.co';
 const LIVE_SUPABASE_ANON_KEY =
