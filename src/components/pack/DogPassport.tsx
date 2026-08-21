@@ -28,6 +28,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, type QuizStep } from './dogQuiz';
+import { natureArt } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -527,8 +528,12 @@ function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => s
           <span
             key={String(x)}
             className="pk-pill"
-            style={{ fontFamily: FONT_UI, fontSize: 11, padding: '3px 10px' }}
+            style={{
+              fontFamily: FONT_UI, fontSize: 11, padding: '3px 10px',
+              display: 'inline-flex', alignItems: 'center', gap: 5,
+            }}
           >
+            <NatureArt field={step.field} value={x} size={20} />
             {label(String(x))}
           </span>
         ))}
@@ -539,8 +544,47 @@ function renderValue(step: QuizStep, v: unknown, tx: (k: string, f: string) => s
   const s = String(v);
   if (step.kind === 'date') return longDate(s);
   if (step.kind === 'number') return step.unit ? `${s} ${step.unit}` : s;
-  if (step.kind === 'single') return label(s);
+  if (step.kind === 'single') {
+    const art = natureArt(step.field, s);
+    if (!art) return label(s);
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <NatureArt field={step.field} value={s} size={26} />
+        {label(s)}
+      </span>
+    );
+  }
   return s;
+}
+
+/**
+ * Odznak úlohy / elementu na doklade DOG ID.
+ *
+ * MALÝ ZÁMERNE. Doklad je hustý dvojstĺpcový výpis `dt/dd` — veľký odznak by z riadku
+ * spravil kartu a rozhodil sadzbu oboch stĺpcov. Odznak v plnej veľkosti žije na
+ * výsledku kvízu (`PackNatureQuiz.tsx`, `ResultDoc`); tu je to značka pri hodnote.
+ *
+ * ⚠️ Psí blok na `/pack/dogs` odznak NEDOSTÁVA — je LOCKED (12. 8., „1 blok, PC aj
+ * mobil ok") a jeho výška sa počíta rovnicou, ktorú by vyšší riadok pilulek rozhodil.
+ * Matej to potvrdil 20. 8.: odznaky idú do výsledku kvízu a sem, blok ostáva.
+ *
+ * Prázdny výsledok `natureArt()` = žiadny obrázok, nie zástupný štvorec. Pole môže
+ * niesť starý kľúč a chýbajúci odznak nesmie hodnotu zatlačiť ani posunúť.
+ */
+function NatureArt({ field, value, size }: { field: string; value: unknown; size: number }) {
+  const src = natureArt(field, value);
+  if (!src) return null;
+  return (
+    <img
+      src={src}
+      alt=""
+      aria-hidden
+      loading="lazy"
+      width={size}
+      height={size}
+      style={{ width: size, height: size, objectFit: 'contain', display: 'block', flex: '0 0 auto' }}
+    />
+  );
 }
 
 function shortDate(iso: string): string {

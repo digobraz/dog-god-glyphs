@@ -66,6 +66,16 @@ export const PACK_THEME = {
   /** Sekundárny text na papyruse (Space Grotesk sub). */
   inkWarm: '#7a5a2a',
   accentGold: '#C99A3F',
+  // ── EGYPTSKÁ MODRÁ — kánonická sekundárna brandu ──────────────────────────
+  // Zdroj: `--brand-blue: #1034A6` v index.css (brand manuál 2026). Sem sa dvíha
+  // preto, aby ju `/pack` nemusel písať ako literál — CSS premenná sa v inline
+  // štýloch a v JS template literáloch (NQ_CSS, HUB_CSS) používa mizerne.
+  // KEDY PO NEJ SIAHNUŤ: keď zlatá na tom istom povrchu už nesie iný význam.
+  // Príklad: v kvíze je zlatá VÝBER (vybratá odpoveď, CTA) — progres teda nesmie
+  // byť tiež zlatý, inak sa dva rôzne významy nedajú od seba odlíšiť.
+  brandBlue: '#1034A6',
+  /** Svetlejší koniec modrého gradientu. Tá istá modrá ako `partHek` nižšie. */
+  brandBlueLite: '#2E5FD0',
   growGreen: '#3D7A4E',
   // ── Canonical TRANSPARENCY MODEL part colors (LOCKED 2026-06-09) ──────────
   // Jeden zdroj pravdy pre FounderInvite (back of block 5) + TransparentStats

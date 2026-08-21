@@ -41,6 +41,19 @@ const HIDDEN_EXACT_PREFIXES = ['/cert-render', '/invoice-render', '/share-render
 // nedorieši email-gate pre anonymov. Otoč na false, keď sa public launch schváli.
 const PUBLIC_LAUNCH_PAUSED = true;
 
+/**
+ * Pes, ktorého kartu má člen otvorenú (`/pack/dogs/:id`). Ide do chatu len ako
+ * PORADIE v kontexte — server aj tak vracia výhradne psov overeného účtu, takže
+ * podvrhnuté id nič neodomkne.
+ *
+ * Zhoda na tvar UUID je zámerná: `/pack/dogs/quiz/:key` aj `/pack/dogs/nature`
+ * majú tiež tri segmenty a bez nej by sa sem dostalo slovo `quiz`.
+ */
+const DOG_ID_RE = /^\/pack\/dogs\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})(?:\/|$)/i;
+function dogIdFromPath(pathname: string): string | undefined {
+  return DOG_ID_RE.exec(pathname)?.[1];
+}
+
 function isAinubisHidden(pathname: string): boolean {
   if (HIDDEN_EXACT_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return true;
   // Celý heroglyph flow OKREM bare /heroglyph (sales page) — v platobnom
@@ -771,6 +784,10 @@ function AinubisWidgetInner() {
           page: pathname,
           lang,
           visitor_id: visitorId,
+          dog_id: dogIdFromPath(pathname),
+          // ⚠️ Server toto pole od 20. 8. 2026 IGNORUJE — identitu si berie
+          // z tokenu, ktorý `functions.invoke` posiela v `Authorization`.
+          // Necháva sa len preto, aby sa tvar požiadavky nemenil skokom.
           member_email: memberEmail ?? undefined,
         },
       });
