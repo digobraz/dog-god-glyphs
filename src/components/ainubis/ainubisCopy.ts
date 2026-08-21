@@ -29,6 +29,23 @@ export interface AinubisCopy {
     idea: string;
     question: string;
   };
+  /**
+   * VETVY PROMPTU. Klik zákazníka vyberá, ktorý prompt sa na serveri poskladá —
+   * nie je to len filter témy, je to rozdiel ~5,5k vs ~25,7k tokenov na výmenu.
+   * Zadanie: plany/zadanie-ainubis-vetvy-2026-08-21.md
+   *
+   * ⚠️ V úvode sú vždy DVE dvere (Matejov nákres), nie tri: hosťovi nemá zmysel
+   * ponúkať svorku (nemá psa) a členovi nemá zmysel začínať ústavou. Tretia
+   * vetva nie je nedostupná — prepínač nad písaním ukazuje všetky a AINUBIS
+   * sám ponúkne prepnutie, keď otázka nesedí do otvorenej vetvy.
+   */
+  branches: {
+    ask: string;
+    support: { label: string; hint: string };
+    faith: { label: string; hint: string };
+    pack: { label: string; hint: string };
+    switchLabel: string;
+  };
   inputPlaceholder: string;
   typing: string;
   send: string;
@@ -73,6 +90,13 @@ const sk: AinubisCopy = {
     idea: 'Mám nápad',
     question: 'Chcem sa spýtať',
   },
+  branches: {
+    ask: 'Čo dnes riešime?',
+    support: { label: 'Podpora', hint: 'Niečo nefunguje, našiel si chybu alebo máš nápad. Píš koľkokrát chceš.' },
+    faith: { label: 'Viera', hint: 'Ústava, obrady, čo Dogyptizmus vlastne hovorí. Odpovedám z textu, nie spamäti.' },
+    pack: { label: 'Moja svorka', hint: 'Poradím ti s tvojím psom. Poznám jeho meno, vek aj to, čo si o ňom zapísal.' },
+    switchLabel: 'O čom sa bavíme',
+  },
   inputPlaceholder: 'Napíš strážcovi…',
   typing: 'AINUBIS ňuchá stopu…',
   send: 'Pošli',
@@ -110,6 +134,13 @@ const en: AinubisCopy = {
     problem: 'I have a problem',
     idea: 'I have an idea',
     question: 'I want to ask something',
+  },
+  branches: {
+    ask: 'What are we dealing with today?',
+    support: { label: 'Support', hint: 'Something is broken, you found a bug, or you have an idea. Write as often as you like.' },
+    faith: { label: 'Faith', hint: 'The Constitution, the rites, what Dogyptism actually says. I answer from the text, not from memory.' },
+    pack: { label: 'My pack', hint: 'I will help you with your dog. I know their name, their age and what you wrote about them.' },
+    switchLabel: "What we're on",
   },
   inputPlaceholder: 'Write to the guardian…',
   typing: 'AINUBIS is on the scent…',

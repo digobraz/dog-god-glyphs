@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { X, Send, Paperclip, Mic, Square, Move, LayoutDashboard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,17 @@ const LS_VISITOR = 'ainubis.visitor';
  *  bude vedieť premiestniť chatovacie okno rozne po obrazovke"). Pozícia prežije reload —
  *  keby sa po každom otvorení vrátila do rohu, presúvanie by nemalo zmysel. */
 const LS_POS = 'ainubis.pos';
+/** Naposledy vybraná vetva. Drží fialový mód aj po reloade, kým server odpovie. */
+const LS_BRANCH = 'ainubis.branch';
+
+/**
+ * Vetva promptu. Musí sedieť s `Branch` v `_shared/ainubis-persona.ts` — server
+ * neznámu hodnotu ticho ignoruje, takže preklep sa neprejaví chybou, ale tým,
+ * že sa vždy poskladá plný (najdrahší) prompt.
+ */
+type Branch = 'support' | 'faith' | 'pack';
+const isBranch = (v: unknown): v is Branch =>
+  v === 'support' || v === 'faith' || v === 'pack';
 
 const MAX_IMAGE_DIM = 1568; // px, dlhšia strana — zhoduje sa s limitom na backende
 const JPEG_QUALITY = 0.82;
@@ -87,6 +98,8 @@ interface AinubisChatResponse {
   session_token: string;
   reply: string;
   takeover: boolean;
+  /** Vetva, v ktorej vlákno beží na SERVERI. `null` = vlákno spred vetiev. */
+  branch?: string | null;
   meta?: AinubisMeta | null;
 }
 
@@ -347,6 +360,20 @@ function AinubisWidgetInner() {
   const [open, setOpen] = useState(() => safeLocalStorageGet(LS_OPEN) === '1');
   const [conversationId, setConversationId] = useState<string | null>(() => safeLocalStorageGet(LS_CONV));
   const [sessionToken, setSessionToken] = useState<string | null>(() => safeLocalStorageGet(LS_TOK));
+  /**
+   * Vybraná vetva. `null` = človek ešte neklikol ⇒ ukážu sa dvere a NEPOŠLE sa
+   * nič; server by pri chýbajúcej vetve poskladal plný prompt, takže „zatiaľ
+   * nevybral" musí zastaviť odoslanie, nie ho ticho zdražiť.
+   */
+  const [branch, setBranchState] = useState<Branch | null>(() => {
+    const v = safeLocalStorageGet(LS_BRANCH);
+    return isBranch(v) ? v : null;
+  });
+
+  const setBranch = useCallback((b: Branch) => {
+    setBranchState(b);
+    safeLocalStorageSet(LS_BRANCH, b);
+  }, []);
   // Uvítanie sa NEVKLADÁ do počiatočného stavu (Matej 2026-07-30: „teraz je to
   // ako keby tam už predpísané a to nechceme, chceme aby to vyzeralo ONLINE
   // LIVE"). Bubliny sa prehrajú až po otvorení panela — najprv „…píše", potom
@@ -515,15 +542,22 @@ function AinubisWidgetInner() {
   // Scroll na koniec pri novej správe / postupe typewritera. Pri čerstvej
   // konverzácii ostávame HORE — intro karta je to prvé, čo má človek vidieť,
   // skok na koniec by ju odscrolloval hneď po otvorení.
+  //
+  // ⚠️ VÝNIMKA: keď svietia dvere vetiev, ostať hore znamená, že jediná vec,
+  // ktorá sa v chate dá spraviť (a ktorá zároveň odomyká písanie), je pod
+  // ohybom a nie je po nej ani stopy. Vtedy sa dolu ísť MUSÍ.
   useEffect(() => {
     const body = bodyRef.current;
     if (!body) return;
-    if (messages.every((m) => m.id.startsWith('welcome'))) {
+    // Rovnaká podmienka ako `showDoors` nižšie; počíta sa tu znova, lebo tá
+    // premenná vzniká až v tele renderu, za týmto efektom.
+    const doorsUp = messages.length === copy.welcome.length && !branch;
+    if (messages.every((m) => m.id.startsWith('welcome')) && !doorsUp) {
       body.scrollTo({ top: 0 });
       return;
     }
     body.scrollTo({ top: body.scrollHeight });
-  }, [messages, typewriter?.shown]);
+  }, [messages, typewriter?.shown, branch, copy.welcome.length]);
 
   // Pole rastie s textom (po strop z CSS `max-height`). Bez toho sa nadiktovaná
   // veta schová do jedného riadku a človek nevidí, čo vlastne pošle.
@@ -785,6 +819,10 @@ function AinubisWidgetInner() {
           lang,
           visitor_id: visitorId,
           dog_id: dogIdFromPath(pathname),
+          // Vetva promptu. `undefined` server prečíta ako „drž doterajšiu vetvu
+          // vlákna", takže sa neposiela pri každej správe zbytočne — ale
+          // posielať ju stále je lacnejšie než riešiť rozbeh po reloade.
+          branch: branch ?? undefined,
           // ⚠️ Server toto pole od 20. 8. 2026 IGNORUJE — identitu si berie
           // z tokenu, ktorý `functions.invoke` posiela v `Authorization`.
           // Necháva sa len preto, aby sa tvar požiadavky nemenil skokom.
@@ -809,6 +847,11 @@ function AinubisWidgetInner() {
       }
 
       const res = data as AinubisChatResponse;
+      // Vetva, v ktorej vlákno naozaj beží. Zdroj pravdy je SERVER, nie klik:
+      // po `resetSession()` (403) sa zakladá nové vlákno a keby si widget držal
+      // len vlastný stav, farba a pilulka by ukazovali vetvu, ktorú serverové
+      // vlákno nemá.
+      if (isBranch(res.branch)) setBranch(res.branch);
       setConversationId(res.conversation_id);
       setSessionToken(res.session_token);
       safeLocalStorageSet(LS_CONV, res.conversation_id);
@@ -972,11 +1015,35 @@ function AinubisWidgetInner() {
   const showIntro = messages.every((m) => m.id.startsWith('welcome'));
   /** Návrhy sa ukážu až keď uvítanie dobehlo (vrátane typewritera) — vyskočiť
    *  skôr, než AINUBIS dopíše, vyzerá ako predpripravený formulár. */
-  const showSuggestions =
+  const introReady =
     showIntro &&
     messages.length === copy.welcome.length &&
     !welcomeTyping &&
     !typewriter;
+  /**
+   * DVE dvere, nie tri. Hosťovi sa neponúka svorka (nemá psa a `pack` prompt by
+   * mu naložil 25k tokenov znalostnej bázy pre nikoho), členovi sa nezačína
+   * ústavou. Tretiu vetvu má oboch na dosah v prepínači nad písaním.
+   */
+  const doorBranches: Branch[] = memberEmail ? ['support', 'pack'] : ['support', 'faith'];
+  /**
+   * Dvere sa ukážu, len čo je posledná uvítacia bublina NA MIESTE — nečaká sa,
+   * kým dopíše. Typewriter uvítania trvá desiatky sekúnd a keďže dvere zároveň
+   * zamykajú písanie, čakanie na jeho koniec by znamenalo pol minúty, počas
+   * ktorej sa v chate nedá spraviť vôbec nič. Kliknúť do dverí, kým AINUBIS
+   * dopovie vetu, je prirodzené — to isté robí človek v rozhovore.
+   */
+  const showDoors = showIntro && messages.length === copy.welcome.length && !branch;
+  /**
+   * Zámok písania. ZÁMERNE nevisí na `showDoors`: uvítanie sa píše po znakoch
+   * a trvá desiatky sekúnd, takže by v tom okne šlo odoslať správu bez vetvy
+   * a server by poskladal plný (najdrahší) prompt — presne to, čo vetvy rušia.
+   * `conversationId` v podmienke chráni vracajúceho sa človeka: jeho vlákno už
+   * vetvu na serveri má, takže sa ho nemá čo pýtať znova.
+   */
+  const branchGate = !branch && !conversationId;
+  /** Návrhy tém dávajú zmysel až keď je vetva vybraná — inak sú to dve výzvy naraz. */
+  const showSuggestions = introReady && !!branch;
 
   return (
     <>
@@ -1000,7 +1067,9 @@ function AinubisWidgetInner() {
       {open && (
         <div
           ref={panelRef}
-          className={`ainubis-panel${dragging ? ' ainubis-panel--dragging' : ''}`}
+          className={`ainubis-panel${dragging ? ' ainubis-panel--dragging' : ''}${
+            branch === 'pack' ? ' ainubis-panel--pack' : ''
+          }`}
           /* ⚠️ Inline `left/top` MUSÍ vypnúť aj `right/bottom` — základné pravidlo
              kotví panel vpravo dole a `body.has-pack-nav` mu prepisuje `left`.
              Pod hranicou `MOVE_MIN_WIDTH` sa pozícia ignoruje: tam vládne
@@ -1159,7 +1228,43 @@ function AinubisWidgetInner() {
                 <div className="ainubis-typing">{copy.typing}</div>
               </div>
             )}
+
+            {/* Dvere sú SÚČASŤOU rozhovoru, nie lišta pod ním: keby stáli mimo
+                posuvnej oblasti, zabrali by jej väčšinu a z uvítania by ostal
+                napoly odrezaný riadok. Takto doskrolujú spolu s bublinami. */}
+            {showDoors && (
+              <div className="ainubis-doors">
+                <div className="ainubis-doors__ask">{copy.branches.ask}</div>
+                {doorBranches.map((b) => (
+                  <button
+                    key={b}
+                    type="button"
+                    className={`ainubis-door ainubis-door--${b}`}
+                    onClick={() => setBranch(b)}
+                  >
+                    <span className="ainubis-door__label">{copy.branches[b].label}</span>
+                    <span className="ainubis-door__hint">{copy.branches[b].hint}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
+
+          {branch && (
+            <div className="ainubis-switch" role="group" aria-label={copy.branches.switchLabel}>
+              {(['support', 'faith', 'pack'] as const).map((b) => (
+                <button
+                  key={b}
+                  type="button"
+                  className={`ainubis-switch__pill${b === branch ? ' ainubis-switch__pill--on' : ''}`}
+                  aria-pressed={b === branch}
+                  onClick={() => setBranch(b)}
+                >
+                  {copy.branches[b].label}
+                </button>
+              ))}
+            </div>
+          )}
 
           {showSuggestions && (
             <div className="ainubis-suggestions">
@@ -1225,18 +1330,23 @@ function AinubisWidgetInner() {
               <textarea
                 ref={textareaRef}
                 className="ainubis-composer__textarea"
-                placeholder={copy.inputPlaceholder}
+                placeholder={branchGate ? copy.branches.ask : copy.inputPlaceholder}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleTextareaKeyDown}
                 onPaste={handlePaste}
+                /* Kým človek neklikol na dvere, písanie je zamknuté: bez vetvy by
+                   server poskladal plný (najdrahší) prompt — presne to, čo vetvy
+                   rušia. Zamyká sa LEN v úvodnej obrazovke (`showDoors`), takže
+                   vlákno spred vetiev ani vyčistený localStorage nikoho nezablokujú. */
+                disabled={branchGate}
                 rows={1}
               />
               <button
                 type="button"
                 className="ainubis-composer__icon-btn ainubis-composer__send"
                 onClick={() => void handleSend()}
-                disabled={sending || (!input.trim() && !pendingImage)}
+                disabled={branchGate || sending || (!input.trim() && !pendingImage)}
                 aria-label={copy.send}
               >
                 <Send size={16} />
