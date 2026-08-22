@@ -47,6 +47,17 @@ const NAME_FONT = "'Cinzel Decorative', 'Cinzel', serif";
 const INTRO_ART = '/images/nature-quiz-art.webp';
 /** Kam vedie X, „Odísť" aj „Hotovo". Viď komentár pri `leave()` v stránke. */
 const QUIZ_EXIT = '/pack/dogs';
+/**
+ * Výsledok otvorený z DOG ID sa musí vrátiť NA TEN DOKLAD, nie o poschodie vyššie
+ * na zoznam psov (Matej 22. 8.: „následne sa vrátiť na dog id šípkou").
+ *
+ * ⚠️ Cieľ sa skladá z `?dog=`, nie z cesty v URL. Parameter `from` nesie len príznak
+ * `id` — keby niesol celú cestu, dal by sa cez odkaz poslať človek kamkoľvek.
+ * Vracia `null`, keď sa neprišlo z dokladu; volajúci vtedy použije `QUIZ_EXIT`.
+ */
+function exitFor(from: string | null, dogId: string | null): string | null {
+  return from === 'id' && dogId ? `/pack/dogs/${dogId}` : null;
+}
 
 interface QuizDog {
   id: string; dog_name: string | null; cloudinary_main_url: string | null;
@@ -368,9 +379,12 @@ const NQ_CSS = `
    šírku — text bez obrazu, nič, na čo by oko skočilo.
    Geometria je z matrice PACK_BOX.subblock: papyrusový gradient + PLNÝ zlatý rám
    + r12, nie plochý tileBg so slabým okrajom. */
-.nq-axes{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.nq-axes{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .nq-axis{
-  aspect-ratio:1/1;
+  /* ŽIADNY pomer strán. Pri dvoch dlaždiciach bol štvorec pekný, pri troch má
+     dlaždica ~225 px a text „what everyone gets wrong about it" sa doň nezmestí —
+     orezal by sa. Rovnakú výšku drží stretch mriežky, teda najvyšší súrodenec. */
+  min-height:186px;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   text-align:center; gap:11px; padding:18px 14px;
   background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
@@ -545,7 +559,10 @@ const NQ_CSS = `
   .nq-axisicon img{ width:26px; height:26px; }
   .nq-axistitle{ font-size:11.5px; letter-spacing:.1em; }
   .nq-axissub{ font-size:11px; line-height:1.42; }
-  .nq-axes{ gap:10px; }
+  /* Pod 760 px idú POD SEBA. Tri stĺpce by na telefóne dali ~110 px na dlaždicu —
+     nadpis „ROLE IN THE PACK" by sa lámal na tri riadky. */
+  .nq-axes{ grid-template-columns:1fr; gap:10px; }
+  .nq-axis{ min-height:0; }
 }
 
 /* ════════════════════════════════════════════════════════════════════════════
@@ -1761,6 +1778,11 @@ export default function PackNatureQuiz() {
    *  `/pack/dogs` teda vysypal človeka na úvod kvízu a výsledok sa po odchode
    *  z obrazovky nedal pozrieť už NIKDY. */
   const wantStored = params.get('view') === 'result';
+  /** Odkiaľ sa prišlo. Dnes jediná hodnota: `id` = z DOG ID konkrétneho psa. */
+  const cameFrom = params.get('from');
+  /** JEDNO miesto, kam vedie odchod. Lock z 18. 8. platí ďalej — päť rozsypaných
+   *  `navigate()` sa raz už rozišlo, preto sa cieľ počíta tu a nikde inde. */
+  const exitTo = exitFor(cameFrom, onlyDogId) ?? QUIZ_EXIT;
 
   const [dogs, setDogs] = useState<QuizDog[] | null>(null);
   /** `null` = ešte sa načítava, `[]` = niet čo čítať (→ spadne to na kvíz). */
@@ -1853,7 +1875,13 @@ export default function PackNatureQuiz() {
   const startOver = () => {
     setReading(false);
     setStored(null);
-    navigate(onlyDogId ? `/pack/nature?dog=${onlyDogId}` : '/pack/nature', { replace: true });
+    // ⚠️ `from` musí prežiť. Zhadzuje sa len `view=result`, lebo po novom behu by
+    // človeka vrátilo do čítania toho STARÉHO výsledku — ale cesta späť na doklad
+    // patrí k tomu, odkiaľ prišiel, a nie k tomu, čo práve robí.
+    const q = new URLSearchParams();
+    if (onlyDogId) q.set('dog', onlyDogId);
+    if (cameFrom) q.set('from', cameFrom);
+    navigate(q.toString() ? `/pack/nature?${q}` : '/pack/nature', { replace: true });
   };
 
   /** Otázky oboch kvízov v poradí, v akom idú za sebou. */
@@ -2010,7 +2038,7 @@ export default function PackNatureQuiz() {
   // `/pack/dogs`, zapisuje do DOG ID a po zavretí má človek stáť tam, odkiaľ prišiel —
   // nie o poschodie vyššie na hube. Rovnako to robí aj DOG ID kvíz (`PackDogQuiz.tsx`).
   // Jedna konštanta, nie päť rozsypaných `navigate()` — presne tie sa rozišli.
-  const leave = () => navigate(QUIZ_EXIT);
+  const leave = () => navigate(exitTo);
   // Pýtame sa len tam, kde sa naozaj niečo stratí: úvod nemá čo, výsledok je už
   // zapísaný do DOG ID.
   const requestClose = () => {
@@ -2025,7 +2053,7 @@ export default function PackNatureQuiz() {
   // preto je to odteraz vidieť hneď na začiatku, nie až (ne)uložením na konci.
   if (dogs !== null && list.length === 0) {
     return (
-      <Shell onClose={() => navigate(QUIZ_EXIT)}>
+      <Shell onClose={() => navigate(exitTo)}>
         <Card>
           <Eyebrow>{tx('pack.nature.intro.eyebrow', 'Three short quizzes, one document')}</Eyebrow>
           <p style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: T.inkStrong, margin: 0 }}>
@@ -2049,10 +2077,10 @@ export default function PackNatureQuiz() {
     if (stored === null) {
       // Prázdna škrupina, nie úvod kvízu: preblesknutý úvod by vyzeral ako by odkaz
       // „pozri výsledok" viedol na opakovanie testu.
-      return <Shell onClose={() => navigate(QUIZ_EXIT)}><div style={{ minHeight: 260 }} /></Shell>;
+      return <Shell onClose={() => navigate(exitTo)}><div style={{ minHeight: 260 }} /></Shell>;
     }
     return (
-      <Shell onClose={() => navigate(QUIZ_EXIT)}>
+      <Shell onClose={() => navigate(exitTo)}>
         {stored.map(({ dog, r, b }, i) => (
           <div key={dog.id} style={{ marginTop: i === 0 ? 0 : 26 }}>
             <ResultDoc dog={dog} r={r} b={b} tx={tx} />
@@ -2062,7 +2090,7 @@ export default function PackNatureQuiz() {
           <button type="button" className="nq-ghost is-ondark" onClick={startOver}>
             <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
           </button>
-          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(QUIZ_EXIT)}>
+          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
             {tx('pack.nature.result.done', 'Done')}
           </button>
         </div>
@@ -2074,7 +2102,7 @@ export default function PackNatureQuiz() {
   /* — intro — */
   if (phase === 'intro') {
     return (
-      <Shell onClose={() => navigate(QUIZ_EXIT)} fill>
+      <Shell onClose={() => navigate(exitTo)} fill>
         {/* ⚠️ `padding` a `overflow` musia ísť INLINE — `Card` si padding píše inline
             a inline vždy prebije triedu `.nq-intro`. */}
         <Card className="nq-intro" style={{ flex: 1, padding: 0, overflow: 'hidden' }}>
@@ -2109,7 +2137,7 @@ export default function PackNatureQuiz() {
               {/* Tretia dlaždica pribudla s kvízom 2 (22. 8.). Bez nej by sa na výsledku
                   zjavila celá sekcia, ktorú úvod nikdy nesľúbil. */}
               <AxisTile
-                icon="yinyang"
+                icon="sliders"
                 title={tx('pack.nature.intro.axis3', 'Balance right now')}
                 sub={tx('pack.nature.intro.axis3sub', 'Constitution is set for life; balance is not. Tick what is going on and see which way it leans.')}
               />
@@ -2405,7 +2433,7 @@ export default function PackNatureQuiz() {
   /* — výsledok: jeden na psa — */
   if (results.length === 0) return null;
   return (
-    <Shell onClose={() => navigate(QUIZ_EXIT)}>
+    <Shell onClose={() => navigate(exitTo)}>
       {/* JEDEN DOKUMENT NA PSA — fotka a meno sú vnútri karty, nie nad ňou na
           čiernom, a sú tam aj pri sólo psovi. Medzera medzi dokumentami je väčšia
           než čokoľvek vnútri nich, aby bolo vidieť, kde jeden pes končí. */}
@@ -2420,7 +2448,7 @@ export default function PackNatureQuiz() {
         <button type="button" className="nq-ghost is-ondark" onClick={restart}>
           <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
         </button>
-        <button type="button" className="nq-gold is-ondark" onClick={() => navigate(QUIZ_EXIT)}>
+        <button type="button" className="nq-gold is-ondark" onClick={() => navigate(exitTo)}>
           {tx('pack.nature.result.done', 'Done')}
         </button>
       </div>
