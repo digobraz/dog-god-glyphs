@@ -30,6 +30,8 @@ import { useProfile } from '@/components/pack/profile/packProfile';
 // Real len pre MOJE vlastné inzeráty (organizátor = ja) — pozri BuddyList nižšie.
 import { useTripParty, type TripParty } from '@/components/pack/triplist/useTripParty';
 import { PartyDmButton } from '@/components/pack/triplist/PartyMemberCard';
+// CSS tlačidla injectuje PackMap.tsx (a EventsPanel) — komunitné karty žijú vnútri nich.
+import { DeleteButton } from '@/components/pack/DeleteButton';
 
 // ── Companion (Matej 2026-07-23) — vybratý spoločník do „kto bol so mnou": môj pes (zo svorky,
 // reálna cloudinary fotka) alebo iný člen (mock, initial avatar). key = unikát pre dedup/remove. ──
@@ -1634,7 +1636,7 @@ function HostNameLink({ host }: { host: string }) {
   return <>{host}</>;
 }
 
-export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, onBrowseTrips, myId, onShareTrip }: {
+export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, onBrowseTrips, myId, onShareTrip, onDelete }: {
   events: PartnerEvent[];
   trailsById: (id: string) => HeroTrail | undefined;
   onJoin: (id: string) => void;
@@ -1649,6 +1651,9 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
   myId?: string | null;
   /** #55 — prázdna partia potrebuje akciu: pozvať niekoho = zdieľať odkaz na výlet. */
   onShareTrip?: (tripId: string) => void;
+  /** Zrušenie VLASTNEJ pozvánky (2026-08-22). Ruší sa inzerát, nie plán — výlet ostáva
+   *  v triplistе. Chýba = tlačidlo sa nevykreslí. */
+  onDelete?: (id: string) => void;
 }) {
   if (events.length === 0) {
     // ⚠️ Tento zoznam drží LEN MOJE inzeráty — `trip_events` sa ťahá s `.eq('host_id', uid)`
@@ -1676,6 +1681,7 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
           photoFor={photoFor}
           myId={myId}
           onShareTrip={onShareTrip}
+          onDelete={onDelete}
         />
       ))}
     </>
@@ -1685,7 +1691,7 @@ export function EventsView({ events, trailsById, onJoin, onToggleClosed, onOpenT
 // Jeden inzerát. Vydelené z `EventsView`, lebo partia (`get_trip_party`) je hook — a počet
 // „ide N Dogypťanov" musí sedieť s tým, čo rozbalí buddy list. Predtým to bolo `seedGoing`
 // (vymyslený počet ostatných) a po purge už len konštantná 1.
-function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, myId, onShareTrip }: {
+function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, photoFor, myId, onShareTrip, onDelete }: {
   ev: PartnerEvent;
   tr: HeroTrail | undefined;
   onJoin: (id: string) => void;
@@ -1695,6 +1701,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
   photoFor?: (tr: HeroTrail) => string;
   myId?: string | null;
   onShareTrip?: (tripId: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const t = useT();
   const isMine = isMyEvent(ev);
@@ -1704,6 +1711,11 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
   // takže seba pripočítavam podľa `joinedByMe` — presne ako doteraz, len bez mock zvyšku.
   const going = party.joiners.length + (ev.joinedByMe ? 1 : 0);
   const whenLabel = ev.dates.length > 0 ? ev.dates.join(' or ') : (ev.month ? `${ev.month} (flexible)` : 'Flexible');
+  // ⚠️ `ev.host` po hydratácii z DB CHÝBA — `trip_events` meno hostiteľa nedrží (len `host_id`).
+  // Do 22. 8. tu bolo holé `ev.host.charAt(0)` a zhodilo to celú mapu, len čo človek na druhom
+  // zariadení klikol na UDALOSTI. Tento panel navyše vypisuje VÝHRADNE moje inzeráty
+  // (`.eq('host_id', uid)`), takže keď meno chýba, správna náhrada nie je „—", ale „ty".
+  const hostLabel = ev.host?.trim() || t('pack.eventsList.hostYou');
   const photo = tr && photoFor ? photoFor(tr) : '';
   return (
     <div className="comm-plan">
@@ -1723,7 +1735,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
           <div className="comm-plan-name" onClick={() => onOpenTrip(ev.tripId)} style={{ cursor: 'pointer' }}>{tr?.name ?? 'Planned walk'}</div>
           <div className="comm-plan-meta">
             {whenLabel} · hosted by{' '}
-            <HostNameLink host={ev.host} />
+            <HostNameLink host={hostLabel} />
             {tr ? ` · ${tr.region}` : ''}
           </div>
         </div>
@@ -1744,7 +1756,7 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
         <div className="comm-person">
           {/* host bez známeho profil id (žiadny členský adresár) → statický avatar, nie klik do prázdna */}
           <span className="comm-person-av">
-            {ev.host.charAt(0)}
+            {hostLabel.charAt(0)}
           </span>
           {/* „Message host" tu bolo do 2026-08-04 a otváralo mock composer. Tento panel drží
               VÝHRADNE moje inzeráty (`trip_events` sa ťahá s `.eq('host_id', uid)`), takže
@@ -1767,6 +1779,17 @@ function EventCard({ ev, tr, onJoin, onToggleClosed, onOpenTrip, onOpenProfile, 
           >
             {ev.closed ? '🔒 Closed — reopen' : '🔒 Close to others'}
           </button>
+        )}
+        {/* ZRUŠIŤ POZVÁNKU — len autor (2026-08-22). Zámok a mazanie sú dve rôzne veci
+            a musia tak aj vyzerať: zámok povie „už nikoho neberiem", mazanie „táto pozvánka
+            nikdy nebola". Zámok preto ostáva prvý a dostupný skôr — mazanie je pod ním
+            a pýta sa. Výlet v plánoch prežije, čo hovorí aj text otázky. */}
+        {isMine && onDelete && (
+          <DeleteButton
+            label={t('pack.eventsList.deleteListing')}
+            hint={t('pack.eventsList.deleteListingAsk')}
+            onConfirm={() => onDelete(ev.id)}
+          />
         )}
       </div>
     </div>

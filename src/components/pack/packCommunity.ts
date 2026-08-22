@@ -106,8 +106,11 @@ export interface PartnerEvent {
 
 // Som autor tohto inzerátu? `hostIsMe` sa zapisuje pri vytvorení; fallback na tvar
 // mena je kvôli záznamom uloženým v localStorage pred zavedením toho poľa.
+// ⚠️ `ev.host` môže po hydratácii z DB chýbať (tabuľka `trip_events` meno hostiteľa nedrží),
+// takže `?.` nie je opatrnosť navyše — bez neho to padne. Keď meno nie je, `hostIsMe` už
+// hydratácia nastavuje na true, takže sa na fallback ani nedostaneme.
 export const isMyEvent = (ev: PartnerEvent): boolean =>
-  ev.hostIsMe ?? ev.host.endsWith('& your dog');
+  ev.hostIsMe ?? (ev.host?.endsWith('& your dog') ?? false);
 
 // ── Crowd-sourced agregát (design §A: priemer na rating, konsenzus + %-rozpad na diff/ruch) ──
 export interface CrowdSlice<T extends string> { value: T; pct: number; count: number; }

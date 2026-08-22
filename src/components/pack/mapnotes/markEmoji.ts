@@ -13,6 +13,8 @@
 // `ACT_EMOJI` a `TAG_EMOJI` v `PackMap.tsx` ostávajú, kde sú. Sú to filtre
 // a nahadzovanie, nie mapové značky — iný povrch, iná životnosť.
 import type { TrailPoiType } from '@/data/trailPoi.generated';
+import { PACK_THEME as T } from '@/components/pack/packTheme';
+import type { EventKind } from '../events/eventModel';
 import type { NoteGroup, NoteKind } from './mapNotesData';
 
 /**
@@ -122,4 +124,72 @@ export const POI_EMOJI: Record<TrailPoiType, string> = {
  */
 export function threatEmoji(kind: NoteKind): string {
   return MARK_EMOJI[kind] ?? MARK_EMOJI.hazard;
+}
+
+// ── UDALOSTI = EMOJI V KRUHU S MODRÝM LEMOM (Matej 2026-08-22) ──────────────
+// „ružový pin… musíme to nahradiť takisto emoji v krúžku s modrým lemom.
+//  a emoji — terč 🎯 = event cieľ výletu"
+//
+// Zanikli tým DVE kvapky, ktoré na mape stáli vedľa seba bez legendy (tú Matej
+// zrušil 3. 8.): ružová `.trp-planmarker-dot` (cieľ plánovaného výletu) a zlatá
+// `.trp-eventmarker-dot` (podujatie). Obe hovorili to isté — „tu sa niekto s
+// niekým stretne" — dvoma tvarmi, ktoré sa nedali odvodiť.
+//
+// Kruh a MODRÝ lem = skupina „stretnutie", emoji vnútri = podtyp. To je presne
+// to isté delenie ako pri hrozbách, len iná farba lemu ⇒ mapa má jeden jazyk:
+//   červený lem = daj si pozor · zelený lem = toto ťa poteší · modrý = tu sa ide
+//
+// ⚠️ Modrá nie je nová farba. `NotePalette` ju 22. 8. zamietol PRE TIPY práve
+// preto, že „tou istou modrou appka značí «ideš s niekým»" — tu teda konečne
+// stojí tam, kam podľa toho zdôvodnenia patrí.
+/** Lem kruhu udalosti = `T.brandBlueLite`, tá istá modrá ako parkovacia bodka.
+ *  Ťahá sa zo `packTheme`, NIE opísaná ako literál — pravidlo z `PointsPill.tsx`
+ *  znie „nevymýšľaj druhú modrú", a opísaný `#2E5FD0` by presne tou druhou modrou
+ *  ticho stal v deň, keď sa téma zmení. */
+export const EVENT_RIM = T.brandBlueLite;
+
+/** CIEĽ PLÁNOVANÉHO VÝLETU — Matejov výber. Bývalá ružová kvapka. */
+export const TRIP_TARGET_EMOJI = '🎯';
+
+/**
+ * PODUJATIE — emoji podľa TYPU (Matej 2026-08-22: „každý typ vlastné").
+ *
+ * ⚠️ Všetkých 12 emoji v tomto súbore-bloku je **Emoji 1.0** (2015), teda
+ * bezpečné aj na starých telefónoch. Je to to isté kritérium, kvôli ktorému
+ * 22. 8. padol rebrík 🪜 (Emoji 13.0, 2020) v prospech reťaze ⛓️ — značka,
+ * ktorú vidno len na novom prístroji, nie je značka.
+ *
+ * Prečo tieto:
+ * · 🏁 preteky — cieľová vlajka, nie 🏃 (ten by čítal ako „tu sa behá")
+ * · 🏆 výstava — jediná disciplína v sade, kde sa naozaj súťaží o umiestnenie
+ * · 🎾 tréning — loptička je nástroj výcviku; 🐕‍🦺 je ZWJ sekvencia a na starších
+ *      systémoch sa rozpadne na psa + oranžovú vestu vedľa seba
+ * · 🛠️ workshop — ruky, nie prednáška
+ * · 🎓 prednáška — sedí sa a počúva
+ * · 🐕 spoločná prechádzka — celý pes; 🐶 (hlava) je v tejto sade obsadené
+ *      komentárom svorky, ale ten stojí v ZELENOM kruhu, takže sa nepomýlia
+ * · 🤝 zraz — stretnutie bez programu, presne to podanie ruky
+ * · ❤️ charita — nie 🎗️ (stužka je v Európe čítaná ako konkrétna choroba)
+ * · 🏠 adopčný deň — hľadá sa DOMOV, to je celý zmysel toho dňa
+ * · 🏕️ tábor — viacdňové; ⛺ je obsadené aktivitou „overnight" v chipoch mapy
+ * · 🎪 veľtrh — veľká hala plná stánkov
+ */
+export const EVENT_EMOJI: Record<EventKind, string> = {
+  race: '🏁',
+  show: '🏆',
+  training: '🎾',
+  workshop: '🛠️',
+  lecture: '🎓',
+  social_walk: '🐕',
+  meetup: '🤝',
+  charity: '❤️',
+  adoption: '🏠',
+  camp: '🏕️',
+  expo: '🎪',
+};
+
+/** Emoji podujatia s poistkou — neznámy typ (starý uložený záznam) dostane 🎪,
+ *  nikdy prázdny kruh. Rovnaký vzor ako `threatEmoji()` vyššie. */
+export function eventEmoji(kind: EventKind): string {
+  return EVENT_EMOJI[kind] ?? EVENT_EMOJI.expo;
 }

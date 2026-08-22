@@ -70,6 +70,21 @@ export function upsertMyTrip(tripId: string, patch: Partial<TriplistTrip>): Trip
   return next;
 }
 
+/**
+ * Zmazanie položky z triplistu (2026-08-22).
+ *
+ * ⚠️ Volaj to VÝHRADNE spolu so zmazaním plánu (`plan-` trail + TripPlan). Samotné
+ * odstránenie riadku tu je totiž DOČASNÉ: `seedTriplistFromPlans()` ho pri ďalšom
+ * mounte hubu z prežívajúceho plánu poslušne založí naspäť, a vyzeralo by to ako
+ * „zmazanie sa neuložilo".
+ */
+export function removeMyTrip(tripId: string): void {
+  const all = readTriplist();
+  if (!(tripId in all)) return;
+  delete all[tripId];
+  writeTriplist(all);
+}
+
 // Migrácia z existujúcich wishlist plánov (packCommunity.ts TripPlan) → triplist entries.
 // Idempotentné — NIKDY neprepíše existujúcu triplist entry, volá sa raz pri mounte hubu.
 export function seedTriplistFromPlans(plans: TripPlan[]): void {

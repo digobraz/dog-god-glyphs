@@ -27,6 +27,9 @@ import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNot
 import { isDatasetNote } from './mapNotesGeo';
 import { clusterByPixels, clusterPx, clusterRadiusForZoom } from './clusterPoints';
 import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
+// Kruh (rozmery + staviteľ + CSS) je od 22. 8. spoločný s udalosťami v PackMap.tsx —
+// dôvod, prečo sa vysťahoval z tohto súboru, je v hlavičke `circleMark.ts`.
+import { circleMarkHtml, CIRCLE_MARK_CSS } from './circleMark';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 
 // Pod týmto priblížením sa vrstva NEKRESLÍ. Zápis je bod na konkrétnom mieste;
@@ -109,7 +112,7 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
     // ako pri zaniknutej dvojici ⚠️ + hrozba.
     // Lem sa píše inline, lebo pri kliešti závisí od TOHO ZÁPISU (oranžový výskyt
     // vs. červená potvrdená choroba), nie od druhu. CSS by vedelo len druh.
-    return `<div class="mn-mark mn-mark--threat${extra}" style="border-color:${noteTint(kind, disease)}"><i>${threatEmoji(kind)}</i></div>`;
+    return circleMarkHtml(threatEmoji(kind), noteTint(kind, disease), extra);
   }
   // TIP má ten istý kruh ako hrozba, len ZELENÝ lem (Matej 2026-08-22, oprava modrej
   // z toho istého dňa: „tip je ešte lepšie ako rada = bude to niečo v pozitívnom duchu,
@@ -119,7 +122,7 @@ export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, diseas
   // 🅿️ ostáva jediná HOLÁ značka — modrý štvorec nesie natívne a druhá podložka
   // okolo neho by bola podložka v podložke.
   if (groupOf(kind) === 'comment') {
-    return `<div class="mn-mark mn-mark--tip${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
+    return circleMarkHtml(MARK_EMOJI[kind] ?? '', GROUP_TINT.comment, extra);
   }
   return `<div class="mn-mark mn-mark--emoji${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
 }
@@ -448,15 +451,14 @@ export const MAP_NOTES_CSS = `
    prečítať, čo je vnútri.
 
    Kruh je súmerný ⇒ stred sedí na súradnici bez dopočtu posunu. Práve preto
-   zanikla trieda mn-mark--pair aj rovnica 23+1+16 pod ňou. */
-.mn-mark--threat{width:28px;height:28px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${HAZARD_RED};box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
-/* Emoji je menšie než pri holej značke — kruh mu zobral lem aj vnútorný okraj. */
-.mn-mark--threat i{font-size:16px;}
-/* TIP — ten istý kruh, zelený lem. Rozmery sa NEROZCHÁDZAJÚ zámerne: dve veľkosti
-   kruhu by na mape čítali ako dve dôležitosti, a tip nie je menej dôležitý než
-   výstraha, len je iný. */
-.mn-mark--tip{width:28px;height:28px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${GROUP_TINT.comment};box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
-.mn-mark--tip i{font-size:16px;}
+   zanikla trieda mn-mark--pair aj rovnica 23+1+16 pod ňou.
+
+   TIP nesie ten istý kruh so zeleným lemom a UDALOSŤ s modrým (PackMap.tsx).
+   Rozmery sa NEROZCHÁDZAJÚ zámerne: dve veľkosti kruhu by na mape čítali ako dve
+   dôležitosti, a tip nie je menej dôležitý než výstraha, len je iný. Preto ho
+   všetci traja berú z jedného zdroja: mapnotes/circleMark.ts (spätný apostrof sa
+   sem PISAT NESMIE, je to JS literal). */
+${CIRCLE_MARK_CSS}
 /* Zošednutý zápis NEMIZNE — Matej: „poznámka neumiera". Len prestáva byť to prvé,
    čo oko na mape chytí. */
 .mn-mark--stale{opacity:.42;filter:grayscale(1);}

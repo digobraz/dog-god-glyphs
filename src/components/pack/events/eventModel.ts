@@ -18,6 +18,28 @@ export type EventOrigin = 'own' | 'tip';
 
 export const EVENT_KINDS: EventKind[] = ['race', 'show', 'training', 'workshop', 'lecture', 'social_walk', 'meetup', 'charity', 'adoption', 'camp', 'expo'];
 
+// ── i18n KĽÚČE TYPOV — JEDEN ZDROJ (oprava 2026-08-22) ─────────────────────────────────────
+// Túto tabuľku mali OPÍSANÚ dva súbory (AddEvent.tsx, EventCard.tsx) a obe kópie zamrzli na
+// SIEDMICH typoch z 6. 8. ráno. Keď v ten istý deň pribudli `workshop`, `meetup`, `adoption`
+// a `camp`, preklady sa do `sk.ts`/`en.ts` doplnili — ale nikto sa na ne nepýtal:
+//   · vo FORMULÁRI dostal `t(undefined)` → štyri PRÁZDNE pilulky, ktoré sa dali stlačiť
+//   · na KARTE padol fallback na `t(draft.kind)` → holé anglické „workshop" aj v slovenčine
+// Typ `Record<EventKind, string>` je tu tá poistka, ktorá to už nedovolí: ďalší typ v
+// `EventKind` neprejde prekladačom, kým nedostane kľúč.
+export const EVENT_KIND_LABEL_KEYS: Record<EventKind, string> = {
+  race: 'pack.addEvent.kind.race',
+  show: 'pack.addEvent.kind.show',
+  training: 'pack.addEvent.kind.training',
+  workshop: 'pack.addEvent.kind.workshop',
+  lecture: 'pack.addEvent.kind.lecture',
+  social_walk: 'pack.addEvent.kind.social_walk',
+  meetup: 'pack.addEvent.kind.meetup',
+  charity: 'pack.addEvent.kind.charity',
+  adoption: 'pack.addEvent.kind.adoption',
+  camp: 'pack.addEvent.kind.camp',
+  expo: 'pack.addEvent.kind.expo',
+};
+
 // Jeden ročník (event_editions riadok) + denormalizovaný `title`/`kind`/`country` zo série —
 // vo vlne 1 nemá zmysel držať dve tabuľky v localStorage, kým DB neexistuje (§9 krok 2→3).
 export type AddEventDraft = {
