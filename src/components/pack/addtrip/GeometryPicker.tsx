@@ -26,6 +26,7 @@ import { SPACING, calibratedAscent, hav, interp, totalDistanceM } from './addTri
 import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } from '@/components/pack/tripShared';
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
+import { HandPencil } from '@/components/pack/HandIcons';
 import {
   ensureElevations,
   elevAt,
@@ -596,18 +597,28 @@ export function GeometryPicker({
           <div style={{ pointerEvents: 'auto' }}>
             <PlaceSearch mapRef={mapRef} />
           </div>
+          {/* ⚠️ PILULKA MUSÍ BYŤ VIDNO NA SVETLEJ MAPE (Matej 23. 8.: „tá fialová pilulka je
+              takmer neviditeľná — treba ju zvýrazniť, dať tam ikonku (i) alebo nejakú radu
+              z brandu"). Priesvitná fialová na papierovej turistickej mape zmizne — preto
+              PLNÝ tmavý podklad (ten istý, aký nesie lišta dole), fialový rám s dosvitom
+              zo svetelného meča a ceruzka z hand-drawn setu. `HandIcons` je práve ten kanál,
+              ktorý dedí farbu textu (CLAUDE.md) — ikonka teda drží krok s pilulkou sama. */}
           {drawHint && (
             <div
               style={{
                 justifySelf: 'center', pointerEvents: 'none',
-                padding: '8px 14px', borderRadius: 999,
-                background: 'rgba(122,47,191,0.22)',
-                border: '1px solid rgba(179,107,255,0.55)',
-                fontFamily: FONT_UI, fontSize: 12.5, fontWeight: 500,
-                color: '#E9D8FF', textAlign: 'center',
+                display: 'flex', alignItems: 'center', gap: 9,
+                padding: '10px 16px 10px 13px', borderRadius: 999,
+                background: 'rgba(18,13,7,0.94)',
+                backdropFilter: 'blur(10px)',
+                border: `1.5px solid ${TRAIL_LINE.light}`,
+                boxShadow: '0 0 0 4px rgba(122,47,191,0.20), 0 6px 20px rgba(0,0,0,0.55)',
+                fontFamily: FONT_UI, fontSize: 13.5, fontWeight: 600,
+                color: '#F3E9FF', textAlign: 'left', maxWidth: 'min(92vw, 460px)',
               }}
             >
-              {drawHint}
+              <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
+              <span>{drawHint}</span>
             </div>
           )}
         </div>
