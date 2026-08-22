@@ -181,7 +181,9 @@ export function NatureShareCard({
           <span>{elementLabel}</span>
         </div>
 
-        {/* zvláštna úloha — VŽDY s prefixom, nikdy ako holý názov */}
+        {/* Zvláštna úloha — HOLÝ NÁZOV (Matej 22.8.: „nebudeme písať special role ale
+            pomenujeme ju priamo"). Od toho istého dňa je najviac JEDNA (`SPECIAL_CAP`),
+            takže množné číslo aj spojka „·" zanikli spolu s prefixom. */}
         {specialLabels.length > 0 && (
           <div
             style={{
@@ -189,7 +191,7 @@ export function NatureShareCard({
               letterSpacing: '0.22em', textTransform: 'uppercase', color: GOLD, textAlign: 'center',
             }}
           >
-            {specialLabels.length === 1 ? 'Special role' : 'Special roles'} · {specialLabels.join(' · ')}
+            {specialLabels.join(' · ')}
           </div>
         )}
 

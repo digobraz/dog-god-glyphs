@@ -28,7 +28,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PACK_THEME, PACK_BOX, PILL_CSS, PF_FIELD_CSS, FONT_TITLE, FONT_UI } from './packTheme';
 import { PASS_GROUPS, STEP_BY_FIELD, PROGRESS_STEPS, type QuizStep } from './dogQuiz';
-import { natureArt } from './natureQuiz';
+import { natureArt, storedSpecials } from './natureQuiz';
 import { readLatest, onDogEventsChange, hasValue, readSeries, appendDogEvents, type LatestValue } from '@/lib/dogEvents';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -200,7 +200,7 @@ export function DogPassport({
     return PASS_GROUPS.map((g) => {
       // Bez filtra podľa pohľadu — majiteľ vidí komplet. Filtruje sa až pri zdieľaní.
       const rows = g.fields
-        .map((f) => ({ step: STEP_BY_FIELD[f], value: latest[f] }))
+        .map((f) => ({ step: STEP_BY_FIELD[f], value: capSpecials(f, latest[f], latest) }))
         .filter((r) => !!r.step);
       return { group: g, rows };
     }).filter((g) => g.rows.length > 0);
@@ -408,6 +408,26 @@ function ShareRow({
       )}
     </div>
   );
+}
+
+/**
+ * Zvláštna úloha na doklade — orezaná na dnešný strop (najviac JEDNA, lock 22. 8. 2026).
+ * V `dog_events` psom z predošlých behov ležia zapísané aj štyri naraz; tabuľka je
+ * append-only, takže sa história neprepisuje a oreže sa až čítanie.
+ *
+ * ⚠️ ROZPAD BODOV SA MUSÍ PODAŤ. Bez neho padne výber na poradie v `SPECIAL_KEYS` a doklad
+ * ukáže INÚ úlohu než psí blok na `/pack/dogs` a než výsledok kvízu — presne to sa stalo
+ * pri prvom pokuse 22. 8. (doklad „The Peacemaker", blok „The Nurturer", ten istý pes).
+ * Jeden zdroj čísel = jedna odpoveď na všetkých troch povrchoch.
+ */
+function capSpecials(
+  field: string,
+  value: LatestValue | undefined,
+  latest: Record<string, LatestValue>,
+): LatestValue | undefined {
+  if (field !== 'nature.specials' || !value || !Array.isArray(value.value)) return value;
+  const spec = (latest['nature.scores']?.value as { spec?: Record<string, number> } | undefined)?.spec;
+  return { ...value, value: storedSpecials(value.value, spec) };
 }
 
 /**

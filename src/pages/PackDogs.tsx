@@ -52,6 +52,7 @@ import ainubisBadge from '@/assets/ainubis-badge.png';
 import {
   QUIZ_SECTIONS, PROGRESS_STEPS, STEP_BY_FIELD, type QuizSection,
 } from '@/components/pack/dogQuiz';
+import { storedSpecials } from '@/components/pack/natureQuiz';
 import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from '@/lib/dogEvents';
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
@@ -573,18 +574,7 @@ export default function PackDogs() {
         ))}
       </div>
 
-      {/* ── 2 · KVÍZ (hero) — VŽDY, nezmizne po absolvovaní ──────────────────
-             Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
-             (Matej: „zmizol blok kde bol obrázok"). Hotový kvíz nie je odbavená
-             položka — je to jediná cesta k výsledku, takže blok ostáva na mieste
-             a mení sa len to, čo ponúka: vyplniť → pozrieť výsledok / spraviť znova. */}
-      {natureSection && latestLoaded && (
-        <div style={{ marginTop: 20 }}>
-          <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
-        </div>
-      )}
-
-      {/* ── 3 · PROFIL PSA — 6 dlaždíc ─────────────────────────────────────── */}
+      {/* ── 2 · PROFIL PSA — 6 dlaždíc ─────────────────────────────────────── */}
       <div style={{ marginTop: 20 }}>
         {/* „Čo chceš spraviť" padlo (Matej 6.8.: hlúpy nadpis) — sekcia sa menuje
             podľa toho, ČO to je, nie podľa otázky. */}
@@ -612,7 +602,7 @@ export default function PackDogs() {
         </div>
       </div>
 
-      {/* ── 4 · GALÉRIA + DENNÍK — vlastný TMAVÝ riadok mimo papyrusovej mriežky.
+      {/* ── 3 · GALÉRIA + DENNÍK — vlastný TMAVÝ riadok mimo papyrusovej mriežky.
              Nie sú to polia pasu a nemajú progres, ktorý sa dá „dokončiť" —
              béžová pilulka im klamala stav (Matej 6.8.). ── */}
       <div className="hub-media" style={{ marginTop: 20 }}>
@@ -620,6 +610,20 @@ export default function PackDogs() {
           <MediaTile key={s.key} section={s} tx={tx} />
         ))}
       </div>
+
+      {/* ── 4 · KVÍZ (hero) — VŽDY, nezmizne po absolvovaní ──────────────────
+             Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
+             (Matej: „zmizol blok kde bol obrázok"). Hotový kvíz nie je odbavená
+             položka — je to jediná cesta k výsledku, takže blok ostáva na mieste
+             a mení sa len to, čo ponúka: vyplniť → pozrieť výsledok / spraviť znova.
+             ⚠️ POZÍCIA: 22. 8. sa presunul spod psích blokov sem, TESNE NAD AINUBISA
+             (Matej: „celý blok presun dolu nad blok ainubisa"). Zhora už stránku
+             neotvára — prvé je psy, potom DOG ID, a kvíz stojí až pri výstupoch. */}
+      {natureSection && latestLoaded && (
+        <div style={{ marginTop: 20 }}>
+          <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
+        </div>
+      )}
 
       {/* ── 5 · AINUBIS — VÝSTUP, nie vstup ────────────────────────────────── */}
       <div style={{ marginTop: 12 }}>
@@ -885,8 +889,13 @@ function DogBlock({
 
   const roleKey = latest?.['nature.role']?.value;
   const elementKey = latest?.['nature.element']?.value;
-  const specialsVal = latest?.['nature.specials']?.value;
-  const specials = Array.isArray(specialsVal) ? (specialsVal as string[]) : [];
+  // ⚠️ Cez `storedSpecials`, NIE priamo z DB. Blok si pole číta sám (nejde cez
+  // `natureResultFromStored`), takže bez tohto kroku ukazuje aj štyri zvláštne úlohy
+  // psom, ktorí kvíz prešli pred stropom z 22. 8. — presne to tu 22. 8. bolo vidieť.
+  const specials = storedSpecials(
+    latest?.['nature.specials']?.value,
+    (latest?.['nature.scores']?.value as { spec?: Record<string, number> } | undefined)?.spec,
+  );
 
   // Osobnosť (tagy povahy z `temperament.tags`) sa v psom bloku UŽ NEUKAZUJE —
   // Matej 8.8.: „vymaž posledné dva pils (plachy, pokojny)". Dáta ostávajú v
@@ -899,9 +908,10 @@ function DogBlock({
   };
   const roleLabel = label('nature.role', roleKey);
   const elementLabel = label('nature.element', elementKey);
-  // ⚠️ LOCK: zvláštna úloha sa NIKDY nevykresľuje ako holý chip — vždy s prefixom.
-  // Bez neho sa „The Loner" zrazí s tagom povahy `loner` („Samotár“) na tej istej karte.
-  const specialPrefix = tx('pack.nature.result.specialPrefix', 'Special role');
+  // PREFIX „Special role:" PADOL (Matej 22.8.: „nebudeme písať special role ale pomenujeme
+  // ju priamo"). Pôvodný lock ho žiadal proti zrážke s tagom povahy `loner` („Samotár“) —
+  // tá tu už nehrozí z dvoch strán naraz: tagy povahy sa v psom bloku nevykresľujú od
+  // 8. 8. a `valueLabels` v `dogQuiz.ts` prekladá kľúč na „The Loner", nie na „Samotár".
 
   const days = life.days === null
     ? null
@@ -922,7 +932,7 @@ function DogBlock({
     elementLabel ? <Pill key="el">{elementLabel}</Pill> : null,
     ...specials.map((k) => {
       const l = label('nature.specials', k);
-      return l ? <Pill key={k} dashed>{`${specialPrefix}: ${l}`}</Pill> : null;
+      return l ? <Pill key={k} dashed>{l}</Pill> : null;
     }),
   ].filter(Boolean);
 
@@ -1125,11 +1135,14 @@ function NatureHero({
             textShadow: '0 2px 12px rgba(0,0,0,0.8)',
           }}
         >
+          {/* ⚠️ Pri HOTOVEJ svorke je eyebrow PRÁZDNY. „Your pack is" bola návestie
+              k radu chipov s menami — a ten 22. 8. padol, takže by veta visela nad
+              ničím. Pri sólo psovi ostáva, lebo odpoveď za ňu dopovie nadpis. */}
           {!allDone
             ? tx('pack.hub.nature.reveal', "You'll find out")
             : solo
               ? tx('pack.hub.nature.isNow', 'Your dog is')
-              : tx('pack.hub.nature.packIs', 'Your pack is')}
+              : ''}
         </p>
 
         <h3
@@ -1138,7 +1151,9 @@ function NatureHero({
             fontFamily: FONT_TITLE, fontWeight: 700, lineHeight: 1.08,
             letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF6E2',
             // Bez radu chipov pod nadpisom si medzeru k tlačidlám musí urobiť nadpis sám.
-            margin: soloAnswer ? '0 0 18px' : 0,
+            // Rad je preč pri sólo odpovedi v nadpise AJ pri hotovej svorke (od 22.8.) —
+            // podmienka teda musí byť tá istá ako pri chipoch, inak nadpis dosadne na CTA.
+            margin: (soloAnswer || allDone) ? '0 0 18px' : 0,
             textShadow: '0 4px 26px rgba(0,0,0,0.9)',
           }}
         >
@@ -1151,46 +1166,16 @@ function NatureHero({
 
         {/* ⚠️ Dlhý popis sekcie (`section.subEN`) sa tu ZÁMERNE nezobrazuje — opakoval
             „18 otázok", ktoré stoja pri tlačidle (Matej 6.8.: „neopakuj sa").
-            Po absolvovaní tie isté chipy nesú ODPOVEĎ — otáznik „úloha vo svorke"
-            vystrieda „HEKTOR — Kapitán / Oheň". Zamknutý sľub tam už nemá čo robiť.
-            Pri sólo psovi s odpoveďou v nadpise sa rad vynecháva celý — inak by tá
-            istá dvojica stála na karte dvakrát pod sebou. */}
-        {!soloAnswer && (
-        <div className="hub-axes">
-          {withResult.length > 0
-            ? withResult.map((d) => {
-              const role = label('nature.role', latest[d.id]?.['nature.role']?.value);
-              const el = label('nature.element', latest[d.id]?.['nature.element']?.value);
-              return (
-                <span className="hub-chip" key={d.id}>
-                  <b
-                    style={{
-                      fontFamily: NAME_FONT, fontWeight: 700, fontSize: 11.5, lineHeight: 1.2,
-                      letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF3DA',
-                    }}
-                  >
-                    {(d.dog_name || '').toUpperCase()}
-                  </b>
-                  {role && el && (
-                    <span
-                      style={{
-                        fontFamily: FONT_UI, fontSize: 11, lineHeight: 1.2,
-                        color: 'rgba(255,243,218,0.78)',
-                      }}
-                    >
-                      {role} / {el}
-                    </span>
-                  )}
-                </span>
-              );
-            })
-            : (
-              <>
-                <RevealChip label={tx('pack.hub.nature.revealA', 'Role in the pack')} />
-                <RevealChip label={tx('pack.hub.nature.revealB', 'Element by TCM')} />
-              </>
-            )}
-        </div>
+            🔴 RAD CHIPOV S MENAMI A VÝSLEDKOM PADOL 22. 8. (Matej: „nebudú tam tie pils
+            s menami a výsledkom"). Dovtedy sa po absolvovaní menil na „HEKTOR — Hlásateľ
+            / Zem" — teda presne tú istú dvojicu, akú nesú pilulky v psom bloku hore na
+            stránke, len druhým písmom. Tu ostáva LEN SĽUB, a ten platí, kým je čo
+            odhaľovať: hneď ako majú kvíz všetky psy, rad zmizne úplne. */}
+        {!soloAnswer && !allDone && (
+          <div className="hub-axes">
+            <RevealChip label={tx('pack.hub.nature.revealA', 'Role in the pack')} />
+            <RevealChip label={tx('pack.hub.nature.revealB', 'Element by TCM')} />
+          </div>
         )}
 
         {/* Pri viacerých psoch sa NEVYBERÁ pes — kvíz sa vypĺňa za všetkých naraz.

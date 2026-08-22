@@ -935,6 +935,42 @@ const DUAL_RATIO = 0.8;
 /** Zvláštna úloha z jadra kvízu (bez dedikovanej otázky) potrebuje aspoň toľko bodov. */
 const SPECIAL_THRESHOLD = 3;
 
+/**
+ * STROP ZVLÁŠTNYCH ÚLOH — LOCKED 2026-08-22 (Matej: „najviac 1, tá najsilnejšia").
+ * Predtým stropu nebolo a psovi ich vyšlo aj všetkých päť naraz; v DEV dátach mal
+ * Hekthor 20. 8. `hunter:3 nurturer:3 peacemaker:3` — teda TRI naraz a všetky presne
+ * na prahu. Výsledok potom nečítal ako posudok, ale ako zoznam vlastností.
+ */
+const SPECIAL_CAP = 1;
+
+/**
+ * Vyberie zvláštnu úlohu podľa locku z 22. 8. 2026. Dve pravidlá, v tomto poradí:
+ *
+ *  1. **„Nie" je VETO.** Dovtedy znela podmienka `áno ALEBO body ≥ prah`, takže jediná
+ *     odpoveď v jadre prebila priame „môj pes neloví" (hunter Q3.e dáva rovno +3).
+ *     Priama odpoveď je nadradená vrstva — „áno" zapína, „nie" vypína, body rozhodujú
+ *     len tam, kde sa človeka nikto nepýtal.
+ *  2. **Potvrdené bije odvodené.** Keď je aspoň jedno „áno", vyberá sa LEN spomedzi nich;
+ *     bez „áno" rozhodujú body z jadra. Inak by úlohu potvrdenú majiteľom prevalcovala
+ *     iná, ktorá si len nazbierala viac nepriamych signálov.
+ *
+ * Zhoda bodov sa láme poradím v `SPECIAL_KEYS` — je to arbitrárne, ale deterministické.
+ */
+function pickSpecials(
+  spec: Record<SpecialKey, number>,
+  specialAnswers: Partial<Record<SpecialKey, SpecialAnswer>>,
+): SpecialKey[] {
+  const allowed = SPECIAL_KEYS.filter((k) => specialAnswers[k] !== 'no');
+  const confirmed = allowed.filter((k) => specialAnswers[k] === 'yes');
+  const pool = confirmed.length > 0
+    ? confirmed
+    : allowed.filter((k) => spec[k] >= SPECIAL_THRESHOLD);
+
+  return [...pool]
+    .sort((a, b) => spec[b] - spec[a] || SPECIAL_KEYS.indexOf(a) - SPECIAL_KEYS.indexOf(b))
+    .slice(0, SPECIAL_CAP);
+}
+
 export function scoreNature(
   answers: Record<string, string>,
   specialAnswers: Partial<Record<SpecialKey, SpecialAnswer>> = {},
@@ -967,11 +1003,8 @@ export function scoreNature(
   const dual = <K extends string>(order: K[], s: Record<K, number>) =>
     s[order[0]] > 0 && s[order[1]] >= s[order[0]] * DUAL_RATIO ? order[1] : null;
 
-  // Zvláštna úloha padne, ak ju potvrdila dedikovaná otázka („áno“) alebo ak sa
-  // nasbieralo dosť signálov z jadra. „Niekedy“ samo o sebe nestačí.
-  const specials = SPECIAL_KEYS.filter(
-    (k) => specialAnswers[k] === 'yes' || spec[k] >= SPECIAL_THRESHOLD,
-  );
+  // Zvláštna úloha: najviac JEDNA, „nie“ ju vypína natvrdo. Viď `pickSpecials`.
+  const specials = pickSpecials(spec, specialAnswers);
 
   return {
     element: elOrder[0],
@@ -981,6 +1014,36 @@ export function scoreNature(
     specials,
     scores: { el, role, spec },
   };
+}
+
+/**
+ * ZAPÍSANÉ zvláštne úlohy orezané na dnešný strop — JEDINÁ cesta, ako sa `nature.specials`
+ * z `dog_events` smie dostať na obrazovku.
+ *
+ * ⚠️ Prečo samostatná funkcia a nie riadok vo `natureResultFromStored`: strop v `scoreNature`
+ * platí len pre NOVÉ behy. Povrchy, ktoré si pole čítajú z DB priamo — psí blok na
+ * `/pack/dogs`, DOG ID (`DogPassport`), share karta — okolo výpočtu chodia a 22. 8. ukazovali
+ * všetky štyri úlohy aj po zavedení stropu. Psi, ktorí kvíz prešli skôr, majú v DB zapísané
+ * tri-štyri úlohy natrvalo; prepisovať históriu v `dog_events` sa nesmie (tabuľka je append-only),
+ * takže sa oreže až čítanie.
+ *
+ * Poradie určuje rozpad bodov (`nature.scores`). Keď chýba — psi spred 20. 8. ho nemajú a
+ * dopočítať sa nedá — rozhodne poradie v `SPECIAL_KEYS`. Je to arbitrárne, ale deterministické:
+ * ten istý pes ukáže vždy tú istú úlohu.
+ */
+export function storedSpecials(
+  stored: unknown,
+  scores?: Partial<Record<SpecialKey, number>> | null,
+): SpecialKey[] {
+  if (!Array.isArray(stored)) return [];
+  const pts = (k: SpecialKey) => {
+    const n = scores?.[k];
+    return typeof n === 'number' && Number.isFinite(n) ? n : 0;
+  };
+  return SPECIAL_KEYS
+    .filter((k) => (stored as unknown[]).includes(k))
+    .sort((a, b) => pts(b) - pts(a) || SPECIAL_KEYS.indexOf(a) - SPECIAL_KEYS.indexOf(b))
+    .slice(0, SPECIAL_CAP);
 }
 
 /**
@@ -1018,9 +1081,7 @@ export function natureResultFromStored(v: {
     return r && s[top] > 0 && s[r] >= s[top] * DUAL_RATIO ? r : null;
   };
 
-  const specials = Array.isArray(v.specials)
-    ? SPECIAL_KEYS.filter((k) => (v.specials as unknown[]).includes(k))
-    : [];
+  const specials = storedSpecials(v.specials, spec);
 
   return {
     element,
