@@ -969,6 +969,39 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-addtrip-short{display:none;}
 /* Modálny filter sheet skrýva plávajúci AINUBIS launcher — viď komentár pri useEffect vyššie. */
 body.trp-sheet-open .ainubis-launcher{display:none;}
+
+/* ══ ZÁMOK OBRAZOVKY POČAS PRIDÁVANIA (Matej 2026-08-22, LOCK §2.2b) ══════════════════════
+   „ihneď po prvom dlhom stlačení sa musí obrazovka locknúť do stavu vpisovania výletov = bez
+   ruchu navigácie menu či hlavičky = bude vidno len panel nástrojov na pridanie konkretnej veci"
+
+   JEDNA TRIEDA, JEDNO MIESTO. Vešia ju effect pri premennej drawLock (hľadaj trp-draw-lock v tomto
+   súbore), tu je celý jej účinok — nie osem podmienok rozsypaných po komponentoch. Vzor je
+   ten istý, akým už filter sheet skrýva AINUBIS (riadok vyššie).
+
+   Zmizne CHROME (prehliadanie): spodná navigácia /pack, mobilná hlavička s hľadaním a filtrami,
+   dvojica ZOZNAM+PRIDAŤ, zoznam kariet, desktopový panel v stave prehliadania (vrátane
+   prepínača kategórií Trips/Events) a plávajúci AINUBIS.
+   Ostane NÁSTROJ: mapa, panel práve pridávanej veci a jeho vlastný únik (× / Zrušiť).
+
+   ⚠️ Desktopový .trp-sidebar je v stave ADD sám tým panelom nástrojov — preto sa hľadá cez
+   :not(.is-tool). Bez toho by zámok schoval formulár, ktorý má chrániť.
+
+   ⚠️ Mapa sa v zámku vracia aj z LIST pohľadu (posledné dva riadky). Bez toho platí
+   .trp-root.mlist-active .trp-mapregion{display:none} a človek, ktorý dal PRIDAŤ zo zoznamu,
+   po ťuku na „ukáž mapu" pozerá na nepriehľadný zoznam (z-index 60) namiesto mapy — kresliť
+   sa nedá. ⚠️ Selektor musí niesť aj .trp-root.mlist-active — pôvodné pravidlo má špecificitu
+   0-3-0 (dve triedy na jednom prvku) a kratší zápis "body.trp-draw-lock .trp-mapregion" (0-2-1)
+   ho NEPREBIJE. Overené v prehliadači: mapa ostávala display:none. */
+body.trp-draw-lock .ainubis-launcher{display:none;}
+body.trp-draw-lock .trp-root > nav.fixed{display:none;}
+body.trp-draw-lock .trp-mheader{display:none;}
+/* Desktopová dvojička .trp-mheader — tá istá hlavička s hľadaním, filtrami a druhým CTA
+   PRIDAŤ. Bez tohto riadku zámok na PC ničí len navigáciu a hlavičku nechá stáť. */
+body.trp-draw-lock .trp-topbar{display:none;}
+body.trp-draw-lock .trp-mactions{display:none;}
+body.trp-draw-lock .trp-sidebar:not(.is-tool){display:none;}
+body.trp-draw-lock .trp-root .trp-mlist{display:none;}
+body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 /* Matej 2026-07-24: "+" brand ikonka pred textom — plus.svg je natívne čierne (fill hardcoded,
    nie currentColor), čo na zlatom gradiente číta ako tmavá/INK farba presne ako treba — žiadny
    invert filter (to by ju zmenilo na bielu). */
@@ -1384,7 +1417,13 @@ ${TRAIL_LINE_CSS}
   .trp-locatebtn{width:34px;height:34px;}
   .trp-locatebtn img{width:16px;height:16px;}
 
-  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 106px);}
+  /* 2026-08-22: text mal white-space:nowrap a kontajner sa nezalamoval, takže na 430 px
+     vytlačil tlačidlo HOTOVO za pravý okraj bubliny AJ za okraj obrazovky (merané: bublina
+     končila na 410 px, tlačidlo bežalo 391→436). Do zámku obrazovky je táto bublina jediný
+     viditeľný únik z režimu kreslenia — únik za okrajom je pasca. Zalomenie namiesto nowrap.
+     (Bublina ako celok zaniká v reze B, kde ju nahradí spodná lišta s HOTOVO.) */
+  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 106px);flex-wrap:wrap;justify-content:center;}
+  .trp-drawhint .trp-drawhint-txt{white-space:normal;}
 
   /* bod 1 (iterácia 13, prestavané i15): mobilný header = 2 riadky — (1) status (avatar +
      renderStatusRight() pilulky, ako desktop .trp-status-row) + (2) search+dropdowny+filter
@@ -1994,6 +2033,22 @@ export default function PackMap() {
 
   const addBusy = addEntryOpen || addFlow !== null || addEventFlow !== null;
   const noteBusy = !!noteDraft || !!noteSpot || addBusy;
+
+  // ── ZÁMOK OBRAZOVKY (Matej 2026-08-22, LOCK §2.2b zadania-mapa-composer) ──
+  // „ihneď po PRVOM dlhom stlačení sa musí obrazovka locknúť do stavu vpisovania výletov."
+  // Preto tu nie je len addBusy: zámok zapína už `noteSpot` (paleta pri prste hneď po
+  // podržaní) a `notePlacing` (typ vybraný, čaká sa na klik do mapy) — teda naozaj prvý krok
+  // pridávania čohokoľvek, nie až otvorený formulár.
+  // Celý účinok je v CSS pri `body.trp-draw-lock` (jedna trieda, jedno miesto). Únik nesie
+  // každý panel sám (× / Zrušiť) — režim bez východu je pasca, nie sústredenie.
+  const drawLock = noteBusy || notePlacing !== null;
+  useEffect(() => {
+    if (!drawLock) return;
+    document.body.classList.add('trp-draw-lock');
+    // Upratané aj pri odchode zo stránky uprostred pridávania — trieda žije na <body>, teda
+    // mimo tohto stromu, a bez cleanupu by ostala visieť na celom /packu.
+    return () => document.body.classList.remove('trp-draw-lock');
+  }, [drawLock]);
 
   // RÝCHLA CESTA — podržanie dá miesto, paleta sa spýta na typ. Beží len keď
   // NEPREBIEHA pomalá cesta: v režime „ukáž miesto" by dlhé podržanie a klik
@@ -3027,7 +3082,10 @@ export default function PackMap() {
       {/* floating dark "Explore" panel — no header, margined off top/left/bottom. Bod 4/6:
           3 mutually-exclusive stavy (LIST default / inline DETAIL / ADD setup), desktop-only
           (mobile ho celý skrýva — bod 5, viď .trp-sidebar{display:none} v mobile media query). */}
-      <aside className="trp-sidebar">
+      {/* `is-tool` = panel je práve v stave ADD, teda JE tým „panelom nástrojov" zo zámku §2.2b
+          a ako jediný kus chrome pod `trp-draw-lock` ostáva. V stave LIST/DETAIL je to
+          prehliadanie a zámok ho schová (viď body.trp-draw-lock v CSS vyššie). */}
+      <aside className={`trp-sidebar${addFlow || addEventFlow ? ' is-tool' : ''}`}>
         {addFlow ? (
           addFlow === 'planned' ? (
             <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
