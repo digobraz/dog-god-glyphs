@@ -688,8 +688,53 @@ function assertLanes() {
       .map((el) => pairKey(role, el)),
   );
   if (missing.length) console.warn('[natureQuiz] Diera v kombinačnej matici:', missing);
+
+  // ── Stráže prestavby z 22. 8. 2026 ────────────────────────────────────────
+  // Všetky tri chytajú chybu, ktorá sa NEPREJAVÍ ako chyba: kvíz sa vykreslí,
+  // dá výsledok a nikto si nevšimne, že jedna úloha nemôže vyhrať.
+
+  // 1. Otázka bez piatich odpovedí, alebo s tou istou osou dvakrát. Presne toto
+  //    robilo Veštca nedosiahnuteľným — mal 4 otázky tam, kde Spoločník 8.
+  const shape = (
+    qs: NatureQuestion[], keys: readonly string[], tag: string,
+  ) => {
+    for (const q of qs) {
+      const ids = q.options.map((o) => o.id);
+      const bad = ids.filter((id) => !keys.includes(id));
+      const dupes = ids.filter((id, i) => ids.indexOf(id) !== i);
+      if (ids.length !== keys.length || bad.length || dupes.length) {
+        console.warn(`[natureQuiz] ${tag} ${q.id}: očakáva sa ${keys.length} odpovedí, po jednej na os.`,
+          { ids, bad, dupes });
+      }
+    }
+    // Pokrytie sa nekontroluje len na otázke, ale aj v súčte — otázka smie byť
+    // v poriadku a os aj tak podreprezentovaná, keby niekto otázku vymazal.
+    for (const k of keys) {
+      const n = qs.filter((q) => q.options.some((o) => o.id === k)).length;
+      if (n !== qs.length) console.warn(`[natureQuiz] ${tag}: „${k}" je v ${n} z ${qs.length} otázok.`);
+    }
+  };
+  shape(ELEMENT_QUESTIONS, ELEMENT_KEYS, 'ELEMENT_QUESTIONS');
+  shape(ROLE_QUESTIONS, ROLE_KEYS, 'ROLE_QUESTIONS');
+
+  // 2. Odpoveď bez opory v podklade. Vymyslená odpoveď v kvíze, ktorý radí okolo
+  //    výživy, je horšia než chýbajúca — a na pohľad sa nedá odlíšiť.
+  const SRC_PREFIX = /^(judy|schwartz|dataset|wddc):/;
+  const noSrc = [...ELEMENT_QUESTIONS, ...ROLE_QUESTIONS].flatMap((q) =>
+    q.options
+      .filter((o) => !o.src?.length || !o.src.every((s) => SRC_PREFIX.test(s)))
+      .map((o) => `${q.id}:${o.id}`),
+  );
+  if (noSrc.length) console.warn('[natureQuiz] Odpoveď bez opory v podklade (`src`):', noSrc);
+
+  // 3. Tie-break, ktorý neexistuje — remíza by ticho spadla späť na poradie v poli.
+  if (!ELEMENT_QUESTIONS.some((q) => q.id === ELEMENT_TIEBREAK)) {
+    console.warn('[natureQuiz] ELEMENT_TIEBREAK ukazuje na neexistujúcu otázku:', ELEMENT_TIEBREAK);
+  }
+  if (!ROLE_QUESTIONS.some((q) => q.id === ROLE_TIEBREAK)) {
+    console.warn('[natureQuiz] ROLE_TIEBREAK ukazuje na neexistujúcu otázku:', ROLE_TIEBREAK);
+  }
 }
-if (import.meta.env?.DEV) assertLanes();
 
 export interface GuidanceSet {
   /** Riadok pre kombináciu oboch osí. `null` len ak dvojica v matici chýba. */
@@ -748,16 +793,60 @@ export function natureArt(field: string, value: unknown): string | null {
 }
 
 // ── OTÁZKY ───────────────────────────────────────────────────────────────────
-// Váhy: elementy pod `el`, základné úlohy pod `role`, zvláštne pod `spec`.
-// Pokrytie (kontrolované): každý element má 6 čistých signálov (Q1,5,6,7,11,12);
-// companion 8 · captain 8 · herald 6 · defender 6 · diviner 5 (najvzácnejší zámerne).
+// PRESTAVBA 22. 8. 2026. Zadanie: `plany/nature-kviz-navrh-2026-08-22.html`.
+//
+// Predtým: 14 otázok, každá s váhami 1–3 na OBE osi naraz. Dôsledok bol trojaký a
+// všetok spočítaný z tohto súboru, nie odhadnutý:
+//   • element sa zbieral aj na sociálnych otázkach — u Kovu 16 z 34 bodov (47 %),
+//     takže plachý pes dostal Vodu, aj keď mal telo Zeme, a rada k miske potom
+//     sedela na správanie,
+//   • úlohy mali nerovnaké stropy (companion 20 v 8 otázkach vs diviner 10 v 4,
+//     z toho dve v tej istej otázke ⇒ vylučovali sa) — Veštec nemohol vyhrať,
+//   • osem odpovedí kŕmilo zvláštne úlohy, ktoré sa po locku z 22. 8. rozhodujú
+//     výlučne dedikovanými otázkami.
+//
+// 🔑 STAVEBNÉ PRAVIDLO: **každá otázka má práve päť odpovedí, po jednej na element
+// (resp. na úlohu), a `id` odpovede JE ten kľúč.** Pokrytie je tým rovnaké
+// automaticky, nie kalibráciou — nedá sa pokaziť pridaním otázky. Váha je vždy 1,
+// takže výsledok je „Kov 6 z 10", číslo, ktoré sa dá ukázať majiteľovi; predtým to
+// bolo „Kov 27" bez mierky. Stráži to `assertLanes()`.
+//
+// 🔑 DELIACA ČIARA MEDZI OSAMI = TEMPERAMENT vs FUNKCIA, nie „telo vs. sociálne".
+// Prvé znenie pravidla („dá sa odpovedať pri psovi, čo žije sám na dvore?") padlo
+// na vlastnom podklade: z 65 vlastností Dr. Judy je telesných asi pätnásť, zvyšok
+// je povaha, takže by z elementu ostali štyri otázky.
+//   ELEMENT = tempo, intenzita, smer a návrat do pokoja → prejaví sa v KAŽDEJ
+//             situácii rovnako (Dr. Judy + Schwartz merajú temperament)
+//   ÚLOHA   = akú funkciu pes plní PRE svorku (WDDC meria funkciu)
+// Preto v elemente NIE JE „postavenie v svorke" ani „vzťah k cudziemu" — sú to
+// funkcie a v elemente by vyrobili presne tú kontamináciu, ktorú prestavba ruší.
+//
+// KOLÍZIE ZDROJA sú vyriešené vypustením, nie tichým prisúdením:
+//   `Big eyes` má u Dr. Judy Drevo AJ Voda ⇒ nepoužila sa vôbec; hlava je v A1
+//   opísaná stavbou, nie očami. `Strong`/`Strong body` rozdelené na stavbu (Oheň,
+//   A1) a vytrvalosť (Drevo, A6). `Consistent` na tempo (Kov, A2) a vytrvalosť
+//   (Voda, A6). `Alpha-in charge` + `Group leader` vypustené — funkcie.
+//
+// PORADIE ODPOVEDÍ JE ZÁMERNE PREMIEŠANÉ. Keby element išiel v každej otázke v tom
+// istom poradí, tretia obrazovka prezradí kľúč a zvyšok kvízu meria už len to, čo
+// chce majiteľ počuť.
 export interface NatureOption {
+  /** Kľúč osi — `ElementKey` v `ELEMENT_QUESTIONS`, `RoleKey` v `ROLE_QUESTIONS`. */
   id: string;
   labelEN: string;
   i18n: string;
-  el?: Partial<Record<ElementKey, number>>;
-  role?: Partial<Record<RoleKey, number>>;
-  spec?: Partial<Record<SpecialKey, number>>;
+  /**
+   * 🔴 POVINNÁ OPORA. Odkaz na riadok v podklade, z ktorého odpoveď vznikla —
+   * `judy:` (Pet Personality Quiz) · `schwartz:` (Four Paws, Five Directions,
+   * portréty piatich konštitúcií) · `dataset:` (tento súbor, `traitsEN`/`bodyEN`/
+   * `facts`) · `wddc:` (The 9 Social Identities).
+   *
+   * Nie je to poznámka pod čiarou, je to **test**: odpoveď, ku ktorej sa nedá
+   * ukázať prstom do podkladu, sme si vymysleli — a vymyslená odpoveď v kvíze,
+   * ktorý radí okolo výživy, je horšia než chýbajúca. Prázdne pole hlási
+   * `assertLanes()`.
+   */
+  src: string[];
 }
 
 export interface NatureQuestion {
@@ -767,157 +856,446 @@ export interface NatureQuestion {
   options: NatureOption[];
 }
 
-export const NATURE_QUESTIONS: NatureQuestion[] = [
+/**
+ * KVÍZ 1 — ELEMENT. Desať otázok, `id` odpovede JE `ElementKey`.
+ * A1 láme remízu (jediná otázka, ktorá sa nedá zodpovedať podľa nálady dňa).
+ */
+export const ELEMENT_QUESTIONS: NatureQuestion[] = [
   {
-    id: 'q1', labelEN: 'How does your dog treat food?', i18n: 'pack.nature.q1',
+    id: 'a1', labelEN: 'Build — how are they put together?', i18n: 'pack.nature.qe.a1',
     options: [
-      { id: 'a', labelEN: 'Wolfs it down, counter-surfs, begs for every bite', i18n: 'pack.nature.q1.a', el: { earth: 3 } },
-      { id: 'b', labelEN: 'Eats calmly, even with commotion around', i18n: 'pack.nature.q1.b', el: { metal: 3 } },
-      { id: 'c', labelEN: 'Picky — needs company or coaxing', i18n: 'pack.nature.q1.c', el: { water: 2, fire: 1 }, role: { captain: 2 } },
-      { id: 'd', labelEN: 'Growls over the bowl — the food is theirs', i18n: 'pack.nature.q1.d', el: { wood: 3 }, role: { defender: 1 } },
-      { id: 'e', labelEN: 'Would rather play than eat', i18n: 'pack.nature.q1.e', el: { fire: 3 } },
+      { id: 'metal', labelEN: 'Broad chest and forehead, a wide nose', i18n: 'pack.nature.qe.a1.metal',
+        src: ['judy:metal.broad-chest', 'judy:metal.broad-forehead', 'judy:metal.wide-nose'] },
+      { id: 'wood', labelEN: 'Wiry and athletic — small, but strong for their size', i18n: 'pack.nature.qe.a1.wood',
+        src: ['judy:wood.thin-body', 'judy:wood.athletic-stamina', 'schwartz:wood'] },
+      { id: 'earth', labelEN: 'Round and large, big head, low to the ground', i18n: 'pack.nature.qe.a1.earth',
+        src: ['judy:earth.round-large', 'judy:earth.big-head', 'judy:earth.short'] },
+      { id: 'fire', labelEN: 'Strong compact body, small head', i18n: 'pack.nature.qe.a1.fire',
+        src: ['judy:fire.strong-body', 'judy:fire.small-head', 'dataset:fire.body'] },
+      { id: 'water', labelEN: 'Thin to mid-size frame, quiet on their feet', i18n: 'pack.nature.qe.a1.water',
+        src: ['judy:water.thin-mid-body', 'dataset:water.body'] },
     ],
   },
   {
-    id: 'q2', labelEN: 'The doorbell rings. What happens?', i18n: 'pack.nature.q2',
+    id: 'a2', labelEN: 'Pace — how they move, and how they come back down', i18n: 'pack.nature.qe.a2',
     options: [
-      { id: 'a', labelEN: 'Announces it before anyone touches the handle — and does not stop', i18n: 'pack.nature.q2.a', el: { water: 1 }, role: { herald: 3 } },
-      { id: 'b', labelEN: 'Puts themselves between you and the door, face serious', i18n: 'pack.nature.q2.b', el: { wood: 2 }, role: { defender: 3 } },
-      { id: 'c', labelEN: 'Flies over to greet, dances around', i18n: 'pack.nature.q2.c', el: { fire: 2 }, role: { companion: 3 } },
-      { id: 'd', labelEN: 'Disappears and waits until the coast is clear', i18n: 'pack.nature.q2.d', el: { water: 3 }, role: { captain: 1 } },
-      { id: 'e', labelEN: 'Looks at YOU — what are you going to do about it', i18n: 'pack.nature.q2.e', el: { metal: 1 }, role: { captain: 3 } },
+      { id: 'water', labelEN: 'Slow but steady — and hard to get going in the first place', i18n: 'pack.nature.qe.a2.water',
+        src: ['judy:water.slow-consistent', 'schwartz:water'] },
+      { id: 'fire', labelEN: 'Up in a second, an hour to come back down', i18n: 'pack.nature.qe.a2.fire',
+        src: ['judy:fire.easily-excited', 'judy:fire.difficult-to-calm'] },
+      { id: 'metal', labelEN: 'The same pace every day, no swings', i18n: 'pack.nature.qe.a2.metal',
+        src: ['judy:metal.consistent', 'judy:metal.disciplined-attitude'] },
+      { id: 'wood', labelEN: 'Sharp, fast movements; waiting is not in them', i18n: 'pack.nature.qe.a2.wood',
+        src: ['judy:wood.quick-movements', 'judy:wood.impulsive', 'judy:wood.impatient'] },
+      { id: 'earth', labelEN: 'Slow and deliberate — they never really go up', i18n: 'pack.nature.qe.a2.earth',
+        src: ['judy:earth.slow-response', 'judy:earth.relaxed-laid-back'] },
     ],
   },
   {
-    id: 'q3', labelEN: 'On a walk — who leads?', i18n: 'pack.nature.q3',
+    id: 'a3', labelEN: 'How do they sleep?', i18n: 'pack.nature.qe.a3',
     options: [
-      { id: 'a', labelEN: 'Pulls ahead, picks the direction, you follow', i18n: 'pack.nature.q3.a', el: { wood: 2 }, role: { captain: 2 } },
-      { id: 'b', labelEN: 'Stays close, watches where you are going', i18n: 'pack.nature.q3.b', el: { earth: 2 }, role: { companion: 2 } },
-      { id: 'c', labelEN: 'Walks slightly to the side or behind, scanning', i18n: 'pack.nature.q3.c', el: { water: 1 }, role: { herald: 3 } },
-      { id: 'd', labelEN: 'Twenty minutes turns into a three-hour neighbourhood investigation', i18n: 'pack.nature.q3.d', el: { metal: 1 }, role: { captain: 3 } },
-      { id: 'e', labelEN: 'First movement in the bushes and they are gone — no recall works', i18n: 'pack.nature.q3.e', el: { wood: 2 }, spec: { hunter: 3 } },
+      { id: 'wood', labelEN: 'Last one to bed, and wakes in the night already wound up', i18n: 'pack.nature.qe.a3.wood',
+        src: ['dataset:wood.traits.2', 'judy:wood-section.insomnia-1-3am'] },
+      { id: 'earth', labelEN: 'Likes a long lie-in and is grumpy when woken', i18n: 'pack.nature.qe.a3.earth',
+        src: ['schwartz:earth', 'dataset:earth.traits.1'] },
+      { id: 'fire', labelEN: 'Restless — whines, paddles, runs in their sleep', i18n: 'pack.nature.qe.a3.fire',
+        src: ['schwartz:fire', 'dataset:fire.traits.3'] },
+      { id: 'water', labelEN: 'Wakes in the night and needs to go out', i18n: 'pack.nature.qe.a3.water',
+        src: ['dataset:water.traits.3', 'schwartz:water'] },
+      { id: 'metal', labelEN: 'Sleeps without moving; the small hours are their worst', i18n: 'pack.nature.qe.a3.metal',
+        src: ['schwartz:metal', 'dataset:metal.body'] },
     ],
   },
   {
-    id: 'q4', labelEN: 'Two strange dogs are playing chase. Yours sees them.', i18n: 'pack.nature.q4',
+    id: 'a4', labelEN: 'Heat, cold, weather', i18n: 'pack.nature.qe.a4',
     options: [
-      { id: 'a', labelEN: 'Joins in and makes the chaos bigger', i18n: 'pack.nature.q4.a', el: { fire: 2 }, role: { companion: 2 } },
-      { id: 'b', labelEN: 'Walks over and shuts it down — that is enough', i18n: 'pack.nature.q4.b', el: { wood: 1 }, role: { defender: 3 } },
-      { id: 'c', labelEN: 'Not interested, goes their own way', i18n: 'pack.nature.q4.c', el: { metal: 2 }, spec: { loner: 2 } },
-      { id: 'd', labelEN: 'Watches from a distance and comments', i18n: 'pack.nature.q4.d', el: { water: 1 }, role: { herald: 2 } },
-      { id: 'e', labelEN: 'The tension somehow dissolves and everyone settles', i18n: 'pack.nature.q4.e', el: { earth: 1 }, spec: { peacemaker: 3 } },
+      { id: 'fire', labelEN: 'Seeks out cold tiles and shade; cannot take the sun for long', i18n: 'pack.nature.qe.a4.fire',
+        src: ['schwartz:fire', 'dataset:fire.body'] },
+      { id: 'water', labelEN: 'Feels the cold first and longest; winter brings toilet trouble', i18n: 'pack.nature.qe.a4.water',
+        src: ['judy:water.cold-intolerant', 'schwartz:water'] },
+      { id: 'wood', labelEN: 'Wind and a change in the weather unsettle them before anything happens', i18n: 'pack.nature.qe.a4.wood',
+        src: ['dataset:wood.traits.3', 'judy:wood-section.wind-is-spring'] },
+      { id: 'metal', labelEN: 'Sneezing and coughing in autumn; dry indoor heating does not suit them', i18n: 'pack.nature.qe.a4.metal',
+        src: ['schwartz:metal', 'judy:metal-section.lungs-need-moisture'] },
+      { id: 'earth', labelEN: 'Damp and cold do not suit them; heavy after a meal', i18n: 'pack.nature.qe.a4.earth',
+        src: ['dataset:earth.q7', 'judy:earth-section.cold-damp-food'] },
     ],
   },
   {
-    id: 'q5', labelEN: 'What do they look like?', i18n: 'pack.nature.q5',
+    id: 'a5', labelEN: 'The bowl', i18n: 'pack.nature.qe.a5',
     options: [
-      { id: 'a', labelEN: 'Strong compact body, small head, hard to calm down', i18n: 'pack.nature.q5.a', el: { fire: 3 } },
-      { id: 'b', labelEN: 'Round, big head, slow-moving', i18n: 'pack.nature.q5.b', el: { earth: 3 } },
-      { id: 'c', labelEN: 'Lean, quick movements, big eyes', i18n: 'pack.nature.q5.c', el: { wood: 3 } },
-      { id: 'd', labelEN: 'Thin to mid-size, quiet on their feet, feels the cold', i18n: 'pack.nature.q5.d', el: { water: 3 } },
-      { id: 'e', labelEN: 'Broad chest and forehead, good coat, well groomed', i18n: 'pack.nature.q5.e', el: { metal: 3 } },
+      { id: 'earth', labelEN: 'Begs constantly and steals what they can — sweet things first', i18n: 'pack.nature.qe.a5.earth',
+        src: ['judy:earth-section.overeat-love-sweets', 'schwartz:earth'] },
+      { id: 'wood', labelEN: 'Growls over the bowl — the food is theirs', i18n: 'pack.nature.qe.a5.wood',
+        src: ['schwartz:wood', 'judy:wood.easily-angered'] },
+      { id: 'metal', labelEN: 'Eats slowly and without much interest; commotion does not bother them', i18n: 'pack.nature.qe.a5.metal',
+        src: ['judy:metal.excess.poor-appetite', 'schwartz:metal'] },
+      { id: 'fire', labelEN: 'Goes off food in the heat; otherwise inhales it on the move', i18n: 'pack.nature.qe.a5.fire',
+        src: ['dataset:fire.food.2'] },
+      { id: 'water', labelEN: 'Drinks a lot and gravitates to salty things', i18n: 'pack.nature.qe.a5.water',
+        src: ['schwartz:water', 'judy:water.taste-salty'] },
     ],
   },
   {
-    id: 'q6', labelEN: 'How do they sleep?', i18n: 'pack.nature.q6',
+    id: 'a6', labelEN: 'Energy across the day', i18n: 'pack.nature.qe.a6',
     options: [
-      { id: 'a', labelEN: 'Relaxes instantly, sleeps anywhere', i18n: 'pack.nature.q6.a', el: { earth: 3 } },
-      { id: 'b', labelEN: 'Sleeps still, barely changes position', i18n: 'pack.nature.q6.b', el: { metal: 3 } },
-      { id: 'c', labelEN: 'Wakes often, needs to go out at night', i18n: 'pack.nature.q6.c', el: { water: 3 } },
-      { id: 'd', labelEN: 'Sleep comes second when there is something to do', i18n: 'pack.nature.q6.d', el: { wood: 3 } },
-      { id: 'e', labelEN: 'Restless, whines, runs in their sleep', i18n: 'pack.nature.q6.e', el: { fire: 3 } },
+      { id: 'wood', labelEN: 'Stamina to spare — they tire you out first', i18n: 'pack.nature.qe.a6.wood',
+        src: ['judy:wood.athletic-stamina'] },
+      { id: 'metal', labelEN: 'Even, but short — and then they have had enough', i18n: 'pack.nature.qe.a6.metal',
+        src: ['judy:metal.consistent', 'dataset:metal.traits.play'] },
+      { id: 'earth', labelEN: 'Nothing in the morning, livelier by evening; a long hike is beyond them', i18n: 'pack.nature.qe.a6.earth',
+        src: ['schwartz:earth', 'judy:earth.relaxed-laid-back'] },
+      { id: 'fire', labelEN: 'Flat out from the moment they wake, with nothing held back', i18n: 'pack.nature.qe.a6.fire',
+        src: ['judy:fire.energetic', 'schwartz:fire'] },
+      { id: 'water', labelEN: 'Quiet and slow, but they last all day', i18n: 'pack.nature.qe.a6.water',
+        src: ['judy:water.slow-consistent', 'judy:water.quiet'] },
     ],
   },
   {
-    id: 'q7', labelEN: 'Heat, cold, weather.', i18n: 'pack.nature.q7',
+    id: 'a7', labelEN: 'When something goes wrong and they are under pressure', i18n: 'pack.nature.qe.a7',
     options: [
-      { id: 'a', labelEN: 'Seeks out cold tiles and shade; suffers in the heat', i18n: 'pack.nature.q7.a', el: { fire: 3 } },
-      { id: 'b', labelEN: 'Feels the cold — looks for blankets, sun, warm spots', i18n: 'pack.nature.q7.b', el: { water: 3 } },
-      { id: 'c', labelEN: 'Dry coat and skin, brittle nails, sneezing and coughing', i18n: 'pack.nature.q7.c', el: { metal: 3 } },
-      { id: 'd', labelEN: 'Damp and cold do not suit them; heavy after meals', i18n: 'pack.nature.q7.d', el: { earth: 3 } },
-      { id: 'e', labelEN: 'Wind and weather changes unsettle them, often tense', i18n: 'pack.nature.q7.e', el: { wood: 3 } },
+      { id: 'water', labelEN: 'Backs off and hides', i18n: 'pack.nature.qe.a7.water',
+        src: ['judy:water.fearful', 'judy:water.likes-to-hide', 'schwartz:water'] },
+      { id: 'metal', labelEN: 'Leaves the room and does not come back for a while', i18n: 'pack.nature.qe.a7.metal',
+        src: ['judy:metal.aloof', 'schwartz:metal'] },
+      { id: 'fire', labelEN: 'Goes off loudly — and it is over just as fast', i18n: 'pack.nature.qe.a7.fire',
+        src: ['judy:fire.easily-excited', 'judy:fire.difficult-to-calm'] },
+      { id: 'earth', labelEN: 'Takes a lot, and when it is too much they go and lie down', i18n: 'pack.nature.qe.a7.earth',
+        src: ['judy:earth.serene-balanced', 'judy:earth.easily-satisfied'] },
+      { id: 'wood', labelEN: 'Goes straight into it — and outlasts the other side', i18n: 'pack.nature.qe.a7.wood',
+        src: ['judy:wood.easily-angered', 'schwartz:wood'] },
     ],
   },
   {
-    id: 'q8', labelEN: 'You are low, or there is tension at home. What do they do?', i18n: 'pack.nature.q8',
+    id: 'a8', labelEN: 'Something changes at home — furniture moved, a new routine', i18n: 'pack.nature.qe.a8',
     options: [
-      { id: 'a', labelEN: 'Comes over and will not leave you until you feel better', i18n: 'pack.nature.q8.a', role: { companion: 3 } },
-      { id: 'b', labelEN: 'Just lies down next to you and suddenly it is quiet', i18n: 'pack.nature.q8.b', el: { earth: 1 }, spec: { peacemaker: 3 } },
-      { id: 'c', labelEN: 'Gets unsettled and starts patrolling the house for what is wrong', i18n: 'pack.nature.q8.c', el: { water: 1 }, role: { diviner: 3 } },
-      { id: 'd', labelEN: 'Ramps up — goes to the door, guards, checks', i18n: 'pack.nature.q8.d', role: { defender: 2, herald: 1 } },
-      { id: 'e', labelEN: 'Leaves for another room', i18n: 'pack.nature.q8.e', el: { metal: 2 }, spec: { loner: 2 } },
+      { id: 'metal', labelEN: 'It visibly bothers them — they want it back the way it was', i18n: 'pack.nature.qe.a8.metal',
+        src: ['judy:metal.loves-order', 'judy:metal.obeys-the-rules'] },
+      { id: 'fire', labelEN: 'Delighted — the whole thing has to be investigated at once', i18n: 'pack.nature.qe.a8.fire',
+        src: ['judy:fire.easily-excited', 'judy:fire.energetic'] },
+      { id: 'wood', labelEN: 'Adapts on the spot, as if it had always been there', i18n: 'pack.nature.qe.a8.wood',
+        src: ['judy:wood.easily-adapts-to-change'] },
+      { id: 'earth', labelEN: 'Notices two days later and does not mind', i18n: 'pack.nature.qe.a8.earth',
+        src: ['judy:earth.slow-response', 'judy:earth.easily-satisfied'] },
+      { id: 'water', labelEN: 'Gives it a wide berth and takes a while to accept it', i18n: 'pack.nature.qe.a8.water',
+        src: ['judy:water.cautious', 'judy:water.likes-to-hide'] },
     ],
   },
   {
-    id: 'q9', labelEN: 'A stranger in your home.', i18n: 'pack.nature.q9',
+    id: 'a9', labelEN: 'Play', i18n: 'pack.nature.qe.a9',
     options: [
-      { id: 'a', labelEN: 'Delighted, licking, someone new at last', i18n: 'pack.nature.q9.a', el: { fire: 1 }, role: { companion: 3 } },
-      { id: 'b', labelEN: 'Does not trust them, keeps distance, maybe in time', i18n: 'pack.nature.q9.b', el: { metal: 3 }, role: { diviner: 1 } },
-      { id: 'c', labelEN: 'Watches them the whole time and reports every move', i18n: 'pack.nature.q9.c', role: { herald: 3 } },
-      { id: 'd', labelEN: 'Avoids them — but if pushed, might snap', i18n: 'pack.nature.q9.d', el: { water: 2 }, role: { captain: 3 } },
-      { id: 'e', labelEN: 'Reacts differently to one specific person, for no visible reason', i18n: 'pack.nature.q9.e', role: { diviner: 3 } },
+      { id: 'earth', labelEN: 'For a while, yes — but a nap would be better', i18n: 'pack.nature.qe.a9.earth',
+        src: ['judy:earth.relaxed-laid-back', 'dataset:earth.q11'] },
+      { id: 'water', labelEN: 'Loses interest quickly and wanders off', i18n: 'pack.nature.qe.a9.water',
+        src: ['judy:water.self-contained', 'dataset:water.q11'] },
+      { id: 'wood', labelEN: 'Has to win — and sulks when they do not', i18n: 'pack.nature.qe.a9.wood',
+        src: ['judy:wood.confident', 'dataset:wood.q10'] },
+      { id: 'fire', labelEN: 'Curious and wild — goes after anything that moves', i18n: 'pack.nature.qe.a9.fire',
+        src: ['judy:fire.energetic', 'judy:fire.easily-excited'] },
+      { id: 'metal', labelEN: 'Takes it seriously, needs a reason, and tires quickly', i18n: 'pack.nature.qe.a9.metal',
+        src: ['judy:metal.disciplined-attitude', 'dataset:metal.q11'] },
     ],
   },
   {
-    id: 'q10', labelEN: 'Training and learning.', i18n: 'pack.nature.q10',
+    id: 'a10', labelEN: 'Learning and rules', i18n: 'pack.nature.qe.a10',
     options: [
-      { id: 'a', labelEN: 'Wants to be part of a team, laid-back pace', i18n: 'pack.nature.q10.a', el: { earth: 2 }, role: { companion: 2 } },
-      { id: 'b', labelEN: 'Needs repetition and routine — then has it forever', i18n: 'pack.nature.q10.b', el: { metal: 3 } },
-      { id: 'c', labelEN: 'Gets it instantly, forgets just as fast, charms their way out', i18n: 'pack.nature.q10.c', el: { water: 2, fire: 1 } },
-      { id: 'd', labelEN: 'Has to win, needs success, sulks without it', i18n: 'pack.nature.q10.d', el: { wood: 3 }, role: { captain: 1 } },
-      { id: 'e', labelEN: 'Only does it when they can see the point', i18n: 'pack.nature.q10.e', el: { metal: 2 }, role: { diviner: 2 } },
-    ],
-  },
-  {
-    id: 'q11', labelEN: 'Play and energy.', i18n: 'pack.nature.q11',
-    options: [
-      { id: 'a', labelEN: 'Curious and active, chases anything that moves', i18n: 'pack.nature.q11.a', el: { fire: 3 } },
-      { id: 'b', labelEN: 'Would rather nap', i18n: 'pack.nature.q11.b', el: { earth: 3 } },
-      { id: 'c', labelEN: 'Fetch forever — cannot stop', i18n: 'pack.nature.q11.c', el: { wood: 2 }, spec: { hunter: 2 } },
-      { id: 'd', labelEN: 'Loses interest quickly', i18n: 'pack.nature.q11.d', el: { water: 2, fire: 1 } },
-      { id: 'e', labelEN: 'Takes play seriously, needs a reason, tires quickly', i18n: 'pack.nature.q11.e', el: { metal: 3 } },
-    ],
-  },
-  {
-    id: 'q12', labelEN: 'Touch, brushing, grooming.', i18n: 'pack.nature.q12',
-    options: [
-      { id: 'a', labelEN: 'Demands petting, climbs into your hands', i18n: 'pack.nature.q12.a', el: { fire: 3 } },
-      { id: 'b', labelEN: 'Accepts it around family, or for a treat', i18n: 'pack.nature.q12.b', el: { earth: 3 } },
-      { id: 'c', labelEN: 'Runs from the brush', i18n: 'pack.nature.q12.c', el: { water: 3 } },
-      { id: 'd', labelEN: 'Only tolerates being touched in certain places', i18n: 'pack.nature.q12.d', el: { wood: 3 } },
-      { id: 'e', labelEN: 'Yes — but on their own schedule', i18n: 'pack.nature.q12.e', el: { metal: 3 } },
-    ],
-  },
-  {
-    id: 'q13', labelEN: 'You leave them alone for two or three hours.', i18n: 'pack.nature.q13',
-    options: [
-      { id: 'a', labelEN: 'Cannot bear it — whines, destroys, waits at the door', i18n: 'pack.nature.q13.a', el: { fire: 1 }, role: { companion: 3 } },
-      { id: 'b', labelEN: 'Copes, but reports every sound from the hallway', i18n: 'pack.nature.q13.b', el: { water: 1 }, role: { herald: 2 } },
-      { id: 'c', labelEN: 'Fine — just checks that everything is where it should be', i18n: 'pack.nature.q13.c', el: { metal: 1 }, role: { defender: 2 } },
-      { id: 'd', labelEN: 'Cannot settle, paces, sniffs, hunts for what is off', i18n: 'pack.nature.q13.d', role: { diviner: 2 } },
-      { id: 'e', labelEN: 'Does not mind at all, as if they did not need you', i18n: 'pack.nature.q13.e', el: { metal: 2 }, spec: { loner: 3 } },
-    ],
-  },
-  {
-    id: 'q14', labelEN: 'Puppies, children, young dogs.', i18n: 'pack.nature.q14',
-    options: [
-      { id: 'a', labelEN: 'Patience itself — takes anything from them', i18n: 'pack.nature.q14.a', el: { earth: 1 }, spec: { nurturer: 3 } },
-      { id: 'b', labelEN: 'Plays with them as an equal', i18n: 'pack.nature.q14.b', el: { fire: 1 }, role: { companion: 2 } },
-      { id: 'c', labelEN: 'Sets a boundary and makes sure it holds', i18n: 'pack.nature.q14.c', role: { defender: 2 } },
-      { id: 'd', labelEN: 'Avoids them', i18n: 'pack.nature.q14.d', el: { metal: 2, water: 1 } },
-      { id: 'e', labelEN: 'Would never hurt them — just gets up and walks away', i18n: 'pack.nature.q14.e', role: { captain: 2 } },
+      { id: 'fire', labelEN: 'Gets it in one go — and forgets just as fast', i18n: 'pack.nature.qe.a10.fire',
+        src: ['dataset:fire.traits.4'] },
+      { id: 'metal', labelEN: 'Learns slowly by repetition — and then has it for life', i18n: 'pack.nature.qe.a10.metal',
+        src: ['judy:metal.loves-order', 'dataset:metal.traits.4'] },
+      { id: 'water', labelEN: 'Slow to trust; once they do, they hold it without reservation', i18n: 'pack.nature.qe.a10.water',
+        src: ['judy:water.cautious', 'dataset:water.traits.4'] },
+      { id: 'earth', labelEN: 'Wants to please; the easiest dog in the world to teach', i18n: 'pack.nature.qe.a10.earth',
+        src: ['schwartz:earth', 'judy:earth.loyal'] },
+      { id: 'wood', labelEN: 'Learns fast and starts working around it just as fast', i18n: 'pack.nature.qe.a10.wood',
+        src: ['judy:wood.confident', 'dataset:wood.traits.4'] },
     ],
   },
 ];
+
+/**
+ * KVÍZ 3 — ÚLOHA. Osem otázok, `id` odpovede JE `RoleKey`.
+ * B8 láme remízu — všetkých päť odpovedí je doslovná citácia zo zdroja WDDC,
+ * takže je zo všetkých otázok najbližšie k definícii úlohy.
+ *
+ * Zvláštne úlohy sa tu NEVYSKYTUJÚ. Rozhodujú ich výlučne štyri dedikované
+ * otázky (`NATURE_SPECIALS[].questionEN`) — po locku z 22. 8. je „nie" veto
+ * a berie sa najviac jedna, takže body z jadra už nič nerozhodovali a len
+ * zaberali miesto základným úlohám.
+ */
+export const ROLE_QUESTIONS: NatureQuestion[] = [
+  {
+    id: 'b1', labelEN: 'The doorbell rings', i18n: 'pack.nature.qr.b1',
+    options: [
+      { id: 'herald', labelEN: 'Announces it before anyone touches the handle — and does not stop', i18n: 'pack.nature.qr.b1.herald',
+        src: ['wddc:earlywarner.alerts-everything', 'wddc:earlywarner.very-vocal'] },
+      { id: 'captain', labelEN: 'Hangs back while the visitor is a stranger; once they know them, a different dog', i18n: 'pack.nature.qr.b1.captain',
+        src: ['wddc:decisionmaker.unsure-until-familiar'] },
+      { id: 'companion', labelEN: 'Races to the door to greet — anybody', i18n: 'pack.nature.qr.b1.companion',
+        src: ['wddc:prosocial.loves-everybody'] },
+      { id: 'defender', labelEN: 'Puts themselves between you and the door', i18n: 'pack.nature.qr.b1.defender',
+        src: ['wddc:protector.between-you-and-danger'] },
+      { id: 'diviner', labelEN: 'Reacts differently depending on who is out there — and is usually right', i18n: 'pack.nature.qr.b1.diviner',
+        src: ['wddc:seer.reacts-to-what-you-cant-see'] },
+    ],
+  },
+  {
+    id: 'b2', labelEN: 'A stranger is sitting in your living room', i18n: 'pack.nature.qr.b2',
+    options: [
+      { id: 'defender', labelEN: 'Lies down between them and the family and does not look away', i18n: 'pack.nature.qr.b2.defender',
+        src: ['wddc:protector.bodyguard'] },
+      { id: 'diviner', labelEN: 'Reacts differently to one particular person and nobody knows why', i18n: 'pack.nature.qr.b2.diviner',
+        src: ['wddc:seer.spots-inauthenticity'] },
+      { id: 'companion', labelEN: 'Settles next to them — someone new at last', i18n: 'pack.nature.qr.b2.companion',
+        src: ['wddc:prosocial.outgoing-friendly'] },
+      { id: 'captain', labelEN: 'Avoids them at first, then lies down beside them like an old friend', i18n: 'pack.nature.qr.b2.captain',
+        src: ['wddc:decisionmaker.familiar-confident'] },
+      { id: 'herald', labelEN: 'Watches from a distance and comments on every move', i18n: 'pack.nature.qr.b2.herald',
+        src: ['wddc:earlywarner.sits-outside-group', 'wddc:earlywarner.scanning'] },
+    ],
+  },
+  {
+    id: 'b3', labelEN: 'On a walk — who picks the direction?', i18n: 'pack.nature.qr.b3',
+    options: [
+      { id: 'captain', labelEN: 'Twenty minutes turns into a three-hour neighbourhood investigation', i18n: 'pack.nature.qr.b3.captain',
+        src: ['wddc:decisionmaker.3-hour-investigation'] },
+      { id: 'companion', labelEN: 'Goes wherever you go, watching you more than the surroundings', i18n: 'pack.nature.qr.b3.companion',
+        src: ['wddc:prosocial.natural-followers'] },
+      { id: 'defender', labelEN: 'Walks ahead but keeps turning back — checking the route and checking you', i18n: 'pack.nature.qr.b3.defender',
+        src: ['wddc:protector.hold-the-line'] },
+      { id: 'herald', labelEN: 'Walks slightly to the side, scanning what is going on', i18n: 'pack.nature.qr.b3.herald',
+        src: ['wddc:earlywarner.sits-outside-group'] },
+      { id: 'diviner', labelEN: 'Stops dead at something you cannot see and will not go on', i18n: 'pack.nature.qr.b3.diviner',
+        src: ['wddc:seer.reacts-to-what-you-cant-see'] },
+    ],
+  },
+  {
+    id: 'b4', labelEN: 'Two dogs are chasing each other and it is getting wilder', i18n: 'pack.nature.qr.b4',
+    options: [
+      { id: 'diviner', labelEN: 'Senses it is going to end badly before it turns', i18n: 'pack.nature.qr.b4.diviner',
+        src: ['wddc:seer.spots-imbalance'] },
+      { id: 'defender', labelEN: 'Walks over and shuts it down — even though both were fine', i18n: 'pack.nature.qr.b4.defender',
+        src: ['wddc:protector.fun-police'] },
+      { id: 'herald', labelEN: 'Watches from a distance and announces that something is happening', i18n: 'pack.nature.qr.b4.herald',
+        src: ['wddc:earlywarner.alerts-everything'] },
+      { id: 'companion', labelEN: 'Joins in and makes the chaos bigger', i18n: 'pack.nature.qr.b4.companion',
+        src: ['wddc:prosocial.follows-energy'] },
+      { id: 'captain', labelEN: 'Decides whether you go closer or go around — and that is that', i18n: 'pack.nature.qr.b4.captain',
+        src: ['wddc:decisionmaker.decides-whats-safe'] },
+    ],
+  },
+  {
+    id: 'b5', labelEN: 'There is tension at home, or you are low', i18n: 'pack.nature.qr.b5',
+    options: [
+      { id: 'captain', labelEN: 'Their whole day shifts — routine, appetite, pace', i18n: 'pack.nature.qr.b5.captain',
+        src: ['wddc:decisionmaker.sets-emotional-tone'] },
+      { id: 'diviner', labelEN: 'Cannot settle and starts searching the house for what is wrong', i18n: 'pack.nature.qr.b5.diviner',
+        src: ['wddc:seer.cant-rest', 'wddc:seer.mirror'] },
+      { id: 'companion', labelEN: 'Comes over and will not leave until you feel better', i18n: 'pack.nature.qr.b5.companion',
+        src: ['wddc:prosocial.emotional-support'] },
+      { id: 'herald', labelEN: 'Gets uneasy and starts reporting every sound', i18n: 'pack.nature.qr.b5.herald',
+        src: ['wddc:earlywarner.cant-switch-off'] },
+      { id: 'defender', labelEN: 'Ramps up — goes to the door, guards, checks', i18n: 'pack.nature.qr.b5.defender',
+        src: ['wddc:protector.policing'] },
+    ],
+  },
+  {
+    id: 'b6', labelEN: 'You leave them alone for three hours', i18n: 'pack.nature.qr.b6',
+    options: [
+      { id: 'defender', labelEN: 'Fine — does a round of the flat and checks everything is in place', i18n: 'pack.nature.qr.b6.defender',
+        src: ['wddc:protector.supervise'] },
+      { id: 'companion', labelEN: 'Cannot bear it — whines, destroys, waits at the door', i18n: 'pack.nature.qr.b6.companion',
+        src: ['wddc:prosocial.separation-distress'] },
+      { id: 'captain', labelEN: 'Fine at home; somewhere unfamiliar they are a completely different dog', i18n: 'pack.nature.qr.b6.captain',
+        src: ['wddc:decisionmaker.familiar-vs-unfamiliar'] },
+      { id: 'diviner', labelEN: 'Cannot lie down — paces and hunts for what is off', i18n: 'pack.nature.qr.b6.diviner',
+        src: ['wddc:seer.cant-rest'] },
+      { id: 'herald', labelEN: 'Copes, but reports every sound from the hallway', i18n: 'pack.nature.qr.b6.herald',
+        src: ['wddc:earlywarner.cant-switch-off'] },
+    ],
+  },
+  {
+    id: 'b7', labelEN: 'A puppy or a small child gets in their space', i18n: 'pack.nature.qr.b7',
+    options: [
+      { id: 'herald', labelEN: 'Announces every bit of nonsense before it happens', i18n: 'pack.nature.qr.b7.herald',
+        src: ['wddc:earlywarner.alerts-first'] },
+      { id: 'captain', labelEN: 'Gets up and walks away — and that settles it', i18n: 'pack.nature.qr.b7.captain',
+        src: ['wddc:decisionmaker.turns-nose-up-walks-away'] },
+      { id: 'defender', labelEN: 'Sets a boundary and makes sure it holds', i18n: 'pack.nature.qr.b7.defender',
+        src: ['wddc:protector.fun-police'] },
+      { id: 'companion', labelEN: 'Plays with them as an equal — behaves like a puppy themselves', i18n: 'pack.nature.qr.b7.companion',
+        src: ['wddc:prosocial.behaves-like-six-months'] },
+      { id: 'diviner', labelEN: 'One particular puppy bothers them and nobody knows why', i18n: 'pack.nature.qr.b7.diviner',
+        src: ['wddc:seer.spots-whats-off'] },
+    ],
+  },
+  {
+    id: 'b8', labelEN: 'How do people who do not know them describe your dog?', i18n: 'pack.nature.qr.b8',
+    options: [
+      { id: 'diviner', labelEN: '“There is something wrong with that dog.”', i18n: 'pack.nature.qr.b8.diviner',
+        src: ['wddc:seer.somethings-wrong-with-their-brain'] },
+      { id: 'companion', labelEN: '“So friendly — and a little bit much.”', i18n: 'pack.nature.qr.b8.companion',
+        src: ['wddc:prosocial.described-as-needy'] },
+      { id: 'defender', labelEN: '“I would not want to meet that one down a dark alley.”', i18n: 'pack.nature.qr.b8.defender',
+        src: ['wddc:protector.dark-alley'] },
+      { id: 'herald', labelEN: '“That dog barks at everything.”', i18n: 'pack.nature.qr.b8.herald',
+        src: ['wddc:earlywarner.barks-at-everything'] },
+      { id: 'captain', labelEN: '“That one behaves more like a cat.”', i18n: 'pack.nature.qr.b8.captain',
+        src: ['wddc:decisionmaker.behaves-like-a-cat'] },
+    ],
+  },
+];
+
+/**
+ * Otázka, ktorá láme remízu na danej osi. Vecná, nie abecedná — pri zhode bodov
+ * rozhodne odpoveď na ňu, nie poradie v poli. Predtým rozhodovalo poradie a
+ * prejavilo sa to na Hektorovi: `herald:5 diviner:5 defender:5`, víťaza vybralo
+ * pole. To vyzerá ako výsledok, ale je to hod mincou.
+ */
+const ELEMENT_TIEBREAK = 'a1';
+const ROLE_TIEBREAK = 'b8';
 
 /** Doplnkové otázky na zvláštne úlohy: áno / niekedy / nie → +3 / +1 / 0. */
 export const SPECIAL_ANSWER_WEIGHTS = { yes: 3, sometimes: 1, no: 0 } as const;
 export type SpecialAnswer = keyof typeof SPECIAL_ANSWER_WEIGHTS;
 
+// ── KVÍZ 2: ROVNOVÁHA ────────────────────────────────────────────────────────
+// Zdroj: Excess / Deficiency tabuľky Dr. Judy Morgan, str. 3–4 zdrojového PDF.
+// **Všetkých 60 položiek, žiadna sa nemaže** (Matej 22. 8.: „držme sa jej ale
+// uvedme to ako odporučanie podľa TČM prejavy").
+//
+// 🔴 JEDINÁ VEC, KTORÚ SME PRIDALI, JE `class`. Zoznam obsahuje popri
+// pozorovateľných prejavoch aj tvrdé DIAGNÓZY (nádory, zápal pľúc, ochorenie
+// srdca, epileptické záchvaty, pretrhnutý väz). Zdrojový hárok na ne dáva
+// rovnakú odpoveď ako na suchú srsť — „feed X". To sa tu NEROBÍ:
+//   `sign`      → počíta sa a dostane radu k miske (L1–L3)
+//   `diagnosis` → počíta sa DO OBRAZU rovnováhy, ale jediná veta, ktorá k nej
+//                 patrí, je „toto patrí veterinárovi". Žiadna diétna rada.
+// Dôvod nie je právna opatrnosť: keď niekto zaškrtne nádor v mieche a appka
+// odpovie „kŕm Zem", ten pes mal byť u veterinára včera.
+//
+// ⚠️ Dve položky zdroja na psa nesadnú a sú preto rozšírené, nie vypustené —
+// pozri `note` pri `water.excess.headaches` a `water.deficiency.grey`.
+export type BalanceSide = 'excess' | 'deficiency';
+export type BalanceClass = 'sign' | 'diagnosis';
+
+export interface BalanceItem {
+  id: string;
+  element: ElementKey;
+  side: BalanceSide;
+  cls: BalanceClass;
+  labelEN: string;
+  i18n: string;
+  /** Doplnok tam, kde zdrojová formulácia nie je na psovi pozorovateľná. */
+  noteEN?: string;
+}
+
+/** `pack.nature.bal.<element>.<side>.<id>` — kľúč z DÁT, nie z poradia v zozname. */
+function balanceRows(rows: Omit<BalanceItem, 'i18n'>[]): BalanceItem[] {
+  return rows.map((r) => ({ ...r, i18n: `pack.nature.bal.${r.element}.${r.side}.${r.id}` }));
+}
+
+export const BALANCE_ITEMS: BalanceItem[] = balanceRows([
+  // ── FIRE ──
+  { id: 'dry-cough', element: 'fire', side: 'excess', cls: 'sign', labelEN: 'A dry cough' },
+  { id: 'anxiety', element: 'fire', side: 'excess', cls: 'sign', labelEN: 'Anxiety and restlessness' },
+  { id: 'dehydration', element: 'fire', side: 'excess', cls: 'sign', labelEN: 'Signs of dehydration' },
+  { id: 'swollen-feet', element: 'fire', side: 'excess', cls: 'sign', labelEN: 'Swollen feet' },
+  { id: 'cystitis', element: 'fire', side: 'excess', cls: 'diagnosis', labelEN: 'Cystitis' },
+  { id: 'high-bp', element: 'fire', side: 'excess', cls: 'diagnosis', labelEN: 'High blood pressure' },
+  { id: 'confusion', element: 'fire', side: 'deficiency', cls: 'sign', labelEN: 'Confusion' },
+  { id: 'tires-easily', element: 'fire', side: 'deficiency', cls: 'sign', labelEN: 'Tires easily' },
+  { id: 'panic', element: 'fire', side: 'deficiency', cls: 'sign', labelEN: 'Panic' },
+  { id: 'heart-disease', element: 'fire', side: 'deficiency', cls: 'diagnosis', labelEN: 'Heart disease' },
+  { id: 'anemia', element: 'fire', side: 'deficiency', cls: 'diagnosis', labelEN: 'Anaemia' },
+  { id: 'low-bp', element: 'fire', side: 'deficiency', cls: 'diagnosis', labelEN: 'Low blood pressure' },
+  // ── EARTH ──
+  { id: 'weak-back', element: 'earth', side: 'excess', cls: 'sign', labelEN: 'Weak back and joints' },
+  { id: 'gut', element: 'earth', side: 'excess', cls: 'sign', labelEN: 'Constipation, diarrhoea or gas' },
+  { id: 'edema', element: 'earth', side: 'excess', cls: 'sign', labelEN: 'Swelling that pits under a finger' },
+  { id: 'sticky-mucous', element: 'earth', side: 'excess', cls: 'sign', labelEN: 'Sticky mucous' },
+  { id: 'appetite', element: 'earth', side: 'excess', cls: 'sign', labelEN: 'Appetite that swings up and down' },
+  { id: 'conjunctivitis', element: 'earth', side: 'excess', cls: 'diagnosis', labelEN: 'Conjunctivitis' },
+  { id: 'loose-teeth', element: 'earth', side: 'deficiency', cls: 'sign', labelEN: 'Loose teeth' },
+  { id: 'bruises', element: 'earth', side: 'deficiency', cls: 'sign', labelEN: 'Bruises easily' },
+  { id: 'muscle-tone', element: 'earth', side: 'deficiency', cls: 'sign', labelEN: 'Poor muscle tone' },
+  { id: 'bleeding-gums', element: 'earth', side: 'deficiency', cls: 'sign', labelEN: 'Bleeding gums' },
+  { id: 'swollen-abdomen', element: 'earth', side: 'deficiency', cls: 'diagnosis', labelEN: 'Swollen abdomen or liver' },
+  { id: 'lymph-nodes', element: 'earth', side: 'deficiency', cls: 'diagnosis', labelEN: 'Swollen lymph nodes' },
+  // ── METAL ──
+  { id: 'poor-appetite', element: 'metal', side: 'excess', cls: 'sign', labelEN: 'Little interest in food' },
+  { id: 'brittle-nails', element: 'metal', side: 'excess', cls: 'sign', labelEN: 'Dry, cracked, brittle nails' },
+  { id: 'constipation', element: 'metal', side: 'excess', cls: 'sign', labelEN: 'Constipation' },
+  { id: 'asthma', element: 'metal', side: 'excess', cls: 'diagnosis', labelEN: 'Asthma' },
+  { id: 'colitis', element: 'metal', side: 'excess', cls: 'diagnosis', labelEN: 'Colitis' },
+  { id: 'dermatitis', element: 'metal', side: 'excess', cls: 'diagnosis', labelEN: 'Dermatitis' },
+  { id: 'bladder-weak', element: 'metal', side: 'deficiency', cls: 'sign', labelEN: 'A weak bladder' },
+  { id: 'moles-warts', element: 'metal', side: 'deficiency', cls: 'sign', labelEN: 'Moles and warts' },
+  { id: 'hair-loss', element: 'metal', side: 'deficiency', cls: 'sign', labelEN: 'Losing body hair' },
+  { id: 'itching', element: 'metal', side: 'deficiency', cls: 'sign', labelEN: 'Itching' },
+  { id: 'resp-infections', element: 'metal', side: 'deficiency', cls: 'diagnosis', labelEN: 'Respiratory tract infections' },
+  { id: 'pneumonia', element: 'metal', side: 'deficiency', cls: 'diagnosis', labelEN: 'Pneumonia' },
+  // ── WATER ──
+  { id: 'loose-stool', element: 'water', side: 'excess', cls: 'sign', labelEN: 'Loose bowel movements' },
+  { id: 'lethargy', element: 'water', side: 'excess', cls: 'sign', labelEN: 'Lethargy' },
+  // ⚠️ Zdroj tu má holé „Headaches". Bolesť hlavy sa u psa pozorovať NEDÁ — je to
+  // položka prevzatá z ľudskej TČM a majiteľ nemá ako ju zaškrtnúť. Ponechaná so
+  // znením, ktoré pozorovateľné je.
+  { id: 'headaches', element: 'water', side: 'excess', cls: 'diagnosis', labelEN: 'Head pain',
+    noteEN: 'Sensitive to being touched on the head, or presses their forehead into a wall' },
+  { id: 'stones', element: 'water', side: 'excess', cls: 'diagnosis', labelEN: 'Kidney or bladder stones' },
+  { id: 'arthritis', element: 'water', side: 'excess', cls: 'diagnosis', labelEN: 'Arthritis' },
+  { id: 'tumors', element: 'water', side: 'excess', cls: 'diagnosis', labelEN: 'Tumours of the brain, spine or lower abdomen' },
+  { id: 'frequent-urination', element: 'water', side: 'deficiency', cls: 'sign', labelEN: 'Frequent urination' },
+  { id: 'fear', element: 'water', side: 'deficiency', cls: 'sign', labelEN: 'Fear' },
+  // ⚠️ Zdroj má „Prematurely gray". Bez veku to nehovorí nič — ňufák šedivie
+  // normálne po siedmom roku. Ponechané s hranicou, ktorá z toho robí signál.
+  { id: 'grey', element: 'water', side: 'deficiency', cls: 'sign', labelEN: 'Going grey early',
+    noteEN: 'Before the age of five' },
+  { id: 'senses', element: 'water', side: 'deficiency', cls: 'sign', labelEN: 'Dulled sight and hearing' },
+  { id: 'discs', element: 'water', side: 'deficiency', cls: 'diagnosis', labelEN: 'Degeneration of discs or cartilage' },
+  { id: 'osteoporosis', element: 'water', side: 'deficiency', cls: 'diagnosis', labelEN: 'Osteoporosis' },
+  // ── WOOD ──
+  { id: 'reflux', element: 'wood', side: 'excess', cls: 'sign', labelEN: 'Burping, gulping, licking their lips' },
+  { id: 'irritability', element: 'wood', side: 'excess', cls: 'sign', labelEN: 'Short fuse — snaps with little warning' },
+  { id: 'hyperactivity', element: 'wood', side: 'excess', cls: 'sign', labelEN: 'Hyperactivity' },
+  { id: 'digestive-upset', element: 'wood', side: 'excess', cls: 'sign', labelEN: 'Digestive upset' },
+  { id: 'wheezing', element: 'wood', side: 'excess', cls: 'sign', labelEN: 'Wheezing' },
+  { id: 'seizures', element: 'wood', side: 'excess', cls: 'diagnosis', labelEN: 'Seizures' },
+  { id: 'joint-pain', element: 'wood', side: 'deficiency', cls: 'sign', labelEN: 'Aching joints and tendons' },
+  { id: 'dry-eyes', element: 'wood', side: 'deficiency', cls: 'sign', labelEN: 'Dry eyes' },
+  { id: 'phlegm', element: 'wood', side: 'deficiency', cls: 'sign', labelEN: 'Phlegm — a cough, mucous' },
+  { id: 'sluggish', element: 'wood', side: 'deficiency', cls: 'sign', labelEN: 'Lethargy' },
+  { id: 'circulation', element: 'wood', side: 'deficiency', cls: 'diagnosis', labelEN: 'Sluggish circulation' },
+  { id: 'ccl', element: 'wood', side: 'deficiency', cls: 'diagnosis', labelEN: 'A ruptured ligament (CCL)' },
+]);
+
+/**
+ * Ktorý element podporiť. Prevzaté DOSLOVA zo zdroja („Feed …" pod každou tabuľkou);
+ * nedostatok vždy podporuje sám seba a svoju matku v cykle.
+ *
+ * ⚠️ Toto je jediné miesto, kde sa vrstva rovnováhy dotýka misky, a hovorí len
+ * KTORÝ element podporiť. Čím sa podporí, je už `foodEN` daného elementu — teda
+ * L1–L3, ktoré sú v datasete a nemenia sa. Žiadna nová výživová rada tu nevzniká.
+ */
+export const BALANCE_SUPPORT: Record<BalanceSide, Record<ElementKey, ElementKey[]>> = {
+  excess: {
+    fire: ['water'], earth: ['wood'], metal: ['fire'], water: ['earth'], wood: ['metal'],
+  },
+  deficiency: {
+    fire: ['fire', 'wood'], earth: ['earth', 'fire'], metal: ['metal', 'earth'],
+    water: ['water', 'metal'], wood: ['wood', 'water'],
+  },
+};
+
 // ── SCORING ──────────────────────────────────────────────────────────────────
 export interface NatureResult {
   element: ElementKey;
-  /** Druhý element, ak dosiahol ≥ 80 % prvého — obe zdrojové metodiky dualitu pripúšťajú. */
+  /**
+   * Druhý element. Od prestavby 22. 8.: rozdiel najviac 1 bod a víťaz aspoň
+   * `DUAL_MIN_EL`. Podiel 80 % je pri desiatich bodoch priveľmi štedrý —
+   * pri 4 : 3 by dualitu priznal, čo je pri váhe 1 bežný šum.
+   */
   elementSecond: ElementKey | null;
   role: RoleKey;
   roleSecond: RoleKey | null;
@@ -927,11 +1305,28 @@ export interface NatureResult {
     el: Record<ElementKey, number>;
     role: Record<RoleKey, number>;
     spec: Record<SpecialKey, number>;
+    /**
+     * 🔑 VERZIA ŠKÁLY. Bez nej sa nové pravidlo duality pustí na staré body a
+     * ticho zmaže druhý element z DOG ID: pes z augusta má `earth:9 water:9`
+     * v škále 0–34, kde je to dualita, ale pravidlom „rozdiel ≤ 1" prejde tiež —
+     * a `metal:27 water:22` už nie, hoci starým pravidlom prešlo.
+     *
+     * `dog_events` je append-only, takže históriu prepísať nemožno. Verzia
+     * rozhoduje, ktorým pravidlom sa ČÍTA → viď `natureResultFromStored`.
+     * Chýbajúca hodnota = 1 (všetko spred 22. 8. 2026).
+     */
+    v?: number;
   };
 }
 
-/** Dualita sa priznáva, keď druhý dosiahne aspoň tento podiel prvého. */
+/** Škála zápisu, ktorý vyrobí dnešný `scoreNature`. Zvyšuj pri KAŽDEJ zmene rozsahu bodov. */
+export const NATURE_SCORE_VERSION = 2;
+
+/** v1 (do 22. 8. 2026): dualita podielom — druhý ≥ 80 % prvého. */
 const DUAL_RATIO = 0.8;
+/** v2: dualita rozdielom. Víťaz musí mať aspoň toľko, inak je zhoda len šum. */
+const DUAL_MIN_EL = 4;
+const DUAL_MIN_ROLE = 3;
 /** Zvláštna úloha z jadra kvízu (bez dedikovanej otázky) potrebuje aspoň toľko bodov. */
 const SPECIAL_THRESHOLD = 3;
 
@@ -971,6 +1366,33 @@ function pickSpecials(
     .slice(0, SPECIAL_CAP);
 }
 
+/**
+ * Zoradí os a REMÍZU ROZHODNE ODPOVEĎOU na tie-break otázku, nie poradím v poli.
+ *
+ * ⚠️ Toto nie je kozmetika. Pri váhe 1 je zhoda bežná, nie výnimočná — a predtým
+ * ju lámalo poradie v `ELEMENT_KEYS`/`ROLE_KEYS`. Hektor mal 22. 8.
+ * `herald:5 diviner:5 defender:5` a víťaza vybralo pole; vyzeralo to ako výsledok,
+ * ale bol to hod mincou, ktorý navyše zvýhodňoval vždy tú istú úlohu.
+ */
+function rankWithTiebreak<K extends string>(
+  s: Record<K, number>,
+  keys: K[],
+  tiebreak: string | undefined,
+): K[] {
+  return [...keys].sort((a, b) => {
+    if (s[b] !== s[a]) return s[b] - s[a];
+    if (a === tiebreak) return -1;
+    if (b === tiebreak) return 1;
+    return keys.indexOf(a) - keys.indexOf(b);
+  });
+}
+
+/** v2: dualita rozdielom. Vydelené, lebo to isté pravidlo potrebuje aj čítanie z DB. */
+function dualV2<K extends string>(order: K[], s: Record<K, number>, min: number): K | null {
+  const [top, second] = order;
+  return second && s[top] >= min && s[top] - s[second] <= 1 ? second : null;
+}
+
 export function scoreNature(
   answers: Record<string, string>,
   specialAnswers: Partial<Record<SpecialKey, SpecialAnswer>> = {},
@@ -979,42 +1401,107 @@ export function scoreNature(
   const role: Record<RoleKey, number> = { companion: 0, herald: 0, diviner: 0, defender: 0, captain: 0 };
   const spec: Record<SpecialKey, number> = { loner: 0, hunter: 0, peacemaker: 0, nurturer: 0 };
 
-  for (const q of NATURE_QUESTIONS) {
-    const picked = answers[q.id];
-    if (!picked) continue;
-    const opt = q.options.find((o) => o.id === picked);
-    if (!opt) continue;
-    for (const [k, v] of Object.entries(opt.el ?? {})) el[k as ElementKey] += v;
-    for (const [k, v] of Object.entries(opt.role ?? {})) role[k as RoleKey] += v;
-    for (const [k, v] of Object.entries(opt.spec ?? {})) spec[k as SpecialKey] += v;
+  // Váha je VŽDY 1 a `id` odpovede JE kľúč osi — preto tu nie sú žiadne tabuľky váh.
+  // Neznáme `id` sa ticho ignoruje: v poli môže ležať odpoveď na otázku, ktorá
+  // medzitým z datasetu zmizla.
+  for (const q of ELEMENT_QUESTIONS) {
+    const picked = answers[q.id] as ElementKey | undefined;
+    if (picked && picked in el) el[picked] += 1;
+  }
+  for (const q of ROLE_QUESTIONS) {
+    const picked = answers[q.id] as RoleKey | undefined;
+    if (picked && picked in role) role[picked] += 1;
   }
 
-  // Dedikované otázky sa pripočítavajú k signálom z jadra.
+  // Zvláštne úlohy stoja UŽ LEN na dedikovaných otázkach — z jadra kvízu vypadli.
   for (const [k, a] of Object.entries(specialAnswers)) {
     if (a) spec[k as SpecialKey] += SPECIAL_ANSWER_WEIGHTS[a];
   }
 
-  const rank = <K extends string>(s: Record<K, number>, keys: K[]) =>
-    [...keys].sort((a, b) => s[b] - s[a] || keys.indexOf(a) - keys.indexOf(b));
-
-  const elOrder = rank(el, ELEMENT_KEYS);
-  const roleOrder = rank(role, ROLE_KEYS);
-
-  const dual = <K extends string>(order: K[], s: Record<K, number>) =>
-    s[order[0]] > 0 && s[order[1]] >= s[order[0]] * DUAL_RATIO ? order[1] : null;
+  const elOrder = rankWithTiebreak(el, ELEMENT_KEYS, answers[ELEMENT_TIEBREAK]);
+  const roleOrder = rankWithTiebreak(role, ROLE_KEYS, answers[ROLE_TIEBREAK]);
 
   // Zvláštna úloha: najviac JEDNA, „nie“ ju vypína natvrdo. Viď `pickSpecials`.
   const specials = pickSpecials(spec, specialAnswers);
 
   return {
     element: elOrder[0],
-    elementSecond: dual(elOrder, el),
+    elementSecond: dualV2(elOrder, el, DUAL_MIN_EL),
     role: roleOrder[0],
-    roleSecond: dual(roleOrder, role),
+    roleSecond: dualV2(roleOrder, role, DUAL_MIN_ROLE),
     specials,
-    scores: { el, role, spec },
+    scores: { el, role, spec, v: NATURE_SCORE_VERSION },
   };
 }
+
+export interface BalanceCell {
+  element: ElementKey;
+  side: BalanceSide;
+  /** Počet zaškrtnutých položiek v bunke — prejavy aj diagnózy. */
+  count: number;
+  /** Ktoré elementy podľa zdroja podporiť. Prázdne, keď bunka nevyhrala. */
+  support: ElementKey[];
+}
+
+export interface BalanceResult {
+  /** Bunka s najviac zaškrtnutiami, alebo `null` keď nie je zaškrtnuté nič. */
+  top: BalanceCell | null;
+  /** Ďalšie bunky s aspoň jedným zaškrtnutím, zostupne. Bez `support`. */
+  rest: BalanceCell[];
+  /**
+   * Zaškrtnuté DIAGNÓZY. Nedostávajú radu k miske — patrí k nim jediná veta,
+   * a tou je odporúčanie ísť k veterinárovi.
+   */
+  diagnoses: BalanceItem[];
+  /** Zaškrtnuté prejavy, kvôli výpisu „na čom to stojí". */
+  signs: BalanceItem[];
+}
+
+/**
+ * Vyhodnotí kvíz 2. Vstup je zoznam `id` zaškrtnutých položiek.
+ *
+ * Rovnováha sa počíta zo VŠETKÉHO zaškrtnutého vrátane diagnóz — diagnóza je
+ * platný signál o tom, kam sa telo nakláňa. Čo sa NEDEJE, je diétna rada na ňu:
+ * `diagnoses` sa vracia samostatne, aby ju obrazovka vedela vykresliť s vlastnou
+ * vetou a nezamiešala ju medzi prejavy.
+ *
+ * Remízu bunky láme poradie `ELEMENT_KEYS` a `excess` pred `deficiency` — je to
+ * arbitrárne, ale deterministické; ten istý pes uvidí vždy to isté.
+ */
+export function scoreBalance(checked: string[]): BalanceResult {
+  const picked = new Set(checked);
+  const items = BALANCE_ITEMS.filter((b) => picked.has(b.id));
+
+  const cells: BalanceCell[] = [];
+  for (const element of ELEMENT_KEYS) {
+    for (const side of ['excess', 'deficiency'] as BalanceSide[]) {
+      const count = items.filter((b) => b.element === element && b.side === side).length;
+      if (count > 0) cells.push({ element, side, count, support: [] });
+    }
+  }
+  cells.sort((a, b) =>
+    b.count - a.count ||
+    ELEMENT_KEYS.indexOf(a.element) - ELEMENT_KEYS.indexOf(b.element) ||
+    (a.side === 'excess' ? -1 : 1));
+
+  const [top, ...rest] = cells;
+  return {
+    top: top ? { ...top, support: BALANCE_SUPPORT[top.side][top.element] } : null,
+    rest,
+    diagnoses: items.filter((b) => b.cls === 'diagnosis'),
+    signs: items.filter((b) => b.cls === 'sign'),
+  };
+}
+
+/**
+ * Veta k diagnózam. Vykresľuje sa NAMIESTO rady k miske, nie popri nej.
+ * Držané tu, aby sa nedalo obísť tým, že si obrazovka napíše vlastnú.
+ */
+export const BALANCE_VET_NOTE = {
+  textEN:
+    'What you have ticked here belongs with your vet, not with the bowl. It still tells us which way the balance leans — but a diagnosis is not something a diet advises on.',
+  i18n: 'pack.nature.balance.vetNote',
+};
 
 /**
  * ZAPÍSANÉ zvláštne úlohy orezané na dnešný strop — JEDINÁ cesta, ako sa `nature.specials`
@@ -1073,23 +1560,36 @@ export function natureResultFromStored(v: {
   const roleS = Object.fromEntries(ROLE_KEYS.map((k) => [k, num(raw.role, k)])) as Record<RoleKey, number>;
   const spec = Object.fromEntries(SPECIAL_KEYS.map((k) => [k, num(raw.spec, k)])) as Record<SpecialKey, number>;
 
-  // Dualita sa počíta rovnakým pravidlom ako v `scoreNature` — ale len nad tým, čo
-  // je v rozpade. Bez neho ostáva `null`, nie vymyslený druhý element.
-  const second = <K extends string>(s: Record<K, number>, keys: K[], top: K): K | null => {
-    const rest = keys.filter((k) => k !== top).sort((a, b) => s[b] - s[a] || keys.indexOf(a) - keys.indexOf(b));
+  // 🔑 DUALITA SA POČÍTA PODĽA VERZIE ŠKÁLY, V KTOREJ BOL ROZPAD ZAPÍSANÝ.
+  //
+  // Pravidlo v2 (rozdiel ≤ 1) je stavané na rozsah 0–10. Na starých bodoch, kde
+  // element beží do 34, je nezmyselné v oboch smeroch: `metal:27 water:22` je
+  // dualita podľa pravidla, ktoré vtedy platilo, ale rozdielom neprejde — a psovi
+  // by druhý element z DOG ID **ticho zmizol**, bez chyby a bez varovania. Opačne
+  // `earth:2 water:1` by rozdielom prešlo, hoci to nie je nič.
+  //
+  // `dog_events` je append-only, takže sa nesmie prepísať zápis — oreže sa až
+  // ČÍTANIE, rovnako ako pri `storedSpecials()`. Chýbajúce `v` = 1.
+  const version = num(raw, 'v') || 1;
+  const second = <K extends string>(s: Record<K, number>, keys: K[], top: K, min: number): K | null => {
+    const rest = keys.filter((k) => k !== top)
+      .sort((a, b) => s[b] - s[a] || keys.indexOf(a) - keys.indexOf(b));
     const r = rest[0];
-    return r && s[top] > 0 && s[r] >= s[top] * DUAL_RATIO ? r : null;
+    if (!r) return null;
+    return version >= 2
+      ? (s[top] >= min && s[top] - s[r] <= 1 ? r : null)
+      : (s[top] > 0 && s[r] >= s[top] * DUAL_RATIO ? r : null);
   };
 
   const specials = storedSpecials(v.specials, spec);
 
   return {
     element,
-    elementSecond: second(el, ELEMENT_KEYS, element),
+    elementSecond: second(el, ELEMENT_KEYS, element, DUAL_MIN_EL),
     role,
-    roleSecond: second(roleS, ROLE_KEYS, role),
+    roleSecond: second(roleS, ROLE_KEYS, role, DUAL_MIN_ROLE),
     specials,
-    scores: { el, role: roleS, spec },
+    scores: { el, role: roleS, spec, v: version },
   };
 }
 
@@ -1112,10 +1612,26 @@ export function natureTitleEN(r: NatureResult): { role: string; element: string 
 // Matej 2026-08-06: „nemusíme sa schovávať a kopírovať… použime to a spomeňme,
 // dajme odkaz". V duchu DOGMY 1.4 („nie je konkurenciou… je nadstavba").
 // ⚠️ `url` doplniť pred nasadením — v zdrojovom PDF je len kajabi storefront.
+// ⚠️ Rozšírené 22. 8. 2026. Do prestavby menovala pätička len WDDC a všeobecne
+// „Traditional Chinese Medicine" — lenže elementová vrstva odvtedy stojí na dvoch
+// konkrétnych, menovite citovateľných prácach: hárok a state Dr. Judy Morgan
+// (`judy:` v `src`) a portréty piatich konštitúcií od Cheryl Schwartz (`schwartz:`).
+// Priznať „čínsku medicínu" a zamlčať autorov, z ktorých sú prevzaté formulácie,
+// je horšie než nepriznať nič. Kým `src` menuje štyri podklady, pätička musí tiež.
 export const NATURE_ATTRIBUTION = {
   textEN:
-    'The pack-role layer builds on research by the Wolf and Dog Development Centre — The 9 Social Identities. With thanks for their work. The elements draw on Traditional Chinese Medicine.',
+    'The pack-role layer builds on research by the Wolf and Dog Development Centre — The 9 Social Identities. The constitution layer draws on Traditional Chinese Medicine as set out by Dr. Judy Morgan (Naturally Healthy Pets) and Cheryl Schwartz, DVM (Four Paws, Five Directions). With thanks for their work.',
   i18n: 'pack.nature.attribution',
   sourceName: 'Wolf and Dog Development Centre',
   url: '',
 } as const;
+
+// ⚠️ VOLANIE MUSÍ BYŤ AŽ TU, NA KONCI SÚBORU.
+// `assertLanes()` číta `ELEMENT_QUESTIONS`, `ROLE_QUESTIONS` aj `BALANCE_ITEMS`, ktoré sú
+// deklarované NIŽŠIE než samotná funkcia. Volanie hneď za jej definíciou preto spadlo na
+// temporal dead zone (`Cannot access 'ELEMENT_QUESTIONS' before initialization`) a zhodilo
+// celú stránku do ErrorBoundary.
+// 🔑 Nechytil to `tsc` ANI `npm run build` — v produkcii je `import.meta.env.DEV` nepravdivé,
+// takže sa stráž nezavolá a build prejde. Chyba žila LEN v deve a odhalilo ju až otvorenie
+// stránky. Ak sem pribudne ďalšia kontrola, volanie ostáva na konci súboru.
+if (import.meta.env?.DEV) assertLanes();
