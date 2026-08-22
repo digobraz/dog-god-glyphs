@@ -49,6 +49,18 @@ export type AddTripLogProps = {
   mapRef: MutableRefObject<LeafletMap | null>;
   /** Lišta kreslenia (rez B) — prechádza rovno do GeometryPickera, viď jeho `drawBar`. */
   drawBar?: { active: boolean; onDone: () => void };
+  /**
+   * VÝCHODISKO Z PRSTA (rez C) — bod z dlhého stlačenia. Stane sa PRVOU KOTVOU trasy
+   * hneď po výbere aktivity, takže krok „nájdi miesto" odpadá. Bez neho sa formulár
+   * správa presne ako doteraz.
+   */
+  seedPoint?: { lat: number; lon: number } | null;
+  /**
+   * „Miesto aj aktivita sú známe, choď kresliť." Volá sa RAZ, po výbere aktivity na
+   * zasiatom výlete — PackMap podľa toho odkryje mapu. Poradie zo zadania:
+   * 0 vstup → 1 miesto → 2 aktivita → 3 kreslenie → 4 byrokracia.
+   */
+  onReadyToDraw?: () => void;
 };
 
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
@@ -143,7 +155,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar, seedPoint, onReadyToDraw }: AddTripLogProps) {
   // ── krok 1: aktivita ('' = ešte nevybraná, formulár skrytý) ───────────────────────────────
   const [activity, setActivity] = useState('');
   const [geometry, setGeometry] = useState<TripGeometry>({ kind: 'route', path: [], snapped: false });
@@ -197,10 +209,25 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
   const pickActivity = (id: string) => {
     setActivity(id);
-    setGeometry(emptyGeometryFor(id));
     setExistingTripId(undefined);
     setDrawManually(false);
     setJourneyFilter('');
+    // ZASIATY VÝLET (rez C): bod spod prsta je prvá kotva a ide sa rovno kresliť.
+    // `emptyGeometryFor` by ho zahodilo, preto je táto vetva PRED ním, nie za.
+    const empty = emptyGeometryFor(id);
+    if (seedPoint) {
+      const p: LatLngTuple = [seedPoint.lat, seedPoint.lon];
+      setGeometry(
+        empty.kind === 'route'
+          ? { kind: 'route', path: [p], snapped: false }
+          : empty.kind === 'point'
+            ? { kind: 'point', center: p }
+            : { kind: 'area', center: p, radiusM: 1500 },
+      );
+      onReadyToDraw?.();
+      return;
+    }
+    setGeometry(empty);
   };
 
   // Výber magistrály — zdedí geometriu 1:1 (§2 zadania), km/ascent idú rovno do metricsRef

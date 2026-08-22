@@ -29,7 +29,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
 import { noteMarkHtml } from './MapNotesLayer';
-import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS } from './NotePalette';
+import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
 const GOLD = '#C99A3F';
 const PARK_BLUE = T.brandBlueLite;
@@ -174,7 +174,7 @@ export function MapNotePlacing({
 // RÝCHLA CESTA — paleta priamo pri bode, kam človek podržal prst.
 // Poradie je tu obrátené (miesto → typ), lebo gesto začalo na mieste.
 // ─────────────────────────────────────────────────────────────────────────────
-export function NoteQuickPalette({ onPick, onCancel }: { onPick: (g: NoteGroup) => void; onCancel: () => void }) {
+export function NoteQuickPalette({ onPick, onPickExtra, onCancel }: { onPick: (g: NoteGroup) => void; onPickExtra?: (x: PaletteExtra) => void; onCancel: () => void }) {
   const t = useT();
   return (
     <div className="mnq-wrap" role="dialog" aria-modal="true">
@@ -186,10 +186,12 @@ export function NoteQuickPalette({ onPick, onCancel }: { onPick: (g: NoteGroup) 
             keby bol v toku, centroval by sa len zvyšok šírky po jeho odčítaní a nadpis by
             sa opticky zosunul vľavo. */}
         <div className="mnq-head">
-          <h3 className="mnq-title">{t('pack.mapNotes.quick.title')}</h3>
+          {/* Nadpis sa mení podľa toho, čo paleta ponúka: s výletom a udalosťou v rade by
+              „Pridaj odkaz" klamal o dvoch z piatich dlaždíc. */}
+          <h3 className="mnq-title">{t(onPickExtra ? 'pack.mapNotes.quick.titleAny' : 'pack.mapNotes.quick.title')}</h3>
           <button type="button" className="mna-close mnq-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
         </div>
-        <NotePalette variant="strip" onPick={onPick} />
+        <NotePalette variant="strip" onPick={onPick} extras={onPickExtra ? ['trip', 'event'] : undefined} onPickExtra={onPickExtra} />
       </div>
     </div>
   );

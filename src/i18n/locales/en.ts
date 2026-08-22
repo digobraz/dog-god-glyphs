@@ -2123,6 +2123,13 @@ export const en = {
   'pack.map.layerThreats': "Pack warnings",
   'pack.map.layerVipers': "Adder territory",
   'pack.mapNotes.like': "Helpful",
+  // Dlaždice palety mimo odkazov (rez C) — dlhý stlač vie založiť aj výlet a udalosť.
+  'pack.mapNotes.palette.extra.trip': "Trip",
+  'pack.mapNotes.palette.extra.trip.text': "A walk with your dog — draw the route from here",
+  'pack.mapNotes.palette.extra.event': "Event",
+  'pack.mapNotes.palette.extra.event.text': "Something happening on a set date",
+  // Paleta po dlhom stlačení už nie je len o odkazoch, tak sa musí volať širšie.
+  'pack.mapNotes.quick.titleAny': "Add here",
   'pack.mapNotes.quick.title': "Add a note",
   'pack.mapNotes.map.add': "Add a note",
   'pack.mapNotes.cursor.hold': "Press and hold here",

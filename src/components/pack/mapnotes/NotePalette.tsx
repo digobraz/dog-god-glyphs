@@ -77,16 +77,47 @@ export function GroupMark({ group, size = 26 }: { group: NoteGroup; size?: numbe
   );
 }
 
+/**
+ * DLAŽDICE MIMO ODKAZOV (beh 2, rez C — Matej 22. 8.).
+ *
+ * Dlhé podržanie prsta doteraz vedelo založiť len ODKAZ. Výlet a udalosť sa dali pridať
+ * jedine tlačidlom PRIDAŤ, ktoré otvorí formulár cez celú obrazovku — teda presne tá cesta,
+ * pri ktorej Matej píše: „mám kresliť po mape = mapu nevidím lebo sú tam len textové polia".
+ * Gesto aj paleta existovali, pribúdajú DVE DLAŽDICE — nepíše sa nové gesto.
+ *
+ * Emoji sú tie isté, akými appka značí výlet a udalosť inde (🥾 / 📣), aby paleta hovorila
+ * rovnakým jazykom ako mapa pod ňou.
+ */
+export type PaletteExtra = 'trip' | 'event';
+
+const EXTRA_EMOJI: Record<PaletteExtra, string> = { trip: '🥾', event: '📣' };
+
 export type NotePaletteProps = {
   onPick: (group: NoteGroup) => void;
   /** `blocks` = veľké dlaždice do vstupného popupu, `strip` = úzky rad pri bode na mape */
   variant?: 'blocks' | 'strip';
+  /**
+   * Dlaždice nad rámec odkazov. Zámerne oddelené od `onPick` — `NoteGroup` je uzavretý
+   * číselník zápisov do mapy a natlačiť doň „výlet" by rozbilo všetko, čo sa naň spolieha
+   * (farba značky, polomer, tabuľka). Volajúci, ktorý ich nepodá, dostane paletu ako predtým.
+   */
+  extras?: PaletteExtra[];
+  onPickExtra?: (extra: PaletteExtra) => void;
 };
 
-export function NotePalette({ onPick, variant = 'blocks' }: NotePaletteProps) {
+export function NotePalette({ onPick, variant = 'blocks', extras, onPickExtra }: NotePaletteProps) {
   const t = useT();
   return (
     <div className={`np-wrap np-wrap--${variant}`}>
+      {(extras ?? []).map((x) => (
+        <button key={x} type="button" className="np-item" onClick={() => onPickExtra?.(x)}>
+          <span className="np-mark" style={{ width: variant === 'blocks' ? 30 : 24, height: variant === 'blocks' ? 30 : 24, fontSize: Math.round((variant === 'blocks' ? 30 : 24) * 0.82) }}>
+            {EXTRA_EMOJI[x]}
+          </span>
+          <span className="np-name">{t(`pack.mapNotes.palette.extra.${x}`)}</span>
+          {variant === 'blocks' && <span className="np-text">{t(`pack.mapNotes.palette.extra.${x}.text`)}</span>}
+        </button>
+      ))}
       {NOTE_GROUPS.map((g) => (
         <button key={g} type="button" className="np-item" onClick={() => onPick(g)}>
           <GroupMark group={g} size={variant === 'blocks' ? 30 : 24} />

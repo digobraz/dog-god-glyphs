@@ -2079,6 +2079,15 @@ export default function PackMap() {
   // pod ním klikateľná. GeometryPicker počúva `map.on('click')` priamo cez mapRef, nezávisle od
   // viditeľnosti panela, takže zápis geometrie beží ďalej aj kým je panel schovaný.
   const [mobileDrawing, setMobileDrawing] = useState(false);
+  /**
+   * VÝCHODISKO Z PRSTA (rez C) — bod, na ktorom človek podržal prst a z palety zvolil
+   * VÝLET alebo UDALOSŤ. Formulár ho dostane ako prvú kotvu trasy (resp. miesto udalosti),
+   * takže krok „nájdi miesto" úplne odpadá.
+   *
+   * ⚠️ NIE JE to koniec trasy. Dlhý stlač kladie ZAČIATOK; keby zároveň trasu uzavieral,
+   * pri chvíli váhania by sa výlet „sám" odoslal ako jednobodový.
+   */
+  const [seedPoint, setSeedPoint] = useState<{ lat: number; lon: number } | null>(null);
   // Lišta kreslenia (rez B). Memo, nie nový objekt pri každom renderi — `drawBar.active` je
   // v závislostiach `handleMapClick` v GeometryPickeri a nová identita by mu handler
   // prepisovala pri každom prekreslení mapy.
@@ -2636,9 +2645,35 @@ export default function PackMap() {
     }
     setAddFlow(choice.state);
   };
+  /**
+   * VÝLET / UDALOSŤ Z DLHÉHO STLAČENIA (rez C).
+   *
+   * Miesto je známe skôr než formulár — presne opačne než doteraz, keď sa najprv vypĺňali
+   * textové polia a mapa sa hľadala až potom. Bod si odloží `seedPoint`, formulár ho
+   * prevezme ako východisko a na mobile sa rovno otvára ODKRYTÁ MAPA (`mobileDrawing`),
+   * nie formulár: človek už povedal KDE, ostáva mu nakresliť KADIAĽ.
+   */
+  const startFromPoint = (what: 'trip' | 'event', lat: number, lon: number) => {
+    setNoteSpot(null);
+    setNoteHint(false);
+    setInlineDetailId(null);
+    setMobileView('map');
+    setSeedPoint({ lat, lon });
+    if (what === 'event') {
+      setAddEventFlow('own');
+      setMobileDrawing(false);
+      return;
+    }
+    setAddFlow('walked');
+    // Kreslenie sa NEOTVÁRA hneď — najprv aktivita (poradie: 1 miesto → 2 aktivita →
+    // 3 kreslenie). Mapu odkryje `onReadyToDraw` z formulára, keď je aktivita zvolená.
+    setMobileDrawing(false);
+  };
+
   const closeAdd = () => {
     setAddFlow(null);
     setMobileDrawing(false);
+    setSeedPoint(null);
     setAddError('');
     // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
     // inak by na mape visela adresa ADD flow a reload/back by formulár otvoril znova.
@@ -2647,6 +2682,7 @@ export default function PackMap() {
   const closeAddEvent = () => {
     setAddEventFlow(null);
     setMobileDrawing(false);
+    setSeedPoint(null);
     setAddError('');
     if (onAddRoute) navigate('/pack/map', { replace: true });
   };
@@ -3101,7 +3137,7 @@ export default function PackMap() {
           addFlow === 'planned' ? (
             <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
           ) : (
-            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} seedPoint={seedPoint} />
           )
         ) : addEventFlow ? (
           <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
@@ -3674,7 +3710,7 @@ export default function PackMap() {
             addFlow === 'planned' ? (
               <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} />
             ) : (
-              <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} />
+              <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} seedPoint={seedPoint} onReadyToDraw={() => setMobileDrawing(true)} />
             )
           ) : addEventFlow ? (
             <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
@@ -4120,6 +4156,7 @@ export default function PackMap() {
       {noteSpot && !noteDraft && (
         <NoteQuickPalette
           onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
+          onPickExtra={(x) => startFromPoint(x, noteSpot.lat, noteSpot.lon)}
           onCancel={() => setNoteSpot(null)}
         />
       )}
