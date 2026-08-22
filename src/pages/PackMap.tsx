@@ -1411,7 +1411,10 @@ ${TRAIL_LINE_CSS}
   /* bod 1 (iterácia 13): 78px → 122px — header je 2-riadkový (status + search row), ctlstack/
      drawhint musia začínať POD ním. Matej 2026-07-27: header sa zúžením statusu na jeden riadok
      a náhradou 3 selectov jednou „Filters" pilulkou zmenšil na ~95px → 122 → 106 (95 + medzera). */
-  .trp-ctlstack{top:calc(env(safe-area-inset-top,0px) + 106px);right:12px;gap:7px;}
+  /* 106 → 118 px spolu s padding-bottom hlavičky (10 → 22). Tieto dve čísla idú vždy
+     spolu: ovládanie mapy visí PRÁVE POD hlavičkou a keby ostalo na 106, vliezlo by do
+     hľadacieho riadku, ktorý sme práve odlepili od hrany. */
+  .trp-ctlstack{top:calc(env(safe-area-inset-top,0px) + 118px);right:12px;gap:7px;}
 
   .trp-stylebtn{width:34px;height:34px;}
   .trp-stylebtn img{width:16px;height:16px;}
@@ -1425,7 +1428,7 @@ ${TRAIL_LINE_CSS}
      končila na 410 px, tlačidlo bežalo 391→436). Do zámku obrazovky je táto bublina jediný
      viditeľný únik z režimu kreslenia — únik za okrajom je pasca. Zalomenie namiesto nowrap.
      (Bublina ako celok zaniká v reze B, kde ju nahradí spodná lišta s HOTOVO.) */
-  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 106px);flex-wrap:wrap;justify-content:center;}
+  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 118px);flex-wrap:wrap;justify-content:center;}
   .trp-drawhint .trp-drawhint-txt{white-space:normal;}
 
   /* bod 1 (iterácia 13, prestavané i15): mobilný header = 2 riadky — (1) status (avatar +
@@ -1433,10 +1436,18 @@ ${TRAIL_LINE_CSS}
      (i12 bod 7). .trp-mheader je teraz column namiesto jedného riadku. */
   /* issue #51 (Matej: efekt z Instagramu) — mapa/obsah pod headrom sa má strácať plynulo,
      bez ostrej hrany. border-bottom (1px hard line presne na okraji blur vrstvy) nahradený
-     mask-image na TOMTO ISTOM existujúcom blur elemente: posledných ~12% výšky (padding-bottom
-     zóna POD search riadkom, žiadny reálny UI prvok tam nesedí) plynulo stmavne do priehľadna.
-     Žiadny nový blur layer navyše (drahé na starších telefónoch) — len maska nad tým čo už beží. */
-  .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 10px;mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);}
+     mask-image na TOMTO ISTOM existujúcom blur elemente: posledných ~12% výšky plynulo stmavne
+     do priehľadna. Žiadny nový blur layer navyše (drahé na starších telefónoch).
+
+     ⚠️ OPRAVENÉ 2026-08-22 (Matej: „hlavička je divná, pod textovým poľom nie je takmer vôbec
+     okraj, je na hrane hlavičky"). Komentár tu tvrdil, že v blednúcej zóne „žiadny reálny UI
+     prvok nesedí" — bola to nemeraná domnienka. Odmerané na 430 px: hlavička 99,3 px, spodok
+     hľadacieho riadku 89,3 px, maska začína blednúť na **87,3 px** ⇒ posledné 2 px poľa boli
+     priehľadné a pole vyzeralo prilepené na hranu.
+     padding-bottom 10 → 22 px: hlavička 111 px, maska začína na ~98 px, teda 9 px POD poľom
+     a v zóne naozaj nič nie je. Keď do hlavičky pribudne riadok, ČÍSLA PREMERAJ ZNOVA —
+     percento masky sa počíta z výšky, takže sa posunie samo. */
+  .trp-mheader{display:flex;flex-direction:column;gap:8px;position:absolute;top:0;left:0;right:0;z-index:900;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 22px;mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);-webkit-mask-image:linear-gradient(to bottom, black 0%, black 88%, transparent 100%);}
   /* Matej 2026-08-03 („na mobil je toho veľa"): riadok 1 UŽ NIE JE rad piatich pilulek
      v horizontálnom scrolli, ale IDENTITA vľavo ↔ notifikácie vpravo. Preto space-between
      a žiadny overflow-x — už niet čo scrollovať, obsah sa vždy zmestí. */

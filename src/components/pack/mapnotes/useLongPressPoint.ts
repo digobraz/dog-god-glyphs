@@ -185,6 +185,25 @@ export function useLongPressPoint(
 // `.mn-holding` = vizuálna spätná väzba počas držania (kurzor), aby človek videl,
 // že sa niečo deje, a nepustil to o 200 ms skôr.
 export const LONG_PRESS_CSS = `
+/* ── ŠTVRTÁ VEC, BEZ KTOREJ TO NA MOBILE „BLBNE" (Matej 2026-08-22) ──────────
+   „keď na mobile podržím tak mi zobrazí možnosť kopírovania… označí ako keby
+   texty v tej oblasti."
+
+   contextmenu preventDefault (bod 2 v hlavičke) zastaví MENU, ale NIE výber
+   textu. To je na mobile samostatné správanie: dlhé podržanie nad DOM prvkom
+   s textom spustí označovanie a vytiahne panel Kopírovať/Zdieľať. Na dlaždice
+   to nesadne (sú to obrázky), ale mapa je nimi pokrytá len zdanlivo — nad nimi
+   ležia značky svorky, zhluky s číslami a pilulky „104 km", a tie text majú.
+   Preto sa gesto raz chytí a raz z neho vyskočí označený text; závisí to od
+   toho, o koľko pixelov vedľa prst pristál.
+
+   Výber sa preto v mape vypína celoplošne — na mape aj tak nie je čo označovať.
+   ⚠️ Výnimka je bublina (.leaflet-popup): tam text JE a človek ho môže chcieť
+   skopírovať, takže tú vraciame späť.
+   -webkit-touch-callout je iOS-only a rieši panel „Kopírovať/Zdieľať" aj
+   v prípadoch, keď sa výber sám nespustí. */
+.leaflet-container{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+.leaflet-container .leaflet-popup{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default;}
 .leaflet-container.mn-armed{cursor:default;}
 .leaflet-container.mn-holding{cursor:progress;}
 /* Režim „ukáž miesto" — typ je vybraný a čaká sa na jediný klik. Zameriavač je
