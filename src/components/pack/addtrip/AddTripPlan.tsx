@@ -34,6 +34,8 @@ export type AddTripPlanProps = {
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
   /** Mapa žije v PackMap.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
   mapRef: MutableRefObject<LeafletMap | null>;
+  /** Lišta kreslenia (rez B) — prechádza rovno do GeometryPickera, viď jeho `drawBar`. */
+  drawBar?: { active: boolean; onDone: () => void };
 };
 
 // Aktivita taxonómia — lokálna kópia (id/label/emoji + dátové ACT_DATA_ID mapovanie pre
@@ -96,7 +98,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef }: AddTripPlanProps) {
+export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar }: AddTripPlanProps) {
   const t = useT();
   const [name, setName] = useState('');
   const [activity, setActivity] = useState<string>('hiking');
@@ -206,6 +208,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
               mode="plan"
               allTrails={allTrails}
               mapRef={mapRef}
+              drawBar={drawBar}
             />
           </div>
         </div>

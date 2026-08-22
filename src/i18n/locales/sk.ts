@@ -1844,6 +1844,8 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.geo.areaRadius': "Oblasť · polomer {km} km",
   'pack.addTrip.geo.spotSet': "Miesto nastavené",
   'pack.addTrip.geo.undo': "Späť",
+  'pack.addTrip.geo.undoPoint': "Späť o bod",
+  'pack.addTrip.geo.done': "Hotovo",
   'pack.addTrip.geo.clear': "Vymazať",
   'pack.addTrip.geo.snappingBusy': "prichytávam…",
   'pack.addTrip.geo.ghostHint': "Bledé čiary sú existujúce trasy — klikni na jednu a zapíš ju",

@@ -1235,6 +1235,10 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* draw hint bubble — shown on the map while ADD TRIP is open (bod 6) */
 /* Matej 2026-07-23: hint bol hore v headri (zle) → POD search-a-place riadkom (top:120px),
    ČERVENÝ a väčší, nech je jasne vidno. Mobile override nižšie ho drží pod mobilným headerom. */
+/* Lišta kreslenia (rez B) hovorí to isté čo táto bublina, a navyše nesie km, prevýšenie
+   a Späť o bod. Kým je na obrazovke, bublina je zbytočná druhá hláska o tom istom.
+   Triedu vešia GeometryPicker — len ON vie, či je lišta reálne mountnutá. */
+body.trp-drawbar-on .trp-drawhint{display:none;}
 .trp-drawhint{position:absolute;top:152px;left:calc(50% + ${PANEL_W / 2}px);transform:translateX(-50%);z-index:750;background:rgba(178,38,30,0.94);backdrop-filter:blur(10px);border:1.5px solid rgba(255,124,112,0.7);border-radius:12px;padding:13px 22px;box-shadow:0 12px 34px rgba(120,20,14,0.5);display:flex;align-items:center;gap:14px;max-width:calc(100vw - ${PANEL_W + 60}px);}
 .trp-drawhint-txt{font-size:15px;font-weight:600;color:#fff;white-space:nowrap;}
 .trp-drawhint-actions{display:flex;gap:8px;flex-shrink:0;}
@@ -2075,6 +2079,13 @@ export default function PackMap() {
   // pod ním klikateľná. GeometryPicker počúva `map.on('click')` priamo cez mapRef, nezávisle od
   // viditeľnosti panela, takže zápis geometrie beží ďalej aj kým je panel schovaný.
   const [mobileDrawing, setMobileDrawing] = useState(false);
+  // Lišta kreslenia (rez B). Memo, nie nový objekt pri každom renderi — `drawBar.active` je
+  // v závislostiach `handleMapClick` v GeometryPickeri a nová identita by mu handler
+  // prepisovala pri každom prekreslení mapy.
+  const drawBarProps = useMemo(
+    () => ({ active: mobileDrawing, onDone: () => setMobileDrawing(false) }),
+    [mobileDrawing],
+  );
   // tripy pridané v tejto session (ADD flow submit) — lokálny state, NIE Supabase (mimo
   // rozsahu tejto iterácie); zobrazujú sa hneď na mape + v zozname pred statickými HERO_TRAILS.
   // sessionStorage mirror (viď vyššie) nech expand na čerstvo pridaný trip nájde aj po navigate.
@@ -3655,11 +3666,15 @@ export default function PackMap() {
           <button type="button" className="trp-madd-drawbtn" onClick={() => setMobileDrawing(true)}>
             {t('pack.map.viewMapToPlaceRoute')}
           </button>
+          {/* LIŠTA KRESLENIA (rez B) dostáva LEN táto, mobilná inštancia.
+              ⚠️ Desktopový `.trp-sidebar` vyššie mountuje ten istý formulár ZÁROVEŇ — obe
+              existujú v DOM naraz a skrýva ich CSS, nie podmienka. Keby `drawBar` dostali obe,
+              na obrazovke by stáli dve lišty. */}
           {addFlow ? (
             addFlow === 'planned' ? (
-              <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+              <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} />
             ) : (
-              <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
+              <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} />
             )
           ) : addEventFlow ? (
             <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />

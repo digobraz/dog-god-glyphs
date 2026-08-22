@@ -47,6 +47,8 @@ export type AddTripLogProps = {
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
   /** Mapa žije v PackMap.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
   mapRef: MutableRefObject<LeafletMap | null>;
+  /** Lišta kreslenia (rez B) — prechádza rovno do GeometryPickera, viď jeho `drawBar`. */
+  drawBar?: { active: boolean; onDone: () => void };
 };
 
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
@@ -141,7 +143,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar }: AddTripLogProps) {
   // ── krok 1: aktivita ('' = ešte nevybraná, formulár skrytý) ───────────────────────────────
   const [activity, setActivity] = useState('');
   const [geometry, setGeometry] = useState<TripGeometry>({ kind: 'route', path: [], snapped: false });
@@ -647,6 +649,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   allTrails={allTrails}
                   onMetrics={(m) => { metricsRef.current = m; }}
                   mapRef={mapRef}
+                  drawBar={drawBar}
                 />
               )}
             </div>

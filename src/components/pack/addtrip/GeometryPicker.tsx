@@ -11,6 +11,7 @@
 // edituje sa `path`. Zdroj pravdy datasetu to má rovnako (trails-nahadzovac-state.json: 28 kotiev
 // / 465 bodov stopy) — keby sa zliali, Matej by trasy pred launchom nevedel opraviť.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -34,6 +35,13 @@ import {
 const GOLD = '#C99A3F';
 const GOLD_BRIGHT = '#F5C73D';
 
+/**
+ * Výška lišty kreslenia. Používa sa DVAKRÁT — na jej vlastný layout a na odpanovanie mapy,
+ * aby posledný položený bod neskončil pod ňou. Preto je to konštanta, nie dve čísla.
+ * Vzor odpanovania je zhodný s `placeNote()` v PackMap.tsx (NOTE_PANEL_H + 40).
+ */
+export const DRAW_BAR_H = 120;
+
 // Územie: rozsah polomeru zo zadania §5.
 const AREA_MIN_M = 200;
 const AREA_MAX_M = 20000;
@@ -52,6 +60,19 @@ export type GeometryPickerProps = {
   onPickExisting?: (trail: HeroTrail) => void;
   onMetrics?: (m: { km: number; ascentM: number | null; points: number }) => void;
   mapRef: React.MutableRefObject<LeafletMap | null>;
+  /**
+   * LIŠTA KRESLENIA (beh 2, rez B — Matej 22. 8.: „musí to zvládnuť človek po ceste v aute").
+   *
+   * Kým bol formulár na mobile schovaný (`mobileDrawing`), zmizol s ním AJ readout a Undo,
+   * lebo sú jeho súčasťou. Človek teda kreslil naslepo — nevidel km ani prevýšenie a zlý bod
+   * nemal ako vrátiť. Tu sa tie isté čísla a tie isté handlery vykreslia ešte raz, pri spodnej
+   * hrane nad mapou.
+   *
+   * Prečo to renderuje picker a nie PackMap: km, prevýšenie, `notice` o nesnapnutí aj `undo`
+   * (ktorý skladá stopu z `legsRef` bez volania siete) žijú TU. Dvíhať ich cez AddTripPlan
+   * a AddTripLog do PackMap by z jedného zdroja pravdy urobilo tri.
+   */
+  drawBar?: { active: boolean; onDone: () => void };
 };
 
 // ── pomocné ─────────────────────────────────────────────────────────────────────────────
@@ -100,6 +121,7 @@ export function GeometryPicker({
   onPickExisting,
   onMetrics,
   mapRef,
+  drawBar,
 }: GeometryPickerProps) {
   const t = useT();
   // legs[i] = geometria medzi kotvou i a i+1. Držané v ref, nie v state: undo musí prepočítať
@@ -169,6 +191,17 @@ export function GeometryPicker({
   const handleMapClick = useCallback(async (lat: number, lng: number) => {
     const p: LatLngTuple = [lat, lng];
 
+    // Bod položený pod lištou by ostal neviditeľný — mapa sa odpanuje, nie lišta zmenší.
+    // Rovnaký vzor ako `placeNote()` v PackMap.tsx.
+    if (drawBar?.active) {
+      const map = mapRef.current;
+      if (map) {
+        const pt = map.latLngToContainerPoint(p);
+        const safeY = map.getSize().y - DRAW_BAR_H - 40;
+        if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
+      }
+    }
+
     if (value.kind === 'point') { onChange({ kind: 'point', center: p }); return; }
     if (value.kind === 'area') {
       onChange({ kind: 'area', center: p, radiusM: value.radiusM || AREA_DEFAULT_M });
@@ -208,7 +241,7 @@ export function GeometryPicker({
       hideStartM: value.hideStartM,
     });
     void recomputeAscent(snapPath);
-  }, [value, onChange, buildSnapPath, recomputeAscent]);
+  }, [value, onChange, buildSnapPath, recomputeAscent, drawBar?.active, mapRef]);
 
   // ── undo / clear ──────────────────────────────────────────────────────────────────────
   // Undo NESMIE volať sieť — legs sú v ref, stopa sa poskladá z nich (§2.2 kontraktu).
@@ -357,6 +390,38 @@ export function GeometryPicker({
       : value.kind === 'point' ? t('pack.addTrip.geo.hintSpot')
       : t('pack.addTrip.geo.hintArea');
 
+  // Lišta hovorí to isté, čo červená bublina hore (`.trp-drawhint` v PackMap.tsx) — a lepšie,
+  // lebo nesie aj čísla a Undo. Aby na obrazovke nestáli dve hlásenia o tom istom, vešia sa na
+  // <body> trieda a bublinu schová CSS. Rovnaký vzor ako `trp-draw-lock` z rezu A: jedna trieda,
+  // jedno miesto. Podmienka je tu a nie v PackMap preto, že PackMap nevie, či je picker mountnutý
+  // (v niektorých krokoch AddTripLog nie je) — a bublina musí ostať jedinou cestou späť.
+  const barOn = !!drawBar?.active;
+  useEffect(() => {
+    if (!barOn) return;
+    document.body.classList.add('trp-drawbar-on');
+    return () => { document.body.classList.remove('trp-drawbar-on'); };
+  }, [barOn]);
+
+  // ── ČÍTANIE: JEDEN ZDROJ PRE PANEL AJ LIŠTU ───────────────────────────────────────────
+  // Kým bol readout napísaný priamo v JSX panela, lišta by si ho musela opísať — a po prvej
+  // zmene formátu (napr. `1 bod` vs `5 bodov`) by dve miesta hovorili dve rôzne veci.
+  const readout = value.kind === 'route' ? (
+    pointCount < 2
+      ? <span style={{ color: T.onDarkDim }}>{hint}</span>
+      : <>
+          {km.toFixed(1)} km
+          <span style={{ color: T.onDarkDim }}> · </span>
+          ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
+          <span style={{ color: T.onDarkDim }}> · {t('pack.addTrip.geo.pointsSuffix', { n: pointCount })}</span>
+        </>
+  ) : value.center ? (
+    value.kind === 'area'
+      ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
+      : t('pack.addTrip.geo.spotSet')
+  ) : (
+    <span style={{ color: T.onDarkDim }}>{hint}</span>
+  );
+
   return (
     <div style={{ display: 'grid', gap: 10 }}>
       {/* prepínač režimu — len ak aktivita povoľuje viac než jeden */}
@@ -394,22 +459,7 @@ export function GeometryPicker({
         }}
       >
         <span style={{ fontFamily: FONT_UI, fontSize: 13, fontWeight: 500, color: T.onDark }}>
-          {value.kind === 'route' ? (
-            pointCount < 2
-              ? <span style={{ color: T.onDarkDim }}>{hint}</span>
-              : <>
-                  {km.toFixed(1)} km
-                  <span style={{ color: T.onDarkDim }}> · </span>
-                  ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
-                  <span style={{ color: T.onDarkDim }}> · {t('pack.addTrip.geo.pointsSuffix', { n: pointCount })}</span>
-                </>
-          ) : value.center ? (
-            value.kind === 'area'
-              ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
-              : t('pack.addTrip.geo.spotSet')
-          ) : (
-            <span style={{ color: T.onDarkDim }}>{hint}</span>
-          )}
+          {readout}
         </span>
 
         {value.kind === 'route' && pointCount > 0 && (
@@ -447,6 +497,66 @@ export function GeometryPicker({
           {t('pack.addTrip.geo.ghostHint')}
         </div>
       )}
+
+      {/* ── LIŠTA KRESLENIA ────────────────────────────────────────────────────────────
+          Portál na <body>: panel, v ktorom picker žije, je na mobile schovaný cez
+          `display:none` (mobileDrawing), takže čokoľvek vnútri neho by zmizlo s ním.
+          `notice` (nesadlo to na chodník) sa hlási TU — panel, ktorý ho hlásil doteraz,
+          je počas kreslenia neviditeľný. */}
+      {barOn && drawBar && createPortal(
+        <div
+          style={{
+            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1200,
+            minHeight: DRAW_BAR_H, boxSizing: 'border-box',
+            display: 'flex', flexDirection: 'column', gap: 10,
+            padding: '14px 16px calc(14px + env(safe-area-inset-bottom, 0px))',
+            background: 'rgba(18,13,7,0.94)', backdropFilter: 'blur(12px)',
+            borderTop: `1px solid ${T.onDarkBorder}`,
+            boxShadow: '0 -14px 40px rgba(0,0,0,0.45)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 20 }}>
+            <span style={{ fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, color: T.onDark }}>
+              {readout}
+            </span>
+            {busy && (
+              <span style={{ fontFamily: FONT_UI, fontSize: 11, color: T.onDarkDim, whiteSpace: 'nowrap' }}>
+                {t('pack.addTrip.geo.snappingBusy')}
+              </span>
+            )}
+          </div>
+
+          {/* zlyhanie snapu sa NIKDY nezamlčí (§5.2c) — aj keď je panel schovaný */}
+          {notice && (
+            <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: GOLD }}>{notice}</div>
+          )}
+
+          {/* Rad tlačidiel drží CELÚ šírku, rovnaké diely (feedback_rad_prvkov_plna_sirka_kontajnera).
+              HOTOVO je jediná zlatá — zlatá je farba výzvy, nie farba tlačidla. */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={undo}
+              disabled={busy || pointCount === 0}
+              style={{ ...barBtn, opacity: pointCount === 0 ? 0.4 : 1 }}
+            >
+              {t('pack.addTrip.geo.undoPoint')}
+            </button>
+            <button
+              type="button"
+              onClick={clear}
+              disabled={busy || pointCount === 0}
+              style={{ ...barBtn, opacity: pointCount === 0 ? 0.4 : 1 }}
+            >
+              {t('pack.addTrip.geo.clear')}
+            </button>
+            <button type="button" onClick={drawBar.onDone} style={barDoneBtn}>
+              {t('pack.addTrip.geo.done')}
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }
@@ -462,6 +572,39 @@ const miniBtn: React.CSSProperties = {
   fontWeight: 500,
   letterSpacing: '.06em',
   textTransform: 'uppercase',
+  cursor: 'pointer',
+};
+
+/** Tlačidlo lišty — sklenené, na tmavom. Nie zlaté: v rade smie byť zlatá len výzva. */
+const barBtn: React.CSSProperties = {
+  flex: '1 1 0',
+  padding: '12px 10px',
+  borderRadius: 8,
+  background: T.glass,
+  border: `1px solid ${T.onDarkBorder}`,
+  color: T.onDark,
+  fontFamily: FONT_UI,
+  fontSize: 12,
+  fontWeight: 500,
+  letterSpacing: '.06em',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+};
+
+/** HOTOVO — brand CTA podľa `.btn-gold` locku: gradient 135°, radius 8, papyrusový rám. */
+const barDoneBtn: React.CSSProperties = {
+  flex: '1 1 0',
+  padding: '12px 10px',
+  borderRadius: 8,
+  background: 'linear-gradient(135deg,#F5C73D,#E69E1A)',
+  border: '1px solid rgba(250,244,236,0.3)',
+  color: '#1c160c',
+  fontFamily: FONT_TITLE,
+  fontWeight: 700,
+  fontSize: 12,
+  letterSpacing: '.08em',
+  textTransform: 'uppercase',
+  boxShadow: '0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
   cursor: 'pointer',
 };
 

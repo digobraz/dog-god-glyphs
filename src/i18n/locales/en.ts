@@ -1900,6 +1900,9 @@ export const en = {
   'pack.addTrip.geo.areaRadius': "Area · {km} km radius",
   'pack.addTrip.geo.spotSet': "Spot set",
   'pack.addTrip.geo.undo': "Undo",
+  // Lišta kreslenia (rez B) — v paneli stačí „Undo", na lište musí byť jasné, ČO sa vráti.
+  'pack.addTrip.geo.undoPoint': "Undo point",
+  'pack.addTrip.geo.done': "Done",
   'pack.addTrip.geo.clear': "Clear",
   'pack.addTrip.geo.snappingBusy': "snapping…",
   'pack.addTrip.geo.ghostHint': "Faded lines are existing trails — click one to log it instead",
