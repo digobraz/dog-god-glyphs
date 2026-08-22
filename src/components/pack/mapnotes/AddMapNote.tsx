@@ -743,10 +743,10 @@ export const ADD_NOTE_CSS = `
    ⚠️ Responzívnu zmenu preto meraj v PÁSME (338/367/400/440), nie na jednej
    šírke — to je tá istá pasca ako pri psom bloku na /pack/dogs. */
 @media (max-width:430px){
-  .mna-kinds{gap:4px;}
-  .mna-kind i{font-size:15px;}
-  .mna-tick-switch .mna-opt{font-size:9px;padding:6px 5px;letter-spacing:.04em;}
-  .mna-select{flex:1 1 120px;font-size:11px;padding:6px 7px;}
-  .mna-radius-note{font-size:10px;}
+  .mna-sheet .mna-kinds{gap:4px;}
+  .mna-sheet .mna-kind i{font-size:15px;}
+  .mna-sheet .mna-tick-switch .mna-opt{font-size:9px;padding:6px 5px;letter-spacing:.04em;}
+  .mna-sheet .mna-select{flex:1 1 120px;font-size:11px;padding:6px 7px;}
+  .mna-sheet .mna-radius-note{font-size:10px;}
 }
 `;
