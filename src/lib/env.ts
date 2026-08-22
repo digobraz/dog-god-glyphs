@@ -61,5 +61,19 @@ export const POSTHOG_HOST = 'https://eu.i.posthog.com';
 // Everything else gets 403 — including `*.lovable.app` previews and dev
 // servers on other ports (5173 etc.), so run `/pack/map` on 8080–8083.
 export const MAPY_API_KEY = 'GoBI7Tac9Hjr0cCbkAiUl28bZyrPYz_ZHb90sFkTCG0';
+
+/**
+ * ZÁKLAD VOLANÍ MAPY.COM — v prehliadači sa NEPÍŠE natvrdo, berie sa odtiaľto.
+ *
+ * Prod: priamo `https://api.mapy.com` (referrer = dogypt.com, teda vo whiteliste).
+ * Dev:  vlastný pôvod `/mapyapi`, kde Vite proxy dosadí `Referer: https://dogypt.com/`
+ *       (vite.config.ts). Bez toho dostane 403 každý dev náhľad mimo localhostu —
+ *       mobil cez cloudflared tunel aj telefón na LAN IP — a mapa ostane prázdna.
+ *
+ * ⚠️ Nové volanie na api.mapy.com píš cez `MAPY_BASE`, nie reťazcom. Natvrdo napísaná
+ * adresa funguje na tvojom localhoste a padne až na Matejovom telefóne.
+ */
+export const MAPY_BASE = import.meta.env.DEV ? '/mapyapi' : 'https://api.mapy.com';
+
 export const mapyTiles = (style: string = 'outdoor') =>
-  `https://api.mapy.com/v1/maptiles/${style}/256/{z}/{x}/{y}?apikey=${MAPY_API_KEY}`;
+  `${MAPY_BASE}/v1/maptiles/${style}/256/{z}/{x}/{y}?apikey=${MAPY_API_KEY}`;

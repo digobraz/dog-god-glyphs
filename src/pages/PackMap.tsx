@@ -50,7 +50,7 @@ import { MapContainer, TileLayer, Polyline, Polygon, Marker, ScaleControl, useMa
 import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
+import { mapyTiles, MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { track } from '@/lib/analytics';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { metersPerPixel } from '@/components/geo/geoMath';
@@ -2308,7 +2308,7 @@ export default function PackMap() {
     if (pickedPlaceRef.current === q) { setPlaceSug([]); return; }
     const timer = setTimeout(async () => {
       try {
-        const url = `https://api.mapy.com/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
+        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
         const items: PlaceSug[] = (data.items || [])

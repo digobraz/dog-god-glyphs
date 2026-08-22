@@ -16,7 +16,7 @@ import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { trailCountry } from '@/lib/countryGeo';
-import { MAPY_API_KEY } from '@/lib/env';
+import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import {
   EVENT_KINDS, EVENT_KIND_LABEL_KEYS, missingEventFields,
   type AddEventDraft, type EventKind, type EventOrigin,
@@ -81,7 +81,7 @@ export function AddEvent({ origin, authorName, onSubmit, onClose, mapRef }: AddE
     if (pickedRef.current === q) { setSuggestions([]); return; }
     const timer = setTimeout(async () => {
       try {
-        const url = `https://api.mapy.com/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
+        const url = `${MAPY_BASE}/v1/suggest?query=${encodeURIComponent(q)}&lang=en&limit=6&apikey=${MAPY_API_KEY}`;
         const res = await fetch(url);
         const data = await res.json();
         const items: PlaceSug[] = (data.items || [])
