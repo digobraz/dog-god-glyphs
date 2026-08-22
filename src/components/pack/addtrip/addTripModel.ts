@@ -25,6 +25,29 @@ export type TripGeometry =
       snapPath?: LatLngTuple[];   // odvodená stopa; undefined = snap nikdy nebežal
       snapped: boolean;           // aspoň jeden úsek reálne sadol na chodník
       hideStartM?: number;
+      /**
+       * CIEĽ TRASY (Matej 2026-08-23) — index do `path`, nie samostatná súradnica.
+       * Súradnica navyše by sa pri „späť o bod" rozišla s trasou a ukazovala by cieľ tam,
+       * kde už žiadna kotva nie je. Kreslí sa `TRIP_TARGET_EMOJI` (markEmoji.ts).
+       */
+      targetIdx?: number;
+      /**
+       * Ako sa človek vracal, keď označil cieľ. `continue` = kreslí ďalej ·
+       * `loop` = okruh inou cestou (lišta ponúkne uzavretie pri štarte) ·
+       * `mirror` = tá istá trasa naspäť (kotvy sú už zrkadlené, viď `mirroredFrom`).
+       */
+      returnMode?: 'continue' | 'loop' | 'mirror';
+      /**
+       * Počet kotiev PRED zrkadlením. „Späť o bod" po zdvojení musí vrátiť CELÉ zdvojenie —
+       * inak ostane pol trasy tam a pol späť a človek to nemá ako opraviť inak než zmazaním.
+       */
+      mirroredFrom?: number;
+      /**
+       * NAJMENŠÍ MOŽNÝ ZÁPIS (Matej 2026-08-23): dva body — štart a cieľ — bez trasy medzi nimi.
+       * Nesnapuje sa (snap by vymyslel cestu, kadiaľ človek nešiel) a NEPOČÍTA sa z toho km:
+       * vzdušná čiara nie je dĺžka výletu a tvrdiť ju by pokazilo aj rebríček kilometrov.
+       */
+      minimal?: boolean;
     }
   | { kind: 'point'; center: LatLngTuple }
   | { kind: 'area'; center: LatLngTuple; radiusM: number };
@@ -110,6 +133,11 @@ export type AddTripDraft = {
   coverIndex?: number;            // index do `photos`; undefined = prvá
   coverY?: number;                // 0–100 %, default 50
   note?: string;                  // krátky text o výlete
+  /**
+   * KROK SPRIEVODCU, na ktorom sa práve stojí (1–5, viď AddTripLog). Ukladá sa spolu s draftom:
+   * bez neho obnovený výlet spadne späť na krok 1 a človek kreslí trasu, ktorú už má.
+   */
+  step?: number;
   // meta
   authorName: string;
   createdAt: number;
@@ -161,7 +189,11 @@ export const SUBMIT_REQUIRED: Record<TripState, Array<keyof AddTripDraft>> = {
 };
 // diff/surface (terrain) sú v tabuľke §4.3 riadok 4 označené „(len hiking/journey)" —
 // missingFields() to zohľadňuje, HIKE_LIKE nižšie.
-export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'hazards', 'tags', 'paws', 'photos'];
+// ⚠️ `hazards` tu bolo do 23. 8. 2026. Nebezpečenstvo sa od kroku 2 sprievodcu ZAPICHUJE NA MAPU
+// (tabuľka `map_notes`), takže formulár ho už neplní — a podmienka na pole, ktoré sa nedá vyplniť,
+// by každý výlet natrvalo držala v stave `draft`. Chip bez polohy bol aj tak horší údaj: svorke
+// nepovie KDE. Historické hodnoty v `trip_votes.hazards` sa tým nemažú.
+export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'tags', 'paws', 'photos'];
 
 const HIKE_LIKE = new Set(['hiking', 'journey']);
 

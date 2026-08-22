@@ -982,8 +982,10 @@ body.trp-sheet-open .ainubis-launcher{display:none;}
    prepínača kategórií Trips/Events) a plávajúci AINUBIS.
    Ostane NÁSTROJ: mapa, panel práve pridávanej veci a jeho vlastný únik (× / Zrušiť).
 
-   ⚠️ Desktopový .trp-sidebar je v stave ADD sám tým panelom nástrojov — preto sa hľadá cez
-   :not(.is-tool). Bez toho by zámok schoval formulár, ktorý má chrániť.
+   ⚠️ NÁSTROJOM JE .trp-addhost, NIE PANEL. Do 23. 8. mal panel v stave ADD triedu is-tool a
+   zámok ho preto obchádzal; odkedy formulár pridávania býva vo vlastnom hostiteľovi (jedna
+   kópia namiesto dvoch), je .trp-sidebar vždy len prehliadanie a zámok ho schová celý.
+   .trp-addhost žiadne pravidlo zámku netrafí — a to je zámer, je to ten chránený nástroj.
 
    ⚠️ Mapa sa v zámku vracia aj z LIST pohľadu (posledné dva riadky). Bez toho platí
    .trp-root.mlist-active .trp-mapregion{display:none} a človek, ktorý dal PRIDAŤ zo zoznamu,
@@ -998,7 +1000,7 @@ body.trp-draw-lock .trp-mheader{display:none;}
    PRIDAŤ. Bez tohto riadku zámok na PC ničí len navigáciu a hlavičku nechá stáť. */
 body.trp-draw-lock .trp-topbar{display:none;}
 body.trp-draw-lock .trp-mactions{display:none;}
-body.trp-draw-lock .trp-sidebar:not(.is-tool){display:none;}
+body.trp-draw-lock .trp-sidebar{display:none;}
 body.trp-draw-lock .trp-root .trp-mlist{display:none;}
 body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 /* Matej 2026-07-24: "+" brand ikonka pred textom — plus.svg je natívne čierne (fill hardcoded,
@@ -1237,15 +1239,18 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 /* Lišta kreslenia (rez B) hovorí to isté čo táto bublina, a navyše nesie km, prevýšenie
    a Späť o bod. Kým je na obrazovke, bublina je zbytočná druhá hláska o tom istom.
    Triedu vešia GeometryPicker — len ON vie, či je lišta reálne mountnutá. */
-body.trp-drawbar-on .trp-drawhint{display:none;}
-.trp-drawhint{position:absolute;top:152px;left:calc(50% + ${PANEL_W / 2}px);transform:translateX(-50%);z-index:750;background:rgba(178,38,30,0.94);backdrop-filter:blur(10px);border:1.5px solid rgba(255,124,112,0.7);border-radius:12px;padding:13px 22px;box-shadow:0 12px 34px rgba(120,20,14,0.5);display:flex;align-items:center;gap:14px;max-width:calc(100vw - ${PANEL_W + 60}px);}
-.trp-drawhint-txt{font-size:15px;font-weight:600;color:#fff;white-space:nowrap;}
-.trp-drawhint-actions{display:flex;gap:8px;flex-shrink:0;}
-.trp-drawhint-actions button{font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${GOLD};background:none;border:none;cursor:pointer;text-decoration:underline;}
+/* ── HOSTITEĽ FORMULÁRA PRIDÁVANIA ─────────────────────────────────────────────────
+   Jedna kópia formulára, dva tvary. Na PC je to ten istý plávajúci panel ako .trp-sidebar
+   (rovnaké okraje, šírka aj sklo — keby sa rozišli, človek by videl, že sa mu panel pri
+   prechode do pridávania „preskočil"); na mobile celá obrazovka (media query nižšie).
+   ⚠️ Šírka MUSÍ sedieť s .trp-sidebar aj s odsadením lišty kreslenia (DRAW_BAR_CSS
+   v GeometryPicker.tsx) — tri miesta, jedno číslo. */
+.trp-addhost{position:absolute;top:20px;left:20px;bottom:20px;width:440px;max-width:calc(100vw - 40px);background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,0.55),inset 0 1px 0 rgba(245,240,228,0.06);display:flex;flex-direction:column;min-height:0;overflow:hidden;z-index:30;}
+.trp-addhost.is-hidden{display:none;}
 
 /* ── mobile-only surfaces (header/list/toggle/ADD overlay), hidden on desktop — see the
    ≤760px media query below for their real layout (bod 5 i11, bod 4 i14). ── */
-.trp-mheader,.trp-mtoggle,.trp-mactions,.trp-mlist,.trp-madd,.trp-madd-drawbtn{display:none;}
+.trp-mheader,.trp-mtoggle,.trp-mactions,.trp-mlist{display:none;}
 
 /* ── map region — full-bleed, the floating panel sits on top of it ── */
 .trp-mapregion{position:absolute;inset:0;z-index:0;}
@@ -1381,6 +1386,7 @@ ${TRAIL_LINE_CSS}
    clipboard ikonka, „Add trip" → „Add"), sa skrátia. Nad 1400px = plný layout. */
 @media (min-width:1024px) and (max-width:1400px){
   .trp-sidebar{width:360px;}
+  .trp-addhost{width:360px;}
   .trp-topbar{left:400px;right:74px;}
   .trp-status-row{gap:10px;padding:11px 14px;}
   .trp-status-center{gap:7px;flex-wrap:nowrap;}
@@ -1428,8 +1434,6 @@ ${TRAIL_LINE_CSS}
      končila na 410 px, tlačidlo bežalo 391→436). Do zámku obrazovky je táto bublina jediný
      viditeľný únik z režimu kreslenia — únik za okrajom je pasca. Zalomenie namiesto nowrap.
      (Bublina ako celok zaniká v reze B, kde ju nahradí spodná lišta s HOTOVO.) */
-  .trp-drawhint{left:50%;max-width:calc(100vw - 40px);top:calc(env(safe-area-inset-top,0px) + 118px);flex-wrap:wrap;justify-content:center;}
-  .trp-drawhint .trp-drawhint-txt{white-space:normal;}
 
   /* bod 1 (iterácia 13, prestavané i15): mobilný header = 2 riadky — (1) status (avatar +
      renderStatusRight() pilulky, ako desktop .trp-status-row) + (2) search+dropdowny+filter
@@ -1538,16 +1542,14 @@ ${TRAIL_LINE_CSS}
      stacking kontexte. .trp-mlist má z-index:60 a NEPRIEHĽADNÉ pozadie (#050505) cez celý inset:0,
      takže navigáciu jednoducho prekryl. position:fixed proti tomu nechráni, o poradí rozhoduje
      len z-index v spoločnom kontexte. Dvíham nav na 100: nad zoznam (60), ale pod pár tlačidiel
-     (.trp-mactions 900) aj pod modaly (.trp-madd 950, .trp-msheet), nech sa poradie inde nemení.
+     (.trp-mactions 900) aj pod modaly (.trp-addhost 950, .trp-msheet), nech sa poradie inde nemení.
      Padding-bottom zoznamu zároveň 100 → 150px, aby posledná karta neskončila pod navom. */
   .trp-root > nav.fixed{z-index:100;}
 
-  /* bod 4 (iterácia 14, krok 9 zachované): ADD TRIP full-screen overlay — .trp-sidebar (desktop
-     ADD setup home) je tu display:none, tak AddTripPlan/AddTripLog bežia znova vo full-screen
-     .trp-madd namiesto. */
-  .trp-madd{display:flex;flex-direction:column;position:fixed;inset:0;z-index:950;background:#0a0a0a;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-  .trp-madd .trp-addsetup{background:transparent;}
-  .trp-madd-drawbtn{display:block;width:100%;margin-top:2px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:11px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid rgba(201,154,63,0.4);color:${GOLD};cursor:pointer;}
+  /* PRIDÁVANIE NA MOBILE = CELÁ OBRAZOVKA. Ten istý prvok ako na PC, len iný tvar —
+     dve kópie formulára tu stáli do 23. 8. a rozišli sa hneď, ako pribudol autosave. */
+  .trp-addhost{position:fixed;inset:0;top:0;left:0;width:auto;max-width:none;border:0;border-radius:0;box-shadow:none;background:#0a0a0a;backdrop-filter:none;-webkit-backdrop-filter:none;z-index:950;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  .trp-addhost .trp-addsetup{background:transparent;}
 }
 
 `;
@@ -2078,17 +2080,31 @@ export default function PackMap() {
   });
 
   // POMALÁ CESTA — typ už je vybraný, stačí jeden klik do mapy.
-  useMapClickPoint(mapInstance, !!notePlacing && !noteBusy, {
+  // ⚠️ ZÁMERNE NIE `!noteBusy`: `noteBusy` obsahuje aj `addBusy`, a krok 2 sprievodcu výletu
+  // („bolo na trase parkovisko / nebezpečenstvo / tip?") zapichuje značky práve POČAS
+  // pridávania výletu. S pôvodnou podmienkou by tam klik do mapy nikdy nezabral a tlačidlo
+  // OZNAČ NA MAPE by bolo mŕtve.
+  const notePlaceReady = !!notePlacing && !noteDraft && !noteSpot && !addEntryOpen;
+  useMapClickPoint(mapInstance, notePlaceReady, {
     onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
     onTooFar: showTooFar,
   });
 
-  // bod 4 (iterácia 14, zachované): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku
-  // vrátane mapy — mobileDrawing dočasne SCHOVÁ formulár (CSS display, NIE unmount — inak by
-  // AddTripPlan/AddTripLog stratili svoj interný state pri každom "choď na mapu"), nech je mapa
-  // pod ním klikateľná. GeometryPicker počúva `map.on('click')` priamo cez mapRef, nezávisle od
-  // viditeľnosti panela, takže zápis geometrie beží ďalej aj kým je panel schovaný.
-  const [mobileDrawing, setMobileDrawing] = useState(false);
+  /**
+   * SPRIEVODCA STOJÍ NA KROKU, KDE JE OBRAZOVKOU MAPA (krok 1 = kreslenie trasy).
+   *
+   * Na mobile sa vtedy formulár SCHOVÁ (CSS display, NIE unmount — inak by stratil interný
+   * state pri každom prechode na mapu). GeometryPicker počúva `map.on('click')` priamo cez
+   * mapRef, nezávisle od viditeľnosti panela, takže zápis geometrie beží ďalej.
+   * Na PC sa neschováva nič: panel stojí vedľa mapy a lišta kreslenia sa oňho odsadí.
+   */
+  const [addMapPhase, setAddMapPhase] = useState(false);
+  /**
+   * ZNAČKY ZAPICHNUTÉ POČAS TOHTO PRIDÁVANIA (krok 2 sprievodcu). Slúžia len na zobrazenie —
+   * krok 4 ich ZHRNIE, needituje. Väzba značky na výlet sa NEUKLADÁ (odvodzuje sa zo
+   * súradnice, viď mapNotesGeo.ts), takže toto je naozaj len pamäť jednej obrazovky.
+   */
+  const [tripNotes, setTripNotes] = useState<NoteKind[]>([]);
   /**
    * VÝCHODISKO Z PRSTA (rez C) — bod, na ktorom človek podržal prst a z palety zvolil
    * VÝLET alebo UDALOSŤ. Formulár ho dostane ako prvú kotvu trasy (resp. miesto udalosti),
@@ -2100,17 +2116,18 @@ export default function PackMap() {
   const [seedPoint, setSeedPoint] = useState<{ lat: number; lon: number } | null>(null);
 
   /**
-   * KTORÁ Z DVOCH KÓPIÍ FORMULÁRA JE TÁ ŽIVÁ.
+   * ÚZKA OBRAZOVKA? Rozhoduje o tom, či formulár stojí VEDĽA mapy (PC) alebo cez ňu (mobil),
+   * a či sa má v kroku 1 schovať, aby bolo na mapu vidno.
    *
-   * `.trp-sidebar` (desktop) a `.trp-madd` (mobil) mountujú `AddTripLog` NARAZ a schováva ich
-   * CSS, nie podmienka. Kým si formulár držal všetko len v sebe, nevadilo to. S autosave áno:
-   * obe kópie písali do toho istého kľúča, takže tá neviditeľná — s prázdnou aktivitou —
-   * prepísala zálohu tej, do ktorej človek reálne písal. Obnova potom vrátila výlet bez
-   * aktivity a formulár spadol späť na „Čo ste robili?".
+   * ⚠️ HISTÓRIA, KTORÁ SA NESMIE VRÁTIŤ: do 23. 8. mountovali `AddTripLog` DVE miesta naraz
+   * (`.trp-sidebar` + `.trp-madd`) a skrývalo ich CSS, nie podmienka. Obe kópie písali do
+   * jedného kľúča zálohy, takže tá neviditeľná — prázdna — prepísala prácu tej viditeľnej.
+   * S krokovým sprievodcom by z toho boli dvaja sprievodcovia s vlastným číslom kroku, preto
+   * kópia zanikla: formulár žije v JEDNOM hostiteľovi (`.trp-addhost`), ktorému len CSS mení
+   * tvar z plávajúceho panela na celú obrazovku.
    *
-   * Zálohu preto vlastní práve jedna kópia. Hranica je `MOBILE_BP`, to isté číslo, aké
-   * rozhoduje o layoute — dve rôzne hranice by vyrobili pásmo šírok, kde zálohu nevlastní
-   * nikto (alebo obaja).
+   * Hranica je `MOBILE_BP`, to isté číslo, aké rozhoduje o layoute — dve rôzne hranice by
+   * vyrobili pásmo šírok bez pravidiel.
    */
   const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP);
   useEffect(() => {
@@ -2120,13 +2137,6 @@ export default function PackMap() {
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);
   }, []);
-  // Lišta kreslenia (rez B). Memo, nie nový objekt pri každom renderi — `drawBar.active` je
-  // v závislostiach `handleMapClick` v GeometryPickeri a nová identita by mu handler
-  // prepisovala pri každom prekreslení mapy.
-  const drawBarProps = useMemo(
-    () => ({ active: mobileDrawing, onDone: () => setMobileDrawing(false) }),
-    [mobileDrawing],
-  );
   // tripy pridané v tejto session (ADD flow submit) — lokálny state, NIE Supabase (mimo
   // rozsahu tejto iterácie); zobrazujú sa hneď na mape + v zozname pred statickými HERO_TRAILS.
   // sessionStorage mirror (viď vyššie) nech expand na čerstvo pridaný trip nájde aj po navigate.
@@ -2662,7 +2672,7 @@ export default function PackMap() {
   const pickAddFlow = (choice: AddChoice) => {
     setAddEntryOpen(false);
     setInlineDetailId(null);
-    setMobileDrawing(false);
+    setAddMapPhase(false);
     if (choice.kind === 'event') {
       setAddEventFlow(choice.origin);
       return;
@@ -2681,9 +2691,9 @@ export default function PackMap() {
    * VÝLET / UDALOSŤ Z DLHÉHO STLAČENIA (rez C).
    *
    * Miesto je známe skôr než formulár — presne opačne než doteraz, keď sa najprv vypĺňali
-   * textové polia a mapa sa hľadala až potom. Bod si odloží `seedPoint`, formulár ho
-   * prevezme ako východisko a na mobile sa rovno otvára ODKRYTÁ MAPA (`mobileDrawing`),
-   * nie formulár: človek už povedal KDE, ostáva mu nakresliť KADIAĽ.
+   * textové polia a mapa sa hľadala až potom. Bod si odloží `seedPoint` a formulár ho
+   * prevezme ako prvú kotvu; kreslenie sa otvorí samo, len čo si človek vyberie aktivitu
+   * (krok 1 sprievodcu si o mapu povie sám cez `onMapPhase`).
    */
   const startFromPoint = (what: 'trip' | 'event', lat: number, lon: number) => {
     setNoteSpot(null);
@@ -2691,20 +2701,16 @@ export default function PackMap() {
     setInlineDetailId(null);
     setMobileView('map');
     setSeedPoint({ lat, lon });
-    if (what === 'event') {
-      setAddEventFlow('own');
-      setMobileDrawing(false);
-      return;
-    }
+    setAddMapPhase(false);
+    if (what === 'event') { setAddEventFlow('own'); return; }
     setAddFlow('walked');
-    // Kreslenie sa NEOTVÁRA hneď — najprv aktivita (poradie: 1 miesto → 2 aktivita →
-    // 3 kreslenie). Mapu odkryje `onReadyToDraw` z formulára, keď je aktivita zvolená.
-    setMobileDrawing(false);
   };
 
   const closeAdd = () => {
     setAddFlow(null);
-    setMobileDrawing(false);
+    setAddMapPhase(false);
+    setNotePlacing(null);
+    setTripNotes([]);
     setSeedPoint(null);
     setAddError('');
     // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
@@ -2713,7 +2719,7 @@ export default function PackMap() {
   };
   const closeAddEvent = () => {
     setAddEventFlow(null);
-    setMobileDrawing(false);
+    setAddMapPhase(false);
     setSeedPoint(null);
     setAddError('');
     if (onAddRoute) navigate('/pack/map', { replace: true });
@@ -3164,15 +3170,8 @@ export default function PackMap() {
       {/* `is-tool` = panel je práve v stave ADD, teda JE tým „panelom nástrojov" zo zámku §2.2b
           a ako jediný kus chrome pod `trp-draw-lock` ostáva. V stave LIST/DETAIL je to
           prehliadanie a zámok ho schová (viď body.trp-draw-lock v CSS vyššie). */}
-      <aside className={`trp-sidebar${addFlow || addEventFlow ? ' is-tool' : ''}`}>
-        {/* JEDEN FORMULÁR VÝLETU (rez C) — o type rozhoduje dátum v ňom, nie voľba pred ním.
-            `AddTripPlan` tým stratil volajúceho; ostáva v repe, kým sa neoverí, že z neho
-            netreba nič dotiahnuť. */}
-        {addFlow ? (
-          <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} seedPoint={seedPoint} owns={!isNarrow} />
-        ) : addEventFlow ? (
-          <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
-        ) : inlineDetailId ? (() => {
+      <aside className="trp-sidebar">
+        {inlineDetailId ? (() => {
           const dt = allTrails.find((x) => x.id === inlineDetailId);
           if (!dt) return null;
           const idx = photoIdx[dt.id] ?? 0;
@@ -3723,22 +3722,32 @@ export default function PackMap() {
         </div>
       </div>
 
-      {/* bod 4 (iterácia 14, krok 9 zachované): ADD TRIP na mobile — .trp-sidebar (kde žije
-          desktop ADD setup) je na mobile display:none, tak formulár beží aj tu vo full-screen
-          overlayi. mobileDrawing=true CSS-schová overlay (display:none, NIE unmount — inak by
-          AddTripPlan/AddTripLog stratili svoj interný state) nech je mapa pod ním klikateľná pre
-          GeometryPicker; "View map" tlačidlo ju schová, "Done" v .trp-drawhint nižšie ju vráti. */}
+      {/* ── FORMULÁR PRIDÁVANIA — JEDEN HOSTITEĽ, JEDNA KÓPIA ───────────────────────────
+          Do 23. 8. tu stála DRUHÁ kópia toho istého formulára a prvá bola v `.trp-sidebar`;
+          o tom, ktorá je vidno, rozhodovalo CSS. S krokovým sprievodcom by z toho boli dvaja
+          sprievodcovia s vlastným číslom kroku, preto kópia zanikla. Tvar mení CSS:
+          na PC plávajúci panel vedľa mapy, na mobile celá obrazovka.
+
+          `is-hidden` = krok 1 na mobile (obrazovkou je MAPA) alebo práve prebiehajúce
+          zapichovanie značky. Je to `display:none`, NIE unmount — formulár by inak stratil
+          celý svoj interný stav vrátane nakreslenej trasy. */}
       {(!!addFlow || !!addEventFlow) && (
-        <div className="trp-madd" style={mobileDrawing ? { display: 'none' } : undefined}>
-          <button type="button" className="trp-madd-drawbtn" onClick={() => setMobileDrawing(true)}>
-            {t('pack.map.viewMapToPlaceRoute')}
-          </button>
-          {/* LIŠTA KRESLENIA (rez B) dostáva LEN táto, mobilná inštancia.
-              ⚠️ Desktopový `.trp-sidebar` vyššie mountuje ten istý formulár ZÁROVEŇ — obe
-              existujú v DOM naraz a skrýva ich CSS, nie podmienka. Keby `drawBar` dostali obe,
-              na obrazovke by stáli dve lišty. */}
+        <div className={`trp-addhost${isNarrow && (addMapPhase || notePlaceReady) ? ' is-hidden' : ''}`}>
           {addFlow ? (
-            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} seedPoint={seedPoint} onReadyToDraw={() => setMobileDrawing(true)} owns={isNarrow} />
+            <AddTripLog
+              allTrails={allTrails}
+              authorName={firstName}
+              myDogs={myDogsForAdd}
+              onSubmit={submitAddTripDraft}
+              onClose={closeAdd}
+              placeholderFor={placeholderFor}
+              mapRef={leafletMapRef}
+              besidePanel={!isNarrow}
+              seedPoint={seedPoint}
+              onMapPhase={setAddMapPhase}
+              onPlaceNote={setNotePlacing}
+              placedNotes={tripNotes}
+            />
           ) : addEventFlow ? (
             <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
           ) : null}
@@ -4129,17 +4138,10 @@ export default function PackMap() {
               <span>© Seznam.cz a.s.</span>
             </div>
 
-            {/* bod 4 (i14, krok 9 zjednodušené): kým je formulár na mobile schovaný
-                (mobileDrawing), GeometryPicker vlastný readout/Undo/Clear panel je schovaný
-                s ním (je jeho súčasťou) — táto bublina len drží "Done" návrat k formuláru. */}
-            {mobileDrawing && (
-              <div className="trp-drawhint">
-                <div className="trp-drawhint-txt">{t('pack.map.tapMapToPlaceRoute')}</div>
-                <div className="trp-drawhint-actions">
-                  <button type="button" onClick={() => setMobileDrawing(false)}>{t('pack.map.done')}</button>
-                </div>
-              </div>
-            )}
+            {/* Červená bublina „ťukni do mapy" tu stála do 23. 8. Zanikla spolu s prepínaním
+                „choď na mapu / hotovo": v krokovom sprievodcovi je krok 1 SÁM tou mapou a
+                návrat aj pokyn nesie lišta kreslenia (GeometryPicker) — dve hlásenia o tom
+                istom na jednej obrazovke boli presne to, čo Matej hlásil ako neprehľadné. */}
           </div>
       </div>
 
@@ -4167,7 +4169,13 @@ export default function PackMap() {
           onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}
           pinnedSlug={noteDraft.pinnedSlug}
           pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
-          onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
+          onSubmit={async (n) => {
+            await mapNotes.add(n);
+            // Krok 2 sprievodcu: druh si odloží formulár, aby ho krok 4 vedel ZHRNÚŤ.
+            // Väzba na výlet sa neukladá — odvodzuje sa zo súradnice (mapNotesGeo.ts).
+            if (addFlow) setTripNotes((prev) => [...prev, noteDraft.kind]);
+            setNoteDraft(null);
+          }}
           onCancel={() => setNoteDraft(null)}
         />
       )}

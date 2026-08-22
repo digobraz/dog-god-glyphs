@@ -5,8 +5,16 @@
 // plany/kontrakt-geometrypicker-2026-07-29.md) dostane `mapRef` a kreslí do nej, tento formulár
 // len drží riadený `TripGeometry` state.
 //
-// KROK 1 → KROK 2 je RIEŠENÝ CEZ PODMIENENÝ RENDER, NIE early return — všetky hooky bežia
+// KROKY SÚ RIEŠENÉ PODMIENENÝM RENDEROM, NIE early returnom — všetky hooky bežia
 // nepodmienene na každom rendri (Rules of Hooks, viď zadanie „pozor" sekcia).
+//
+// ── NAJPRV KRESLI, POTOM VYPLŇ (Matej 2026-08-23) ────────────────────────────────────────
+// Formulár bol jeden dlhý zvitok, v ktorom bolo kreslenie len jedno pole medzi ostatnými —
+// takže nástroje kreslenia (km, späť, zmazať) ležali mimo obrazovky práve vtedy, keď človek
+// kreslil. Matej: „rozdeľme pridávanie výletu na kroky… prekopeme to na najprv kresli,
+// zaznač, až potom vyplň." Poradie krokov je jeho, doslova:
+//   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
+// Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
@@ -19,7 +27,9 @@ import { trailCountry, flagEmoji } from '@/lib/countryGeo';
 import { trailWCE } from '@/components/pack/triplist/triplist';
 import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate } from './GeometryPicker';
 import { PawRating } from './PawRating';
-import { HAZARDS, HAZARD_EMOJI, CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
+import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
+import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import type { NoteGroup, NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import {
   missingFields,
   type AddTripDraft, type TripGeometry, type ApprovalStatus,
@@ -49,8 +59,11 @@ export type AddTripLogProps = {
   placeholderFor: (actIds: string[] | undefined, seed: string) => string;
   /** Mapa žije v PackMap.tsx — GeometryPicker ju nevytvára, len dostane ref (kontrakt §2). */
   mapRef: MutableRefObject<LeafletMap | null>;
-  /** Lišta kreslenia (rez B) — prechádza rovno do GeometryPickera, viď jeho `drawBar`. */
-  drawBar?: { active: boolean; onDone: () => void };
+  /**
+   * Panel stojí VEDĽA mapy (PC), nie cez celú obrazovku. Púšťa sa ďalej do lišty kreslenia,
+   * ktorá sa podľa toho odsadí — inak by na PC ležala na tomto formulári.
+   */
+  besidePanel?: boolean;
   /**
    * VÝCHODISKO Z PRSTA (rez C) — bod z dlhého stlačenia. Stane sa PRVOU KOTVOU trasy
    * hneď po výbere aktivity, takže krok „nájdi miesto" odpadá. Bez neho sa formulár
@@ -58,20 +71,23 @@ export type AddTripLogProps = {
    */
   seedPoint?: { lat: number; lon: number } | null;
   /**
-   * „Miesto aj aktivita sú známe, choď kresliť." Volá sa RAZ, po výbere aktivity na
-   * zasiatom výlete — PackMap podľa toho odkryje mapu. Poradie zo zadania:
-   * 0 vstup → 1 miesto → 2 aktivita → 3 kreslenie → 4 byrokracia.
+   * „Som na kroku, kde je obrazovkou MAPA" (krok 1 = kreslenie trasy). Na mobile podľa toho
+   * PackMap formulár schová — mapa je vtedy celá obrazovka a formulár by ju prekryl.
+   * Na PC sa nedeje nič: tam panel stojí vedľa mapy a schovávať netreba.
    */
-  onReadyToDraw?: () => void;
+  onMapPhase?: (on: boolean) => void;
   /**
-   * Vlastní táto kópia formulára zálohu rozpracovaného výletu?
-   *
-   * Desktop aj mobil mountujú tento komponent NARAZ (skrýva ich CSS, nie podmienka).
-   * Bez tohto príznaku obe píšu do jedného kľúča a neviditeľná kópia — prázdna —
-   * prepíše prácu tej viditeľnej. `false` = formulár funguje normálne, len sa neukladá
-   * a neponúka obnovu. Viď `isNarrow` v PackMap.tsx.
+   * KROK 2 — ODKAZY NA TRASU. Nič nové sa nevymýšľa: volá sa existujúci vstup zápisov do
+   * mapy (`mapnotes/`, tabuľka `map_notes`), len ho vyvolá sprievodca namiesto dlhého
+   * stlačenia. Väzba na výlet sa NEUKLADÁ — odvodzuje sa zo súradnice (mapNotesGeo.ts),
+   * takže to neprežíva ani nerozbíja premenovanie slugu.
    */
-  owns?: boolean;
+  onPlaceNote?: (group: NoteGroup) => void;
+  /**
+   * Značky zapichnuté počas TOHTO pridávania. Krok 4 ich len ZHRNIE, needituje —
+   * nebezpečenstvo má odteraz jediné miesto, a je ním mapa.
+   */
+  placedNotes?: NoteKind[];
 };
 
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
@@ -166,16 +182,27 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar, seedPoint, onReadyToDraw, owns = true }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, besidePanel, seedPoint, onMapPhase, onPlaceNote, placedNotes }: AddTripLogProps) {
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
   const t = useT();
-  // ── krok 1: aktivita ('' = ešte nevybraná, formulár skrytý) ───────────────────────────────
+  // ── krok 0: aktivita ('' = ešte nevybraná, sprievodca sa nezačal) ─────────────────────────
   const [activity, setActivity] = useState('');
   const [geometry, setGeometry] = useState<TripGeometry>({ kind: 'route', path: [], snapped: false });
 
-  // ── formulár (krok 2) ─────────────────────────────────────────────────────────────────────
+  /**
+   * KROK SPRIEVODCU (1–5). Ukladá sa aj do zálohy — bez toho obnovený výlet spadne späť na
+   * krok 1 a človek kreslí trasu, ktorú už má.
+   */
+  const [step, setStep] = useState(1);
+  /**
+   * Krok 2 sa pýta TRI otázky za sebou (parkovisko → nebezpečenstvo → tip), každá
+   * preskočiteľná. `noteAsk` je index do `NOTE_ASKS`; keď prejde za koniec, krok je hotový.
+   */
+  const [noteAsk, setNoteAsk] = useState(0);
+
+  // ── polia formulára (kroky 3–5) ───────────────────────────────────────────────────────────
   const [name, setName] = useState('');
   const [date, setDate] = useState('');
   const [dontRemember, setDontRemember] = useState(false);
@@ -190,9 +217,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const [terrain, setTerrain] = useState('');
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [note, setNote] = useState('');
-  const [hazards, setHazards] = useState<Set<string>>(new Set());
-  const [customHazardOpen, setCustomHazardOpen] = useState(false);
-  const [customHazardText, setCustomHazardText] = useState('');
   const [crew, setCrew] = useState<Companion[]>([]);
   /**
    * VIDITEĽNOSŤ PLÁNU — pole z bývalého `AddTripPlan`. Konzervatívny default: kým člen
@@ -227,8 +251,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     setGeometry((prev) => (allowed.includes(prev.kind) ? prev : emptyGeometryFor(activity)));
   }, [activity]);
 
+  // NAJPRV MAPA, POTOM FORMULÁR (Matej 2026-08-22, rozvinuté 23. 8. do krokov): po výbere
+  // aktivity sa ide rovno na KROK 1 = trasa. Formulár prichádza až od kroku 3.
   const pickActivity = (id: string) => {
     setActivity(id);
+    setStep(1);
+    setNoteAsk(0);
     setExistingTripId(undefined);
     setDrawManually(false);
     setJourneyFilter('');
@@ -244,17 +272,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             ? { kind: 'point', center: p }
             : { kind: 'area', center: p, radiusM: 1500 },
       );
-      onReadyToDraw?.();
       return;
     }
     setGeometry(empty);
-    // NAJPRV MAPA, POTOM FORMULÁR (Matej 2026-08-22: „po kliknutí na hike je na mobile vidno
-    // textové polia a hore tlačítko ísť na mapu… potrebujeme to prehodiť").
-    // `onReadyToDraw` dostáva LEN mobilná kópia formulára (PackMap.tsx `.trp-madd`), takže
-    // podmienka na šírku sem nepatrí — desktop má mapu vedľa panela a prehadzovať nemá čo.
-    // MAGISTRÁLA je výnimka: tam sa najprv vyberá existujúca trasa zo zoznamu (kreslí sa až
-    // po „nakreslím ručne"), takže odkrytá mapa by ukazovala prázdno a schovala by voľbu.
-    if (id !== 'journey') onReadyToDraw?.();
   };
 
   // Výber magistrály — zdedí geometriu 1:1 (§2 zadania), km/ascent idú rovno do metricsRef
@@ -344,7 +364,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // čo má autosave chrániť. Radšej vrátiť výlet bez fotiek než nevrátiť nič.
   const restoredRef = useRef(false);
   const [restored, setRestored] = useState<AddTripDraft | null>(() => {
-    if (!owns) return null;
     const d = readAddDraft();
     // Prázdny náčrt nemá čo obnovovať — ponuka „pokračovať" by bola falošný sľub.
     return d && (d.name || (d.geometry?.kind === 'route' && d.geometry.path?.length)) ? d : null;
@@ -366,17 +385,22 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     if (restored.diff && (DIFF_OPTIONS as readonly string[]).includes(restored.diff)) setDiff(restored.diff as typeof diff);
     if (restored.surface?.[0]) setTerrain(restored.surface[0]);
     if (restored.tags) setTags(new Set(restored.tags));
-    if (restored.hazards) setHazards(new Set(restored.hazards));
     if (restored.crew) setCrew(restored.crew);
     if (restored.paws) setPaws(restored.paws);
     if (restored.note) setNote(restored.note);
     if (restored.visibility) setVisibility(restored.visibility);
+    // ⚠️ AJ ČÍSLO KROKU. Bez neho by sa obnovený výlet vrátil na krok 1 a človek by kreslil
+    // trasu, ktorú v zálohe už má — teda presne to, čo autosave mal ušetriť.
+    if (restored.step && restored.step >= 1 && restored.step <= 5) setStep(restored.step);
     setRestored(null);
   };
   const discardRestore = () => { clearAddDraft(); setRestored(null); };
 
   // Trasa je hotová = dá sa z nej nakresliť čiara (2 kotvy), resp. bod/oblasť má stred.
   const geoDone = geometry.kind === 'route' ? geometry.path.length >= 2 : !!geometry.center;
+  // NAJMENŠÍ ZÁPIS — náhľad musí hovoriť to isté, čo mapa. Plná čiara v rámiku by tvrdila
+  // trasu, ktorú človek práve odmietol nakresliť.
+  const isMinimalGeo = geometry.kind === 'route' && !!geometry.minimal;
   const isMultiDay = activity === 'journey' && !!dateEnd && dateEnd > date;
   const journeyIssue = activity === 'journey' && !isMultiDay;
 
@@ -399,14 +423,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     if (n.has(v)) n.delete(v); else n.add(v);
     setSet(n);
   };
-  const addCustomHazard = () => {
-    const txt = customHazardText.trim();
-    if (!txt) return;
-    setHazards((prev) => new Set(prev).add(txt));
-    setCustomHazardText('');
-    setCustomHazardOpen(false);
-  };
-
   const handlePhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
     e.target.value = '';
@@ -452,7 +468,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       surface: !isPlan && isHikeLike && terrain ? [terrain] : undefined,
       crowd: !isPlan && crowd ? crowd : undefined,
       tags: tags.size > 0 ? Array.from(tags) : undefined,
-      hazards: !isPlan && hazards.size > 0 ? Array.from(hazards) : undefined,
+      // ⚠️ `hazards` sa z formulára UŽ NEPLNÍ (Matej 23. 8.). Nebezpečenstvo sa od kroku 2
+      // zapichuje na mapu — tam, kde naozaj je. Chip bez polohy je horší údaj (svorke
+      // nepovie kde) a tá istá informácia na dvoch miestach sa rozíde pri prvej úprave.
+      // Historické hlasy v `trip_votes.hazards` sa tým nemažú, len prestal pribúdať nový zdroj.
       paws: !isPlan && paws > 0 ? paws : undefined,
       photos: !isPlan && photos.length > 0 ? photos : undefined,
       coverIndex: !isPlan && photos.length > 0 ? effCoverIndex : undefined,
@@ -461,8 +480,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       authorName,
       createdAt: now,
       updatedAt: now,
+      step,
     };
-  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, hazards, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility]);
+  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -478,13 +498,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // zmenilo — nie na každý render. Prázdny formulár sa neukladá, inak by otvorenie a
   // zatvorenie ADD flow bez jediného písmena prepísalo zálohu skutočnej rozrobenej práce.
   useEffect(() => {
-    if (!owns) return;    // druhá, neviditeľná kópia formulára do zálohy nesiaha
     if (restored) return; // ponuka na obnovu je na obrazovke — nezmaž, čo ponúkame
     const hasSomething = !!draft.name || (draft.geometry?.kind === 'route' && draft.geometry.path.length > 0);
     if (!hasSomething) return;
     const { photos: _photos, ...withoutPhotos } = draft;
     writeAddDraft(withoutPhotos as AddTripDraft);
-  }, [draft, restored, owns]);
+  }, [draft, restored]);
 
   const doSubmit = () => {
     setSubmitError('');
@@ -508,17 +527,81 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   };
   const confirmDuplicate = () => { setDupConfirmed(true); doSubmit(); };
 
+  // ── SPRIEVODCA ────────────────────────────────────────────────────────────────────────
+  // Poradie krokov je Matejovo (23. 8.), doslova. Kľúč nesie nadpis aj vetu „čo tu mám robiť";
+  // tá veta stojí v KAŽDOM kroku a vždy na tom istom mieste — v kroku 1 nad mapou (fialová
+  // pilulka lišty kreslenia), inde v hlavičke panela. Dva systémy pokynov sme nechceli.
+  const STEP_KEYS = ['route', 'notes', 'basics', 'about', 'rest'] as const;
+  const stepKey = STEP_KEYS[step - 1] ?? 'route';
+
+  // MAGISTRÁLA sa nekreslí, VYBERÁ sa zo zoznamu (§1/§2 zadania journey-pick) — v tom prípade
+  // krok 1 nie je mapa, ale výber, takže lišta kreslenia by nemala čo obsluhovať.
+  const journeyPicking = activity === 'journey' && !drawManually;
+  const drawingStep = !!activity && step === 1 && !journeyPicking && !restored;
+
+  // Na mobile je v kroku 1 obrazovkou MAPA a formulár sa schová (PackMap). Na PC sa nedeje nič.
+  useEffect(() => { onMapPhase?.(drawingStep); }, [drawingStep, onMapPhase]);
+  useEffect(() => () => { onMapPhase?.(false); }, [onMapPhase]);
+
+  // Krok 1 sa neopúšťa bez geometrie — aj keby to bol len najmenší zápis (štart a cieľ).
+  // Inak by človek prešiel celý sprievodca a spadol až na uložení.
+  const nextBlocked = step === 1 && !geoDone;
+
+  const goNext = () => { if (!nextBlocked) setStep((n) => Math.min(5, n + 1)); };
+  const goPrev = () => {
+    if (step > 1) { setStep((n) => n - 1); return; }
+    setActivity('');
+  };
+
+  const drawBar = useMemo(
+    () => ({
+      active: drawingStep,
+      onDone: () => setStep(2),
+      onBack: () => setActivity(''),
+      doneLabel: t('pack.addTrip.step.doneRoute'),
+      doneDisabled: nextBlocked,
+      besidePanel,
+      // Mimo kroku 1 picker ostáva MOUNTNUTÝ (aby trasa na mape nezmizla, veď sa na ňu
+      // v kroku 2 pichajú značky), ale nesmie brať kliky — inak by pri zapichovaní
+      // parkoviska pribudla kotva trasy.
+      paused: !drawingStep,
+    }),
+    [drawingStep, besidePanel, nextBlocked, t],
+  );
+
+  // ── KROK 2: ODKAZY NA TRASU ───────────────────────────────────────────────────────────
+  // Matej: „pridaj na trasu ODKAZY (pri logu): parkovisko? — na každé bude vyzvaný, kde si
+  // parkoval; bolo na trase nebezpečenstvo? tajné miesto, tip?" Tri otázky, každá
+  // preskočiteľná. Existujúci systém zápisov sa len VYVOLÁ — nič nové sa nestavia.
+  const NOTE_ASKS: Array<{ group: NoteGroup; qKey: string; ctaKey: string }> = [
+    { group: 'parking', qKey: 'pack.addTrip.step.askParking', ctaKey: 'pack.addTrip.step.markParking' },
+    { group: 'warning', qKey: 'pack.addTrip.step.askWarning', ctaKey: 'pack.addTrip.step.markWarning' },
+    { group: 'comment', qKey: 'pack.addTrip.step.askTip', ctaKey: 'pack.addTrip.step.markTip' },
+  ];
+  // Keď značka pribudne, otázka sa posunie sama — inak by človek po uložení parkoviska
+  // videl tú istú otázku znova a nevedel by, či sa zápis podaril.
+  const placedCount = placedNotes?.length ?? 0;
+  const prevPlacedRef = useRef(placedCount);
+  useEffect(() => {
+    if (placedCount > prevPlacedRef.current) setNoteAsk((i) => Math.min(NOTE_ASKS.length, i + 1));
+    prevPlacedRef.current = placedCount;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE_ASKS je konštanta v tele
+  }, [placedCount]);
+
+  const stepHint = t(`pack.addTrip.step.hint.${stepKey}`);
+
   return (
     <div className="atl-log">
       <style>{LOG_CSS}</style>
       <style>{ROUTE_HERO_CSS}</style>
       <style>{RESTORE_CSS}</style>
+      <style>{STEP_CSS}</style>
       <div className="atl-log-head">
         <button
           type="button"
           className="atl-log-back"
-          onClick={() => (activity ? setActivity('') : onClose())}
-          aria-label="Back"
+          onClick={() => (activity ? goPrev() : onClose())}
+          aria-label={t('pack.addTrip.geo.stepBack')}
         >
           ←
         </button>
@@ -557,387 +640,495 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
       {!!activity && !restored && (
         <>
-          <div className="atl-log-body">
-            {/* HORE PATRÍ TO, ČO ČLOVEK PRÁVE ROBÍ — nie stock les.
-                Kým nie je nahraná fotka, ukazuje sa ŽIVÝ VÝREZ NAKRESLENEJ TRASY: rastie
-                s každým bodom a je to jediný obrázok, ktorý o tomto konkrétnom výlete
-                niečo hovorí. Zástupná fotografia sa vracia až vtedy, keď ešte nie je
-                nakreslené nič — vtedy je to len výplň, nie tvrdenie. */}
-            {photos.length === 0 && routeShape ? (
-              <div className="atl-photo atl-photo--route">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                  <polyline points={routeShape} />
-                </svg>
-                <span className="atl-photo-badge">{t('pack.addTrip.log.routeSoFar')}</span>
-              </div>
-            ) : (
-              <div
-                className="atl-photo"
-                style={{
-                  backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
-                  backgroundPosition: photos.length > 0 ? `center ${coverY}%` : undefined,
-                }}
+          {/* KDE SOM — päť bodiek a názov kroku. Bez toho je krokový sprievodca len formulár,
+              ktorý sa nečakane skrátil. Späť sa dá kliknúť na už prejdený krok. */}
+          <div className="atl-steps" role="tablist" aria-label={t('pack.addTrip.step.progress')}>
+            {STEP_KEYS.map((k, i) => (
+              <button
+                key={k}
+                type="button"
+                role="tab"
+                aria-selected={step === i + 1}
+                className={`atl-step${step === i + 1 ? ' on' : ''}${step > i + 1 ? ' done' : ''}`}
+                onClick={() => { if (i + 1 < step) setStep(i + 1); }}
+                disabled={i + 1 > step}
               >
-                {photos.length === 0 && <span className="atl-photo-badge">{t('pack.addTrip.log.addPhotoBelow')}</span>}
-              </div>
+                <b>{i + 1}</b>
+                <span>{t(`pack.addTrip.step.name.${k}`)}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="atl-log-body">
+            {/* JEDNA VETA, VŽDY NA TOM ISTOM MIESTE (Matej 23. 8.). V kroku 1 ju nesie fialová
+                pilulka nad mapou (tam, kde sa gesto robí) — tu by stála druhýkrát. */}
+            {!drawingStep && stepHint && (
+              <div className="atl-stephint">{stepHint}</div>
             )}
 
-            {/* 1. Name */}
-            <div className="atl-field">
-              <label>{t('pack.addTrip.log.name')}</label>
-              <input className="atl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sunset ridge walk" />
-            </div>
-
-            {/* 2. Date · End date (journey only, always visible) · Don't remember */}
-            <div className={activity === 'journey' && !dontRemember ? 'atl-row3' : 'atl-row2'}>
+            {/* ══ KROK 1 — TRASA ══════════════════════════════════════════════════════
+                ⚠️ V ďalších krokoch sa tento blok SCHOVÁ, NEODMOUNTUJE. GeometryPicker kreslí
+                vrstvy do mapy imperatívne a pri odmountovaní ich po sebe upratuje — trasa by
+                teda z mapy zmizla presne vtedy, keď sa na ňu v kroku 2 pichajú značky. */}
+            <div style={step === 1 ? undefined : { display: 'none' }}>
+              {/* NÁHĽAD TRASY OSTÁVA V PANELI. Matej 23. 8.: „Na ľavom boku je rámik kde sa
+                  zobrazuje route — náhľad, čo je fajn ALE! pod tým je kopa ďalších informácií
+                  a nie je vôbec vidno UNDO, DELETE." Nástroje sa presťahovali do lišty nad
+                  mapu; náhľad, ktorý pochválil, ostáva presne tam, kde bol. */}
+              {routeShape && (
+                <div className={`atl-photo atl-photo--route${isMinimalGeo ? ' is-minimal' : ''}`} style={{ marginBottom: 12 }}>
+                  <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <polyline points={routeShape} />
+                  </svg>
+                  <span className="atl-photo-badge">{t('pack.addTrip.log.routeSoFar')}</span>
+                </div>
+              )}
               <div className="atl-field">
-                <label>{t('pack.addTrip.log.date')}</label>
-                <input
-                  type="date"
-                  className="atl-input"
-                  value={date}
-                  disabled={dontRemember}
-                  onChange={(e) => setDate(e.target.value)}
-                />
-              </div>
-              {activity === 'journey' && !dontRemember && (
-                <div className="atl-field">
-                  <label>End date</label>
-                  <input
-                    type="date"
-                    className="atl-input"
-                    value={dateEnd}
-                    min={date || undefined}
-                    onChange={(e) => setDateEnd(e.target.value)}
+                <label>
+                  {t('pack.addTrip.log.where')}
+                  {geoDone && (
+                    <span className="atl-donepill">✓ {t('pack.addTrip.geo.routeDone')}</span>
+                  )}
+                </label>
+                {journeyPicking ? (
+                  <div className="atl-journeys">
+                    <input
+                      className="atl-input"
+                      value={journeyFilter}
+                      onChange={(e) => setJourneyFilter(e.target.value)}
+                      placeholder={t('pack.addTrip.step.searchTrails')}
+                    />
+                    <div className="atl-journey-list">
+                      {journeyList.map((j) => (
+                        <button
+                          key={j.id}
+                          type="button"
+                          className={`atl-journey-item${existingTripId === j.id ? ' on' : ''}`}
+                          onClick={() => pickJourney(j)}
+                        >
+                          <span className="atl-journey-name">{j.name}</span>
+                          <span className="atl-journey-meta">{j.km} km · {j.journey.days}d · {j.journey.start} → {j.journey.end}</span>
+                        </button>
+                      ))}
+                      {journeyList.length === 0 && <p className="atl-field-hint" style={{ padding: '6px 4px' }}>{t('pack.addTrip.step.noTrails')}</p>}
+                    </div>
+                    <button type="button" className="atl-journey-link" onClick={drawInstead}>
+                      {t('pack.addTrip.step.drawInstead')}
+                    </button>
+                  </div>
+                ) : (
+                  <GeometryPicker
+                    value={geometry}
+                    onChange={setGeometry}
+                    activity={activity}
+                    mode="log"
+                    allTrails={allTrails}
+                    onMetrics={(m) => { metricsRef.current = m; }}
+                    mapRef={mapRef}
+                    drawBar={drawBar}
                   />
-                </div>
-              )}
-              <div className="atl-field">
-                <label>&nbsp;</label>
-                <button
-                  type="button"
-                  className={`atl-toggle-btn${dontRemember ? ' on' : ''}`}
-                  onClick={() => {
-                    setDontRemember((v) => {
-                      const next = !v;
-                      if (next) setDateEnd('');
-                      return next;
-                    });
-                    setDate('');
-                  }}
-                >
-                  Don't remember
-                </button>
-              </div>
-            </div>
-            {activity !== 'journey' && (
-              <p className="atl-daterange-hint">
-                Were you out for more than one day? Go back and pick{' '}
-                <button type="button" className="atl-journey-link" onClick={() => setActivity('')}>Journey</button>.
-              </p>
-            )}
-
-            {/* 3. State · Region (SK only) · Crowd */}
-            <div className="atl-row3">
-              <div className="atl-field">
-                <label>State</label>
-                <select className="atl-input" value={effCountry} onChange={(e) => setCountryOverride(e.target.value)}>
-                  {countryOpts.map((c) => <option key={c} value={c}>{flagEmoji(c)} {COUNTRY_LABEL[c] ?? c.toUpperCase()}</option>)}
-                </select>
-              </div>
-              {effCountry === 'sk' && (
-                <div className="atl-field">
-                  <label>Region</label>
-                  <select className="atl-input" value={effRegion} onChange={(e) => setRegionOverride(e.target.value as '' | 'W' | 'C' | 'E')}>
-                    <option value="">— select —</option>
-                    <option value="W">West</option>
-                    <option value="C">Center</option>
-                    <option value="E">East</option>
-                  </select>
-                </div>
-              )}
-              {/* Ruch, náročnosť, povrch, hodnotenie a fotky sú SPRÁVY Z CESTY — na výlete,
-                  ktorý sa ešte nekonal, sa nedajú vyplniť pravdivo. Preto sa na pláne
-                  nezobrazujú (a do draftu sa nedostanú, viď `isPlan` pri jeho stavbe). */}
-              {!isPlan && (
-                <div className="atl-field">
-                  <label>{t('pack.addTrip.log.crowd')}</label>
-                  <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
-                    <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
-                    {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {c}</option>)}
-                  </select>
-                </div>
-              )}
-            </div>
-
-            {/* 4. (hiking/journey only) Difficulty · Terrain */}
-            {isHikeLike && !isPlan && (
-              <div className="atl-row2">
-                <div className="atl-field">
-                  <label>Difficulty</label>
-                  <select className="atl-input" value={diff} onChange={(e) => setDiff(e.target.value as typeof diff)}>
-                    <option value="">Select…</option>
-                    {DIFF_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-                <div className="atl-field">
-                  <label>Terrain</label>
-                  <select className="atl-input" value={terrain} onChange={(e) => setTerrain(e.target.value)}>
-                    <option value="">Select…</option>
-                    {TERRAIN_OPTIONS.map((s) => <option key={s.id} value={s.id}>{s.emoji} {s.label}</option>)}
-                  </select>
-                </div>
-              </div>
-            )}
-
-            {/* 5. Tags */}
-            <div className="atl-field">
-              <label>{t('pack.addTrip.log.tags')}</label>
-              <div className="atl-chips">
-                {TAG_OPTIONS.map((tag) => (
-                  <button
-                    key={tag.label}
-                    type="button"
-                    className={`atl-chip${tags.has(tag.label) ? ' on' : ''}`}
-                    onClick={() => toggleSet(tags, setTags, tag.label)}
-                  >
-                    <span className="atl-chip-emoji">{tag.emoji}</span><span className="atl-chip-label">{tag.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 6. Short note */}
-            <div className="atl-field">
-              <label>{t(isPlan ? 'pack.addTrip.plan.details' : 'pack.addTrip.log.story')}</label>
-              <textarea className="atl-input atl-textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Any tips, highlights, warnings…" />
-            </div>
-
-            {/* 7. Hazards + custom — len pri zápise (viď komentár pri Crowd) */}
-            {!isPlan && (
-            <div className="atl-field">
-              <label>Any hazards? <span className="atl-field-hint">(optional — helps the pack)</span></label>
-              <div className="atl-chips">
-                {HAZARDS.map((h) => (
-                  <button key={h} type="button" className={`atl-chip${hazards.has(h) ? ' on' : ''}`} onClick={() => toggleSet(hazards, setHazards, h)}>
-                    <span className="atl-chip-emoji">{HAZARD_EMOJI[h]}</span><span className="atl-chip-label">{h}</span>
-                  </button>
-                ))}
-                {Array.from(hazards).filter((h) => !(HAZARDS as string[]).includes(h)).map((h) => (
-                  <button key={h} type="button" className="atl-chip on" onClick={() => toggleSet(hazards, setHazards, h)}>
-                    <span className="atl-chip-emoji">⚠️</span><span className="atl-chip-label">{h}</span>
-                  </button>
-                ))}
-                {!customHazardOpen && (
-                  <button type="button" className="atl-chip atl-chip-add" onClick={() => setCustomHazardOpen(true)}>+ Add</button>
                 )}
               </div>
-              {customHazardOpen && (
-                <div className="atl-custom-hazard">
-                  <input
-                    className="atl-input"
-                    value={customHazardText}
-                    onChange={(e) => setCustomHazardText(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomHazard(); } }}
-                    placeholder="Describe the hazard…"
-                    autoFocus
-                  />
-                  <button type="button" className="atl-toggle-btn" onClick={addCustomHazard}>Add</button>
-                </div>
-              )}
             </div>
-            )}
 
-            {/* PLÁN — dve polia z bývalého `AddTripPlan`. Ukazujú sa len keď dátum leží
-                v budúcnosti; vtedy naopak nedávajú zmysel hodnotenie a fotky vyššie. */}
-            {isPlan && (
+            {/* ══ KROK 2 — ODKAZY NA TRASU ════════════════════════════════════════════ */}
+            {step === 2 && (
               <div className="atl-field">
-                <label>{t('pack.addTrip.plan.visibility')}</label>
-                <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.plan.visibility')}>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={visibility === 'private'}
-                    className={`atl-toggle-btn${visibility === 'private' ? ' on' : ''}`}
-                    onClick={() => setVisibility('private')}
-                  >{t('pack.addTrip.plan.visibilityPrivate')}</button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={visibility === 'open'}
-                    className={`atl-toggle-btn${visibility === 'open' ? ' on' : ''}`}
-                    onClick={() => setVisibility('open')}
-                  >{t('pack.addTrip.plan.visibilityOpen')}</button>
-                </div>
-                <p className="atl-field-hint" style={{ marginTop: 6 }}>
-                  {t(visibility === 'private' ? 'pack.addTrip.plan.visibilityPrivateNote' : 'pack.addTrip.plan.visibilityOpenNote')}
-                </p>
+                <label>{t('pack.addTrip.step.name.notes')}</label>
+                {noteAsk < NOTE_ASKS.length ? (
+                  <div className="atl-noteask">
+                    <p>{t(NOTE_ASKS[noteAsk].qKey)}</p>
+                    <div className="atl-noteask-btns">
+                      <button
+                        type="button"
+                        className="atl-toggle-btn"
+                        onClick={() => setNoteAsk((i) => i + 1)}
+                      >
+                        {t('pack.addTrip.step.skip')}
+                      </button>
+                      <button
+                        type="button"
+                        className="atl-toggle-btn on"
+                        onClick={() => onPlaceNote?.(NOTE_ASKS[noteAsk].group)}
+                        disabled={!onPlaceNote}
+                      >
+                        {t(NOTE_ASKS[noteAsk].ctaKey)}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="atl-field-hint">{t('pack.addTrip.step.notesDone')}</p>
+                )}
+                <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesYet" />
+                {noteAsk >= NOTE_ASKS.length && (
+                  <button type="button" className="atl-journey-link" onClick={() => setNoteAsk(0)}>
+                    {t('pack.addTrip.step.markMore')}
+                  </button>
+                )}
               </div>
             )}
 
-            {/* 8. Trip pack */}
-            <div className="atl-field">
-              <label>{t('pack.addTrip.log.pack')}</label>
-              <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
-            </div>
-
-            {/* 9. Packs rating — len pri zápise (viď komentár pri Crowd) */}
-            {!isPlan && (
-            <div className="atl-field">
-              <label>Rate this trip</label>
-              <PawRating value={paws} onChange={setPaws} onDark size={26} />
-            </div>
-            )}
-
-            {/* 10. Photos — len pri zápise */}
-            {!isPlan && (
-            <div className="atl-field">
-              <label>Photos <span className="atl-field-hint">· {photos.length}/{MAX_PHOTOS} · auto-resized</span></label>
-              <button
-                type="button"
-                className="atl-file-btn"
-                onClick={() => photoInputRef.current?.click()}
-                disabled={photos.length >= MAX_PHOTOS}
-              >
-                📷 Choose photos
-              </button>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handlePhotos}
-                disabled={photos.length >= MAX_PHOTOS}
-                className="atl-file-input-hidden"
-              />
-              <p className="atl-field-hint" style={{ marginTop: 4 }}>JPG or PNG, up to {MAX_PHOTOS} photos.</p>
-              {photoNote && <p className="atl-field-hint" style={{ marginTop: 4 }}>{photoNote}</p>}
-              {photos.length > 0 && (
-                <>
-                  <div className="atl-photo-grid">
-                    {photos.map((p, i) => (
-                      <div
-                        key={i}
-                        className={`atl-photo-thumb${i === effCoverIndex ? ' cover' : ''}`}
-                        style={{ backgroundImage: `url('${p}')` }}
-                        onClick={() => setCoverIndex(i)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={i === effCoverIndex ? 'Cover photo' : 'Set as cover photo'}
-                      >
-                        {i === effCoverIndex && <span className="atl-photo-cover-badge">COVER</span>}
-                        <button type="button" onClick={(e) => { e.stopPropagation(); removePhoto(i); }} aria-label="Remove photo">×</button>
-                      </div>
-                    ))}
+            {/* ══ KROK 3 — ZÁKLAD ═════════════════════════════════════════════════════ */}
+            {step === 3 && (
+              <>
+                {/* HORE PATRÍ TO, ČO ČLOVEK PRÁVE ROBÍ — nie stock les.
+                    Kým nie je nahraná fotka, ukazuje sa ŽIVÝ VÝREZ NAKRESLENEJ TRASY: je to
+                    jediný obrázok, ktorý o tomto konkrétnom výlete niečo hovorí. */}
+                {photos.length === 0 && routeShape ? (
+                  <div className="atl-photo atl-photo--route">
+                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                      <polyline points={routeShape} />
+                    </svg>
+                    <span className="atl-photo-badge">{t('pack.addTrip.log.routeSoFar')}</span>
                   </div>
-                  <div className="atl-cover-crop">
-                    <label>Cover photo vertical position</label>
-                    <input
-                      type="range"
-                      min={0}
-                      max={100}
-                      value={coverY}
-                      onChange={(e) => setCoverY(Number(e.target.value))}
-                      className="atl-cover-slider"
-                    />
-                  </div>
-                </>
-              )}
-            </div>
-            )}
-
-            {/* 11. Where — journey = výber z magistrál, nie kreslenie (§1/§2 zadania); ostatné
-                aktivity a "Not here?" únik z journey kreslia ako doteraz. */}
-            <div className="atl-field">
-              {/* ODŠKRTNUTÁ TRASA (Matej 2026-08-22: „po kliknutí hotovo sa odcheckne TRASA
-                  a už len vyplniť formulár"). Na mobile sa kreslí PRED formulárom, takže sem
-                  sa človek vracia s hotovou trasou — bez potvrdenia by nevedel, či sa to, čo
-                  nakreslil, vôbec zapísalo. Fialová je farba trasy (svetelný meč), nie nová
-                  farba stavu. */}
-              <label>
-                {t('pack.addTrip.log.where')}
-                {geoDone && (
-                  <span
+                ) : (
+                  <div
+                    className="atl-photo"
                     style={{
-                      marginLeft: 8, padding: '2px 9px', borderRadius: 999,
-                      background: 'rgba(122,47,191,0.22)',
-                      border: '1px solid rgba(179,107,255,0.55)',
-                      color: '#E9D8FF', fontSize: 10.5, fontWeight: 600, letterSpacing: '.08em',
-                      textTransform: 'uppercase', whiteSpace: 'nowrap',
+                      backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
+                      backgroundPosition: photos.length > 0 ? `center ${coverY}%` : undefined,
                     }}
                   >
-                    ✓ {t('pack.addTrip.geo.routeDone')}
-                  </span>
+                    {photos.length === 0 && <span className="atl-photo-badge">{t('pack.addTrip.log.addPhotoBelow')}</span>}
+                  </div>
                 )}
-              </label>
-              {activity === 'journey' && !drawManually ? (
-                <div className="atl-journeys">
-                  <input
-                    className="atl-input"
-                    value={journeyFilter}
-                    onChange={(e) => setJourneyFilter(e.target.value)}
-                    placeholder="Search trails…"
-                  />
-                  <div className="atl-journey-list">
-                    {journeyList.map((j) => (
+
+                <div className="atl-field">
+                  <label>{t('pack.addTrip.log.name')}</label>
+                  <input className="atl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
+                </div>
+
+                <div className={activity === 'journey' && !dontRemember ? 'atl-row3' : 'atl-row2'}>
+                  <div className="atl-field">
+                    <label>{t('pack.addTrip.log.date')}</label>
+                    <input
+                      type="date"
+                      className="atl-input"
+                      value={date}
+                      disabled={dontRemember}
+                      onChange={(e) => setDate(e.target.value)}
+                    />
+                  </div>
+                  {activity === 'journey' && !dontRemember && (
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.step.dateEnd')}</label>
+                      <input
+                        type="date"
+                        className="atl-input"
+                        value={dateEnd}
+                        min={date || undefined}
+                        onChange={(e) => setDateEnd(e.target.value)}
+                      />
+                    </div>
+                  )}
+                  <div className="atl-field">
+                    <label>&nbsp;</label>
+                    <button
+                      type="button"
+                      className={`atl-toggle-btn${dontRemember ? ' on' : ''}`}
+                      onClick={() => {
+                        setDontRemember((v) => {
+                          const next = !v;
+                          if (next) setDateEnd('');
+                          return next;
+                        });
+                        setDate('');
+                      }}
+                    >
+                      {t('pack.addTrip.step.dontRemember')}
+                    </button>
+                  </div>
+                </div>
+                {activity !== 'journey' && (
+                  <p className="atl-daterange-hint">
+                    {t('pack.addTrip.step.multiDayHint')}{' '}
+                    <button type="button" className="atl-journey-link" onClick={() => setActivity('')}>{t('pack.addTrip.plan.activities.journey')}</button>.
+                  </p>
+                )}
+
+                <div className="atl-row3">
+                  <div className="atl-field">
+                    <label>{t('pack.addTrip.step.state')}</label>
+                    <select className="atl-input" value={effCountry} onChange={(e) => setCountryOverride(e.target.value)}>
+                      {countryOpts.map((c) => <option key={c} value={c}>{flagEmoji(c)} {COUNTRY_LABEL[c] ?? c.toUpperCase()}</option>)}
+                    </select>
+                  </div>
+                  {effCountry === 'sk' && (
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.step.region')}</label>
+                      <select className="atl-input" value={effRegion} onChange={(e) => setRegionOverride(e.target.value as '' | 'W' | 'C' | 'E')}>
+                        <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
+                        <option value="W">{t('pack.addTrip.step.regionW')}</option>
+                        <option value="C">{t('pack.addTrip.step.regionC')}</option>
+                        <option value="E">{t('pack.addTrip.step.regionE')}</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+
+            {/* ══ KROK 4 — O TRASE ════════════════════════════════════════════════════ */}
+            {step === 4 && (
+              <>
+                {/* Ruch, náročnosť, povrch, hodnotenie a fotky sú SPRÁVY Z CESTY — na výlete,
+                    ktorý sa ešte nekonal, sa nedajú vyplniť pravdivo. Preto sa na pláne
+                    nezobrazujú (a do draftu sa nedostanú, viď `isPlan` pri jeho stavbe). */}
+                {isHikeLike && !isPlan && (
+                  <div className="atl-row2">
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.step.difficulty')}</label>
+                      <select className="atl-input" value={diff} onChange={(e) => setDiff(e.target.value as typeof diff)}>
+                        <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
+                        {DIFF_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                      </select>
+                    </div>
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.step.terrain')}</label>
+                      <select className="atl-input" value={terrain} onChange={(e) => setTerrain(e.target.value)}>
+                        <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
+                        {TERRAIN_OPTIONS.map((sf) => <option key={sf.id} value={sf.id}>{sf.emoji} {sf.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                )}
+                {!isPlan && (
+                  <div className="atl-field">
+                    <label>{t('pack.addTrip.log.crowd')}</label>
+                    <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
+                      <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
+                      {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {c}</option>)}
+                    </select>
+                  </div>
+                )}
+
+                <div className="atl-field">
+                  <label>{t('pack.addTrip.log.tags')}</label>
+                  <div className="atl-chips">
+                    {TAG_OPTIONS.map((tag) => (
                       <button
-                        key={j.id}
+                        key={tag.label}
                         type="button"
-                        className={`atl-journey-item${existingTripId === j.id ? ' on' : ''}`}
-                        onClick={() => pickJourney(j)}
+                        className={`atl-chip${tags.has(tag.label) ? ' on' : ''}`}
+                        onClick={() => toggleSet(tags, setTags, tag.label)}
                       >
-                        <span className="atl-journey-name">{j.name}</span>
-                        <span className="atl-journey-meta">{j.km} km · {j.journey.days}d · {j.journey.start} → {j.journey.end}</span>
+                        <span className="atl-chip-emoji">{tag.emoji}</span><span className="atl-chip-label">{tag.label}</span>
                       </button>
                     ))}
-                    {journeyList.length === 0 && <p className="atl-field-hint" style={{ padding: '6px 4px' }}>No trails match.</p>}
                   </div>
-                  <button type="button" className="atl-journey-link" onClick={drawInstead}>
-                    Not here? Draw it on the map
+                </div>
+
+                <div className="atl-field">
+                  <label>{t(isPlan ? 'pack.addTrip.plan.details' : 'pack.addTrip.log.story')}</label>
+                  <textarea className="atl-input atl-textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
+                </div>
+
+                {/* NEBEZPEČENSTVO SA TU UŽ NEVYPĹŇA, LEN ZHŔŇA (Matej 23. 8.).
+                    Chipy hazardov zanikli: tá istá informácia žila na dvoch miestach
+                    (`trip_votes.hazards` + značky v mape) a prvá úprava jedného ich rozišla.
+                    Chip bez polohy je navyše horší údaj — svorke nepovie kde. */}
+                <div className="atl-field">
+                  <label>{t('pack.addTrip.step.markedOnRoute')}</label>
+                  <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesSummary" />
+                  <button type="button" className="atl-journey-link" onClick={() => { setNoteAsk(0); setStep(2); }}>
+                    {t('pack.addTrip.step.backToNotes')}
                   </button>
                 </div>
-              ) : (
-                <GeometryPicker
-                  value={geometry}
-                  onChange={setGeometry}
-                  activity={activity}
-                  mode="log"
-                  allTrails={allTrails}
-                  onMetrics={(m) => { metricsRef.current = m; }}
-                  mapRef={mapRef}
-                  drawBar={drawBar}
-                />
-              )}
-            </div>
+
+                {/* PLÁN — viditeľnosť. Ukazuje sa len keď dátum leží v budúcnosti. */}
+                {isPlan && (
+                  <div className="atl-field">
+                    <label>{t('pack.addTrip.plan.visibility')}</label>
+                    <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.plan.visibility')}>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={visibility === 'private'}
+                        className={`atl-toggle-btn${visibility === 'private' ? ' on' : ''}`}
+                        onClick={() => setVisibility('private')}
+                      >{t('pack.addTrip.plan.visibilityPrivate')}</button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={visibility === 'open'}
+                        className={`atl-toggle-btn${visibility === 'open' ? ' on' : ''}`}
+                        onClick={() => setVisibility('open')}
+                      >{t('pack.addTrip.plan.visibilityOpen')}</button>
+                    </div>
+                    <p className="atl-field-hint" style={{ marginTop: 6 }}>
+                      {t(visibility === 'private' ? 'pack.addTrip.plan.visibilityPrivateNote' : 'pack.addTrip.plan.visibilityOpenNote')}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* ══ KROK 5 — OSTATNÉ ════════════════════════════════════════════════════ */}
+            {step === 5 && (
+              <>
+                <div className="atl-field">
+                  <label>{t('pack.addTrip.log.pack')}</label>
+                  <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
+                </div>
+
+                {!isPlan && (
+                  <div className="atl-field">
+                    <label>{t('pack.addTrip.step.rate')}</label>
+                    <PawRating value={paws} onChange={setPaws} onDark size={26} />
+                  </div>
+                )}
+
+                {!isPlan && (
+                  <div className="atl-field">
+                    <label>{t('pack.addTrip.step.photos')} <span className="atl-field-hint">· {photos.length}/{MAX_PHOTOS}</span></label>
+                    <button
+                      type="button"
+                      className="atl-file-btn"
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={photos.length >= MAX_PHOTOS}
+                    >
+                      📷 {t('pack.addTrip.step.choosePhotos')}
+                    </button>
+                    <input
+                      ref={photoInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handlePhotos}
+                      disabled={photos.length >= MAX_PHOTOS}
+                      className="atl-file-input-hidden"
+                    />
+                    <p className="atl-field-hint" style={{ marginTop: 4 }}>{t('pack.addTrip.step.photoHint', { n: MAX_PHOTOS })}</p>
+                    {photoNote && <p className="atl-field-hint" style={{ marginTop: 4 }}>{photoNote}</p>}
+                    {photos.length > 0 && (
+                      <>
+                        <div className="atl-photo-grid">
+                          {photos.map((ph, i) => (
+                            <div
+                              key={i}
+                              className={`atl-photo-thumb${i === effCoverIndex ? ' cover' : ''}`}
+                              style={{ backgroundImage: `url('${ph}')` }}
+                              onClick={() => setCoverIndex(i)}
+                              role="button"
+                              tabIndex={0}
+                              aria-label={t('pack.addTrip.step.coverPhoto')}
+                            >
+                              {i === effCoverIndex && <span className="atl-photo-cover-badge">{t('pack.addTrip.step.cover')}</span>}
+                              <button type="button" onClick={(e) => { e.stopPropagation(); removePhoto(i); }} aria-label={t('pack.addTrip.step.removePhoto')}>×</button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="atl-cover-crop">
+                          <label>{t('pack.addTrip.step.coverCrop')}</label>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={coverY}
+                            onChange={(e) => setCoverY(Number(e.target.value))}
+                            className="atl-cover-slider"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           <div className="atl-log-foot">
-            {showDupWarning && dup && (
-              <div className="atl-dupwarn">
-                <p>This route looks similar to an existing trip — <b>{dup.name}</b>. Log it anyway?</p>
-                <div className="atl-dupwarn-btns">
-                  <button type="button" className="atl-toggle-btn" onClick={() => setShowDupWarning(false)}>Cancel</button>
-                  <button type="button" className="atl-toggle-btn on" onClick={confirmDuplicate}>Log it anyway</button>
-                </div>
+            {/* V KROKU 1 NAVIGÁCIU VLASTNÍ LIŠTA (HOTOVO nad mapou) — dve tlačidlá s tým istým
+                účinkom na jednej obrazovke je presne ten zmätok, kvôli ktorému kroky vznikli. */}
+            {step < 5 && !drawingStep && (
+              <div className="atl-nav">
+                <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
+                <button type="button" className="btn-gold" onClick={goNext} disabled={nextBlocked}>
+                  {t('pack.addTrip.step.next')}
+                </button>
               </div>
             )}
-            <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
-              {t(isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
-            </button>
-            {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missing.toSubmit.join(', ') })}</p>}
-            {!canSubmit && journeyIssue && (
-              <p className="atl-log-hint">Journey needs a multi-day trip — add an end date after the start date.</p>
+            {step === 1 && !drawingStep && nextBlocked && (
+              <p className="atl-log-hint">{t('pack.addTrip.step.needRoute')}</p>
             )}
-            {canSubmit && missing.toApprove.length > 0 && (
-              <p className="atl-log-hint">Will be saved as draft — finish later: {missing.toApprove.join(', ')}</p>
+
+            {step === 5 && (
+              <>
+                {showDupWarning && dup && (
+                  <div className="atl-dupwarn">
+                    <p>{t('pack.addTrip.step.dupWarn', { name: dup.name })}</p>
+                    <div className="atl-dupwarn-btns">
+                      <button type="button" className="atl-toggle-btn" onClick={() => setShowDupWarning(false)}>{t('pack.addTrip.step.cancel')}</button>
+                      <button type="button" className="atl-toggle-btn on" onClick={confirmDuplicate}>{t('pack.addTrip.step.logAnyway')}</button>
+                    </div>
+                  </div>
+                )}
+                <div className="atl-nav">
+                  <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
+                  <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
+                    {t(isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
+                  </button>
+                </div>
+                {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missing.toSubmit.join(', ') })}</p>}
+                {!canSubmit && journeyIssue && (
+                  <p className="atl-log-hint">{t('pack.addTrip.step.journeyNeedsEnd')}</p>
+                )}
+                {canSubmit && missing.toApprove.length > 0 && (
+                  <p className="atl-log-hint">{t('pack.addTrip.step.willBeDraft', { fields: missing.toApprove.join(', ') })}</p>
+                )}
+                {submitError && <p className="atl-log-error">{submitError}</p>}
+              </>
             )}
-            {submitError && <p className="atl-log-error">{submitError}</p>}
           </div>
         </>
       )}
     </div>
   );
 }
+
+/**
+ * ZHRNUTIE ZNAČIEK ZAPICHNUTÝCH NA TRASU — čítanie, nie editovanie.
+ * Emoji aj názov si berie z tých istých zdrojov ako mapa (`MARK_EMOJI`, `pack.mapNotes.kind.*`),
+ * takže sa značka v zozname a značka na mape nikdy nerozídu.
+ */
+function PlacedNotes({ notes, t, emptyKey }: { notes?: NoteKind[]; t: (k: string, v?: Record<string, string | number>) => string; emptyKey: string }) {
+  if (!notes || notes.length === 0) {
+    return <p className="atl-field-hint">{t(emptyKey)}</p>;
+  }
+  return (
+    <div className="atl-chips">
+      {notes.map((k, i) => (
+        <span key={`${k}-${i}`} className="atl-chip on">
+          <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{MARK_EMOJI[k]}</span>
+          <span className="atl-chip-label">{t(`pack.mapNotes.kind.${k}`)}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/** CSS krokového sprievodcu. ⚠️ JS template literal — spätný apostrof v komentári zhodí build. */
+const STEP_CSS = `
+.atl-steps{display:flex;gap:6px;padding:2px 20px 10px;flex-shrink:0;}
+.atl-step{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border-radius:9px;background:transparent;border:1px solid transparent;color:${T.onDarkDim};cursor:default;}
+.atl-step b{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:600;font-size:10.5px;line-height:1;}
+.atl-step span{font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center;line-height:1.2;}
+.atl-step.done{cursor:pointer;color:${T.onDark};}
+.atl-step.done b{background:rgba(201,154,63,0.20);border-color:rgba(201,154,63,0.55);color:${GOLD};}
+.atl-step.on{background:rgba(201,154,63,0.10);border-color:rgba(201,154,63,0.40);color:${T.onDark};}
+.atl-step.on b{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.30);color:#1c160c;}
+/* Veta „čo tu mám robiť" — tá istá myšlienka ako fialová pilulka nad mapou, len na povrchu
+   panela: fialový rám z rodiny trasy, plný tmavý podklad, aby bola čitateľná aj cez fotku. */
+.atl-stephint{padding:10px 13px;border-radius:10px;background:rgba(18,13,7,0.85);border:1px solid rgba(179,107,255,0.45);box-shadow:0 0 0 3px rgba(122,47,191,0.14);font-family:${FONT_UI};font-size:12.5px;font-weight:500;line-height:1.45;color:#F3E9FF;}
+.atl-donepill{margin-left:8px;padding:2px 9px;border-radius:999px;background:rgba(122,47,191,0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+.atl-noteask{padding:12px 14px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
+.atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:13px;line-height:1.45;color:${T.onDark};}
+.atl-noteask-btns{display:flex;gap:8px;}
+.atl-noteask-btns .atl-toggle-btn{flex:1 1 0;}
+.atl-nav{display:flex;gap:8px;align-items:stretch;}
+.atl-nav .atl-toggle-btn{flex:0 0 34%;}
+.atl-nav .btn-gold{flex:1 1 0;}
+`;
 
 const RESTORE_CSS = `
 .atl-restore{margin:16px 20px;padding:14px 16px;border:1px solid ${T.onDarkBorder};border-radius:12px;background:rgba(245,240,228,0.04);}
@@ -955,6 +1146,8 @@ const ROUTE_HERO_CSS = `
    kde badge sedí pri fotke, prekrýva prvý bod. */
 .atl-photo--route .atl-photo-badge{top:auto;bottom:10px;}
 .atl-photo--route polyline{fill:none;stroke:#F5C73D;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 6px rgba(245,199,61,0.45));}
+/* Najmenší zápis: čiarkovane aj tu — rámik nesmie tvrdiť trasu, ktorú appka nepozná. */
+.atl-photo--route.is-minimal polyline{stroke-dasharray:2 9;}
 `;
 
 const COMPANION_CSS = `

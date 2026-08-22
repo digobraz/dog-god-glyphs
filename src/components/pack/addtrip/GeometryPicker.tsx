@@ -27,6 +27,8 @@ import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } f
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
 import { HandPencil } from '@/components/pack/HandIcons';
+import { EVENT_RIM, FONT_EMOJI, TRIP_TARGET_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import {
   ensureElevations,
   elevAt,
@@ -75,7 +77,32 @@ export type GeometryPickerProps = {
    * (ktorý skladá stopu z `legsRef` bez volania siete) žijú TU. Dvíhať ich cez AddTripPlan
    * a AddTripLog do PackMap by z jedného zdroja pravdy urobilo tri.
    */
-  drawBar?: { active: boolean; onDone: () => void };
+  drawBar?: {
+    active: boolean;
+    onDone: () => void;
+    /** Únik z kroku (späť). Zámok obrazovky bez východu je pasca, nie sústredenie. */
+    onBack?: () => void;
+    doneLabel?: string;
+    /** Krok sa nedá opustiť (napr. trasa ešte neexistuje) — HOTOVO je vypnuté, nie mŕtve. */
+    doneDisabled?: boolean;
+    /**
+     * Veta „čo mám teraz robiť". Keď je podaná, prebíja tú, ktorú si picker odvodí sám —
+     * sprievodca tak má JEDEN systém pokynov (fialová pilulka nad mapou) pre všetky kroky,
+     * nie druhý vedľa neho.
+     */
+    hint?: string | null;
+    /**
+     * Panel stojí VEDĽA mapy (PC). Lišta aj pilulka sa odsadia o jeho šírku — inak by na PC
+     * ležali na formulári a to bola presne tá sťažnosť, kvôli ktorej lišta na PC vzniká.
+     */
+    besidePanel?: boolean;
+    /**
+     * Mapa práve patrí niekomu inému (krok 2 = zapichovanie značiek). Picker prestane brať
+     * kliky aj dlhé stlačenia, ale vrstvy kreslí ďalej — trasa musí byť vidno, veď sa značky
+     * pichajú NA ŇU.
+     */
+    paused?: boolean;
+  };
 };
 
 // ── pomocné ─────────────────────────────────────────────────────────────────────────────
@@ -148,6 +175,9 @@ export function GeometryPicker({
   const runRef = useRef(0); // sekvencia — rýchle kliky nesmú prepísať novší výsledok starším
 
   const [busy, setBusy] = useState(false);
+  // Prosba „skús trasu nakresliť" — RAZ za človeka, nie pri každom uložení (viď `pleaSeen`).
+  const [showPlea, setShowPlea] = useState(() => !pleaSeen());
+  const dismissPlea = useCallback(() => { markPleaSeen(); setShowPlea(false); }, []);
   const [notice, setNotice] = useState<string | null>(null);
   const [ascent, setAscent] = useState<number | null>(null);
   const [elevPending, setElevPending] = useState(false);
@@ -159,10 +189,38 @@ export function GeometryPicker({
   );
   const km = useMemo(() => (line.length > 1 ? totalDistanceM(line) / 1000 : 0), [line]);
 
+  // ── JEDEN ZÁPIS TRASY ────────────────────────────────────────────────────────────────
+  // Kotvy dnes nesú aj cieľ, spôsob návratu a príznak najmenšieho zápisu. Keby si každé
+  // volanie `onChange` skladalo objekt od nuly (ako pred 23. 8.), prvé, ktoré na nové pole
+  // zabudne, ho ticho zmaže — a človek by videl zmiznutý cieľ bez toho, aby naň siahol.
+  const setRoute = useCallback(
+    (patch: Partial<Extract<TripGeometry, { kind: 'route' }>>) => {
+      const base: Extract<TripGeometry, { kind: 'route' }> =
+        value.kind === 'route' ? value : { kind: 'route', path: [], snapped: false };
+      onChange({ ...base, ...patch, kind: 'route' });
+    },
+    [value, onChange],
+  );
+
+  const routePath = value.kind === 'route' ? value.path : [];
+  const isMinimal = value.kind === 'route' && !!value.minimal;
+  const targetIdx = value.kind === 'route' ? value.targetIdx : undefined;
+  const returnMode = value.kind === 'route' ? value.returnMode : undefined;
+  // Cieľ sa dá označiť OD DRUHEJ KOTVY (Matej 23. 8. — 2 km nie sú podmienka, len chvíľa,
+  // kedy sa appka ozve). Prechádzka po 900 m by inak cieľ označiť nevedela vôbec.
+  const canMarkTarget = value.kind === 'route' && !isMinimal && routePath.length >= 2 && targetIdx === undefined;
+  const targetUrged = canMarkTarget && km >= 2;
+
   // ── hlásenie metrík hore ──────────────────────────────────────────────────────────────
   useEffect(() => {
-    onMetrics?.({ km, ascentM: ascent, points: value.kind === 'route' ? value.path.length : 0 });
-  }, [km, ascent, value, onMetrics]);
+    // NAJMENŠÍ ZÁPIS NEHLÁSI KILOMETRE. Vzdušná čiara medzi štartom a cieľom nie je dĺžka
+    // výletu; keby sa poslala hore, sadla by do `draft.km` a odtiaľ do rebríčka kilometrov.
+    onMetrics?.({
+      km: isMinimal ? 0 : km,
+      ascentM: isMinimal ? null : ascent,
+      points: value.kind === 'route' ? value.path.length : 0,
+    });
+  }, [km, ascent, value, onMetrics, isMinimal]);
 
   // ── prepočet prevýšenia — CELÁ trasa odznova (§5.2a) ──────────────────────────────────
   // KRITICKÉ: prevýšenie sa NESMIE sčítavať po segmentoch. Batch skript (compute-ascent.py)
@@ -226,23 +284,36 @@ export function GeometryPicker({
       return;
     }
 
+    // ── NAJMENŠÍ MOŽNÝ ZÁPIS: ŠTART A CIEĽ, NIČ MEDZI TÝM ────────────────────────────────
+    // Matej 23. 8.: medzi tie dva body sa NEPRICHYTÁVA (snap by vymyslel cestu, kadiaľ človek
+    // nešiel) ani NEKRESLÍ plná čiara (klame rovnako, len inak). Preto tu nie je `snapSegment`
+    // a `snapPath` ostáva neurčená — kreslí sa čiarkovaná spojnica priamo z kotiev.
+    if (value.minimal) {
+      const two: LatLngTuple[] = value.path.length >= 2 ? [value.path[0], p] : [...value.path, p];
+      legsRef.current = [];
+      setRoute({
+        path: two,
+        snapPath: undefined,
+        snapped: false,
+        // druhá kotva JE cieľ — nie je čo označovať, keď sú body len dva
+        targetIdx: two.length === 2 ? 1 : undefined,
+        returnMode: undefined,
+        mirroredFrom: undefined,
+      });
+      return;
+    }
+
     const anchors = [...value.path, p];
 
     // prvá kotva — nič sa nesnapuje
     if (anchors.length === 1) {
-      onChange({ kind: 'route', path: anchors, snapPath: undefined, snapped: false });
+      setRoute({ path: anchors, snapPath: undefined, snapped: false });
       return;
     }
 
     // optimistický zápis: rovná čiara hneď, snapnutá geometria doplní odpoveď
     legsRef.current[anchors.length - 2] = [anchors[anchors.length - 2], p];
-    onChange({
-      kind: 'route',
-      path: anchors,
-      snapPath: buildSnapPath(anchors),
-      snapped: value.snapped,
-      hideStartM: value.hideStartM,
-    });
+    setRoute({ path: anchors, snapPath: buildSnapPath(anchors) });
 
     setBusy(true);
     const res = await snapSegment(anchors[anchors.length - 2], p);
@@ -251,15 +322,71 @@ export function GeometryPicker({
 
     legsRef.current[anchors.length - 2] = res.geometry;
     const snapPath = buildSnapPath(anchors);
-    onChange({
-      kind: 'route',
-      path: anchors,
+    setRoute({ path: anchors, snapPath, snapped: value.snapped || res.snapped });
+    void recomputeAscent(snapPath);
+  }, [value, onChange, setRoute, buildSnapPath, recomputeAscent, drawBar?.active, mapRef]);
+
+  /**
+   * OZNAČENIE CIEĽA 🎯 (Matej 2026-08-23: „po 2 km by sa pri kurzore mohla objaviť hláška:
+   * dlho podrž pre označenie cieľa trasy").
+   *
+   * Cieľom je POSLEDNÁ POLOŽENÁ KOTVA, nie bod pod prstom. Kto drží prst, drží ho nad mapou
+   * kdesi vedľa trasy — cieľ zapichnutý tam by ležal mimo cesty, po ktorej človek šiel.
+   * Posledná kotva je zároveň to, čo práve nakreslil, teda vrchol/chata/miesto, kam smeroval.
+   */
+  const markTarget = useCallback(() => {
+    if (value.kind !== 'route' || value.path.length < 2) return;
+    setRoute({ targetIdx: value.path.length - 1 });
+  }, [value, setRoute]);
+
+  /**
+   * TÁ ISTÁ TRASA NASPÄŤ (Matej: „klikom sa 2× aktuálna trasa").
+   *
+   * Zrkadlia sa KOTVY aj ÚSEKY — keby sa zrkadlili len kotvy, spiatočná polovica by šla po
+   * rovných čiarach, hoci cesta tam je prichytená na chodník. Prevýšenie sa počíta z CELEJ
+   * stopy odznova (nie 2× predošlý súčet) — dôvod je v `recomputeAscent` vyššie.
+   */
+  const mirrorBack = useCallback(() => {
+    if (value.kind !== 'route' || value.path.length < 2) return;
+    const anchors = value.path;
+    const n = anchors.length;
+    const legs = legsRef.current.slice(0, n - 1);
+    const mirroredAnchors = [...anchors, ...anchors.slice(0, -1).reverse()];
+    legsRef.current = [...legs, ...legs.slice().reverse().map((leg) => leg.slice().reverse())];
+    const snapPath = buildSnapPath(mirroredAnchors);
+    setRoute({
+      path: mirroredAnchors,
       snapPath,
-      snapped: value.snapped || res.snapped,
-      hideStartM: value.hideStartM,
+      returnMode: 'mirror',
+      mirroredFrom: n,
+      // cieľ ostáva tam, kde bol — je to stále ten istý vrchol, len sa z neho ide domov
+      targetIdx: value.targetIdx,
     });
     void recomputeAscent(snapPath);
-  }, [value, onChange, buildSnapPath, recomputeAscent, drawBar?.active, mapRef]);
+  }, [value, setRoute, buildSnapPath, recomputeAscent]);
+
+  /** OKRUH: posledná kotva sa vráti na štart. Klasické „vraciam sa inou cestou, ale domov". */
+  const closeLoop = useCallback(() => {
+    if (value.kind !== 'route' || value.path.length < 2) return;
+    void placePoint(value.path[0][0], value.path[0][1]);
+  }, [value, placePoint]);
+
+  /** Prepnutie na najmenší zápis a späť. Zahodí sa všetko, čo pre druhý režim nedáva zmysel. */
+  const setMinimal = useCallback((on: boolean) => {
+    legsRef.current = [];
+    setAscent(null);
+    setNotice(null);
+    const keepStart = value.kind === 'route' && value.path.length > 0 ? [value.path[0]] : [];
+    setRoute({
+      minimal: on || undefined,
+      path: on ? keepStart : [],
+      snapPath: undefined,
+      snapped: false,
+      targetIdx: undefined,
+      returnMode: undefined,
+      mirroredFrom: undefined,
+    });
+  }, [value, setRoute]);
 
   // ── PRVÁ KOTVA CHCE DLHÉ STLAČENIE (Matej 2026-08-22) ─────────────────────────────────
   // „vysvetlenie — dlhým stlačením zaháj trasu na mape."
@@ -268,20 +395,32 @@ export function GeometryPicker({
   // mu pri každom takom pohybe hodil kotvu do lesa. Po prvej kotve už je zrejmé, že kreslí,
   // takže ďalšie body pribúdajú ťuknutím (rýchlejšie a je to pôvodné správanie).
   // Desktop sa NEMENÍ: tam je formulár vedľa mapy, klik je jednoznačný a držanie by len zdržalo.
-  const needsHold = !!drawBar?.active
+  const paused = !!drawBar?.paused;
+  const needsHold = !!drawBar?.active && !paused
     && (value.kind === 'route' ? value.path.length === 0 : !value.center);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
-    if (needsHold) return;
+    if (paused || needsHold) return;
     void placePoint(lat, lng);
-  }, [needsHold, placePoint]);
+  }, [paused, needsHold, placePoint]);
 
+  // Dlhé stlačenie má DVE úlohy a nikdy nie obe naraz: kým trasa nemá ani kotvu, zakladá ju;
+  // od druhej kotvy označuje CIEĽ. Preto jeden hook a rozhodnutie vnútri — dva hooky nad tou
+  // istou mapou by si o ten istý dotyk konkurovali.
+  const holdActive = !!drawBar?.active && !paused && (needsHold || canMarkTarget);
   const placeRef = useRef(placePoint);
   useEffect(() => { placeRef.current = placePoint; }, [placePoint]);
+  const holdRef = useRef<(lat: number, lng: number) => void>(() => {});
+  useEffect(() => {
+    holdRef.current = (lat, lng) => {
+      if (needsHold) { void placeRef.current(lat, lng); return; }
+      markTarget();
+    };
+  }, [needsHold, markTarget]);
   useLongPressPoint(
     mapRef.current,
-    needsHold,
-    { onPoint: (lat, lng) => { void placeRef.current(lat, lng); } },
+    holdActive,
+    { onPoint: (lat, lng) => holdRef.current(lat, lng) },
     TRIP_HOLD_MIN_ZOOM,
   );
 
@@ -289,20 +428,44 @@ export function GeometryPicker({
   // Undo NESMIE volať sieť — legs sú v ref, stopa sa poskladá z nich (§2.2 kontraktu).
   const undo = useCallback(() => {
     if (value.kind !== 'route' || value.path.length === 0) return;
+    setNotice(null);
+
+    // ⚠️ PO ZDVOJENÍ SA VRACIA CELÉ ZDVOJENIE, nie jedna kotva — inak ostane pol trasy tam
+    // a pol späť a človek to nemá ako opraviť ničím okrem VYMAZAŤ.
+    if (value.mirroredFrom && value.path.length === value.mirroredFrom * 2 - 1) {
+      const anchors = value.path.slice(0, value.mirroredFrom);
+      legsRef.current = legsRef.current.slice(0, Math.max(0, anchors.length - 1));
+      const snapPath = anchors.length > 1 ? buildSnapPath(anchors) : undefined;
+      setRoute({ path: anchors, snapPath, mirroredFrom: undefined, returnMode: undefined });
+      if (snapPath) void recomputeAscent(snapPath); else setAscent(null);
+      return;
+    }
+
     const anchors = value.path.slice(0, -1);
     legsRef.current = legsRef.current.slice(0, Math.max(0, anchors.length - 1));
     const snapPath = anchors.length > 1 ? buildSnapPath(anchors) : undefined;
-    setNotice(null);
-    onChange({ kind: 'route', path: anchors, snapPath, snapped: value.snapped, hideStartM: value.hideStartM });
+    // Cieľ je INDEX do kotiev — keď kotva pod ním zmizne, musí zmiznúť aj on. Inak by 🎯
+    // ukazoval na bod, ktorý na trase už nie je (alebo by index ukázal mimo poľa).
+    const nextTarget = value.targetIdx !== undefined && value.targetIdx < anchors.length ? value.targetIdx : undefined;
+    setRoute({
+      path: anchors,
+      snapPath,
+      targetIdx: nextTarget,
+      returnMode: nextTarget === undefined ? undefined : value.returnMode,
+    });
     if (snapPath) void recomputeAscent(snapPath); else setAscent(null);
-  }, [value, onChange, buildSnapPath, recomputeAscent]);
+  }, [value, setRoute, buildSnapPath, recomputeAscent]);
 
   const clear = useCallback(() => {
     legsRef.current = [];
     setAscent(null);
     setNotice(null);
-    if (value.kind === 'route') onChange({ kind: 'route', path: [], snapPath: undefined, snapped: false });
-    else if (value.kind === 'point') onChange({ kind: 'point', center: undefined as unknown as LatLngTuple });
+    // Cieľ, spôsob návratu ani zrkadlenie neprežijú vymazanie trasy — sú to vlastnosti tej
+    // trasy, nie nastavenie formulára. Príznak najmenšieho zápisu ÁNO: človek si režim
+    // vybral a mazanie bodov nie je jeho odvolanie.
+    if (value.kind === 'route') {
+      onChange({ kind: 'route', path: [], snapPath: undefined, snapped: false, minimal: value.minimal });
+    } else if (value.kind === 'point') onChange({ kind: 'point', center: undefined as unknown as LatLngTuple });
     else onChange({ kind: 'area', center: undefined as unknown as LatLngTuple, radiusM: AREA_DEFAULT_M });
   }, [value, onChange]);
 
@@ -374,7 +537,15 @@ export function GeometryPicker({
         });
     }
 
-    if (value.kind === 'route' && line.length > 1) {
+    if (value.kind === 'route' && value.minimal && line.length > 1) {
+      // ČIARKOVANÁ SPOJNICA, NIE MEČ. Plná čiara by tvrdila, že takto človek šiel — a on
+      // povedal len to, kde začal a kde skončil. Čiarka je vizuálne priznanie, že medzi
+      // tými dvoma bodmi appka nič nevie.
+      add(L.polyline(line, {
+        color: TRAIL_LINE.light, weight: 3, opacity: 0.85,
+        dashArray: '2 9', lineCap: 'round', interactive: false,
+      }));
+    } else if (value.kind === 'route' && line.length > 1) {
       // kreslená trasa = ten istý „svetelný meč" ako na mape (issue #49) — WYSIWYG, nie zlatá
       TRAIL_SABER_LAYERS.forEach((ly) => {
         add(L.polyline(line, {
@@ -407,6 +578,19 @@ export function GeometryPicker({
           interactive: false,
         }));
       });
+    }
+    // CIEĽ VÝLETU 🎯 — emoji v bielom krúžku s modrým lemom, presne ako udalosti (CLAUDE.md,
+    // Matej 22. 8.). Nie vlastný tvar: „tu je cieľ" a „tu sa niekto s niekým stretne" sú
+    // z toho istého rodu a dva rôzne tvary pre jednu myšlienku sme už raz zrušili.
+    // Geometriu kruhu nesie `circleMark.ts` — štvrtá kópia tých istých rozmerov by sa
+    // rozišla pri prvej zmene.
+    if (value.kind === 'route' && value.targetIdx !== undefined && value.path[value.targetIdx]) {
+      add(L.marker(value.path[value.targetIdx], {
+        icon: L.divIcon({ className: 'mk-wrap', html: circleMarkHtml(TRIP_TARGET_EMOJI, EVENT_RIM) }),
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 500,
+      }));
     }
     if (value.kind === 'point' && value.center) {
       // CIEĽ výletu (plán): jediný bod, teda pulzuje vždy — je to celá geometria.
@@ -444,17 +628,10 @@ export function GeometryPicker({
       : value.kind === 'point' ? t('pack.addTrip.geo.hintSpot')
       : t('pack.addTrip.geo.hintArea');
 
-  // Lišta hovorí to isté, čo červená bublina hore (`.trp-drawhint` v PackMap.tsx) — a lepšie,
-  // lebo nesie aj čísla a Undo. Aby na obrazovke nestáli dve hlásenia o tom istom, vešia sa na
-  // <body> trieda a bublinu schová CSS. Rovnaký vzor ako `trp-draw-lock` z rezu A: jedna trieda,
-  // jedno miesto. Podmienka je tu a nie v PackMap preto, že PackMap nevie, či je picker mountnutý
-  // (v niektorých krokoch AddTripLog nie je) — a bublina musí ostať jedinou cestou späť.
+  // Červená bublina `.trp-drawhint` v PackMap.tsx, ktorú táto lišta prebíjala triedou
+  // `trp-drawbar-on`, zanikla 23. 8. spolu s prepínaním „choď na mapu / hotovo" — pokyn aj
+  // návrat nesie odteraz lišta sama, takže netreba schovávať nič.
   const barOn = !!drawBar?.active;
-  useEffect(() => {
-    if (!barOn) return;
-    document.body.classList.add('trp-drawbar-on');
-    return () => { document.body.classList.remove('trp-drawbar-on'); };
-  }, [barOn]);
 
   // AKO ZAČAŤ — text sa mení podľa toho, čo už na mape je. Po druhej kotve mlčí: vtedy je
   // z tvaru na mape zrejmé, čo sa deje, a lišta dole už hlási km a body.
@@ -465,29 +642,44 @@ export function GeometryPicker({
   // s vrstvami počúva `zoomend`), takže sa veta prepne sama, len čo si mapu priblíži.
   const zoomNow = mapRef.current?.getZoom() ?? 0;
   const holdTooFar = barOn && zoomNow < TRIP_HOLD_MIN_ZOOM;
-  const drawHint = value.kind === 'route'
+  // Volajúci (sprievodca) má prednosť: v kroku 2 sa na mape pichajú značky, nie kreslí trasa,
+  // takže veta o dlhom stlačení by radila niečo, čo v tej chvíli nie je úloha.
+  // ⚠️ PO ~2 KM SA APPKA OZVE O CIELI (Matej 23. 8.: „po 2 km by sa pri kurzore mohla objaviť
+  // hláška: dlho podrž pre označenie cieľa trasy"). Dva kilometre NIE SÚ podmienka — tlačidlo
+  // v lište stojí od druhej kotvy; toto je len chvíľa, kedy sa gesto oplatí pripomenúť, lebo
+  // dovtedy človek kreslí a nemá dôvod hľadať, ako sa cieľ označuje.
+  const ownHint = value.kind === 'route'
     ? (value.path.length === 0
         ? t(holdTooFar ? 'pack.addTrip.geo.zoomInFirst' : 'pack.addTrip.geo.startHold')
-        : value.path.length < 2 ? t('pack.addTrip.geo.continueTap') : null)
+        : value.path.length < 2 ? t('pack.addTrip.geo.continueTap')
+        : targetUrged ? t('pack.addTrip.geo.holdForTarget') : null)
     : (!value.center
         ? t(holdTooFar ? 'pack.addTrip.geo.zoomInFirst' : 'pack.addTrip.geo.startHoldSpot')
         : null);
+  const drawHint = drawBar?.hint !== undefined ? drawBar.hint : ownHint;
 
   // ── ČÍTANIE: JEDEN ZDROJ PRE PANEL AJ LIŠTU ───────────────────────────────────────────
   // Kým bol readout napísaný priamo v JSX panela, lišta by si ho musela opísať — a po prvej
   // zmene formátu (napr. `1 bod` vs `5 bodov`) by dve miesta hovorili dve rôzne veci.
-  // ⚠️ NÁVOD HOVORÍ LEN JEDNO MIESTO. V mobilnom kreslení nesie pokyn fialová pilulka hore
-  // (nad mapou, kde sa gesto robí) — keby ho lišta opakovala, na obrazovke stoja dve vety
-  // o tom istom, a kým prvá kotva chce DRŽANIE, tá druhá by tvrdila „klikaj po mape".
+  // ⚠️ NÁVOD HOVORÍ LEN JEDNO MIESTO. Pokyn nesie fialová pilulka hore (nad mapou, kde sa
+  // gesto robí) — keby ho lišta opakovala, na obrazovke stoja dve vety o tom istom, a kým
+  // prvá kotva chce DRŽANIE, tá druhá by tvrdila „klikaj po mape".
+  //
+  // ⚠️ NAJMENŠÍ ZÁPIS NEHLÁSI KILOMETRE. Namiesto čísla stojí „trasa neznáma" — vzdušná čiara
+  // medzi štartom a cieľom nie je dĺžka výletu a tvrdiť ju by pokazilo aj rebríček kilometrov.
   const readout = value.kind === 'route' ? (
-    pointCount < 2
-      ? <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
-      : <>
-          {km.toFixed(1)} km
-          <span style={{ color: T.onDarkDim }}> · </span>
-          ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
-          <span style={{ color: T.onDarkDim }}> · {t('pack.addTrip.geo.pointsSuffix', { n: pointCount })}</span>
-        </>
+    isMinimal
+      ? (pointCount >= 2
+          ? <span style={{ color: T.onDarkDim }}>{t('pack.addTrip.geo.unknownDistance')}</span>
+          : <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>)
+      : pointCount < 2
+        ? <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
+        : <>
+            {km.toFixed(1)} km
+            <span style={{ color: T.onDarkDim }}> · </span>
+            ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
+            <span style={{ color: T.onDarkDim }}> · {t('pack.addTrip.geo.pointsSuffix', { n: pointCount })}</span>
+          </>
   ) : value.center ? (
     value.kind === 'area'
       ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
@@ -495,6 +687,9 @@ export function GeometryPicker({
   ) : (
     <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
   );
+
+  // Undo/Vymazať majú zmysel len keď je čo vracať — inak sú to dve tlačidlá, ktoré nič nerobia.
+  const hasSomething = value.kind === 'route' ? pointCount > 0 : !!value.center;
 
   return (
     <div style={{ display: 'grid', gap: 10 }}>
@@ -524,25 +719,31 @@ export function GeometryPicker({
         </div>
       )}
 
-      {/* readout — km hneď, prevýšenie do ~1,5 s. Kým výšky bežia, `↑ …`, NIKDY `↑ 0 m`. */}
-      <div
-        style={{
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-          padding: '9px 12px', borderRadius: 12,
-          background: T.glass, border: `1px solid ${T.onDarkBorder}`,
-        }}
-      >
-        <span style={{ fontFamily: FONT_UI, fontSize: 13, fontWeight: 500, color: T.onDark }}>
-          {readout}
-        </span>
-
-        {value.kind === 'route' && pointCount > 0 && (
-          <span style={{ display: 'flex', gap: 6 }}>
-            <button type="button" onClick={undo} disabled={busy} style={miniBtn}>{t('pack.addTrip.geo.undo')}</button>
-            <button type="button" onClick={clear} disabled={busy} style={miniBtn}>{t('pack.addTrip.geo.clear')}</button>
+      {/* ČÍSLA A NÁSTROJE SÚ V LIŠTE, KEĎ LIŠTA STOJÍ.
+          Kým bežala len na mobile, panel si readout aj Undo držal aj tak — na PC ich totiž
+          nikto iný neukazoval. Odkedy je lišta aj na PC (Matej 23. 8.: „nie je vôbec vidno
+          UNDO, DELETE, to je až dole = nelogické"), by tu stáli druhýkrát a dve miesta
+          s tým istým číslom sa rozídu pri prvej zmene formátu. */}
+      {!barOn && (
+        <div
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+            padding: '9px 12px', borderRadius: 12,
+            background: T.glass, border: `1px solid ${T.onDarkBorder}`,
+          }}
+        >
+          <span style={{ fontFamily: FONT_UI, fontSize: 13, fontWeight: 500, color: T.onDark }}>
+            {readout}
           </span>
-        )}
-      </div>
+
+          {value.kind === 'route' && pointCount > 0 && (
+            <span style={{ display: 'flex', gap: 6 }}>
+              <button type="button" onClick={undo} disabled={busy} style={miniBtn}>{t('pack.addTrip.geo.undo')}</button>
+              <button type="button" onClick={clear} disabled={busy} style={miniBtn}>{t('pack.addTrip.geo.clear')}</button>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* územie — polomer 200 m – 20 km (§5) */}
       {value.kind === 'area' && value.center && (
@@ -557,13 +758,13 @@ export function GeometryPicker({
         />
       )}
 
-      {/* zlyhanie snapu sa NIKDY nezamlčí (§5.2c) */}
-      {notice && (
+      {/* zlyhanie snapu sa NIKDY nezamlčí (§5.2c) — keď stojí lišta, hlási ho ona */}
+      {!barOn && notice && (
         <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: GOLD }}>
           {notice}
         </div>
       )}
-      {busy && (
+      {!barOn && busy && (
         <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim }}>{t('pack.addTrip.geo.snappingBusy')}</div>
       )}
       {value.kind === 'route' && onPickExisting && pointCount === 0 && (
@@ -573,29 +774,37 @@ export function GeometryPicker({
       )}
 
       {/* ── LIŠTA KRESLENIA ────────────────────────────────────────────────────────────
-          Portál na <body>: panel, v ktorom picker žije, je na mobile schovaný cez
-          `display:none` (mobileDrawing), takže čokoľvek vnútri neho by zmizlo s ním.
-          `notice` (nesadlo to na chodník) sa hlási TU — panel, ktorý ho hlásil doteraz,
-          je počas kreslenia neviditeľný. */}
+          Portál na <body>: panel, v ktorom picker žije, býva na mobile schovaný cez
+          `display:none` (mapa je vtedy celá obrazovka), takže čokoľvek vnútri neho by
+          zmizlo s ním. Na PC je lišta odsadená o šírku panela (`--beside`), aby ho
+          neprekrývala — to je celý rozdiel medzi platformami. */}
       {barOn && drawBar && createPortal(
         <>
-        {/* ── HORNÝ PÁS: HĽADANIE MIESTA + AKO ZAČAŤ ──────────────────────────────────────
+        <style>{DRAW_BAR_CSS}</style>
+        <style>{CIRCLE_MARK_CSS}</style>
+        {/* ── HORNÝ PÁS: HĽADANIE MIESTA + ČO MÁM ROBIŤ ──────────────────────────────────
             Matej 2026-08-22: „otvorí sa mapa s vysvetlením ako začať… textarea s lokalitou."
-            Mapa je na mobile PRVÁ obrazovka, takže sa človek pozerá na celé Slovensko a nemá
-            odkiaľ vedieť, že sa kreslí držaním. Vysvetlivka mizne, len čo prvá kotva sadne —
-            návod, ktorý ostane visieť po tom, čo ho človek splnil, je už len prekážka.
+            Veta je JEDNA a stojí VŽDY na tom istom mieste (Matej 23. 8., krokový sprievodca) —
+            čo v ktorom kroku hovorí, rozhoduje volajúci cez `drawBar.hint`; keď nepodá nič,
+            picker si ju odvodí sám z toho, čo na mape je.
             pointerEvents:none na páse a auto na jeho obsahu: gradient nesmie žrať ťuky do mapy
             pod ním (inak by hore vznikol pruh, kde sa nedá kresliť). */}
-        <div
-          style={{
-            position: 'fixed', left: 0, right: 0, top: 0, zIndex: 1200,
-            padding: 'calc(10px + env(safe-area-inset-top, 0px)) 16px 14px',
-            display: 'grid', gap: 10, pointerEvents: 'none',
-            background: 'linear-gradient(180deg, rgba(10,7,4,0.92) 40%, rgba(10,7,4,0))',
-          }}
-        >
-          <div style={{ pointerEvents: 'auto' }}>
-            <PlaceSearch mapRef={mapRef} />
+        <div className={`trp-dtop${drawBar.besidePanel ? ' trp-dtop--beside' : ''}`}>
+          <div className="trp-dtop-row">
+            {drawBar.onBack && (
+              <button
+                type="button"
+                className="trp-dtop-back"
+                onClick={drawBar.onBack}
+                aria-label={t('pack.addTrip.geo.stepBack')}
+                title={t('pack.addTrip.geo.stepBack')}
+              >
+                ←
+              </button>
+            )}
+            <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+              <PlaceSearch mapRef={mapRef} />
+            </div>
           </div>
           {/* ⚠️ PILULKA MUSÍ BYŤ VIDNO NA SVETLEJ MAPE (Matej 23. 8.: „tá fialová pilulka je
               takmer neviditeľná — treba ju zvýrazniť, dať tam ikonku (i) alebo nejakú radu
@@ -604,36 +813,15 @@ export function GeometryPicker({
               zo svetelného meča a ceruzka z hand-drawn setu. `HandIcons` je práve ten kanál,
               ktorý dedí farbu textu (CLAUDE.md) — ikonka teda drží krok s pilulkou sama. */}
           {drawHint && (
-            <div
-              style={{
-                justifySelf: 'center', pointerEvents: 'none',
-                display: 'flex', alignItems: 'center', gap: 9,
-                padding: '10px 16px 10px 13px', borderRadius: 999,
-                background: 'rgba(18,13,7,0.94)',
-                backdropFilter: 'blur(10px)',
-                border: `1.5px solid ${TRAIL_LINE.light}`,
-                boxShadow: '0 0 0 4px rgba(122,47,191,0.20), 0 6px 20px rgba(0,0,0,0.55)',
-                fontFamily: FONT_UI, fontSize: 13.5, fontWeight: 600,
-                color: '#F3E9FF', textAlign: 'left', maxWidth: 'min(92vw, 460px)',
-              }}
-            >
+            <div className="trp-dhint">
               <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
               <span>{drawHint}</span>
             </div>
           )}
         </div>
-        <div
-          style={{
-            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1200,
-            minHeight: DRAW_BAR_H, boxSizing: 'border-box',
-            display: 'flex', flexDirection: 'column', gap: 10,
-            padding: '14px 16px calc(14px + env(safe-area-inset-bottom, 0px))',
-            background: 'rgba(18,13,7,0.94)', backdropFilter: 'blur(12px)',
-            borderTop: `1px solid ${T.onDarkBorder}`,
-            boxShadow: '0 -14px 40px rgba(0,0,0,0.45)',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, minHeight: 20 }}>
+
+        <div className={`trp-dbar${drawBar.besidePanel ? ' trp-dbar--beside' : ''}`}>
+          <div className="trp-dbar-read">
             <span style={{ fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, color: T.onDark }}>
               {readout}
             </span>
@@ -649,35 +837,113 @@ export function GeometryPicker({
             <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: GOLD }}>{notice}</div>
           )}
 
+          {/* ── CIEĽ VÝLETU 🎯 ────────────────────────────────────────────────────────────
+              Dá sa označiť OD DRUHEJ KOTVY. Dva kilometre nie sú podmienka (prechádzka po
+              900 m by inak cieľ nemala ako označiť) — po nich sa ponuka len zvýrazní. */}
+          {canMarkTarget && !paused && (
+            <button type="button" className={`trp-dbar-target${targetUrged ? ' is-urged' : ''}`} onClick={markTarget}>
+              <span className="trp-dbar-emoji">{TRIP_TARGET_EMOJI}</span>
+              {t('pack.addTrip.geo.markTarget')}
+            </button>
+          )}
+
+          {/* ── AKO SI SA VRACAL ─────────────────────────────────────────────────────────
+              Tri Matejove možnosti. „Tá istá trasa naspäť" kotvy zrkadlí hneď; okruh len
+              odomkne tlačidlo, ktoré trasu uzavrie pri štarte, keď bude človek chcieť. */}
+          {targetIdx !== undefined && !returnMode && !isMinimal && !paused && (
+            <div className="trp-dbar-ret">
+              <p>{t('pack.addTrip.geo.returnAsk')}</p>
+              <div className="trp-dbar-row">
+                <button type="button" className="trp-dbar-btn" onClick={() => setRoute({ returnMode: 'continue' })}>
+                  {t('pack.addTrip.geo.returnContinue')}
+                </button>
+                <button type="button" className="trp-dbar-btn" onClick={() => setRoute({ returnMode: 'loop' })}>
+                  {t('pack.addTrip.geo.returnLoop')}
+                </button>
+                <button type="button" className="trp-dbar-btn" onClick={mirrorBack} disabled={busy}>
+                  {t('pack.addTrip.geo.returnMirror')}
+                </button>
+              </div>
+            </div>
+          )}
+          {returnMode === 'loop' && !paused && (
+            <button type="button" className="trp-dbar-btn trp-dbar-wide" onClick={closeLoop} disabled={busy}>
+              {t('pack.addTrip.geo.closeLoop')}
+            </button>
+          )}
+
           {/* Rad tlačidiel drží CELÚ šírku, rovnaké diely (feedback_rad_prvkov_plna_sirka_kontajnera).
               HOTOVO je jediná zlatá — zlatá je farba výzvy, nie farba tlačidla. */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="trp-dbar-row">
+            {!paused && (
+              <>
+                <button
+                  type="button"
+                  className="trp-dbar-btn"
+                  onClick={undo}
+                  disabled={busy || !hasSomething}
+                  style={{ opacity: hasSomething ? 1 : 0.4 }}
+                >
+                  {t('pack.addTrip.geo.undoPoint')}
+                </button>
+                <button
+                  type="button"
+                  className="trp-dbar-btn"
+                  onClick={clear}
+                  disabled={busy || !hasSomething}
+                  style={{ opacity: hasSomething ? 1 : 0.4 }}
+                >
+                  {t('pack.addTrip.geo.clear')}
+                </button>
+              </>
+            )}
             <button
               type="button"
-              onClick={undo}
-              disabled={busy || pointCount === 0}
-              style={{ ...barBtn, opacity: pointCount === 0 ? 0.4 : 1 }}
+              className="trp-dbar-done"
+              onClick={drawBar.onDone}
+              disabled={!!drawBar.doneDisabled}
+              style={drawBar.doneDisabled ? { opacity: 0.42, boxShadow: 'none', cursor: 'default' } : undefined}
             >
-              {t('pack.addTrip.geo.undoPoint')}
-            </button>
-            <button
-              type="button"
-              onClick={clear}
-              disabled={busy || pointCount === 0}
-              style={{ ...barBtn, opacity: pointCount === 0 ? 0.4 : 1 }}
-            >
-              {t('pack.addTrip.geo.clear')}
-            </button>
-            <button type="button" onClick={drawBar.onDone} style={barDoneBtn}>
-              {t('pack.addTrip.geo.done')}
+              {drawBar.doneLabel ?? t('pack.addTrip.geo.done')}
             </button>
           </div>
+
+          {/* ── NAJMENŠÍ MOŽNÝ ZÁPIS ─────────────────────────────────────────────────────
+              Matej 23. 8.: „štart–cieľ bude minimum, aby sme nikoho neodradili, ale bude
+              vyzvaný, že skús nakresliť, aby si pomohol ostatným." Preto je ponuka VIDNO
+              (nie schovaná), nič neblokuje a prosba príde RAZ — opakovaná pri každom
+              uložení je nátlak a ten je proti tónu projektu. */}
+          {value.kind === 'route' && !paused && (
+            <button type="button" className="trp-dbar-link" onClick={() => setMinimal(!isMinimal)}>
+              {t(isMinimal ? 'pack.addTrip.geo.minimalOff' : 'pack.addTrip.geo.minimalOn')}
+            </button>
+          )}
+          {isMinimal && showPlea && !paused && (
+            <div className="trp-dbar-plea">
+              <span>{t('pack.addTrip.geo.minimalPlea')}</span>
+              <button type="button" onClick={dismissPlea}>{t('pack.addTrip.geo.minimalPleaOk')}</button>
+            </div>
+          )}
         </div>
         </>,
         document.body,
       )}
     </div>
   );
+}
+
+/**
+ * PROSBA O NAKRESLENIE TRASY — RAZ ZA ČLOVEKA, NIE ZA VÝLET.
+ * Opakovaná výzva pri každom uložení je nátlak, nie pomoc, preto sa pamätá v `localStorage`.
+ * Zlyhanie úložiska (privátny režim) berieme ako „ešte nevidel" — radšej ju ukázať zbytočne
+ * než ju stratiť tým, že sa nedá zapísať.
+ */
+const PLEA_KEY = 'trp-draw-plea-seen';
+function pleaSeen(): boolean {
+  try { return localStorage.getItem(PLEA_KEY) === '1'; } catch { return false; }
+}
+function markPleaSeen(): void {
+  try { localStorage.setItem(PLEA_KEY, '1'); } catch { /* non-fatal */ }
 }
 
 const miniBtn: React.CSSProperties = {
@@ -694,37 +960,55 @@ const miniBtn: React.CSSProperties = {
   cursor: 'pointer',
 };
 
-/** Tlačidlo lišty — sklenené, na tmavom. Nie zlaté: v rade smie byť zlatá len výzva. */
-const barBtn: React.CSSProperties = {
-  flex: '1 1 0',
-  padding: '12px 10px',
-  borderRadius: 8,
-  background: T.glass,
-  border: `1px solid ${T.onDarkBorder}`,
-  color: T.onDark,
-  fontFamily: FONT_UI,
-  fontSize: 12,
-  fontWeight: 500,
-  letterSpacing: '.06em',
-  textTransform: 'uppercase',
-  cursor: 'pointer',
-};
+/**
+ * CSS LIŠTY A HORNÉHO PÁSU.
+ *
+ * Prečo trieda a nie inline štýl ako doteraz: odsadenie na PC je MEDIA QUERY (panel má
+ * 360 px medzi 1024–1400 px a 440 px nad tým, viď .trp-sidebar v PackMap.tsx) a inline
+ * štýl media query nevie. Tie dve čísla tu MUSIA sedieť s tými v PackMap — keď sa panel
+ * zúži a lišta nie, prekryje presne to, čo malo byť vidno.
+ *
+ * ⚠️ Toto je JS template literal — spätný apostrof v komentári ho ukončí a stránka spadne
+ * na bielu. TypeScript to nechytí, `npm run build` (check:css) áno.
+ */
+const DRAW_BAR_CSS = `
+.trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:grid;gap:10px;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
+.trp-dtop-row{display:flex;align-items:center;gap:8px;pointer-events:auto;}
+.trp-dtop-back{flex:0 0 auto;width:38px;height:38px;border-radius:10px;background:rgba(18,13,7,0.94);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-size:17px;line-height:1;cursor:pointer;}
+.trp-dtop-back:hover{border-color:${GOLD};color:${GOLD};}
+.trp-dhint{justify-self:center;pointer-events:none;display:flex;align-items:center;gap:9px;padding:10px 16px 10px 13px;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);font-family:${FONT_UI};font-size:13.5px;font-weight:600;color:#F3E9FF;text-align:left;max-width:min(92vw,460px);}
 
-/** HOTOVO — brand CTA podľa `.btn-gold` locku: gradient 135°, radius 8, papyrusový rám. */
-const barDoneBtn: React.CSSProperties = {
-  flex: '1 1 0',
-  padding: '12px 10px',
-  borderRadius: 8,
-  background: 'linear-gradient(135deg,#F5C73D,#E69E1A)',
-  border: '1px solid rgba(250,244,236,0.3)',
-  color: '#1c160c',
-  fontFamily: FONT_TITLE,
-  fontWeight: 700,
-  fontSize: 12,
-  letterSpacing: '.08em',
-  textTransform: 'uppercase',
-  boxShadow: '0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
-  cursor: 'pointer',
-};
+.trp-dbar{position:fixed;left:0;right:0;bottom:0;z-index:1200;box-sizing:border-box;min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:10px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
+.trp-dbar-read{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:20px;}
+.trp-dbar-row{display:flex;gap:8px;}
+.trp-dbar-btn{flex:1 1 0;padding:12px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+.trp-dbar-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
+.trp-dbar-btn:disabled{cursor:default;}
+.trp-dbar-wide{flex:1 1 100%;}
+/* HOTOVO — brand CTA podľa .btn-gold locku: gradient 135°, radius 8, papyrusový rám. */
+.trp-dbar-done{flex:1 1 0;padding:12px 10px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);cursor:pointer;}
+/* CIEĽ — fialový, teda z rodiny trasy, nie zlatý: zlatá je v tomto rade vyhradená HOTOVU. */
+.trp-dbar-target{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 12px;border-radius:8px;background:rgba(122,47,191,0.18);border:1px solid ${TRAIL_LINE.light};color:#F3E9FF;font-family:${FONT_UI};font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+.trp-dbar-target.is-urged{box-shadow:0 0 0 3px rgba(122,47,191,0.28);background:rgba(122,47,191,0.30);}
+.trp-dbar-emoji{font-family:${FONT_EMOJI};font-size:15px;line-height:1;}
+.trp-dbar-ret p{margin:0 0 7px;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.onDarkDim};}
+.trp-dbar-link{align-self:center;background:none;border:0;padding:2px 4px;color:${GOLD};font-family:${FONT_UI};font-size:11.5px;font-weight:600;cursor:pointer;text-decoration:underline;}
+.trp-dbar-plea{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(201,154,63,0.10);border:1px solid rgba(201,154,63,0.45);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
+.trp-dbar-plea button{flex:0 0 auto;background:none;border:0;color:${GOLD};font-family:${FONT_UI};font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+
+/* PC: lišta aj pás sa odsadia o šírku panela. Čísla sú tie isté ako .trp-sidebar v PackMap. */
+@media (min-width:1024px) and (max-width:1400px){
+  .trp-dbar--beside,.trp-dtop--beside{left:400px;}
+}
+@media (min-width:1401px){
+  .trp-dbar--beside,.trp-dtop--beside{left:480px;}
+}
+@media (min-width:1024px){
+  .trp-dbar--beside{bottom:20px;right:20px;border-radius:16px;border:1px solid ${T.onDarkBorder};}
+  /* 74 px vpravo = miesto pre ovládanie mapy (zoom, poloha, vrstvy). To isté číslo drží
+     .trp-topbar v PackMap.tsx — bez neho leží pole na hľadanie pod tlačidlami zoomu. */
+  .trp-dtop--beside{right:74px;}
+}
+`;
 
 export default GeometryPicker;
