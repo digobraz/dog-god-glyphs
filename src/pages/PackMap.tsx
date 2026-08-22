@@ -2087,6 +2087,28 @@ export default function PackMap() {
    * pri chvíli váhania by sa výlet „sám" odoslal ako jednobodový.
    */
   const [seedPoint, setSeedPoint] = useState<{ lat: number; lon: number } | null>(null);
+
+  /**
+   * KTORÁ Z DVOCH KÓPIÍ FORMULÁRA JE TÁ ŽIVÁ.
+   *
+   * `.trp-sidebar` (desktop) a `.trp-madd` (mobil) mountujú `AddTripLog` NARAZ a schováva ich
+   * CSS, nie podmienka. Kým si formulár držal všetko len v sebe, nevadilo to. S autosave áno:
+   * obe kópie písali do toho istého kľúča, takže tá neviditeľná — s prázdnou aktivitou —
+   * prepísala zálohu tej, do ktorej človek reálne písal. Obnova potom vrátila výlet bez
+   * aktivity a formulár spadol späť na „Čo ste robili?".
+   *
+   * Zálohu preto vlastní práve jedna kópia. Hranica je `MOBILE_BP`, to isté číslo, aké
+   * rozhoduje o layoute — dve rôzne hranice by vyrobili pásmo šírok, kde zálohu nevlastní
+   * nikto (alebo obaja).
+   */
+  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width:${MOBILE_BP}px)`);
+    const on = () => setIsNarrow(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
   // Lišta kreslenia (rez B). Memo, nie nový objekt pri každom renderi — `drawBar.active` je
   // v závislostiach `handleMapClick` v GeometryPickeri a nová identita by mu handler
   // prepisovala pri každom prekreslení mapy.
@@ -3136,7 +3158,7 @@ export default function PackMap() {
             `AddTripPlan` tým stratil volajúceho; ostáva v repe, kým sa neoverí, že z neho
             netreba nič dotiahnuť. */}
         {addFlow ? (
-          <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} seedPoint={seedPoint} />
+          <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} seedPoint={seedPoint} owns={!isNarrow} />
         ) : addEventFlow ? (
           <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
         ) : inlineDetailId ? (() => {
@@ -3705,7 +3727,7 @@ export default function PackMap() {
               existujú v DOM naraz a skrýva ich CSS, nie podmienka. Keby `drawBar` dostali obe,
               na obrazovke by stáli dve lišty. */}
           {addFlow ? (
-            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} seedPoint={seedPoint} onReadyToDraw={() => setMobileDrawing(true)} />
+            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} seedPoint={seedPoint} onReadyToDraw={() => setMobileDrawing(true)} owns={isNarrow} />
           ) : addEventFlow ? (
             <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
           ) : null}

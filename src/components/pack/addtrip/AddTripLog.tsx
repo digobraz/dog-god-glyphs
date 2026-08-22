@@ -23,6 +23,7 @@ import { HAZARDS, HAZARD_EMOJI, CROWDS, CROWD_EMOJI, type Crowd } from '@/compon
 import {
   missingFields,
   type AddTripDraft, type TripGeometry, type ApprovalStatus,
+  readAddDraft, writeAddDraft, clearAddDraft,
 } from './addTripModel';
 
 const GOLD = '#C99A3F';
@@ -62,6 +63,15 @@ export type AddTripLogProps = {
    * 0 vstup → 1 miesto → 2 aktivita → 3 kreslenie → 4 byrokracia.
    */
   onReadyToDraw?: () => void;
+  /**
+   * Vlastní táto kópia formulára zálohu rozpracovaného výletu?
+   *
+   * Desktop aj mobil mountujú tento komponent NARAZ (skrýva ich CSS, nie podmienka).
+   * Bez tohto príznaku obe píšu do jedného kľúča a neviditeľná kópia — prázdna —
+   * prepíše prácu tej viditeľnej. `false` = formulár funguje normálne, len sa neukladá
+   * a neponúka obnovu. Viď `isNarrow` v PackMap.tsx.
+   */
+  owns?: boolean;
 };
 
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
@@ -156,7 +166,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar, seedPoint, onReadyToDraw }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar, seedPoint, onReadyToDraw, owns = true }: AddTripLogProps) {
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
@@ -315,6 +325,49 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       .join(' ');
   }, [geometry]);
 
+  // ── AUTOSAVE ROZPRACOVANÉHO VÝLETU (rez D) ──────────────────────────────────────────
+  // `readAddDraft`/`writeAddDraft` boli napísané už vo vlne 1 a NIKTO ich nevolal, takže
+  // zatvorenie formulára v polovici znamenalo stratu všetkého vrátane nakreslenej trasy —
+  // teda toho, čo stálo najviac práce. Ukladá sa TVAR DRAFTU, nie jednotlivé polia:
+  // obnova je potom jedno priradenie a nie dvadsať setterov, ktoré sa rozídu s prvým
+  // pribudnutým poľom.
+  //
+  // ⚠️ Fotky sa do zálohy NEUKLADAJÚ. Sú to base64 dataURL a niekoľko fotiek prekročí
+  // kvótu localStorage — zápis by padol a s ním by sa stratila aj trasa, teda presne to,
+  // čo má autosave chrániť. Radšej vrátiť výlet bez fotiek než nevrátiť nič.
+  const restoredRef = useRef(false);
+  const [restored, setRestored] = useState<AddTripDraft | null>(() => {
+    if (!owns) return null;
+    const d = readAddDraft();
+    // Prázdny náčrt nemá čo obnovovať — ponuka „pokračovať" by bola falošný sľub.
+    return d && (d.name || (d.geometry?.kind === 'route' && d.geometry.path?.length)) ? d : null;
+  });
+  const restore = () => {
+    if (!restored) return;
+    restoredRef.current = true;
+    setActivity(restored.activity || '');
+    setName(restored.name || '');
+    setDate(restored.date || '');
+    setDateEnd(restored.dateEnd || '');
+    setDontRemember(restored.dateKind === 'flexible');
+    if (restored.geometry) setGeometry(restored.geometry);
+    if (restored.country) setCountryOverride(restored.country);
+    if (restored.region) setRegionOverride(restored.region);
+    // Draft nesie `crowd`/`diff` ako voľnejší typ (ide cez JSON) — zúžime ich pri obnove,
+    // inak by sa do stavu dostala hodnota, ktorú `<select>` nepozná, a pole by ostalo prázdne.
+    if (restored.crowd && (CROWDS as readonly string[]).includes(restored.crowd)) setCrowd(restored.crowd as Crowd);
+    if (restored.diff && (DIFF_OPTIONS as readonly string[]).includes(restored.diff)) setDiff(restored.diff as typeof diff);
+    if (restored.surface?.[0]) setTerrain(restored.surface[0]);
+    if (restored.tags) setTags(new Set(restored.tags));
+    if (restored.hazards) setHazards(new Set(restored.hazards));
+    if (restored.crew) setCrew(restored.crew);
+    if (restored.paws) setPaws(restored.paws);
+    if (restored.note) setNote(restored.note);
+    if (restored.visibility) setVisibility(restored.visibility);
+    setRestored(null);
+  };
+  const discardRestore = () => { clearAddDraft(); setRestored(null); };
+
   const isMultiDay = activity === 'journey' && !!dateEnd && dateEnd > date;
   const journeyIssue = activity === 'journey' && !isMultiDay;
 
@@ -412,6 +465,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // existujúca magistrála je zámerný presný repeat, nie kandidát na duplicitu — nepýtať sa.
   const dup = useMemo(() => (existingTripId ? null : findDuplicate(geometry, allTrails)), [existingTripId, geometry, allTrails]);
 
+  // Priebežné ukladanie. `draft` je `useMemo`, takže effect beží len keď sa naozaj niečo
+  // zmenilo — nie na každý render. Prázdny formulár sa neukladá, inak by otvorenie a
+  // zatvorenie ADD flow bez jediného písmena prepísalo zálohu skutočnej rozrobenej práce.
+  useEffect(() => {
+    if (!owns) return;    // druhá, neviditeľná kópia formulára do zálohy nesiaha
+    if (restored) return; // ponuka na obnovu je na obrazovke — nezmaž, čo ponúkame
+    const hasSomething = !!draft.name || (draft.geometry?.kind === 'route' && draft.geometry.path.length > 0);
+    if (!hasSomething) return;
+    const { photos: _photos, ...withoutPhotos } = draft;
+    writeAddDraft(withoutPhotos as AddTripDraft);
+  }, [draft, restored, owns]);
+
   const doSubmit = () => {
     setSubmitError('');
     const finalDraft: AddTripDraft = {
@@ -422,6 +487,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     };
     const ok = onSubmit(finalDraft);
     if (!ok) { setSubmitError("Couldn't save — storage might be full. Remove something and try again."); return; }
+    // Odoslané = už to nie je rozpracované. Bez tohto by sa pri ďalšom otvorení ponúkalo
+    // obnoviť výlet, ktorý je dávno v zozname.
+    clearAddDraft();
     setShowDupWarning(false);
   };
   const handleSubmit = () => {
@@ -435,6 +503,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     <div className="atl-log">
       <style>{LOG_CSS}</style>
       <style>{ROUTE_HERO_CSS}</style>
+      <style>{RESTORE_CSS}</style>
       <div className="atl-log-head">
         <button
           type="button"
@@ -451,7 +520,22 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
         </div>
       </div>
 
-      {!activity && (
+      {/* PONUKA NA OBNOVU — záloha, o ktorej sa človek nedozvie, je len zabraté miesto.
+          Stojí PRED výberom aktivity, lebo obnova ju nastaví sama. Zahodenie je vedomé:
+          automaticky sa nemaže nič, čo človek nakreslil. */}
+      {restored && (
+        <div className="atl-restore">
+          <p className="atl-restore-txt">
+            {t('pack.addTrip.log.restoreLead', { name: restored.name || t('pack.addTrip.log.restoreUnnamed') })}
+          </p>
+          <div className="atl-restore-btns">
+            <button type="button" className="atl-toggle-btn" onClick={discardRestore}>{t('pack.addTrip.log.restoreDiscard')}</button>
+            <button type="button" className="atl-toggle-btn on" onClick={restore}>{t('pack.addTrip.log.restoreResume')}</button>
+          </div>
+        </div>
+      )}
+
+      {!activity && !restored && (
         <div className="atl-tiles">
           {ACTIVITIES.map((a) => (
             <button key={a.id} type="button" className="atl-tile" onClick={() => pickActivity(a.id)}>
@@ -462,7 +546,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
         </div>
       )}
 
-      {!!activity && (
+      {!!activity && !restored && (
         <>
           <div className="atl-log-body">
             {/* HORE PATRÍ TO, ČO ČLOVEK PRÁVE ROBÍ — nie stock les.
@@ -826,11 +910,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   );
 }
 
+const RESTORE_CSS = `
+.atl-restore{margin:16px 20px;padding:14px 16px;border:1px solid ${T.onDarkBorder};border-radius:12px;background:rgba(245,240,228,0.04);}
+.atl-restore-txt{margin:0 0 12px;font-family:${FONT_UI};font-size:13px;line-height:1.5;color:${T.onDark};}
+.atl-restore-btns{display:flex;gap:8px;}
+.atl-restore-btns .atl-toggle-btn{flex:1 1 0;}
+`;
+
 const ROUTE_HERO_CSS = `
 /* Výrez trasy namiesto zástupnej fotky. Papyrus sem NEPATRÍ — formulár je tmavý povrch
    Portalu, takže podklad je ten istý sklenený tón ako zvyšok panela. */
 .atl-photo--route{position:relative;display:block;background:linear-gradient(160deg,#1b1409,#0d0a06);border:1px solid ${T.onDarkBorder};}
 .atl-photo--route svg{position:absolute;inset:0;width:100%;height:100%;}
+/* Popisok dole, nie hore: trasa začína v ľavom hornom rohu výrezu, takže tam,
+   kde badge sedí pri fotke, prekrýva prvý bod. */
+.atl-photo--route .atl-photo-badge{top:auto;bottom:10px;}
 .atl-photo--route polyline{fill:none;stroke:#F5C73D;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 6px rgba(245,199,61,0.45));}
 `;
 

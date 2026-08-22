@@ -1914,6 +1914,10 @@ export const en = {
   'pack.addTrip.log.story': "Tell the pack about it",
   'pack.addTrip.log.routeSoFar': "YOUR ROUTE SO FAR",
   'pack.addTrip.log.addPhotoBelow': "ADD A PHOTO BELOW",
+  'pack.addTrip.log.restoreLead': "You left «{name}» unfinished. Pick it up where you stopped?",
+  'pack.addTrip.log.restoreUnnamed': "an unnamed trip",
+  'pack.addTrip.log.restoreResume': "Continue",
+  'pack.addTrip.log.restoreDiscard': "Start over",
   'pack.addTrip.log.crowd': "Crowd",
   'pack.addTrip.log.selectPlaceholder': "Select…",
   'pack.addTrip.plan.details': "Plan details",
@@ -2354,6 +2358,22 @@ export const en = {
   'pack.hub.ainubisCta': "Build the plan",
   'pack.hub.empty': "No dog on your leash yet. Give one a heroglyph and it'll show up here.",
   'pack.hub.emptyCta': "Get a heroglyph",
+  // Vstupný panel osobnostného kvízu na `/pack/dogs` + hlavička sekcie DOG ID.
+  // Do slovníka pribudli až 22. 8. 2026 — dovtedy žili len ako fallbacky v
+  // `PackDogs.tsx`, takže SK verzia stránky ukazovala tieto texty po anglicky.
+  'pack.hub.profileTitle': "DOG ID",
+  'pack.hub.profileSub': "fill in what you know — it builds their DOG ID",
+  'pack.hub.nature.ribbon': "Quiz",
+  'pack.hub.nature.isNow': "Your dog is",
+  'pack.hub.nature.revealA': "Role in the pack",
+  'pack.hub.nature.revealB': "Element by TCM",
+  'pack.hub.nature.pending': "Still missing",
+  'pack.hub.nature.read': "Read the results",
+  'pack.hub.nature.retake': "Take it again",
+  'pack.hub.nature.startBig': "Find out who your dog is",
+  // 18 otázok (10 element + 8 úloha) + 4 doplnkové = 22, rovnako ako intro kvízu.
+  'pack.hub.nature.meta': "22 questions · ~3 minutes",
+  'pack.hub.ainubisTagline': "your virtual pack member!",
   'pack.quiz.unknown': "This quiz does not exist.",
   'pack.quiz.noDogs': "No dog to fill this in for yet.",
   'pack.quiz.soloHint': "The answer is saved to your dog.",
