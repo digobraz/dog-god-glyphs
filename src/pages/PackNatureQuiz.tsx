@@ -29,10 +29,11 @@ import { PACK_THEME, PACK_BOX, PACK_COL, FONT_TITLE, FONT_UI } from '@/component
 import {
   NATURE_QUESTIONS, NATURE_ELEMENTS, NATURE_ROLES, NATURE_SPECIALS,
   SPECIAL_KEYS, ELEMENT_KEYS, ROLE_KEYS, NATURE_ATTRIBUTION, scoreNature, natureTitleEN,
-  type SpecialAnswer, type SpecialKey, type NatureResult,
+  natureResultFromStored, hasNatureScores, guidanceFor, NUTRITION_DISCLAIMER,
+  type SpecialAnswer, type SpecialKey, type NatureResult, type Guidance,
 } from '@/components/pack/natureQuiz';
 import { BrandIcon } from '@/components/pack/BrandIcon';
-import { appendDogEvents, type DogEventInput } from '@/lib/dogEvents';
+import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/dogEvents';
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/i18n/LanguageContext';
@@ -45,7 +46,12 @@ const INTRO_ART = '/images/nature-quiz-art.webp';
 /** Kam vedie X, „Odísť" aj „Hotovo". Viď komentár pri `leave()` v stránke. */
 const QUIZ_EXIT = '/pack/dogs';
 
-interface QuizDog { id: string; dog_name: string | null; cloudinary_main_url: string | null }
+interface QuizDog {
+  id: string; dog_name: string | null; cloudinary_main_url: string | null;
+  /** Heroglyf do hlavičky dokumentu. Vykresľuje sa VOĽNE na papyruse, bez rámu —
+   *  je to sám o sebe kartuša a druhý rám z neho spraví nálepku. */
+  heroglyph_png_url: string | null;
+}
 
 const NQ_CSS = `
 /* ── CTA — ZLATÚ URČUJE PODKLAD, NIE VKUS ────────────────────────────────────
@@ -539,6 +545,206 @@ const NQ_CSS = `
   .nq-axissub{ font-size:11px; line-height:1.42; }
   .nq-axes{ gap:10px; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   VÝSLEDOK = DOKUMENT (prefix nqd-). Predloha: plany/vyslednica-navrhy/kolo4.html
+   Jazyk je prevzatý z CertificateCard.tsx — zrno, vinetácia, dvojrám, medailón,
+   pečať. Je to VEDOMÁ výnimka z papyrusového locku, rovnako ako share karty
+   a certifikát: dokumentový povrch má vlastný dizajn.
+   ⚠️ Tento blok je JS template literal. Spätný apostrof v komentári zhodí build
+   a tsc to nechytí — po zásahu vždy npm run build.
+   ════════════════════════════════════════════════════════════════════════════ */
+.nqd{
+  position:relative; overflow:hidden; color:#1a0900; border-radius:14px;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(180,120,30,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 35% at 50% 100%, rgba(150,100,20,.10) 0%, transparent 70%),
+    linear-gradient(170deg,#f6edd8 0%,#f0e3c4 25%,#ecdbb8 55%,#f2e4c8 80%,#eee0c0 100%);
+}
+.nqd::before{
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none; background-size:200px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23f)' opacity='0.055'/%3E%3C/svg%3E");
+}
+.nqd::after{
+  content:''; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(ellipse 90% 95% at 50% 50%, transparent 58%, rgba(80,45,5,.26) 100%);
+}
+.nqd > *{ position:relative; z-index:3; }
+.nqd-framed{ border:3px solid #8a5c10; border-radius:4px; padding:7px; margin:0; }
+.nqd-inner{ border:1px solid rgba(122,80,16,0.28); border-radius:2px; padding:30px 28px 34px; }
+
+/* ornament medzi sekciami: čiara – kosoštvorce – čiara */
+.nqd-orn{ display:flex; align-items:center; gap:6px; margin:22px 0; }
+.nqd-orn i{ flex:1; height:1px; background:linear-gradient(90deg,transparent,#8a5c10,transparent); }
+.nqd-orn s{ width:4px; height:4px; background:#8a5c10; transform:rotate(45deg); opacity:.55; }
+.nqd-orn s.big{ width:6px; height:6px; opacity:1; }
+
+/* ── HLAVIČKA ─────────────────────────────────────────────────────────── */
+.nqd-medal{
+  border-radius:50%; padding:4px; width:154px; height:154px; margin:0 auto 14px;
+  background:conic-gradient(#c9922a 0deg,#f5d97a 60deg,#8a5c10 120deg,#f0cc60 180deg,#7a4c08 240deg,#e8c060 300deg,#c9922a 360deg);
+}
+.nqd-medal > img, .nqd-medal > span{
+  border-radius:50%; width:100%; height:100%; object-fit:cover; object-position:center top;
+  filter:sepia(.1) contrast(1.08) brightness(1.02); background:#f0e0b0; display:grid;
+  place-items:center; font-family:'Cinzel Decorative','Cinzel',serif; font-weight:900;
+  font-size:56px; color:#8a5c10;
+}
+.nqd-who{
+  font-family:'Cinzel Decorative','Cinzel',serif; font-weight:900; letter-spacing:.03em;
+  text-transform:uppercase; color:#1a0900; font-size:38px; line-height:1; text-align:center;
+}
+/* Heroglyf VOĽNE — bez rámu. multiply ho posadí do papyrusu namiesto nálepky. */
+.nqd-glyph{ width:100%; max-width:440px; margin:18px auto 0; mix-blend-mode:multiply; opacity:.94; display:block; }
+
+/* ── TRI ODZNAKY ──────────────────────────────────────────────────────────
+   ⚠️ Rovnaká ŠÍRKA aj VÝŠKA všetkých slotov. Zvláštna úloha má obrázok zámerne
+   0,88× (sedí na základnej, nie je jej súper) — keby jej to zúžilo aj RÁM,
+   popisky by skončili každý inde a rad by vyzeral ako chyba sadzby. */
+.nqd-trio{ display:flex; justify-content:center; align-items:stretch; gap:10px; flex-wrap:wrap; margin-top:6px; }
+.nqd-slot{
+  width:172px; text-align:center; padding:16px 10px 14px; border:1px solid rgba(122,80,16,0.28);
+  border-radius:12px; background:rgba(255,255,255,.24); position:relative;
+  display:flex; flex-direction:column;
+}
+.nqd-slot::before,.nqd-slot::after{ content:''; position:absolute; width:9px; height:9px; border:1px solid #8a5c10; }
+.nqd-slot::before{ top:5px; left:5px; border-right:0; border-bottom:0; }
+.nqd-slot::after{ bottom:5px; right:5px; border-left:0; border-top:0; }
+.nqd-rank{ font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:.2em; color:#8a5c10; opacity:.8; }
+.nqd-art{ height:116px; display:grid; place-items:center; margin:6px 0 8px; }
+.nqd-art img{ width:104px; margin:0; filter:drop-shadow(0 8px 18px rgba(60,38,8,.32)); }
+.nqd-slot.spec .nqd-art img{ width:88px; }
+.nqd-lbl{
+  margin-top:auto; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
+  letter-spacing:.2em; text-transform:uppercase; color:#7a5a2a;
+}
+.nqd-nm{
+  font-family:'Cinzel',serif; font-weight:900; font-size:15px; letter-spacing:.02em;
+  text-transform:uppercase; color:#1a0900; margin-top:2px; line-height:1.2;
+}
+.nqd-slot.spec .nqd-nm{ font-size:13.5px; }
+
+/* ── NADPISY SEKCIÍ ───────────────────────────────────────────────────────
+   ⚠️ Číslo sekcie MUSÍ sedieť s číslom odznaku v hlavičke. I = konštitúcia na
+   oboch miestach — číslo je sľub, buď platí dvakrát, alebo tam nemá čo robiť. */
+.nqd-head{ text-align:center; margin:0 0 18px; }
+.nqd-head .num{ font-family:'Cinzel',serif; font-weight:900; font-size:12px; letter-spacing:.34em; color:#8a5c10; }
+.nqd-head h2{
+  font-family:'Cinzel',serif; font-weight:900; font-size:27px; letter-spacing:.07em;
+  text-transform:uppercase; color:#1a0900; margin:5px 0 0; line-height:1.1;
+}
+.nqd-head .sub{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#7a5a2a; margin-top:6px; }
+.nqd-wing{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:9px; }
+.nqd-wing i{ width:64px; height:1px; background:linear-gradient(90deg,transparent,#8a5c10); }
+.nqd-wing i:last-child{ background:linear-gradient(90deg,#8a5c10,transparent); }
+.nqd-wing s{ width:6px; height:6px; background:#8a5c10; transform:rotate(45deg); }
+
+/* ── PANELY (rohové značky, dva stupne) ───────────────────────────────── */
+.nqd-panel{
+  position:relative; border:1px solid #8a5c10; border-radius:10px; padding:20px 20px 18px;
+  background:rgba(255,252,242,.42);
+}
+.nqd-panel::before,.nqd-panel::after{ content:''; position:absolute; width:14px; height:14px; border:2px solid #8a5c10; }
+.nqd-panel::before{ top:-1px; left:-1px; border-right:0; border-bottom:0; border-radius:10px 0 0 0; }
+.nqd-panel::after{ bottom:-1px; right:-1px; border-left:0; border-top:0; border-radius:0 0 10px 0; }
+.nqd-panel.quiet{ border-color:rgba(122,80,16,0.28); background:rgba(122,80,16,.05); }
+.nqd-panel.quiet::before,.nqd-panel.quiet::after{ border-color:rgba(122,80,16,0.28); }
+
+.nqd-eyebrow{
+  font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:9.5px; letter-spacing:.26em;
+  text-transform:uppercase; color:#8a5c10; margin:0 0 8px;
+}
+.nqd p.body{ font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.65; color:#1a0900; margin:0 0 10px; }
+.nqd p.dim{ font-family:'Space Grotesk',sans-serif; font-size:12.5px; line-height:1.6; color:#5a3a0a; margin:0; }
+/* Zvýraznenie nesú DÁTA (**takto**), sadzba mu len dá váhu. */
+.nqd b{ font-weight:600; color:#1a0900; }
+
+.nqd-list{ margin:0; padding:0; display:grid; gap:10px; }
+.nqd-list li{
+  list-style:none; position:relative; padding-left:20px;
+  font-family:'Space Grotesk',sans-serif; font-size:13.5px; line-height:1.6; color:#1a0900;
+}
+.nqd-list li::before{
+  content:''; position:absolute; left:3px; top:8px; width:6px; height:6px;
+  background:#8a5c10; transform:rotate(45deg);
+}
+.nqd-list.tight{ gap:8px; }
+.nqd-duo{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+
+/* ── I · KONŠTITÚCIA: čínsky znak + päť korešpondencií ────────────────── */
+.nqd-elhero{ display:grid; grid-template-columns:150px 1fr; gap:20px; align-items:center; }
+.nqd-cnbox{
+  text-align:center; padding:14px 10px 12px; border:1px solid #8a5c10; border-radius:10px;
+  background:rgba(255,252,242,.5); position:relative;
+}
+.nqd-cnbox::before,.nqd-cnbox::after{ content:''; position:absolute; width:12px; height:12px; border:1px solid #8a5c10; }
+.nqd-cnbox::before{ top:4px; left:4px; border-right:0; border-bottom:0; }
+.nqd-cnbox::after{ bottom:4px; right:4px; border-left:0; border-top:0; }
+.nqd-cn{ font-size:64px; line-height:1; color:#1a0900; font-weight:500; }
+.nqd-cnname{
+  font-family:'Cinzel',serif; font-weight:900; font-size:16px; letter-spacing:.1em;
+  text-transform:uppercase; color:#1a0900; margin-top:8px;
+}
+.nqd-cnpin{ font-family:'Space Grotesk',sans-serif; font-size:11px; color:#7a5a2a; font-style:italic; }
+/* ⚠️ Päť PEVNÝCH stĺpcov. auto-fit zalomí 4+1 a Colour ostane sama ako nedorobok. */
+.nqd-facts{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:14px; }
+.nqd-fact{ border:1px solid rgba(122,80,16,0.28); border-radius:8px; padding:8px 10px; background:rgba(255,255,255,.22); }
+.nqd-fact .k{
+  display:block; font-family:'Space Grotesk',sans-serif; font-weight:500; font-size:8.5px;
+  letter-spacing:.2em; text-transform:uppercase; color:#7a5a2a;
+}
+.nqd-fact .v{ display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; color:#1a0900; margin-top:2px; }
+
+/* ── IV · USMERNENIE ──────────────────────────────────────────────────────
+   Kombinačný riadok stojí SAMOSTATNE nad omylmi. Je to jediná veta dokumentu,
+   kde sa obe osi stretnú — zamiešaná medzi šestnásť riadkov by zanikla. */
+.nqd-pair{ position:relative; border:1px solid #8a5c10; border-radius:10px; padding:16px 18px;
+  background:linear-gradient(135deg, rgba(245,199,61,.16), rgba(230,158,26,.09)); margin-bottom:20px; }
+.nqd-pair .cross{
+  font-family:'Cinzel',serif; font-weight:900; font-size:10px; letter-spacing:.24em;
+  text-transform:uppercase; color:#8a5c10; margin-bottom:6px;
+}
+.nqd-cat{ margin-top:20px; }
+.nqd-cat:first-of-type{ margin-top:4px; }
+.nqd-cap{ display:flex; align-items:center; gap:10px; margin-bottom:11px; }
+.nqd-cap h3{
+  font-family:'Cinzel',serif; font-weight:900; font-size:14px; letter-spacing:.16em;
+  text-transform:uppercase; color:#1a0900; margin:0; white-space:nowrap;
+}
+.nqd-cap i{ flex:1; height:1px; background:linear-gradient(90deg,#8a5c10,transparent); }
+.nqd-rules{ display:grid; gap:12px; margin:0; padding:0; }
+.nqd-rules li{ list-style:none; display:grid; grid-template-columns:30px 1fr; gap:12px; align-items:start; }
+.nqd-rules .n{ font-family:'Cinzel',serif; font-weight:900; font-size:14px; color:#8a5c10; text-align:right; line-height:1.3; }
+.nqd-rules b.t{
+  display:block; font-family:'Cinzel',serif; font-weight:700; font-size:12.5px; letter-spacing:.06em;
+  text-transform:uppercase; color:#1a0900; margin-bottom:3px;
+}
+.nqd-rules span.d{ font-family:'Space Grotesk',sans-serif; font-size:13px; line-height:1.6; color:#5a3a0a; }
+
+/* ── V · ROZPAD (pentagram) ───────────────────────────────────────────── */
+.nqd-radars{ display:grid; grid-template-columns:1fr 1fr; gap:20px; align-items:center; }
+.nqd-radar{ width:100%; max-width:340px; margin-inline:auto; display:block; }
+.nqd-note{ font-family:'Space Grotesk',sans-serif; font-size:11.5px; color:#7a5a2a; margin:14px 0 0; text-align:center; }
+.nqd-foot{ display:flex; align-items:flex-end; gap:16px; }
+.nqd-foot p{ flex:1; font-family:'Space Grotesk',sans-serif; font-size:10.5px; color:#5a3a0a; line-height:1.55; margin:0; }
+.nqd-seal{ width:98px; opacity:.9; flex:0 0 auto; }
+
+@media(max-width:900px){ .nqd-facts{ grid-template-columns:repeat(3,1fr); } }
+@media(max-width:720px){
+  .nqd-inner{ padding:20px 15px 24px; }
+  .nqd-who{ font-size:29px; }
+  .nqd-head h2{ font-size:21px; }
+  .nqd-elhero{ grid-template-columns:1fr; gap:14px; }
+  .nqd-cnbox{ max-width:150px; margin-inline:auto; }
+  .nqd-duo{ grid-template-columns:1fr; }
+  .nqd-radars{ grid-template-columns:1fr; }
+}
+@media(max-width:520px){
+  .nqd-facts{ grid-template-columns:repeat(2,1fr); }
+  .nqd-medal{ width:124px; height:124px; }
+  .nqd-slot{ width:calc(50% - 5px); }
+  .nqd-foot{ flex-direction:column; align-items:center; text-align:center; gap:12px; }
+}
 `;
 
 /* Čítací stĺpec vnútri karty. Karta drží šírku panelov `/pack` (1024), text nie —
@@ -573,6 +779,74 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
       fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: '.26em',
       textTransform: 'uppercase', color: T.cardEdge, marginBottom: 8,
     }}>{children}</div>
+  );
+}
+
+/* ── stavebné diely DOKUMENTU výsledku (predloha kolo4.html) ──────────────── */
+
+/**
+ * Zvýraznenie nesú DÁTA, nie sadzba (Matej 21.8.: „bold pri určitých slovách ktoré
+ * majú váhu"). Texty v `natureQuiz.ts` píšu `**takto**` a toto ich rozreže.
+ *
+ * ⚠️ ZÁMERNE NIE `dangerouslySetInnerHTML`. Tie isté reťazce pôjdu raz cez i18n
+ * a HTML v prekladových kľúčoch je diera — prekladateľ (aj stroj) doň vie vložiť
+ * čokoľvek. Značka `**` je neškodná aj keď ju preklad pokazí: najhoršie, čo sa
+ * stane, je viditeľná hviezdička.
+ */
+function Bold({ s }: { s: string }) {
+  // Nepárny počet `**` = pokazený preklad. Posledný kus zostane obyčajným textom,
+  // nič sa nezahodí — text je vždy dôležitejší než jeho tučnosť.
+  const parts = s.split('**');
+  return <>{parts.map((p, i) => (i % 2 ? <b key={i}>{p}</b> : <span key={i}>{p}</span>))}</>;
+}
+
+/** Ornament medzi sekciami: čiara – kosoštvorce – čiara (jazyk certifikátu). */
+function Orn() {
+  return <div className="nqd-orn"><i /><s /><s className="big" /><s /><i /></div>;
+}
+
+/** ⚠️ `num` MUSÍ sedieť s poradím odznakov v hlavičke — viď komentár v `ResultDoc`. */
+function SecHead({ num, title, sub }: { num: string; title: string; sub?: string }) {
+  return (
+    <div className="nqd-head">
+      <div className="num">{num}</div>
+      <h2>{title}</h2>
+      {sub && <div className="sub">{sub}</div>}
+      <div className="nqd-wing"><i /><s /><i /></div>
+    </div>
+  );
+}
+
+/**
+ * Jeden smer usmernenia (omyly / detaily). Riadky prichádzajú z matice
+ * (`guidanceFor`), takže ich počet kolíše 2–6 podľa zvláštnych úloh.
+ *
+ * Prázdny smer sa NEVYKRESLÍ — nadpis nad ničím tvrdí, že sa niečo nenačítalo.
+ * Nastať to môže: pes bez zvláštnych úloh má vždy aspoň 2+2 riadky, ale keby sa
+ * matica raz orezala, nech to zmizne ticho a nie ako rozbitá stránka.
+ */
+function GuideLane({ title, from, rows, tx }: {
+  title: string; from: string; rows: Guidance[]; tx: (k: string, f: string) => string;
+}) {
+  if (!rows.length) return null;
+  return (
+    <div className="nqd-cat">
+      <div className="nqd-cap"><h3>{title}</h3><i /></div>
+      <p className="dim" style={{ fontSize: 11, margin: '-6px 0 10px' }}>{from}</p>
+      <ol className="nqd-rules">
+        {rows.map((row, i) => (
+          <li key={row.i18n}>
+            {/* Číslo je len poradie NA OBRAZOVKE (01, 02…), preklad sa ním neriadi —
+                ten visí na `row.i18n`, ktoré je odvodené z dát. */}
+            <span className="n">{String(i + 1).padStart(2, '0')}</span>
+            <span>
+              <b className="t">{tx(`${row.i18n}.title`, row.titleEN)}</b>
+              <span className="d"><Bold s={tx(`${row.i18n}.text`, row.textEN)} /></span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -701,71 +975,95 @@ function QuizArt() {
  * VÍŤAZA. Pes, ktorý má oheň 9 a zem 8, tak vyzeral rovnako ako pes s ohňom 9 a
  * zemou 0 — a majiteľ druhého v poradí nikdy nevidel.
  *
- * Zobrazuje sa PODIEL v rámci osi, nie surové body: body sú artefakt váh a bez
- * matrice pred očami nič nehovoria. Nula sa nekreslí ako prázdny riadok — kreslí sa,
- * lebo „tento pes v sebe nemá nič z kovu" je informácia.
+ * Kreslí sa aj nula — „tento pes v sebe nemá nič z kovu" je informácia, nie diera.
+ *
+ * ROZPAD = PENTAGRAM (Matejova voľba 21. 8.). Ten istý rozpad ako TVAR — päť osí,
+ * päť hodnôt, jeden pohľad. Pruhová vetva ostáva ako druhá možnosť v nákrese
+ * `plany/vyslednica-navrhy/kolo4.html` (má prepínač); v appke je default pentagram.
  */
-function ScoreBars({ title, rows }: {
-  title: string;
-  rows: { key: string; label: string; value: number; top: boolean }[];
+function Pentagram({ rows, color }: {
+  rows: { label: string; cn?: string; value: number; top: boolean }[];
+  color: string;
 }) {
-  const total = rows.reduce((a, r) => a + Math.max(0, r.value), 0);
+  // ⚠️ PLÁTNO JE ŠIRŠIE NEŽ PENTAGRAM. Popisky sedia na 1,26× polomeru — pri tesnom
+  // viewBoxe ich orezalo na „OOD" a „HERA".
+  const R = 88, cx = 150, cy = 124, n = rows.length;
+  const max = Math.max(...rows.map((r) => Math.max(0, r.value)), 0);
+  const pt = (i: number, f: number): [number, number] => {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n;
+    return [cx + Math.cos(a) * R * f, cy + Math.sin(a) * R * f];
+  };
+  const ring = (f: number) => rows.map((_, i) => pt(i, f).join(',')).join(' ');
+  const shape = rows.map((r, i) => pt(i, max ? (Math.max(0, r.value) / max) * 0.94 : 0).join(',')).join(' ');
+
   return (
-    <div style={{ marginTop: 14 }}>
-      <Eyebrow>{title}</Eyebrow>
-      <div style={{ display: 'grid', gap: 8 }}>
-        {rows.map((r) => {
-          const pct = total > 0 ? Math.round((Math.max(0, r.value) / total) * 100) : 0;
-          return (
-            <div key={r.key} className="nq-scorerow">
-              <span className={`nq-scorename${r.top ? ' is-top' : ''}`}>{r.label}</span>
-              <span className="nq-scoretrack">
-                <span
-                  className={`nq-scorefill${r.top ? ' is-top' : ''}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </span>
-              <span className={`nq-scorepct${r.top ? ' is-top' : ''}`}>{pct}%</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <svg className="nqd-radar" viewBox="0 0 300 258" role="img" aria-hidden>
+      {[0.25, 0.5, 0.75, 1].map((f) => (
+        <polygon key={f} points={ring(f)} fill="none"
+          stroke={`rgba(122,80,16,${f === 1 ? 0.45 : 0.2})`} strokeWidth={1} />
+      ))}
+      {rows.map((_, i) => {
+        const [x, y] = pt(i, 1);
+        return <line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke="rgba(122,80,16,.28)" strokeWidth={1} />;
+      })}
+      <polygon points={shape} fill={color} fillOpacity={0.34} stroke={color} strokeWidth={2} />
+      {rows.map((r, i) => {
+        const [x, y] = pt(i, max ? (Math.max(0, r.value) / max) * 0.94 : 0);
+        return <circle key={i} cx={x} cy={y} r={3.4} fill={color} />;
+      })}
+      {/* Víťaznú os treba vidieť aj bez čítania čísel — tmavší inkoust a väčšie
+          písmo. Bez toho je pentagram len tvar a človek hľadá, ktorý hrot je jeho.
+          Čínsky znak nesú len osi elementov; úlohy ho nemajú a riadok sa vynechá. */}
+      {rows.map((r, i) => {
+        const [x, y] = pt(i, 1.26);
+        return (
+          <g key={i}>
+            <text x={x} y={y} textAnchor="middle" dominantBaseline="middle"
+              fontFamily="Cinzel, serif" fontSize={r.top ? 12 : 10.5} fontWeight={r.top ? 900 : 700}
+              fill={r.top ? '#1a0900' : '#5a3a0a'} letterSpacing="0.5">
+              {r.label.toUpperCase()}
+            </text>
+            {r.cn && (
+              <text x={x} y={y + 15} textAnchor="middle" dominantBaseline="middle"
+                fontSize={14} fill="#8a5c10" opacity={0.85}>{r.cn}</text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
   );
 }
 
-/** ⚠️ NIE JE to vlastná karta — je to POSLEDNÁ SEKCIA dokumentu psa (`ResultDoc`).
- *  Do 20. 8. stála ako piata samostatná karta pod výsledkom; od zliatia dokumentu
- *  ju obaľuje spoločný papyrus a oddeľuje `Rule`, nie vlastný rám. */
+/** Sekcia V dokumentu. Dva pentagramy — konštitúcia a úloha. */
 function ScoreBreakdown({ r, tx }: { r: NatureResult; tx: (k: string, f: string) => string }) {
   return (
     <>
-      <h2 style={{
-        fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
-        fontSize: 16, letterSpacing: '.06em', color: T.inkStrong, margin: 0,
-      }}>{tx('pack.nature.result.scoresTitle', 'How it added up')}</h2>
-      <ScoreBars
-        title={tx('pack.nature.result.elementLabel', 'Constitution')}
-        rows={ELEMENT_KEYS.map((k) => ({
-          key: k,
-          label: tx(NATURE_ELEMENTS[k].i18n, NATURE_ELEMENTS[k].labelEN),
-          value: r.scores.el[k],
-          top: k === r.element,
-        }))}
-      />
-      <Rule />
-      <ScoreBars
-        title={tx('pack.nature.result.roleLabel', 'Role in the pack')}
-        rows={ROLE_KEYS.map((k) => ({
-          key: k,
-          label: tx(NATURE_ROLES[k].i18n, NATURE_ROLES[k].labelEN),
-          value: r.scores.role[k],
-          top: k === r.role,
-        }))}
-      />
-      {/* Vysvetlivka stojí RAZ pod celou kartou — pod každou skupinou zvlášť to bola
-          tá istá veta dvakrát na jednej obrazovke. */}
-      <p className="nq-scorenote">
+      <div className="nqd-radars">
+        <div>
+          <p className="nqd-eyebrow" style={{ textAlign: 'center' }}>
+            {tx('pack.nature.result.elementLabel', 'Constitution')}
+          </p>
+          <Pentagram color="#8a5c10" rows={ELEMENT_KEYS.map((k) => ({
+            label: tx(NATURE_ELEMENTS[k].i18n, NATURE_ELEMENTS[k].labelEN),
+            cn: NATURE_ELEMENTS[k].cn,
+            value: r.scores.el[k],
+            top: k === r.element,
+          }))} />
+        </div>
+        <div>
+          <p className="nqd-eyebrow" style={{ textAlign: 'center' }}>
+            {tx('pack.nature.result.roleLabel', 'Role in the pack')}
+          </p>
+          <Pentagram color="#a8332a" rows={ROLE_KEYS.map((k) => ({
+            label: tx(NATURE_ROLES[k].i18n, NATURE_ROLES[k].labelEN),
+            value: r.scores.role[k],
+            top: k === r.role,
+          }))} />
+        </div>
+      </div>
+      {/* Vysvetlivka stojí RAZ pod celou sekciou — pod každým pentagramom zvlášť to
+          bola tá istá veta dvakrát na jednej obrazovke. */}
+      <p className="nqd-note">
         {tx('pack.nature.result.scoresNote',
           'Every answer adds weight to more than one line — this is where they landed.')}
       </p>
@@ -1068,165 +1366,290 @@ function ResultDoc({ dog, r, tx }: {
   const second = r.roleSecond ? NATURE_ROLES[r.roleSecond] : null;
   const elSecond = r.elementSecond ? NATURE_ELEMENTS[r.elementSecond] : null;
   const name = (dog.dog_name || '').trim().toUpperCase();
+  const g = guidanceFor(r);
+  const specials = r.specials.map((k) => NATURE_SPECIALS[k]);
 
   return (
-    <Card>
-      {/* ── HLAVIČKA: čí je to dokument ──────────────────────────────────────
-          Fotka a meno stáli doteraz MIMO karty na čiernom a len pri svorke. V
-          dokumente musia byť vnútri a vždy — inak je to list papiera bez adresáta.
-          Meno psa = Cinzel Decorative (brand manuál: oficiálne povrchy). */}
-      <div style={{ textAlign: 'center' }}>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <DogFace dog={dog} size={64} />
+    <div className="nqd">
+      <div className="nqd-framed"><div className="nqd-inner">
+
+        {/* ── HLAVIČKA: fotka · meno · heroglyf · tri odznaky ─────────────────
+            POD MENOM NIE JE PODTITUL. „The Defender · Metal" je preč (Matej 21.8.) —
+            tú istú vec povedia odznaky pod heroglyfom, a to s obrázkom a poradím. */}
+        <div className="nqd-medal">
+          {dog.cloudinary_main_url
+            ? <img src={dog.cloudinary_main_url} alt="" aria-hidden />
+            : <span>{(dog.dog_name || '?').trim().charAt(0).toUpperCase()}</span>}
         </div>
-        {name && (
-          <div style={{
-            fontFamily: NAME_FONT, fontWeight: 700, fontSize: 19, letterSpacing: '.03em',
-            textTransform: 'uppercase', color: T.inkStrong, lineHeight: 1.2, marginTop: 10,
-          }}>{name}</div>
+        {name && <div className="nqd-who">{name}</div>}
+        {/* Heroglyf sa vykreslí len ak ho pes má. Prázdny rámik by na papyruse
+            vyzeral ako chýbajúci obrázok, nie ako „tento pes ho ešte nemá". */}
+        {dog.heroglyph_png_url && (
+          <img className="nqd-glyph" src={dog.heroglyph_png_url} alt="" aria-hidden loading="lazy" />
         )}
-        <div style={{ marginTop: 8 }}>
-          <Eyebrow>{tx('pack.nature.result.eyebrow', 'Your dog is')}</Eyebrow>
-        </div>
-      </div>
 
-      {/* ── ODZNAKY: rola (U štít) + element (kruh) ───────────────────────── */}
-      <div className="nq-badges">
-        <div className="nq-badge">
-          <img className="nq-badgeart" src={role.art} alt="" aria-hidden loading="lazy" />
-          <div className="nq-badgelbl">{tx('pack.nature.result.roleLabel', 'Role in the pack')}</div>
-          <div className="nq-badgename">{tx(role.i18n, role.labelEN)}</div>
-        </div>
-        <div className="nq-badge">
-          <img className="nq-badgeart" src={el.art} alt="" aria-hidden loading="lazy" />
-          <div className="nq-badgelbl">{tx('pack.nature.result.elementLabel', 'Constitution')}</div>
-          <div className="nq-badgename">{tx(el.i18n, el.labelEN)}</div>
-        </div>
-      </div>
-
-      <p style={{
-        fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.5, color: T.inkWarm,
-        textAlign: 'center', marginTop: 12,
-      }}>{tx(`${role.i18n}.function`, role.functionEN)}</p>
-
-      <Rule />
-
-      {/* ── ÚLOHA — a v nej „najčastejšie nepochopenie": veta, ktorú majiteľ o svojom
-          psovi celý život slýcha, vyvrátená. To je emočný zásah celého kvízu. */}
-      <Eyebrow>{tx('pack.nature.result.signs', 'You will know them by')}</Eyebrow>
-      <ul style={{ display: 'grid', gap: 7 }}>
-        {role.signsEN.map((sg, i) => (
-          <li key={i} style={{
-            fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.5, color: T.inkStrong,
-            paddingLeft: 14, position: 'relative',
-          }}>
-            <span style={{ position: 'absolute', left: 0, color: T.cardEdge }}>·</span>
-            {tx(`${role.i18n}.sign${i}`, sg)}
-          </li>
-        ))}
-      </ul>
-
-      <div style={{ marginTop: 12 }}>
-        <Tile>
-          <div style={{
-            fontFamily: FONT_UI, fontSize: 11.5, color: T.inkWarm, marginBottom: 6,
-            fontStyle: 'italic',
-          }}>„{tx(`${role.i18n}.myth`, role.mythEN)}"</div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.5, color: T.inkStrong }}>
-            {tx(`${role.i18n}.mythAnswer`, role.mythAnswerEN)}
+        {/* ⚠️ PORADIE ODZNAKOV = PORADIE SEKCIÍ. I konštitúcia · II úloha · III zvláštna.
+            V 3. kole bolo hore I = konštitúcia, ale sekcia I opisovala úlohu (Matej:
+            „označil si I ako konštitúciu ale dolu si dal 1 ako defender, nesedí to").
+            Číslo je sľub — buď platí na oboch miestach, alebo tam nemá čo robiť.
+            Zvláštnych úloh je 0–4: pri nule slot III vôbec nevznikne (dva odznaky),
+            pri dvoch až štyroch stoja VŠETKY v rade a rad sa zalomí. */}
+        <div className="nqd-trio">
+          <div className="nqd-slot">
+            <div className="nqd-rank">I</div>
+            <div className="nqd-art"><img src={el.art} alt="" aria-hidden loading="lazy" /></div>
+            <div className="nqd-lbl">{tx('pack.nature.result.elementLabel', 'Constitution')}</div>
+            <div className="nqd-nm">{tx(el.i18n, el.labelEN)}</div>
           </div>
-        </Tile>
-      </div>
+          <div className="nqd-slot">
+            <div className="nqd-rank">II</div>
+            <div className="nqd-art"><img src={role.art} alt="" aria-hidden loading="lazy" /></div>
+            <div className="nqd-lbl">{tx('pack.nature.result.roleLabel', 'Role in the pack')}</div>
+            <div className="nqd-nm">{tx(role.i18n, role.labelEN)}</div>
+          </div>
+          {specials.map((sp) => (
+            <div className="nqd-slot spec" key={sp.key}>
+              <div className="nqd-rank">III</div>
+              <div className="nqd-art"><img src={sp.art} alt="" aria-hidden loading="lazy" /></div>
+              <div className="nqd-lbl">{tx('pack.nature.result.specialPrefix', 'Special role')}</div>
+              <div className="nqd-nm">{tx(sp.i18n, sp.labelEN)}</div>
+            </div>
+          ))}
+        </div>
 
-      <div style={{ marginTop: 12, fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: T.inkWarm }}>
-        <strong style={{ color: T.inkStrong }}>{tx('pack.nature.result.pressure', 'Under pressure')}: </strong>
-        {tx(`${role.i18n}.pressure`, role.pressureEN)}
-      </div>
+        <Orn />
 
-      {/* Zdroj sa priznáva pri mene úlohy, nie až v pätičke — meno je z WDDC. */}
-      <p style={{ fontFamily: FONT_UI, fontSize: 11, color: T.inkFaint, marginTop: 12 }}>
-        {tx('pack.nature.result.origin', 'In the source research')}: {role.originEN}
-        {second && (
+        {/* ── I · KONŠTITÚCIA ────────────────────────────────────────────────
+            Ide PRVÁ, lebo drží telo a misku — teda to, čo majiteľ rieši denne.
+            🔴 Toto je JEDINÁ os, ktorá smie hovoriť o výžive. Úloha o miske
+            nehovorí nič (`reference_dogypt_element_vs_uloha_co_hovori_co`). */}
+        <SecHead num="I"
+          title={tx('pack.nature.doc.i.title', 'The constitution')}
+          sub={tx('pack.nature.doc.i.sub', 'What they are made of — body, bowl and season. After Traditional Chinese Medicine.')} />
+
+        <div className="nqd-elhero">
+          {/* Znak je pečať elementu, nie ozdoba — vlastný rám a najväčšie písmeno
+              dokumentu po mene psa. */}
+          <div className="nqd-cnbox">
+            <div className="nqd-cn">{el.cn}</div>
+            <div className="nqd-cnname">{tx(el.i18n, el.labelEN)}</div>
+            <div className="nqd-cnpin">{el.pinyin}</div>
+          </div>
+          <div>
+            <p className="body" style={{ fontSize: 15 }}><Bold s={tx(`${el.i18n}.summary`, el.summaryEN)} /></p>
+            {/* ⚠️ Päť PEVNÝCH stĺpcov, nie auto-fit — inak sa to zalomí 4+1. */}
+            <div className="nqd-facts">
+              {([
+                ['pack.nature.fact.season', 'Season', el.facts.seasonEN, 'season'],
+                ['pack.nature.fact.organs', 'Organs', el.facts.organsEN, 'organs'],
+                ['pack.nature.fact.emotion', 'Emotion', el.facts.emotionEN, 'emotion'],
+                ['pack.nature.fact.taste', 'Taste', el.facts.tasteEN, 'taste'],
+                ['pack.nature.fact.colour', 'Colour', el.facts.colourEN, 'colour'],
+              ] as const).map(([k, kf, v, id]) => (
+                <div className="nqd-fact" key={id}>
+                  <span className="k">{tx(k, kf)}</span>
+                  <span className="v">{tx(`${el.i18n}.facts.${id}`, v)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="nqd-panel" style={{ marginTop: 16 }}>
+          <p className="nqd-eyebrow">{tx('pack.nature.doc.traits', 'How it shows in a normal day')}</p>
+          <ul className="nqd-list">
+            {el.traitsEN.map((t, i) => (
+              <li key={i}><Bold s={tx(`${el.i18n}.trait${i}`, t)} /></li>
+            ))}
+          </ul>
+        </div>
+
+        {/* VÝŽIVA. Úroveň je zamknutá v hlavičke `natureQuiz.ts`: sklon, suroviny
+            a réžia misky ÁNO — dávky, doplnky a liečba NIE. Veta o veterinárovi
+            stojí PRIAMO tu, nie schovaná v päte. */}
+        <div className="nqd-duo">
+          <div className="nqd-panel">
+            <p className="nqd-eyebrow">{tx('pack.nature.doc.food', 'What suits them')}</p>
+            <ul className="nqd-list tight">
+              {el.foodEN.map((t, i) => <li key={i}><Bold s={tx(`${el.i18n}.food${i}`, t)} /></li>)}
+            </ul>
+          </div>
+          <div className="nqd-panel">
+            <p className="nqd-eyebrow">{tx('pack.nature.doc.avoid', 'What works against them')}</p>
+            <ul className="nqd-list tight">
+              {el.avoidEN.map((t, i) => <li key={i}><Bold s={tx(`${el.i18n}.avoid${i}`, t)} /></li>)}
+            </ul>
+          </div>
+        </div>
+        <p className="dim" style={{ fontSize: 10.5, marginTop: 9, textAlign: 'center' }}>
+          {tx(NUTRITION_DISCLAIMER.i18n, NUTRITION_DISCLAIMER.textEN)}
+        </p>
+
+        <div className="nqd-duo">
+          <div className="nqd-panel quiet">
+            <p className="nqd-eyebrow">{tx('pack.nature.result.body', 'Body')}</p>
+            <p className="dim"><Bold s={tx(`${el.i18n}.body`, el.bodyEN)} /></p>
+          </div>
+          <div className="nqd-panel quiet">
+            <p className="nqd-eyebrow">{tx('pack.nature.result.watch', 'Worth keeping an eye on')}</p>
+            <p className="dim"><Bold s={tx(`${el.i18n}.watch`, el.watchEN)} /></p>
+            <p className="dim" style={{ fontSize: 10.5, color: '#7a5a2a', marginTop: 9 }}>
+              {tx('pack.nature.result.notDiagnosis',
+                'This is a conversation to have with your vet — not a diagnosis.')}
+            </p>
+          </div>
+        </div>
+
+        {elSecond && (
+          <p className="dim" style={{ textAlign: 'center', marginTop: 12 }}>
+            {tx('pack.nature.result.alsoElement', 'There is a strong second element')}:{' '}
+            <b>{tx(elSecond.i18n, elSecond.labelEN)}</b>
+          </p>
+        )}
+
+        <Orn />
+
+        {/* ── II · ÚLOHA VO SVORKE ───────────────────────────────────────────
+            Hovorí o RÉŽII DŇA — koľko práce a koľko vypnutia. O jedle nikdy.
+            `functionEN` sa tu ZÁMERNE nevykresľuje (Matej 21.8. ju zrušil):
+            abstraktná definícia pred konkrétnymi príkladmi je zbytočné poschodie.
+            Pole v dátach ostáva, používa ho ešte hub. */}
+        <SecHead num="II"
+          title={tx('pack.nature.doc.ii.title', 'The role in the pack')}
+          sub={tx('pack.nature.doc.ii.sub', 'What they hold for the pack — and how much work and rest that means')} />
+
+        <div className="nqd-panel">
+          <p className="nqd-eyebrow">{tx('pack.nature.result.signs', 'You will know them by')}</p>
+          <ul className="nqd-list">
+            {role.signsEN.map((s, i) => <li key={i}><Bold s={tx(`${role.i18n}.sign${i}`, s)} /></li>)}
+          </ul>
+        </div>
+
+        {/* EMOČNÝ ZÁSAH CELÉHO KVÍZU: veta, ktorú majiteľ o svojom psovi celý život
+            počúva — a vyvrátenie. Nesmie zaniknúť medzi ostatnými panelmi. */}
+        <div className="nqd-panel quiet" style={{ marginTop: 14 }}>
+          <p className="nqd-eyebrow">{tx('pack.nature.doc.myth', 'The usual verdict')}</p>
+          <p style={{
+            fontFamily: FONT_UI, fontSize: 14, fontStyle: 'italic', color: '#7a5a2a', margin: '0 0 8px',
+          }}>„{tx(`${role.i18n}.myth`, role.mythEN)}"</p>
+          <p className="body" style={{ margin: 0 }}><Bold s={tx(`${role.i18n}.mythAnswer`, role.mythAnswerEN)} /></p>
+        </div>
+
+        <div className="nqd-panel quiet" style={{ marginTop: 14 }}>
+          <p className="nqd-eyebrow">{tx('pack.nature.result.pressure', 'Under pressure')}</p>
+          <p className="dim"><Bold s={tx(`${role.i18n}.pressure`, role.pressureEN)} /></p>
+        </div>
+
+        <div className="nqd-panel" style={{ marginTop: 14 }}>
+          <p className="nqd-eyebrow">{tx('pack.nature.doc.duty', 'What the job asks of the day')}</p>
+          <ul className="nqd-list tight">
+            {role.dutyEN.map((t, i) => <li key={i}><Bold s={tx(`${role.i18n}.duty${i}`, t)} /></li>)}
+          </ul>
+        </div>
+
+        {/* Zdroj sa priznáva pri mene úlohy, nie až v pätičke — meno je z WDDC. */}
+        <p className="dim" style={{ textAlign: 'center', marginTop: 12, fontSize: 11 }}>
+          {tx('pack.nature.result.origin', 'In the source research')}: {role.originEN}
+          {second && (
+            <>
+              {' · '}
+              {tx('pack.nature.result.alsoRole', 'They also carry a strong second role')}:{' '}
+              <b>{tx(second.i18n, second.labelEN)}</b>
+            </>
+          )}
+        </p>
+
+        {/* ── III · ZVLÁŠTNA ÚLOHA (0–4) ─────────────────────────────────────
+            Sekcia celá odpadne, keď pes nemá ani jednu — prázdny nadpis by
+            tvrdil, že tu niečo chýba. */}
+        {specials.length > 0 && (
           <>
-            {' · '}
-            {tx('pack.nature.result.alsoRole', 'They also carry a strong second role')}:{' '}
-            <strong style={{ color: T.inkStrong }}>{tx(second.i18n, second.labelEN)}</strong>
+            <Orn />
+            <SecHead num="III"
+              title={tx('pack.nature.doc.iii.title', 'Special role')}
+              sub={tx('pack.nature.doc.iii.sub', 'Sits ON TOP of the core role — it is not its rival')} />
+            <div style={{ display: 'grid', gap: 14 }}>
+              {specials.map((sp) => (
+                <div className="nqd-panel" key={sp.key}
+                  style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                  <img src={sp.art} alt="" aria-hidden loading="lazy" style={{ width: 78, flex: '0 0 auto' }} />
+                  <div>
+                    <h3 style={{
+                      fontFamily: FONT_TITLE, fontWeight: 900, fontSize: 17, letterSpacing: '.05em',
+                      textTransform: 'uppercase', margin: '0 0 5px', color: '#1a0900',
+                    }}>{tx(sp.i18n, sp.labelEN)}</h3>
+                    <p className="dim"><Bold s={tx(`${sp.i18n}.desc`, sp.descEN)} /></p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </>
         )}
-      </p>
 
-      <Rule />
+        <Orn />
 
-      {/* ── ELEMENT — telo a konštitúcia. `watch` NIE JE diagnóza. ─────────── */}
-      <Eyebrow>{tx('pack.nature.result.made', 'What they are made of')}</Eyebrow>
-      <p style={{ fontFamily: FONT_UI, fontSize: 13, lineHeight: 1.5, color: T.inkStrong }}>
-        {tx(`${el.i18n}.summary`, el.summaryEN)}
-      </p>
-      <div style={{ display: 'grid', gap: 10, marginTop: 12 }}>
-        <Tile>
-          <div style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: T.cardEdge, marginBottom: 5 }}>
-            {tx('pack.nature.result.body', 'Body')}
-          </div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: T.inkStrong }}>
-            {tx(`${el.i18n}.body`, el.bodyEN)}
-          </div>
-        </Tile>
-        <Tile>
-          <div style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: T.cardEdge, marginBottom: 5 }}>
-            {tx('pack.nature.result.watch', 'Worth keeping an eye on')}
-          </div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: T.inkStrong }}>
-            {tx(`${el.i18n}.watch`, el.watchEN)}
-          </div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 10.5, color: T.inkFaint, marginTop: 7 }}>
-            {tx('pack.nature.result.notDiagnosis', 'This is a conversation to have with your vet — not a diagnosis.')}
-          </div>
-        </Tile>
-      </div>
-      {elSecond && (
-        <p style={{ fontFamily: FONT_UI, fontSize: 12, color: T.inkWarm, marginTop: 12 }}>
-          {tx('pack.nature.result.alsoElement', 'There is a strong second element')}:{' '}
-          <strong style={{ color: T.inkStrong }}>{tx(elSecond.i18n, elSecond.labelEN)}</strong>
-        </p>
-      )}
+        {/* ── IV · USMERNENIE ────────────────────────────────────────────────
+            Matej 21.8.: „dať viac hodnoty priamo pri výsledku a do usmernenia len
+            to nevyhnutné, časté omyly či detaily." Podstata je hore pri elemente
+            a úlohe; tu ostávajú dve veci — čo ľudia robia zle a čo nie je zjavné.
+            Kombinačný riadok stojí NAD nimi samostatne: je to jediné miesto
+            dokumentu, kde sa obe osi stretnú v jednej vete, a zamiešaný medzi
+            šestnásť riadkov by zanikol práve ten, ktorý je jedinečný. */}
+        <SecHead num="IV"
+          title={tx('pack.nature.doc.iv.title', 'Guidance')}
+          sub={tx('pack.nature.doc.iv.sub', 'The substance is above — what stays here is what cannot be guessed')} />
 
-      {/* ── ZVLÁŠTNE ÚLOHY — 0 až 4 naraz. ────────────────────────────────────
-          Štíty stoja v RADE (Matej 20.8.), popisy pod ním v tom istom poradí.
-          Štíty sú bez menoviek zámerne: meno nesie popis hneď pod nimi a dvakrát
-          by to bola tá istá informácia na pol obrazovky. */}
-      {r.specials.length > 0 && (
-        <>
-          <Rule />
-          <Eyebrow>{tx('pack.nature.result.specialLabel', 'Special roles')}</Eyebrow>
-          <div className="nq-specrow">
-            {r.specials.map((k) => (
-              <img key={k} className="nq-specart" src={NATURE_SPECIALS[k].art} alt="" aria-hidden loading="lazy" />
-            ))}
-          </div>
-          <div style={{ display: 'grid', gap: 10 }}>
-            {r.specials.map((k) => {
-              const sp = NATURE_SPECIALS[k];
-              return (
-                <Tile key={k}>
-                  <div style={{ fontFamily: FONT_UI, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: T.cardEdge, marginBottom: 5 }}>
-                    {tx('pack.nature.result.specialPrefix', 'Special role')}
-                  </div>
-                  <div style={{ fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase', fontSize: 14, color: T.inkStrong }}>
-                    {tx(sp.i18n, sp.labelEN)}
-                  </div>
-                  <div style={{ fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.5, color: T.inkStrong, marginTop: 6 }}>
-                    {tx(`${sp.i18n}.desc`, sp.descEN)}
-                  </div>
-                </Tile>
-              );
-            })}
-          </div>
-        </>
-      )}
+        <div className="nqd-panel">
+          {g.pair && (
+            <div className="nqd-pair">
+              <div className="cross">
+                {tx('pack.nature.doc.pair', 'Where the two meet')} ·{' '}
+                {tx(role.i18n, role.labelEN)} × {tx(el.i18n, el.labelEN)}
+              </div>
+              <b className="t" style={{
+                display: 'block', fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 13,
+                letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 4, color: '#1a0900',
+              }}>{tx(`${g.pair.i18n}.title`, g.pair.titleEN)}</b>
+              <span style={{ fontFamily: FONT_UI, fontSize: 13.5, lineHeight: 1.6, color: '#1a0900' }}>
+                <Bold s={tx(`${g.pair.i18n}.text`, g.pair.textEN)} />
+              </span>
+            </div>
+          )}
+          <GuideLane
+            title={tx('pack.nature.doc.mistakes', 'Common mistakes')}
+            from={tx('pack.nature.doc.mistakesFrom', 'what most often goes wrong with this result')}
+            rows={g.mistakes} tx={tx} />
+          <GuideLane
+            title={tx('pack.nature.doc.details', 'Details that help')}
+            from={tx('pack.nature.doc.detailsFrom', 'small things that are not obvious')}
+            rows={g.details} tx={tx} />
+        </div>
 
-      <Rule />
-      <ScoreBreakdown r={r} tx={tx} />
-    </Card>
+        {/* ── V · ROZPAD ─────────────────────────────────────────────────────
+            Má ho len pes, ktorý kvíz prešiel od 20. 8. 2026 — `nature.scores` sa
+            predtým neukladalo a spätne sa nedopočíta (surové odpovede nikde nie sú).
+            Päť núl by tvrdilo „všetkého nula", tak sa sekcia vynechá celá. */}
+        {hasNatureScores(r) && (
+          <>
+            <Orn />
+            <SecHead num="V"
+              title={tx('pack.nature.result.scoresTitle', 'How it added up')}
+              sub={tx('pack.nature.doc.v.sub', 'Every answer adds weight to more than one line')} />
+            <ScoreBreakdown r={r} tx={tx} />
+          </>
+        )}
+
+        <Orn />
+        <div className="nqd-foot">
+          <p>
+            DOGYPT · {tx('pack.nature.doc.footTitle', 'WHO IS YOUR DOG')}<br />
+            {tx(NATURE_ATTRIBUTION.i18n, NATURE_ATTRIBUTION.textEN)}
+          </p>
+          <img className="nqd-seal" src="/_certassets/seal.png" alt="" aria-hidden loading="lazy" />
+        </div>
+
+      </div></div>
+    </div>
   );
 }
 
@@ -1245,8 +1668,16 @@ export default function PackNatureQuiz() {
   // neposielal, takže `dogId` bolo `null`, zápis sa ticho preskočil a človek prešiel
   // 18 otázok do prázdna. Odteraz sa svorka načíta a parameter ju len zúži.
   const onlyDogId = params.get('dog');
+  /** `?view=result` = ČÍTANIE už zapísaného výsledku, nie nový beh kvízu.
+   *  Do 21. 8. 2026 tento parameter nikto nečítal — odkaz „Read the results" na
+   *  `/pack/dogs` teda vysypal človeka na úvod kvízu a výsledok sa po odchode
+   *  z obrazovky nedal pozrieť už NIKDY. */
+  const wantStored = params.get('view') === 'result';
 
   const [dogs, setDogs] = useState<QuizDog[] | null>(null);
+  /** `null` = ešte sa načítava, `[]` = niet čo čítať (→ spadne to na kvíz). */
+  const [stored, setStored] = useState<{ dog: QuizDog; r: NatureResult }[] | null>(null);
+  const [reading, setReading] = useState(wantStored);
   const [phase, setPhase] = useState<Phase>('intro');
   const [idx, setIdx] = useState(0);
   /** dogId → qid → optionId */
@@ -1275,7 +1706,7 @@ export default function PackNatureQuiz() {
       if (!uid) { if (alive) setDogs([]); return; }
       let q = supabase
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url')
+        .select('id, dog_name, cloudinary_main_url, heroglyph_png_url')
         .eq('user_id', uid)
         .eq('payment_status', 'paid')
         .order('created_at', { ascending: true });
@@ -1288,6 +1719,41 @@ export default function PackNatureQuiz() {
 
   const list = useMemo(() => dogs ?? [], [dogs]);
   const solo = list.length === 1;
+
+  // ČÍTANIE ZAPÍSANÉHO VÝSLEDKU. Skladá sa z polí na karte psa (`nature.*`), lebo
+  // surové odpovede sa neukladajú. Pes bez zapísanej úlohy/elementu sa preskočí;
+  // keď nezostane ani jeden, režim sa vypne a človek uvidí normálny úvod kvízu —
+  // to je jediná zmysluplná odpoveď na „ukáž výsledok", ktorý neexistuje.
+  useEffect(() => {
+    if (!wantStored || dogs === null) return;
+    if (dogs.length === 0) { setReading(false); return; }
+    let alive = true;
+    readLatestForDogs(dogs.map((d) => d.id)).then((byDog) => {
+      if (!alive) return;
+      const out: { dog: QuizDog; r: NatureResult }[] = [];
+      for (const d of dogs) {
+        const v = byDog[d.id] ?? {};
+        const r = natureResultFromStored({
+          element: v['nature.element']?.value,
+          role: v['nature.role']?.value,
+          specials: v['nature.specials']?.value,
+          scores: v['nature.scores']?.value,
+        });
+        if (r) out.push({ dog: d, r });
+      }
+      setStored(out);
+      if (out.length === 0) setReading(false);
+    }).catch(() => { if (alive) setReading(false); });
+    return () => { alive = false; };
+  }, [wantStored, dogs]);
+
+  /** Z čítania výsledku do kvízu. Parameter `?view=result` musí ísť preč, inak by
+   *  sa po dokončení nového behu človek vrátil do čítania toho starého. */
+  const startOver = () => {
+    setReading(false);
+    setStored(null);
+    navigate(onlyDogId ? `/pack/nature?dog=${onlyDogId}` : '/pack/nature', { replace: true });
+  };
 
   const total = NATURE_QUESTIONS.length + SPECIAL_KEYS.length;
   // Otázka je hotová, až keď na ňu odpovedali VŠETCI psy — inak by prúžok sľuboval
@@ -1423,6 +1889,35 @@ export default function PackNatureQuiz() {
             </button>
           </div>
         </Card>
+        <Attribution tx={tx} />
+      </Shell>
+    );
+  }
+
+  /* — čítanie zapísaného výsledku (`?view=result`) — */
+  // Tá istá obrazovka ako po dobehnutí kvízu, len postavená z karty psa. Rozdiel je
+  // v jednom tlačidle: „Take it again" tu nemá čo mazať, musí sa vrátiť na úvod kvízu.
+  if (reading) {
+    if (stored === null) {
+      // Prázdna škrupina, nie úvod kvízu: preblesknutý úvod by vyzeral ako by odkaz
+      // „pozri výsledok" viedol na opakovanie testu.
+      return <Shell onClose={() => navigate(QUIZ_EXIT)}><div style={{ minHeight: 260 }} /></Shell>;
+    }
+    return (
+      <Shell onClose={() => navigate(QUIZ_EXIT)}>
+        {stored.map(({ dog, r }, i) => (
+          <div key={dog.id} style={{ marginTop: i === 0 ? 0 : 26 }}>
+            <ResultDoc dog={dog} r={r} tx={tx} />
+          </div>
+        ))}
+        <div style={{ marginTop: 18, display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button type="button" className="nq-ghost is-ondark" onClick={startOver}>
+            <RotateCcw className="h-3.5 w-3.5" /> {tx('pack.nature.result.again', 'Take it again')}
+          </button>
+          <button type="button" className="nq-gold is-ondark" onClick={() => navigate(QUIZ_EXIT)}>
+            {tx('pack.nature.result.done', 'Done')}
+          </button>
+        </div>
         <Attribution tx={tx} />
       </Shell>
     );

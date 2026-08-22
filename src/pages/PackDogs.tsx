@@ -416,6 +416,28 @@ const HUB_CSS = `
    tlačidlom by ho zbytočne predĺžil. */
 .hub-cta{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 .hub-gold.is-big{ padding:15px 28px; font-size:12px; letter-spacing:.13em; }
+/* Druhá akcia karty (SPRAVIŤ ZNOVA / POZRIEŤ VÝSLEDOK vedľa zlatého). Tmavé sklo
+   ako chipy vyššie — na vitráži je to jediný podklad, ktorý drží text čitateľný,
+   a zároveň je jasné, že hlavná akcia je tá zlatá. */
+.hub-ghost{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px 20px; border-radius:8px;
+  background:rgba(8,5,2,0.55); border:1px solid rgba(255,236,190,0.42);
+  backdrop-filter:blur(6px);
+  color:#FFF3DA; font-family:'Cinzel',serif; font-size:11px; font-weight:700;
+  letter-spacing:.12em; text-transform:uppercase;
+  cursor:pointer; white-space:nowrap; text-decoration:none;
+  transition: transform .2s, background .2s, border-color .2s;
+}
+.hub-ghost:hover{ transform:scale(1.03); background:rgba(8,5,2,0.72); border-color:rgba(255,236,190,0.7); }
+.hub-ghost:active{ transform:scale(0.98); }
+/* Stuha po absolvovaní. Zelená = HOTOVO, rovnaká ako pilulka na dlaždiciach
+   a ako growGreen v štatistikách — nie tretí odtieň pre tú istú správu. */
+.hub-ribbon.is-done{
+  background:linear-gradient(135deg,#3E9E68 0%,#1F6B42 100%);
+  border-top-color:rgba(236,251,242,0.42); border-bottom-color:rgba(10,54,32,0.35);
+  color:#F4FFF8;
+}
 /* Hover kdekoľvek po karte rozsvieti CTA — signál „celé je to tlačidlo".
    ⚠️ Musí ísť cez triedu .hub-gold, ktorá tieň drží v CSS; box-shadow karty je
    inline a žiadny :hover selektor by ho neprebil. */
@@ -428,12 +450,12 @@ const HUB_CSS = `
   .hub-hero{ min-height:390px; padding:20px 18px 18px; }
   .hub-hero-title{ font-size:25px; }
   .hub-gold.is-big{ width:100%; padding:14px 16px; font-size:11.5px; white-space:normal; }
+  /* Ghost ide na mobile pod zlaté, v rovnakej šírke — dve tlačidlá rôznej šírky
+     pod sebou vyzerajú ako nedorobený rad. */
+  .hub-ghost{ width:100%; padding:13px 16px; white-space:normal; }
   .hub-cta{ gap:10px; }
   .hub-ribbon{ top:16px; right:-58px; width:184px; font-size:9px; letter-spacing:.2em; }
 }
-
-/* ── kvíz kompaktne (stav B) ────────────────────────────────────────────────── */
-.hub-done{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 `;
 
 interface HubDog {
@@ -523,11 +545,8 @@ export default function PackDogs() {
     return out;
   }, [dogs, latest]);
 
+  // Stav si blok vyhodnotí sám z `latest` — hore stojí vždy, mení sa len ponuka.
   const natureSection = QUIZ_SECTIONS.find((s) => s.kind === 'scored');
-  // Prepínanie hero ↔ kompaktný blok je AUTOMATICKÉ podľa dát: stačí jeden pes bez
-  // kvízu a blok sa vráti hore ako hero (napr. keď pribudne nový pes).
-  const natureAllDone =
-    !!dogs && dogs.length > 0 && dogs.every((d) => hasValue(latest[d.id]?.[NATURE_FIELD]));
 
   // `wide` = rovnaká šírka stĺpca ako `/pack/profile` (max-w-5xl). Bez neho bol hub
   // v úzkom stĺpci (max-w-2xl) a vedľa profilu vyzeral ako iná stránka (Matej 6.8.).
@@ -554,8 +573,12 @@ export default function PackDogs() {
         ))}
       </div>
 
-      {/* ── 2 · KVÍZ (hero) — len kým ho aspoň jeden pes NEMÁ ───────────────── */}
-      {natureSection && latestLoaded && !natureAllDone && (
+      {/* ── 2 · KVÍZ (hero) — VŽDY, nezmizne po absolvovaní ──────────────────
+             Do 21. 8. sa po dokončení scvrkol na úzky riadok POD šiestimi dlaždicami
+             (Matej: „zmizol blok kde bol obrázok"). Hotový kvíz nie je odbavená
+             položka — je to jediná cesta k výsledku, takže blok ostáva na mieste
+             a mení sa len to, čo ponúka: vyplniť → pozrieť výsledok / spraviť znova. */}
+      {natureSection && latestLoaded && (
         <div style={{ marginTop: 20 }}>
           <NatureHero section={natureSection} dogs={dogs} latest={latest} tx={tx} />
         </div>
@@ -588,13 +611,6 @@ export default function PackDogs() {
           ))}
         </div>
       </div>
-
-      {/* ── 3b · KVÍZ (hotovo) — kompaktne POD dlaždicami, nech nezavadzia ──── */}
-      {natureSection && latestLoaded && natureAllDone && (
-        <div style={{ marginTop: 12 }}>
-          <NatureDone section={natureSection} dogs={dogs} latest={latest} tx={tx} />
-        </div>
-      )}
 
       {/* ── 4 · GALÉRIA + DENNÍK — vlastný TMAVÝ riadok mimo papyrusovej mriežky.
              Nie sú to polia pasu a nemajú progres, ktorý sa dá „dokončiť" —
@@ -1044,7 +1060,13 @@ function Pill({ children, dashed = false, mono = false, solid = false }: {
   );
 }
 
-// ── 2 · kvíz ako hero (aspoň jeden pes ho nemá) ──────────────────────────────
+// ── 2 · kvíz ako hero — JEDEN BLOK, DVA STAVY ────────────────────────────────
+// A · nikto z psov ho nemá → pozvánka do kvízu (celá karta je odkaz).
+// B · aspoň jeden pes výsledok má → k pozvánke pribudne cesta k výsledku; keď ho
+//     majú všetci, pozvánka sa mení na dvojicu POZRIEŤ VÝSLEDOK / SPRAVIŤ ZNOVA.
+// ⚠️ V stave B je koreň <div>, nie <Link> — dve akcie v karte-odkaze by boli
+// vnorené <a> (neplatné HTML). Klikateľná celá karta preto ostáva len v stave A,
+// kde je jediná akcia.
 function NatureHero({
   section, dogs, latest, tx,
 }: {
@@ -1052,23 +1074,42 @@ function NatureHero({
 }) {
   const solo = dogs.length === 1;
   const missing = dogs.filter((d) => !hasValue(latest[d.id]?.[NATURE_FIELD]));
+  const withResult = dogs.filter((d) => hasValue(latest[d.id]?.[NATURE_FIELD]));
+  const allDone = dogs.length > 0 && missing.length === 0;
   // Solo → priamo na psa. Viac psov → kvíz sa vypĺňa za celú svorku naraz (§5),
   // takže sa žiadny pes v URL neuvádza a výber padne až v kvíze.
-  const href = solo ? `${section.href}?dog=${dogs[0].id}` : (section.href ?? '/pack/nature');
+  const base = section.href ?? '/pack/nature';
+  const href = solo ? `${base}?dog=${dogs[0].id}` : base;
+  const resultHref = solo ? `${base}?dog=${dogs[0].id}&view=result` : `${base}?view=result`;
 
-  return (
-    <Link
-      to={href}
-      className="hub-hero hub-hover"
-      style={{
-        background: T.cardGrad,
-        border: `1.5px solid ${T.cardEdge}`,
-        borderRadius: 16,
-        boxShadow: T.cardShadow,
-      }}
-    >
-      {/* Stuha: človek musí vedieť, že ide vypĺňať KVÍZ, nie čítať článok. */}
-      <span className="hub-ribbon">{tx('pack.hub.nature.ribbon', 'Quiz')}</span>
+  const label = (field: string, key: unknown): string | null => {
+    if (typeof key !== 'string' || !key) return null;
+    const v = STEP_BY_FIELD[field]?.valueLabels?.[key];
+    return v ? tx(v.i18n, v.labelEN) : null;
+  };
+
+  // Odpoveď do nadpisu — len pri jednom psovi a len keď je kvíz hotový.
+  const soloAnswer = (() => {
+    if (!allDone || !solo) return null;
+    const role = label('nature.role', latest[dogs[0].id]?.['nature.role']?.value);
+    const el = label('nature.element', latest[dogs[0].id]?.['nature.element']?.value);
+    return role && el ? `${role} / ${el}` : null;
+  })();
+
+  const cardStyle = {
+    background: T.cardGrad,
+    border: `1.5px solid ${T.cardEdge}`,
+    borderRadius: 16,
+    boxShadow: T.cardShadow,
+  } as const;
+
+  const body = (
+    <>
+      {/* Stuha: človek musí vedieť, že ide vypĺňať KVÍZ, nie čítať článok.
+          Po absolvovaní je zelená — tá istá zelená ako pilulka HOTOVO na dlaždiciach. */}
+      <span className={`hub-ribbon${allDone ? ' is-done' : ''}`}>
+        {allDone ? tx('pack.hub.done', 'Done') : tx('pack.hub.nature.ribbon', 'Quiz')}
+      </span>
 
       {/* Ilustrácia = celé pozadie karty (štýl „vitráž"). Nie pruh vľavo — vitráž
           orezaná na 176 px sa nedala prečítať ako obraz. */}
@@ -1084,26 +1125,73 @@ function NatureHero({
             textShadow: '0 2px 12px rgba(0,0,0,0.8)',
           }}
         >
-          {tx('pack.hub.nature.reveal', "You'll find out")}
+          {!allDone
+            ? tx('pack.hub.nature.reveal', "You'll find out")
+            : solo
+              ? tx('pack.hub.nature.isNow', 'Your dog is')
+              : tx('pack.hub.nature.packIs', 'Your pack is')}
         </p>
 
         <h3
           className="hub-hero-title"
           style={{
             fontFamily: FONT_TITLE, fontWeight: 700, lineHeight: 1.08,
-            letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF6E2', margin: 0,
+            letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF6E2',
+            // Bez radu chipov pod nadpisom si medzeru k tlačidlám musí urobiť nadpis sám.
+            margin: soloAnswer ? '0 0 18px' : 0,
             textShadow: '0 4px 26px rgba(0,0,0,0.9)',
           }}
         >
-          {tx('pack.nature.intro.title', 'Who is your dog?')}
+          {/* Otázka na plagáte platí, kým je otázkou. Pri jednom psovi s hotovým
+              kvízom by pod „TVOJ PES JE" stálo „KTO JE TVOJ PES?" — nadpis teda
+              vystrieda ODPOVEĎ. Pri svorke to nejde (dve mená sa do titulku
+              nezmestia), tam odpovedajú chipy pod ním. */}
+          {soloAnswer ?? tx('pack.nature.intro.title', 'Who is your dog?')}
         </h3>
 
         {/* ⚠️ Dlhý popis sekcie (`section.subEN`) sa tu ZÁMERNE nezobrazuje — opakoval
-            „18 otázok", ktoré stoja pri tlačidle (Matej 6.8.: „neopakuj sa"). */}
+            „18 otázok", ktoré stoja pri tlačidle (Matej 6.8.: „neopakuj sa").
+            Po absolvovaní tie isté chipy nesú ODPOVEĎ — otáznik „úloha vo svorke"
+            vystrieda „HEKTOR — Kapitán / Oheň". Zamknutý sľub tam už nemá čo robiť.
+            Pri sólo psovi s odpoveďou v nadpise sa rad vynecháva celý — inak by tá
+            istá dvojica stála na karte dvakrát pod sebou. */}
+        {!soloAnswer && (
         <div className="hub-axes">
-          <RevealChip label={tx('pack.hub.nature.revealA', 'Role in the pack')} />
-          <RevealChip label={tx('pack.hub.nature.revealB', 'Element by TCM')} />
+          {withResult.length > 0
+            ? withResult.map((d) => {
+              const role = label('nature.role', latest[d.id]?.['nature.role']?.value);
+              const el = label('nature.element', latest[d.id]?.['nature.element']?.value);
+              return (
+                <span className="hub-chip" key={d.id}>
+                  <b
+                    style={{
+                      fontFamily: NAME_FONT, fontWeight: 700, fontSize: 11.5, lineHeight: 1.2,
+                      letterSpacing: '0.04em', textTransform: 'uppercase', color: '#FFF3DA',
+                    }}
+                  >
+                    {(d.dog_name || '').toUpperCase()}
+                  </b>
+                  {role && el && (
+                    <span
+                      style={{
+                        fontFamily: FONT_UI, fontSize: 11, lineHeight: 1.2,
+                        color: 'rgba(255,243,218,0.78)',
+                      }}
+                    >
+                      {role} / {el}
+                    </span>
+                  )}
+                </span>
+              );
+            })
+            : (
+              <>
+                <RevealChip label={tx('pack.hub.nature.revealA', 'Role in the pack')} />
+                <RevealChip label={tx('pack.hub.nature.revealB', 'Element by TCM')} />
+              </>
+            )}
         </div>
+        )}
 
         {/* Pri viacerých psoch sa NEVYBERÁ pes — kvíz sa vypĺňa za všetkých naraz.
             Riadok len hovorí, koho sa to ešte týka. */}
@@ -1121,24 +1209,57 @@ function NatureHero({
           </div>
         )}
 
-        {/* CTA + meta na jednom riadku. CTA je <span>, nie <a>: odkazom je celá karta. */}
+        {/* CTA. V stave A je zlaté tlačidlo <span> — odkazom je celá karta. Len čo
+            je v karte druhá akcia, obe MUSIA byť <Link>, lebo koreň už odkaz nie je. */}
         <div className="hub-cta">
-          <span className="hub-gold is-big">
-            {tx('pack.hub.nature.startBig', 'Find out who your dog is')}
-          </span>
-          <div
-            style={{
-              fontFamily: FONT_UI, fontSize: 10.5, letterSpacing: '0.1em',
-              textTransform: 'uppercase', color: 'rgba(255,246,226,0.62)',
-              textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-            }}
-          >
-            {tx('pack.hub.nature.meta', '18 questions · ~3 minutes')}
-          </div>
+          {allDone ? (
+            <>
+              <Link to={resultHref} className="hub-gold is-big">
+                {tx('pack.hub.nature.read', 'Read the results')}
+              </Link>
+              <Link to={href} className="hub-ghost">
+                {tx('pack.hub.nature.retake', 'Take it again')}
+              </Link>
+            </>
+          ) : (
+            <>
+              {withResult.length === 0 ? (
+                <span className="hub-gold is-big">
+                  {tx('pack.hub.nature.startBig', 'Find out who your dog is')}
+                </span>
+              ) : (
+                <Link to={href} className="hub-gold is-big">
+                  {tx('pack.hub.nature.startBig', 'Find out who your dog is')}
+                </Link>
+              )}
+              {/* Rozrobená svorka: hotové psy majú výsledok už teraz a nesmú naň čakať,
+                  kým doklikáš zvyšok. */}
+              {withResult.length > 0 && (
+                <Link to={resultHref} className="hub-ghost">
+                  {tx('pack.hub.nature.read', 'Read the results')}
+                </Link>
+              )}
+              <div
+                style={{
+                  fontFamily: FONT_UI, fontSize: 10.5, letterSpacing: '0.1em',
+                  textTransform: 'uppercase', color: 'rgba(255,246,226,0.62)',
+                  textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+                }}
+              >
+                {tx('pack.hub.nature.meta', '18 questions · ~3 minutes')}
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </Link>
+    </>
   );
+
+  // Celá karta je odkaz LEN kým je v nej jediná akcia (Matej 7.8.: „musí vyzerať
+  // viac klikateľne"). S dvoma tlačidlami by z toho boli vnorené <a>.
+  return withResult.length === 0
+    ? <Link to={href} className="hub-hero hub-hover" style={cardStyle}>{body}</Link>
+    : <div className="hub-hero" style={cardStyle}>{body}</div>;
 }
 
 /** Jedna z dvoch vecí, ktoré kvíz odhalí. Chip, nie dlaždica — veľké dlaždice so
@@ -1158,87 +1279,6 @@ function RevealChip({ label }: { label: string }) {
         {label}
       </b>
     </span>
-  );
-}
-
-// ── 3b · kvíz kompaktne (majú ho VŠETCI psi) ─────────────────────────────────
-// ⚠️ Odkaz vedie na ČÍTANIE výsledku (`?view=result`), NIE na opakovanie kvízu.
-// Popis úlohy, „najčastejšie nepochopenie" a „na čo dávať pozor" bolo doteraz
-// vidieť jediný raz, tesne po dokončení — a potom sa k tomu nedalo vrátiť.
-function NatureDone({
-  section, dogs, latest, tx,
-}: {
-  section: QuizSection; dogs: HubDog[]; latest: Latest; tx: Tx;
-}) {
-  const solo = dogs.length === 1;
-  const href = solo ? `${section.href}?dog=${dogs[0].id}&view=result` : `${section.href}?view=result`;
-
-  const label = (field: string, key: unknown): string | null => {
-    if (typeof key !== 'string' || !key) return null;
-    const v = STEP_BY_FIELD[field]?.valueLabels?.[key];
-    return v ? tx(v.i18n, v.labelEN) : null;
-  };
-
-  return (
-    <Link
-      to={href}
-      className="hub-done hub-hover"
-      style={{
-        background: T.panelGrad, border: `1.5px solid ${T.cardEdge}`, borderRadius: 14,
-        boxShadow: T.panelShadow, padding: '13px 16px', textDecoration: 'none',
-      }}
-    >
-      <span style={{ fontSize: 19, lineHeight: 1 }}>{section.emoji}</span>
-      <h4
-        style={{
-          fontFamily: FONT_TITLE, fontWeight: 700, fontSize: 12, letterSpacing: '0.1em',
-          textTransform: 'uppercase', color: T.inkStrong, margin: 0,
-        }}
-      >
-        {tx(section.i18n, section.labelEN)}
-      </h4>
-      {/* Zelená = HOTOVO. Precedens: `T.growGreen` (trend váhy) a legenda v DogStats. */}
-      <span
-        style={{
-          fontFamily: FONT_UI, fontSize: 9.5, letterSpacing: '0.1em', textTransform: 'uppercase',
-          borderRadius: 999, padding: '4px 10px', whiteSpace: 'nowrap',
-          background: '#2E7D4F', border: '1px solid #2E7D4F', color: '#F4F7F0',
-        }}
-      >
-        {tx('pack.hub.done', 'Done')}
-      </span>
-
-      <span
-        style={{
-          flex: 1, minWidth: 160,
-          fontFamily: FONT_UI, fontSize: 11.5, color: T.inkWarm, lineHeight: 1.5,
-        }}
-      >
-        {dogs.map((d, i) => {
-          const role = label('nature.role', latest[d.id]?.['nature.role']?.value);
-          const el = label('nature.element', latest[d.id]?.['nature.element']?.value);
-          return (
-            <span key={d.id}>
-              {i > 0 && <span style={{ color: T.cardEdge }}>{'  ·  '}</span>}
-              <strong style={{ fontFamily: NAME_FONT, fontWeight: 700, color: T.inkStrong }}>
-                {(d.dog_name || '').toUpperCase()}
-              </strong>
-              {role && el ? `\u00A0— ${role} / ${el}` : ''}
-            </span>
-          );
-        })}
-      </span>
-
-      <span
-        style={{
-          fontFamily: FONT_UI, fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase',
-          color: T.inkStrong, border: `1px solid ${T.border}`, borderRadius: 999,
-          padding: '6px 13px', whiteSpace: 'nowrap',
-        }}
-      >
-        {tx('pack.hub.nature.read', 'Read the results')} →
-      </span>
-    </Link>
   );
 }
 
