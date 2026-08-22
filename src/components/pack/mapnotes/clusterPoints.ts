@@ -59,5 +59,39 @@ export function clusterByPixels<T>(pts: Array<T & ClusterInput>, radiusPx: numbe
   return out;
 }
 
-/** Veľkosť bubliny zhluku rastie s počtom — rovnaká stupnica ako pri výletoch. */
-export const clusterPx = (n: number): number => (n < 5 ? 30 : n < 12 ? 36 : 42);
+/** Veľkosť bubliny zhluku rastie s počtom — rovnaká stupnica ako pri výletoch.
+ *
+ * Dva horné stupne pribudli 22. 8. 2026 (Matej: „zgrupni do vačších ploch
+ * (15-30 kludne ako číslo)"). Bez nich mala bublina s číslom 27 rovnakú veľkosť
+ * ako bublina s číslom 12 — a práve o to mu šlo: z diaľky má byť VIDNO, že tam
+ * je toho veľa. Trojciferné číslo tento zoznam zámerne nerieši; keby raz nastalo,
+ * je to signál, že sa nezhlukuje dosť, nie že chýba ďalší stupeň. */
+export const clusterPx = (n: number): number =>
+  n < 5 ? 30 : n < 12 ? 36 : n < 15 ? 42 : n < 25 ? 48 : 54;
+
+// ── ODSTUP ZHLUKU PODĽA PRIBLÍŽENIA ────────────────────────────────────────
+// Matej 2026-08-22: „tie vretenice z dialky zgrupni do vačších ploch (15-30
+// kludne ako číslo...) až pri zoome sa rozpadnú."
+//
+// Pevných 28 px nestačilo: pri z10 zostalo zo 107 vreteníc 103 bubliniek, teda
+// zhlukovanie tam nerobilo nič a mapa bola zapratná (zmerané nad reálnym
+// datasetom, nie odhadnuté). Odstup preto závisí od priblíženia.
+//
+// ⚠️ RAMPA NIE JE MONOTÓNNA A JE TO ZÁMER. Pri oddialení sú body v pixeloch
+// blízko seba samy od seba, takže na veľkú plochu stačí malý odstup; ako sa mapa
+// približuje, body sa v pixeloch rozostupujú a odstup musí RÁSŤ, aby zhluk držal
+// pokope. Od z9 sa naopak zámerne zmenšuje — to je to „pri zoome sa rozpadnú".
+// Namerané na 107 vreteniciach (bubliny / najväčšie číslo):
+//   z6 → 5 / 28 · z7 → 8 / 27 · z8 → 18 / 11 · z9 → ~46 / 6 · z10+ → jednotlivé
+// ⚠️ Keď sa dataset zmení, čísla prepočítaj, nehádaj — recept je v pamäti
+// [[project_dogypt_mapa_ladenie_zhluky_2026-08-22]].
+const CLUSTER_R_BY_ZOOM: Record<number, number> = { 6: 44, 7: 56, 8: 64, 9: 48, 10: 34, 11: 28 };
+
+/** Odstup zhlukovania v pixeloch pre dané priblíženie. Pod z6 sa správa ako z6,
+ *  nad z11 ako z11 — obe krajné hodnoty sú plató, nie extrapolácia. */
+export function clusterRadiusForZoom(zoom: number): number {
+  const z = Math.round(zoom);
+  if (z <= 6) return CLUSTER_R_BY_ZOOM[6];
+  if (z >= 11) return CLUSTER_R_BY_ZOOM[11];
+  return CLUSTER_R_BY_ZOOM[z];
+}

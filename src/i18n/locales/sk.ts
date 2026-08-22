@@ -2035,6 +2035,7 @@ export const sk: Partial<Dict> = {
   'pack.viper.one': "Jedno nahlásené pozorovanie vretenice severnej v tejto oblasti.",
   'pack.viper.source': "Údaje pochádzajú z verejnej mapy nálezov, ktorú spravuje:",
   'pack.viper.rough': "Polohu sme odčítali z ich mapy od oka (spolu {total} nálezov) — je orientačná, nie presné miesto nálezu.",
+  'pack.map.layerThreats': "Upozornenia svorky",
   'pack.map.layerVipers': "Výskyt vretenice",
   'pack.mapNotes.like': "Pomohlo",
   'pack.mapNotes.quick.title': "Pridaj odkaz",

@@ -2095,6 +2095,7 @@ export const en = {
   'pack.viper.one': "One reported sighting of the common adder in this area.",
   'pack.viper.source': "Data comes from a public sightings map maintained by:",
   'pack.viper.rough': "We read the positions off their map by eye ({total} sightings in total) — they are approximate, not exact find locations.",
+  'pack.map.layerThreats': "Pack warnings",
   'pack.map.layerVipers': "Adder territory",
   'pack.mapNotes.like': "Helpful",
   'pack.mapNotes.quick.title': "Add a note",

@@ -1473,7 +1473,7 @@ ${TRAIL_LINE_CSS}
 // JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
 // naraz (checkbox).
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
-type MapOverlayId = 'names' | 'vipers';
+type MapOverlayId = 'names' | 'vipers' | 'threats';
 
 /** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
  *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
@@ -1520,6 +1520,24 @@ const MAP_LAYERS: MapLayerDef[] = [
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
   {
+    // HROZBY OD SVORKY — upozornenia, ktoré napísali členovia.
+    // Matej 2026-08-22: „ano vrstva mapy - hrozby clekovo neskôr môžme dať
+    // dropdown na jednotlivé hrozby."
+    //
+    // JEDEN vypínač na všetkých deväť druhov, nie deväť zaškrtávadiel. Deväť
+    // položiek na telefóne je vlastná zapratná plocha a pri dnešnom objeme dát
+    // by sa nepoužili; rozpad na druhy má zmysel až keď niektorý (typicky
+    // kliešte) narastie natoľko, že ho treba izolovať. Dovtedy by to bol výber
+    // bez obsahu.
+    //
+    // Vretenice majú vlastný vypínač zámerne — je to CUDZÍ dataset a človek,
+    // ktorý si vypína výstrahy svorky, nemusí chcieť prísť aj o ne (a naopak).
+    id: 'threats',
+    type: 'overlay',
+    labelKey: 'pack.map.layerThreats',
+    disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
+  },
+  {
     // VÝSKYT VRETENICE — cudzí dataset, hrubé oblasti (viď `data/viperAreas.ts`).
     // Je to overlay, nie natvrdo kreslená vrstva: červená plocha cez pol krajiny
     // je silné tvrdenie a človek ju musí vedieť vypnúť. V DOGYPT čistom vizuáli
@@ -1537,7 +1555,10 @@ const MAP_LAYERS: MapLayerDef[] = [
 // `vipers: true` — Matej si vrstvu vypýtal NA mapu, nie do ponuky. Zapnutá je
 // bezpečná preto, že sa kreslí len pri oddialení (VIPER_MAX_ZOOM); pri práci
 // s konkrétnou trasou zmizne sama.
-const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true };
+// `threats: true` — upozornenia svorky sú dôvod, prečo vrstva zápisov existuje;
+// vypínač je tu na to, aby si ich človek vedel odpratať, nie aby si ich musel
+// hľadať.
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true, threats: true };
 
 // Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
 // dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
@@ -3696,6 +3717,10 @@ export default function PackMap() {
                   onVote={(id, v) => { void mapNotes.vote(id, v); }}
                   onDelete={(id) => { void mapNotes.remove(id); }}
                   locale={dateLocale}
+                  /* V DOGYPT čistom vizuáli sa overlaye ignorujú (nie mažú) —
+                     rovnaké pravidlo ako pri názvoch a vreteniciach, nech je
+                     stav po návrate na Outdoor presne taký, aký bol. */
+                  showThreats={!isCleanMode && overlayOn.threats}
                 />
               )}
               {/* bod z dlhého podržania, kým sa vyberá typ */}
