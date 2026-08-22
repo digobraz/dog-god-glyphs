@@ -26,7 +26,7 @@ import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
-import { GROUP_KINDS, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind } from './mapNotesData';
+import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, NotePalette, NOTE_PALETTE_CSS } from './NotePalette';
@@ -69,6 +69,8 @@ export type AddMapNotePinProps = {
   lon: number;
   kind: NoteKind;
   /** null = bod. Kreslí sa ŽIVO počas ťahania posuvníka v paneli. */
+  /** len pri `ticks` — mení lem značky ešte pred odoslaním */
+  disease?: TickDisease | null;
   radiusM?: number | null;
   onMove: (lat: number, lon: number) => void;
 };
@@ -84,13 +86,13 @@ export type AddMapNotePinProps = {
  * nezáležalo; s emoji by sa človeku pri prepnutí na medveďa naďalej usmievali
  * kliešte.
  */
-export function AddMapNotePin({ lat, lon, kind, radiusM = null, onMove }: AddMapNotePinProps) {
+export function AddMapNotePin({ lat, lon, kind, disease = null, radiusM = null, onMove }: AddMapNotePinProps) {
   const tint = GROUP_TINT[groupOf(kind)];
   // Značku kreslí `noteMarkHtml()` z MapNotesLayer — JEDEN zdroj. Kým to bola
   // kópia, prežilo tu po prechode na emoji staré „biele P v modrom štvorci"
   // a rozpracovaný zápis vyzeral inak než ten istý zápis o sekundu neskôr.
   const icon = useMemo(
-    () => L.divIcon({ className: 'mn-wrap', html: noteMarkHtml(kind, ' mn-mark--draft') }),
+    () => L.divIcon({ className: 'mn-wrap', html: noteMarkHtml(kind, ' mn-mark--draft', false, disease) }),
     [kind],
   );
 
@@ -199,6 +201,9 @@ export type AddMapNotePanelProps = {
   /** null = bod. Riadené zvonku z toho istého dôvodu — kruh sa kreslí na mape. */
   radiusM: number | null;
   onRadius: (m: number | null) => void;
+  /** RIADENÉ ZVONKU z rovnakého dôvodu ako `kind`: lem draft značky sa kreslí NA MAPE */
+  disease: TickDisease | null;
+  onDisease: (d: TickDisease | null) => void;
   /** vyplnené len keď zápis vzniká z otvoreného článku výletu */
   pinnedSlug?: string | null;
   /** názov výletu na potvrdenie „patrí sem" — čisto informatívne */
@@ -215,6 +220,8 @@ export function AddMapNotePanel({
   onKind,
   radiusM,
   onRadius,
+  disease,
+  onDisease,
   pinnedSlug,
   pinnedName,
   onSubmit,
@@ -244,6 +251,9 @@ export function AddMapNotePanel({
   // by človek videl na mape jednu vec a uložil druhú.
   const pickKind = (k: NoteKind) => {
     onKind(k);
+    // Choroba patrí kliešťu. Bez tohto by ostala navesená na medveďovi, formulár
+    // by ju nezobrazoval a odoslala by sa neviditeľná hodnota.
+    if (k !== 'ticks') onDisease(null);
     const r = radiusRule(k);
     if (r.mode === 'none') onRadius(null);
     else if (radiusM != null) onRadius(Math.min(Math.max(radiusM, r.min), r.max));
@@ -270,6 +280,7 @@ export function AddMapNotePanel({
         // (`add_map_note`), nie formulár. Viď migráciu 20260821_map_notes_kinds.sql.
         radiusM,
         paid: kind === 'parking' ? paid : null,
+        disease: kind === 'ticks' ? disease : null,
         pinnedSlug: pinnedSlug ?? null,
       });
     } catch (e) {
@@ -297,6 +308,48 @@ export function AddMapNotePanel({
               {t(`pack.mapNotes.kind.${k}`)}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* ── KLIEŠŤ MÁ DVA STUPNE (Matej 2026-08-22) ──────────────────────────
+          „bude tam možnosť prepnúť že výskyt, potvrdené ochorenie z klieťa a dropdown."
+
+          Prepínač mení LEM ZNAČKY okamžite (oranžová → červená), lebo `disease`
+          ide do `noteMarkHtml` cez ten istý kanál ako `kind`. Človek teda vidí,
+          čo na mapu kladie, ešte kým to odošle.
+
+          Výber je natívny `<select>`: štyri choroby s dlhými názvami by ako pilulky
+          zabrali tri riadky v paneli, ktorý je zámerne nízky, aby nezakryl mapu. */}
+      {kind === 'ticks' && (
+        <div className="mna-tick">
+          <div className="mna-tick-switch">
+            <button
+              type="button"
+              className={`mna-opt${disease == null ? ' on' : ''}`}
+              onClick={() => onDisease(null)}
+            >
+              {t('pack.mapNotes.tick.sighting')}
+            </button>
+            <button
+              type="button"
+              className={`mna-opt${disease != null ? ' on' : ''}`}
+              onClick={() => onDisease(disease ?? TICK_DISEASES[0])}
+            >
+              {t('pack.mapNotes.tick.confirmed')}
+            </button>
+          </div>
+          {disease != null && (
+            <select
+              className="mna-select"
+              value={disease}
+              onChange={(e) => onDisease(e.target.value as TickDisease)}
+              aria-label={t('pack.mapNotes.tick.confirmed')}
+            >
+              {TICK_DISEASES.map((d) => (
+                <option key={d} value={d}>{t(`pack.mapNotes.disease.${d}`)}</option>
+              ))}
+            </select>
+          )}
         </div>
       )}
 
@@ -477,6 +530,17 @@ export const ADD_NOTE_CSS = `
    (WebKit kreslí bledú dráhu na bledom pozadí). Farbu berie zo skupiny cez
    --mn-tint, takže upozornenie ťahá červenú a komentár zlatú — rovnaký jazyk
    ako značka aj kruh na mape. */
+/* ── KLIEŠŤ: VÝSKYT / POTVRDENÁ CHOROBA ───────────────────────────────────
+   Prepínač je ten istý tvar ako bod/okruh pri polomere (.mna-opt) — je to tá
+   istá otázka „ktorá z dvoch verzií", takže nemá dôvod vyzerať inak. */
+.mna-tick{margin-top:9px;display:flex;flex-direction:column;gap:7px;}
+.mna-tick-switch{display:flex;gap:6px;}
+.mna-tick-switch .mna-opt{flex:1 1 0;font-size:10px;padding:6px 10px;}
+/* Natívny select nesie na macOS aj Windows vlastný chrome — prefarbuje sa len
+   to, čo sa dá, a color-scheme:dark povie prehliadaču, nech rozbaľovací zoznam
+   nakreslí tmavý. Bez toho je zoznam biely nad čiernym panelom. */
+.mna-select{width:100%;color-scheme:dark;font-family:${FONT_UI};font-size:11.5px;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:7px 9px;cursor:pointer;}
+
 .mna-radius{margin-top:10px;}
 .mna-radius-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .mna-radius-label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}

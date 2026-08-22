@@ -12,24 +12,16 @@
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import type { HeroTrail } from '@/data/heroTrails.generated';
-import { groupOf, type MapNote, type NoteKind } from './mapNotesData';
+import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
 import { notesForTrail, isDatasetNote } from './mapNotesGeo';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
+import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
 
 const GOLD = '#C99A3F';
-const PARK_BLUE = T.brandBlueLite;
-const HAZARD_RED = '#CE4B3C';
-/** Komentár je modrý, nie zlatý — dôvod pri `GROUP_TINT` v NotePalette.tsx. */
-const TIP_GREEN = T.growGreen;
 
-/** ⚠️ Cez `groupOf`, NIE cez zoznam druhov — inak sa pri každej novej hrozbe
- *  (vretenica, medveď…) zabudne dopísať jeden riadok a značka v článku ostane
- *  zlatá, kým na mape je červená. Presne to sa tu stalo do 21. 8.: červenú mal
- *  len `hazard`, `wildlife` a `ticks` svietili zlato. */
-const tintFor = (k: NoteKind) => {
-  const g = groupOf(k);
-  return g === 'parking' ? PARK_BLUE : g === 'warning' ? HAZARD_RED : TIP_GREEN;
-};
+// Farbu značky nesie `noteTint()` z NotePalette — jediný zdroj pre mapu aj tento
+// zoznam. Vlastná kópia tu bola do 22. 8. a raz sa už rozišla: v článku svietili
+// kliešte zlato, kým na mape boli červené.
 
 function formatDate(iso: string, locale: string): string {
   if (!iso) return '';
@@ -43,9 +35,9 @@ function formatDate(iso: string, locale: string): string {
  * kruhu s červeným lemom. Emoji berie z `threatEmoji()`, teda z jedného zdroja —
  * inak by riadok v článku časom hovoril niečo iné než bod nad ním.
  */
-function WarnMark({ kind }: { kind: NoteKind }) {
+function WarnMark({ kind, disease }: { kind: NoteKind; disease?: TickDisease | null }) {
   return (
-    <span className="mns-threat">
+    <span className="mns-threat" style={{ borderColor: noteTint(kind, disease) }}>
       <i className="mns-em">{threatEmoji(kind)}</i>
     </span>
   );
@@ -92,14 +84,14 @@ export function MapNotesSection({ trail, notes, locale = 'en-US', onAdd }: MapNo
                   Kruh s lemom skladá `WarnMark` nad `threatEmoji()` — jeden zdroj pre oba povrchy. */}
               <span className="mns-icon" aria-hidden="true">
                 {groupOf(n.kind) === 'warning'
-                  ? <WarnMark kind={n.kind} />
+                  ? <WarnMark kind={n.kind} disease={n.disease} />
                   : groupOf(n.kind) === 'comment'
                     ? <span className="mns-threat mns-threat--tip"><i className="mns-em">{MARK_EMOJI[n.kind]}</i></span>
                     : <i className="mns-em">{MARK_EMOJI[n.kind]}</i>}
               </span>
               <div className="mns-main">
                 <div className="mns-top">
-                  <span className="mns-kind" style={{ color: tintFor(n.kind) }}>
+                  <span className="mns-kind" style={{ color: noteTint(n.kind, n.disease) }}>
                     {t(`pack.mapNotes.kind.${n.kind}`)}
                   </span>
                   {n.kind === 'parking' && n.paid != null && (
@@ -148,7 +140,7 @@ export const MAP_NOTES_SECTION_CSS = `
 .mns-threat{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:999px;background:#FFFFFF;border:2px solid ${HAZARD_RED};box-sizing:border-box;}
 .mns-threat .mns-em{font-size:14px;}
 /* Tip = ten istý kruh, zelený lem — dvojička .mn-mark--tip z mapy. */
-.mns-threat--tip{border-color:${TIP_GREEN};}
+.mns-threat--tip{border-color:${GROUP_TINT.comment};}
 .mns-main{flex:1;min-width:0;}
 .mns-top{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
 .mns-kind{font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;}

@@ -134,9 +134,25 @@ export const defaultRadius = (kind: NoteKind): number | null => {
   return r.mode === 'required' ? r.def : null;
 };
 
+// ── KLIEŠŤ MÁ DVA STUPNE (Matej 2026-08-22) ────────────────────────────────
+// „kliešť oranžový lem a červený pri potvrdenej chorobe = bude tam možnosť
+// prepnúť že výskyt, potvrdené ochorenie z klieťa a dropdown."
+//
+// Toto NIE JE nový druh hrozby, ale SILA toho istého zápisu. Dva druhy kliešťa
+// by na mape vyzerali ako dve rôzne zvieratá; jeden zápis s dôkazom navyše
+// hovorí presne to, čo sa stalo.
+//
+// 🔴 Toxoplazmóza do zoznamu NEPATRÍ, hoci padla v zadaní — prenáša sa mačacím
+// trusom a surovým mäsom, nie kliešťom. Tu sú len tie, ktoré pes naozaj dostane
+// z kliešťa (kliešťová encefalitída je prevažne ľudská, preto tiež nie je).
+export const TICK_DISEASES = ['babesiosis', 'anaplasmosis', 'borreliosis', 'ehrlichiosis'] as const;
+export type TickDisease = (typeof TICK_DISEASES)[number];
+
 export interface MapNote {
   id: string;
   kind: NoteKind;
+  /** len pri `ticks`: potvrdená choroba psa. `null` = hlásený iba výskyt kliešťov. */
+  disease: TickDisease | null;
   lat: number;
   lon: number;
   /** null = bod, číslo = oblasť s polomerom v metroch */
@@ -166,6 +182,7 @@ export interface MapNote {
 interface NoteRow {
   id: string;
   kind: NoteKind;
+  disease: TickDisease | null;
   lat: number;
   lon: number;
   radius_m: number | null;
@@ -189,6 +206,9 @@ function fromRow(r: NoteRow): MapNote {
   return {
     id: r.id,
     kind: r.kind,
+    // `?? null` NIE JE ozdoba — kým migrácia nie je na LIVE, RPC ten stĺpec
+    // nevráti vôbec a značka by čítala `undefined` ako „choroba je".
+    disease: r.disease ?? null,
     lat: r.lat,
     lon: r.lon,
     radiusM: r.radius_m,
@@ -228,6 +248,8 @@ export async function fetchMapNotes(): Promise<MapNote[]> {
 
 export interface NewMapNote {
   kind: NoteKind;
+  /** len pri `ticks`; `null`/vynechané = iba hlásený výskyt */
+  disease?: TickDisease | null;
   lat: number;
   lon: number;
   body: string;
@@ -241,6 +263,7 @@ export interface NewMapNote {
 export async function addMapNote(n: NewMapNote): Promise<string> {
   const { data, error } = await db.rpc('add_map_note', {
     p_kind: n.kind,
+    p_disease: n.disease ?? null,
     p_lat: n.lat,
     p_lon: n.lon,
     p_body: n.body,

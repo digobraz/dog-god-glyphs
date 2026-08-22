@@ -115,7 +115,7 @@ import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
-import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
@@ -1848,7 +1848,7 @@ export default function PackMap() {
   // na MAPE — emoji v trojuholníku a kruh polomeru — a mapa žije v inom strome
   // než formulár. Kým bola skupina upozornení jednou kresbou bez kruhu, stačilo
   // to držať v paneli.
-  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; radiusM: number | null; pinnedSlug: string | null } | null>(null);
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; disease: TickDisease | null; radiusM: number | null; pinnedSlug: string | null } | null>(null);
   // Výzva „priblíž si mapu" nesie POLOHU KLIKU, nie len príznak — kreslí sa na
   // tom pixeli, kam človek klikol (Matej 2026-08-21). `null` = nekreslí sa.
   const [noteTooFar, setNoteTooFar] = useState<{ x: number; y: number } | null>(null);
@@ -1895,7 +1895,7 @@ export default function PackMap() {
     // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce spraví
     // geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
     // s konkrétnym výletom na mysli.
-    setNoteDraft({ lat, lon, group, kind, radiusM: defaultRadius(kind), pinnedSlug: nearestTrailId(lat, lon, kind, allTrails) });
+    setNoteDraft({ lat, lon, group, kind, disease: null, radiusM: defaultRadius(kind), pinnedSlug: nearestTrailId(lat, lon, kind, allTrails) });
     const map = mapInstance;
     if (!map) return;
     const pt = map.latLngToContainerPoint([lat, lon]);
@@ -3664,7 +3664,6 @@ export default function PackMap() {
                 <MapNotesLayer
                   notes={mapNotes.notes}
                   onVote={(id, v) => { void mapNotes.vote(id, v); }}
-                  onLike={(id, on) => { void mapNotes.like(id, on); }}
                   onDelete={(id) => { void mapNotes.remove(id); }}
                   locale={dateLocale}
                 />
@@ -3676,6 +3675,7 @@ export default function PackMap() {
                   lat={noteDraft.lat}
                   lon={noteDraft.lon}
                   kind={noteDraft.kind}
+                  disease={noteDraft.disease}
                   radiusM={noteDraft.radiusM}
                   onMove={(lat, lon) => setNoteDraft((d) => (d ? { ...d, lat, lon } : d))}
                 />
@@ -3848,6 +3848,8 @@ export default function PackMap() {
           lat={noteDraft.lat}
           lon={noteDraft.lon}
           kind={noteDraft.kind}
+          disease={noteDraft.disease}
+          onDisease={(d) => setNoteDraft((x) => (x ? { ...x, disease: d } : x))}
           onKind={(k) => setNoteDraft((d) => (d ? { ...d, kind: k } : d))}
           radiusM={noteDraft.radiusM}
           onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}

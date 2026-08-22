@@ -52,7 +52,7 @@ import {
   ADD_NOTE_CSS, NOTE_PANEL_H,
 } from '@/components/pack/mapnotes/AddMapNote';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
-import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { intlLocale } from '@/i18n/bcp47';
@@ -315,7 +315,7 @@ export default function PackTripArticle() {
   // Rovnaké komponenty ako v `PackMap.tsx`, len bez rýchlej cesty pri kurzore —
   // v malej mape v článku by plusko za myšou prekážalo pri čítaní.
   const [noteMap, setNoteMap] = useState<L.Map | null>(null);
-  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; radiusM: number | null } | null>(null);
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; disease: TickDisease | null; radiusM: number | null } | null>(null);
   const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
   const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
   const [notePick, setNotePick] = useState(false);
@@ -435,7 +435,7 @@ export default function PackTripArticle() {
     setNotePlacing(null);
     setNoteSpot(null);
     setNotePick(false);
-    setNoteDraft({ lat, lon, group, kind: GROUP_KINDS[group][0], radiusM: defaultRadius(GROUP_KINDS[group][0]) });
+    setNoteDraft({ lat, lon, group, kind: GROUP_KINDS[group][0], disease: null, radiusM: defaultRadius(GROUP_KINDS[group][0]) });
     // o snímku neskôr — panel sa mountuje až s draftom a dovtedy sa nemá čomu uhýbať
     window.requestAnimationFrame(() => scrollMapClear(NOTE_PANEL_H));
   }, [scrollMapClear]);
@@ -979,13 +979,8 @@ export default function PackTripArticle() {
                   Atribúcia je podmienka licencie ODbL, preto ide s vrstvou vždy v páre. */}
               <PoiLayer />
               {/* Hlasovanie a mazanie tu vedome NIE SÚ — zoznam pod článkom je miesto,
-                  kde sa odkazy spravujú. Lajk áno: je to jednoklikové poďakovanie
-                  a človek ho dá tam, kde odkaz práve číta. */}
-              <MapNotesLayer
-                notes={mapNotes.notes}
-                onLike={(id, on) => { void mapNotes.like(id, on); }}
-                locale={dateLocale}
-              />
+                  kde sa odkazy spravujú. Lajk zanikol 22. 8. na celom povrchu. */}
+              <MapNotesLayer notes={mapNotes.notes} locale={dateLocale} />
               {/* Rozpracovaný zápis. Patrí DOVNÚTRA MapContainer (na rozdiel od panela) —
                   viď hlavičku AddMapNote.tsx. */}
               {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
@@ -994,6 +989,7 @@ export default function PackTripArticle() {
                   lat={noteDraft.lat}
                   lon={noteDraft.lon}
                   kind={noteDraft.kind}
+                  disease={noteDraft.disease}
                   radiusM={noteDraft.radiusM}
                   onMove={(lat, lon) => setNoteDraft((d) => (d ? { ...d, lat, lon } : d))}
                 />
@@ -1143,6 +1139,8 @@ export default function PackTripArticle() {
           lat={noteDraft.lat}
           lon={noteDraft.lon}
           kind={noteDraft.kind}
+          disease={noteDraft.disease}
+          onDisease={(d) => setNoteDraft((x) => (x ? { ...x, disease: d } : x))}
           onKind={(k) => setNoteDraft((d) => (d ? { ...d, kind: k } : d))}
           radiusM={noteDraft.radiusM}
           onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}

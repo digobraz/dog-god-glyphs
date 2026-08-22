@@ -132,6 +132,8 @@ export function datasetNotes(trails: HeroTrail[]): MapNote[] {
       out.push({
         id: `poi:${t.id}:${i}`,
         kind: POI_KIND[p.t] ?? 'note',
+        // Datasetový bod nemá ako niesť potvrdenú chorobu — tú hlási člen o svojom psovi.
+        disease: null,
         lat: p.lat,
         lon: p.lon,
         radiusM: p.kind === 'area' ? (p.r ?? 500) : null,

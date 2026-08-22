@@ -22,10 +22,11 @@ import { useCallback, useMemo, useState } from 'react';
 import L from 'leaflet';
 import { Marker, Circle, Popup, useMap, useMapEvent } from 'react-leaflet';
 import { PACK_THEME as T, PACK_BOX, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { HandPaw } from '@/components/pack/HandIcons';
 import { useT } from '@/i18n/LanguageContext';
-import { groupOf, type MapNote, type NoteKind } from './mapNotesData';
+import { groupOf, type MapNote, type NoteKind, type TickDisease } from './mapNotesData';
 import { isDatasetNote } from './mapNotesGeo';
+import { clusterByPixels, clusterPx } from './clusterPoints';
+import { GROUP_TINT, HAZARD_RED, noteTint } from './NotePalette';
 import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 
 // Pod týmto priblížením sa vrstva NEKRESLÍ. Zápis je bod na konkrétnom mieste;
@@ -35,12 +36,19 @@ import { FONT_EMOJI, MARK_EMOJI, threatEmoji } from './markEmoji';
 // človek najprv videl, že tam niekto niečo napísal, a až potom mohol pridať svoje.
 const MIN_ZOOM_VISIBLE = 12;
 
+// Odsadenie pre auto-pan bubliny. Mapa je full-bleed pod plávajúcimi panelmi,
+// takže hodnoty NIE SÚ „pekné okraje", ale výška toho, čo je nad ňou a pod ňou:
+// hore lišta identity + rad filtrov, dole navigácia a lišta akcií.
+const POPUP_PAD_TOP = 170;
+const POPUP_PAD_BOTTOM = 110;
+
+// Polomer zhluku v pixeloch. Rovnaké číslo ako spodná vrstva výletov (28 px) —
+// dve vrstvy nad tou istou mapou nesmú zhlukovať s rôznym odstupom, inak sa
+// pri rovnakom výreze rozpadne jedna skôr než druhá a vyzerá to ako chyba.
+const CLUSTER_R_PX = 28;
+
 /** Egyptská modrá — existujúci token, nie nová farba (viď noteIcons.ts). */
-const PARK_BLUE = T.brandBlueLite;
-const HAZARD_RED = '#CE4B3C';
 /** Komentár. Modrý, nie zlatý — dôvod je pri `GROUP_TINT` v NotePalette.tsx. */
-/** Zelený lem TIPU. Jediné miesto, kde je na značke zelená — vyhradená pre „toto ťa poteší". */
-const TIP_GREEN = T.growGreen;
 
 /**
  * Farba značky podľa významu. Zlatá je STAV (výber/hover), nie farba veci.
@@ -52,12 +60,6 @@ const TIP_GREEN = T.growGreen;
  * (Matej: „tá nie je takmer vobec vidno"). Zlatá v tomto súbore po prechode bubliny
  * na papyrus (21. 8.) už nežije ako konštanta — nesie ju `T.cardEdge` z matrice.
  */
-function tintFor(kind: NoteKind): string {
-  const g = groupOf(kind);
-  if (g === 'parking') return PARK_BLUE;
-  if (g === 'warning') return HAZARD_RED;
-  return TIP_GREEN;
-}
 
 // ── ZNAČKA = HOLÉ EMOJI, BEZ VÝNIMKY (Matej 2026-08-21, 3. kolo) ────────────
 // „Holé emoji na mape = emoji nie ikona! upozornenie tiež!". Modrý štvorec s P,
@@ -71,17 +73,29 @@ function tintFor(kind: NoteKind): string {
 // namiesto malého ⚠️ vedľa hrozby ho nesie tvar. Dôvod je pri `threatEmoji()`.
 //
 // ⚠️ Červená tak už NIE JE len na kruhu polomeru: nesie ju aj lem značky.
-// `tintFor()` je jej jediný zdroj, takže sa nemá kde rozísť.
+// `noteTint()` je jej jediný zdroj, takže sa nemá kde rozísť.
 //
 // Prečo emoji a nie hand-drawn kresba, je rozpísané v `markEmoji.ts`.
 // `noteIcons.ts` ostáva knižnicou kresieb pre iné povrchy, len ho už nevolá mapa.
 
 /** Značka pre daný druh ako HTML string — zdieľa ju vrstva aj ťahateľná značka v AddMapNote. */
-export function noteMarkHtml(kind: NoteKind, extra = ''): string {
+export function noteMarkHtml(kind: NoteKind, extra = '', dataset = false, disease: TickDisease | null = null): string {
+  // ── KRÚŽOK PATRÍ ĽUĎOM, NIE OSM (Matej 2026-08-22) ───────────────────────
+  // „datasetové body ktore su načítané z OSM budu bez krúžku a s krúžkom budú
+  // len tie od užívateľov."
+  //
+  // Krúžok hovorí „toto niekto zo svorky videl a napísal" — má autora, dátum,
+  // hlasovanie a dá sa zmazať. Prameň z OSM nič z toho nemá. Keby vyzeral rovnako,
+  // mapa by tvrdila, že za ním stojí člen.
+  if (dataset) {
+    return `<div class="mn-mark mn-mark--emoji${extra}"><i>${MARK_EMOJI[kind] ?? ''}</i></div>`;
+  }
   if (groupOf(kind) === 'warning') {
     // Kruh je súmerný, takže na súradnici sedí jeho stred — žiadny dopočet posunu
     // ako pri zaniknutej dvojici ⚠️ + hrozba.
-    return `<div class="mn-mark mn-mark--threat${extra}"><i>${threatEmoji(kind)}</i></div>`;
+    // Lem sa píše inline, lebo pri kliešti závisí od TOHO ZÁPISU (oranžový výskyt
+    // vs. červená potvrdená choroba), nie od druhu. CSS by vedelo len druh.
+    return `<div class="mn-mark mn-mark--threat${extra}" style="border-color:${noteTint(kind, disease)}"><i>${threatEmoji(kind)}</i></div>`;
   }
   // TIP má ten istý kruh ako hrozba, len ZELENÝ lem (Matej 2026-08-22, oprava modrej
   // z toho istého dňa: „tip je ešte lepšie ako rada = bude to niečo v pozitívnom duchu,
@@ -97,7 +111,19 @@ export function noteMarkHtml(kind: NoteKind, extra = ''): string {
 }
 
 function noteIcon(n: MapNote, stale: boolean): L.DivIcon {
-  return L.divIcon({ className: 'mn-wrap', html: noteMarkHtml(n.kind, stale ? ' mn-mark--stale' : '') });
+  return L.divIcon({
+    className: 'mn-wrap',
+    html: noteMarkHtml(n.kind, stale ? ' mn-mark--stale' : '', isDatasetNote(n), n.disease),
+  });
+}
+
+/** Bublina zhluku — biely kruh, červený lem, počet vnútri. */
+function clusterIcon(n: number): L.DivIcon {
+  const s = clusterPx(n);
+  return L.divIcon({
+    className: 'mn-wrap',
+    html: `<div class="mn-mark mn-cluster" style="width:${s}px;height:${s}px;font-size:${n < 12 ? 12 : 13}px">${n}</div>`,
+  });
 }
 
 function formatDate(iso: string, locale: string): string {
@@ -111,142 +137,202 @@ export type MapNotesLayerProps = {
   notes: MapNote[];
   /** null = hlas stiahnuť. Vlastný zápis hlasovať nejde — tlačidlá sa vtedy nekreslia. */
   onVote?: (noteId: string, valid: boolean | null) => void;
-  /** „pomohlo mi to" — iná otázka než hlas, ide aj na vlastný zápis */
-  onLike?: (noteId: string, on: boolean) => void;
   onDelete?: (noteId: string) => void;
   /** aktuálny jazyk pre formát dátumu (`sk-SK` / `en-US`) */
   locale?: string;
 };
 
-export function MapNotesLayer({ notes, onVote, onLike, onDelete, locale = 'en-US' }: MapNotesLayerProps) {
+export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US' }: MapNotesLayerProps) {
   const t = useT();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
+  const [moveTick, setMoveTick] = useState(0);
   // Stabilná referencia — inak useMapEvent pri každom renderi odhlási a znova
   // prihlási listener (tá istá pasca ako v TripMarkers).
   const onZoomEnd = useCallback(() => setZoom(map.getZoom()), [map]);
   useMapEvent('zoomend', onZoomEnd);
 
+  const onMoveEnd = useCallback(() => setMoveTick((n) => n + 1), []);
+  useMapEvent('moveend', onMoveEnd);
+
   // Oblasti sa kreslia POD značkami — kruh je kontext, značka je to, na čo sa klikne.
   const areas = useMemo(() => notes.filter((n) => n.radiusM != null), [notes]);
 
-  if (zoom < MIN_ZOOM_VISIBLE) return null;
+  // ── HROZBY SA ZHLUKUJÚ, ZVYŠOK SA SKRÝVA (Matej 2026-08-22) ──────────────
+  // „tie hrozby musíme upraviť tak ako sú výlety… z diaľky to budú len biele
+  // kruhy z červeným lemom a číslom vo vnútri a pri vačšom zoome sa rozpadnú
+  // na jednotlivé ikonky."
+  //
+  // Nahradilo to červené bodky z toho istého dňa. Bodka povedala „tu niečo je",
+  // ale nie KOĽKO — a pri desiatkach zápisov by sa z nej stala súvislá červená
+  // šmuha po severe. Číslo v bublinke je ten istý jazyk, akým hovoria výlety,
+  // takže sa mapa nemusí učiť dvakrát.
+  //
+  // Upozornenia sú preto viditeľné VŽDY. Parkovisko, tip a datasetové body
+  // ostávajú pod prahom skryté: nie sú dôvod meniť trasu a z odstupu by z nich
+  // bola len šedina nad pilulkami výletov.
+  const warnings = useMemo(() => notes.filter((n) => groupOf(n.kind) === 'warning'), [notes]);
+  const rest = useMemo(() => notes.filter((n) => groupOf(n.kind) !== 'warning'), [notes]);
+
+  // `moveTick` v závislostiach NIE JE zbytočný — projekcia do pixelov závisí od
+  // výrezu, takže po pane treba prepočítať, aj keď sa zoznam zápisov nezmenil.
+  const warnItems = useMemo(() => {
+    const bounds = map.getBounds().pad(0.35);
+    const vis = warnings.filter((n) => bounds.contains([n.lat, n.lon]));
+    const proj = vis.map((n) => {
+      const pt = map.latLngToContainerPoint([n.lat, n.lon]);
+      return { n, x: pt.x, y: pt.y };
+    });
+    return clusterByPixels(proj, CLUSTER_R_PX).map((c) => {
+      if (c.items.length === 1) return { kind: 'single' as const, n: c.items[0].n };
+      const ll = map.containerPointToLatLng([c.x, c.y]);
+      return { kind: 'cluster' as const, lat: ll.lat, lon: ll.lng, count: c.items.length };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [warnings, map, zoom, moveTick]);
+
+  const showRest = zoom >= MIN_ZOOM_VISIBLE;
+
+  const renderNote = (n: MapNote) => {
+    const dataset = isDatasetNote(n);
+    const canVote = !!onVote && !dataset && !n.isMine;
+    const canDelete = !!onDelete && !dataset && n.isMine;
+    return (
+    <Marker key={n.id} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)}>
+      <Popup
+        className="mn-popup"
+        closeButton={false}
+        /* ⚠️ NIE `autoPanPadding={[24,24]}` — mapa je full-bleed POD plávajúcimi
+           panelmi, takže „24 px od okraja kontajnera" znamená schovaný pod
+           hornou lištou. Odsadenie hore musí pokryť lištu + filtre (Matej
+           2026-08-22: „popupy sa zobrazujú zle cez okraj obrazovky"), dole
+           spodnú navigáciu. `keepInView` drží bublinu vnútri aj pri posune mapy. */
+        autoPanPaddingTopLeft={[24, POPUP_PAD_TOP]}
+        autoPanPaddingBottomRight={[24, POPUP_PAD_BOTTOM]}
+        keepInView
+      >
+        <div className="mn-bubble">
+          <div className="mn-bubble-head">
+            {/* KRÚŽOK AJ TU (Matej 2026-08-22: „aj tam bude emoji v krúžku nie
+                len tak"). Bublina je to isté, na čo človek klikol — keby v nej
+                emoji stálo holé, čítalo by sa ako iná vec než značka pod prstom.
+                Farba lemu ide z `noteTint`, teda z toho istého zdroja ako značka.
+
+                V bubline je LEN konkrétna hrozba, bez ⚠️ (Matej 2026-08-21:
+                „stačí už len vretenica"): na mape ⚠️ nesie skupinu, lebo tam je
+                emoji jediný nosič významu — tu ju nesie vypísaný názov hneď vedľa. */}
+            <span className="mn-bubble-mark" style={{ borderColor: noteTint(n.kind, n.disease) }} aria-hidden="true">
+              <i className="mn-bubble-em">{MARK_EMOJI[n.kind] ?? ''}</i>
+            </span>
+            <span className="mn-bubble-kind" style={{ color: noteTint(n.kind, n.disease) }}>
+              {t(`pack.mapNotes.kind.${n.kind}`)}
+            </span>
+            {n.kind === 'parking' && n.paid != null && (
+              <span className="mn-bubble-tag">
+                {t(n.paid ? 'pack.mapNotes.parking.paid' : 'pack.mapNotes.parking.free')}
+              </span>
+            )}
+            {n.isStale && <span className="mn-bubble-stale">{t('pack.mapNotes.unconfirmed')}</span>}
+          </div>
+
+          {!!n.body && <p className="mn-bubble-body">{n.body}</p>}
+
+          {/* Dátum svieti vždy — Matej 2026-08-20: „poznámka neumiera svieti tam dátum". */}
+          {!dataset && (
+            <div className="mn-bubble-meta">
+              {/* Fotka autora = FOTKA PSA. Portrét človeka appka nemá a pes je
+                  tvárou člena aj v PackTree, GodsGrid a na share karte. */}
+              {n.authorPhoto
+                ? <img className="mn-bubble-face" src={n.authorPhoto} alt="" loading="lazy" />
+                : <span className="mn-bubble-face mn-bubble-face--empty" aria-hidden="true">
+                    {(n.authorFirst || '?').slice(0, 1).toUpperCase()}
+                  </span>}
+              <span className="mn-bubble-who">
+                {n.authorFirst && <b className="mn-bubble-author">{n.authorFirst}</b>}
+                <span className="mn-bubble-date">{formatDate(n.createdAt, locale)}</span>
+              </span>
+            </div>
+          )}
+
+          {/* Tlačidlo „Pomohlo" tu bolo od 21. 8. a 22. 8. ho Matej zrušil
+              („to tlačítko pomohlo dajme preč"). Tabuľka `map_note_likes`,
+              RPC `like_map_note` ani `useMapNotes().like` NEZANIKLI — sú to
+              dáta, nie ozdoba, a zmazať ich kvôli jednej obrazovke by bola
+              nevratná strata za vratný problém. Vrátiť tlačidlo = tento blok.
+
+              Prečo tu prekážalo: hlas „platí / už neplatí" a lajk „pomohlo mi
+              to" sú dve otázky na jednu vec a v bubline širokej 270 px sa
+              čítali ako dve verzie toho istého tlačidla. */}
+
+          {canVote && (
+            <div className="mn-bubble-votes">
+              <button
+                type="button"
+                className={`mn-vote${n.myVote === true ? ' on' : ''}`}
+                onClick={() => onVote?.(n.id, n.myVote === true ? null : true)}
+              >
+                {t('pack.mapNotes.vote.valid')}
+                {n.validVotes > 0 && <b>{n.validVotes}</b>}
+              </button>
+              <button
+                type="button"
+                className={`mn-vote mn-vote--no${n.myVote === false ? ' on' : ''}`}
+                onClick={() => onVote?.(n.id, n.myVote === false ? null : false)}
+              >
+                {t('pack.mapNotes.vote.stale')}
+                {n.staleVotes > 0 && <b>{n.staleVotes}</b>}
+              </button>
+            </div>
+          )}
+
+          {canDelete && (
+            <button type="button" className="mn-bubble-del" onClick={() => onDelete?.(n.id)}>
+              {t('pack.mapNotes.delete')}
+            </button>
+          )}
+        </div>
+      </Popup>
+    </Marker>
+    );
+  };
 
   return (
     <>
-      {areas.map((n) => (
+      {/* Kruhy oblastí len nad prahom — pri oddialení ich zastupuje číslo v zhluku. */}
+      {showRest && areas.map((n) => (
         <Circle
           key={`area:${n.id}`}
           center={[n.lat, n.lon]}
           radius={n.radiusM as number}
           pathOptions={{
-            color: tintFor(n.kind),
+            color: noteTint(n.kind, n.disease),
             weight: 1.5,
             opacity: n.isStale ? 0.25 : 0.55,
-            fillColor: tintFor(n.kind),
+            fillColor: noteTint(n.kind, n.disease),
             fillOpacity: n.isStale ? 0.05 : 0.12,
           }}
           interactive={false}
         />
       ))}
 
-      {notes.map((n) => {
-        const dataset = isDatasetNote(n);
-        const canVote = !!onVote && !dataset && !n.isMine;
-        // Lajk ide AJ na vlastný zápis — poďakovať si sám sebe je smiešne, nie
-        // nebezpečné. Zakázané je len udržiavať si vlastnú poznámku „platnou".
-        const canLike = !!onLike && !dataset;
-        const canDelete = !!onDelete && !dataset && n.isMine;
-        return (
-          <Marker key={n.id} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)}>
-            <Popup className="mn-popup" closeButton={false} autoPanPadding={[24, 24]}>
-              <div className="mn-bubble">
-                <div className="mn-bubble-head">
-                  {/* V BUBLINE JE LEN KONKRÉTNA HROZBA, BEZ ⚠️ (Matej 2026-08-21:
-                      „zobrazme tam aj tie emoji — stačí už len vretenica").
-                      Na mape ⚠️ nesie skupinu, lebo tam je 20 px emoji jediný nosič
-                      významu. Tu je názov druhu vypísaný slovom hneď vedľa, takže
-                      výstražný znak by len opakoval to, čo už povedal text. */}
-                  <i className="mn-bubble-em" aria-hidden="true">{MARK_EMOJI[n.kind] ?? ''}</i>
-                  <span className="mn-bubble-kind" style={{ color: tintFor(n.kind) }}>
-                    {t(`pack.mapNotes.kind.${n.kind}`)}
-                  </span>
-                  {n.kind === 'parking' && n.paid != null && (
-                    <span className="mn-bubble-tag">
-                      {t(n.paid ? 'pack.mapNotes.parking.paid' : 'pack.mapNotes.parking.free')}
-                    </span>
-                  )}
-                  {n.isStale && <span className="mn-bubble-stale">{t('pack.mapNotes.unconfirmed')}</span>}
-                </div>
+      {/* HROZBY: zhluk s číslom, alebo konkrétna značka. Zhluk je neklikateľný
+          zámerne — otvoriť bublinu k šiestim zápisom naraz sa nedá a „priblíž sa"
+          povie tvar sám. */}
+      {warnItems.map((it) =>
+        it.kind === 'cluster' ? (
+          <Marker
+            key={`cl:${it.lat.toFixed(4)}:${it.lon.toFixed(4)}:${it.count}`}
+            position={[it.lat, it.lon]}
+            icon={clusterIcon(it.count)}
+            interactive={false}
+          />
+        ) : (
+          renderNote(it.n)
+        ),
+      )}
 
-                {!!n.body && <p className="mn-bubble-body">{n.body}</p>}
-
-                {/* Dátum svieti vždy — Matej 2026-08-20: „poznámka neumiera svieti tam dátum". */}
-                {!dataset && (
-                  <div className="mn-bubble-meta">
-                    {/* Fotka autora = FOTKA PSA. Portrét človeka appka nemá a pes je
-                        tvárou člena aj v PackTree, GodsGrid a na share karte. */}
-                    {n.authorPhoto
-                      ? <img className="mn-bubble-face" src={n.authorPhoto} alt="" loading="lazy" />
-                      : <span className="mn-bubble-face mn-bubble-face--empty" aria-hidden="true">
-                          {(n.authorFirst || '?').slice(0, 1).toUpperCase()}
-                        </span>}
-                    <span className="mn-bubble-who">
-                      {n.authorFirst && <b className="mn-bubble-author">{n.authorFirst}</b>}
-                      {n.packNumber != null && <span className="mn-bubble-num">#{n.packNumber}</span>}
-                      <span className="mn-bubble-date">{formatDate(n.createdAt, locale)}</span>
-                    </span>
-                  </div>
-                )}
-
-                {/* LAJK ≠ HLAS. Hlas hovorí „ešte to platí" a 2× „už neplatí" zápis
-                    zošedne; lajk hovorí „pomohlo mi to" a na platnosť nemá vplyv.
-                    Preto stojí NAD hlasovaním a v samostatnom riadku — vedľa seba
-                    by čítali ako dve verzie toho istého tlačidla. */}
-                {canLike && (
-                  <button
-                    type="button"
-                    className={`mn-like${n.myLike ? ' on' : ''}`}
-                    onClick={() => onLike?.(n.id, !n.myLike)}
-                    aria-pressed={n.myLike}
-                  >
-                    <HandPaw size={13} />
-                    {t('pack.mapNotes.like')}
-                    {n.likes > 0 && <b>{n.likes}</b>}
-                  </button>
-                )}
-
-                {canVote && (
-                  <div className="mn-bubble-votes">
-                    <button
-                      type="button"
-                      className={`mn-vote${n.myVote === true ? ' on' : ''}`}
-                      onClick={() => onVote?.(n.id, n.myVote === true ? null : true)}
-                    >
-                      {t('pack.mapNotes.vote.valid')}
-                      {n.validVotes > 0 && <b>{n.validVotes}</b>}
-                    </button>
-                    <button
-                      type="button"
-                      className={`mn-vote mn-vote--no${n.myVote === false ? ' on' : ''}`}
-                      onClick={() => onVote?.(n.id, n.myVote === false ? null : false)}
-                    >
-                      {t('pack.mapNotes.vote.stale')}
-                      {n.staleVotes > 0 && <b>{n.staleVotes}</b>}
-                    </button>
-                  </div>
-                )}
-
-                {canDelete && (
-                  <button type="button" className="mn-bubble-del" onClick={() => onDelete?.(n.id)}>
-                    {t('pack.mapNotes.delete')}
-                  </button>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
+      {/* Parkovisko, tip a datasetové body — len nad prahom. */}
+      {showRest && rest.map(renderNote)}
     </>
   );
 }
@@ -283,7 +369,7 @@ export const MAP_NOTES_CSS = `
 /* TIP — ten istý kruh, zelený lem. Rozmery sa NEROZCHÁDZAJÚ zámerne: dve veľkosti
    kruhu by na mape čítali ako dve dôležitosti, a tip nie je menej dôležitý než
    výstraha, len je iný. */
-.mn-mark--tip{width:28px;height:28px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${TIP_GREEN};box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
+.mn-mark--tip{width:28px;height:28px;border-radius:999px;background:#FFFFFF;border:2.5px solid ${GROUP_TINT.comment};box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.10);}
 .mn-mark--tip i{font-size:16px;}
 /* Zošednutý zápis NEMIZNE — Matej: „poznámka neumiera". Len prestáva byť to prvé,
    čo oko na mape chytí. */
@@ -312,9 +398,12 @@ export const MAP_NOTES_CSS = `
 .mn-popup a.leaflet-popup-close-button{display:none;}
 
 .mn-bubble-head{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px;}
-/* Emoji v bubline je väčšie než na mape — tu má miesto a nesie rozpoznanie
-   na prvý pohľad, kým oko dobehne k textu. */
-.mn-bubble-em{font-style:normal;font-family:${FONT_EMOJI};font-size:17px;line-height:1;-webkit-user-select:none;user-select:none;}
+/* ── ZNAČKA V BUBLINE = ZMENŠENINA TEJ NA MAPE ────────────────────────────
+   Ten istý biely krúžok, ten istý lem, len 26 px namiesto 28. Farbu lemu píše
+   komponent inline z noteTint(), preto tu border-color nie je — bola by to druhá
+   pravda vedľa tej z JS. */
+.mn-bubble-mark{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:999px;background:#FFFFFF;border:2px solid ${T.border};box-sizing:border-box;}
+.mn-bubble-em{font-style:normal;font-family:${FONT_EMOJI};font-size:15px;line-height:1;-webkit-user-select:none;user-select:none;}
 .mn-bubble-kind{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.12em;text-transform:uppercase;}
 .mn-bubble-tag{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkWarm};border:1px solid ${T.border};border-radius:999px;padding:2px 7px;}
 .mn-bubble-stale{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:${T.inkWarm};}
@@ -332,16 +421,6 @@ export const MAP_NOTES_CSS = `
 .mn-bubble-face--empty{display:flex;align-items:center;justify-content:center;font-family:${FONT_UI};font-weight:600;font-size:11px;color:${T.inkWarm};}
 .mn-bubble-who{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0;font-family:${FONT_UI};font-size:10.5px;color:${T.inkWarm};}
 .mn-bubble-author{font-family:${FONT_TITLE};font-weight:700;font-size:11px;color:${T.inkStrong};}
-
-/* ── LAJK ──────────────────────────────────────────────────────────────────
-   Vlastný riadok NAD hlasovaním. Vedľa „PLATÍ" by čítal ako jeho druhá verzia,
-   hoci odpovedá na inú otázku (viď migráciu 20260821_map_notes_likes.sql).
-   HandPaw je inline SVG s fill:currentColor — jediný kanál ikoniek, ktorý
-   zdedí farbu meniaceho sa stavu (CLAUDE.md, kanály ikoniek v /pack). */
-.mn-like{display:inline-flex;align-items:center;gap:6px;margin-top:9px;font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:1px solid ${T.border};border-radius:999px;padding:5px 11px;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}
-.mn-like:hover{color:${T.inkStrong};border-color:${T.cardEdge};}
-.mn-like.on{color:${T.inkStrong};border-color:${T.cardEdge};background:rgba(201,154,63,0.18);}
-.mn-like b{font-weight:700;font-family:${FONT_TITLE};}
 
 .mn-bubble-votes{display:flex;gap:6px;margin-top:9px;}
 .mn-vote{flex:1 1 0;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.inkWarm};background:transparent;border:1px solid ${T.border};border-radius:999px;padding:5px 8px;cursor:pointer;transition:color .15s,border-color .15s,background .15s;}

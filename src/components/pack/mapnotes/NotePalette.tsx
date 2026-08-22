@@ -14,7 +14,7 @@
 // čiernobiely textový variant.
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
-import { NOTE_GROUPS, type NoteGroup } from './mapNotesData';
+import { NOTE_GROUPS, groupOf, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, GROUP_EMOJI } from './markEmoji';
 
 const GOLD = '#C99A3F';
@@ -41,6 +41,30 @@ export const GROUP_TINT: Record<NoteGroup, string> = {
   warning: HAZARD_RED,
   comment: T.growGreen,
 };
+
+/**
+ * Kliešť bez potvrdenej choroby. Matej 2026-08-22: „kliešť oranžový lem a červený
+ * pri potvrdenej chorobe."
+ *
+ * Prečo to dáva zmysel: „tu je veľa kliešťov" a „tu môj pes chytil babeziózu" nie
+ * sú tá istá informácia. Prvé je nepríjemnosť, ktorú rieši repelent; druhé je dôkaz,
+ * že sa tu už niečo stalo. Rovnaká farba pre obe by z výstrahy urobila šum.
+ */
+export const TICK_ORANGE = '#E08A2E';
+
+/**
+ * FARBA ZNAČKY — JEDINÝ ZDROJ pre mapu, zoznam v článku aj bublinu.
+ *
+ * ⚠️ Do 22. 8. mal `tintFor` vlastnú kópiu `MapNotesLayer` aj `MapNotesSection`
+ * (zapísané ako dlh v audite vysvetliviek). S pribudnutím oranžového kliešťa by
+ * z toho boli TRI miesta s podmienkou navyše a rozišli by sa pri prvej zmene —
+ * presne ako sa to už raz stalo, keď v článku svietili kliešte zlato a na mape
+ * červeno. Preto tá funkcia odteraz žije len tu.
+ */
+export function noteTint(kind: NoteKind, disease?: TickDisease | null): string {
+  if (kind === 'ticks') return disease ? HAZARD_RED : TICK_ORANGE;
+  return GROUP_TINT[groupOf(kind)];
+}
 
 /**
  * Značka skupiny — rozcestník, nie výsledná značka (viď `GROUP_EMOJI` v markEmoji.ts).
