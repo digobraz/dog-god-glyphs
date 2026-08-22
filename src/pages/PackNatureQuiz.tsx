@@ -32,7 +32,7 @@ import {
   SPECIAL_KEYS, ELEMENT_KEYS, ROLE_KEYS, NATURE_ATTRIBUTION, scoreNature, scoreBalance,
   natureTitleEN, natureResultFromStored, hasNatureScores, guidanceFor, NUTRITION_DISCLAIMER,
   type SpecialAnswer, type SpecialKey, type NatureResult, type Guidance,
-  type BalanceResult, type BalanceItem,
+  type BalanceResult, type BalanceItem, type ElementKey,
 } from '@/components/pack/natureQuiz';
 import { BrandIcon } from '@/components/pack/BrandIcon';
 import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/dogEvents';
@@ -1386,13 +1386,27 @@ function Shell({ children, onClose, fill, overlay }: {
    🔴 DIAGNÓZY DOSTÁVAJÚ INÚ VETU NEŽ PREJAVY, a to je celá poistka tejto vrstvy.
    Zdrojový hárok Dr. Judy dáva na nádor v mieche rovnakú odpoveď ako na suchú
    srsť („feed X"). Tu sa diagnózy do obrazu rovnováhy počítajú, ale rada k miske
-   sa k nim nepíše — patrí k nim `BALANCE_VET_NOTE` a nič iné. */
-function BalanceSection({ b, tx }: { b: BalanceResult; tx: (k: string, f: string) => string }) {
+   sa k nim nepíše — patrí k nim `BALANCE_VET_NOTE` a nič iné.
+
+   🔑 VÝŽIVA OPORY SA VYKRESĽUJE TU, NIE ODKAZOM (22. 8. 2026). Do tohto dňa tu
+   stála veta „ich výživa hore je odkiaľ začať" — lenže „hore" je výživa psovho
+   VLASTNÉHO elementu (`el = NATURE_ELEMENTS[r.element]`), kým opora je spravidla
+   iný element. Majiteľ teda dostal príkaz „opri sa o Vodu" a odkaz na text, ktorý
+   na stránke nebol. Tým sa celý kvíz 2 zmenšil na holé meno elementu — presne
+   preto pôsobil, že nič nerobí.
+   ⚠️ Opora, ktorá sa ROVNÁ psovmu elementu, sa nevykresľuje znova (pri nedostatku
+   je prvou oporou vždy element sám). V tom prípade — a len v ňom — je pôvodná veta
+   „ich výživa hore" VECNE SPRÁVNA, tak zostáva. */
+function BalanceSection({ b, own, tx }: {
+  b: BalanceResult; own: ElementKey; tx: (k: string, f: string) => string;
+}) {
   if (!b.top) return null;
   const dir = b.top.side === 'excess'
     ? tx('pack.nature.balance.excess', 'too much')
     : tx('pack.nature.balance.deficiency', 'not enough');
   const leaning = tx(NATURE_ELEMENTS[b.top.element].i18n, NATURE_ELEMENTS[b.top.element].labelEN);
+  /** Opory, ktoré na stránke ešte nie sú. Prázdne pole = všetko je už v sekcii I. */
+  const extra = b.top.support.filter((k) => k !== own);
   const chip = (it: BalanceItem) => (
     <span key={it.id} className="pf-pill" style={{
       fontFamily: FONT_UI, fontSize: 11.5, padding: '5px 11px', borderRadius: 999,
@@ -1419,12 +1433,33 @@ function BalanceSection({ b, tx }: { b: BalanceResult; tx: (k: string, f: string
               {tx('pack.nature.balance.support', 'The elements to lean on here are')}{' '}
               <b>{b.top.support.map((k) => tx(NATURE_ELEMENTS[k].i18n, NATURE_ELEMENTS[k].labelEN)).join(' · ')}</b>
               {'. '}
-              {tx('pack.nature.balance.supportHow',
-                'Their food notes above are where to start — this is a leaning, not a prescription.')}
+              {extra.length === 0
+                // Opora = psov vlastný element. „Hore" je vtedy naozaj hore.
+                ? tx('pack.nature.balance.supportHow',
+                  'Their food notes above are where to start — this is a leaning, not a prescription.')
+                : tx('pack.nature.balance.supportBelow',
+                  'Where to start is right below — this is a leaning, not a prescription.')}
             </p>
           )}
         </div>
       )}
+
+      {/* Výživa opory. Ten istý zámok ako v sekcii I (`natureQuiz.ts`): sklon,
+          suroviny a réžia misky ÁNO — dávky, doplnky a liečba NIE. Preto sa berie
+          `foodEN` toho istého datasetu, nič sa pre rovnováhu nepíše zvlášť. */}
+      {extra.map((k) => {
+        const s = NATURE_ELEMENTS[k];
+        return (
+          <div key={k} className="nqd-panel" style={{ marginTop: 12 }}>
+            <p className="nqd-eyebrow">
+              {tx(s.i18n, s.labelEN)} · {tx('pack.nature.doc.food', 'What suits them')}
+            </p>
+            <ul className="nqd-list tight">
+              {s.foodEN.map((t, i) => <li key={i}><Bold s={tx(`${s.i18n}.food${i}`, t)} /></li>)}
+            </ul>
+          </div>
+        );
+      })}
 
       {/* Tmavý podblok — jediná výnimka z papyrusového locku, siaha sa po nej za
           VÝZNAM. Presne ako ZÁVET na DOG ID: sekcia, ktorá hovorí o chorobe, nesmie
@@ -1603,7 +1638,7 @@ function ResultDoc({ dog, r, b, tx }: {
 
         <Orn />
 
-        {b && <BalanceSection b={b} tx={tx} />}
+        {b && <BalanceSection b={b} own={r.element} tx={tx} />}
 
         {/* ── II · ÚLOHA VO SVORKE ───────────────────────────────────────────
             Hovorí o RÉŽII DŇA — koľko práce a koľko vypnutia. O jedle nikdy.
