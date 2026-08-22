@@ -8,9 +8,10 @@
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
+import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css'; // KRITICKÉ: bez neho .leaflet-tile stratí position:absolute a
 // dlaždice kaskádujú dole ako bloky (Matej 2026-07-22 „mapa sa vykresľuje zle"). PackMap ho
@@ -46,6 +47,12 @@ import { TripComments } from '@/components/pack/trip/TripComments';
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
+import {
+  AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
+  ADD_NOTE_CSS, NOTE_PANEL_H,
+} from '@/components/pack/mapnotes/AddMapNote';
+import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
+import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { intlLocale } from '@/i18n/bcp47';
@@ -240,6 +247,23 @@ const CSS = `
 .pta-mapwrap{position:relative;margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
 .pta-mapwrap .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
 .pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
+/* ── PRIDAJ ODKAZ PRIAMO NA MAPKE (Matej 2026-08-21) ────────────────────────
+   „doplnenie k článku dal by som ho priamo na mapku pridaj odkaz". Vstup patrí
+   tam, kde človek pozerá, nie len do hlavičky sekcie nad mapou.
+
+   VĽAVO DOLE zámerne: vpravo dole sedí PoiAttribution a tá sa prekryť NESMIE —
+   viditeľná atribúcia je podmienka licencie ODbL, nie dekorácia.
+
+   Vzhľad je .mns-add (zlatý outline pill), nie .btn-gold — plná zlatá by na mape
+   kričala hlasnejšie než samotné značky. Výška 40 px je dotykové minimum. */
+.pta-mapadd{position:absolute;left:12px;bottom:12px;z-index:700;display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 15px;border-radius:999px;cursor:pointer;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:${GOLD};background:rgba(5,5,5,0.82);border:1px solid rgba(201,154,63,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 4px 14px rgba(0,0,0,0.45);transition:background .15s,border-color .15s;}
+.pta-mapadd:hover{background:rgba(201,154,63,0.18);border-color:${GOLD};}
+.pta-mapadd b{font-weight:400;font-size:15px;line-height:1;}
+/* ÚZKE OKNO: tlačidlo sa musí zmestiť VEDĽA atribúcie, nie na ňu — zakrytá
+   atribúcia je porušenie licencie ODbL, nie kozmetika. Merané na obale mapy:
+   pri plnej veľkosti sa obe zrazia až pod ~334 px okna, so zúžením pod ~305 px.
+   Výška 40 px ostáva — je to dotykové minimum, nie ozdoba. */
+@media (max-width:420px){.pta-mapadd{padding:0 11px;font-size:9.5px;letter-spacing:.09em;gap:5px;}}
 .pta-mapempty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-align:center;padding:20px;}
 .pta-section{margin-top:28px;}
 /* #41 — blok jednej partie (organizátor + kto s ním ide) */
@@ -278,6 +302,44 @@ export default function PackTripArticle() {
   const t = useT();
   const { lang } = useLang();   // popisy výletov nesú DÁTA, nie i18n kľúče (viď tripText)
   const mapNotes = useMapNotes(true);
+
+  // ── DOPĹŇANIE ODKAZOV PRIAMO Z ČLÁNKU (Matej 2026-08-21) ─────────────────
+  // „pri blogovom článku pri mape by mala byť možnosť doplniť tieto info ak človek
+  // prešiel trasu." Do 21. 8. sa dalo písať len gestom na celkovej mape — človek,
+  // ktorý sa práve vrátil z trasy a číta jej článok, teda musel odísť inam a tam
+  // to miesto znova nájsť.
+  //
+  // ⚠️ BRÁNA JE „PREJDENÉ", nie členstvo: odkaz na trase je svedectvo, nie názor.
+  // Kto tam nebol, nevie, či je rampa zavretá ani kde boli kliešte.
+  //
+  // Rovnaké komponenty ako v `PackMap.tsx`, len bez rýchlej cesty pri kurzore —
+  // v malej mape v článku by plusko za myšou prekážalo pri čítaní.
+  const [noteMap, setNoteMap] = useState<L.Map | null>(null);
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; radiusM: number | null } | null>(null);
+  const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
+  const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
+  const [notePick, setNotePick] = useState(false);
+  const [noteZoom, setNoteZoom] = useState(0);
+  const [noteTooFar, setNoteTooFar] = useState<{ x: number; y: number } | null>(null);
+  const tooFarTimer = useRef<number | null>(null);
+  const mapWrapRef = useRef<HTMLDivElement | null>(null);
+
+  const showTooFar = useCallback((x: number, y: number) => {
+    setNoteTooFar({ x, y });
+    if (tooFarTimer.current !== null) window.clearTimeout(tooFarTimer.current);
+    tooFarTimer.current = window.setTimeout(() => { setNoteTooFar(null); tooFarTimer.current = null; }, 2600);
+  }, []);
+  useEffect(() => () => { if (tooFarTimer.current !== null) window.clearTimeout(tooFarTimer.current); }, []);
+
+  // Priblíženie ako stav — lišta „ukáž miesto" musí prepnúť na „priblíž si mapu"
+  // v tej chvíli, keď človek odzoomuje, nie až po kliknutí naprázdno.
+  useEffect(() => {
+    if (!noteMap) return;
+    const sync = () => setNoteZoom(noteMap.getZoom());
+    sync();
+    noteMap.on('zoomend', sync);
+    return () => { noteMap.off('zoomend', sync); };
+  }, [noteMap]);
   const dateLocale = intlLocale(lang);
   const navigate = useNavigate();
   const { slug, country } = useParams<{ slug: string; country?: string }>();
@@ -332,6 +394,52 @@ export default function PackTripArticle() {
   useEffect(() => { writeFavIds(favIds); }, [favIds]);
   useEffect(() => { writeWalkedIds(walkedIds); }, [walkedIds]);
 
+  // ── VSTUPY DO ZÁPISU NA MAPE V ČLÁNKU ────────────────────────────────────
+  // TRI vstupy: dlhé podržanie / pravý klik dá najprv MIESTO a pýta sa typ,
+  // tlačidlo v rohu mapy a tlačidlo v sekcii dajú najprv TYP a čakajú na klik.
+  // Rýchla cesta beží len keď nie je rozrobená pomalá — inak by si klik a držanie
+  // súperili o ten istý dotyk.
+  //
+  // Bránu na písanie (`noteGate`) drží jedno miesto nižšie — potrebuje hlasy,
+  // ktoré vznikajú až za komunitnou vrstvou.
+  const noteBusy = !!noteDraft || !!noteSpot || notePick;
+
+  /**
+   * Odroluje STRÁNKU tak, aby mapa ostala celá NAD spodným panelom.
+   *
+   * `PackMap` na to isté používa `map.panBy()` — tam je mapa na celú obrazovku,
+   * takže sa posunie obsah v nej. Tu je mapa nízky box (320 px) v strede článku:
+   * panBy by v nej posunul trasu, ale samotný box by ostal ležať pod panelom.
+   * Hýbe sa preto stránka, nie mapa.
+   *
+   * ⚠️ Bez tohto je to presne tá chyba, ktorú Matej zamietol 20. 8.: vo chvíli
+   * potvrdzovania človek NEVIDÍ miesto, ktoré označuje, a rada „potiahni značku,
+   * ak nesedí" je vtip, lebo značka leží pod formulárom. `scrollIntoView({block:
+   * 'center'})` to NERIEŠI — vycentruje mapu do výrezu, teda rovno pod panel.
+   *
+   * Posun sa zastropuje výškou samotnej mapy (`r.top - 8`), inak by sa na nízkom
+   * okne horný okraj mapy vysunul nad obrazovku.
+   */
+  const scrollMapClear = useCallback((panelH: number) => {
+    const el = mapWrapRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const safeBottom = window.innerHeight - (panelH + 96 + 16);   // 96 = spodná hrana panela
+    const delta = Math.min(r.bottom - safeBottom, r.top - 8);
+    if (delta > 0) window.scrollBy({ top: delta, behavior: 'smooth' });
+  }, []);
+
+  /** Položí značku a uhne mapou spod panela. */
+  const placeNote = useCallback((group: NoteGroup, lat: number, lon: number) => {
+    setNoteTooFar(null);
+    setNotePlacing(null);
+    setNoteSpot(null);
+    setNotePick(false);
+    setNoteDraft({ lat, lon, group, kind: GROUP_KINDS[group][0], radiusM: defaultRadius(GROUP_KINDS[group][0]) });
+    // o snímku neskôr — panel sa mountuje až s draftom a dovtedy sa nemá čomu uhýbať
+    window.requestAnimationFrame(() => scrollMapClear(NOTE_PANEL_H));
+  }, [scrollMapClear]);
+
   // ── KOMUNITNÁ vrstva (rovnaké flowy ako PackMap — walked popup / wishlist zámer /
   // partner ad); sessionStorage mirror (packCommunity), žiadna Supabase. ──
   const nowMs = useMemo(() => Date.now(), []);
@@ -352,6 +460,49 @@ export default function PackTripArticle() {
     setEvents(readEvents());
   }, [storeEpoch]);
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
+
+  // ── BRÁNA NA ZÁPIS ODKAZU: PREJDENÉ **A** OHODNOTENÉ (Matej 2026-08-21) ───
+  // „musí to človek mať prejdené a ohodnotené aby mohol interagovať". Odkaz na
+  // trase je svedectvo, nie názor — a kto trasu neuzavrel hodnotením, ju ešte
+  // nedočítal do konca.
+  //
+  //   neprešiel        → ovládač sa NEKRESLÍ, gesto na mape neurobí nič
+  //   prešiel, nehodnotil → ovládač je vidieť, klik otvorí HODNOTENIE
+  //   prešiel a hodnotil  → klik otvorí paletu
+  //
+  // ⚠️ JEDNA brána pre VŠETKY vstupy (tlačidlo na mape, tlačidlo v sekcii, dlhé
+  // podržanie). Tri samostatné podmienky na tú istú vec sa časom rozídu — presne
+  // to sa stalo s farbou upozornenia v `MapNotesSection`.
+  //
+  // „ohodnotené" = ten istý test, aký ráta `ratedCountFor()` v `packCommunity.ts`:
+  // hlas bez labiek (samotné hazardy/komentár) hodnotenie nie je. Druhý sa
+  // nevymýšľa.
+  //
+  // 💡 Na CELKOVEJ mape (`/pack/map`) žiadna takáto brána nie je a ani byť nemôže —
+  // tam sa nedá vedieť, ktorej trasy sa zápis týka. Platí len v článku.
+  const noteGate: 'none' | 'rate' | 'open' = !walkedIds.has(String(slug))
+    ? 'none'
+    : (votes[String(slug)]?.rating ?? 0) > 0 ? 'open' : 'rate';
+  // Hodnotí PRETO, že chcel písať → po odoslaní sa paleta otvorí sama. Bez tohto
+  // príznaku by vyskočila aj po bežnom hodnotení z tlačidla PREJDENÉ.
+  const [noteAfterRating, setNoteAfterRating] = useState(false);
+  /** Prejde bránou, alebo namiesto zápisu otvorí hodnotenie. `false` = teraz sa nepíše. */
+  const passNoteGate = useCallback(() => {
+    if (noteGate === 'none') return false;
+    if (noteGate === 'rate') { setNoteAfterRating(true); setWalkedPopupOpen(true); return false; }
+    return true;
+  }, [noteGate]);
+
+  useLongPressPoint(noteGate !== 'none' ? noteMap : null, !noteBusy && !notePlacing, {
+    onPoint: (lat, lng) => { if (!passNoteGate()) return; setNoteTooFar(null); setNoteSpot({ lat, lon: lng }); },
+    onTooFar: showTooFar,
+  });
+  // Klik do mapy je POKRAČOVANIE už začatého zápisu (`notePlacing`), takže bránou
+  // prešiel o krok skôr — druhýkrát sa nepýta.
+  useMapClickPoint(noteGate !== 'none' ? noteMap : null, !!notePlacing && !noteBusy, {
+    onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
+    onTooFar: showTooFar,
+  });
   // Odmena za práve zapísané prejdenie (§3b) — spätne sa nedá dopočítať, bonus závisí od stavu
   // PRED klikom.
   const [walkedReward, setWalkedReward] = useState<WalkReward | null>(null);
@@ -456,6 +607,8 @@ export default function PackTripArticle() {
   const closeWalkedPopup = () => {
     setWalkedPopupOpen(false);
     setWalkedReward(null);
+    // Zavrel hodnotenie bez odoslania → zámer písať odkaz zaniká spolu s ním.
+    setNoteAfterRating(false);
   };
   const submitWalked = (v: WalkedInput) => {
     if (!trail) return;
@@ -463,6 +616,9 @@ export default function PackTripArticle() {
     setWalkedIds((prev) => { const n = new Set(prev); n.add(trail.id); return n; });
     setWalkedPopupOpen(false);
     setWalkedReward(null);
+    // Prišiel sem cez bránu odkazu — nech neklikne druhýkrát za tým istým.
+    // `WalkedPopup` bez labiek odoslať nedá (`canSubmit`), takže brána je tu už otvorená.
+    if (noteAfterRating) { setNoteAfterRating(false); setNotePick(true); }
   };
   const addPlan = (intent: 'solo' | 'partner', date = '') => {
     if (!trail) return;
@@ -621,6 +777,10 @@ export default function PackTripArticle() {
       <style>{PARTY_CARD_CSS}</style>
       <style>{MAP_NOTES_SECTION_CSS}</style>
       <style>{MAP_NOTES_CSS}</style>
+      {/* Kurzor v režime „ukáž miesto" (`.mn-placing` a spol.) — triedy sadajú na
+          `.leaflet-container`, takže CSS musí byť na stránke, nie v komponente. */}
+      <style>{LONG_PRESS_CSS}</style>
+      <style>{ADD_NOTE_CSS}</style>
       {/* §16 (2026-07-23): heroglyf textúra ZA obsahom — bez nej glass panel nemá čo rozmazať
           (predtým holá čierna = „všetko na čiernej"). Rovnaké pozadie ako triplist/pack. */}
       <HieroglyphBg />
@@ -727,9 +887,16 @@ export default function PackTripArticle() {
         {tripText(trail, 'dogNote', lang) && <p className="pta-dognote">🐾 {tripText(trail, 'dogNote', lang)}</p>}
 
         {/* Zápisy členov (parkovisko, výstrahy, poznámky) — NAD diskusiou: je to
-            informácia „než vyrazíš", nie rozhovor. Pridávanie odtiaľto pribudne
-            vo vlne B; zatiaľ sa zapisuje gestom priamo v mape. */}
-        <MapNotesSection trail={trail} notes={mapNotes.notes} locale={dateLocale} />
+            informácia „než vyrazíš", nie rozhovor.
+            Tlačidlo „Nechať odkaz" sa ukáže LEN tomu, kto trasu prešiel — a klik
+            cez `passNoteGate()` ešte pýta hodnotenie, ak chýba (viď `noteGate`).
+            Druhý, primárny vstup je tlačidlo priamo v rohu mapy nižšie. */}
+        <MapNotesSection
+          trail={trail}
+          notes={mapNotes.notes}
+          locale={dateLocale}
+          onAdd={noteGate !== 'none' ? () => { if (passNoteGate()) setNotePick(true); } : undefined}
+        />
 
         {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackMap)
             NAD mapou — nahrádza starú spodnú „Comments" sekciu (zmazaná). walked/onRequestWalk
@@ -744,6 +911,7 @@ export default function PackTripArticle() {
 
         <div
           className="pta-mapwrap"
+          ref={mapWrapRef}
           onMouseEnter={() => setRouteDimmed(true)}
           onMouseLeave={() => setRouteDimmed(false)}
           onTouchStart={() => setRouteDimmed(true)}
@@ -753,6 +921,7 @@ export default function PackTripArticle() {
             <MapContainer
               center={trail.path[Math.floor(trail.path.length / 2)]}
               zoom={13} zoomControl={false} attributionControl={false} style={{ width: '100%', height: '100%' }}
+              ref={setNoteMap}
             >
               <TileLayer url={mapyTiles('outdoor')} />
               <InvalidateSizeOnMount />
@@ -809,12 +978,53 @@ export default function PackTripArticle() {
               {/* POI z OSM (issue #40) — pramene/výhľady/prístrešky pozdĺž TEJTO trasy.
                   Atribúcia je podmienka licencie ODbL, preto ide s vrstvou vždy v páre. */}
               <PoiLayer />
-              <MapNotesLayer notes={mapNotes.notes} locale={dateLocale} />
+              {/* Hlasovanie a mazanie tu vedome NIE SÚ — zoznam pod článkom je miesto,
+                  kde sa odkazy spravujú. Lajk áno: je to jednoklikové poďakovanie
+                  a človek ho dá tam, kde odkaz práve číta. */}
+              <MapNotesLayer
+                notes={mapNotes.notes}
+                onLike={(id, on) => { void mapNotes.like(id, on); }}
+                locale={dateLocale}
+              />
+              {/* Rozpracovaný zápis. Patrí DOVNÚTRA MapContainer (na rozdiel od panela) —
+                  viď hlavičku AddMapNote.tsx. */}
+              {noteSpot && !noteDraft && <NoteSpotPin lat={noteSpot.lat} lon={noteSpot.lon} />}
+              {noteDraft && (
+                <AddMapNotePin
+                  lat={noteDraft.lat}
+                  lon={noteDraft.lon}
+                  kind={noteDraft.kind}
+                  radiusM={noteDraft.radiusM}
+                  onMove={(lat, lon) => setNoteDraft((d) => (d ? { ...d, lat, lon } : d))}
+                />
+              )}
             </MapContainer>
           ) : (
             <div className="pta-mapempty">Route map coming soon</div>
           )}
           {trail.path.length > 0 && <PoiAttribution />}
+          {/* Vstup do zápisu priamo na mape. Kreslí sa len tomu, kto trasu prešiel;
+              ak ju ešte neohodnotil, klik otvorí najprv hodnotenie (viď `noteGate`).
+              Počas rozrobeného zápisu mizne — inak by prekrýval vlastnú paletu. */}
+          {trail.path.length > 0 && noteGate !== 'none' && !noteBusy && !notePlacing && (
+            <button
+              type="button"
+              className="pta-mapadd"
+              onClick={() => { if (passNoteGate()) setNotePick(true); }}
+            >
+              <b>+</b>{t('pack.mapNotes.map.add')}
+            </button>
+          )}
+          {/* Výzva „priblíž si mapu" v mieste kliku — patrí do pozicovaného obalu
+              mapy, lebo súradnice prichádzajú v jeho pixeloch. */}
+          {noteTooFar && noteMap && (
+            <MapNoteTooFar
+              x={noteTooFar.x}
+              y={noteTooFar.y}
+              width={noteMap.getSize().x}
+              height={noteMap.getSize().y}
+            />
+          )}
         </div>
 
         {/* #41 — KTO TENTO VÝLET VYPÍSAL. Nie autor trasy (`authorOf` je textové pole
@@ -900,6 +1110,48 @@ export default function PackTripArticle() {
           onClose={closeWalkedPopup}
           rewardPoints={votes[trail.id] ? undefined : RATE_PROMPT_POINTS}
           reward={walkedReward?.tid === trail.id ? walkedReward : null}
+        />
+      )}
+
+      {/* ── ZÁPIS ODKAZU Z ČLÁNKU (Matej 2026-08-21) ──────────────────────────
+          Panely žijú MIMO <MapContainer> — formulár nie je vrstva mapy (viď hlavičku
+          AddMapNote.tsx). Poradie krokov je rovnaké ako na celkovej mape. */}
+      {notePick && !noteDraft && (
+        <NoteQuickPalette
+          /* Lišta „ukáž miesto" je nízka, ale mapa aj tak musí byť celá vidieť —
+             klikať sa bude do nej. */
+          onPick={(g) => { setNotePick(false); setNotePlacing(g); window.requestAnimationFrame(() => scrollMapClear(60)); }}
+          onCancel={() => setNotePick(false)}
+        />
+      )}
+      {noteSpot && !noteDraft && (
+        <NoteQuickPalette
+          onPick={(g) => placeNote(g, noteSpot.lat, noteSpot.lon)}
+          onCancel={() => setNoteSpot(null)}
+        />
+      )}
+      {notePlacing && !noteDraft && (
+        <MapNotePlacing
+          group={notePlacing}
+          ready={noteZoom >= MIN_ZOOM_FOR_NOTE}
+          onCancel={() => setNotePlacing(null)}
+        />
+      )}
+      {noteDraft && (
+        <AddMapNotePanel
+          group={noteDraft.group}
+          lat={noteDraft.lat}
+          lon={noteDraft.lon}
+          kind={noteDraft.kind}
+          onKind={(k) => setNoteDraft((d) => (d ? { ...d, kind: k } : d))}
+          radiusM={noteDraft.radiusM}
+          onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}
+          /* Odkaz z článku sa pripína k TOMUTO výletu — na rozdiel od celkovej mapy,
+             kde sa najbližší výlet len odhaduje geometriou. */
+          pinnedSlug={trail.id}
+          pinnedName={trail.name}
+          onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
+          onCancel={() => setNoteDraft(null)}
         />
       )}
 

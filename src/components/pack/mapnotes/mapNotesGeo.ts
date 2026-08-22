@@ -141,10 +141,14 @@ export function datasetNotes(trails: HeroTrail[]): MapNote[] {
         createdAt: '',
         isMine: false,
         authorFirst: null,
+        authorPhoto: null,
         packNumber: null,
         validVotes: 0,
         staleVotes: 0,
         myVote: null,
+        // Datasetový bod nemá autora, takže sa mu ani nedá poďakovať.
+        likes: 0,
+        myLike: false,
         isStale: false,
       });
     }

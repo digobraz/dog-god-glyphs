@@ -52,7 +52,6 @@ import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
-import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { metersPerPixel } from '@/components/geo/geoMath';
 import { FogLayer } from '@/components/geo/FogLayer';
 import { useFogSource } from '@/components/geo/useFogSource';
@@ -71,6 +70,7 @@ import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { levelProgress } from '@/lib/tripPoints';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
+import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
@@ -109,13 +109,13 @@ import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripE
 // body (`customPoi`), ktoré appka doteraz nikde nekreslila.
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
-import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, ADD_NOTE_CSS, NOTE_PANEL_H, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, MapNoteTooFar, ADD_NOTE_CSS, NOTE_PANEL_H, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
 import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
-import { GROUP_KINDS, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
@@ -490,8 +490,16 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
       : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] };
     // Na portréte fitBounds bez desatinného zoomu nestačí: Leaflet snapuje na celé stupne, takže
     // buď je SR vpol obrazovky (stupeň nadol), alebo orezané zboku (stupeň nahor) — medzi tým nie
-    // je nič. `zoomSnap = 0` dovolí presnú medzihodnotu, ktorá dostupnú plochu vyplní. Nastavuje sa
-    // LEN na mobile a desktop si necháva default 1, aby ostal jeho `+1` krok nižšie presný.
+    // je nič. `zoomSnap = 0` dovolí presnú medzihodnotu, ktorá dostupnú plochu vyplní.
+    //
+    // ⚠️ NASTAVUJE SA LEN NA ČAS RÁMOVANIA A HNEĎ SA VRACIA SPÄŤ (Matej 2026-08-21:
+    // „ked približujem prstami od seba ide to veľmi pomaly po milimetri… extrémne dlho
+    // trvá zoom"). `zoomSnap` nie je nastavenie rámovania, je to nastavenie CELEJ mapy:
+    // Leaflet ním v `ScrollWheelZoom._performZoom` zaokrúhľuje krok kolieska
+    // (`Math.ceil(d2 / snap) * snap`). Pri `snap = 0` zaokrúhlenie vypadne a jedno
+    // šuchnutie po trackpade posunie priblíženie o zlomok stupňa — presne to „po milimetri".
+    // Rámovanie ho potrebuje na jednu synchrónnu snímku (`animate: false`), interakcia nikdy.
+    const snapBefore = map.options.zoomSnap;
     map.options.zoomSnap = mobile ? 0 : 1;
     map.fitBounds(bounds, { ...pad, animate: false, ...(offset ? { maxZoom: 14 } : {}) });
     // Matej 2026-07-23: celokrajinný pohľad bol „moc malý" → o JEDEN stupeň bližšie. DÔLEŽITÉ:
@@ -513,6 +521,10 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
       // vľavo+hore (negatívne). panBy raz po fit (nekumuluje sa, fit beží nanovo pri každej zmene).
       map.panBy([-70, -55], { animate: false });
     }
+    // Rámovanie skončilo — mapa sa vracia k celým stupňom, aby koliesko aj štipnutie
+    // posúvali priblíženie po CELOM kroku, nie po zlomkoch. Obnovuje sa až tu, za
+    // `setZoomAround`/`panBy`, ktoré ešte s medzihodnotou pracujú.
+    map.options.zoomSnap = snapBefore ?? 1;
   }, [path, offset, map]);
   return null;
 }
@@ -1460,7 +1472,7 @@ ${TRAIL_LINE_CSS}
 // JSX. PODKLAD (base) je vždy PRÁVE JEDEN aktívny (radio); OVERLAY (overlay) sa dá zapnúť viac
 // naraz (checkbox).
 type MapBaseId = 'outdoor' | 'aerial' | 'dogypt';
-type MapOverlayId = 'names' | 'poi';
+type MapOverlayId = 'names' | 'vipers';
 
 /** Kontext, ktorý layer potrebuje na vyhodnotenie `disabledReason` — fog stav (prázdny/loading,
  *  spec §4 bod 4) + `isCleanMode` (Matej 2026-08-04: „pri DOGYPT zobrazení bude vidno iba hmla
@@ -1502,20 +1514,29 @@ const MAP_LAYERS: MapLayerDef[] = [
     labelKey: 'pack.map.layerNames',
     // DOGYPT čistý vizuál (zadanie vyššie) — overlay ostáva VIDITEĽNÝ v paneli, len nedostupný,
     // nech si užívateľ nemyslí, že mu zmizol. Skutočný stav (zapnuté/vypnuté) sa NEMENÍ, len sa
-    // ignoruje pri kreslení (viď `isCleanMode` pri <TileLayer names-overlay> a <PoiLayer>) —
+    // ignoruje pri kreslení (viď `isCleanMode` pri <TileLayer names-overlay>) —
     // po návrate na Outdoor/Satelit je teda presne taký, aký bol pred vstupom do DOGYPT.
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
   {
-    id: 'poi',
+    // VÝSKYT VRETENICE — cudzí dataset, hrubé oblasti (viď `data/viperAreas.ts`).
+    // Je to overlay, nie natvrdo kreslená vrstva: červená plocha cez pol krajiny
+    // je silné tvrdenie a človek ju musí vedieť vypnúť. V DOGYPT čistom vizuáli
+    // sa nekreslí z toho istého dôvodu ako názvy — tam nesmie byť nič okrem hmly
+    // a svetelných mečov.
+    id: 'vipers',
     type: 'overlay',
-    labelKey: 'pack.map.layerPoi',
+    labelKey: 'pack.map.layerVipers',
     disabledReason: (ctx) => (ctx.isCleanMode ? 'pack.map.overlayDogyptDisabled' : null),
   },
 ];
-// Overlaye majú default stav mimo poľa (poľe je o TOM ČO existuje, nie o tom čo je dnes zapnuté) —
-// `poi` ostáva zapnuté, nech sa nezmení dnešné správanie (PoiLayer bola predtým natvrdo ON).
-const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, poi: true };
+// Overlaye majú default stav mimo poľa (pole je o TOM ČO existuje, nie o tom čo je dnes zapnuté).
+// ⚠️ `poi` odtiaľto ZMIZOL 2026-08-21 spolu s vrstvou (viď render <MapContainer>): prepínač na
+// vrstvu, ktorá sa nekreslí, je mŕtve tlačidlo — klik prejde bez chyby a neurobí nič.
+// `vipers: true` — Matej si vrstvu vypýtal NA mapu, nie do ponuky. Zapnutá je
+// bezpečná preto, že sa kreslí len pri oddialení (VIPER_MAX_ZOOM); pri práci
+// s konkrétnou trasou zmizne sama.
+const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: true };
 
 // Satelit (aerial) má dlaždice len do z19 na SK / z13 vo svete (overené v Mapy.com API
 // dokumentácii, spec-hmla.md bod 5 zadania) — nad tým dlaždica NEEXISTUJE a mapa sa vysype na
@@ -1823,8 +1844,23 @@ export default function PackMap() {
   const dateLocale = intlLocale(lang);
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
   const mapNotes = useMapNotes(true);
-  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; pinnedSlug: string | null } | null>(null);
-  const [noteTooFar, setNoteTooFar] = useState(false);
+  // `kind` aj `radiusM` sú v drafte (nie vnútri panela) zámerne: obe sa kreslia
+  // na MAPE — emoji v trojuholníku a kruh polomeru — a mapa žije v inom strome
+  // než formulár. Kým bola skupina upozornení jednou kresbou bez kruhu, stačilo
+  // to držať v paneli.
+  const [noteDraft, setNoteDraft] = useState<{ lat: number; lon: number; group: NoteGroup; kind: NoteKind; radiusM: number | null; pinnedSlug: string | null } | null>(null);
+  // Výzva „priblíž si mapu" nesie POLOHU KLIKU, nie len príznak — kreslí sa na
+  // tom pixeli, kam človek klikol (Matej 2026-08-21). `null` = nekreslí sa.
+  const [noteTooFar, setNoteTooFar] = useState<{ x: number; y: number } | null>(null);
+  const tooFarTimer = useRef<number | null>(null);
+  /** Jedno miesto na zobrazenie výzvy — volajú ho všetky tri vstupy (klik, podržanie, pravý klik). */
+  const showTooFar = useCallback((x: number, y: number) => {
+    setNoteTooFar({ x, y });
+    if (tooFarTimer.current !== null) window.clearTimeout(tooFarTimer.current);
+    tooFarTimer.current = window.setTimeout(() => { setNoteTooFar(null); tooFarTimer.current = null; }, 2600);
+  }, []);
+  // Bez tohto by po odchode zo stránky bežal `setState` nad odmountovaným stromom.
+  useEffect(() => () => { if (tooFarTimer.current !== null) window.clearTimeout(tooFarTimer.current); }, []);
   const [noteHint, setNoteHint] = useState(false);
   // POMALÁ CESTA: typ je vybraný z palety a čaká sa, kde človek klikne na mape.
   const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
@@ -1851,7 +1887,7 @@ export default function PackMap() {
    */
   const placeNote = (group: NoteGroup, lat: number, lon: number) => {
     const kind = GROUP_KINDS[group][0];
-    setNoteTooFar(false);
+    setNoteTooFar(null);
     setNoteHint(false);
     setNotePlacing(null);
     setNoteSpot(null);
@@ -1859,7 +1895,7 @@ export default function PackMap() {
     // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce spraví
     // geometria pri čítaní, toto len podchytí prípad, keď zápis vznikol
     // s konkrétnym výletom na mysli.
-    setNoteDraft({ lat, lon, group, kind, pinnedSlug: nearestTrailId(lat, lon, kind, allTrails) });
+    setNoteDraft({ lat, lon, group, kind, radiusM: defaultRadius(kind), pinnedSlug: nearestTrailId(lat, lon, kind, allTrails) });
     const map = mapInstance;
     if (!map) return;
     const pt = map.latLngToContainerPoint([lat, lon]);
@@ -1887,18 +1923,18 @@ export default function PackMap() {
   // súperili o ten istý dotyk.
   useLongPressPoint(mapInstance, !noteBusy && !notePlacing, {
     onPoint: (lat, lng) => {
-      setNoteTooFar(false);
+      setNoteTooFar(null);
       setNoteHint(false);
       markHintSeen();
       setNoteSpot({ lat, lon: lng });
     },
-    onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
+    onTooFar: showTooFar,
   });
 
   // POMALÁ CESTA — typ už je vybraný, stačí jeden klik do mapy.
   useMapClickPoint(mapInstance, !!notePlacing && !noteBusy, {
     onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
-    onTooFar: () => { setNoteTooFar(true); window.setTimeout(() => setNoteTooFar(false), 2600); },
+    onTooFar: showTooFar,
   });
 
   // bod 4 (iterácia 14, zachované): mobile ADD overlay (.trp-madd) prekrýva celú obrazovku
@@ -3425,6 +3461,7 @@ export default function PackMap() {
                   ktoré tam nemá byť — zapnutý stav sa NEMAŽE (overlayOn sa nemení), len sa
                   ignoruje pri kreslení, nech sa po návrate na Outdoor/Satelit vráti sám. */}
               {!isCleanMode && overlayOn.names && <TileLayer url={mapyTiles('names-overlay')} />}
+              {!isCleanMode && overlayOn.vipers && <ViperAreasLayer lang={lang} />}
               {isCleanMode && <DogyptBaseLayer url={mapyTiles(tileStyle)} />}
               {/* Hmla — vnútri <MapContainer> (potrebuje useMap()), pod trasami/markermi (viď
                   poradie nižšie), nechytá klik (viď FogLayer.tsx). Panel dovolí prepnúť na DOGYPT
@@ -3579,12 +3616,12 @@ export default function PackMap() {
                   vrstvená + pixelovo zhlukovaná (zadanie 2.3/2.4, <TripMarkers> vyššie pri mape).
                   Bez súradnice (0 bodov, napr. Buková priehrada) sa vodná plocha nezobrazí — čaká
                   na nahadzovač 📍 bod-miesto (mapPoints guard, viď komentár pri jeho definícii). */}
-              {/* POI z OSM (issue #40) — pod trip markermi (zIndexOffset), viditeľné až od z14.
-                  Atribúcia „© OpenStreetMap" je podmienka licencie → .trp-attrib pod mapou.
-                  Teraz overlay „Body na trase" v paneli vrstiev (default ZAPNUTÝ — nemení dnešné
-                  správanie, vrstva bola predtým natvrdo ON). `!isCleanMode` (2026-08-04): sú to
-                  popisky bodov na trase, presne to, čo DOGYPT čistý vizuál nesmie ukázať. */}
-              {!isCleanMode && overlayOn.poi && <PoiLayer />}
+              {/* POI Z OSM TU UŽ NIE JE (Matej 2026-08-21): „na mape musíme zobrazovať len
+                  emoji naše pridania v mape aj v blogu a emoji POI len v blogu". Celková mapa
+                  nesie TRASY a to, čo do nej napísala svorka — pramene a lavičky žijú v článku
+                  výletu (`PackTripArticle`), kde je otázka „kde je voda na TEJTO trase" na mieste.
+                  S vrstvou odišiel aj jej prepínač v paneli vrstiev a `<PoiAttribution />` —
+                  atribúcia je podmienka licencie ODbL a patrí tam, kde sa dáta kreslia. */}
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
@@ -3627,6 +3664,7 @@ export default function PackMap() {
                 <MapNotesLayer
                   notes={mapNotes.notes}
                   onVote={(id, v) => { void mapNotes.vote(id, v); }}
+                  onLike={(id, on) => { void mapNotes.like(id, on); }}
                   onDelete={(id) => { void mapNotes.remove(id); }}
                   locale={dateLocale}
                 />
@@ -3638,6 +3676,7 @@ export default function PackMap() {
                   lat={noteDraft.lat}
                   lon={noteDraft.lon}
                   kind={noteDraft.kind}
+                  radiusM={noteDraft.radiusM}
                   onMove={(lat, lon) => setNoteDraft((d) => (d ? { ...d, lat, lon } : d))}
                 />
               )}
@@ -3648,12 +3687,19 @@ export default function PackMap() {
                 PRIDAŤ o tú istú úlohu. Na dotyku sa nekreslí (kurzor neexistuje). */}
             {!isCleanMode && <MapNoteCursor map={mapInstance} hidden={noteBusy || !!notePlacing} />}
 
+            {/* Výzva „priblíž si mapu" — v mieste kliku, preto je TU (vnútri
+                pozicovaného obalu mapy), nie dole medzi panelmi. */}
+            {noteTooFar && mapInstance && (
+              <MapNoteTooFar
+                x={noteTooFar.x}
+                y={noteTooFar.y}
+                width={mapInstance.getSize().x}
+                height={mapInstance.getSize().y}
+              />
+            )}
+
             {/* Legenda (hike/long-distance/water/planned) ZRUŠENÁ 2026-08-03 na Matejov pokyn —
                 viď komentár pri .trp-legend v CSS. */}
-            {/* POI vrstva beží na dátach OpenStreetMap (ODbL) — atribúcia je podmienka licencie,
-                takže ide RUKA V RUKE s `!isCleanMode && overlayOn.poi` (keď sa vrstva nekreslí,
-                atribúcia teda ani nemá čo vysvetľovať). */}
-            {!isCleanMode && overlayOn.poi && <PoiAttribution style={{ bottom: 34 }} />}
 
             {/* top bar — floating status riadok + search-a-place + Activity/Difficulty/Crowd
                 filter, žije NA mape (AllTrails "Search map" vzor). Iterácia 10: status riadok
@@ -3801,6 +3847,10 @@ export default function PackMap() {
           group={noteDraft.group}
           lat={noteDraft.lat}
           lon={noteDraft.lon}
+          kind={noteDraft.kind}
+          onKind={(k) => setNoteDraft((d) => (d ? { ...d, kind: k } : d))}
+          radiusM={noteDraft.radiusM}
+          onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}
           pinnedSlug={noteDraft.pinnedSlug}
           pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
           onSubmit={async (n) => { await mapNotes.add(n); setNoteDraft(null); }}
@@ -3824,9 +3874,6 @@ export default function PackMap() {
       )}
       {noteHint && !noteDraft && !notePlacing && !noteSpot && (
         <MapNoteHint onDismiss={() => { setNoteHint(false); markHintSeen(); }} />
-      )}
-      {noteTooFar && (
-        <div className="mna-tip" role="status">{t('pack.mapNotes.tooFar')}</div>
       )}
       {/* `reward` sa pustí dnu len keď patrí PRÁVE otvorenému výletu (WalkReward.tid) — inak by
           odmena za trasu A vyskočila v popupe trasy B. */}

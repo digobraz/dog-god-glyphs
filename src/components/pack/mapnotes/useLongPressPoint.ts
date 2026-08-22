@@ -28,8 +28,19 @@
 import { useEffect, useRef } from 'react';
 import type { LeafletMouseEvent, Map as LeafletMap } from 'leaflet';
 
-/** Priblíženie, od ktorého má klik zmysel (~9 m na pixel). */
-export const MIN_ZOOM_FOR_NOTE = 14;
+/**
+ * Priblíženie, od ktorého má klik zmysel.
+ *
+ * ⚠️ 14 → 16 (Matej 2026-08-21: *„+ by sa malo dať ešte z vačšieho zoomu lebo teraz
+ * je to dosť z výšky, nepresné"*). Pri z14 padne na pixel ~9 m, takže na 500 px širokom
+ * okne vidíš pás skoro 5 km — parkovisko sa v ňom trafí na desiatky metrov a značka
+ * potom klame. Pri z16 je to ~2,3 m na pixel a v okne je ~1,2 km, čo je mierka, v ktorej
+ * je vidieť samotné odbočenie z cesty.
+ *
+ * Je to JEDINÉ číslo pre celý vstup — kontroluje ho klik, dlhé podržanie, pravý klik,
+ * lišta „ukáž miesto", nápoveda aj prstenec pri kurzore. Neduplikuj ho.
+ */
+export const MIN_ZOOM_FOR_NOTE = 16;
 /** Ako dlho treba držať. Matejovo „1-2s" — 600 ms je spodná hranica toho pásma. */
 const HOLD_MS = 600;
 /** Koľko sa smie prst pohnúť, aby to ešte bolo držanie a nie posun mapy. */
@@ -38,8 +49,17 @@ const MOVE_TOLERANCE_PX = 10;
 export type LongPressHandlers = {
   /** dosť priblížené — vráti kliknutý bod */
   onPoint: (lat: number, lng: number) => void;
-  /** primálo priblížené — na výzvu „priblíž si mapu" */
-  onTooFar?: () => void;
+  /**
+   * Primálo priblížené — na výzvu „priblíž si mapu".
+   *
+   * ⚠️ NESIE POLOHU V PIXELOCH KONTAJNERA MAPY (Matej 2026-08-21: „ten oznam
+   * vieme dať aj v mieste kliku? nech je to vidno hneď… a nie pri spodnom
+   * okraji"). Do 21. 8. bol handler bezparametrový, hoci klik polohu má —
+   * výzva teda musela visieť pri spodnej hrane, ďaleko od miesta, ktorého sa
+   * týkala. Súradnice sú CONTAINER, nie client: bublina sa kreslí do toho
+   * istého kontajnera, takže by inak bola posunutá o polohu mapy na stránke.
+   */
+  onTooFar?: (x: number, y: number) => void;
 };
 
 export function useLongPressPoint(
@@ -79,9 +99,11 @@ export function useLongPressPoint(
         if (!armed) return;
         armed = false;
         el.classList.remove('mn-holding');
-        if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(); return; }
         const rect = el.getBoundingClientRect();
-        const pt = map.containerPointToLatLng([startX - rect.left, startY - rect.top]);
+        const cx = startX - rect.left;
+        const cy = startY - rect.top;
+        if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(cx, cy); return; }
+        const pt = map.containerPointToLatLng([cx, cy]);
         cb.current.onPoint(pt.lat, pt.lng);
       }, HOLD_MS);
     };
@@ -113,9 +135,11 @@ export function useLongPressPoint(
     const onContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       cancel();
-      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(); return; }
       const rect = el.getBoundingClientRect();
-      const pt = map.containerPointToLatLng([e.clientX - rect.left, e.clientY - rect.top]);
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(cx, cy); return; }
+      const pt = map.containerPointToLatLng([cx, cy]);
       cb.current.onPoint(pt.lat, pt.lng);
     };
 
@@ -192,7 +216,8 @@ export function useMapClickPoint(
     const el = map.getContainer();
     el.classList.add('mn-placing');
     const onClick = (e: LeafletMouseEvent) => {
-      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(); return; }
+      // `containerPoint` dáva Leaflet rovno — netreba prepočet cez getBoundingClientRect.
+      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(e.containerPoint.x, e.containerPoint.y); return; }
       cb.current.onPoint(e.latlng.lat, e.latlng.lng);
     };
     map.on('click', onClick);

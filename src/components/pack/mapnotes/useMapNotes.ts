@@ -12,6 +12,7 @@ import {
   fetchMapNotes,
   addMapNote,
   voteMapNote,
+  likeMapNote,
   deleteMapNote,
   type MapNote,
   type NewMapNote,
@@ -48,6 +49,11 @@ export function useMapNotes(enabled = true) {
     await reload();
   }, [reload]);
 
+  const like = useCallback(async (id: string, on: boolean) => {
+    await likeMapNote(id, on);
+    await reload();
+  }, [reload]);
+
   const remove = useCallback(async (id: string) => {
     await deleteMapNote(id);
     await reload();
@@ -57,5 +63,5 @@ export function useMapNotes(enabled = true) {
   const fromDataset = useMemo(() => datasetNotes(HERO_TRAILS), []);
   const all = useMemo(() => [...fromDataset, ...notes], [fromDataset, notes]);
 
-  return { notes: all, memberNotes: notes, loading, reload, add, vote, remove };
+  return { notes: all, memberNotes: notes, loading, reload, add, vote, like, remove };
 }

@@ -22,12 +22,14 @@
 // gesto na konkrétnom mieste, takže typ musí prísť po ňom.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
-import { Marker } from 'react-leaflet';
+import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { useT } from '@/i18n/LanguageContext';
-import { GROUP_KINDS, bodyRequired, groupOf, type NewMapNote, type NoteGroup, type NoteKind } from './mapNotesData';
-import { noteGlyphSvg } from './noteIcons';
-import { GROUP_TINT, NotePalette, NOTE_PALETTE_CSS } from './NotePalette';
+import { useLang, useT } from '@/i18n/LanguageContext';
+import { intlLocale } from '@/i18n/bcp47';
+import { GROUP_KINDS, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind } from './mapNotesData';
+import { FONT_EMOJI, threatEmoji } from './markEmoji';
+import { noteMarkHtml } from './MapNotesLayer';
+import { GROUP_TINT, HAZARD_RED, NotePalette, NOTE_PALETTE_CSS } from './NotePalette';
 
 const GOLD = '#C99A3F';
 const PARK_BLUE = T.brandBlueLite;
@@ -38,8 +40,13 @@ const BODY_MAX = 600;
  * značka ostala vidieť. Je to KONŠTANTA, nie meraná výška: panel sa mountuje
  * až po položení značky, takže meranie by prišlo o snímku neskoro a mapa by
  * poskočila až po tom, čo človek uvidí zlú polohu.
+ *
+ * ⚠️ 300 → 340 (2026-08-21): pribudol posuvník polomeru a rad piatich hrozieb sa
+ * na mobile zalamuje do dvoch riadkov. Keď sa panel rozrastie, ČÍSLO SA MUSÍ
+ * ZDVIHNÚŤ AJ TU — inak sa mapa odpanuje primálo a značka skončí pod formulárom,
+ * čo je presne tá chyba, kvôli ktorej panel vznikol.
  */
-export const NOTE_PANEL_H = 300;
+export const NOTE_PANEL_H = 340;
 
 /**
  * Bod z dlhého podržania, kým človek vyberá typ.
@@ -61,35 +68,56 @@ export type AddMapNotePinProps = {
   lat: number;
   lon: number;
   kind: NoteKind;
+  /** null = bod. Kreslí sa ŽIVO počas ťahania posuvníka v paneli. */
+  radiusM?: number | null;
   onMove: (lat: number, lon: number) => void;
 };
 
-/** Ťahateľná značka počas zakladania. Patrí DOVNÚTRA <MapContainer>. */
-export function AddMapNotePin({ lat, lon, kind, onMove }: AddMapNotePinProps) {
+/**
+ * Ťahateľná značka počas zakladania. Patrí DOVNÚTRA <MapContainer>.
+ *
+ * Tvar aj emoji sú tie isté ako v `MapNotesLayer` — človek má počas písania
+ * vidieť presne to, čo po odoslaní na mape ostane, nie zástupný symbol.
+ *
+ * ⚠️ `kind` sa MENÍ počas otvoreného panela (výber hrozby), takže značka musí
+ * byť riadená zvonku. Kým bola skupina upozornení jednou kresbou, na tom
+ * nezáležalo; s emoji by sa človeku pri prepnutí na medveďa naďalej usmievali
+ * kliešte.
+ */
+export function AddMapNotePin({ lat, lon, kind, radiusM = null, onMove }: AddMapNotePinProps) {
+  const tint = GROUP_TINT[groupOf(kind)];
+  // Značku kreslí `noteMarkHtml()` z MapNotesLayer — JEDEN zdroj. Kým to bola
+  // kópia, prežilo tu po prechode na emoji staré „biele P v modrom štvorci"
+  // a rozpracovaný zápis vyzeral inak než ten istý zápis o sekundu neskôr.
   const icon = useMemo(
-    () =>
-      L.divIcon({
-        className: 'mn-wrap',
-        html:
-          kind === 'parking'
-            ? `<div class="mn-mark mn-mark--park mn-mark--draft"><span>P</span></div>`
-            : `<div class="mn-mark mn-mark--round mn-mark--draft" style="--mn-tint:${GROUP_TINT[groupOf(kind)]}">${noteGlyphSvg(kind, 15)}</div>`,
-      }),
+    () => L.divIcon({ className: 'mn-wrap', html: noteMarkHtml(kind, ' mn-mark--draft') }),
     [kind],
   );
 
   return (
-    <Marker
-      position={[lat, lon]}
-      icon={icon}
-      draggable
-      eventHandlers={{
-        dragend: (e) => {
-          const p = (e.target as L.Marker).getLatLng();
-          onMove(p.lat, p.lng);
-        },
-      }}
-    />
+    <>
+      {/* Náhľad okruhu. Bez neho je posuvník slepý údaj v metroch — „500 m" nikto
+          neodhadne, kým to na mape neuvidí prekryté cez les. */}
+      {radiusM != null && (
+        <Circle
+          center={[lat, lon]}
+          radius={radiusM}
+          pathOptions={{ color: tint, weight: 1.5, opacity: 0.7, fillColor: tint, fillOpacity: 0.14, dashArray: '5 5' }}
+          interactive={false}
+        />
+      )}
+      <Marker
+        position={[lat, lon]}
+        icon={icon}
+        draggable
+        eventHandlers={{
+          dragend: (e) => {
+            const p = (e.target as L.Marker).getLatLng();
+            onMove(p.lat, p.lng);
+          },
+        }}
+      />
+    </>
   );
 }
 
@@ -112,7 +140,7 @@ export function MapNotePlacing({
   const touch = typeof window !== 'undefined' && window.matchMedia('(hover:none)').matches;
   const key = !ready ? 'pack.mapNotes.place.zoomIn' : touch ? 'pack.mapNotes.place.touch' : 'pack.mapNotes.place.mouse';
   return (
-    <div className="mnp-bar" role="status">
+    <div className={`mnp-bar${ready ? '' : ' is-warn'}`} role="status">
       <style>{ADD_NOTE_CSS}</style>
       <span className="mnp-dot" style={{ background: GROUP_TINT[group] }} aria-hidden />
       <span className="mnp-text">
@@ -135,9 +163,13 @@ export function NoteQuickPalette({ onPick, onCancel }: { onPick: (g: NoteGroup) 
       <style>{ADD_NOTE_CSS}</style>
       <style>{NOTE_PALETTE_CSS}</style>
       <div className="mnq-panel">
+        {/* NADPIS PANELA, nie eyebrow (Matej 2026-08-21: „namiesto čo tu je daj dostredu —
+            PRIDAJ ODKAZ"). Krížik je `absolute`, aby nadpis sedel v OPTICKOM strede panela;
+            keby bol v toku, centroval by sa len zvyšok šírky po jeho odčítaní a nadpis by
+            sa opticky zosunul vľavo. */}
         <div className="mnq-head">
-          <span className="mnq-eyebrow">{t('pack.mapNotes.quick.eyebrow')}</span>
-          <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
+          <h3 className="mnq-title">{t('pack.mapNotes.quick.title')}</h3>
+          <button type="button" className="mna-close mnq-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
         </div>
         <NotePalette variant="strip" onPick={onPick} />
       </div>
@@ -145,10 +177,28 @@ export function NoteQuickPalette({ onPick, onCancel }: { onPick: (g: NoteGroup) 
   );
 }
 
+/**
+ * „500 m" / „1,2 km" — metre pod kilometrom, nad ním kilometre s jedným
+ * desatinným miestom. `2500 m` sa číta ako číslo, `2,5 km` ako vzdialenosť.
+ *
+ * ⚠️ Desatinný oddeľovač NEPÍŠ natvrdo — SK má čiarku, EN bodku. Preto `Intl`,
+ * a jazyk cezeň vždy prekladá `intlLocale()` (viď hlavičku `i18n/bcp47.ts`).
+ */
+function formatRadius(m: number, locale: string): string {
+  if (m < 1000) return `${m} m`;
+  return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(m / 1000)} km`;
+}
+
 export type AddMapNotePanelProps = {
   group: NoteGroup;
   lat: number;
   lon: number;
+  /** RIADENÉ ZVONKU — značka na mape musí ukazovať práve vybranú hrozbu. */
+  kind: NoteKind;
+  onKind: (k: NoteKind) => void;
+  /** null = bod. Riadené zvonku z toho istého dôvodu — kruh sa kreslí na mape. */
+  radiusM: number | null;
+  onRadius: (m: number | null) => void;
   /** vyplnené len keď zápis vzniká z otvoreného článku výletu */
   pinnedSlug?: string | null;
   /** názov výletu na potvrdenie „patrí sem" — čisto informatívne */
@@ -161,14 +211,19 @@ export function AddMapNotePanel({
   group,
   lat,
   lon,
+  kind,
+  onKind,
+  radiusM,
+  onRadius,
   pinnedSlug,
   pinnedName,
   onSubmit,
   onCancel,
 }: AddMapNotePanelProps) {
   const t = useT();
+  const { lang } = useLang();
   const subKinds = GROUP_KINDS[group];
-  const [kind, setKind] = useState<NoteKind>(subKinds[0]);
+  const rule = radiusRule(kind);
   const [body, setBody] = useState('');
   const [paid, setPaid] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
@@ -182,6 +237,17 @@ export function AddMapNotePanel({
     if (window.matchMedia('(hover:none)').matches) return;
     areaRef.current?.focus();
   }, []);
+
+  // ⚠️ POLOMER PATRÍ DRUHU, NIE PANELU. Bez tohto by prepnutie z „medveďa" (okruh
+  // zapnutý) na „rebríky" (iba bod) nechalo na mape visieť kruh, ktorý formulár už
+  // neovláda — pole zmizne, kružnica ostane. DB by ho pri odoslaní zahodila, takže
+  // by človek videl na mape jednu vec a uložil druhú.
+  const pickKind = (k: NoteKind) => {
+    onKind(k);
+    const r = radiusRule(k);
+    if (r.mode === 'none') onRadius(null);
+    else if (radiusM != null) onRadius(Math.min(Math.max(radiusM, r.min), r.max));
+  };
 
   const trimmed = body.trim();
   const needsBody = bodyRequired(kind);
@@ -200,6 +266,9 @@ export function AddMapNotePanel({
         lat,
         lon,
         body: trimmed,
+        // `radiusM` sa posiela AKO JE — dorovnanie na pravidlo skupiny robí DB
+        // (`add_map_note`), nie formulár. Viď migráciu 20260821_map_notes_kinds.sql.
+        radiusM,
         paid: kind === 'parking' ? paid : null,
         pinnedSlug: pinnedSlug ?? null,
       });
@@ -217,12 +286,14 @@ export function AddMapNotePanel({
         <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
       </div>
 
-      {/* Podtypy upozornenia (zver · kliešte · iné). Na mape majú JEDNU výstražnú
-          značku — rozlišuje sa až tu a v bubline (viď noteIcons.ts). */}
+      {/* ROZPAD UPOZORNENIA NA KONKRÉTNE HROZBY (Matej 2026-08-21).
+          Trojuholník je spoločný tvar celej skupiny, emoji vnútri nesie podtyp —
+          takže voľba tu OKAMŽITE mení značku na mape (`kind` je riadený zvonku). */}
       {subKinds.length > 1 && (
         <div className="mna-kinds">
           {subKinds.map((k) => (
-            <button key={k} type="button" className={`mna-kind${kind === k ? ' on' : ''}`} onClick={() => setKind(k)}>
+            <button key={k} type="button" className={`mna-kind${kind === k ? ' on' : ''}`} onClick={() => pickKind(k)}>
+              <i>{threatEmoji(k)}</i>
               {t(`pack.mapNotes.kind.${k}`)}
             </button>
           ))}
@@ -250,6 +321,55 @@ export function AddMapNotePanel({
         </div>
       )}
 
+      {/* ── POLOMER ────────────────────────────────────────────────────────────
+          Parkovisko sem nikdy nedôjde (`mode:'none'`) — je to bod a posuvník by
+          len ponúkal odpoveď na otázku, ktorú nikto nemá.
+          Pri upozornení sa posuvník NEDÁ vypnúť, len posunúť od 500 m vyššie;
+          pri komentári je okruh voľba (Matej: „správa môže byť bod alebo okruh"). */}
+      {rule.mode !== 'none' && (
+        <div className="mna-radius">
+          <div className="mna-radius-head">
+            <span className="mna-radius-label">{t('pack.mapNotes.radius.label')}</span>
+            {rule.mode === 'optional' && (
+              <div className="mna-radius-switch">
+                <button
+                  type="button"
+                  className={`mna-opt${radiusM == null ? ' on' : ''}`}
+                  onClick={() => onRadius(null)}
+                >
+                  {t('pack.mapNotes.radius.point')}
+                </button>
+                <button
+                  type="button"
+                  className={`mna-opt${radiusM != null ? ' on' : ''}`}
+                  onClick={() => onRadius(radiusM ?? rule.def)}
+                >
+                  {t('pack.mapNotes.radius.area')}
+                </button>
+              </div>
+            )}
+            {radiusM != null && <span className="mna-radius-val">{formatRadius(radiusM, intlLocale(lang))}</span>}
+          </div>
+          {radiusM != null && (
+            <input
+              type="range"
+              className="mna-range"
+              min={rule.min}
+              max={rule.max}
+              step={rule.step}
+              value={radiusM}
+              onChange={(e) => onRadius(Number(e.target.value))}
+              style={{ ['--mn-tint' as string]: GROUP_TINT[group] }}
+              aria-label={t('pack.mapNotes.radius.label')}
+            />
+          )}
+          {/* Veta ostáva aj po tom, čo polomer prestal byť povinný (22. 8.) — vtedy
+              bola vysvetlením pravidla, teraz je odporúčaním. Zviazať ju s `required`
+              by znamenalo, že s pravidlom ticho zmizne aj dôvod, prečo kruh existuje. */}
+          {groupOf(kind) === 'warning' && <p className="mna-radius-note">{t('pack.mapNotes.radius.warnNote')}</p>}
+        </div>
+      )}
+
       {pinnedName && <p className="mna-pinned">{t('pack.mapNotes.add.pinned').replace('{trip}', pinnedName)}</p>}
       {error && <p className="mna-error">{error}</p>}
 
@@ -259,6 +379,47 @@ export function AddMapNotePanel({
           {busy ? t('pack.mapNotes.add.saving') : t('pack.mapNotes.add.submit')}
         </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * VÝZVA „PRIBLÍŽ SI MAPU" PRIAMO V MIESTE KLIKU (Matej 2026-08-21).
+ *
+ * „ten oznam vieme dať aj v mieste kliku? nech je to vidno hneď… a nie pri
+ * spodnom okraji." Predtým visel `position:fixed` pri spodnej hrane — teda inde,
+ * než sa človek práve pozeral, a pri kliku hore na mape ho ľahko prehliadol.
+ *
+ * ⚠️ BUBLINA SA MUSÍ VOJSŤ DO MAPY. Klik pri okraji by ju vystrčil von z kontajnera
+ * (a na mobile mimo obrazovky), takže sa priráža k okrajom — rovnaká logika ako
+ * `NOTE_PANEL_H` panBy pri paneli. Šípka pod bublinou sa preto počíta zvlášť:
+ * keď sa telo bubliny odsunie, šípka musí ostať nad kliknutým bodom, inak ukazuje
+ * na nesprávne miesto.
+ *
+ * Kotva je STRED bubliny nad bodom; pri kliku úplne hore sa preklopí POD bod
+ * (`is-below`), aby nevytiekla nad mapu.
+ */
+export function MapNoteTooFar({ x, y, width, height }: { x: number; y: number; width: number; height: number }) {
+  const t = useT();
+  const BW = 250;      // šírka bubliny (musí sedieť s max-width v CSS)
+  const BH = 54;       // odhad výšky pri dvoch riadkoch — stačí na rozhodnutie hore/dole
+  const GAP = 14;      // odstup od kliknutého bodu (miesto pre šípku)
+  const EDGE = 10;     // minimálny odstup od hrany mapy
+
+  const below = y - GAP - BH < EDGE;
+  const top = below ? y + GAP : y - GAP - BH;
+  const left = Math.max(EDGE, Math.min(x - BW / 2, Math.max(EDGE, width - BW - EDGE)));
+  // Šípka drží kliknutý bod, aj keď sa telo odsunulo k okraju.
+  const arrow = Math.max(12, Math.min(x - left, BW - 12));
+
+  return (
+    <div
+      className={`mntf${below ? ' is-below' : ''}`}
+      role="status"
+      style={{ left, top: Math.max(EDGE, Math.min(top, height - BH - EDGE)), width: BW, ['--mntf-arrow' as string]: `${arrow}px` }}
+    >
+      <style>{ADD_NOTE_CSS}</style>
+      {t('pack.mapNotes.tooFar')}
     </div>
   );
 }
@@ -303,9 +464,35 @@ export const ADD_NOTE_CSS = `
 .mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;}
 .mna-close{width:30px;height:30px;border:0;background:transparent;color:${T.onDarkDim};font-size:16px;line-height:1;cursor:pointer;padding:0;}
 .mna-close:hover{color:${GOLD};}
+/* PILULKY HROZIEB — päť podtypov sa na 390 px do jedného riadku nezmestí, takže
+   sa rad zalamuje a pilulka NERASTIE do celej šírky (flex:0 1 auto). S 1 1 0
+   by posledná v riadku bola trikrát širšia než jej dvojičky nad ňou. */
 .mna-kinds{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-.mna-kind{flex:1 1 0;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 8px;cursor:pointer;}
-.mna-kind.on{color:${GOLD};border-color:${GOLD};background:rgba(201,154,63,0.12);}
+.mna-kind{flex:0 1 auto;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:1px solid ${T.onDarkBorder};border-radius:999px;padding:6px 10px;cursor:pointer;}
+.mna-kind i{font-style:normal;font-family:${FONT_EMOJI};font-size:12px;line-height:1;}
+.mna-kind.on{color:${HAZARD_RED};border-color:${HAZARD_RED};background:rgba(206,75,60,0.14);}
+
+/* ── POLOMER ───────────────────────────────────────────────────────────────
+   Posuvník má vlastný vzhľad, lebo natívny je na tmavom paneli takmer neviditeľný
+   (WebKit kreslí bledú dráhu na bledom pozadí). Farbu berie zo skupiny cez
+   --mn-tint, takže upozornenie ťahá červenú a komentár zlatú — rovnaký jazyk
+   ako značka aj kruh na mape. */
+.mna-radius{margin-top:10px;}
+.mna-radius-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.mna-radius-label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
+.mna-radius-switch{display:flex;gap:6px;}
+.mna-radius-switch .mna-opt{flex:0 1 auto;font-size:10px;padding:5px 10px;}
+.mna-radius-switch .mna-opt.on{color:${GOLD};border-color:${GOLD};background:rgba(201,154,63,0.12);}
+.mna-radius-val{margin-left:auto;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.04em;color:${T.onDark};}
+.mna-radius-note{margin:6px 0 0;font-family:${FONT_UI};font-size:10.5px;line-height:1.4;color:${T.onDarkDim};}
+.mna-range{width:100%;margin:9px 0 0;-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;}
+.mna-range:focus{outline:none;}
+.mna-range::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.16);}
+.mna-range::-moz-range-track{height:4px;border-radius:999px;background:rgba(245,240,228,0.16);}
+/* margin-top na palci = (výška dráhy − priemer palca) / 2; bez neho WebKit
+   posadí palec na horný okraj dráhy a posuvník vyzerá rozbito. */
+.mna-range::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50%;background:var(--mn-tint,${GOLD});border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
+.mna-range::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--mn-tint,${GOLD});border:2px solid rgba(255,255,255,0.85);box-shadow:0 2px 6px rgba(0,0,0,0.5);}
 /* 16 px je minimum, pod ktorým iOS Safari pri fokuse zoomuje celú stránku —
    v mape by to znamenalo, že sa človeku pri písaní rozsype výrez. */
 .mna-body{width:100%;box-sizing:border-box;margin-top:8px;font-family:${FONT_UI};font-size:16px;line-height:1.45;color:${T.onDark};background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};border-radius:8px;padding:9px 11px;resize:none;min-height:56px;}
@@ -333,7 +520,13 @@ export const ADD_NOTE_CSS = `
 /* ── LIŠTA „UKÁŽ MIESTO" ───────────────────────────────────────────────────
    Plná tmavá výplň, nie sklo: leží nad SVETLOU mapou, kde priesvitné sklo zmizne
    (overené screenshotom pri prvej verzii — biely text na svetlozelenej mape). */
-.mnp-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1200;display:flex;align-items:center;gap:10px;width:min(94vw,440px);padding:10px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 8px 26px rgba(0,0,0,0.55);}
+.mnp-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1200;display:flex;align-items:center;gap:10px;width:min(94vw,440px);padding:10px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 8px 26px rgba(0,0,0,0.55);transition:border-color .18s ease,box-shadow .18s ease;}
+/* VÝZVA PRIBLÍŽIŤ = jediný stav, keď lišta hovorí „takto to nepôjde" (Matej 2026-08-21:
+   „daj ju do červeného rámika ten čierny sa stratí"). Zlatý rám na mape splýva s okolím
+   aj s vlastnou paletou; červená je jediná farba, ktorú appka inde nepoužíva na nič iné
+   než na upozornenie. NEDÁVAJ ju na MapNoteHint — tá privíta, nie varuje. */
+.mnp-bar.is-warn{border-color:${HAZARD_RED};box-shadow:0 8px 26px rgba(0,0,0,0.55),0 0 0 1px rgba(206,75,60,0.45),0 0 18px rgba(206,75,60,0.35);}
+.mnp-bar.is-warn .mnp-text b{color:${HAZARD_RED};}
 @media (max-width:720px){.mnp-bar{bottom:82px;}}
 .mnp-dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,0.14);}
 .mnp-text{flex:1 1 auto;font-family:${FONT_UI};font-size:11.5px;line-height:1.4;color:${T.onDark};}
@@ -347,8 +540,11 @@ export const ADD_NOTE_CSS = `
 .mnq-wrap{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1250;width:min(94vw,470px);}
 @media (max-width:720px){.mnq-wrap{bottom:82px;}}
 .mnq-panel{padding:10px 12px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 10px 28px rgba(0,0,0,0.55);}
-.mnq-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:8px;}
-.mnq-eyebrow{font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:${T.onDarkDim};}
+.mnq-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:30px;margin-bottom:8px;}
+/* Panel je RASTÚCI ZOZNAM („tu časom vieme pridať dalšie položky") — nadpis preto
+   patrí nad celý panel, nie k prvej dlaždici. */
+.mnq-title{margin:0;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:${T.onDark};text-align:center;}
+.mnq-close{position:absolute;right:0;top:50%;transform:translateY(-50%);}
 
 /* Bod z podržania — kruh bez významu, typ sa vyberá až v palete pod ním. */
 .mn-spot{width:18px;height:18px;border-radius:50%;background:rgba(5,5,5,0.55);border:2px solid rgba(245,240,228,0.9);box-shadow:0 2px 8px rgba(0,0,0,0.5);animation:mnPulse 1.4s ease-in-out infinite;}
@@ -365,4 +561,19 @@ export const ADD_NOTE_CSS = `
 .mna-tip button{flex:0 0 auto;border:0;background:transparent;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;padding:0 2px;}
 .mna-tip button:hover{color:${GOLD};}
 @media (max-width:720px){.mna-tip{bottom:156px;}}
+
+/* ── VÝZVA PRIBLÍŽIŤ — V MIESTE KLIKU ──────────────────────────────────────
+   absolute, nie fixed: kotví sa do kontajnera mapy, lebo súradnice prichádzajú
+   v jeho pixeloch. Červený rám je Matejov (21. 8.: „daj ju do červeného rámika ten
+   čierny sa stratí") — červená je jediná farba, ktorú appka inde nepoužíva na nič
+   iné než na upozornenie. NEDÁVAJ ju na MapNoteHint: tá privíta, nevaruje.
+   pointer-events:none — bublina nesmie zjesť ďalší klik, ktorým sa človek
+   pokúsi priblížiť dvojklikom. */
+.mntf{position:absolute;z-index:1150;pointer-events:none;padding:10px 13px;border-radius:12px;background:rgba(5,5,5,0.94);border:1px solid ${HAZARD_RED};box-shadow:0 6px 20px rgba(0,0,0,0.5),0 0 0 1px rgba(206,75,60,0.35),0 0 18px rgba(206,75,60,0.3);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:#F4C9C2;animation:mntfIn .16s ease-out;}
+/* Šípka = otočený štvorec s dvomi zvýraznenými hranami. Posúva sa cez
+   --mntf-arrow, aby ukazovala na bod aj keď je telo prirazené k okraju. */
+.mntf::after{content:'';position:absolute;left:var(--mntf-arrow,50%);width:10px;height:10px;margin-left:-5px;background:rgba(5,5,5,0.94);transform:rotate(45deg);}
+.mntf:not(.is-below)::after{bottom:-6px;border-right:1px solid ${HAZARD_RED};border-bottom:1px solid ${HAZARD_RED};}
+.mntf.is-below::after{top:-6px;border-left:1px solid ${HAZARD_RED};border-top:1px solid ${HAZARD_RED};}
+@keyframes mntfIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
 `;

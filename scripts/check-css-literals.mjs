@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// STRÁŽ NA SPÄTNÝ APOSTROF V CSS-V-JS LITERÁLE.
+// STRÁŽ NA CUDZIE ZNAKY V CSS-V-JS LITERÁLE — SPÄTNÝ APOSTROF A ${.
 //
 // PREČO EXISTUJE: v projekte držíme CSS v JS template literáloch
 // (`const HUB_CSS = ...`, `NQ_CSS`, `GLASS_CSS`, `<style>{...}</style>`). Spätný
@@ -12,6 +12,11 @@
 // NQ_CSS v PackNatureQuiz 14.8. dvakrát v jednej session) — vždy pri písaní
 // komentára, teda vždy pri práci, ktorá s CSS nesúvisí. Preto stráž, nie ďalšia
 // poznámka v hlavičke súboru: poznámku má súbor už teraz a nepomohla.
+//
+// DRUHÁ PASCA, TEN ISTÝ TVAR (doplnené 21. 8. 2026): `${` v komentári. Nie je to
+// text, je to INTERPOLÁCIA — esbuild sa pokúsi vyhodnotiť, čo je vnútri, a build
+// padne na syntaktickej chybe („z packTheme.ts nižšie cez ${...}" v MapNotesLayer).
+// Chytá sa to rovnako neskoro ako apostrof, tak nech to chytá tá istá stráž.
 //
 // Púšťa sa automaticky pred `npm run build`. Samostatne: `npm run check:css`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -47,6 +52,18 @@ for (const file of walk(ROOT)) {
       if (src[i] === '`') break;
       i += 1;
     }
+    const bodyText = src.slice(start, i);
+    // ${ v KOMENTÁRI. Platné interpolácie sú v CSS pravidlách (`color:${T.x}`), takže
+    // sa pozeráme len dovnútra /* ... */ blokov — inak by stráž hlásila každý token.
+    // VÝNIMKA: `${'text'}` je ZÁMERNÝ únik — interpolácia reťazcovej konštanty,
+    // ktorá do komentára vypíše presne to, čo je v úvodzovkách, a nič nevyhodnocuje.
+    // Používa ho napr. COMMUNITY_CSS. Hlásime len `${` bez úvodzovky za ním.
+    for (const c of bodyText.matchAll(/\/\*[\s\S]*?\*\//g)) {
+      if (!/\$\{\s*[^'"\s]/.test(c[0])) continue;
+      const line = src.slice(0, start + c.index).split('\n').length;
+      bad.push(`${file}:${line}  — literál ${m[1]} má \${ v CSS komentári (esbuild to vyhodnotí ako interpoláciu, nie text)`);
+    }
+
     const after = src.slice(i + 1, i + 3);
     // Zdravý literál končí na `;` (prípadne `\n;`). Čokoľvek iné = ukončil ho
     // apostrof v komentári a zvyšok CSS sa teraz tvári ako JavaScript.
@@ -58,9 +75,9 @@ for (const file of walk(ROOT)) {
 }
 
 if (bad.length) {
-  console.error('\n✖ Spätný apostrof v CSS-v-JS literáli — build by padol, tsc to nechytí:\n');
+  console.error('\n✖ CSS-v-JS literál by zhodil build (tsc to nechytí):\n');
   for (const b of bad) console.error('  ' + b);
-  console.error('\n  Oprava: v komentári vnútri CSS literálu píš názvy BEZ spätných apostrofov.\n');
+  console.error('\n  Oprava: v komentári vnútri CSS literálu píš názvy BEZ spätných apostrofov; ak naozaj potrebuješ ${, daj doň úvodzovky.\n');
   process.exit(1);
 }
-console.log('✓ CSS-v-JS literály sú čisté (0 spätných apostrofov v telách)');
+console.log('✓ CSS-v-JS literály sú čisté (0 spätných apostrofov, 0 ${ v komentároch)');

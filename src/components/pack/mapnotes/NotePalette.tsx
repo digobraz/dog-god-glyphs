@@ -4,46 +4,52 @@
 // Matej 2026-08-20: „dajme len 3, dalšie doplníme neskor (parkovisko,
 // upozornenie -zver, kliešte, ine, komentar)".
 //
-// ── PREČO PALETA UKAZUJE ZNAČKU, A NIE IKONKU V RÁMČEKU ─────────────────────
-// Dlaždica kreslí PRESNE TÚ ZNAČKU, ktorá o chvíľu pristane na mape — modrý
-// štvorec s P, červený kruh s výstrahou, zlatý kruh s bublinou. Človek si tak
-// nespája abstraktný piktogram s neznámym výsledkom, ale vidí dopredu, čo po
-// ňom na mape ostane. Preto sa tu nepoužíva `<BrandIcon>`: značky sú vlastný
-// tvar (štvorec vs. kruh, farba podľa významu), nie ikonky v UI.
+// ── PALETA JE HOLÉ EMOJI, BEZ PODLOŽKY (Matej 2026-08-21) ───────────────────
+// „tu to oprav na emoji a psa nedávaj do kruhu… iba emoji (trojuholník vymeň)".
+// Nakreslené podložky (modrý štvorec s P, clip-path trojuholník, zlatý kruh)
+// tu zanikli — 🅿️ aj ⚠️ ten istý tvar nesú natívne, takže sa nič nestratilo,
+// len ubudla vrstva CSS medzi človekom a významom.
+//
+// ⚠️ Emoji MUSÍ mať `FONT_EMOJI` — zdedený Cinzel by na Windows sadol na
+// čiernobiely textový variant.
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
-import { GROUP_KINDS, NOTE_GROUPS, type NoteGroup } from './mapNotesData';
-import { noteGlyphSvg } from './noteIcons';
+import { NOTE_GROUPS, type NoteGroup } from './mapNotesData';
+import { FONT_EMOJI, GROUP_EMOJI } from './markEmoji';
 
 const GOLD = '#C99A3F';
 const PARK_BLUE = T.brandBlueLite;
-const HAZARD_RED = '#CE4B3C';
+/** Červená upozornenia. Jediný zdroj — `MapNotesLayer`/`MapNotesSection` si ju zatiaľ držia
+ *  vlastnou kópiou, čo je dlh zapísaný v audite vysvetliviek. */
+export const HAZARD_RED = '#CE4B3C';
 
+/**
+ * Farba skupiny — nesie ju lem značky, kruh polomeru, bodka v lište „ukáž miesto"
+ * aj titulok panela. JEDEN zdroj, aby značka a jej popis nehovorili dve farby.
+ *
+ * ⚠️ NAJPRV MODRÁ, OD 22. 8. ZELENÁ. Zlatú Matej zamietol 21. 8. („pri komentári
+ * daj modrú farbu nie zlatú tá nie je takmer vobec vidno" — mapa je SVETLÁ a
+ * `#C99A3F` na nej zmizne). Modrá vydržala jeden deň: „tip je ešte lepšie ako rada
+ * = bude to niečo v pozitívnom duchu". Modrou totiž appka inde značí „ideš s niekým",
+ * takže na mape nehovorila ani varovanie, ani odmenu — nehovorila nič.
+ *
+ * Červená = daj si pozor · zelená = toto ťa poteší. Dve farby, dva opačné zmysly,
+ * a človek ich rozozná skôr, než prečíta, čo je vnútri kruhu.
+ */
 export const GROUP_TINT: Record<NoteGroup, string> = {
   parking: PARK_BLUE,
   warning: HAZARD_RED,
-  comment: GOLD,
+  comment: T.growGreen,
 };
 
-/** Značka skupiny — ten istý tvar, aký kreslí `MapNotesLayer`. */
+/**
+ * Značka skupiny — rozcestník, nie výsledná značka (viď `GROUP_EMOJI` v markEmoji.ts).
+ */
 export function GroupMark({ group, size = 26 }: { group: NoteGroup; size?: number }) {
-  const tint = GROUP_TINT[group];
-  if (group === 'parking') {
-    return (
-      <span
-        className="np-mark np-mark--park"
-        style={{ width: size, height: size, borderRadius: Math.round(size * 0.22), fontSize: Math.round(size * 0.6) }}
-      >
-        P
-      </span>
-    );
-  }
   return (
-    <span
-      className="np-mark np-mark--round"
-      style={{ width: size, height: size, borderColor: tint, color: tint }}
-      dangerouslySetInnerHTML={{ __html: noteGlyphSvg(GROUP_KINDS[group][0], Math.round(size * 0.58)) }}
-    />
+    <span className="np-mark" style={{ width: size, height: size, fontSize: Math.round(size * 0.82) }}>
+      {GROUP_EMOJI[group]}
+    </span>
   );
 }
 
@@ -85,7 +91,5 @@ export const NOTE_PALETTE_CSS = `
 .np-name{font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:${T.onDark};white-space:nowrap;}
 .np-text{font-family:${FONT_UI};font-size:11.5px;line-height:1.45;color:${T.onDarkDim};}
 
-.np-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 2px 6px rgba(0,0,0,0.45);}
-.np-mark--park{background:${PARK_BLUE};border:1.5px solid rgba(255,255,255,0.85);font-family:${FONT_UI};font-weight:600;line-height:1;color:#fff;}
-.np-mark--round{border-radius:50%;background:${T.pageBg};border:1.5px solid currentColor;}
+.np-mark{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-family:${FONT_EMOJI};line-height:1;-webkit-user-select:none;user-select:none;}
 `;
