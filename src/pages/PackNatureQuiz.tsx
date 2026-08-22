@@ -385,7 +385,14 @@ const NQ_CSS = `
      dlaždica ~225 px a text „what everyone gets wrong about it" sa doň nezmestí —
      orezal by sa. Rovnakú výšku drží stretch mriežky, teda najvyšší súrodenec. */
   min-height:186px;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  /* ⚠️ flex-start, NIE center (22. 8. 2026). Pri centrovaní visí zvislá poloha
+     ikony na dĺžke textu POD ňou, takže tri dlaždice majú tri rôzne výšky ikon —
+     v EN to bolo náhodou v poriadku (všetky popisy vyšli na štyri riadky), v SK
+     hneď vidno rozhádzaný rad. Zhodnú výšku dlaždíc drží stretch mriežky, nie
+     zarovnanie obsahu; mobilná vetva nižšie mala flex-start odjakživa.
+     ⚠️ Tento blok je JS template literal — spätný apostrof ho zhodí a tsc to
+     nechytí. Do komentárov v CSS ich nepíš. */
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
   text-align:center; gap:11px; padding:18px 14px;
   background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);
   border:1.5px solid #C99A3F; border-radius:14px;
@@ -964,15 +971,23 @@ function DogIdNote({ tx }: { tx: (k: string, f: string) => string }) {
           boxShadow: '0 0 0 4px rgba(59,158,255,0.06), 0 0 20px rgba(59,158,255,0.34)',
         }}
       />
+      {/* ⚠️ VLASTNÉ KĽÚČE, NIE `axis3`. Tento panel a TRETIA DLAŽDICA úvodu
+          (r. ~2176) mali do 22. 8. 2026 obe kľúč `pack.nature.intro.axis3`,
+          len s iným fallbackom — panel „It goes into the DOG ID", dlaždica
+          „Balance right now". Kým kvíz nemal v i18n ani jeden kľúč, každé
+          miesto si vzalo svoj fallback a nikto si toho nevšimol. Prvý zápis
+          do slovníka to okamžite zlomil: obe miesta začali ukazovať ten istý
+          text a z tretej dlaždice („rovnováha") sa stala kópia panela.
+          Kolízia kľúčov sa neprejaví ako chyba, len ako zlý text. */}
       <div style={{ minWidth: 0 }}>
         <div style={{
           fontFamily: FONT_TITLE, fontWeight: 700, textTransform: 'uppercase',
           fontSize: 12.5, letterSpacing: '.08em', color: '#5BE0F0', marginBottom: 5,
-        }}>{tx('pack.nature.intro.axis3', 'It goes into the DOG ID')}</div>
+        }}>{tx('pack.nature.intro.dogid', 'It goes into the DOG ID')}</div>
         <div style={{
           fontFamily: FONT_UI, fontSize: 12.5, lineHeight: 1.55, color: T.onDarkDim,
         }}>
-          {tx('pack.nature.intro.axis3sub',
+          {tx('pack.nature.intro.dogidSub',
             'Your answers are written onto your dog’s DOG ID and stay there. From there they shape the advice you get later — food, daily routine, training — so it fits this dog, not dogs in general.')}
         </div>
       </div>
