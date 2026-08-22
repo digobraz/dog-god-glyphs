@@ -122,7 +122,6 @@ import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS 
 import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
-import { AddTripPlan } from '@/components/pack/addtrip/AddTripPlan';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
@@ -3133,12 +3132,11 @@ export default function PackMap() {
           a ako jediný kus chrome pod `trp-draw-lock` ostáva. V stave LIST/DETAIL je to
           prehliadanie a zámok ho schová (viď body.trp-draw-lock v CSS vyššie). */}
       <aside className={`trp-sidebar${addFlow || addEventFlow ? ' is-tool' : ''}`}>
+        {/* JEDEN FORMULÁR VÝLETU (rez C) — o type rozhoduje dátum v ňom, nie voľba pred ním.
+            `AddTripPlan` tým stratil volajúceho; ostáva v repe, kým sa neoverí, že z neho
+            netreba nič dotiahnuť. */}
         {addFlow ? (
-          addFlow === 'planned' ? (
-            <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} />
-          ) : (
-            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} seedPoint={seedPoint} />
-          )
+          <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} seedPoint={seedPoint} />
         ) : addEventFlow ? (
           <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
         ) : inlineDetailId ? (() => {
@@ -3707,11 +3705,7 @@ export default function PackMap() {
               existujú v DOM naraz a skrýva ich CSS, nie podmienka. Keby `drawBar` dostali obe,
               na obrazovke by stáli dve lišty. */}
           {addFlow ? (
-            addFlow === 'planned' ? (
-              <AddTripPlan allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} />
-            ) : (
-              <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} seedPoint={seedPoint} onReadyToDraw={() => setMobileDrawing(true)} />
-            )
+            <AddTripLog allTrails={allTrails} authorName={firstName} myDogs={myDogsForAdd} onSubmit={submitAddTripDraft} onClose={closeAdd} placeholderFor={placeholderFor} mapRef={leafletMapRef} drawBar={drawBarProps} seedPoint={seedPoint} onReadyToDraw={() => setMobileDrawing(true)} />
           ) : addEventFlow ? (
             <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
           ) : null}

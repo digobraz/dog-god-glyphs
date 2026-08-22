@@ -45,6 +45,9 @@ const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: strin
 
 // Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa
 // presúva sem, §2.2).
+// ⚠️ NERENDERUJE SA od 22. 8. 2026 (rez C) — ostáva ako doklad, čo tu stálo, a ako
+// zdroj i18n kľúčov, ktoré sa ešte používajú inde. Voľbu nahradil dátum vo formulári.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const TRIP_BLOCKS: Array<{ state: TripState; emoji: string; titleKey: string; textKey: string }> = [
   { state: 'planned', emoji: '🗓️', titleKey: 'pack.addTrip.entry.planned.title', textKey: 'pack.addTrip.entry.planned.text' },
   { state: 'walked', emoji: '✅', titleKey: 'pack.addTrip.entry.walked.title', textKey: 'pack.addTrip.entry.walked.text' },
@@ -82,7 +85,11 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                 aria-disabled={k.disabled}
                 onClick={() => {
                   if (k.disabled) return;
-                  if (k.kind === 'trip') setStep('trip');
+                  // ⏳ DRUHÁ ÚROVEŇ PRE VÝLET ZANIKLA (Matej 22. 8.). Bola to otázka
+                  // „prešli ste to, alebo sa chystáte?", na ktorú odpoveď leží o pár polí
+                  // nižšie — v dátume. Formulár je jeden a prepne sa podľa neho.
+                  // `TRIP_BLOCKS` ostáva v súbore ako doklad, čo tu stálo; nerenderuje sa.
+                  if (k.kind === 'trip') onPick({ kind: 'trip', state: 'walked' });
                   if (k.kind === 'event') setStep('event');
                   if (k.kind === 'note') setStep('note');
                 }}
@@ -95,17 +102,7 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
             ))}
           </div>
         )}
-        {step === 'trip' && (
-          <div className="att-entry-blocks">
-            {TRIP_BLOCKS.map((b) => (
-              <button key={b.state} type="button" className="att-entry-block" onClick={() => onPick({ kind: 'trip', state: b.state })}>
-                <span className="att-entry-emoji" aria-hidden="true">{b.emoji}</span>
-                <span className="att-entry-title">{t(b.titleKey)}</span>
-                <span className="att-entry-text">{t(b.textKey)}</span>
-              </button>
-            ))}
-          </div>
-        )}
+        {/* `step === 'trip'` sa už nenastavuje — viď komentár pri kliku na dlaždicu VÝLET. */}
         {step === 'note' && (
           <div className="att-entry-note">
             <p className="att-entry-lead">{t('pack.mapNotes.palette.lead')}</p>

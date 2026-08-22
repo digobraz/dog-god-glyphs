@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
+import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -156,6 +157,10 @@ function CompanionAvatarsOnly(props: {
 }
 
 export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, drawBar, seedPoint, onReadyToDraw }: AddTripLogProps) {
+  // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
+  // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
+  // a `t('...')` by volalo string.
+  const t = useT();
   // ── krok 1: aktivita ('' = ešte nevybraná, formulár skrytý) ───────────────────────────────
   const [activity, setActivity] = useState('');
   const [geometry, setGeometry] = useState<TripGeometry>({ kind: 'route', path: [], snapped: false });
@@ -179,6 +184,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const [customHazardOpen, setCustomHazardOpen] = useState(false);
   const [customHazardText, setCustomHazardText] = useState('');
   const [crew, setCrew] = useState<Companion[]>([]);
+  /**
+   * VIDITEĽNOSŤ PLÁNU — pole z bývalého `AddTripPlan`. Konzervatívny default: kým člen
+   * výslovne nezvolí „hľadám svorku", plán je súkromný.
+   */
+  const [visibility, setVisibility] = useState<'private' | 'open'>('private');
   const [paws, setPaws] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
   const [photoNote, setPhotoNote] = useState('');
@@ -259,6 +269,52 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // (End date je súčasť kroku, nie voliteľná nadstavba) — platná (submitovateľná) je, keď End date
   // je vyplnený a je neskôr než Date. Km limit padol (Matej: viacdňový výlet so psom môže mať aj
   // 30 km, km nerobí trip viacdňovým).
+  /**
+   * ⏳ O TYPE VÝLETU ROZHODUJE DÁTUM (Matej 22. 8., rez C).
+   *
+   * Voľba „prešli sme / chystáme sa" ZANIKLA — bola to otázka, na ktorú odpoveď už ležala
+   * o tri polia nižšie. Minulý dátum = zápis prejdeného, budúci = plán. `dontRemember`
+   * („neviem kedy") ostáva minulosťou; nepamätať si dátum výletu, ktorý sa ešte nekonal,
+   * nedáva zmysel.
+   *
+   * Porovnáva sa DEŇ, nie okamih: výlet naplánovaný na dnes večer je ešte plán a `new Date()`
+   * s časom by ho o polnoci ticho preklopil na zápis.
+   */
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const isPlan = !dontRemember && !!date && date > todayISO;
+
+  /**
+   * TVAR NAKRESLENEJ TRASY do `<polyline>` — normalizovaný do štvorca 100×100.
+   *
+   * Zámerne sa NEZACHOVÁVA pomer strán (`preserveAspectRatio="none"`): pás je široký
+   * a nízky, takže vernou projekciou by sa zvislá trasa scvrkla na čiaru cez tri pixely.
+   * Toto nie je mapa, je to podpis výletu — ide o to, že tam niečo je a rastie.
+   *
+   * Zvislá os sa preklápa (`maxLat` hore): v zemepisných súradniciach rastie šírka nahor,
+   * v SVG rastie `y` nadol. Bez toho by bol každý výrez zrkadlovo prevrátený.
+   */
+  const routeShape = useMemo(() => {
+    const line = geometry.kind === 'route' ? (geometry.snapPath ?? geometry.path) : [];
+    if (line.length < 2) return null;
+    let minLat = Infinity, maxLat = -Infinity, minLon = Infinity, maxLon = -Infinity;
+    for (const [la, lo] of line) {
+      if (la < minLat) minLat = la; if (la > maxLat) maxLat = la;
+      if (lo < minLon) minLon = lo; if (lo > maxLon) maxLon = lo;
+    }
+    // Trasa dlhá na jednu os (rovná čiara) by delila nulou — vtedy ju položíme do stredu.
+    const spanLat = maxLat - minLat || 1e-9;
+    const spanLon = maxLon - minLon || 1e-9;
+    const pad = 8;
+    const span = 100 - pad * 2;
+    return line
+      .map(([la, lo]) => {
+        const x = maxLon === minLon ? 50 : pad + ((lo - minLon) / spanLon) * span;
+        const y = maxLat === minLat ? 50 : pad + ((maxLat - la) / spanLat) * span;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(' ');
+  }, [geometry]);
+
   const isMultiDay = activity === 'journey' && !!dateEnd && dateEnd > date;
   const journeyIssue = activity === 'journey' && !isMultiDay;
 
@@ -282,9 +338,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     setSet(n);
   };
   const addCustomHazard = () => {
-    const t = customHazardText.trim();
-    if (!t) return;
-    setHazards((prev) => new Set(prev).add(t));
+    const txt = customHazardText.trim();
+    if (!txt) return;
+    setHazards((prev) => new Set(prev).add(txt));
     setCustomHazardText('');
     setCustomHazardOpen(false);
   };
@@ -314,10 +370,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const draft = useMemo<LogDraft>(() => {
     const now = Date.now();
     return {
-      id: `log-${now}`,
+      id: `${isPlan ? 'plan' : 'log'}-${now}`,
       existingTripId,
-      state: 'walked',
-      approval: 'draft', // placeholder — finálna hodnota sa dorátava pri submite (missingFields).
+      state: isPlan ? 'planned' : 'walked',
+      // Plán nejde cez schvaľovaciu frontu (§4.3 platí len pre walked) — objaví sa hneď.
+      // Pri zápise je to placeholder, finálna hodnota sa dorátava pri submite (missingFields).
+      approval: isPlan ? 'approved' : 'draft',
+      visibility: isPlan ? visibility : undefined,
       name: name.trim(),
       activity,
       geometry,
@@ -327,21 +386,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       date: dontRemember ? undefined : (date || undefined),
       dateEnd: !dontRemember && isMultiDay ? dateEnd : undefined,
       crew,
-      diff: isHikeLike && diff ? diff : undefined,
-      surface: isHikeLike && terrain ? [terrain] : undefined,
-      crowd: crowd || undefined,
+      diff: !isPlan && isHikeLike && diff ? diff : undefined,
+      surface: !isPlan && isHikeLike && terrain ? [terrain] : undefined,
+      crowd: !isPlan && crowd ? crowd : undefined,
       tags: tags.size > 0 ? Array.from(tags) : undefined,
-      hazards: hazards.size > 0 ? Array.from(hazards) : undefined,
-      paws: paws > 0 ? paws : undefined,
-      photos: photos.length > 0 ? photos : undefined,
-      coverIndex: photos.length > 0 ? effCoverIndex : undefined,
+      hazards: !isPlan && hazards.size > 0 ? Array.from(hazards) : undefined,
+      paws: !isPlan && paws > 0 ? paws : undefined,
+      photos: !isPlan && photos.length > 0 ? photos : undefined,
+      coverIndex: !isPlan && photos.length > 0 ? effCoverIndex : undefined,
       coverY,
       note: note.trim() || undefined,
       authorName,
       createdAt: now,
       updatedAt: now,
     };
-  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, hazards, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId]);
+  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, hazards, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -375,6 +434,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   return (
     <div className="atl-log">
       <style>{LOG_CSS}</style>
+      <style>{ROUTE_HERO_CSS}</style>
       <div className="atl-log-head">
         <button
           type="button"
@@ -384,7 +444,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
         >
           ←
         </button>
-        <div className="atl-log-title">{activity ? 'Log a trip' : 'What did you do?'}</div>
+        {/* Nadpis sleduje dátum — kým je v budúcnosti, formulár je PLÁN a „Log a trip"
+            by hovoril o niečom, čo sa ešte nestalo. */}
+        <div className="atl-log-title">
+          {!activity ? t('pack.addTrip.log.titleActivity') : t(isPlan ? 'pack.addTrip.log.titlePlan' : 'pack.addTrip.log.title')}
+        </div>
       </div>
 
       {!activity && (
@@ -401,26 +465,40 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       {!!activity && (
         <>
           <div className="atl-log-body">
-            <div
-              className="atl-photo"
-              style={{
-                backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
-                backgroundPosition: photos.length > 0 ? `center ${coverY}%` : undefined,
-              }}
-            >
-              {photos.length === 0 && <span className="atl-photo-badge">ADD A PHOTO BELOW</span>}
-            </div>
+            {/* HORE PATRÍ TO, ČO ČLOVEK PRÁVE ROBÍ — nie stock les.
+                Kým nie je nahraná fotka, ukazuje sa ŽIVÝ VÝREZ NAKRESLENEJ TRASY: rastie
+                s každým bodom a je to jediný obrázok, ktorý o tomto konkrétnom výlete
+                niečo hovorí. Zástupná fotografia sa vracia až vtedy, keď ešte nie je
+                nakreslené nič — vtedy je to len výplň, nie tvrdenie. */}
+            {photos.length === 0 && routeShape ? (
+              <div className="atl-photo atl-photo--route">
+                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline points={routeShape} />
+                </svg>
+                <span className="atl-photo-badge">{t('pack.addTrip.log.routeSoFar')}</span>
+              </div>
+            ) : (
+              <div
+                className="atl-photo"
+                style={{
+                  backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
+                  backgroundPosition: photos.length > 0 ? `center ${coverY}%` : undefined,
+                }}
+              >
+                {photos.length === 0 && <span className="atl-photo-badge">{t('pack.addTrip.log.addPhotoBelow')}</span>}
+              </div>
+            )}
 
             {/* 1. Name */}
             <div className="atl-field">
-              <label>Name</label>
+              <label>{t('pack.addTrip.log.name')}</label>
               <input className="atl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sunset ridge walk" />
             </div>
 
             {/* 2. Date · End date (journey only, always visible) · Don't remember */}
             <div className={activity === 'journey' && !dontRemember ? 'atl-row3' : 'atl-row2'}>
               <div className="atl-field">
-                <label>Date</label>
+                <label>{t('pack.addTrip.log.date')}</label>
                 <input
                   type="date"
                   className="atl-input"
@@ -485,17 +563,22 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   </select>
                 </div>
               )}
-              <div className="atl-field">
-                <label>Crowd</label>
-                <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
-                  <option value="">Select…</option>
-                  {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {c}</option>)}
-                </select>
-              </div>
+              {/* Ruch, náročnosť, povrch, hodnotenie a fotky sú SPRÁVY Z CESTY — na výlete,
+                  ktorý sa ešte nekonal, sa nedajú vyplniť pravdivo. Preto sa na pláne
+                  nezobrazujú (a do draftu sa nedostanú, viď `isPlan` pri jeho stavbe). */}
+              {!isPlan && (
+                <div className="atl-field">
+                  <label>{t('pack.addTrip.log.crowd')}</label>
+                  <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
+                    <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
+                    {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {c}</option>)}
+                  </select>
+                </div>
+              )}
             </div>
 
             {/* 4. (hiking/journey only) Difficulty · Terrain */}
-            {isHikeLike && (
+            {isHikeLike && !isPlan && (
               <div className="atl-row2">
                 <div className="atl-field">
                   <label>Difficulty</label>
@@ -516,16 +599,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
             {/* 5. Tags */}
             <div className="atl-field">
-              <label>Tags</label>
+              <label>{t('pack.addTrip.log.tags')}</label>
               <div className="atl-chips">
-                {TAG_OPTIONS.map((t) => (
+                {TAG_OPTIONS.map((tag) => (
                   <button
-                    key={t.label}
+                    key={tag.label}
                     type="button"
-                    className={`atl-chip${tags.has(t.label) ? ' on' : ''}`}
-                    onClick={() => toggleSet(tags, setTags, t.label)}
+                    className={`atl-chip${tags.has(tag.label) ? ' on' : ''}`}
+                    onClick={() => toggleSet(tags, setTags, tag.label)}
                   >
-                    <span className="atl-chip-emoji">{t.emoji}</span><span className="atl-chip-label">{t.label}</span>
+                    <span className="atl-chip-emoji">{tag.emoji}</span><span className="atl-chip-label">{tag.label}</span>
                   </button>
                 ))}
               </div>
@@ -533,11 +616,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
             {/* 6. Short note */}
             <div className="atl-field">
-              <label>Tell the pack about it</label>
+              <label>{t(isPlan ? 'pack.addTrip.plan.details' : 'pack.addTrip.log.story')}</label>
               <textarea className="atl-input atl-textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Any tips, highlights, warnings…" />
             </div>
 
-            {/* 7. Hazards + custom */}
+            {/* 7. Hazards + custom — len pri zápise (viď komentár pri Crowd) */}
+            {!isPlan && (
             <div className="atl-field">
               <label>Any hazards? <span className="atl-field-hint">(optional — helps the pack)</span></label>
               <div className="atl-chips">
@@ -569,20 +653,51 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 </div>
               )}
             </div>
+            )}
+
+            {/* PLÁN — dve polia z bývalého `AddTripPlan`. Ukazujú sa len keď dátum leží
+                v budúcnosti; vtedy naopak nedávajú zmysel hodnotenie a fotky vyššie. */}
+            {isPlan && (
+              <div className="atl-field">
+                <label>{t('pack.addTrip.plan.visibility')}</label>
+                <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.plan.visibility')}>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={visibility === 'private'}
+                    className={`atl-toggle-btn${visibility === 'private' ? ' on' : ''}`}
+                    onClick={() => setVisibility('private')}
+                  >{t('pack.addTrip.plan.visibilityPrivate')}</button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={visibility === 'open'}
+                    className={`atl-toggle-btn${visibility === 'open' ? ' on' : ''}`}
+                    onClick={() => setVisibility('open')}
+                  >{t('pack.addTrip.plan.visibilityOpen')}</button>
+                </div>
+                <p className="atl-field-hint" style={{ marginTop: 6 }}>
+                  {t(visibility === 'private' ? 'pack.addTrip.plan.visibilityPrivateNote' : 'pack.addTrip.plan.visibilityOpenNote')}
+                </p>
+              </div>
+            )}
 
             {/* 8. Trip pack */}
             <div className="atl-field">
-              <label>Trip pack</label>
+              <label>{t('pack.addTrip.log.pack')}</label>
               <CompanionAvatarsOnly myDogs={myDogs} selected={crew} onChange={setCrew} />
             </div>
 
-            {/* 9. Packs rating */}
+            {/* 9. Packs rating — len pri zápise (viď komentár pri Crowd) */}
+            {!isPlan && (
             <div className="atl-field">
               <label>Rate this trip</label>
               <PawRating value={paws} onChange={setPaws} onDark size={26} />
             </div>
+            )}
 
-            {/* 10. Photos */}
+            {/* 10. Photos — len pri zápise */}
+            {!isPlan && (
             <div className="atl-field">
               <label>Photos <span className="atl-field-hint">· {photos.length}/{MAX_PHOTOS} · auto-resized</span></label>
               <button
@@ -636,11 +751,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 </>
               )}
             </div>
+            )}
 
             {/* 11. Where — journey = výber z magistrál, nie kreslenie (§1/§2 zadania); ostatné
                 aktivity a "Not here?" únik z journey kreslia ako doteraz. */}
             <div className="atl-field">
-              <label>Where</label>
+              <label>{t('pack.addTrip.log.where')}</label>
               {activity === 'journey' && !drawManually ? (
                 <div className="atl-journeys">
                   <input
@@ -693,9 +809,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
               </div>
             )}
             <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
-              Log trip
+              {t(isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
             </button>
-            {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">Missing: {missing.toSubmit.join(', ')}</p>}
+            {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missing.toSubmit.join(', ') })}</p>}
             {!canSubmit && journeyIssue && (
               <p className="atl-log-hint">Journey needs a multi-day trip — add an end date after the start date.</p>
             )}
@@ -709,6 +825,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     </div>
   );
 }
+
+const ROUTE_HERO_CSS = `
+/* Výrez trasy namiesto zástupnej fotky. Papyrus sem NEPATRÍ — formulár je tmavý povrch
+   Portalu, takže podklad je ten istý sklenený tón ako zvyšok panela. */
+.atl-photo--route{position:relative;display:block;background:linear-gradient(160deg,#1b1409,#0d0a06);border:1px solid ${T.onDarkBorder};}
+.atl-photo--route svg{position:absolute;inset:0;width:100%;height:100%;}
+.atl-photo--route polyline{fill:none;stroke:#F5C73D;stroke-width:2.2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;filter:drop-shadow(0 0 6px rgba(245,199,61,0.45));}
+`;
 
 const COMPANION_CSS = `
 .atl-companions .comm-comp-selected{gap:8px;}
