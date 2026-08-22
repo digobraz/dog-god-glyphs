@@ -51,6 +51,7 @@ import L from 'leaflet';
 import type { LatLngTuple } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { mapyTiles, MAPY_API_KEY } from '@/lib/env';
+import { track } from '@/lib/analytics';
 import { HERO_TRAILS, type HeroTrail } from '@/data/heroTrails.generated';
 import { metersPerPixel } from '@/components/geo/geoMath';
 import { FogLayer } from '@/components/geo/FogLayer';
@@ -1547,6 +1548,25 @@ const OVERLAY_DEFAULTS: Record<MapOverlayId, boolean> = { names: false, vipers: 
 // (keby sa raz zvýšil), nie o opravu okamžite viditeľnej chyby.
 const AERIAL_MAX_NATIVE_ZOOM = 19;
 
+// Telemetria výpadku dlaždíc. Leaflet strieľa `tileerror` PER DLAŽDICU, takže pri vyčerpanej
+// kvóte Mapy.com alebo referrer-locku by jedno otvorenie mapy poslalo desiatky až stovky
+// eventov — z merania by sa stal spam a z PostHogu účet navyše. Zaujíma nás, ŽE vrstva padá,
+// nie koľko štvorčekov: prvý pád danej vrstvy sa hlási hneď, ďalšie sa tichnú na minútu.
+// ⚠️ `style` je NÁZOV štýlu (`outdoor`), NIE URL dlaždice — `mapyTiles()` má v query
+// `apikey=`, takže poslať sem URL by vynieslo kľúč Mapy.com do PostHogu a cez
+// `window.dataLayer` aj do GTM/GA4/Pixelu. Kľúč je síce v bundli tak či tak, ale
+// rozposielať ho tretím stranám nemá dôvod.
+const TILE_ERR_MUTE_MS = 60_000;
+const tileErrLast = new Map<string, number>();
+function trackTileError(style: string, layer: string) {
+  const key = `${layer}:${style}`;
+  const now = Date.now();
+  const last = tileErrLast.get(key) ?? 0;
+  if (now - last < TILE_ERR_MUTE_MS) return;
+  tileErrLast.set(key, now);
+  track('map_tile_error', { style, layer });
+}
+
 // Fade prahy zdieľané s <FogLayer/> DEFAULTS (fadeStart/fadeEnd) — spec §1 bod 4: podklad AJ
 // hmla sa majú rozplývať SPOLU. FogLayer.tsx je mimo rozsahu tejto úlohy (viď zadanie, dotýkať sa
 // smie len bod so zdieľaným metersPerPixel), takže hodnoty tu NIE sú importované, len ručne
@@ -1558,8 +1578,11 @@ const DOGYPT_FADE_END = 15;
 // `fx` (zIndex 250: nad tilePane 200, pod overlayPane 400, teda pod markermi/trasami aj pod
 // hmlou samotnou). CSS filter je NA PLNO stále, prelína sa VÝHRADNE opacitou vrstvy — priamo
 // interpolovať invert() sa nedá (invert(0.5) je šedá kaša, overené v prototype). Rovnaké URL ako
-// spodná (neupravená) vrstva → dlaždice z browser cache, 0 requestov navyše.
-function DogyptBaseLayer({ url }: { url: string }) {
+// spodná (neupravená) vrstva — POZOR, toto NIE JE zadarmo cez browser cache (overené 22.8.2026:
+// api.mapy.com neposiela Cache-Control/ETag/Expires na tile endpointe), takže bez `sw-maptiles.js`
+// (viď public/, registrovaný v main.tsx) by táto vrstva sťahovala každú dlaždicu ešte raz z platenej
+// API kvóty. Cache-vrstva je service-worker, nie tu — nemeň URL schému bez overenia dopadu na ňu.
+function DogyptBaseLayer({ url, style }: { url: string; style: string }) {
   const map = useMap();
 
   useEffect(() => {
@@ -1570,6 +1593,7 @@ function DogyptBaseLayer({ url }: { url: string }) {
     pane.style.filter = 'invert(1) hue-rotate(180deg) saturate(0.15) brightness(0.69) contrast(.95)';
 
     const layer = L.tileLayer(url, { pane: 'fx', opacity: 0 }).addTo(map);
+    layer.on('tileerror', () => trackTileError(style, 'fx'));
     const applyFade = () => {
       const z = map.getZoom();
       const fade = DOGYPT_FADE_END <= DOGYPT_FADE_START
@@ -3454,15 +3478,21 @@ export default function PackMap() {
                 key={tileStyle}
                 url={mapyTiles(tileStyle)}
                 {...(tileStyle === 'aerial' ? { maxNativeZoom: AERIAL_MAX_NATIVE_ZOOM } : {})}
+                eventHandlers={{ tileerror: () => trackTileError(tileStyle, 'base') }}
               />
               {/* Overlay „Popisky a hranice" — Mapy.com mapset names-overlay, transparentná
                   vrstva NAD podkladom (default vypnutý — bod 1 zadania, viď MAP_LAYERS).
                   `!isCleanMode` (2026-08-04): v DOGYPT podklade je to presne to písmo/legenda,
                   ktoré tam nemá byť — zapnutý stav sa NEMAŽE (overlayOn sa nemení), len sa
                   ignoruje pri kreslení, nech sa po návrate na Outdoor/Satelit vráti sám. */}
-              {!isCleanMode && overlayOn.names && <TileLayer url={mapyTiles('names-overlay')} />}
+              {!isCleanMode && overlayOn.names && (
+                <TileLayer
+                  url={mapyTiles('names-overlay')}
+                  eventHandlers={{ tileerror: () => trackTileError('names-overlay', 'overlay') }}
+                />
+              )}
               {!isCleanMode && overlayOn.vipers && <ViperAreasLayer lang={lang} />}
-              {isCleanMode && <DogyptBaseLayer url={mapyTiles(tileStyle)} />}
+              {isCleanMode && <DogyptBaseLayer url={mapyTiles(tileStyle)} style={tileStyle} />}
               {/* Hmla — vnútri <MapContainer> (potrebuje useMap()), pod trasami/markermi (viď
                   poradie nižšie), nechytá klik (viď FogLayer.tsx). Panel dovolí prepnúť na DOGYPT
                   len keď fog.trails.length>0 (viď MAP_LAYERS `disabledReason`), takže tu netreba

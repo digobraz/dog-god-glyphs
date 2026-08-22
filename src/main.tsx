@@ -16,4 +16,11 @@ if (POSTHOG_KEY) {
   });
 }
 
+// Cache pre Mapy.com dlaždice (viď public/sw-maptiles.js) — bez nej sa DOGYPT
+// clean-mode invert vrstva sťahuje z platenej API dvakrát a žiadna dlaždica sa
+// nezopakuje ani medzi session (Mapy.com neposiela Cache-Control/ETag).
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw-maptiles.js').catch(() => {});
+}
+
 createRoot(document.getElementById("root")!).render(<App />);
