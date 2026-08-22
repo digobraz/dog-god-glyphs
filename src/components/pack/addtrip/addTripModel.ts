@@ -125,7 +125,12 @@ export type AddTripDraft = {
 // trasu na výlet o mesiac") — to je `default` nižšie, nezávisle od módu plán/log.
 export const ACTIVITY_GEOMETRY: Record<string, { default: GeometryKind; allowed: GeometryKind[] }> = {
   hiking: { default: 'route', allowed: ['route', 'area'] },
-  journey: { default: 'route', allowed: ['route', 'area'] },
+  // 🔴 LEN 'route' (Matej 2026-08-22: „pri magistrále - logovaní nemože byť oblasť musí mať
+  // vždy ROUTE"). Predtým tu bolo aj 'area' — a keďže PLÁN si berie najvoľnejšiu povolenú
+  // geometriu (`defaultKindFor(_,'plan')`, looseFirst = area→point→route), plánovaná magistrála
+  // ZAČÍNALA ako kruh na mape. Jediná povolená hodnota zároveň schová prepínač druhu
+  // (`allowed.length > 1` v GeometryPicker.tsx:363) — nie je z čoho vyberať.
+  journey: { default: 'route', allowed: ['route'] },
   picnic: { default: 'area', allowed: ['area', 'point'] },
   overnight: { default: 'area', allowed: ['area', 'point'] },
   skating: { default: 'route', allowed: ['route', 'area'] },

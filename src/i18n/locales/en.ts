@@ -2021,6 +2021,17 @@ export const en = {
   'pack.map.sortTopRated': "Top rated",
   'pack.map.sortEasiest': "Easiest",
   'pack.map.sortHardest': "Hardest",
+  'pack.map.sortCalmest': "Calmest",
+  // ── Zamknutá mapa (MapLocked.tsx, 2026-08-22) — dva stavy odmietnutia namiesto tichého
+  //    odhodenia späť na /pack. `soon` = prihlásený člen, `join` = nikto.
+  'pack.mapLocked.eyebrow': "Trails of the pack",
+  'pack.mapLocked.soonTitle': "The map opens soon",
+  'pack.mapLocked.soonSub': "We are still walking every trail before we hand you the map. It lands in your pack shortly — nothing to do, you already have the key.",
+  'pack.mapLocked.joinTitle': "The map belongs to the pack",
+  'pack.mapLocked.joinSub': "Trails, threats, watering spots and the dogs who walked them — the map lives inside the pack. Your heroglyph is the key to it.",
+  'pack.mapLocked.backToPack': "Back to my pack",
+  'pack.mapLocked.become': "Become Dogyptian",
+  'pack.mapLocked.alreadyMember': "Already one of us? Sign in",
   'pack.map.catTrips': "Trips",
   'pack.map.catEvents': "Events",
   'pack.map.catPlaces': "Places",

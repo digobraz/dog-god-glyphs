@@ -226,6 +226,9 @@ function AuthorAvatars({ author, size }: { author: string; size: number }) {
 // bez náročnosti (vodná plocha, viď isWaterTrail) → radí sa na koniec bez ohľadu na smer
 // (Easiest aj Hardest), nie na 'Hard' pozíciu ako predtým fabrikovaný fallback 'Moderate' robil.
 const diffRank = (d?: string) => (d === 'Easy' ? 0 : d === 'Moderate' ? 1 : d === 'Hard' ? 2 : d === 'Odyssey' ? 3 : 4);
+// Ruch (crowd) → poradie pre zoradenie „od najkľudnejšieho" (Matej 2026-08-22). Hodnota bez
+// ruchu ide NASPODOK (4), nie na začiatok — neznáme nie je to isté ako ľudoprázdne.
+const crowdRank = (c?: string | null) => (c === 'Empty' ? 0 : c === 'Calm' ? 1 : c === 'Busy' ? 2 : 4);
 
 // Haversine — rovnaký algoritmus ako AddTrailFlow.tsx (recyklované, nie importované:
 // Portal ADD flow stavia lokálny-session HeroTrail, nie `trails` DB riadok, tak si
@@ -953,8 +956,13 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
 .trp-level-num em{font-style:normal;font-weight:600;font-size:21px;letter-spacing:0;}
 /* CTA tlačidlo → Cinzel ostáva: .btn-gold (SpiralLanding.css) je LOCKED brand CTA a ten je
    Cinzel 700 uppercase. Grotesk sem nepatrí. */
-.trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
-.trp-addtrip-btn:hover{filter:brightness(1.05);}
+/* DOSVIT Z LOCKU (2026-08-22) — .btn-gold (SpiralLanding.css:241) má
+   box-shadow: 0 0 40px rgba(230,158,26,.4) + inset 0 1px 0 rgba(255,255,255,.3). Tunajšie CTA
+   ho nemalo, takže na tmavej mape splývalo s pozadím a s ostatnými zlatými prvkami. Gradient,
+   radius 8 aj papyrusový rám sedeli, chýbal len halo — dopĺňa sa, nevymýšľa sa vlastný. */
+.trp-addtrip-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:9px 16px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3);transition:transform .2s, box-shadow .22s, filter .22s;cursor:pointer;white-space:nowrap;}
+.trp-addtrip-btn:hover{filter:brightness(1.05);box-shadow:0 0 56px rgba(230,158,26,0.55), inset 0 1px 0 rgba(255,255,255,0.3);}
+.trp-addtrip-btn:active{transform:scale(0.98);}
 /* Dva labely CTA (Matej 2026-07-27): plný „Add trip" na širokom desktope, skrátený „Add"
    v kompaktnom desktope a na mobile — tam sa musí celý status riadok zmestiť do JEDNÉHO
    riadku. Prepínajú sa v media queries nižšie; default = plný. */
@@ -1449,7 +1457,16 @@ ${TRAIL_LINE_CSS}
      ADD teda UŽ NIE JE roh-FAB — obe tlačidlá sedia v jednom centrovanom páre. Posun dole
      o polovicu = 96 → 87px (predtým 78, čo nechávalo nad navom 8px). */
   .trp-mactions{display:flex;align-items:center;justify-content:center;gap:10px;position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 87px);z-index:900;}
-  .trp-mtoggle,.trp-mfab{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);box-shadow:0 10px 30px rgba(0,0,0,0.4);cursor:pointer;white-space:nowrap;}
+  /* 2026-08-22: dve tlačidlá vedľa seba robili DVE RÔZNE veci a vyzerali IDENTICKY — obe zlatá
+     pilulka 999px, rovnaká výplň, rovnaká veľkosť. Rozdelené podľa toho, čo sú zač:
+       · .trp-mfab = CTA „pridaj výlet" → vzor .btn-gold (LOCK): radius 8 + zlatý dosvit.
+       · .trp-mtoggle = prepínač pohľadu (LIST/MAP) → ostáva pilulka BEZ dosvitu; nie je to
+         výzva k akcii, je to prepínač, a tvar aj halo ho teraz odlišujú na prvý pohľad.
+     Farbu prepínača zámerne NEMENÍM — to by bolo ďalšie rozhodnutie nad rámec zadania. */
+  .trp-mtoggle,.trp-mfab{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
+  .trp-mtoggle{border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
+  .trp-mfab{border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .trp-mfab:active{transform:scale(0.98);}
   .trp-mtoggle img,.trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0);opacity:.82;}
 
   /* hlavička LIST pohľadu — sem sa presťahoval TRIPLIST z mapového headera. V zozname dáva
@@ -2047,7 +2064,7 @@ export default function PackMap() {
   // Matej 2026-07-27: default poradie = „klasicky na najlepšie hodnotené" → 'top' je VÝCHODZÍ
   // stav, nie voliteľný filter (preto sa ani neráta do activeFilterCount a prázdna hodnota ''
   // z únie zmizla — vypnúť sort sa nedá, len prepnúť). Platí pre desktop popover aj mobile sheet.
-  const [mobileSort, setMobileSort] = useState<'top' | 'easiest' | 'hardest'>('top');
+  const [mobileSort, setMobileSort] = useState<'top' | 'easiest' | 'hardest' | 'calmest'>('top');
   // aktuálny výrez mapy (hlási <ViewportWatcher>) — riadi rozdelenie ľavého zoznamu na
   // „v tomto výreze" / „inde na mape". null = mapa ešte nedomountovala → zoznam bez delenia.
   const [viewBox, setViewBox] = useState<ViewBox | null>(null);
@@ -2812,12 +2829,31 @@ export default function PackMap() {
   // Matej 2026-07-27: „journey posledné nie prve" → viacdňové cesty (Cesta hrdinov SNP a spol.)
   // idú VŽDY naspodok svojej skupiny, bez ohľadu na hodnotenie. Predtým boli prvé len preto, že
   // HERO_JOURNEYS stoja na začiatku allTrails — statické poradie dát, nie rozhodnutie.
+  // Ruch berieme z AGREGÁTU (seed z nahadzovača + hlasy chodcov), nie z holého `tr.crowd` —
+  // to je hodnota, ktorú karta reálne ukazuje. Počíta sa RAZ do mapy, nie v komparátore:
+  // sortTrips beží 2–3× za render a komparátor by crowdAggregate() volal ~n·log n krát.
+  // ⚠️ ŽIADNY useMemo — sme POD early returnom `if (!id.session) return null` (~r. 2314),
+  // takže hook by sa pri neprihlásenom nezavolal a React by spadol na zmene počtu hookov.
+  // Mapa sa preto stavia len keď je zoradenie reálne podľa ruchu.
+  const crowdRankById = new Map<string, number>();
+  if (mobileSort === 'calmest') {
+    for (const { tr } of visibleHeroTrails) crowdRankById.set(tr.id, crowdRank(crowdAggregate(tr, votes[tr.id]).crowd));
+  }
+
   const sortTrips = (arr: typeof visibleHeroTrails) => [...arr].sort((a, b) => {
     const ja = a.tr.acts?.includes('journey') ? 1 : 0;
     const jb = b.tr.acts?.includes('journey') ? 1 : 0;
     if (ja !== jb) return ja - jb;
     if (mobileSort === 'easiest') return diffRank(a.tr.diff) - diffRank(b.tr.diff);
     if (mobileSort === 'hardest') return diffRank(b.tr.diff) - diffRank(a.tr.diff);
+    // „Od najkľudnejšieho" (Matej 2026-08-22) — filter ruchu tu bol od 24. 7., zoradenie nie.
+    // Pri rovnakom ruchu rozhoduje hodnotenie, nech poradie v skupine nie je náhodné.
+    if (mobileSort === 'calmest') {
+      const ca = crowdRankById.get(a.tr.id) ?? 4;
+      const cb = crowdRankById.get(b.tr.id) ?? 4;
+      if (ca !== cb) return ca - cb;
+      return b.tr.stars - a.tr.stars;
+    }
     return b.tr.stars - a.tr.stars; // 'top'
   });
 
@@ -3207,7 +3243,7 @@ export default function PackMap() {
         <>
         <div className="trp-sidebar-top">
           {/* bod 2 (Matej 2026-07-22): pozdrav + filter ikonka (sliders) v pravom rohu — otvára
-              sort popover (Top rated/Easiest/Hardest), rovnaká ikonka ako mobilný filter. */}
+              sort popover (Top rated/Easiest/Hardest/Calmest), rovnaká ikonka ako mobilný filter. */}
           <div className="trp-greet-row">
             <div>
               <div className="trp-greet-hi">{t('pack.map.greetHi', { name: firstName })}</div>
@@ -3219,7 +3255,7 @@ export default function PackMap() {
               </button>
               {sortOpen && (
                 <div className="trp-sortpop trp-sortpop--desk">
-                  {([['top', t('pack.map.sortTopRated')], ['easiest', t('pack.map.sortEasiest')], ['hardest', t('pack.map.sortHardest')]] as const).map(([v, l]) => (
+                  {([['top', t('pack.map.sortTopRated')], ['easiest', t('pack.map.sortEasiest')], ['hardest', t('pack.map.sortHardest')], ['calmest', t('pack.map.sortCalmest')]] as const).map(([v, l]) => (
                     <button
                       key={v}
                       type="button"
@@ -3471,7 +3507,7 @@ export default function PackMap() {
               <div className="trp-msheet-field">
                 <span className="trp-msheet-label">{t('pack.map.sort')}</span>
                 <div className="trp-msheet-chips">
-                  {([['top', t('pack.map.sortTopRated')], ['easiest', t('pack.map.sortEasiest')], ['hardest', t('pack.map.sortHardest')]] as const).map(([v, l]) => (
+                  {([['top', t('pack.map.sortTopRated')], ['easiest', t('pack.map.sortEasiest')], ['hardest', t('pack.map.sortHardest')], ['calmest', t('pack.map.sortCalmest')]] as const).map(([v, l]) => (
                     <button
                       key={v}
                       type="button"
