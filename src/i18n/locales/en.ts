@@ -1899,6 +1899,14 @@ export const en = {
   'pack.addTrip.geo.pointsSuffix': "{n} points",
   'pack.addTrip.geo.areaRadius': "Area · {km} km radius",
   'pack.addTrip.geo.spotSet': "Spot set",
+  // MAPA JE PRVÁ OBRAZOVKA (Matej 2026-08-22) — na mobile sa po výbere aktivity otvára rovno
+  // mapa, takže vysvetlenie „ako začať" a hľadanie miesta musia stáť NA nej, nie vo formulári.
+  'pack.addTrip.geo.searchPlace': "Find a place",
+  'pack.addTrip.geo.startHold': "Press and hold on the map to start your route",
+  'pack.addTrip.geo.zoomInFirst': "Zoom in — or find a place above",
+  'pack.addTrip.geo.startHoldSpot': "Press and hold on the map to mark the destination",
+  'pack.addTrip.geo.continueTap': "Tap to add more points",
+  'pack.addTrip.geo.routeDone': "Route",
   // Jeden formulár výletu (rez C) — o type rozhoduje dátum, nie otázka navyše.
   'pack.addTrip.log.titleActivity': "What did you do?",
   'pack.addTrip.log.title': "Log a trip",

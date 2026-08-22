@@ -159,6 +159,10 @@ export const TRAIL_LINE = { edge: '#170424', mid: '#7A2FBF', light: '#B36BFF', c
 // renderuje <path>, filter naň sadne). Trieda sa podáva cez pathOptions.className.
 export const TRAIL_LINE_CSS = `
 .trp-saber-glow{filter:drop-shadow(0 0 3px rgba(179,107,255,0.95)) drop-shadow(0 0 9px rgba(155,60,255,0.55));}
+.trp-anchor-live{filter:drop-shadow(0 0 4px rgba(179,107,255,0.9));}
+.trp-anchor-halo{animation:trp-anchor-pulse 1.7s ease-in-out infinite;}
+@keyframes trp-anchor-pulse{0%{opacity:.55;r:9;}50%{opacity:.06;r:19;}100%{opacity:.55;r:9;}}
+@media (prefers-reduced-motion: reduce){.trp-anchor-halo{animation:none;opacity:.3;}}
 `;
 
 // Štyri vrstvy na tých istých bodoch, zdola nahor: tmavý okraj → sýta (nesie dosvit) → svetlá

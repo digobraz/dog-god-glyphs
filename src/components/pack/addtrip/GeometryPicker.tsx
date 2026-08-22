@@ -24,6 +24,8 @@ import {
 } from './addTripModel';
 import { SPACING, calibratedAscent, hav, interp, totalDistanceM } from './addTripGeo';
 import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } from '@/components/pack/tripShared';
+import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
+import { PlaceSearch } from './PlaceSearch';
 import {
   ensureElevations,
   elevAt,
@@ -110,7 +112,22 @@ export function findDuplicate(geometry: TripGeometry, allTrails: HeroTrail[]): H
   return null;
 }
 
+// Priblíženie, od ktorého zaberie dlhé stlačenie pri ZAČIATKU TRASY. Zámerne nižšie než
+// `MIN_ZOOM_FOR_NOTE` (16), ktorý platí pre zápisy do mapy: značka musí sadnúť na konkrétnu
+// odbočku, kdežto prvá kotva trasy sa aj tak prichytí na najbližší chodník. Pri z12 vidno
+// pás ~19 km, čo je mierka, v ktorej sa hrebeňovka kreslí na jednu obrazovku.
+const TRIP_HOLD_MIN_ZOOM = 12;
+
 // ── komponent ───────────────────────────────────────────────────────────────────────────
+
+// Pulzujúci prstenec pod kotvou. Vlastná vrstva (nie border kotvy) preto, že animácia mení
+// polomer — na samotnej kotve by sa hýbal aj bod, ktorý má stáť presne na súradnici.
+// `r` v @keyframes nemusí zabrať všade; opacita pulzuje aj tak, takže degraduje ticho.
+const anchorHalo = (p: LatLngTuple) =>
+  L.circleMarker(p, {
+    radius: 9, stroke: false, fillColor: TRAIL_LINE.mid, fillOpacity: 0.55,
+    className: 'trp-anchor-halo', interactive: false,
+  });
 
 export function GeometryPicker({
   value,
@@ -187,8 +204,8 @@ export function GeometryPicker({
     return null;
   };
 
-  // ── klik na mapu ──────────────────────────────────────────────────────────────────────
-  const handleMapClick = useCallback(async (lat: number, lng: number) => {
+  // ── položenie bodu ────────────────────────────────────────────────────────────────────
+  const placePoint = useCallback(async (lat: number, lng: number) => {
     const p: LatLngTuple = [lat, lng];
 
     // Bod položený pod lištou by ostal neviditeľný — mapa sa odpanuje, nie lišta zmenší.
@@ -242,6 +259,30 @@ export function GeometryPicker({
     });
     void recomputeAscent(snapPath);
   }, [value, onChange, buildSnapPath, recomputeAscent, drawBar?.active, mapRef]);
+
+  // ── PRVÁ KOTVA CHCE DLHÉ STLAČENIE (Matej 2026-08-22) ─────────────────────────────────
+  // „vysvetlenie — dlhým stlačením zaháj trasu na mape."
+  // Platí LEN v mobilnom kreslení (`drawBar.active`) a LEN kým je geometria prázdna: mapa je
+  // vtedy jediná obrazovka a človek po nej ešte hľadá, posúva a približuje — obyčajný ťuk by
+  // mu pri každom takom pohybe hodil kotvu do lesa. Po prvej kotve už je zrejmé, že kreslí,
+  // takže ďalšie body pribúdajú ťuknutím (rýchlejšie a je to pôvodné správanie).
+  // Desktop sa NEMENÍ: tam je formulár vedľa mapy, klik je jednoznačný a držanie by len zdržalo.
+  const needsHold = !!drawBar?.active
+    && (value.kind === 'route' ? value.path.length === 0 : !value.center);
+
+  const handleMapClick = useCallback((lat: number, lng: number) => {
+    if (needsHold) return;
+    void placePoint(lat, lng);
+  }, [needsHold, placePoint]);
+
+  const placeRef = useRef(placePoint);
+  useEffect(() => { placeRef.current = placePoint; }, [placePoint]);
+  useLongPressPoint(
+    mapRef.current,
+    needsHold,
+    { onPoint: (lat, lng) => { void placeRef.current(lat, lng); } },
+    TRIP_HOLD_MIN_ZOOM,
+  );
 
   // ── undo / clear ──────────────────────────────────────────────────────────────────────
   // Undo NESMIE volať sieť — legs sú v ref, stopa sa poskladá z nich (§2.2 kontraktu).
@@ -346,20 +387,32 @@ export function GeometryPicker({
         }));
       });
     }
-    // KOTVY, nie body stopy — človek musí vidieť, čo undo zmaže
+    // KOTVY, nie body stopy — človek musí vidieť, čo undo zmaže.
+    // FIALOVÉ, NIE ZLATÉ (Matej 2026-08-22: „tá gulička bude fialová ako svetelný meč a bude
+    // pulzovať po vytvorení"). Zlatá tu bola odchýlka: čiara, ktorá z tých bodov vzniká, je
+    // fialový meč — kotva inej farby tvrdí, že je to iný predmet. Berie sa z TRAIL_LINE, teda
+    // z toho istého zdroja ako vrstvy meča.
+    // PULZUJE LEN POSLEDNÁ — je to špička, kde trasa pokračuje. Keby pulzovali všetky, mapa
+    // sa hýbe celá a bod, na ktorý sa človek díva, sa v tom stratí.
     if (value.kind === 'route') {
       value.path.forEach((p, i) => {
+        const isLast = i === value.path.length - 1;
+        if (isLast) add(anchorHalo(p));
         add(L.circleMarker(p, {
-          radius: i === 0 ? 6 : 4,
-          color: '#000', weight: 2,
-          fillColor: i === 0 ? GOLD_BRIGHT : '#FFF', fillOpacity: 1,
+          radius: i === 0 ? 6 : 4.5,
+          color: TRAIL_LINE.edge, weight: 2,
+          fillColor: isLast ? TRAIL_LINE.light : TRAIL_LINE.mid, fillOpacity: 1,
+          className: isLast ? 'trp-anchor-live' : undefined,
           interactive: false,
         }));
       });
     }
     if (value.kind === 'point' && value.center) {
+      // CIEĽ výletu (plán): jediný bod, teda pulzuje vždy — je to celá geometria.
+      add(anchorHalo(value.center));
       add(L.circleMarker(value.center, {
-        radius: 7, color: '#000', weight: 2, fillColor: GOLD_BRIGHT, fillOpacity: 1, interactive: false,
+        radius: 7, color: TRAIL_LINE.edge, weight: 2, fillColor: TRAIL_LINE.light, fillOpacity: 1,
+        className: 'trp-anchor-live', interactive: false,
       }));
     }
     if (value.kind === 'area' && value.center) {
@@ -402,12 +455,32 @@ export function GeometryPicker({
     return () => { document.body.classList.remove('trp-drawbar-on'); };
   }, [barOn]);
 
+  // AKO ZAČAŤ — text sa mení podľa toho, čo už na mape je. Po druhej kotve mlčí: vtedy je
+  // z tvaru na mape zrejmé, čo sa deje, a lišta dole už hlási km a body.
+  // ⚠️ NAD CELÝM SLOVENSKOM GESTO NEZABERIE — a mlčať o tom je horšie než prah nemať.
+  // Mapa sa otvára na prehľade celej krajiny (z~7), kde je prvá kotva na kilometre nepresná,
+  // takže dlhé stlačenie pod `TRIP_HOLD_MIN_ZOOM` nič nepoloží. Bez tejto vetvy človek drží
+  // prst, nedeje sa nič a vyzerá to ako pokazená appka. Prekresľuje to `zoomTick` (efekt
+  // s vrstvami počúva `zoomend`), takže sa veta prepne sama, len čo si mapu priblíži.
+  const zoomNow = mapRef.current?.getZoom() ?? 0;
+  const holdTooFar = barOn && zoomNow < TRIP_HOLD_MIN_ZOOM;
+  const drawHint = value.kind === 'route'
+    ? (value.path.length === 0
+        ? t(holdTooFar ? 'pack.addTrip.geo.zoomInFirst' : 'pack.addTrip.geo.startHold')
+        : value.path.length < 2 ? t('pack.addTrip.geo.continueTap') : null)
+    : (!value.center
+        ? t(holdTooFar ? 'pack.addTrip.geo.zoomInFirst' : 'pack.addTrip.geo.startHoldSpot')
+        : null);
+
   // ── ČÍTANIE: JEDEN ZDROJ PRE PANEL AJ LIŠTU ───────────────────────────────────────────
   // Kým bol readout napísaný priamo v JSX panela, lišta by si ho musela opísať — a po prvej
   // zmene formátu (napr. `1 bod` vs `5 bodov`) by dve miesta hovorili dve rôzne veci.
+  // ⚠️ NÁVOD HOVORÍ LEN JEDNO MIESTO. V mobilnom kreslení nesie pokyn fialová pilulka hore
+  // (nad mapou, kde sa gesto robí) — keby ho lišta opakovala, na obrazovke stoja dve vety
+  // o tom istom, a kým prvá kotva chce DRŽANIE, tá druhá by tvrdila „klikaj po mape".
   const readout = value.kind === 'route' ? (
     pointCount < 2
-      ? <span style={{ color: T.onDarkDim }}>{hint}</span>
+      ? <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
       : <>
           {km.toFixed(1)} km
           <span style={{ color: T.onDarkDim }}> · </span>
@@ -419,7 +492,7 @@ export function GeometryPicker({
       ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
       : t('pack.addTrip.geo.spotSet')
   ) : (
-    <span style={{ color: T.onDarkDim }}>{hint}</span>
+    <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
   );
 
   return (
@@ -504,6 +577,40 @@ export function GeometryPicker({
           `notice` (nesadlo to na chodník) sa hlási TU — panel, ktorý ho hlásil doteraz,
           je počas kreslenia neviditeľný. */}
       {barOn && drawBar && createPortal(
+        <>
+        {/* ── HORNÝ PÁS: HĽADANIE MIESTA + AKO ZAČAŤ ──────────────────────────────────────
+            Matej 2026-08-22: „otvorí sa mapa s vysvetlením ako začať… textarea s lokalitou."
+            Mapa je na mobile PRVÁ obrazovka, takže sa človek pozerá na celé Slovensko a nemá
+            odkiaľ vedieť, že sa kreslí držaním. Vysvetlivka mizne, len čo prvá kotva sadne —
+            návod, ktorý ostane visieť po tom, čo ho človek splnil, je už len prekážka.
+            pointerEvents:none na páse a auto na jeho obsahu: gradient nesmie žrať ťuky do mapy
+            pod ním (inak by hore vznikol pruh, kde sa nedá kresliť). */}
+        <div
+          style={{
+            position: 'fixed', left: 0, right: 0, top: 0, zIndex: 1200,
+            padding: 'calc(10px + env(safe-area-inset-top, 0px)) 16px 14px',
+            display: 'grid', gap: 10, pointerEvents: 'none',
+            background: 'linear-gradient(180deg, rgba(10,7,4,0.92) 40%, rgba(10,7,4,0))',
+          }}
+        >
+          <div style={{ pointerEvents: 'auto' }}>
+            <PlaceSearch mapRef={mapRef} />
+          </div>
+          {drawHint && (
+            <div
+              style={{
+                justifySelf: 'center', pointerEvents: 'none',
+                padding: '8px 14px', borderRadius: 999,
+                background: 'rgba(122,47,191,0.22)',
+                border: '1px solid rgba(179,107,255,0.55)',
+                fontFamily: FONT_UI, fontSize: 12.5, fontWeight: 500,
+                color: '#E9D8FF', textAlign: 'center',
+              }}
+            >
+              {drawHint}
+            </div>
+          )}
+        </div>
         <div
           style={{
             position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 1200,
@@ -554,7 +661,8 @@ export function GeometryPicker({
               {t('pack.addTrip.geo.done')}
             </button>
           </div>
-        </div>,
+        </div>
+        </>,
         document.body,
       )}
     </div>

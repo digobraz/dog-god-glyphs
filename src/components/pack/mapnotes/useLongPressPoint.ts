@@ -66,6 +66,16 @@ export function useLongPressPoint(
   map: LeafletMap | null,
   enabled: boolean,
   { onPoint, onTooFar }: LongPressHandlers,
+  /**
+   * Priblíženie, od ktorého gesto zaberie. Default = `MIN_ZOOM_FOR_NOTE` (16), lebo zápis do
+   * mapy musí sadnúť na konkrétnu odbočku.
+   *
+   * ⚠️ ZAČIATOK TRASY VÝLETU ho vedome znižuje (GeometryPicker, 2026-08-22): trasa sa prichytáva
+   * na chodník, takže prvá kotva položená o 30 m vedľa sadne rovnako — a 12 km hrebeňovka sa
+   * pri z16 kreslí cez pol obrazovky na bod. Gesto ostáva to isté (tolerancia pohybu prsta,
+   * potlačené systémové menu, zrušenie pri druhom prste), mení sa len prah.
+   */
+  minZoom: number = MIN_ZOOM_FOR_NOTE,
 ) {
   // Handlery cez ref, nie cez závislosti efektu: inak by každý render odhlásil
   // a znova prihlásil listenery — tá istá pasca, na ktorej v `TripMarkers`
@@ -102,7 +112,7 @@ export function useLongPressPoint(
         const rect = el.getBoundingClientRect();
         const cx = startX - rect.left;
         const cy = startY - rect.top;
-        if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(cx, cy); return; }
+        if (map.getZoom() < minZoom) { cb.current.onTooFar?.(cx, cy); return; }
         const pt = map.containerPointToLatLng([cx, cy]);
         cb.current.onPoint(pt.lat, pt.lng);
       }, HOLD_MS);
@@ -138,7 +148,7 @@ export function useLongPressPoint(
       const rect = el.getBoundingClientRect();
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
-      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(cx, cy); return; }
+      if (map.getZoom() < minZoom) { cb.current.onTooFar?.(cx, cy); return; }
       const pt = map.containerPointToLatLng([cx, cy]);
       cb.current.onPoint(pt.lat, pt.lng);
     };
@@ -147,7 +157,7 @@ export function useLongPressPoint(
     // šípka a vedľa +") — plusko s prstencom vedľa nej kreslí `MapNoteCursor`.
     // Predtým tu bol `crosshair`, ktorý sa s pluskom bil o tú istú úlohu.
     // Na mobile kurzor neexistuje a nápovedu tam nesie `MapNoteHint`.
-    const syncArmed = () => el.classList.toggle('mn-armed', map.getZoom() >= MIN_ZOOM_FOR_NOTE);
+    const syncArmed = () => el.classList.toggle('mn-armed', map.getZoom() >= minZoom);
     syncArmed();
     map.on('zoomend', syncArmed);
 
@@ -179,7 +189,7 @@ export function useLongPressPoint(
       el.removeEventListener('contextmenu', onContextMenu);
       map.off('movestart zoomstart', cancel);
     };
-  }, [map, enabled]);
+  }, [map, enabled, minZoom]);
 }
 
 // `.mn-holding` = vizuálna spätná väzba počas držania (kurzor), aby človek videl,
@@ -226,6 +236,8 @@ export function useMapClickPoint(
   map: LeafletMap | null,
   enabled: boolean,
   { onPoint, onTooFar }: LongPressHandlers,
+  /** Prah priblíženia — rovnaký zmysel aj default ako pri `useLongPressPoint` vyššie. */
+  minZoom: number = MIN_ZOOM_FOR_NOTE,
 ) {
   const cb = useRef({ onPoint, onTooFar });
   cb.current = { onPoint, onTooFar };
@@ -236,7 +248,7 @@ export function useMapClickPoint(
     el.classList.add('mn-placing');
     const onClick = (e: LeafletMouseEvent) => {
       // `containerPoint` dáva Leaflet rovno — netreba prepočet cez getBoundingClientRect.
-      if (map.getZoom() < MIN_ZOOM_FOR_NOTE) { cb.current.onTooFar?.(e.containerPoint.x, e.containerPoint.y); return; }
+      if (map.getZoom() < minZoom) { cb.current.onTooFar?.(e.containerPoint.x, e.containerPoint.y); return; }
       cb.current.onPoint(e.latlng.lat, e.latlng.lng);
     };
     map.on('click', onClick);
@@ -244,5 +256,5 @@ export function useMapClickPoint(
       el.classList.remove('mn-placing');
       map.off('click', onClick);
     };
-  }, [map, enabled]);
+  }, [map, enabled, minZoom]);
 }

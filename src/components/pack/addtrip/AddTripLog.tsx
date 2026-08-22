@@ -248,6 +248,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       return;
     }
     setGeometry(empty);
+    // NAJPRV MAPA, POTOM FORMULÁR (Matej 2026-08-22: „po kliknutí na hike je na mobile vidno
+    // textové polia a hore tlačítko ísť na mapu… potrebujeme to prehodiť").
+    // `onReadyToDraw` dostáva LEN mobilná kópia formulára (PackMap.tsx `.trp-madd`), takže
+    // podmienka na šírku sem nepatrí — desktop má mapu vedľa panela a prehadzovať nemá čo.
+    // MAGISTRÁLA je výnimka: tam sa najprv vyberá existujúca trasa zo zoznamu (kreslí sa až
+    // po „nakreslím ručne"), takže odkrytá mapa by ukazovala prázdno a schovala by voľbu.
+    if (id !== 'journey') onReadyToDraw?.();
   };
 
   // Výber magistrály — zdedí geometriu 1:1 (§2 zadania), km/ascent idú rovno do metricsRef
@@ -368,6 +375,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   };
   const discardRestore = () => { clearAddDraft(); setRestored(null); };
 
+  // Trasa je hotová = dá sa z nej nakresliť čiara (2 kotvy), resp. bod/oblasť má stred.
+  const geoDone = geometry.kind === 'route' ? geometry.path.length >= 2 : !!geometry.center;
   const isMultiDay = activity === 'journey' && !!dateEnd && dateEnd > date;
   const journeyIssue = activity === 'journey' && !isMultiDay;
 
@@ -840,7 +849,27 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             {/* 11. Where — journey = výber z magistrál, nie kreslenie (§1/§2 zadania); ostatné
                 aktivity a "Not here?" únik z journey kreslia ako doteraz. */}
             <div className="atl-field">
-              <label>{t('pack.addTrip.log.where')}</label>
+              {/* ODŠKRTNUTÁ TRASA (Matej 2026-08-22: „po kliknutí hotovo sa odcheckne TRASA
+                  a už len vyplniť formulár"). Na mobile sa kreslí PRED formulárom, takže sem
+                  sa človek vracia s hotovou trasou — bez potvrdenia by nevedel, či sa to, čo
+                  nakreslil, vôbec zapísalo. Fialová je farba trasy (svetelný meč), nie nová
+                  farba stavu. */}
+              <label>
+                {t('pack.addTrip.log.where')}
+                {geoDone && (
+                  <span
+                    style={{
+                      marginLeft: 8, padding: '2px 9px', borderRadius: 999,
+                      background: 'rgba(122,47,191,0.22)',
+                      border: '1px solid rgba(179,107,255,0.55)',
+                      color: '#E9D8FF', fontSize: 10.5, fontWeight: 600, letterSpacing: '.08em',
+                      textTransform: 'uppercase', whiteSpace: 'nowrap',
+                    }}
+                  >
+                    ✓ {t('pack.addTrip.geo.routeDone')}
+                  </span>
+                )}
+              </label>
               {activity === 'journey' && !drawManually ? (
                 <div className="atl-journeys">
                   <input
