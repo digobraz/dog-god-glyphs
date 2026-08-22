@@ -2093,6 +2093,7 @@ export const sk: Partial<Dict> = {
   'pack.mapNotes.tooFar': "Priblíž si mapu, nech bod sadne tam, kam mieriš.",
   'pack.mapNotes.add.eyebrow': "Píšeš po mape",
   'pack.mapNotes.add.close': "Zavrieť",
+  'pack.mapNotes.add.ready': "Pripravené na odoslanie",
   'pack.mapNotes.add.dragHint': "Značka nesedí? Potiahni ju.",
   'pack.mapNotes.add.placeholder.parking': "Koľko áut sa zmestí? Býva plné? Je tam rampa?",
   'pack.mapNotes.add.placeholder.hazard': "Na čo si má svorka dať pozor?",

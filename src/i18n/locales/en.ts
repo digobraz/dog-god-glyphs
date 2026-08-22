@@ -2153,6 +2153,7 @@ export const en = {
   'pack.mapNotes.tooFar': "Zoom in closer so the spot lands where you mean it.",
   'pack.mapNotes.add.eyebrow': "Write on the map",
   'pack.mapNotes.add.close': "Close",
+  'pack.mapNotes.add.ready': "Ready to post",
   'pack.mapNotes.add.dragHint': "Marker off? Drag it.",
   'pack.mapNotes.add.placeholder.parking': "How many cars fit? Is it full in season? Any barrier?",
   'pack.mapNotes.add.placeholder.hazard': "What should the pack watch out for here?",
