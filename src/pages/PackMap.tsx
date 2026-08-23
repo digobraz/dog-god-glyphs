@@ -68,7 +68,11 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
-import { levelProgress } from '@/lib/tripPoints';
+import { levelProgress, calculateTripPoints, levelThreshold } from '@/lib/tripPoints';
+import type { LevelProgress, TripPointsResult } from '@/lib/tripPoints';
+import { tierVars } from '@/lib/packTiers';
+import { LevelPanel } from '@/components/pack/level/LevelPanel';
+import { TripReveal } from '@/components/pack/level/TripReveal';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
@@ -82,7 +86,7 @@ import {
 import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
-  profileLevelFor, addedByMeIds, isFounderEmail,
+  profileLevelFor, addedByMeIds, isFounderEmail, computeCompletion,
   approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
   RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText, walkedCountries,
   type TripVote, type TripPlan, type PartnerEvent, type Hazard,
@@ -932,7 +936,12 @@ button.trp-stat-pill{cursor:pointer;transition:all .15s;}
 button.trp-stat-pill:hover{border-color:${GOLD};}
 button.trp-stat-pill.on{background:${GOLD};border-color:${GOLD};}
 button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
-/* LEVEL — rang + číslo. Dve role, dve roly písma (Matej 2026-07-26 „ten level si odflákol" —
+/* FARBA PÁSMA (2026-08-24): pilulka už nie je vždy zlatá — gradient aj inkoust berie
+   z premenných --tier-a / --tier-b / --tier-ink, ktoré na element vešia tierVars(level)
+   z @/lib/packTiers. Fallback v každom var() drží pôvodnú zlatú, takže povrch bez
+   premenných vyzerá presne ako predtým.
+   Pásmo = tri levely; deväť pásiem za celú cestu, sadu vybral Matej 23. 8.
+   LEVEL — rang + číslo. Dve role, dve roly písma (Matej 2026-07-26 „ten level si odflákol" —
    pôvodne bolo všetko Cinzel, takže tam nebol žiadny kontrast, len rozdiel veľkostí):
      PÚTNIK = rang  → FONT_TITLE (identita)
      1      = číslo → FONT_UI 600, veľké
@@ -962,14 +971,14 @@ button.trp-stat-pill.on span,button.trp-stat-pill.on b{color:${INK};}
    color: by pri background-clip:text neprebilo priehľadnú výplň písma.
    Popisok „Lvl" je preč na OBOCH šírkach (Matej 3. 8.: „to LVL ma ruší") — v pilulke je holé
    číslo a rang vedľa (PILGRIM) povie, čo to je. */
-.trp-midentity .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:border-box;background-clip:border-box;color:${INK};-webkit-text-fill-color:${INK};filter:none;box-shadow:0 2px 8px rgba(245,199,61,0.28);}
+.trp-midentity .trp-level-num{align-items:center;padding:3px 10px 4px;border-radius:999px;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:border-box;background-clip:border-box;color:var(--tier-ink,${INK});-webkit-text-fill-color:var(--tier-ink,${INK});filter:none;box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));transition:background .5s,color .5s,box-shadow .5s;}
 .trp-midentity .trp-level-num em{font-size:14px;}
 /* Podriadok „N trips · X km" nahradil trophy pilulku (Matej 2026-08-03): číslo ostáva viditeľné
    bez ťuknutia, ale prestalo byť ďalším prvkom v rade. Space Grotesk — sú to dáta, nie identita. */
 .trp-mstats{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};white-space:nowrap;}
 .trp-midentity:hover .trp-level-name{color:#fff;}
 .trp-level-name{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:rgba(245,240,228,0.92);}
-.trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,#F5C73D,#E69E1A);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px rgba(245,199,61,0.35));}
+.trp-level-num{display:inline-flex;align-items:baseline;gap:5px;font-family:${FONT_UI};line-height:1;background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 7px var(--tier-glow,rgba(245,199,61,0.35)));}
 .trp-level-num em{font-style:normal;font-weight:600;font-size:21px;letter-spacing:0;}
 /* CTA tlačidlo → Cinzel ostáva: .btn-gold (SpiralLanding.css) je LOCKED brand CTA a ten je
    Cinzel 700 uppercase. Grotesk sem nepatrí. */
@@ -1921,6 +1930,76 @@ export default function PackMap() {
   // živou mapou, nie samostatná obrazovka. Pathname rozhoduje, či sa formulár otvorí pri mounte.
   const onAddRoute = useLocation().pathname.startsWith('/pack/add');
   const id = usePackIdentity();
+  const [levelPanelOpen, setLevelPanelOpen] = useState(false);
+
+  /**
+   * REVEAL PO ZAPÍSANÍ VÝLETU — dáta sa zachytávajú v momente odoslania, lebo `levelInfo`
+   * sa v tej chvíli ešte neprepočítal (setState je asynchrónny a `profile` visí na
+   * `walkedIds`/`localTrails`). Preto sa tu drží LEN stav PRED zápisom a rozpad za ten jeden
+   * výlet; level PO zápise si reveal berie z aktuálneho `levelInfo` pri renderi, teda z tej
+   * istej funkcie, ktorá kŕmi hlavičku mapy. Dva rôzne výpočty by dali dve rôzne čísla.
+   */
+  const [reveal, setReveal] = useState<{
+    tripName: string; tripMeta: string; tripPhoto?: string | null;
+    points: TripPointsResult; levelBefore: LevelProgress;
+    /** len DEV náhľad — v reálnom zápise je level PO vždy aktuálny `levelInfo` */
+    levelAfter?: LevelProgress;
+  } | null>(null);
+
+  /**
+   * DEV NÁHĽAD REVEALU — tri režimy, aby sa dali porovnať vedľa seba:
+   *   `?reveal=plain` — bežný zisk bez levelu (to, čo človek uvidí zakaždým)
+   *   `?reveal=demo`  — level up VNÚTRI pásma (9 → … nie, 7 → 8: farba sa nemení)
+   *   `?reveal=tier`  — level up so ZMENOU PÁSMA (9 → 10, Zlato → Karneol)
+   *
+   * Bez neho sa reveal dá vidieť len prejdením celého päťkrokového sprievodcu vrátane
+   * kreslenia trasy, takže každé ladenie animácie stálo dve minúty klikania. Scéna trvá
+   * 5,6 s a ladí sa po desatinách — to sa inak overiť nedá.
+   *
+   * ⚠️ Do produkčného buildu sa to nedostane: `import.meta.env.DEV` je vo `vite build`
+   *    `false`, takže vetva je mŕtva a tree-shaking ju odstráni (rovnaká stráž ako
+   *    `devMockDogs.ts`).
+   */
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    const want = new URLSearchParams(location.search).get('reveal');
+    if (!want) return;
+    // Level up sa nedá nasimulovať posunom PRED, keď je účet na leveli 1 (nižšie sa nedá).
+    // Preto sa v náhľade podstrkuje aj level PO — v reálnom zápise sa berie z `levelInfo`.
+    openDemoReveal(want);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Spúšťač DEV náhľadu. Vystavuje sa aj na `window.__revealDemo('tier')`, aby sa scéna dala
+   * pustiť BEZ reloadu — inak sa nedá odfotiť konkrétny okamih: čas medzi navigáciou a prvým
+   * príkazom nie je merateľný a 5,6-sekundová scéna medzitým dobehne.
+   */
+  const openDemoReveal = (want: string) => {
+    const at = (lv: number) => levelProgress(levelThreshold(lv) + 12);
+    const before = want === 'tier' ? at(9) : at(7);
+    const after = want === 'plain' ? before : (want === 'tier' ? at(10) : at(8));
+    setReveal({
+      tripName: 'Kopaničky okruh',
+      tripMeta: '4,5 km · 180 m ↑ · Strážovské vrchy',
+      tripPhoto: null,
+      points: calculateTripPoints({
+        kind: 'trail', km: 5, ascentM: 180, added: true, walked: true,
+        newRange: true, rated: true,
+      }),
+      levelBefore: before,
+      levelAfter: after,
+    });
+  };
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    (window as unknown as { __revealDemo?: (m: string) => void }).__revealDemo = (m: string) => {
+      setReveal(null);
+      window.setTimeout(() => openDemoReveal(m), 50);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const { toast } = useToast();
 
   const [hoverId, setHoverId] = useState<string | null>(null);
@@ -2824,6 +2903,59 @@ export default function PackMap() {
   // zápis PRED pridaním do state, inak sa trip zobrazí a po reloade zmizne). `planned` nejde
   // cez schvaľovaciu frontu (AddTripPlan draft.approval je vždy 'approved'), rovno do My trips
   // + Events.
+  /**
+   * Body za PRÁVE zapísaný výlet + otvorenie revealu.
+   *
+   * Geo novinky (nové pohorie / NP / CHKO / vodná plocha / krajina) sa NEHÁDAJÚ z draftu —
+   * porovnáva sa `computeCompletion` PRED a PO pridaní trasy. Odškrtnutie sa totiž počíta raz
+   * a z celej histórie: kto v Strážovských vrchoch už bol, desiatku znova nedostane, aj keď
+   * práve zapisuje výlet v Strážovských vrchoch.
+   *
+   * ⚠️ `calculateTripPoints` tu dáva rozpad ZA TENTO VÝLET (to, čo ukazuje ⓘ). Celkový počet
+   *    bodov a level si reveal berie z `levelInfo`, teda z `profileLevelFor`. Sú to dve
+   *    rôzne funkcie nad tými istými cenami a takto to má byť — jedna hovorí „za toto", druhá
+   *    „spolu"; keby rozpad počítal aj celok, po prvej zmene cien by sa rozišli.
+   */
+  const openRevealFor = (trail: HeroTrail, draft: AddTripDraft) => {
+    const walkedBefore = allTrails.filter((tr) => walkedIds.has(tr.id));
+    const before = computeCompletion(walkedBefore);
+    const after = computeCompletion([trail, ...walkedBefore]);
+    const gained = (key: 'ranges' | 'parks' | 'chko' | 'waters') => {
+      const n = (c: typeof before) => c.categories.find((x) => x.key === key)?.done.length ?? 0;
+      return n(after) > n(before);
+    };
+    const countriesBefore = new Set(walkedBefore.map((tr) => tr.country).filter(Boolean));
+
+    const points = calculateTripPoints({
+      kind: draft.geometry.kind === 'route' ? 'trail' : 'place',
+      km: Number(trail.km) || 0,
+      ascentM: draft.ascentM ?? 0,
+      journeyId: (draft as AddTripDraft & { existingTripId?: string }).existingTripId,
+      added: true,
+      walked: true,
+      newRange: gained('ranges'),
+      newNp: gained('parks'),
+      newChko: gained('chko'),
+      newWater: gained('waters'),
+      newCountry: !!trail.country && !countriesBefore.has(trail.country),
+      rated: (draft.paws ?? 0) > 0,
+    });
+
+    const meta = [
+      trail.km && Number(trail.km) > 0 ? `${trail.km} km` : '',
+      draft.ascentM ? `${draft.ascentM} m ↑` : '',
+      trail.region || '',
+    ].filter(Boolean).join(' · ');
+
+    setReveal({
+      tripName: trail.name,
+      tripMeta: meta,
+      tripPhoto: trail.photos?.[0] ?? draft.photos?.[0] ?? null,
+      points,
+      levelBefore: levelInfo,
+    });
+  };
+
   const submitAddTripDraft = (draft: AddTripDraft): boolean => {
     if (draft.state === 'walked') {
       // JOURNEY = výber existujúcej magistrály (AddTripLog.tsx `existingTripId`, lokálne
@@ -2843,6 +2975,9 @@ export default function PackMap() {
             hazards: (draft.hazards ?? []) as Hazard[], at: Date.now(),
           } }));
         }
+        // reveal si berie trasu zo zoznamu — pri existujúcom výlete žiadny nový záznam nevzniká
+        const existing = allTrails.find((tr) => tr.id === tid);
+        if (existing) openRevealFor(existing, draft);
         closeAdd();
         return true;
       }
@@ -2907,6 +3042,7 @@ export default function PackMap() {
           hazards: (draft.hazards ?? []) as Hazard[], at: Date.now(),
         } }));
       }
+      openRevealFor(newTrail, draft);
       closeAdd();
       return true;
     }
@@ -2967,12 +3103,21 @@ export default function PackMap() {
   // Predtým to boli DVA kusy kódu (desktop `renderStatusLeft` bez avatara, bez podriadku,
   // neklikateľný, s popiskom „Lvl"; mobil `.trp-midentity` s avatarom a pilulkou) — a presne
   // preto sa rozišli. Teraz jedna funkcia, jedna sada tried; nedá sa to rozísť po treťom redizajne.
+  //
+  // 2026-08-24 — KLIK NA PILULKU LEVELU OTVORÍ PANEL PÁSIEM, klik inde vedie ako doteraz na
+  // triplist. Rozlišuje sa cieľom kliku, NIE vnoreným tlačidlom: `.trp-midentity` je `<button>`
+  // a button vnútri buttonu je neplatné HTML (React to prepustí, prehliadač nie).
+  // Bublina `title=` s rozpisom bodov zanikla — na dotykovom telefóne sa nedala vyvolať vôbec
+  // a rozpad v nej bol zlepený do jedného riadku (Matej: „zvačši popup tak aby sa nemuselo
+  // scrolovať a info boli vidno").
   const renderIdentity = () => (
     <button
       type="button"
       className="trp-midentity"
-      onClick={() => navigate('/pack/map/triplist?tab=stats')}
-      title={t('pack.map.levelTooltip', { points: levelInfo.points, toNext: levelInfo.toNext, nextLevel: levelInfo.level + 1, rows: profilePoints.rows.map((r) => `${t(r.labelKey, r.labelParams)} ${r.points}`).join(' · ') })}
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('.trp-level-num')) { setLevelPanelOpen(true); return; }
+        navigate('/pack/map/triplist?tab=stats');
+      }}
     >
       {id.avatarUrl
         ? <img className="trp-mavatar" src={id.avatarUrl} alt="" />
@@ -2985,7 +3130,11 @@ export default function PackMap() {
           <span className="trp-level-name">{t('pack.map.rankPilgrim')}</span>
           {/* Matej 2026-08-03: „to LVL ma ruší" → popisok preč, ostáva holé číslo v zlatej
               pilulke. Po zjednotení (5. 8.) to platí aj na PC. */}
-          <span className="trp-level-num" aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}><em>{levelInfo.level}</em></span>
+          <span
+            className="trp-level-num"
+            style={tierVars(levelInfo.level)}
+            aria-label={t('pack.map.levelAriaLabel', { level: levelInfo.level })}
+          ><em>{levelInfo.level}</em></span>
         </span>
         <span className="trp-mstats">{t('pack.map.mstats' + pluralKey(walkedIds.size), { n: walkedIds.size, km: fmtKm(walkedKm) })}</span>
       </span>
@@ -4353,6 +4502,33 @@ export default function PackMap() {
       )}
 
       <PackBottomNav avatarUrl={id.avatarUrl} avatarInitial={id.avatarInitial} dogs={id.dogs} />
+
+      {/* PANEL PÁSIEM — otvára ho klik na pilulku levelu v hlavičke (viď renderIdentity). */}
+      {levelPanelOpen && (
+        <LevelPanel level={levelInfo} rows={profilePoints.rows} onClose={() => setLevelPanelOpen(false)} />
+      )}
+
+      {/* REVEAL — `levelAfter` je AKTUÁLNY levelInfo, teda už prepočítaný po zápise.
+          Preto sa nikdy nerozíde s číslom v hlavičke: je to tá istá hodnota. */}
+      {reveal && (
+        <TripReveal
+          tripName={reveal.tripName}
+          tripMeta={reveal.tripMeta}
+          tripPhoto={reveal.tripPhoto}
+          points={reveal.points}
+          levelBefore={reveal.levelBefore}
+          levelAfter={reveal.levelAfter ?? levelInfo}
+          ownerAvatarUrl={id.avatarUrl}
+          ownerInitial={id.avatarInitial}
+          dogs={id.dogs.map((d) => ({
+            id: d.id,
+            name: d.dog_name ?? t('pack.map.myDogFallback'),
+            photo: d.cloudinary_main_url,
+          }))}
+          onAddAnother={() => { setReveal(null); openAddEntry(); }}
+          onClose={() => setReveal(null)}
+        />
+      )}
       {/* PackMap je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže
           overlay host (Inbox/Thread) sa mountuje aj tu priamo — inak by „Message owner"/„Open
           trip group" vyššie a Messages v zdieľanom PackBottomNav nemali kam otvoriť (viď

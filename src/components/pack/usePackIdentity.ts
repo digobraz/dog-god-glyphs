@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { EDGE_BASE } from '@/lib/env';
 import { hydratePackStore } from '@/lib/packStore';
+import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 
 export interface PackDog {
   id: string;
@@ -127,6 +128,17 @@ export function usePackIdentity(): PackIdentity {
             dog_name: d.dog_name ?? null,
             cloudinary_main_url: d.cloudinary_main_url ?? null,
           })));
+          // DEV bez prihlásenia: mock session existuje, ale v DEV projekte žiadny pes nie je,
+          // takže každý povrch, ktorý svorku ukazuje (hlavička mapy, reveal po zápise výletu),
+          // vyzerá ako človek bez psa. To je chýbajúce dáta, nie dizajn — presne ten omyl,
+          // pre ktorý vznikol `devMockDogs.ts`. Zapája sa TEN ISTÝ modul, nie ďalšia kópia.
+          if (mounted && DEV_NOAUTH && !(dogRows && dogRows.length)) {
+            setDogs(DEV_MOCK_DOGS.map((d) => ({
+              id: d.id,
+              dog_name: d.dog_name,
+              cloudinary_main_url: d.cloudinary_main_url,
+            })));
+          }
         } catch { /* non-blocking */ }
         if (!mounted) return;
         const meta = (s.user.user_metadata ?? {}) as Record<string, unknown>;

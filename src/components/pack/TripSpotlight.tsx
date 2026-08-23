@@ -23,6 +23,7 @@ import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, tripPath, pluralKey } from './tripShared';
 import { readTriplist } from './triplist/triplist';
+import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { trailCountry } from '@/lib/countryGeo';
 import { profileLevelFor, readVotes } from './packCommunity';
@@ -200,11 +201,16 @@ const CSS = `
   font-family:${FONT_TITLE}; font-weight:700; font-size:13px; letter-spacing:0.16em;
   text-transform:uppercase; color:${T.inkStrong}; text-shadow:0 2px 10px rgba(250,244,236,0.9);
 }
+/* FARBA PÁSMA (2026-08-24) — gradient a inkoust berie z premenných --tier-a / --tier-b /
+   --tier-ink, ktoré vešia tierVars(level); fallback drží pôvodnú zlatú.
+   Tá istá pilulka ako v hlavičke mapy, tá istá farba. */
 .ts-rank-num{
   display:inline-flex; align-items:center; padding:3px 11px 4px; border-radius:999px;
-  background:linear-gradient(135deg,#F5C73D,#E69E1A); color:#1F1A0E;
+  background:linear-gradient(135deg,var(--tier-a,#F5C73D),var(--tier-b,#E69E1A));
+  color:var(--tier-ink,#1F1A0E);
   font-family:${FONT_UI}; font-weight:600; font-size:14px; line-height:1;
-  box-shadow:0 2px 8px rgba(245,199,61,0.28);
+  box-shadow:0 2px 8px var(--tier-glow,rgba(245,199,61,0.28));
+  transition:background .5s, color .5s, box-shadow .5s;
 }
 /* TRI bloky vedľa seba na SPODNOM okraji karty (Matej 9.8.) — level odišiel hore k rangu.
    margin-top:auto ich pritlačí dole nezávisle od výšky karty; pevná výška by sa rozišla
@@ -498,7 +504,11 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
             Stojí MIMO hlavičky, lebo je absolútne ukotvený v pravom hornom rohu karty. */}
         <span className="ts-rank">
           <span className="ts-rank-name">{t('pack.map.rankPilgrim')}</span>
-          <span className="ts-rank-num" aria-label={t('pack.map.levelAriaLabel', { level: view.level })}>
+          <span
+            className="ts-rank-num"
+            style={tierVars(view.level)}
+            aria-label={t('pack.map.levelAriaLabel', { level: view.level })}
+          >
             {view.level}
           </span>
         </span>

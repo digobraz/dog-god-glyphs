@@ -2547,6 +2547,47 @@ export const en = {
   'pack.points.newCountry': "new country",
   'pack.points.collection': "complete collection",
   'pack.points.rate': "rating",
+
+  // ── FAREBNÉ PÁSMA LEVELU (2026-08-24) ──────────────────────────────────────
+  // Deväť materiálov, tri levely na pásmo. Zdroj farieb a poradia = `@/lib/packTiers`.
+  // Mená sa PREKLADAJÚ (Matej 24. 8.: „štandardne je všetko english native… postaraj sa aj
+  // o preklady aby boli v eng") — nie sú to názvy produktov ako DOG ID, sú to materiály.
+  'pack.tier.sand': "Sand",
+  'pack.tier.copper': "Copper",
+  'pack.tier.gold': "Gold",
+  'pack.tier.carnelian': "Carnelian",
+  'pack.tier.olivine': "Olivine",
+  'pack.tier.cypress': "Cypress",
+  'pack.tier.turquoise': "Turquoise",
+  'pack.tier.lapis': "Lapis",
+  'pack.tier.amethyst': "Amethyst",
+  'pack.tier.levelWord': "Level",
+  'pack.tier.levelRange': "Level {range}",
+  'pack.tier.youAreHere': "you are here",
+  'pack.tier.chip': "Level {level} · {tier}",
+  'pack.tier.newTier': "New tier — {tier}",
+  'pack.tier.panelTitle': "Your level",
+  'pack.tier.scaleTitle': "Tiers",
+  'pack.tier.breakdownTitle': "Where your points come from",
+  'pack.tier.totalLabel': "Total",
+  'pack.tier.pointsOfNext': "{points} / {next} points",
+  'pack.tier.toNext': "{n} points to level {level}",
+  'pack.tier.toNextShort': "{n} points to the next level",
+  'pack.tier.close': "Close",
+
+  // ── REVEAL PO ZAPÍSANÍ VÝLETU (2026-08-24) ────────────────────────────────
+  // ⚠️ `pointsUnit` sa vykresľuje CINZELOM VO VEĽKOSTI ČÍSLA (Matej 24. 8.: „bodov veľkým"),
+  //    takže dlhý preklad je vidieť na prvý pohľad. `POINTS` je dvakrát dlhšie než `BODOV` —
+  //    pod 360 px šírky sa preto obe zmenšujú (`@media` v `revealCss.ts`).
+  'pack.reveal.pointsUnit': "points",
+  'pack.reveal.whyLink': "what earned them",
+  'pack.reveal.whyTitle': "What earned these points",
+  'pack.reveal.forThisTrip': "For this trip",
+  'pack.reveal.addAnother': "Add another trip",
+  'pack.reveal.backToMap': "Back to map",
+  'pack.reveal.coachTitle': "Where to find it",
+  'pack.reveal.coachBody': "The trip is saved in My trips. Your points and level live in your profile.",
+  'pack.reveal.coachOk': "Got it",
   'pack.points.ranges': "mountain ranges",
   'pack.points.parks': "national parks",
   'pack.points.chko': "protected areas",
