@@ -26,10 +26,37 @@ export type PlaceSearchProps = {
   onPicked?: (s: PlaceSug) => void;
 };
 
+// Svetlo obiehajúce po ráme — ten istý mechanizmus, aký nesie náhľad mena v hero flow
+// (`NameScreen.tsx`, `--name-prev-ang`). Tam je modré, tu zlaté: zlatá je v projekte farba
+// výzvy a toto pole je prvá vec, ktorú má človek na mape spraviť.
+const GOLD_DIM = 'rgba(201,154,63,0.55)';
+const PLACE_SEARCH_CSS = `
+@property --trp-ps-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+.trp-ps{position:relative;border-radius:10px;}
+.trp-ps.is-attn{box-shadow:0 0 16px rgba(201,154,63,0.20);}
+.trp-ps.is-attn::before{
+  content:'';position:absolute;inset:-2px;border-radius:12px;z-index:0;pointer-events:none;padding:2px;
+  background:conic-gradient(from var(--trp-ps-ang),
+    transparent 0deg, transparent 250deg,
+    rgba(201,154,63,0.85) 312deg, rgba(245,199,61,0.98) 334deg,
+    rgba(201,154,63,0.85) 352deg, transparent 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;
+  filter:blur(1px);
+  animation:trpPsSpin 3.8s linear infinite;
+}
+@keyframes trpPsSpin{ to { --trp-ps-ang:360deg; } }
+@media (prefers-reduced-motion: reduce){ .trp-ps.is-attn::before{animation:none;} }
+`;
+
 export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceSearchProps) {
   const t = useT();
   const [q, setQ] = useState('');
   const [items, setItems] = useState<PlaceSug[]>([]);
+  // Pole musí SAMO povedať, že sa doň dá písať (Matej 2026-08-23: „okraj tej textarey musí
+  // pulzovať… taký istý mechanizmus máme v hero flow"). Svetlo obieha rám LEN kým je pole
+  // prázdne a nikto v ňom nestojí — počas písania by to bolo rušenie, nie pozvánka.
+  const [focused, setFocused] = useState(false);
   const pickedRef = useRef('');
   const boxRef = useRef<HTMLDivElement | null>(null);
 
@@ -83,18 +110,26 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
     onPicked?.(s);
   };
 
+  const attn = !focused && q.trim().length === 0;
+
   return (
     <div ref={boxRef} style={{ position: 'relative' }}>
-      <input
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        placeholder={placeholder ?? t('pack.addTrip.geo.searchPlace')}
-        style={{
-          width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10,
-          background: 'rgba(10,7,4,0.72)', border: '1px solid ' + T.onDarkBorder,
-          color: T.onDark, fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, outline: 'none',
-        }}
-      />
+      <style>{PLACE_SEARCH_CSS}</style>
+      <div className={`trp-ps${attn ? ' is-attn' : ''}`}>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder ?? t('pack.addTrip.geo.searchPlace')}
+          style={{
+            position: 'relative', zIndex: 1,
+            width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10,
+            background: 'rgba(10,7,4,0.72)', border: '1px solid ' + (attn ? GOLD_DIM : T.onDarkBorder),
+            color: T.onDark, fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, outline: 'none',
+          }}
+        />
+      </div>
       {items.length > 0 && (
         <div
           style={{
