@@ -1527,10 +1527,15 @@ ${TRAIL_LINE_CSS}
      hovorí tým istým jazykom ako to, čo z neho vznikne. Zároveň to rozviazalo starý spor
      „ZOZNAM aj PRIDAŤ sú obe zlaté": prepínač pohľadu ostáva zlatá pilulka, akcia je fialová,
      a rozdiel je vidno na prvý pohľad bez toho, aby sa musel meniť aj prepínač. */
-  .trp-mfab{border-radius:8px;background:linear-gradient(135deg,#B36BFF,#7A2FBF);color:#F6EEFF;border:1px solid rgba(245,240,228,0.30);box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 40px rgba(122,47,191,0.50), inset 0 1px 0 rgba(255,255,255,0.22);}
+  /* ⚠️ TMAVÁ, NIE SVIETIVÁ (Matej 2026-08-23: „tú fialovú treba zmeniť za viac tmavé, lebo
+     to vyzerá hrozne"). Svetlá fialová #B36BFF je farba ČIARY na mape — na ploche tlačidla
+     z nej bola neónová škvrna vedľa zlatého prepínača. Tmavý koniec tej istej rodiny
+     drží príbuznosť s trasou, ale správa sa ako povrch. */
+  .trp-mfab{border-radius:8px;background:linear-gradient(135deg,#4A1580,#2A0B4D);color:#EADCFF;border:1px solid rgba(179,107,255,0.45);box-shadow:0 10px 30px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10);}
+  .trp-mfab:hover{border-color:rgba(179,107,255,0.75);}
   .trp-mfab:active{transform:scale(0.98);}
   .trp-mtoggle img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0);opacity:.82;}
-  .trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0) invert(1);opacity:.9;}
+  .trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0) invert(1);opacity:.85;}
 
   /* hlavička LIST pohľadu — sem sa presťahoval TRIPLIST z mapového headera. V zozname dáva
      zmysel (je to zoznamový povrch), v headeri mapy bol len ďalšia ikonka v rade. */
