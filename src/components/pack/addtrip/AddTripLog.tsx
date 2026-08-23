@@ -17,6 +17,7 @@
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
+import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -71,11 +72,20 @@ export type AddTripLogProps = {
    */
   seedPoint?: { lat: number; lon: number } | null;
   /**
-   * „Som na kroku, kde je obrazovkou MAPA" (krok 1 = kreslenie trasy). Na mobile podľa toho
-   * PackMap formulár schová — mapa je vtedy celá obrazovka a formulár by ju prekryl.
-   * Na PC sa nedeje nič: tam panel stojí vedľa mapy a schovávať netreba.
+   * KTORÝ KROK PRÁVE VLASTNÍ MAPU.
+   *
+   * `draw`  — krok 1, kreslí sa trasa. Existujúce trasy sa na mape stlmia, nech je vidno tú,
+   *           ktorá práve vzniká (Matej 2026-08-23: „keď kreslím, musia zmiznúť už vytvorené
+   *           trasy, resp. musia ešte viac vyblednúť").
+   * `notes` — krok 2, na hotovú trasu sa pichajú odkazy. Mapa ostáva obrazovkou (Matej: „ten
+   *           bude opäť na mape, nie prostredie krokov"), ale okolité trasy sa vrátia — sú
+   *           to orientačné body pre to, kde parkoval.
+   * `off`   — formulár je obrazovkou.
+   *
+   * Na mobile podľa toho PackMap formulár schová; na PC panel stojí vedľa mapy a schovávať
+   * netreba, stlmenie trás však platí rovnako.
    */
-  onMapPhase?: (on: boolean) => void;
+  onMapPhase?: (phase: 'off' | 'draw' | 'notes') => void;
   /**
    * KROK 2 — ODKAZY NA TRASU. Nič nové sa nevymýšľa: volá sa existujúci vstup zápisov do
    * mapy (`mapnotes/`, tabuľka `map_notes`), len ho vyvolá sprievodca namiesto dlhého
@@ -88,12 +98,23 @@ export type AddTripLogProps = {
    * nebezpečenstvo má odteraz jediné miesto, a je ním mapa.
    */
   placedNotes?: NoteKind[];
+  /**
+   * ČLOVEK PRÁVE UKAZUJE MIESTO ZNAČKY. Panel kroku 2 vtedy ustúpi — mapa musí byť voľná
+   * a lišta „ukáž miesto" (`.mnp-bar`) stojí presne tam, kde inak sedí dolný panel.
+   */
+  notePlacing?: boolean;
 };
 
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
 // (komentár tam vysvetľuje prečo: PackMap.tsx má rovnaký zoznam, needituje sa, nič z neho nie
 // je exportované).
-const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string; wide?: boolean; noteKey?: string }> = [
+// ⚠️ VYSVETLIVKU MÁ KAŽDÁ DLAŽDICA, NIE LEN POSLEDNÁ (Matej 2026-08-23: „k výberom aktivity
+// musí byť vysvetlivka"). Nie je to ozdoba: voľba aktivity rozhoduje o tom, ČO sa bude na mape
+// kresliť — trasa, jeden bod alebo vodná plocha (tabuľka ACTIVITY_GEOMETRY v GeometryPicker) —
+// a to sa človek dovtedy dozvedel až v kroku 1, keď mu mapa sama ponúkla iné nástroje, než
+// čakal. Kľúč je odvodený od `id`, takže nová aktivita bez vety spadne na prázdno, nie na
+// cudzí text.
+const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string; wide?: boolean }> = [
   { id: 'hiking', label: 'Hiking', emoji: '🥾', dataId: 'hike' },
   { id: 'journey', label: 'Journey', emoji: '🎒', dataId: 'journey' },
   { id: 'picnic', label: 'Picnic', emoji: '🧺', dataId: 'picnic' },
@@ -105,7 +126,7 @@ const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: stri
   // Kompas 🧭 sľuboval objavovanie divočiny, hoci sem patrí aj hrad či mestský park; hrad 🏰
   // je konkrétnejší príklad toho, čo sa inam nezmestilo. Nepárny počet (7) jej v mriežke
   // aj tak necháva celý riadok, tak ho nesie text.
-  { id: 'explore', label: 'Explore', emoji: '🏰', dataId: 'explore', wide: true, noteKey: 'pack.addTrip.log.activityExploreNote' },
+  { id: 'explore', label: 'Explore', emoji: '🏰', dataId: 'explore', wide: true },
 ];
 const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));
 
@@ -187,7 +208,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, besidePanel, seedPoint, onMapPhase, onPlaceNote, placedNotes }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, besidePanel, seedPoint, onMapPhase, onPlaceNote, placedNotes, notePlacing }: AddTripLogProps) {
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
@@ -544,9 +565,39 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const journeyPicking = activity === 'journey' && !drawManually;
   const drawingStep = !!activity && step === 1 && !journeyPicking && !restored;
 
-  // Na mobile je v kroku 1 obrazovkou MAPA a formulár sa schová (PackMap). Na PC sa nedeje nič.
-  useEffect(() => { onMapPhase?.(drawingStep); }, [drawingStep, onMapPhase]);
-  useEffect(() => () => { onMapPhase?.(false); }, [onMapPhase]);
+  // KROK 2 JE TIEŽ NA MAPE (Matej 2026-08-23). Formulárové prostredie sa vracia až krokom 3 —
+  // odkazy sa pichajú do mapy, takže obrazovkou musí byť mapa, nie zoznam otázok o nej.
+  const notesStep = !!activity && step === 2 && !restored;
+  const mapPhase: 'off' | 'draw' | 'notes' = drawingStep ? 'draw' : notesStep ? 'notes' : 'off';
+  useEffect(() => { onMapPhase?.(mapPhase); }, [mapPhase, onMapPhase]);
+  useEffect(() => () => { onMapPhase?.('off'); }, [onMapPhase]);
+
+  // ── PO DOKRESLENÍ VIDNO CELÚ TRASU (Matej 2026-08-23) ─────────────────────────────────
+  // „Automaticky po dokončení trasy sa pohľad vycentruje tak, aby videl človek celú trasu."
+  // Kreslí sa v priblížení na chodník, takže na konci vidno posledných pár sto metrov —
+  // a otázka „kde si parkoval" sa pýta na miesto, ktoré je v tej chvíli mimo obrazovky.
+  // ⚠️ Spodný pás patrí panelu s odkazmi, horný čítaniu — bez tejto výplne by trasa sadla
+  // presne pod ne. Beží RAZ pri vstupe do kroku 2 (`fittedRef`), nie pri každom prekreslení:
+  // inak by mapa uhla späť zakaždým, keď človek značku zapichne.
+  const fittedRef = useRef(false);
+  useEffect(() => {
+    if (!notesStep) { fittedRef.current = false; return; }
+    if (fittedRef.current) return;
+    const map = mapRef.current;
+    if (!map) return;
+    const pts: LatLngTuple[] = geometry.kind === 'route'
+      ? (geometry.snapPath?.length ? geometry.snapPath : geometry.path)
+      : geometry.center ? [geometry.center] : [];
+    if (!pts.length) return;
+    fittedRef.current = true;
+    const bounds = L.latLngBounds(pts);
+    map.fitBounds(bounds, {
+      paddingTopLeft: [24, 90],
+      paddingBottomRight: [24, 260],
+      maxZoom: 15,
+      animate: true,
+    });
+  }, [notesStep, geometry, mapRef]);
 
   // Krok 1 sa neopúšťa bez geometrie — aj keby to bol len najmenší zápis (štart a cieľ).
   // Inak by človek prešiel celý sprievodca a spadol až na uložení.
@@ -557,22 +608,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     if (step > 1) { setStep((n) => n - 1); return; }
     setActivity('');
   };
-
-  const drawBar = useMemo(
-    () => ({
-      active: drawingStep,
-      onDone: () => setStep(2),
-      onBack: () => setActivity(''),
-      doneLabel: t('pack.addTrip.step.doneRoute'),
-      doneDisabled: nextBlocked,
-      besidePanel,
-      // Mimo kroku 1 picker ostáva MOUNTNUTÝ (aby trasa na mape nezmizla, veď sa na ňu
-      // v kroku 2 pichajú značky), ale nesmie brať kliky — inak by pri zapichovaní
-      // parkoviska pribudla kotva trasy.
-      paused: !drawingStep,
-    }),
-    [drawingStep, besidePanel, nextBlocked, t],
-  );
 
   // ── KROK 2: ODKAZY NA TRASU ───────────────────────────────────────────────────────────
   // Matej: „pridaj na trasu ODKAZY (pri logu): parkovisko? — na každé bude vyzvaný, kde si
@@ -592,6 +627,72 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     prevPlacedRef.current = placedCount;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- NOTE_ASKS je konštanta v tele
   }, [placedCount]);
+
+  // ── OVLÁDANIE NA MAPE ─────────────────────────────────────────────────────────────────
+  // Jedna lišta, dva kroky. V kroku 1 nesie nástroje kreslenia (kreslí si ich picker sám),
+  // v kroku 2 dostane cez `panel` otázky o odkazoch — tvar ani miesto ovládania sa pod prstom
+  // nemenia, mení sa len to, na čo sa pýta.
+  // NA PC OSTÁVA KROK 2 V PANELI. Matejova výhrada bola mobilná („nie prostredie krokov,
+  // ale dolný panel") a na PC panel STOJÍ VEDĽA mapy — mapa je tam vidno aj tak, takže
+  // presúvať otázky do doku by len znamenalo, že vedľa seba svietia dve škatule a jedna
+  // z nich je prázdna.
+  const notesInBar = notesStep && !besidePanel;
+  const notesBody = (
+    <>
+      {noteAsk < NOTE_ASKS.length ? (
+        <>
+          <p>{t(NOTE_ASKS[noteAsk].qKey)}</p>
+          <div className="atl-noteask-btns">
+            <button type="button" className="atl-toggle-btn" onClick={() => setNoteAsk((i) => i + 1)}>
+              {t('pack.addTrip.step.skip')}
+            </button>
+            <button
+              type="button"
+              className="atl-toggle-btn on"
+              onClick={() => onPlaceNote?.(NOTE_ASKS[noteAsk].group)}
+              disabled={!onPlaceNote}
+            >
+              {t(NOTE_ASKS[noteAsk].ctaKey)}
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <p>{t('pack.addTrip.step.notesDone')}</p>
+          <button type="button" className="atl-journey-link" onClick={() => setNoteAsk(0)}>
+            {t('pack.addTrip.step.markMore')}
+          </button>
+        </>
+      )}
+      <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesYet" />
+    </>
+  );
+  const notesPanel = (
+    <div className="atl-noteask atl-noteask--bar">
+      {notesBody}
+      <button type="button" className="trp-dbar-done trp-dbar-done--hero" onClick={() => setStep(3)}>
+        {t('pack.addTrip.step.doneNotes')}
+      </button>
+    </div>
+  );
+
+  const drawBar = {
+    active: drawingStep || (notesInBar && !notePlacing),
+    onDone: () => setStep(2),
+    onBack: () => { if (notesInBar) setStep(1); else setActivity(''); },
+    backLabel: notesInBar ? 'pack.addTrip.step.backToRoute' : undefined,
+    doneLabel: t('pack.addTrip.step.doneRoute'),
+    doneDisabled: nextBlocked,
+    besidePanel,
+    // Mimo kroku 1 picker ostáva MOUNTNUTÝ (aby trasa na mape nezmizla, veď sa na ňu
+    // v kroku 2 pichajú značky), ale nesmie brať kliky — inak by pri zapichovaní
+    // parkoviska pribudla kotva trasy.
+    paused: !drawingStep,
+    panel: notesInBar ? notesPanel : undefined,
+    // V kroku 2 pokyn hovorí o značkách, nie o kreslení — inak by fialová pilulka radila
+    // dlho podržať prst práve vtedy, keď to nič nespraví.
+    hint: notesInBar ? t('pack.addTrip.step.hint.notes') : undefined,
+  };
 
   const stepHint = t(`pack.addTrip.step.hint.${stepKey}`);
 
@@ -620,7 +721,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           <div className="atl-log-sub">{t('pack.addTrip.log.titleActivitySub')}</div>
         </div>
       ) : (
-        <div className="atl-log-head">
+        /* ŠÍPKA V STREDE, BEZ NADPISU (Matej 2026-08-23: „šípka dozadu bude v strede hore…
+           bez toho «zapíš výlet»"). Kroky 1 a 2 sú na mape a návrat nesie lišta; sem sa
+           človek dostane až s vyplneným formulárom, kde mu nadpis „Zapíš výlet" hovorí
+           niečo, čo o sebe vie už tri obrazovky. Riadok tak ostáva pre jedinú vec, ktorú
+           tam naozaj hľadá. */
+        <div className="atl-log-head atl-log-head--plain">
           <button
             type="button"
             className="atl-log-back"
@@ -629,11 +735,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           >
             ←
           </button>
-          {/* Nadpis sleduje dátum — kým je v budúcnosti, formulár je PLÁN a „Log a trip"
-              by hovoril o niečom, čo sa ešte nestalo. */}
-          <div className="atl-log-title">
-            {t(isPlan ? 'pack.addTrip.log.titlePlan' : 'pack.addTrip.log.title')}
-          </div>
         </div>
       )}
 
@@ -666,7 +767,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
                   `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
               <span className="atl-tile-label">{t(`pack.map.activityLabel.${a.id}`)}</span>
-              {a.noteKey && <span className="atl-tile-note">{t(a.noteKey)}</span>}
+              <span className="atl-tile-note">{t(`pack.addTrip.log.activityNote.${a.id}`)}</span>
             </button>
           ))}
         </div>
@@ -696,7 +797,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           <div className="atl-log-body">
             {/* JEDNA VETA, VŽDY NA TOM ISTOM MIESTE (Matej 23. 8.). V kroku 1 ju nesie fialová
                 pilulka nad mapou (tam, kde sa gesto robí) — tu by stála druhýkrát. */}
-            {!drawingStep && stepHint && (
+            {!drawingStep && !notesInBar && stepHint && (
               <div className="atl-stephint">{stepHint}</div>
             )}
 
@@ -765,66 +866,34 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
               </div>
             </div>
 
-            {/* ══ KROK 2 — ODKAZY NA TRASU ════════════════════════════════════════════ */}
-            {step === 2 && (
+            {/* ══ KROK 2 — ODKAZY NA TRASU ════════════════════════════════════════════
+                NA MOBILE TU NIE JE NIČ (Matej 2026-08-23: „ten bude opäť na mape, nie
+                prostredie krokov — v dolnom paneli sa zobrazia možnosti pridania odkazov") —
+                ovládanie nesie `notesPanel` v lište nad mapou. Na PC panel stojí VEDĽA mapy,
+                takže otázky ostávajú tu; dva panely vedľa seba, z ktorých je jeden prázdny,
+                by boli horšie než pôvodný stav. */}
+            {step === 2 && !notesInBar && (
               <div className="atl-field">
                 <label>{t('pack.addTrip.step.name.notes')}</label>
-                {noteAsk < NOTE_ASKS.length ? (
-                  <div className="atl-noteask">
-                    <p>{t(NOTE_ASKS[noteAsk].qKey)}</p>
-                    <div className="atl-noteask-btns">
-                      <button
-                        type="button"
-                        className="atl-toggle-btn"
-                        onClick={() => setNoteAsk((i) => i + 1)}
-                      >
-                        {t('pack.addTrip.step.skip')}
-                      </button>
-                      <button
-                        type="button"
-                        className="atl-toggle-btn on"
-                        onClick={() => onPlaceNote?.(NOTE_ASKS[noteAsk].group)}
-                        disabled={!onPlaceNote}
-                      >
-                        {t(NOTE_ASKS[noteAsk].ctaKey)}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="atl-field-hint">{t('pack.addTrip.step.notesDone')}</p>
-                )}
-                <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesYet" />
-                {noteAsk >= NOTE_ASKS.length && (
-                  <button type="button" className="atl-journey-link" onClick={() => setNoteAsk(0)}>
-                    {t('pack.addTrip.step.markMore')}
-                  </button>
-                )}
+                {notesBody}
               </div>
             )}
 
             {/* ══ KROK 3 — ZÁKLAD ═════════════════════════════════════════════════════ */}
             {step === 3 && (
               <>
-                {/* HORE PATRÍ TO, ČO ČLOVEK PRÁVE ROBÍ — nie stock les.
-                    Kým nie je nahraná fotka, ukazuje sa ŽIVÝ VÝREZ NAKRESLENEJ TRASY: je to
-                    jediný obrázok, ktorý o tomto konkrétnom výlete niečo hovorí. */}
-                {photos.length === 0 && routeShape ? (
-                  <div className="atl-photo atl-photo--route">
-                    <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                      <polyline points={routeShape} />
-                    </svg>
-                    <span className="atl-photo-badge">{t('pack.addTrip.log.routeSoFar')}</span>
-                  </div>
-                ) : (
+                {/* ⚠️ NÁKRES TRASY TU UŽ NIE JE (Matej 2026-08-23: „v 3. kroku nemusí byť nákres
+                    trasy"). Trasu človek pred chvíľou nakreslil a v kroku 2 ju videl celú na
+                    mape — tretíkrát ju ukázať znamená len to, že sa krok nezmestí na obrazovku
+                    a formulár začne skrolovať. Fotka ostáva: tá o výlete hovorí niečo nové. */}
+                {photos.length > 0 && (
                   <div
                     className="atl-photo"
                     style={{
                       backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
-                      backgroundPosition: photos.length > 0 ? `center ${coverY}%` : undefined,
+                      backgroundPosition: `center ${coverY}%`,
                     }}
-                  >
-                    {photos.length === 0 && <span className="atl-photo-badge">{t('pack.addTrip.log.addPhotoBelow')}</span>}
-                  </div>
+                  />
                 )}
 
                 <div className="atl-field">
@@ -1074,7 +1143,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           <div className="atl-log-foot">
             {/* V KROKU 1 NAVIGÁCIU VLASTNÍ LIŠTA (HOTOVO nad mapou) — dve tlačidlá s tým istým
                 účinkom na jednej obrazovke je presne ten zmätok, kvôli ktorému kroky vznikli. */}
-            {step < 5 && !drawingStep && (
+            {/* KROK 2 MÁ SVOJE POKRAČOVANIE V LIŠTE NAD MAPOU — dva „ďalej" na jednej
+                obrazovke (jeden v päte panela, druhý v doku) je otázka, ktorý z nich platí. */}
+            {step < 5 && !drawingStep && !notesInBar && (
               <div className="atl-nav">
                 <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                 <button type="button" className="btn-gold" onClick={goNext} disabled={nextBlocked}>
@@ -1159,6 +1230,10 @@ const STEP_CSS = `
 .atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:13px;line-height:1.45;color:${T.onDark};}
 .atl-noteask-btns{display:flex;gap:8px;}
 .atl-noteask-btns .atl-toggle-btn{flex:1 1 0;}
+/* KROK 2 V LIŠTE NAD MAPOU — lišta už rám aj podklad má, druhý dovnútra by vyrobil
+   škatuľu v škatuli. Ostáva len rozostup medzi otázkou, zoznamom značiek a pokračovaním. */
+.atl-noteask--bar{padding:0;border:0;background:none;display:flex;flex-direction:column;gap:10px;}
+.atl-noteask--bar p{margin:0;}
 .atl-nav{display:flex;gap:8px;align-items:stretch;}
 .atl-nav .atl-toggle-btn{flex:0 0 34%;}
 .atl-nav .btn-gold{flex:1 1 0;}
@@ -1221,6 +1296,7 @@ const LOG_CSS = `
 .atl-log-back:hover{border-color:${GOLD};color:${GOLD};}
 .atl-log-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
 /* Titulná obrazovka pridávania — návrat v strede, pod ním nadpis a jedna veta. */
+.atl-log-head--plain{justify-content:center;padding:14px 20px 8px;}
 .atl-log-head--intro{flex-direction:column;align-items:center;gap:12px;padding:18px 20px 14px;text-align:center;}
 .atl-log-title--big{font-size:22px;letter-spacing:.06em;}
 .atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:34ch;}
@@ -1228,28 +1304,41 @@ const LOG_CSS = `
    displej"). Dlaždica sa tým narovná do riadku — emoji vľavo, názov vedľa — takže výška
    obrazovky vystačí aj na sedem položiek. Nad 560 px ostávajú dva stĺpce. */
 .atl-tiles{display:grid;grid-template-columns:1fr;gap:10px;padding:4px 20px 20px;}
-.atl-tile{display:flex;flex-direction:row;align-items:center;gap:14px;padding:15px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
+/* Emoji vľavo cez oba riadky, vpravo názov NAD vetou. Bol to flex rad, v ktorom sa veta
+   zalamovala pod emoji (flex:1 1 100%) — s vetou na KAŽDEJ dlaždici by tak sedem položiek
+   začínalo siedmimi rôznymi odsadeniami. */
+.atl-tile{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:3px;align-items:center;padding:14px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
 .atl-tile:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);}
-.atl-tile-emoji{font-size:26px;line-height:1;flex:0 0 auto;}
-.atl-tile-label{font-family:${FONT_UI};font-weight:500;font-size:14px;letter-spacing:.03em;color:${T.onDark};}
-.atl-tile--wide{flex-wrap:wrap;}
-.atl-tile-note{flex:1 1 100%;font-family:${FONT_UI};font-weight:400;font-size:11.5px;line-height:1.4;color:${T.onDarkDim};}
+.atl-tile-emoji{grid-row:1 / 3;font-size:26px;line-height:1;}
+.atl-tile-label{grid-column:2;font-family:${FONT_UI};font-weight:500;font-size:14px;letter-spacing:.03em;color:${T.onDark};}
+.atl-tile-note{grid-column:2;font-family:${FONT_UI};font-weight:400;font-size:11.5px;line-height:1.4;color:${T.onDarkDim};}
 @media (min-width:560px){
   .atl-tiles{grid-template-columns:repeat(2,1fr);}
   .atl-tile--wide{grid-column:1 / -1;}
 }
-.atl-log-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:14px;}
+/* PEVNÝ VIEWPORT (Matej 23. 8.: „na mobile musí byť pevný viewport, nie pohyblivý mimo").
+   Vodorovne sa neskroluje nikdy — čo pretečie, je chyba prvku, nie dôvod na posúvanie
+   stránky. Vlastnosť overscroll-behavior drží ťah prsta vnútri formulára, aby sa pod ním nehýbala
+   mapa ani celý dokument. */
+.atl-log-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:4px 20px 16px;display:flex;flex-direction:column;gap:14px;}
 .atl-photo{flex:0 0 auto;position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;border:1px solid ${T.onDarkBorder};}
 .atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}
 .atl-field label{display:block;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};margin-bottom:6px;}
 .atl-field-hint{font-weight:400;text-transform:none;letter-spacing:0;opacity:.72;font-size:10.5px;font-family:${FONT_UI};color:${T.onDarkDim};}
-.atl-input{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:9px;padding:9px 11px;color:${T.onDark};font-family:${FONT_UI};font-size:12.5px;outline:0;}
+/* ⚠️ 16 px JE MINIMUM, NIE VKUS (feedback_dogypt_form_input_recurring_bugs, tretí výskyt
+   23. 8.). Pod ním iOS Safari pri kliknutí do poľa priblíži CELÝ dokument a ovládanie
+   ukotvené k okrajom vypadne mimo obrazovky — vyzerá to, že sa appka rozbila, nie že je
+   priblížená. Platí to na KAŽDÉ pole, aj na dátum a rozbaľovačky.
+   min-width:0 + max-width:100%: pole s type=date má na iOS vlastnú vnútornú šírku
+   a v grid bunke (min-width:auto) ju presadí — riadok tak pretiekol cez okraj stránky
+   a dal sa vodorovne posúvať (Matej 23. 8.: „dátum preteká cez okraj"). */
+.atl-input{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:9px;padding:9px 11px;color:${T.onDark};font-family:${FONT_UI};font-size:16px;outline:0;}
 .atl-input:focus{border-color:${GOLD};}
 .atl-input::placeholder{color:${T.onDarkDim};}
 .atl-input:disabled{opacity:.45;}
 .atl-textarea{resize:vertical;font-family:${FONT_UI};}
-.atl-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.atl-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.atl-row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+.atl-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 .atl-toggle-btn{width:100%;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.03em;padding:8px 10px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;white-space:nowrap;}
 .atl-toggle-btn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
 .atl-daterange-hint{margin:-4px 0 0;font-family:${FONT_UI};font-weight:400;font-size:11px;line-height:1.4;color:${T.onDarkDim};}
@@ -1299,7 +1388,7 @@ const LOG_CSS = `
 .atl-dupwarn-btns{display:flex;gap:8px;}
 .atl-dupwarn-btns .atl-toggle-btn{padding:7px 10px;font-size:10.5px;}
 @media (max-width:640px){
-  .atl-row2,.atl-row3{grid-template-columns:1fr;}
+  .atl-row2,.atl-row3{grid-template-columns:minmax(0,1fr);}
 }
 `;
 

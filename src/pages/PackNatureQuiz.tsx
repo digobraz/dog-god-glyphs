@@ -38,6 +38,7 @@ import { BrandIcon } from '@/components/pack/BrandIcon';
 import { appendDogEvents, readLatestForDogs, type DogEventInput } from '@/lib/dogEvents';
 import ainubisBadge from '@/assets/ainubis-badge.png';
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -1870,7 +1871,15 @@ export default function PackNatureQuiz() {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       const uid = auth?.user?.id;
-      if (!uid) { if (alive) setDogs([]); return; }
+      // Dev bez prihlásenia (`VITE_PACK_NOAUTH=1`) → tá istá mock svorka ako v hube,
+      // inak by sa kvíz na telefóne nedal otvoriť. Prod tu ostáva prázdny.
+      if (!uid) {
+        if (alive) {
+          const mock = DEV_MOCK_DOGS.filter((d) => !onlyDogId || d.id === onlyDogId);
+          setDogs(DEV_NOAUTH ? (mock as QuizDog[]) : []);
+        }
+        return;
+      }
       let q = supabase
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, heroglyph_png_url')

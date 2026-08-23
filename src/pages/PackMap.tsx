@@ -123,6 +123,7 @@ import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/M
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
+import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
 // adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
@@ -852,7 +853,7 @@ const CSS = `
 /* bod 3 (iterácia 11): Activity/Difficulty/Popularity už NIE SÚ zabalené v samostatnom
    glass boxe (.trp-topfilters zrušený) — sú to teraz totožné, borderless polia priamo
    v .trp-topsearchrow, rovnaká výška/radius/glass ako search-a-place vedľa nich. */
-.trp-toprow-select,.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:13px;cursor:pointer;outline:0;}
+.trp-toprow-select,.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
 .trp-toprow-select:focus{border-color:${GOLD};}
 /* Tags multi-select trigger (Matej 2026-07-27) — presne rovnaký look ako susedné
    .trp-toprow-select, len navyše button-špecifiká (text-align, chevron, aktívny stav). */
@@ -872,7 +873,10 @@ const CSS = `
    (bola svetlý papyrus), ladí s ostatnými tmavými prvkami nad mapou. */
 .trp-mapsearch{display:flex;align-items:center;gap:9px;width:100%;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);}
 .trp-mapsearch img{width:15px;height:15px;filter:brightness(0) invert(1);opacity:0.6;flex-shrink:0;}
-.trp-mapsearch input{background:transparent;border:0;outline:0;color:${T.onDark};font-size:13.5px;width:100%;font-family:inherit;}
+/* ⚠️ 16 px — iOS Safari inak pri kliknutí do poľa priblíži celý dokument a ovládanie
+   ukotvené k okrajom mapy vypadne mimo obrazovky (feedback_dogypt_form_input_recurring_bugs;
+   presne toto zhodilo hľadanie miesta v kreslení 23. 8.). Platí na každý input nad mapou. */
+.trp-mapsearch input{background:transparent;border:0;outline:0;color:${T.onDark};font-size:16px;width:100%;font-family:inherit;}
 .trp-mapsearch input::placeholder{color:${T.onDarkDim};}
 .trp-mapsug{background:rgba(6,5,3,0.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.5);max-height:260px;overflow-y:auto;}
 .trp-mapsug-item{padding:10px 15px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};transition:background .12s;}
@@ -1045,7 +1049,7 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 
 /* country select — flag + 3-letter code; native <select> so the dropdown escapes
    the panel's overflow:hidden cleanly (no popover-clip risk). Only SK enabled. */
-.trp-country-select,.trp-filter-select{width:100%;min-width:0;background:rgba(245,240,228,0.05);border:1px solid rgba(245,240,228,0.16);border-radius:9px;padding:8px 9px;color:rgba(245,240,228,0.85);font-family:inherit;font-size:11.5px;cursor:pointer;outline:0;}
+.trp-country-select,.trp-filter-select{width:100%;min-width:0;background:rgba(245,240,228,0.05);border:1px solid rgba(245,240,228,0.16);border-radius:9px;padding:8px 9px;color:rgba(245,240,228,0.85);font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
 .trp-country-select:focus,.trp-filter-select:focus{border-color:${GOLD};}
 /* geo kaskáda (Matejov feedback bod 4, iterácia 7; Pohorie vrátené iterácia 9; Activity
    presunutá sem 2026-07-27): country (malinký, flag+kód) → región (West/Center/East) →
@@ -1470,7 +1474,7 @@ ${TRAIL_LINE_CSS}
   .trp-mheader-row2{display:flex;align-items:center;gap:8px;}
   .trp-mheader .trp-mapsearch{flex:1 1 auto;min-width:0;padding:7px 12px;border-radius:999px;}
   .trp-mheader .trp-mapsearch img{width:12px;height:12px;}
-  .trp-mheader .trp-mapsearch input{font-size:12px;}
+  /* NEZNIŽOVAŤ POD 16 px — viď pravidlo pri .trp-mapsearch input vyššie. */
   .trp-mfilterwrap{position:relative;flex:0 0 auto;}
   .trp-mfilterbtn{display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:${T.glassSoft};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:11.5px;white-space:nowrap;cursor:pointer;}
   .trp-mfilterbtn img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.8;}
@@ -2096,10 +2100,21 @@ export default function PackMap() {
   // pridávania výletu. S pôvodnou podmienkou by tam klik do mapy nikdy nezabral a tlačidlo
   // OZNAČ NA MAPE by bolo mŕtve.
   const notePlaceReady = !!notePlacing && !noteDraft && !noteSpot && !addEntryOpen;
+  /**
+   * PRAH PRIBLÍŽENIA JE INÝ VNÚTRI SPRIEVODCU VÝLETU.
+   *
+   * Samostatný odkaz (pavúk, prameň) je bod, ktorý má sedieť na meter — preto z16. V kroku 2
+   * pridávania výletu sa však mapa práve VYCENTROVALA NA CELÚ TRASU (viď fitBounds
+   * v AddTripLog), teda na z13–15, a odkaz sa vzťahuje na trasu, ktorú človek pred chvíľou
+   * nakreslil. So z16 tam ťuk do mapy ticho nezabral a pridanie parkoviska vyzeralo ako
+   * pokazené (Matej 2026-08-23). Berieme prah kreslenia trasy — čo stačí na kotvu, stačí
+   * aj na jej parkovisko.
+   */
+  const noteMinZoom = addFlow ? TRIP_HOLD_MIN_ZOOM : MIN_ZOOM_FOR_NOTE;
   useMapClickPoint(mapInstance, notePlaceReady, {
     onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
     onTooFar: showTooFar,
-  });
+  }, noteMinZoom);
 
   /**
    * SPRIEVODCA STOJÍ NA KROKU, KDE JE OBRAZOVKOU MAPA (krok 1 = kreslenie trasy).
@@ -2109,7 +2124,16 @@ export default function PackMap() {
    * mapRef, nezávisle od viditeľnosti panela, takže zápis geometrie beží ďalej.
    * Na PC sa neschováva nič: panel stojí vedľa mapy a lišta kreslenia sa oňho odsadí.
    */
-  const [addMapPhase, setAddMapPhase] = useState(false);
+  const [addMapPhase, setAddMapPhase] = useState<'off' | 'draw' | 'notes'>('off');
+  /**
+   * PRI KRESLENÍ SA MAPA UPRACE (Matej 2026-08-23: „keď kreslím, musia zmiznúť už vytvorené
+   * trasy, resp. musia ešte viac vyblednúť"). Sedemdesiat fialových mečov cez seba a čerstvo
+   * kliknutá kotva vyzerali rovnako dôležito. Trasy sa nemažú — GeometryPicker ich v tej
+   * chvíli kreslí ako tenkých DUCHOV (§5.3), na ktorých sa dá kliknúť a zapísať si ich —
+   * takže toto je výmena plnej vrstvy za stlmenú, nie strata. V kroku 2 sa vracajú: vtedy
+   * človek hľadá, kde parkoval, a okolie je orientačný bod.
+   */
+  const mapDrawing = addMapPhase === 'draw';
   /**
    * ZNAČKY ZAPICHNUTÉ POČAS TOHTO PRIDÁVANIA (krok 2 sprievodcu). Slúžia len na zobrazenie —
    * krok 4 ich ZHRNIE, needituje. Väzba značky na výlet sa NEUKLADÁ (odvodzuje sa zo
@@ -2683,7 +2707,7 @@ export default function PackMap() {
   const pickAddFlow = (choice: AddChoice) => {
     setAddEntryOpen(false);
     setInlineDetailId(null);
-    setAddMapPhase(false);
+    setAddMapPhase('off');
     if (choice.kind === 'event') {
       setAddEventFlow(choice.origin);
       return;
@@ -2712,14 +2736,14 @@ export default function PackMap() {
     setInlineDetailId(null);
     setMobileView('map');
     setSeedPoint({ lat, lon });
-    setAddMapPhase(false);
+    setAddMapPhase('off');
     if (what === 'event') { setAddEventFlow('own'); return; }
     setAddFlow('walked');
   };
 
   const closeAdd = () => {
     setAddFlow(null);
-    setAddMapPhase(false);
+    setAddMapPhase('off');
     setNotePlacing(null);
     setTripNotes([]);
     setSeedPoint(null);
@@ -2730,7 +2754,7 @@ export default function PackMap() {
   };
   const closeAddEvent = () => {
     setAddEventFlow(null);
-    setAddMapPhase(false);
+    setAddMapPhase('off');
     setSeedPoint(null);
     setAddError('');
     if (onAddRoute) navigate('/pack/map', { replace: true });
@@ -3743,7 +3767,7 @@ export default function PackMap() {
           zapichovanie značky. Je to `display:none`, NIE unmount — formulár by inak stratil
           celý svoj interný stav vrátane nakreslenej trasy. */}
       {(!!addFlow || !!addEventFlow) && (
-        <div className={`trp-addhost${isNarrow && (addMapPhase || notePlaceReady) ? ' is-hidden' : ''}`}>
+        <div className={`trp-addhost${isNarrow && (addMapPhase !== 'off' || notePlaceReady) ? ' is-hidden' : ''}`}>
           {addFlow ? (
             <AddTripLog
               allTrails={allTrails}
@@ -3758,6 +3782,9 @@ export default function PackMap() {
               onMapPhase={setAddMapPhase}
               onPlaceNote={setNotePlacing}
               placedNotes={tripNotes}
+              /* Kým človek ukazuje miesto ALEBO vypĺňa kartičku značky, panel kroku 2 ustúpi —
+                 inak stoja dva panely na sebe a spodný hovorí o niečom inom než vrchný. */
+              notePlacing={notePlaceReady || !!noteDraft}
             />
           ) : addEventFlow ? (
             <AddEvent origin={addEventFlow} authorName={firstName} onSubmit={submitAddEventDraft} onClose={closeAddEvent} mapRef={leafletMapRef} />
@@ -3848,7 +3875,10 @@ export default function PackMap() {
                 // pôsobilo ako chyba: ideš na trasu a ona zmizne. Teraz je hover na čiare
                 // rovnocenný s hoverom zo zoznamu aj s výberom: všetky tri ju ROZSVIETIA.
                 const hot = selected || hoverId === tr.id || lineHover;
-                const dim = 1;
+                // Pri kreslení ustúpia VŠETKY hotové trasy — aj tá pod myšou. Rozsvietiť
+                // cudziu trasu v okamihu, keď človek kreslí vlastnú, je presne ten zmätok,
+                // kvôli ktorému sa stlmenie zavádza.
+                const dim = mapDrawing ? 0.16 : 1;
                 const handlers = {
                   mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
                   mouseout: () => { setHoverId(null); setLineHoverId(null); },
@@ -3922,7 +3952,7 @@ export default function PackMap() {
                         // prekreslila zhora (Záruby 1/2/3 zdieľajú záverečný úsek).
                         ref={(layer) => {
                           const el = (layer as unknown as { _path?: SVGElement } | null)?._path;
-                          if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && hot && saberScale >= 0.7);
+                          if (el) el.classList.toggle('trp-saber-glow', ('glow' in ly && ly.glow) && hot && !mapDrawing && saberScale >= 0.7);
                           if (hot) (layer as unknown as { bringToFront?: () => void } | null)?.bringToFront?.();
                         }}
                         pathOptions={{
@@ -3953,7 +3983,7 @@ export default function PackMap() {
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
-              {!isCleanMode && (
+              {!isCleanMode && !mapDrawing && (
                 <TripMarkers
                   points={mapPoints}
                   hoverId={hoverId}
@@ -3969,7 +3999,7 @@ export default function PackMap() {
               {/* uložené PLÁNY (nie vodné plochy!) = jeden RUŽOVÝ bod na mape → Marker, klik vyberie
                   trip. Gate na id 'plan-' — vodné plochy s 1 bodom nesmú dostať pin. Skryté v
                   DOGYPT rovnako ako ostatné trip markery — je to pin, ktorý potrebuje legendu. */}
-              {!isCleanMode && allTrails.filter((tr) => tr.id.startsWith('plan-') && tr.path.length === 1).map((tr) => (
+              {!isCleanMode && !mapDrawing && allTrails.filter((tr) => tr.id.startsWith('plan-') && tr.path.length === 1).map((tr) => (
                 <Marker key={tr.id} position={tr.path[0]} icon={TARGET_PIN} eventHandlers={{ click: () => selectTrail(tr) }} />
               ))}
               {/* EVENT piny (krok 5, zadanie-eventy §9 krok 5) — LEN kým je aktívna kategória
@@ -4194,7 +4224,7 @@ export default function PackMap() {
       {notePlacing && !noteDraft && (
         <MapNotePlacing
           group={notePlacing}
-          ready={noteZoom >= MIN_ZOOM_FOR_NOTE}
+          ready={noteZoom >= noteMinZoom}
           onCancel={() => setNotePlacing(null)}
         />
       )}

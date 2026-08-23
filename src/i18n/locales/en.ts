@@ -1896,7 +1896,11 @@ export const en = {
   'pack.addTrip.geo.kindRoute': "Route",
   'pack.addTrip.geo.kindSpot': "Spot",
   'pack.addTrip.geo.kindArea': "Area",
-  'pack.addTrip.geo.pointsSuffix': "{n} points",
+  // Tri tvary kvôli slovenčine (1 bod · 2–4 body · 5+ bodov). Angličtina má dva, tretí
+  // kľúč jej len opakuje ten istý text — lacnejšie než plural engine pre jedno miesto.
+  'pack.addTrip.geo.pointsSuffix.one': "{n} point",
+  'pack.addTrip.geo.pointsSuffix.few': "{n} points",
+  'pack.addTrip.geo.pointsSuffix.many': "{n} points",
   'pack.addTrip.geo.areaRadius': "Area · {km} km radius",
   'pack.addTrip.geo.spotSet': "Spot set",
   // MAPA JE PRVÁ OBRAZOVKA (Matej 2026-08-22) — na mobile sa po výbere aktivity otvára rovno
@@ -1918,8 +1922,18 @@ export const en = {
   'pack.addTrip.geo.routeDone': "Route",
   // Jeden formulár výletu (rez C) — o type rozhoduje dátum, nie otázka navyše.
   'pack.addTrip.log.titleActivity': "Pick an activity",
-  'pack.addTrip.log.titleActivitySub': "Mark a spot on the map, or draw the route you walked.",
-  'pack.addTrip.log.activityExploreNote': "Anything else \u2014 a castle, an area, a place worth seeing.",
+  'pack.addTrip.log.titleActivitySub': "You are logging a trip you have already done. Put a future date on it in step 3 and it becomes a plan.",
+  // JEDNA VETA POD KAŽDOU DLAŽDICOU (Matej 2026-08-23: „k výberom aktivity musí byť
+  // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
+  // kresliť (trasa vs. jeden bod vs. vodná plocha), a to sa človek dovtedy dozvedel až
+  // v kroku 1, keď už mapu videl.
+  'pack.addTrip.log.activityNote.hiking': "Draw a one-day hike.",
+  'pack.addTrip.log.activityNote.journey': "Pick this if you are logging a trek over several days.",
+  'pack.addTrip.log.activityNote.picnic': "Mark the spot on the map.",
+  'pack.addTrip.log.activityNote.overnight': "Mark the spot on the map.",
+  'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
+  'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
+  'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, an area, a place worth seeing.",
   'pack.addTrip.log.title': "Log a trip",
   'pack.addTrip.log.titlePlan': "Plan a trip",
   'pack.addTrip.log.submit': "Log trip",
@@ -1980,6 +1994,8 @@ export const en = {
   'pack.addTrip.step.hint.about': "What was the trail like, and what should the pack know?",
   'pack.addTrip.step.hint.rest': "Who was with you, how it was, and your photos.",
   'pack.addTrip.step.doneRoute': "Route done",
+  'pack.addTrip.step.doneNotes': "Continue",
+  'pack.addTrip.step.backToRoute': "Back to the route",
   'pack.addTrip.step.back': "Back",
   'pack.addTrip.step.next': "Next",
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",

@@ -11,6 +11,7 @@
 // edituje sa `path`. Zdroj pravdy datasetu to má rovnako (trails-nahadzovac-state.json: 28 kotiev
 // / 465 bodov stopy) — keby sa zliali, Matej by trasy pred launchom nevedel opraviť.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type React from 'react';
 import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
@@ -26,7 +27,7 @@ import { SPACING, calibratedAscent, hav, interp, totalDistanceM } from './addTri
 import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } from '@/components/pack/tripShared';
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
-import { HandPencil } from '@/components/pack/HandIcons';
+import { HandPencil, HandTrash, HandArrowLeft } from '@/components/pack/HandIcons';
 import { EVENT_RIM, FONT_EMOJI, TRIP_TARGET_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
 import {
@@ -102,6 +103,17 @@ export type GeometryPickerProps = {
      * pichajú NA ŇU.
      */
     paused?: boolean;
+    /**
+     * OBSAH LIŠTY, KEĎ MAPU RIADI INÝ KROK (krok 2 = odkazy na trasu).
+     *
+     * Matej 2026-08-23: „po kliku na trasa hotová ideme na 2. krok, ale ten bude opäť na
+     * mape, nie prostredie krokov — v dolnom paneli sa zobrazia možnosti pridania odkazov."
+     * Krok 2 teda nemá vlastný panel: požičia si TENTO, aby sa pod prstom nemenil tvar ani
+     * miesto ovládania. Keď je podaný, nástroje kreslenia sa nekreslia vôbec.
+     */
+    panel?: React.ReactNode;
+    /** i18n kľúč pre návrat — mení sa s tým, kto lištu práve vlastní (viď `backLink`). */
+    backLabel?: string;
   };
 };
 
@@ -144,7 +156,11 @@ export function findDuplicate(geometry: TripGeometry, allTrails: HeroTrail[]): H
 // `MIN_ZOOM_FOR_NOTE` (16), ktorý platí pre zápisy do mapy: značka musí sadnúť na konkrétnu
 // odbočku, kdežto prvá kotva trasy sa aj tak prichytí na najbližší chodník. Pri z12 vidno
 // pás ~19 km, čo je mierka, v ktorej sa hrebeňovka kreslí na jednu obrazovku.
-const TRIP_HOLD_MIN_ZOOM = 12;
+// ⚠️ JEDNO ČÍSLO PRE CELÝ SPRIEVODCU. Rovnaký prah platí aj pre odkazy pichané v kroku 2
+// (PackMap ho odtiaľto importuje): keď sa kotva trasy dá položiť pri tomto priblížení,
+// nemá zmysel žiadať pre jej parkovisko štyri stupne navyše — po vycentrovaní na celú
+// trasu je človek pod ním a ťuk do mapy vtedy ticho nezaberie.
+export const TRIP_HOLD_MIN_ZOOM = 12;
 /** Priblíženie, na akom sa mapa otvára (prehľad krajiny) = 0 % ukazovateľa priblíženia. */
 const ZOOM_BAR_FROM = 7;
 
@@ -791,7 +807,7 @@ export function GeometryPicker({
             {km.toFixed(1)} km
             <span style={{ color: T.onDarkDim }}> · </span>
             ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
-            <span style={{ color: T.onDarkDim }}> · {t('pack.addTrip.geo.pointsSuffix', { n: pointCount })}</span>
+            <span style={{ color: T.onDarkDim }}> · {t(`pack.addTrip.geo.pointsSuffix.${pointCount === 1 ? 'one' : pointCount < 5 ? 'few' : 'many'}`, { n: pointCount })}</span>
           </>
   ) : value.center ? (
     value.kind === 'area'
@@ -810,9 +826,12 @@ export function GeometryPicker({
   // by sa v nej, tak stojí vnútri — v kroku 0 pod poľom, pri kreslení pod tlačidlami.
   // Na PC sa nevykresľuje: tam má svoju šípku hlavička formulára a dva návraty na jednej
   // obrazovke sú otázka „ktorý z nich ma vráti kam".
+  // NÁVRAT VEDIE O JEDEN KROK SPÄŤ, NIE NA ZAČIATOK. Kým lištu vlastní kreslenie, je tým
+  // krokom výber aktivity; keď si ju požičal krok 2, je ním kreslenie — inak by človek
+  // z otázky o parkovisku spadol na dlaždice a stratil nakreslenú trasu z dohľadu.
   const backLink = drawBar?.onBack && !drawBar.besidePanel ? (
     <button type="button" className="trp-dback" onClick={drawBar.onBack}>
-      ← {t('pack.addTrip.geo.backToActivity')}
+      ← {t(drawBar.backLabel ?? 'pack.addTrip.geo.backToActivity')}
     </button>
   ) : null;
 
@@ -943,7 +962,7 @@ export function GeometryPicker({
           </div>
         )}
 
-        {stage === 0 && (
+        {stage === 0 && !drawBar.panel && (
           <div className="trp-dstart">
             {/* KOĽKO EŠTE PRIBLÍŽIŤ (Matej 23. 8.: „nejaký štýl progres baru koľko treba ešte
                 priblížiť"). Samotná veta „priblíž si mapu" nepovie, či je človek o krok alebo
@@ -962,7 +981,15 @@ export function GeometryPicker({
           </div>
         )}
 
-        {stage > 0 && (
+        {/* MAPU RIADI INÝ KROK — lišta požičia svoje miesto jeho ovládaniu (viď drawBar.panel).
+            Stojí NAD podmienkou `stage`: v kroku 2 je trasa hotová, takže by sa `stage`
+            aj tak rovnalo 2, ale panel nesmie závisieť od toho, čo je nakreslené. */}
+        {drawBar.panel ? (
+          <div className="trp-dbar">
+            {drawBar.panel}
+            {backLink}
+          </div>
+        ) : stage > 0 ? (
         <div className="trp-dbar">
           {/* ── KROK 1: DVE MOŽNOSTI, NIČ INÉ ────────────────────────────────────────────
               Kotva leží, o zvyšku ešte nepadlo rozhodnutie. Undo tu chýba zámerne — prvú
@@ -1026,11 +1053,21 @@ export function GeometryPicker({
             </button>
           )}
 
-          {/* Rad tlačidiel drží CELÚ šírku, rovnaké diely (feedback_rad_prvkov_plna_sirka_kontajnera).
-              HOTOVO je jediná zlatá — zlatá je farba výzvy, nie farba tlačidla. */}
-          <div className="trp-dbar-row">
-            {!paused && (
-              <>
+          {/* ── DVE FÁZY, DVA TVARY (Matej 2026-08-23) ───────────────────────────────────
+              „Pri fáze kreslenia bude len krok späť, vymazať a neviem to nakresliť… pri
+              zvolení cieľa musí byť dominantné tlačidlo TRASA HOTOVÁ cez celú šírku mobilu
+              a pod ňou menšími späť o bod a vymazať."
+
+              KÝM CIEĽ NIE JE OZNAČENÝ, HOTOVO SA VÔBEC NEKRESLÍ. Do teraz tam stálo (len
+              nezlaté) a človek ho stlačil skôr, než trasu dokončil — sivé tlačidlo v rade
+              troch nie je „ešte nie", je to tretia možnosť. Kto chce uložiť neúplnú trasu,
+              má na to poctivú cestu: „neviem to nakresliť" nižšie.
+
+              Ikonky sú z hand-drawn setu (CLAUDE.md) a dedia farbu textu — `HandIcons` je
+              práve ten kanál, ktorý to vie. */}
+          {(() => {
+            const tools = !paused && (
+              <div className={`trp-dbar-row${doneReady ? ' trp-dbar-row--minor' : ''}`}>
                 <button
                   type="button"
                   className="trp-dbar-btn"
@@ -1038,6 +1075,7 @@ export function GeometryPicker({
                   disabled={busy || !hasSomething}
                   style={{ opacity: hasSomething ? 1 : 0.4 }}
                 >
+                  <HandArrowLeft size={14} />
                   {t('pack.addTrip.geo.undoPoint')}
                 </button>
                 <button
@@ -1047,25 +1085,27 @@ export function GeometryPicker({
                   disabled={busy || !hasSomething}
                   style={{ opacity: hasSomething ? 1 : 0.4 }}
                 >
+                  <HandTrash size={14} />
                   {t('pack.addTrip.geo.clear')}
                 </button>
-              </>
-            )}
-            {/* ⚠️ ZLATÁ AŽ KEĎ JE TRASA NAOZAJ HOTOVÁ (Matej 2026-08-23: „pri klikaní nesmie
-                svietiť TRASA HOTOVÁ keď nie je vybratý cieľ — mýli sa to, človek klikne
-                a neuvedomí si, že nedal trasu späť"). Zlatá je farba VÝZVY, takže kým chýba
-                cieľ, tlačidlo výzvou nie je: má vzhľad ostatných a ustúpi 🎯. Zakázané NIE je —
-                kto vie, čo robí, uloží aj tak; len ho to už neťahá za rukáv. */}
-            <button
-              type="button"
-              className={doneReady ? 'trp-dbar-done' : 'trp-dbar-btn'}
-              onClick={drawBar.onDone}
-              disabled={!!drawBar.doneDisabled}
-              style={drawBar.doneDisabled ? { opacity: 0.42, boxShadow: 'none', cursor: 'default' } : undefined}
-            >
-              {drawBar.doneLabel ?? t('pack.addTrip.geo.done')}
-            </button>
-          </div>
+              </div>
+            );
+            const done = (
+              <button
+                type="button"
+                className="trp-dbar-done trp-dbar-done--hero"
+                onClick={drawBar.onDone}
+                disabled={!!drawBar.doneDisabled}
+                style={drawBar.doneDisabled ? { opacity: 0.42, boxShadow: 'none', cursor: 'default' } : undefined}
+              >
+                {drawBar.doneLabel ?? t('pack.addTrip.geo.done')}
+              </button>
+            );
+            // V PAUZE (krok 2 sprievodcu) ostáva len HOTOVO — nástroje kreslenia by tam
+            // pridávali kotvy do hotovej trasy.
+            if (paused) return done;
+            return doneReady ? <>{done}{tools}</> : tools;
+          })()}
 
           {/* ── NAJMENŠÍ MOŽNÝ ZÁPIS ─────────────────────────────────────────────────────
               Matej 23. 8.: „štart–cieľ bude minimum, aby sme nikoho neodradili, ale bude
@@ -1091,7 +1131,7 @@ export function GeometryPicker({
           )}
           {backLink}
         </div>
-        )}
+        ) : null}
 
         </div>
         </>,
@@ -1142,19 +1182,28 @@ const miniBtn: React.CSSProperties = {
  */
 const DRAW_BAR_CSS = `
 .trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
-/* ČÍTANIE HORE — km · prevýšenie · body. Nie je to ovládač, tak nechytá ťuky do mapy. */
-.trp-dread{pointer-events:none;padding:8px 16px;border-radius:999px;background:rgba(18,13,7,0.94);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-size:14px;font-weight:500;color:${T.onDark};white-space:nowrap;}
+/* ČÍTANIE HORE — km · prevýšenie · body. Nie je to ovládač, tak nechytá ťuky do mapy.
+   ⚠️ FIALOVÉ, NIE ŠEDÉ (Matej 2026-08-23: „pri móde kreslenia treba zvýrazniť horné info
+   o KM, je to ako neviditeľné — daj to fialovým ako je teraz označ cieľ"). Je to jediné
+   číslo, ktoré počas kreslenia rastie, a v šedom ráme nad pestrou mapou ho oko minulo.
+   Rám a dosvit sú tie isté ako na pokynovej pilulke a na 🎯 — počas kreslenia hovorí
+   fialová, a hovorí ju celá obrazovka rovnako. */
+.trp-dread{pointer-events:none;padding:9px 18px;border-radius:999px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);font-family:${FONT_UI};font-size:15px;font-weight:600;color:#F3E9FF;white-space:nowrap;}
 .trp-dhint{justify-self:center;align-self:center;pointer-events:none;display:flex;align-items:center;gap:9px;padding:10px 16px 10px 13px;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);font-family:${FONT_UI};font-size:13.5px;font-weight:600;color:#F3E9FF;text-align:left;max-width:min(92vw,460px);}
 /* KROK 0 — pilulka stojí sama tam, kde neskôr narastie lišta, aby to vyzeralo, že jej
    okolie len dorástlo, nie že sa presunula. */
 /* DOK — stĺpec pri spodnej hrane: pokyn (v mape), panel, návrat. Sám je priehľadný a ťuky
    prepúšťa; výplň aj ovládanie nesú jeho deti. */
-.trp-dock{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;flex-direction:column;align-items:stretch;gap:12px;padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));pointer-events:none;}
+/* ⚠️ DOK NEMÁ SPODNÉ ODSADENIE (Matej 2026-08-23: „dolný panel na mobile nie je až úplne dolu
+   a presvitá na dolnom okraji mapa — neúplný panel"). Bezpečnú zónu telefónu nesie PANEL vo
+   svojej výplni, nie dok nad ním: odsadenie tu odlepilo tmavú plochu od hrany displeja a pod
+   ňou ostal prúžok mapy, ktorý vyzeral ako nedokreslený panel. */
+.trp-dock{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;flex-direction:column;align-items:stretch;gap:12px;pointer-events:none;}
 .trp-dock > *{pointer-events:auto;}
 /* KROK 0 — panel s hľadaním miesta. VZDUŠNEJŠÍ (Matej 23. 8.: „panel urob vyšší vzdušnejší,
    text area je moc nízko") — pole potrebuje vzduch nad aj pod sebou, inak sedí na hrane
    displeja a na telefóne ho prekrýva systémová lišta. */
-.trp-dstart{box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:20px 16px 22px;background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
+.trp-dstart{box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:20px 16px calc(22px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
 /* NÁVRAT — podčiarknutý text v strede pod panelom. Šípka v rohu brala mape výšku a palec
    na ňu nedosiahol; text zaberie riadok a povie aj KAM sa vracia. */
 .trp-dback{align-self:center;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
@@ -1167,15 +1216,22 @@ const DRAW_BAR_CSS = `
 /* Pilulka leží NAD panelom priamo v mape, takže si drží vlastné bočné odsadenie. */
 .trp-dhint{margin:0 16px;}
 
-.trp-dbar{box-sizing:border-box;min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:12px;padding:18px 16px 20px;background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
+.trp-dbar{box-sizing:border-box;min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:12px;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
 .trp-dbar-read{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:20px;}
 .trp-dbar-row{display:flex;gap:8px;}
-.trp-dbar-btn{flex:1 1 0;padding:12px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+.trp-dbar-btn{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+/* NÁSTROJE POD HOTOVOM SÚ VEDĽAJŠIE (Matej 23. 8.: „pod ňou menšími späť o bod a vymazať").
+   Keď je trasa hotová, tieto dve už nie sú úloha — sú oprava. */
+.trp-dbar-row--minor .trp-dbar-btn{padding:9px 10px;font-size:11px;background:none;color:${T.onDarkDim};}
+.trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){color:${GOLD};}
 .trp-dbar-btn:hover:not(:disabled){border-color:${GOLD};color:${GOLD};}
 .trp-dbar-btn:disabled{cursor:default;}
 .trp-dbar-wide{flex:1 1 100%;}
 /* HOTOVO — brand CTA podľa .btn-gold locku: gradient 135°, radius 8, papyrusový rám. */
 .trp-dbar-done{flex:1 1 0;padding:12px 10px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);border:1px solid rgba(250,244,236,0.3);color:#1c160c;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);cursor:pointer;}
+/* CELÁ ŠÍRKA, KEĎ JE TO JEDINÁ ÚLOHA NA OBRAZOVKE (Matej 23. 8.: „dominantné tlačidlo
+   TRASA HOTOVÁ cez celú šírku mobilu"). */
+.trp-dbar-done--hero{width:100%;flex:none;padding:15px 12px;font-size:13.5px;}
 /* CIEĽ — fialový, teda z rodiny trasy, nie zlatý: zlatá je v tomto rade vyhradená HOTOVU. */
 /* CIEĽ — PILULKA, nie tlačidlo v rade (Matej 23. 8.: „to tlačítko mark the destination by
    malo byť v pils ako pri začiatku"). Tvar aj rám sú zhodné s pokynovou pilulkou vyššie:
@@ -1197,7 +1253,11 @@ const DRAW_BAR_CSS = `
   .trp-dock--beside,.trp-dtop--beside{left:480px;}
 }
 @media (min-width:1024px){
-  .trp-dock--beside{bottom:20px;right:20px;padding-bottom:0;}
+  .trp-dock--beside{bottom:20px;right:20px;}
+  /* Na PC dok PLÁVA, takže bezpečná zóna telefónu tam nemá čo robiť — panel by mal
+     nesúmerne hrubú spodnú výplň. */
+  .trp-dock--beside .trp-dbar{padding-bottom:20px;}
+  .trp-dock--beside .trp-dstart{padding-bottom:22px;}
   .trp-dock--beside .trp-dbar,.trp-dock--beside .trp-dstart{border-radius:16px;border:1px solid ${T.onDarkBorder};}
   /* 74 px vpravo = miesto pre ovládanie mapy (zoom, poloha, vrstvy). To isté číslo drží
      .trp-topbar v PackMap.tsx — bez neho leží pole na hľadanie pod tlačidlami zoomu. */

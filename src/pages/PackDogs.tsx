@@ -57,6 +57,7 @@ import { readLatestForDogs, onDogEventsChange, hasValue, type LatestValue } from
 import { dogLifeLine } from '@/lib/dogAge';
 import { countryISO2 } from '@/lib/countryGeo';
 import { supabase } from '@/integrations/supabase/client';
+import { DEV_NOAUTH, DEV_MOCK_DOGS } from '@/lib/devMockDogs';
 import { useT } from '@/i18n/LanguageContext';
 
 const T = PACK_THEME;
@@ -500,7 +501,10 @@ export default function PackDogs() {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       const uid = auth?.user?.id;
-      if (!uid) { if (alive) setDogs([]); return; }
+      // Bez session: v deve s `VITE_PACK_NOAUTH=1` mock svorka (inak by tu aj pri
+      // zapnutom NOAUTH stál prázdny stav — `getUser()` cez ten flag nejde),
+      // v produkcii prázdne pole.
+      if (!uid) { if (alive) setDogs(DEV_NOAUTH ? (DEV_MOCK_DOGS as HubDog[]) : []); return; }
       const { data } = await supabase
         .from('dogs')
         .select('id, dog_name, cloudinary_main_url, heroglyph_png_url, pack_number, country, life_status, death_date, birth_year, selections')

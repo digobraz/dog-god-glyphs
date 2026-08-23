@@ -165,7 +165,10 @@ export const COMMUNITY_CSS = `
 .comm-seg button:hover{border-color:${GOLD};}
 .comm-seg button.on{background:rgba(201,154,63,0.16);border-color:${GOLD};color:${GOLD};font-weight:600;}
 
-.comm-textarea,.comm-input,.comm-selectinput{width:100%;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:10px 12px;color:${T.onDark};font-family:inherit;font-size:13px;outline:0;resize:vertical;}
+/* ⚠️ 16 px = strop proti iOS zoomu dokumentu (feedback_dogypt_form_input_recurring_bugs).
+   Týka sa aj poľa „kto bol so mnou" v pridávaní výletu — pri 13 px sa pri kliknutí do neho
+   priblížil celý dokument a spodné ovládanie mapy vypadlo mimo obrazovky. */
+.comm-textarea,.comm-input,.comm-selectinput{width:100%;min-width:0;max-width:100%;box-sizing:border-box;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};border-radius:10px;padding:10px 12px;color:${T.onDark};font-family:inherit;font-size:16px;outline:0;resize:vertical;}
 .comm-textarea:focus,.comm-input:focus,.comm-selectinput:focus{border-color:${GOLD};}
 .comm-textarea{min-height:66px;}
 
