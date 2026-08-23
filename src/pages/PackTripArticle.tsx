@@ -82,6 +82,16 @@ const T = PACK_THEME;
 // 55, resp. 8 výletoch. `Asphalt` v tagoch neexistuje (je to hodnota `surface`) —
 // nechávam ho tu len ako neškodnú rezervu.
 const ACT_EMOJI: Record<string, string> = { hike: '🥾', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄', explore: '🧭' };
+// Dataset nesie `hike`, slovník kľúč `hiking` (ten používa filter aj formulár) — jeden riadok
+// prekladu medzi nimi je lacnejší než tretí názov tej istej aktivity.
+const ACT_ID_TO_UI: Record<string, string> = { hike: 'hiking', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard', explore: 'explore' };
+const TAG_I18N_KEY: Record<string, string> = {
+  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
+  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
+  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
+  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
+  Rocky: 'pack.map.surfaceLabel.rocky',
+};
 const TAG_EMOJI: Record<string, string> = {
   Mountains: '🏔️', Forest: '🌲', Lake: '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
 };
@@ -690,9 +700,21 @@ export default function PackTripArticle() {
   const extraWalkers = agg.walkedCount - founderWalkers(trail);
   // bod 2 (iterácia 14): rovnaká chip-skladačka ako inline detail v PackMap.tsx (acts + tags,
   // emoji prefix keď existuje mapovanie).
+  // ⚠️ `label` je DÁTOVÁ hodnota z `heroTrails.generated.ts` (`acts` = 'hike', `tags` =
+  // 'Forest'), takže sa neprekladá — prekladá sa to, čo z nej človek číta. Kľúče sú tie isté
+  // ako vo filtri mapy a vo formulári výletu; keď kľúč chýba, ostáva pôvodná hodnota.
+  const actTx = (a: string) => {
+    const k = `pack.map.activityLabel.${ACT_ID_TO_UI[a] ?? a}`;
+    const v = t(k);
+    return v === k ? a : v;
+  };
+  const tagTx = (tg: string) => {
+    const k = TAG_I18N_KEY[tg];
+    return k ? t(k) : tg;
+  };
   const tripChips = [
-    ...(trail.acts ?? []).map((a) => ({ key: `a:${a}`, label: a, emoji: ACT_EMOJI[a] ?? '' })),
-    ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
+    ...(trail.acts ?? []).map((a) => ({ key: `a:${a}`, label: actTx(a), emoji: ACT_EMOJI[a] ?? '' })),
+    ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tagTx(tg), emoji: TAG_EMOJI[tg] ?? '' })),
   ];
 
   // Akčný rad ako premenná — na mobile ho po odscrollovaní fotky renderujeme PORTÁLOM do
@@ -791,18 +813,18 @@ export default function PackTripArticle() {
         {(trail as { photoCredit?: string }).photoCredit && (
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
-        <button type="button" className="pta-back" onClick={() => navigate('/pack/map')} aria-label="Back to trips">←</button>
+        <button type="button" className="pta-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.trip.backToTrips')}>←</button>
       </div>
 
         <div className="pta-panel">
         <div className="pta-loc">
           <img className="pta-flag" src={flagUrl(trailCountry(trail))} alt={countryName(trailCountry(trail))} loading="lazy" draggable={false} />
-          <span>{trail.region}{REGION_OF[trail.region] ? ` · ${REGION_OF[trail.region]}` : ''}</span>
+          <span>{trail.region}{REGION_OF[trail.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[trail.region]}`)}` : ''}</span>
         </div>
         <div className="pta-title">{trail.name}</div>
         {/* bod 4 (iterácia 13): samostatný DiffMark+diff riadok pod titulom ZMAZANÝ —
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
-        <div className="pta-author">by {authorOf(trail)}{extraWalkers > 0 ? ` · +${extraWalkers} Dogyptians` : ''}</div>
+        <div className="pta-author">{t('pack.trip.by', { author: authorOf(trail) })}{extraWalkers > 0 ? ` · ${t('pack.trip.extraWalkers', { n: extraWalkers })}` : ''}</div>
 
         {/* iterácia 15 (Matej 2026-07-27): AKCIE — von z fotky, nad stat tabuľku.
             Stavová logika:
@@ -842,7 +864,7 @@ export default function PackTripArticle() {
               className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.difficultyBreakdown)}
             >
-              <b><DiffMark diff={agg.difficulty} /> {agg.difficulty}</b><span>Difficulty</span>
+              <b><DiffMark diff={agg.difficulty} /> {t(`pack.map.diff.${agg.difficulty}`)}</b><span>{t('pack.trip.stat.difficulty')}</span>
             </div>
           )}
           {agg.crowd && (
@@ -850,13 +872,13 @@ export default function PackTripArticle() {
               className={agg.belowThreshold ? 'pta-stat' : 'pta-stat comm-hastip'}
               data-tip={agg.belowThreshold ? undefined : voteTip(t, agg.crowdBreakdown)}
             >
-              <b>{CROWD_EMOJI[agg.crowd]} {agg.crowd}</b><span>Crowd</span>
+              <b>{CROWD_EMOJI[agg.crowd]} {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
             </div>
           )}
           {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating") —
               dlaždicu vôbec nevykresľuj, inak ukáže „0.0" a prázdne labky. */}
           {agg.rating > 0 && (
-            <div className="pta-stat"><b className="pta-ratingstack"><RatingPaws stars={agg.rating} size={11} gap={2} />{agg.rating.toFixed(1)}</b><span>Rating</span></div>
+            <div className="pta-stat"><b className="pta-ratingstack"><RatingPaws stars={agg.rating} size={11} gap={2} />{agg.rating.toFixed(1)}</b><span>{t('pack.trip.stat.rating')}</span></div>
           )}
         </div>
 
@@ -870,7 +892,7 @@ export default function PackTripArticle() {
         {/* turistické značky (KČT) v poradí štart→cieľ — auto z OSM (compute-trail-marks.py) */}
         {(trail as { marks?: TrailMarkColor[][] }).marks?.length ? (
           <div style={{ marginTop: 14 }}>
-            <TrailMarks marks={(trail as { marks?: TrailMarkColor[][] }).marks} labelColor={PACK_THEME.onDark} />
+            <TrailMarks marks={(trail as { marks?: TrailMarkColor[][] }).marks} labelColor={PACK_THEME.onDark} label={t('pack.trip.followMarkers')} />
           </div>
         ) : null}
 
@@ -996,7 +1018,7 @@ export default function PackTripArticle() {
               )}
             </MapContainer>
           ) : (
-            <div className="pta-mapempty">Route map coming soon</div>
+            <div className="pta-mapempty">{t('pack.trip.routeSoon')}</div>
           )}
           {trail.path.length > 0 && <PoiAttribution />}
           {/* Vstup do zápisu priamo na mape. Kreslí sa len tomu, kto trasu prešiel;
@@ -1029,12 +1051,12 @@ export default function PackTripArticle() {
             než „koľko metrov". */}
         {hosts.length > 0 && (
           <div className="pta-section">
-            <h3>Open trip from the pack</h3>
+            <h3>{t('pack.trip.openFromPack')}</h3>
             {hosts.map((h) => (
               <div key={h.key} className="pta-host">
                 <PartyMemberCard
                   member={h.organizer}
-                  roleLabel={h.date ? `Trip host · ${h.date}` : 'Trip host'}
+                  roleLabel={h.date ? `${t('pack.trip.host')} · ${h.date}` : t('pack.trip.host')}
                   dm={{ tripSlug: h.slug, organizerId: h.organizerId, isMe: h.organizerId === id.session?.user?.id }}
                 />
                 {h.joiners.map((j, i) => (
@@ -1051,7 +1073,7 @@ export default function PackTripArticle() {
 
         {(trail as { elev?: number[] }).elev && (
           <div className="pta-section">
-            <h3>Elevation profile</h3>
+            <h3>{t('pack.trip.elevation')}</h3>
             <ElevationProfile elev={(trail as { elev?: number[] }).elev} km={parseFloat(trail.km) || 0} />
           </div>
         )}
@@ -1062,9 +1084,9 @@ export default function PackTripArticle() {
               Matej 2026-08-03: pri nule JEDEN riadok, a nech je to výzva, nie konštatovanie —
               „No Dogyptian has walked this yet." + „Be the first to walk this." hovorili to isté. */}
           {agg.walkedCount === 0 ? (
-            <h3>Be the first to walk this.</h3>
+            <h3>{t('pack.trip.beFirstWalk')}</h3>
           ) : (
-            <h3>Walked by {agg.walkedCount} Dogyptian{agg.walkedCount === 1 ? '' : 's'}</h3>
+            <h3>{t(agg.walkedCount === 1 ? 'pack.trip.walkedBy.one' : 'pack.trip.walkedBy.many', { n: agg.walkedCount })}</h3>
           )}
         </div>
         </div>
@@ -1073,13 +1095,13 @@ export default function PackTripArticle() {
       {/* bod 3 (iterácia 14): lightbox — fullscreen popup, tmavé pozadie, ✕ + prev/next */}
       {lightboxIdx !== null && (
         <div className="pta-lightbox" onClick={() => setLightboxIdx(null)}>
-          <button type="button" className="pta-lightbox-close" onClick={() => setLightboxIdx(null)} aria-label="Close">×</button>
+          <button type="button" className="pta-lightbox-close" onClick={() => setLightboxIdx(null)} aria-label={t('pack.trip.photoClose')}>×</button>
           {trail.photos.length > 1 && (
             <button
               type="button"
               className="pta-lightbox-nav pta-lightbox-prev"
               onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => ((i ?? 0) - 1 + trail.photos.length) % trail.photos.length); }}
-              aria-label="Previous photo"
+              aria-label={t('pack.trip.photoPrev')}
             >‹</button>
           )}
           <img src={trail.photos[lightboxIdx]} alt="" onClick={(e) => e.stopPropagation()} />
@@ -1088,7 +1110,7 @@ export default function PackTripArticle() {
               type="button"
               className="pta-lightbox-nav pta-lightbox-next"
               onClick={(e) => { e.stopPropagation(); setLightboxIdx((i) => ((i ?? 0) + 1) % trail.photos.length); }}
-              aria-label="Next photo"
+              aria-label={t('pack.trip.photoNext')}
             >›</button>
           )}
         </div>

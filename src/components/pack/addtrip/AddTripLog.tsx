@@ -19,12 +19,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS, type Journey } from '@/data/heroJourneys';
 import { trailCountry, flagEmoji } from '@/lib/countryGeo';
+import { countryLabel } from '@/lib/countryOptions';
 import { trailWCE } from '@/components/pack/triplist/triplist';
 import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate } from './GeometryPicker';
 import { PawRating } from './PawRating';
@@ -144,18 +145,24 @@ const TERRAIN_OPTIONS = [
 // komentár „PRAVIDLO PRE VŠETKY VRSTVY"). PackMap.tsx TAG_VOCAB miešal scenériu + surface do
 // jedného radu (bolo to pre FILTER chipy, kde to malo zmysel); tu majú tags a terrain oddelené
 // polia, tak dávame do tag-chipov len scenériu, nie duplicitu terrain dropdownu.
-const TAG_OPTIONS: Array<{ label: string; emoji: string }> = [
-  { label: 'Mountains', emoji: '🏔️' }, { label: 'Forest', emoji: '🌲' }, { label: 'Lake/Reservoir', emoji: '🏞️' },
-  { label: 'River', emoji: '💧' }, { label: 'View', emoji: '🌄' }, { label: 'Meadow', emoji: '🌼' }, { label: 'Sunset', emoji: '🌅' },
+// ⚠️ `label` je HODNOTA UKLADANÁ DO DB (chip na mape sa podľa nej filtruje) — neprekladá sa.
+// Zobrazený text ide cez `id` a slovník; kľúč nesmie byť odvodený z labelu, lebo „Lake/Reservoir"
+// má v sebe lomku a medzery.
+const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string }> = [
+  { id: 'mountains', label: 'Mountains', emoji: '🏔️' }, { id: 'forest', label: 'Forest', emoji: '🌲' },
+  { id: 'lake', label: 'Lake/Reservoir', emoji: '🏞️' }, { id: 'river', label: 'River', emoji: '💧' },
+  { id: 'view', label: 'View', emoji: '🌄' }, { id: 'meadow', label: 'Meadow', emoji: '🌼' },
+  { id: 'sunset', label: 'Sunset', emoji: '🌅' },
 ];
 
 // State (krajina) — lokálna kópia ADD_COUNTRY_OPTIONS/ISO2_LABEL (PackMap.tsx:117-121),
 // needituje sa a nič z neho nie je exportované, rovnaká duplikačná konvencia ako vyššie.
 const COUNTRY_OPTIONS = ['sk', 'cz', 'at', 'hu', 'pl', 'de', 'ch', 'it', 'si', 'fr'] as const;
-const COUNTRY_LABEL: Record<string, string> = {
-  sk: 'Slovakia', cz: 'Czechia', at: 'Austria', hu: 'Hungary', pl: 'Poland',
-  de: 'Germany', ch: 'Switzerland', it: 'Italy', si: 'Slovenia', fr: 'France',
-};
+// ⚠️ NÁZVY KRAJÍN SA NEPÍŠU RUČNE. Tu stál zoznam natvrdo po anglicky, takže pod slovenským
+// nadpisom KRAJINA svietilo „Slovakia" — tá istá chyba ako pri názvoch aktivít 23. 8. ráno.
+// `countryLabel(iso, lang)` ide cez `Intl.DisplayNames`, teda pokrýva všetkých 18 jazykov
+// bez jediného kľúča v slovníku.
+
 
 // Počiatočná prázdna geometria — `defaultKindFor(activity,'log')` je vždy TABUĽKOVÝ default
 // z ACTIVITY_GEOMETRY (nie najvoľnejší ako pri pláne — §5: log = „čo si skutočne prešiel").
@@ -213,6 +220,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
   const t = useT();
+  const { lang } = useLang();
   // ── krok 0: aktivita ('' = ešte nevybraná, sprievodca sa nezačal) ─────────────────────────
   const [activity, setActivity] = useState('');
   const [geometry, setGeometry] = useState<TripGeometry>({ kind: 'route', path: [], snapped: false });
@@ -512,6 +520,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
+  // `missingFields` vracia i18n KĽÚČE (model nemá jazyk) — text vzniká až tu.
+  const missingTx = (keys: string[]) => keys.map((k) => t(k)).join(', ');
   const canSubmit = missing.toSubmit.length === 0 && !journeyIssue;
   const finalApproval: ApprovalStatus = missing.toApprove.length === 0 ? 'pending' : 'draft';
 
@@ -924,8 +934,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                       />
                     </div>
                   )}
+                  {/* Prázdny label je DISTANČNÍK, ktorý zarovná tlačidlo s poľom vedľa —
+                      v jednom stĺpci (mobil) z neho ostane len diera, tak sa tam schová. */}
                   <div className="atl-field">
-                    <label>&nbsp;</label>
+                    <label className="atl-label-spacer">&nbsp;</label>
                     <button
                       type="button"
                       className={`atl-toggle-btn${dontRemember ? ' on' : ''}`}
@@ -953,7 +965,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   <div className="atl-field">
                     <label>{t('pack.addTrip.step.state')}</label>
                     <select className="atl-input" value={effCountry} onChange={(e) => setCountryOverride(e.target.value)}>
-                      {countryOpts.map((c) => <option key={c} value={c}>{flagEmoji(c)} {COUNTRY_LABEL[c] ?? c.toUpperCase()}</option>)}
+                      {countryOpts.map((c) => <option key={c} value={c}>{flagEmoji(c)} {countryLabel(c, lang) || c.toUpperCase()}</option>)}
                     </select>
                   </div>
                   {effCountry === 'sk' && (
@@ -983,14 +995,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                       <label>{t('pack.addTrip.step.difficulty')}</label>
                       <select className="atl-input" value={diff} onChange={(e) => setDiff(e.target.value as typeof diff)}>
                         <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
-                        {DIFF_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                        {/* ⚠️ CEZ SLOVNÍK, NIE HOLÁ HODNOTA — `DIFF_OPTIONS` je dataset (kľúč do DB),
+                            nie copy. Kľúče `pack.map.diff.*` už existujú, používa ich filter na mape. */}
+                        {DIFF_OPTIONS.map((d) => <option key={d} value={d}>{t(`pack.map.diff.${d}`)}</option>)}
                       </select>
                     </div>
                     <div className="atl-field">
                       <label>{t('pack.addTrip.step.terrain')}</label>
                       <select className="atl-input" value={terrain} onChange={(e) => setTerrain(e.target.value)}>
                         <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
-                        {TERRAIN_OPTIONS.map((sf) => <option key={sf.id} value={sf.id}>{sf.emoji} {sf.label}</option>)}
+                        {TERRAIN_OPTIONS.map((sf) => <option key={sf.id} value={sf.id}>{sf.emoji} {t(`pack.map.surfaceLabel.${sf.id}`)}</option>)}
                       </select>
                     </div>
                   </div>
@@ -1000,7 +1014,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     <label>{t('pack.addTrip.log.crowd')}</label>
                     <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
                       <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
-                      {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {c}</option>)}
+                      {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {t(`pack.map.crowdKind.${c}`)}</option>)}
                     </select>
                   </div>
                 )}
@@ -1015,7 +1029,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                         className={`atl-chip${tags.has(tag.label) ? ' on' : ''}`}
                         onClick={() => toggleSet(tags, setTags, tag.label)}
                       >
-                        <span className="atl-chip-emoji">{tag.emoji}</span><span className="atl-chip-label">{tag.label}</span>
+                        <span className="atl-chip-emoji">{tag.emoji}</span><span className="atl-chip-label">{t(`pack.map.tagLabel.${tag.id}`)}</span>
                       </button>
                     ))}
                   </div>
@@ -1174,12 +1188,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     {t(isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
                   </button>
                 </div>
-                {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missing.toSubmit.join(', ') })}</p>}
+                {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missingTx(missing.toSubmit) })}</p>}
                 {!canSubmit && journeyIssue && (
                   <p className="atl-log-hint">{t('pack.addTrip.step.journeyNeedsEnd')}</p>
                 )}
                 {canSubmit && missing.toApprove.length > 0 && (
-                  <p className="atl-log-hint">{t('pack.addTrip.step.willBeDraft', { fields: missing.toApprove.join(', ') })}</p>
+                  <p className="atl-log-hint">{t('pack.addTrip.step.willBeDraft', { fields: missingTx(missing.toApprove) })}</p>
                 )}
                 {submitError && <p className="atl-log-error">{submitError}</p>}
               </>
@@ -1297,17 +1311,24 @@ const LOG_CSS = `
 .atl-log-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
 /* Titulná obrazovka pridávania — návrat v strede, pod ním nadpis a jedna veta. */
 .atl-log-head--plain{justify-content:center;padding:14px 20px 8px;}
-.atl-log-head--intro{flex-direction:column;align-items:center;gap:12px;padding:18px 20px 14px;text-align:center;}
-.atl-log-title--big{font-size:22px;letter-spacing:.06em;}
-.atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:34ch;}
+/* ⚠️ SEDEM DLAŽDÍC SA MUSÍ ZMESTIŤ NA TELEFÓN (Matej 2026-08-23: „výber aktivity sa nezmestí
+   na viewport mobilu"). Je to prvá obrazovka pridávania a zoznam, z ktorého sa vyberá — keď
+   spodné dve položky ležia pod hranou, vyzerá to, že aktivít je päť. Preto je tu rytmus
+   utiahnutý (výplne, medzery, nadpis) a veta pod nadpisom je DVOJRIADKOVÁ; keď ju budeš
+   predlžovať, premeraj to znova pri innerHeight ~700. */
+.atl-log-head--intro{flex-direction:column;align-items:center;gap:9px;padding:12px 20px 10px;text-align:center;}
+.atl-log-title--big{font-size:20px;letter-spacing:.06em;}
+.atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:12.5px;line-height:1.4;color:${T.onDarkDim};max-width:40ch;}
 /* JEDEN STĹPEC NA MOBILE (Matej 2026-08-23: „políčka na mobile zväčši tak aby boli cez celý
    displej"). Dlaždica sa tým narovná do riadku — emoji vľavo, názov vedľa — takže výška
    obrazovky vystačí aj na sedem položiek. Nad 560 px ostávajú dva stĺpce. */
-.atl-tiles{display:grid;grid-template-columns:1fr;gap:10px;padding:4px 20px 20px;}
+/* Zoznam je JEDINÉ, čo sa smie posúvať — nadpis a návrat ostávajú na mieste aj na
+   najnižších displejoch, kde sa sedem položiek naozaj nezmestí. */
+.atl-tiles{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr;align-content:start;gap:8px;padding:2px 20px calc(14px + env(safe-area-inset-bottom,0px));}
 /* Emoji vľavo cez oba riadky, vpravo názov NAD vetou. Bol to flex rad, v ktorom sa veta
    zalamovala pod emoji (flex:1 1 100%) — s vetou na KAŽDEJ dlaždici by tak sedem položiek
    začínalo siedmimi rôznymi odsadeniami. */
-.atl-tile{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:3px;align-items:center;padding:14px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
+.atl-tile{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:2px;align-items:center;padding:11px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
 .atl-tile:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);}
 .atl-tile-emoji{grid-row:1 / 3;font-size:26px;line-height:1;}
 .atl-tile-label{grid-column:2;font-family:${FONT_UI};font-weight:500;font-size:14px;letter-spacing:.03em;color:${T.onDark};}
@@ -1389,6 +1410,9 @@ const LOG_CSS = `
 .atl-dupwarn-btns .atl-toggle-btn{padding:7px 10px;font-size:10.5px;}
 @media (max-width:640px){
   .atl-row2,.atl-row3{grid-template-columns:minmax(0,1fr);}
+  /* Dvojtriedne zámerne: .atl-field label je 0-1-1 a jednotriedny prepis by prehral,
+     media query špecificitu nepridáva (to je presne to, na čo upozorňuje check:css). */
+  .atl-field .atl-label-spacer{display:none;}
 }
 `;
 

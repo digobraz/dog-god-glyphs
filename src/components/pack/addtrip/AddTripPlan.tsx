@@ -286,7 +286,7 @@ export function AddTripPlan({ allTrails, authorName, myDogs, onSubmit, onClose, 
         <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
           Plan trip
         </button>
-        {!canSubmit && <p className="att-plan-hint">Missing: {missing.join(', ')}</p>}
+        {!canSubmit && <p className="att-plan-hint">{t('pack.addTrip.log.missing', { fields: missing.map((k) => t(k)).join(', ') })}</p>}
         {submitError && <p className="att-plan-error">{submitError}</p>}
       </div>
     </div>

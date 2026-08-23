@@ -768,7 +768,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <div className="comm-seg">
             {DIFFICULTIES.map((d) => (
               <button key={d} type="button" className={difficulty === d ? 'on' : ''} onClick={() => setDifficulty(d)}>
-                <DiffMark diff={d} /> {d}
+                <DiffMark diff={d} /> {diffTx(t, d)}
               </button>
             ))}
           </div>
@@ -778,7 +778,7 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
           <div className="comm-seg">
             {CROWDS.map((v) => (
               <button key={v} type="button" className={crowd === v ? 'on' : ''} onClick={() => setCrowd(v)}>
-                {CROWD_EMOJI[v]} {v}
+                {CROWD_EMOJI[v]} {crowdTx(t, v)}
               </button>
             ))}
           </div>
@@ -847,8 +847,20 @@ export function WalkedPopup({ trailName, initial, onSubmit, onClose, rewardPoint
 
 
 // ── crowd meta (agregát) — karta (compact) aj inline detail ──────────────────────────────────
-function diffTip(agg: CrowdAgg): string { return agg.difficultyBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
-function crowdTip(agg: CrowdAgg): string { return agg.crowdBreakdown.map((s) => `${s.pct}% ${s.value}`).join(' · '); }
+/**
+ * NÁROČNOSŤ A RUCH SÚ DÁTOVÉ HODNOTY, NIE TEXT (2026-08-23).
+ *
+ * `agg.difficulty` je `Easy|Moderate|Hard|Odyssey` a `agg.crowd` je `Empty|Calm|Busy` — to sú
+ * kľúče do DB aj do filtra na mape, takže sa neprekladajú. Na obrazovke ich však človek číta,
+ * a v slovenskom zozname výletov svietilo „Odyssey" a „🌿 Calm". Slovník je ten istý, aký
+ * používa filter mapy aj formulár výletu, nech tá istá vec nemá tri názvy.
+ */
+type TFn = (key: string, vars?: Record<string, string | number>) => string;
+const diffTx = (t: TFn, v?: string | null) => (v ? t(`pack.map.diff.${v}`) : '');
+const crowdTx = (t: TFn, v?: string | null) => (v ? t(`pack.map.crowdKind.${v}`) : '');
+
+function diffTip(t: TFn, agg: CrowdAgg): string { return agg.difficultyBreakdown.map((s) => `${s.pct}% ${diffTx(t, s.value)}`).join(' · '); }
+function crowdTip(t: TFn, agg: CrowdAgg): string { return agg.crowdBreakdown.map((s) => `${s.pct}% ${crowdTx(t, s.value)}`).join(' · '); }
 function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) => `${s.pct}% reported ${s.value}`).join(' · '); }
 
 // crowd agregát na karte/detaile. „N walked" počet sa TU už NEzobrazuje — presunul sa k autorom
@@ -857,6 +869,7 @@ function hazardTip(agg: CrowdAgg): string { return agg.hazardBreakdown.map((s) =
 // difficultyBreakdown/crowdBreakdown prázdne — tooltip sa vtedy nedáva (žiadny prázdny
 // rámik na hover), zobrazuje sa len seedová hodnota (difficulty/crowd) bez %-rozpadu.
 export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; compact?: boolean }) {
+  const t = useT();
   const rSize = compact ? 10 : 15;
   const fs = compact ? 10.5 : 11.5;
   const hasDiffTip = agg.difficultyBreakdown.length > 0;
@@ -875,15 +888,15 @@ export function CrowdMeta({ agg, km, compact }: { agg: CrowdAgg; km: string; com
         style={{ fontSize: fs }}
         data-tip={hasDiffTip ? diffTip(agg) : undefined}
       >
-        <DiffMark diff={agg.difficulty} /> {agg.difficulty} · {km} km
+        <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)} · {km} km
       </span>
       {agg.crowd && (
         <span
           className={`comm-crowd-row${hasCrowdTip ? ' comm-hastip' : ''}`}
           style={{ fontSize: fs }}
-          data-tip={hasCrowdTip ? crowdTip(agg) : undefined}
+          data-tip={hasCrowdTip ? crowdTip(t, agg) : undefined}
         >
-          {CROWD_EMOJI[agg.crowd]} {agg.crowd}
+          {CROWD_EMOJI[agg.crowd]} {crowdTx(t, agg.crowd)}
         </span>
       )}
       {!compact && agg.hazardBreakdown.length > 0 && (
@@ -915,6 +928,7 @@ export function BigRating({ rating, compact }: { rating: number; compact?: boole
 // Hazard TU NIE (ten je len v detaile vedľa tagov — HazardTags). Hover na pilulku = %-rozpad
 // hlasov členov. Zdieľané karta + inline detail. ──
 export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string; ascentM?: number }) {
+  const t = useT();
   // Prázdny breakdown (walkedCount 0, „začíname so všetkým do nuly") → žiadny %-rozpad na
   // ponuku, takže žiadny tooltip (inak by hover ukázal prázdny rámik „Difficulty — ").
   const hasDiffTip = agg.difficultyBreakdown.length > 0;
@@ -926,16 +940,16 @@ export function PhotoMetaPills({ agg, km, ascentM }: { agg: CrowdAgg; km: string
       </span>
       <span
         className={`comm-mpill${hasDiffTip ? ' comm-hastip' : ''}`}
-        data-tip={hasDiffTip ? `Difficulty — ${diffTip(agg)}` : undefined}
+        data-tip={hasDiffTip ? `${t('pack.map.difficulty')} — ${diffTip(t, agg)}` : undefined}
       >
-        <DiffMark diff={agg.difficulty} /> {agg.difficulty}
+        <DiffMark diff={agg.difficulty} /> {diffTx(t, agg.difficulty)}
       </span>
       {agg.crowd && (
         <span
           className={`comm-mpill${hasCrowdTip ? ' comm-hastip' : ''}`}
-          data-tip={hasCrowdTip ? `Crowd — ${crowdTip(agg)}` : undefined}
+          data-tip={hasCrowdTip ? `${t('pack.map.crowd')} — ${crowdTip(t, agg)}` : undefined}
         >
-          {CROWD_EMOJI[agg.crowd]} {agg.crowd}
+          {CROWD_EMOJI[agg.crowd]} {crowdTx(t, agg.crowd)}
         </span>
       )}
     </div>
@@ -969,6 +983,9 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
   onChange: (next: Companion[]) => void;
   onOpenProfile?: (memberId: string) => void; // avatar klik → /pack/u/:id, zatiaľ bez zdroja id (žiadny členský adresár)
 }) {
+  // ⚠️ TENTO KOMPONENT BOL CELÝ PO ANGLICKY (Matej 2026-08-23, sweep mobilu). Pod slovenským
+  // nadpisom SVORKA NA VÝLETE stálo „Add other companions" a „Type a name and press Enter…".
+  const t = useT();
   const [q, setQ] = useState('');
   const selectedKeys = new Set(selected.map((c) => c.key));
   const add = (c: Companion) => { if (!selectedKeys.has(c.key)) onChange([...selected, c]); };
@@ -999,14 +1016,14 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
                 {c.photo ? '' : c.name.charAt(0).toUpperCase()}
               </span>
               <b>{c.name}</b>
-              <button type="button" onClick={() => remove(c.key)} aria-label={`Remove ${c.name}`}>×</button>
+              <button type="button" onClick={() => remove(c.key)} aria-label={t('pack.companions.remove', { name: c.name })}>×</button>
             </span>
           ))}
         </div>
       )}
       {myDogs.length > 0 && (
         <>
-          <div className="comm-comp-grouplabel">Your pack</div>
+          <div className="comm-comp-grouplabel">{t('pack.companions.yourPack')}</div>
           <div className="comm-comp-pack">
             {myDogs.map((d) => {
               const on = selectedKeys.has(`dog-${d.id}`);
@@ -1015,7 +1032,7 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
                   <span className={`comm-comp-dog-av${d.photo ? '' : ' ph'}`} style={d.photo ? { backgroundImage: `url('${d.photo}')` } : undefined}>
                     {d.photo ? '' : (d.name || 'D').charAt(0).toUpperCase()}
                   </span>
-                  <span>{d.name || 'My dog'}</span>
+                  <span>{d.name || t('pack.companions.myDog')}</span>
                   {!on && <span className="plus">+</span>}
                 </button>
               );
@@ -1023,14 +1040,14 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
           </div>
         </>
       )}
-      <div className="comm-comp-grouplabel">Add other companions</div>
+      <div className="comm-comp-grouplabel">{t('pack.companions.addOthers')}</div>
       <div className="comm-comp-searchwrap">
         <input
           className="comm-input"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
-          placeholder="Type a name and press Enter…"
+          placeholder={t('pack.companions.typeName')}
         />
       </div>
     </div>

@@ -309,6 +309,18 @@ const TAG_EMOJI: Record<string, string> = {
   Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅',
   'Forest path': '🥾', Asphalt: '🛣️', Rocky: '🪨',
 };
+// ⚠️ HODNOTA ≠ TEXT NA OBRAZOVKE (2026-08-23). `TAG_VOCAB` sú dátové hodnoty z `tr.tags`
+// a `tr.surface` — filtruje sa podľa nich, takže sa NEPREKLADAJÚ. Chip však človek číta,
+// a v slovenskom paneli FILTRE stálo „Mountains / Forest / Lake/Reservoir". Slovník je
+// spoločný s formulárom výletu (`pack.map.tagLabel.*`, `surfaceLabel.*`), aby tá istá vec
+// nemala na dvoch obrazovkách dva názvy. Chýbajúci kľúč padá na pôvodnú hodnotu.
+const TAG_I18N: Record<string, string> = {
+  Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
+  'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
+  View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
+  'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
+  Rocky: 'pack.map.surfaceLabel.rocky',
+};
 
 // Per-aktivita placeholder fotky (Cloudinary pack/placeholders, webp). Kľúč = ACT_DATA_ID
 // (hike/journey/picnic/overnight/skating/paddleboard). Použité pre tripy bez vlastnej fotky
@@ -1883,7 +1895,7 @@ function TripTagsDropdown({
                   className={`trp-tagdd-row${on ? ' on' : ''}`}
                   onClick={() => onToggle(tag)}
                 >
-                  <span>{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{tag}</span>
+                  <span>{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{TAG_I18N[tag] ? t(TAG_I18N[tag]) : tag}</span>
                   {on && <span aria-hidden>✓</span>}
                 </button>
               );
@@ -3159,7 +3171,9 @@ export default function PackMap() {
           <div className="trp-bigcard-info">
             {/* pohorie · región label pod fotkou (Matejov feedback bod 3) — región
                 len keď je pohorie namapované cez REGION_OF (guard, nič sa nefabrikuje) */}
-            <div className="trp-bigcard-loc">{tr.region}{REGION_OF[tr.region] ? ` · ${REGION_OF[tr.region]}` : ''}</div>
+            {/* Pohorie je vlastné meno (neprekladá sa), macro región áno — inak stálo pod
+                slovenským zoznamom „MALÉ KARPATY · WEST". Kľúče `pack.map.macroRegion.*`. */}
+            <div className="trp-bigcard-loc">{tr.region}{REGION_OF[tr.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[tr.region]}`)}` : ''}</div>
             <div className="trp-bigcard-name">{tr.name}</div>
             {/* autor = svorka čo prešla trip; „+N Dogyptians" = walkeri nad zakladateľov
                 (Matej 2026-07-22 — walked count sa presunul sem z crowd stĺpca). */}
@@ -3285,7 +3299,7 @@ export default function PackMap() {
                     název/autor+avatarpair), vpravo rating(packy+číslo)+difficulty+km+Crowd */}
                 <div className="trp-inldet-main">
                   <div className="trp-inldet-info">
-                    <div className="trp-inldet-loc">{dt.region}{REGION_OF[dt.region] ? ` · ${REGION_OF[dt.region]}` : ''}</div>
+                    <div className="trp-inldet-loc">{dt.region}{REGION_OF[dt.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[dt.region]}`)}` : ''}</div>
                     <div className="trp-inldet-name">{dt.name}</div>
                     {/* bod 6 (iterácia 16): dva avatary (majiteľ+pes) vedľa "by {author}" */}
                     <div className="trp-inldet-authorrow">
@@ -3669,7 +3683,7 @@ export default function PackMap() {
                       className={`trp-msheet-chip${heroTags.has(tag) ? ' on' : ''}`}
                       aria-pressed={heroTags.has(tag)}
                       onClick={() => toggleTag(tag)}
-                    >{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{tag}</button>
+                    >{TAG_EMOJI[tag] ? `${TAG_EMOJI[tag]} ` : ''}{TAG_I18N[tag] ? t(TAG_I18N[tag]) : tag}</button>
                   ))}
                 </div>
               </div>

@@ -197,20 +197,28 @@ export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 
 
 const HIKE_LIKE = new Set(['hiking', 'journey']);
 
-// Ľudské EN labely chýbajúcich polí — vzor `addMissing` v PackMap.tsx ~1707 (nápoveda pri
-// disabled submite, nie mŕtve tlačidlo).
+/**
+ * NÁZVY CHÝBAJÚCICH POLÍ SÚ i18n KĽÚČE, NIE HOTOVÝ TEXT (2026-08-23).
+ *
+ * Do teraz to boli anglické slová napísané v modeli natvrdo, takže pod slovenským formulárom
+ * svietilo „Chýba: name, date". Model nemá jazyk — preklad patrí tam, kde je `t()`, teda do
+ * komponentu. Volajúci si hodnoty prežene cez `t()` (viď `AddTripLog`), a keď kľúč chýba,
+ * padne to na anglický slovník samo.
+ *
+ * ⚠️ `dateKind` aj `date` mieria na ten istý kľúč zámerne: pre človeka je to jedno pole.
+ */
 const FIELD_LABEL: Partial<Record<keyof AddTripDraft, string>> = {
-  name: 'name',
-  activity: 'activity',
-  geometry: 'route on map',
-  dateKind: 'date',
-  date: 'date',
-  diff: 'difficulty',
-  surface: 'terrain',
-  hazards: 'hazards',
-  tags: 'tags',
-  paws: 'rating',
-  photos: 'photo',
+  name: 'pack.addTrip.field.name',
+  activity: 'pack.addTrip.field.activity',
+  geometry: 'pack.addTrip.field.geometry',
+  dateKind: 'pack.addTrip.field.date',
+  date: 'pack.addTrip.field.date',
+  diff: 'pack.addTrip.field.diff',
+  surface: 'pack.addTrip.field.surface',
+  hazards: 'pack.addTrip.field.hazards',
+  tags: 'pack.addTrip.field.tags',
+  paws: 'pack.addTrip.field.paws',
+  photos: 'pack.addTrip.field.photos',
 };
 
 function hasGeometry(g: TripGeometry): boolean {
