@@ -13,6 +13,7 @@ import { useT } from '@/i18n/LanguageContext';
 import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import type { NoteGroup } from '@/components/pack/mapnotes/mapNotesData';
 import type { TripState } from './addTripModel';
+import { POINTS } from '@/lib/tripPoints';
 
 const GOLD = '#C99A3F'; // §8: hover na aktívnej dlaždici = zlatý okraj, presne tento hex
 
@@ -37,8 +38,12 @@ type Kind = 'trip' | 'event' | 'note' | 'service';
 // Prvá úroveň — dve dlaždice (Matej 2026-08-06: SERVICE preč z renderu, viď hlavičkový
 // komentár). `Kind`/`disabled` tvar ostáva nezmenený pre vlnu 2 — SERVICE sa vtedy len pridá
 // späť do tohto poľa, nič iné sa v komponente meniť nemusí.
-const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean }> = [
-  { kind: 'trip', emoji: '🥾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text' },
+const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean; points?: number }> = [
+  // ⚠️ BODY PATRIA SEM, NIE NA TLAČIDLO PRIDAŤ (Matej 2026-08-23: „má pridanie konkrétnu taxu?").
+  // Tlačidlo otvára tri rôzne veci a každá je inak drahá — číslo na ňom by teda klamalo pri
+  // dvoch z troch. Hodnota je `POINTS.add` z `lib/tripPoints.ts`; je to ZÁKLAD, reálny výlet
+  // býva vyšší (km, prevýšenie, nové pohorie). Udalosť ani odkaz zatiaľ body nemajú.
+  { kind: 'trip', emoji: '🥾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add },
   { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text' },
   { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text' },
 ];
@@ -95,6 +100,7 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                 }}
               >
                 {k.disabled && <span className="att-entry-soon">{t('pack.map.comingSoon')}</span>}
+                {!!k.points && <span className="att-entry-pts">+{k.points}</span>}
                 <span className="att-entry-emoji" aria-hidden="true">{k.emoji}</span>
                 <span className="att-entry-title">{t(k.titleKey)}</span>
                 <span className="att-entry-text">{t(k.textKey)}</span>
@@ -148,6 +154,8 @@ const ENTRY_CSS = `
 .att-entry-blocks-kind .att-entry-text{max-width:none;}
 .att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
 .att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
+/* Body za zápis — malá pilulka v rohu dlaždice, nie súčasť nadpisu. Je to odmena, nie názov. */
+.att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.06em;color:${GOLD};}
 .att-entry-block-disabled{opacity:.42;cursor:default;}
 .att-entry-block-disabled:hover,.att-entry-block-disabled:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 .att-entry-soon{position:absolute;top:10px;right:10px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:3px 8px;}

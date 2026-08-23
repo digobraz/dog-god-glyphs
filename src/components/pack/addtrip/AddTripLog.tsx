@@ -93,14 +93,19 @@ export type AddTripLogProps = {
 // Aktivita taxonómia — lokálna kópia, rovnaká zavedená duplikačná konvencia ako AddTripPlan.tsx
 // (komentár tam vysvetľuje prečo: PackMap.tsx má rovnaký zoznam, needituje sa, nič z neho nie
 // je exportované).
-const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string }> = [
+const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: string; wide?: boolean; noteKey?: string }> = [
   { id: 'hiking', label: 'Hiking', emoji: '🥾', dataId: 'hike' },
   { id: 'journey', label: 'Journey', emoji: '🎒', dataId: 'journey' },
   { id: 'picnic', label: 'Picnic', emoji: '🧺', dataId: 'picnic' },
   { id: 'overnight', label: 'Overnight', emoji: '⛺', dataId: 'overnight' },
   { id: 'skating', label: 'Skate', emoji: '🛼', dataId: 'skating' },
   { id: 'paddleboard', label: 'SUP/swim', emoji: '🏄', dataId: 'paddleboard' },
-  { id: 'explore', label: 'Explore', emoji: '🧭', dataId: 'explore' },
+  // ⚠️ POSLEDNÁ DLAŽDICA JE „VŠETKO OSTATNÉ" a musí to povedať (Matej 2026-08-23: „posledné
+  // explore môže mať krátku vetu na vysvetlenie — iná aktivita, návšteva hradu, oblasti…").
+  // Kompas 🧭 sľuboval objavovanie divočiny, hoci sem patrí aj hrad či mestský park; hrad 🏰
+  // je konkrétnejší príklad toho, čo sa inam nezmestilo. Nepárny počet (7) jej v mriežke
+  // aj tak necháva celý riadok, tak ho nesie text.
+  { id: 'explore', label: 'Explore', emoji: '🏰', dataId: 'explore', wide: true, noteKey: 'pack.addTrip.log.activityExploreNote' },
 ];
 const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));
 
@@ -596,21 +601,41 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       <style>{ROUTE_HERO_CSS}</style>
       <style>{RESTORE_CSS}</style>
       <style>{STEP_CSS}</style>
-      <div className="atl-log-head">
-        <button
-          type="button"
-          className="atl-log-back"
-          onClick={() => (activity ? goPrev() : onClose())}
-          aria-label={t('pack.addTrip.geo.stepBack')}
-        >
-          ←
-        </button>
-        {/* Nadpis sleduje dátum — kým je v budúcnosti, formulár je PLÁN a „Log a trip"
-            by hovoril o niečom, čo sa ešte nestalo. */}
-        <div className="atl-log-title">
-          {!activity ? t('pack.addTrip.log.titleActivity') : t(isPlan ? 'pack.addTrip.log.titlePlan' : 'pack.addTrip.log.title')}
+      {/* VÝBER AKTIVITY MÁ VLASTNÚ HLAVIČKU (Matej 2026-08-23: „šípku dozadu do stredu hore
+          a pod to väčší nápis — nie čo ste robili, ale vyber aktivitu"). Je to prvá obrazovka
+          celého pridávania, takže sa správa ako titulná strana: návrat v strede, veľký nadpis
+          a JEDNA veta o tom, čo bude nasledovať. Ďalšie kroky ostávajú na úzkej hlavičke
+          s návratom vľavo — tam už človek vie, kde je, a miesto patrí formuláru. */}
+      {!activity ? (
+        <div className="atl-log-head atl-log-head--intro">
+          <button
+            type="button"
+            className="atl-log-back"
+            onClick={onClose}
+            aria-label={t('pack.addTrip.geo.stepBack')}
+          >
+            ←
+          </button>
+          <div className="atl-log-title atl-log-title--big">{t('pack.addTrip.log.titleActivity')}</div>
+          <div className="atl-log-sub">{t('pack.addTrip.log.titleActivitySub')}</div>
         </div>
-      </div>
+      ) : (
+        <div className="atl-log-head">
+          <button
+            type="button"
+            className="atl-log-back"
+            onClick={goPrev}
+            aria-label={t('pack.addTrip.geo.stepBack')}
+          >
+            ←
+          </button>
+          {/* Nadpis sleduje dátum — kým je v budúcnosti, formulár je PLÁN a „Log a trip"
+              by hovoril o niečom, čo sa ešte nestalo. */}
+          <div className="atl-log-title">
+            {t(isPlan ? 'pack.addTrip.log.titlePlan' : 'pack.addTrip.log.title')}
+          </div>
+        </div>
+      )}
 
       {/* PONUKA NA OBNOVU — záloha, o ktorej sa človek nedozvie, je len zabraté miesto.
           Stojí PRED výberom aktivity, lebo obnova ju nastaví sama. Zahodenie je vedomé:
@@ -630,9 +655,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       {!activity && !restored && (
         <div className="atl-tiles">
           {ACTIVITIES.map((a) => (
-            <button key={a.id} type="button" className="atl-tile" onClick={() => pickActivity(a.id)}>
+            <button
+              key={a.id}
+              type="button"
+              className={`atl-tile${a.wide ? ' atl-tile--wide' : ''}`}
+              onClick={() => pickActivity(a.id)}
+            >
               <span className="atl-tile-emoji">{a.emoji}</span>
-              <span className="atl-tile-label">{a.label}</span>
+              {/* ⚠️ NÁZOV CEZ SLOVNÍK, NIE `a.label` — dataset nesie anglický názov ako kľúč a na
+                  slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
+                  `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
+              <span className="atl-tile-label">{t(`pack.map.activityLabel.${a.id}`)}</span>
+              {a.noteKey && <span className="atl-tile-note">{t(a.noteKey)}</span>}
             </button>
           ))}
         </div>
@@ -1186,11 +1220,24 @@ const LOG_CSS = `
 .atl-log-back{background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};color:${T.onDark};width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:15px;line-height:1;}
 .atl-log-back:hover{border-color:${GOLD};color:${GOLD};}
 .atl-log-title{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.04em;text-transform:uppercase;color:${T.onDark};}
-.atl-tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:4px 20px 20px;}
-.atl-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 8px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+/* Titulná obrazovka pridávania — návrat v strede, pod ním nadpis a jedna veta. */
+.atl-log-head--intro{flex-direction:column;align-items:center;gap:12px;padding:18px 20px 14px;text-align:center;}
+.atl-log-title--big{font-size:22px;letter-spacing:.06em;}
+.atl-log-sub{font-family:${FONT_UI};font-weight:500;font-size:12.5px;line-height:1.45;color:${T.onDarkDim};max-width:34ch;}
+/* JEDEN STĹPEC NA MOBILE (Matej 2026-08-23: „políčka na mobile zväčši tak aby boli cez celý
+   displej"). Dlaždica sa tým narovná do riadku — emoji vľavo, názov vedľa — takže výška
+   obrazovky vystačí aj na sedem položiek. Nad 560 px ostávajú dva stĺpce. */
+.atl-tiles{display:grid;grid-template-columns:1fr;gap:10px;padding:4px 20px 20px;}
+.atl-tile{display:flex;flex-direction:row;align-items:center;gap:14px;padding:15px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
 .atl-tile:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);}
-.atl-tile-emoji{font-size:26px;line-height:1;}
-.atl-tile-label{font-family:${FONT_UI};font-weight:500;font-size:11.5px;letter-spacing:.03em;color:${T.onDark};}
+.atl-tile-emoji{font-size:26px;line-height:1;flex:0 0 auto;}
+.atl-tile-label{font-family:${FONT_UI};font-weight:500;font-size:14px;letter-spacing:.03em;color:${T.onDark};}
+.atl-tile--wide{flex-wrap:wrap;}
+.atl-tile-note{flex:1 1 100%;font-family:${FONT_UI};font-weight:400;font-size:11.5px;line-height:1.4;color:${T.onDarkDim};}
+@media (min-width:560px){
+  .atl-tiles{grid-template-columns:repeat(2,1fr);}
+  .atl-tile--wide{grid-column:1 / -1;}
+}
 .atl-log-body{flex:1 1 auto;min-height:0;overflow-y:auto;padding:4px 20px 16px;display:flex;flex-direction:column;gap:14px;}
 .atl-photo{flex:0 0 auto;position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#1c2b1a,#0e1a0d);background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;border:1px solid ${T.onDarkBorder};}
 .atl-photo-badge{font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.45);padding:8px 14px;border-radius:8px;border:1px solid rgba(201,154,63,0.5);}

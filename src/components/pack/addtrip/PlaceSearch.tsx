@@ -126,7 +126,13 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
             position: 'relative', zIndex: 1,
             width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10,
             background: 'rgba(10,7,4,0.72)', border: '1px solid ' + (attn ? GOLD_DIM : T.onDarkBorder),
-            color: T.onDark, fontFamily: FONT_UI, fontSize: 14, fontWeight: 500, outline: 'none',
+            // ⚠️ 16 px JE MINIMUM, NIE VKUS (Matej 2026-08-23: „priblížilo ma na mape a zároveň
+            // mi zoomlo aj viewport = nevidím šípku späť ani dolný pill, vyzerá to ako pokazené").
+            // iOS Safari pri fokuse do poľa s písmom MENŠÍM než 16 px priblíži celú stránku —
+            // a späť sa už sama neoddiali, takže zmiznú prvky ukotvené k okrajom. Riešiť sa to
+            // dá aj `maximum-scale=1` v `<meta viewport>`, ale to zakáže priblíženie celej
+            // appky každému, kto ho potrebuje. Preto 16 px.
+            color: T.onDark, fontFamily: FONT_UI, fontSize: 16, fontWeight: 500, outline: 'none',
           }}
         />
       </div>

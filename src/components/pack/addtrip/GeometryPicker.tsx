@@ -145,6 +145,8 @@ export function findDuplicate(geometry: TripGeometry, allTrails: HeroTrail[]): H
 // odbočku, kdežto prvá kotva trasy sa aj tak prichytí na najbližší chodník. Pri z12 vidno
 // pás ~19 km, čo je mierka, v ktorej sa hrebeňovka kreslí na jednu obrazovku.
 const TRIP_HOLD_MIN_ZOOM = 12;
+/** Priblíženie, na akom sa mapa otvára (prehľad krajiny) = 0 % ukazovateľa priblíženia. */
+const ZOOM_BAR_FROM = 7;
 
 // ── komponent ───────────────────────────────────────────────────────────────────────────
 
@@ -604,6 +606,25 @@ export function GeometryPicker({
           interactive: false,
         }));
       });
+      // ŠTART SA POMENUJE (Matej 2026-08-23: „nedal by som len bodku ale aj nápis v pils
+      // štart"). Holá gulička nepovie, ktorý koniec je ktorý — a keď sa človek vracia tou
+      // istou trasou alebo uzavrie okruh, je to naraz aj cieľ, takže to pilulka povie tiež.
+      if (value.path.length > 0) {
+        const first = value.path[0];
+        const last = value.path[value.path.length - 1];
+        const backToStart = value.returnMode === 'mirror'
+          || (value.path.length > 2 && Math.abs(first[0] - last[0]) < 1e-6 && Math.abs(first[1] - last[1]) < 1e-6);
+        add(L.marker(first, {
+          icon: L.divIcon({
+            className: '',
+            html: `<span class="trp-anchor-tag">${t(backToStart ? 'pack.addTrip.geo.labelStartEnd' : 'pack.addTrip.geo.labelStart')}</span>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          }),
+          interactive: false,
+          keyboard: false,
+        }));
+      }
     }
     // CIEĽ VÝLETU 🎯 — emoji v bielom krúžku s modrým lemom, presne ako udalosti (CLAUDE.md,
     // Matej 22. 8.). Nie vlastný tvar: „tu je cieľ" a „tu sa niekto s niekým stretne" sú
@@ -645,7 +666,7 @@ export function GeometryPicker({
       layersRef.current.forEach((l) => { if (map.hasLayer(l)) map.removeLayer(l); });
       layersRef.current = [];
     };
-  }, [value, line, allTrails, onPickExisting, mapRef, zoomTick]);
+  }, [value, line, allTrails, onPickExisting, mapRef, zoomTick, t]);
 
   // ── panel ─────────────────────────────────────────────────────────────────────────────
   const pointCount = value.kind === 'route' ? value.path.length : 0;
@@ -668,6 +689,8 @@ export function GeometryPicker({
   // s vrstvami počúva `zoomend`), takže sa veta prepne sama, len čo si mapu priblíži.
   const zoomNow = mapRef.current?.getZoom() ?? 0;
   const holdTooFar = barOn && zoomNow < TRIP_HOLD_MIN_ZOOM;
+  // 0 % pri pohľade na celú krajinu (z7, s akým sa mapa otvára) → 100 % na prahu gesta.
+  const zoomPct = Math.max(0, Math.min(100, ((zoomNow - ZOOM_BAR_FROM) / (TRIP_HOLD_MIN_ZOOM - ZOOM_BAR_FROM)) * 100));
   // Volajúci (sprievodca) má prednosť: v kroku 2 sa na mape pichajú značky, nie kreslí trasa,
   // takže veta o dlhom stlačení by radila niečo, čo v tej chvíli nie je úloha.
   // ⚠️ PO ~2 KM SA APPKA OZVE O CIELI (Matej 23. 8.: „po 2 km by sa pri kurzore mohla objaviť
@@ -834,9 +857,6 @@ export function GeometryPicker({
                 ←
               </button>
             )}
-            <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-              <PlaceSearch mapRef={mapRef} />
-            </div>
           </div>
         </div>
 
@@ -852,10 +872,28 @@ export function GeometryPicker({
             a dolu v mieste kde je rám bude ten info pil o tom podržaní prsta."
             Pilulka stojí DOLE aj v ďalších krokoch (je prvá vnútri lišty), takže sa medzi
             krokmi nikam neteleportuje — len jej okolie dorastie. */}
-        {stage === 0 && drawHint && (
-          <div className={`trp-dhint trp-dhint--solo${drawBar.besidePanel ? ' trp-dhint--beside' : ''}`}>
-            <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
-            <span>{drawHint}</span>
+        {stage === 0 && (
+          <div className={`trp-dstart${drawBar.besidePanel ? ' trp-dstart--beside' : ''}`}>
+            {drawHint && (
+              <div className="trp-dhint trp-dhint--inbar">
+                <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
+                <span>{drawHint}</span>
+              </div>
+            )}
+            {/* KOĽKO EŠTE PRIBLÍŽIŤ (Matej 23. 8.: „nejaký štýl progres baru koľko treba ešte
+                priblížiť"). Samotná veta „priblíž si mapu" nepovie, či je človek o krok alebo
+                o štyri od toho, aby gesto zabralo — a bez tej odpovede to vyzerá, že sa nedeje
+                nič. Prúžok zmizne, len čo je priblíženie dosť veľké; vtedy už pilulka hovorí
+                o dlhom stlačení. */}
+            {holdTooFar && (
+              <div className="trp-zoombar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(zoomPct)}>
+                <i style={{ width: `${zoomPct}%` }} />
+              </div>
+            )}
+            {/* NA DOSAH PALCA. Hore bolo pole „takmer neviditeľné" a na telefóne aj mimo dosahu;
+                po prvej kotve zmizne úplne — svoju úlohu (dostať človeka do jeho oblasti) má
+                vtedy za sebou a nad rozkreslenou trasou by lákalo mapu odletieť inam. */}
+            <PlaceSearch mapRef={mapRef} />
           </div>
         )}
 
@@ -1045,7 +1083,14 @@ const DRAW_BAR_CSS = `
 .trp-dhint{justify-self:center;align-self:center;pointer-events:none;display:flex;align-items:center;gap:9px;padding:10px 16px 10px 13px;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);font-family:${FONT_UI};font-size:13.5px;font-weight:600;color:#F3E9FF;text-align:left;max-width:min(92vw,460px);}
 /* KROK 0 — pilulka stojí sama tam, kde neskôr narastie lišta, aby to vyzeralo, že jej
    okolie len dorástlo, nie že sa presunula. */
-.trp-dhint--solo{position:fixed;left:0;right:0;bottom:calc(22px + env(safe-area-inset-bottom,0px));z-index:1200;margin:0 auto;width:max-content;}
+/* KROK 0 — spodný panel: pokyn, ukazovateľ priblíženia a hľadanie miesta. Tvar aj výplň má
+   zhodné s lištou kreslenia, takže po prvej kotve to vyzerá, že panel len zmenil obsah. */
+.trp-dstart{position:fixed;left:0;right:0;bottom:0;z-index:1200;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
+.trp-zoombar{height:5px;border-radius:999px;background:rgba(245,240,228,0.10);overflow:hidden;}
+.trp-zoombar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#7A2FBF,${TRAIL_LINE.light});transition:width .25s ease;}
+/* Menovka štartu — visí nad kotvou, ťuky prepúšťa do mapy (inak by z nej bola diera,
+   do ktorej sa nedá klikať práve tam, kde človek kreslí). */
+.trp-anchor-tag{position:absolute;left:0;top:0;transform:translate(-50%,-26px);pointer-events:none;white-space:nowrap;padding:3px 9px;border-radius:999px;background:rgba(18,13,7,0.94);border:1px solid ${TRAIL_LINE.light};box-shadow:0 2px 10px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#F3E9FF;}
 /* v lište je pilulka prvá — vlastné odsadenie nepotrebuje, gap lišty stačí */
 .trp-dhint--inbar{position:static;}
 
@@ -1073,13 +1118,13 @@ const DRAW_BAR_CSS = `
 
 /* PC: lišta aj pás sa odsadia o šírku panela. Čísla sú tie isté ako .trp-sidebar v PackMap. */
 @media (min-width:1024px) and (max-width:1400px){
-  .trp-dbar--beside,.trp-dtop--beside,.trp-dhint--beside{left:400px;}
+  .trp-dbar--beside,.trp-dtop--beside,.trp-dstart--beside{left:400px;}
 }
 @media (min-width:1401px){
-  .trp-dbar--beside,.trp-dtop--beside,.trp-dhint--beside{left:480px;}
+  .trp-dbar--beside,.trp-dtop--beside,.trp-dstart--beside{left:480px;}
 }
 @media (min-width:1024px){
-  .trp-dbar--beside{bottom:20px;right:20px;border-radius:16px;border:1px solid ${T.onDarkBorder};}
+  .trp-dbar--beside,.trp-dstart--beside{bottom:20px;right:20px;border-radius:16px;border:1px solid ${T.onDarkBorder};}
   /* 74 px vpravo = miesto pre ovládanie mapy (zoom, poloha, vrstvy). To isté číslo drží
      .trp-topbar v PackMap.tsx — bez neho leží pole na hľadanie pod tlačidlami zoomu. */
   .trp-dtop--beside{right:74px;}

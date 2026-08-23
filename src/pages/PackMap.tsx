@@ -1522,9 +1522,15 @@ ${TRAIL_LINE_CSS}
      Farbu prepínača zámerne NEMENÍM — to by bolo ďalšie rozhodnutie nad rámec zadania. */
   .trp-mtoggle,.trp-mfab{display:flex;align-items:center;justify-content:center;gap:8px;font-family:${FONT_TITLE};font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:11px 24px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:${INK};border:1px solid rgba(250,244,236,0.3);cursor:pointer;white-space:nowrap;}
   .trp-mtoggle{border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,0.4);}
-  .trp-mfab{border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 40px rgba(230,158,26,0.4), inset 0 1px 0 rgba(255,255,255,0.3);}
+  /* PRIDAŤ JE FIALOVÉ (Matej 2026-08-23: „tlačítko pridať by sme mohli dať fialovým výrazným").
+     Fialová je v mape farba TRASY (svetelný meč) — tlačidlo, ktorým sa do mapy zapisuje, tak
+     hovorí tým istým jazykom ako to, čo z neho vznikne. Zároveň to rozviazalo starý spor
+     „ZOZNAM aj PRIDAŤ sú obe zlaté": prepínač pohľadu ostáva zlatá pilulka, akcia je fialová,
+     a rozdiel je vidno na prvý pohľad bez toho, aby sa musel meniť aj prepínač. */
+  .trp-mfab{border-radius:8px;background:linear-gradient(135deg,#B36BFF,#7A2FBF);color:#F6EEFF;border:1px solid rgba(245,240,228,0.30);box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 40px rgba(122,47,191,0.50), inset 0 1px 0 rgba(255,255,255,0.22);}
   .trp-mfab:active{transform:scale(0.98);}
-  .trp-mtoggle img,.trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0);opacity:.82;}
+  .trp-mtoggle img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0);opacity:.82;}
+  .trp-mfab img{width:15px;height:15px;flex:0 0 auto;filter:brightness(0) invert(1);opacity:.9;}
 
   /* hlavička LIST pohľadu — sem sa presťahoval TRIPLIST z mapového headera. V zozname dáva
      zmysel (je to zoznamový povrch), v headeri mapy bol len ďalšia ikonka v rade. */
