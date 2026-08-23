@@ -28,6 +28,7 @@ import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
+import { KindGrid } from './KindGrid';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
@@ -146,10 +147,17 @@ export function AddMapNotePin({ lat, lon, kind, disease = null, radiusM = null, 
 // ─────────────────────────────────────────────────────────────────────────────
 export function MapNotePlacing({
   group,
+  kind,
   ready,
   onCancel,
 }: {
   group: NoteGroup;
+  /**
+   * Druh vybraný ešte pred ťuknutím do mapy (sprievodca výletu, krok 2). Keď je podaný,
+   * lišta hovorí MEDVEĎ, nie UPOZORNENIE — inak by človek po výbere konkrétnej hrozby
+   * stratil potvrdenie, že si vybral práve ju.
+   */
+  kind?: NoteKind | null;
   /** mapa je dosť priblížená na to, aby klik dával zmysel */
   ready: boolean;
   onCancel: () => void;
@@ -162,7 +170,7 @@ export function MapNotePlacing({
       <style>{ADD_NOTE_CSS}</style>
       <span className="mnp-dot" style={{ background: GROUP_TINT[group] }} aria-hidden />
       <span className="mnp-text">
-        <b>{t(`pack.mapNotes.group.${group}`)}</b>
+        <b>{kind ? t(`pack.mapNotes.kind.${kind}`) : t(`pack.mapNotes.group.${group}`)}</b>
         {t(key)}
       </span>
       <button type="button" className="mnp-cancel" onClick={onCancel}>{t('pack.mapNotes.add.cancel')}</button>
@@ -274,6 +282,10 @@ export function AddMapNotePanel({
     if (k !== 'ticks') onDisease(null);
     const r = radiusRule(k);
     if (r.mode === 'none') onRadius(null);
+    // Povinný okruh sa musí DOSADIŤ, nie len orezať. Prechod z druhu, ktorý bod dovoľuje
+    // (rebríky, komentár), by inak nechal `radiusM === null` — posuvník by sa nevykreslil
+    // a hrozba by sa uložila ako bod, hoci ju pravidlo zakazuje.
+    else if (r.mode === 'required') onRadius(Math.min(Math.max(radiusM ?? r.def, r.min), r.max));
     else if (radiusM != null) onRadius(Math.min(Math.max(radiusM, r.min), r.max));
   };
 
@@ -327,21 +339,11 @@ export function AddMapNotePanel({
           takže voľba tu OKAMŽITE mení značku na mape (`kind` je riadený zvonku). */}
       {subKinds.length > 1 && (
         <>
-          <div className="mna-kinds">
-            {subKinds.map((k) => (
-              <button
-                key={k}
-                type="button"
-                className={`mna-kind${kind === k ? ' on' : ''}`}
-                onClick={() => pickKind(k)}
-                title={t(`pack.mapNotes.kind.${k}`)}
-                aria-label={t(`pack.mapNotes.kind.${k}`)}
-                aria-pressed={kind === k}
-              >
-                <i>{threatEmoji(k)}</i>
-              </button>
-            ))}
-          </div>
+          {/* NÁZOV, NIE LEN EMOJI (Matej 2026-08-23). Deväť samotných emoji je hádanka:
+              🦌 je zver, ale 🕷️ môže byť pavúk aj kliešť a ⚠️ nepovie nič. Popis bol doteraz
+              len v `title`, ktorý na dotykovom displeji neexistuje. Tá istá mriežka stojí
+              v kroku 2 sprievodcu výletu — preto zdieľaný komponent, nie dve kópie. */}
+          <KindGrid kinds={subKinds} selected={kind} tint={GROUP_TINT[group]} onPick={pickKind} />
         </>
       )}
 
@@ -588,13 +590,6 @@ export const ADD_NOTE_CSS = `
    a obsah vyskočil na 407 px, teda 2 px pod strop — teoreticky prešlo, prakticky
    by to spadlo pri prvom dlhšom preklade. Deliť šírku je odolnejšie než ju hádať.
    max-width drží kruh na 34 px na širokom paneli, nech z neho nie je ovál. */
-.mna-kinds{display:flex;gap:6px;flex-wrap:nowrap;margin-top:9px;}
-.mna-kind{flex:1 1 0;min-width:0;max-width:34px;aspect-ratio:1/1;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;border-radius:999px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};padding:0;cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease,box-shadow .12s ease;}
-.mna-kind:hover{transform:translateY(-1px);border-color:${T.onDarkDim};}
-.mna-kind i{font-style:normal;font-family:${FONT_EMOJI};font-size:17px;line-height:1;}
-/* VYBRATÉ: plné pole vo farbe skupiny + prstenec. Nie len iný odtieň rámu —
-   ten sa na tmavom paneli medzi ôsmimi súrodencami nedá nájsť očami. */
-.mna-kind.on{background:${HAZARD_RED};border-color:#FFFFFF;box-shadow:0 0 0 2px ${HAZARD_RED},0 2px 8px rgba(0,0,0,0.5);transform:translateY(-1px);}
 /* Druh za skupinou. Oddelený bodkou a stlmený, aby hlavička ostala jedným
    prvkom a nie dvoma nadpismi vedľa seba. */
 .mna-title-kind{font-weight:700;opacity:.72;}
@@ -733,20 +728,23 @@ export const ADD_NOTE_CSS = `
 @keyframes mntfIn{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
 
 /* ⚠️ TENTO BLOK MUSÍ OSTAŤ POSLEDNÝ. Pravidlá v ňom majú ROVNAKÚ špecifickosť
-   ako ich široké dvojičky, takže rozhoduje PORADIE v súbore — keď blok stál hore
-   (hneď za .mna-sheet), media query sa vyhodnotila správne, matchMedia hlásila
-   zhodu a kruh mal aj tak 34 px, lebo neskoršie .mna-kind{width:34px} ho prebilo.
-   Vyzeralo to ako nefunkčná media query; bola to kaskáda. */
+   ako ich široké dvojičky, takže rozhoduje PORADIE v súbore. (Historicky sa na tom
+   zlomil kruh druhu: media query sa vyhodnotila správne, ale neskoršie pravidlo ju
+   prebilo — vyzeralo to ako nefunkčná media query, bola to kaskáda.)
+   ⚠️ Rad kruhov .mna-kinds/.mna-kind 23. 8. 2026 ZANIKOL — druhy kreslí KindGrid
+   (mriežka 3 stĺpce, emoji + názov), ktorá si nesie vlastné CSS. Pravidlá pre neho tu nie sú.
+   ⚠️ A dôvod, prečo je tu trieda bez spätných apostrofov: toto je JS template literal,
+   takže spätný apostrof v CSS komentári ho ukončí a zhodí build (CLAUDE.md, HUB_CSS). */
 /* ── ÚZKY DISPLEJ ─────────────────────────────────────────────────────────
-   Pri 390 px je panel 367 px široký a dva rady sa zalomia naraz: deväť kruhov
-   aj dvojica prepínač+výber choroby. Namerané: obsah skočil z 366 na 447 px,
-   teda nad strop 64vh na 667 px vysokom telefóne — panel by scrolloval presne
-   tam, kde to Matej zakázal, a na širokom okne by o tom nikto nevedel.
+   Pri 390 px je panel 367 px široký a dva rady sa zalomia naraz. Namerané: obsah
+   skočil z 366 na 447 px, teda nad strop 64vh na 667 px vysokom telefóne — panel by
+   scrolloval presne tam, kde to Matej zakázal, a na širokom okne by o tom nikto nevedel.
    ⚠️ Responzívnu zmenu preto meraj v PÁSME (338/367/400/440), nie na jednej
    šírke — to je tá istá pasca ako pri psom bloku na /pack/dogs. */
 @media (max-width:430px){
-  .mna-sheet .mna-kinds{gap:4px;}
-  .mna-sheet .mna-kind i{font-size:15px;}
+  .mna-sheet .mnk-tile{padding:8px 3px;}
+  .mna-sheet .mnk-tile i{font-size:17px;}
+  .mna-sheet .mnk-tile em{font-size:9.5px;}
   .mna-sheet .mna-tick-switch .mna-opt{font-size:9px;padding:6px 5px;letter-spacing:.04em;}
   .mna-sheet .mna-select{flex:1 1 120px;font-size:11px;padding:6px 7px;}
   .mna-sheet .mna-radius-note{font-size:10px;}

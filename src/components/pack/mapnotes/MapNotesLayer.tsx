@@ -187,9 +187,19 @@ export type MapNotesLayerProps = {
    *  Tipy a parkoviská NEGATUJE: nie sú hrozba a človek, ktorý si vypol výstrahy,
    *  neprosil o to, aby prišiel aj o parkovisko. */
   showThreats?: boolean;
+  /**
+   * Berie vrstva kliky? Vypína sa počas kreslenia trasy (PackMap `mapDrawing`) — vtedy patrí
+   * každé ťuknutie do mapy kotve, nie bubline zápisu. Značky sa NESKRÝVAJÚ: kreslíš okolo
+   * nich, takže musia byť vidno.
+   *
+   * ⚠️ Prejaví sa cez `key` markera, nie len cez prop — react-leaflet `interactive` po
+   * vytvorení vrstvy neprepína (Leaflet ho číta pri `_initIcon`), takže bez remountu by sa
+   * zmena ticho zahodila.
+   */
+  interactive?: boolean;
 };
 
-export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showThreats = true }: MapNotesLayerProps) {
+export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showThreats = true, interactive = true }: MapNotesLayerProps) {
   const t = useT();
   const map = useMap();
   const [zoom, setZoom] = useState(() => map.getZoom());
@@ -265,6 +275,11 @@ export function MapNotesLayer({ notes, onVote, onDelete, locale = 'en-US', showT
     const dataset = isDatasetNote(n);
     const canVote = !!onVote && !dataset && !n.isMine;
     const canDelete = !!onDelete && !dataset && n.isMine;
+    // Kreslí sa trasa → tá istá značka, len hluchá. Bublina sa nerenderuje vôbec; marker,
+    // ktorý ju drží, by klik zožral aj so zavretým popupom.
+    if (!interactive) {
+      return <Marker key={`ro:${n.id}`} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)} interactive={false} />;
+    }
     return (
     <Marker key={n.id} position={[n.lat, n.lon]} icon={noteIcon(n, n.isStale)}>
       <Popup

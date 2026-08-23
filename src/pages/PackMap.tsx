@@ -125,6 +125,8 @@ import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDis
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
+import { clearTripNotes, readTripNotes, writeTripNotes } from '@/components/pack/addtrip/addTripModel';
+import { devSyncLocalTrips } from '@/lib/devTripSync';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
 // adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
 import { AddEvent } from '@/components/pack/events/AddEvent';
@@ -2023,6 +2025,20 @@ export default function PackMap() {
   const [noteHint, setNoteHint] = useState(false);
   // POMALÁ CESTA: typ je vybraný z palety a čaká sa, kde človek klikne na mape.
   const [notePlacing, setNotePlacing] = useState<NoteGroup | null>(null);
+  /**
+   * DRUH VYBRANÝ EŠTE PRED ŤUKNUTÍM DO MAPY (Matej 2026-08-23: „človek nevie čo môže označiť,
+   * nevidí možnosti… musia byť ihneď viditeľné nie schované že najprv vyber bod a potom tam
+   * daj niečo čo ani nevieš čo je").
+   *
+   * Krok 2 sprievodcu sa pýtal „bolo tam nebezpečenstvo?" a ponúkal jediné tlačidlo OZNAČ NA
+   * MAPE. Deväť druhov hrozby sa ukázalo až v paneli PO umiestnení bodu, takže človek
+   * potvrdzoval miesto pre niečo, čo ešte nevidel. Odteraz si vyberie druh a až potom ťuká.
+   *
+   * ⚠️ Samostatný stav, nie rozšírenie `notePlacing` na objekt: `notePlacing` sa číta na
+   * šiestich miestach ako „prebieha umiestňovanie" (zámok obrazovky, kurzor, lišta) a tie
+   * o druh nestoja. `null` = ber prvý druh skupiny, teda pôvodné správanie.
+   */
+  const [placingKind, setPlacingKind] = useState<NoteKind | null>(null);
   // RÝCHLA CESTA: dlhé podržanie dalo bod a paleta sa pýta, čo to je.
   const [noteSpot, setNoteSpot] = useState<{ lat: number; lon: number } | null>(null);
   const [noteZoom, setNoteZoom] = useState(0);
@@ -2044,11 +2060,12 @@ export default function PackMap() {
    * dolnej tretiny obrazovky skončila pod formulárom a človek by potvrdzoval
    * miesto, ktoré nevidí.
    */
-  const placeNote = (group: NoteGroup, lat: number, lon: number) => {
-    const kind = GROUP_KINDS[group][0];
+  const placeNote = (group: NoteGroup, lat: number, lon: number, kindOverride?: NoteKind | null) => {
+    const kind = kindOverride ?? GROUP_KINDS[group][0];
     setNoteTooFar(null);
     setNoteHint(false);
     setNotePlacing(null);
+    setPlacingKind(null);
     setNoteSpot(null);
     markHintSeen();
     // Pripnutie je VÝNIMKA, nie väzba (viď mapNotesGeo.ts): väčšinu práce spraví
@@ -2124,7 +2141,7 @@ export default function PackMap() {
    */
   const noteMinZoom = addFlow ? TRIP_HOLD_MIN_ZOOM : MIN_ZOOM_FOR_NOTE;
   useMapClickPoint(mapInstance, notePlaceReady, {
-    onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng); },
+    onPoint: (lat, lng) => { if (notePlacing) placeNote(notePlacing, lat, lng, placingKind); },
     onTooFar: showTooFar,
   }, noteMinZoom);
 
@@ -2151,7 +2168,21 @@ export default function PackMap() {
    * krok 4 ich ZHRNIE, needituje. Väzba značky na výlet sa NEUKLADÁ (odvodzuje sa zo
    * súradnice, viď mapNotesGeo.ts), takže toto je naozaj len pamäť jednej obrazovky.
    */
-  const [tripNotes, setTripNotes] = useState<NoteKind[]>([]);
+  const [tripNotes, setTripNotesState] = useState<NoteKind[]>(() => readTripNotes() as NoteKind[]);
+  /**
+   * ⚠️ PREŽÍVA RELOAD. Zoznam sa musí obnoviť spolu s formulárom (`readAddDraft` vracia aj
+   * číslo kroku), inak človek pokračuje v kroku 4 a zhrnutie tvrdí, že neoznačil nič —
+   * hoci značky sú uložené. Na telefóne stačí, že iOS zahodí stránku na pozadí.
+   * Zápis ide cez túto obálku, nie cez `setTripNotesState` priamo, nech sa nedá pridať
+   * značka, ktorá sa neuloží.
+   */
+  const setTripNotes = useCallback((up: (prev: NoteKind[]) => NoteKind[]) => {
+    setTripNotesState((prev) => {
+      const next = up(prev);
+      writeTripNotes(next);
+      return next;
+    });
+  }, []);
   /**
    * VÝCHODISKO Z PRSTA (rez C) — bod, na ktorom človek podržal prst a z palety zvolil
    * VÝLET alebo UDALOSŤ. Formulár ho dostane ako prvú kotvu trasy (resp. miesto udalosti),
@@ -2189,6 +2220,9 @@ export default function PackMap() {
   // sessionStorage mirror (viď vyššie) nech expand na čerstvo pridaný trip nájde aj po navigate.
   const [localTrails, setLocalTrails] = useState<HeroTrail[]>(() => readLocalTrails());
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
+  // DEV: výlety nakreslené na telefóne odošli na disk vývojára (`plany/prijate-vylety/`),
+  // inak ostanú uväznené v localStorage toho zariadenia. V prod builde neexistuje.
+  useEffect(() => { devSyncLocalTrips(localTrails); }, [localTrails]);
 
   // EVENTY pridané v tejto session (krok 3 zadania-eventy) — rovnaký lokálny mirror vzor ako
   // localTrails vyššie; DB zápis príde až po nasadení migrácie (§9 zadania krok 2→ďalšie).
@@ -2757,7 +2791,8 @@ export default function PackMap() {
     setAddFlow(null);
     setAddMapPhase('off');
     setNotePlacing(null);
-    setTripNotes([]);
+    setTripNotesState([]);
+    clearTripNotes();
     setSeedPoint(null);
     setAddError('');
     // issue #35: keď sme prišli na `/pack/add/trip`, zatvorenie formulára musí vrátiť aj URL —
@@ -2835,12 +2870,30 @@ export default function PackMap() {
         tags: draft.tags ?? [],
         author: firstName,
       };
-      const next = [newTrail, ...localTrails];
-      if (!writeLocalTrails(next)) {
+      /**
+       * VÝLET SA NESMIE STRATIŤ KVÔLI FOTKÁM (Matej 2026-08-23: „ono to musi niečo zvladnuť").
+       *
+       * Doteraz sa pri plnej kvóte vrátilo `false` a človek prišiel o CELÚ prácu — nakreslenú
+       * trasu, značky, popis — pretože sa nezmestili obrázky. Fotky sú doplnok, trasa je práca.
+       * Preto druhý pokus bez nich: keď prejde, výlet je uložený a človek sa dozvie, čo presne
+       * odpadlo. Až keď zlyhá aj to, je úložisko naozaj plné a hlásime pôvodnú chybu.
+       *
+       * (Prvá obrana je pri VÝBERE fotky — `optimizePhoto` v AddTripLog kóduje do WebP pod
+       * rozpočet ~73 kB, takže sem by sa to nemalo dostať. Toto je poistka, nie plán A.)
+       */
+      let next = [newTrail, ...localTrails];
+      let saved = writeLocalTrails(next);
+      let photosDropped = false;
+      if (!saved && newTrail.photos.length > 0) {
+        next = [{ ...newTrail, photos: [] }, ...localTrails];
+        saved = writeLocalTrails(next);
+        photosDropped = saved;
+      }
+      if (!saved) {
         setAddError(t('pack.map.errorPhotosStorage'));
         return false;
       }
-      setAddError('');
+      setAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
       setLocalTrails(next);
       setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
       if ((draft.paws ?? 0) > 0) {
@@ -3794,7 +3847,7 @@ export default function PackMap() {
               besidePanel={!isNarrow}
               seedPoint={seedPoint}
               onMapPhase={setAddMapPhase}
-              onPlaceNote={setNotePlacing}
+              onPlaceNote={(g, k) => { setNotePlacing(g); setPlacingKind(k ?? null); }}
               placedNotes={tripNotes}
               /* Kým človek ukazuje miesto ALEBO vypĺňa kartičku značky, panel kroku 2 ustúpi —
                  inak stoja dva panely na sebe a spodný hovorí o niečom inom než vrchný. */
@@ -3893,7 +3946,21 @@ export default function PackMap() {
                 // cudziu trasu v okamihu, keď človek kreslí vlastnú, je presne ten zmätok,
                 // kvôli ktorému sa stlmenie zavádza.
                 const dim = mapDrawing ? 0.16 : 1;
-                const handlers = {
+                /**
+                 * KRESLENIE JE IZOLOVANÝ PROCES (Matej 2026-08-23: „pri kreslení sa nemôže stať,
+                 * aby sa otvorilo niečo iné").
+                 *
+                 * Trasy pri kreslení síce ustúpia na `dim = 0.16`, ale STLMENÁ ČIARA JE STÁLE
+                 * ČIARA — klik na ňu volal `selectTrail` a namiesto kotvy sa otvoril cudzí výlet.
+                 * Stalo sa to pri kreslení Striebornica → Gajdošova, kde nová trasa vedie po
+                 * úseku, ktorý už v datasete je; čím lepšie kreslíš, tým istejšie do niečoho
+                 * trafíš.
+                 *
+                 * `undefined` (nie prázdny objekt): react-leaflet vtedy na vrstvu nezaregistruje
+                 * NIČ, takže Leaflet klik prepustí ďalej na mapu a kotva pribudne tam, kam si
+                 * klikol. Vypnúť len `click` by zožralo ťuknutie bez náhrady.
+                 */
+                const handlers = mapDrawing ? undefined : {
                   mouseover: () => { setHoverId(tr.id); setLineHoverId(tr.id); },
                   mouseout: () => { setHoverId(null); setLineHoverId(null); },
                   click: () => selectTrail(tr),
@@ -4022,7 +4089,9 @@ export default function PackMap() {
                   (rovnaký vzor ako ostatné podmienené vrstvy vyššie, žiadny manuálny cleanup).
                   Zdieľa presne ten istý filtrovaný/zoradený zoznam ako panel (visibleEvents) —
                   pin existuje len pre event, ktorý je práve vidieť v zozname (nadchádzajúce/archív). */}
-              {!isCleanMode && activeCat === 'events' && visibleEvents.filter((ev) => ev.center).map((ev) => (
+              {/* `!mapDrawing` z rovnakého dôvodu ako pri trip markeroch vyššie: kým sa kreslí
+                  trasa, žiadny pin nesmie zjesť ťuknutie a otvoriť namiesto kotvy udalosť. */}
+              {!isCleanMode && !mapDrawing && activeCat === 'events' && visibleEvents.filter((ev) => ev.center).map((ev) => (
                 <Marker
                   key={ev.id}
                   position={ev.center as LatLngTuple}
@@ -4042,6 +4111,11 @@ export default function PackMap() {
                      rovnaké pravidlo ako pri názvoch a vreteniciach, nech je
                      stav po návrate na Outdoor presne taký, aký bol. */
                   showThreats={!isCleanMode && overlayOn.threats}
+                  /* Značky svorky ostávajú VIDNO aj počas kreslenia (kreslíš okolo nich —
+                     pavúk pri ceste je dôvod, prečo trasu vedieš inak), ale prestanú brať
+                     kliky: bublina zápisu je „niečo iné, čo sa otvorilo" rovnako ako cudzí
+                     výlet. V kroku 2 (`addMapPhase === 'notes'`) sa klikateľnosť vracia. */
+                  interactive={!mapDrawing}
                 />
               )}
               {/* bod z dlhého podržania, kým sa vyberá typ */}
@@ -4228,7 +4302,9 @@ export default function PackMap() {
             await mapNotes.add(n);
             // Krok 2 sprievodcu: druh si odloží formulár, aby ho krok 4 vedel ZHRNÚŤ.
             // Väzba na výlet sa neukladá — odvodzuje sa zo súradnice (mapNotesGeo.ts).
-            if (addFlow) setTripNotes((prev) => [...prev, noteDraft.kind]);
+            // `n.kind` (čo sa naozaj uložilo), nie `noteDraft.kind` z uzáveru — panel vie druh
+            // zmeniť vlastným výberom a zhrnutie musí hovoriť o zapísanej značke.
+            if (addFlow) setTripNotes((prev) => [...prev, n.kind]);
             setNoteDraft(null);
           }}
           onCancel={() => setNoteDraft(null)}
@@ -4238,8 +4314,9 @@ export default function PackMap() {
       {notePlacing && !noteDraft && (
         <MapNotePlacing
           group={notePlacing}
+          kind={placingKind}
           ready={noteZoom >= noteMinZoom}
-          onCancel={() => setNotePlacing(null)}
+          onCancel={() => { setNotePlacing(null); setPlacingKind(null); }}
         />
       )}
       {/* Rýchla cesta: bod je z dlhého podržania, pýta sa typ. */}

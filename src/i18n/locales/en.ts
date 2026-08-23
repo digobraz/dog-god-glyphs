@@ -1914,7 +1914,10 @@ export const en = {
   'pack.addTrip.geo.returnGuide': "How did the trip end? Pick one below.",
   'pack.addTrip.geo.backToActivity': "Back to activity",
   'pack.addTrip.geo.labelStart': "Start",
+  'pack.addTrip.geo.labelEnd': "Finish",
   'pack.addTrip.geo.labelStartEnd': "Start · Finish",
+  /* Cieľ VÝLETU (terč), nie koniec trasy — preto „Destination", nie „Finish". */
+  'pack.addTrip.geo.labelTarget': "Destination",
   'pack.addTrip.geo.startHold': "Press and hold on the map to start your route",
   'pack.addTrip.geo.zoomInFirst': "Zoom in — or find a place below",
   'pack.addTrip.geo.startHoldSpot': "Press and hold on the map to mark the destination",
@@ -2220,6 +2223,8 @@ export const en = {
   'pack.map.hostAndYourDog': "{name} & your dog",
   'pack.map.myDogFallback': "My dog",
   'pack.map.errorPhotosStorage': "Couldn't save — photos are too large for this device's storage. Remove a few and try again.",
+  /* Výlet SA uložil, odpadli len fotky — preto to nie je chyba, ale správa o tom, čo chýba. */
+  'pack.map.errorPhotosDropped': "The trip is saved, but the photos didn't fit in this device's storage. Open it and add them again.",
   'pack.map.levelTooltip': "{points} pts · {toNext} to {nextLevel}\n{rows}",
   'pack.map.tripStatsTitle': "Your trip stats — world, home & walked",
   'pack.map.openTriplist': "Open your triplist",

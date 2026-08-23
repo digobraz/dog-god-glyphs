@@ -287,6 +287,40 @@ export function writeAddDraft(draft: AddTripDraft): boolean {
   try { addStore.setItem(ADD_DRAFT_KEY, JSON.stringify(draft)); return true; }
   catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
 }
+/**
+ * ZNAČKY ZAPICHNUTÉ POČAS TOHTO PRIDÁVANIA — vlastný kľúč, nie súčasť draftu.
+ *
+ * Matej 2026-08-23: „v 4. kroku píše že som neoznačil nebezpečenstvo ani tip ale označil som".
+ *
+ * Zoznam žil ako `tripNotes` v stave `PackMap` s poznámkou „pamäť jednej obrazovky". Lenže
+ * formulár obrazovku PREŽIJE: `readAddDraft()` ho po reloade obnoví aj s číslom kroku, takže
+ * človek pokračuje v kroku 4 — a zhrnutie, ktoré reload nezažilo, tvrdí, že neoznačil nič.
+ * Na telefóne stačí prepnutie záložky a iOS stránku zahodí; pri vývoji to spraví každý hot
+ * reload. Zhrnutie je pritom JEDINÉ miesto, kde sa dá skontrolovať, či sa značky podarili —
+ * takže klame práve tam, kde má ubezpečovať.
+ *
+ * Prečo nie do `AddTripDraft`: väzba značky na výlet sa zámerne NEUKLADÁ (odvodzuje sa zo
+ * súradnice, viď `mapNotesGeo.ts`) a draft ide do `onSubmit`, teda do dát výletu. Toto je stav
+ * SPRIEVODCU, nie vlastnosť výletu — vlastný kľúč to drží oddelené.
+ */
+const TRIP_NOTES_KEY = 'trp-addtrip-notes';
+
+export function readTripNotes(): string[] {
+  try {
+    const raw = addStore.getItem(TRIP_NOTES_KEY);
+    const arr = raw ? (JSON.parse(raw) as unknown) : null;
+    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [];
+  } catch { return []; }
+}
+
+export function writeTripNotes(kinds: string[]): void {
+  try { addStore.setItem(TRIP_NOTES_KEY, JSON.stringify(kinds)); } catch { /* non-fatal */ }
+}
+
+export function clearTripNotes(): void {
+  try { addStore.removeItem(TRIP_NOTES_KEY); } catch { /* non-fatal */ }
+}
+
 export function clearAddDraft(): void {
   try { addStore.removeItem(ADD_DRAFT_KEY); } catch { /* non-fatal */ }
 }

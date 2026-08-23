@@ -1854,7 +1854,11 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.geo.returnGuide': "Ako výlet skončil? Vyber dole.",
   'pack.addTrip.geo.backToActivity': "Späť na výber aktivity",
   'pack.addTrip.geo.labelStart': "Štart",
-  'pack.addTrip.geo.labelStartEnd': "Štart · Cieľ",
+  'pack.addTrip.geo.labelEnd': "Koniec",
+  /* ⚠️ Bolo „Štart · Cieľ" — prepísané 23. 8. 2026. Odkedy má výlet vlastný CIEĽ (terč
+     v modrom krúžku), by to isté slovo označovalo dve rôzne miesta. Koniec trasy = KONIEC. */
+  'pack.addTrip.geo.labelStartEnd': "Štart · Koniec",
+  'pack.addTrip.geo.labelTarget': "Cieľ",
   'pack.addTrip.geo.startHold': "Dlhým stlačením na mape zaháj trasu",
   'pack.addTrip.geo.zoomInFirst': "Priblíž si mapu — alebo si nájdi miesto nižšie",
   'pack.addTrip.geo.startHoldSpot': "Dlhým stlačením na mape označ cieľ",
@@ -2141,6 +2145,8 @@ export const sk: Partial<Dict> = {
   'pack.map.hostAndYourDog': "{name} a tvoj pes",
   'pack.map.myDogFallback': "Môj pes",
   'pack.map.errorPhotosStorage': "Nepodarilo sa uložiť — fotky sú na úložisko tohto zariadenia priveľké. Zopár odober a skús znova.",
+  /* Výlet SA uložil, odpadli len fotky — preto to nie je chyba, ale správa o tom, čo chýba. */
+  'pack.map.errorPhotosDropped': "Výlet je uložený, ale fotky sa do úložiska zariadenia nezmestili. Otvor ho a pridaj ich znova.",
   'pack.map.levelTooltip': "{points} b. · {toNext} do úrovne {nextLevel}\n{rows}",
   'pack.map.tripStatsTitle': "Tvoje štatistiky výletov — svet, domov a prejdené",
   'pack.map.openTriplist': "Otvoriť tvoj triplist",

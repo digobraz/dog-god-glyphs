@@ -605,6 +605,7 @@ export function GeometryPicker({
     // issue #49 — čo tu nakreslíš, tak to bude vyzerať na mape (fialový „svetelný meč"), preto
     // rovnaké tokeny ako PackMap. CSS s dosvitom si musí ADD flow zabezpečiť sám (vlastná routa).
     ensureTrailLineCss();
+    ensureAnchorTagCss();
     const saberK = trailSaberScale(map.getZoom());
 
     // duchovia existujúcich trás (§5.3) — tenké polopriehľadné čiary, klik ponúkne log
@@ -647,6 +648,7 @@ export function GeometryPicker({
           interactive: false,
         }));
       });
+      directionArrows(map, line).forEach(add);
     }
     // KOTVY, nie body stopy — človek musí vidieť, čo undo zmaže.
     // FIALOVÉ, NIE ZLATÉ (Matej 2026-08-22: „tá gulička bude fialová ako svetelný meč a bude
@@ -675,16 +677,26 @@ export function GeometryPicker({
         const last = value.path[value.path.length - 1];
         const backToStart = value.returnMode === 'mirror'
           || (value.path.length > 2 && Math.abs(first[0] - last[0]) < 1e-6 && Math.abs(first[1] - last[1]) < 1e-6);
-        add(L.marker(first, {
+        const tag = (at: LatLngTuple, label: string, extra = '') => add(L.marker(at, {
           icon: L.divIcon({
             className: '',
-            html: `<span class="trp-anchor-tag">${t(backToStart ? 'pack.addTrip.geo.labelStartEnd' : 'pack.addTrip.geo.labelStart')}</span>`,
+            html: `<span class="trp-anchor-tag${extra}">${label}</span>`,
             iconSize: [0, 0],
             iconAnchor: [0, 0],
           }),
           interactive: false,
           keyboard: false,
+          zIndexOffset: 400,
         }));
+        tag(first, t(backToStart ? 'pack.addTrip.geo.labelStartEnd' : 'pack.addTrip.geo.labelStart'));
+        // KONIEC SA POMENUJE TIEŽ (Matej 2026-08-23: „zobrazí sa mapa s pilsami štart koniec
+        // a cieľ"). Pomenovaný bol len štart, takže druhý koniec trasy ostával holou guličkou
+        // — na oddialenej mape po dokreslení sa z dvoch rovnakých bodiek nedá prečítať smer.
+        // Pri okruhu sa NEKRESLÍ: štart aj koniec sú tá istá súradnica a niesla by ich jedna
+        // pilulka „ŠTART · KONIEC", nie dve na sebe.
+        if (!backToStart && value.path.length > 1) {
+          tag(last, t('pack.addTrip.geo.labelEnd'));
+        }
       }
     }
     // CIEĽ VÝLETU 🎯 — emoji v bielom krúžku s modrým lemom, presne ako udalosti (CLAUDE.md,
@@ -698,6 +710,19 @@ export function GeometryPicker({
         interactive: false,
         keyboard: false,
         zIndexOffset: 500,
+      }));
+      // Terč povie „tu je cieľ" len tomu, kto pozná sadu emoji z mapy. Menovka to povie
+      // rovnako ako pri koncoch trasy, aby boli všetky tri významné body čitateľné naraz.
+      add(L.marker(value.path[value.targetIdx], {
+        icon: L.divIcon({
+          className: '',
+          html: `<span class="trp-anchor-tag trp-anchor-tag--target">${t('pack.addTrip.geo.labelTarget')}</span>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: 501,
       }));
     }
     if (value.kind === 'point' && value.center) {
@@ -1180,6 +1205,100 @@ const miniBtn: React.CSSProperties = {
  * ⚠️ Toto je JS template literal — spätný apostrof v komentári ho ukončí a stránka spadne
  * na bielu. TypeScript to nechytí, `npm run build` (check:css) áno.
  */
+
+/**
+ * MENOVKY KONCOV TRASY — visia nad kotvou, ťuky prepúšťajú do mapy (inak by z nich bola
+ * diera, do ktorej sa nedá klikať práve tam, kde človek kreslí).
+ *
+ * ⚠️ VLASTNÝ INJEKTOR, NIE `DRAW_BAR_CSS` (Matej 2026-08-23: „pil štart cieľ zmizli a biele
+ * písmo štart zaniká na mape"). Štýl lišty žije v `<style>` vnútri portálu, ktorý sa
+ * odmountuje vždy, keď lišta zhasne — a tá zhasína pri každom umiestňovaní značky
+ * (`active: drawingStep || (notesInBar && !notePlacing)`) aj na PC v kroku 2. Pilulka
+ * pritom ostáva v mape ďalej, takže z nej v tej chvíli bol HOLÝ `<span>`: bez pozadia,
+ * bez rámu, len text splývajúci s mapou. Vyzeralo to, že pilulka zmizla — v skutočnosti
+ * jej odišiel štýl. Menovka je vrstva MAPY, tak jej štýl visí na kreslení vrstiev
+ * (rovnaký vzor ako `ensureTrailLineCss`), nie na paneli.
+ */
+// ── ŠÍPKY SMERU V JADRE MEČA ────────────────────────────────────────────────────────────
+// Matej 2026-08-23: „pri písaní trasy by bolo ok každých 100m mať v strede svetelnáho meča
+// malinkú šípku ktorá by naznačovala smer".
+//
+// Nakreslená čiara nepovie, ktorým smerom sa išlo — a pri trase tam-a-späť alebo pri okruhu
+// je to jediná informácia, ktorá chýba. Šípka sedí NA bielom jadre meča, preto je tmavá
+// (`TRAIL_LINE.edge`): svetlá by na ňom zanikla.
+const ARROW_STEP_M = 100;
+/** Najmenší odstup šípok na obrazovke. Pri 100 m a z13 by boli od seba 21 px a zliali by sa
+ *  do bodkovanej čiary — krok sa preto pri oddialení predlžuje, aby vzdialenosť v PIXELOCH
+ *  ostala čitateľná. Sto metrov je zadanie pre priblíženú mapu, nie pre každý zoom. */
+const ARROW_MIN_PX = 58;
+/** Strop na trasu. Cesta hrdinov SNP má 770 km ⇒ pri 100 m by to bolo 7 700 markerov. */
+const ARROW_MAX = 150;
+
+function directionArrows(map: LeafletMap, line: LatLngTuple[]): L.Layer[] {
+  if (line.length < 2) return [];
+  // Koľko metrov je jeden pixel v aktuálnom zobrazení. Meria sa NA MAPE, nie zo vzorca —
+  // hodnota závisí od zemepisnej šírky a `map.distance` ju už pozná.
+  const c = map.getCenter();
+  const p = map.latLngToContainerPoint(c);
+  const mPerPx = map.distance(c, map.containerPointToLatLng([p.x + 100, p.y])) / 100;
+  const step = Math.max(ARROW_STEP_M, ARROW_MIN_PX * mPerPx);
+
+  const out: L.Layer[] = [];
+  let carry = step / 2; // prvá šípka do polovice prvého úseku, nie na kotvu
+  for (let i = 1; i < line.length && out.length < ARROW_MAX; i++) {
+    const a = line[i - 1];
+    const b = line[i];
+    const segM = hav(a, b);
+    if (segM <= 0) continue;
+    // Uhol sa počíta z PIXELOV, nie zo zemepisných súradníc — v Mercatorovej projekcii sa
+    // stupne šírky a dĺžky nekrátia rovnako, takže z lat/lon by šípka pri okrajoch mapy
+    // ukazovala vedľa čiary, na ktorej leží.
+    const pa = map.latLngToLayerPoint(a);
+    const pb = map.latLngToLayerPoint(b);
+    const deg = Math.atan2(pb.y - pa.y, pb.x - pa.x) * 180 / Math.PI;
+    let d = carry;
+    while (d <= segM && out.length < ARROW_MAX) {
+      const t = d / segM;
+      // Lineárne medzi dvoma susednými bodmi stopy. `interp()` z addTripGeo vzorkuje CELÚ
+      // cestu a vracia pole — tu treba jeden bod a k nemu uhol, takže vlastný výpočet.
+      // Na úseku dlhom desiatky metrov je rovná interpolácia presná dosť.
+      const at: LatLngTuple = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      out.push(L.marker(at, {
+        icon: L.divIcon({
+          className: '',
+          html: `<span class="trp-dir-arrow" style="transform:translate(-50%,-50%) rotate(${deg.toFixed(1)}deg)"></span>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+        interactive: false,
+        keyboard: false,
+      }));
+      d += step;
+    }
+    carry = d - segM;
+  }
+  return out;
+}
+
+const ANCHOR_TAG_CSS = `
+.trp-anchor-tag{position:absolute;left:0;top:0;transform:translate(-50%,-26px);pointer-events:none;white-space:nowrap;padding:3px 9px;border-radius:999px;background:rgba(18,13,7,0.94);border:1px solid ${TRAIL_LINE.light};box-shadow:0 2px 10px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#F3E9FF;}
+/* Menovka cieľa výletu sedí NAD krúžkom s terčom, nie na kotve — preto vyššie odsadenie
+   (krúžok má 28 px, viď circleMark.ts) a zlatý rám, aby sa nečítala ako koniec trasy. */
+.trp-anchor-tag--target{transform:translate(-50%,-40px);border-color:${GOLD};color:#FFF3D6;}
+/* Šípka smeru — trojuholník z okrajov, aby nepotreboval vlastný SVG súbor ani obrázok.
+   position:absolute + posun o polovicu: divIcon má nulovú veľkosť, takže sa polohuje sám.
+   (Bez spätných apostrofov — toto je JS template literal a ukončili by ho.) */
+.trp-dir-arrow{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none;border-left:6px solid ${TRAIL_LINE.edge};border-top:3.5px solid transparent;border-bottom:3.5px solid transparent;transform-origin:50% 50%;}
+`;
+
+function ensureAnchorTagCss() {
+  if (typeof document === 'undefined' || document.getElementById('trp-anchor-tag-css')) return;
+  const el = document.createElement('style');
+  el.id = 'trp-anchor-tag-css';
+  el.textContent = ANCHOR_TAG_CSS;
+  document.head.appendChild(el);
+}
+
 const DRAW_BAR_CSS = `
 .trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
 /* ČÍTANIE HORE — km · prevýšenie · body. Nie je to ovládač, tak nechytá ťuky do mapy.
@@ -1210,9 +1329,6 @@ const DRAW_BAR_CSS = `
 .trp-dback:hover{color:${GOLD};}
 .trp-zoombar{height:5px;border-radius:999px;background:rgba(245,240,228,0.10);overflow:hidden;}
 .trp-zoombar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#7A2FBF,${TRAIL_LINE.light});transition:width .25s ease;}
-/* Menovka štartu — visí nad kotvou, ťuky prepúšťa do mapy (inak by z nej bola diera,
-   do ktorej sa nedá klikať práve tam, kde človek kreslí). */
-.trp-anchor-tag{position:absolute;left:0;top:0;transform:translate(-50%,-26px);pointer-events:none;white-space:nowrap;padding:3px 9px;border-radius:999px;background:rgba(18,13,7,0.94);border:1px solid ${TRAIL_LINE.light};box-shadow:0 2px 10px rgba(0,0,0,0.5);font-family:${FONT_UI};font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#F3E9FF;}
 /* Pilulka leží NAD panelom priamo v mape, takže si drží vlastné bočné odsadenie. */
 .trp-dhint{margin:0 16px;}
 

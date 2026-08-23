@@ -31,7 +31,9 @@ import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate } from '
 import { PawRating } from './PawRating';
 import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
-import type { NoteGroup, NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_KINDS, type NoteGroup, type NoteKind } from '@/components/pack/mapnotes/mapNotesData';
+import { GROUP_TINT } from '@/components/pack/mapnotes/NotePalette';
+import { KindGrid } from '@/components/pack/mapnotes/KindGrid';
 import {
   missingFields,
   type AddTripDraft, type TripGeometry, type ApprovalStatus,
@@ -93,7 +95,9 @@ export type AddTripLogProps = {
    * stlačenia. Väzba na výlet sa NEUKLADÁ — odvodzuje sa zo súradnice (mapNotesGeo.ts),
    * takže to neprežíva ani nerozbíja premenovanie slugu.
    */
-  onPlaceNote?: (group: NoteGroup) => void;
+  /** `kind` = druh vybraný ešte pred ťuknutím do mapy (mriežka v kroku 2); bez neho sa
+   *  použije prvý druh skupiny, teda pôvodné správanie. */
+  onPlaceNote?: (group: NoteGroup, kind?: NoteKind) => void;
   /**
    * Značky zapichnuté počas TOHTO pridávania. Krok 4 ich len ZHRNIE, needituje —
    * nebezpečenstvo má odteraz jediné miesto, a je ním mapa.
@@ -175,22 +179,84 @@ function emptyGeometryFor(activity: string): TripGeometry {
 
 // Fotky — base64, lokálna kópia optimizePhoto/handleAddPhotos (PackMap.tsx ~1621-1663).
 // Vlna 2 preklopí na Cloudinary upload (§9 zadania „Fotky ... ako dnes, base64").
-const MAX_PHOTOS = 10;
-function optimizePhoto(file: File, maxDim = 1280, quality = 0.72): Promise<string | null> {
+// 15, nie 10 (Matej 2026-08-23 vybral z galérie 14 a štyri ticho odpadli). Strop drží
+// `PHOTO_BUDGET_CHARS` nižšie: 15 × ~100 kB base64 ≈ 1,5 MB, teda pod tretinou kvóty
+// localStorage aj s rezervou na zvyšné dáta mapy.
+const MAX_PHOTOS = 15;
+/**
+ * ROZPOČET NA JEDNU FOTKU (znaky data URL, nie bajty súboru).
+ *
+ * Matej 2026-08-23: „na záver ked som pridal foto vypísalo že nemožno uložiť ulozisko je plne…
+ * dal som 14 fotiek… oprav to ono to musi niečo zvladnuť + ihned po nahrani sa to musí
+ * skonsolidovať a optimalizovať velkostne aj formatovo = 80% uspora cca možno aj viac".
+ *
+ * Prečo strop a nie pevná kvalita: doteraz sa kódovalo JPEG-om s fixným `quality = 0.72`, čo
+ * z 12 Mpx fotky z telefónu spraví 200–400 kB a v base64 (+33 %) až pol megabajtu. Desať kusov
+ * teda vedelo naplniť `localStorage` (~5 MB) samo, a `writeLocalTrails` vrátil `false` =
+ * CELÝ VÝLET sa neuložil. Fixná kvalita nevie, koľko miesta ostalo — strop áno.
+ *
+ * 100 000 znakov ≈ 73 kB obrázka. Desať fotiek ≈ 1 MB, teda pätina kvóty aj s rezervou na
+ * zvyšné dáta mapy.
+ */
+const PHOTO_BUDGET_CHARS = 100_000;
+
+/** Postupné ústupky, kým sa fotka nezmestí do rozpočtu. Najprv kvalita, až potom rozmer —
+ *  rozmazať detail je menšia strata než prísť o šírku záberu. */
+const PHOTO_STEPS: Array<{ maxDim: number; quality: number }> = [
+  { maxDim: 1280, quality: 0.72 },
+  { maxDim: 1280, quality: 0.58 },
+  { maxDim: 1080, quality: 0.5 },
+  { maxDim: 900, quality: 0.45 },
+  { maxDim: 720, quality: 0.4 },
+];
+
+/**
+ * WEBP, KEĎ HO PREHLIADAČ VIE (Safari od 14, teda aj iPhone, na ktorom sa testuje).
+ *
+ * `toDataURL` s neznámym typom NEHODÍ chybu — ticho vráti PNG, čo je pri fotke to najhoršie
+ * z oboch svetov (veľké aj bez straty). Preto sa výsledok kontroluje podľa prefixu a pri
+ * nezhode sa kóduje JPEG-om. Rozdiel je ~30 % pri rovnakej kvalite, teda polovica úspory.
+ */
+function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string | null {
+  try {
+    const webp = canvas.toDataURL('image/webp', quality);
+    if (webp.startsWith('data:image/webp')) return webp;
+    return canvas.toDataURL('image/jpeg', quality);
+  } catch {
+    return null;
+  }
+}
+
+function drawToCanvas(img: HTMLImageElement, maxDim: number): HTMLCanvasElement | null {
+  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+  const w = Math.max(1, Math.round(img.width * scale));
+  const h = Math.max(1, Math.round(img.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas;
+}
+
+function optimizePhoto(file: File): Promise<string | null> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) { resolve(null); return; }
-      ctx.drawImage(img, 0, 0, w, h);
-      try { resolve(canvas.toDataURL('image/jpeg', quality)); } catch { resolve(null); }
+      let last: string | null = null;
+      for (const step of PHOTO_STEPS) {
+        const canvas = drawToCanvas(img, step.maxDim);
+        if (!canvas) break;
+        const out = encodeCanvas(canvas, step.quality);
+        if (!out) break;
+        last = out;
+        if (out.length <= PHOTO_BUDGET_CHARS) break;
+      }
+      // Posledný pokus sa vracia aj keď je nad rozpočtom — fotka z panorámy sa pod strop
+      // dostať nemusí a zahodiť ju ticho by bolo horšie než uložiť o niečo väčšiu.
+      resolve(last);
     };
     img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
     img.src = url;
@@ -647,23 +713,43 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // presúvať otázky do doku by len znamenalo, že vedľa seba svietia dve škatule a jedna
   // z nich je prázdna.
   const notesInBar = notesStep && !besidePanel;
+  // MOŽNOSTI SÚ VIDNO HNEĎ (Matej 2026-08-23: „človek nevie čo može označiť, nevidí možnosti…
+  // musia byť ihned viditelne nie schované že najprv vyber bod a potom tam daj niečo čo ani
+  // nevieš čo je"). Otázka „bolo tam nebezpečenstvo?" mala jediné tlačidlo OZNAČ NA MAPE a
+  // deväť druhov hrozby sa vynorilo až v paneli PO umiestnení bodu.
+  // Platí len pre skupiny, kde je naozaj z čoho vyberať — parkovisko a tip majú jeden druh,
+  // takže mriežka s jednou dlaždicou by bola ozdoba a nie voľba.
+  const askGroup = NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].group;
+  const askKinds = GROUP_KINDS[askGroup];
   const notesBody = (
     <>
       {noteAsk < NOTE_ASKS.length ? (
         <>
           <p>{t(NOTE_ASKS[noteAsk].qKey)}</p>
+          {askKinds.length > 1 && (
+            <KindGrid
+              kinds={askKinds}
+              tint={GROUP_TINT[askGroup]}
+              onPick={(k) => onPlaceNote?.(askGroup, k)}
+            />
+          )}
           <div className="atl-noteask-btns">
             <button type="button" className="atl-toggle-btn" onClick={() => setNoteAsk((i) => i + 1)}>
               {t('pack.addTrip.step.skip')}
             </button>
-            <button
-              type="button"
-              className="atl-toggle-btn on"
-              onClick={() => onPlaceNote?.(NOTE_ASKS[noteAsk].group)}
-              disabled={!onPlaceNote}
-            >
-              {t(NOTE_ASKS[noteAsk].ctaKey)}
-            </button>
+            {/* Pri jednodruhovej skupine ostáva pôvodné CTA. Pri viacdruhovej ho nahradila
+                mriežka vyššie — druhé tlačidlo „označ na mape" by sa pýtalo to isté ešte raz,
+                len bez odpovede na otázku ČO. */}
+            {askKinds.length === 1 && (
+              <button
+                type="button"
+                className="atl-toggle-btn on"
+                onClick={() => onPlaceNote?.(askGroup)}
+                disabled={!onPlaceNote}
+              >
+                {t(NOTE_ASKS[noteAsk].ctaKey)}
+              </button>
+            )}
           </div>
         </>
       ) : (
@@ -1357,6 +1443,17 @@ const LOG_CSS = `
 .atl-input:focus{border-color:${GOLD};}
 .atl-input::placeholder{color:${T.onDarkDim};}
 .atl-input:disabled{opacity:.45;}
+/* ── DÁTUM NA iOS (Matej 2026-08-23: „veľké políčko preteká cez okraj, centrovaný na stred") ──
+   input[type=date] si na WebKite/iOS drží VLASTNÚ vnútornú šírku podľa formátu dátumu a
+   width:100% ju neprebije — pole vyrastie nad svoj stĺpec a pretečie cez okraj panela.
+   K tomu má vnútorná hodnota (::-webkit-date-and-time-value) na iOS default text-align:center,
+   takže dátum stojí v strede, kým všetky ostatné polia píšu zľava.
+   ⚠️ Bez spätných apostrofov zámerne — toto je JS template literal a ukončili by ho.
+   Tri pravidlá, tri príčiny — vypnúť natívny vzhľad NESTAČÍ, šírku aj zarovnanie treba povedať
+   zvlášť. Platí na oba dátumy (od/do) aj na akýkoľvek ďalší type=date v sprievodcovi. */
+.atl-input[type="date"]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;text-align:left;}
+.atl-input[type="date"]::-webkit-date-and-time-value{text-align:left;margin:0;}
+.atl-input[type="date"]::-webkit-calendar-picker-indicator{margin-left:auto;flex-shrink:0;}
 .atl-textarea{resize:vertical;font-family:${FONT_UI};}
 .atl-row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
 .atl-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
