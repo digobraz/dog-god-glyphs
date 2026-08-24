@@ -731,8 +731,37 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // takže mriežka s jednou dlaždicou by bola ozdoba a nie voľba.
   const askGroup = NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].group;
   const askKinds = GROUP_KINDS[askGroup];
+  // ── KOĽKO ICH JE A KDE STOJÍM (Matej 2026-08-24) ──────────────────────────────────────
+  // „v 2. kroku je to chaoticky, musí tam byť jasný postup P-N-T (parkovisko, nebezpečenstvo,
+  //  tip), aby človek mal prehľad čo pridáva, lebo som sa tam zamotal."
+  //
+  // Otázky sa striedali jedna po druhej a nikde nebolo vidno, že sú TRI ani ktorá je na rade.
+  // Krok tak vyzeral ako nekonečná rada otázok — človek nevedel, či odpovedaním niečo končí,
+  // alebo len otvára ďalšiu.
+  // ⚠️ Nie sú to bodky 1–5 zhora. Tie hovoria, v ktorom kroku sprievodcu človek stojí; toto
+  // hovorí, kde stojí VNÚTRI kroku 2. Preto iný tvar (písmeno + názov, nie číslo v krúžku) —
+  // dva rovnaké prúžky nad sebou by si konkurovali.
+  const noteTrack = (
+    <div className="atl-ntrack" role="list" aria-label={t('pack.addTrip.step.name.notes')}>
+      {NOTE_ASKS.map((a, i) => (
+        <button
+          key={a.group}
+          type="button"
+          role="listitem"
+          className={`atl-ntrack-i${i === noteAsk ? ' on' : ''}${i < noteAsk ? ' done' : ''}`}
+          onClick={() => setNoteAsk(i)}
+          aria-current={i === noteAsk ? 'step' : undefined}
+        >
+          <b>{i < noteAsk ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1)}</b>
+          <span>{t(`pack.mapNotes.group.${a.group}`)}</span>
+        </button>
+      ))}
+    </div>
+  );
+
   const notesBody = (
     <>
+      {noteTrack}
       {noteAsk < NOTE_ASKS.length ? (
         <>
           <p>{t(NOTE_ASKS[noteAsk].qKey)}</p>
@@ -1403,6 +1432,18 @@ const STEP_CSS = `
    panela: fialový rám z rodiny trasy, plný tmavý podklad, aby bola čitateľná aj cez fotku. */
 .atl-stephint{padding:10px 13px;border-radius:10px;background:rgba(18,13,7,0.85);border:1px solid rgba(179,107,255,0.45);box-shadow:0 0 0 3px rgba(122,47,191,0.14);font-family:${FONT_UI};font-size:12.5px;font-weight:500;line-height:1.45;color:#F3E9FF;}
 .atl-donepill{margin-left:8px;padding:2px 9px;border-radius:999px;background:rgba(122,47,191,0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+/* ── STOPA P · N · T ───────────────────────────────────────────────────────────
+   Tri diely na celú šírku (rad prvkov = celá šírka kontajnera, rovnaké diely).
+   Prejdené sa dajú kliknúť späť — človek, ktorý parkovisko preskočil a spomenul si,
+   nemá inú cestu, ako celý krok zopakovať odznova. */
+.atl-ntrack{display:flex;gap:6px;}
+.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 6px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
+.atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:9.5px;font-weight:700;line-height:1;}
+.atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;}
+.atl-ntrack-i.done{color:${T.onDark};}
+.atl-ntrack-i.done b{background:rgba(201,154,63,0.20);border:1px solid rgba(201,154,63,0.55);color:${GOLD};}
+.atl-ntrack-i.on{background:rgba(201,154,63,0.10);border-color:rgba(201,154,63,0.40);color:${T.onDark};}
+.atl-ntrack-i.on b{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;}
 .atl-noteask{padding:12px 14px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
 .atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:13px;line-height:1.45;color:${T.onDark};}
 .atl-noteask-btns{display:flex;gap:8px;}

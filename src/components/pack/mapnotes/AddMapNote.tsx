@@ -55,8 +55,13 @@ const BODY_MAX = 600;
 // ušetrilo ~62 px, ale pri kliešti s potvrdenou chorobou a zapnutým okruhom je
 // obsah aj tak ~350 px — strop 340 by scrolloval ďalej, len o vlások.
 // ⚠️ Vyššie sa ísť NEDÁ bez toho, aby panel na nižších telefónoch zožral mapu:
-// pri 667 px vysokom okne je 96 (spodná lišta) + 420 + 40 rezerva = 556 z 667.
-// Preto je v CSS `min(64vh, 420px)` — na malom displeji rozhoduje vh, nie 420.
+// ⚠️ TOTO ČÍSLO JE ZMLUVA S `panBy` (PackMap.tsx: `safeY = size.y - NOTE_PANEL_H - 40`).
+// Strop v CSS musí byť TO ISTÉ číslo, inak mapa odsunie značku o menej, než panel zaberie,
+// a bod, ktorý človek práve položil, mu zmizne za panelom — teda presne to, čo má odsun riešiť.
+// Od 24. 8. 2026 je panel DOK pri spodnej hrane, nie karta 96 px nad ňou, takže z obrazovky
+// berie o tých 96 px MENEJ a zmluva konečne sedí presne (predtým sa v najvyššom stave o ~56 px
+// míňala). Preto je v CSS `min(78vh, 420px)` — na nízkom displeji rozhoduje vh, a vtedy je
+// odsun konzervatívny, teda bezpečný smer.
 //
 // NAJVYŠŠÍ STAV panela (kliešte + potvrdená choroba + zapnutý okruh + text) meria
 // **366 px** — odmerané v prehliadači, nie odhadnuté. Pri `64vh` sa teda zmestí bez
@@ -334,6 +339,12 @@ export function AddMapNotePanel({
         <button type="button" className="mna-close" onClick={onCancel} aria-label={t('pack.mapNotes.add.close')}>×</button>
       </div>
 
+      {/* ── SKROLUJE SA LEN STRED (Matej 2026-08-24) ────────────────────────
+          Hlavička hovorí ČO píšem, CTA hovorí ako to uložiť — ani jedno nesmie odísť
+          z dohľadu. Skrol tu ostáva len ako poistka pre najvyšší stav panela (kliešť
+          s potvrdenou chorobou a zapnutým okruhom na nízkom displeji). */}
+      <div className="mna-scroll">
+
       {/* ROZPAD UPOZORNENIA NA KONKRÉTNE HROZBY (Matej 2026-08-21).
           Trojuholník je spoločný tvar celej skupiny, emoji vnútri nesie podtyp —
           takže voľba tu OKAMŽITE mení značku na mape (`kind` je riadený zvonku). */}
@@ -462,6 +473,8 @@ export function AddMapNotePanel({
       {pinnedName && <p className="mna-pinned">{t('pack.mapNotes.add.pinned').replace('{trip}', pinnedName)}</p>}
       {error && <p className="mna-error">{error}</p>}
 
+      </div>
+
       <div className="mna-actions">
         {/* UKAZOVATEĽ „SPLNENÉ" (Matej 2026-08-22: „vizuálne ukazovatele že je to
             vybraté a splnené"). Do 22. 8. tu stála len nápoveda o ťahaní značky
@@ -564,8 +577,24 @@ export const ADD_NOTE_CSS = `
    SVETLOU mapou, takže panel zbelie a text z neho zmizne (overené screenshotom —
    celý formulár bol nečitateľný nad zeleným podkladom). To isté platí pre lištu
    aj nápovedu nižšie; tmavé sklo funguje len nad tmavou stránkou. */
-.mna-sheet{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1200;width:min(94vw,440px);max-height:min(64vh,${NOTE_PANEL_H}px);overflow-y:auto;padding:12px 14px 14px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 12px 34px rgba(0,0,0,0.55);}
-@media (max-width:720px){.mna-sheet{bottom:82px;}}
+/* ── SPODNÝ DOK, NIE PLÁVAJÚCA KARTA (Matej 2026-08-24) ────────────────────
+   „klik na napr. kliešte → klik na mapu → a v tomto popupe nie je vidno CTA
+    (zapísať na mapu), lebo nie je ako spodný panel, ako by mal byť."
+
+   Karta visela 96 px nad spodnou hranou, mala strop 64vh a vnútri skrol — takže
+   na telefóne CTA leží POD zlomom a človek ho nájde, len ak tuší, že tam je.
+   Dok je pripútaný k hrane, má tvar lišty kreslenia (rovnaký povrch v tom istom
+   kroku) a hlavne: CTA sa už nikam neposúva.
+   ⚠️ Skrol NEZANIKOL, len sa presunul dovnútra — strop musí ostať, lebo kliešť
+   s potvrdenou chorobou a zapnutým okruhom je vyšší než nízky displej. Zmenilo sa,
+   ČO sa skroluje: teraz stred, kým hlavička aj CTA stoja. */
+.mna-sheet{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;flex-direction:column;max-height:min(78vh,${NOTE_PANEL_H}px);padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:rgba(5,5,5,0.96);backdrop-filter:blur(12px);border-top:1px solid rgba(201,154,63,0.5);box-shadow:0 -14px 40px rgba(0,0,0,0.6);}
+/* Hlavička a CTA stoja, skroluje sa len stred v .mna-scroll.
+   ⚠️ NIE mna-body — to je trieda TEXTAREY o pár riadkov nižšie a obal s tým istým
+   názvom by jej pretlačil výšku aj skrol. */
+.mna-sheet > .mna-head{flex:0 0 auto;}
+.mna-sheet > .mna-actions{flex:0 0 auto;margin-top:10px;}
+.mna-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding-top:8px;}
 
 .mna-head{display:flex;align-items:center;justify-content:space-between;gap:12px;}
 .mna-title{font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;}
@@ -687,9 +716,16 @@ export const ADD_NOTE_CSS = `
 /* ── RÝCHLA PALETA PRI BODE ────────────────────────────────────────────────── */
 /* Šírka je ORÁMOVANÁ, nie max-content: tri pilulky s celými názvami merajú ~470 px
    a na 390 px displeji by z panela vytiekli von. S obmedzením sa rad zalomí. */
-.mnq-wrap{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1250;width:min(94vw,470px);}
-@media (max-width:720px){.mnq-wrap{bottom:82px;}}
-.mnq-panel{padding:10px 12px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 10px 28px rgba(0,0,0,0.55);}
+/* ── PALETA TIEŽ DO SPODNÉHO DOKU (Matej 2026-08-24) ───────────────────────
+   „pri výbere ODKAZU mi otvorí popup, treba tam scrollovať, je tam moc obsahu —
+    uprav to tak, že to natiahni, resp. daj to do spodného panela ako je to pri
+    2. kroku."
+   Ide o tvar, nie o obsah: mriežka s NÁZVAMI ostáva. Rad holých kruhov padol
+   23. 8. práve preto, že voľba schovaná za akciu je voľba, ktorú človek nevidí —
+   a rozbaľovací zoznam by ju schoval znova. Šetrí sa teda na TVARE panela
+   (pripútaný k hrane, plná šírka), nie na tom, čo je v ňom čitateľné. */
+.mnq-wrap{position:fixed;left:0;right:0;bottom:0;z-index:1250;}
+.mnq-panel{max-height:70vh;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:rgba(5,5,5,0.96);backdrop-filter:blur(12px);border-top:1px solid rgba(201,154,63,0.5);box-shadow:0 -14px 40px rgba(0,0,0,0.6);}
 .mnq-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:30px;margin-bottom:8px;}
 /* Panel je RASTÚCI ZOZNAM („tu časom vieme pridať dalšie položky") — nadpis preto
    patrí nad celý panel, nie k prvej dlaždici. */
