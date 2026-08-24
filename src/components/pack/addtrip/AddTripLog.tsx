@@ -1412,7 +1412,13 @@ const LOG_CSS = `
    obrazovky vystačí aj na sedem položiek. Nad 560 px ostávajú dva stĺpce. */
 /* Zoznam je JEDINÉ, čo sa smie posúvať — nadpis a návrat ostávajú na mieste aj na
    najnižších displejoch, kde sa sedem položiek naozaj nezmestí. */
-.atl-tiles{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr;align-content:start;gap:8px;padding:2px 20px calc(14px + env(safe-area-inset-bottom,0px));}
+/* Centrovanie namiesto zarovnania na vrch (Matej 2026-08-24: „obsah centrovať — dnes sedí pri vrchnom
+   okraji a pod ním ostáva prázdno").
+   ⚠️ MUSÍ TO BYŤ "safe center", NIE holé "center". Holé center v skrolovacom kontajneri
+   pretlačí prvú dlaždicu NAD začiatok skrolu, keď sa obsah nezmestí — a tam sa už nedá
+   doskrolovať. Na nízkom telefóne na šírku by tak zmizla turistika, teda prvá voľba.
+   Slovo safe prepne späť na start presne v tej chvíli, keď by k tomu došlo. */
+.atl-tiles{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;grid-template-columns:1fr;align-content:safe center;gap:8px;padding:2px 20px calc(14px + env(safe-area-inset-bottom,0px));}
 /* Emoji vľavo cez oba riadky, vpravo názov NAD vetou. Bol to flex rad, v ktorom sa veta
    zalamovala pod emoji (flex:1 1 100%) — s vetou na KAŽDEJ dlaždici by tak sedem položiek
    začínalo siedmimi rôznymi odsadeniami. */

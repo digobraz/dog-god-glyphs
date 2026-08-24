@@ -36,8 +36,43 @@ export const POINTS = {
   rate: 3,        // hodnotenie (len kto trasu prešiel, bez stropu)
   collection: 50, // kompletná zbierka (9 NP / 11 pohorí / 14 CHKO)
   peak: 0,        // vrchol — kryje ho už prevýšenie
-  mapPin: 0,      // bod na mape (voda, tieň, veterina) — zatiaľ von
+  event: 10,      // pridanie podujatia
+  note: 3,        // ODKAZ (značka na mape) — parkovisko, upozornenie, tip
 } as const;
+
+// ── ODKAZY: JEDNA CENA, DVA STROPY (Matej 2026-08-24) ───────────────────────
+// „odkazy počas aj mimo výletu tie isté body = 3 body každý… pri pridávaní max 9 bodov,
+//  a keď človeka len niečo napadne tiež 3 body/odkaz"
+//
+// Cena je jedna, aby sa nedalo špekulovať, KDE značku zapísať. Stropy sú dva, lebo bránia
+// dvom rôznym veciam:
+//  · V RÁMCI VÝLETU (9 = tri značky) — proti napichaniu dvadsiatich parkovísk pozdĺž trasy
+//    do jedného zápisu. Kto ich naozaj vidí dvadsať, nech ich zapíše; body dostane za tri.
+//  · SAMOSTATNE (5 značiek/deň) — proti napichaniu naprázdno z gauča.
+//
+// ⚠️ ANI JEDEN STROP NEBLOKUJE ZÁPIS. Matej 2026-08-24: „ak bude niekto nadšený a pôjde
+// pridať za deň 10 výletov, tak mu to nesmieme zakazovať." Nad strop sa značka ULOŽÍ
+// a ZOBRAZÍ, len nedostane body — a človek dostane vetu, prečo.
+//
+// ⚠️ TOTO NIE JE denný strop v `add_map_note` (SQL). Ten je 20, tvrdý a zápis ODMIETNE —
+// je to poistka proti skriptu, nie bodové pravidlo. Keby sa raz zliali do jedného čísla,
+// prestane platiť práve to, na čom Matej trval: pridávať sa smie ďalej.
+/** Strop bodov za odkazy zapísané v rámci JEDNÉHO výletu (= tri značky). */
+export const NOTE_POINTS_TRIP_CAP = 9;
+/** Koľko SAMOSTATNÝCH odkazov za deň ešte dostane body. Nad to: uloží sa, neplatí sa. */
+export const NOTE_DAILY_SCORED = 5;
+
+/**
+ * Koľko bodov dostane samostatný odkaz, ktorý človek práve píše.
+ *
+ * `scoredToday` = koľko jeho vlastných odkazov dnes UŽ body dostalo. Číslo sa odvodzuje
+ * z `fetchMapNotes()` (server vracia `isMine` + `createdAt`), nie z localStorage — inak by
+ * strop padol pri prvom vyčistení prehliadača a na druhom telefóne by neplatil vôbec.
+ */
+export function noteAward(scoredToday: number): { points: number; capped: boolean } {
+  const capped = scoredToday >= NOTE_DAILY_SCORED;
+  return { points: capped ? 0 : POINTS.note, capped };
+}
 
 /** 1 bod za km. */
 export const POINTS_PER_KM = 1;
@@ -135,6 +170,11 @@ export interface TripPointsInput {
   newCountry?: boolean;
   /** Dokončená zbierka (9 NP / 11 pohorí / 14 CHKO) — 50. */
   completedCollection?: boolean;
+  /**
+   * Koľko ODKAZOV (značiek na mape) človek zapísal počas tohto výletu.
+   * Platí sa 3 za kus, ale najviac `NOTE_POINTS_TRIP_CAP` spolu — viď blok pri konštantách.
+   */
+  notes?: number;
 }
 
 // `labelKey` = i18n kľúč, NIE hotový text (#65) — tento modul je čistá funkcia bez prístupu
@@ -175,6 +215,14 @@ export function calculateTripPoints(input: TripPointsInput): TripPointsResult {
   if (input.newCountry) add('pack.points.newCountry', POINTS.country);
   if (input.completedCollection) add('pack.points.collection', POINTS.collection);
   if (input.rated) add('pack.points.rate', POINTS.rate);
+
+  // Odkazy sa platia za KUS, ale strop drží riadok, nie súčet — inak by rozpad ukazoval
+  // „5 odkazov +15" a celkové číslo by bolo iné. Riadok nesie počet, ktorý sa REÁLNE zaplatil.
+  const noteCount = Math.max(0, Math.floor(input.notes ?? 0));
+  if (noteCount > 0) {
+    const paidFor = Math.min(noteCount, Math.floor(NOTE_POINTS_TRIP_CAP / POINTS.note));
+    add('pack.points.notesN', paidFor * POINTS.note, { n: paidFor });
+  }
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }

@@ -41,13 +41,17 @@ type Kind = 'trip' | 'event' | 'note' | 'service';
 const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: string; disabled?: boolean; points?: number }> = [
   // ⚠️ BODY PATRIA SEM, NIE NA TLAČIDLO PRIDAŤ (Matej 2026-08-23: „má pridanie konkrétnu taxu?").
   // Tlačidlo otvára tri rôzne veci a každá je inak drahá — číslo na ňom by teda klamalo pri
-  // dvoch z troch. Hodnota je `POINTS.add` z `lib/tripPoints.ts`; je to ZÁKLAD, reálny výlet
-  // býva vyšší (km, prevýšenie, nové pohorie). Udalosť ani odkaz zatiaľ body nemajú.
+  // dvoch z troch. Hodnoty sú z `lib/tripPoints.ts`; pri výlete je to ZÁKLAD, reálny výlet
+  // býva vyšší (km, prevýšenie, nové pohorie).
+  // 24. 8. 2026 dostali číslo aj zvyšné dve dlaždice (Matej: „pridanie odkazu je vždy bodované,
+  // buď samostatne alebo v rámci pridania výletu"). Dlaždica ukazuje cenu ZA KUS — stropy
+  // (9 v rámci výletu, 5 samostatných za deň) sa na ňu nepíšu, lebo v okamihu voľby ešte
+  // nikto nevie, koľko značiek človek zapíše. Povie sa to až vtedy, keď na strop naozaj narazí.
   // 🥾 → 🐾 (matrica 24. 8. 2026): topánka je AKTIVITA „Hiking" o obrazovku ďalej. Dlaždica
   // VÝLET zastrešuje aj korčule, paddleboard a hrad — labka je jediné, čo platí na všetky.
   { kind: 'trip', emoji: '🐾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add },
-  { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text' },
-  { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text' },
+  { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text', points: POINTS.event },
+  { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text', points: POINTS.note },
 ];
 
 // Druhá úroveň pre TRIP — texty prevzaté 1:1 z pôvodných BLOCKS (needituje sa, len sa

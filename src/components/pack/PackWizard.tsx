@@ -147,16 +147,26 @@ const GHOST_BTN: React.CSSProperties = {
 
 /** Tvár = `assets/ainubis-badge.png`, kopíruje sa TENTO súbor (nekresliť variantu).
  *  Prstenec a aura sú z `.ainubis-intro__badge`, aby sfinx vyzeral rovnako ako
- *  v chate — je to tá istá postava, nie druhá ikonka. */
+ *  v chate — je to tá istá postava, nie druhá ikonka.
+ *
+ *  ⚠️ VEĽKÁ tvár (privítanie) má prstenec PLNOU cyanou, nie priesvitnou
+ *  (Matej 24. 8.: „chcelo by to zvýrazniť okraj toho kruhu, nemôže byť priesvitný
+ *  musí byť krajší"). Priesvitný 1px rám sa na tmavom pozadí strácal a kruh
+ *  vyzeral nedokončený — tá istá chyba ako `T.hairline` použitý ako rám
+ *  (pozri lock o bledých blokoch v CLAUDE.md). Malá tvár v bubline ostáva
+ *  jemná zámerne — tam je ikonka, nie portrét. */
 function face(size: number): React.CSSProperties {
+  const big = size > 40;
   return {
     borderRadius: '50%',
     objectFit: 'contain',
     flex: 'none',
     background: 'radial-gradient(circle at 35% 28%, #12233a 0%, #01050A 74%)',
-    border: `1px solid rgba(91,224,240,${size > 40 ? 0.35 : 0.45})`,
-    boxShadow: size > 40
-      ? '0 0 0 6px rgba(59,158,255,.06), 0 0 34px rgba(59,158,255,.38)'
+    border: big ? `3px solid ${CY}` : '1px solid rgba(91,224,240,.45)',
+    boxShadow: big
+      // Prstenec → tmavá medzera → slabší vonkajší prsteň → aura. Medzera je to,
+      // čo dáva hrane ostrosť; bez nej sa cyan zlije so žiarou do rozmazaného kruhu.
+      ? `0 0 0 5px #01050A, 0 0 0 6.5px rgba(91,224,240,.30), 0 0 34px rgba(91,224,240,.45)`
       : '0 0 14px rgba(59,158,255,.35)',
   };
 }

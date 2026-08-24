@@ -1944,7 +1944,7 @@ export const en = {
   'pack.addTrip.geo.routeDone': "Route",
   // Jeden formulár výletu (rez C) — o type rozhoduje dátum, nie otázka navyše.
   'pack.addTrip.log.titleActivity': "Pick an activity",
-  'pack.addTrip.log.titleActivitySub': "Logging a trip you already did. A future date turns it into a plan.",
+  'pack.addTrip.log.titleActivitySub': "Log a trip you have already walked \u2014 and give the others something to follow. Or plan one and invite them along.",
   // JEDNA VETA POD KAŽDOU DLAŽDICOU (Matej 2026-08-23: „k výberom aktivity musí byť
   // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
   // kresliť (trasa vs. jeden bod vs. vodná plocha), a to sa človek dovtedy dozvedel až
@@ -1955,7 +1955,7 @@ export const en = {
   'pack.addTrip.log.activityNote.overnight': "Mark the spot on the map.",
   'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
   'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
-  'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, an area, a view.",
+  'pack.addTrip.log.activityNote.explore': "Mark somewhere worth seeing \u2014 a landmark, a park, a good spot\u2026",
   'pack.addTrip.log.title': "Log a trip",
   'pack.addTrip.log.titlePlan': "Plan a trip",
   'pack.addTrip.log.submit': "Log trip",
@@ -2568,6 +2568,11 @@ export const en = {
   'pack.points.newCountry': "new country",
   'pack.points.collection': "complete collection",
   'pack.points.rate': "rating",
+  'pack.points.notesN': "{n} map marks",
+  // Nad denným stropom. Matej 2026-08-24: „ďakujeme za aktivitu, aby sme predišli
+  // nepríjemnostiam skontrolujeme relevantnosť informácií… skrátka nejaké info o tom,
+  // že to sledujeme." Nie je to výčitka — značka sa uložila a je na mape.
+  'pack.points.noteCapped': "Thanks — your mark is on the map. Today's marks are already counted, so this one earns no points. We check new marks for relevance; once yours are through, points start counting again.",
 
   // ── FAREBNÉ PÁSMA LEVELU (2026-08-24) ──────────────────────────────────────
   // Deväť materiálov, tri levely na pásmo. Zdroj farieb a poradia = `@/lib/packTiers`.
