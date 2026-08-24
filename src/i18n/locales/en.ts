@@ -1797,8 +1797,8 @@ export const en = {
   // Nahrádza `pack.profile.wizard.*` vyššie. Staré kľúče sa NEMAŽÚ jedným ťahom:
   // žijú v 18 jazykoch a `Dict = typeof en`, takže ich odobratie odtiaľto zhodí
   // `tsc` na každom preklade, ktorý ich má. Upratanie = vlastný prechod.
-  'pack.wizard.welcome.title': "Hello, human",
-  'pack.wizard.welcome.body': "I'm Ainubis, keeper of the digital temple. Let me show you around.",
+  'pack.wizard.welcome.title': "Hello, human!",
+  'pack.wizard.welcome.body': "I'm AInubis, keeper of the digital temple and your devoted helper. Let me show you around so you find your way faster.",
   'pack.wizard.welcome.cta': "Lead the way",
   'pack.wizard.skipForNow': "Not now",
   'pack.wizard.skip': "Skip",

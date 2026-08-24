@@ -638,8 +638,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
   // ── SPRIEVODCA ────────────────────────────────────────────────────────────────────────
   // Poradie krokov je Matejovo (23. 8.), doslova. Kľúč nesie nadpis aj vetu „čo tu mám robiť";
-  // tá veta stojí v KAŽDOM kroku a vždy na tom istom mieste — v kroku 1 nad mapou (fialová
-  // pilulka lišty kreslenia), inde v hlavičke panela. Dva systémy pokynov sme nechceli.
+  // ⚠️ Veta „čo tu mám robiť" už NEEXISTUJE v krokoch 3–5 (Matej 2026-08-24) — kľúče
+  // `pack.addTrip.step.hint.basics/about/rest` ostávajú v slovníku ako doklad, ale nikto
+  // ich nečíta. `STEP_KEYS` slúži naďalej názvom krokov v bodkách 1–5.
   const STEP_KEYS = ['route', 'notes', 'basics', 'about', 'rest'] as const;
   const stepKey = STEP_KEYS[step - 1] ?? 'route';
 
@@ -874,8 +875,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     steps: stepDots,
   };
 
-  const stepHint = t(`pack.addTrip.step.hint.${stepKey}`);
-
   return (
     <div className="atl-log">
       <style>{LOG_CSS}</style>
@@ -982,11 +981,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           {!drawingStep && !notesInBar && stepDots}
 
           <div className="atl-log-body">
-            {/* JEDNA VETA, VŽDY NA TOM ISTOM MIESTE (Matej 23. 8.). V kroku 1 ju nesie fialová
-                pilulka nad mapou (tam, kde sa gesto robí) — tu by stála druhýkrát. */}
-            {!drawingStep && !notesInBar && stepHint && (
-              <div className="atl-stephint">{stepHint}</div>
-            )}
+            {/* ── VETA ŽIJE UŽ LEN TAM, KDE JE MAPA (Matej 2026-08-24) ────────────────────
+                „inak tie fialové vysvetlivky (aká bola cesta…) vymažme to z 3-4-5 kroku."
+
+                ⚠️ MENÍ TO LOCK Z 23. 8. („veta stojí v KAŽDOM kroku a vždy na tom istom
+                mieste… jeden systém pokynov, nie dva"). Je to zmena locku, nie oprava:
+                kroky 1–2 sú mapa, kde človek potrebuje počuť, aké GESTO má spraviť; kroky
+                3–5 sú formulár, kde má každé pole vlastný popis. Veta tam hovorila to isté
+                druhýkrát a brala práve to miesto, kvôli ktorému sa muselo skrolovať.
+                Pilulku v krokoch 1–2 kreslí GeometryPicker (`drawBar.hint`), nie tento blok —
+                preto tu neostáva nič, len sa prestala renderovať. */}
 
             {/* ══ KROK 1 — TRASA ══════════════════════════════════════════════════════
                 ⚠️ V ďalších krokoch sa tento blok SCHOVÁ, NEODMOUNTUJE. GeometryPicker kreslí
@@ -1160,8 +1164,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 {/* Ruch, náročnosť, povrch, hodnotenie a fotky sú SPRÁVY Z CESTY — na výlete,
                     ktorý sa ešte nekonal, sa nedajú vyplniť pravdivo. Preto sa na pláne
                     nezobrazujú (a do draftu sa nedostanú, viď `isPlan` pri jeho stavbe). */}
-                {isHikeLike && !isPlan && (
-                  <div className="atl-row2">
+                {/* ── TRI POLIA V JEDNOM RADE (Matej 2026-08-24) ──────────────────────
+                    „skúsme dať do jedného riadku, aby sme ušetrili miesto, lebo je potrebný
+                     scroll." Náročnosť · Povrch · Ruch patria k sebe aj významom — všetky tri
+                    hovoria, AKÁ tá cesta bola, na rozdiel od dátumu a mena.
+                    ⚠️ Ruch stál doteraz vo VLASTNOM riadku pod nimi, a to aj vtedy, keď výlet
+                    nebol turistický (`isHikeLike`) — preto ho tu nesie ten istý blok, ale
+                    dvojica nad ním sa naďalej vie nezobraziť. Rad má potom dva diely namiesto
+                    troch a nezostane po nich diera vpravo. */}
+                {!isPlan && (
+                  <div className={isHikeLike ? 'atl-row3--tight' : 'atl-field'}>
+                    {isHikeLike && (
+                    <>
                     <div className="atl-field">
                       <label>{t('pack.addTrip.step.difficulty')}</label>
                       <select className="atl-input" value={diff} onChange={(e) => setDiff(e.target.value as typeof diff)}>
@@ -1178,15 +1192,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                         {TERRAIN_OPTIONS.map((sf) => <option key={sf.id} value={sf.id}>{sf.emoji} {t(`pack.map.surfaceLabel.${sf.id}`)}</option>)}
                       </select>
                     </div>
-                  </div>
-                )}
-                {!isPlan && (
-                  <div className="atl-field">
-                    <label>{t('pack.addTrip.log.crowd')}</label>
-                    <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
-                      <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
-                      {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {t(`pack.map.crowdKind.${c}`)}</option>)}
-                    </select>
+                    </>
+                    )}
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.log.crowd')}</label>
+                      <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
+                        <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
+                        {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {t(`pack.map.crowdKind.${c}`)}</option>)}
+                      </select>
+                    </div>
                   </div>
                 )}
 
@@ -1428,9 +1442,6 @@ const STEP_CSS = `
 .atl-step.done b{background:rgba(201,154,63,0.20);border-color:rgba(201,154,63,0.55);color:${GOLD};}
 .atl-step.on{background:rgba(201,154,63,0.10);border-color:rgba(201,154,63,0.40);color:${T.onDark};}
 .atl-step.on b{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.30);color:#1c160c;}
-/* Veta „čo tu mám robiť" — tá istá myšlienka ako fialová pilulka nad mapou, len na povrchu
-   panela: fialový rám z rodiny trasy, plný tmavý podklad, aby bola čitateľná aj cez fotku. */
-.atl-stephint{padding:10px 13px;border-radius:10px;background:rgba(18,13,7,0.85);border:1px solid rgba(179,107,255,0.45);box-shadow:0 0 0 3px rgba(122,47,191,0.14);font-family:${FONT_UI};font-size:12.5px;font-weight:500;line-height:1.45;color:#F3E9FF;}
 .atl-donepill{margin-left:8px;padding:2px 9px;border-radius:999px;background:rgba(122,47,191,0.22);border:1px solid rgba(179,107,255,0.55);color:#E9D8FF;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
 /* ── STOPA P · N · T ───────────────────────────────────────────────────────────
    Tri diely na celú šírku (rad prvkov = celá šírka kontajnera, rovnaké diely).
@@ -1575,12 +1586,45 @@ const LOG_CSS = `
    ⚠️ Bez spätných apostrofov zámerne — toto je JS template literal a ukončili by ho.
    Tri pravidlá, tri príčiny — vypnúť natívny vzhľad NESTAČÍ, šírku aj zarovnanie treba povedať
    zvlášť. Platí na oba dátumy (od/do) aj na akýkoľvek ďalší type=date v sprievodcovi. */
-.atl-input[type="date"]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;max-width:100%;text-align:left;}
+.atl-input[type="date"]{-webkit-appearance:none;appearance:none;position:relative;display:block;width:100%;min-width:0;max-width:100%;padding-right:46px;text-align:left;}
 .atl-input[type="date"]::-webkit-date-and-time-value{text-align:left;margin:0;}
-.atl-input[type="date"]::-webkit-calendar-picker-indicator{margin-left:auto;flex-shrink:0;}
+/* ── IKONKA KALENDÁRA NA PLNÚ VÝŠKU POĽA (Matej 2026-08-24) ──────────────────────────
+   „dátum na mobile má úzky text area — dajme tam ikonku kalendára v normálnej výške
+    textarey."
+   Pole bolo rovnako vysoké ako ostatné; úzko pôsobila IKONKA — Chrome ju kreslí ~14 px
+   a nalepenú hneď za dátum, takže vyzerala ako drobný odznak uprostred poľa a nie ako
+   niečo, čoho sa dá dotknúť. Teraz je to pás pri pravom okraji cez CELÚ výšku poľa,
+   teda cieľ pre palec.
+   ⚠️ POZICOVANÉ ABSOLÚTNE, NIE FLEXOM. Flex na hostiteľovi ani na webkit-datetime-edit
+   Chrome pri appearance:none NEPOUŽIJE — obe cesty boli vyskúšané a ikonka ostala visieť
+   za textom (pravidlá boli v dokumente, len bez účinku). Absolútne pozicovanie na vnútorný
+   layout dátumového vstupu nespolieha vôbec.
+   ⚠️ NATÍVNY GLYF JE SKRYTÝ, NEPREFARBENÝ. Chrome ho kreslí tmavý a prilepený k HORNEJ
+   hrane, keď sa element roztiahne na plnú výšku; filter:invert ani background-position naň
+   spoľahlivo neplatia (obe vyskúšané naživo — ikonka ostala tmavá a hore). Element preto
+   ostáva ako priehľadná KLIKACIA PLOCHA cez celú výšku a kalendár kreslí sám vstup ako
+   pozadie — tam sa dá vycentrovať aj zafarbiť na zlatú.
+   ⏳ Kresba je geometrická, nie z hand-drawn setu: kit kalendár NEMÁ. Je to ovládanie
+   vstupu (rovnaká trieda vecí ako šípka rozbaľovacieho zoznamu), nie ikonka obsahu, takže
+   lucide sem neťaháme — ak má byť kreslená, treba si ju vypýtať od Mateja. */
+.atl-input[type="date"]{background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23C99A3F' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2.5'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center;background-size:20px 20px;}
+.atl-input[type="date"]:disabled{background-image:none;}
+.atl-input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:0;top:0;width:46px;height:100%;margin:0;padding:0;opacity:0;cursor:pointer;}
 .atl-textarea{resize:vertical;font-family:${FONT_UI};}
 .atl-row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
 .atl-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
+/* ── RAD, KTORÝ SA NA MOBILE NEROZPADNE (Matej 2026-08-24) ─────────────────────────
+   „skúsme dať do jedného riadku, aby sme ušetrili miesto, lebo je potrebný scroll."
+   ⚠️ Je to VÝNIMKA z pravidla z 23. 8. („políčka na mobile zväčši tak aby boli cez celý
+   displej"), nie jeho zrušenie — preto vlastná trieda a nie zásah do .atl-row3. Obe
+   požiadavky sú platné a protirečia si len pri týchto troch poliach: sú to rozbaľovacie
+   zoznamy s krátkou hodnotou, kde plná šírka nič nepridá, ale tri riadky navyše stoja
+   presne ten skrol, ktorý Matej reklamuje. Meno, dátum ani popis sa nedotkli.
+   Popisky sa na úzkom displeji skracujú ORezaním s tromi bodkami, nie zmenšením písma —
+   pod 9,5 px by prestali byť čitateľné. */
+.atl-row3--tight{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.atl-row3--tight .atl-field label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.atl-row3--tight .atl-input{padding-left:8px;padding-right:6px;}
 .atl-toggle-btn{width:100%;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.03em;padding:8px 10px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;white-space:nowrap;}
 .atl-toggle-btn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
 .atl-daterange-hint{margin:-4px 0 0;font-family:${FONT_UI};font-weight:400;font-size:11px;line-height:1.4;color:${T.onDarkDim};}
@@ -1631,6 +1675,7 @@ const LOG_CSS = `
 .atl-dupwarn-btns .atl-toggle-btn{padding:7px 10px;font-size:10.5px;}
 @media (max-width:640px){
   .atl-row2,.atl-row3{grid-template-columns:minmax(0,1fr);}
+  /* .atl-row3--tight sem ZÁMERNE nepatrí — viď jeho komentár vyššie. */
   /* Dvojtriedne zámerne: .atl-field label je 0-1-1 a jednotriedny prepis by prehral,
      media query špecificitu nepridáva (to je presne to, na čo upozorňuje check:css). */
   .atl-field .atl-label-spacer{display:none;}

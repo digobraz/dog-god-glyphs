@@ -1739,8 +1739,8 @@ export const sk: Partial<Dict> = {
 
   // ── PREHLIADKA — AInubis (2026-08-24). Texty sú NÁVRH z nákresu
   //    (dashboard → PRODUCT → Wizard) — Matej ich prepisuje priamo tam.
-  'pack.wizard.welcome.title': "Ahoj človeče",
-  'pack.wizard.welcome.body': "Som Ainubis, strážca digitálneho chrámu. Dovoľ mi urobiť ti krátku prehliadku.",
+  'pack.wizard.welcome.title': "Ahoj človeče!",
+  'pack.wizard.welcome.body': "Som AInubis, strážca digitálneho chrámu a tvoj oddaný pomocník. Dovoľ mi urobiť ti krátku prehliadku, aby si sa tu lepšie zorientoval.",
   'pack.wizard.welcome.cta': "Poď, veď ma",
   'pack.wizard.skipForNow': "Teraz nie",
   'pack.wizard.skip': "Preskočiť",
