@@ -1739,9 +1739,8 @@ export const sk: Partial<Dict> = {
 
   // ── PREHLIADKA — AInubis (2026-08-24). Texty sú NÁVRH z nákresu
   //    (dashboard → PRODUCT → Wizard) — Matej ich prepisuje priamo tam.
-  'pack.wizard.welcome.role': "Strážca chrámu · tvoj sprievodca",
-  'pack.wizard.welcome.title': "Vitaj v digitálnom chráme",
-  'pack.wizard.welcome.body': "Som AInubis a strážim toto miesto. Venuj mi pár minút a prevediem ťa — potom ti dám pokoj.",
+  'pack.wizard.welcome.title': "Ahoj človeče",
+  'pack.wizard.welcome.body': "Som Ainubis, strážca digitálneho chrámu. Dovoľ mi urobiť ti krátku prehliadku.",
   'pack.wizard.welcome.cta': "Poď, veď ma",
   'pack.wizard.skipForNow': "Teraz nie",
   'pack.wizard.skip': "Preskočiť",
@@ -1870,6 +1869,11 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.geo.targetGuide': "Došiel si? Označ cieľ — potom mi povieš, ako si sa vracal.",
   'pack.addTrip.geo.returnGuide': "Ako výlet skončil? Vyber dole.",
   'pack.addTrip.geo.backToActivity': "Späť na výber aktivity",
+  'pack.addTrip.geo.abortAria': "Zahodiť výlet",
+  'pack.addTrip.geo.abortTitle': "Zahodiť výlet?",
+  'pack.addTrip.geo.abortBody': "Všetko, čo si zatiaľ nakreslil a vyplnil, bude preč — aj automaticky uložená kópia. Nebude sa k čomu vrátiť.",
+  'pack.addTrip.geo.abortStay': "Pokračovať",
+  'pack.addTrip.geo.abortQuit': "Zahodiť",
   'pack.addTrip.geo.labelStart': "Štart",
   'pack.addTrip.geo.labelEnd': "Koniec",
   /* ⚠️ Bolo „Štart · Cieľ" — prepísané 23. 8. 2026. Odkedy má výlet vlastný CIEĽ (terč

@@ -420,18 +420,15 @@ export function PackWizard({ primaryDogId, primaryDogName }: PackWizardProps) {
               width={112} height={112}
               style={{ ...face(112), animation: 'wiz-face-in .5s ease' }}
             />
+            {/* Pod tvárou ostáva LEN meno — podnadpis „Strážca chrámu · tvoj sprievodca"
+                zanikol 24. 8. (Matej: „Ponecháme iba meno bez podnadvisov"). Kto AInubis je,
+                povie prvá veta pod čiarou; opakovať to nad ňou bola dvojitá predstava.
+                Kľúč `pack.wizard.welcome.role` tým prestal mať čitateľa. */}
             <div style={{ margin: '18px 0 0' }}>
               <Wordmark size={20} />
             </div>
             <div style={{
-              fontFamily: "'JetBrains Mono',ui-monospace,monospace",
-              fontSize: 9.5, letterSpacing: '.22em', textTransform: 'uppercase',
-              color: 'rgba(91,224,240,.7)', margin: '9px 0 0',
-            }}>
-              {t('pack.wizard.welcome.role')}
-            </div>
-            <div style={{
-              width: 'min(320px, 100%)', height: 1, margin: '18px 0 20px',
+              width: 'min(320px, 100%)', height: 1, margin: '20px 0 20px',
               background: 'linear-gradient(90deg, rgba(91,224,240,0) 0%, rgba(91,224,240,.40) 50%, rgba(91,224,240,0) 100%)',
             }} />
             <h2 style={{

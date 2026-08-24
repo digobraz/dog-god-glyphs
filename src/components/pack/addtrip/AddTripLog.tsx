@@ -16,6 +16,7 @@
 //   1 TRASA · 2 ODKAZY NA TRASU · 3 ZÁKLAD · 4 O TRASE · 5 OSTATNÉ
 // Zadanie: `plany/zadanie-mapa-kroky-2026-08-23.md`
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { MutableRefObject } from 'react';
 import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
@@ -781,6 +782,50 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     </div>
   );
 
+  // KDE SOM — päť bodiek a názov kroku. Bez toho je krokový sprievodca len formulár, ktorý sa
+  // nečakane skrátil. Späť sa dá kliknúť na už prejdený krok.
+  // Renderuje sa buď v paneli (kroky 3–5), alebo v hornom páse nad mapou (kroky 1–2) — vždy
+  // ten istý uzol, len na inom mieste. `--onmap` zúži popisky, aby sa päť krokov zmestilo
+  // vedľa krížika aj na 360 px.
+  const stepDots = (
+    <div
+      className={`atl-steps${drawingStep || notesInBar ? ' atl-steps--onmap' : ''}`}
+      role="tablist"
+      aria-label={t('pack.addTrip.step.progress')}
+    >
+      {STEP_KEYS.map((k, i) => (
+        <button
+          key={k}
+          type="button"
+          role="tab"
+          aria-selected={step === i + 1}
+          className={`atl-step${step === i + 1 ? ' on' : ''}${step > i + 1 ? ' done' : ''}`}
+          onClick={() => { if (i + 1 < step) setStep(i + 1); }}
+          disabled={i + 1 > step}
+        >
+          <b>{i + 1}</b>
+          <span>{t(`pack.addTrip.step.name.${k}`)}</span>
+        </button>
+      ))}
+    </div>
+  );
+
+  // ── ÚNIK Z KRESLENIA (Matej 2026-08-24) ────────────────────────────────────────────────
+  // Krížik hore ZAHADZUJE výlet a odchádza na mapu; text dole vracia O KROK. Dve rôzne veci,
+  // preto sú obe.
+  // ⚠️ `clearAddDraft()` je tu POVINNÉ, nie upratovanie. Rozrobený výlet leží v autosave
+  // (`readAddDraft`), takže bez neho by sa pri ďalšom vstupe ponúkol na obnovu — a otázka
+  // „naozaj zahodiť?" by bola klamstvo.
+  // ⚠️ NIE `window.confirm` — natívny dialóg zablokuje celú stránku a vyzerá ako systémová
+  // chyba, nie ako súčasť appky. Ten istý dôvod je rozpísaný pri `LeaveConfirm`
+  // v `PackNatureQuiz.tsx`; toto je jeho dvojička na tmavom povrchu nad mapou.
+  const [abortAsk, setAbortAsk] = useState(false);
+  const abortDraw = () => {
+    clearAddDraft();
+    setAbortAsk(false);
+    onClose();
+  };
+
   const drawBar = {
     active: drawingStep || (notesInBar && !notePlacing),
     onDone: () => setStep(2),
@@ -796,6 +841,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     // V kroku 2 pokyn hovorí o značkách, nie o kreslení — inak by fialová pilulka radila
     // dlho podržať prst práve vtedy, keď to nič nespraví.
     hint: notesInBar ? t('pack.addTrip.step.hint.notes') : undefined,
+    onAbort: () => setAbortAsk(true),
+    steps: stepDots,
   };
 
   const stepHint = t(`pack.addTrip.step.hint.${stepKey}`);
@@ -803,6 +850,25 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   return (
     <div className="atl-log">
       <style>{LOG_CSS}</style>
+      {/* PORTÁL NA <body> — panel, v ktorom sprievodca žije, je počas kreslenia skrytý
+          (mapa je celá obrazovka), takže dialóg vnútri neho by sa nikdy neukázal. */}
+      {abortAsk && createPortal(
+        <div className="atl-abort-scrim" role="dialog" aria-modal="true" onClick={() => setAbortAsk(false)}>
+          <div className="atl-abort" onClick={(e) => e.stopPropagation()}>
+            <h2>{t('pack.addTrip.geo.abortTitle')}</h2>
+            <p>{t('pack.addTrip.geo.abortBody')}</p>
+            <div className="atl-abort-btns">
+              <button type="button" className="atl-toggle-btn on" onClick={() => setAbortAsk(false)}>
+                {t('pack.addTrip.geo.abortStay')}
+              </button>
+              <button type="button" className="atl-abort-quit" onClick={abortDraw}>
+                {t('pack.addTrip.geo.abortQuit')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
       <style>{ROUTE_HERO_CSS}</style>
       <style>{RESTORE_CSS}</style>
       <style>{STEP_CSS}</style>
@@ -879,24 +945,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
       {!!activity && !restored && (
         <>
-          {/* KDE SOM — päť bodiek a názov kroku. Bez toho je krokový sprievodca len formulár,
-              ktorý sa nečakane skrátil. Späť sa dá kliknúť na už prejdený krok. */}
-          <div className="atl-steps" role="tablist" aria-label={t('pack.addTrip.step.progress')}>
-            {STEP_KEYS.map((k, i) => (
-              <button
-                key={k}
-                type="button"
-                role="tab"
-                aria-selected={step === i + 1}
-                className={`atl-step${step === i + 1 ? ' on' : ''}${step > i + 1 ? ' done' : ''}`}
-                onClick={() => { if (i + 1 < step) setStep(i + 1); }}
-                disabled={i + 1 > step}
-              >
-                <b>{i + 1}</b>
-                <span>{t(`pack.addTrip.step.name.${k}`)}</span>
-              </button>
-            ))}
-          </div>
+          {/* ⚠️ V KROKOCH 1–2 STOJA BODKY V DOKU, NIE TU (Matej 2026-08-24: „pri 1 a 2 kroku
+              dajme predsa len vedľa seba 1-5, aby sme sa mohli vracať a pohybovať po celom
+              flow pri zmenách"). Panel je vtedy skrytý — mapa je celá obrazovka — takže tá
+              istá značka sa posiela do `drawBar.steps` a vykreslí sa v hornom páse nad mapou.
+              Je to JEDEN uzol (`stepDots`), nie dve kópie: dve by sa rozišli pri prvej zmene. */}
+          {!drawingStep && !notesInBar && stepDots}
 
           <div className="atl-log-body">
             {/* JEDNA VETA, VŽDY NA TOM ISTOM MIESTE (Matej 23. 8.). V kroku 1 ju nesie fialová
@@ -1317,6 +1371,27 @@ function PlacedNotes({ notes, t, emptyKey }: { notes?: NoteKind[]; t: (k: string
 /** CSS krokového sprievodcu. ⚠️ JS template literal — spätný apostrof v komentári zhodí build. */
 const STEP_CSS = `
 .atl-steps{display:flex;gap:6px;padding:2px 20px 10px;flex-shrink:0;}
+/* BODKY NAD MAPOU (kroky 1–2). Musia zniesť pestrý podklad, tak dostanú vlastný tmavý
+   podklad a rám — nad turistickou mapou by holé číslice zanikli rovnako ako kedysi
+   fialová pilulka. Popisky sa skryjú: päť názvov krokov sa vedľa krížika na 360 px
+   nezmestí a číslo v krúžku aj tak nesie celú informáciu. */
+.atl-steps--onmap{width:max-content;gap:5px;border-radius:999px;background:rgba(18,13,7,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,240,228,0.16);box-shadow:0 6px 20px rgba(0,0,0,0.55);padding:5px 7px;}
+/* ⚠️ flex:0 0 auto, NIE zdedené 1 1 0. V paneli sa päť krokov delí o celú šírku, tu by
+   sa tým rozťahovali cez pol obrazovky a medzi číslami by ostali prázdne polia — pilulka
+   má obopnúť bodky, nie mapu pod nimi. */
+.atl-steps--onmap .atl-step{flex:0 0 auto;padding:0;gap:0;border:0;background:none;}
+.atl-steps--onmap .atl-step span{display:none;}
+.atl-steps--onmap .atl-step.on b{box-shadow:0 0 0 3px rgba(230,158,26,0.22);}
+/* ÚNIK — otázka pred zahodením rozrobeného výletu. Tmavý povrch, lebo stojí nad mapou. */
+.atl-abort-scrim{position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px;}
+.atl-abort{width:100%;max-width:380px;padding:20px;border-radius:14px;background:rgba(18,13,7,0.97);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 50px rgba(0,0,0,0.6);}
+.atl-abort h2{margin:0;font-family:${FONT_TITLE};font-weight:700;text-transform:uppercase;font-size:15px;letter-spacing:.06em;color:${T.onDark};}
+.atl-abort p{margin:10px 0 0;font-family:${FONT_UI};font-size:12.5px;line-height:1.55;color:${T.onDarkDim};}
+.atl-abort-btns{display:flex;gap:8px;margin-top:16px;}
+.atl-abort-btns > *{flex:1 1 0;}
+/* Zahodenie je červené a je to jediná červená v celom toku — je to jediná nevratná akcia. */
+.atl-abort-quit{padding:11px 10px;border-radius:8px;background:rgba(160,42,42,0.18);border:1px solid rgba(214,77,77,0.65);color:#F0A0A0;font-family:${FONT_UI};font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
+.atl-abort-quit:hover{background:rgba(160,42,42,0.34);color:#fff;}
 .atl-step{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border-radius:9px;background:transparent;border:1px solid transparent;color:${T.onDarkDim};cursor:default;}
 .atl-step b{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:600;font-size:10.5px;line-height:1;}
 .atl-step span{font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center;line-height:1.2;}

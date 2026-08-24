@@ -109,6 +109,28 @@ export type GeometryPickerProps = {
     panel?: React.ReactNode;
     /** i18n kľúč pre návrat — mení sa s tým, kto lištu práve vlastní (viď `backLink`). */
     backLabel?: string;
+    /**
+     * ÚNIK Z KRESLENIA — červený krížik vpravo hore (Matej 2026-08-24: „mala by existovať
+     * šanca na únik… červený krížik").
+     *
+     * ⚠️ NIE JE TO DRUHÉ `onBack`. Návrat dole vracia O KROK a rozrobené necháva žiť; krížik
+     * ZAHADZUJE celý výlet a odchádza na mapu. Sú to dve rôzne veci a preto sú obe — jedna
+     * bez druhej by buď nemala cestu von (dnes), alebo by cestu späť o krok pretavila na
+     * zrušenie výletu bez toho, aby to niekto čakal.
+     * Volajúci je povinný sa OPÝTAŤ a zmazať autosave — inak sa rozrobené pri ďalšom vstupe
+     * ponúkne na obnovu a otázka „naozaj zahodiť?" bola klamstvo.
+     */
+    onAbort?: () => void;
+    /**
+     * BODKY 1–5 (Matej 2026-08-24: „pri 1 a 2 kroku dajme predsa len vedľa seba 1-5, aby sme
+     * sa mohli vracať a pohybovať po celom flow pri zmenách").
+     *
+     * ⚠️ Prichádzajú HOTOVÉ od volajúceho, picker o krokoch sprievodcu nevie. Musia ísť sem,
+     * a nie sa len odkryť v paneli: panel je v krokoch 1–2 skrytý (mapa je celá obrazovka),
+     * takže bodky v ňom by sa objavili presne vtedy, keď ich netreba, a chýbali by vtedy,
+     * keď áno.
+     */
+    steps?: React.ReactNode;
   };
 };
 
@@ -959,9 +981,23 @@ export function GeometryPicker({
         {/* HORE STOJÍ ČÍSLO, DOLE OVLÁDANIE (Matej 2026-08-23: „pri kreslení vidím hore km
             dĺžku a prevýšenie, potom bod späť, vymazať a označ cieľ"). Návrat sa presťahoval
             NADOL pod panel — hore bol mimo dosahu palca a bral mape výšku. */}
-        {stage === 2 && showReadout && (
+        {/* HORNÝ PÁS — vľavo bodky 1–5, v strede čítanie, vpravo únik. Pás sa vykreslí, len
+            čo má čo niesť; sám ťuky neberie (gradient nad mapou), berú ich jeho deti. */}
+        {(drawBar.steps || (stage === 2 && showReadout) || drawBar.onAbort) && (
           <div className="trp-dtop">
-            <div className="trp-dread">{readout}</div>
+            {drawBar.steps && <div className="trp-dtop-steps">{drawBar.steps}</div>}
+            {stage === 2 && showReadout && <div className="trp-dread">{readout}</div>}
+            {drawBar.onAbort && (
+              <button
+                type="button"
+                className="trp-dabort"
+                onClick={drawBar.onAbort}
+                aria-label={t('pack.addTrip.geo.abortAria')}
+                title={t('pack.addTrip.geo.abortAria')}
+              >
+                ×
+              </button>
+            )}
           </div>
         )}
 
@@ -977,8 +1013,20 @@ export function GeometryPicker({
             Matej 23. 8.: „pils daj nad panel do mapy"), pod ním PANEL a úplne dole NÁVRAT.
             Dok sám nemá výplň ani nechytá ťuky; má ich len to, čo v ňom stojí, takže mapa
             medzi pilulkou a panelom ostáva ovládateľná. */}
+        {/* ⚠️ LEN VETA KROKU 0 IDE HORE (Matej 2026-08-24: „tá správa o priblížení mapy daj ju
+            hore pod header"). Netýka sa to celého systému pokynov: ostatné vety ostávajú dole
+            pri ovládaní, lebo hovoria o geste, ktoré sa robí práve tam. V kroku 0 je gesto
+            „priblíž si mapu", teda celá plocha — a pilulka dole vtedy len tienila panel
+            s hľadaním miesta. */}
+        {stage === 0 && drawHint && (
+          <div className="trp-dhint trp-dhint--top">
+            <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
+            <span>{drawHint}</span>
+          </div>
+        )}
+
         <div className="trp-dock">
-        {drawHint && (
+        {stage !== 0 && drawHint && (
           <div className="trp-dhint">
             <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
             <span>{drawHint}</span>
@@ -1298,7 +1346,18 @@ function ensureAnchorTagCss() {
 }
 
 const DRAW_BAR_CSS = `
-.trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
+/* TRI DIELY: bodky vľavo · čítanie v strede · únik vpravo. Stredný diel je centrovaný voči
+   CELEJ šírke, nie voči zvyšku po bodkách — preto krajné diely nesú rovnakú základňu
+   (flex:1 1 0) a číslo km neposkakuje podľa toho, či práve svietia bodky. */
+.trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;align-items:flex-start;gap:10px;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
+.trp-dtop > *{pointer-events:auto;}
+.trp-dtop-steps{flex:1 1 0;min-width:0;}
+.trp-dtop .trp-dread{margin:0 auto;}
+/* ÚNIK — červený krížik. Jediný prvok na tejto obrazovke, ktorý je červený, a je to zámer:
+   je to jediná akcia, ktorá niečo NENÁVRATNE zahodí. Klikacia plocha 36 px (dotyk), viditeľný
+   je len znak — rovnaká úvaha ako pri krížiku v AddTripEntry. */
+.trp-dabort{flex:0 0 auto;margin-left:auto;width:36px;height:36px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:999px;background:rgba(18,13,7,0.94);border:1.5px solid rgba(214,77,77,0.75);color:#F0A0A0;font-family:${FONT_UI};font-size:19px;line-height:1;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,0.55);}
+.trp-dabort:hover{color:#fff;background:rgba(160,42,42,0.92);border-color:#D64D4D;}
 /* ČÍTANIE HORE — km · prevýšenie · body. Nie je to ovládač, tak nechytá ťuky do mapy.
    ⚠️ FIALOVÉ, NIE ŠEDÉ (Matej 2026-08-23: „pri móde kreslenia treba zvýrazniť horné info
    o KM, je to ako neviditeľné — daj to fialovým ako je teraz označ cieľ"). Je to jediné
@@ -1326,9 +1385,16 @@ const DRAW_BAR_CSS = `
 .trp-dback{align-self:center;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
 .trp-dback:hover{color:${GOLD};}
 .trp-zoombar{height:5px;border-radius:999px;background:rgba(245,240,228,0.10);overflow:hidden;}
-.trp-zoombar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#7A2FBF,${TRAIL_LINE.light});transition:width .25s ease;}
+/* ZLATÝ, NIE FIALOVÝ (Matej 2026-08-24). Fialová je na tejto obrazovke jazyk POKYNOV
+   („toto máš spraviť"), zlatá je jazyk POSTUPU a odmeny — a toto je jediný prúžok, ktorý
+   ukazuje, ako ďaleko je človek od cieľa. Gradient je ten istý ako na .btn-gold. */
+.trp-zoombar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#F5C73D,#E69E1A);transition:width .25s ease;}
 /* Pilulka leží NAD panelom priamo v mape, takže si drží vlastné bočné odsadenie. */
 .trp-dhint{margin:0 16px;}
+/* KROK 0 — tá istá pilulka, ale POD hlavičkou namiesto nad panelom (Matej 2026-08-24).
+   Je fixed, lebo dok, v ktorom pôvodne visela, je pripútaný k spodnej hrane. Odsadenie
+   zhora ju posadí pod horný pás s krížikom, nie pod neho. */
+.trp-dhint--top{position:fixed;left:16px;right:16px;top:calc(58px + env(safe-area-inset-top,0px));z-index:1201;margin:0;width:max-content;max-width:calc(100vw - 32px);margin-inline:auto;}
 
 .trp-dbar{box-sizing:border-box;min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:12px;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
 .trp-dbar-read{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:20px;}
@@ -1350,9 +1416,17 @@ const DRAW_BAR_CSS = `
 /* CIEĽ — PILULKA, nie tlačidlo v rade (Matej 23. 8.: „to tlačítko mark the destination by
    malo byť v pils ako pri začiatku"). Tvar aj rám sú zhodné s pokynovou pilulkou vyššie:
    obe hovoria o tom istom geste nad mapou, len jedna z nich sa dá aj stlačiť. */
-.trp-dbar-target{align-self:center;display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:min(92vw,460px);padding:10px 18px 10px 15px;border-radius:999px;background:rgba(122,47,191,0.22);border:1.5px solid ${TRAIL_LINE.light};color:#F3E9FF;font-family:${FONT_UI};font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
-.trp-dbar-target:hover{background:rgba(122,47,191,0.34);}
-.trp-dbar-target.is-urged{box-shadow:0 0 0 4px rgba(122,47,191,0.24),0 6px 20px rgba(0,0,0,0.45);background:rgba(122,47,191,0.34);}
+/* ── OZNAČ CIEĽ — BRANDOVÁ ZLATÁ (Matej 2026-08-24) ──────────────────────────────────
+   ⚠️ V TEJTO LIŠTE UŽ ZLATÁ JEDNO TLAČIDLO MÁ: HOTOVO. Zámena by bola drahá — jedno
+   ukladá výlet, druhé pridáva bod do trasy. Preto sa NEROZLIŠUJÚ farbou, ale TVAROM
+   a váhou, a rozdiel je čitateľný aj periférne:
+     · HOTOVO = plná šírka, plný gradient, Cinzel, radius 8 (lock .btn-gold)
+     · CIEĽ   = pilulka na šírku obsahu, priehľadná zlatá výplň so zlatým rámom, Space Grotesk
+   Cieľ je teda zlatý „obrys" toho istého jazyka — patrí do zlatej rodiny, ale nikdy
+   nevyzerá ako záverečné tlačidlo. */
+.trp-dbar-target{align-self:center;display:flex;align-items:center;justify-content:center;gap:8px;width:max-content;max-width:min(92vw,460px);padding:10px 18px 10px 15px;border-radius:999px;background:rgba(230,158,26,0.16);border:1.5px solid ${GOLD};color:#F5C73D;font-family:${FONT_UI};font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;}
+.trp-dbar-target:hover{background:rgba(230,158,26,0.28);color:#FFE9A8;}
+.trp-dbar-target.is-urged{box-shadow:0 0 0 4px rgba(230,158,26,0.22),0 6px 20px rgba(0,0,0,0.45);background:rgba(230,158,26,0.28);}
 .trp-dbar-emoji{font-family:${FONT_EMOJI};font-size:15px;line-height:1;}
 .trp-dbar-ret p{margin:0 0 7px;font-family:${FONT_UI};font-size:12px;font-weight:500;color:${T.onDarkDim};}
 .trp-dbar-link{align-self:center;background:none;border:0;padding:2px 4px;color:${GOLD};font-family:${FONT_UI};font-size:11.5px;font-weight:600;cursor:pointer;text-decoration:underline;}

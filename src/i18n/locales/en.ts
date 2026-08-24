@@ -1797,9 +1797,8 @@ export const en = {
   // Nahrádza `pack.profile.wizard.*` vyššie. Staré kľúče sa NEMAŽÚ jedným ťahom:
   // žijú v 18 jazykoch a `Dict = typeof en`, takže ich odobratie odtiaľto zhodí
   // `tsc` na každom preklade, ktorý ich má. Upratanie = vlastný prechod.
-  'pack.wizard.welcome.role': "Keeper of the temple · your guide",
-  'pack.wizard.welcome.title': "Welcome to the digital temple",
-  'pack.wizard.welcome.body': "I am AInubis and I keep this place. Give me a minute and I'll walk you through it — then I'll leave you be.",
+  'pack.wizard.welcome.title': "Hello, human",
+  'pack.wizard.welcome.body': "I'm Ainubis, keeper of the digital temple. Let me show you around.",
   'pack.wizard.welcome.cta': "Lead the way",
   'pack.wizard.skipForNow': "Not now",
   'pack.wizard.skip': "Skip",
@@ -1932,6 +1931,12 @@ export const en = {
   'pack.addTrip.geo.targetGuide': "Reached your spot? Mark the destination \u2014 then tell me how you got back.",
   'pack.addTrip.geo.returnGuide': "How did the trip end? Pick one below.",
   'pack.addTrip.geo.backToActivity': "Back to activity",
+  // ÚNIK — krížik vpravo hore. Iná vec než návrat dole: ten vracia o krok, tento zahadzuje.
+  'pack.addTrip.geo.abortAria': "Discard this trip",
+  'pack.addTrip.geo.abortTitle': "Discard this trip?",
+  'pack.addTrip.geo.abortBody': "Everything you have drawn and filled in so far will be gone \u2014 including the autosaved copy. There will be nothing to come back to.",
+  'pack.addTrip.geo.abortStay': "Keep going",
+  'pack.addTrip.geo.abortQuit': "Discard",
   'pack.addTrip.geo.labelStart': "Start",
   'pack.addTrip.geo.labelEnd': "Finish",
   'pack.addTrip.geo.labelStartEnd': "Start · Finish",
