@@ -43,7 +43,9 @@ const KINDS: Array<{ kind: Kind; emoji: string; titleKey: string; textKey: strin
   // Tlačidlo otvára tri rôzne veci a každá je inak drahá — číslo na ňom by teda klamalo pri
   // dvoch z troch. Hodnota je `POINTS.add` z `lib/tripPoints.ts`; je to ZÁKLAD, reálny výlet
   // býva vyšší (km, prevýšenie, nové pohorie). Udalosť ani odkaz zatiaľ body nemajú.
-  { kind: 'trip', emoji: '🥾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add },
+  // 🥾 → 🐾 (matrica 24. 8. 2026): topánka je AKTIVITA „Hiking" o obrazovku ďalej. Dlaždica
+  // VÝLET zastrešuje aj korčule, paddleboard a hrad — labka je jediné, čo platí na všetky.
+  { kind: 'trip', emoji: '🐾', titleKey: 'pack.addTrip.entry.kind.trip.title', textKey: 'pack.addTrip.entry.kind.trip.text', points: POINTS.add },
   { kind: 'event', emoji: '📣', titleKey: 'pack.addTrip.entry.kind.event.title', textKey: 'pack.addTrip.entry.kind.event.text' },
   { kind: 'note', emoji: '💬', titleKey: 'pack.addTrip.entry.kind.note.title', textKey: 'pack.addTrip.entry.kind.note.text' },
 ];

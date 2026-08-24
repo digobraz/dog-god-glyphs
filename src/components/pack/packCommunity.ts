@@ -29,7 +29,9 @@ export const CROWDS: Crowd[] = ['Empty', 'Calm', 'Busy'];
 // Matej 2026-07-23: Steep + No water preč — ostávajú len reálne „biologické" nebezpečenstvá.
 export type Hazard = 'Ticks' | 'Vipers' | 'Wildlife';
 export const HAZARDS: Hazard[] = ['Ticks', 'Vipers', 'Wildlife'];
-export const HAZARD_EMOJI: Record<Hazard, string> = { Ticks: '🪱', Vipers: '🐍', Wildlife: '🦌' };
+// 🪱 → 🩸 (matrica 24. 8. 2026). Dážďovka nebola kliešť ani omylom a s mapou si to pole
+// odporovalo — tam kliešte niesol 🕷️ (pavúk). Teraz obe plochy hovoria to isté: `MARK_EMOJI.ticks`.
+export const HAZARD_EMOJI: Record<Hazard, string> = { Ticks: '🩸', Vipers: '🐍', Wildlife: '🦌' };
 
 // Zakladatelia — koľko Dogyptianov (Matej + Hekthor) je v hlase VŽDY dvaja, pre trasy z
 // `founderWalkers()` nižšie. Matej 2026-08-03: „začíname so všetkým do nuly" — toto číslo
@@ -56,7 +58,10 @@ export const VOLUME_THRESHOLD = 3;
 // Crowd (EN labely v UI) ← `trail.crowd` (SK, dáta z nahadzovača). Rovnaké mapovanie ako
 // CROWD_LABELS v PackMap, len bez emoji prefixu (ten pridáva UI).
 const SEED_CROWD: Record<string, Crowd> = { 'Ľudoprázdne': 'Empty', 'Pokojné': 'Calm', 'Rušné': 'Busy' };
-export const CROWD_EMOJI: Record<Crowd, string> = { Empty: '🏔️', Calm: '🌿', Busy: '👣' };
+// Matrica 24. 8. 2026: 🏔️ → 🦋, 👣 → 🚨. Obe boli kolízie na JEDNEJ ploche (panel FILTRE):
+// 🏔️ nesie tag „Mountains" a 👣 prešlo na povrch „Forest path". Motýľ = prázdno bez ľudí,
+// maják = tu je rušno.
+export const CROWD_EMOJI: Record<Crowd, string> = { Empty: '🦋', Calm: '🌿', Busy: '🚨' };
 export function seedCrowd(trail: HeroTrail): Crowd | null {
   return trail.crowd ? SEED_CROWD[trail.crowd] ?? null : null;
 }

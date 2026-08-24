@@ -103,7 +103,15 @@ export function usePackIdentity(): PackIdentity {
     ensureSession().then(async (s) => {
       if (!mounted) return;
       if (s) {
-        try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
+        // ⚠️ Pri DEV_NOAUTH sa Supabase NEVOLÁ. Mock session nemá token, takže tieto
+        // volania aj tak nič nevrátia — ale nie sú zadarmo: `rpc()` si pýta prístupový
+        // token, a ten sa berie cez zámok prehliadača (`navigator.locks`). Keď ten zámok
+        // v profile uviazne (stáva sa po tvrdom zabití karty), volanie sa NEVRÁTI NIKDY
+        // a celý `/pack` ostane na „NAČÍTAVAM…" — vyzerá to ako mŕtva appka, pritom je to
+        // zaseknutý prehliadač. Preskočením zámku prežije prehliadka aj taký profil.
+        if (!DEV_NOAUTH) {
+          try { await supabase.rpc('link_my_dogs'); } catch { /* non-blocking */ }
+        }
         if (!mounted) return;
         // Perzistencia výletov (issue #32): raz za návštevu stiahne stav z Supabase do
         // localStorage a odošle, čo sa naklikalo offline. Zámerne BEZ await — hydratácia
@@ -113,7 +121,7 @@ export function usePackIdentity(): PackIdentity {
         void hydratePackStore();
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { data: dogRows } = await (supabase as any)
+          const { data: dogRows } = DEV_NOAUTH ? { data: null } : await (supabase as any)
             .from('dogs')
             .select('id, dog_name, cloudinary_main_url, created_at')
             .eq('user_id', s.user.id)
@@ -148,11 +156,13 @@ export function usePackIdentity(): PackIdentity {
         }
         // BONES = affiliate currency (affiliates.points). Single source of truth
         // for the header chip — NOT user_metadata.bones (legacy, always 0).
-        try {
-          const { data: aff } = await supabase.rpc('get_or_create_my_affiliate');
-          const row = (aff as { points?: number }[] | null)?.[0];
-          if (mounted && row) setBones(Number(row.points) || 0);
-        } catch { /* non-blocking */ }
+        if (!DEV_NOAUTH) {
+          try {
+            const { data: aff } = await supabase.rpc('get_or_create_my_affiliate');
+            const row = (aff as { points?: number }[] | null)?.[0];
+            if (mounted && row) setBones(Number(row.points) || 0);
+          } catch { /* non-blocking */ }
+        }
       }
       setSession(s);
       setLoading(false);

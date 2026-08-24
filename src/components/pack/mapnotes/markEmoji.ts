@@ -38,7 +38,7 @@ export const FONT_EMOJI =
  */
 export const MARK_EMOJI: Record<NoteKind, string> = {
   parking: '🅿️',
-  ticks: '🕷️',
+  ticks: '🩸',
   wildlife: '🦌',
   viper: '🐍',
   bear: '🐻',
@@ -148,42 +148,51 @@ export function threatEmoji(kind: NoteKind): string {
  *  ticho stal v deň, keď sa téma zmení. */
 export const EVENT_RIM = T.brandBlueLite;
 
-/** CIEĽ PLÁNOVANÉHO VÝLETU — Matejov výber. Bývalá ružová kvapka. */
-export const TRIP_TARGET_EMOJI = '🎯';
+/**
+ * CIEĽ PLÁNOVANÉHO VÝLETU — Matejov výber. Bývalá ružová kvapka.
+ *
+ * 📍 od 24. 8. 2026 (matrica značiek). Terč 🎯 padol preto, že sa mal zároveň stať
+ * ikonkou tlačidla „Označ cieľ trasy" v kreslení — tá istá značka by tak naraz
+ * hovorila „sem klikni" aj „tu to je". Špendlík je navyše jediný tvar, ktorý sa
+ * na mape číta ako miesto bez toho, aby si ho človek musel vysvetliť.
+ */
+export const TRIP_TARGET_EMOJI = '📍';
 
 /**
  * PODUJATIE — emoji podľa TYPU (Matej 2026-08-22: „každý typ vlastné").
  *
- * ⚠️ Všetkých 12 emoji v tomto súbore-bloku je **Emoji 1.0** (2015), teda
- * bezpečné aj na starých telefónoch. Je to to isté kritérium, kvôli ktorému
- * 22. 8. padol rebrík 🪜 (Emoji 13.0, 2020) v prospech reťaze ⛓️ — značka,
- * ktorú vidno len na novom prístroji, nie je značka.
+ * ⚠️ Emoji 1.0 (2015) = pravidlo sady, teda bezpečné aj na starých telefónoch.
+ * Je to to isté kritérium, kvôli ktorému 22. 8. padol rebrík 🪜 (Emoji 13.0, 2020)
+ * v prospech reťaze ⛓️ — značka, ktorú vidno len na novom prístroji, nie je značka.
+ *
+ * ── ZRUŠENÉ TYPY 24. 8. 2026 (matrica značiek) ──────────────────────────────
+ * `workshop` 🛠️, `meetup` 🤝 a `adoption` 🏠 vypadli na Matejov pokyn — workshop
+ * a prednáška sú pre psíčkara to isté podujatie, zraz bez programu je spoločná
+ * prechádzka a adopčný deň si útulok aj tak vypíše ako charitu. Jedenásť pilulek
+ * vo formulári bolo viac deliacich čiar než rozdielov.
+ * ⚠️ `eventEmoji()` a `EventCard` majú fallback, takže starý localStorage záznam
+ * s týmto typom nespadne — dostane 🎪 a holý anglický názov.
  *
  * Prečo tieto:
  * · 🏁 preteky — cieľová vlajka, nie 🏃 (ten by čítal ako „tu sa behá")
  * · 🏆 výstava — jediná disciplína v sade, kde sa naozaj súťaží o umiestnenie
- * · 🎾 tréning — loptička je nástroj výcviku; 🐕‍🦺 je ZWJ sekvencia a na starších
- *      systémoch sa rozpadne na psa + oranžovú vestu vedľa seba
- * · 🛠️ workshop — ruky, nie prednáška
+ * · 🎖️ tréning — odznak za zvládnutý výcvik; 🐕‍🦺 je ZWJ sekvencia a na starších
+ *      systémoch sa rozpadne na psa + oranžovú vestu vedľa seba, 🎾 zase čítalo
+ *      ako hra, nie ako práca
  * · 🎓 prednáška — sedí sa a počúva
  * · 🐕 spoločná prechádzka — celý pes; 🐶 (hlava) je v tejto sade obsadené
  *      komentárom svorky, ale ten stojí v ZELENOM kruhu, takže sa nepomýlia
- * · 🤝 zraz — stretnutie bez programu, presne to podanie ruky
  * · ❤️ charita — nie 🎗️ (stužka je v Európe čítaná ako konkrétna choroba)
- * · 🏠 adopčný deň — hľadá sa DOMOV, to je celý zmysel toho dňa
  * · 🏕️ tábor — viacdňové; ⛺ je obsadené aktivitou „overnight" v chipoch mapy
  * · 🎪 veľtrh — veľká hala plná stánkov
  */
 export const EVENT_EMOJI: Record<EventKind, string> = {
   race: '🏁',
   show: '🏆',
-  training: '🎾',
-  workshop: '🛠️',
+  training: '🎖️',
   lecture: '🎓',
   social_walk: '🐕',
-  meetup: '🤝',
   charity: '❤️',
-  adoption: '🏠',
   camp: '🏕️',
   expo: '🎪',
 };

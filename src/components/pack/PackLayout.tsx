@@ -6,6 +6,7 @@ import { devotionLevel } from '@/lib/devotion';
 import { DEV_FULL } from '@/lib/packFlags';
 import { usePackIdentity, type PackDog } from './usePackIdentity';
 import { PackNotifications } from './PackNotifications';
+import { WIZ } from './wizAnchors';
 import iconHome from '@/assets/icons/nav-home.svg';
 import statBadge from '@/assets/icons/stat-badge.svg';
 import statBars from '@/assets/icons/stat-bars.svg';
@@ -290,7 +291,12 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
         />
         <div className="relative flex items-center gap-1" style={{ padding: 6 }}>
           <FloatingNavLink to="/pack" label={t('pack.layout.navHome')} icon={iconHome} end />
-          <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+          {/* `WIZ.navMap` — sem svieti krok prehliadky o mape (spotlight na IKONKU,
+              nie na blok stránky). Kotva sedí na obale, nie na `NavLink`: spotlight
+              pridáva `position:relative` + `z-index`, a to by prebilo štýl pillu. */}
+          <span id={WIZ.navMap} style={{ display: 'inline-flex', borderRadius: 999 }}>
+            <FloatingNavLink to="/pack/map" label={t('pack.layout.navMap')} icon="/icons/pack/world-grid.svg" />
+          </span>
           <AvatarNavButton avatarUrl={avatarUrl} avatarInitial={avatarInitial} dogs={dogs} />
         </div>
       </div>

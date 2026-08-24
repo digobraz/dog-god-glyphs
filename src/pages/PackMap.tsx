@@ -266,7 +266,12 @@ const MACRO_REGIONS: Array<'West' | 'Center' | 'East'> = ['West', 'Center', 'Eas
 // Pokojné=Calm → Rušné=Popular (najviac preplnené).
 // D2 (LOCKED 2026-07-24): Vibe → Crowd/Ruch, hodnoty Empty · Calm · Busy. Kľúč = SK dáta
 // z nahadzovača (`trail.crowd`), takže žiadna migrácia; poradie = od najkľudnejšieho.
-const CROWD_LABELS: Record<string, string> = { 'Ľudoprázdne': '🏔️ Empty', 'Pokojné': '🌿 Calm', 'Rušné': '👣 Busy' };
+// ⚠️ 24. 8. 2026 z toho vypadli EMOJI a stal sa z toho holý zoznam. Bola to DRUHÁ kópia
+// `CROWD_EMOJI` (`packCommunity.ts`) — a mŕtva: obe miesta, ktoré ju čítajú, berú len KĽÚČ
+// (`([sk]) =>`) a text si ťahajú z `pack.map.crowdLabel.*`. Kým tu tie emoji ležali, matrica
+// značiek ich nevidela (číta `packCommunity.ts`) a po prvej zmene by filter ukazoval iné
+// emoji než tá istá hodnota vo formulári.
+const CROWD_DATA_KEYS = ['Ľudoprázdne', 'Pokojné', 'Rušné'] as const;
 
 // Aktivita taxonómia — lokálna kópia z __TrailsPreview.tsx (id/label/emoji), Portal je
 // izolovaný od toho dev-only prototypu. Iterácia 7 (Matejov feedback bod 2): tag vocabulary
@@ -284,7 +289,10 @@ const TRIP_ACTIVITIES: { id: string; label: string }[] = [
 // 'journey' = viacdňová turistika (multi-day thru-hike), napr. Cesta hrdinov SNP.
 // 'explore' 🧭 = siedmy pill (Matej 2026-07-27/29, addTripModel.ts ACTIVITY_GEOMETRY komentár) —
 // point/area miesta bez trasy (hrady, kaštiele, parky).
-const ACT_EMOJI: Record<string, string> = { hiking: '🥾', journey: '🎒', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄', explore: '🧭' };
+// ⚠️ MUSÍ SEDIEŤ S `ACTIVITIES` v `AddTripLog.tsx` — filter a formulár sú dve obrazovky tej
+// istej veci. 24. 8. 2026 sa tu 🧭 dorovnal na 🏰 (formulár ho mal už od 23. 8., filter zamrzol)
+// a ⛺ padlo na 💤: stan je viacdňový TÁBOR (`camp` v podujatiach), nocľah je o spaní.
+const ACT_EMOJI: Record<string, string> = { hiking: '🥾', journey: '🎒', picnic: '🧺', overnight: '💤', skating: '🛼', paddleboard: '🏄', explore: '🏰' };
 // dátové pole tr.acts[] používa 'hike' (nie 'hiking') — mapovanie UI aktivita-id → dáta.
 const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard', explore: 'explore' };
 
@@ -307,13 +315,21 @@ const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey'
 // Matej 2026-07-26: „In the middle of nature" AJ „In the middle of nowhere" preč — obe boli
 // PROSTREDIE catch-all chipy (2026-07-25), zbytočné vedľa Forest/Lake/River scenérie.
 // Matej 2026-07-27: 'Embankment' preč.
+// TIEŇ (Matej 2026-08-24): „do TAGOV pridajme Tieň… je to pre psíčkara podstatné." Dve hodnoty,
+// nie škála — pes buď má kam uhnúť pred slnkom, alebo nemá.
+// ⚠️ 78 existujúcich výletov tento tag NEMÁ a nedostane ho. Prázdno tu znamená „nikto to
+// nezapísal", nie „bez tieňa" — dopísať ho odhadom by z datasetu spravilo klamára.
 const TAG_VOCAB = [
-  'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset',
+  'Mountains', 'Forest', 'Lake/Reservoir', 'River', 'View', 'Meadow', 'Sunset', 'Shade', 'No shade',
   'Forest path', 'Asphalt', 'Rocky',
 ] as const;
+// Matrica značiek 24. 8. 2026: 🏞️→🔵, 💧→🌀, 🌄→👁️, 🥾→👣. Dôvod je kolízny, nie estetický —
+// 💧 nesie prameň v POI, 🥾 preskočilo na turistiku v `ACT_EMOJI` a 👣 sa uvoľnilo tým, že
+// návštevnosť „Rušno" prešla na 🚨.
 const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅',
-  'Forest path': '🥾', Asphalt: '🛣️', Rocky: '🪨',
+  Mountains: '🏔️', Forest: '🌲', 'Lake/Reservoir': '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅',
+  Shade: '⛱️', 'No shade': '🌡️',
+  'Forest path': '👣', Asphalt: '🛣️', Rocky: '🪨',
 };
 // ⚠️ HODNOTA ≠ TEXT NA OBRAZOVKE (2026-08-23). `TAG_VOCAB` sú dátové hodnoty z `tr.tags`
 // a `tr.surface` — filtruje sa podľa nich, takže sa NEPREKLADAJÚ. Chip však človek číta,
@@ -324,6 +340,7 @@ const TAG_I18N: Record<string, string> = {
   Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
   'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
   View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
+  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
   'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
   Rocky: 'pack.map.surfaceLabel.rocky',
 };
@@ -380,6 +397,7 @@ const EVENT_PIN = (kind: EventKind, hot: boolean) => L.divIcon({
 });
 const DATA_TAG_TO_UI: Record<string, string> = {
   Mountains: 'Mountains', Forest: 'Forest', View: 'View', Meadow: 'Meadow', Sunset: 'Sunset',
+  Shade: 'Shade', 'No shade': 'No shade',
   Lake: 'Lake/Reservoir', Reservoir: 'Lake/Reservoir',
   Stream: 'River', River: 'River',
   // prostredie vodných tripov — 1:1, hodnoty z nahadzovača sa nepremenúvajú
@@ -3374,7 +3392,7 @@ export default function PackMap() {
           </div>
         </div>
         {/* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo
-            rating(packy)·difficulty·Crowd (CROWD_LABELS už nesie emoji, napr. "🌿 Calm"). */}
+            rating(packy)·difficulty·Crowd. */}
         <div className="trp-bigcard-body">
           <div className="trp-bigcard-info">
             {/* pohorie · región label pod fotkou (Matejov feedback bod 3) — región
@@ -3874,7 +3892,7 @@ export default function PackMap() {
                   <span className="trp-msheet-label">{t('pack.map.crowd')}</span>
                   <select className="trp-msheet-select" value={heroCrowd} aria-label={t('pack.map.crowd')} onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}>
                     <option value="">{t('pack.map.any')}</option>
-                    {Object.entries(CROWD_LABELS).map(([sk]) => (
+                    {CROWD_DATA_KEYS.map((sk) => (
                       <option key={sk} value={sk}>{t(`pack.map.crowdLabel.${sk}`)}</option>
                     ))}
                   </select>
@@ -4382,7 +4400,7 @@ export default function PackMap() {
                   aria-label={t('pack.map.crowd')}
                 >
                   <option value="">{t('pack.map.crowd')}</option>
-                  {Object.entries(CROWD_LABELS).map(([sk]) => (
+                  {CROWD_DATA_KEYS.map((sk) => (
                     <option key={sk} value={sk}>{t(`pack.map.crowdLabel.${sk}`)}</option>
                   ))}
                 </select>

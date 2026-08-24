@@ -122,7 +122,9 @@ const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: stri
   { id: 'hiking', label: 'Hiking', emoji: '🥾', dataId: 'hike' },
   { id: 'journey', label: 'Journey', emoji: '🎒', dataId: 'journey' },
   { id: 'picnic', label: 'Picnic', emoji: '🧺', dataId: 'picnic' },
-  { id: 'overnight', label: 'Overnight', emoji: '⛺', dataId: 'overnight' },
+  // ⛺ → 💤 (matrica 24. 8. 2026): stan je viacdňový TÁBOR a to slovo si už drží `camp`
+  // v podujatiach. Nocľah na výlete je o tom, že sa niekde prespí — nie o výbave.
+  { id: 'overnight', label: 'Overnight', emoji: '💤', dataId: 'overnight' },
   { id: 'skating', label: 'Skate', emoji: '🛼', dataId: 'skating' },
   { id: 'paddleboard', label: 'SUP/swim', emoji: '🏄', dataId: 'paddleboard' },
   // ⚠️ POSLEDNÁ DLAŽDICA JE „VŠETKO OSTATNÉ" a musí to povedať (Matej 2026-08-23: „posledné
@@ -140,7 +142,9 @@ const HIKE_LIKE = new Set(['hiking', 'journey']);
 const DIFF_OPTIONS = ['Easy', 'Moderate', 'Hard', 'Odyssey'] as const;
 // terrain — lokálna kópia SURFACE_VOCAB (PackMap.tsx, needituje sa/needituje sa exportovať).
 const TERRAIN_OPTIONS = [
-  { id: 'forest', emoji: '🌲', label: 'Forest path' },
+  // 🌲 → 👣 (matrica 24. 8. 2026): strom nesie SCENÉRIU `Forest` o pár riadkov nižšie,
+  // tu ide o povrch pod labkami. Zhoda s `TAG_EMOJI['Forest path']` je zámer.
+  { id: 'forest', emoji: '👣', label: 'Forest path' },
   { id: 'asphalt', emoji: '🛣️', label: 'Asphalt' },
   { id: 'rocky', emoji: '🪨', label: 'Rocky' },
 ] as const;
@@ -153,9 +157,12 @@ const TERRAIN_OPTIONS = [
 // má v sebe lomku a medzery.
 const TAG_OPTIONS: Array<{ id: string; label: string; emoji: string }> = [
   { id: 'mountains', label: 'Mountains', emoji: '🏔️' }, { id: 'forest', label: 'Forest', emoji: '🌲' },
-  { id: 'lake', label: 'Lake/Reservoir', emoji: '🏞️' }, { id: 'river', label: 'River', emoji: '💧' },
-  { id: 'view', label: 'View', emoji: '🌄' }, { id: 'meadow', label: 'Meadow', emoji: '🌼' },
+  { id: 'lake', label: 'Lake/Reservoir', emoji: '🔵' }, { id: 'river', label: 'River', emoji: '🌀' },
+  { id: 'view', label: 'View', emoji: '👁️' }, { id: 'meadow', label: 'Meadow', emoji: '🌼' },
   { id: 'sunset', label: 'Sunset', emoji: '🌅' },
+  // TIEŇ (Matej 2026-08-24) — dve hodnoty, nie škála. Musí sedieť s `TAG_VOCAB`/`TAG_EMOJI`
+  // v `PackMap.tsx`, inak sa tag zapíše a filter ho neponúkne.
+  { id: 'shade', label: 'Shade', emoji: '⛱️' }, { id: 'noshade', label: 'No shade', emoji: '🌡️' },
 ];
 
 // State (krajina) — lokálna kópia ADD_COUNTRY_OPTIONS/ISO2_LABEL (PackMap.tsx:117-121),

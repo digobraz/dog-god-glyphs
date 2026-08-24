@@ -1792,6 +1792,28 @@ export const en = {
   'pack.profile.wizard.step.startHere.nextLabel': "Enter the Pack 🐾",
   'pack.profile.wizard.dogStep.title': "The daily ritual",
   'pack.profile.wizard.dogStep.body': "Show up — Presence, a walk — and Devotion grows. Try tapping <strong style=\"color:#F5C73D\">Prayer of Presence</strong> and watch your XP rise in the bar above. ↑",
+
+  // ── PREHLIADKA — AInubis (2026-08-24, `plany/wizard-ainubis.md`) ──────────────
+  // Nahrádza `pack.profile.wizard.*` vyššie. Staré kľúče sa NEMAŽÚ jedným ťahom:
+  // žijú v 18 jazykoch a `Dict = typeof en`, takže ich odobratie odtiaľto zhodí
+  // `tsc` na každom preklade, ktorý ich má. Upratanie = vlastný prechod.
+  'pack.wizard.welcome.role': "Keeper of the temple · your guide",
+  'pack.wizard.welcome.title': "Welcome to the digital temple",
+  'pack.wizard.welcome.body': "I am AInubis and I keep this place. Give me a minute and I'll walk you through it — then I'll leave you be.",
+  'pack.wizard.welcome.cta': "Lead the way",
+  'pack.wizard.skipForNow': "Not now",
+  'pack.wizard.skip': "Skip",
+  'pack.wizard.next': "Next →",
+  'pack.wizard.myDog': "your dog",
+  'pack.wizard.home.body': "This is your temple. You, your pack, and the doors to everything else.",
+  'pack.wizard.toDogs.body': "Your pack lives here. Tap {dog} to open the DOG ID — the more you tell me about them, the better I can advise you.",
+  'pack.wizard.toDogs.bodyNoDog': "This is where your pack will live. It's empty for now — tap the “+” and add your first dog.",
+  'pack.wizard.toDogs.cta': "Got it",
+  'pack.wizard.toMap.body': "The first thing waiting for you here: trails. Plan one, save it, walk it — and what you walk counts.",
+  'pack.wizard.toMap.cta': "Got it",
+  'pack.wizard.handoff.body': "I'm here. Whenever you need something, tap my face in the corner — I don't leave.",
+  'pack.wizard.handoff.cta': "Ask me something",
+  'pack.wizard.handoff.later': "Later",
   'pack.map.toastSavedToTriplist': "Saved to your triplist. Set a date or open it to the pack in Triplist.",
   'pack.map.toastOpenTriplist': "Triplist",
   'pack.map.toastMarkedWalked': "Marked as walked.",
@@ -1824,12 +1846,9 @@ export const en = {
   'pack.addEvent.kind.race': "Race",
   'pack.addEvent.kind.show': "Show",
   'pack.addEvent.kind.training': "Training",
-  'pack.addEvent.kind.workshop': "Workshop",
   'pack.addEvent.kind.lecture': "Lecture",
   'pack.addEvent.kind.social_walk': "Social walk",
-  'pack.addEvent.kind.meetup': "Meetup",
   'pack.addEvent.kind.charity': "Charity",
-  'pack.addEvent.kind.adoption': "Adoption day",
   'pack.addEvent.kind.camp': "Camp",
   'pack.addEvent.kind.expo': "Expo",
   'pack.addEvent.startsLabel': "Starts",
@@ -2032,6 +2051,8 @@ export const en = {
   'pack.map.tagLabel.view': "View",
   'pack.map.tagLabel.meadow': "Meadow",
   'pack.map.tagLabel.sunset': "Sunset",
+  'pack.map.tagLabel.shade': "Shade",
+  'pack.map.tagLabel.noshade': "No shade",
   // ── STRÁNKA VÝLETU (`/pack/map/:country/:slug`) A JEJ KOMENTÁRE ────────────────────────
   // Celá stránka bola do 23. 8. 2026 natvrdo po anglicky — na slovenskom telefóne stálo
   // „by Hekthor & Matej · DIFFICULTY · REVIEWS (0) · Be the first Dogyptian…". Je to povrch,

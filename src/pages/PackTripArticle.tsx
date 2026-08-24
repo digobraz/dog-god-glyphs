@@ -81,7 +81,9 @@ const T = PACK_THEME;
 // nemali v dátach ani jeden výskyt, takže tie dve emoji sa nikdy nezobrazili na
 // 55, resp. 8 výletoch. `Asphalt` v tagoch neexistuje (je to hodnota `surface`) —
 // nechávam ho tu len ako neškodnú rezervu.
-const ACT_EMOJI: Record<string, string> = { hike: '🥾', picnic: '🧺', overnight: '⛺', skating: '🛼', paddleboard: '🏄', explore: '🧭' };
+// ⚠️ Dorovnané s `ACT_EMOJI`/`TAG_EMOJI` v `PackMap.tsx` (matrica 24. 8. 2026). Kľúče sú tu
+// DATASETOVÉ (`hike`, `Lake`), emoji musia byť tie isté — článok a filter ukazujú ten istý výlet.
+const ACT_EMOJI: Record<string, string> = { hike: '🥾', picnic: '🧺', overnight: '💤', skating: '🛼', paddleboard: '🏄', explore: '🏰' };
 // Dataset nesie `hike`, slovník kľúč `hiking` (ten používa filter aj formulár) — jeden riadok
 // prekladu medzi nimi je lacnejší než tretí názov tej istej aktivity.
 const ACT_ID_TO_UI: Record<string, string> = { hike: 'hiking', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard', explore: 'explore' };
@@ -89,11 +91,15 @@ const TAG_I18N_KEY: Record<string, string> = {
   Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
   'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
   View: 'pack.map.tagLabel.view', Meadow: 'pack.map.tagLabel.meadow', Sunset: 'pack.map.tagLabel.sunset',
+  Shade: 'pack.map.tagLabel.shade', 'No shade': 'pack.map.tagLabel.noshade',
   'Forest path': 'pack.map.surfaceLabel.forest', Asphalt: 'pack.map.surfaceLabel.asphalt',
   Rocky: 'pack.map.surfaceLabel.rocky',
 };
 const TAG_EMOJI: Record<string, string> = {
-  Mountains: '🏔️', Forest: '🌲', Lake: '🏞️', River: '💧', View: '🌄', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
+  Mountains: '🏔️', Forest: '🌲', Lake: '🔵', River: '🌀', View: '👁️', Meadow: '🌼', Sunset: '🌅', Asphalt: '🛣️',
+  // Tieň (Matej 2026-08-24) — v dátach zatiaľ nula výskytov, chip sa objaví až prvému
+  // výletu, ktorý ho dostane. Kľúč je `label` z `TAG_OPTIONS`, nie `id`.
+  Shade: '⛱️', 'No shade': '🌡️',
 };
 
 // bod 6 (iterácia 13): mobile route mapa sa renderovala sčasti čierna — Leaflet meria

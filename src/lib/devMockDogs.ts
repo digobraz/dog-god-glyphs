@@ -50,3 +50,27 @@ export const DEV_MOCK_DOGS: DevMockDog[] = [
     selections: { birthdayYear: '2016', birthdayMonth: '3', birthdayDay: '15' },
   },
 ];
+
+// ── Majiteľ pre homepage `/pack` (doplnené 24. 8. 2026) ─────────────────────
+// `Pack.tsx` má TIEŽ vlastný `supabase.auth.getUser()` a bez session nevykreslí
+// `HeroCard` vôbec (`{user && …}`) — stránka zamrzne na `<TreeSkeleton />`.
+// Pri PREHLIADKE (`PackWizard`) to nie je len prázdna plocha: prvý krok svieti
+// spotlightom presne na ten blok, takže by AInubis ukazoval na skeleton a
+// hovoril o niečom, čo tam nie je.
+export interface DevMockUser {
+  name: string;
+  fullName: string;
+  email: string;
+  avatarUrl: string | null;
+  devotion: number;
+  bones: number;
+}
+
+export const DEV_MOCK_USER: DevMockUser = {
+  name: 'Matej',
+  fullName: 'Matej Stacho',
+  email: 'dev@dogypt.local',
+  avatarUrl: null,
+  devotion: 100,
+  bones: 0,
+};

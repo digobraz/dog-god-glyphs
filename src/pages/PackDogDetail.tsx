@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { Link, useParams } from 'react-router-dom';
-import { PackDogWizard } from '@/components/pack/PackWizard';
 import {
   ArrowLeft,
   Download,
@@ -822,13 +821,10 @@ export default function PackDogDetail() {
 
   return (
     <PackLayout wide>
-      {/* PackDogWizard vypnutý úplne (Matej, 2026-08-03) — NIE DEV gate, lebo tento
-          render beží aj mimo DEV-only vetvy (na rozdiel od PackWizard v Pack.tsx:276) a
-          členovia z okna 17.–22.6.2026 môžu mať v localStorage `dogypt_wz==='2'`, čo by
-          ho spustilo aj v produkcii. Sľuboval krok "Prayer of Presence" a spotlight na
-          #prayers — obe sú na LIVE zamknuté/neexistujúce. Kód nechaný nedotknutý pre
-          prípadný návrat: odkomentuj, až keď bude Prayer of Presence flow reálne live. */}
-      {/* <PackDogWizard /> */}
+      {/* `PackDogWizard` (krok „Prayer of Presence") tu bol vypnutý od 3. 8. 2026 a
+          24. 8. zanikol úplne — stál na starom číslovanom stave prehliadky (`dogypt_wz==='2'`)
+          a sľuboval modlitby, ktoré z appky odišli 6. 8. Nový scenár (AInubis) má krok
+          psa vlastný, viď `plany/wizard-ainubis.md` (nákres 04 „Moja svorka"). */}
       {/* Späť do MY PACK — jediná vec, ktorá v tomto riadku zostala (Matej 6.8.:
           „pri kliknutí na psa by mala byť hore šípka dozadu na /dogs nie? dáva mi to
           celkom zmysel"). Mieri na `/pack/dogs`, nie na `/pack`: k psovi sa chodí z hubu.
