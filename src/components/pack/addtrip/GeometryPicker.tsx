@@ -1297,10 +1297,6 @@ function ensureAnchorTagCss() {
   document.head.appendChild(el);
 }
 
-/** Šírka plávajúcej karty doku na PC. Nie je odvodená od šírky formulárového panela —
- *  ten počas krokov 1–2 nestojí, takže by to bola väzba na neexistujúceho suseda. */
-const DOCK_PC_W = 620;
-
 const DRAW_BAR_CSS = `
 .trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
 /* ČÍTANIE HORE — km · prevýšenie · body. Nie je to ovládač, tak nechytá ťuky do mapy.
@@ -1363,32 +1359,44 @@ const DRAW_BAR_CSS = `
 .trp-dbar-plea{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(201,154,63,0.10);border:1px solid rgba(201,154,63,0.45);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
 .trp-dbar-plea button{flex:0 0 auto;background:none;border:0;color:${GOLD};font-family:${FONT_UI};font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
 
-/* ── PC: TEN ISTÝ DOK, LEN PLÁVA NA STREDE ────────────────────────────────────────────
-   Matej 2026-08-24: „prvé dva kroky by mali byť takisto na strede, dolný panel a až od
-   3. kroku ten ľavý panel… logika by mala zostať = kreslenie, všetko ostatné zmizne."
+/* ── PC: OVLÁDANIE JE V ĽAVOM BLOKU, STRED PATRÍ MAPE ─────────────────────────────────
+   Matej 2026-08-24 (po prvom teste): „vieš čo bude lepší nápad dať to do ľavého bloku ako
+   je všetko na PC lebo takto si zakryjeme strednú časť kde pracujeme."
 
-   Do 24. 8. sa dok odsadzoval zľava o šírku formulára (400/480 px, trieda --beside), lebo ten
-   na PC počas kreslenia stál. Teraz v krokoch 1–2 neexistuje na žiadnej šírke, takže niet
-   čo obchádzať: dok je na PC karta na strede, na mobile pás pri spodnej hrane. Jeden obsah,
-   dva tvary — nie dva toky.
+   Prvé kolo malo dok ako kartu na strede — a tá si sadla presne doprostred plochy, do ktorej
+   sa kreslí. Na PC platí pre všetky povrchy mapy to isté: ovládanie vľavo, mapa vpravo.
+   Dok teda nie je výnimka, len ďalší obyvateľ toho istého stĺpca.
 
-   ⚠️ ŠÍRKA JE VLASTNÉ ČÍSLO, NIE ŠÍRKA PANELA. Panel (.trp-sidebar, 440 px) tu už nie je
-   referencia; keby sa dok viazal na jeho číslo, zmena šírky panela by hýbala niečím, čo s ním
-   nesúvisí. Šírku drží konštanta DOCK_PC_W hore v súbore: dosť na rad štyroch tlačidiel
-   a málo na to, aby karta prekryla mapu, do ktorej sa práve kreslí. */
+   ⚠️ ŠÍRKA JE ZHODNÁ S FORMULÁROM (.trp-sidebar / .trp-addhost), vrátane zúženia na 360 px
+   medzi 1024–1400. Dok a formulár sú DVA STAVY JEDNÉHO STĹPCA (kroky 1–2 vs. 3–5); keby mali
+   vlastné šírky, blok by pri prechode z kroku 2 do 3 skočil na inú šírku a vyzeralo by to
+   ako dva rôzne panely. Preto tu nie je vlastná konštanta — je to tá istá miera.
+
+   ⚠️ ZAROVNANÉ HORE, NIE DOLE. Ponuka miest v hľadaní rastie NADOL od poľa
+   (position:absolute, top:calc(100% + 6px)) — pri doku zavesenom na spodnej hrane vytiekla
+   pod okno a nedala sa dočítať. Zhora má pod sebou celú výšku bloku. */
 @media (min-width:1024px){
-  /* Karta PLÁVA, takže bezpečná zóna telefónu tu nemá čo robiť — panel by mal nesúmerne
-     hrubú spodnú výplň. */
-  .trp-dock{bottom:22px;align-items:center;}
-  .trp-dock .trp-dbar,.trp-dock .trp-dstart{width:min(${DOCK_PC_W}px,calc(100vw - 48px));border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 18px 48px rgba(0,0,0,0.50);}
+  .trp-dock{top:20px;bottom:20px;left:20px;right:auto;width:440px;max-width:calc(100vw - 40px);justify-content:flex-start;align-items:stretch;}
+  /* Blok PLÁVA nad mapou, takže bezpečná zóna telefónu tu nemá čo robiť — inak má panel
+     nesúmerne hrubú spodnú výplň. */
+  .trp-dock .trp-dbar,.trp-dock .trp-dstart{border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 18px 48px rgba(0,0,0,0.50);}
   .trp-dock .trp-dbar{padding-bottom:20px;}
   .trp-dock .trp-dstart{padding-bottom:22px;}
-  /* Pilulka s pokynom je užšia než karta pod ňou — vlastné bočné odsadenie by ju na PC
-     zbytočne rozťahovalo do šírky obrazovky. */
-  .trp-dhint{margin:0;}
-  /* Čítanie hore ostáva na strede nad mapou; gradient neťahá ťuky, takže ovládanie mapy
-     v pravom hornom rohu ostáva dostupné. */
-  .trp-dtop{padding-top:18px;}
+  /* Pokyn stojí v bloku nad panelom, nie v mape: na PC je mapa pracovná plocha a pilulka
+     v jej strede by prekážala tomu istému, čomu prekážal dok. */
+  .trp-dhint{margin:0;max-width:none;}
+  /* ČÍTANIE OSTÁVA NAD MAPOU, odsadené o blok — je to jediné číslo, ktoré počas kreslenia
+     rastie, a patrí k trase, nie k ovládaniu. 74 px vpravo = miesto pre ovládanie mapy
+     (zoom, poloha, vrstvy); to isté číslo drží .trp-topbar v PackMap.tsx. */
+  .trp-dtop{left:480px;right:74px;padding-top:18px;}
+  /* KURZOR HOVORÍ, ŽE SA KRESLÍ (Matej 2026-08-24: „nevidím pri kurzore +"). Na mobile to
+     povie prst a pilulka, na PC nie je z ničoho vidieť, že klik do mapy niečo spraví. */
+  body.trp-drawing .leaflet-container,body.trp-drawing .leaflet-container .leaflet-interactive{cursor:crosshair;}
+}
+/* Kompaktný desktop — tá istá hranica a to isté číslo, aké má .trp-sidebar v PackMap.tsx. */
+@media (min-width:1024px) and (max-width:1400px){
+  .trp-dock{width:360px;}
+  .trp-dtop{left:400px;}
 }
 `;
 

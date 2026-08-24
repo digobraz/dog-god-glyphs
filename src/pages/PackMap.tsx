@@ -2243,6 +2243,20 @@ export default function PackMap() {
    */
   const mapDrawing = addMapPhase === 'draw';
   /**
+   * KURZOR HOVORÍ, ŽE KLIK DO MAPY NIEČO SPRAVÍ (Matej 2026-08-24: „nevidím pri kurzore +").
+   * Na telefóne to povie prst a pilulka s pokynom; na PC nebolo z ničoho vidieť, že mapa je
+   * práve kresliaca plocha a nie prehliadanie — kurzor ostával Leafletovská ruka.
+   * Trieda, nie inline štýl: Leaflet si `cursor` prepisuje na vlastných vrstvách, takže sa to
+   * musí povedať aj im (viď selektor v DRAW_BAR_CSS). Platí pre kreslenie trasy AJ pre
+   * zapichovanie značky v kroku 2 — v oboch prípadoch je ďalším úkonom klik do mapy.
+   */
+  const mapCursorCross = addMapPhase === 'draw' || notePlaceReady;
+  useEffect(() => {
+    if (!mapCursorCross) return;
+    document.body.classList.add('trp-drawing');
+    return () => document.body.classList.remove('trp-drawing');
+  }, [mapCursorCross]);
+  /**
    * ZNAČKY ZAPICHNUTÉ POČAS TOHTO PRIDÁVANIA (krok 2 sprievodcu). Slúžia len na zobrazenie —
    * krok 4 ich ZHRNIE, needituje. Väzba značky na výlet sa NEUKLADÁ (odvodzuje sa zo
    * súradnice, viď mapNotesGeo.ts), takže toto je naozaj len pamäť jednej obrazovky.

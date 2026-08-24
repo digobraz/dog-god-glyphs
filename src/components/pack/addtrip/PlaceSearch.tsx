@@ -112,6 +112,33 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
 
   const attn = !focused && q.trim().length === 0;
 
+  /**
+   * PONUKA SA OTVÁRA TAM, KDE JE MIESTO (Matej 2026-08-24: „dropdown pri vyhľadávaní je mimo
+   * obrazovky"). Pevné `top:100%` znamená VŽDY NADOL — a pole stojí v doku, ktorý býva pri
+   * spodnej hrane okna (na mobile vždy, na PC to tak bolo do 24. 8.), takže ponuka vytiekla
+   * pod okno a spodné položky sa nedali ani prečítať, ani ťuknúť.
+   *
+   * ⚠️ Riešiť to výnimkou pre jednu platformu by bola chyba: pole žije v doku, v paneli aj
+   * vo formulári a všade sa môže ocitnúť nízko. Rozhoduje teda MIESTO POD POĽOM, nie kto
+   * komponent volá — jedno pravidlo, ktoré platí aj tam, kde ho zajtra niekto zavolá znova.
+   */
+  const [dropUp, setDropUp] = useState(false);
+  const [dropMax, setDropMax] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (!items.length) return;
+    const el = boxRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const GAP = 6, EDGE = 12;
+    const below = window.innerHeight - r.bottom - GAP - EDGE;
+    const above = r.top - GAP - EDGE;
+    // Nahor sa ide len vtedy, keď je hore VIAC miesta — inak by sa ponuka pri tesnom okne
+    // preklápala hore-dole pri každom písmene.
+    const up = below < 180 && above > below;
+    setDropUp(up);
+    setDropMax(Math.max(120, up ? above : below));
+  }, [items, focused]);
+
   return (
     <div ref={boxRef} style={{ position: 'relative' }}>
       <style>{PLACE_SEARCH_CSS}</style>
@@ -139,9 +166,13 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
       {items.length > 0 && (
         <div
           style={{
-            position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 5,
+            position: 'absolute', left: 0, right: 0, zIndex: 5,
+            ...(dropUp ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
             background: 'rgba(18,13,7,0.97)', backdropFilter: 'blur(12px)',
-            border: '1px solid ' + T.onDarkBorder, borderRadius: 12, overflow: 'hidden',
+            border: '1px solid ' + T.onDarkBorder, borderRadius: 12,
+            // Skrolovanie, nie orezanie: pri nízkom okne sa aj tak nezmestí celá a bez
+            // `auto` by boli posledné návrhy neviditeľné a nedosiahnuteľné.
+            overflowX: 'hidden', overflowY: 'auto', maxHeight: dropMax,
             boxShadow: '0 18px 44px rgba(0,0,0,0.55)',
           }}
         >
