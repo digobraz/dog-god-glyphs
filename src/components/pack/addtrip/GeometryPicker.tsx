@@ -93,11 +93,6 @@ export type GeometryPickerProps = {
      */
     hint?: string | null;
     /**
-     * Panel stojí VEDĽA mapy (PC). Lišta aj pilulka sa odsadia o jeho šírku — inak by na PC
-     * ležali na formulári a to bola presne tá sťažnosť, kvôli ktorej lišta na PC vzniká.
-     */
-    besidePanel?: boolean;
-    /**
      * Mapa práve patrí niekomu inému (krok 2 = zapichovanie značiek). Picker prestane brať
      * kliky aj dlhé stlačenia, ale vrstvy kreslí ďalej — trasa musí byť vidno, veď sa značky
      * pichajú NA ŇU.
@@ -849,12 +844,14 @@ export function GeometryPicker({
   // nie hore… resp. aby sme šetrili priestor daj tam podčiarknuté späť na výber aktivity").
   // V rohu hore bral mape výšku a palec naň nedosiahol; POD panelom by ležal na mape a stratil
   // by sa v nej, tak stojí vnútri — v kroku 0 pod poľom, pri kreslení pod tlačidlami.
-  // Na PC sa nevykresľuje: tam má svoju šípku hlavička formulára a dva návraty na jednej
-  // obrazovke sú otázka „ktorý z nich ma vráti kam".
+  // ⚠️ VYKRESĽUJE SA AJ NA PC (24. 8.). Kým tam v krokoch 1–2 stál formulár, mal návrat
+  // vlastnú šípku v hlavičke a dva návraty na jednej obrazovke sú otázka „ktorý z nich ma
+  // vráti kam". Odkedy je obrazovkou mapa, je tento jediný — bez neho by sa z PC kreslenia
+  // nedalo vycúvať inak než zrušením celého výletu.
   // NÁVRAT VEDIE O JEDEN KROK SPÄŤ, NIE NA ZAČIATOK. Kým lištu vlastní kreslenie, je tým
   // krokom výber aktivity; keď si ju požičal krok 2, je ním kreslenie — inak by človek
   // z otázky o parkovisku spadol na dlaždice a stratil nakreslenú trasu z dohľadu.
-  const backLink = drawBar?.onBack && !drawBar.besidePanel ? (
+  const backLink = drawBar?.onBack ? (
     <button type="button" className="trp-dback" onClick={drawBar.onBack}>
       ← {t(drawBar.backLabel ?? 'pack.addTrip.geo.backToActivity')}
     </button>
@@ -945,8 +942,9 @@ export function GeometryPicker({
       {/* ── LIŠTA KRESLENIA ────────────────────────────────────────────────────────────
           Portál na <body>: panel, v ktorom picker žije, býva na mobile schovaný cez
           `display:none` (mapa je vtedy celá obrazovka), takže čokoľvek vnútri neho by
-          zmizlo s ním. Na PC je lišta odsadená o šírku panela (`--beside`), aby ho
-          neprekrývala — to je celý rozdiel medzi platformami. */}
+          zmizlo s ním. Od 24. 8. to platí na KAŽDEJ šírke — v krokoch 1–2 ustúpi formulár
+          aj na PC, takže lišta nemá čo obchádzať a rozdiel medzi platformami je už len
+          v tvare doku (dole cez celú šírku vs. plávajúca karta na strede). */}
       {barOn && drawBar && createPortal(
         <>
         <style>{DRAW_BAR_CSS}</style>
@@ -962,7 +960,7 @@ export function GeometryPicker({
             dĺžku a prevýšenie, potom bod späť, vymazať a označ cieľ"). Návrat sa presťahoval
             NADOL pod panel — hore bol mimo dosahu palca a bral mape výšku. */}
         {stage === 2 && showReadout && (
-          <div className={`trp-dtop${drawBar.besidePanel ? ' trp-dtop--beside' : ''}`}>
+          <div className="trp-dtop">
             <div className="trp-dread">{readout}</div>
           </div>
         )}
@@ -979,7 +977,7 @@ export function GeometryPicker({
             Matej 23. 8.: „pils daj nad panel do mapy"), pod ním PANEL a úplne dole NÁVRAT.
             Dok sám nemá výplň ani nechytá ťuky; má ich len to, čo v ňom stojí, takže mapa
             medzi pilulkou a panelom ostáva ovládateľná. */}
-        <div className={`trp-dock${drawBar.besidePanel ? ' trp-dock--beside' : ''}`}>
+        <div className="trp-dock">
         {drawHint && (
           <div className="trp-dhint">
             <HandPencil size={17} style={{ color: TRAIL_LINE.light, flexShrink: 0 }} />
@@ -1299,6 +1297,10 @@ function ensureAnchorTagCss() {
   document.head.appendChild(el);
 }
 
+/** Šírka plávajúcej karty doku na PC. Nie je odvodená od šírky formulárového panela —
+ *  ten počas krokov 1–2 nestojí, takže by to bola väzba na neexistujúceho suseda. */
+const DOCK_PC_W = 620;
+
 const DRAW_BAR_CSS = `
 .trp-dtop{position:fixed;left:0;right:0;top:0;z-index:1200;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 14px;display:flex;justify-content:center;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 40%,rgba(10,7,4,0));}
 /* ČÍTANIE HORE — km · prevýšenie · body. Nie je to ovládač, tak nechytá ťuky do mapy.
@@ -1361,23 +1363,32 @@ const DRAW_BAR_CSS = `
 .trp-dbar-plea{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:rgba(201,154,63,0.10);border:1px solid rgba(201,154,63,0.45);font-family:${FONT_UI};font-size:12px;line-height:1.4;color:${T.onDark};}
 .trp-dbar-plea button{flex:0 0 auto;background:none;border:0;color:${GOLD};font-family:${FONT_UI};font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
 
-/* PC: lišta aj pás sa odsadia o šírku panela. Čísla sú tie isté ako .trp-sidebar v PackMap. */
-@media (min-width:1024px) and (max-width:1400px){
-  .trp-dock--beside,.trp-dtop--beside{left:400px;}
-}
-@media (min-width:1401px){
-  .trp-dock--beside,.trp-dtop--beside{left:480px;}
-}
+/* ── PC: TEN ISTÝ DOK, LEN PLÁVA NA STREDE ────────────────────────────────────────────
+   Matej 2026-08-24: „prvé dva kroky by mali byť takisto na strede, dolný panel a až od
+   3. kroku ten ľavý panel… logika by mala zostať = kreslenie, všetko ostatné zmizne."
+
+   Do 24. 8. sa dok odsadzoval zľava o šírku formulára (400/480 px, trieda --beside), lebo ten
+   na PC počas kreslenia stál. Teraz v krokoch 1–2 neexistuje na žiadnej šírke, takže niet
+   čo obchádzať: dok je na PC karta na strede, na mobile pás pri spodnej hrane. Jeden obsah,
+   dva tvary — nie dva toky.
+
+   ⚠️ ŠÍRKA JE VLASTNÉ ČÍSLO, NIE ŠÍRKA PANELA. Panel (.trp-sidebar, 440 px) tu už nie je
+   referencia; keby sa dok viazal na jeho číslo, zmena šírky panela by hýbala niečím, čo s ním
+   nesúvisí. Šírku drží konštanta DOCK_PC_W hore v súbore: dosť na rad štyroch tlačidiel
+   a málo na to, aby karta prekryla mapu, do ktorej sa práve kreslí. */
 @media (min-width:1024px){
-  .trp-dock--beside{bottom:20px;right:20px;}
-  /* Na PC dok PLÁVA, takže bezpečná zóna telefónu tam nemá čo robiť — panel by mal
-     nesúmerne hrubú spodnú výplň. */
-  .trp-dock--beside .trp-dbar{padding-bottom:20px;}
-  .trp-dock--beside .trp-dstart{padding-bottom:22px;}
-  .trp-dock--beside .trp-dbar,.trp-dock--beside .trp-dstart{border-radius:16px;border:1px solid ${T.onDarkBorder};}
-  /* 74 px vpravo = miesto pre ovládanie mapy (zoom, poloha, vrstvy). To isté číslo drží
-     .trp-topbar v PackMap.tsx — bez neho leží pole na hľadanie pod tlačidlami zoomu. */
-  .trp-dtop--beside{right:74px;}
+  /* Karta PLÁVA, takže bezpečná zóna telefónu tu nemá čo robiť — panel by mal nesúmerne
+     hrubú spodnú výplň. */
+  .trp-dock{bottom:22px;align-items:center;}
+  .trp-dock .trp-dbar,.trp-dock .trp-dstart{width:min(${DOCK_PC_W}px,calc(100vw - 48px));border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 18px 48px rgba(0,0,0,0.50);}
+  .trp-dock .trp-dbar{padding-bottom:20px;}
+  .trp-dock .trp-dstart{padding-bottom:22px;}
+  /* Pilulka s pokynom je užšia než karta pod ňou — vlastné bočné odsadenie by ju na PC
+     zbytočne rozťahovalo do šírky obrazovky. */
+  .trp-dhint{margin:0;}
+  /* Čítanie hore ostáva na strede nad mapou; gradient neťahá ťuky, takže ovládanie mapy
+     v pravom hornom rohu ostáva dostupné. */
+  .trp-dtop{padding-top:18px;}
 }
 `;
 

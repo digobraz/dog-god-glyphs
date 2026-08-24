@@ -2230,7 +2230,7 @@ export default function PackMap() {
    * Na mobile sa vtedy formulár SCHOVÁ (CSS display, NIE unmount — inak by stratil interný
    * state pri každom prechode na mapu). GeometryPicker počúva `map.on('click')` priamo cez
    * mapRef, nezávisle od viditeľnosti panela, takže zápis geometrie beží ďalej.
-   * Na PC sa neschováva nič: panel stojí vedľa mapy a lišta kreslenia sa oňho odsadí.
+   * Platí na PC aj na mobile — v krokoch 1–2 je obrazovkou mapa a formulár ustúpi celý.
    */
   const [addMapPhase, setAddMapPhase] = useState<'off' | 'draw' | 'notes'>('off');
   /**
@@ -2273,9 +2273,6 @@ export default function PackMap() {
   const [seedPoint, setSeedPoint] = useState<{ lat: number; lon: number } | null>(null);
 
   /**
-   * ÚZKA OBRAZOVKA? Rozhoduje o tom, či formulár stojí VEDĽA mapy (PC) alebo cez ňu (mobil),
-   * a či sa má v kroku 1 schovať, aby bolo na mapu vidno.
-   *
    * ⚠️ HISTÓRIA, KTORÁ SA NESMIE VRÁTIŤ: do 23. 8. mountovali `AddTripLog` DVE miesta naraz
    * (`.trp-sidebar` + `.trp-madd`) a skrývalo ich CSS, nie podmienka. Obe kópie písali do
    * jedného kľúča zálohy, takže tá neviditeľná — prázdna — prepísala prácu tej viditeľnej.
@@ -2283,17 +2280,12 @@ export default function PackMap() {
    * kópia zanikla: formulár žije v JEDNOM hostiteľovi (`.trp-addhost`), ktorému len CSS mení
    * tvar z plávajúceho panela na celú obrazovku.
    *
-   * Hranica je `MOBILE_BP`, to isté číslo, aké rozhoduje o layoute — dve rôzne hranice by
-   * vyrobili pásmo šírok bez pravidiel.
+   * ⚠️ MERANIE ŠÍRKY V JS TU UŽ NIE JE (24. 8.). Stav `isNarrow` rozhodoval, či sa formulár
+   * v kroku 1 schová a či lišta stojí vedľa panela — teda o TOKU podľa šírky okna. Odkedy je
+   * tok na oboch platformách rovnaký (kroky 1–2 = mapa, 3–5 = panel), rozhoduje o tvare už
+   * len CSS pri `MOBILE_BP`. Jedna hranica, jedno miesto; dve by vyrobili pásmo šírok
+   * bez pravidiel.
    */
-  const [isNarrow, setIsNarrow] = useState(() => typeof window !== 'undefined' && window.innerWidth <= MOBILE_BP);
-  useEffect(() => {
-    const mq = window.matchMedia(`(max-width:${MOBILE_BP}px)`);
-    const on = () => setIsNarrow(mq.matches);
-    on();
-    mq.addEventListener('change', on);
-    return () => mq.removeEventListener('change', on);
-  }, []);
   // tripy pridané v tejto session (ADD flow submit) — lokálny state, NIE Supabase (mimo
   // rozsahu tejto iterácie); zobrazujú sa hneď na mape + v zozname pred statickými HERO_TRAILS.
   // sessionStorage mirror (viď vyššie) nech expand na čerstvo pridaný trip nájde aj po navigate.
@@ -3979,11 +3971,17 @@ export default function PackMap() {
           sprievodcovia s vlastným číslom kroku, preto kópia zanikla. Tvar mení CSS:
           na PC plávajúci panel vedľa mapy, na mobile celá obrazovka.
 
-          `is-hidden` = krok 1 na mobile (obrazovkou je MAPA) alebo práve prebiehajúce
-          zapichovanie značky. Je to `display:none`, NIE unmount — formulár by inak stratil
-          celý svoj interný stav vrátane nakreslenej trasy. */}
+          `is-hidden` = kroky 1–2 (obrazovkou je MAPA) alebo práve prebiehajúce zapichovanie
+          značky. Je to `display:none`, NIE unmount — formulár by inak stratil celý svoj
+          interný stav vrátane nakreslenej trasy.
+
+          ⚠️ ROVNAKO NA VŠETKÝCH ŠÍRKACH (Matej 2026-08-24: „prvé dva kroky by mali byť takisto
+          na strede, dolný panel a až od 3. kroku ten ľavý panel… logika = kreslenie, všetko
+          ostatné zmizne"). Do 24. 8. tu stálo `isNarrow &&`, takže PC kreslil do mapy s
+          formulárom po boku a mobil bez neho — dva rôzne toky pre tú istú úlohu. O tvare
+          rozhoduje odteraz KROK, nie šírka okna. */}
       {(!!addFlow || !!addEventFlow) && (
-        <div className={`trp-addhost${isNarrow && (addMapPhase !== 'off' || notePlaceReady) ? ' is-hidden' : ''}`}>
+        <div className={`trp-addhost${addMapPhase !== 'off' || notePlaceReady ? ' is-hidden' : ''}`}>
           {addFlow ? (
             <AddTripLog
               allTrails={allTrails}
@@ -3993,7 +3991,6 @@ export default function PackMap() {
               onClose={closeAdd}
               placeholderFor={placeholderFor}
               mapRef={leafletMapRef}
-              besidePanel={!isNarrow}
               seedPoint={seedPoint}
               onMapPhase={setAddMapPhase}
               onPlaceNote={(g, k) => { setNotePlacing(g); setPlacingKind(k ?? null); }}

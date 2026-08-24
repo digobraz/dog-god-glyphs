@@ -67,7 +67,6 @@ export type AddTripLogProps = {
    * Panel stojí VEDĽA mapy (PC), nie cez celú obrazovku. Púšťa sa ďalej do lišty kreslenia,
    * ktorá sa podľa toho odsadí — inak by na PC ležala na tomto formulári.
    */
-  besidePanel?: boolean;
   /**
    * VÝCHODISKO Z PRSTA (rez C) — bod z dlhého stlačenia. Stane sa PRVOU KOTVOU trasy
    * hneď po výbere aktivity, takže krok „nájdi miesto" odpadá. Bez neho sa formulár
@@ -281,7 +280,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, besidePanel, seedPoint, onMapPhase, onPlaceNote, placedNotes, notePlacing }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, seedPoint, onMapPhase, onPlaceNote, placedNotes, notePlacing }: AddTripLogProps) {
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
@@ -712,7 +711,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // ale dolný panel") a na PC panel STOJÍ VEDĽA mapy — mapa je tam vidno aj tak, takže
   // presúvať otázky do doku by len znamenalo, že vedľa seba svietia dve škatule a jedna
   // z nich je prázdna.
-  const notesInBar = notesStep && !besidePanel;
+  // ⚠️ KROK 2 JE V LIŠTE VŽDY (Matej 2026-08-24). Do 24. 8. tu stálo `&& !besidePanel`, takže
+  // na PC sa tie isté tri otázky kreslili do panela vedľa mapy. Bol to jediný krok s dvoma
+  // podobami — a práve on hovorí „ukáž na mape, kde si parkoval".
+  const notesInBar = notesStep;
   // MOŽNOSTI SÚ VIDNO HNEĎ (Matej 2026-08-23: „človek nevie čo može označiť, nevidí možnosti…
   // musia byť ihned viditelne nie schované že najprv vyber bod a potom tam daj niečo čo ani
   // nevieš čo je"). Otázka „bolo tam nebezpečenstvo?" mala jediné tlačidlo OZNAČ NA MAPE a
@@ -779,7 +781,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     backLabel: notesInBar ? 'pack.addTrip.step.backToRoute' : undefined,
     doneLabel: t('pack.addTrip.step.doneRoute'),
     doneDisabled: nextBlocked,
-    besidePanel,
     // Mimo kroku 1 picker ostáva MOUNTNUTÝ (aby trasa na mape nezmizla, veď sa na ňu
     // v kroku 2 pichajú značky), ale nesmie brať kliky — inak by pri zapichovaní
     // parkoviska pribudla kotva trasy.
@@ -963,17 +964,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             </div>
 
             {/* ══ KROK 2 — ODKAZY NA TRASU ════════════════════════════════════════════
-                NA MOBILE TU NIE JE NIČ (Matej 2026-08-23: „ten bude opäť na mape, nie
-                prostredie krokov — v dolnom paneli sa zobrazia možnosti pridania odkazov") —
-                ovládanie nesie `notesPanel` v lište nad mapou. Na PC panel stojí VEDĽA mapy,
-                takže otázky ostávajú tu; dva panely vedľa seba, z ktorých je jeden prázdny,
-                by boli horšie než pôvodný stav. */}
-            {step === 2 && !notesInBar && (
-              <div className="atl-field">
-                <label>{t('pack.addTrip.step.name.notes')}</label>
-                {notesBody}
-              </div>
-            )}
+                TU NIE JE NIČ, A TO NA ŽIADNEJ ŠÍRKE (Matej 2026-08-23: „ten bude opäť na mape,
+                nie prostredie krokov — v dolnom paneli sa zobrazia možnosti pridania odkazov").
+                Ovládanie nesie `notesPanel` v lište nad mapou. Do 24. 8. tu stála PC vetva
+                s tými istými otázkami v paneli; zanikla spolu s panelom, ktorý v krokoch 1–2
+                už nestojí nikde. */}
 
             {/* ══ KROK 3 — ZÁKLAD ═════════════════════════════════════════════════════ */}
             {step === 3 && (
