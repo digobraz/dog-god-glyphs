@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { UserPlus } from 'lucide-react';
 import { BrandIcon } from './BrandIcon';
-import { HandBell } from './HandIcons';
+import { HandNose } from './HandIcons';
 import { PACK_THEME } from './packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { DEV_FULL } from '@/lib/packFlags';
@@ -256,7 +256,7 @@ export function PackNotifications({ last24h, last30d, total, dark = false, class
           cursor: 'pointer',
         }}
       >
-        <HandBell size={17} />
+        <HandNose size={17} />
         {bellCount > 0 && (
           <span
             style={{
