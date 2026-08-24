@@ -1960,7 +1960,19 @@ export const en = {
   'pack.addTrip.log.activityNote.overnight': "Mark the spot on the map.",
   'pack.addTrip.log.activityNote.skating': "Mark a place with an asphalt path.",
   'pack.addTrip.log.activityNote.paddleboard': "Pick the body of water.",
-  'pack.addTrip.log.activityNote.explore': "Mark somewhere worth seeing \u2014 a landmark, a park, a good spot\u2026",
+  'pack.addTrip.log.activityNote.explore': "Anything else \u2014 a castle, a landmark, a park\u2026",
+  // KROK 0b — pova\u017eovan\u00e9 za povinn\u00fa vo\u013ebu (Matej 24. 8. 2026). Kr\u00e1tke labely, nie vety:
+  // rozba\u013eova\u010d st\u00ed pod dla\u017edicou a dve dlh\u00e9 vety by ho spravili vy\u0161\u0161\u00edm ne\u017e sama dla\u017edica.
+  // AINUBIS \u2014 sprievodca nad mapou, stup\u0148ovan\u00e9 pod\u013ea pribl\u00ed\u017eenia (Matej 24. 8. 2026).
+  'pack.addTrip.ainubis.findPlace': "Find the place you went \u2014 search for it, or zoom the map in.",
+  'pack.addTrip.ainubis.closer': "Closer\u2026",
+  'pack.addTrip.ainubis.closerMore': "A little more\u2026",
+  'pack.addTrip.ainubis.zoomOk': "Perfect. Now press and hold where you set off \u2014 that starts the route.",
+  'pack.addTrip.geo.leaveToMap': "Back to the map \u2014 leave",
+  'pack.addTrip.ainubis.drawDone': "Keep tapping along the way. When you're back where you finished, hit ROUTE DONE.",
+  'pack.addTrip.log.mode.ask': "Are you logging it, or planning it?",
+  'pack.addTrip.log.mode.walked': "We walked it",
+  'pack.addTrip.log.mode.planned': "We're going",
   'pack.addTrip.log.title': "Log a trip",
   'pack.addTrip.log.titlePlan': "Plan a trip",
   'pack.addTrip.log.submit': "Log trip",
@@ -2127,9 +2139,16 @@ export const en = {
   'pack.addTrip.step.next': "Next",
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",
   'pack.addTrip.step.skip': "Skip",
+  // AINUBIS sa p\u00fdta, ke\u010f trasa nekon\u010d\u00ed tam, kde za\u010dala (Matej 24. 8. 2026). Ot\u00e1zka, nie z\u00e1mok.
+  'pack.addTrip.geo.openRouteTitle': "Didn't you head back?",
+  'pack.addTrip.geo.openRouteBody': "Your route ends somewhere else than it started. Most walks come back to the start \u2014 if yours did too, keep tapping your way home.",
+  'pack.addTrip.geo.openRouteFinish': "I'll add the way back",
+  'pack.addTrip.geo.openRouteKeep': "It really ended there",
+  'pack.addTrip.step.notesLead': "Share what's worth knowing with the pack \u2014 mark your notes on the map",
   'pack.addTrip.step.askParking': "Where did you park?",
   'pack.addTrip.step.askWarning': "Was there anything dangerous on the way?",
   'pack.addTrip.step.askTip': "A quiet spot, water, a view — anything worth knowing?",
+  'pack.addTrip.step.markShort': "Mark",
   'pack.addTrip.step.markParking': "Mark parking",
   'pack.addTrip.step.markWarning': "Mark the danger",
   'pack.addTrip.step.markTip': "Mark the spot",
@@ -2611,6 +2630,12 @@ export const en = {
   //    takže dlhý preklad je vidieť na prvý pohľad. `POINTS` je dvakrát dlhšie než `BODOV` —
   //    pod 360 px šírky sa preto obe zmenšujú (`@media` v `revealCss.ts`).
   'pack.reveal.pointsUnit': "points",
+  // SKLO\u0147OVAN\u00c1 JEDNOTKA — sloven\u010dina m\u00e1 tri tvary (1 bod / 3 body / 20 bodov), tak\u017ee jedna
+  // pevn\u00e1 jednotka na dla\u017edici d\u00e1vala „+3 BODOV". `pack.reveal.pointsUnit` ostáva pre re\u010d,
+  // kde \u010d\u00edslo stoj\u00ed samo (reveal odpo\u010d\u00edtava a jednotka sa nemen\u00ed).
+  'pack.points.unit.one': "{n} point",
+  'pack.points.unit.few': "{n} points",
+  'pack.points.unit.many': "{n} points",
   'pack.reveal.whyLink': "what earned them",
   'pack.reveal.whyTitle': "What earned these points",
   'pack.reveal.forThisTrip': "For this trip",

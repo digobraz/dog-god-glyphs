@@ -4283,7 +4283,24 @@ export default function PackMap() {
                 <MapNotesLayer
                   notes={mapNotes.notes}
                   onVote={(id, v) => { void mapNotes.vote(id, v); }}
-                  onDelete={(id) => { void mapNotes.remove(id); }}
+                  onDelete={(id) => {
+                    // ⚠️ ZMAZANÁ ZNAČKA MUSÍ ZMIZNÚŤ AJ ZO ZOZNAMU V SPRIEVODCOVI (Matej
+                    // 24. 8. 2026: „dal som parkovisko a potom som ho zmazal a v dolnom paneli
+                    // je v pils pod preskočiť — nevymazalo sa"). `tripNotes` sa doteraz len
+                    // dopĺňal pri vzniku značky; mazanie o ňom nevedelo, takže krok 2 aj
+                    // zhrnutie v kroku 4 tvrdili, že tam parkovisko je.
+                    // Kind sa musí prečítať PRED zmazaním — potom už riadok neexistuje.
+                    const gone = mapNotes.notes.find((n) => n.id === id)?.kind;
+                    void mapNotes.remove(id);
+                    // Zmaže sa JEDEN výskyt, nie všetky rovnaké: dve parkoviská na trase sú
+                    // dva zápisy a zmazaním jedného nemá zmiznúť aj druhé.
+                    if (addFlow && gone) {
+                      setTripNotes((prev) => {
+                        const i = prev.indexOf(gone);
+                        return i < 0 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
+                      });
+                    }
+                  }}
                   locale={dateLocale}
                   /* V DOGYPT čistom vizuáli sa overlaye ignorujú (nie mažú) —
                      rovnaké pravidlo ako pri názvoch a vreteniciach, nech je

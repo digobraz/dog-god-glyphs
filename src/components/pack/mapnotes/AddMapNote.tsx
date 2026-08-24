@@ -29,6 +29,7 @@ import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
 import { KindGrid } from './KindGrid';
+import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
 import { noteMarkHtml } from './MapNotesLayer';
 import { GROUP_TINT, HAZARD_RED, TICK_ORANGE, NotePalette, NOTE_PALETTE_CSS, type PaletteExtra } from './NotePalette';
 
@@ -170,16 +171,21 @@ export function MapNotePlacing({
   const t = useT();
   const touch = typeof window !== 'undefined' && window.matchMedia('(hover:none)').matches;
   const key = !ready ? 'pack.mapNotes.place.zoomIn' : touch ? 'pack.mapNotes.place.touch' : 'pack.mapNotes.place.mouse';
+  const what = kind ? t(`pack.mapNotes.kind.${kind}`) : t(`pack.mapNotes.group.${group}`);
+  /**
+   * ⚠️ HOVORÍ TO AINUBIS A HORE, NIE VLASTNÁ LIŠTA (Matej 24. 8. 2026: „po kliknutí na označ
+   * parkovisko je na obrazovke správa — potrebujeme aby ju povedal ainubis a bola hore ako
+   * vždy, a to isté platí aj pri ďalších odkazoch pri tom výbere a kliku na mapu").
+   *
+   * Pilulka `.mnp-bar` bola posledné miesto, kde s človekom hovoril niekto iný než AInubis —
+   * a bola to práve tá chvíľa, keď sa naňho najviac spolieha (drží prst nad mapou a hľadá,
+   * kam ťuknúť). Sprievodca výletu si v tejto chvíli svoju bublinu skrýva
+   * (`drawBar.active` = false pri `notePlacing`), takže sa dve nikdy neprekryjú.
+   *
+   * × = ZRUŠIŤ. Je to to isté východisko, aké × nesie po celý zvyšok sprievodcu.
+   */
   return (
-    <div className={`mnp-bar${ready ? '' : ' is-warn'}`} role="status">
-      <style>{ADD_NOTE_CSS}</style>
-      <span className="mnp-dot" style={{ background: GROUP_TINT[group] }} aria-hidden />
-      <span className="mnp-text">
-        <b>{kind ? t(`pack.mapNotes.kind.${kind}`) : t(`pack.mapNotes.group.${group}`)}</b>
-        {t(key)}
-      </span>
-      <button type="button" className="mnp-cancel" onClick={onCancel}>{t('pack.mapNotes.add.cancel')}</button>
-    </div>
+    <AinubisGuide text={`${what} ${t(key)}`} onAbort={onCancel} abortLabel={t('pack.mapNotes.add.cancel')} />
   );
 }
 
@@ -354,7 +360,14 @@ export function AddMapNotePanel({
               🦌 je zver, ale 🕷️ môže byť pavúk aj kliešť a ⚠️ nepovie nič. Popis bol doteraz
               len v `title`, ktorý na dotykovom displeji neexistuje. Tá istá mriežka stojí
               v kroku 2 sprievodcu výletu — preto zdieľaný komponent, nie dve kópie. */}
-          <KindGrid kinds={subKinds} selected={kind} tint={GROUP_TINT[group]} onPick={pickKind} />
+          {/* ⚠️ VODOROVNÝ RAD, ROVNAKO AKO V SPRIEVODCOVI (Matej 24. 8. 2026: „otvorí mi dolný
+              panel so všetkými možnosťami, ale sú 3x3 a nezmestí sa to + panel je ešte väčší…
+              potrebujeme docieliť súrodosť, takto to vyzerá amatérsky, každý slajd má iný vajb
+              a logiku"). Mriežka 3×3 tu vyrábala tri riadky v paneli, ktorý je zámerne nízky,
+              aby nezakryl mapu — a hneď po tom, čo si človek ten istý druh vybral o obrazovku
+              skôr. Rad ostáva VIDNO (druh sa tu dá ešte prepnúť, panel je práve na doladenie),
+              len má výšku jedného riadku a vybraná dlaždica je zvýraznená. */}
+          <KindGrid row kinds={subKinds} selected={kind} tint={GROUP_TINT[group]} onPick={pickKind} />
         </>
       )}
 
@@ -699,19 +712,10 @@ export const ADD_NOTE_CSS = `
 /* ── LIŠTA „UKÁŽ MIESTO" ───────────────────────────────────────────────────
    Plná tmavá výplň, nie sklo: leží nad SVETLOU mapou, kde priesvitné sklo zmizne
    (overené screenshotom pri prvej verzii — biely text na svetlozelenej mape). */
-.mnp-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:1200;display:flex;align-items:center;gap:10px;width:min(94vw,440px);padding:10px 12px;border-radius:14px;background:rgba(5,5,5,0.94);border:1px solid rgba(201,154,63,0.5);box-shadow:0 8px 26px rgba(0,0,0,0.55);transition:border-color .18s ease,box-shadow .18s ease;}
 /* VÝZVA PRIBLÍŽIŤ = jediný stav, keď lišta hovorí „takto to nepôjde" (Matej 2026-08-21:
    „daj ju do červeného rámika ten čierny sa stratí"). Zlatý rám na mape splýva s okolím
    aj s vlastnou paletou; červená je jediná farba, ktorú appka inde nepoužíva na nič iné
    než na upozornenie. NEDÁVAJ ju na MapNoteHint — tá privíta, nie varuje. */
-.mnp-bar.is-warn{border-color:${HAZARD_RED};box-shadow:0 8px 26px rgba(0,0,0,0.55),0 0 0 1px rgba(206,75,60,0.45),0 0 18px rgba(206,75,60,0.35);}
-.mnp-bar.is-warn .mnp-text b{color:${HAZARD_RED};}
-@media (max-width:720px){.mnp-bar{bottom:82px;}}
-.mnp-dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;box-shadow:0 0 0 3px rgba(255,255,255,0.14);}
-.mnp-text{flex:1 1 auto;font-family:${FONT_UI};font-size:11.5px;line-height:1.4;color:${T.onDark};}
-.mnp-text b{font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-right:7px;}
-.mnp-cancel{flex:0 0 auto;font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:${T.onDarkDim};background:transparent;border:0;padding:6px 2px;cursor:pointer;}
-.mnp-cancel:hover{color:${T.onDark};}
 
 /* ── RÝCHLA PALETA PRI BODE ────────────────────────────────────────────────── */
 /* Šírka je ORÁMOVANÁ, nie max-content: tri pilulky s celými názvami merajú ~470 px

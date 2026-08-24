@@ -22,6 +22,7 @@ export function KindGrid({
   selected,
   tint,
   onPick,
+  row,
 }: {
   kinds: NoteKind[];
   /** null = zatiaľ nič nevybrané (sprievodca pred ťuknutím do mapy) */
@@ -29,10 +30,21 @@ export function KindGrid({
   /** farba skupiny — vybraná dlaždica ju nesie ako výplň */
   tint: string;
   onPick: (k: NoteKind) => void;
+  /**
+   * VODOROVNÝ RAD namiesto mriežky (Matej 24. 8. 2026: „upozornenia daj do horizontálneho
+   * scrolu... je ich veľa, už som ti to písal viackrát").
+   *
+   * ⚠️ Mriežka 3×3 vznikla 23. 8. z jeho vlastnej výhrady, že možnosti *„musia byť ihneď
+   * viditeľné, nie schované"* — a rad ich časť schová za okraj. Vyhralo to, že deväť dlaždíc
+   * v kroku, kde je pod nimi ešte otázka aj dve tlačidlá, vytlačí návrat pod okraj obrazovky
+   * a človek musí skrolovať. Rad je preto ZÚŽENÝ na miesto, kde miesto naozaj chýba
+   * (sprievodca výletu); paleta značiek na mape mriežku drží ďalej.
+   */
+  row?: boolean;
 }) {
   const t = useT();
   return (
-    <div className="mnk-grid">
+    <div className={row ? 'mnk-grid mnk-grid--row' : 'mnk-grid'}>
       <style>{KIND_GRID_CSS}</style>
       {kinds.map((k) => (
         <button
@@ -57,6 +69,18 @@ export function KindGrid({
 // vysoké stĺpce. Mriežka drží rovnakú výšku všetkým (`align-items:stretch` je default).
 export const KIND_GRID_CSS = `
 .mnk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px;}
+/* Rad s posunom prstom. scroll-snap drží dlaždice zarovnané, aby sa rad nezastavil
+   na polovici jednej z nich a nevyzeral ako oreznutý omylom. Posledná dlaždica je vidno
+   len spolovice zámerne — to je jediné, čo človeku povie, že rad pokračuje. */
+.mnk-grid--row{display:flex;grid-template-columns:none;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:none;}
+.mnk-grid--row::-webkit-scrollbar{display:none;}
+/* ⚠️ V RADE SÚ DLAŽDICE NÍZKE (Matej 24. 8. 2026: „tie možnosti sú zbytočne na výšku vysoké
+   a zaberajú cenný priestor v dolnom paneli, kde sa to nezmestí"). V mriežke bolo emoji NAD
+   názvom, lebo stĺpec je úzky; v rade sa smie ísť VEDĽA SEBA a dlaždica tým klesne z ~58 px
+   na ~34 px. Ušetrené dva riadky sú presne to, čo v paneli chýbalo. */
+.mnk-grid--row .mnk-tile{flex:0 0 auto;scroll-snap-align:start;flex-direction:row;gap:6px;padding:7px 11px;border-radius:999px;white-space:nowrap;}
+.mnk-grid--row .mnk-tile i{font-size:15px;}
+.mnk-grid--row .mnk-tile em{font-size:11px;}
 .mnk-tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:5px;box-sizing:border-box;padding:9px 4px;border-radius:10px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease;}
 .mnk-tile:hover{transform:translateY(-1px);border-color:${T.onDarkDim};}
 .mnk-tile i{font-style:normal;font-family:${FONT_EMOJI};font-size:19px;line-height:1;}

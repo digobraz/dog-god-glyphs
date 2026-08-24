@@ -119,10 +119,14 @@ export interface RadiusRule {
 // Dôvod je ten istý, aký stál za pôvodným znením: nebezpečenstvo je rozptýlené. Kliešte
 // nekončia na súradnici, medveď sa medzitým pohol a ovčiarske psy chodia so stádom — bod
 // tvrdí presnosť, ktorú o hrozbe nikto nemá.
+// ⚠️ DOLNÁ HRANICA 100 m (Matej 24. 8. 2026: „tie okruhy dajme od 100m nie od 500").
+// Päťsto metrov bolo najmenšie, čo sa dalo nastaviť, takže „tu pri tom moste je pes na
+// vodítko" sa zapísalo ako polkilometrový kruh cez pol dediny. Predvolená hodnota ostáva
+// 500 — väčšina hrozieb naozaj je rozptýlená; mení sa len to, kam sa dá posuvník stiahnuť.
 export const RADIUS_RULES: Record<NoteGroup, RadiusRule> = {
   parking: { mode: 'none', min: 0, max: 0, step: 0, def: 0 },
-  warning: { mode: 'required', min: 500, max: 5000, step: 100, def: 500 },
-  comment: { mode: 'optional', min: 200, max: 5000, step: 100, def: 500 },
+  warning: { mode: 'required', min: 100, max: 5000, step: 100, def: 500 },
+  comment: { mode: 'optional', min: 100, max: 5000, step: 100, def: 500 },
 };
 
 // ── VÝNIMKY SÚ VLASTNOSŤOU DRUHU, NIE SKUPINY (Matej 2026-08-22) ────────────

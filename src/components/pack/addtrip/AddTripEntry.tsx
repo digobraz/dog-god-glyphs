@@ -106,7 +106,19 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
                 }}
               >
                 {k.disabled && <span className="att-entry-soon">{t('pack.map.comingSoon')}</span>}
-                {!!k.points && <span className="att-entry-pts">+{k.points}</span>}
+                {/* JEDNOTKA MUSÍ BYŤ PRI ČÍSLE (Matej 24. 8. 2026: „pri kliknutí na pridať je tam
+                    +20… chýba BODOV"). Holé „+20" nepovie, či ide o body, kilometre alebo eurá —
+                    a dlaždica je prvé miesto, kde človek vidí, že sa zápis vôbec odmeňuje.
+                    ⚠️ SKLOŇUJE SA. Pevná jednotka („bodov") dala na odkaze „+3 BODOV" — slovenčina
+                    má tri tvary a dlaždice nesú 20 / 10 / 3, teda dva z nich naraz. Rovnaký
+                    trojtvarový vzor drží aj `pack.addTrip.geo.pointsSuffix` pre kotvy trasy;
+                    zámerne sa NEPOŽIČIAVA — tam sú to body na mape, tu odmena, a v angličtine
+                    sa tie dve slová raz rozídu. */}
+                {!!k.points && (
+                  <span className="att-entry-pts">
+                    +{t(`pack.points.unit.${k.points === 1 ? 'one' : k.points < 5 ? 'few' : 'many'}`, { n: k.points })}
+                  </span>
+                )}
                 <span className="att-entry-emoji" aria-hidden="true">{k.emoji}</span>
                 <span className="att-entry-title">{t(k.titleKey)}</span>
                 <span className="att-entry-text">{t(k.textKey)}</span>
@@ -161,7 +173,7 @@ const ENTRY_CSS = `
 .att-entry-block{position:relative;flex:1 1 0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(245,240,228,0.04);border:1.5px solid ${T.onDarkBorder};border-radius:16px;padding:24px 20px;cursor:pointer;transition:border-color .15s ease,background .15s ease,transform .15s ease;}
 .att-entry-block:hover,.att-entry-block:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.08);transform:translateY(-2px);outline:none;}
 /* Body za zápis — malá pilulka v rohu dlaždice, nie súčasť nadpisu. Je to odmena, nie názov. */
-.att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.06em;color:${GOLD};}
+.att-entry-pts{position:absolute;top:10px;right:10px;padding:3px 8px;border-radius:999px;background:rgba(201,154,63,0.16);border:1px solid rgba(201,154,63,0.55);font-family:${FONT_UI};font-weight:600;font-size:10px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;color:${GOLD};}
 .att-entry-block-disabled{opacity:.42;cursor:default;}
 .att-entry-block-disabled:hover,.att-entry-block-disabled:focus-visible{border-color:${T.onDarkBorder};background:rgba(245,240,228,0.04);transform:none;}
 .att-entry-soon{position:absolute;top:10px;right:10px;font-family:${FONT_UI};font-weight:600;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:${T.onDarkDim};border:1px solid ${T.onDarkBorder};border-radius:999px;padding:3px 8px;}
