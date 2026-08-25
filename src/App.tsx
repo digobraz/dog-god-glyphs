@@ -101,6 +101,11 @@ const Vision = lazy(() => import("./pages/Vision.tsx"));
 const BetaVision = lazy(() => import("./pages/BetaVision.tsx"));
 // DEV-only dielňa hero radu — pyramída svorky pri 1–20 psoch (route nižšie za import.meta.env.DEV)
 const HeroLab = lazy(() => import("./pages/HeroLab.tsx"));
+// DEV-only pieskovisko homepage — 1:1 kópia WALL, tu sa skúša papyrusový vzhľad.
+// `/` sa NEMENÍ (CLAUDE.md lock). Route nižšie za import.meta.env.DEV.
+const GodsGridLab = lazy(() =>
+  import("@/components/gods/GodsGridLab").then((m) => ({ default: m.GodsGridLab }))
+);
 const Religion = lazy(() => import("./pages/Religion.tsx"));
 const About = lazy(() => import("./pages/About.tsx"));
 const Entry = lazy(() => import("./pages/Entry.tsx"));
@@ -159,6 +164,10 @@ const App = () => (
               <Route path="/wall" element={<GodsGrid />} />
               <Route path="/grid" element={<GodsGrid />} />
               <Route path="/spiral" element={<SpiralLanding />} />
+              {/* WALL LAB — pieskovisko homepage, len v deve (`npm run dev` → /wall-lab). */}
+              {import.meta.env.DEV && (
+                <Route path="/wall-lab" element={<GodsGridLab />} />
+              )}
 
               {/* /entry — verejná conviction gate PRED flow (2026-07-12). CTA → /heroglyph/intro. */}
               <Route path="/entry" element={<Entry />} />

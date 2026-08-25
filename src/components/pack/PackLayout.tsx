@@ -16,6 +16,10 @@ import { onOpenMessaging, type MessagingOpenEvent } from './messaging/openBridge
 // import je preto lacný, na rozdiel od `heroTrails.generated`, ktorý sa načíta
 // lazy až pri kliku na štítok výletu.
 import { currentTripId, tripPathById } from './tripShared';
+import {
+  NAV_R, NAV_GOLD, NAV_GRAIN, NAV_MOTTLE,
+  NAV_FRAME_SHADOW, NAV_PLATE_SHADOW, NAV_PILL_SHADOW,
+} from './navGoldSkin';
 
 // Inbox/Thread lazy — statický import by ich (a s nimi packMessaging.ts: HERO_TRAILS 1,5 MB,
 // HERO_JOURNEYS) ťahal do PackLayout chunku vždy, aj keď overlay na LIVE
@@ -236,45 +240,10 @@ export const NAV_SKIN: 'gold' | 'glass' = 'gold';
 //   2. TEXTÚRA papiera na doske (zrno + mramorovanie). Rovnomerný gradient bol to,
 //      čo Matej čítal ako „umelo".
 //   3. Doska je TEPLEJŠÍ piesok, nie krémová — moja bola vybledená do biela.
-/** Rozmery z predlohy, prepočítané na bar ~60 px. */
-// ⚠️ 3. kolo (Matej: „ten rámik je moc široký nie?"). Vymerané, nie odhadnuté:
-// samotný zlatý pás bol 11,9 % výšky proti 10,8 % v predlohe — teda takmer presne.
-// Široko pôsobili TMAVÉ LINKY: 1,5 px = 2,2 % výšky proti 1,2 % v predlohe, a sú
-// dve (vonkajšia + na hranici dosky). Celá zóna rámu tak vyšla 16,4 % namiesto 13,2 %.
-// Preto klesá pás 8→6 a linka 1,5→1, nie pás sám o sebe.
-// `line` je hrúbka OBOCH tmavých obrysov — musia ostať rovnaké, inak sa rám rozbije.
-const NAV_R = { frame: 14, rim: 6, plate: 8, line: 1 };
-
-const NAV_GOLD = {
-  /** Rám: leštené zlato, svetlá hrana hore, telo, tmavý spodok. */
-  frame:
-    'linear-gradient(180deg, #FCF0C2 0%, #EDCE7C 20%, #D8B052 50%, #C09636 78%, #AA8129 100%)',
-  /** Tmavý obrys — ten istý vonku aj na vnútornej hranici rámu. */
-  edge: '#6E4E18',
-  /** Doska: teplý pieskovec, nie krém. */
-  surface:
-    'linear-gradient(180deg, #F1DFB6 0%, #E9D5A7 42%, #E1CA97 72%, #D6BC85 100%)',
-  /** Aktívna pilulka: sýtejšie zlato než doska, aby vystúpila. */
-  activeFill:
-    'linear-gradient(180deg, #F4DC97 0%, #E6C267 34%, #D9AC46 70%, #C99A33 100%)',
-  ink: '#2A1608',
-};
-
-// Zrnitosť papiera/kameňa. Inline SVG turbulencia = žiadny asset, žiadny request;
-// `#` MUSÍ byť `%23`, inak sa data URI zlomí na fragmente a vrstva ticho zmizne.
-//
-// ⚠️ 1. pokus mal JEDNU vrstvu s `mix-blend-mode: overlay` a bol NEVIDITEĽNÝ: overlay
-// šedého šumu na strednej zlatej takmer nemení jas. Zrno potrebuje DVE vrstvy —
-// `multiply` (tmavé body) a `screen` (svetlé), navzájom posunuté.
-const NAV_GRAIN =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 1.8 0 0 0 -0.65'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E\")";
-
-// Mramorovanie dosky — v predlohe je papier nerovnomerný, svetlejší v strede a
-// zašpinený pri okrajoch. Vignette robí presne to a je to lacnejšie než textúra.
-const NAV_MOTTLE =
-  'radial-gradient(75% 130% at 22% 6%, rgba(255,252,236,0.6), transparent 62%), ' +
-  'radial-gradient(88% 145% at 50% 50%, transparent 48%, rgba(112,76,20,0.13) 100%), ' +
-  'radial-gradient(45% 95% at 78% 96%, rgba(112,76,20,0.11), transparent 66%)';
+// ⚠️ TOKENY SA PRESŤAHOVALI (25. 8. 2026) do `navGoldSkin.ts` — ten istý rám
+// potrebujú aj povrchy mimo Reactu (stena `/wall-lab` má nav v CSS template
+// literáli). Dve kópie gradientov by sa rozišli pri prvej úprave. Merania
+// a dôvody jednotlivých kôl ladenia ostávajú v komentároch vyššie.
 
 /**
  * Zrnitá vrstva nad ľubovoľným povrchom navu. `radius` musí sedieť s podkladom.
@@ -363,15 +332,7 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
                 position: 'absolute', inset: 0, borderRadius: NAV_R.frame,
                 background: NAV_GOLD.frame,
                 border: `${NAV_R.line}px solid ${NAV_GOLD.edge}`,
-                boxShadow: [
-                  '0 12px 26px -8px rgba(0,0,0,0.72)',
-                  '0 3px 0 -1px rgba(70,46,12,0.5)',
-                  'inset 0 1.5px 0 rgba(255,250,228,0.95)',
-                  'inset 0 7px 9px -7px rgba(255,248,214,0.95)',
-                  'inset 0 -2px 3px rgba(84,56,14,0.55)',
-                  'inset 1.5px 0 2px -1px rgba(255,246,214,0.5)',
-                  'inset -1.5px 0 2px -1px rgba(84,56,14,0.4)',
-                ].join(', '),
+                boxShadow: NAV_FRAME_SHADOW,
                 pointerEvents: 'none',
               }}
             />
@@ -384,11 +345,7 @@ export function PackBottomNav({ avatarUrl, avatarInitial, dogs }: { avatarUrl?: 
                 position: 'absolute', inset: NAV_R.rim, borderRadius: NAV_R.plate,
                 background: `${NAV_MOTTLE}, ${NAV_GOLD.surface}`,
                 border: `${NAV_R.line}px solid ${NAV_GOLD.edge}`,
-                boxShadow: [
-                  'inset 0 2px 5px rgba(96,64,16,0.42)',
-                  'inset 0 -1px 0 rgba(255,252,240,0.45)',
-                  '0 1px 0 rgba(255,248,222,0.55)',
-                ].join(', '),
+                boxShadow: NAV_PLATE_SHADOW,
                 pointerEvents: 'none',
               }}
             />
@@ -899,13 +856,7 @@ const pillStyle = (active: boolean): React.CSSProperties =>
     color: NAV_GOLD.ink,
     background: active ? NAV_GOLD.activeFill : 'transparent',
     border: `${NAV_R.line}px solid ${active ? NAV_GOLD.edge : 'transparent'}`,
-    boxShadow: active
-      ? [
-          'inset 0 2px 0 rgba(255,250,222,0.85)',
-          'inset 0 -3px 5px rgba(110,74,20,0.42)',
-          '0 3px 6px -1px rgba(70,45,10,0.5)',
-        ].join(', ')
-      : 'none',
+    boxShadow: active ? NAV_PILL_SHADOW : 'none',
     textDecoration: 'none',
     position: 'relative',
   } : ({

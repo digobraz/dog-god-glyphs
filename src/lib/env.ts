@@ -36,6 +36,15 @@ export const SUPABASE_ANON_KEY = import.meta.env.PROD
 
 export const EDGE_BASE = `${SUPABASE_URL}/functions/v1`;
 
+// LIVE edge base — natvrdo na produkčný projekt, NEZÁVISLE od módu buildu.
+// Jediný povolený konzument: dev-only pieskovisko homepage (`GodsGridLab`), ktoré
+// potrebuje SKUTOČNÝCH členov steny (DEV projekt má len testovacích psov, takže
+// papyrusový vzhľad sa na ňom nedá posúdiť). `get-grid-dogs` je verejný, read-only
+// a bez hlavičiek — to isté, čo vidí každý návštevník `/`.
+// ⚠️ NEPOUŽÍVAJ na nič, čo ZAPISUJE alebo číta cez `supabase` klienta — lokálny
+// vývoj musí ďalej písať do DEV projektu.
+export const LIVE_EDGE_BASE = `${LIVE_SUPABASE_URL}/functions/v1`;
+
 // PostHog (EU cloud). Project API key je VEREJNÝ write-only (phc_...), rovnako ako
 // Supabase anon key — bezpečný vo verejnom bundli. Projekt 218037. Keychain: dogypt-posthog-key.
 const LIVE_POSTHOG_KEY = 'phc_uz2yLbgP6oxs5CapQsj4jyLwDegrbjB5ueAcTvLc4coM';
