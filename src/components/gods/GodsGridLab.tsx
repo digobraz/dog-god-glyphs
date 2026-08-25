@@ -168,6 +168,15 @@ function planetTileUrl(rawUrl: string | null): string {
   return publicId ? gridTileUrl(publicId, 160) : url;
 }
 
+// Fotka do panela detailu na guli. Dlaždicových 160 px je v ňom viditeľne
+// rozmazaných (kruh 92 px na displeji s dvojnásobnou hustotou).
+function planetDetailUrl(rawUrl: string | null): string {
+  const url = safeUrl(rawUrl || '');
+  if (!url) return '';
+  const publicId = cloudinaryPublicId(url);
+  return publicId ? gridTileUrl(publicId, 320) : url;
+}
+
 // Dlaždicová URL pre WALL kartu — sanitizovaná (safeUrl) + Cloudinary transform (w/h/q auto)
 // namiesto surového originálu. Detail/reveal overlay zostáva na plnom obrázku zámerne.
 function tileImageUrl(rawUrl: string | null): string {
@@ -340,6 +349,11 @@ export function GodsGridLab() {
                 name: d.dog_name || '',
                 n: d.pack_number,
                 photo: planetTileUrl(d.cloudinary_main_url),
+                // Detail psa na guli nesie to isté, čo otvorená karta na stene:
+                // väčšiu fotku, heroglyf a odkaz majiteľa.
+                photoBig: planetDetailUrl(d.cloudinary_main_url),
+                heroglyph: safeUrl(d.heroglyph_png_url || ''),
+                message: d.owner_message || '',
               }))
               .filter(d => d.photo)
           );

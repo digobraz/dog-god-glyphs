@@ -35,8 +35,15 @@ import { join } from 'node:path';
 const ROOT = new URL('../src', import.meta.url).pathname;
 const EXT = /\.(tsx?|jsx?)$/;
 
-/** Nájde deklarácie typu `const NIECO_CSS = \`` a vráti telo literálu. */
-const DECL = /const\s+([A-Za-z0-9_]*(?:CSS|css))\s*(?::\s*string\s*)?=\s*`/g;
+/**
+ * Nájde CSS literál a vráti jeho telo. DVE formy, nie jedna:
+ *   `const NIECO_CSS = \``  ·  `<style>{\``
+ * ⚠️ Druhá tu 25. 8. 2026 CHÝBALA, hoci ju hlavička súboru sľubovala. Stena aj
+ * planéta (`GodsGridLab`, `DogPlanetLab`) píšu CSS práve inline v `<style>`,
+ * takže stráž nad nimi hlásila „čisté" a build padol o sekundu neskôr presne
+ * na tom apostrofe, kvôli ktorému stráž vznikla.
+ */
+const DECL = /(?:const\s+([A-Za-z0-9_]*(?:CSS|css))\s*(?::\s*string\s*)?=|<(style)>\s*\{)\s*`/g;
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -59,6 +66,7 @@ const cascade = [];
 for (const file of walk(ROOT)) {
   const src = readFileSync(file, 'utf8');
   for (const m of src.matchAll(DECL)) {
+    const label = m[1] || '<style>';
     const start = m.index + m[0].length;
     // Koniec literálu = prvý spätný apostrof, ktorý nie je escapovaný.
     // Ak je v tele apostrof navyše, literál skončí PRED koncom CSS bloku —
@@ -78,7 +86,7 @@ for (const file of walk(ROOT)) {
     for (const c of bodyText.matchAll(/\/\*[\s\S]*?\*\//g)) {
       if (!/\$\{\s*[^'"\s]/.test(c[0])) continue;
       const line = src.slice(0, start + c.index).split('\n').length;
-      bad.push(`${file}:${line}  — literál ${m[1]} má \${ v CSS komentári (esbuild to vyhodnotí ako interpoláciu, nie text)`);
+      bad.push(`${file}:${line}  — literál ${label} má \${ v CSS komentári (esbuild to vyhodnotí ako interpoláciu, nie text)`);
     }
 
     // ── JEDNOTRIEDNY PREPIS V @media, KTORÝ NIŽŠIE PREBÍJA ROVNAKÁ TRIEDA ───
@@ -105,7 +113,7 @@ for (const file of walk(ROOT)) {
           if (!kolizia.length) continue;               // iné vlastnosti → nekolidujú
           const line = src.slice(0, start + mqStart).split('\n').length;
           cascade.push(
-            `${file}:${line}  — literál ${m[1]}: prepis ${sel} v @media nastavuje ${kolizia.join(', ')}, ` +
+            `${file}:${line}  — literál ${label}: prepis ${sel} v @media nastavuje ${kolizia.join(', ')}, ` +
             `ale to isté nastavuje aj ${sel} NIŽŠIE mimo @media → prehrá (media query nepridáva špecificitu). ` +
             `Napíš ho dvojtriedne, napr. .rodic ${sel}`,
           );
@@ -115,11 +123,12 @@ for (const file of walk(ROOT)) {
     }
 
     const after = src.slice(i + 1, i + 3);
-    // Zdravý literál končí na `;` (prípadne `\n;`). Čokoľvek iné = ukončil ho
-    // apostrof v komentári a zvyšok CSS sa teraz tvári ako JavaScript.
-    if (!/^\s*;/.test(after)) {
+    // Zdravý literál končí na `;` (konštanta) alebo `}` (`<style>{...}`).
+    // Čokoľvek iné = ukončil ho apostrof v komentári a zvyšok CSS sa teraz
+    // tvári ako JavaScript.
+    if (!/^\s*[;}]/.test(after)) {
       const line = src.slice(0, i).split('\n').length;
-      bad.push(`${file}:${line}  — literál ${m[1]} sa končí spätným apostrofom v tele (pravdepodobne v CSS komentári)`);
+      bad.push(`${file}:${line}  — literál ${label} sa končí spätným apostrofom v tele (pravdepodobne v CSS komentári)`);
     }
   }
 }

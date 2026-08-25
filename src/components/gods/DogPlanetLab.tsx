@@ -21,12 +21,17 @@
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import { dogPagePath } from '@/lib/dogSlug';
 
 export interface PlanetDog {
   id: string;
   name: string;
   n: number | null;
   photo: string;
+  /** Fotka pre panel detailu — dlaždicových 160 px je v ňom rozmazaných. */
+  photoBig: string;
+  heroglyph: string;
+  message: string;
 }
 
 /** Polomer gule v px pri mierke 1. Skutočná veľkosť sa dolaďuje cez CSS scale. */
@@ -101,8 +106,30 @@ export function DogPlanetLab({
   // Skúšobný počet psov na guli — nie je to nastavenie appky, je to LABORATÓRNY
   // gombík: ukazuje, ako bude planéta vyzerať, keď svorka narastie.
   const [target, setTarget] = useState(200);
-  const dragRef = useRef<{ x: number; y: number } | null>(null);
+  // Ťah: okrem poslednej pozície si drží PREJDENÚ DRÁHU a dlaždicu, na ktorej sa
+  // prst položil — z toho sa na konci rozhodne, či to bol ťuk alebo otáčanie.
+  const dragRef = useRef<{ x: number; y: number; dist: number; tile: HTMLElement | null } | null>(null);
   const autoRef = useRef(true);
+
+  // ── INTERAKCIA (Matej 25. 8.: „nech je tá planéta interaktívna") ────────────
+  // Meno pri kurzore. Drží sa v state, lebo sa vykresľuje ako samostatný štítok
+  // NAD guľou — dieťaťom dlaždice byť nemôže: tá je otočená v priestore, takže
+  // text by bol šikmý a na zadnej pologuli by ho `backface-visibility` zhaslo.
+  const [hover, setHover] = useState<{ name: string; n: number | null; x: number; y: number } | null>(null);
+  const [picked, setPicked] = useState<PlanetDog | null>(null);
+  // LAB PREPÍNAČ: kde sa detail otvorí. `side` = panel zboku (na mobile zhora),
+  // guľa sa točí ďalej a uhne sa mu · `center` = prekryje stred, logo a CTA na
+  // ten čas zmiznú. Vyberie sa jedna, druhá padne.
+  const [variant, setVariant] = useState<'side' | 'center'>('side');
+  // Zvýraznená dlaždica sa nastavuje PRIAMO na DOM prvku, nie cez state — pri
+  // 1000 dlaždiciach by každé prejdenie myšou prekreslilo celý zoznam.
+  const hotRef = useRef<HTMLElement | null>(null);
+  const setHot = (el: HTMLElement | null) => {
+    if (hotRef.current === el) return;
+    hotRef.current?.classList.remove('is-hot');
+    hotRef.current = el;
+    el?.classList.add('is-hot');
+  };
 
   // Rozmiestnenie sa počíta RAZ pre daný zoznam psov — pri každom renderi by sa
   // dlaždice premiešali a guľa by pri otáčaní „blikala" inými psami.
@@ -155,36 +182,95 @@ export function DogPlanetLab({
     return () => cancelAnimationFrame(raf);
   }, [open]);
 
-  // ESC zatvára — rovnaký únik ako z každého overlayu v appke.
+  // ESC zatvára — rovnaký únik ako z každého overlayu v appke. Keď je otvorený
+  // detail psa, prvé ESC zavrie JEHO: inak by človek jedným klávesom zhodil celú
+  // planétu a nevedel by, prečo zmizla.
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (picked) setPicked(null);
+      else onClose();
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
+  }, [open, onClose, picked]);
+
+  // Zmena počtu psov prekreslí dlaždice → zvýraznená visí na prvku, ktorý už
+  // nie je v dokumente. Zavretá planéta si nedrží nič.
+  useEffect(() => {
+    setHot(null);
+    setHover(null);
+  }, [target]);
+  useEffect(() => {
+    if (open) return;
+    setHot(null);
+    setHover(null);
+    setPicked(null);
+  }, [open]);
+
+  /** Dlaždica pod udalosťou → pes. `img` má pointer-events:none, takže cieľom je div. */
+  const dogAt = (el: HTMLElement | null): PlanetDog | null => {
+    if (!el) return null;
+    const i = Number(el.dataset.i);
+    return Number.isInteger(i) ? tiles[i]?.dog ?? null : null;
+  };
 
   const onDown = (e: React.PointerEvent) => {
-    dragRef.current = { x: e.clientX, y: e.clientY };
+    const tile = (e.target as HTMLElement).closest('.planet-tile') as HTMLElement | null;
+    dragRef.current = { x: e.clientX, y: e.clientY, dist: 0, tile };
     autoRef.current = false;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    // Zámok na GUĽU, nie na dlaždicu: dlaždica má ~30 px a otáčanie by skončilo,
+    // len čo z nej prst zíde.
+    ballRef.current?.setPointerCapture?.(e.pointerId);
   };
   const onMove = (e: React.PointerEvent) => {
     const d = dragRef.current;
-    if (!d) return;
+    if (!d) {
+      // NABEHNUTIE MYŠOU. Dotyk sa sem nedostane zámerne — prst hover nemá a
+      // meno prilepené po ťuknutí vyzerá ako zaseknutá appka, nie ako popis.
+      if (e.pointerType !== 'mouse') return;
+      const tile = (e.target as HTMLElement).closest('.planet-tile') as HTMLElement | null;
+      setHot(tile);
+      // Guľa sa pod kurzorom ZASTAVÍ. Bez toho fotka ujde skôr, než sa meno
+      // stihne prečítať — mierime na pohyblivý cieľ.
+      autoRef.current = !tile;
+      const dog = dogAt(tile);
+      setHover(dog ? { name: dog.name, n: dog.n, x: e.clientX, y: e.clientY } : null);
+      return;
+    }
+    d.dist += Math.hypot(e.clientX - d.x, e.clientY - d.y);
     const s = spinRef.current;
     // Zvislé otáčanie sa zaráža pri ±62°: za tým sa guľa prevráti a rady
     // dlaždíc sa začnú prekrývať naplocho.
     s.x = Math.max(-62, Math.min(62, s.x - (e.clientY - d.y) * 0.25));
     s.y += (e.clientX - d.x) * 0.25;
-    dragRef.current = { x: e.clientX, y: e.clientY };
+    d.x = e.clientX;
+    d.y = e.clientY;
   };
   const onUp = () => {
+    const d = dragRef.current;
     dragRef.current = null;
-    autoRef.current = true;
+    autoRef.current = !hotRef.current;
+    if (!d) return;
+    // ŤUK vs. ŤAH — prah 12 px prevzatý zo steny (`GodsGridLab`, onTouchEnd).
+    // Druhé číslo pre to isté gesto by znamenalo, že sa appka na dvoch
+    // povrchoch správa inak bez dôvodu.
+    if (d.dist >= 12) return;
+    const dog = dogAt(d.tile);
+    // Ťuk mimo dlaždice = zavretie. Panel tak nemá jediný únikový bod.
+    setPicked(dog);
+    if (!dog) {
+      setHot(null);
+      setHover(null);
+    }
   };
 
   return (
-    <div className={`planet-root${open ? ' open' : ''}`} aria-hidden={!open}>
+    <div
+      className={`planet-root v-${variant}${open ? ' open' : ''}${picked ? ' pop' : ''}`}
+      aria-hidden={!open}
+    >
       <style>{`
         .planet-root {
           position: fixed;
@@ -242,6 +328,18 @@ export function DogPlanetLab({
           border: 1.5px solid rgba(201,154,63,0.85);
           box-shadow: 0 6px 16px -6px rgba(70,46,12,0.55);
           background: #EADCBB;
+          /* Poloha na guli je v premennej, nie priamo v transform — zvýraznenie
+             tak vie pridať scale bez toho, aby React prekresľoval dlaždice. */
+          transform: var(--t);
+          transition: box-shadow 160ms ease, border-color 160ms ease;
+        }
+        /* Dlaždica pod kurzorom: vystúpi a orámuje sa. Rovnaká úloha ako bledý
+           závoj na stene — povedať „táto, nie tá vedľa". */
+        .planet-tile.is-hot {
+          transform: var(--t) scale(1.18);
+          border-color: #F4DC97;
+          box-shadow: 0 0 0 2px rgba(244,220,151,0.55), 0 10px 26px -8px rgba(70,46,12,0.8);
+          z-index: 4;
         }
         .planet-tile img {
           width: 100%;
@@ -299,13 +397,22 @@ export function DogPlanetLab({
         .planet-hero .ph-tag b { color: #8C6014; font-weight: 700; }
         .planet-hero .join-btn { pointer-events: auto; }
 
-        /* Prepínač veľkosti svorky — papyrusové pilulky, dev nástroj. */
-        .planet-scale {
+        /* Dev pult dole: dva riadky pilulek pod sebou (kde sa detail otvorí +
+           koľko psov guľa nesie). Jeden riadok by sa na mobile nezmestil. */
+        .planet-dock {
           position: fixed;
           left: 50%;
-          bottom: 18px;
+          bottom: 16px;
           transform: translateX(-50%);
-          z-index: 6;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
+
+        /* Prepínač veľkosti svorky — papyrusové pilulky, dev nástroj. */
+        .planet-scale {
           display: flex;
           align-items: center;
           gap: 6px;
@@ -323,6 +430,7 @@ export function DogPlanetLab({
           text-transform: uppercase;
           color: #7a5a2a;
           padding: 0 6px;
+          white-space: nowrap;
         }
         .planet-scale .ps-pill {
           font-family: 'Cinzel', serif;
@@ -335,12 +443,187 @@ export function DogPlanetLab({
           border-radius: 999px;
           padding: 5px 11px;
           cursor: pointer;
+          white-space: nowrap;
         }
         .planet-scale .ps-pill.on {
           background: linear-gradient(180deg, #F4DC97 0%, #D9AC46 70%, #C99A33 100%);
           border-color: #6E4E18;
           box-shadow: inset 0 2px 0 rgba(255,250,222,0.85), 0 2px 5px -1px rgba(70,45,10,0.5);
         }
+
+        /* ── MENO PRI KURZORE ────────────────────────────────────────────────
+           Plávajúci štítok v rovine obrazovky. Na dlaždici visieť nemôže (je
+           otočená v priestore), preto sa polohuje z clientX/clientY. */
+        .planet-name {
+          position: fixed;
+          z-index: 7;
+          pointer-events: none;
+          transform: translate(-50%, -165%);
+          display: flex;
+          align-items: baseline;
+          gap: 7px;
+          padding: 5px 12px;
+          border-radius: 999px;
+          white-space: nowrap;
+          background: linear-gradient(135deg, #FDF8EC 0%, #F0DFB8 100%);
+          border: 1.5px solid #C99A3F;
+          box-shadow: 0 8px 20px -8px rgba(70,46,12,0.6);
+        }
+        /* Meno psa = Cinzel Decorative (oficiálny povrch, ako na stene). */
+        .planet-name .pn-name {
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.74rem;
+          letter-spacing: 0.05em;
+          color: #2a1608;
+        }
+        /* Poradové číslo = dáta, teda Space Grotesk. */
+        .planet-name .pn-n {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 500;
+          font-size: 0.62rem;
+          letter-spacing: 0.06em;
+          color: #8C6014;
+          font-style: normal;
+        }
+
+        /* ── DETAIL PSA ──────────────────────────────────────────────────────
+           Obsah je pre obe možnosti ten istý a v tom istom poradí ako otvorená
+           karta na stene (číslo → meno → heroglyf → odkaz majiteľa → DOG PAGE).
+           Tmavý panel nie je odchýlka od papyrusu: heroglyf má zlatú žiaru
+           navrhnutú na čierne pozadie a na stene sa karta otvára presne takto. */
+        .pp-panel {
+          z-index: 9;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 9px;
+          padding: 18px 20px 20px;
+          overflow-y: auto;
+          background: rgba(18,11,3,0.95);
+          border: 1.5px solid rgba(201,154,63,0.8);
+          box-shadow: 0 24px 64px -20px rgba(40,26,6,0.85);
+          opacity: 0;
+          pointer-events: none;
+        }
+        .planet-root.pop .pp-panel { opacity: 1; pointer-events: auto; }
+
+        .pp-photo {
+          width: 92px;
+          height: 92px;
+          border-radius: 50%;
+          object-fit: cover;
+          flex-shrink: 0;
+          border: 2px solid rgba(201,154,63,0.85);
+          box-shadow: 0 0 22px -6px rgba(201,154,63,0.65);
+        }
+        .pp-rank {
+          font-family: 'Cinzel', serif;
+          font-size: 0.7rem;
+          font-weight: 700;
+          color: #3a2c10;
+          letter-spacing: 0.1em;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.55);
+          border-radius: 999px;
+          padding: 2px 11px;
+          flex-shrink: 0;
+        }
+        .pp-name {
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-size: 1.02rem;
+          font-weight: 700;
+          color: rgba(255,255,255,0.94);
+          letter-spacing: 0.07em;
+          text-align: center;
+          line-height: 1.3;
+        }
+        .pp-glyph {
+          width: 46%;
+          max-width: 150px;
+          height: auto;
+          display: block;
+          flex-shrink: 0;
+          pointer-events: none;
+          filter:
+            brightness(0) invert(1)
+            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
+            drop-shadow(0 0 14px rgba(201,154,63,0.95))
+            drop-shadow(0 0 32px rgba(201,154,63,0.55));
+        }
+        .pp-msg {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 300;
+          font-size: 0.7rem;
+          color: rgba(255,255,255,0.62);
+          text-align: center;
+          line-height: 1.6;
+          font-style: italic;
+          margin: 0;
+        }
+        .pp-link {
+          display: inline-block;
+          flex-shrink: 0;
+          margin-top: 2px;
+          padding: 6px 16px;
+          font-family: 'Cinzel', serif;
+          font-size: 0.62rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: #C99A3F;
+          border: 1px solid rgba(201,154,63,0.65);
+          border-radius: 8px;
+          text-decoration: none;
+          transition: box-shadow 200ms ease, background 200ms ease;
+        }
+        .pp-link:hover { background: rgba(201,154,63,0.08); box-shadow: 0 0 12px rgba(201,154,63,0.45); }
+        .pp-x {
+          position: absolute;
+          top: 8px;
+          right: 10px;
+          width: 28px; height: 28px;
+          display: flex; align-items: center; justify-content: center;
+          border: none;
+          background: transparent;
+          color: rgba(255,255,255,0.55);
+          cursor: pointer;
+        }
+        .pp-x:hover { color: #F4DC97; }
+
+        /* ── MOŽNOSŤ A: BOK ──────────────────────────────────────────────────
+           Panel príde sprava, guľa sa točí ďalej A UHNE SA MU — bez toho by
+           polovica psov skončila pod panelom. */
+        .v-side .pp-panel {
+          position: fixed;
+          top: 50%;
+          right: 22px;
+          width: 330px;
+          max-height: 80vh;
+          border-radius: 18px;
+          transform: translate(calc(100% + 46px), -50%);
+          transition: transform 460ms cubic-bezier(.22,.9,.28,1), opacity 300ms ease;
+        }
+        .planet-root.pop.v-side .pp-panel { transform: translate(0, -50%); }
+        .planet-root.open.pop.v-side .planet-stage { transform: translateX(-176px) scale(1); }
+
+        /* ── MOŽNOSŤ B: STRED ────────────────────────────────────────────────
+           Panel sadne na stred; logo a CTA na ten čas zhasnú, inak by si dve
+           veci pýtali to isté miesto. */
+        .v-center .pp-panel {
+          position: fixed;
+          left: 50%;
+          top: 50%;
+          width: 360px;
+          max-height: 82vh;
+          border-radius: 20px;
+          transform: translate(-50%, -50%) scale(0.9);
+          transition: transform 340ms cubic-bezier(.22,.9,.28,1), opacity 260ms ease;
+        }
+        .planet-root.pop.v-center .pp-panel { transform: translate(-50%, -50%) scale(1); }
+        .planet-root.pop.v-center .planet-hero { opacity: 0; pointer-events: none; }
+        .planet-hero { transition: opacity 240ms ease; }
 
         .planet-close {
           position: fixed;
@@ -354,12 +637,34 @@ export function DogPlanetLab({
           border: 1.5px solid #C99A3F;
           color: #2a1608;
           cursor: pointer;
+          transition: opacity 200ms ease;
         }
 
         @media (max-width: 760px) {
           .planet-stage { transform: scale(1.75) translateZ(0); }
           .planet-root.open .planet-stage { transform: scale(0.62); }
           .planet-hero img { width: 104px; }
+
+          /* BOK sa na mobile mení na ZHORA (Matej 25. 8.: „na mobile z vrchu").
+             Zboku by pri 390 px ostal z gule pásik. */
+          .v-side .pp-panel {
+            top: 0; right: 0; left: 0;
+            width: auto;
+            max-height: 62vh;
+            border-radius: 0 0 20px 20px;
+            border-width: 0 0 1.5px;
+            transform: translateY(-102%);
+          }
+          .planet-root.pop.v-side .pp-panel { transform: translateY(0); }
+          /* Krížik planéty a krížik listu by sedeli na sebe. Kým je list hore,
+             planétu zatvoriť netreba — najprv sa zatvára to, čo je navrchu. */
+          .planet-root.pop.v-side .planet-close { opacity: 0; pointer-events: none; }
+          .planet-root.open.pop.v-side .planet-stage { transform: translateY(124px) scale(0.62); }
+
+          .v-center .pp-panel { width: calc(100vw - 32px); }
+
+          .planet-scale .ps-label { font-size: 0.55rem; letter-spacing: 0.12em; padding: 0 4px; }
+          .planet-scale .ps-pill { padding: 5px 8px; }
         }
       `}</style>
 
@@ -369,19 +674,37 @@ export function DogPlanetLab({
         </svg>
       </button>
 
-      {/* LAB gombík — koľko psov guľa nesie. Nie je to nastavenie appky, je to
-          náhľad do budúcnosti svorky. */}
-      <div className="planet-scale" role="group" aria-label="Počet psov">
-        <span className="ps-label">psov na planéte</span>
-        {PRESETS.map(n => (
+      {/* LAB pult. Horný riadok = ktorá z dvoch možností detailu sa skúša,
+          dolný = koľko psov guľa nesie. Ani jedno nie je nastavenie appky. */}
+      <div className="planet-dock">
+        <div className="planet-scale" role="group" aria-label="Kde sa otvorí detail psa">
+          <span className="ps-label">detail psa</span>
           <button
-            key={n}
-            className={`ps-pill${target === n ? ' on' : ''}`}
-            onClick={() => setTarget(n)}
+            className={`ps-pill${variant === 'side' ? ' on' : ''}`}
+            onClick={() => setVariant('side')}
           >
-            {n === 71 ? '71 dnes' : n}
+            bok
           </button>
-        ))}
+          <button
+            className={`ps-pill${variant === 'center' ? ' on' : ''}`}
+            onClick={() => setVariant('center')}
+          >
+            stred
+          </button>
+        </div>
+
+        <div className="planet-scale" role="group" aria-label="Počet psov">
+          <span className="ps-label">psov na planéte</span>
+          {PRESETS.map(n => (
+            <button
+              key={n}
+              className={`ps-pill${target === n ? ' on' : ''}`}
+              onClick={() => setTarget(n)}
+            >
+              {n === 71 ? '71 dnes' : n}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="planet-stage">
@@ -397,12 +720,14 @@ export function DogPlanetLab({
           onPointerUp={onUp}
           onPointerCancel={onUp}
         >
-          {tiles.map(({ key, dog, lat, lon }) => (
+          {tiles.map(({ key, dog, lat, lon }, i) => (
             <div
               key={key}
               className="planet-tile"
-              style={{ transform: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)` }}
-              title={dog.name}
+              // Index do `tiles` — z neho si gestá dohľadajú psa. Bez neho by
+              // sa muselo hľadať podľa URL fotky, a tá sa na guli opakuje.
+              data-i={i}
+              style={{ ['--t' as string]: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)` }}
             >
               <img src={dog.photo} alt="" draggable={false} loading="lazy" />
             </div>
@@ -420,6 +745,43 @@ export function DogPlanetLab({
           <a href="/entry" className="join-btn">{t('wall.hero.cta')}</a>
         </div>
       </div>
+
+      {/* Meno pri kurzore. Zhasne, len čo sa otvorí detail — dva popisky toho
+          istého psa naraz sú šum, nie informácia. */}
+      {hover && !picked && (
+        <div className="planet-name" style={{ left: hover.x, top: hover.y }}>
+          <span className="pn-name">{hover.name}</span>
+          {hover.n != null && <i className="pn-n">#{hover.n}</i>}
+        </div>
+      )}
+
+      {/* Detail psa. Ten istý obsah pre obe možnosti — líši sa iba tým, KAM
+          sadne (CSS `.v-side` / `.v-center`). Dva panely s tým istým vnútrom by
+          sa pri prvej úprave rozišli. */}
+      {picked && (
+        <div className="pp-panel" role="dialog" aria-label={picked.name}>
+          <button className="pp-x" onClick={() => setPicked(null)} aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
+          <img className="pp-photo" src={picked.photoBig || picked.photo} alt="" draggable={false} />
+          {picked.n != null && <span className="pp-rank">#{picked.n}</span>}
+          <div className="pp-name">{picked.name}</div>
+          {picked.heroglyph && (
+            <img className="pp-glyph" src={picked.heroglyph} alt="" draggable={false} />
+          )}
+          {/* Hektor #1 má odkaz v preklade, nie v DB — rovnako ako jeho karta na stene. */}
+          {(picked.message || picked.n === 1) && (
+            <p className="pp-msg">{picked.message || t('wall.hektor.msg')}</p>
+          )}
+          {picked.n != null && picked.name && (
+            <a className="pp-link" href={dogPagePath(picked.name, picked.n)}>
+              {t('wall.dogPage')}
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
 }
