@@ -19,7 +19,7 @@
 // ako `fillerDogsRef` v stene). Pri 71 psoch a ~120 dlaždiciach ide každý pes
 // na guľu ~2×.
 // ════════════════════════════════════════════════════════════════════════════
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import { dogPagePath } from '@/lib/dogSlug';
 
@@ -81,6 +81,34 @@ function buildSphere(target: number) {
   return { spacing, tile, lats };
 }
 
+interface Tile { key: string; dog: PlanetDog; lat: number; lon: number }
+
+/**
+ * Pole dlaždíc ako VLASTNÝ memo komponent. Bublinka sa prepisuje ~15× za sekundu
+ * (guľa sa točí a pod kurzorom sa strieda pes za psom); keby dlaždice viseli
+ * priamo v tele planéty, každý taký prepis by zreconcilioval 1000 uzlov.
+ * `tiles` chodí z `useMemo`, takže identita poľa sa medzi tými prepismi nemení
+ * a `memo` ich preskočí.
+ */
+const TileField = memo(function TileField({ tiles }: { tiles: Tile[] }) {
+  return (
+    <>
+      {tiles.map(({ key, dog, lat, lon }, i) => (
+        <div
+          key={key}
+          className="planet-tile"
+          // Index do `tiles` — z neho si gestá dohľadajú psa. Bez neho by
+          // sa muselo hľadať podľa URL fotky, a tá sa na guli opakuje.
+          data-i={i}
+          style={{ ['--t' as string]: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)` }}
+        >
+          <img src={dog.photo} alt="" draggable={false} loading="lazy" />
+        </div>
+      ))}
+    </>
+  );
+});
+
 export function DogPlanetLab({
   dogs,
   open,
@@ -115,7 +143,13 @@ export function DogPlanetLab({
   // Meno pri kurzore. Drží sa v state, lebo sa vykresľuje ako samostatný štítok
   // NAD guľou — dieťaťom dlaždice byť nemôže: tá je otočená v priestore, takže
   // text by bol šikmý a na zadnej pologuli by ho `backface-visibility` zhaslo.
-  const [hover, setHover] = useState<{ name: string; n: number | null; x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<{ name: string; n: number | null; photo: string; x: number; y: number } | null>(null);
+  // Posledná poloha myši nad guľou. Guľa sa pod kurzorom TOČÍ ĎALEJ (Matej 25. 8.:
+  // „nepáči sa mi že myš zastaví planétu… pri prejdení myšou sa zobrazí bublinka
+  // so psom a menom aj keď len na okamih"), takže dlaždica pod kurzorom sa mení
+  // aj vtedy, keď sa myš nehýbe — a `pointermove` vtedy nepríde. Bublinka sa preto
+  // dopočítava z rAF slučky, nie z pohybu myši.
+  const ptRef = useRef<{ x: number; y: number } | null>(null);
   const [picked, setPicked] = useState<PlanetDog | null>(null);
   // LAB PREPÍNAČ: kde sa detail otvorí. `side` = panel zboku (na mobile zhora),
   // guľa sa točí ďalej a uhne sa mu · `center` = prekryje stred, logo a CTA na
@@ -136,7 +170,7 @@ export function DogPlanetLab({
   const { tiles, tile } = useMemo(() => {
     const { tile, lats, spacing } = buildSphere(target);
     if (dogs.length === 0) return { tiles: [], tile };
-    const out: { key: string; dog: PlanetDog; lat: number; lon: number }[] = [];
+    const out: Tile[] = [];
     let i = 0;
     // SEVERNÝ PÓL = HEKTHOR (Matej 25. 8.: „horná dlaždica (póly) tam dajme
     // Hektora"). Vrchol gule je jediné miesto, ktoré sa pri otáčaní nehýbe —
@@ -164,11 +198,57 @@ export function DogPlanetLab({
     return { tiles: out, tile };
   }, [dogs, target]);
 
+  /** Dlaždica pod prvkom → pes. `img` má pointer-events:none, takže cieľom je div. */
+  const dogAt = (el: Element | null): PlanetDog | null => {
+    if (!el) return null;
+    const i = Number((el as HTMLElement).dataset.i);
+    return Number.isInteger(i) ? tiles[i]?.dog ?? null : null;
+  };
+
+  /**
+   * Prečíta, čo práve leží pod kurzorom, a prepíše bublinku. Volá sa z rAF
+   * slučky (guľa sa točí) aj z pohybu myši (kurzor sa hýbe) — obe strany sa
+   * menia nezávisle, takže jedna bez druhej nestačí.
+   * Kým je otvorený detail, bublinka mlčí: dvaja psi naraz sú šum.
+   */
+  const probeHover = () => {
+    const pt = ptRef.current;
+    if (!pt || dragRef.current || picked) return;
+    const el = document.elementFromPoint(pt.x, pt.y);
+    const tile = el?.closest?.('.planet-tile') ?? null;
+    if (!tile) {
+      // MEDZERA MEDZI DLAŽDICAMI (je ich tretina rozostupu) — bublinka DRŽÍ
+      // posledného psa. Keby zhasínala, pri točiacej sa guli by nad nehybným
+      // kurzorom niekoľkokrát za sekundu bliklo prázdno a vyzeralo by to
+      // pokazene. Zhasne až vtedy, keď kurzor guľu naozaj opustí.
+      if (!el?.closest?.('.planet-ball')) {
+        setHot(null);
+        setHover(null);
+      }
+      return;
+    }
+    setHot(tile as HTMLElement);
+    const dog = dogAt(tile);
+    if (!dog) return;
+    setHover(prev => {
+      // Rovnaký pes na rovnakom mieste → žiadny re-render.
+      if (prev && prev.name === dog.name && prev.n === dog.n && prev.x === pt.x && prev.y === pt.y) return prev;
+      return { name: dog.name, n: dog.n, photo: dog.photo, x: pt.x, y: pt.y };
+    });
+  };
+
   // Automatické otáčanie. Pauzuje počas ťahania a keď je overlay zavretý —
   // rAF slučka bežiaca na skrytej stránke je zbytočný žrút batérie.
+  //
+  // V tej istej slučke sa PREČÍTAVA aj dlaždica pod kurzorom. Nedá sa to nechať
+  // na `pointermove`: guľa sa točí ďalej, takže sa pod nehybnou myšou strieda pes
+  // za psom a bublinka by ukazovala toho, ktorý tam bol pred sekundou.
+  // ⚠️ Zámerne len ~15× za sekundu (každý 4. snímok). `elementFromPoint` je nad
+  // 1000 dlaždicami v 3D reálna práca a na plynulé čítanie mena stačí 15 Hz.
   useEffect(() => {
     if (!open) return;
     let raf = 0;
+    let frame = 0;
     let last = performance.now();
     const step = (now: number) => {
       const dt = now - last;
@@ -176,11 +256,12 @@ export function DogPlanetLab({
       if (autoRef.current) spinRef.current.y += dt * 0.006;
       const el = ballRef.current;
       if (el) el.style.transform = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
+      if (++frame % 4 === 0) probeHover();
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [open]);
+  }, [open, tiles, picked]);
 
   // ESC zatvára — rovnaký únik ako z každého overlayu v appke. Keď je otvorený
   // detail psa, prvé ESC zavrie JEHO: inak by človek jedným klávesom zhodil celú
@@ -209,13 +290,6 @@ export function DogPlanetLab({
     setPicked(null);
   }, [open]);
 
-  /** Dlaždica pod udalosťou → pes. `img` má pointer-events:none, takže cieľom je div. */
-  const dogAt = (el: HTMLElement | null): PlanetDog | null => {
-    if (!el) return null;
-    const i = Number(el.dataset.i);
-    return Number.isInteger(i) ? tiles[i]?.dog ?? null : null;
-  };
-
   const onDown = (e: React.PointerEvent) => {
     const tile = (e.target as HTMLElement).closest('.planet-tile') as HTMLElement | null;
     dragRef.current = { x: e.clientX, y: e.clientY, dist: 0, tile };
@@ -229,14 +303,11 @@ export function DogPlanetLab({
     if (!d) {
       // NABEHNUTIE MYŠOU. Dotyk sa sem nedostane zámerne — prst hover nemá a
       // meno prilepené po ťuknutí vyzerá ako zaseknutá appka, nie ako popis.
+      // ⚠️ Guľa sa NEZASTAVUJE (Matej 25. 8.). Bublinka je priebežný odpočet
+      // toho, čo práve ide popod kurzor — pes sa v nej vymení aj za okamih.
       if (e.pointerType !== 'mouse') return;
-      const tile = (e.target as HTMLElement).closest('.planet-tile') as HTMLElement | null;
-      setHot(tile);
-      // Guľa sa pod kurzorom ZASTAVÍ. Bez toho fotka ujde skôr, než sa meno
-      // stihne prečítať — mierime na pohyblivý cieľ.
-      autoRef.current = !tile;
-      const dog = dogAt(tile);
-      setHover(dog ? { name: dog.name, n: dog.n, x: e.clientX, y: e.clientY } : null);
+      ptRef.current = { x: e.clientX, y: e.clientY };
+      probeHover();
       return;
     }
     d.dist += Math.hypot(e.clientX - d.x, e.clientY - d.y);
@@ -251,7 +322,7 @@ export function DogPlanetLab({
   const onUp = () => {
     const d = dragRef.current;
     dragRef.current = null;
-    autoRef.current = !hotRef.current;
+    autoRef.current = true;
     if (!d) return;
     // ŤUK vs. ŤAH — prah 12 px prevzatý zo steny (`GodsGridLab`, onTouchEnd).
     // Druhé číslo pre to isté gesto by znamenalo, že sa appka na dvoch
@@ -460,14 +531,24 @@ export function DogPlanetLab({
           pointer-events: none;
           transform: translate(-50%, -165%);
           display: flex;
-          align-items: baseline;
-          gap: 7px;
-          padding: 5px 12px;
+          align-items: center;
+          gap: 8px;
+          padding: 4px 13px 4px 5px;
           border-radius: 999px;
           white-space: nowrap;
           background: linear-gradient(135deg, #FDF8EC 0%, #F0DFB8 100%);
           border: 1.5px solid #C99A3F;
           box-shadow: 0 8px 20px -8px rgba(70,46,12,0.6);
+        }
+        /* Pes v bublinke. Kým sa meno prečíta, tvár je rozoznaná — a práve o to
+           ide pri guli, ktorá sa točí ďalej. */
+        .planet-name .pn-photo {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          object-fit: cover;
+          flex-shrink: 0;
+          border: 1.5px solid rgba(201,154,63,0.9);
         }
         /* Meno psa = Cinzel Decorative (oficiálny povrch, ako na stene). */
         .planet-name .pn-name {
@@ -719,19 +800,9 @@ export function DogPlanetLab({
           onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={onUp}
+          onPointerLeave={() => { ptRef.current = null; setHot(null); setHover(null); }}
         >
-          {tiles.map(({ key, dog, lat, lon }, i) => (
-            <div
-              key={key}
-              className="planet-tile"
-              // Index do `tiles` — z neho si gestá dohľadajú psa. Bez neho by
-              // sa muselo hľadať podľa URL fotky, a tá sa na guli opakuje.
-              data-i={i}
-              style={{ ['--t' as string]: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${R}px)` }}
-            >
-              <img src={dog.photo} alt="" draggable={false} loading="lazy" />
-            </div>
-          ))}
+          <TileField tiles={tiles} />
         </div>
         <div className="planet-shade" />
 
@@ -750,6 +821,7 @@ export function DogPlanetLab({
           istého psa naraz sú šum, nie informácia. */}
       {hover && !picked && (
         <div className="planet-name" style={{ left: hover.x, top: hover.y }}>
+          <img className="pn-photo" src={hover.photo} alt="" draggable={false} />
           <span className="pn-name">{hover.name}</span>
           {hover.n != null && <i className="pn-n">#{hover.n}</i>}
         </div>
