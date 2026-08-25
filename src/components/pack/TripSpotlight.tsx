@@ -21,7 +21,7 @@ import createGlobe from 'cobe';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath, pluralKey } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, pluralKey, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
@@ -315,7 +315,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
 
   const view = useMemo(() => {
     const nowMs = Date.now();
-    const allTrails: HeroTrail[] = [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS];
+    const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
     const walked = readWalkedIds();
     const triplist = readTriplist();
 

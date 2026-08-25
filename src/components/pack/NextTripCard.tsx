@@ -15,7 +15,7 @@ import { Link } from 'react-router-dom';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, tripPath } from './tripShared';
+import { readLocalTrails, readWalkedIds, tripPath, visibleLocalTrails } from './tripShared';
 import { readTriplist } from './triplist/triplist';
 import { PACK_THEME, FONT_UI } from './packTheme';
 import { BrandIcon } from './BrandIcon';
@@ -51,7 +51,7 @@ export function NextTripCard() {
   const t = useT();
   const next = useMemo(() => {
     const nowMs = Date.now();
-    const allTrails: HeroTrail[] = [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS];
+    const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
     const walked = readWalkedIds();
     const triplist = readTriplist();
     return Object.values(triplist)

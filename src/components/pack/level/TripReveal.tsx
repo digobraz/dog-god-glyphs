@@ -54,6 +54,19 @@ export interface TripRevealProps {
   ownerAvatarUrl?: string | null;
   ownerInitial: string;
   dogs: RevealDog[];
+  /**
+   * ── KONCEPT (2026-08-25) ──────────────────────────────────────────────────────────────
+   * Preložené názvy polí, ktoré výletu chýbajú do zverejnenia. Neprázdne = výlet NEJDE von
+   * a reveal to musí povedať rovno tu. Matej: „trip sa zverejní až keď bude dopísané všetko
+   * — nateraz ostáva v konceptoch, doplň teraz alebo neskôr; po doplnení sa pridá a uvidí
+   * ho každý, nájdeš ho tam a tam."
+   *
+   * ⚠️ Body sa NEODOBERAJÚ — sú za prejdený výlet, nie za vyplnený formulár. Odobrať ich za
+   * chýbajúcu labku by z odmeny spravilo pokutu. Zverejnenie je iná vec než skóre.
+   */
+  draftMissing?: string[];
+  /** „Doplniť teraz" — otvorí sprievodcu nad práve zapísaným výletom. */
+  onFinishNow?: () => void;
   /** „Pridaj ďalší výlet" */
   onAddAnother: () => void;
   /** „Späť na mapu" — volá sa až po tom, čo sa header scvrkne */
@@ -66,9 +79,10 @@ const DOG_SIZE = 66;
 
 export function TripReveal({
   tripName, tripMeta, tripPhoto, points, levelBefore, levelAfter,
-  ownerAvatarUrl, ownerInitial, dogs, onAddAnother, onClose,
+  ownerAvatarUrl, ownerInitial, dogs, draftMissing, onFinishNow, onAddAnother, onClose,
 }: TripRevealProps) {
   const t = useT();
+  const isDraft = (draftMissing?.length ?? 0) > 0;
   const leveledUp = levelAfter.level > levelBefore.level;
   const newTier = crossedTier(levelBefore.level, levelAfter.level);
 
@@ -264,9 +278,30 @@ export function TripReveal({
             </button>
           </div>
 
+          {isDraft && (
+            <div className="rv-draft">
+              <div className="rv-drafth">{t('pack.reveal.draftTitle')}</div>
+              <p className="rv-draftp">
+                {t('pack.reveal.draftBody')}
+                <span className="rv-draftmiss">{t('pack.reveal.draftMissing', { fields: draftMissing!.join(', ') })}</span>
+              </p>
+            </div>
+          )}
+
           <div className="rv-cta">
-            <button className="rv-btn-gold" onClick={onAddAnother}>{t('pack.reveal.addAnother')}</button>
-            <button className="rv-btn-ghost" onClick={handleClose}>{t('pack.reveal.backToMap')}</button>
+            {/* Pri koncepte sa „pridaj ďalší" neponúka: pozvať človeka založiť druhý výlet
+                v okamihu, keď prvý nie je dopísaný, znamená vyrobiť dva koncepty. */}
+            {isDraft && onFinishNow ? (
+              <>
+                <button className="rv-btn-gold" onClick={onFinishNow}>{t('pack.reveal.finishNow')}</button>
+                <button className="rv-btn-ghost" onClick={handleClose}>{t('pack.reveal.finishLater')}</button>
+              </>
+            ) : (
+              <>
+                <button className="rv-btn-gold" onClick={onAddAnother}>{t('pack.reveal.addAnother')}</button>
+                <button className="rv-btn-ghost" onClick={handleClose}>{t('pack.reveal.backToMap')}</button>
+              </>
+            )}
           </div>
         </div>
       </div>

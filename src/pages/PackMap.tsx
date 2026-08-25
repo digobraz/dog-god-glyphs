@@ -81,9 +81,9 @@ import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
-  readLocalTrails, writeLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
+  readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
-  tripPath, tripPathById, tripText } from '@/components/pack/tripShared';
+  tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
 import {
   crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
@@ -131,7 +131,7 @@ import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDis
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
-import { clearTripNotes, readTripNotesForSession, writeTripNotes, type TripNoteRef } from '@/components/pack/addtrip/addTripModel';
+import { clearTripNotes, readTripNotesForSession, writeTripNotes, missingOnTrail, type TripNoteRef } from '@/components/pack/addtrip/addTripModel';
 import { devSyncLocalTrips } from '@/lib/devTripSync';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
 // adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
@@ -1273,6 +1273,13 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-multitoggle{margin-top:6px;background:none;border:0;padding:2px 0;color:${GOLD};font-family:inherit;font-size:11.5px;font-weight:600;cursor:pointer;opacity:.85;}
 .trp-multitoggle:hover{opacity:1;text-decoration:underline;}
 .trp-plannedpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#F5C73D;background:rgba(0,0,0,0.5);padding:4px 9px;border-radius:7px;border:1px solid rgba(201,154,63,0.5);}
+/* KONCEPT — nedokončený výlet. Pilulka zámerne NIE JE zlatá: zlatá na mape znamená STAV
+   „hotové/tvoje", a koncept je opak. Papierová šeď hovorí „ešte to nie je vonku". */
+.trp-draftpill{display:inline-block;font-family:${FONT_UI};font-weight:600;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#E8DCC3;background:rgba(0,0,0,0.55);padding:4px 9px;border-radius:7px;border:1px dashed rgba(232,220,195,0.55);}
+.trp-draftrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 12px 0;}
+.trp-draftmiss{font-family:${FONT_UI};font-size:11px;line-height:1.35;color:rgba(232,220,195,0.72);flex:1 1 120px;min-width:0;}
+.trp-draftbtn{flex-shrink:0;font-family:${FONT_TITLE};font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:8px;background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#3d1f00;border:1px solid rgba(250,244,236,0.30);cursor:pointer;}
+.trp-draftbtn:active{transform:scale(0.98);}
 .trp-norating{font-size:22px;font-weight:600;color:rgba(245,240,228,0.35);letter-spacing:.05em;}
 /* Ružová kvapka planu (.trp-planmarker-dot) aj zlatá kvapka podujatia
    (.trp-eventmarker-dot) tu stáli do 22. 8. 2026. Obe nahradil biely kruh s modrým
@@ -1984,6 +1991,10 @@ export default function PackMap() {
     points: TripPointsResult; levelBefore: LevelProgress;
     /** len DEV náhľad — v reálnom zápise je level PO vždy aktuálny `levelInfo` */
     levelAfter?: LevelProgress;
+    /** id výletu — reveal z neho vie ponúknuť dopísanie konceptu (a nič iné) */
+    tripId?: string;
+    /** i18n kľúče polí, ktoré výletu chýbajú do zverejnenia; prázdne = ide von hneď */
+    draftMissing?: string[];
   } | null>(null);
 
   /**
@@ -2029,6 +2040,10 @@ export default function PackMap() {
       }),
       levelBefore: before,
       levelAfter: after,
+      // `?reveal=draft` — náhľad správy o koncepte. Bez neho sa dá uvidieť jedine zapísaním
+      // neúplného výletu, teda prejdením celého sprievodcu vrátane kreslenia trasy.
+      draftMissing: want === 'draft' ? ['pack.addTrip.field.diff', 'pack.addTrip.field.crowd'] : [],
+      tripId: want === 'draft' ? 'demo-draft' : undefined,
     });
   };
 
@@ -2358,6 +2373,12 @@ export default function PackMap() {
   // rozsahu tejto iterácie); zobrazujú sa hneď na mape + v zozname pred statickými HERO_TRAILS.
   // sessionStorage mirror (viď vyššie) nech expand na čerstvo pridaný trip nájde aj po navigate.
   const [localTrails, setLocalTrails] = useState<HeroTrail[]>(() => readLocalTrails());
+  /**
+   * ── KONCEPT, KTORÝ SA PRÁVE DOPĹŇA (2026-08-25) ────────────────────────────────────────
+   * Id, nie objekt: záznam sa počas dopĺňania prepisuje, a odložená kópia by po uložení
+   * ukazovala stav spred neho.
+   */
+  const [finishTrailId, setFinishTrailId] = useState<string | null>(null);
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
   // DEV: výlety nakreslené na telefóne odošli na disk vývojára (`plany/prijate-vylety/`),
   // inak ostanú uväznené v localStorage toho zariadenia. V prod builde neexistuje.
@@ -2482,7 +2503,10 @@ export default function PackMap() {
     setSelectedEventId(draft.id);
     if (draft.origin === 'own') setExpandedEventId((cur) => (cur === draft.id ? null : draft.id));
   };
-  const allTrails = useMemo(() => [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
+  const allTrails = useMemo(() => [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS], [localTrails]);
+  // Množina členských id — raz za zmenu zoznamu, nie pri každej karte (inak by sa
+  // `trp-local-trails` parsovalo z úložiska raz na výlet).
+  const memberIds = useMemo(() => memberTrailIds(), [localTrails]);
   // vstup pre <TripMarkers> (zoomové vrstvy + zhlukovanie, zadanie 2.3/2.4) — jeden bod na trip:
   // hike = štart trasy, journey = stred (rovnaká logika ako pôvodný pillIcon Marker), vodná
   // plocha = ťažisko (waterPoint). Plánované tripy ('plan-') majú vlastný ružový pin, sem nepatria.
@@ -2926,8 +2950,25 @@ export default function PackMap() {
     setAddFlow('walked');
   };
 
+  /**
+   * Otvorí sprievodcu nad uloženým konceptom (krok 3, kroky 1–2 zamknuté).
+   *
+   * ⚠️ Neexistujúce id sa ticho ignoruje. Bez toho by sprievodca spadol do NORMÁLNEHO režimu
+   * zápisu — teda by ponúkol kreslenie nového výletu človeku, ktorý klikol „doplniť". Stane
+   * sa to pri medzičasom zmazanom výlete aj v DEV náhľade revealu.
+   */
+  const openFinishTrip = (tripId: string) => {
+    if (!localTrails.some((tr) => tr.id === tripId)) return;
+    setInlineDetailId(null);
+    setAddEntryOpen(false);
+    setAddMapPhase('off');
+    setFinishTrailId(tripId);
+    setAddFlow('walked');
+  };
+
   const closeAdd = () => {
     setAddFlow(null);
+    setFinishTrailId(null);
     setAddMapPhase('off');
     setNotePlacing(null);
     setTripNotesState([]);
@@ -3013,10 +3054,54 @@ export default function PackMap() {
       tripPhoto: trail.photos?.[0] ?? draft.photos?.[0] ?? null,
       points,
       levelBefore: levelInfo,
+      tripId: trail.id,
+      // Počíta sa z PRÁVE zapísaného záznamu, nie z draftu — reveal má hovoriť o tom, čo
+      // v úložisku naozaj leží. Keby čítal formulár, tvrdil by „hotovo" aj o poli, ktoré
+      // sa do zápisu nedostalo.
+      draftMissing: missingOnTrail(trail),
     });
   };
 
   const submitAddTripDraft = (draft: AddTripDraft): boolean => {
+    // ── DOPĹŇANIE KONCEPTU ──────────────────────────────────────────────────────────────
+    // Existujúci záznam sa PREPÍŠE. Nový `HeroTrail` tu nevzniká, `walkedIds` sa nedotýkame
+    // (výlet je prejdený od prvého uloženia) a reveal sa NEOTVÁRA: body boli pripísané vtedy,
+    // druhý reveal by za tú istú prácu sľuboval druhú odmenu.
+    const finishId = (draft as AddTripDraft & { finishTripId?: string }).finishTripId;
+    if (finishId) {
+      const patch: Partial<HeroTrail> = {
+        name: draft.name.trim(),
+        stars: draft.paws ?? 0,
+        surface: draft.surface ?? [],
+        crowd: draft.crowd ?? '',
+        tags: draft.tags ?? [],
+        desc: draft.note ?? '',
+        ...(draft.diff ? { diff: draft.diff } : {}),
+        ...(draft.photos?.length ? { photos: draft.photos } : {}),
+        ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
+      };
+      if (!updateLocalTrail(finishId, patch)) {
+        setAddError(t('pack.map.errorPhotosStorage'));
+        return false;
+      }
+      setAddError('');
+      setLocalTrails(readLocalTrails());
+      // Hlas nesie náročnosť a ruch pre celý pack — dopísané hodnoty musia dôjsť aj sem,
+      // inak by karta výletu tvrdila niečo iné než filtre nad tými istými dátami.
+      if ((draft.paws ?? 0) > 0) {
+        setVotes((prev) => ({ ...prev, [finishId]: {
+          ...(prev[finishId] ?? { tripId: finishId, comment: '', hazards: [] as Hazard[] }),
+          tripId: finishId, rating: draft.paws ?? 0,
+          difficulty: (draft.diff ?? prev[finishId]?.difficulty ?? 'Moderate') as TripVote['difficulty'],
+          crowd: seedCrowd({ crowd: draft.crowd } as HeroTrail) ?? prev[finishId]?.crowd ?? 'Calm',
+          when: draft.date?.slice(0, 7) ?? prev[finishId]?.when ?? '',
+          at: Date.now(),
+        } }));
+      }
+      setFinishTrailId(null);
+      closeAdd();
+      return true;
+    }
     if (draft.state === 'walked') {
       // JOURNEY = výber existujúcej magistrály (AddTripLog.tsx `existingTripId`, lokálne
       // rozšírenie AddTripDraft — addTripModel.ts sa needituje). Keď je nastavené, NEVZNIKÁ
@@ -3064,6 +3149,11 @@ export default function PackMap() {
         crowd: draft.crowd ?? '',
         tags: draft.tags ?? [],
         author: firstName,
+        // KEDY (2026-08-25). Dovtedy sa dátum zo sprievodcu zapisoval iba do hlasu
+        // (`votes[tid].when`, teda mesiac) a bez labiek nikam — hoci je povinný na odoslanie.
+        // Bez neho sa výlet nedal ani dopísať: dopĺňanie by si ho vypýtalo druhýkrát.
+        ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
+        ...(draft.dateEnd ? { dateEnd: draft.dateEnd } : {}),
       };
       /**
        * VÝLET SA NESMIE STRATIŤ KVÔLI FOTKÁM (Matej 2026-08-23: „ono to musi niečo zvladnuť").
@@ -3353,6 +3443,9 @@ export default function PackMap() {
     // Walked vie dať LEN autor → tým sa prepne na odohraný trip (walked-popup vyžiada náročnosť+popularitu).
     const isUnwalkedPlan = tr.id.startsWith('plan-') && !walkedIds.has(tr.id);
     const isMine = authorOf(tr) === firstName;
+    // KONCEPT — chýbajú povinné polia, takže výlet nejde von. Odvodzuje sa zo záznamu
+    // (tripShared.tsx), neukladá sa; dopísanie ho zhasne samo.
+    const draftMissing = tripDraftMissing(tr, memberIds);
     return (
       <div
         key={tr.id}
@@ -3423,10 +3516,25 @@ export default function PackMap() {
                 nevolá namiesto snahy dotlačiť do neho prázdne hodnoty. */}
             {isUnwalkedPlan
               ? <span className="trp-plannedpill">🗓️ {t('pack.map.planned')}</span>
+              : draftMissing.length > 0
+              ? <span className="trp-draftpill">📝 {t('pack.map.draftPill')}</span>
               : isWaterTrail(tr) ? null
               : <PhotoMetaPills agg={agg} km={tr.km} ascentM={(tr as { ascentM?: number }).ascentM} />}
           </div>
         </div>
+        {/* MIESTO, KDE SA KONCEPT DOPÍŠE. Bez neho je „doplň neskôr" sľub bez adresy —
+            človek by výlet našiel, ale nemal by kde pokračovať. Vypisuje sa AJ ČO CHÝBA:
+            samotné „nedokončené" núti otvárať formulár, aby sa to zistilo.
+            ⚠️ HNEĎ POD FOTKOU, nie na spodku karty: na mobile spodnú hranu karty prekrýva
+            plávajúca lišta MAPA/PRIDAŤ, takže tam by veta aj tlačidlo ležali pod ňou. */}
+        {draftMissing.length > 0 && (
+          <div className="trp-draftrow" onClick={(e) => e.stopPropagation()}>
+            <span className="trp-draftmiss">{t('pack.map.draftMissing', { fields: draftMissing.map((k) => t(k)).join(', ') })}</span>
+            <button type="button" className="trp-draftbtn" onClick={(e) => { e.stopPropagation(); openFinishTrip(tr.id); }}>
+              {t('pack.map.draftFinish')}
+            </button>
+          </div>
+        )}
         {/* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo
             rating(packy)·difficulty·Crowd. */}
         <div className="trp-bigcard-body">
@@ -4052,6 +4160,7 @@ export default function PackMap() {
         <div className={`trp-addhost${addMapPhase !== 'off' || notePlaceReady ? ' is-hidden' : ''}`}>
           {addFlow ? (
             <AddTripLog
+              finishTrail={finishTrailId ? (localTrails.find((tr) => tr.id === finishTrailId) ?? null) : null}
               allTrails={allTrails}
               authorName={firstName}
               myDogs={myDogsForAdd}
@@ -4623,6 +4732,8 @@ export default function PackMap() {
             name: d.dog_name ?? t('pack.map.myDogFallback'),
             photo: d.cloudinary_main_url,
           }))}
+          draftMissing={(reveal.draftMissing ?? []).map((k) => t(k))}
+          onFinishNow={reveal.tripId ? () => { const tid = reveal.tripId!; setReveal(null); openFinishTrip(tid); } : undefined}
           onAddAnother={() => { setReveal(null); openAddEntry(); }}
           onClose={() => { setReveal(null); setCoachOpen(true); }}
         />

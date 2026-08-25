@@ -8,7 +8,9 @@ import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
   packStorage, PACK_KEYS, readStringSet as readSet,
   persistWalked, persistFav, scheduleFounderSeed, queueLocalTripUpload,
+  readLocalTrailMeta,
 } from '@/lib/packStore';
+import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
 export const ICON = (n: string) => `/icons/pack/${n}.svg`;
 
@@ -447,6 +449,57 @@ export function migrateRenamedTripIds(): void {
 // Modul už na tejto úrovni siaha na storage (trpStore probe vyššie), takže to nič nemení navyše.
 migrateRenamedTripIds();
 
+// ── PRIEHRADKA NA NEDOKONČENÉ VÝLETY (2026-08-25) ────────────────────────────────────────
+//
+// Výlet, ktorému chýba niektoré z povinných polí (náročnosť · povrch · ruch · tagy · labky),
+// je KONCEPT: autor ho vidí a môže dopísať, pack ho nevidí.
+//
+// Prečo to musí byť aj v prehliadači, keď to drží RLS: `pack_trips_read` pustí cudzí výlet až
+// po schválení, takže cudzí koncept sa sem dnes nedostane — a presne preto je to lacná poistka.
+// Prvý, kto ju obíde, bude admin, ktorý koncept omylom schváli; vtedy sa má výlet chovať ako
+// koncept ďalej, nie sa zjaviť na mape polovičný.
+//
+// ⚠️ NEZNÁMY autor = MÔJ. Meta mapa je prázdna, kým sa nehydratovalo (packStore.ts), a čerstvo
+// zapísaný výlet v nej nie je vôbec. Opačná voľba by človeku zmizla vlastná práca hneď po
+// uložení — teda presne v okamihu, keď mu appka tvrdí „nájdeš ho tam a tam".
+
+/**
+ * Čo výletu chýba do zverejnenia. Prázdne pole = hotový alebo sa ho pravidlo netýka.
+ *
+ * `members` je nepovinné len kvôli cene: bez neho sa `trp-local-trails` prečíta a rozparsuje
+ * pri KAŽDOM volaní. Jeden výlet (článok, reveal) to znesie; zoznam si množinu vytiahne raz
+ * cez `memberTrailIds()` a podá ju sem.
+ */
+export function tripDraftMissing(trail: HeroTrail, members?: Set<string>): string[] {
+  // Plán nemá povinné polia (§4.3 platí len pre prejdené) a katalóg nie je členský obsah.
+  if (trail.id.startsWith('plan-')) return [];
+  if (!(members ?? memberTrailIds()).has(trail.id)) return [];
+  return missingOnTrail(trail);
+}
+
+export const isTripDraft = (trail: HeroTrail, members?: Set<string>): boolean =>
+  tripDraftMissing(trail, members).length > 0;
+
+/** Id výletov, ktoré nahodili členovia — kurátorovaný dataset sem nepatrí. */
+export function memberTrailIds(): Set<string> {
+  return new Set(readLocalTrails().map((t) => t.id));
+}
+
+/**
+ * Vyhodí zo zoznamu CUDZIE nedokončené výlety. Volá sa nad `readLocalTrails()` VŠADE, kde sa
+ * skladá `allTrails` — dnes je to šesť miest a každé si zoznam skladalo samo, takže siedme by
+ * na priehradku zabudlo bez toho, aby si to niekto všimol.
+ */
+export function visibleLocalTrails(local: HeroTrail[]): HeroTrail[] {
+  const meta = readLocalTrailMeta();
+  return local.filter((tr) => {
+    if (tr.id.startsWith('plan-')) return true;
+    const mine = meta[tr.id]?.mine ?? true;
+    if (mine) return true;
+    return missingOnTrail(tr).length === 0;
+  });
+}
+
 export function readLocalTrails(): HeroTrail[] {
   try {
     const raw = trpStore.getItem(LOCAL_TRAILS_KEY);
@@ -466,6 +519,25 @@ export function writeLocalTrails(trails: HeroTrail[]): boolean {
   } catch { return false; /* private mode / quota — volajúci nech to ošetrí */ }
   const added = trails.filter((t) => !prevIds.has(t.id)).map((t) => t.id);
   if (added.length) queueLocalTripUpload(added);
+  return true;
+}
+
+/**
+ * PREPÍŠE UŽ ULOŽENÝ ČLENSKÝ VÝLET a postará sa, aby zmena došla aj do Supabase.
+ *
+ * ⚠️ `writeLocalTrails` posiela do fronty len NOVÉ id (diff proti predošlému zápisu), takže
+ * úprava existujúceho výletu by skončila v prehliadači a najbližšia hydratácia by ju prebila
+ * záznamom z `pack_trips`. Vyzeralo by to, že sa dopísané polia „neuložili" — pritom sa
+ * uložili, len ich server o chvíľu vrátil do pôvodného stavu. Preto sa fronta volá výslovne.
+ */
+export function updateLocalTrail(id: string, patch: Partial<HeroTrail>): boolean {
+  const all = readLocalTrails();
+  if (!all.some((t) => t.id === id)) return false;
+  const next = all.map((t) => (t.id === id ? { ...t, ...patch } : t));
+  try {
+    trpStore.setItem(LOCAL_TRAILS_KEY, JSON.stringify(next));
+  } catch { return false; /* kvóta — volajúci nech to ošetrí, rovnako ako writeLocalTrails */ }
+  queueLocalTripUpload([id]);
   return true;
 }
 

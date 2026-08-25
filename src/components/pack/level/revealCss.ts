@@ -121,6 +121,15 @@ export const REVEAL_CSS = `
 .rv-sumlink span{border-bottom:1px dotted currentColor;padding-bottom:2px;}
 .rv-sumlink:hover{color:#F5C73D;}
 
+/* KONCEPT — správa o tom, že výlet ešte nejde von. Prerušovaný rám a papierová šeď
+   zámerne nie sú zlaté: zlatá je v tomto rozhraní stav HOTOVO. */
+.rv-draft{flex:0 0 auto;margin-top:12px;padding:12px 13px;border-radius:12px;
+          background:rgba(0,0,0,0.34);border:1px dashed rgba(232,220,195,0.34);text-align:left;}
+.rv-drafth{font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.14em;
+           text-transform:uppercase;color:#E8DCC3;margin-bottom:6px;}
+.rv-draftp{font-family:${FONT_UI};font-size:12px;line-height:1.5;color:rgba(232,220,195,0.78);margin:0;}
+.rv-draftmiss{display:block;margin-top:6px;font-family:${FONT_UI};font-weight:600;font-size:12px;color:#E8DCC3;}
+
 .rv-cta{flex:0 0 auto;padding-top:10px;display:flex;flex-direction:column;gap:8px;
         opacity:0;transform:translateY(8px);}
 .rv-btn-gold{width:100%;padding:14px 16px;border-radius:8px;

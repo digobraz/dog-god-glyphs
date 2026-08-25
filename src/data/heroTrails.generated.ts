@@ -21,6 +21,14 @@ export type HeroTrail = {
   // multi-country (2026-07-24): explicitná krajina (ISO2, napr. 'ch') pre ADD-flow tripy mimo SK;
   // ak chýba, trailCountry() ju odvodí z path[0]. Generovaný SK dataset ju nemá (odvodí sa).
   country?: string;
+  // KEDY SA IŠLO (2026-08-25) — len ADD-flow výlety, rovnaká konvencia ako author/country.
+  // ⚠️ Tento blok je vnútro JS template literalu — žiadne spätné apostrofy v komentároch.
+  // Do 25. 8. dátum zo sprievodcu nikam neprežil: zapísal sa výhradne do trip_votes.when,
+  // a to ako MESIAC a len keď človek dal labky — bez labiek sa stratil úplne. Pritom je to
+  // pole povinné na odoslanie, takže sa vypĺňalo vždy a zahadzovalo takmer vždy. Kurátorovaný
+  // dataset ho nemá zámerne (nie je to „bol som tam vtedy", ale trasa).
+  date?: string;      // 'YYYY-MM-DD' | 'YYYY-MM' | chýba = „nepamätám"
+  dateEnd?: string;   // koniec viacdňového putovania
 };
 
 export const HERO_TRAILS: HeroTrail[] = [

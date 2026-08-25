@@ -53,7 +53,9 @@ const GOLD = '#C99A3F';
 // `existingTripId` je lokálne rozšírenie AddTripDraft (addTripModel.ts sa needituje) — nesie
 // odkaz na magistrálu z HERO_JOURNEYS, aby konvertor v PackMap.tsx vedel, že nemá vytvárať
 // nový HeroTrail (viď submitAddTripDraft tam), len označiť existujúci trip ako prejdený.
-type LogDraft = AddTripDraft & { existingTripId?: string };
+// `finishTripId` = dopĺňa sa UŽ ULOŽENÝ výlet. Volajúci podľa neho záznam PREPÍŠE namiesto
+// toho, aby založil druhý — bez toho by dopísanie náročnosti vyrobilo dvojča tej istej trasy.
+type LogDraft = AddTripDraft & { existingTripId?: string; finishTripId?: string };
 
 export type AddTripLogProps = {
   /** Pre GeometryPicker — duchovia existujúcich trás + kontrola duplicity (§5.3) a submit-time
@@ -115,6 +117,18 @@ export type AddTripLogProps = {
    * stlačenia. Väzba na výlet sa NEUKLADÁ — odvodzuje sa zo súradnice (mapNotesGeo.ts),
    * takže to neprežíva ani nerozbíja premenovanie slugu.
    */
+  /**
+   * ── DOPĹŇANIE KONCEPTU (2026-08-25) ───────────────────────────────────────────────────
+   *
+   * Uložený výlet, ktorému chýbajú povinné polia. Sprievodca sa otvorí rovno v kroku 3
+   * s vyplneným tým, čo už vieme, a kroky 1–2 sú zamknuté.
+   *
+   * ⚠️ TRASA SA V TOMTO REŽIME NEUPRAVUJE ZÁMERNE. `HeroTrail.path` je ODVODENÁ stopa
+   * (snapPath), nie kotvy — tie sa pri zápise nezachovávajú. Pustiť do nej editor by
+   * znamenalo mazať bod po bode zo stoviek snapnutých bodov namiesto z kotiev, teda pravý
+   * opak toho, čo dvojvrstvový model chráni (viď `TripGeometry` v addTripModel.ts).
+   */
+  finishTrail?: HeroTrail | null;
   /** `kind` = druh vybraný ešte pred ťuknutím do mapy (mriežka v kroku 2); bez neho sa
    *  použije prvý druh skupiny, teda pôvodné správanie. */
   onPlaceNote?: (group: NoteGroup, kind?: NoteKind) => void;
@@ -313,7 +327,7 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail }: AddTripLogProps) {
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
@@ -556,6 +570,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // čo má autosave chrániť. Radšej vrátiť výlet bez fotiek než nevrátiť nič.
   const restoredRef = useRef(false);
   const [restored, setRestored] = useState<AddTripDraft | null>(() => {
+    // Dopĺňanie konceptu je návrat k ULOŽENÉMU výletu — ponuka „pokračovať v rozrobenom"
+    // by nad ním ponúkala niečo úplne iné a jedno kliknutie by prepísalo druhé.
+    if (finishTrail) return null;
     const d = readAddDraft();
     // Prázdny náčrt nemá čo obnovovať — ponuka „pokračovať" by bola falošný sľub.
     return d && (d.name || (d.geometry?.kind === 'route' && d.geometry.path?.length)) ? d : null;
@@ -607,6 +624,54 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // zapichnuté v minulom pokuse sú súčasťou toho, čo sa zahadzuje. Bez tohto riadku
   // prežili v úložisku a nový výlet začal s cudzím parkoviskom a upozornením.
   const discardRestore = () => { clearAddDraft(); clearTripNotes(); setRestored(null); };
+
+  // ── DOPĹŇANIE KONCEPTU ────────────────────────────────────────────────────────────────
+  // Beží RAZ, pri otvorení. Napĺňa tie isté settery ako `restore()` — dva rôzne spôsoby
+  // prefillu by sa rozišli pri prvom pribudnutom poli.
+  //
+  // `minStep` zamyká kroky 1–2: trasa je hotová a upravovať sa v tomto režime nedá
+  // (viď `finishTrail` v props), odkazy sa pichajú do mapy pri zápise a ich väzba na výlet
+  // sa neukladá, takže „späť na odkazy" by po čase ukazoval cudzie okolie.
+  const finishing = !!finishTrail;
+  const minStep = finishing ? 3 : 1;
+  const filledRef = useRef(false);
+  useEffect(() => {
+    if (!finishTrail || filledRef.current) return;
+    filledRef.current = true;
+    // Mapa má ukázať TEN výlet, ktorý sa dopĺňa. Nakreslená trasa umlčí `FitBounds` v PackMap
+    // (jeden vlastník výrezu), takže bez tohto by za formulárom ostal ležať výrez, na ktorom
+    // človek práve stál — spravidla celá krajina.
+    refitRef.current = true;
+    setTripMode('walked');
+    setName(finishTrail.name ?? '');
+    // acts nesú DATA id (hike/journey/…), formulár pracuje s id aktivity (hiking/journey/…).
+    const act = ACTIVITIES.find((a) => (finishTrail.acts ?? []).includes(a.dataId));
+    if (act) setActivity(act.id);
+    setGeometry({
+      kind: 'route',
+      // `path` v zázname je odvodená stopa. Do oboch vrstiev ide to isté, nech sa z nej
+      // počíta rovnako ako predtým; editovať sa v tomto režime nedá (minStep).
+      path: finishTrail.path ?? [],
+      snapPath: finishTrail.path ?? [],
+      snapped: true,
+    });
+    if (finishTrail.country) setCountryOverride(finishTrail.country);
+    if (finishTrail.date) setDate(finishTrail.date);
+    else setDontRemember(true);
+    if (finishTrail.dateEnd) setDateEnd(finishTrail.dateEnd);
+    if (finishTrail.crowd && (CROWDS as readonly string[]).includes(finishTrail.crowd)) setCrowd(finishTrail.crowd as Crowd);
+    if (finishTrail.diff && (DIFF_OPTIONS as readonly string[]).includes(finishTrail.diff)) setDiff(finishTrail.diff as typeof diff);
+    if (finishTrail.surface?.length) setTerrain(new Set(finishTrail.surface));
+    if (finishTrail.tags?.length) setTags(new Set(finishTrail.tags));
+    if (finishTrail.stars) setPaws(finishTrail.stars);
+    if (finishTrail.desc) setNote(finishTrail.desc);
+    if (finishTrail.photos?.length) setPhotos(finishTrail.photos);
+    setStep(3);
+    // Číselník sa otvára celý: kto dopĺňa, má kroky 3–5 splnené alebo rozpracované a musí
+    // medzi nimi skákať bez toho, aby ich „prechádzal" znova. Zároveň tým hneď svieti
+    // červená pri tom, čo chýba — v tomto režime je to celý zmysel obrazovky, nie výčitka.
+    setMaxStep(5);
+  }, [finishTrail]);
 
   // Trasa je hotová = dá sa z nej nakresliť čiara (2 kotvy), resp. bod/oblasť má stred.
   const geoDone = geometry.kind === 'route' ? geometry.path.length >= 2 : !!geometry.center;
@@ -660,8 +725,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const draft = useMemo<LogDraft>(() => {
     const now = Date.now();
     return {
-      id: `${isPlan ? 'plan' : 'log'}-${now}`,
+      id: finishTrail ? finishTrail.id : `${isPlan ? 'plan' : 'log'}-${now}`,
       existingTripId,
+      finishTripId: finishTrail?.id,
       state: isPlan ? 'planned' : 'walked',
       // Plán nejde cez schvaľovaciu frontu (§4.3 platí len pre walked) — objaví sa hneď.
       // Pri zápise je to placeholder, finálna hodnota sa dorátava pri submite (missingFields).
@@ -694,7 +760,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       updatedAt: now,
       step,
     };
-  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step]);
+  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -706,13 +772,18 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // §5.3 poistka — pýta sa, nezablokuje. `onPickExisting` (živí duchovia počas kreslenia) tu nie
   // je zapojený (nie je v props kontrakte tohto komponentu) — len submit-time kontrola.
   // existujúca magistrála je zámerný presný repeat, nie kandidát na duplicitu — nepýtať sa.
-  const dup = useMemo(() => (existingTripId ? null : findDuplicate(geometry, allTrails)), [existingTripId, geometry, allTrails]);
+  // ⚠️ Pri dopĺňaní sa duplicita NEHĽADÁ: dopĺňaný výlet je v `allTrails` sám, takže by
+  // našiel seba a pýtal sa „naozaj chceš zapísať to isté ešte raz?" pri každom uložení.
+  const dup = useMemo(() => (existingTripId || finishTrail ? null : findDuplicate(geometry, allTrails)), [existingTripId, finishTrail, geometry, allTrails]);
 
   // Priebežné ukladanie. `draft` je `useMemo`, takže effect beží len keď sa naozaj niečo
   // zmenilo — nie na každý render. Prázdny formulár sa neukladá, inak by otvorenie a
   // zatvorenie ADD flow bez jediného písmena prepísalo zálohu skutočnej rozrobenej práce.
   useEffect(() => {
     if (restored) return; // ponuka na obnovu je na obrazovke — nezmaž, čo ponúkame
+    // Dopĺňanie existujúceho výletu NIE JE rozrobený náčrt. Bez tejto brzdy by prepísalo
+    // zálohu skutočne rozrobeného výletu a ten by sa už nemal ako vrátiť.
+    if (finishing) return;
     const hasSomething = !!draft.name || (draft.geometry?.kind === 'route' && draft.geometry.path.length > 0);
     if (!hasSomething) return;
     const { photos: _photos, ...withoutPhotos } = draft;
@@ -732,7 +803,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     if (!ok) { setSubmitError("Couldn't save — storage might be full. Remove something and try again."); return; }
     // Odoslané = už to nie je rozpracované. Bez tohto by sa pri ďalšom otvorení ponúkalo
     // obnoviť výlet, ktorý je dávno v zozname.
-    clearAddDraft();
+    // ⚠️ Pri dopĺňaní sa záloha NEMAŽE — patrí inému, naozaj rozrobenému výletu.
+    if (!finishing) clearAddDraft();
     setShowDupWarning(false);
   };
   const handleSubmit = () => {
@@ -823,7 +895,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
 
   const goNext = () => { if (!nextBlocked) setStep((n) => Math.min(5, n + 1)); };
   const goPrev = () => {
-    if (step > 1) { setStep((n) => n - 1); return; }
+    if (step > minStep) { setStep((n) => n - 1); return; }
+    if (finishing) { onClose(); return; }
     setActivity('');
     setTripMode(null);
     setPendingActivity(null);
@@ -1088,8 +1161,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           role="tab"
           aria-selected={step === i + 1}
           className={`atl-step${step === i + 1 ? ' on' : ''}${step !== i + 1 && maxStep > i ? ' done' : ''}${maxStep > i && stepMissing[i + 1]?.length === 0 ? ' ok' : ''}`}
-          onClick={() => { if (i + 1 !== step && i + 1 <= maxStep) setStep(i + 1); }}
-          disabled={i + 1 > maxStep}
+          onClick={() => { if (i + 1 !== step && i + 1 <= maxStep && i + 1 >= minStep) setStep(i + 1); }}
+          disabled={i + 1 > maxStep || i + 1 < minStep}
         >
           <b>{i + 1}</b>
           <span>{t(`pack.addTrip.step.name.${k}`)}</span>
@@ -1739,9 +1812,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 <div className="atl-field">
                   <label>{t('pack.addTrip.step.markedOnRoute')}</label>
                   <PlacedNotes notes={placedNotes} t={t} emptyKey="pack.addTrip.step.noNotesSummary" />
-                  <button type="button" className="atl-journey-link" onClick={() => { setNoteAsk(0); setStep(2); }}>
-                    {t('pack.addTrip.step.backToNotes')}
-                  </button>
+                  {/* Pri dopĺňaní konceptu odkaz nesvieti: krok 2 je zamknutý, lebo väzba
+                      značky na výlet sa neukladá (odvodzuje sa zo súradnice) — po čase by
+                      zhrnutie ukazovalo cudzie okolie namiesto toho, čo si vtedy zapichol. */}
+                  {!finishing && (
+                    <button type="button" className="atl-journey-link" onClick={() => { setNoteAsk(0); setStep(2); }}>
+                      {t('pack.addTrip.step.backToNotes')}
+                    </button>
+                  )}
                 </div>
 
                 {/* PLÁN — viditeľnosť. Ukazuje sa len keď dátum leží v budúcnosti. */}
@@ -1880,7 +1958,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 <div className="atl-nav">
                   <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                   <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
-                    {t(isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
+                    {/* „Zapísať výlet" na výlete, ktorý je zapísaný od minulého týždňa, znie
+                        ako založenie druhého — pri dopĺňaní sa preto ukladá, nezapisuje. */}
+                    {t(finishing ? 'pack.addTrip.log.submitFinish' : isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
                   </button>
                 </div>
                 {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missingTx(missing.toSubmit) })}</p>}

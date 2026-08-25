@@ -20,6 +20,9 @@ import iconMedia from '@/assets/icons/council-media.svg';
 import iconInvestor from '@/assets/icons/council-investor.svg';
 import iconCommunity from '@/assets/icons/council-community.svg';
 import iconBusiness from '@/assets/icons/council-business.svg';
+// Tá istá kontrola úplnosti, akú používa sprievodca — dve kópie pravidla by znamenali, že
+// admin schvaľuje podľa iného zoznamu polí, než ktorý appka od človeka pýta.
+import { missingOnTrail } from '@/components/pack/addtrip/addTripModel';
 
 // Admin e-maily — kto sa smie prihlásiť. Drží sa to v synchronizácii s RLS
 // policy "Admin read all" v Supabase (gated na rovnaký e-mail). Pridať admina
@@ -114,7 +117,11 @@ interface PackTripRow {
   status: string;
   km: number | null;
   country: string | null;
-  payload: { name?: string; region?: string; photos?: string[] } | null;
+  payload: {
+    name?: string; region?: string; photos?: string[];
+    // polia, z ktorých sa počíta úplnosť (missingOnTrail) — koncept sa neschvaľuje
+    acts?: string[]; diff?: string; surface?: string[]; crowd?: string; tags?: string[]; stars?: number;
+  } | null;
 }
 
 type Tab = 'orders' | 'dogs' | 'photos' | 'emails' | 'bugs' | 'vision' | 'reports' | 'trips' | 'ainubis';
@@ -344,7 +351,19 @@ export default function Admin() {
     setReports((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'handled', handled_at: new Date().toISOString() } : r)));
   };
 
-  const pendingTrips = memberTrips.filter((t) => t.status === 'pending').length;
+  /**
+   * ── KONCEPT SA NESCHVAĽUJE (2026-08-25) ──────────────────────────────────────────────
+   *
+   * `pack_trips.status` je 'pending' od vloženia, takže nedokončený výlet doteraz stál vo
+   * fronte vedľa hotového a nič ho neodlišovalo — a schválením by sa polovičný výlet dostal
+   * na mapu celej svorky. Úplnosť sa počíta z payloadu tou istou funkciou ako v appke
+   * (`missingOnTrail`), takže tu nemôže platiť iné pravidlo než v sprievodcovi.
+   *
+   * Koncepty sa nezakrývajú, len sa neponúkajú na schválenie a nerátajú sa do počtu v tabe:
+   * číslo pri „Member trips" má znamenať „toľkoto čaká na TEBA".
+   */
+  const tripMissing = (t: PackTripRow): string[] => (t.payload ? missingOnTrail(t.payload) : []);
+  const pendingTrips = memberTrips.filter((t) => t.status === 'pending' && tripMissing(t).length === 0).length;
 
   const setTripStatus = async (id: string, status: 'approved' | 'rejected') => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- viď načítanie vyššie
@@ -588,8 +607,14 @@ export default function Admin() {
               t.km ?? '—',
               t.country ?? '—',
               String(t.payload?.photos?.length ?? 0),
-              <Pill key="s" ok={t.status === 'approved'}>{t.status}</Pill>,
-              t.status === 'pending' ? (
+              tripMissing(t).length > 0 && t.status === 'pending'
+                ? <Pill key="s" ok={false}>draft</Pill>
+                : <Pill key="s" ok={t.status === 'approved'}>{t.status}</Pill>,
+              tripMissing(t).length > 0 && t.status === 'pending' ? (
+                <span key="a" style={{ opacity: 0.55, fontSize: 12, fontFamily: GROTESK, whiteSpace: 'nowrap' }}>
+                  waiting for author — missing: {tripMissing(t).map((k) => k.split('.').pop()).join(', ')}
+                </span>
+              ) : t.status === 'pending' ? (
                 <span key="a" style={{ display: 'flex', gap: 6, whiteSpace: 'nowrap' }}>
                   <button
                     onClick={() => void setTripStatus(t.id, 'approved')}

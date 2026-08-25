@@ -32,7 +32,7 @@ import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
   ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
-  tripShareText, tripText, TRAIL_SABER_LAYERS, ensureTrailLineCss } from '@/components/pack/tripShared';
+  tripShareText, tripText, TRAIL_SABER_LAYERS, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
 import {
   crowdAggregate, founderWalkers, CROWD_EMOJI, readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   walkPointsFor, walkRewardBase, RATE_PROMPT_POINTS, discoveryBonusFor, bonusToastText,
@@ -365,7 +365,7 @@ export default function PackTripArticle() {
   // bod 5 side-effect (viď súborový komentár hore): allTrails = statické HERO_TRAILS +
   // sessionStorage mirror ADD-flow tripov z PackMap (jeden-krát na mount stačí — táto
   // stránka je detail jedného tripu, nepotrebuje živú reaktivitu na iný tab/mount).
-  const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   const trail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
   // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
   const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;

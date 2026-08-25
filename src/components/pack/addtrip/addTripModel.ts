@@ -213,7 +213,11 @@ export const SUBMIT_REQUIRED: Record<TripState, Array<keyof AddTripDraft>> = {
  */
 export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'crowd', 'tags', 'paws'];
 
-const HIKE_LIKE = new Set(['hiking', 'journey']);
+// `hiking`/`journey` = hodnoty z formulára; `hike`/`journey` = to isté po prechode cez
+// ACT_DATA_ID do `HeroTrail.acts` (PackMap.tsx ~299). V jednej množine zámerne: pravidlo
+// „náročnosť a povrch len pre pešie" musí platiť na oboch stranách zápisu rovnako, inak by
+// uložený výlet vyšiel neúplný práve vtedy, keď formulár tvrdil opak.
+const HIKE_LIKE = new Set(['hiking', 'journey', 'hike']);
 
 /**
  * NÁZVY CHÝBAJÚCICH POLÍ SÚ i18n KĽÚČE, NIE HOTOVÝ TEXT (2026-08-23).
@@ -279,14 +283,74 @@ export function missingFields(draft: AddTripDraft): { toSubmit: string[]; toAppr
     .filter((f) => !isFilled(draft, f))
     .map((f) => FIELD_LABEL[f] ?? String(f));
 
-  const approveFields = draft.state === 'walked'
-    ? APPROVAL_REQUIRED.filter((f) => ((f === 'diff' || f === 'surface') ? HIKE_LIKE.has(draft.activity) : true))
+  const toApprove = draft.state === 'walked'
+    ? missingToApprove({
+        hikeLike: HIKE_LIKE.has(draft.activity),
+        diff: draft.diff, surface: draft.surface, crowd: draft.crowd,
+        tags: draft.tags, paws: draft.paws,
+      })
     : [];
-  const toApprove = approveFields
-    .filter((f) => !isFilled(draft, f))
-    .map((f) => FIELD_LABEL[f] ?? String(f));
 
   return { toSubmit, toApprove };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────────────────
+// ÚPLNOSŤ SA NEUKLADÁ — ODVODZUJE SA (2026-08-25)
+//
+// `AddTripDraft.approval` ('draft' vs 'pending') sa počítal pri odoslaní a zahodil pri zápise:
+// `HeroTrail` také pole nemá a `submitAddTripDraft` ho neprepisoval. Namiesto dopísania stĺpca
+// sa úplnosť ODVODZUJE zo záznamu, lebo je v ňom celá — všetkých päť povinných polí
+// (APPROVAL_REQUIRED) `HeroTrail` nesie: `diff`, `surface`, `crowd`, `tags`, `stars`.
+//
+// Uložený príznak by po prvom doplnení KLAMAL: dopĺňanie mení práve tie polia, z ktorých sa
+// počíta, takže by sa musel prepísať na každej ceste, ktorá výlet upraví (formulár, hydratácia
+// z `pack_trips`, admin) — a tá, na ktorú sa zabudne, by držala hotový výlet navždy v konceptoch.
+// Odvodenie sa opraví samo v momente, keď človek pole vyplní.
+//
+// ⚠️ Platí LEN pre členmi nahodené PREJDENÉ výlety. Plán (`plan-*`) povinné polia nemá vôbec
+// (neschvaľuje sa) a generovaný katalóg ich má všetky — overené 25. 8. na všetkých 72 trasách:
+// `diff` chýba presne siedmim a všetky sú nepešie (paddleboard/skating/explore), teda presne
+// tam, kde ho ani formulár nepýta. Scoping drží `tripDraftMissing()` v tripShared.tsx, nie táto
+// funkcia — tá je čistá kontrola polí.
+// ─────────────────────────────────────────────────────────────────────────────────────────
+type CompletenessInput = {
+  hikeLike: boolean;
+  diff?: string;
+  surface?: string[];
+  crowd?: string;
+  tags?: string[];
+  paws?: number;
+};
+
+function missingToApprove(x: CompletenessInput): string[] {
+  const has = (f: keyof AddTripDraft): boolean => {
+    switch (f) {
+      case 'diff': return !x.hikeLike || !!x.diff;
+      case 'surface': return !x.hikeLike || (!!x.surface && x.surface.length > 0);
+      case 'crowd': return !!x.crowd;
+      case 'tags': return !!x.tags && x.tags.length > 0;
+      case 'paws': return !!x.paws && x.paws >= 1;
+      default: return true;
+    }
+  };
+  return APPROVAL_REQUIRED.filter((f) => !has(f)).map((f) => FIELD_LABEL[f] ?? String(f));
+}
+
+/**
+ * Čo výletu chýba do zverejnenia — i18n kľúče, rovnaké ako `missingFields().toApprove`.
+ * Prázdne pole = hotový. Vstupom je ULOŽENÝ záznam, nie formulár.
+ */
+export function missingOnTrail(trail: {
+  acts?: string[]; diff?: string; surface?: string[]; crowd?: string; tags?: string[]; stars?: number;
+}): string[] {
+  return missingToApprove({
+    hikeLike: (trail.acts ?? []).some((a) => HIKE_LIKE.has(a)),
+    diff: trail.diff,
+    surface: trail.surface,
+    crowd: trail.crowd,
+    tags: trail.tags,
+    paws: trail.stars,
+  });
 }
 
 // ── Autosave rozpracovaného tripu (§11) ─────────────────────────────────────────────────

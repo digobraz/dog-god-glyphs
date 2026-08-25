@@ -20,7 +20,7 @@ import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI, PACK_COL, PACK_COL_PAD } from '@/components/pack/packTheme';
-import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS, ICON, GOLD_ICON_FILTER, tripPath, tripPathById, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
 import { closeMyTripEvents, readLocalTrailMeta } from '@/lib/packStore';
 import { readPlans } from '@/components/pack/packCommunity';
 import { COMMUNITY_CSS, TripStatsPanel } from '@/components/pack/packCommunityUI';
@@ -323,7 +323,7 @@ export default function PackTriplist() {
 
   // Hydratácia z DB (issue #32) dobehne po mounte → epoch prečíta walked/triplist znova.
   const storeEpoch = usePackStoreEpoch();
-  const allTrails = useMemo(() => [...readLocalTrails(), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
+  const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
   // Founder walked seed (Matej 2026-07-24): nahodené = prejdené + z červených len SNP/Poloniny.
   // Seedne raz za session aj keď sa na vysvedčenie príde priamo (mimo PackMap mapy).
   useMemo(() => ensureWalkedSeeded([

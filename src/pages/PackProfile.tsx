@@ -16,7 +16,7 @@ import { DEV_FULL } from '@/lib/packFlags';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
-import { readLocalTrails, readWalkedIds, pluralKey } from '@/components/pack/tripShared';
+import { readLocalTrails, readWalkedIds, pluralKey, visibleLocalTrails } from '@/components/pack/tripShared';
 import { profileLevelFor, readVotes } from '@/components/pack/packCommunity';
 import {
   useProfile,
@@ -437,7 +437,7 @@ export default function PackProfile() {
     if (!DEV_FULL) return null;
     // Jedno čítanie localStorage, nie dve — `readLocalTrails()` parsuje JSON pri každom volaní.
     const localTrails = readLocalTrails();
-    const allTrails: HeroTrail[] = [...localTrails, ...HERO_JOURNEYS, ...HERO_TRAILS];
+    const allTrails: HeroTrail[] = [...visibleLocalTrails(localTrails), ...HERO_JOURNEYS, ...HERO_TRAILS];
     const walked = readWalkedIds();
     const walkedTrails = allTrails.filter((tr) => walked.has(tr.id));
     if (walkedTrails.length === 0) return null;
