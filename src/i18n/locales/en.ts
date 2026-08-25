@@ -1970,6 +1970,7 @@ export const en = {
   'pack.addTrip.ainubis.zoomOk': "Perfect. Now press and hold where you set off \u2014 that starts the route.",
   'pack.addTrip.geo.leaveToMap': "Back to the map \u2014 leave",
   'pack.addTrip.ainubis.drawDone': "Keep tapping and build the whole route. When you're back where you finished, hit ROUTE DONE.",
+  'pack.addTrip.ainubis.routeLooksDone': "Nice — looks like a finished route. If it fits, hit ROUTE DONE.",
   'pack.addTrip.log.mode.ask': "Are you logging it, or planning it?",
   'pack.addTrip.log.mode.walked': "We walked it",
   'pack.addTrip.log.mode.planned': "We're going",
@@ -2011,6 +2012,8 @@ export const en = {
   // od človeka čaká. Poradie krokov je Matejovo, doslova.
   'pack.addTrip.geo.timeNote': "SAC estimate (4 km/h, 300 m/h up, 500 m/h down). Some walk it faster, some slower.",
   'pack.addTrip.geo.unknownDistance': "Route unknown",
+  // Profil prevýšenia sa kreslí z cachovaných výšok; kým sa dosťahujú, karta nesmie byť prázdna.
+  'pack.addTrip.geo.elevWait': "Loading elevation…",
   'pack.addTrip.geo.stepBack': "Back",
   'pack.addTrip.geo.holdForTarget': "Press and hold to mark the destination",
   'pack.addTrip.geo.markTarget': "Mark the destination",

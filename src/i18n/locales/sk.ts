@@ -1900,6 +1900,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.ainubis.zoomOk': "Super. Teraz zvoľ štartovací bod — dlhým stlačením zaháj trasu tam, kde ste vyrazili.",
   'pack.addTrip.geo.leaveToMap': "Späť na mapu — odísť",
   'pack.addTrip.ainubis.drawDone': "Klikaj ďalej a vytvor celú trasu. Keď si tam, kde ste skončili, daj TRASA HOTOVÁ.",
+  'pack.addTrip.ainubis.routeLooksDone': "Super — vyzerá to na hotovú trasu. Ak sedí, daj TRASA HOTOVÁ.",
   'pack.addTrip.log.mode.ask': "Zapisuješ, alebo plánuješ?",
   'pack.addTrip.log.mode.walked': "Prešli sme to",
   'pack.addTrip.log.mode.planned': "Ideme tam",
@@ -1937,6 +1938,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.geo.ghostHint': "Bledé čiary sú existujúce trasy — klikni na jednu a zapíš ju",
   // ── KROKOVÝ SPRIEVODCA PRIDÁVANIA VÝLETU (Matej 2026-08-23) ─────────────────────────────
   'pack.addTrip.geo.unknownDistance': "Trasa neznáma",
+  'pack.addTrip.geo.elevWait': "Naťahujem výšky…",
   'pack.addTrip.geo.timeNote': "Odhad podľa SAC (4 km/h, stúpanie 300 m/h, klesanie 500 m/h). Niekto to prejde rýchlejšie, niekto pomalšie.",
   'pack.addTrip.geo.stepBack': "Späť",
   'pack.addTrip.geo.holdForTarget': "Dlho podrž pre označenie cieľa trasy",

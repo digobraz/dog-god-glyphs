@@ -27,7 +27,7 @@ import {
 } from './addTripModel';
 import { SPACING, calibratedAscent, calibratedDescent, hav, interp, totalDistanceM } from './addTripGeo';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
-import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } from '@/components/pack/tripShared';
+import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss, ElevationProfile } from '@/components/pack/tripShared';
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
 import { AinubisGuide, AINUBIS_GUIDE_CSS } from './AinubisGuide';
@@ -245,6 +245,17 @@ export function GeometryPicker({
   // znamienko, takže nemá vlastné načítavanie ani vlastný `pending`.
   const [descent, setDescent] = useState<number | null>(null);
   const [elevPending, setElevPending] = useState(false);
+  /**
+   * ROZTIAHNUTÁ PILULKA = PROFIL PREVÝŠENIA (Matej 2026-08-25: „v 1-2 kroku sa bude dat
+   * kliknut na pils - a zobrazí sa to prevýšenie, aktualne ked kliknem tak sa pridá další
+   * bod, pils sa ignoruje a kliká sa na mapu za tým").
+   *
+   * Pilulka mala `pointer-events:none` s odôvodnením „nie je to ovládač, tak nechytá ťuky
+   * do mapy" — odteraz ovládač JE, takže si ťuk pýta. Kreslenie tým stráca pás ~40 px nad
+   * panelom; je to vedomá výmena, ktorú si Matej vypýtal, a pilulka stojí tam, kam sa kotvy
+   * aj tak nesádzajú (tesne nad ovládaním).
+   */
+  const [elevOpen, setElevOpen] = useState(false);
 
   const allowed = useMemo(() => allowedKindsFor(activity), [activity]);
   const line = useMemo(
@@ -902,6 +913,18 @@ export function GeometryPicker({
    * Prekresľuje sa cez `zoomTick` (efekt s vrstvami počúva `zoomend`), takže sa veta
    * prepne sama pri každom priblížení — bez ťuknutia do čohokoľvek.
    */
+  /**
+   * TRASA VYZERÁ HOTOVÁ — dva prípady, jedna veta.
+   *  1. appka práve dokreslila cestu späť (`returnMode === 'mirror'`),
+   *  2. človek doklikal okruh a skončil tam, kde začal.
+   * Prah 150 m je zámerne voľný: kotva na parkovisku a kotva pri aute na druhej strane
+   * parkoviska sú to isté miesto, hoci sa súradnicami nerovnajú.
+   */
+  const routeLooksDone = value.kind === 'route' && (
+    value.returnMode === 'mirror'
+    || (routePath.length >= 3 && hav(routePath[0], routePath[routePath.length - 1]) < 150)
+  );
+
   const ownHint = stage === 0
     ? (holdTooFar
         ? (zoomPct < 34 ? t('pack.addTrip.ainubis.findPlace')
@@ -912,10 +935,17 @@ export function GeometryPicker({
       // dve veci: „klikaj ďalej" a — od druhej kotvy — že sa dá skončiť. Tvar trasy (okruh,
       // tam a späť, z A do B) si človek určuje sám tým, kam klikne, takže sa naň appka
       // nemá čo pýtať.
+      // ⚠️ KEĎ TRASA VYZERÁ HOTOVÁ, NEHOVOR „KLIKAJ ĎALEJ" (Matej 25. 8. 2026: „po tom čo
+      // človek označil a má pred sebou trasu tam aj spať musí ainubis povedať niečo v zmysle
+      // super, vyzerá že máš hotovú trasu klikni na HOTOVO"). Sprievodca dovtedy pýtal ďalšie
+      // kliky aj vtedy, keď appka práve sama dokreslila cestu domov — teda radil úlohu, ktorú
+      // má človek za sebou.
       : value.kind === 'route'
         ? (routePath.length < 2
             ? t('pack.addTrip.geo.continueTap')
-            : t('pack.addTrip.ainubis.drawDone'))
+            : routeLooksDone
+              ? t('pack.addTrip.ainubis.routeLooksDone')
+              : t('pack.addTrip.ainubis.drawDone'))
         : null;
   const drawHint = drawBar?.hint !== undefined ? drawBar.hint : ownHint;
 
@@ -950,7 +980,10 @@ export function GeometryPicker({
                 <span title={t('pack.addTrip.geo.timeNote')}>{formatTripTime(estimateTripMinutes(km, ascent, descent))}</span>
               </>
             )}
-            <span style={{ color: T.onDarkDim }}> · {t(`pack.addTrip.geo.pointsSuffix.${pointCount === 1 ? 'one' : pointCount < 5 ? 'few' : 'many'}`, { n: pointCount })}</span>
+            {/* ⚠️ POČET KOTIEV V PILULKE ZANIKOL (Matej 25. 8. 2026: „musia tam byť spomenuté
+                tie body? celkom mi tam vadia načo je to dobré"). Bol to údaj o KRESLENÍ, nie
+                o výlete — človek z neho nič nerozhoduje, kým km, prevýšenie a čas áno. Kľúče
+                `pack.addTrip.geo.pointsSuffix.*` ostávajú v slovníku, keby sa mal vrátiť. */}
           </>
   ) : value.center ? (
     value.kind === 'area'
@@ -994,8 +1027,69 @@ export function GeometryPicker({
   // v hlavičke panela, musela sa v kroku 2 skrývať — bila sa tam s chipmi značiek. Nad mapou
   // má miesta dosť, tak sa nemá prečo strácať práve vtedy, keď človek značky rozmiestňuje
   // po trase, ktorej dĺžku sleduje.
+  /**
+   * Séria výšok pre graf — z TEJ ISTEJ cache, z akej sa ráta stúpanie (`elevAt`), takže
+   * otvorenie pilulky nespustí ani jedno sieťové volanie. Počíta sa až po otvorení a až keď
+   * je cache úplná (`elevPending`); polovičný profil by klamal o tvare kopca.
+   *
+   * ⚠️ Prevzorkovanie na 200 bodov: `interp(..., SPACING)` dá pri Ceste hrdinov SNP (770 km)
+   * 7 700 vzoriek a SVG s toľkými segmentmi na telefóne seká. Graf je široký ~300 px, takže
+   * viac než 200 bodov aj tak nemá kam vykresliť.
+   */
+  const elevSeries = useMemo(() => {
+    if (!elevOpen || elevPending || line.length < 2) return null;
+    const vals: number[] = [];
+    for (const p of interp(line, SPACING)) {
+      const v = elevAt(p);
+      if (typeof v === 'number') vals.push(v);
+    }
+    if (vals.length < 2) return null;
+    const MAX_POINTS = 200;
+    if (vals.length <= MAX_POINTS) return vals;
+    const step = (vals.length - 1) / (MAX_POINTS - 1);
+    return Array.from({ length: MAX_POINTS }, (_, i) => vals[Math.round(i * step)]);
+  }, [elevOpen, elevPending, line]);
+
+  // Profil sa dá otvoriť, len keď je čo kresliť. Najmenší zápis (vzdušná čiara) prevýšenie
+  // nehlási vôbec, tak by pilulka otvárala prázdno.
+  const canElev = value.kind === 'route' && !isMinimal && pointCount >= 2;
+
+  // Nová kotva profil ZAVRIE. Inak by karta ostala visieť nad mapou práve vtedy, keď človek
+  // pokračuje v kreslení, a on by ju musel zatvárať, aby videl, kam kreslí.
+  useEffect(() => { setElevOpen(false); }, [pointCount]);
+
   const readoutRow = (stage === 2 && showReadout)
-    ? <div className="trp-dreadrow"><div className="trp-dread">{readout}</div></div>
+    ? (
+      <div className="trp-dreadrow">
+        {canElev
+          ? (
+            <button
+              type="button"
+              className="trp-dread trp-dread--btn"
+              onClick={() => setElevOpen((o) => !o)}
+              aria-expanded={elevOpen}
+            >
+              {readout}
+            </button>
+          )
+          : <div className="trp-dread">{readout}</div>}
+      </div>
+    )
+    : null;
+
+  /** Karta s profilom — rovnaký povrch ako pilulka, aby to čítalo ako JEJ roztiahnutie. */
+  const elevCard = (elevOpen && canElev && stage === 2 && showReadout)
+    ? (
+      <div className="trp-delev">
+        <div className="trp-delev-head">
+          <span>{t('pack.trip.elevation')}</span>
+          <button type="button" className="trp-delev-x" onClick={() => setElevOpen(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
+        </div>
+        {elevSeries
+          ? <ElevationProfile elev={elevSeries} km={km} />
+          : <div className="trp-delev-wait">{t('pack.addTrip.geo.elevWait')}</div>}
+      </div>
+    )
     : null;
   // Ten istý uzol, len umiestnený v mape nad panelom (Matej 24. 8. 2026).
   // ⚠️ Renderuje sa VNÚTRI doku, ktorý je pripútaný k spodnej hrane — pilulka tak „pláva"
@@ -1152,6 +1246,7 @@ export function GeometryPicker({
             v 1-2 kroku daj nad panel — ako keby do mapy"). Je to údaj O TRASE, teda o tom, čo
             je na mape — v paneli patrí ovládanie. Rovnaké miesto, aké mala kedysi pokynová
             pilulka, kým ju nevystriedal AInubis hore. */}
+        {elevCard}
         {readoutRow}
 
         {stage === 0 && !drawBar.panel && (
@@ -1460,6 +1555,31 @@ const DRAW_BAR_CSS = `
 /* Čítanie km má vlastný riadok a je vycentrované — v hlavičke sa bilo s chipmi značiek. */
 /* Pás sám ťuky NEBERIE — pod ním je mapa a musí sa na nej dať kresliť. */
 .trp-dreadrow{display:flex;justify-content:center;pointer-events:none;margin:0 16px;}
+/* ⚠️ PILULKA S ČÍSLAMI JE ODTERAZ TLAČIDLO (Matej 2026-08-25). Riadok okolo nej ťuky ďalej
+   NECHYTÁ — mapa medzi ňou a panelom musí ostať kresliteľná — takže si ich pýta len samotná
+   pilulka. Bez tohto klik prepadol do mapy a namiesto profilu pribudla kotva.
+   Rozlíšiteľná musí byť aj na pohľad, inak je to skrytá funkcia: ceruzkový rám zosilnie
+   a pribudne šípka, ktorá sa po otvorení otočí. */
+/* ⚠️ ŽIADNE font:inherit ANI color:inherit. Obe stoja NIŽŠIE než .trp-dread, takže prebili
+   jej vlastné color:#F3E9FF aj veľkosť písma — a pilulka zostala s čiernym textom
+   prehliadača na tmavom podklade (Matej 25. 8.: „rozbil sa vizuál nie je vidno písmo lebo
+   je čierne"). Vzhľad tlačidla NETREBA resetovať: .trp-dread nastavuje farbu, písmo, rám
+   aj výplň sama a autorský štýl porazí štýl prehliadača bez pomoci. */
+.trp-dread--btn{pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow .16s,border-color .16s;}
+.trp-dread--btn::after{content:'⌃';display:inline-block;margin-left:9px;font-size:11px;line-height:1;transform:translateY(2px);color:#C9A6F2;transition:transform .18s;}
+.trp-dread--btn[aria-expanded="true"]::after{transform:translateY(-2px) rotate(180deg);}
+.trp-dread--btn:hover{border-color:#C9A6F2;box-shadow:0 0 0 4px rgba(122,47,191,0.30),0 6px 20px rgba(0,0,0,0.55);}
+
+/* ── PROFIL PREVÝŠENIA NAD PILULKOU ────────────────────────────────────────────────────
+   Ten istý povrch a rám ako pilulka, len roztiahnutý — má sa čítať ako JEJ otvorenie, nie
+   ako tretí druh panela. Preto tu NIE JE .trp-dockpanel: ten je tvar OVLÁDACIEHO panela
+   (mapDockShape.ts), a toto je údaj o trase, ktorý žije v mape.
+   Šírka je orámovaná, nie plná: nad panelom má ostať vidieť mapu po stranách. */
+.trp-delev{pointer-events:auto;align-self:center;width:min(100%,360px);margin:0 16px;padding:10px 14px 6px;border-radius:16px;background:rgba(18,13,7,0.94);border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 0 0 4px rgba(122,47,191,0.20),0 6px 20px rgba(0,0,0,0.55);}
+.trp-delev-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;font-family:${FONT_UI};font-weight:500;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+.trp-delev-x{border:0;background:transparent;color:${T.onDarkDim};font-size:17px;line-height:1;cursor:pointer;padding:0 2px;}
+.trp-delev-x:hover{color:#C9A6F2;}
+.trp-delev-wait{padding:14px 0 16px;text-align:center;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
 .trp-dreadrow .trp-dread{font-size:13.5px;padding:7px 14px;}
 
 /* ── PEVNÁ VÝŠKA V KROKOCH 1–2 (Matej 24. 8. 2026) ─────────────────────────────────────

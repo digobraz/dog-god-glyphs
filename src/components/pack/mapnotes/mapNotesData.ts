@@ -123,10 +123,15 @@ export interface RadiusRule {
 // Päťsto metrov bolo najmenšie, čo sa dalo nastaviť, takže „tu pri tom moste je pes na
 // vodítko" sa zapísalo ako polkilometrový kruh cez pol dediny. Predvolená hodnota ostáva
 // 500 — väčšina hrozieb naozaj je rozptýlená; mení sa len to, kam sa dá posuvník stiahnuť.
+// ⚠️ HORNÁ HRANICA 1 km (Matej 25. 8. 2026: „treba zmeniť logiku okruhov! od 100m do 1km").
+// Päť kilometrov bol polomer, do ktorého sa zmestí celé pohorie — taký kruh už nehovorí
+// „daj si tu pozor", ale „niekde v tomto kraji". Posuvník má odteraz desať zastávok po 100 m,
+// takže sa dá trafiť skutočný rozsah hrozby, nie len jej rád veľkosti.
+// ⚠️ Staré zápisy s väčším okruhom ostávajú, ako sú — pravidlo platí na to, čo sa dá NASTAVIŤ.
 export const RADIUS_RULES: Record<NoteGroup, RadiusRule> = {
   parking: { mode: 'none', min: 0, max: 0, step: 0, def: 0 },
-  warning: { mode: 'required', min: 100, max: 5000, step: 100, def: 500 },
-  comment: { mode: 'optional', min: 100, max: 5000, step: 100, def: 500 },
+  warning: { mode: 'required', min: 100, max: 1000, step: 100, def: 500 },
+  comment: { mode: 'optional', min: 100, max: 1000, step: 100, def: 500 },
 };
 
 // ── VÝNIMKY SÚ VLASTNOSŤOU DRUHU, NIE SKUPINY (Matej 2026-08-22) ────────────

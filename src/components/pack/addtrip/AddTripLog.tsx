@@ -2124,7 +2124,13 @@ const STEP_CSS = `
    hotové" — a keď platí oboje, dôležitejšie je, kde človek stojí. Preto '.ok' nie '.on'.
    Je to tá istá zelená, akou svieti splnená značka na trase (GROUP_TINT.comment) a vybratý
    pes v kroku 5 — jeden význam, jedna farba. */
-.atl-step.ok:not(.on) b{background:rgba(58,150,88,0.22);border-color:#3A9658;color:#7FD79B;}
+/* ⚠️ ZELENÁ PLATÍ AJ NA KROK, NA KTOROM PRÁVE STOJÍŠ (Matej 25. 8. 2026: „ak v 4 neoznačím
+   všetko a potom sa vrátim a označím, bod 4 zostane oranžový a nie zelený"). Pôvodné
+   :not(.on) vychádzalo z predpokladu, že sa krok dokončí až tým, že z neho odídeš — lenže
+   človek ho dopĺňa a pozerá sa, či to zabralo. Odpoveď „splnené" nesmie čakať na odchod.
+   „Tu si" prežije: v paneli to hovorí zlatý rám dlaždice, na mape zlatý prstenec okolo
+   čísla (.atl-steps--onmap .atl-step.on b) — obe iné vlastnosti než výplň, takže sa nebijú. */
+.atl-step.ok b{background:rgba(58,150,88,0.22);border-color:#3A9658;color:#7FD79B;}
 /* Nevyplnené pole po NÁVRATE do kroku. Rám aj popisok, nie len rám — samotný červený obrys
    sa na tmavom povrchu prehliadne. */
 .atl-miss > label{color:#E08A7A;}

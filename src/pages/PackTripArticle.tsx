@@ -506,6 +506,60 @@ export default function PackTripArticle() {
   }, [noteFull, noteMap]);
 
   /**
+   * SKUTOČNÁ VÝŠKA SPODNÉHO PANELA — meraná, nie odhadnutá.
+   *
+   * `notePanelH()` je ODHAD spred mountu: mapa sa musí odpanovať v okamihu kliku, keď panel
+   * ešte neexistuje, takže tam iná možnosť nie je. Atribúcia sa ale dvíha AŽ POTOM a merať
+   * si dovoliť môže — a rozdiel je veľký: paleta meria na PC 107 px, formulár až 420.
+   * S odhadom by pilulka na PC visela v strede mapy.
+   *
+   * ⚠️ Atribúcia POI je podmienka licencie ODbL, nie dekorácia — preto sa vôbec dvíha.
+   */
+  const hasDraft = !!noteDraft;
+  const [notePanelPx, setNotePanelPx] = useState(0);
+  useEffect(() => {
+    if (!noteBusy) { setNotePanelPx(0); return; }
+    const el = document.querySelector('.mna-sheet, .mnq-panel') as HTMLElement | null;
+    if (!el) { setNotePanelPx(0); return; }
+    const read = () => setNotePanelPx(Math.round(el.getBoundingClientRect().height));
+    read();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [noteBusy, hasDraft]);
+
+  /**
+   * DRUHÝ POHĽAD — AŽ KEĎ PANEL NAOZAJ STOJÍ.
+   *
+   * `placeNote` odpanuje mapu podľa ODHADU (`notePanelH()` = 33vh), lebo v okamihu kliku
+   * panel ešte neexistuje. Lenže 33vh je pre formulár len SPODNÁ hranica: pri kliešti
+   * s potvrdenou chorobou a zapnutým okruhom narastie na ~366 px, a vtedy značka, ktorú
+   * človek práve položil, skončí POD ním — teda presne to, čomu má odpanovanie zabrániť.
+   * Odmerané pri parkovisku (288 px): spodok značky prečnieval pod hranu panela.
+   *
+   * ⚠️ Dorovnáva sa LEN keď je značka naozaj schovaná — druhý skok mapy bez dôvodu vyzerá
+   * ako chyba. A vedome to NEZÁVISÍ od `lat`/`lon`: ťahanie značky mení súradnice priebežne
+   * a mapa by pod prstom ušla. Beží teda pri vzniku zápisu a pri RASTE panela (výmena druhu),
+   * nie pri posune značky.
+   *
+   * Odklad 420 ms = prvé odpanovanie z `placeNote` je animované 350 ms; bez čakania by sa
+   * počítalo z rozbehnutej polohy.
+   */
+  useEffect(() => {
+    if (!hasDraft || !noteMap || !notePanelPx || !noteDraft) return;
+    const map = noteMap;
+    const { lat, lon } = noteDraft;
+    const t = window.setTimeout(() => {
+      const pt = map.latLngToContainerPoint([lat, lon]);
+      const hidden = pt.y - (map.getSize().y - notePanelPx - 12);
+      if (hidden > 0) map.panBy([0, hidden + 28], { animate: true, duration: 0.3 });
+    }, 420);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasDraft, noteMap, notePanelPx]);
+
+  /**
    * Položí značku a odpanuje MAPU tak, aby značka ostala nad spodným panelom.
    *
    * Do 25. 8. sa tu namiesto toho hýbalo STRÁNKOU — mapa bola nízky box v strede článku,
@@ -1097,9 +1151,9 @@ export default function PackTripArticle() {
             <div className="pta-mapempty">{t('pack.trip.routeSoon')}</div>
           )}
           {/* ⚠️ Atribúcia je PODMIENKA licencie ODbL, nie dekorácia — v celoobrazovkovom
-              režime by inak celá zmizla pod spodným panelom. Dvíha sa len keď panel naozaj
-              stojí (`noteBusy`); počas „ukáž miesto" je dole voľno. */}
-          {trail.path.length > 0 && <PoiAttribution style={noteBusy ? { bottom: notePanelH() + 12 } : undefined} />}
+              režime by inak zmizla pod spodným panelom. Dvíha sa presne o jeho nameranú
+              výšku (viď `notePanelPx`); počas „ukáž miesto" je dole voľno a ostáva na mieste. */}
+          {trail.path.length > 0 && <PoiAttribution style={notePanelPx ? { bottom: notePanelPx + 12 } : undefined} />}
           {/* Vstup do zápisu priamo na mape. Kreslí sa len tomu, kto trasu prešiel;
               ak ju ešte neohodnotil, klik otvorí najprv hodnotenie (viď `noteGate`).
               Počas rozrobeného zápisu mizne — inak by prekrýval vlastnú paletu. */}
