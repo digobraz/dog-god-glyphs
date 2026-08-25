@@ -48,6 +48,8 @@ interface RealDog {
   share_card_url?: string | null;
   country: string | null;
   owner_message: string | null;
+  /** Na dopočet dní v detaile na planéte — endpoint ho vracia, len sa nečítal. */
+  birth_date?: string | null;
 }
 
 // Hekthor (0,-1) + hero/CTA karta (0,0) tvoria spolu 1×2 "core" blok. Špirála
@@ -223,6 +225,10 @@ const HEKTHOR_FILL: RealDog = {
   heroglyph_png_url: '/images/hekthor-heroglyph.webp',
   country: 'SVK',
   owner_message: null,
+  // Dátum narodenia Hektora tu NEVYPĹŇAM — filler karta ho nemá odkiaľ vedieť
+  // a vymyslené číslo by sa v detaile tvárilo ako údaj. Pilulka s dňami sa
+  // jednoducho nezobrazí.
+  birth_date: null,
 };
 
 const NEIGHBORS8: ReadonlyArray<[number, number]> = [
@@ -354,6 +360,7 @@ export function GodsGridLab() {
                 photoBig: planetDetailUrl(d.cloudinary_main_url),
                 heroglyph: safeUrl(d.heroglyph_png_url || ''),
                 message: d.owner_message || '',
+                birthDate: d.birth_date || null,
               }))
               .filter(d => d.photo)
           );

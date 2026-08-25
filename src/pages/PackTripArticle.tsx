@@ -263,6 +263,27 @@ const CSS = `
 .pta-mapwrap{position:relative;margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
 .pta-mapwrap .leaflet-container{width:100%;height:100%;background:#0a0a0a;}
 .pta-mapwrap .leaflet-interactive{transition:opacity .2s ease;}
+/* ── CELOOBRAZOVKOVÝ REŽIM MAPY POČAS ZÁPISU ODKAZU (Matej 2026-08-25) ──────
+   „ak chce človek nechať odkaz na mape, tak sa otvorí panel s možnosťami ale zakryje mapu
+   a tak sa to nedá pridať… treba pri kliknutí na pridať odkaz otvoriť náhľad výletu
+   v rozhraní ako v 2. kroku pri nahadzovaní, nech je vidno mapu."
+
+   Prečo sa to doladiť NEDALO: mapa v článku je 320 px vysoká, paleta odkazov aj formulár
+   značky stoja pri spodnej hrane a merajú 33vh — na telefóne je teda spodný panel skoro
+   taký vysoký ako CELÁ mapa. Uhýbanie stránkou (scrollMapClear, zmazané) navyše počítalo
+   s natvrdo napísanou výškou panela 60 px, ktorá so skutočným panelom nesúvisela.
+
+   Riešenie je to isté, aké má krok 2 sprievodcu: mapa cez celú obrazovku, panel pri spodnej
+   hrane (tvar z mapDockShape.ts), návrat krížikom toho panela, ktorý práve stojí. Článok
+   pod mapou sa nemení, preto sa scroll pri zavretí vracia na to isté miesto.
+
+   z-index 1100 = NAD spodnou navigáciou (50) a mobilným railom (45), POD panelmi zápisu
+   (.mnq-wrap 1250, .mna-sheet 1200, bublina AInubisa 1202).
+   ⚠️ Poradie v súbore rozhoduje: --full musí stáť ZA .pta-mapwrap, obe majú jednu
+   triedu, teda rovnakú špecifickosť. */
+.pta-mapwrap--full{position:fixed;inset:0;z-index:1100;height:auto;margin:0;border:0;border-radius:0;}
+/* Článok pod mapou sa nesmie hýbať, kým je mapa cez celú obrazovku. */
+body.pta-mapfull{overflow:hidden;}
 /* ── PRIDAJ ODKAZ PRIAMO NA MAPKE (Matej 2026-08-21) ────────────────────────
    „doplnenie k článku dal by som ho priamo na mapku pridaj odkaz". Vstup patrí
    tam, kde človek pozerá, nie len do hlavičky sekcie nad mapou.
@@ -338,7 +359,6 @@ export default function PackTripArticle() {
   const [noteZoom, setNoteZoom] = useState(0);
   const [noteTooFar, setNoteTooFar] = useState<{ x: number; y: number } | null>(null);
   const tooFarTimer = useRef<number | null>(null);
-  const mapWrapRef = useRef<HTMLDivElement | null>(null);
 
   const showTooFar = useCallback((x: number, y: number) => {
     setNoteTooFar({ x, y });
@@ -421,40 +441,61 @@ export default function PackTripArticle() {
   const noteBusy = !!noteDraft || !!noteSpot || notePick;
 
   /**
-   * Odroluje STRÁNKU tak, aby mapa ostala celá NAD spodným panelom.
+   * CELOOBRAZOVKOVÝ REŽIM MAPY. Zapína sa v okamihu, keď sa začne zápis odkazu — teda
+   * pri palete (typ), pri „ukáž miesto" aj pri otvorenom formulári.
    *
-   * `PackMap` na to isté používa `map.panBy()` — tam je mapa na celú obrazovku,
-   * takže sa posunie obsah v nej. Tu je mapa nízky box (320 px) v strede článku:
-   * panBy by v nej posunul trasu, ale samotný box by ostal ležať pod panelom.
-   * Hýbe sa preto stránka, nie mapa.
-   *
-   * ⚠️ Bez tohto je to presne tá chyba, ktorú Matej zamietol 20. 8.: vo chvíli
-   * potvrdzovania človek NEVIDÍ miesto, ktoré označuje, a rada „potiahni značku,
-   * ak nesedí" je vtip, lebo značka leží pod formulárom. `scrollIntoView({block:
-   * 'center'})` to NERIEŠI — vycentruje mapu do výrezu, teda rovno pod panel.
-   *
-   * Posun sa zastropuje výškou samotnej mapy (`r.top - 8`), inak by sa na nízkom
-   * okne horný okraj mapy vysunul nad obrazovku.
+   * Dôvod, čísla a CSS → komentár pri `.pta-mapwrap--full`. Návrat obstaráva krížik toho
+   * panela, ktorý práve stojí; samostatné × tu preto nie je — dve východiská na jednej
+   * obrazovke sú horšie než jedno.
    */
-  const scrollMapClear = useCallback((panelH: number) => {
-    const el = mapWrapRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const safeBottom = window.innerHeight - (panelH + 96 + 16);   // 96 = spodná hrana panela
-    const delta = Math.min(r.bottom - safeBottom, r.top - 8);
-    if (delta > 0) window.scrollBy({ top: delta, behavior: 'smooth' });
-  }, []);
+  const noteFull = noteBusy || notePlacing !== null;
 
-  /** Položí značku a uhne mapou spod panela. */
+  useEffect(() => {
+    if (!noteFull) return;
+    // Kam sa článok vráti po zavretí. Číta sa TERAZ, kým stránka ešte stojí na mieste:
+    // po pripnutí mapy vypadne `.pta-mapwrap` z toku, článok sa o jej výšku skráti
+    // a neskoršie čítanie by vrátilo iné číslo.
+    const back = window.scrollY;
+    document.body.classList.add('pta-mapfull');
+    const map = noteMap;
+    // Leaflet o zmene výšky svojho kontajnera sám nevie. `InvalidateSizeOnMount` ju chytí
+    // cez ResizeObserver, ale až o snímku neskôr — dovtedy by mapa mala dlaždice pre
+    // 320 px vysoký box a spodné dve tretiny obrazovky by ostali prázdne.
+    //
+    // ⚠️ Záber sa ZÁMERNE NEPREPOČÍTAVA. `invalidateSize` drží stred, takže výrez, ktorý
+    // človek videl v článku, ostane v strede vyššej obrazovky — teda nad panelom. Nové
+    // `fitBounds` by zahodilo priblíženie, ktoré si možno práve nastavil na miesto,
+    // kvôli ktorému odkaz píše.
+    const raf = window.requestAnimationFrame(() => map?.invalidateSize());
+    return () => {
+      window.cancelAnimationFrame(raf);
+      document.body.classList.remove('pta-mapfull');
+      map?.invalidateSize();
+      window.scrollTo({ top: back });
+    };
+  }, [noteFull, noteMap]);
+
+  /**
+   * Položí značku a odpanuje MAPU tak, aby značka ostala nad spodným panelom.
+   *
+   * Do 25. 8. sa tu namiesto toho hýbalo STRÁNKOU — mapa bola nízky box v strede článku,
+   * takže `panBy` by v nej posunul trasu, ale samotný box by ostal ležať pod panelom.
+   * Odkedy je počas zápisu mapa cez celú obrazovku, platí to isté a jediné pravidlo ako
+   * v `PackMap`: hýbe sa mapa. Výška panela sa NEOPISUJE, berie ju `notePanelH()` z toho
+   * istého zdroja ako CSS (`mapDockShape.ts`).
+   */
   const placeNote = useCallback((group: NoteGroup, lat: number, lon: number) => {
     setNoteTooFar(null);
     setNotePlacing(null);
     setNoteSpot(null);
     setNotePick(false);
     setNoteDraft({ lat, lon, group, kind: GROUP_KINDS[group][0], disease: null, radiusM: defaultRadius(GROUP_KINDS[group][0]) });
-    // o snímku neskôr — panel sa mountuje až s draftom a dovtedy sa nemá čomu uhýbať
-    window.requestAnimationFrame(() => scrollMapClear(notePanelH()));
-  }, [scrollMapClear]);
+    const map = noteMap;
+    if (!map) return;
+    const pt = map.latLngToContainerPoint([lat, lon]);
+    const safeY = map.getSize().y - notePanelH() - 40;
+    if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
+  }, [noteMap]);
 
   // ── KOMUNITNÁ vrstva (rovnaké flowy ako PackMap — walked popup / wishlist zámer /
   // partner ad); sessionStorage mirror (packCommunity), žiadna Supabase. ──
@@ -938,8 +979,7 @@ export default function PackTripArticle() {
         />
 
         <div
-          className="pta-mapwrap"
-          ref={mapWrapRef}
+          className={`pta-mapwrap${noteFull ? ' pta-mapwrap--full' : ''}`}
           onMouseEnter={() => setRouteDimmed(true)}
           onMouseLeave={() => setRouteDimmed(false)}
           onTouchStart={() => setRouteDimmed(true)}
@@ -1026,7 +1066,10 @@ export default function PackTripArticle() {
           ) : (
             <div className="pta-mapempty">{t('pack.trip.routeSoon')}</div>
           )}
-          {trail.path.length > 0 && <PoiAttribution />}
+          {/* ⚠️ Atribúcia je PODMIENKA licencie ODbL, nie dekorácia — v celoobrazovkovom
+              režime by inak celá zmizla pod spodným panelom. Dvíha sa len keď panel naozaj
+              stojí (`noteBusy`); počas „ukáž miesto" je dole voľno. */}
+          {trail.path.length > 0 && <PoiAttribution style={noteBusy ? { bottom: notePanelH() + 12 } : undefined} />}
           {/* Vstup do zápisu priamo na mape. Kreslí sa len tomu, kto trasu prešiel;
               ak ju ešte neohodnotil, klik otvorí najprv hodnotenie (viď `noteGate`).
               Počas rozrobeného zápisu mizne — inak by prekrýval vlastnú paletu. */}
@@ -1146,9 +1189,9 @@ export default function PackTripArticle() {
           AddMapNote.tsx). Poradie krokov je rovnaké ako na celkovej mape. */}
       {notePick && !noteDraft && (
         <NoteQuickPalette
-          /* Lišta „ukáž miesto" je nízka, ale mapa aj tak musí byť celá vidieť —
-             klikať sa bude do nej. */
-          onPick={(g) => { setNotePick(false); setNotePlacing(g); window.requestAnimationFrame(() => scrollMapClear(60)); }}
+          /* Uhýbanie mapou tu ZANIKLO: od celoobrazovkového režimu je mapa pod paletou
+             celá a lišta „ukáž miesto" stojí hore pri AInubisovi, nie nad mapou. */
+          onPick={(g) => { setNotePick(false); setNotePlacing(g); }}
           onCancel={() => setNotePick(false)}
         />
       )}
