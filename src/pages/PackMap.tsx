@@ -78,6 +78,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
@@ -503,6 +504,23 @@ const clusterIcon = (n: number) => {
 // ⚠️ Rozmery sa počítajú ROVNICOU z fontu a paddingu, nemerajú sa po vykreslení —
 // meranie po nastavení je kruh (poloha → veľkosť → poloha), tá istá pasca ako
 // pri psom bloku na /pack/dogs.
+// ── EXISTUJÚCE TRASY POČAS KRESLENIA (2026-08-25) ────────────────────────────
+// Matej pri teste: „viac zvýrazni prejdené výlety v prvom kroku, lebo sú viditeľné len
+// veľmi slabo a musí tam byť pilulka s názvom tej trasy."
+//
+// Prečo boli takmer neviditeľné: stlmenie sa NÁSOBÍ s pokojnou priehľadnosťou meča
+// (`SABER_REST_OPACITY` 0,42), takže 0,16 dalo výslednú viditeľnosť ~7 % — na papierovej
+// turistickej mape prakticky nič. 0,8 dá ~34 %, teda o čosi menej než pokojná trasa mimo
+// kreslenia (42 %): jasne vidno, kadiaľ sa už chodilo, a zároveň to neprekričí čerstvo
+// kreslenú trasu, ktorá ide v plnej sýtosti.
+//
+// ⚠️ Stlmenie sa NERUŠÍ. Dôvod z 23. 8. platí ďalej — cudzia trasa sa počas kreslenia nesmie
+// rozsvietiť pod myšou ani sa dať kliknúť (`handlers = undefined`). Mení sa len to, ako je
+// vidno, nie to, čo robí.
+const DRAW_TRAIL_DIM = 0.8;
+/** Koľko názvov naraz. Kresliť sa smie až od z15, takže v zábere býva pár trás — strop je poistka. */
+const DRAW_NAME_MAX = 24;
+
 const MARK_GAP = 6;        // vzduch medzi dvoma bublinami
 const PILL_GAP = 5;        // vzduch medzi bublinou a km pilulkou
 const NUDGE_MAX = 30;      // koľko px smie bublina ustúpiť pilulke (viac = už klame o polohe)
@@ -712,6 +730,62 @@ type MapMarkerItem =
 // (zadanie 2.3) a pri z<12 ich pixelovo zhlukuje (zadanie 2.4, port z pins-proto.html render()).
 // Vlastný stav zoomu/prepočtu žije TU (nie v PackMap), rovnaký vzor ako FitBounds/MapRefBridge
 // vyššie — mapa naň reaguje cez zoomend/moveend, prepočet len pre body vo viditeľných bounds.
+/** Názov výletu ide do `divIcon` ako HTML reťazec — apostrof v „Havrania skala" je neškodný,
+ *  ale meno z členského výletu píše človek, takže sa nesmie vlievať surové. */
+function escapeHtml(v: string): string {
+  return v.replace(/[&<>"']/g, (c) => (
+    c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;'
+  ));
+}
+
+/**
+ * NÁZVY EXISTUJÚCICH TRÁS POČAS KRESLENIA (2026-08-25, Matej: „musí tam byť pilulka
+ * s názvom tej trasy").
+ *
+ * Prečo vlastná vrstva a nie <TripMarkers>: tá nesie kilometre, piktogramy náročnosti
+ * a zhlukové bubliny s počtom — počas kreslenia je to hluk, ktorý prekričí kreslenú
+ * trasu. Tu ide o jedinú otázku: „ako sa volá to, čo tu už je". Preto holý názov.
+ *
+ * ⚠️ KLIKÁ SA PILULKA, NIE ČIARA. Lock z 23. 8. („pri kreslení sa nemôže stať, aby sa
+ * otvorilo niečo iné") vznikol preto, že klik na stlmenú čiaru otváral cudzí výlet
+ * namiesto položenia kotvy — trafiť čiaru pri kreslení je totiž ľahké a nechcené.
+ * Pilulka je malý zámerný terč nad trasou, takže tá zámena nehrozí: čiara ostáva hluchá
+ * (`handlers = undefined` nižšie) a kotva sa naďalej položí, kamkoľvek klikneš do mapy.
+ */
+function DrawTrailNames({ points, onPick }: { points: MapPoint[]; onPick: (tr: HeroTrail) => void }) {
+  const map = useMap();
+  const [tick, setTick] = useState(0);
+  // stabilná referencia — inak sa listener pri každom renderi odhlasuje a prihlasuje
+  // (tá istá pasca, ktorá je popísaná v TripMarkers nižšie).
+  const bump = useCallback(() => setTick((n) => n + 1), []);
+  useMapEvent('moveend', bump);
+  useMapEvent('zoomend', bump);
+
+  const visible = useMemo(() => {
+    const bounds = map.getBounds();
+    return points.filter((p) => bounds.contains([p.lat, p.lon])).slice(0, DRAW_NAME_MAX);
+    // `tick` je zámerná závislosť: prekreslenie po posune mapy, nie po zmene dát.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [points, map, tick]);
+
+  return (
+    <>
+      {visible.map((p) => (
+        <Marker
+          key={`dn-${p.id}`}
+          position={[p.lat, p.lon]}
+          icon={L.divIcon({
+            className: '',
+            html: `<span class="trp-dname">${escapeHtml(p.tr.name)}</span>`,
+            iconSize: [0, 0],
+          })}
+          eventHandlers={{ click: (e) => { L.DomEvent.stopPropagation(e as unknown as Event); onPick(p.tr); } }}
+        />
+      ))}
+    </>
+  );
+}
+
 function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
   points: MapPoint[]; hoverId: string | null; inlineDetailId: string | null;
   onHover: (id: string | null) => void; onSelect: (tr: HeroTrail) => void;
@@ -1397,6 +1471,39 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
    len tam, kde nesie brand (lem), nie ako signál stavu — ten dnes nesie rozsvietený meč.
    Prsteň je fialový, nech je pilulka viditeľne spojená s trasou, ktorá sa zároveň rozsvieti. */
 .trp-pill.hot{background:linear-gradient(180deg,#FFFFFF,#F2ECE0);color:#1c160c;border-color:rgba(122,47,191,0.55);box-shadow:0 0 0 3px rgba(179,107,255,0.35),0 4px 12px rgba(0,0,0,0.5);}
+/* ── NÁZOV EXISTUJÚCEJ TRASY POČAS KRESLENIA (2026-08-25) ─────────────────────
+   Rovnaký recept, aký si vyžiadal Matej 23. 8. na fialovú pilulku nad mapou („takmer
+   neviditeľná — treba ju zvýrazniť"): PLNÝ tmavý podklad, nie priesvitný tint. Na papierovej
+   turistickej mape priesvitná pilulka zmizne. Rám je fialový zo svetelného meča, aby bolo
+   na prvý pohľad jasné, že pilulka patrí TRASE, nie značke svorky (tá má vlastné tvary a farby).
+   Meno výletu = Cinzel (identita), nie Space Grotesk — rovnaké pravidlo ako názvy výletov inde. */
+.trp-dname{position:absolute;left:0;top:0;transform:translate(-50%,-50%);white-space:nowrap;
+  padding:4px 10px;border-radius:999px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(23,20,14,.96),rgba(11,9,6,.96));
+  border:1px solid ${TRAIL_LINE.light};color:#F3E9FF;
+  font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.03em;
+  box-shadow:0 2px 10px rgba(0,0,0,.5);transition:transform .12s,box-shadow .12s;}
+.trp-dname:hover{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 0 3px rgba(179,107,255,.3),0 3px 12px rgba(0,0,0,.6);}
+
+/* ── NÁHĽAD TRASY NAD DOKOM ───────────────────────────────────────────────────
+   Sedí NAD dokom (33 vh), nie v ňom: dok patrí kresleniu a jeho tvar má jeden zdroj
+   (mapDockShape.ts) — vlievať doň cudzí obsah by ten tvar rozbilo. Karta je preto
+   samostatná, nízka a dá sa zavrieť, takže kreslenie pod ňou nezastane. */
+.trp-peek{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(33vh + 14px);z-index:1200;
+  width:min(360px,calc(100vw - 28px));padding:12px 14px 10px;border-radius:14px;
+  background:linear-gradient(180deg,rgba(23,20,14,.97),rgba(11,9,6,.97));
+  border:1.5px solid ${TRAIL_LINE.light};box-shadow:0 12px 34px rgba(0,0,0,.6);color:#F3E9FF;}
+.trp-peek-x{position:absolute;top:6px;right:9px;background:none;border:0;color:rgba(243,233,255,.6);
+  font-size:19px;line-height:1;cursor:pointer;padding:2px 4px;}
+.trp-peek-name{font-family:${FONT_TITLE};font-weight:700;font-size:14px;letter-spacing:.02em;
+  padding-right:22px;margin-bottom:3px;}
+.trp-peek-row{font-family:${FONT_UI};font-weight:500;font-size:12px;color:rgba(243,233,255,.82);
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.trp-peek-sep{color:rgba(243,233,255,.35);}
+.trp-peek-elev{margin-top:8px;}
+/* Nízke okno (mobil na šírku): dok aj karta by si sadli na seba — profil ustúpi ako prvý,
+   lebo názov a čas sú odpoveď na otázku, profil je bonus. */
+@media (max-height:560px){.trp-peek-elev{display:none;}}
 /* diaľkové (journey) — 2026-07-27: #E01B22 → stlmená bordová (Matej "stlmiť odtiene"); voda
    ostáva jasne modrá (.trp-pill--water nižšie), lebo stlmenie by oslabilo novú asociáciu. */
 /* Matej 2026-07-27: „ten piktogram by sme mohli zväčšiť — nech vyzerá dôležito, vzácne, teraz je
@@ -2308,6 +2415,17 @@ export default function PackMap() {
    * človek hľadá, kde parkoval, a okolie je orientačný bod.
    */
   const mapDrawing = addMapPhase === 'draw';
+  /**
+   * NÁHĽAD EXISTUJÚCEHO VÝLETU POČAS KRESLENIA (2026-08-25).
+   * Matej pri teste: „nevidím po kliku na pilulku ten profil ani info o čase."
+   * ⚠️ Nie je to inline detail výletu — ten by porušil „pri kreslení sa nemôže otvoriť
+   * niečo iné". Je to plochá karta nad dokom, ktorá len ODPOVEDÁ na otázku „čo je to
+   * za trasu": názov, dĺžka, prevýšenie, odhad času a výškový profil. Kreslenie beží ďalej.
+   */
+  const [drawPeek, setDrawPeek] = useState<HeroTrail | null>(null);
+  // Koniec kreslenia kartu zavrie — inak by ostala visieť nad krokom 2 a nikto by nevedel,
+  // čoho sa týka.
+  useEffect(() => { if (!mapDrawing) setDrawPeek(null); }, [mapDrawing]);
   /**
    * KURZOR HOVORÍ, ŽE KLIK DO MAPY NIEČO SPRAVÍ (Matej 2026-08-24: „nevidím pri kurzore +").
    * Na telefóne to povie prst a pilulka s pokynom; na PC nebolo z ničoho vidieť, že mapa je
@@ -4275,7 +4393,7 @@ export default function PackMap() {
                 // Pri kreslení ustúpia VŠETKY hotové trasy — aj tá pod myšou. Rozsvietiť
                 // cudziu trasu v okamihu, keď človek kreslí vlastnú, je presne ten zmätok,
                 // kvôli ktorému sa stlmenie zavádza.
-                const dim = mapDrawing ? 0.16 : 1;
+                const dim = mapDrawing ? DRAW_TRAIL_DIM : 1;
                 /**
                  * KRESLENIE JE IZOLOVANÝ PROCES (Matej 2026-08-23: „pri kreslení sa nemôže stať,
                  * aby sa otvorilo niečo iné").
@@ -4394,6 +4512,11 @@ export default function PackMap() {
               {/* trip markery (pilulky s km, bodky-piktogramy, zhlukové bubliny s počtom) —
                   DOGYPT čistý vizuál (2026-08-04, Matej: „iba hmla a svetelné meče... žiadne
                   písmo ani vysvetlivky") ich celé skrýva, nesú číslo/piktogram na každom bode. */}
+              {/* NÁZVY EXISTUJÚCICH TRÁS — len počas kreslenia, a v DOGYPT vrstve tiež
+                  (Matej 2026-08-25: „DOGYPT vrstvu neriešme v súvislosti s tvorbou, je to len
+                  funny pohľad kde bol pes"). Čistý vizuál skrýva písmo na PREZERANIE mapy;
+                  pri kreslení je otázka „čo tu už je" dôležitejšia než jeho čistota. */}
+              {mapDrawing && <DrawTrailNames points={mapPoints} onPick={setDrawPeek} />}
               {!isCleanMode && !mapDrawing && (
                 <TripMarkers
                   points={mapPoints}
@@ -4485,6 +4608,39 @@ export default function PackMap() {
                 tlačidlo v rohu, ktoré bolo slabo viditeľné a súperilo s tlačidlom
                 PRIDAŤ o tú istú úlohu. Na dotyku sa nekreslí (kurzor neexistuje). */}
             {!isCleanMode && <MapNoteCursor map={mapInstance} hidden={noteBusy || !!notePlacing} />}
+
+            {/* ── NÁHĽAD EXISTUJÚCEJ TRASY POČAS KRESLENIA (2026-08-25) ──────────────────
+                Odpoveď na „čo je to za trasu", nie otvorenie výletu. Stojí NAD dokom
+                (`DOCK_VH`), takže neprekrýva ovládanie kreslenia ani AInubisa hore.
+                Zavrieť sa dá krížikom aj ťuknutím na inú pilulku — a kreslenie medzitým beží. */}
+            {drawPeek && (
+              <div className="trp-peek" role="dialog" aria-label={drawPeek.name}>
+                <button type="button" className="trp-peek-x" onClick={() => setDrawPeek(null)} aria-label={t('pack.map.closePeek')}>×</button>
+                <div className="trp-peek-name">{drawPeek.name}</div>
+                <div className="trp-peek-row">
+                  {drawPeek.km} km
+                  {typeof drawPeek.ascentM === 'number' && drawPeek.ascentM > 0 && (
+                    <><span className="trp-peek-sep">·</span>↑ {drawPeek.ascentM} m</>
+                  )}
+                  {/* Čas je ODHAD tou istou normou ako pri kreslení (`lib/tripTime.ts`) — inak by
+                      tá istá trasa mala dve rôzne čísla podľa toho, kde sa na ňu človek pozrie.
+                      Klesanie sa berie ako rovné stúpaniu: drvivá väčšina výletov končí tam,
+                      kde začala (okruh alebo tam-a-späť), a hádať to presnejšie by bolo klamstvo
+                      o presnosti. */}
+                  {formatTripTime(estimateTripMinutes(parseFloat(drawPeek.km) || 0, drawPeek.ascentM ?? null, drawPeek.ascentM ?? null)) && (
+                    <>
+                      <span className="trp-peek-sep">·</span>
+                      {formatTripTime(estimateTripMinutes(parseFloat(drawPeek.km) || 0, drawPeek.ascentM ?? null, drawPeek.ascentM ?? null))}
+                    </>
+                  )}
+                </div>
+                {drawPeek.elev && drawPeek.elev.length > 1 && (
+                  <div className="trp-peek-elev">
+                    <ElevationProfile elev={drawPeek.elev} km={parseFloat(drawPeek.km) || 0} />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Výzva „priblíž si mapu" — v mieste kliku, preto je TU (vnútri
                 pozicovaného obalu mapy), nie dole medzi panelmi. */}

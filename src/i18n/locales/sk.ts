@@ -2279,6 +2279,7 @@ export const sk: Partial<Dict> = {
   'pack.map.filters': "Filtre",
   'pack.map.filtersCount': "Filtre · {n}",
   'pack.map.closeFilters': "Zavrieť filtre",
+  'pack.map.closePeek': "Zavrieť náhľad",
   'pack.map.difficulty': "Náročnosť",
   'pack.map.any': "Akákoľvek",
   'pack.map.diff.Easy': "Ľahká",

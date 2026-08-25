@@ -2367,6 +2367,7 @@ export const en = {
   'pack.map.filters': "Filters",
   'pack.map.filtersCount': "Filters · {n}",
   'pack.map.closeFilters': "Close filters",
+  'pack.map.closePeek': "Close preview",
   'pack.map.difficulty': "Difficulty",
   'pack.map.any': "Any",
   'pack.map.diff.Easy': "Easy",

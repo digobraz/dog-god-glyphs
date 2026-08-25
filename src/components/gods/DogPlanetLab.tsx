@@ -83,6 +83,42 @@ function buildSphere(target: number) {
 
 interface Tile { key: string; dog: PlanetDog; lat: number; lon: number }
 
+interface Note {
+  id: number;
+  dog: PlanetDog;
+  /**
+   * Na ktorej strane gule bublinka stojí — podľa toho, kde bol pes V OKAMIHU
+   * VZNIKU (Matej 25. 8.: „netreba to dávať na striedačku ale na stranu kde sa
+   * to práve hodí"). Striedanie sme skúsili predtým a posielalo čiaru cez celú
+   * guľu k psovi na opačnej strane.
+   */
+  side: 'l' | 'r';
+  el: HTMLElement;
+  /**
+   * Stred dlaždice v rovine obrazovky — pohyblivý koniec kóty. Toto JEDINÉ sa
+   * priebežne prepočítava: pes sa točí ďalej, takže kóta mení dĺžku a sklon.
+   */
+  x: number;
+  y: number;
+  /**
+   * Poloha bublinky. Nastaví sa RAZ pri vzniku a už sa nehýbe (Matej: „bublinka
+   * zostáva na mieste, mení sa len dĺžka kóty, bublinka sa nepohybuje").
+   */
+  bx: number;
+  by: number;
+  /** Kedy kurzor z fotky zišiel. `null` = ešte na nej stojí. */
+  leftAt: number | null;
+}
+
+/** Ako dlho kóta prežije po tom, čo z fotky zídeš (Matej: „zmizne až po 3 sekundách"). */
+const NOTE_TTL = 3000;
+/** Koľko kót smie visieť naraz. Nad tento počet sa najstaršia odstrihne. */
+const NOTE_MAX = 4;
+/** Výška bublinky je PEVNÁ, aby sa dali kóty na jednej strane rozostrčiť bez merania. */
+const NOTE_H = 116;
+const NOTE_GAP = 14;
+const NOTE_W = 236;
+
 /**
  * Pole dlaždíc ako VLASTNÝ memo komponent. Bublinka sa prepisuje ~15× za sekundu
  * (guľa sa točí a pod kurzorom sa strieda pes za psom); keby dlaždice viseli
@@ -143,7 +179,15 @@ export function DogPlanetLab({
   // Meno pri kurzore. Drží sa v state, lebo sa vykresľuje ako samostatný štítok
   // NAD guľou — dieťaťom dlaždice byť nemôže: tá je otočená v priestore, takže
   // text by bol šikmý a na zadnej pologuli by ho `backface-visibility` zhaslo.
-  const [hover, setHover] = useState<{ name: string; n: number | null; photo: string; x: number; y: number } | null>(null);
+  // KÓTY (Matej 25. 8.: „na jemnej kóte sa zobrazí väčšia bublinka psa s menom
+  // a textom; keď šípka zíde z fotky, bublinka s kótou zostane a zmizne až po
+  // 3 sekundách, tak môže byť viacero bubliniek otvorených po obidvoch stranách,
+  // raz tam raz tam"). Bublinka pri kurzore týmto zanikla — dve rôzne bublinky
+  // o tom istom psovi naraz sú šum.
+  // `el` = dlaždica, na ktorej kóta visí; jej polohu si kóta prečíta v každom
+  // ťuku slučky, takže vodiaca čiara ide za psom, aj keď sa guľa točí ďalej.
+  const [notes, setNotes] = useState<Note[]>([]);
+  const noteSeq = useRef(0);
   // Posledná poloha myši nad guľou. Guľa sa pod kurzorom TOČÍ ĎALEJ (Matej 25. 8.:
   // „nepáči sa mi že myš zastaví planétu… pri prejdení myšou sa zobrazí bublinka
   // so psom a menom aj keď len na okamih"), takže dlaždica pod kurzorom sa mení
@@ -211,29 +255,105 @@ export function DogPlanetLab({
    * menia nezávisle, takže jedna bez druhej nestačí.
    * Kým je otvorený detail, bublinka mlčí: dvaja psi naraz sú šum.
    */
-  const probeHover = () => {
-    const pt = ptRef.current;
-    if (!pt || dragRef.current || picked) return;
-    const el = document.elementFromPoint(pt.x, pt.y);
-    const tile = el?.closest?.('.planet-tile') ?? null;
-    if (!tile) {
-      // MEDZERA MEDZI DLAŽDICAMI (je ich tretina rozostupu) — bublinka DRŽÍ
-      // posledného psa. Keby zhasínala, pri točiacej sa guli by nad nehybným
-      // kurzorom niekoľkokrát za sekundu bliklo prázdno a vyzeralo by to
-      // pokazene. Zhasne až vtedy, keď kurzor guľu naozaj opustí.
-      if (!el?.closest?.('.planet-ball')) {
-        setHot(null);
-        setHover(null);
+  /**
+   * Jeden ťuk sledovania: prečíta, čo leží pod kurzorom, založí novú kótu,
+   * prepočíta polohy vodiacich čiar a nechá dobehnúť tie, ktorým vypršal čas.
+   * Volá sa z rAF slučky, NIE z pohybu myši — guľa aj kurzor sa menia nezávisle
+   * a pri nehybnej ruke by pointermove nikdy neprišiel.
+   */
+  /**
+   * Nájde voľnú výšku pre bublinku na danej strane: najprv rovno pri psovi,
+   * potom striedavo nad a pod. `null` = strana je plná.
+   * Bublinka má preto PEVNÚ výšku — bez nej by sa musela najprv vykresliť,
+   * zmerať a posunúť, čo je ten istý kruh ako pri psom bloku na /pack/dogs.
+   */
+  const volnaVyska = (side: 'l' | 'r', chcem: number, zive: Note[]): number | null => {
+    const half = NOTE_H / 2;
+    const hore = half + 14;
+    // Spodná hranica necháva miesto na dev pult — bublinka cez neho vyzerá ako chyba.
+    const dole = window.innerHeight - half - 110;
+    if (dole < hore) return null;
+    const volna = (y: number) => !zive.some(n => n.side === side && Math.abs(n.by - y) < NOTE_H + NOTE_GAP);
+    const y0 = Math.max(hore, Math.min(dole, chcem));
+    if (volna(y0)) return y0;
+    for (let d = NOTE_H + NOTE_GAP; d < window.innerHeight; d += 22) {
+      for (const cand of [y0 - d, y0 + d]) {
+        if (cand >= hore && cand <= dole && volna(cand)) return cand;
       }
-      return;
     }
-    setHot(tile as HTMLElement);
-    const dog = dogAt(tile);
-    if (!dog) return;
-    setHover(prev => {
-      // Rovnaký pes na rovnakom mieste → žiadny re-render.
-      if (prev && prev.name === dog.name && prev.n === dog.n && prev.x === pt.x && prev.y === pt.y) return prev;
-      return { name: dog.name, n: dog.n, photo: dog.photo, x: pt.x, y: pt.y };
+    return null;
+  };
+
+  const tickNotes = () => {
+    const now = performance.now();
+    const pt = ptRef.current;
+    let hoveredEl: HTMLElement | null = null;
+
+    if (pt && !dragRef.current && !picked) {
+      const el = document.elementFromPoint(pt.x, pt.y);
+      const tile = (el?.closest?.('.planet-tile') ?? null) as HTMLElement | null;
+      if (tile) hoveredEl = tile;
+      // MEDZERA MEDZI DLAŽDICAMI (je ich tretina rozostupu) nie je odchod z gule —
+      // keby sa v nej kóta hneď rozbehla dohasínať, nad nehybným kurzorom by
+      // bliknutie striedalo bliknutie. Odchod je až opustenie celej gule.
+      else if (el?.closest?.('.planet-ball')) hoveredEl = hotRef.current;
+    }
+    setHot(hoveredEl);
+
+    setNotes(prev => {
+      let next = prev;
+      // NOVÁ KÓTA — vystrelí na tú stranu, kde pes práve je, a bublinka tam
+      // ostane stáť. Poloha sa počíta RAZ, tu; ďalej sa mení iba koniec kóty.
+      if (hoveredEl && !prev.some(n => n.el === hoveredEl)) {
+        const dog = dogAt(hoveredEl);
+        const r = hoveredEl.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        if (dog) {
+          // Prvá voľba je strana, kde pes je. Keď je tam plno, skúsi sa druhá;
+          // keď je plno na oboch, kóta nevznikne. Odsúvanie „vždy nižšie" tu bolo
+          // predtým a končilo kopou bubliniek nalepených na spodnú hranu.
+          // ⚠️ Poloha sa NEČÍTA zo živého obdĺžnika gule. Pri otváraní sa scéna
+          // ešte škáluje (1.75 → 1), takže kóty založené v tej chvíli dostali iné
+          // odsadenie než neskoršie a bublinky nesedeli v jednej línii. Guľa je
+          // vodorovne v strede okna a má známy polomer, tak sa to dopočíta.
+          const cx = window.innerWidth / 2;
+          const prvaStrana: 'l' | 'r' = x < cx ? 'l' : 'r';
+          let side = prvaStrana;
+          let by = volnaVyska(side, y, prev);
+          if (by === null) {
+            side = prvaStrana === 'l' ? 'r' : 'l';
+            by = volnaVyska(side, y, prev);
+          }
+          if (by !== null) {
+            const bx = side === 'l'
+              ? Math.max(NOTE_W + 10, cx - R - 44)
+              : Math.min(window.innerWidth - NOTE_W - 10, cx + R + 44);
+            next = [...prev, { id: noteSeq.current++, dog, side, el: hoveredEl, x, y, bx, by, leftAt: null }];
+            if (next.length > NOTE_MAX) next = next.slice(next.length - NOTE_MAX);
+          }
+        }
+      }
+
+      let zmena = next !== prev;
+      const out: Note[] = [];
+      for (const n of next) {
+        // Dlaždica zmizla (zmenil sa počet psov) → kóta nemá na čom visieť.
+        if (!n.el.isConnected) { zmena = true; continue; }
+        const drzi = n.el === hoveredEl;
+        const leftAt = drzi ? null : (n.leftAt ?? now);
+        if (leftAt !== null && now - leftAt > NOTE_TTL) { zmena = true; continue; }
+        const r = n.el.getBoundingClientRect();
+        const x = r.left + r.width / 2;
+        const y = r.top + r.height / 2;
+        if (leftAt !== n.leftAt || Math.abs(x - n.x) > 0.5 || Math.abs(y - n.y) > 0.5) {
+          out.push({ ...n, x, y, leftAt });
+          zmena = true;
+        } else {
+          out.push(n);
+        }
+      }
+      return zmena ? out : prev;
     });
   };
 
@@ -256,12 +376,15 @@ export function DogPlanetLab({
       if (autoRef.current) spinRef.current.y += dt * 0.006;
       const el = ballRef.current;
       if (el) el.style.transform = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
-      if (++frame % 4 === 0) probeHover();
+      if (++frame % 4 === 0) tickNotes();
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
   }, [open, tiles, picked]);
+
+  /** Kóta v poslednej pol sekunde života — nech nezmizne skokom. */
+  const noteGoing = (n: Note) => n.leftAt !== null && performance.now() - n.leftAt > NOTE_TTL - 500;
 
   // ESC zatvára — rovnaký únik ako z každého overlayu v appke. Keď je otvorený
   // detail psa, prvé ESC zavrie JEHO: inak by človek jedným klávesom zhodil celú
@@ -277,16 +400,16 @@ export function DogPlanetLab({
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose, picked]);
 
-  // Zmena počtu psov prekreslí dlaždice → zvýraznená visí na prvku, ktorý už
-  // nie je v dokumente. Zavretá planéta si nedrží nič.
+  // Zmena počtu psov prekreslí dlaždice → kóty aj zvýraznenie visia na prvkoch,
+  // ktoré už nie sú v dokumente. Zavretá planéta si nedrží nič.
   useEffect(() => {
     setHot(null);
-    setHover(null);
+    setNotes([]);
   }, [target]);
   useEffect(() => {
     if (open) return;
     setHot(null);
-    setHover(null);
+    setNotes([]);
     setPicked(null);
   }, [open]);
 
@@ -303,11 +426,11 @@ export function DogPlanetLab({
     if (!d) {
       // NABEHNUTIE MYŠOU. Dotyk sa sem nedostane zámerne — prst hover nemá a
       // meno prilepené po ťuknutí vyzerá ako zaseknutá appka, nie ako popis.
-      // ⚠️ Guľa sa NEZASTAVUJE (Matej 25. 8.). Bublinka je priebežný odpočet
-      // toho, čo práve ide popod kurzor — pes sa v nej vymení aj za okamih.
+      // ⚠️ Guľa sa NEZASTAVUJE (Matej 25. 8.). Nová fotka pod kurzorom = nová
+      // kóta; tá, z ktorej si zišiel, dobehne svoje tri sekundy sama.
       if (e.pointerType !== 'mouse') return;
       ptRef.current = { x: e.clientX, y: e.clientY };
-      probeHover();
+      tickNotes();
       return;
     }
     d.dist += Math.hypot(e.clientX - d.x, e.clientY - d.y);
@@ -331,10 +454,7 @@ export function DogPlanetLab({
     const dog = dogAt(d.tile);
     // Ťuk mimo dlaždice = zavretie. Panel tak nemá jediný únikový bod.
     setPicked(dog);
-    if (!dog) {
-      setHot(null);
-      setHover(null);
-    }
+    if (!dog) setHot(null);
   };
 
   return (
@@ -522,50 +642,125 @@ export function DogPlanetLab({
           box-shadow: inset 0 2px 0 rgba(255,250,222,0.85), 0 2px 5px -1px rgba(70,45,10,0.5);
         }
 
-        /* ── MENO PRI KURZORE ────────────────────────────────────────────────
-           Plávajúci štítok v rovine obrazovky. Na dlaždici visieť nemôže (je
-           otočená v priestore), preto sa polohuje z clientX/clientY. */
-        .planet-name {
+        /* ── KÓTY ────────────────────────────────────────────────────────────
+           Bublinka odsadená od gule, spojená s fotkou tenkou vodiacou čiarou.
+           Na dlaždici visieť nemôže (je otočená v priestore) — polohuje sa
+           v rovine obrazovky z jej getBoundingClientRect. */
+        .pn-leads {
+          position: fixed;
+          inset: 0;
+          z-index: 6;
+          pointer-events: none;
+          overflow: visible;
+        }
+        .pn-leads polyline {
+          fill: none;
+          stroke: rgba(140,96,20,0.55);
+          stroke-width: 1;
+        }
+        .pn-leads circle {
+          fill: #8C6014;
+          stroke: rgba(253,248,236,0.9);
+          stroke-width: 1.5;
+        }
+        /* KÓTA VYSTRELÍ (Matej 25. 8.) — čiara sa vykreslí od psa k bublinke. */
+        .pn-leads polyline {
+          stroke-dasharray: 1;
+          animation: pnShoot 300ms cubic-bezier(.3,.9,.35,1) both;
+        }
+        .pn-leads circle { animation: pnIn 200ms ease both; }
+        .pn-leads g.is-going { opacity: 0; transition: opacity 480ms ease; }
+        @keyframes pnShoot {
+          from { stroke-dashoffset: 1; }
+          to { stroke-dashoffset: 0; }
+        }
+
+        .pnote {
           position: fixed;
           z-index: 7;
           pointer-events: none;
-          transform: translate(-50%, -165%);
+          box-sizing: border-box;
+          width: 236px;
+          height: 116px;
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 4px 13px 4px 5px;
-          border-radius: 999px;
-          white-space: nowrap;
+          gap: 11px;
+          padding: 11px 13px;
+          border-radius: 16px;
           background: linear-gradient(135deg, #FDF8EC 0%, #F0DFB8 100%);
           border: 1.5px solid #C99A3F;
-          box-shadow: 0 8px 20px -8px rgba(70,46,12,0.6);
+          box-shadow: 0 14px 30px -12px rgba(70,46,12,0.6);
+          /* Bublinka nabehne AŽ keď kóta dorazí — inak by vyskočila skôr než
+             čiara, ktorá ju má priniesť. */
+          animation: pnIn 240ms cubic-bezier(.22,.9,.28,1) 240ms both;
         }
-        /* Pes v bublinke. Kým sa meno prečíta, tvár je rozoznaná — a práve o to
-           ide pri guli, ktorá sa točí ďalej. */
-        .planet-name .pn-photo {
-          width: 30px;
-          height: 30px;
+        /* Strana určuje len smer odsadenia — obsah je ten istý. */
+        .pnote--l { transform: translate(-100%, -50%); }
+        .pnote--r { transform: translate(0, -50%); }
+        .pnote.is-going { opacity: 0; transition: opacity 480ms ease; }
+
+        @keyframes pnIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .pnote-photo {
+          width: 62px;
+          height: 62px;
           border-radius: 50%;
           object-fit: cover;
           flex-shrink: 0;
-          border: 1.5px solid rgba(201,154,63,0.9);
+          border: 2px solid rgba(201,154,63,0.9);
+          box-shadow: 0 0 16px -6px rgba(140,96,20,0.7);
+        }
+        .pnote-body { min-width: 0; }
+        .pnote-head {
+          display: flex;
+          align-items: baseline;
+          gap: 7px;
+          margin-bottom: 3px;
         }
         /* Meno psa = Cinzel Decorative (oficiálny povrch, ako na stene). */
-        .planet-name .pn-name {
+        .pnote-name {
           font-family: 'Cinzel Decorative', 'Cinzel', serif;
           font-weight: 700;
-          font-size: 0.74rem;
-          letter-spacing: 0.05em;
+          font-size: 0.82rem;
+          letter-spacing: 0.04em;
           color: #2a1608;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         /* Poradové číslo = dáta, teda Space Grotesk. */
-        .planet-name .pn-n {
+        .pnote-n {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 500;
-          font-size: 0.62rem;
+          font-size: 0.6rem;
           letter-spacing: 0.06em;
           color: #8C6014;
           font-style: normal;
+          flex-shrink: 0;
+        }
+        /* Odkaz majiteľa. Orezaný na tri riadky — bublinka má PEVNÚ výšku, lebo
+           z nej počíta rozostrčenie kót na tej istej strane. */
+        .pnote-msg {
+          margin: 0;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 300;
+          font-size: 0.66rem;
+          line-height: 1.45;
+          font-style: italic;
+          color: #7a5a2a;
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+
+        /* MOBIL kóty nemá — vznikajú výhradne z pohybu myši a vedľa gule tam
+           nie je miesto. Toto je len poistka, keby sa niekam prepašovali. */
+        @media (max-width: 760px) {
+          .pnote, .pn-leads { display: none; }
         }
 
         /* ── DETAIL PSA ──────────────────────────────────────────────────────
@@ -800,7 +995,9 @@ export function DogPlanetLab({
           onPointerMove={onMove}
           onPointerUp={onUp}
           onPointerCancel={onUp}
-          onPointerLeave={() => { ptRef.current = null; setHot(null); setHover(null); }}
+          // Odchod z gule kóty NERUŠÍ — dobehnú svoje tri sekundy. Len sa
+          // prestane zakladať nová.
+          onPointerLeave={() => { ptRef.current = null; setHot(null); }}
         >
           <TileField tiles={tiles} />
         </div>
@@ -817,15 +1014,43 @@ export function DogPlanetLab({
         </div>
       </div>
 
-      {/* Meno pri kurzore. Zhasne, len čo sa otvorí detail — dva popisky toho
-          istého psa naraz sú šum, nie informácia. */}
-      {hover && !picked && (
-        <div className="planet-name" style={{ left: hover.x, top: hover.y }}>
-          <img className="pn-photo" src={hover.photo} alt="" draggable={false} />
-          <span className="pn-name">{hover.name}</span>
-          {hover.n != null && <i className="pn-n">#{hover.n}</i>}
-        </div>
+      {/* KÓTY. Vodiace čiary sú JEDNO svg cez celú obrazovku, nie čiara pripnutá
+          k bublinke — bublinky sa navzájom rozostrkujú, takže čiara nikdy nevedie
+          rovno a musí sa kresliť v spoločnej sústave. Zhasnú, len čo sa otvorí
+          detail: dva popisky toho istého psa naraz sú šum, nie informácia. */}
+      {notes.length > 0 && !picked && (
+        <svg className="pn-leads" width="100%" height="100%" aria-hidden="true">
+          {notes.map(n => (
+            <g key={n.id} className={noteGoing(n) ? 'is-going' : undefined}>
+              {/* pathLength=1 normalizuje dĺžku, takže sa kóta vystrelí rovnako
+                  rýchlo pri psovi pri okraji aj v strede — a keď sa pes otočí
+                  ďalej a čiara sa predĺži, animácia sa tým nerozhodí. */}
+              <polyline
+                pathLength={1}
+                points={`${n.x},${n.y} ${n.side === 'l' ? n.bx + 18 : n.bx - 18},${n.by} ${n.bx},${n.by}`}
+              />
+              <circle cx={n.x} cy={n.y} r={3.5} />
+            </g>
+          ))}
+        </svg>
       )}
+
+      {!picked && notes.map(n => (
+        <div
+          key={n.id}
+          className={`pnote pnote--${n.side}${noteGoing(n) ? ' is-going' : ''}`}
+          style={{ left: n.bx, top: n.by }}
+        >
+          <img className="pnote-photo" src={n.dog.photoBig || n.dog.photo} alt="" draggable={false} />
+          <div className="pnote-body">
+            <div className="pnote-head">
+              <span className="pnote-name">{n.dog.name}</span>
+              {n.dog.n != null && <i className="pnote-n">#{n.dog.n}</i>}
+            </div>
+            <p className="pnote-msg">{n.dog.message || (n.dog.n === 1 ? t('wall.hektor.msg') : '')}</p>
+          </div>
+        </div>
+      ))}
 
       {/* Detail psa. Ten istý obsah pre obe možnosti — líši sa iba tým, KAM
           sadne (CSS `.v-side` / `.v-center`). Dva panely s tým istým vnútrom by
