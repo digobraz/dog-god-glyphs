@@ -1,4 +1,5 @@
 import { useDogyptStore } from '@/store/dogyptStore';
+import { initialLetter } from '@/lib/initialLetter';
 
 // Dog gender assets
 import dogKingSvg from '@/assets/gender/GENDER-MALE.svg';
@@ -211,7 +212,7 @@ export function HeroglyphFrame({ showOwner = false, className = '', pulseSlot, p
   const ownerGenderSrc = showOwner ? genderMap[selections.ownerGender] : undefined;
   const chineseZodiacSrc = showOwner ? chineseMap[selections.ownerChineseZodiac] : undefined;
   const westernZodiacSrc = showOwner ? zodiacMap[selections.ownerZodiac] : undefined;
-  const ownerInitial = ownerName?.charAt(0)?.toUpperCase();
+  const ownerInitial = initialLetter(ownerName);
   const ownerInitialSrc = showOwner && ownerInitial ? letterMap[ownerInitial] : undefined;
   const rankingValue = showOwner ? selections.ranking : undefined;
   const hasRanking = (() => {

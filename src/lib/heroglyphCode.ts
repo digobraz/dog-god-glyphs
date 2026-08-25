@@ -24,6 +24,8 @@
  * or 'XX' / 'XXXX' for multi-character segments.
  */
 
+import { initialLetter } from './initialLetter';
+
 import { useDogyptStore } from '@/store/dogyptStore';
 import breedsData from '@/data/breeds.json';
 
@@ -249,8 +251,9 @@ const upper = (v: unknown) => (typeof v === 'string' ? v.trim() : '').toUpperCas
 const lower = (v: unknown) => (typeof v === 'string' ? v.trim() : '').toLowerCase();
 
 function firstLetter(name: string): string {
-  const ch = (name || '').trim().charAt(0).toUpperCase();
-  return /^[A-Z]$/.test(ch) ? ch : 'X';
+  // Diakritiku a nelatinku rieši `initialLetter` — bez nej mal ČAKY #66 kód `X-XY-…`
+  // namiesto `C-XY-…`, lebo „Č" neprešlo cez `/^[A-Z]$/`.
+  return initialLetter(name) ?? 'X';
 }
 
 function pad2(n: number | string | undefined): string {

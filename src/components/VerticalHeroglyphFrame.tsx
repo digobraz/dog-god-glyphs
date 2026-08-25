@@ -1,4 +1,5 @@
 import { useDogyptStore } from '@/store/dogyptStore';
+import { initialLetter } from '@/lib/initialLetter';
 
 // Reuse all the same asset maps from HeroglyphFrame
 import dogKingSvg from '@/assets/gender/GENDER-MALE.svg';
@@ -173,7 +174,7 @@ export function VerticalHeroglyphFrame({ className = '', data }: VerticalHerogly
   const ownerGenderSrc = genderMap[selections.ownerGender];
   const chineseZodiacSrc = chineseMap[selections.ownerChineseZodiac];
   const westernZodiacSrc = zodiacMap[selections.ownerZodiac];
-  const ownerInitial = ownerName?.charAt(0)?.toUpperCase();
+  const ownerInitial = initialLetter(ownerName);
   const ownerInitialSrc = ownerInitial ? letterMap[ownerInitial] : undefined;
 
   const dogGenderSrc = dogGenderMap[selections.dogGender];

@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
+import { initialLetter } from '@/lib/initialLetter';
 import hekthorImg from '@/assets/hekthor.png';
 import manSvg from '@/assets/gender/OWNER_GENDER-MAN.svg';
 import womanSvg from '@/assets/gender/OWNER_GENDER-WOMAN.svg';
@@ -230,7 +231,7 @@ export function OwnerInfoScreen() {
   };
 
   const trimmed = input.trim();
-  const firstLetter = trimmed.charAt(0).toUpperCase();
+  const firstLetter = initialLetter(trimmed) ?? '';
   const letterSvg = letterMap[firstLetter] || null;
 
   const canContinue = trimmed.length >= 1 && !!gender;
