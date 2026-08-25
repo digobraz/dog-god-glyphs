@@ -8,7 +8,7 @@
 // component state, ktorý sa pri navigácii sem zruší — tripShared.ts sessionStorage mirror
 // (readLocalTrails/readFavIds/readWalkedIds) drží ich konzistentné cez mount/unmount v rámci
 // tej istej browser session (žiadna Supabase perzistencia, tá je mimo rozsahu).
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import L from 'leaflet';
@@ -284,6 +284,17 @@ const CSS = `
 .pta-mapwrap--full{position:fixed;inset:0;z-index:1100;height:auto;margin:0;border:0;border-radius:0;}
 /* Článok pod mapou sa nesmie hýbať, kým je mapa cez celú obrazovku. */
 body.pta-mapfull{overflow:hidden;}
+/* 🔑 BEZ TOHTO SA MAPA NA CELÚ OBRAZOVKU NEROZTIAHNE. Sklenený rámik článku (.pk-glass)
+   má backdrop-filter, a prvok s filtrom je PODĽA ŠPECIFIKÁCIE obklopujúci blok pre svojich
+   fixed potomkov — position:fixed;inset:0 sa teda nevzťahovalo na okno, ale na rámik.
+   Odmerané: mapa mala top −790 a výšku 1449 px (rozmery celého článku), nie 0 a 760.
+   Rozmazanie na tú chvíľu vypíname; je aj tak celé skryté pod mapou. */
+body.pta-mapfull .pta-shell{-webkit-backdrop-filter:none;backdrop-filter:none;}
+/* 🔑 A DRUHÝ DÔVOD, PREČO SA TO RIEŠI NA RÁMIKU: .pta-shell má z-index 2, teda je vlastný
+   vrstviaci kontext. Akékoľvek číslo vnútri neho (aj 1100) sa porovnáva až cez tú dvojku,
+   takže mapa síce bola cez celú obrazovku, ale POD mobilným railom (45) aj spodnou
+   navigáciou (40). Kým mapa stojí, dvíha sa celý rámik — článok za ňou aj tak nevidno. */
+body.pta-mapfull .pta-shell{z-index:1100;}
 /* ── PRIDAJ ODKAZ PRIAMO NA MAPKE (Matej 2026-08-21) ────────────────────────
    „doplnenie k článku dal by som ho priamo na mapku pridaj odkaz". Vstup patrí
    tam, kde človek pozerá, nie len do hlavičky sekcie nad mapou.
@@ -450,12 +461,30 @@ export default function PackTripArticle() {
    */
   const noteFull = noteBusy || notePlacing !== null;
 
+  /**
+   * KAM SA ČLÁNOK VRÁTI PO ZAVRETÍ MAPY.
+   *
+   * 🔑 Nedá sa to prečítať až vo chvíli otvorenia: kým sa effect dostane k slovu, mapa už
+   * je pripnutá, `.pta-mapwrap` vypadla z toku, článok sa o jej výšku skrátil a prehliadač
+   * scroll sám orezal — namerané 1157 → 813 px, teda návrat o 344 px vedľa. Preto sa
+   * posledná poloha článku drží priebežne a počas celoobrazovkového režimu sa neprepisuje.
+   */
+  const articleScrollRef = useRef(0);
+  const noteFullRef = useRef(false);
   useEffect(() => {
+    const save = () => { if (!noteFullRef.current) articleScrollRef.current = window.scrollY; };
+    save();
+    window.addEventListener('scroll', save, { passive: true });
+    return () => window.removeEventListener('scroll', save);
+  }, []);
+
+  // ⚠️ LAYOUT effect, nie obyčajný: zámok sa musí zavesiť v tom istom kroku, v akom sa mapa
+  // pripne. Obyčajný effect beží až po vykreslení, takže by ho mohla predbehnúť udalosť
+  // scrollu z orezania a uložená poloha článku by sa prepísala tou orezanou.
+  useLayoutEffect(() => {
     if (!noteFull) return;
-    // Kam sa článok vráti po zavretí. Číta sa TERAZ, kým stránka ešte stojí na mieste:
-    // po pripnutí mapy vypadne `.pta-mapwrap` z toku, článok sa o jej výšku skráti
-    // a neskoršie čítanie by vrátilo iné číslo.
-    const back = window.scrollY;
+    noteFullRef.current = true;
+    const back = articleScrollRef.current;
     document.body.classList.add('pta-mapfull');
     const map = noteMap;
     // Leaflet o zmene výšky svojho kontajnera sám nevie. `InvalidateSizeOnMount` ju chytí
@@ -472,6 +501,7 @@ export default function PackTripArticle() {
       document.body.classList.remove('pta-mapfull');
       map?.invalidateSize();
       window.scrollTo({ top: back });
+      noteFullRef.current = false;
     };
   }, [noteFull, noteMap]);
 

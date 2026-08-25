@@ -546,6 +546,11 @@ export function DogPlanetLab({
         }
         .planet-root.open .planet-stage { transform: scale(1); opacity: 1; }
 
+        /* Šírka panela detailu má JEDEN zdroj — guľa sa podľa nej uhýba, takže
+           dve nezávislé čísla by sa pri prvej zmene rozišli a panel by buď
+           prekryl psov, alebo nechal medzeru. */
+        .planet-root { --pw: clamp(380px, 43vw, 640px); }
+
         .planet-ball {
           position: absolute;
           inset: 0;
@@ -986,6 +991,26 @@ export function DogPlanetLab({
           box-shadow: 0 6px 16px -6px rgba(201,154,63,0.6);
         }
 
+        /* Široké podoby rastú spolu s panelom. Zvitok sa nezväčšuje — jeho
+           veľkosť drží kresba, nie obsah. */
+        .planet-root:not(.d-zvitok) .pp-panel {
+          gap: 14px;
+          /* Matejov náčrt bol vyšší než čo dal obsah — panel má teda vlastnú
+             výšku a obsah v nej stojí na stred. Bez justify-content by sa nalepil
+             hore a spodok by zíval. */
+          min-height: min(600px, 68vh);
+          justify-content: center;
+        }
+        .planet-root:not(.d-zvitok) .pp-head { gap: 22px; }
+        .planet-root:not(.d-zvitok) .pp-photo { width: 132px; height: 132px; }
+        .planet-root:not(.d-zvitok) .pp-name { font-size: 2rem; }
+        .planet-root:not(.d-zvitok) .pp-rank { font-size: 0.92rem; padding: 4px 17px; }
+        .planet-root:not(.d-zvitok) .pp-days { font-size: 1rem; padding: 5px 15px; }
+        .planet-root:not(.d-zvitok) .pp-days-eyebrow { font-size: 0.62rem; }
+        .planet-root:not(.d-zvitok) .pp-glyph { width: 74%; max-width: 320px; }
+        .planet-root:not(.d-zvitok) .pp-msg { font-size: 0.88rem; line-height: 1.65; }
+        .planet-root:not(.d-zvitok) .pp-link { font-size: 0.68rem; padding: 9px 22px; }
+
         /* ── PODOBA A: TABUĽA ────────────────────────────────────────────────
            Ten istý odliatok ako nav (Matej 25. 8.: „ako tabuľu dizajn ako pri NAV
            = tmavšie okraje"). Tokeny sa NEOPISUJÚ — idú z pack/navGoldSkin.ts,
@@ -996,7 +1021,7 @@ export function DogPlanetLab({
            position: relative — inak by doska prekryla text. */
         .d-tabula .pp-panel {
           isolation: isolate;
-          padding: ${NAV_R.rim + 18}px ${NAV_R.rim + 20}px ${NAV_R.rim + 20}px;
+          padding: ${NAV_R.rim + 26}px ${NAV_R.rim + 30}px ${NAV_R.rim + 28}px;
           color: ${NAV_GOLD.ink};
           background: ${NAV_FRAME_BG};
           background-blend-mode: ${NAV_FRAME_BLEND};
@@ -1042,7 +1067,7 @@ export function DogPlanetLab({
            rámu. Práve ten ťažký rám s tmavým obrysom robil z panela pomník;
            doska sama je plocha na písanie, nie monument. */
         .d-doska .pp-panel {
-          padding: 24px 26px 26px;
+          padding: 34px 38px 36px;
           color: ${NAV_GOLD.ink};
           background: ${NAV_PLATE_BG};
           background-blend-mode: ${NAV_PLATE_BLEND};
@@ -1060,7 +1085,7 @@ export function DogPlanetLab({
            (PACK_BOX.card: papyrusový gradient, zlatý rám 1.5 px, radius 16).
            Najsvetlejšia z troch a najmenej ceremoniálna. */
         .d-karta .pp-panel {
-          padding: 24px 26px 26px;
+          padding: 34px 38px 36px;
           color: #2a1608;
           background: linear-gradient(160deg, #FDF8EC 0%, #F7ECD3 46%, #F0DFB8 100%);
           border: 1.5px solid #C99A3F;
@@ -1101,15 +1126,21 @@ export function DogPlanetLab({
           top: 50%;
           right: 22px;
           /* Na PC je vedľa gule veľa voľného miesta (Matej 25. 8.: „na PC tu
-             tabulu kludne zvačši priestor tam je velky"). Zvitok ostáva užší —
-             kresba navinutých koncov sa pri šírke roztiahne. */
-          width: 430px;
+             tabulu kludne zvačši priestor tam je velky", potom znova „ten detail
+             ešte zvačši" s načrtnutým rámom ≈ 44 % šírky okna). Zvitok ostáva
+             užší — kresba navinutých koncov sa pri šírke roztiahne. */
+          width: var(--pw);
           max-height: 86vh;
           transform: translate(calc(100% + 46px), -50%);
           transition: transform 460ms cubic-bezier(.22,.9,.28,1), opacity 300ms ease;
         }
         .planet-root.pop.v-side .pp-panel { transform: translate(0, -50%); }
-        .planet-root.open.pop.v-side .planet-stage { transform: translateX(-232px) scale(1); }
+        /* Guľa sa uhýba PODĽA ŠÍRKY PANELA, nie o pevný počet pixelov —
+           panel rastie s oknom a pevný posun by ho pri širokom okne nechal
+           ležať na psoch. */
+        .planet-root.open.pop.v-side .planet-stage {
+          transform: translateX(calc(-1 * (var(--pw) / 2 + 40px))) scale(1);
+        }
 
         /* ── MOŽNOSŤ B: STRED ────────────────────────────────────────────────
            Panel sadne na stred; logo a CTA na ten čas zhasnú, inak by si dve
@@ -1118,7 +1149,7 @@ export function DogPlanetLab({
           position: fixed;
           left: 50%;
           top: 50%;
-          width: 560px;
+          width: min(680px, 62vw);
           max-height: 86vh;
           transform: translate(-50%, -50%) scale(0.9);
           transition: transform 340ms cubic-bezier(.22,.9,.28,1), opacity 260ms ease;
@@ -1130,28 +1161,181 @@ export function DogPlanetLab({
         /* NAV STENY IDE NAD PLANÉTU (Matej 25. 8.: „namiesto toho sem prehoď
            spodný nav aj vrchné"). Bar aj horné menu sú fixované na z-index 50,
            overlay planéty má 80 — kým je otvorená, dvíhajú sa nad ňu.
-           Trieda sa vešia na <body>, lebo tie prvky patria stene, nie planéte. */
+           Trieda sa vešia na <body>, lebo tie prvky patria stene, nie planéte.
+           ⚠️ Vlastný krížik planéty tu BOL a zanikol: tretia ikonka v bare sa pri
+           otvorenej planéte mení na mozaiku, takže cesta späť je na tom istom
+           mieste ako cesta tam. Druhý únikový bod v pravom hornom rohu by sa
+           navyše kryl s ikonkou LOGIN. */
         body.planet-open .nav-left,
         body.planet-open .nav-login,
         body.planet-open .theme-toggle,
         body.planet-open .gods-bottom-bar { z-index: 90; }
 
-        .planet-close {
-          position: fixed;
-          /* POD ikonkou LOGIN, nie na nej — tá sedí v pravom hornom rohu steny
-             a odkedy je nav vidno aj nad planétou, kryli by sa. */
-          top: 62px;
-          right: 16px;
-          z-index: 6;
-          width: 40px; height: 40px;
-          border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg, #FDF8EC 0%, #F0DFB8 100%);
-          border: 1.5px solid #C99A3F;
-          color: #2a1608;
-          cursor: pointer;
-          transition: opacity 200ms ease;
+        @media (max-width: 760px) {
+          .pnote, .pn-leads { display: none; }
         }
+
+        /* ── DETAIL PSA — SPOLOČNÉ ─────────────────────────────────────────
+           Rozloženie je pre obe podoby to isté; líši sa iba materiál. */
+        .pp-panel {
+          z-index: 9;
+          box-sizing: border-box;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .planet-root.pop .pp-panel { opacity: 1; pointer-events: auto; }
+
+        .pp-photo {
+          width: 96px;
+          height: 96px;
+          border-radius: 50%;
+          object-fit: cover;
+          flex-shrink: 0;
+          border: 2px solid rgba(201,154,63,0.85);
+          box-shadow: 0 6px 18px -6px rgba(70,46,12,0.5);
+        }
+        .pp-rank {
+          font-family: 'Cinzel', serif;
+          font-size: 0.8rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
+          border: 1px solid rgba(201,154,63,0.55);
+          border-radius: 999px;
+          padding: 3px 15px;
+          flex-shrink: 0;
+        }
+        .pp-name {
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #1a1a1a;
+          letter-spacing: 0.01em;
+          text-align: center;
+          line-height: 1.2;
+        }
+        .pp-rule {
+          height: 1px;
+          width: 100%;
+          background: rgba(201,154,63,0.35);
+          flex-shrink: 0;
+        }
+        /* HEROGLYF NA SVETLOM JE ČIERNY, nie zlatý so žiarou. Ten istý recept ako
+           .theme-light .dog-heroglyph na bledej stene: brightness(0) drží alfa
+           kanál, takže z bieleho glyfu spraví čistý atrament. Zlatá žiara je pre
+           tmavé pozadie a tu nemá kde svietiť. */
+        .pp-glyph {
+          width: 62%;
+          max-width: 190px;
+          height: auto;
+          display: block;
+          flex-shrink: 0;
+          pointer-events: none;
+          filter: brightness(0) drop-shadow(0 2px 8px rgba(80,55,15,0.18));
+        }
+        .pp-msg {
+          margin: 0;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 300;
+          font-size: 0.75rem;
+          color: rgba(26,26,26,0.7);
+          text-align: center;
+          line-height: 1.6;
+          font-style: italic;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        /* Odkaz na stránku psa. Nie .btn-gold — ten je hlavné CTA a na tomto
+           paneli by prekričal meno psa. */
+        .pp-link {
+          display: inline-block;
+          flex-shrink: 0;
+          margin-top: 2px;
+          padding: 7px 18px;
+          font-family: 'Cinzel', serif;
+          font-size: 0.62rem;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #6E4E18;
+          background: rgba(255,250,236,0.45);
+          border: 1px solid rgba(201,154,63,0.65);
+          border-radius: 8px;
+          text-decoration: none;
+          transition: box-shadow 200ms ease, background 200ms ease;
+        }
+        .pp-link:hover { background: rgba(255,250,236,0.85); box-shadow: 0 0 12px rgba(201,154,63,0.4); }
+        .pp-x {
+          position: absolute;
+          width: 28px; height: 28px;
+          display: flex; align-items: center; justify-content: center;
+          border: none;
+          background: transparent;
+          color: rgba(58,36,8,0.5);
+          cursor: pointer;
+        }
+        .pp-x:hover { color: #6E4E18; }
+
+        /* Hlavička: pri širokých podobách fotka VEDĽA identity, pri zvitku pod
+           sebou. Zvislý stĺpec v úzkom paneli bol hlavný dôvod, prečo prvá tabuľa
+           vyzerala ako náhrobný kameň — nie farba, ale tvar. */
+        .pp-head {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          width: 100%;
+        }
+        .pp-ident {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+          min-width: 0;
+        }
+        .d-zvitok .pp-head {
+          flex-direction: column;
+          gap: 10px;
+        }
+        .d-zvitok .pp-ident { align-items: center; }
+
+        /* Pilulka s dňami — LOCKED vizuál z PackTree.tsx: zvislý gradient
+           #F5C73D→#E69E1A, atrament #3d1f00, Cinzel 700 BEZ verzálok, bez rámu.
+           Neprekresľuj ju, prenes zmenu z PackTree. */
+        .pp-days-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          align-items: flex-start;
+        }
+        .d-zvitok .pp-days-wrap { align-items: center; }
+        .pp-days-eyebrow {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.56rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #C99A3F;
+        }
+        .pp-days {
+          padding: 4px 13px;
+          border-radius: 999px;
+          background: linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%);
+          color: #3d1f00;
+          font-family: 'Cinzel', serif;
+          font-size: 0.86rem;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          line-height: 1.1;
+          white-space: nowrap;
+          border: none;
+          box-shadow: 0 6px 16px -6px rgba(201,154,63,0.6);
+        }
+
 
         @media (max-width: 760px) {
           .planet-stage { transform: scale(1.75) translateZ(0); }
@@ -1167,23 +1351,15 @@ export function DogPlanetLab({
             transform: translateY(-102%);
           }
           .planet-root.pop.v-side .pp-panel { transform: translateY(0); }
-          /* Krížik planéty a krížik listu by sedeli na sebe. Kým je list hore,
-             planétu zatvoriť netreba — najprv sa zatvára to, čo je navrchu. */
-          .planet-root.pop.v-side .planet-close { opacity: 0; pointer-events: none; }
           .planet-root.open.pop.v-side .planet-stage { transform: translateY(124px) scale(0.62); }
 
           .v-center .pp-panel { width: calc(100vw - 32px); }
+          .planet-root:not(.d-zvitok) .pp-panel { min-height: 0; }
 
           /* Na mobile je bočný pás úzky — pult sa stiahne k hornej hrane. */
           .planet-dock { top: 64px; transform: none; gap: 4px; }
         }
       `}</style>
-
-      <button className="planet-close" onClick={onClose} aria-label="Close">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-          <path d="M6 6l12 12M18 6L6 18" />
-        </svg>
-      </button>
 
       {/* LAB pult. Horný riadok = ktorá z dvoch možností detailu sa skúša,
           dolný = koľko psov guľa nesie. Ani jedno nie je nastavenie appky. */}
