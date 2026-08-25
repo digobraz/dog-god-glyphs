@@ -112,8 +112,12 @@ interface Note {
 
 /** Ako dlho kóta prežije po tom, čo z fotky zídeš (Matej: „zmizne až po 3 sekundách"). */
 const NOTE_TTL = 3000;
-/** Koľko kót smie visieť naraz. Nad tento počet sa najstaršia odstrihne. */
-const NOTE_MAX = 4;
+/**
+ * Poistný strop na celkový počet. Skutočný limit je GEOMETRIA jednej strany:
+ * pri okne 820 px sa na ňu vojde päť bubliniek (Matej 25. 8.: „zmestia sa
+ * myslím maximálne 4-5 na jednu") a viac ich hľadanie voľného miesta nepustí.
+ */
+const NOTE_MAX = 12;
 /** Výška bublinky je PEVNÁ, aby sa dali kóty na jednej strane rozostrčiť bez merania. */
 const NOTE_H = 116;
 const NOTE_GAP = 14;
@@ -310,21 +314,22 @@ export function DogPlanetLab({
         const x = r.left + r.width / 2;
         const y = r.top + r.height / 2;
         if (dog) {
-          // Prvá voľba je strana, kde pes je. Keď je tam plno, skúsi sa druhá;
-          // keď je plno na oboch, kóta nevznikne. Odsúvanie „vždy nižšie" tu bolo
-          // predtým a končilo kopou bubliniek nalepených na spodnú hranu.
+          // ⚠️ KÓTA NIKDY NEPRECHÁDZA NA DRUHÚ STRANU (Matej 25. 8.: „tam kde je
+          // šípka, na tú stranu má ísť aj kóta, aby nešla cez celú stranu ale len
+          // na svoju"). Keď je strana plná, kóta nevznikne — do troch sekúnd sa
+          // miesto uvoľní samo. Preskok na druhú stranu tu bol a robil presne to,
+          // čomu sa má predísť: čiaru cez celú guľu.
+          // Odsúvanie „vždy nižšie" tu bolo ešte predtým a končilo kopou
+          // bubliniek nalepených na spodnú hranu.
           // ⚠️ Poloha sa NEČÍTA zo živého obdĺžnika gule. Pri otváraní sa scéna
           // ešte škáluje (1.75 → 1), takže kóty založené v tej chvíli dostali iné
           // odsadenie než neskoršie a bublinky nesedeli v jednej línii. Guľa je
           // vodorovne v strede okna a má známy polomer, tak sa to dopočíta.
           const cx = window.innerWidth / 2;
-          const prvaStrana: 'l' | 'r' = x < cx ? 'l' : 'r';
-          let side = prvaStrana;
-          let by = volnaVyska(side, y, prev);
-          if (by === null) {
-            side = prvaStrana === 'l' ? 'r' : 'l';
-            by = volnaVyska(side, y, prev);
-          }
+          // Strana sa berie z KURZORA, nie zo stredu dlaždice — dlaždica pri
+          // deliacej čiare vie byť o pár pixelov za ňou a čiara by sa vrátila.
+          const side: 'l' | 'r' = (pt ? pt.x : x) < cx ? 'l' : 'r';
+          const by = volnaVyska(side, y, prev);
           if (by !== null) {
             const bx = side === 'l'
               ? Math.max(NOTE_W + 10, cx - R - 44)
