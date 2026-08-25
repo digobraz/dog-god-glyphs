@@ -121,6 +121,9 @@ export const isMyEvent = (ev: PartnerEvent): boolean =>
 export interface CrowdSlice<T extends string> { value: T; pct: number; count: number; }
 export interface CrowdAgg {
   walkedCount: number;
+  /** Členovia DOGYPTu, ktorí tadiaľ prešli = ľudia + ich psy (Matej 2026-08-25).
+   *  Nikdy nie 1: kto tam bol, bol tam aspoň s jedným psom. 0 = neprešiel nikto. */
+  dogyptianCount: number;
   belowThreshold: boolean; // true → zobrazuje sa seed, nie počítaný agregát
   rating: number;
   difficulty: Difficulty;
@@ -184,6 +187,21 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     hazards.push(userVote.hazards ?? []);
   }
   const walkedCount = ratings.length;
+  /**
+   * DOGYPŤAN = ČLOVEK **AJ** PES (Matej 2026-08-25: „dogypťan je člen dogyptu, teda aj človek
+   * aj pes… vždy minimálne dvaja dogypťania, ak označím hektora").
+   *
+   * Karta doteraz hlásila počet HLASOV, teda ľudí — a posádka sa do neho nepremietla vôbec.
+   * Teraz: každý chodec je jeden človek + jeho psy.
+   *
+   * ⚠️ Koľko psov mal KTORÝ chodec, appka nevie — hlas (`TripVote`) to nenesie a niesť nemôže,
+   * lebo hlasy sú staršie než toto pravidlo. Preto:
+   *  · `trail.dogs` (posádka autora) je JEDINÝ presný údaj, aký máme,
+   *  · každému ďalšiemu chodcovi sa počíta JEDEN pes — a nie je to výmysel: členstvo v DOGYPTe
+   *    stojí na heroglyfe PSA, takže člen bez psa neexistuje. Je to spodná hranica, nie odhad.
+   * Preto `max`, nie súčet: pri jednom chodcovi s dvomi psami dá 3, pri troch chodcoch aspoň 6.
+   */
+  const dogyptianCount = walkedCount === 0 ? 0 : walkedCount + Math.max(walkedCount, trail.dogs ?? 0);
   const sCrowd = seedCrowd(trail);
   if (walkedCount === 0) {
     // Poctivý prázdny agregát — žiadny hlas, nič na agregáciu (a delenie walkedCount by dalo
@@ -195,7 +213,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     // ⚠️ Konzumenti MUSIA rating skryť pri `rating <= 0` (PackMap.tsx, PackTripArticle.tsx,
     // packCommunityUI.tsx) — inak sa vykreslí „0.0" a prázdne labky.
     return {
-      walkedCount: 0, belowThreshold: true,
+      walkedCount: 0, dogyptianCount: 0, belowThreshold: true,
       rating: 0,
       // trail.diff je teraz voliteľný (vodná plocha ho nemá, viď isWaterTrail v tripShared.tsx) —
       // CrowdAgg.difficulty ostáva netknuté ako Difficulty (packCommunityUI.tsx ho tak číta),
@@ -216,7 +234,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
     .sort((a, b) => b.count - a.count);
   if (walkedCount < VOLUME_THRESHOLD) {
     return {
-      walkedCount, belowThreshold: true,
+      walkedCount, dogyptianCount, belowThreshold: true,
       rating: trail.stars,
       difficulty: trail.diff as Difficulty,
       difficultyBreakdown: [{ value: trail.diff as Difficulty, pct: 100, count: walkedCount }],
@@ -229,7 +247,7 @@ export function crowdAggregate(trail: HeroTrail, userVote?: TripVote | null): Cr
   const cB = breakdown(crowds, CROWDS);
   const avg = ratings.reduce((s, r) => s + r, 0) / walkedCount;
   return {
-    walkedCount, belowThreshold: false,
+    walkedCount, dogyptianCount, belowThreshold: false,
     rating: Math.round(avg * 10) / 10,
     difficulty: dB[0]?.value ?? (trail.diff as Difficulty),
     difficultyBreakdown: dB,
@@ -657,7 +675,7 @@ export const isFounderEmail = (email?: string | null) =>
 // dodá `computeCompletion` — táto funkcia ich len spojí.
 export function profilePointsFor(
   walkedTrails: HeroTrail[],
-  opts?: { addedIds?: Set<string>; ratings?: number; countries?: number },
+  opts?: { addedIds?: Set<string>; ratings?: number; countries?: number; notePoints?: number },
 ): TripPointsResult {
   const completion = computeCompletion(walkedTrails);
   const done = (key: GeoCategory) => completion.categories.find((c) => c.key === key)?.done.length ?? 0;
@@ -665,6 +683,8 @@ export function profilePointsFor(
     walked: walkedTrails,
     addedIds: opts?.addedIds,
     ratings: opts?.ratings,
+    // ⚠️ Už hotové BODY (po stropoch), nie počet zápisov — viď `noteScoreFor()`.
+    notePoints: opts?.notePoints,
     discovered: {
       ranges: done('ranges'), parks: done('parks'), chko: done('chko'), waters: done('waters'),
       countries: opts?.countries ?? (walkedTrails.length > 0 ? 1 : 0),
@@ -694,14 +714,19 @@ export function profileLevelFor(input: {
   email: string;
   /** krstné meno člena — `addedByMeIds` ním páruje autora výletu */
   ownerName: string;
+  /** Body za odkazy (hotové, po stropoch) — z `useMyNotePoints()`. Bez nich by level na tomto
+   *  povrchu bol nižší než tam, kde sa počítajú: presne ten rozchod, proti ktorému je táto
+   *  funkcia napísaná. */
+  notePoints?: number;
 }): { points: TripPointsResult; level: LevelProgress } {
-  const { walkedTrails, localTrailIds = [], votes, email, ownerName } = input;
+  const { walkedTrails, localTrailIds = [], votes, email, ownerName, notePoints } = input;
   const byAuthor = addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(email) });
   const addedIds = approvedAddedIds([...byAuthor, ...localTrailIds]);
   const points = profilePointsFor(walkedTrails, {
     addedIds,
     ratings: ratedCountFor(walkedTrails, votes),
     countries: walkedCountries(walkedTrails),
+    notePoints,
   });
   return { points, level: levelProgress(points.total) };
 }

@@ -30,7 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
 import {
-  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail,
+  ICON, authorOf, REGION_OF, DiffMark, DIFF_MARK_CSS, RatingPaws, ElevationProfile, isWaterTrail, pluralKey,
   readLocalTrails, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds, RENAMED_TRIP_IDS, tripPath,
   tripShareText, tripText, TRAIL_SABER_LAYERS, ensureTrailLineCss, visibleLocalTrails, tripDraftMissing } from '@/components/pack/tripShared';
 import {
@@ -1089,10 +1089,14 @@ export default function PackTripArticle() {
               trip bez zakladateľských hlasov) — „Walked by 0 Dogyptians" by bola nepravdivá veta.
               Matej 2026-08-03: pri nule JEDEN riadok, a nech je to výzva, nie konštatovanie —
               „No Dogyptian has walked this yet." + „Be the first to walk this." hovorili to isté. */}
+          {/* ⚠️ POČÍTAJÚ SA DOGYPŤANIA, NIE HLASY (Matej 2026-08-25: „dogypťan je člen dogyptu,
+              teda aj človek aj pes"). Slovenčina má tri tvary — bez varianty `few` by pri dvoch
+              stálo „Prešlo 2 Dogypťanov". Podmienka ostáva na `walkedCount`: pýta sa, či tam
+              niekto BOL, a to je otázka o ľuďoch. */}
           {agg.walkedCount === 0 ? (
             <h3>{t('pack.trip.beFirstWalk')}</h3>
           ) : (
-            <h3>{t(agg.walkedCount === 1 ? 'pack.trip.walkedBy.one' : 'pack.trip.walkedBy.many', { n: agg.walkedCount })}</h3>
+            <h3>{t(`pack.trip.walkedBy.${pluralKey(agg.dogyptianCount).toLowerCase()}`, { n: agg.dogyptianCount })}</h3>
           )}
         </div>
         </div>

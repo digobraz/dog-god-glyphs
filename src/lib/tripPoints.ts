@@ -248,6 +248,52 @@ export interface ProfilePointsInput {
   ratings?: number;
   /** Počet odškrtnutých geo jednotiek po kategóriách (objavenie = raz). */
   discovered?: { ranges?: number; parks?: number; chko?: number; waters?: number; countries?: number };
+  /**
+   * Body za ODKAZY (značky na mape), ktoré napísal tento človek — už po orezaní oboma stropmi.
+   * Počíta ich `noteScoreFor()` nižšie, nie táto funkcia: stropy potrebujú dátum a väzbu na
+   * výlet, a tie sem nepatria.
+   *
+   * ⚠️ Do 25. 8. 2026 tu odkazy CHÝBALI ÚPLNE (Matej po prvom reálnom zápise: „v zápise som
+   * nedostal body za ODKAZY (9 bodov)"). Appka ich pritom sľubovala na troch miestach —
+   * dlaždica ODKAZ, sledovač v kroku 2 aj AInubisova pochvala. Sľub bez výplaty.
+   */
+  notePoints?: number;
+}
+
+/**
+ * BODY ZA ODKAZY — jedna cena, dva stropy (Matej 2026-08-24: „odkazy počas aj mimo výletu tie
+ * isté body = 3 body každý… pri pridávaní max 9 bodov, a keď človeka len niečo napadne tiež
+ * 3 body/odkaz").
+ *
+ * Stropy bránia dvom rôznym veciam, preto sú dva a nedajú sa zliať do jedného čísla:
+ *  · `tripKey` (odkaz patrí k výletu) → strop `NOTE_POINTS_TRIP_CAP` na výlet
+ *  · `tripKey === null` (samostatný) → strop `NOTE_DAILY_SCORED` na KALENDÁRNY DEŇ
+ *
+ * ⚠️ Vracia BODY, nie počet. Volajúci nemá násobiť `POINTS.note` druhýkrát.
+ * ⚠️ Strop NIKDY neznamená, že sa zápis neuloží — to je pravidlo z 24. 8. („ak bude niekto
+ * nadšený… nesmieme mu to zakazovať"). Táto funkcia rozhoduje len o výplate.
+ */
+export function noteScoreFor(notes: Array<{ createdAt: string; tripKey: string | null }>): number {
+  const perTrip = new Map<string, number>();
+  const perDay = new Map<string, number>();
+  let points = 0;
+  for (const n of notes) {
+    if (n.tripKey) {
+      const used = perTrip.get(n.tripKey) ?? 0;
+      if (used + POINTS.note > NOTE_POINTS_TRIP_CAP) continue;
+      perTrip.set(n.tripKey, used + POINTS.note);
+    } else {
+      // Deň sa berie z reťazca, nie cez `new Date()` — `createdAt` je ISO z DB a prvých
+      // desať znakov je dátum. Prepočet cez lokálnu zónu by ten istý zápis presunul do
+      // iného dňa podľa toho, kde človek práve je.
+      const day = n.createdAt.slice(0, 10);
+      const used = perDay.get(day) ?? 0;
+      if (used >= NOTE_DAILY_SCORED) continue;
+      perDay.set(day, used + 1);
+    }
+    points += POINTS.note;
+  }
+  return points;
 }
 
 export function calculateProfilePoints(input: ProfilePointsInput): TripPointsResult {
@@ -287,6 +333,10 @@ export function calculateProfilePoints(input: ProfilePointsInput): TripPointsRes
 
   const ratings = input.ratings ?? 0;
   if (ratings > 0) rows.push({ labelKey: 'pack.points.ratings', points: ratings * POINTS.rate });
+
+  // Už orezané stropmi v `noteScoreFor()` — tu sa len pripočíta.
+  const notePoints = input.notePoints ?? 0;
+  if (notePoints > 0) rows.push({ labelKey: 'pack.points.notes', points: notePoints });
 
   return { total: rows.reduce((s, r) => s + r.points, 0), rows };
 }

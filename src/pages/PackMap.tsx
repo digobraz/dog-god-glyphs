@@ -79,9 +79,11 @@ import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
+import ainubisFace from '@/assets/ainubis-head.png';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import {
   ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
-  TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
+  DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
   tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
@@ -520,6 +522,8 @@ const clusterIcon = (n: number) => {
 const DRAW_TRAIL_DIM = 0.8;
 /** Koľko názvov naraz. Kresliť sa smie až od z15, takže v zábere býva pár trás — strop je poistka. */
 const DRAW_NAME_MAX = 24;
+/** Bodiek sa zmestí viac než názvov — sú 9 px a neprekrývajú sa textom. */
+const DRAW_PIN_MAX = 90;
 
 const MARK_GAP = 6;        // vzduch medzi dvoma bublinami
 const PILL_GAP = 5;        // vzduch medzi bublinou a km pilulkou
@@ -761,27 +765,48 @@ function DrawTrailNames({ points, onPick }: { points: MapPoint[]; onPick: (tr: H
   useMapEvent('moveend', bump);
   useMapEvent('zoomend', bump);
 
+  /**
+   * ⚠️ NÁZOV AŽ VTEDY, KEĎ SA DÁ KRESLIŤ (Matej 2026-08-25, na telefóne: „v prvom kroku aj
+   * v náhľade kde je mapka vidno pilulky s názvami tripov, vyzerá to hrozne — tu treba dať len
+   * malinké piny a zobraziť názov až pri úplnom zoome, kedy sa dá kresliť").
+   *
+   * Pri pohľade na celé Slovensko sa desať názvov preloží cez seba do jednej kaše (screenshot
+   * 25. 8.) — meno je dlhé a mapa je vtedy malá. Prah je preto `TRIP_HOLD_MIN_ZOOM`, teda
+   * TO ISTÉ číslo, od ktorého sa smie položiť prvá kotva: kým sa kresliť nedá, otázka „ako sa
+   * to volá" ešte nie je na rade, stačí vedieť ŽE tam niečo je. Zámerne sa neladí vlastným
+   * číslom — dva prahy o jednej veci sa rozídu.
+   */
+  const named = map.getZoom() >= TRIP_HOLD_MIN_ZOOM;
+
   const visible = useMemo(() => {
     const bounds = map.getBounds();
-    return points.filter((p) => bounds.contains([p.lat, p.lon])).slice(0, DRAW_NAME_MAX);
+    return points
+      .filter((p) => bounds.contains([p.lat, p.lon]))
+      .slice(0, named ? DRAW_NAME_MAX : DRAW_PIN_MAX);
     // `tick` je zámerná závislosť: prekreslenie po posune mapy, nie po zmene dát.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [points, map, tick]);
+  }, [points, map, tick, named]);
 
   return (
     <>
-      {visible.map((p) => (
-        <Marker
-          key={`dn-${p.id}`}
-          position={[p.lat, p.lon]}
-          icon={L.divIcon({
-            className: '',
-            html: `<span class="trp-dname">${escapeHtml(p.tr.name)}</span>`,
-            iconSize: [0, 0],
-          })}
-          eventHandlers={{ click: (e) => { L.DomEvent.stopPropagation(e as unknown as Event); onPick(p.tr); } }}
-        />
-      ))}
+      {visible.map((p) => {
+        // NÁROČNOSŤ NESIE FARBA (Matej 2026-08-25: „treba ukázať aj náročnosť"). Je to tá istá
+        // os aj tie isté tokeny ako na markeroch mapy (`DIFF_COLOR`) — nie nová farebná reč.
+        // Vodné plochy a výlety bez zapísanej náročnosti dostanú neutrálnu, nie náhodnú:
+        // vymyslieť im stupeň by bolo tvrdenie, ktoré v dátach nie je.
+        const color = (p.tr.diff && DIFF_COLOR[p.tr.diff]) || 'rgba(243,233,255,0.55)';
+        const html = named
+          ? `<span class="trp-dname"><i class="trp-dname-d" style="background:${color}"></i>${escapeHtml(p.tr.name)}</span>`
+          : `<span class="trp-dpin" style="background:${color}"></span>`;
+        return (
+          <Marker
+            key={`dn-${p.id}`}
+            position={[p.lat, p.lon]}
+            icon={L.divIcon({ className: '', html, iconSize: [0, 0] })}
+            eventHandlers={{ click: (e) => { L.DomEvent.stopPropagation(e as unknown as Event); onPick(p.tr); } }}
+          />
+        );
+      })}
     </>
   );
 }
@@ -1484,6 +1509,15 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
   font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.03em;
   box-shadow:0 2px 10px rgba(0,0,0,.5);transition:transform .12s,box-shadow .12s;}
 .trp-dname:hover{transform:translate(-50%,-50%) scale(1.06);box-shadow:0 0 0 3px rgba(179,107,255,.3),0 3px 12px rgba(0,0,0,.6);}
+/* Bodka náročnosti vnútri názvu — malá, aby meno ostalo hlavné. */
+.trp-dname-d{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+/* PRI ODDIALENÍ LEN BOD (Matej 2026-08-25). Farba = náročnosť, biely lem drží bod čitateľný
+   nad zeleným aj nad šedým podkladom mapy. Terč je zámerne väčší než kresba: 9 px sa palcom
+   netrafí, preto je okolo neho priehľadný rám cez box-shadow namiesto väčšieho kruhu. */
+.trp-dpin{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:block;
+  width:9px;height:9px;border-radius:50%;cursor:pointer;border:1.5px solid rgba(255,255,255,.92);
+  box-shadow:0 0 0 7px rgba(0,0,0,0),0 1px 4px rgba(0,0,0,.55);}
+.trp-dpin:hover{box-shadow:0 0 0 4px rgba(179,107,255,.35),0 1px 5px rgba(0,0,0,.6);}
 
 /* ── NÁHĽAD TRASY NAD DOKOM ───────────────────────────────────────────────────
    Sedí NAD dokom (33 vh), nie v ňom: dok patrí kresleniu a jeho tvar má jeden zdroj
@@ -1501,6 +1535,21 @@ button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
   display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .trp-peek-sep{color:rgba(243,233,255,.35);}
 .trp-peek-elev{margin-top:8px;}
+/* Bodka náročnosti — tá istá os a tie isté tokeny ako markery mapy (DIFF_COLOR). */
+.trp-peek-diff{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:1px;}
+/* AInubisov hlas. Tvár v kruhu ako v jeho bubline nad mapou; text menší než názov trasy —
+   je to rada, nie nadpis. */
+.trp-peek-ainubis{display:flex;align-items:flex-start;gap:9px;margin:0 0 9px;padding-right:20px;}
+.trp-peek-ainubis img{flex:0 0 auto;border-radius:50%;}
+.trp-peek-ainubis span{font-family:${FONT_UI};font-weight:500;font-size:12px;line-height:1.35;color:rgba(243,233,255,.9);}
+.trp-peek-acts{display:flex;align-items:center;gap:10px;margin-top:10px;}
+/* Zlaté CTA = .btn-gold lock (gradient, radius 8, papyrusový rám) — nie pilulka. */
+.trp-peek-go{flex:1 1 auto;padding:10px 14px;border-radius:8px;cursor:pointer;
+  background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;
+  border:1px solid rgba(250,244,236,0.30);box-shadow:inset 0 1px 0 rgba(255,255,255,0.3);
+  font-family:${FONT_TITLE};font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;}
+.trp-peek-mine{flex:0 0 auto;background:none;border:0;cursor:pointer;padding:8px 2px;
+  font-family:${FONT_UI};font-weight:500;font-size:11.5px;color:rgba(243,233,255,.62);text-decoration:underline;}
 /* Nízke okno (mobil na šírku): dok aj karta by si sadli na seba — profil ustúpi ako prvý,
    lebo názov a čas sú odpoveď na otázku, profil je bonus. */
 @media (max-height:560px){.trp-peek-elev{display:none;}}
@@ -2779,6 +2828,9 @@ export default function PackMap() {
   // 2026-08-09: samotný výpočet sa presťahoval do `profileLevelFor` (packCommunity), lebo to
   // isté číslo ukazuje aj `TripSpotlight` na homepage. Druhá kópia týchto riadkov = dva rôzne
   // levely na dvoch povrchoch, presne ten rozchod, ktorý tu už raz bol.
+  // Body za odkazy — hotové číslo z jedného zdroja (`useMyNotePoints`), aby level v hlavičke
+  // mapy sedel s TRIPSTATS, homepage aj profilom.
+  const myNotePoints = useMyNotePoints();
   const profile = useMemo(() => {
     const email = id.session?.user?.email ?? '';
     const meta = (id.session?.user?.user_metadata ?? {}) as Record<string, unknown>;
@@ -2788,10 +2840,11 @@ export default function PackMap() {
       votes,
       email,
       ownerName: firstNameFrom(email, (meta.full_name || meta.name) as string | undefined),
+      notePoints: myNotePoints,
     });
     // `storeEpoch` je v deps zámerne: `approvedAddedIds` číta statusy priamo z úložiska, takže
     // sa musí prepočítať v momente, keď hydratácia z DB dobehne.
-  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session]);
+  }, [allTrails, walkedIds, localTrails, votes, storeEpoch, id.session, myNotePoints]);
   const profilePoints = profile.points;
   const levelInfo = profile.level;
 
@@ -3196,6 +3249,10 @@ export default function PackMap() {
         desc: draft.note ?? '',
         ...(draft.diff ? { diff: draft.diff } : {}),
         ...(draft.photos?.length ? { photos: draft.photos } : {}),
+        // POSÁDKA (2026-08-25). Ukladá sa POČET, nie zoznam psov: karta výletu sa pýta
+        // „koľko Dogypťanov tadiaľ prešlo", nie „ktorí". Mená psov patria autorovi, nie trase.
+        // Platí pre nový výlet aj pre dopĺňanie konceptu — inak by dopísaný výlet psa stratil.
+        ...(draft.crew?.length ? { dogs: draft.crew.length } : {}),
         ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
       };
       if (!updateLocalTrail(finishId, patch)) {
@@ -3270,6 +3327,10 @@ export default function PackMap() {
         // KEDY (2026-08-25). Dovtedy sa dátum zo sprievodcu zapisoval iba do hlasu
         // (`votes[tid].when`, teda mesiac) a bez labiek nikam — hoci je povinný na odoslanie.
         // Bez neho sa výlet nedal ani dopísať: dopĺňanie by si ho vypýtalo druhýkrát.
+        // POSÁDKA (2026-08-25). Ukladá sa POČET, nie zoznam psov: karta výletu sa pýta
+        // „koľko Dogypťanov tadiaľ prešlo", nie „ktorí". Mená psov patria autorovi, nie trase.
+        // Platí pre nový výlet aj pre dopĺňanie konceptu — inak by dopísaný výlet psa stratil.
+        ...(draft.crew?.length ? { dogs: draft.crew.length } : {}),
         ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
         ...(draft.dateEnd ? { dateEnd: draft.dateEnd } : {}),
       };
@@ -4616,8 +4677,19 @@ export default function PackMap() {
             {drawPeek && (
               <div className="trp-peek" role="dialog" aria-label={drawPeek.name}>
                 <button type="button" className="trp-peek-x" onClick={() => setDrawPeek(null)} aria-label={t('pack.map.closePeek')}>×</button>
+                {/* ⚠️ AINUBIS SA MUSÍ OZVAŤ (Matej 2026-08-25: „ainubis by sa mal ozvať a pri kliku
+                    na inú trasu napísať — prešiel si túto istú trasu? nekresli ju znova iba ju
+                    zapíš"). Karta bez tejto vety len POPISUJE cudziu trasu; s ňou POVIE, čo s tým
+                    človek má spraviť — a to je celý dôvod, prečo počas kreslenia vôbec je. */}
+                <div className="trp-peek-ainubis">
+                  <img src={ainubisFace} alt="" width={30} height={30} />
+                  <span>{t('pack.map.peekAinubis')}</span>
+                </div>
                 <div className="trp-peek-name">{drawPeek.name}</div>
                 <div className="trp-peek-row">
+                  {drawPeek.diff && (
+                    <><span className="trp-peek-diff" style={{ background: DIFF_COLOR[drawPeek.diff] }} />{t(`pack.map.diff.${drawPeek.diff}`)}<span className="trp-peek-sep">·</span></>
+                  )}
                   {drawPeek.km} km
                   {typeof drawPeek.ascentM === 'number' && drawPeek.ascentM > 0 && (
                     <><span className="trp-peek-sep">·</span>↑ {drawPeek.ascentM} m</>
@@ -4639,6 +4711,32 @@ export default function PackMap() {
                     <ElevationProfile elev={drawPeek.elev} km={parseFloat(drawPeek.km) || 0} />
                   </div>
                 )}
+                {/* DVE VOĽBY, OBE ROVNAKO DOSTUPNÉ. Zapísanie je zlaté, lebo je to odporúčaná
+                    cesta — ale „kreslím vlastnú" nie je schované v krížiku: dve trasy z toho
+                    istého parkoviska sú bežná vec a človek, ktorý naozaj išiel inam, nesmie mať
+                    pocit, že ho appka presviedča o opaku. */}
+                <div className="trp-peek-acts">
+                  <button
+                    type="button"
+                    className="trp-peek-go"
+                    onClick={() => {
+                      const tid = drawPeek.id;
+                      // Poradie je dôležité: najprv sa ukončí kreslenie, až potom sa zapíše
+                      // prejdenie. `toggleWalked` otvára ponuku hodnotenia a tá by inak vyskočila
+                      // nad rozkreslenou mapou — teda presne to „otvorí sa niečo iné", proti
+                      // ktorému stojí lock z 23. 8.
+                      setDrawPeek(null);
+                      closeAdd();
+                      if (!walkedIds.has(tid)) toggleWalked(tid);
+                      else navigate(tripPath(drawPeek));
+                    }}
+                  >
+                    {t(walkedIds.has(drawPeek.id) ? 'pack.map.peekOpen' : 'pack.map.peekWalked')}
+                  </button>
+                  <button type="button" className="trp-peek-mine" onClick={() => setDrawPeek(null)}>
+                    {t('pack.map.peekMine')}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -4803,7 +4901,7 @@ export default function PackMap() {
           onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}
           pinnedSlug={noteDraft.pinnedSlug}
           pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
-          dock={addFlow}
+          dock={!!addFlow}
           onSubmit={async (n) => {
             const id = await mapNotes.add(n);
             // Krok 2 sprievodcu: druh si odloží formulár, aby ho krok 4 vedel ZHRNÚŤ.

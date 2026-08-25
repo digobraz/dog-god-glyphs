@@ -26,6 +26,7 @@ import { readTriplist } from './triplist/triplist';
 import { tierVars } from '@/lib/packTiers';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from './packTheme';
 import { trailCountry } from '@/lib/countryGeo';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { profileLevelFor, readVotes } from './packCommunity';
 import { useT } from '@/i18n/LanguageContext';
 
@@ -313,6 +314,8 @@ interface TripSpotlightProps {
 export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps) {
   const t = useT();
 
+  // Body za odkazy — to isté číslo, aké má hlavička mapy aj TRIPSTATS.
+  const myNotePoints = useMyNotePoints();
   const view = useMemo(() => {
     const nowMs = Date.now();
     const allTrails: HeroTrail[] = [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS];
@@ -368,6 +371,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       votes: readVotes(),
       email,
       ownerName,
+      notePoints: myNotePoints,
     });
 
     // Piny na guli = štart každého výletu (`path[0]`). Prejdené sú väčšie a zlaté,
@@ -397,7 +401,7 @@ export function TripSpotlight({ email = '', ownerName = '' }: TripSpotlightProps
       level: level.level,
       markers,
     };
-  }, [email, ownerName]);
+  }, [email, ownerName, myNotePoints]);
 
   // Bez jediného výletu s fotkou nemá plagát čo ukázať — radšej nič než prázdny rám.
   if (!view.trail) return null;

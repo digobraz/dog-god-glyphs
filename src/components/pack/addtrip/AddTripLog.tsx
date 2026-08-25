@@ -43,7 +43,7 @@ import { GROUP_TINT, HAZARD_RED } from '@/components/pack/mapnotes/NotePalette';
 import { KindGrid } from '@/components/pack/mapnotes/KindGrid';
 import {
   missingFields,
-  type AddTripDraft, type TripGeometry, type ApprovalStatus, type TripNoteRef,
+  type AddTripDraft, type TripGeometry, type ApprovalStatus, type TripNoteRef, type TripState,
   readAddDraft, writeAddDraft, clearAddDraft, clearTripNotes,
 } from './addTripModel';
 
@@ -1908,8 +1908,27 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                             </div>
                           ))}
                         </div>
+                        {/* ⚠️ POSUVNÍK MUSÍ MAŤ ČO POSÚVAŤ (Matej 2026-08-25, po reálnom zápise:
+                            „v závere je úprava zvislej foto posuvník, ale neviem či to fungovalo,
+                            zmiatlo ma to — tam by to chcelo viac vysvetliť, otvoriť náhľad").
+                            Náhľad s `coverY` DOTERAZ EXISTOVAL, ale stál v KROKU 3 — teda na inej
+                            obrazovke než posuvník. Človek ťahal a nič sa pred ním nehýbalo, takže
+                            ovládač vyzeral pokazený. Je to ten istý výrez a tie isté hodnoty ako
+                            hore, len konečne vedľa ruky, ktorá ho ovláda. */}
+                        {/* Výber titulnej nebol NIKDE napísaný — badge „TITULNÁ" ukazuje VÝSLEDOK,
+                            nie to, že sa dá zmeniť (Matej: „fotku titulnú som chcel inú"). */}
+                        {photos.length > 1 && (
+                          <p className="atl-field-hint" style={{ marginTop: 6 }}>{t('pack.addTrip.step.coverPick')}</p>
+                        )}
                         <div className="atl-cover-crop">
                           <label>{t('pack.addTrip.step.coverCrop')}</label>
+                          <div
+                            className="atl-cover-preview"
+                            style={{
+                              backgroundImage: `linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.45)), url('${heroPhoto}')`,
+                              backgroundPosition: `center ${coverY}%`,
+                            }}
+                          />
                           <input
                             type="range"
                             min={0}
@@ -2385,6 +2404,10 @@ const LOG_CSS = `
 .atl-photo-thumb button{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.7);border:0;color:${T.onDark};cursor:pointer;font-size:12px;line-height:1;}
 .atl-photo-cover-badge{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:${FONT_UI};font-weight:600;font-size:7.5px;letter-spacing:.12em;color:#000;background:${GOLD};padding:2px 0;border-radius:0 0 6px 6px;}
 .atl-cover-crop{margin-top:10px;display:flex;flex-direction:column;gap:5px;}
+/* Náhľad titulnej fotky priamo nad posuvníkom. Pomer 16:9 = ten istý tvar, v akom fotka
+   nakoniec sedí na karte výletu, takže sa neposúva výrez, ktorý človek nikdy neuvidí. */
+.atl-cover-preview{width:100%;aspect-ratio:16/9;border-radius:10px;background-size:cover;
+  background-repeat:no-repeat;border:1px solid rgba(179,130,45,0.55);}
 .atl-cover-crop label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
 .atl-cover-slider{width:100%;accent-color:${GOLD};}
 .atl-log-foot{flex-shrink:0;margin:0 20px 20px;display:flex;flex-direction:column;gap:8px;}

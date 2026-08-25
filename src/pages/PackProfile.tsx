@@ -17,6 +17,7 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { readLocalTrails, readWalkedIds, pluralKey, visibleLocalTrails } from '@/components/pack/tripShared';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { profileLevelFor, readVotes } from '@/components/pack/packCommunity';
 import {
   useProfile,
@@ -433,6 +434,8 @@ export default function PackProfile() {
   // na homepage (`Pack.tsx:269–273`): `/pack/map` ešte nie je pre členov, takže bez brány by
   // riadok linkoval do zamknutej routy. Výpočet je `profileLevelFor` — jediný zdroj pravdy
   // zdieľaný s hlavičkou mapy (packCommunity.ts:678), vlastný výpočet by dal iné číslo.
+  // Body za odkazy — spoločný zdroj so zvyškom povrchov, ktoré ukazujú level.
+  const myNotePoints = useMyNotePoints();
   const pilgrim = useMemo(() => {
     if (!DEV_FULL) return null;
     // Jedno čítanie localStorage, nie dve — `readLocalTrails()` parsuje JSON pri každom volaní.
@@ -449,6 +452,7 @@ export default function PackProfile() {
       walkedTrails,
       localTrailIds: localTrails.map((tr) => tr.id),
       votes: readVotes(),
+      notePoints: myNotePoints,
       email: session?.user?.email ?? '',
       // ⚠️ MUSÍ to byť `firstNameFrom`, nie `fullName.split(' ')[0]`. Pri prázdnom
       // `full_name` (bežný stav — user_metadata býva prázdne) by holý split vrátil `''`,
@@ -458,7 +462,7 @@ export default function PackProfile() {
       ownerName: firstNameFrom(session?.user?.email ?? '', fullName),
     });
     return { level: level.level, count: walkedTrails.length, km: Math.round(walkedKm) };
-  }, [session, fullName]);
+  }, [session, fullName, myNotePoints]);
 
   return (
     <PackLayout wide>

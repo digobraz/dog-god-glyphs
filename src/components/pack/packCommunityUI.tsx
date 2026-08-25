@@ -4,6 +4,7 @@
 // Fáza UI-first: žiadna perzistencia, všetko dostáva dáta/handlery cez props z PackMap.
 import { useEffect, useMemo, useState } from 'react';
 import { useT } from '@/i18n/LanguageContext';
+import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { HieroglyphBg } from '@/components/pack/PackLayout';
 import { ICON, RatingPaws, DiffMark, GOLD_ICON_FILTER } from '@/components/pack/tripShared';
@@ -1156,6 +1157,9 @@ function pointsLegend(): Array<[string, string]> {
     ['Add a trail', `+${POINTS.add}`],
     ['Add a place', `+${POINTS.place}`],
     ['Walk a trail', `+${POINTS.walk}`],
+    // Odkaz do legendy pribudol s jeho zapojením do skóre (25. 8. 2026) — dovtedy tu chýbal,
+    // hoci dlaždica ODKAZ pri pridávaní jeho cenu vypisovala.
+    ['Map note', `+${POINTS.note}`],
     ['Visit a place', `+${POINTS.visit}`],
     ['Every km walked', `+${POINTS_PER_KM}`],
     ['Every 100 m of climb', `+${POINTS_PER_100M}`],
@@ -1295,7 +1299,11 @@ export function TripStatsPanel({ walkedTrails, walkedKm, onOpenTrip, onAddTrip }
     addedByMe: approvedAddedIds(addedByMeIds(walkedTrails, { ownerName, isFounder: isFounderEmail(id.session?.user?.email) })),
     myRatings: ratedCountFor(walkedTrails, readVotes()),
   }), [walkedTrails, ownerName, id.session, storeEpoch]);
-  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled });
+  // Odkazy sa do skóre pripočítali až 25. 8. 2026 — dovtedy appka sľubovala +3 za kus na troch
+  // miestach a neplatila ani raz. Číslo chodí hotové (po stropoch) z jedného zdroja, nech sa
+  // štyri povrchy s levelom nerozídu.
+  const myNotePoints = useMyNotePoints();
+  const profilePoints = profilePointsFor(walkedTrails, { addedIds: addedByMe, ratings: myRatings, countries: countriesTraveled, notePoints: myNotePoints });
   const lvl = levelProgress(profilePoints.total);
 
   return (

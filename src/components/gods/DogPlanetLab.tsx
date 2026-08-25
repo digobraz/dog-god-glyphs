@@ -769,109 +769,136 @@ export function DogPlanetLab({
         }
 
         /* ── DETAIL PSA ──────────────────────────────────────────────────────
-           Obsah je pre obe možnosti ten istý a v tom istom poradí ako otvorená
-           karta na stene (číslo → meno → heroglyf → odkaz majiteľa → DOG PAGE).
-           Tmavý panel nie je odchýlka od papyrusu: heroglyf má zlatú žiaru
-           navrhnutú na čierne pozadie a na stene sa karta otvára presne takto. */
+           PAPYRUS ako na stránke psa (Matej 25. 8.: „lepšie by bolo ak by sa
+           zobrazil DETAIL psa ako je na dog page = papyrus"). Tmavý panel tu bol
+           predtým, prevzatý z otvorenej karty na TMAVEJ stene — lenže lab je bledý
+           a čierna doska v ňom bola cudzia.
+           Zdroj pravdy = .dogshare-info-card v pages/DogShare.tsx: tá istá textúra
+           papyrus-vision.webp, ten istý atrament, tie isté zlaté vlásočnice. */
         .pp-panel {
           z-index: 9;
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 9px;
-          padding: 18px 20px 20px;
-          overflow-y: auto;
-          background: rgba(18,11,3,0.95);
-          border: 1.5px solid rgba(201,154,63,0.8);
-          box-shadow: 0 24px 64px -20px rgba(40,26,6,0.85);
+          gap: 10px;
+          /* ⚠️ Papyrus NIE JE plocha, je to ZVITOK s navinutými koncami hore a
+             dole. Preto sedí obsah v takom odsadení a preto tu NIE JE rám ani
+             box-shadow — obdĺžnikový rám okolo zvitku bol vidno ako škatuľu.
+             Tieň robí drop-shadow, ktorý ide po obryse zvitku (tak to má aj
+             .dogshare-info-card). */
+          padding: 50px 34px 62px;
+          color: #3a2408;
+          background-image: url('/images/vision/papyrus-vision.webp');
+          background-size: 100% 100%;
+          background-repeat: no-repeat;
+          background-position: center;
+          filter: drop-shadow(0 20px 44px rgba(70,46,12,0.45));
           opacity: 0;
           pointer-events: none;
         }
         .planet-root.pop .pp-panel { opacity: 1; pointer-events: auto; }
 
         .pp-photo {
-          width: 92px;
-          height: 92px;
+          width: 96px;
+          height: 96px;
           border-radius: 50%;
           object-fit: cover;
           flex-shrink: 0;
           border: 2px solid rgba(201,154,63,0.85);
-          box-shadow: 0 0 22px -6px rgba(201,154,63,0.65);
+          box-shadow: 0 6px 18px -6px rgba(70,46,12,0.5);
         }
+        /* Pilulka s číslom — doslova tá istá ako na stránke psa. */
         .pp-rank {
           font-family: 'Cinzel', serif;
-          font-size: 0.7rem;
+          font-size: 0.8rem;
           font-weight: 700;
-          color: #3a2c10;
-          letter-spacing: 0.1em;
+          color: #1a1a1a;
           background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
           border: 1px solid rgba(201,154,63,0.55);
           border-radius: 999px;
-          padding: 2px 11px;
+          padding: 3px 15px;
           flex-shrink: 0;
         }
         .pp-name {
           font-family: 'Cinzel Decorative', 'Cinzel', serif;
-          font-size: 1.02rem;
+          font-size: 1.5rem;
           font-weight: 700;
-          color: rgba(255,255,255,0.94);
-          letter-spacing: 0.07em;
+          color: #1a1a1a;
+          letter-spacing: 0.01em;
           text-align: center;
-          line-height: 1.3;
+          line-height: 1.2;
         }
+        /* Zlatá vlásočnica ako na stránke psa — oddeľuje doklad od odkazu. */
+        .pp-rule {
+          height: 1px;
+          width: 100%;
+          background: rgba(201,154,63,0.35);
+          flex-shrink: 0;
+        }
+        /* HEROGLYF NA PAPYRUSE JE ČIERNY, nie zlatý so žiarou. Ten istý recept
+           ako .theme-light .dog-heroglyph na bledej stene: brightness(0) drží
+           alfa kanál, takže z bieleho glyfu spraví čistý atrament. Zlatá žiara
+           je pre tmavé pozadie a tu nemá kde svietiť. */
         .pp-glyph {
-          width: 46%;
-          max-width: 150px;
+          width: 62%;
+          max-width: 190px;
           height: auto;
           display: block;
           flex-shrink: 0;
           pointer-events: none;
-          filter:
-            brightness(0) invert(1)
-            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
-            drop-shadow(0 0 14px rgba(201,154,63,0.95))
-            drop-shadow(0 0 32px rgba(201,154,63,0.55));
+          filter: brightness(0) drop-shadow(0 2px 8px rgba(80,55,15,0.18));
         }
         .pp-msg {
+          margin: 0;
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 300;
-          font-size: 0.7rem;
-          color: rgba(255,255,255,0.62);
+          font-size: 0.75rem;
+          color: rgba(26,26,26,0.7);
           text-align: center;
           line-height: 1.6;
           font-style: italic;
-          margin: 0;
+          /* Orezané na šesť riadkov ako na stránke psa. Dlhý odkaz (Hektor má
+             celý odsek) by inak vytiekol zo zvitku — a rolovať vnútri kresby
+             zvitku sa nedá, navinuté konce ostanú stáť. */
+          display: -webkit-box;
+          -webkit-line-clamp: 6;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
+        /* Odkaz na stránku psa. Nie .btn-gold — ten je hlavné CTA a na tomto
+           paneli by prekričal meno psa. */
         .pp-link {
           display: inline-block;
           flex-shrink: 0;
           margin-top: 2px;
-          padding: 6px 16px;
+          padding: 7px 18px;
           font-family: 'Cinzel', serif;
           font-size: 0.62rem;
           font-weight: 700;
-          letter-spacing: 0.12em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #C99A3F;
+          color: #6E4E18;
+          background: rgba(255,250,236,0.45);
           border: 1px solid rgba(201,154,63,0.65);
           border-radius: 8px;
           text-decoration: none;
           transition: box-shadow 200ms ease, background 200ms ease;
         }
-        .pp-link:hover { background: rgba(201,154,63,0.08); box-shadow: 0 0 12px rgba(201,154,63,0.45); }
+        .pp-link:hover { background: rgba(255,250,236,0.85); box-shadow: 0 0 12px rgba(201,154,63,0.4); }
         .pp-x {
           position: absolute;
-          top: 8px;
-          right: 10px;
+          /* Vnútri papyrusu, nie na navinutom konci. */
+          top: 52px;
+          right: 26px;
           width: 28px; height: 28px;
           display: flex; align-items: center; justify-content: center;
           border: none;
           background: transparent;
-          color: rgba(255,255,255,0.55);
+          color: rgba(58,36,8,0.5);
           cursor: pointer;
         }
-        .pp-x:hover { color: #F4DC97; }
+        .pp-x:hover { color: #6E4E18; }
 
         /* ── MOŽNOSŤ A: BOK ──────────────────────────────────────────────────
            Panel príde sprava, guľa sa točí ďalej A UHNE SA MU — bez toho by
@@ -881,8 +908,10 @@ export function DogPlanetLab({
           top: 50%;
           right: 22px;
           width: 330px;
-          max-height: 80vh;
-          border-radius: 18px;
+          /* Pomer blízky 0.8 ako karta na stránke psa — pri plochejšom tvare sa
+             navinuté konce zvitku roztiahnu do nezmyslu. */
+          min-height: 400px;
+          max-height: 86vh;
           transform: translate(calc(100% + 46px), -50%);
           transition: transform 460ms cubic-bezier(.22,.9,.28,1), opacity 300ms ease;
         }
@@ -897,8 +926,8 @@ export function DogPlanetLab({
           left: 50%;
           top: 50%;
           width: 360px;
-          max-height: 82vh;
-          border-radius: 20px;
+          min-height: 440px;
+          max-height: 86vh;
           transform: translate(-50%, -50%) scale(0.9);
           transition: transform 340ms cubic-bezier(.22,.9,.28,1), opacity 260ms ease;
         }
@@ -932,8 +961,6 @@ export function DogPlanetLab({
             top: 0; right: 0; left: 0;
             width: auto;
             max-height: 62vh;
-            border-radius: 0 0 20px 20px;
-            border-width: 0 0 1.5px;
             transform: translateY(-102%);
           }
           .planet-root.pop.v-side .pp-panel { transform: translateY(0); }
@@ -1075,7 +1102,12 @@ export function DogPlanetLab({
           )}
           {/* Hektor #1 má odkaz v preklade, nie v DB — rovnako ako jeho karta na stene. */}
           {(picked.message || picked.n === 1) && (
-            <p className="pp-msg">{picked.message || t('wall.hektor.msg')}</p>
+            <>
+              {/* Vlásočnica oddeľuje doklad psa od odkazu majiteľa — to isté
+                  delenie ako karta na stránke psa. */}
+              <div className="pp-rule" />
+              <p className="pp-msg">{picked.message || t('wall.hektor.msg')}</p>
+            </>
           )}
           {picked.n != null && picked.name && (
             <a className="pp-link" href={dogPagePath(picked.name, picked.n)}>

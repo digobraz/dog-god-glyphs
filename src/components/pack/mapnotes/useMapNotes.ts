@@ -18,6 +18,7 @@ import {
   type NewMapNote,
 } from './mapNotesData';
 import { datasetNotes } from './mapNotesGeo';
+import { invalidateMyNotePoints } from './useMyNotePoints';
 
 export function useMapNotes(enabled = true) {
   const [notes, setNotes] = useState<MapNote[]>([]);
@@ -43,6 +44,10 @@ export function useMapNotes(enabled = true) {
   // pridávania vzniklo, a vie to z chipu v zhrnutí zmazať (viď `TripNoteRef`).
   const add = useCallback(async (n: NewMapNote) => {
     const id = await addMapNote(n);
+    // Level počíta odkazy z vlastnej, zdieľanej kópie vrstvy — bez zneplatnenia by nový
+    // zápis body pridal až po prenačítaní stránky (a vyzeralo by to, že sa nepočíta vôbec,
+    // teda presne ten stav, kvôli ktorému `useMyNotePoints` vzniklo).
+    invalidateMyNotePoints();
     await reload();
     return id;
   }, [reload]);
