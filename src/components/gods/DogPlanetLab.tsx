@@ -20,10 +20,13 @@
 // na guľu ~2×.
 // ════════════════════════════════════════════════════════════════════════════
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
+// ⚠️ lucide, nie hand-drawn kit. Je to VEDOMÁ zhoda s /pack homepage: ten istý
+// riadok života tam nesie tú istú iskru. Keď Sparkles dostane kresbu od Mateja,
+// vymení sa na oboch miestach naraz, nie tu samostatne.
+import { Sparkles } from 'lucide-react';
 import { useT } from '@/i18n/LanguageContext';
 import {
-  NAV_R, NAV_GOLD, NAV_FRAME_BG, NAV_FRAME_BLEND, NAV_PLATE_BG, NAV_PLATE_BLEND,
-  NAV_GRAIN_SCREEN_CSS, NAV_FRAME_SHADOW, NAV_PLATE_SHADOW,
+  NAV_GRAIN, NAV_MOTTLE, NAV_GRAIN_SCREEN_CSS,
 } from '@/components/pack/navGoldSkin';
 import { dogPagePath } from '@/lib/dogSlug';
 
@@ -65,23 +68,56 @@ const R = 320;
 const TILE_FILL = 0.68;
 
 /**
- * Podoby detailu psa. Matej 25. 8. o prvej (tabuľa): „vyzerá ako náhrobný kameň"
- * → *„daj mi viacero možností"*. Rozdiel nie je len vo výplni: monumentálny dojem
- * robil hlavne ZVISLÝ stĺpec (portrét hore, nápis pod ním) v úzkom paneli, takže
- * široké podoby majú fotku VEDĽA mena. Zvitok ostáva zvislý — kresba zvitku iný
- * tvar neunesie.
- * Nič sa nemaže: zamietnutá podoba ostáva voľbou, Matej sa k nim vracia.
+ * Podoby detailu psa. Matej 25. 8. uzavrel prvé kolo: *„dizajn sa mi páči skôr
+ * karta, ale musíme to doladiť viac kontrastovať, nech to nie je ako pozadie
+ * a musí to byť o niečo iné"* → tabuľa, doska a zvitok ZANIKLI aj s prepínačom,
+ * ostáva karta a varianty postavené z nej.
+ *
+ * ⚠️ PRÍČINA SLABÉHO KONTRASTU BOLA VÝPLŇ, NIE RÁM ANI TIEŇ. Pozadie planéty je
+ * `#FDF8EC → #F6EAD0 → #EBD9B4`, pôvodná karta `#FDF8EC → #F7ECD3 → #F0DFB8` —
+ * teda doslova ten istý papyrus. Preto sa varianty nelíšia zdobením, ale tým,
+ * KTORÝM SMEROM od steny odbočia: svetlejšia · tmavšia · čierna. Tvar (radius 16,
+ * zlatý rám, papyrusový jazyk `/pack`) drží všetky štyri rovnaký.
  */
 const DESIGNS = [
-  { id: 'tabula', label: 'tabuľa' },
-  { id: 'doska', label: 'doska' },
-  { id: 'karta', label: 'karta' },
-  { id: 'zvitok', label: 'zvitok' },
+  { id: 'karta', label: 'karta' },       // pôvodná — referencia, s ktorou sa porovnáva
+  { id: 'svetla', label: 'svetlá' },     // svetlejšia než stena + zlaté halo
+  { id: 'piesok', label: 'piesok' },     // tmavšia než stena, ten istý tón
+  { id: 'papyrus', label: 'papyrus' },   // jediná so ŠTRUKTÚROU — zrno + mramorovanie
+  { id: 'noc', label: 'noc' },           // čierna — najväčší možný kontrast
 ] as const;
 type Design = (typeof DESIGNS)[number]['id'];
 
-/** Skúšobné veľkosti svorky (Matej 25. 8.: „zaujíma ma ako by to vyzeralo pri 500–1000 psoch"). */
-const PRESETS = [71, 200, 500, 1000];
+/**
+ * Podoby POZADIA scény (Matej 25. 8.: „vytvor prepínač aj na pozadie, lebo planéta
+ * a pozadie má tu istú farbu, vyskúšajme to vizuálne oddeliť").
+ *
+ * ⚠️ Guľa nemá vlastný obrys — jej okraj tvoria dlaždice natočené takmer bokom,
+ * teda ragged silueta, a `.planet-shade` ho ešte stmaví. Oddeliť ju od pozadia sa
+ * preto NEDÁ rámom ani tieňom, len POĽOM ZA ŇOU. Každá podoba to skúša inou cestou:
+ * svetlom (hĺbka), materiálom (papyrus) alebo tónom (noc).
+ */
+const BACKGROUNDS = [
+  { id: 'blede', label: 'bledé' },     // pôvodné — referencia
+  { id: 'hlbka', label: 'hĺbka' },     // guľa stojí vo svetle, rohy sú pripečené
+  { id: 'papyrus', label: 'papyrus' }, // stena má materiál, fotky ležia NA niečom
+  { id: 'noc', label: 'noc' },         // tmavé pole — najväčšie oddelenie
+] as const;
+type Bg = (typeof BACKGROUNDS)[number]['id'];
+
+/**
+ * ══ VYBRATÉ 25. 8. — DEV PULT ZMAZANÝ ═══════════════════════════════════════
+ * Matej: „ok dizajn: karty daj svetlý, pozadie hĺbka a psov 200 — zmaž tie
+ * prepínače zatiaľ."
+ *
+ * Zoznamy DESIGNS/BACKGROUNDS a ich CSS ostávajú NEDOTKNUTÉ zámerne: ďalšie kolo
+ * ladenia je zmena týchto troch konštánt, nie prepisovanie štýlov. Prepínač sa
+ * vráti tak, že sa nad ne opäť postavia pilulky.
+ */
+const DESIGN: Design = 'svetla';
+const BG: Bg = 'hlbka';
+/** Koľko dlaždíc guľa nesie. 71 = dnešná svorka; 200 je Matejov výber pre ladenie. */
+const TARGET = 200;
 
 function rowCount(latDeg: number, spacing: number): number {
   const raw = (2 * Math.PI * R * Math.cos((latDeg * Math.PI) / 180)) / spacing;
@@ -271,10 +307,18 @@ export function DogPlanetLab({
   dogs,
   open,
   onClose,
+  pick,
 }: {
   dogs: PlanetDog[];
   open: boolean;
   onClose: () => void;
+  /**
+   * Žiadosť z kalkulačky v spodnom nave: „ukáž psa s týmto číslom".
+   * ⚠️ Nesie `seq`, nie iba `n`, ZÁMERNE — človek smie natukať to isté číslo
+   * dvakrát po sebe (napr. po zavretí karty). Keby sa efekt viazal len na `n`,
+   * druhý pokus by React považoval za tú istú hodnotu a nič by sa nestalo.
+   */
+  pick?: { n: number; seq: number } | null;
 }) {
   const t = useT();
   // Naklonenie DOLE na severný pól: Hektorova dlaždica leží na vrchole vodorovne,
@@ -289,9 +333,9 @@ export function DogPlanetLab({
   // sa priamo do `style.transform` gule; React sa o rotáciu vôbec nestará.
   const spinRef = useRef({ x: -24, y: 0 });
   const ballRef = useRef<HTMLDivElement>(null);
-  // Skúšobný počet psov na guli — nie je to nastavenie appky, je to LABORATÓRNY
-  // gombík: ukazuje, ako bude planéta vyzerať, keď svorka narastie.
-  const [target, setTarget] = useState(200);
+  // Počet dlaždíc, podoba karty a pole za guľou sú VYBRATÉ — viď TARGET / DESIGN / BG
+  // hore v súbore. Prepínače zanikli 25. 8.
+  const target = TARGET;
   // Ťah: okrem poslednej pozície si drží PREJDENÚ DRÁHU a dlaždicu, na ktorej sa
   // prst položil — z toho sa na konci rozhodne, či to bol ťuk alebo otáčanie.
   const dragRef = useRef<{ x: number; y: number; dist: number; tile: HTMLElement | null } | null>(null);
@@ -330,16 +374,13 @@ export function DogPlanetLab({
   // dopočítava z rAF slučky, nie z pohybu myši.
   const ptRef = useRef<{ x: number; y: number } | null>(null);
   const [picked, setPicked] = useState<PlanetDog | null>(null);
-  // LAB PREPÍNAČ: kde sa detail otvorí. `side` = panel zboku (na mobile zhora),
-  // guľa sa točí ďalej a uhne sa mu · `center` = prekryje stred, logo a CTA na
-  // ten čas zmiznú. Vyberie sa jedna, druhá padne.
-  const [variant, setVariant] = useState<'side' | 'center'>('side');
-  // DRUHÝ LAB PREPÍNAČ — z čoho je detail urobený (Matej 25. 8.: „potrebujeme
-  // vyrobiť nový blok zvetlý, nie papyrus lebo tam nesedi obsah = postav mi
-  // další prepínač… detail psa dizajn navrhujem urobiť ho ako tabuľu dizajn ako
-  // pri NAV = tmavšie okraje"). Zvitok sa NEMAŽE — Matej sa k zamietnutým
-  // podobám vracia, tak ostáva ako voľba, nie ako mŕtvy kód.
-  const [design, setDesign] = useState<Design>('tabula');
+  // KDE sa detail otvorí — VYBRATÉ 25. 8. (Matej: „môžeš vymazať KDE, lebo
+  // necháme bok na PC"). Prepínač aj možnosť `center` zanikli; trieda ostáva
+  // v className natvrdo, aby `.v-side` pravidlá nemuseli meniť tvar.
+  // Na mobile sa bok sám mení na „zhora" (media query nižšie).
+  //
+  const design = DESIGN;
+  const bg = BG;
   // Zvýraznená dlaždica sa nastavuje PRIAMO na DOM prvku, nie cez state — pri
   // 1000 dlaždiciach by každé prejdenie myšou prekreslilo celý zoznam.
   const hotRef = useRef<HTMLElement | null>(null);
@@ -384,6 +425,19 @@ export function DogPlanetLab({
   }, [dogs, target]);
 
   /** Dlaždica pod prvkom → pes. `img` má pointer-events:none, takže cieľom je div. */
+  // KALKULAČKA OTVÁRA KARTU (Matej 25. 8.: „natukanie čísla — otvorenie karty
+  // s detailom psa… človek môže klikať ďalšie čísla a napravo sa bude meniť
+  // karta"). Guľa sa pritom NEZASTAVUJE ani nepretáča — panel je bočný a číslo
+  // hovorí, KOHO ukázať, nie kam sa pozerať.
+  // ⚠️ Hľadá sa v `dogs` (reálna svorka: Hektor #1 + zákazníci), NIE v `tiles` —
+  // tam je ten istý pes viackrát ako výplň a pri 200 dlaždiciach by číslo mimo
+  // svorky ticho trafilo duplikát.
+  useEffect(() => {
+    if (!open || !pick) return;
+    const dog = dogs.find(d => d.n === pick.n);
+    if (dog) setPicked(dog);
+  }, [pick?.seq, open, dogs]);   // eslint-disable-line react-hooks/exhaustive-deps
+
   const dogAt = (el: Element | null): PlanetDog | null => {
     if (!el) return null;
     const i = Number((el as HTMLElement).dataset.i);
@@ -411,10 +465,24 @@ export function DogPlanetLab({
    */
   const volnySlot = (side: 'l' | 'r', chcem: number, zive: Note[], g: Mriezka): number | null => {
     const obsadene = new Set(zive.filter(n => n.side === side).map(n => n.slot));
+    // PRIEHRADKA POD KALKULAČKOU NEEXISTUJE. Kým kalkulačka zo spodného navu stojí
+    // nad guľou, bublinka pod ňou by bola neviditeľná (kalkulačka je na z-index 200)
+    // a vyzeralo by to, že kóta nenabehla. Preskočí sa presne ako obsadená
+    // priehradka — kóta padne inam, alebo nevznikne. Preskok na DRUHÚ stranu je
+    // zakázaný inde a platí aj tu.
+    // ⚠️ Rozmer sa ČÍTA zo živého DOM, nie zapisuje ako konštanta: kalkulačka je
+    // cudzí komponent (GodsGridLab) a jej výška závisí od obsahu. Dve čísla pre
+    // jednu vec by sa rozišli pri prvej úprave. Merať sa tu smie — nič sa podľa
+    // toho nenastavuje, iba sa vylučujú priehradky.
+    const kalk = side === 'l'
+      ? document.querySelector('.numpad-overlay--planet.open .numpad')?.getBoundingClientRect() ?? null
+      : null;
     let best: number | null = null;
     let bestD = Infinity;
     for (let i = 0; i < NOTE_SLOTS; i++) {
       if (obsadene.has(i)) continue;
+      if (kalk && kalk.left < g.lx + g.w
+          && Math.abs(g.ys[i] - (kalk.top + kalk.height / 2)) < (g.h + kalk.height) / 2) continue;
       const d = Math.abs(g.ys[i] - chcem);
       if (d < bestD) { bestD = d; best = i; }
     }
@@ -616,7 +684,19 @@ export function DogPlanetLab({
 
   return (
     <div
-      className={`planet-root v-${variant} d-${design}${open ? ' open' : ''}${picked ? ' pop' : ''}`}
+      className={`planet-root v-side d-${design} b-${bg}${open ? ' open' : ''}${picked ? ' pop' : ''}`}
+      // KLIK HOCIKDE MIMO KARTY JU ZAVRIE (Matej 25. 8.: „pri otvorenom detaile
+      // psa klik hocikde mimo zavrie kartu, nie len krížik").
+      // ⚠️ Guľa je z toho VYNATÁ zámerne — má vlastné rozlíšenie ťuk vs. ťah
+      // (prah 12 px v `onUp`). Bez tejto výnimky by sa karta zavrela hneď pri
+      // začiatku otáčania, teda pri geste, ktoré ju zavrieť nemá.
+      // Kalkulačka sem klik nepustí vôbec: leží vo vlastnom overlayi nad koreňom.
+      onClick={(e) => {
+        if (!picked) return;
+        const el = e.target as HTMLElement;
+        if (el.closest('.pp-panel') || el.closest('.planet-ball') || el.closest('.pnote')) return;
+        setPicked(null);
+      }}
       aria-hidden={!open}
     >
       <style>{`
@@ -749,73 +829,6 @@ export function DogPlanetLab({
         }
         .planet-hero .ph-tag b { color: #8C6014; font-weight: 700; }
         .planet-hero .join-btn { pointer-events: auto; }
-
-        /* DEV PULT — ľavý bok, drobný (Matej 25. 8.: „tie prepínacie testovacie
-           chipy daj na lavy bok stranky a zmenši, je to len DEV pomocka…
-           namiesto toho sem prehoď spodný nav aj vrchné"). Spodok obrazovky
-           patrí navu steny, nie ladiacim gombíkom. */
-        /* ⚠️ Dev pult stojí v ľavom stĺpci kót — je to LAB pomôcka, ktorá
-           v produkcii nebude, tak si miesto neberie: leží POD kótami (tie majú 6/7),
-           ale NAD guľou. Bublinka pointer-events nemá, takže sa pult dá
-           preklikať aj vtedy, keď cez neho práve prebehne kóta. */
-        .planet-dock {
-          position: fixed;
-          left: 12px;
-          top: 50%;
-          transform: translateY(-50%);
-          z-index: 5;
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
-          opacity: 0.72;
-          transition: opacity 180ms ease;
-        }
-        .planet-dock:hover { opacity: 1; }
-
-        /* Skupina prepínačov — popisok nad radom pilulek, nie vedľa neho:
-           na úzkom bočnom páse by sa vedľa seba nezmestili. */
-        .planet-scale {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 3px;
-          align-items: center;
-          padding: 5px 7px 6px;
-          border-radius: 12px;
-          background: linear-gradient(135deg, #FDF8EC 0%, #F0DFB8 100%);
-          border: 1px solid rgba(201,154,63,0.7);
-          box-shadow: 0 6px 16px -8px rgba(70,46,12,0.45);
-        }
-        .planet-scale .ps-row { display: flex; align-items: center; gap: 3px; }
-        .planet-scale .ps-label {
-          font-family: 'Space Grotesk', sans-serif;
-          font-weight: 500;
-          font-size: 0.48rem;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #7a5a2a;
-          padding: 0 3px;
-          white-space: nowrap;
-        }
-        .planet-scale .ps-pill {
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.56rem;
-          letter-spacing: 0.05em;
-          color: #2a1608;
-          background: transparent;
-          border: 1px solid transparent;
-          border-radius: 999px;
-          padding: 3px 7px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .planet-scale .ps-pill.on {
-          background: linear-gradient(180deg, #F4DC97 0%, #D9AC46 70%, #C99A33 100%);
-          border-color: #6E4E18;
-          box-shadow: inset 0 2px 0 rgba(255,250,222,0.85), 0 2px 5px -1px rgba(70,45,10,0.5);
-        }
 
         /* ── KÓTY ────────────────────────────────────────────────────────────
            Bublinka odsadená od gule, spojená s fotkou tenkou vodiacou čiarou.
@@ -978,17 +991,6 @@ export function DogPlanetLab({
           border: 2px solid rgba(201,154,63,0.85);
           box-shadow: 0 6px 18px -6px rgba(70,46,12,0.5);
         }
-        .pp-rank {
-          font-family: 'Cinzel', serif;
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1px solid rgba(201,154,63,0.55);
-          border-radius: 999px;
-          padding: 3px 15px;
-          flex-shrink: 0;
-        }
         .pp-name {
           font-family: 'Cinzel Decorative', 'Cinzel', serif;
           font-size: 1.5rem;
@@ -1061,46 +1063,61 @@ export function DogPlanetLab({
         }
         .pp-x:hover { color: #6E4E18; }
 
-        /* Hlavička: pri širokých podobách fotka VEDĽA identity, pri zvitku pod
-           sebou. Zvislý stĺpec v úzkom paneli bol hlavný dôvod, prečo prvá tabuľa
-           vyzerala ako náhrobný kameň — nie farba, ale tvar. */
-        .pp-head {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          width: 100%;
+        /* FOTKA S PEČAŤOU. Číslo sedí na SPODNEJ HRANE fotky, vodorovne v strede —
+           na centrovanej karte je stred jediná os, ktorú oko sleduje, a pečať
+           vpravo dole by ju rozbila. Nosič musí byť inline-block, inak by sa
+           roztiahol na šírku karty a „stred" by prestal byť stredom fotky. */
+        .pp-photo-wrap {
+          position: relative;
+          display: inline-block;
+          flex-shrink: 0;
+          line-height: 0;
         }
-        .pp-ident {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
-          min-width: 0;
+        .pp-seal {
+          position: absolute;
+          left: 50%;
+          bottom: -10px;
+          transform: translateX(-50%);
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.86rem;
+          line-height: 1.1;
+          letter-spacing: 0.02em;
+          color: #3d1f00;
+          background: linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%);
+          border: 1.5px solid #FFF8E4;
+          border-radius: 999px;
+          padding: 3px 12px;
+          white-space: nowrap;
+          box-shadow: 0 4px 12px -3px rgba(70,46,12,0.6);
         }
-        .d-zvitok .pp-head {
-          flex-direction: column;
-          gap: 10px;
-        }
-        .d-zvitok .pp-ident { align-items: center; }
 
+        /* ŽIVOT PSA — JEDEN RIADOK, prevzatý z LifeLine na /pack homepage.
+           Text je VEDĽA pilulky, nie v nej: pilulka nesie výhradne číslo.
+           flex-wrap je poistka pre dlhé preklady (nemčina, ukrajinčina) —
+           riadok sa radšej zalomí, než by pretiekol z karty. */
+        .pp-life {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: center;
+          gap: 4px 8px;
+        }
+        .pp-life-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.62rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #8C6014;
+        }
+        .pp-life-spark { width: 13px; height: 13px; color: #C99A3F; flex-shrink: 0; }
         /* Pilulka s dňami — LOCKED vizuál z PackTree.tsx: zvislý gradient
            #F5C73D→#E69E1A, atrament #3d1f00, Cinzel 700 BEZ verzálok, bez rámu.
            Neprekresľuj ju, prenes zmenu z PackTree. */
-        .pp-days-wrap {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-          align-items: flex-start;
-        }
-        .d-zvitok .pp-days-wrap { align-items: center; }
-        .pp-days-eyebrow {
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.56rem;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #C99A3F;
-        }
         .pp-days {
           padding: 4px 13px;
           border-radius: 999px;
@@ -1116,9 +1133,11 @@ export function DogPlanetLab({
           box-shadow: 0 6px 16px -6px rgba(201,154,63,0.6);
         }
 
-        /* Široké podoby rastú spolu s panelom. Zvitok sa nezväčšuje — jeho
-           veľkosť drží kresba, nie obsah. */
-        .planet-root:not(.d-zvitok) .pp-panel {
+        /* Karta rastie spolu s panelom — obsah sa neškáluje sám, veľkosti sú
+           tu. (Podmienka :not(.d-zvitok) odtiaľto zanikla spolu so zvitkom;
+           keby pribudla podoba s pevnou kresbou, výnimku si pýta ONA, nie tieto
+           riadky.) */
+        .planet-root .pp-panel {
           gap: 14px;
           /* Matejov náčrt bol vyšší než čo dal obsah — panel má teda vlastnú
              výšku a obsah v nej stojí na stred. Bez justify-content by sa nalepil
@@ -1126,122 +1145,237 @@ export function DogPlanetLab({
           min-height: min(600px, 68vh);
           justify-content: center;
         }
-        .planet-root:not(.d-zvitok) .pp-head { gap: 22px; }
-        .planet-root:not(.d-zvitok) .pp-photo { width: 132px; height: 132px; }
-        .planet-root:not(.d-zvitok) .pp-name { font-size: 2rem; }
-        .planet-root:not(.d-zvitok) .pp-rank { font-size: 0.92rem; padding: 4px 17px; }
-        .planet-root:not(.d-zvitok) .pp-days { font-size: 1rem; padding: 5px 15px; }
-        .planet-root:not(.d-zvitok) .pp-days-eyebrow { font-size: 0.62rem; }
-        .planet-root:not(.d-zvitok) .pp-glyph { width: 74%; max-width: 320px; }
-        .planet-root:not(.d-zvitok) .pp-msg { font-size: 0.88rem; line-height: 1.65; }
-        .planet-root:not(.d-zvitok) .pp-link { font-size: 0.68rem; padding: 9px 22px; }
+        .planet-root .pp-photo { width: 132px; height: 132px; }
+        .planet-root .pp-name { font-size: 2rem; }
+        .planet-root .pp-days { font-size: 1rem; padding: 5px 15px; }
+        .planet-root .pp-glyph { width: 74%; max-width: 320px; }
+        .planet-root .pp-msg { font-size: 0.88rem; line-height: 1.65; }
+        .planet-root .pp-link { font-size: 0.68rem; padding: 9px 22px; }
 
-        /* ── PODOBA A: TABUĽA ────────────────────────────────────────────────
-           Ten istý odliatok ako nav (Matej 25. 8.: „ako tabuľu dizajn ako pri NAV
-           = tmavšie okraje"). Tokeny sa NEOPISUJÚ — idú z pack/navGoldSkin.ts,
-           inak sa tabuľa a bar pri prvej úprave rozídu.
-           Stavba je 1:1 ako bar na stene: rám je samotný panel, DOSKA je ::before
-           a svetlé zrno ::after, obe na z-index -1. Preto nosič potrebuje
-           isolation: isolate (bez neho by záporná vrstva padla až za rám) a obsah
-           position: relative — inak by doska prekryla text. */
-        .d-tabula .pp-panel {
-          isolation: isolate;
-          padding: ${NAV_R.rim + 26}px ${NAV_R.rim + 30}px ${NAV_R.rim + 28}px;
-          color: ${NAV_GOLD.ink};
-          background: ${NAV_FRAME_BG};
-          background-blend-mode: ${NAV_FRAME_BLEND};
-          border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
-          border-radius: ${NAV_R.frame}px;
-          box-shadow: ${NAV_FRAME_SHADOW};
-        }
-        .d-tabula .pp-panel::before {
-          content: '';
-          position: absolute;
-          inset: ${NAV_R.rim}px;
-          border-radius: ${NAV_R.plate}px;
-          background: ${NAV_PLATE_BG};
-          background-blend-mode: ${NAV_PLATE_BLEND};
-          border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
-          box-shadow: ${NAV_PLATE_SHADOW};
-          pointer-events: none;
-          z-index: -1;
-        }
-        .d-tabula .pp-panel::after {
-          content: '';
-          position: absolute;
-          inset: ${NAV_R.rim}px;
-          border-radius: ${NAV_R.plate}px;
-          ${NAV_GRAIN_SCREEN_CSS}
-          opacity: 0.28;
-          pointer-events: none;
-          z-index: -1;
-        }
-        .d-tabula .pp-panel > * { position: relative; z-index: 1; }
-        /* ⚠️ Pravidlo vyššie je silnejšie než .pp-x, takže krížiku prepísalo
-           position na relative a ten spadol do toku ako prvá položka. Musí sa
-           vrátiť s rovnakou váhou, nie nižšou. */
-        .d-tabula .pp-panel > .pp-x { position: absolute; }
-        .d-tabula .pp-name { color: ${NAV_GOLD.ink}; }
-        .d-tabula .pp-msg { color: rgba(42,22,8,0.72); -webkit-line-clamp: 10; }
-        .d-tabula .pp-rule { background: rgba(110,78,24,0.35); }
-        .d-tabula .pp-photo { border-color: ${NAV_GOLD.edge}; }
-        .d-tabula .pp-x { top: ${NAV_R.rim + 6}px; right: ${NAV_R.rim + 6}px; }
-
-        /* ── PODOBA B: DOSKA ─────────────────────────────────────────────────
-           Tá istá pieskovcová doska ako v tabuli, ale BEZ vonkajšieho zlatého
-           rámu. Práve ten ťažký rám s tmavým obrysom robil z panela pomník;
-           doska sama je plocha na písanie, nie monument. */
-        .d-doska .pp-panel {
+        /* ── KARTY: SPOLOČNÝ TVAR ────────────────────────────────────────────
+           Všetky štyri podoby sú tá istá karta z /pack (PACK_BOX.card: radius 16,
+           zlatý rám 1.5 px, papyrusový jazyk zvyšku appky). Tvar sa NEROZCHÁDZA —
+           tu je zapísaný RAZ a podoby menia iba materiál. Kto pridá piatu, píše
+           len výplň, rám a tieň. */
+        .pp-panel {
           padding: 34px 38px 36px;
-          color: ${NAV_GOLD.ink};
-          background: ${NAV_PLATE_BG};
-          background-blend-mode: ${NAV_PLATE_BLEND};
-          border: ${NAV_R.line}px solid rgba(110,78,24,0.55);
-          border-radius: ${NAV_R.plate + 4}px;
-          box-shadow: ${NAV_PLATE_SHADOW}, 0 16px 36px -14px rgba(70,46,12,0.5);
+          border-radius: 16px;
         }
-        .d-doska .pp-name { color: ${NAV_GOLD.ink}; }
-        .d-doska .pp-msg { color: rgba(42,22,8,0.72); -webkit-line-clamp: 10; }
-        .d-doska .pp-rule { background: rgba(110,78,24,0.3); }
-        .d-doska .pp-x { top: 12px; right: 12px; }
+        .pp-panel > .pp-x { top: 12px; right: 12px; }
+        .pp-msg { -webkit-line-clamp: 10; }
 
-        /* ── PODOBA C: KARTA ─────────────────────────────────────────────────
-           Papyrusový blok z /pack — jazyk, ktorým hovorí zvyšok appky
-           (PACK_BOX.card: papyrusový gradient, zlatý rám 1.5 px, radius 16).
-           Najsvetlejšia z troch a najmenej ceremoniálna. */
+        /* ── PODOBA A: KARTA (pôvodná — referencia) ───────────────────────────
+           Tá, ktorá sa Matejovi páči tvarom a prepadla kontrastom: jej gradient
+           je prakticky zhodný s pozadím planéty. Ostáva vo výbere, aby bolo
+           s čím porovnávať. */
         .d-karta .pp-panel {
-          padding: 34px 38px 36px;
           color: #2a1608;
           background: linear-gradient(160deg, #FDF8EC 0%, #F7ECD3 46%, #F0DFB8 100%);
           border: 1.5px solid #C99A3F;
-          border-radius: 16px;
           box-shadow: 0 18px 44px -16px rgba(70,46,12,0.45), inset 0 1px 0 rgba(255,253,246,0.9);
         }
-        .d-karta .pp-msg { -webkit-line-clamp: 10; }
-        .d-karta .pp-x { top: 12px; right: 12px; }
 
-        /* ── PODOBA D: ZVITOK (papyrus zo stránky psa) ───────────────────────
-           ⚠️ papyrus-vision.webp NIE JE plocha, je to ZVITOK s navinutými koncami
-           hore a dole. Preto tu NIE JE rám ani box-shadow (obdĺžnik okolo zvitku
-           je vidno ako škatuľu — tieň robí drop-shadow po obryse), preto je také
-           odsadenie (obsah musí sadnúť MEDZI konce) a preto drží pomer okolo 0.8
-           (pri plochejšom tvare sa konce roztiahnu). Rolovať vnútri kresby sa
-           nedá, konce ostanú stáť, takže sa text OREZÁVA.
-           Zdroj: .dogshare-info-card v pages/DogShare.tsx. */
-        .d-zvitok .pp-panel {
-          padding: 50px 34px 62px;
-          color: #3a2408;
-          background-image: url('/images/vision/papyrus-vision.webp');
-          background-size: 100% 100%;
-          background-repeat: no-repeat;
-          background-position: center;
-          filter: drop-shadow(0 20px 44px rgba(70,46,12,0.45));
+        /* ── PODOBA B: SVETLÁ ─────────────────────────────────────────────────
+           Karta odbočí NAHOR: takmer biela slonovina, teda svetlejšia než
+           najsvetlejšie miesto steny, a zlaté halo (box-shadow s nulovým
+           rozostrením) — ten istý prstenec, ktorým sa v /pack odlepuje bledý
+           blok od papyrusu (Entry.tsx). Kontrast robí SVETLO, nie iný tón:
+           papyrusová rodina ostáva nedotknutá. */
+        .d-svetla .pp-panel {
+          color: #2a1608;
+          background: linear-gradient(160deg, #FFFEFA 0%, #FFF9EC 52%, #FBF0D8 100%);
+          border: 1.5px solid #C99A3F;
+          box-shadow:
+            0 0 0 5px rgba(201,154,63,0.16),
+            0 28px 62px -18px rgba(70,46,12,0.55),
+            inset 0 1px 0 #FFFFFF;
         }
-        .d-zvitok .pp-msg { -webkit-line-clamp: 6; }
-        .d-zvitok .pp-x { top: 52px; right: 26px; }
-        /* Pomer blízky 0.8 ako karta na stránke psa. */
-        .d-zvitok.v-side .pp-panel { width: 330px; min-height: 400px; }
-        .d-zvitok.v-center .pp-panel { width: 360px; min-height: 440px; }
+        .d-svetla .pp-rule { background: rgba(201,154,63,0.45); }
+
+        /* ── PODOBA C: PIESOK ─────────────────────────────────────────────────
+           Opačný smer: karta odbočí NADOL — pripečený pieskovec tmavší než
+           stena, s tmavohnedým zlatým obrysom. Atrament ostáva čierny, takže sa
+           neprevracia nič okrem výplne a rámu. */
+        .d-piesok .pp-panel {
+          color: #2a1608;
+          background: linear-gradient(160deg, #EBD5A6 0%, #E0C68E 48%, #D2B375 100%);
+          border: 1.5px solid #8C6014;
+          box-shadow:
+            0 26px 56px -18px rgba(58,38,8,0.6),
+            inset 0 1px 0 rgba(255,250,232,0.75);
+        }
+        .d-piesok .pp-photo { border-color: #8C6014; }
+        .d-piesok .pp-rule { background: rgba(110,78,24,0.40); }
+        .d-piesok .pp-msg { color: rgba(42,22,8,0.78); }
+        .d-piesok .pp-link {
+          background: rgba(255,250,236,0.62);
+          border-color: rgba(110,78,24,0.60);
+        }
+
+        /* ── PODOBA D: PAPYRUS (jediná so ŠTRUKTÚROU) ────────────────────────
+           Matej 25. 8.: „pridaj ku dizajnu detailu aj papyrus štruktúru."
+           Doteraz sa podoby líšili len FARBOU výplne — plocha ostávala v každej
+           hladká. Táto je prvá, ktorá má MATERIÁL: zrno + mramorovanie, presne to,
+           čím sa v nave pieskovcová doska odlišuje od plochej zlatej.
+           Zdroj je pack/navGoldSkin.ts (NAV_GRAIN + NAV_MOTTLE) — hodnoty sa
+           NEOPISUJÚ, inak sa doska v nave a karta tu pri prvej úprave rozídu.
+           ⚠️ ZRNO POTREBUJE DVE VRSTVY, nie jednu. Tmavé body idú ako vrstva
+           pozadia s blend multiply, svetlé sa dokresľujú cez ::after so screen.
+           Jedna vrstva s overlay je NEVIDITEĽNÁ — odskúšané pri nave.
+           Preto isolation na paneli, pseudovrstva na z-index -1 a obsah na
+           relative; bez isolation by záporná vrstva padla až za rám.
+           ⚠️ Počet položiek v background-blend-mode MUSÍ sedieť s počtom vrstiev
+           pozadia (zrno + 3 gradienty mramoru + výplň = 5). Pri nezhode prehliadač
+           blend ticho zahodí a zo štruktúry ostane špinavý flek. */
+        .d-papyrus .pp-panel {
+          isolation: isolate;
+          color: #2a1608;
+          background:
+            ${NAV_GRAIN} 0 0 / 180px 180px,
+            ${NAV_MOTTLE},
+            linear-gradient(160deg, #F7E9CD 0%, #EFDCB4 52%, #E3CA97 100%);
+          background-blend-mode: multiply, normal, normal, normal, normal;
+          border: 1.5px solid #B3822D;
+          box-shadow:
+            0 24px 54px -18px rgba(58,38,8,0.55),
+            inset 0 1px 0 rgba(255,250,232,0.8);
+        }
+        .d-papyrus .pp-panel::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 16px;
+          ${NAV_GRAIN_SCREEN_CSS}
+          opacity: 0.30;
+          pointer-events: none;
+          z-index: -1;
+        }
+        .d-papyrus .pp-panel > * { position: relative; z-index: 1; }
+        /* ⚠️ Pravidlo vyššie je silnejšie než .pp-x, takže krížiku prepísalo
+           position na relative a ten spadol do toku ako prvá položka. Musí sa
+           vrátiť s rovnakou váhou, nie nižšou. */
+        .d-papyrus .pp-panel > .pp-x { position: absolute; }
+        .d-papyrus .pp-rule { background: rgba(110,78,24,0.38); }
+        .d-papyrus .pp-msg { color: rgba(42,22,8,0.78); }
+        .d-papyrus .pp-photo { border-color: #B3822D; }
+        .d-papyrus .pp-link {
+          background: rgba(255,250,236,0.62);
+          border-color: rgba(110,78,24,0.60);
+        }
+
+        /* ── PODOBA E: NOC ────────────────────────────────────────────────────
+           Najväčší možný kontrast — čierna karta na bledej stene. Materiál je
+           TMAVÝ PODBLOK z /pack (PACK_BOX.subblockDark), teda jediná povolená
+           výnimka z papyrusového locku; siaha sa po nej za význam: karta psa je
+           doklad, nie plocha na písanie.
+           ⚠️ Prevracia sa CELÝ atrament vrátane HEROGLYFU. Zdrojový obrázok je
+           biely: brightness(0) z neho na svetlom robí čistú čerň, na čiernej
+           by ostala neviditeľná škvrna. Recept na zlatý glyf sa NEVYMÝŠĽA —
+           je to ten istý reťazec filtrov ako .dog-heroglyph na tmavej stene. */
+        .d-noc .pp-panel {
+          color: #F6ECD4;
+          background: linear-gradient(135deg, #1B1209 0%, #0C0805 100%);
+          border: 1.5px solid #C99A3F;
+          box-shadow:
+            0 28px 64px -16px rgba(0,0,0,0.72),
+            inset 0 1px 0 rgba(201,154,63,0.25);
+        }
+        .d-noc .pp-name { color: #F6ECD4; }
+        .d-noc .pp-life-label { color: #E8D29C; }
+        .d-noc .pp-rule { background: rgba(201,154,63,0.40); }
+        .d-noc .pp-msg { color: rgba(246,236,212,0.72); }
+        .d-noc .pp-glyph {
+          filter:
+            brightness(0) invert(1)
+            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.3)
+            drop-shadow(0 0 14px rgba(201,154,63,0.55))
+            drop-shadow(0 0 32px rgba(201,154,63,0.30));
+        }
+        .d-noc .pp-photo { border-color: rgba(201,154,63,0.9); }
+        .d-noc .pp-link {
+          color: #F0DFB8;
+          background: rgba(201,154,63,0.12);
+          border-color: rgba(201,154,63,0.55);
+        }
+        .d-noc .pp-link:hover { background: rgba(201,154,63,0.26); box-shadow: 0 0 14px rgba(201,154,63,0.35); }
+        .d-noc .pp-x { color: rgba(246,236,212,0.55); }
+        .d-noc .pp-x:hover { color: #F5C73D; }
+
+
+        /* ══ POZADIE SCÉNY ═══════════════════════════════════════════════════
+           Matej 25. 8.: „vytvor prepínač aj na pozadie, lebo planéta a pozadie má
+           tu istú farbu, vyskúšajme to vizuálne oddeliť."
+           ⚠️ Guľa NEMÁ vlastný obrys — okraj tvoria dlaždice natočené takmer
+           bokom (ragged silueta) a .planet-shade ho ešte stmaví. Oddeliť ju sa
+           preto nedá rámom ani tieňom, LEN POĽOM ZA ŇOU. */
+
+        /* ── A: BLEDÉ (pôvodné — referencia) ─────────────────────────────────
+           Presne ten gradient, ktorý má guľa pod sebou dnes. Ostáva vo výbere,
+           aby bolo s čím porovnávať. */
+        .planet-root.b-blede {
+          background:
+            radial-gradient(120% 100% at 50% 42%, #FDF8EC 0%, #F6EAD0 46%, #EBD9B4 100%);
+        }
+
+        /* ── B: HĹBKA (oddelenie SVETLOM) ────────────────────────────────────
+           Ten istý papyrus, ale guľa stojí v svetle a rohy sú pripečené. Svetlý
+           kotúč je zámerne o niečo väčší než guľa (640 px) — keby sedel presne
+           na nej, čítal by sa ako svätožiara, nie ako osvetlená plocha. */
+        .planet-root.b-hlbka {
+          background:
+            radial-gradient(34% 52% at 50% 44%, rgba(255,253,246,0.92) 0%, rgba(253,246,229,0.42) 58%, transparent 82%),
+            radial-gradient(118% 102% at 50% 44%, #EFE2C2 0%, #DFCB9E 44%, #C2A469 100%);
+        }
+
+        /* ── C: PAPYRUS (oddelenie MATERIÁLOM) ───────────────────────────────
+           Stena dostane štruktúru, takže fotky prestanú plávať a začnú ležať NA
+           niečom. Ten istý zdroj ako podoba karty — NAV_GRAIN + NAV_MOTTLE.
+           Zrno je tu jemnejšie než na karte (dlaždica 260 px, opacity 0.5):
+           na ploche celého okna by rovnaká hustota robila šum, nie papier. */
+        .planet-root.b-papyrus {
+          isolation: isolate;
+          background:
+            ${NAV_GRAIN} 0 0 / 260px 260px,
+            ${NAV_MOTTLE},
+            radial-gradient(120% 100% at 50% 42%, #F4E7CB 0%, #EADBB6 46%, #DCC79B 100%);
+          background-blend-mode: multiply, normal, normal, normal, normal;
+        }
+        .planet-root.b-papyrus::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          ${NAV_GRAIN_SCREEN_CSS}
+          background-size: 260px 260px;
+          opacity: 0.5;
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        /* ── D: NOC (oddelenie TÓNOM — najsilnejšie) ─────────────────────────
+           ⚠️ Tmavé pozadie NIE JE zmena jednej vlastnosti. Stred scény je čierny
+           atrament na svetlom: logo ide cez brightness(0), popisok je tmavohnedý
+           a .planet-hero::before je SVETLÝ závoj, ktorý by na tmavom ostal ako
+           biela škvrna. Všetko štyri sa musia prevrátiť naraz, inak to nevyzerá
+           ako podoba, ale ako rozbitá stránka. */
+        .planet-root.b-noc {
+          background:
+            radial-gradient(120% 100% at 50% 42%, #211609 0%, #150E06 48%, #0A0704 100%);
+        }
+        .planet-root.b-noc .planet-hero::before {
+          background: radial-gradient(ellipse at center, rgba(12,8,4,0.94) 26%, transparent 70%);
+        }
+        .planet-root.b-noc .planet-hero img {
+          filter:
+            brightness(0) invert(1)
+            sepia(1) saturate(8) hue-rotate(-12deg) brightness(1.25)
+            drop-shadow(0 0 18px rgba(201,154,63,0.4));
+        }
+        .planet-root.b-noc .planet-hero .ph-tag { color: rgba(246,236,212,0.66); }
+        .planet-root.b-noc .planet-hero .ph-tag b { color: #F5C73D; }
+        /* Vodiaca čiara kóty je na tmavom o triedu slabšia — bublinka ostáva
+           papyrusová, takže sa mení iba niť medzi ňou a psom. */
+        .planet-root.b-noc .pn-leads polyline { stroke: rgba(201,154,63,0.75); }
+        .planet-root.b-noc .pn-leads circle { fill: #F5C73D; stroke: rgba(12,8,4,0.9); }
 
         /* ── MOŽNOSŤ A: BOK ──────────────────────────────────────────────────
            Panel príde sprava, guľa sa točí ďalej A UHNE SA MU — bez toho by
@@ -1266,23 +1400,6 @@ export function DogPlanetLab({
         .planet-root.open.pop.v-side .planet-stage {
           transform: translateX(calc(-1 * (var(--pw) / 2 + 40px))) scale(1);
         }
-
-        /* ── MOŽNOSŤ B: STRED ────────────────────────────────────────────────
-           Panel sadne na stred; logo a CTA na ten čas zhasnú, inak by si dve
-           veci pýtali to isté miesto. */
-        .v-center .pp-panel {
-          position: fixed;
-          left: 50%;
-          top: 50%;
-          width: min(680px, 62vw);
-          max-height: 86vh;
-          transform: translate(-50%, -50%) scale(0.9);
-          transition: transform 340ms cubic-bezier(.22,.9,.28,1), opacity 260ms ease;
-        }
-        .planet-root.pop.v-center .pp-panel { transform: translate(-50%, -50%) scale(1); }
-        .planet-root.pop.v-center .planet-hero { opacity: 0; pointer-events: none; }
-        .planet-hero { transition: opacity 240ms ease; }
-
         /* NAV STENY IDE NAD PLANÉTU (Matej 25. 8.: „namiesto toho sem prehoď
            spodný nav aj vrchné"). Bar aj horné menu sú fixované na z-index 50,
            overlay planéty má 80 — kým je otvorená, dvíhajú sa nad ňu.
@@ -1293,173 +1410,13 @@ export function DogPlanetLab({
            navyše kryl s ikonkou LOGIN. */
         body.planet-open .nav-left,
         body.planet-open .nav-login,
-        body.planet-open .theme-toggle,
         body.planet-open .gods-bottom-bar { z-index: 90; }
-
-        @media (max-width: 760px) {
-          .pnote, .pn-leads { display: none; }
-        }
-
-        /* ── DETAIL PSA — SPOLOČNÉ ─────────────────────────────────────────
-           Rozloženie je pre obe podoby to isté; líši sa iba materiál. */
-        .pp-panel {
-          z-index: 9;
-          box-sizing: border-box;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-          opacity: 0;
-          pointer-events: none;
-        }
-        .planet-root.pop .pp-panel { opacity: 1; pointer-events: auto; }
-
-        .pp-photo {
-          width: 96px;
-          height: 96px;
-          border-radius: 50%;
-          object-fit: cover;
-          flex-shrink: 0;
-          border: 2px solid rgba(201,154,63,0.85);
-          box-shadow: 0 6px 18px -6px rgba(70,46,12,0.5);
-        }
-        .pp-rank {
-          font-family: 'Cinzel', serif;
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1px solid rgba(201,154,63,0.55);
-          border-radius: 999px;
-          padding: 3px 15px;
-          flex-shrink: 0;
-        }
-        .pp-name {
-          font-family: 'Cinzel Decorative', 'Cinzel', serif;
-          font-size: 1.5rem;
-          font-weight: 700;
-          color: #1a1a1a;
-          letter-spacing: 0.01em;
-          text-align: center;
-          line-height: 1.2;
-        }
-        .pp-rule {
-          height: 1px;
-          width: 100%;
-          background: rgba(201,154,63,0.35);
-          flex-shrink: 0;
-        }
-        /* HEROGLYF NA SVETLOM JE ČIERNY, nie zlatý so žiarou. Ten istý recept ako
-           .theme-light .dog-heroglyph na bledej stene: brightness(0) drží alfa
-           kanál, takže z bieleho glyfu spraví čistý atrament. Zlatá žiara je pre
-           tmavé pozadie a tu nemá kde svietiť. */
-        .pp-glyph {
-          width: 62%;
-          max-width: 190px;
-          height: auto;
-          display: block;
-          flex-shrink: 0;
-          pointer-events: none;
-          filter: brightness(0) drop-shadow(0 2px 8px rgba(80,55,15,0.18));
-        }
-        .pp-msg {
-          margin: 0;
-          font-family: 'Space Grotesk', sans-serif;
-          font-weight: 300;
-          font-size: 0.75rem;
-          color: rgba(26,26,26,0.7);
-          text-align: center;
-          line-height: 1.6;
-          font-style: italic;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        /* Odkaz na stránku psa. Nie .btn-gold — ten je hlavné CTA a na tomto
-           paneli by prekričal meno psa. */
-        .pp-link {
-          display: inline-block;
-          flex-shrink: 0;
-          margin-top: 2px;
-          padding: 7px 18px;
-          font-family: 'Cinzel', serif;
-          font-size: 0.62rem;
-          font-weight: 700;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #6E4E18;
-          background: rgba(255,250,236,0.45);
-          border: 1px solid rgba(201,154,63,0.65);
-          border-radius: 8px;
-          text-decoration: none;
-          transition: box-shadow 200ms ease, background 200ms ease;
-        }
-        .pp-link:hover { background: rgba(255,250,236,0.85); box-shadow: 0 0 12px rgba(201,154,63,0.4); }
-        .pp-x {
-          position: absolute;
-          width: 28px; height: 28px;
-          display: flex; align-items: center; justify-content: center;
-          border: none;
-          background: transparent;
-          color: rgba(58,36,8,0.5);
-          cursor: pointer;
-        }
-        .pp-x:hover { color: #6E4E18; }
-
-        /* Hlavička: pri širokých podobách fotka VEDĽA identity, pri zvitku pod
-           sebou. Zvislý stĺpec v úzkom paneli bol hlavný dôvod, prečo prvá tabuľa
-           vyzerala ako náhrobný kameň — nie farba, ale tvar. */
-        .pp-head {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          width: 100%;
-        }
-        .pp-ident {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
-          min-width: 0;
-        }
-        .d-zvitok .pp-head {
-          flex-direction: column;
-          gap: 10px;
-        }
-        .d-zvitok .pp-ident { align-items: center; }
-
-        /* Pilulka s dňami — LOCKED vizuál z PackTree.tsx: zvislý gradient
-           #F5C73D→#E69E1A, atrament #3d1f00, Cinzel 700 BEZ verzálok, bez rámu.
-           Neprekresľuj ju, prenes zmenu z PackTree. */
-        .pp-days-wrap {
-          display: flex;
-          flex-direction: column;
-          gap: 3px;
-          align-items: flex-start;
-        }
-        .d-zvitok .pp-days-wrap { align-items: center; }
-        .pp-days-eyebrow {
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.56rem;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: #C99A3F;
-        }
-        .pp-days {
-          padding: 4px 13px;
-          border-radius: 999px;
-          background: linear-gradient(180deg, #F5C73D 0%, #E69E1A 100%);
-          color: #3d1f00;
-          font-family: 'Cinzel', serif;
-          font-size: 0.86rem;
-          font-weight: 700;
-          letter-spacing: 0.02em;
-          line-height: 1.1;
-          white-space: nowrap;
-          border: none;
-          box-shadow: 0 6px 16px -6px rgba(201,154,63,0.6);
-        }
+        /* TERČ (vycentrovanie mriežky) NA GULI NEEXISTUJE (Matej 25. 8.: „centrácia
+           zmizne pri tomto globe zobrazení celkom — je tam zbytočný, budú len dve
+           ikonky"). Guľa sa centruje sama tým, že sa vráti do pokojnej rotácie;
+           tlačidlo by ukazovalo na akciu, ktorá tu nemá čo vykonať.
+           Ostáva v DOM, len sa skryje — patrí stene a tá je pod planétou živá. */
+        body.planet-open .center-btn-mobile { display: none; }
 
 
         @media (max-width: 760px) {
@@ -1478,55 +1435,12 @@ export function DogPlanetLab({
           .planet-root.pop.v-side .pp-panel { transform: translateY(0); }
           .planet-root.open.pop.v-side .planet-stage { transform: translateY(124px) scale(0.62); }
 
-          .v-center .pp-panel { width: calc(100vw - 32px); }
-          .planet-root:not(.d-zvitok) .pp-panel { min-height: 0; }
-
-          /* Na mobile je bočný pás úzky — pult sa stiahne k hornej hrane. */
-          .planet-dock { top: 64px; transform: none; gap: 4px; }
+          .planet-root .pp-panel { min-height: 0; }
         }
       `}</style>
 
-      {/* LAB pult. Horný riadok = ktorá z dvoch možností detailu sa skúša,
-          dolný = koľko psov guľa nesie. Ani jedno nie je nastavenie appky. */}
-      <div className="planet-dock">
-        <div className="planet-scale" role="group" aria-label="Kde sa otvorí detail psa">
-          <span className="ps-label">kde</span>
-          <div className="ps-row">
-            <button className={`ps-pill${variant === 'side' ? ' on' : ''}`} onClick={() => setVariant('side')}>bok</button>
-            <button className={`ps-pill${variant === 'center' ? ' on' : ''}`} onClick={() => setVariant('center')}>stred</button>
-          </div>
-        </div>
-
-        <div className="planet-scale" role="group" aria-label="Z čoho je detail psa">
-          <span className="ps-label">dizajn</span>
-          <div className="ps-row">
-            {DESIGNS.map(d => (
-              <button
-                key={d.id}
-                className={`ps-pill${design === d.id ? ' on' : ''}`}
-                onClick={() => setDesign(d.id)}
-              >
-                {d.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="planet-scale" role="group" aria-label="Počet psov">
-          <span className="ps-label">psov</span>
-          <div className="ps-row">
-            {PRESETS.map(n => (
-              <button
-                key={n}
-                className={`ps-pill${target === n ? ' on' : ''}`}
-                onClick={() => setTarget(n)}
-              >
-                {n === 71 ? '71' : n}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* DEV PULT (dizajn · pozadie · psov) tu STÁL a 25. 8. zanikol — voľby sú
+          hore v konštantách DESIGN / BG / TARGET. */}
 
       <div className="planet-stage">
         <div
@@ -1622,7 +1536,7 @@ export function DogPlanetLab({
       ))}
 
       {/* Detail psa. Ten istý obsah pre obe možnosti — líši sa iba tým, KAM
-          sadne (CSS `.v-side` / `.v-center`). Dva panely s tým istým vnútrom by
+          sadne (CSS `.v-side`). Dva panely s tým istým vnútrom by
           sa pri prvej úprave rozišli. */}
       {picked && (
         <div className="pp-panel" role="dialog" aria-label={picked.name}>
@@ -1631,40 +1545,52 @@ export function DogPlanetLab({
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
-          {/* Hlavička. Pri širokých podobách stojí fotka VEDĽA mena (rieši sa
-              v CSS), pri zvitku pod sebou — obsah je ten istý. */}
-          <div className="pp-head">
+          {/* JEDNA OS ZHORA NADOL (Matej 25. 8.: „teraz je to nelogické rozmiestnenie
+              — skúsme to centrovať = fotka, pod ňou meno, za menom číslo a pod menom
+              žijem si naplno / dní, pod tým heroglyf", potom výber varianty C).
+              ⚠️ Predtým tu bola hlavička .pp-head s fotkou VEDĽA identity. Bol to
+              pozostatok po podobách tabuľa/doska, kde zvislý stĺpec robil z panela
+              pomník — a robil z karty DVE OSI naraz: hlavička zľava doprava, všetko
+              pod ňou na stred. Práve to bolo to „nelogické". */}
+          <div className="pp-photo-wrap">
             <img className="pp-photo" src={picked.photoBig || picked.photo} alt="" draggable={false} />
-            <div className="pp-ident">
-              {picked.n != null && <span className="pp-rank">#{picked.n}</span>}
-              <div className="pp-name">{picked.name}</div>
-              {/* Počet dní ako na stránke psa (Matej 25. 8.). Pilulka je LOCKED
-                  vizuál (PackTree.tsx): zvislý gradient, Cinzel 700 bez verzálok,
-                  bez rámu. Bez dátumu narodenia sa nezobrazí — vymyslené číslo by
-                  sa tu tvárilo ako údaj. */}
-              {dniZivota(picked.birthDate) !== null && (
-                <div className="pp-days-wrap">
-                  <span className="pp-days-eyebrow">{t('pack.dog.livingBestLife')}</span>
-                  <span className="pp-days">
-                    {t('dogPage.daysCount', {
-                      days: dniZivota(picked.birthDate)!.toLocaleString('en-US'),
-                    })}
-                  </span>
-                </div>
-              )}
-            </div>
+            {/* Poradové číslo ako PEČAŤ na spodnej hrane fotky, v strede. Je to tá
+                istá dvojica fotka+číslo, akú človek pozná z dlaždice v stene, takže
+                ho hľadá na tom istom mieste. Na vlastnom riadku vedľa mena sa pri
+                dlhom mene zalamovalo a vyzeralo ako preklep. */}
+            {picked.n != null && <span className="pp-seal">#{picked.n}</span>}
           </div>
+          <div className="pp-name">{picked.name}</div>
+          {/* ŽIVOT PSA V JEDNOM RIADKU — prevzaté z `LifeLine` na /pack homepage
+              (Matej 25. 8.: „daj to do jedného riadku ale v chipe bude len číslo
+              nie aj text"). Text stojí VEDĽA pilulky, nie v nej; pilulka nesie
+              výhradne číslo a drží LOCKED vizuál z PackTree.tsx (zvislý gradient,
+              Cinzel 700 bez verzálok, bez rámu).
+              ⚠️ Bez dátumu narodenia sa riadok nezobrazí — vymyslené číslo by sa
+              tu tvárilo ako údaj (týka sa Hektorovej výplňovej karty). */}
+          {dniZivota(picked.birthDate) !== null && (
+            <div className="pp-life">
+              <span className="pp-life-label">
+                <Sparkles className="pp-life-spark" aria-hidden />
+                {t('pack.dog.livingBestLife')}
+              </span>
+              <span className="pp-days">
+                {t('dogPage.daysCount', {
+                  days: dniZivota(picked.birthDate)!.toLocaleString('en-US'),
+                })}
+              </span>
+            </div>
+          )}
+          <div className="pp-rule" />
           {picked.heroglyph && (
             <img className="pp-glyph" src={picked.heroglyph} alt="" draggable={false} />
           )}
-          {/* Hektor #1 má odkaz v preklade, nie v DB — rovnako ako jeho karta na stene. */}
+          {/* Hektor #1 má odkaz v preklade, nie v DB — rovnako ako jeho karta na stene.
+              ⚠️ Vlásočnica sa sem UŽ NEKRESLÍ. Po prestavbe na jednu os stojí čiara
+              nad heroglyfom a delí kartu na „kto to je" a „čo o ňom hovorí symbol";
+              druhá čiara pod glyfom by z troch blokov spravila tabuľku. */}
           {(picked.message || picked.n === 1) && (
-            <>
-              {/* Vlásočnica oddeľuje doklad psa od odkazu majiteľa — to isté
-                  delenie ako karta na stránke psa. */}
-              <div className="pp-rule" />
-              <p className="pp-msg">{picked.message || t('wall.hektor.msg')}</p>
-            </>
+            <p className="pp-msg">{picked.message || t('wall.hektor.msg')}</p>
           )}
           {picked.n != null && picked.name && (
             <a className="pp-link" href={dogPagePath(picked.name, picked.n)}>

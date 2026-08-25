@@ -15,7 +15,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useT } from '@/i18n/LanguageContext';
+import { useT, useLang } from '@/i18n/LanguageContext';
+import { useDogyptStore } from '@/store/dogyptStore';
 import LanguagePicker from '../LanguagePicker';
 import { photoPositions, photos } from './godsData';
 import { LIVE_EDGE_BASE } from '@/lib/env';
@@ -59,9 +60,11 @@ interface RealDog {
 // druhú stranu. #2 pristane hneď vpravo od Hekthora, #3 hneď pod #2, atď.
 // (Predošlá verzia mala jednoduchú point-špirálu s Hero ako preskočenou dierou
 // uprostred — to spôsobovalo skok #3→#4 cez CTA kartu.)
-function generatePackPositions(count: number): Array<{col: number, row: number}> {
+function generatePackPositions(count: number, coreBottom = 0): Array<{col: number, row: number}> {
   const result: Array<{col: number, row: number}> = [];
-  let left = 0, right = 0, top = -1, bottom = 0; // core: Hekthor + hero
+  // coreBottom = 1 vo variante B: core je o bunku vyšší (Hekthor + hero +
+  // dlaždica na zápis), inak by špirála psa na (0,1) prekryla.
+  let left = 0, right = 0, top = -1, bottom = coreBottom; // core: Hekthor + hero
   while (result.length < count) {
     const newLeft = left - 1, newRight = right + 1, newTop = top - 1, newBottom = bottom + 1;
     for (let r = newTop + 1; r <= newBottom; r++) result.push({ col: newRight, row: r });   // pravá hrana, dole
@@ -98,16 +101,59 @@ const REVEAL_ROW = 1;
 
 const REVEAL_SYMBOL = '/images/dogypt-logo-black-i.png';
 
-const WALL_THEME_KEY = 'dogypt.wall.theme.lab';   // LAB: vlastný kľúč, nemieša sa s `/`
-// Poradie = poradie klikania v prepínači. 'dark' = dnešný stav (default),
-// 'darkcalm' = to isté bez žiar, 'light' = papyrus.
-const WALL_THEMES = ['dark', 'darkcalm', 'light'] as const;
-type WallTheme = typeof WALL_THEMES[number];
-const WALL_THEME_LABEL: Record<WallTheme, string> = {
-  dark: 'GOLD',
-  darkcalm: 'CALM',
-  light: 'PAPYRUS',
+// ═════════════════════════════════════════════════════════════════════════
+//  A/B — ZÁPIS PSA (Matej 25. 8. 2026, prepínač v ľavom dolnom rohu, DEV)
+//
+//  Matej: „nedávať CTA tlačítko ale veľký štvorec s pluskom a meniace sa tváre
+//  psov vyblednuté a nad tým nápis v zmysle že zapíš psa" + „chcel by som to
+//  skôr na prepínač na wall labe než na druhú stránku, nech si to viem rýchlo
+//  prepnúť". Preto JEDEN súbor a prepínač, nie druhá routa.
+//
+//  PRAVIDLO, KTORÉ TO DRŽÍ: sľub musí byť splnený v NASLEDUJÚCEJ sekunde.
+//  „Zapíš psa" → napíšeš meno → meno je na stene. Žiadna predsieň medzi tým.
+//  Reťaz štyroch tlačidiel (stena → /entry → /heroglyph → intro) stojí dnes
+//  313 zo 413 ľudí — merania v `plany/ladenie-konverzie.md`.
+//
+//  VARIANT A = presne dnešná stena (zlaté CTA v hero).
+//  VARIANT B = hero bez CTA + prázdna dlaždica na bunke (0,1).
+//  ⚠️ Štvorec je VLASTNÁ BUNKA mriežky, NIE prvok vnútri hera. Prvý pokus ho
+//  dal do hera, to narástlo o kartu a keďže je centrované na bunku (0,0),
+//  rástlo hore aj dole — logo zaliezlo pod Hekthora. Matej to zamietol slovami
+//  „zaniklo logo aj všetko okolo". Ako bunka sa nebije s ničím.
+// ═════════════════════════════════════════════════════════════════════════
+type EnrollCopy = { label: string; ask: string; go: string };
+const ENROLL_COPY: Record<string, EnrollCopy> = {
+  sk: { label: 'ZAPÍŠ SVOJHO PSA', ask: 'Ako sa volá?',      go: 'POKRAČOVAŤ' },
+  cs: { label: 'ZAPIŠ SVÉHO PSA',  ask: 'Jak se jmenuje?',   go: 'POKRAČOVAT' },
+  en: { label: 'ADD YOUR DOG',     ask: "What's their name?", go: 'CONTINUE'   },
 };
+const enrollCopy = (lang: string): EnrollCopy => ENROLL_COPY[lang] || ENROLL_COPY.en;
+
+/** Koľko vyblednutých tvárí sa strieda v prázdnej dlaždici. Cyklus = počet × 3 s. */
+const ENROLL_FACES = 5;
+
+/** Voľba variantu prežije reload — inak sa pri každom uložení súboru vráti na A. */
+const ENROLL_KEY = 'wall-lab-enroll';
+
+/**
+ * Variant B posúva východiskový pohľad o pol bunky hore, aby boli v zábere
+ * hero (0,0) AJ dlaždica (0,1). Bez toho vidno z dlaždice pri načítaní len
+ * horný okraj — teda to jediné, čo tam má človek urobiť, je pod ohybom.
+ * ⚠️ Rovnaká hodnota musí ísť aj do onCenter(), inak tlačidlo „na stred"
+ * skočí inam než počiatočný pohľad.
+ */
+const enrollViewShift = (on: boolean) => (on ? GY / 2 : 0);
+
+// 'dark' = pôvodná tmavá so žiarami, 'darkcalm' = to isté bez žiar, 'light' = papyrus.
+type WallTheme = 'dark' | 'darkcalm' | 'light';
+/**
+ * PODOBA STENY — jedno miesto, žiadny prepínač (Matej 25. 8.: „hore vpravo
+ * vymaž prepínač"). Pilulka GOLD/CALM/PAPYRUS vedľa LOGIN zanikla aj s uloženou
+ * voľbou v localStorage; papyrus je vybratý (*„bledá sa mi páči asi viac"*).
+ * ⚠️ CSS ostatných dvoch podôb sa NEMAŽE — porovnanie sa spustí prepísaním
+ * tejto jedinej konštanty, nie klikaním na stránke.
+ */
+const WALL_THEME: WallTheme = 'light';
 
 const FLAG_NAMES: Record<string, string> = {
   sk: 'Slovakia',
@@ -245,8 +291,9 @@ function gIndex(col: number, row: number, len: number): number {
 
 // pack_number psa zobrazeného v bunke (bázovo, bez konfliktovej korekcie) — na
 // kontrolu susedov pri výbere fillera. Zrkadlí poradie vetiev v makeCard.
-function basePackAt(col: number, row: number, map: Map<string, RealDog>, fillers: RealDog[]): number | null {
+function basePackAt(col: number, row: number, map: Map<string, RealDog>, fillers: RealDog[], enrollOn = false): number | null {
   if (col === 0 && row === 0) return null;       // hero
+  if (enrollOn && col === 0 && row === 1) return null;  // variant B: dlaždica na zápis
   if (col === 0 && row === -1) return 1;          // Hektor founder
   const canon = map.get(`${col},${row}`);
   if (canon) return canon.pack_number ?? null;
@@ -275,18 +322,13 @@ export function GodsGridLab() {
   // LAB: planéta psov — overlay nad stenou, otvára ju tretia ikonka v spodnom nave.
   const [planetOpen, setPlanetOpen] = useState(false);
   const [planetDogs, setPlanetDogs] = useState<PlanetDog[]>([]);
+  // Žiadosť z kalkulačky pre planétu. `seq` sa zvyšuje pri každom potvrdení, aby
+  // sa dalo to isté číslo natukať dvakrát po sebe (viď prop `pick` v DogPlanetLab).
+  const [planetPick, setPlanetPick] = useState<{ n: number; seq: number } | null>(null);
   const [filterValue, setFilterValue] = useState('');
-  // WALL témy — experiment 2026-08-09 k feedbacku „vyzerá to ako podvod".
-  // Tri polohy zámerne: hypotéza je, že dojem nerobí ČIERNA, ale čierna + zlatá
-  // + pulzujúca žiara. 'darkcalm' = dnešná tmavá s vypnutými žiarami = kontrolná
-  // vzorka, ktorá tú hypotézu overí bez prekopania homepage.
-  // Voľba prežije reload, default ostáva dnešná tmavá.
-  const [theme, setTheme] = useState<WallTheme>(() => {
-    try {
-      const saved = localStorage.getItem(WALL_THEME_KEY);
-      return WALL_THEMES.includes(saved as WallTheme) ? (saved as WallTheme) : 'light';
-    } catch { return 'light'; }   // LAB: default = papyrus
-  });
+  // WALL téma je pevná — viď WALL_THEME hore. Ostáva premennou, lebo ju číta
+  // className koreňa aj podmienky nižšie; meniť sa dá len v kóde.
+  const theme = WALL_THEME;
   // Štatistika krajín pre filter popup: [{ iso2, iso3, count }], zoradené od najviac.
   const [countryStats, setCountryStats] = useState<{ iso2: string; iso3: string; count: number }[]>([]);
   const realDogMapRef = useRef<Map<string, RealDog>>(new Map());
@@ -299,6 +341,17 @@ export function GodsGridLab() {
   // tRef.current(...), nie priamo cez `t`.
   const tRef = useRef(t);
   useEffect(() => { tRef.current = t; }, [t]);
+
+  // A/B prepínač variantu zápisu psa (DEV pieskovisko). Grid je vanilla DOM
+  // a stavia sa v efekte, takže hodnoty číta cez ref, nie zo closure.
+  const [enrollOn, setEnrollOn] = useState<boolean>(() => {
+    try { return localStorage.getItem(ENROLL_KEY) === '1'; } catch { return false; }
+  });
+  const enrollRef = useRef(enrollOn);
+  useEffect(() => { enrollRef.current = enrollOn; }, [enrollOn]);
+  const { lang } = useLang();
+  const langRef = useRef(lang);
+  useEffect(() => { langRef.current = lang; }, [lang]);
 
   const revealData = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
@@ -333,7 +386,7 @@ export function GodsGridLab() {
         if (!alive) return;
         if (dogs.length > 0) {
           const maxN = dogs.reduce((m, d) => Math.max(m, d.pack_number ?? 0), 0);
-          const positions = generatePackPositions(maxN + 5);
+          const positions = generatePackPositions(maxN + 5, enrollRef.current ? 1 : 0);
           const map = new Map<string, RealDog>();
           for (const dog of dogs) {
             const n = dog.pack_number;
@@ -414,10 +467,38 @@ export function GodsGridLab() {
 
   const submitFilter = () => {
     const n = parseInt(filterValue, 10);
-    if (!isNaN(n) && n >= 1) navigateToRef.current?.(n);
-    setFilterOpen(false);
+    // DVA CIELE PRE JEDNO ČÍSLO. Na stene číslo znamená „prejdi tam" — kalkulačka
+    // splnila úlohu a zavrie sa. Na guli znamená „ukáž mi ho" a kalkulačka
+    // ZOSTÁVA (Matej 25. 8.: „človek môže klikať ďalšie čísla a napravo sa bude
+    // meniť karta"), takže sa maže len natukaná hodnota. Zatvorí ju až kompas.
+    if (!isNaN(n) && n >= 1) {
+      if (planetOpen) setPlanetPick(p => ({ n, seq: (p?.seq ?? 0) + 1 }));
+      else navigateToRef.current?.(n);
+    }
+    if (!planetOpen) setFilterOpen(false);
     setFilterValue('');
   };
+
+  // KALKULAČKA SA RUŠÍ AJ KLIKOM VEDĽA (Matej 25. 8.: „otvorená kalkulačka sa ruší
+  // klikom vedľa, nie len na ikonku kompasu"). Nad stenou to robí závoj overlayu —
+  // ten klik chytí sám. Nad guľou závoj nie je (inak by nebolo vidno kartu, ktorá
+  // sa vpravo mení), takže sa musí odchytiť na dokumente.
+  // ⚠️ GUĽA NIE JE „VEDĽA". Má vlastné rozlíšenie ťuk vs. ťah, takže by sa
+  // kalkulačka zatvárala pri KAŽDOM otočení planéty; a klik na psa je práca
+  // s obsahom, nie odchod z nástroja. Tú istú výnimku má zatváranie karty psa.
+  // ⚠️ Spodný bar je vyňatý tiež — kompas si otvorenie prepína sám a zavretie
+  // zvonku by ho v tom istom kliku otvorilo naspäť.
+  useEffect(() => {
+    if (!filterOpen || !planetOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      const el = e.target as HTMLElement;
+      if (el.closest('.numpad') || el.closest('.planet-ball') || el.closest('.gods-bottom-bar')) return;
+      setFilterOpen(false);
+      setFilterValue('');
+    };
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, [filterOpen, planetOpen]);
 
   // Desktop hardware-keyboard support for the numpad overlay
   useEffect(() => {
@@ -635,7 +716,7 @@ export function GodsGridLab() {
       : vw / 2 - W / 2;
     let oy = revealData.active
       ? vh / 2 - REVEAL_ROW * GY - H / 2
-      : vh / 2 - H / 2;
+      : vh / 2 - H / 2 - enrollViewShift(enrollRef.current);
     let dragging = false;
     let startX = 0, startY = 0;
     let prevX = 0, prevY = 0, prevT = 0;
@@ -676,7 +757,7 @@ export function GodsGridLab() {
       el.innerHTML = `
         <img src="/images/dogypt-gold-logo.webp" alt="DOGYPT" class="hero-logo-icon" fetchpriority="high">
         <p class="hero-tagline">${tRef.current('wall.hero.taglineLead')}<br><span class="gold">${tRef.current('wall.hero.taglineGod')}</span></p>
-        <a href="/entry" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>
+        ${enrollRef.current ? '' : `<a href="/entry" class="join-btn" data-join>${tRef.current('wall.hero.cta')}</a>`}
         <span class="hero-count"><svg class="hero-count-globe" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9.2" stroke="currentColor" stroke-width="1.5"/><ellipse cx="12" cy="12" rx="4" ry="9.2" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M4.2 7.5h15.6M4.2 16.5h15.6" stroke="currentColor" stroke-width="1.5"/></svg><span class="hero-count-num">${realDogMapRef.current.size + 1}</span><span class="hero-count-sep"> / </span><span class="hero-count-total">${tRef.current('wall.hero.total')}</span><span class="hero-count-dogs">${tRef.current('wall.hero.dogs')}</span></span>
       `;
       const btn = el.querySelector('[data-join]');
@@ -817,8 +898,88 @@ export function GodsGridLab() {
       return el;
     }
 
+    // ── VARIANT B: PRÁZDNA DLAŽDICA NA ZÁPIS PSA (bunka 0,1) ─────────────
+    // Plnohodnotná bunka mriežky, nie prvok vnútri hera — preto sa nebije
+    // s logom ani taglinom (prvý pokus ich obetoval a Matej to zamietol).
+    // Vnútri karty: vyblednuté tváre už zapísaných psov → veľký plus →
+    // po kliku pole na meno → po zadaní MENO PSA priamo na stene.
+    function makeEnrollCard() {
+      const ec = enrollCopy(langRef.current);
+      const nextNum = realDogMapRef.current.size + 1;
+      // Tváre sa striedajú CSS animáciou, nie intervalom — kartu odstraňuje
+      // virtualizácia pri scrolle a JS časovač by po nej ostal bežať.
+      const faceHtml = [...realDogMapRef.current.values()]
+        .map(d => planetTileUrl(d.cloudinary_main_url))
+        .filter(Boolean)
+        .slice(0, ENROLL_FACES)
+        .map((u, i) => `<span class="enroll-face" style="background-image:url('${u}');animation-delay:${i * 3}s"></span>`)
+        .join('');
+
+      const el = document.createElement('article');
+      el.className = 'dog-card enroll-card';
+      el.style.left = '0px';
+      el.style.top  = (1 * GY) + 'px';
+      el.innerHTML = `
+        <div class="enroll-faces" aria-hidden="true">${faceHtml}</div>
+        <div class="enroll-body" role="button" tabindex="0" data-enroll-tile aria-label="${ec.label}">
+          <p class="enroll-label">${ec.label}</p>
+          <div class="enroll-plus" aria-hidden="true"></div>
+          <input class="enroll-input" data-enroll-input type="text" maxlength="24" placeholder="${ec.ask}" aria-label="${ec.ask}" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          <div class="enroll-name" data-enroll-name></div>
+          <span class="enroll-num">#${nextNum}</span>
+          <button class="enroll-go" data-enroll-go type="button">${ec.go}</button>
+        </div>
+      `;
+
+      const body  = el.querySelector('[data-enroll-tile]') as HTMLElement | null;
+      const input = el.querySelector('[data-enroll-input]') as HTMLInputElement | null;
+      const nameEl = el.querySelector('[data-enroll-name]') as HTMLElement | null;
+      const goBtn = el.querySelector('[data-enroll-go]') as HTMLElement | null;
+      let enrolled = '';
+
+      const openInput = () => {
+        if (el.classList.contains('is-named')) return;
+        el.classList.add('is-typing');
+        input?.focus();
+        track('wall_enroll_open', { location: 'wall_lab_b' });
+      };
+      const commit = () => {
+        const val = (input?.value || '').trim();
+        if (!val) { el.classList.remove('is-typing'); return; }
+        enrolled = val.toUpperCase();
+        if (nameEl) nameEl.textContent = enrolled;   // textContent, nie innerHTML — vstup od človeka
+        el.classList.remove('is-typing');
+        el.classList.add('is-named');
+        // TOTO je merateľný signál varianta, nie platba: pri 245 klikoch/mes dá
+        // odpoveď za 3–4 týždne, kým na platbách by to trvalo ~7 mesiacov.
+        track('wall_enroll_named', { location: 'wall_lab_b' });
+      };
+
+      body?.addEventListener('click', openInput);
+      body?.addEventListener('keydown', (e) => {
+        const k = (e as KeyboardEvent).key;
+        if (k === 'Enter' || k === ' ') { e.preventDefault(); openInput(); }
+      });
+      input?.addEventListener('click', (e) => e.stopPropagation());
+      input?.addEventListener('keydown', (e) => {
+        const k = (e as KeyboardEvent).key;
+        if (k === 'Enter') { e.preventDefault(); commit(); }
+        if (k === 'Escape') { e.preventDefault(); if (input) input.value = ''; el.classList.remove('is-typing'); }
+      });
+      input?.addEventListener('blur', commit);
+      goBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Meno ide do store, aby sa appka o krok neskôr nepýtala druhýkrát.
+        if (enrolled) useDogyptStore.getState().setDogName(enrolled);
+        track('cta_become_dogyptian_click', { location: 'wall_enroll_b' });
+        navigate('/heroglyph/name');
+      });
+      return el;
+    }
+
     function makeCard(col: number, row: number) {
       if (col === 0 && row === 0) return makeHeroCard();
+      if (enrollRef.current && col === 0 && row === 1) return makeEnrollCard();
       if (col === 0 && row === -1) return makeHektorCard();
       if (revealData.active && col === REVEAL_COL && row === REVEAL_ROW) return makeRevealCard();
 
@@ -833,7 +994,7 @@ export function GodsGridLab() {
       const map = realDogMapRef.current;
       const forbidden = new Set<number>();
       for (const [dc, dr] of NEIGHBORS8) {
-        const p = basePackAt(col + dc, row + dr, map, fillers);
+        const p = basePackAt(col + dc, row + dr, map, fillers, enrollRef.current);
         if (p != null) forbidden.add(p);
       }
       const start = gIndex(col, row, fillers.length);
@@ -1045,7 +1206,7 @@ export function GodsGridLab() {
     const onCenter = () => {
       if (raf) cancelAnimationFrame(raf);
       const tx = vw / 2 - W / 2;
-      const ty = vh / 2 - H / 2;
+      const ty = vh / 2 - H / 2 - enrollViewShift(enrollRef.current);
       if (Math.hypot(tx - ox, ty - oy) < 4) {
         // Už ukotvené — rubber-band bounce namiesto „nič sa nedeje"
         heroAnchorPulse();
@@ -1096,7 +1257,7 @@ export function GodsGridLab() {
         col = 0; row = -1;
       } else {
         // #2 = positions[0] (prvá špirálová pozícia) … #n → positions[n-2].
-        const positions = generatePackPositions(n + 5);
+        const positions = generatePackPositions(n + 5, enrollRef.current ? 1 : 0);
         const idx = n - 2;
         if (idx < 0 || idx >= positions.length) return;
         ({ col, row } = positions[idx]);
@@ -1146,7 +1307,7 @@ export function GodsGridLab() {
       cells.forEach(el => el.remove());
       cells.clear();
     };
-  }, [navigate, dogsReady, focusPackNumber, revealData.active]);
+  }, [navigate, dogsReady, focusPackNumber, revealData.active, enrollOn]);
 
   // Zmena jazyka → NEBÚRAME grid (rebuild by zrušil scroll pozíciu, otvorenú kartu aj
   // virtualizované bunky — je to najťažší efekt v komponente). Jediné miesta kde grid
@@ -1706,6 +1867,174 @@ export function GodsGridLab() {
             inset 0 1px 0 rgba(255, 255, 255, 0.55);
         }
         .join-btn:active { transform: scale(0.98); }
+
+        /* ── VARIANT B: PRÁZDNA DLAŽDICA NA ZÁPIS PSA ──────────────────────
+           Dedí .dog-card (rozmer + pozícia v mriežke), mení len výplň a obsah.
+           Rozmery preto NIE SÚ zapísané znova — to je celý dôvod, prečo je to
+           bunka mriežky a nie prvok v hero. */
+        .enroll-card {
+          overflow: hidden;
+          background: linear-gradient(160deg, #2a2014, #12100c);
+          border: 2px dashed rgba(201,154,63,0.6);
+          box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 10px 34px rgba(0,0,0,0.4);
+          transition: border-color 0.25s, box-shadow 0.25s;
+          cursor: pointer;
+        }
+        .enroll-card:hover {
+          border-color: rgba(245,199,61,0.95);
+          box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 0 44px rgba(230,158,26,0.35), 0 10px 34px rgba(0,0,0,0.4);
+        }
+
+        /* Tváre už zapísaných psov — čo tu pribudne, keď to naplníš. */
+        .enroll-faces { position: absolute; inset: 0; }
+        .enroll-face {
+          position: absolute; inset: 0;
+          background-size: cover;
+          background-position: 50% 40%;
+          opacity: 0;
+          filter: grayscale(1) contrast(0.85);
+          animation: enrollFace ${ENROLL_FACES * 3}s ease-in-out infinite;
+        }
+        @keyframes enrollFace {
+          0%   { opacity: 0;    transform: scale(1.07); }
+          4%   { opacity: 0.22; }
+          16%  { opacity: 0.22; }
+          20%  { opacity: 0;    transform: scale(1); }
+          100% { opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .enroll-face { animation: none; opacity: 0.15; }
+        }
+
+        .enroll-body {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          gap: 10px;
+          padding: 14px;
+          text-align: center;
+        }
+        .enroll-label {
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.98rem;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: #F5C73D;
+          text-shadow: 0 2px 12px rgba(0,0,0,0.8);
+          margin: 0;
+          transition: opacity 0.2s;
+        }
+
+        /* Plus — kreslený, nie znak z fontu (Cinzel má „+" úzke a nízke). */
+        .enroll-plus {
+          position: relative;
+          width: 30%; aspect-ratio: 1;
+          transition: opacity 0.2s, transform 0.25s;
+        }
+        .enroll-plus::before, .enroll-plus::after {
+          content: '';
+          position: absolute; left: 50%; top: 50%;
+          background: #F5C73D;
+          border-radius: 3px;
+          box-shadow: 0 0 18px rgba(230,158,26,0.6);
+        }
+        .enroll-plus::before { width: 6px; height: 100%; margin: -50% 0 0 -3px; }
+        .enroll-plus::after  { height: 6px; width: 100%; margin: -3px 0 0 -50%; }
+        /* :not() je nutné — .enroll-card:hover .enroll-plus má vyššiu špecificitu
+           než .is-named .enroll-plus a plus by po zápise svietil CEZ meno psa. */
+        .enroll-card:not(.is-named):not(.is-typing):hover .enroll-plus {
+          transform: scale(1.08);
+        }
+
+        /* Pole leží NA dlaždici — žiadna medzistránka medzi sľubom a splnením. */
+        .enroll-input {
+          position: absolute;
+          left: 10%; width: 80%;
+          top: 50%; transform: translateY(-50%);
+          padding: 10px 4px;
+          background: transparent;
+          border: none;
+          border-bottom: 2px solid rgba(245,199,61,0.75);
+          outline: none;
+          text-align: center;
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 1.45rem;
+          color: #FFF4C2;
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.22s;
+        }
+        .enroll-input::placeholder {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 400;
+          font-size: 0.9rem;
+          letter-spacing: 0.06em;
+          color: rgba(255,244,194,0.5);
+          text-transform: none;
+        }
+        .is-typing .enroll-plus, .is-typing .enroll-label, .is-typing .enroll-num { opacity: 0; }
+        .is-typing .enroll-input { opacity: 1; pointer-events: auto; }
+
+        /* Meno psa = Cinzel Decorative (brand lock: meno PSA na oficiálnom povrchu). */
+        .enroll-name {
+          position: absolute;
+          left: 8%; width: 84%;
+          top: 46%; transform: translateY(-50%);
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 1.6rem;
+          line-height: 1.15;
+          color: #FFF4C2;
+          text-shadow: 0 0 26px rgba(230,158,26,0.55);
+          opacity: 0;
+          transition: opacity 0.3s;
+          word-break: break-word;
+        }
+        .enroll-num {
+          position: absolute;
+          left: 50%; bottom: 10%;
+          transform: translateX(-50%);
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 0.9rem;
+          letter-spacing: 0.12em;
+          color: rgba(245,199,61,0.85);
+          text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+          transition: opacity 0.3s;
+        }
+        .enroll-go {
+          position: absolute;
+          left: 50%; bottom: 8%;
+          transform: translateX(-50%);
+          padding: 12px 26px;
+          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+          border: 1px solid rgba(250,244,236,0.40);
+          border-radius: 8px;
+          color: #000;
+          font-family: 'Cinzel', serif;
+          font-size: 0.84rem;
+          font-weight: 900;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          cursor: pointer;
+          box-shadow: 0 0 24px rgba(255,200,90,0.55), inset 0 1px 0 rgba(255,255,255,0.45);
+          opacity: 0; pointer-events: none;
+          transition: opacity 0.25s;
+        }
+
+        /* Meno je na stene — sľub „zapíš psa" splnený. Až TERAZ sa ide ďalej. */
+        .enroll-card.is-named {
+          border-style: solid;
+          border-color: rgba(245,199,61,0.95);
+          box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 0 52px rgba(230,158,26,0.45), 0 10px 34px rgba(0,0,0,0.4);
+          cursor: default;
+        }
+        .is-named .enroll-plus, .is-named .enroll-label, .is-named .enroll-num { opacity: 0; }
+        .is-named .enroll-name { opacity: 1; }
+        .is-named .enroll-face { animation-play-state: paused; opacity: 0.12; }
+        .is-named .enroll-go { opacity: 1; pointer-events: auto; }
         @keyframes joinBtnPulse {
           0%, 100% {
             box-shadow:
@@ -2054,6 +2383,7 @@ export function GodsGridLab() {
 
         /* ── Wide numpad: search (numpad) + country stats side by side ── */
         .numpad--wide { width: min(92vw, 560px); }
+
         .numpad-body {
           display: grid;
           grid-template-columns: 258px 1fr;
@@ -2124,6 +2454,34 @@ export function GodsGridLab() {
             border-top: 1px solid rgba(201,154,63,0.3);
             padding-top: 14px;
           }
+        }
+
+        /* ── KALKULAČKA NAD GUĽOU — TEN ISTÝ PANEL, INÉ UKOTVENIE ───────────
+           ⚠️ Panel sa NEPREKRESĽUJE (Matej 25. 8.: „kalkulačku si nemal meniť,
+           mala ostať taká aká je aj v gride"). Prvé kolo ju tu zúžilo, zmenšilo
+           displej a schovalo zoznam krajín — to bola úprava, ktorú nikto nepýtal.
+           Mení sa VÝHRADNE ukotvenie: zmizne závoj (inak by nebolo vidno kartu,
+           ktorá sa vpravo mení) a panel ide k ľavému okraju, kde má stáť.
+           🔴 pointer-events:none na obale je NUTNOSŤ, nie kozmetika: overlay kryje
+           celé okno, takže by inak zožral každý klik do gule a psa by sa nedalo
+           vybrať myšou. Chytá len samotný panel. */
+        /* ⚠️ DVOJITÁ TRIEDA NIE JE OZDOBA. Pravidlo .numpad-overlay.open zapína
+           pointer-events: auto a má vyššiu váhu než samotné --planet, takže
+           obal ďalej chytal KAŽDÝ klik do gule a psa sa nedalo vybrať myšou
+           (dispatch v konzole to nechytí — ten cieľ obchádza). */
+        .numpad-overlay.numpad-overlay--planet {
+          background: transparent;
+          -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+          justify-content: flex-start;
+          padding-left: 16px;
+          pointer-events: none;
+        }
+        .numpad-overlay.numpad-overlay--planet .numpad { pointer-events: auto; }
+        /* Na mobile príde karta psa ZHORA, takže pult ide dole — inak by si
+           stáli na tom istom mieste. */
+        @media (max-width: 760px) {
+          .numpad-overlay--planet { align-items: flex-end; padding-bottom: 84px; }
         }
 
         /* ── Bottom bar: filter + center (+ flag on mobile), centered as a row ── */
@@ -2375,7 +2733,6 @@ export function GodsGridLab() {
         .theme-light .nav-login-icon { filter: brightness(0); opacity: 0.78; }
         .theme-light .filter-btn,
         .theme-light .center-btn-mobile,
-        .theme-light .theme-toggle { color: rgba(42,22,8,0.78); }
         .theme-light .filter-btn.active { border-color: #8C6014; }
         .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger { color: #2a1608; }
         .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger__chev { color: rgba(42,22,8,0.55); }
@@ -2414,11 +2771,9 @@ export function GodsGridLab() {
            Podmienka: nosič musí byť vlastný stacking context (isolation), inak
            by záporná vrstva padla až za rám. */
         .theme-light .main-nav,
-        .theme-light .gods-bottom-bar,
-        .theme-light .theme-toggle { isolation: isolate; }
+        .theme-light .gods-bottom-bar { isolation: isolate; }
         .theme-light .main-nav,
-        .theme-light .gods-bottom-bar,
-        .theme-light .theme-toggle {
+        .theme-light .gods-bottom-bar {
           background: ${NAV_FRAME_BG};
           background-blend-mode: ${NAV_FRAME_BLEND};
           border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
@@ -2429,8 +2784,7 @@ export function GodsGridLab() {
         }
         /* DOSKA */
         .theme-light .main-nav::before,
-        .theme-light .gods-bottom-bar::before,
-        .theme-light .theme-toggle::before {
+        .theme-light .gods-bottom-bar::before {
           content: '';
           position: absolute;
           inset: ${NAV_R.rim}px;
@@ -2444,8 +2798,7 @@ export function GodsGridLab() {
         }
         /* SVETLÉ ZRNO nad doskou */
         .theme-light .main-nav::after,
-        .theme-light .gods-bottom-bar::after,
-        .theme-light .theme-toggle::after {
+        .theme-light .gods-bottom-bar::after {
           content: '';
           position: absolute;
           inset: ${NAV_R.rim}px;
@@ -2456,8 +2809,7 @@ export function GodsGridLab() {
           z-index: -1;
         }
         .theme-light .main-nav > *,
-        .theme-light .gods-bottom-bar > *,
-        .theme-light .theme-toggle > * { position: relative; z-index: 1; }
+        .theme-light .gods-bottom-bar > * { position: relative; z-index: 1; }
 
         /* Horný bar — vnútorné odsadenie tak, aby text sedel na doske, nie na ráme. */
         .theme-light .main-nav { padding: ${NAV_R.rim + 5}px ${NAV_R.rim + 15}px; gap: 14px; }
@@ -2484,13 +2836,6 @@ export function GodsGridLab() {
         .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger { color: ${NAV_GOLD.ink}; }
         .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger__chev { color: rgba(42,22,8,0.6); }
 
-        /* Prepínač tém — ten istý odliatok, len menší (je to dev nástroj, nie nav). */
-        .theme-light .theme-toggle {
-          padding: 0 ${NAV_R.rim + 8}px;
-          color: ${NAV_GOLD.ink};
-          height: 44px;
-        }
-
         /* ── HOVER na karte psa: bledý závoj + ČIERNY heroglyf (Matej 25. 8.) ──
            Tmavá stena mala opak: čierny závoj rgba(0,0,0,0.62) a glyf prefarbený
            na zlatú so žiarou. Na papyruse je čierny závoj cudzí prvok a zlatá žiara
@@ -2507,18 +2852,11 @@ export function GodsGridLab() {
           box-shadow: 0 10px 34px rgba(96,66,18,0.22);
         }
 
-        /* CTA drží .btn-gold gradient (LOCKED) — na papyruse len stlmíme žiaru */
-        .theme-light .join-btn {
-          box-shadow:
-            0 6px 18px rgba(140,96,20,0.30),
-            inset 0 1px 0 rgba(255,255,255,0.45);
-          animation: none;
-        }
-        .theme-light .join-btn:hover {
-          box-shadow:
-            0 8px 24px rgba(140,96,20,0.42),
-            inset 0 1px 0 rgba(255,255,255,0.55);
-        }
+        /* CTA SVIETI AJ NA PAPYRUSE (Matej 25. 8.: „nechaj gold svietenie na CTA").
+           Papyrusová verzia tu mala žiaru stlmenú na obyčajný tieň a pulz vypnutý
+           — tlačidlo tým splynulo so stenou rovnako ako predtým karta detailu.
+           Override je preto zrušený: platí základná .join-btn so zlatou žiarou
+           aj joinBtnPulse. Nič sa nekopíruje, len sa nič neprebíja. */
         /* Info overlay — papyrus namiesto čiernej */
         .theme-light .info-overlay { background: rgba(250,243,225,0.96); }
         .theme-light .info-content h2 { color: #2a1608; }
@@ -2526,44 +2864,6 @@ export function GodsGridLab() {
         .theme-light .info-close { background: rgba(42,22,8,0.10); color: #2a1608; }
         .theme-light .info-close:hover { background: rgba(42,22,8,0.20); }
 
-        /* ── Prepínač témy — pilulka vedľa LOGIN. Tri polohy potrebujú NÁZOV,
-              samotná ikona by nepovedala, v ktorej z dvoch tmavých práve si. ── */
-        .theme-toggle {
-          position: fixed;
-          top: 12px;
-          right: 64px;
-          z-index: 50;
-          height: 40px;
-          padding: 0 14px 0 11px;
-          gap: 7px;
-          border-radius: 999px;
-          display: flex; align-items: center; justify-content: center;
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          font-size: 0.62rem;
-          letter-spacing: 0.14em;
-          white-space: nowrap;
-          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1px solid rgba(201,154,63,0.45);
-          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-          color: rgba(0,0,0,0.72);
-          cursor: pointer;
-          transition: opacity 150ms;
-        }
-        .theme-toggle:hover { opacity: 0.75; }
-        .theme-toggle svg { flex-shrink: 0; }
-        /* Na mobile by prepínač vedľa LOGIN prekryl ABOUT v nav pilulke
-           (pilulka končí ~290px, tlačidlo začínalo na 290px) → ide dole vľavo,
-           kde je popri vycentrovanej spodnej lište voľno. */
-        @media (max-width: 720px) {
-          .theme-toggle {
-            top: auto; right: auto;
-            bottom: 16px; left: 16px;
-            height: 36px;
-            padding: 0 12px 0 9px;
-            font-size: 0.56rem;
-          }
-        }
       `}</style>
 
       <div className={`gods-root theme-${theme}`}>
@@ -2579,44 +2879,9 @@ export function GodsGridLab() {
             <span className="nav-lang-desktop"><LanguagePicker /></span>
           </nav>
         </div>
-        {/* Prepínač WALL tém — experiment, vedľa LOGIN. Klik = ďalšia z WALL_THEMES.
-            ⚠️ LEN PRE FOUNDERA (2026-08-14). Homepage `/` je verejná — toto tlačidlo je nástroj
-            na porovnanie troch variantov, nie funkcia pre návštevníka. Pri feedbacku „vyzerá to
-            ako podvod" by možnosť prepínať vzhľad cudzej stránky dôveryhodnosti nepomohla.
-            Vybraná téma sa aplikuje ďalej pre všetkých (drží ju `theme` vyššie) — skrytý je iba
-            OVLÁDAČ, takže keď sa Matej rozhodne, stačí prepísať default vo `WALL_THEMES`. */}
-        {/* LAB: prepínač je tu vždy — celá stránka je dev-only */ <button
-          className="theme-toggle"
-          onClick={() => {
-            const next = WALL_THEMES[(WALL_THEMES.indexOf(theme) + 1) % WALL_THEMES.length];
-            setTheme(next);
-            try { localStorage.setItem(WALL_THEME_KEY, next); } catch { /* private mode */ }
-          }}
-          aria-label={`Wall style: ${WALL_THEME_LABEL[theme]} — click to switch`}
-          title={`Wall style: ${WALL_THEME_LABEL[theme]}`}
-        >
-          {theme === 'dark' && (
-            /* iskra = dnešná tmavá so žiarami */
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M12 3.2l1.9 4.9 4.9 1.9-4.9 1.9L12 16.8l-1.9-4.9L5.2 10l4.9-1.9z" />
-              <path d="M18.6 16.4l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" />
-            </svg>
-          )}
-          {theme === 'darkcalm' && (
-            /* mesiac = tmavá bez žiar */
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1z" />
-            </svg>
-          )}
-          {theme === 'light' && (
-            /* slnko = papyrus */
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden>
-              <circle cx="12" cy="12" r="4.2" />
-              <path d="M12 2.4v2.2M12 19.4v2.2M2.4 12h2.2M19.4 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6" />
-            </svg>
-          )}
-          {WALL_THEME_LABEL[theme]}
-        </button>}
+        {/* Prepínač WALL tém (GOLD/CALM/PAPYRUS) tu STÁL a 25. 8. zanikol
+            (Matej: „hore vpravo vymaž prepínač"). Podoba steny je teraz jedna
+            konštanta `WALL_THEME` hore v súbore. */}
 
         {/* LOGIN — round house-with-heart (home = entry/belonging) icon button, top-right corner */}
         <a href="/login" className="nav-login" aria-label={t('nav.login')}>
@@ -2686,10 +2951,16 @@ export function GodsGridLab() {
           <div className="lang-btn-mobile"><LanguagePicker variant="flow" /></div>
         </div>
 
-        <DogPlanetLab dogs={planetDogs} open={planetOpen} onClose={() => setPlanetOpen(false)} />
+        <DogPlanetLab dogs={planetDogs} open={planetOpen} onClose={() => setPlanetOpen(false)} pick={planetPick} />
 
+        {/* KALKULAČKA MÁ DVE PODOBY. Nad stenou je to modál so závojom — vyberáš
+            číslo a stránka pod ním počká. Nad guľou je to PULT NA ĽAVOM BOKU
+            (Matej 25. 8.: „kalkulačka zostáva na ľavej strane nad planétou"):
+            závoj zmizne, guľa ostane živá a klikateľná, panel s kartou stojí
+            vpravo. Je to tá istá kalkulačka, len inak ukotvená — druhá kópia by
+            sa pri prvej úprave rozišla. */}
         <div
-          className={`numpad-overlay${filterOpen ? ' open' : ''}`}
+          className={`numpad-overlay${filterOpen ? ' open' : ''}${planetOpen ? ' numpad-overlay--planet' : ''}`}
           onClick={(e) => { if (e.target === e.currentTarget) { setFilterOpen(false); setFilterValue(''); } }}
         >
           <div className="numpad numpad--wide" role="dialog" aria-label={t('wall.filter.find')}>
