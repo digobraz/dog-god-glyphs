@@ -136,27 +136,110 @@ interface Note {
   x: number;
   y: number;
   /**
-   * Poloha bublinky. Nastaví sa RAZ pri vzniku a už sa nehýbe (Matej: „bublinka
-   * zostáva na mieste, mení sa len dĺžka kóty, bublinka sa nepohybuje").
+   * Slot v pevnej mriežke (0–3 zhora nadol). Bublinka NEMÁ vlastnú súradnicu —
+   * má číslo priehradky (Matej 25. 8.: „musia byť vždy na tých istých miestach
+   * aby sa vošli 4 pod seba"). Poloha sa dopočíta z mriežky až pri vykreslení,
+   * takže zmena okna presunie kóty samu od seba; uložená súradnica by po
+   * zmenšení okna ostala visieť pod spodným navom.
    */
-  bx: number;
-  by: number;
+  slot: number;
   /** Kedy kurzor z fotky zišiel. `null` = ešte na nej stojí. */
   leftAt: number | null;
 }
 
 /** Ako dlho kóta prežije po tom, čo z fotky zídeš (Matej: „zmizne až po 3 sekundách"). */
 const NOTE_TTL = 3000;
+/* ── MRIEŽKA KÓT (Matej 25. 8.: „upratať kotovanie a dať tomu systém — kóty
+   a obrázky, ktoré sú na nich, musia mať svoj priestor (PC), nesmú ísť za nav
+   panely a musia byť vždy na tých istých miestach, aby sa vošli 4 pod seba") ──
+
+   Predtým si každá kóta hľadala voľnú výšku pri psovi a odtiaľ sa odsúvala hore
+   či dole. Výsledok: bublinky stáli zakaždým inde, susedné sa lepili na seba a
+   krajné zajazdili pod horné menu aj pod spodný bar steny — tie sú pri otvorenej
+   planéte na z-index 90, teda NAD celým overlayom, takže kóta pod nimi jednoducho
+   zmizne.
+
+   Teraz sú na každej strane ŠTYRI pevné priehradky. Bublinka nemá súradnicu, má
+   číslo priehradky; kam priehradka padne, počíta jediná funkcia `kotovaMriezka()`
+   z rozmerov okna. Pás pre kóty je ohraničený tak, aby sa navu steny ani nedotkol. */
+
+/** Vrch pásu: horné menu aj prepínač/LOGIN sedia na `top: 12px` a merajú 40 px. */
+const NOTE_TOP = 72;
+/** Spodok pásu: bar steny sedí na `bottom: 16px` a v bledej téme meria ~60 px. */
+const NOTE_BOTTOM = 96;
+/** Štyri pod seba — zadanie, nie odhad. Strop na počet kót je z toho odvodený. */
+const NOTE_SLOTS = 4;
+const NOTE_MAX = NOTE_SLOTS * 2;
+/** Odsadenie stĺpca od okraja okna a od gule. Stĺpec sa lepí na OKRAJ, nie na guľu. */
+const NOTE_EDGE = 24;
+const NOTE_BALL = 40;
 /**
- * Poistný strop na celkový počet. Skutočný limit je GEOMETRIA jednej strany:
- * pri okne 820 px sa na ňu vojde päť bubliniek (Matej 25. 8.: „zmestia sa
- * myslím maximálne 4-5 na jednu") a viac ich hľadanie voľného miesta nepustí.
+ * Bublinka vyplní pás vedľa gule, ale nerastie donekonečna — na širokom monitore
+ * by z nej bol plagát. Spodná hranica je bod, pod ktorým sa meno a odkaz už nedajú
+ * prečítať; pod ňou kóty radšej nie sú vôbec. Guľa má 640 px, takže pás dá 200 px
+ * až pri okne širokom ~1170 px — na užšom PC okne kóty nevzniknú.
  */
-const NOTE_MAX = 12;
-/** Výška bublinky je PEVNÁ, aby sa dali kóty na jednej strane rozostrčiť bez merania. */
-const NOTE_H = 116;
-const NOTE_GAP = 14;
-const NOTE_W = 236;
+const NOTE_W_MIN = 200;
+const NOTE_W_MAX = 330;
+/**
+ * Výška vychádza z priehradky. 76 px = meno + DVA riadky odkazu + výplň; od 110 px
+ * sa odkaz pustí na tri. Bez toho by na nižšom okne nevznikla ani jedna kóta —
+ * štyri priehradky po 92 px si pýtajú okno vysoké 592 px, po 76 px stačí 528.
+ */
+const NOTE_H_MIN = 76;
+const NOTE_H_MAX = 124;
+const NOTE_H_3LINE = 110;
+/** Medzera medzi priehradkami — bez nej by sa štyri bublinky dotýkali. */
+const NOTE_VGAP = 14;
+
+interface Mriezka {
+  /** Rozmer bublinky. Rovnaký pre všetky štyri — priehradky sú zhodné. */
+  w: number;
+  h: number;
+  /** Priemer fotky v bublinke — obrázok má tiež svoj priestor, nie zvyšok po texte. */
+  photo: number;
+  /** Koľko riadkov odkazu sa do priehradky zmestí. */
+  lines: number;
+  /** Ľavá hrana stĺpca na tej-ktorej strane. */
+  lx: number;
+  rx: number;
+  /** Stredy štyroch priehradiek zhora nadol. */
+  ys: number[];
+}
+
+/**
+ * Pevná mriežka kót pre aktuálne okno. `null` = okno je na kóty primalé (guľa má
+ * 640 px a nav si drží svoje pásy) — vtedy kóta nevznikne vôbec. To je zámer:
+ * lepšie žiadna kóta než kóta schovaná pod barom.
+ */
+function kotovaMriezka(): Mriezka | null {
+  const W = window.innerWidth;
+  const H = window.innerHeight;
+  const cx = W / 2;
+  // Voľný pás vedľa gule. Guľa je vodorovne v strede a má známy polomer, takže
+  // sa to dá dopočítať — čítať to zo živého obdĺžnika sa nesmie, pri otváraní
+  // sa scéna ešte škáluje (1.75 → 1).
+  const pas = cx - R - NOTE_BALL - NOTE_EDGE;
+  const w = Math.min(NOTE_W_MAX, Math.floor(pas));
+  if (w < NOTE_W_MIN) return null;
+  const rad = (H - NOTE_TOP - NOTE_BOTTOM) / NOTE_SLOTS;
+  const h = Math.min(NOTE_H_MAX, Math.floor(rad - NOTE_VGAP));
+  if (h < NOTE_H_MIN) return null;
+  const ys: number[] = [];
+  for (let i = 0; i < NOTE_SLOTS; i++) ys.push(Math.round(NOTE_TOP + rad * (i + 0.5)));
+  return {
+    w,
+    h,
+    photo: Math.min(62, h - 30),
+    lines: h >= NOTE_H_3LINE ? 3 : 2,
+    lx: NOTE_EDGE,
+    rx: W - NOTE_EDGE - w,
+    ys,
+  };
+}
+
+/** Hrana bublinky otočená ku guli — odtiaľ vychádza vodiaca čiara. */
+const kotaKotva = (side: 'l' | 'r', g: Mriezka) => (side === 'l' ? g.lx + g.w : g.rx);
 
 /**
  * Pole dlaždíc ako VLASTNÝ memo komponent. Bublinka sa prepisuje ~15× za sekundu
@@ -227,6 +310,19 @@ export function DogPlanetLab({
   // ťuku slučky, takže vodiaca čiara ide za psom, aj keď sa guľa točí ďalej.
   const [notes, setNotes] = useState<Note[]>([]);
   const noteSeq = useRef(0);
+  /**
+   * Mriežka kót. Je v stave (kreslí sa z nej) aj v refe (číta ju rAF slučka —
+   * tá si drží closure z posledného behu efektu a stav v nej vie byť o snímok
+   * pozadu). Prepočítava sa pri zmene okna, takže kóty sa presunú s ním.
+   */
+  const [mriezka, setMriezka] = useState<Mriezka | null>(null);
+  const mriezkaRef = useRef<Mriezka | null>(null);
+  /**
+   * Kóta, na ktorej práve stojí kurzor. Kým na nej stojí, NEODPOČÍTAVA sa jej
+   * čas — bez toho by zmizla pod rukou, ktorá na ňu ide kliknúť: odchodom z gule
+   * sa trojsekundový odpočet spustí všetkým naraz.
+   */
+  const hoverNoteRef = useRef<number | null>(null);
   // Posledná poloha myši nad guľou. Guľa sa pod kurzorom TOČÍ ĎALEJ (Matej 25. 8.:
   // „nepáči sa mi že myš zastaví planétu… pri prejdení myšou sa zobrazí bublinka
   // so psom a menom aj keď len na okamih"), takže dlaždica pod kurzorom sa mení
@@ -307,26 +403,22 @@ export function DogPlanetLab({
    * a pri nehybnej ruke by pointermove nikdy neprišiel.
    */
   /**
-   * Nájde voľnú výšku pre bublinku na danej strane: najprv rovno pri psovi,
-   * potom striedavo nad a pod. `null` = strana je plná.
-   * Bublinka má preto PEVNÚ výšku — bez nej by sa musela najprv vykresliť,
-   * zmerať a posunúť, čo je ten istý kruh ako pri psom bloku na /pack/dogs.
+   * Vyberie priehradku pre nového psa: z voľných tú, ktorá je jeho výške najbližšie.
+   * `null` = strana je plná (štyri kóty) a kóta nevznikne — do troch sekúnd sa
+   * priehradka uvoľní sama.
+   * ⚠️ Nič sa neodsúva ani nedopočítava od suseda. Priehradky sú dané mriežkou,
+   * takže tá istá kóta padne pri každom prejdení na to isté miesto.
    */
-  const volnaVyska = (side: 'l' | 'r', chcem: number, zive: Note[]): number | null => {
-    const half = NOTE_H / 2;
-    const hore = half + 14;
-    // Spodná hranica necháva miesto na dev pult — bublinka cez neho vyzerá ako chyba.
-    const dole = window.innerHeight - half - 110;
-    if (dole < hore) return null;
-    const volna = (y: number) => !zive.some(n => n.side === side && Math.abs(n.by - y) < NOTE_H + NOTE_GAP);
-    const y0 = Math.max(hore, Math.min(dole, chcem));
-    if (volna(y0)) return y0;
-    for (let d = NOTE_H + NOTE_GAP; d < window.innerHeight; d += 22) {
-      for (const cand of [y0 - d, y0 + d]) {
-        if (cand >= hore && cand <= dole && volna(cand)) return cand;
-      }
+  const volnySlot = (side: 'l' | 'r', chcem: number, zive: Note[], g: Mriezka): number | null => {
+    const obsadene = new Set(zive.filter(n => n.side === side).map(n => n.slot));
+    let best: number | null = null;
+    let bestD = Infinity;
+    for (let i = 0; i < NOTE_SLOTS; i++) {
+      if (obsadene.has(i)) continue;
+      const d = Math.abs(g.ys[i] - chcem);
+      if (d < bestD) { bestD = d; best = i; }
     }
-    return null;
+    return best;
   };
 
   const tickNotes = () => {
@@ -354,7 +446,8 @@ export function DogPlanetLab({
         const r = hoveredEl.getBoundingClientRect();
         const x = r.left + r.width / 2;
         const y = r.top + r.height / 2;
-        if (dog) {
+        const g = mriezkaRef.current;
+        if (dog && g) {
           // ⚠️ KÓTA NIKDY NEPRECHÁDZA NA DRUHÚ STRANU (Matej 25. 8.: „tam kde je
           // šípka, na tú stranu má ísť aj kóta, aby nešla cez celú stranu ale len
           // na svoju"). Keď je strana plná, kóta nevznikne — do troch sekúnd sa
@@ -362,20 +455,12 @@ export function DogPlanetLab({
           // čomu sa má predísť: čiaru cez celú guľu.
           // Odsúvanie „vždy nižšie" tu bolo ešte predtým a končilo kopou
           // bubliniek nalepených na spodnú hranu.
-          // ⚠️ Poloha sa NEČÍTA zo živého obdĺžnika gule. Pri otváraní sa scéna
-          // ešte škáluje (1.75 → 1), takže kóty založené v tej chvíli dostali iné
-          // odsadenie než neskoršie a bublinky nesedeli v jednej línii. Guľa je
-          // vodorovne v strede okna a má známy polomer, tak sa to dopočíta.
-          const cx = window.innerWidth / 2;
           // Strana sa berie z KURZORA, nie zo stredu dlaždice — dlaždica pri
           // deliacej čiare vie byť o pár pixelov za ňou a čiara by sa vrátila.
-          const side: 'l' | 'r' = (pt ? pt.x : x) < cx ? 'l' : 'r';
-          const by = volnaVyska(side, y, prev);
-          if (by !== null) {
-            const bx = side === 'l'
-              ? Math.max(NOTE_W + 10, cx - R - 44)
-              : Math.min(window.innerWidth - NOTE_W - 10, cx + R + 44);
-            next = [...prev, { id: noteSeq.current++, dog, side, el: hoveredEl, x, y, bx, by, leftAt: null }];
+          const side: 'l' | 'r' = (pt ? pt.x : x) < window.innerWidth / 2 ? 'l' : 'r';
+          const slot = volnySlot(side, y, prev, g);
+          if (slot !== null) {
+            next = [...prev, { id: noteSeq.current++, dog, side, el: hoveredEl, x, y, slot, leftAt: null }];
             if (next.length > NOTE_MAX) next = next.slice(next.length - NOTE_MAX);
           }
         }
@@ -386,7 +471,9 @@ export function DogPlanetLab({
       for (const n of next) {
         // Dlaždica zmizla (zmenil sa počet psov) → kóta nemá na čom visieť.
         if (!n.el.isConnected) { zmena = true; continue; }
-        const drzi = n.el === hoveredEl;
+        // Kótu drží pri živote OBOJE: pes pod kurzorom aj kurzor na samotnej
+        // bublinke. Bublinka je klikateľná, takže musí prežiť cestu myši k nej.
+        const drzi = n.el === hoveredEl || hoverNoteRef.current === n.id;
         const leftAt = drzi ? null : (n.leftAt ?? now);
         if (leftAt !== null && now - leftAt > NOTE_TTL) { zmena = true; continue; }
         const r = n.el.getBoundingClientRect();
@@ -431,6 +518,23 @@ export function DogPlanetLab({
 
   /** Kóta v poslednej pol sekunde života — nech nezmizne skokom. */
   const noteGoing = (n: Note) => n.leftAt !== null && performance.now() - n.leftAt > NOTE_TTL - 500;
+
+  // MRIEŽKA KÓT sa prepočíta pri otvorení a pri každej zmene okna. Kóty si držia
+  // len číslo priehradky, takže po zmene okna sadnú na nové miesta samy — uložená
+  // súradnica by po zmenšení okna zostala visieť pod spodným barom steny.
+  // Keď sa okno zmenší tak, že sa mriežka nezmestí, živé kóty zhasnú: bublinka
+  // pod navom je horšia než žiadna.
+  useEffect(() => {
+    const prepocitaj = () => {
+      const g = kotovaMriezka();
+      mriezkaRef.current = g;
+      setMriezka(g);
+      if (!g) setNotes([]);
+    };
+    prepocitaj();
+    window.addEventListener('resize', prepocitaj);
+    return () => window.removeEventListener('resize', prepocitaj);
+  }, []);
 
   // Trieda na <body> dvíha nav steny nad overlay planéty (CSS nižšie).
   // Vešia sa tu, lebo tie prvky vlastní stena — planéta ich len prepustí dopredu.
@@ -650,12 +754,16 @@ export function DogPlanetLab({
            chipy daj na lavy bok stranky a zmenši, je to len DEV pomocka…
            namiesto toho sem prehoď spodný nav aj vrchné"). Spodok obrazovky
            patrí navu steny, nie ladiacim gombíkom. */
+        /* ⚠️ Dev pult stojí v ľavom stĺpci kót — je to LAB pomôcka, ktorá
+           v produkcii nebude, tak si miesto neberie: leží POD kótami (tie majú 6/7),
+           ale NAD guľou. Bublinka pointer-events nemá, takže sa pult dá
+           preklikať aj vtedy, keď cez neho práve prebehne kóta. */
         .planet-dock {
           position: fixed;
           left: 12px;
           top: 50%;
           transform: translateY(-50%);
-          z-index: 10;
+          z-index: 5;
           display: flex;
           flex-direction: column;
           align-items: flex-start;
@@ -742,13 +850,22 @@ export function DogPlanetLab({
           to { stroke-dashoffset: 0; }
         }
 
+        /* Rozmer aj poloha idú z mriežky (kotovaMriezka) cez premenné —
+           v CSS nesmie byť druhé číslo, inak sa mu bublinka a priehradka rozídu. */
         .pnote {
           position: fixed;
           z-index: 7;
-          pointer-events: none;
+          /* Bublinka je cieľ kliku, takže myš CHYTÁ. ⚠️ Dev pult leží pod ňou —
+             kým kóta žije, pult sa cez ňu preklikať nedá. Je to dev pomôcka,
+             ktorá v produkcii nebude, a kóta zmizne do troch sekúnd. */
+          pointer-events: auto;
+          cursor: pointer;
           box-sizing: border-box;
-          width: 236px;
-          height: 116px;
+          width: var(--pnw);
+          height: var(--pnh);
+          /* Bublinka je vždy vycentrovaná na strede svojej priehradky. Strana
+             určuje LEN stĺpec — ten prichádza hotový v left, nie posunom. */
+          transform: translateY(-50%);
           display: flex;
           align-items: center;
           gap: 11px;
@@ -761,19 +878,27 @@ export function DogPlanetLab({
              čiara, ktorá ju má priniesť. */
           animation: pnIn 240ms cubic-bezier(.22,.9,.28,1) 240ms both;
         }
-        /* Strana určuje len smer odsadenia — obsah je ten istý. */
-        .pnote--l { transform: translate(-100%, -50%); }
-        .pnote--r { transform: translate(0, -50%); }
-        .pnote.is-going { opacity: 0; transition: opacity 480ms ease; }
+        /* Zdvihnutie pri nabehnutí — to jediné povie, že sa dá kliknúť.
+           translateY(-50%) musí ostať, nesie centrovanie na priehradku. */
+        .pnote:hover {
+          transform: translateY(-50%) scale(1.025);
+          border-color: #F4DC97;
+          box-shadow: 0 18px 38px -12px rgba(70,46,12,0.7);
+        }
+        .pnote { transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease; }
+        /* Dohasínajúca kóta sa už chytať nedá — klik do ducha otvorí kartu psa,
+           ktorý na obrazovke o pol sekundy nebude. */
+        .pnote.is-going { opacity: 0; pointer-events: none; transition: opacity 480ms ease; }
 
         @keyframes pnIn {
           from { opacity: 0; }
           to { opacity: 1; }
         }
 
+        /* Fotka má vlastný rozmer z mriežky — nie zvyšok, čo ostane po texte. */
         .pnote-photo {
-          width: 62px;
-          height: 62px;
+          width: var(--pnp);
+          height: var(--pnp);
           border-radius: 50%;
           object-fit: cover;
           flex-shrink: 0;
@@ -808,8 +933,8 @@ export function DogPlanetLab({
           font-style: normal;
           flex-shrink: 0;
         }
-        /* Odkaz majiteľa. Orezaný na tri riadky — bublinka má PEVNÚ výšku, lebo
-           z nej počíta rozostrčenie kót na tej istej strane. */
+        /* Odkaz majiteľa. Počet riadkov je z mriežky — bublinka má výšku svojej
+           priehradky a text, ktorý by z nej vytiekol, by ju roztrhol. */
         .pnote-msg {
           margin: 0;
           font-family: 'Space Grotesk', sans-serif;
@@ -819,7 +944,7 @@ export function DogPlanetLab({
           font-style: italic;
           color: #7a5a2a;
           display: -webkit-box;
-          -webkit-line-clamp: 3;
+          -webkit-line-clamp: var(--pnl, 3);
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
@@ -1438,28 +1563,52 @@ export function DogPlanetLab({
           k bublinke — bublinky sa navzájom rozostrkujú, takže čiara nikdy nevedie
           rovno a musí sa kresliť v spoločnej sústave. Zhasnú, len čo sa otvorí
           detail: dva popisky toho istého psa naraz sú šum, nie informácia. */}
-      {notes.length > 0 && !picked && (
+      {notes.length > 0 && !picked && mriezka && (
         <svg className="pn-leads" width="100%" height="100%" aria-hidden="true">
-          {notes.map(n => (
-            <g key={n.id} className={noteGoing(n) ? 'is-going' : undefined}>
-              {/* pathLength=1 normalizuje dĺžku, takže sa kóta vystrelí rovnako
-                  rýchlo pri psovi pri okraji aj v strede — a keď sa pes otočí
-                  ďalej a čiara sa predĺži, animácia sa tým nerozhodí. */}
-              <polyline
-                pathLength={1}
-                points={`${n.x},${n.y} ${n.side === 'l' ? n.bx + 18 : n.bx - 18},${n.by} ${n.bx},${n.by}`}
-              />
-              <circle cx={n.x} cy={n.y} r={3.5} />
-            </g>
-          ))}
+          {notes.map(n => {
+            // Čiara končí na hrane priehradky otočenej ku guli, nie na súradnici
+            // uloženej pri vzniku — bublinka sa po zmene okna presunie a čiara
+            // musí ísť s ňou.
+            const kx = kotaKotva(n.side, mriezka);
+            const ky = mriezka.ys[n.slot];
+            return (
+              <g key={n.id} className={noteGoing(n) ? 'is-going' : undefined}>
+                {/* pathLength=1 normalizuje dĺžku, takže sa kóta vystrelí rovnako
+                    rýchlo pri psovi pri okraji aj v strede — a keď sa pes otočí
+                    ďalej a čiara sa predĺži, animácia sa tým nerozhodí. */}
+                <polyline
+                  pathLength={1}
+                  points={`${n.x},${n.y} ${n.side === 'l' ? kx + 18 : kx - 18},${ky} ${kx},${ky}`}
+                />
+                <circle cx={n.x} cy={n.y} r={3.5} />
+              </g>
+            );
+          })}
         </svg>
       )}
 
-      {!picked && notes.map(n => (
+      {!picked && mriezka && notes.map(n => (
         <div
           key={n.id}
-          className={`pnote pnote--${n.side}${noteGoing(n) ? ' is-going' : ''}`}
-          style={{ left: n.bx, top: n.by }}
+          className={`pnote${noteGoing(n) ? ' is-going' : ''}`}
+          // KLIK NA BUBLINKU OTVORÍ KARTU (Matej 25. 8.: „klik na bublinku otvorí
+          // kartu, nie len klik priamo na planétku"). Bublinka je väčší a nehybný
+          // cieľ než dlaždica na točiacej sa guli — na trafenie psa je to tá
+          // ľahšia cesta, nie náhradná.
+          role="button"
+          tabIndex={-1}
+          aria-label={n.dog.name}
+          onClick={() => setPicked(n.dog)}
+          onPointerEnter={() => { hoverNoteRef.current = n.id; }}
+          onPointerLeave={() => { if (hoverNoteRef.current === n.id) hoverNoteRef.current = null; }}
+          style={{
+            left: n.side === 'l' ? mriezka.lx : mriezka.rx,
+            top: mriezka.ys[n.slot],
+            ['--pnw' as string]: `${mriezka.w}px`,
+            ['--pnh' as string]: `${mriezka.h}px`,
+            ['--pnp' as string]: `${mriezka.photo}px`,
+            ['--pnl' as string]: mriezka.lines,
+          }}
         >
           <img className="pnote-photo" src={n.dog.photoBig || n.dog.photo} alt="" draggable={false} />
           <div className="pnote-body">
