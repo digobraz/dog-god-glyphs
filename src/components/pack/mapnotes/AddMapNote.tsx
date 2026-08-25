@@ -27,6 +27,7 @@ import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packThem
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
+import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX, DOCK_VH } from '@/components/pack/mapDockShape';
 import { FONT_EMOJI, threatEmoji } from './markEmoji';
 import { KindGrid } from './KindGrid';
 import { AinubisGuide } from '@/components/pack/addtrip/AinubisGuide';
@@ -70,6 +71,25 @@ const BODY_MAX = 600;
 // Keď do panela pribudne blok, TOTO číslo premeraj znova; „vyzerá to OK" nestačí,
 // scrollbar sa objaví až v tom najvyššom stave, do ktorého sa človek preklikáva.
 export const NOTE_PANEL_H = 420;
+
+/**
+ * SKUTOČNÁ VÝŠKA PANELA, nie jeho strop (2026-08-24).
+ *
+ * Odkedy má panel značky ten istý tvar ako dok sprievodcu (`.trp-dockpanel`), je na telefóne
+ * vysoký presne 33vh — teda na bežnom displeji OKOLO 250 px, nie 420. Odpanovanie mapy podľa
+ * 420 by značku odsunulo vyššie, než treba: bod by síce ostal vidieť (chyba na bezpečnú
+ * stranu), ale mapa by pri každom zápise nezmyselne odskočila.
+ *
+ * ⚠️ ZMLUVA S CSS PLATÍ ĎALEJ, len sa počíta z toho istého zdroja (`DOCK_VH`, mapDockShape.ts)
+ * ako výška v CSS. Keby sa jedno z tých čísel zmenilo bez druhého, značka, ktorú človek práve
+ * položil, mu zmizne za panelom — teda presne to, čo má odsun riešiť.
+ */
+export function notePanelH(): number {
+  if (typeof window === 'undefined') return NOTE_PANEL_H;
+  return window.innerWidth <= DOCK_MOBILE_MAX
+    ? Math.round(window.innerHeight * DOCK_VH)
+    : NOTE_PANEL_H;
+}
 
 /**
  * Bod z dlhého podržania, kým človek vyberá typ.
@@ -247,6 +267,12 @@ export type AddMapNotePanelProps = {
   pinnedName?: string | null;
   onSubmit: (n: NewMapNote) => Promise<void>;
   onCancel: () => void;
+  /**
+   * Panel stojí v SPRIEVODCOVI VÝLETU (krok 2), nie na holej mape. Na PC si vtedy sadne
+   * do toho istého ľavého stĺpca ako dok sprievodcu — inak by tvar odskočil práve v kroku,
+   * ktorý má byť pod prstom nemenný.
+   */
+  dock?: boolean;
 };
 
 export function AddMapNotePanel({
@@ -263,6 +289,7 @@ export function AddMapNotePanel({
   pinnedName,
   onSubmit,
   onCancel,
+  dock = false,
 }: AddMapNotePanelProps) {
   const t = useT();
   const { lang } = useLang();
@@ -331,7 +358,8 @@ export function AddMapNotePanel({
   };
 
   return (
-    <div className="mna-sheet" role="dialog" aria-modal="false">
+    <div className={`mna-sheet trp-dockpanel${dock ? ' mna-sheet--dock' : ''}`} role="dialog" aria-modal="false">
+      <style>{MAP_DOCK_CSS}</style>
       <style>{ADD_NOTE_CSS}</style>
       {/* Hlavička nesie SKUPINU a za ňou VYBRANÝ DRUH. Druh mal do 22. 8. vlastný
           riadok pod kruhmi — stál 24 px v paneli, ktorý sa nesmie scrollovať,
@@ -601,7 +629,48 @@ export const ADD_NOTE_CSS = `
    ⚠️ Skrol NEZANIKOL, len sa presunul dovnútra — strop musí ostať, lebo kliešť
    s potvrdenou chorobou a zapnutým okruhom je vyšší než nízky displej. Zmenilo sa,
    ČO sa skroluje: teraz stred, kým hlavička aj CTA stoja. */
-.mna-sheet{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;flex-direction:column;max-height:min(78vh,${NOTE_PANEL_H}px);padding:12px 14px calc(14px + env(safe-area-inset-bottom,0px));border-radius:16px 16px 0 0;background:rgba(5,5,5,0.96);backdrop-filter:blur(12px);border-top:1px solid rgba(201,154,63,0.5);box-shadow:0 -14px 40px rgba(0,0,0,0.6);}
+/* ── TVAR JE SPOLOČNÝ S DOKOM SPRIEVODCU (Matej 2026-08-24) ────────────────
+   „pri označení parkoviska sa vysunie iný dolný panel… musí byť taký istý ako ten panel
+    predtým, treba ustáliť ten istý tvar aj veľkosť."
+   Povrch, výplň aj výška prišli do .trp-dockpanel (components/pack/mapDockShape.ts) —
+   ten istý zdroj, z akého ich berie .trp-dstart a .trp-dbar. Tu ostáva len to, čo je
+   vlastné TOMUTO panelu: pripútanie k hrane a vnútorné rozvrhnutie (hlavička a CTA stoja,
+   skroluje sa stred). */
+.mna-sheet{position:fixed;left:0;right:0;bottom:0;z-index:1200;display:flex;flex-direction:column;max-height:min(78vh,${NOTE_PANEL_H}px);}
+/* ── 33vh JE SPODNÁ HRANICA, NIE PEVNÁ VÝŠKA ───────────────────────────────
+   Dok sprievodcu má v krokoch 1-2 presných 33vh, aby sa výrez mapy nehýbal. Tento panel
+   z toho berie SPODNÚ hranicu — nikdy nie je nižší než dok, ktorý práve vystriedal, takže
+   nevznikne dojem, že sa vysunulo niečo iné a menšie. Strop si drží vlastný.
+
+   ⚠️ PEVNÝCH 33vh SA VEDOME NEDRŽÍ. Odskúšané naživo: pri parkovisku (text + zadarmo/platené)
+   sa obsah do 232 px na 704 px vysokom okne nezmestí a pilulky sa prerežú v polovici — a
+   prerezaný riadok nevyzerá ako "skroluj", vyzerá ako pokazené. Pri upozornení je obsah
+   dvojnásobný (rad hrozieb + posuvník okruhu + veta). Rásť je menšie zlo než rezať: rozdiel
+   oproti doku je desiatky pixelov, kým povrch, výplň aj rám ostávajú tie isté. */
+@media (max-width:${DOCK_MOBILE_MAX}px){
+  .mna-sheet{height:auto;min-height:${DOCK_VH * 100}vh;max-height:min(78vh,${NOTE_PANEL_H}px);}
+}
+/* ── V SPRIEVODCOVI VÝLETU AJ NA PC SEDÍ V ĽAVOM STĹPCI ────────────────────
+   Bez tohto by na PC panel v kroku 2 odskočil z ľavého bloku na pás cez celú spodnú hranu —
+   tá istá chyba ako na telefóne, len s väčším skokom. Miery sú zhodné s .trp-dock
+   (GeometryPicker.tsx): je to ten istý stĺpec, nie jeho druhá verzia.
+   ⚠️ Platí LEN v sprievodcovi. Na holej mape žiadny ľavý blok nie je a panel tam ostáva
+   spodným pásom. */
+@media (min-width:1024px){
+  /* ⚠️ ZAROVNANÝ HORE A VYSOKÝ PODĽA OBSAHU (bottom:auto). Dok má síce top aj bottom 20 px,
+     ale je to len RÁM stĺpca — panely v ňom stoja hore (justify-content:flex-start) a výšku
+     si berú podľa obsahu. Keď si tie isté dve hodnoty vzal panel značky priamo na seba,
+     natiahol sa cez celú obrazovku a medzi vetou o okruhu a tlačidlom ostala pol metra diera. */
+  .mna-sheet--dock{top:20px;bottom:auto;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);max-height:calc(100vh - 40px);}
+}
+@media (min-width:1024px) and (max-width:1400px){
+  .mna-sheet--dock{width:360px;}
+}
+/* Na holej mape ostáva panel PRIPÚTANÝ k spodnej hrane, takže dole nemá čo zaobľovať ani
+   rámovať — .trp-dockpanel zaobľuje dokola, lebo tam je karta plávajúca. */
+@media (min-width:1024px){
+  .mna-sheet:not(.mna-sheet--dock){border-radius:16px 16px 0 0;border-bottom:0;border-left:0;border-right:0;}
+}
 /* Hlavička a CTA stoja, skroluje sa len stred v .mna-scroll.
    ⚠️ NIE mna-body — to je trieda TEXTAREY o pár riadkov nižšie a obal s tým istým
    názvom by jej pretlačil výšku aj skrol. */

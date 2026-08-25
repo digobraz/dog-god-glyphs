@@ -67,15 +67,21 @@ export function AinubisGuide({
       <div className="ang-bar">
         <img className="ang-face" src={ainubisFace} alt="" aria-hidden="true" />
         {/* aria-live: pokyn sa mení bez toho, aby sa čokoľvek prekliklo — bez tohto by
-            o ňom čítačka obrazovky nevedela. Číta sa CELÁ veta (`text`), nie rozpísaná. */}
+            o ňom čítačka obrazovky nevedela. Číta sa CELÁ veta (text), nie rozpísaná. */}
         <p className="ang-text" aria-live="polite">
+          {/* ⚠️ KRÍŽIK JE VNÚTRI ODSEKU A OBTEKÁ SA (Matej 2026-08-25: „na pravej strane
+              bubliny už nejde text"). Ako súrodenec vo flexe si rezervoval svoj stĺpec na
+              KAŽDOM riadku, hoci je potrebný len pri prvom — veta sa tým zbytočne predlžovala
+              o riadok. Float ho nechá stáť v rohu a text pod ním využije plnú šírku.
+              V DOM stojí pred textom zámerne: čítačka ohlási východisko skôr, než začne
+              čítať dlhý pokyn. */}
+          {onAbort && (
+            <button type="button" className="ang-x" onClick={onAbort} aria-label={abortLabel} title={abortLabel}>×</button>
+          )}
           <span aria-hidden="true">{shown}</span>
           {typing && <i className="ang-caret" aria-hidden="true" />}
           <span className="ang-sr">{text}</span>
         </p>
-        {onAbort && (
-          <button type="button" className="ang-x" onClick={onAbort} aria-label={abortLabel} title={abortLabel}>×</button>
-        )}
       </div>
       {/* ⚠️ BODKY SÚ POD BUBLINOU, NIE V PANELI (Matej 24. 8. 2026: „tie kroky 1-5 v 1. a 2.
           kroku presuňme pod bublinu ainubisa, tam nám nebudú zavadzať"). V paneli si delili
@@ -93,27 +99,38 @@ export const AINUBIS_GUIDE_CSS = `
    okraji"). Nad ním je stavový riadok telefónu (hodiny, batéria) a bez odstupu z toho bol
    jeden zlepený pruh. env(safe-area-inset-top) rieši NOTCH, nie odstup — to je ďalších
    28 px navyše, aby bublina vyzerala, že visí NAD mapou, nie že je prilepená k systému. */
-.ang-wrap{position:fixed;left:0;right:0;top:0;z-index:1202;padding:calc(28px + env(safe-area-inset-top,0px)) 12px 14px;pointer-events:none;background:linear-gradient(180deg,rgba(10,7,4,0.92) 62%,rgba(10,7,4,0));}
+.ang-wrap{position:fixed;left:0;right:0;top:0;z-index:1202;padding:calc(28px + env(safe-area-inset-top,0px)) 12px 14px;pointer-events:none;background:linear-gradient(180deg,rgba(3,7,12,0.92) 62%,rgba(3,7,12,0));}
 /* ⚠️ BUBLINA MUSÍ ŽIARIŤ (Matej 24. 8.: „jeho bublina musí žiariť a musí byť viditeľný").
    Prvé kolo malo halo 4 px pri 14 % krytí — na svetlej turistickej mape to zaniklo rovnako
-   ako predtým fialová pilulka. Teraz nesie DVA dosvity: tesný zlatý prstenec (obrys) a
-   široký teplý závoj (svetlo), plus pomalé dýchanie, aby ju oko našlo aj bez pohybu. */
-.ang-bar{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:9px 6px 9px 9px;border-radius:15px;background:rgba(18,13,7,0.96);backdrop-filter:blur(10px);border:1.5px solid #E0B457;box-shadow:0 0 0 3px rgba(201,154,63,0.30),0 0 26px rgba(230,158,26,0.42),0 10px 30px rgba(0,0,0,0.62);animation:ang-glow 3.4s ease-in-out infinite;}
+   ako predtým fialová pilulka. Preto nesie DVA dosvity: tesný prstenec (obrys) a široký
+   závoj (svetlo), plus pomalé dýchanie, aby ju oko našlo aj bez pohybu.
+   ⚠️ FARBA JE AINUBISOVA TMAVOMODRÁ, NIE ZLATÁ (Matej 25. 8. 2026: „ainubis musí mať modrú
+   farbu bubliny ako má v brande"). Hodnoty NIE SÚ vymyslené — sú zdvihnuté 1:1 z jeho
+   živého povrchu 'components/ainubis/AinubisWidget.css' (panel: studená čierna
+   #071019→#03070C + modrý svit zhora, rám a text cyan #5BE0F0). Dôvod, prečo to nie je
+   "T.brandBlue": egyptská modrá na TEJTO obrazovke už nesie iný význam — modrým lemom
+   appka značí udalosti a „ideš s niekým" ("EVENT_RIM", CLAUDE.md), takže by sprievodca
+   splynul so značkami na mape pod ním. AInubis má vlastnú modrú a tá je tu tá správna. */
+.ang-bar{pointer-events:auto;display:flex;align-items:center;gap:10px;padding:9px 6px 9px 9px;border-radius:15px;background:radial-gradient(120% 160% at 50% -40%,rgba(59,158,255,0.20) 0%,rgba(59,158,255,0) 62%),linear-gradient(180deg,#071019 0%,#03070C 100%);backdrop-filter:blur(10px);border:1.5px solid rgba(91,224,240,0.55);box-shadow:0 0 0 3px rgba(59,158,255,0.22),0 0 26px rgba(59,158,255,0.42),0 10px 30px rgba(0,0,0,0.62);animation:ang-glow 3.4s ease-in-out infinite;}
 @keyframes ang-glow{
-  0%,100%{box-shadow:0 0 0 3px rgba(201,154,63,0.30),0 0 22px rgba(230,158,26,0.34),0 10px 30px rgba(0,0,0,0.62);}
-  50%{box-shadow:0 0 0 3px rgba(201,154,63,0.44),0 0 38px rgba(230,158,26,0.62),0 10px 30px rgba(0,0,0,0.62);}
+  0%,100%{box-shadow:0 0 0 3px rgba(59,158,255,0.20),0 0 22px rgba(59,158,255,0.32),0 10px 30px rgba(0,0,0,0.62);}
+  50%{box-shadow:0 0 0 3px rgba(59,158,255,0.34),0 0 40px rgba(59,158,255,0.60),0 10px 30px rgba(0,0,0,0.62);}
 }
-/* ⚠️ ZLATÝ RÁM, NIE FIALOVÝ. Fialová je na tejto obrazovke jazyk TRASY (meč, kotvy, cieľ);
-   AInubis nie je súčasť trasy, je to sprievodca — a ten hovorí brandovou zlatou. */
-.ang-face{flex:0 0 auto;width:40px;height:40px;object-fit:contain;border-radius:11px;background:rgba(201,154,63,0.14);box-shadow:0 0 0 1.5px rgba(201,154,63,0.55),0 0 14px rgba(230,158,26,0.30);}
-.ang-text{flex:1 1 auto;min-width:0;margin:0;font-family:${FONT_UI};font-size:13px;font-weight:500;line-height:1.35;color:#F6EEDD;}
+/* ⚠️ TVÁR JE V KRUHU, NIE V ŠTVORCI (Matej 25. 8. 2026: „jeho ikonka musí byť v krúžku,
+   kludne ho o niečo zväčši"). Kruh nie je vkus — je to tvar, ktorý AInubis má všade inde:
+   plávajúce tlačidlo aj intro odznak vo widgete sú 'border-radius:50%'. Zaoblený štvorec
+   tu bol jediné miesto v celej appke, kde mal inú siluetu.
+   Obrázok je 800×940 (vyšší než širší), takže 'object-fit:contain' ho v kruhu nechá dýchať
+   — 'cover' by mu odrezal uši. */
+.ang-face{flex:0 0 auto;width:48px;height:48px;object-fit:contain;border-radius:50%;background:radial-gradient(circle at 35% 28%,#12233a 0%,#01050A 74%);box-shadow:0 0 0 1.5px rgba(91,224,240,0.45),0 0 16px rgba(59,158,255,0.38);}
+.ang-text{flex:1 1 auto;min-width:0;margin:0;font-family:${FONT_UI};font-size:13px;font-weight:500;line-height:1.35;color:#E6FAFF;}
 /* Kurzor bliká LEN kým sa píše — blikanie nad dopísanou vetou by tvrdilo, že ešte príde
    pokračovanie. */
-.ang-caret{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:${T.cardEdge};animation:ang-blink .9s steps(1,end) infinite;}
+.ang-caret{display:inline-block;width:2px;height:1em;margin-left:2px;vertical-align:-2px;background:#5BE0F0;animation:ang-blink .9s steps(1,end) infinite;}
 @keyframes ang-blink{0%,49%{opacity:1;}50%,100%{opacity:0;}}
 .ang-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
-.ang-x{flex:0 0 auto;width:34px;height:34px;border:0;background:transparent;color:${T.onDarkDim};font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
-.ang-x:hover{color:${T.cardEdge};}
+.ang-x{float:right;width:30px;height:26px;margin:-2px -2px 0 6px;border:0;background:transparent;color:${T.onDarkDim};font-size:19px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.ang-x:hover{color:#5BE0F0;}
 /* Riadok pod bublinou. Ťuky berie len on sám, nie celý pás — pod ním sa musí dať kresliť. */
 .ang-below{margin-top:9px;pointer-events:auto;}
 @media (prefers-reduced-motion: reduce){
@@ -124,7 +141,7 @@ export const AINUBIS_GUIDE_CSS = `
    šírku okna. Čísla sú tie isté, aké drží .trp-dtop, aby sa pásy neprekrývali. */
 @media (min-width:900px){
   .ang-wrap{left:480px;right:74px;padding-top:18px;}
-  .ang-face{width:44px;height:44px;}
+  .ang-face{width:54px;height:54px;}
   .ang-text{font-size:14px;}
 }
 @media (min-width:900px) and (max-width:1100px){

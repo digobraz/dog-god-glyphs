@@ -73,6 +73,7 @@ import type { LevelProgress, TripPointsResult } from '@/lib/tripPoints';
 import { tierVars } from '@/lib/packTiers';
 import { LevelPanel } from '@/components/pack/level/LevelPanel';
 import { TripReveal } from '@/components/pack/level/TripReveal';
+import { MapCoach } from '@/components/pack/MapCoach';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
@@ -115,7 +116,8 @@ import { AddTripEntry, type AddChoice } from '@/components/pack/addtrip/AddTripE
 // body (`customPoi`), ktoré appka doteraz nikde nekreslila.
 // Zadanie: plany/zadanie-zapisy-do-mapy-2026-08-20.md
 import { MapNotesLayer, MAP_NOTES_CSS } from '@/components/pack/mapnotes/MapNotesLayer';
-import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, MapNoteTooFar, ADD_NOTE_CSS, NOTE_PANEL_H, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
+import { dockFitPadding } from '@/components/pack/mapDockShape';
+import { AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteHint, MapNoteTooFar, ADD_NOTE_CSS, notePanelH, hintSeen, markHintSeen } from '@/components/pack/mapnotes/AddMapNote';
 import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 // Kruhová značka — TÁ ISTÁ geometria ako hrozba/tip vo vrstve zápisov (hlavička circleMark.ts).
@@ -129,7 +131,7 @@ import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDis
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
-import { clearTripNotes, readTripNotes, writeTripNotes } from '@/components/pack/addtrip/addTripModel';
+import { clearTripNotes, readTripNotesForSession, writeTripNotes, type TripNoteRef } from '@/components/pack/addtrip/addTripModel';
 import { devSyncLocalTrips } from '@/lib/devTripSync';
 // EVENT formulár (krok 3, plany/zadanie-eventy-2026-08-06.md §4) — vedľa ADD TRIP, vlastný
 // adresár. Storage je zatiaľ len localStorage (migrácia z kroku 2 nie je nasadená, §9 zadania).
@@ -526,9 +528,13 @@ function FlyTo({ target }: { target: LatLngTuple | null }) {
   return null;
 }
 
-function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: boolean }) {
+function FitBounds({ path, offset, dock, hold }: { path: LatLngTuple[] | null; offset?: boolean; dock?: boolean; hold?: boolean }) {
   const map = useMap();
   useEffect(() => {
+    // ⚠️ KÝM EXISTUJE NAKRESLENÁ TRASA, VÝREZ PATRÍ JEJ (Matej 2026-08-25). Rámovanie krajiny
+    // je správne len na PRÁZDNEJ mape; kto už trasu nakreslil, ju pri každom prechode medzi
+    // krokmi znovu hľadal. Nie je to vypnutie funkcie — je to určenie vlastníka.
+    if (hold) return;
     if (!path || !path.length) return;
     const bounds = L.latLngBounds(path);
     // Matej 2026-07-22 (bod 1): každé zameranie — úvodné „celé Slovensko" (offset=false) aj
@@ -541,9 +547,25 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
     // Mobilný padding drží HORNÝ blok (avatar+search+pilulky ≈ 180px) a dolnú navigáciu (≈ 96px)
     // — nie symetrických 150/150. Symetria brala 300px z 844px výšky a zároveň hore nezakryla
     // dosť, takže SR skončilo pod panelom a nad ním svietilo Poľsko.
-    const pad = mobile
-      ? { paddingTopLeft: [24, 186] as [number, number], paddingBottomRight: [24, 96] as [number, number] }
-      : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] };
+    /**
+     * ⚠️ V KROKOCH 1–2 JE DOLE INÝ CHROME (Matej 2026-08-25: „pri slovensku je polovica
+     * skryta za dolnym panelom — vycentruj to aby bolo vidno cele, je tam na to dostatok
+     * miesta"). Mobilná rezerva 96 px platí pre BEŽNÚ mapu, kde dole stojí len navigácia.
+     * Počas pridávania výletu tam stojí dok — `DOCK_VH` z výšky okna, teda na bežnom
+     * telefóne ~290 px, trikrát viac. Rámovanie o ňom nevedelo, takže krajinu vpasovalo do
+     * celého okna a spodná tretina skončila pod panelom.
+     * Hore je v tom kroku bublina AInubisa s bodkami 1–5 namiesto hľadania a pilulek — je
+     * nižšia než bežný horný blok, preto sa rezerva zmenšuje, nie zväčšuje.
+     * ⚠️ Číslo sa NEOPISUJE — berie sa z `notePanelH()`, ktorý ho počíta z toho istého
+     * `DOCK_VH` ako CSS. Dve nezávislé čísla by sa rozišli pri prvej zmene výšky panela.
+     * PC sa nemení: dok je tam ľavý stĺpec širokým `DOCK_COL_W` = to isté ako `PANEL_W`,
+     * takže existujúca rezerva sedí.
+     */
+    const pad = dock
+      ? dockFitPadding(notePanelH())
+      : (mobile
+          ? { paddingTopLeft: [24, 186] as [number, number], paddingBottomRight: [24, 96] as [number, number] }
+          : { paddingTopLeft: [PANEL_W + 60, 130] as [number, number], paddingBottomRight: [90, 140] as [number, number] });
     // Na portréte fitBounds bez desatinného zoomu nestačí: Leaflet snapuje na celé stupne, takže
     // buď je SR vpol obrazovky (stupeň nadol), alebo orezané zboku (stupeň nahor) — medzi tým nie
     // je nič. `zoomSnap = 0` dovolí presnú medzihodnotu, ktorá dostupnú plochu vyplní.
@@ -581,7 +603,7 @@ function FitBounds({ path, offset }: { path: LatLngTuple[] | null; offset?: bool
     // posúvali priblíženie po CELOM kroku, nie po zlomkoch. Obnovuje sa až tu, za
     // `setZoomAround`/`panBy`, ktoré ešte s medzihodnotou pracujú.
     map.options.zoomSnap = snapBefore ?? 1;
-  }, [path, offset, map]);
+  }, [path, offset, dock, hold, map]);
   return null;
 }
 
@@ -2172,7 +2194,7 @@ export default function PackMap() {
     const map = mapInstance;
     if (!map) return;
     const pt = map.latLngToContainerPoint([lat, lon]);
-    const safeY = map.getSize().y - NOTE_PANEL_H - 40;
+    const safeY = map.getSize().y - notePanelH() - 40;
     if (pt.y > safeY) map.panBy([0, pt.y - safeY], { animate: true, duration: 0.35 });
   };
 
@@ -2252,6 +2274,17 @@ export default function PackMap() {
    */
   const [addMapPhase, setAddMapPhase] = useState<'off' | 'draw' | 'notes'>('off');
   /**
+   * Trasa rozkreslená v sprievodcovi. Slúži JEDINE na to, aby `FitBounds` prestal prepisovať
+   * výrez hranicou SR — samotné rámovanie robí sprievodca (viď `onHasRoute` v AddTripLog).
+   */
+  const [addHasRoute, setAddHasRoute] = useState(false);
+  /**
+   * Sprievodca „kde nájdeš svoje výlety" — zjaví sa PO NÁVRATE Z REVEALU na mapu, nie v ňom
+   * (Matej 2026-08-25). V reveali by súperil so scénou levelu; tu je mapa už pod ním a šípka
+   * môže ukázať na skutočnú hlavičku.
+   */
+  const [coachOpen, setCoachOpen] = useState(false);
+  /**
    * PRI KRESLENÍ SA MAPA UPRACE (Matej 2026-08-23: „keď kreslím, musia zmiznúť už vytvorené
    * trasy, resp. musia ešte viac vyblednúť"). Sedemdesiat fialových mečov cez seba a čerstvo
    * kliknutá kotva vyzerali rovnako dôležito. Trasy sa nemažú — GeometryPicker ich v tej
@@ -2279,7 +2312,10 @@ export default function PackMap() {
    * krok 4 ich ZHRNIE, needituje. Väzba značky na výlet sa NEUKLADÁ (odvodzuje sa zo
    * súradnice, viď mapNotesGeo.ts), takže toto je naozaj len pamäť jednej obrazovky.
    */
-  const [tripNotes, setTripNotesState] = useState<NoteKind[]>(() => readTripNotes() as NoteKind[]);
+  // ⚠️ `readTripNotesForSession`, NIE `readTripNotes` — bez rozrobeného výletu je zoznam
+  // v úložisku zvyšok po minulom pokuse a nový výlet by začínal s cudzími značkami
+  // (a s bodmi za ne). Dôvod je rozpísaný pri tej funkcii.
+  const [tripNotes, setTripNotesState] = useState<TripNoteRef[]>(() => readTripNotesForSession());
   /**
    * ⚠️ PREŽÍVA RELOAD. Zoznam sa musí obnoviť spolu s formulárom (`readAddDraft` vracia aj
    * číslo kroku), inak človek pokračuje v kroku 4 a zhrnutie tvrdí, že neoznačil nič —
@@ -2287,7 +2323,7 @@ export default function PackMap() {
    * Zápis ide cez túto obálku, nie cez `setTripNotesState` priamo, nech sa nedá pridať
    * značka, ktorá sa neuloží.
    */
-  const setTripNotes = useCallback((up: (prev: NoteKind[]) => NoteKind[]) => {
+  const setTripNotes = useCallback((up: (prev: TripNoteRef[]) => TripNoteRef[]) => {
     setTripNotesState((prev) => {
       const next = up(prev);
       writeTripNotes(next);
@@ -4019,6 +4055,7 @@ export default function PackMap() {
               allTrails={allTrails}
               authorName={firstName}
               myDogs={myDogsForAdd}
+              onHasRoute={setAddHasRoute}
               onSubmit={submitAddTripDraft}
               onClose={closeAdd}
               placeholderFor={placeholderFor}
@@ -4026,6 +4063,12 @@ export default function PackMap() {
               seedPoint={seedPoint}
               onMapPhase={setAddMapPhase}
               onPlaceNote={(g, k) => { setNotePlacing(g); setPlacingKind(k ?? null); }}
+              // MAZANIE Z CHIPU V ZHRNUTÍ KROKU 2 (Matej 2026-08-24). Ide to cez tú istú
+              // cestu ako mazanie z mapy — jedna značka, jeden spôsob, ako zmizne.
+              onRemoveNote={(id) => {
+                void mapNotes.remove(id);
+                setTripNotes((prev) => prev.filter((n) => n.id !== id));
+              }}
               placedNotes={tripNotes}
               /* Kým človek ukazuje miesto ALEBO vypĺňa kartičku značky, panel kroku 2 ustúpi —
                  inak stoja dva panely na sebe a spodný hovorí o niečom inom než vrchný. */
@@ -4083,7 +4126,7 @@ export default function PackMap() {
               {/* mierka nesie čísla ("5 km") — v DOGYPT čistom vizuáli patrí medzi vysvetlivky. */}
               {!isCleanMode && <ScaleControl position="bottomleft" imperial={false} />}
               <FlyTo target={mapTarget} />
-              <FitBounds path={heroBounds} offset={!!inlineDetailId} />
+              <FitBounds path={heroBounds} offset={!!inlineDetailId} dock={addMapPhase !== 'off'} hold={addHasRoute} />
               {/* ľavý zoznam podľa výrezu mapy (Matej 2026-07-27) — hlási bounds na moveend/zoomend */}
               <ViewportWatcher onChange={handleViewport} />
               <SaberScaleWatcher onChange={setSaberScale} />
@@ -4292,11 +4335,13 @@ export default function PackMap() {
                     // Kind sa musí prečítať PRED zmazaním — potom už riadok neexistuje.
                     const gone = mapNotes.notes.find((n) => n.id === id)?.kind;
                     void mapNotes.remove(id);
-                    // Zmaže sa JEDEN výskyt, nie všetky rovnaké: dve parkoviská na trase sú
-                    // dva zápisy a zmazaním jedného nemá zmiznúť aj druhé.
+                    // Zmaže sa PRESNE TÁ značka, nie prvá s rovnakým druhom — od 24. 8. nesie
+                    // zoznam aj `id`. Staršie rozrobené pridávanie ho nemá (`id: ''`), tam sa
+                    // ako predtým zahodí prvý výskyt druhu.
                     if (addFlow && gone) {
                       setTripNotes((prev) => {
-                        const i = prev.indexOf(gone);
+                        const byId = prev.findIndex((n) => n.id === id);
+                        const i = byId >= 0 ? byId : prev.findIndex((n) => n.id === '' && n.kind === gone);
                         return i < 0 ? prev : [...prev.slice(0, i), ...prev.slice(i + 1)];
                       });
                     }
@@ -4493,13 +4538,14 @@ export default function PackMap() {
           onRadius={(m) => setNoteDraft((d) => (d ? { ...d, radiusM: m } : d))}
           pinnedSlug={noteDraft.pinnedSlug}
           pinnedName={allTrails.find((tr) => tr.id === noteDraft.pinnedSlug)?.name ?? null}
+          dock={addFlow}
           onSubmit={async (n) => {
-            await mapNotes.add(n);
+            const id = await mapNotes.add(n);
             // Krok 2 sprievodcu: druh si odloží formulár, aby ho krok 4 vedel ZHRNÚŤ.
             // Väzba na výlet sa neukladá — odvodzuje sa zo súradnice (mapNotesGeo.ts).
             // `n.kind` (čo sa naozaj uložilo), nie `noteDraft.kind` z uzáveru — panel vie druh
             // zmeniť vlastným výberom a zhrnutie musí hovoriť o zapísanej značke.
-            if (addFlow) setTripNotes((prev) => [...prev, n.kind]);
+            if (addFlow) setTripNotes((prev) => [...prev, { id, kind: n.kind }]);
             setNoteDraft(null);
           }}
           onCancel={() => setNoteDraft(null)}
@@ -4554,6 +4600,12 @@ export default function PackMap() {
         <LevelPanel level={levelInfo} rows={profilePoints.rows} onClose={() => setLevelPanelOpen(false)} />
       )}
 
+      {/* ⚠️ AŽ KEĎ SA NEKRESLÍ. Sprievodca zatemní obrazovku, takže počas pridávania ďalšieho
+          výletu by zhasol mapu presne vtedy, keď sa do nej klikne. */}
+      {coachOpen && addMapPhase === 'off' && !addFlow && (
+        <MapCoach targetSel=".trp-midentity" onDone={() => setCoachOpen(false)} />
+      )}
+
       {/* REVEAL — `levelAfter` je AKTUÁLNY levelInfo, teda už prepočítaný po zápise.
           Preto sa nikdy nerozíde s číslom v hlavičke: je to tá istá hodnota. */}
       {reveal && (
@@ -4572,7 +4624,7 @@ export default function PackMap() {
             photo: d.cloudinary_main_url,
           }))}
           onAddAnother={() => { setReveal(null); openAddEntry(); }}
-          onClose={() => setReveal(null)}
+          onClose={() => { setReveal(null); setCoachOpen(true); }}
         />
       )}
       {/* PackMap je full-bleed a nemountuje <PackLayout> (vlastný header/nav vyššie), takže

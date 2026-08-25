@@ -10,6 +10,7 @@
 // PackMap/AddEvent sem je vlastný, väčší zásah (obe majú vlastný layout aj vlastné dôsledky
 // výberu), preto sa nerobí spolu s prestavbou toku.
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { Map as LeafletMap } from 'leaflet';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
@@ -113,31 +114,51 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
   const attn = !focused && q.trim().length === 0;
 
   /**
-   * PONUKA SA OTVÁRA TAM, KDE JE MIESTO (Matej 2026-08-24: „dropdown pri vyhľadávaní je mimo
-   * obrazovky"). Pevné `top:100%` znamená VŽDY NADOL — a pole stojí v doku, ktorý býva pri
-   * spodnej hrane okna (na mobile vždy, na PC to tak bolo do 24. 8.), takže ponuka vytiekla
-   * pod okno a spodné položky sa nedali ani prečítať, ani ťuknúť.
+   * PONUKA ŽIJE NA <body>, NIE V PANELI (Matej 2026-08-24: „pri naťukaní miesta nie je vidno
+   * výber, je to schované pod mapou — vidno len posledné").
    *
-   * ⚠️ Riešiť to výnimkou pre jednu platformu by bola chyba: pole žije v doku, v paneli aj
-   * vo formulári a všade sa môže ocitnúť nízko. Rozhoduje teda MIESTO POD POĽOM, nie kto
-   * komponent volá — jedno pravidlo, ktoré platí aj tam, kde ho zajtra niekto zavolá znova.
+   * ⚠️ NEBOL TO Z-INDEX, BOL TO OREZ. Pole stojí v doku (`.trp-dstart`), ktorý má v krokoch
+   * 1–2 pevnú výšku 33vh a `overflow-y:auto` — a skrolovací kontajner OREŽE každé absolútne
+   * dieťa, ktoré z neho vytŕča, nech má akékoľvek `z-index`. Ponuka sa otvára nahor (dole
+   * je hrana displeja), takže jej z panela trčalo všetko okrem posledného riadku tesne
+   * nad poľom. Presne to Matej videl.
+   *
+   * Preto `position:fixed` a portál na `<body>`: ponuka prestane patriť panelu a súradnice
+   * si berie z rámčeka poľa. Šírku drží poľa, nie okna — inak by sa na PC roztiahla cez
+   * celý ľavý blok.
+   *
+   * Smer sa ďalej rozhoduje podľa MIESTA POD POĽOM, nie podľa platformy: pole žije v doku,
+   * v paneli aj vo formulári a všade sa môže ocitnúť nízko. Nahor sa ide len vtedy, keď je
+   * hore VIAC miesta — inak by sa ponuka pri tesnom okne preklápala pri každom písmene.
    */
-  const [dropUp, setDropUp] = useState(false);
-  const [dropMax, setDropMax] = useState<number | undefined>(undefined);
+  const [box, setBox] = useState<{ left: number; width: number; top?: number; bottom?: number; max: number } | null>(null);
   useEffect(() => {
-    if (!items.length) return;
-    const el = boxRef.current;
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    const GAP = 6, EDGE = 12;
-    const below = window.innerHeight - r.bottom - GAP - EDGE;
-    const above = r.top - GAP - EDGE;
-    // Nahor sa ide len vtedy, keď je hore VIAC miesta — inak by sa ponuka pri tesnom okne
-    // preklápala hore-dole pri každom písmene.
-    const up = below < 180 && above > below;
-    setDropUp(up);
-    setDropMax(Math.max(120, up ? above : below));
-  }, [items, focused]);
+    if (!items.length) { setBox(null); return; }
+    const measure = () => {
+      const el = boxRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const GAP = 6, EDGE = 12;
+      const below = window.innerHeight - r.bottom - GAP - EDGE;
+      const above = r.top - GAP - EDGE;
+      const up = below < 180 && above > below;
+      setBox({
+        left: r.left,
+        width: r.width,
+        ...(up ? { bottom: window.innerHeight - r.top + GAP } : { top: r.bottom + GAP }),
+        max: Math.max(120, up ? above : below),
+      });
+    };
+    measure();
+    // Klávesnica na telefóne mení výšku okna AŽ PO fokuse — bez prepočtu by ponuka ostala
+    // visieť tam, kde bolo pole pred jej vysunutím.
+    window.addEventListener('resize', measure);
+    window.addEventListener('scroll', measure, true);
+    return () => {
+      window.removeEventListener('resize', measure);
+      window.removeEventListener('scroll', measure, true);
+    };
+  }, [items]);
 
   return (
     <div ref={boxRef} style={{ position: 'relative' }}>
@@ -163,16 +184,23 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
           }}
         />
       </div>
-      {items.length > 0 && (
+      {items.length > 0 && box && createPortal(
         <div
+          // ⚠️ Ťuk do ponuky nesmie prebublať na mapu ani zavrieť sám seba. Ponuka už nie je
+          // potomkom `boxRef`, takže „klik mimo" ju bez tejto výnimky zatvorí skôr, než sa
+          // stihne vykonať výber — preto sa `mousedown`/`touchstart` zastaví tu.
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           style={{
-            position: 'absolute', left: 0, right: 0, zIndex: 5,
-            ...(dropUp ? { bottom: 'calc(100% + 6px)' } : { top: 'calc(100% + 6px)' }),
+            position: 'fixed', left: box.left, width: box.width,
+            ...(box.bottom != null ? { bottom: box.bottom } : { top: box.top }),
+            // Nad dokom (1200) aj nad panelom značiek — je to vrstva, ktorá ich prekrýva zámerne.
+            zIndex: 1300,
             background: 'rgba(18,13,7,0.97)', backdropFilter: 'blur(12px)',
             border: '1px solid ' + T.onDarkBorder, borderRadius: 12,
             // Skrolovanie, nie orezanie: pri nízkom okne sa aj tak nezmestí celá a bez
             // `auto` by boli posledné návrhy neviditeľné a nedosiahnuteľné.
-            overflowX: 'hidden', overflowY: 'auto', maxHeight: dropMax,
+            overflowX: 'hidden', overflowY: 'auto', maxHeight: box.max,
             boxShadow: '0 18px 44px rgba(0,0,0,0.55)',
           }}
         >
@@ -193,7 +221,8 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
               )}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

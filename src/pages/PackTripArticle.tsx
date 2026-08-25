@@ -49,7 +49,7 @@ import { TripComments } from '@/components/pack/trip/TripComments';
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
 import {
   AddMapNotePin, NoteSpotPin, AddMapNotePanel, MapNotePlacing, NoteQuickPalette, MapNoteTooFar,
-  ADD_NOTE_CSS, NOTE_PANEL_H,
+  ADD_NOTE_CSS, notePanelH,
 } from '@/components/pack/mapnotes/AddMapNote';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
@@ -453,7 +453,7 @@ export default function PackTripArticle() {
     setNotePick(false);
     setNoteDraft({ lat, lon, group, kind: GROUP_KINDS[group][0], disease: null, radiusM: defaultRadius(GROUP_KINDS[group][0]) });
     // o snímku neskôr — panel sa mountuje až s draftom a dovtedy sa nemá čomu uhýbať
-    window.requestAnimationFrame(() => scrollMapClear(NOTE_PANEL_H));
+    window.requestAnimationFrame(() => scrollMapClear(notePanelH()));
   }, [scrollMapClear]);
 
   // ── KOMUNITNÁ vrstva (rovnaké flowy ako PackMap — walked popup / wishlist zámer /

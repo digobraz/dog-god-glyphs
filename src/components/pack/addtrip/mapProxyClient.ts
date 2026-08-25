@@ -37,7 +37,23 @@ const snapCache = new Map<string, SnapResult>();
 const elevCache = new Map<string, number>();
 // in-flight dedup: pri rýchlom klikaní by sa ten istý úsek/bod fetchol viackrát
 const snapInFlight = new Map<string, Promise<SnapResult>>();
-const elevInFlight = new Set<string>();
+/**
+ * ⚠️ PROMISY, NIE HOLÉ KĽÚČE (2026-08-25) ────────────────────────────────────────────────
+ *
+ * Matej videl nad mapou trvalé „↑ …" namiesto prevýšenia. Nebola to sieť (endpoint vracia
+ * 200) ani chýbajúce dáta — bola to TÁTO množina.
+ *
+ * `ensureElevations` preskakuje body, ktoré už niekto sťahuje. Kým to bol `Set<string>`,
+ * druhé volanie na tie isté body nenašlo NIČ na stiahnutie, **vrátilo sa okamžite** a jeho
+ * volajúci hneď nato vyhodnotil `missingElevationCount(...) > 0` — lebo prvé sťahovanie
+ * ešte bežalo. Výsledok: `elevPending` ostalo `true` a nikto ho už neprepočítal, keďže
+ * prepočet spúšťa len ďalší klik do mapy. Tri bodky teda viseli až do ďalšej kotvy —
+ * a po dokreslení trasy žiadna ďalšia nepríde.
+ *
+ * Mapa promisov to rieši v koreni: kto príde na rozrobené body, **počká si na ne**, takže
+ * `await ensureElevations()` naozaj znamená „výšky sú v cache, ak sa dali získať".
+ */
+const elevInFlight = new Map<string, Promise<void>>();
 
 function segKey(from: LatLngTuple, to: LatLngTuple): string {
   return `${elevCacheKey(from[0], from[1])}|${elevCacheKey(to[0], to[1])}`;
@@ -134,14 +150,25 @@ export async function snapSegment(
 export async function ensureElevations(points: LatLngTuple[], signal?: AbortSignal): Promise<void> {
   // deduplikuj podľa cache kľúča: interp() dáva body po 100 m, ale susedné trasy sa prekrývajú
   const wanted = new Map<string, LatLngTuple>();
+  // Cudzie rozrobené sťahovania, na ktoré sa musí počkať — inak by sme ohlásili hotovo
+  // nad cache, ktorá sa práve dopĺňa.
+  const waitFor = new Set<Promise<void>>();
   for (const p of points) {
     const k = elevCacheKey(p[0], p[1]);
-    if (!elevCache.has(k) && !elevInFlight.has(k)) wanted.set(k, p);
+    if (elevCache.has(k)) continue;
+    const running = elevInFlight.get(k);
+    if (running) { waitFor.add(running); continue; }
+    wanted.set(k, p);
   }
-  if (wanted.size === 0) return;
+  if (wanted.size === 0) {
+    if (waitFor.size) await Promise.all([...waitFor]);
+    return;
+  }
 
   const keys = [...wanted.keys()];
-  keys.forEach((k) => elevInFlight.add(k));
+  let settle: () => void = () => {};
+  const mine = new Promise<void>((r) => { settle = r; });
+  keys.forEach((k) => elevInFlight.set(k, mine));
 
   try {
     const entries = [...wanted.entries()];
@@ -172,7 +199,10 @@ export async function ensureElevations(points: LatLngTuple[], signal?: AbortSign
     }
   } finally {
     keys.forEach((k) => elevInFlight.delete(k));
+    settle();
   }
+  // až po vlastnej dávke: cudzie body mohli dobehnúť medzitým, ale sľub musí platiť pre všetky
+  if (waitFor.size) await Promise.all([...waitFor]);
 }
 
 /**

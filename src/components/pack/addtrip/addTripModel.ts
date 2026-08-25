@@ -121,6 +121,12 @@ export type AddTripDraft = {
   crew: Companion[];              // CompanionPicker, existujúci typ (packCommunityUI.tsx)
   // len walked
   km?: number; ascentM?: number; elev?: number[];
+  /**
+   * Odhad času v minútach (SAC — `lib/tripTime.ts`). Ukladá sa PRI ZÁPISE, neráta sa pri
+   * zobrazení: karta výletu nemá prevýšenie ani klesanie, a keby sa raz zmenilo tempo, všetky
+   * staré výlety by ticho zmenili čas — hoci ich nikto neprešiel znova.
+   */
+  minutes?: number;
   diff?: 'Easy' | 'Moderate' | 'Hard' | 'Odyssey';
   crowd?: string; surface?: string[]; tags?: string[];
   hazards?: string[];             // vrátane custom (§7 — text sa zobrazí, nefiltruje kým ho Matej neschváli)
@@ -193,7 +199,19 @@ export const SUBMIT_REQUIRED: Record<TripState, Array<keyof AddTripDraft>> = {
 // (tabuľka `map_notes`), takže formulár ho už neplní — a podmienka na pole, ktoré sa nedá vyplniť,
 // by každý výlet natrvalo držala v stave `draft`. Chip bez polohy bol aj tak horší údaj: svorke
 // nepovie KDE. Historické hodnoty v `trip_votes.hazards` sa tým nemažú.
-export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'tags', 'paws', 'photos'];
+/**
+ * ⚠️ FOTKA VYPADLA Z POVINNÝCH (Matej 2026-08-25) ────────────────────────────────────────
+ *
+ * „povinné nebudú asi len fotky, inak by mal vedieť všetko… aj náročnosť atď to je iba jeden
+ *  klik, reálny bloker vie byť iba foto, ktoré má akurát v inom mobile (bolo to dávno)."
+ *
+ * Je to jediné pole, ktoré človek nevie doplniť ROZHODNUTÍM — všetko ostatné je klik alebo
+ * vec, ktorú z výletu vie. Fotka závisí od toho, kde práve leží; pri výlete spred rokov
+ * nemusí existovať vôbec. Podmieňovať ňou zverejnenie znamená, že staré výlety sa nezapíšu.
+ * Zvyšok ostáva povinný ZÁMERNE — bez neho stráca šablóna výletu zmysel (Matejov argument
+ * z tej istej správy).
+ */
+export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'crowd', 'tags', 'paws'];
 
 const HIKE_LIKE = new Set(['hiking', 'journey']);
 
@@ -215,6 +233,7 @@ const FIELD_LABEL: Partial<Record<keyof AddTripDraft, string>> = {
   date: 'pack.addTrip.field.date',
   diff: 'pack.addTrip.field.diff',
   surface: 'pack.addTrip.field.surface',
+  crowd: 'pack.addTrip.field.crowd',
   hazards: 'pack.addTrip.field.hazards',
   tags: 'pack.addTrip.field.tags',
   paws: 'pack.addTrip.field.paws',
@@ -241,6 +260,9 @@ function isFilled(draft: AddTripDraft, field: keyof AddTripDraft): boolean {
     case 'diff': return !!draft.diff;
     case 'surface': return !!draft.surface && draft.surface.length > 0;
     case 'hazards': return !!draft.hazards && draft.hazards.length > 0;
+    // Ruch pribudol medzi povinné 25. 8. (Matej: „ruch povinne ano") — je to jeden klik
+    // a pre toho, kto ide na výlet s reaktívnym psom, je to jeden z najdôležitejších údajov.
+    case 'crowd': return !!draft.crowd;
     case 'tags': return !!draft.tags && draft.tags.length > 0;
     case 'paws': return !!draft.paws && draft.paws >= 1;
     case 'photos': return !!draft.photos && draft.photos.length > 0;
@@ -305,20 +327,66 @@ export function writeAddDraft(draft: AddTripDraft): boolean {
  */
 const TRIP_NOTES_KEY = 'trp-addtrip-notes';
 
-export function readTripNotes(): string[] {
+/**
+ * ⚠️ NESIE AJ `id`, NIE LEN DRUH (2026-08-24). Matej chce vedieť značku z chipu v zhrnutí
+ * ZMAZAŤ („po kliknutí by sa mal zobraziť krížik a opätovným by sa mali dať vymazať"), a bez
+ * identifikátora sa nedá povedať KTORÚ — dve parkoviská na trase sú dva zápisy s tým istým
+ * druhom. Kým bol zoznam len poľom druhov, chip vedel jedine oznamovať.
+ */
+export type TripNoteRef = { id: string; kind: string };
+
+export function readTripNotes(): TripNoteRef[] {
   try {
     const raw = addStore.getItem(TRIP_NOTES_KEY);
     const arr = raw ? (JSON.parse(raw) as unknown) : null;
-    return Array.isArray(arr) ? arr.filter((x): x is string => typeof x === 'string') : [];
+    if (!Array.isArray(arr)) return [];
+    // Staršie rozrobené pridávanie má v úložisku holé reťazce (druhy). Prežije ďalej, len sa
+    // z jeho chipov nedá mazať — zahodiť rozpracovaný zoznam kvôli zmene formátu by bola
+    // horšia strata než chýbajúce tlačidlo.
+    return arr.flatMap((x): TripNoteRef[] => {
+      if (typeof x === 'string') return [{ id: '', kind: x }];
+      if (x && typeof x === 'object' && typeof (x as TripNoteRef).kind === 'string') {
+        const r = x as TripNoteRef;
+        return [{ id: typeof r.id === 'string' ? r.id : '', kind: r.kind }];
+      }
+      return [];
+    });
   } catch { return []; }
 }
 
-export function writeTripNotes(kinds: string[]): void {
-  try { addStore.setItem(TRIP_NOTES_KEY, JSON.stringify(kinds)); } catch { /* non-fatal */ }
+export function writeTripNotes(notes: TripNoteRef[]): void {
+  try { addStore.setItem(TRIP_NOTES_KEY, JSON.stringify(notes)); } catch { /* non-fatal */ }
 }
 
 export function clearTripNotes(): void {
   try { addStore.removeItem(TRIP_NOTES_KEY); } catch { /* non-fatal */ }
+}
+
+/**
+ * ── ZNAČKY PATRIA ROZROBENÉMU VÝLETU; BEZ NEHO SÚ SMETIE (Matej 25. 8. 2026) ─────────────
+ *
+ * „začal som s pridaním nového výletu a už som mal označené parkovisko aj upozornenia a +3
+ *  body pritom som nič neoznačil a nejde to ani zmazať."
+ *
+ * `TRIP_NOTES_KEY` je v úložisku ZÁMERNE — má prežiť reload, inak zhrnutie v kroku 4 tvrdí,
+ * že človek neoznačil nič (to bola oprava z 23. 8.). Lenže prežíva aj to, čo prežiť nemá:
+ * keď sa pridávanie skončí inak než cez `closeAdd()` — človek zavrie záložku, iOS zahodí
+ * stránku na pozadí, alebo pri návrate odmietne obnovu — zoznam v úložisku ostane a NAČÍTA
+ * SA DO ĎALŠIEHO VÝLETU. Ten potom začína s cudzími značkami a s bodmi za ne.
+ *
+ * Zmazať sa nedali z dvoch strán naraz: v kroku 4 je zoznam zámerne len na čítanie
+ * (zhrnutie sa needituje) a staršie zápisy sú holé reťazce bez `id`, teda sa nedá povedať,
+ * ktorú značku na mape má ísť appka zmazať.
+ *
+ * SPRÁVNA VÄZBA JE NA DRAFT. Rozrobený výlet žije v `readAddDraft()`; kým existuje, značky
+ * k nemu patria a musia sa obnoviť s ním. Keď draft neexistuje, niet čo obnovovať —
+ * a čokoľvek v tomto kľúči je zvyšok po minulom pokuse. Preto sa nielen ignoruje, ale
+ * rovno UPRACE: inak by ležal ďalej a čakal na ďalší reload.
+ */
+export function readTripNotesForSession(): TripNoteRef[] {
+  if (readAddDraft()) return readTripNotes();
+  clearTripNotes();
+  return [];
 }
 
 export function clearAddDraft(): void {

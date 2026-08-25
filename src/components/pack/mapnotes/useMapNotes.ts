@@ -39,9 +39,12 @@ export function useMapNotes(enabled = true) {
 
   useEffect(() => { void reload(); }, [reload]);
 
+  // VRACIA `id` NOVEJ ZNAČKY. Sprievodca výletu si podľa neho pamätá, čo počas TOHTO
+  // pridávania vzniklo, a vie to z chipu v zhrnutí zmazať (viď `TripNoteRef`).
   const add = useCallback(async (n: NewMapNote) => {
-    await addMapNote(n);
+    const id = await addMapNote(n);
     await reload();
+    return id;
   }, [reload]);
 
   const vote = useCallback(async (id: string, valid: boolean | null) => {

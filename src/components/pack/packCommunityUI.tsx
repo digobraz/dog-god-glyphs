@@ -460,7 +460,24 @@ export const COMMUNITY_CSS = `
 .comm-comp-dog-av.ph{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);}
 .comm-comp-dog span{font-size:12.5px;color:${T.onDark};}
 .comm-comp-dog .plus{margin-left:2px;color:${GOLD};font-size:15px;font-weight:600;line-height:1;}
+/* ⚠️ VYBRATÝ PES SVIETI NAZELENO, NIE NAZLATO (Matej 2026-08-25: „musí tam svietiť hlavy
+   psov a po kliknutí sa zazelenajú"). Zlatá na tejto obrazovke znamená „tu si" a nesie ju
+   postup krokov; zelená znamená HOTOVO — tá istá, akou svieti dokončený krok v číselníku
+   a splnená značka na trase (GROUP_TINT.comment). Jeden význam, jedna farba. */
+.comm-comp-dog.on{background:rgba(58,150,88,0.18);border-color:#3A9658;}
+.comm-comp-dog.on .comm-comp-dog-av{box-shadow:0 0 0 2px #3A9658;}
+/* Zbalené + pred otvorením poľa s menami. Nie zlaté CTA — je to rozbalenie, nie akcia kroku. */
+.comm-comp-openothers{display:flex;align-items:center;gap:9px;width:100%;padding:10px 12px;margin-top:10px;border-radius:10px;background:rgba(245,240,228,0.04);border:1px dashed ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:12px;cursor:pointer;}
+.comm-comp-openothers:hover{border-color:${GOLD};color:${T.onDark};}
+.comm-comp-openplus{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:rgba(201,154,63,0.16);color:${GOLD};font-size:15px;line-height:1;}
 .comm-comp-searchwrap{position:relative;}
+.comm-comp-searchrow{display:flex;gap:8px;align-items:stretch;}
+.comm-comp-searchrow .comm-input{flex:1 1 auto;min-width:0;}
+/* Štvorec vedľa poľa, nie zlaté CTA: zlatá je vyhradená hlavnej akcii obrazovky a tou je
+   ĎALEJ dole. Toto je pomocné potvrdenie jedného poľa. */
+.comm-comp-addbtn{flex:0 0 auto;width:44px;border-radius:9px;background:rgba(201,154,63,0.14);border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:20px;line-height:1;cursor:pointer;padding:0;}
+.comm-comp-addbtn:disabled{opacity:.38;cursor:default;}
+.comm-comp-addbtn:not(:disabled):hover{border-color:${GOLD};}
 .comm-comp-sug{position:absolute;top:calc(100% + 6px);left:0;right:0;background:rgba(6,5,3,0.96);backdrop-filter:blur(8px);border:1px solid ${T.onDarkBorder};border-radius:11px;overflow:hidden;box-shadow:0 12px 34px rgba(0,0,0,0.55);z-index:30;max-height:210px;overflow-y:auto;}
 .comm-comp-sugitem{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-bottom:1px solid ${T.onDarkHair};}
 .comm-comp-sugitem:last-child{border-bottom:0;}
@@ -987,6 +1004,9 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
   // nadpisom SVORKA NA VÝLETE stálo „Add other companions" a „Type a name and press Enter…".
   const t = useT();
   const [q, setQ] = useState('');
+  // Otvorí sa samo, keď už nejaký človek vybratý je — inak by po návrate do kroku 5 vyzeralo,
+  // že sa vybraté mená stratili.
+  const [othersOpen, setOthersOpen] = useState(() => selected.some((c) => !c.key.startsWith('dog-')));
   const selectedKeys = new Set(selected.map((c) => c.key));
   const add = (c: Companion) => { if (!selectedKeys.has(c.key)) onChange([...selected, c]); };
   const remove = (key: string) => onChange(selected.filter((c) => c.key !== key));
@@ -1040,16 +1060,55 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
           </div>
         </>
       )}
+      {/* ── MENÁ ĽUDÍ SA OTVÁRAJÚ, NESTOJA OTVORENÉ (Matej 2026-08-25) ──────────────────
+          „musíme zjednodušiť to pridávanie členov — je to matúce… musí tam svietiť hlavy
+           psov a po kliknutí sa zazelenajú a potom bude +, ktoré otvorí textareu, kde môže
+           človek písať mená dogypťanov."
+          Matúce to bolo tým, že sa naraz ponúkali DVE rôzne veci: hlavy psov (jeden ťuk)
+          a textové pole (napíš a potvrď). Pole vyzeralo ako hlavná cesta, hoci väčšina
+          výletov je „ja a môj pes" a stačil ten jeden ťuk. Teraz je viditeľné len +;
+          kto ho potrebuje, otvorí si ho. */}
+      {!othersOpen && (
+        <button type="button" className="comm-comp-openothers" onClick={() => setOthersOpen(true)}>
+          <span className="comm-comp-openplus">+</span>
+          <span>{t('pack.companions.addOthers')}</span>
+        </button>
+      )}
+      {othersOpen && (
+      <>
       <div className="comm-comp-grouplabel">{t('pack.companions.addOthers')}</div>
+      {/* ── PRIDANIE NESMIE VISIEŤ NA ENTERI (Matej 2026-08-25) ──────────────────────────
+          „nefunguje načítanie členov podľa mena… každopádne ak to tam bude, musí to byť
+           funkčné."
+          Pole fungovalo — len jedinou cestou dnu bol Enter, a na telefónnej klávesnici je
+          tam „hotovo"/„prejsť", nie zjavné potvrdenie. Kto meno napísal a ťukol vedľa,
+          nedostal nič a pole vyzeralo pokazené. Tlačidlo je viditeľné potvrdenie tej istej
+          akcie; Enter funguje ďalej pre toho, kto píše na klávesnici.
+          ⚠️ Vypnuté, kým nie je čo pridať — tlačidlo, ktoré po ťuknutí mlčí, je ten istý
+          problém len o krok neskôr. */}
       <div className="comm-comp-searchwrap">
-        <input
-          className="comm-input"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
-          placeholder={t('pack.companions.typeName')}
-        />
+        <div className="comm-comp-searchrow">
+          <input
+            className="comm-input"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addTyped(); } }}
+            placeholder={t('pack.companions.typeName')}
+          />
+          <button
+            type="button"
+            className="comm-comp-addbtn"
+            onClick={addTyped}
+            disabled={!q.trim()}
+            aria-label={t('pack.companions.addTyped')}
+            title={t('pack.companions.addTyped')}
+          >
+            +
+          </button>
+        </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

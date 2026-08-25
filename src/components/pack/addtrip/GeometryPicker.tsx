@@ -14,6 +14,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { createPortal } from 'react-dom';
 import L from 'leaflet';
+import { dockFitPadding } from '@/components/pack/mapDockShape';
+import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
@@ -23,11 +25,13 @@ import {
   type GeometryKind,
   type TripGeometry,
 } from './addTripModel';
-import { SPACING, calibratedAscent, hav, interp, totalDistanceM } from './addTripGeo';
+import { SPACING, calibratedAscent, calibratedDescent, hav, interp, totalDistanceM } from './addTripGeo';
+import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import { TRAIL_LINE, TRAIL_SABER_LAYERS, trailSaberScale, ensureTrailLineCss } from '@/components/pack/tripShared';
 import { useLongPressPoint } from '@/components/pack/mapnotes/useLongPressPoint';
 import { PlaceSearch } from './PlaceSearch';
 import { AinubisGuide, AINUBIS_GUIDE_CSS } from './AinubisGuide';
+import { MAP_DOCK_CSS, DOCK_COL_W, DOCK_MOBILE_MAX } from '@/components/pack/mapDockShape';
 import { HandTrash, HandArrowLeft } from '@/components/pack/HandIcons';
 import { EVENT_RIM, FONT_EMOJI, TRIP_TARGET_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
@@ -65,8 +69,18 @@ export type GeometryPickerProps = {
   mode: 'plan' | 'log';
   allTrails: HeroTrail[];
   onPickExisting?: (trail: HeroTrail) => void;
-  onMetrics?: (m: { km: number; ascentM: number | null; points: number }) => void;
+  onMetrics?: (m: { km: number; ascentM: number | null; minutes: number | null; points: number }) => void;
   mapRef: React.MutableRefObject<LeafletMap | null>;
+  /**
+   * ZRKADLENIE TRASY NA POŽIADANIE ZVONKA (Matej 2026-08-25).
+   *
+   * Tlačidlo „DOPLNIŤ TÚ ISTÚ CESTU SPÄŤ" stojí v AInubisovom dialógu, ktorý žije
+   * v `AddTripLog` — ale zdvojiť trasu vie len picker: potrebuje `legsRef` (stopa po úsekoch),
+   * `buildSnapPath` aj prepočet prevýšenia, a všetko troje je jeho vnútro. Prenášať ich hore
+   * by z jedného zdroja pravdy spravilo dva, takže hore ide LEN spúšťač.
+   * ⚠️ Ref, nie callback v `drawBar`: dialóg sa pýta v inom kroku, než v akom lišta žije.
+   */
+  mirrorRef?: React.MutableRefObject<(() => void) | null>;
   /**
    * LIŠTA KRESLENIA (beh 2, rez B — Matej 22. 8.: „musí to zvládnuť človek po ceste v aute").
    *
@@ -180,11 +194,18 @@ export function findDuplicate(geometry: TripGeometry, allTrails: HeroTrail[]): H
 //
 // 12 → 14 (Matej 24. 8. 2026: „kreslenie trasy sa musí dať pri bližšom zoome, teraz je to
 // moc z diaľky"). Pri z12 vidno pás ~19 km — vtedy jeden pixel nesie ~40 m, takže kotva sadne
-// o pol ulice vedľa a prichytávanie na chodník si vyberie cudzí chodník. Pri z14 je to pás
-// ~5 km, kde sú jednotlivé cesty od seba rozoznateľné a stále sa naň zmestí bežná
-// celodenná trasa. Vyššie sa ísť nedá bez toho, aby sa hrebeňovka musela kresliť
-// po častiach s posúvaním mapy medzi kotvami.
-export const TRIP_HOLD_MIN_ZOOM = 14;
+// o pol ulice vedľa a prichytávanie na chodník si vyberie cudzí chodník.
+//
+// 14 → 15 (Matej 25. 8. 2026, na telefóne: „prah odkedy sa može začať kresliť musíš ešte
+// posunúť, lebo začína moc vysoko — musí to byť ešte nižšie = viac z blízka").
+// ⚠️ VEDOMÁ VÝMENA, ktorú tu 24. 8. stálo napísané ako „vyššie sa ísť nedá": pri z15 je
+// viditeľný pás ~2,5 km, takže celodenná trasa sa na obrazovku UŽ NEZMESTÍ a človek medzi
+// kotvami posúva mapu. Matej to videl na reálnom telefóne a rozhodol, že rozoznateľnosť
+// chodníka je dôležitejšia než nakreslenie na jeden záber — a má to oporu: kotva, ktorá
+// sadne na cudzí chodník, sa opravuje ťažšie než posunutie mapy.
+// Ďalší (a posledný) stupeň by bolo 16, čo je presne `MIN_ZOOM_FOR_NOTE` — vtedy by prah
+// kreslenia a prah značiek splynuli do jedného čísla.
+export const TRIP_HOLD_MIN_ZOOM = 15;
 /** Priblíženie, na akom sa mapa otvára (prehľad krajiny) = 0 % ukazovateľa priblíženia. */
 const ZOOM_BAR_FROM = 7;
 
@@ -208,6 +229,7 @@ export function GeometryPicker({
   onPickExisting,
   onMetrics,
   mapRef,
+  mirrorRef,
   drawBar,
 }: GeometryPickerProps) {
   const t = useT();
@@ -219,6 +241,9 @@ export function GeometryPicker({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [ascent, setAscent] = useState<number | null>(null);
+  // Klesanie sa počíta z tej istej stopy a tých istých výšok ako stúpanie — je to len druhé
+  // znamienko, takže nemá vlastné načítavanie ani vlastný `pending`.
+  const [descent, setDescent] = useState<number | null>(null);
   const [elevPending, setElevPending] = useState(false);
 
   const allowed = useMemo(() => allowedKindsFor(activity), [activity]);
@@ -275,28 +300,33 @@ export function GeometryPicker({
     onMetrics?.({
       km: isMinimal ? 0 : km,
       ascentM: isMinimal ? null : ascent,
+      // ⚠️ ČAS IDE DO VÝLETU, NEPOČÍTA SA ZNOVA PRI ZOBRAZENÍ (Matej 2026-08-25: „tempo musíme
+      // pridať do tripu"). Prepočet na karte by potreboval prevýšenie, ktoré tam nie je —
+      // a keby sa raz zmenilo tempo, staré výlety by ticho zmenili čas.
+      minutes: isMinimal ? null : estimateTripMinutes(km, ascent, descent),
       points: value.kind === 'route' ? value.path.length : 0,
     });
-  }, [km, ascent, value, onMetrics, isMinimal]);
+  }, [km, ascent, descent, value, onMetrics, isMinimal]);
 
   // ── prepočet prevýšenia — CELÁ trasa odznova (§5.2a) ──────────────────────────────────
   // KRITICKÉ: prevýšenie sa NESMIE sčítavať po segmentoch. Batch skript (compute-ascent.py)
   // prevzorkuje celú stopu na 100 m a až potom počíta stúpanie; ak by sme pripočítavali každý
   // nový úsek k predošlému súčtu, dostaneme iné číslo než dataset a tripy sa rozídu.
   const recomputeAscent = useCallback(async (path: LatLngTuple[]) => {
-    if (path.length < 2) { setAscent(null); setElevPending(false); return; }
+    if (path.length < 2) { setAscent(null); setDescent(null); setElevPending(false); return; }
     const run = ++runRef.current;
     const sampled = interp(path, SPACING);
 
     // najprv z toho, čo už je v cache — číslo naskočí okamžite a dopresní sa po dotiahnutí
     const missing = missingElevationCount(sampled);
     setElevPending(missing > 0);
-    if (missing < sampled.length) setAscent(calibratedAscent(path, elevAt));
+    if (missing < sampled.length) { setAscent(calibratedAscent(path, elevAt)); setDescent(calibratedDescent(path, elevAt)); }
 
     if (missing > 0) {
       await ensureElevations(sampled);
       if (run !== runRef.current) return; // medzitým prišiel novší klik
       setAscent(calibratedAscent(path, elevAt));
+      setDescent(calibratedDescent(path, elevAt));
       setElevPending(missingElevationCount(sampled) > 0);
     }
   }, []);
@@ -462,9 +492,72 @@ export function GeometryPicker({
   }, [value, ensureLegs]);
 
 
-  /* mirrorBack a closeLoop ZMAZANE 24. 8. 2026 spolu s otazkou "ako si sa vracal".
-     Zrkadlenie trasy aj uzavretie okruhu robi clovek sam tym, kam klikne - appka mu na to
-     nepotrebuje davat tlacidlo, ked ma trasu pred sebou nakreslenu. */
+  /**
+   * ── ZDVOJENIE TRASY: TOU ISTOU CESTOU SPÄŤ ─────────────────────────────────────────────
+   *
+   * Zmazané 24. 8. spolu s povinnou otázkou „ako si sa vracal", obnovené 25. 8. — Matej:
+   * „pri popupe doplním návrat by sa možno hodilo tlačítko — doplním návrat iná cesta
+   *  naspať (okruh) alebo doplniť automaticky tá istá cesta spať."
+   *
+   * ⚠️ NIE JE TO NÁVRAT ZMAZANÉHO KROKU, a preto to nie je otočka o 180°. Zaniklo POVINNÉ
+   * rozcestie, ktoré appka kládla KAŽDÉMU po dokreslení trasy; toto je ponuka, ktorú dostane
+   * len ten, komu trasa nekončí tam, kde začala — a len ako odpoveď na AInubisovu otázku.
+   * Rozdiel je v tom, koho sa to pýta: predtým všetkých, teraz jedného.
+   *
+   * ⚠️ ZRKADLÍ SA AJ STOPA, NIE LEN KOTVY. Bez otočených úsekov by sa cesta domov nakreslila
+   * vzdušnou čiarou cez kopec, kým tam sa vinie po chodníku.
+   * `mirroredFrom` drží počet pôvodných kotiev — číta ho undo, ktoré zdvojenie vracia CELÉ
+   * (inak by ostala pol trasy tam a pol späť, bez možnosti to opraviť inak než VYMAZAŤ).
+   */
+  const mirrorBack = useCallback(() => {
+    if (value.kind !== 'route' || value.path.length < 2) return;
+    const anchors = value.path;
+    const n = anchors.length;
+    ensureLegs(anchors, value.snapPath);
+    const legs = legsRef.current.slice(0, n - 1);
+    const mirroredAnchors = [...anchors, ...anchors.slice(0, -1).reverse()];
+    legsRef.current = [...legs, ...legs.slice().reverse().map((leg) => leg.slice().reverse())];
+    const snapPath = buildSnapPath(mirroredAnchors);
+    setRoute({
+      path: mirroredAnchors,
+      snapPath,
+      returnMode: 'mirror',
+      mirroredFrom: n,
+      // cieľ ostáva tam, kde bol — je to stále ten istý vrchol, len sa z neho ide domov
+      targetIdx: value.targetIdx,
+    });
+    void recomputeAscent(snapPath);
+    /**
+     * ⚠️ PO ZDVOJENÍ MUSÍ BYŤ VIDNO CELÚ TRASU (Matej 2026-08-25) ─────────────────────────
+     *
+     * „klikol som doplniť naspäť a obrazovku mi oddialilo na celú krajinu… nie na výber
+     *  trasy — opäť musím zoomovať, aby som skontroloval, či je dobre, predtým než kliknem
+     *  trasa hotová."
+     *
+     * Rámovanie je tu POVINNÉ, nie pohodlie: appka práve pridala polovicu trasy, ktorú
+     * človek nenakreslil. Musí ju vidieť skôr, než potvrdí — inak potvrdzuje naslepo.
+     * A keďže zdvojená trasa je dvakrát dlhšia než pôvodná, výrez by aj tak nesedel.
+     * Rezerva je spoločná (`dockFitPadding`): dole dok, hore bublina AInubisa.
+     */
+    const map = mapRef.current;
+    if (map && snapPath.length >= 2) {
+      map.fitBounds(L.latLngBounds(snapPath), { ...dockFitPadding(notePanelH()), animate: true, duration: 0.4 });
+    }
+  }, [value, setRoute, buildSnapPath, recomputeAscent, ensureLegs, mapRef]);
+
+  // Spúšťač hore. Registruje sa až keď je čo zrkadliť, takže dialóg vie tlačidlo skryť
+  // podľa toho, či je ref naplnený — nie podľa vlastného odhadu o stave trasy.
+  useEffect(() => {
+    if (!mirrorRef) return;
+    mirrorRef.current = mirrorBack;
+    return () => { mirrorRef.current = null; };
+  }, [mirrorRef, mirrorBack]);
+
+  /* closeLoop ZMAZANY 24. 8. 2026 a NEVRACIA SA (rozhodnutie Mateja 25. 8.): uzavrel okruh
+     tak, ze poslednu kotvu spojil so startom cez router — a ten voli NAJKRATSIU cestu, teda
+     skoro vzdy tu istu, po ktorej clovek prisiel. Tlacidlo "vratil som sa inou cestou" by
+     teda kreslilo cestu, ktorou nesiel, a este ju oznacilo za okruh. Kadial sa vracal vie
+     len on, tak si to dokresli sam. */
 
   /* ⚠️ `setMinimal` ZMAZANÝ 24. 8. 2026 spolu s ponukou „neviem to nakresliť" (Matej: „to
      nebudeme tolerovať"). Prepínal geometriu na najmenší zápis; keď sa ten stav nedá vyvolať,
@@ -527,7 +620,7 @@ export function GeometryPicker({
       legsRef.current = legsRef.current.slice(0, Math.max(0, anchors.length - 1));
       const snapPath = anchors.length > 1 ? buildSnapPath(anchors) : undefined;
       setRoute({ path: anchors, snapPath, mirroredFrom: undefined, returnMode: undefined });
-      if (snapPath) void recomputeAscent(snapPath); else setAscent(null);
+      if (snapPath) void recomputeAscent(snapPath); else { setAscent(null); setDescent(null); }
       return;
     }
 
@@ -543,12 +636,13 @@ export function GeometryPicker({
       targetIdx: nextTarget,
       returnMode: nextTarget === undefined ? undefined : value.returnMode,
     });
-    if (snapPath) void recomputeAscent(snapPath); else setAscent(null);
+    if (snapPath) void recomputeAscent(snapPath); else { setAscent(null); setDescent(null); }
   }, [value, setRoute, buildSnapPath, recomputeAscent, ensureLegs]);
 
   const clear = useCallback(() => {
     legsRef.current = [];
     setAscent(null);
+    setDescent(null);
     setNotice(null);
     // Cieľ, spôsob návratu ani zrkadlenie neprežijú vymazanie trasy — sú to vlastnosti tej
     // trasy, nie nastavenie formulára. Príznak najmenšieho zápisu ÁNO: človek si režim
@@ -564,6 +658,7 @@ export function GeometryPicker({
     if (k === value.kind) return;
     legsRef.current = [];
     setAscent(null);
+    setDescent(null);
     setNotice(null);
     if (k === 'route') onChange({ kind: 'route', path: [], snapPath: undefined, snapped: false });
     else if (k === 'point') onChange({ kind: 'point', center: undefined as unknown as LatLngTuple });
@@ -844,6 +939,17 @@ export function GeometryPicker({
             {km.toFixed(1)} km
             <span style={{ color: T.onDarkDim }}> · </span>
             ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
+            {/* ⚠️ ČAS JE ODHAD, NIE MERANIE (Matej 2026-08-25: „pridaj tam aj čas").
+                Vlnovka je súčasťou hodnoty — bez nej to vyzerá ako údaj z hodiniek.
+                Nečaká sa na výšky: rovinná zložka je známa hneď a je to väčšina času,
+                po dotiahnutí prevýšenia sa číslo samo posunie nahor. Prázdny stĺpec
+                s tromi bodkami by tu bol horší než hrubší odhad. */}
+            {formatTripTime(estimateTripMinutes(km, ascent, descent)) && (
+              <>
+                <span style={{ color: T.onDarkDim }}> · </span>
+                <span title={t('pack.addTrip.geo.timeNote')}>{formatTripTime(estimateTripMinutes(km, ascent, descent))}</span>
+              </>
+            )}
             <span style={{ color: T.onDarkDim }}> · {t(`pack.addTrip.geo.pointsSuffix.${pointCount === 1 ? 'one' : pointCount < 5 ? 'few' : 'many'}`, { n: pointCount })}</span>
           </>
   ) : value.center ? (
@@ -992,6 +1098,7 @@ export function GeometryPicker({
           v tvare doku (dole cez celú šírku vs. plávajúca karta na strede). */}
       {barOn && drawBar && createPortal(
         <>
+        <style>{MAP_DOCK_CSS}</style>
         <style>{DRAW_BAR_CSS}</style>
         <style>{AINUBIS_GUIDE_CSS}</style>
         <style>{CIRCLE_MARK_CSS}</style>
@@ -1048,7 +1155,7 @@ export function GeometryPicker({
         {readoutRow}
 
         {stage === 0 && !drawBar.panel && (
-          <div className="trp-dstart">
+          <div className="trp-dstart trp-dockpanel">
             {/* ⚠️ ZLATÝ PRÚŽOK PRIBLÍŽENIA ZANIKOL (Matej 24. 8. 2026: „nebudeme potrebovať
                 progresbar pri priblížení ale ainubis napíše"). Otázku „koľko ešte?", kvôli
                 ktorej 23. 8. vznikol, odpovedá teraz AInubis stupňovanými vetami
@@ -1067,12 +1174,12 @@ export function GeometryPicker({
             Stojí NAD podmienkou `stage`: v kroku 2 je trasa hotová, takže by sa `stage`
             aj tak rovnalo 2, ale panel nesmie závisieť od toho, čo je nakreslené. */}
         {drawBar.panel ? (
-          <div className="trp-dbar">
+          <div className="trp-dbar trp-dockpanel">
             {drawBar.panel}
             {backLink}
           </div>
         ) : stage > 0 ? (
-        <div className="trp-dbar">
+        <div className="trp-dbar trp-dockpanel">
           {/* MEDZIKROK "AKO TO ZAPISES" ZANIKOL 24. 8. 2026 (vid stage hore). Stala tu
               dvojica "kreslit trasu / oznacit len ciel"; druha moznost je zrusena a otazka
               s jedinou odpovedou je len klik navyse medzi clovekom a kreslenim. */}
@@ -1337,7 +1444,7 @@ const DRAW_BAR_CSS = `
 /* KROK 0 — panel s hľadaním miesta. VZDUŠNEJŠÍ (Matej 23. 8.: „panel urob vyšší vzdušnejší,
    text area je moc nízko") — pole potrebuje vzduch nad aj pod sebou, inak sedí na hrane
    displeja a na telefóne ho prekrýva systémová lišta. */
-.trp-dstart{box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:20px 16px calc(22px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
+.trp-dstart{display:flex;flex-direction:column;gap:14px;}
 /* NÁVRAT — podčiarknutý text v strede pod panelom. Šípka v rohu brala mape výšku a palec
    na ňu nedosiahol; text zaberie riadok a povie aj KAM sa vracia. */
 .trp-dback{align-self:center;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
@@ -1368,8 +1475,12 @@ const DRAW_BAR_CSS = `
    max-height by ho nechal skákať zdola. Čo sa nezmestí, skroluje SA VNÚTRI —
    overscroll-behavior drží ťah prsta v paneli, aby sa pod ním nehýbala mapa.
    Platí len na telefónnu vetvu; na PC je dok plávajúci ľavý stĺpec s vlastnou výškou. */
-@media (max-width:899px){
-  .trp-dstart,.trp-dbar{height:33vh;max-height:33vh;overflow-y:auto;overscroll-behavior:contain;}
+/* Výšku 33vh nesie .trp-dockpanel (mapDockShape.ts) — spoločne s panelom značky. Tu ostáva
+   len to, čo je vlastné DOKU: čo sa doň nezmestí, skroluje sa celé (formulár značky proti tomu
+   skroluje len svoj stred). overscroll-behavior drží ťah prsta v paneli, aby sa pod ním
+   nehýbala mapa. */
+@media (max-width:${DOCK_MOBILE_MAX}px){
+  .trp-dstart,.trp-dbar{overflow-y:auto;overscroll-behavior:contain;}
 }
 /* ⚠️ MUSÍ TO BYŤ "safe center", NIE holé "center" (CLAUDE.md, tá istá pasca ako pri .atl-tiles).
    Holé center v skrolovacom kontajneri pretlačí prvý prvok NAD začiatok skrolu, keď sa obsah
@@ -1383,7 +1494,7 @@ const DRAW_BAR_CSS = `
    pri 56 px sa tlačidlo bodiek DOTÝKALO. */
 .trp-dstart,.trp-dbar{position:relative;justify-content:center;}
 .trp-dstart,.trp-dbar{justify-content:safe center;}
-.trp-dbar{box-sizing:border-box;min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:12px;padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px));background:rgba(18,13,7,0.94);backdrop-filter:blur(12px);border-top:1px solid ${T.onDarkBorder};box-shadow:0 -14px 40px rgba(0,0,0,0.45);}
+.trp-dbar{min-height:${DRAW_BAR_H}px;display:flex;flex-direction:column;gap:12px;}
 .trp-dbar-read{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:20px;}
 .trp-dbar-row{display:flex;gap:8px;}
 .trp-dbar-btn{flex:1 1 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 10px;border-radius:8px;background:${T.glass};border:1px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;}
@@ -1426,16 +1537,15 @@ const DRAW_BAR_CSS = `
    vlastné šírky, blok by pri prechode z kroku 2 do 3 skočil na inú šírku a vyzeralo by to
    ako dva rôzne panely. Preto tu nie je vlastná konštanta — je to tá istá miera.
 
-   ⚠️ ZAROVNANÉ HORE, NIE DOLE. Ponuka miest v hľadaní rastie NADOL od poľa
-   (position:absolute, top:calc(100% + 6px)) — pri doku zavesenom na spodnej hrane vytiekla
-   pod okno a nedala sa dočítať. Zhora má pod sebou celú výšku bloku. */
+   ⚠️ ZAROVNANÉ HORE, NIE DOLE. Blok rastie zhora nadol tak, ako doňho pribúda obsah —
+   pri zavesení na spodnú hranu by pri každom prepnutí kroku odskočil jeho vrchol.
+   (Do 24. 8. tu stál druhý dôvod: ponuka miest v hľadaní vytekala pod okno. Ten padol —
+   ponuka sa odvtedy renderuje na <body> a smer si volí podľa miesta, viď PlaceSearch.tsx.) */
 @media (min-width:1024px){
-  .trp-dock{top:20px;bottom:20px;left:20px;right:auto;width:440px;max-width:calc(100vw - 40px);justify-content:flex-start;align-items:stretch;}
-  /* Blok PLÁVA nad mapou, takže bezpečná zóna telefónu tu nemá čo robiť — inak má panel
-     nesúmerne hrubú spodnú výplň. */
-  .trp-dock .trp-dbar,.trp-dock .trp-dstart{border:1px solid ${T.onDarkBorder};border-radius:16px;box-shadow:0 18px 48px rgba(0,0,0,0.50);}
-  .trp-dock .trp-dbar{padding-bottom:20px;}
-  .trp-dock .trp-dstart{padding-bottom:22px;}
+  .trp-dock{top:20px;bottom:20px;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);justify-content:flex-start;align-items:stretch;}
+  /* Rám, zaoblenie aj spodná výplň prišli do .trp-dockpanel (mapDockShape.ts) — panel
+     značky ich musí mať rovnaké, inak sa na PC pri zapichovaní zmení tvar rovnako ako
+     na telefóne. */
   /* Pokyn stojí v bloku nad panelom, nie v mape: na PC je mapa pracovná plocha a pilulka
      v jej strede by prekážala tomu istému, čomu prekážal dok. */
   /* ČÍTANIE OSTÁVA NAD MAPOU, odsadené o blok — je to jediné číslo, ktoré počas kreslenia
