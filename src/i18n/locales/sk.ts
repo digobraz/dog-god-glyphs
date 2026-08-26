@@ -1899,6 +1899,7 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.geo.zoomInFirst': "Priblíž si mapu — alebo si nájdi miesto nižšie",
   'pack.addTrip.geo.startHoldSpot': "Dlhým stlačením na mape označ cieľ",
   'pack.addTrip.geo.continueTap': "Ťukaním na značené aj neznačené chodníčky vytvor trasu.",
+  'pack.addTrip.geo.continueClick': "Klikaním na značené aj neznačené chodníčky vytvor trasu.",
   'pack.addTrip.geo.routeDone': "Trasa",
   'pack.addTrip.log.titleActivity': "Vyber aktivitu",
   'pack.addTrip.log.titleActivitySub': "Zapíš výlet, ktorý si už prešiel — inšpiruj druhých. Alebo si ho naplánuj a pozvi naň aj ostatných.",
@@ -1920,6 +1921,9 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.ainubis.closer': "Ešte priblíž…",
   'pack.addTrip.ainubis.closerMore': "Ešte kúsok — pokračuj v približovaní…",
   'pack.addTrip.ainubis.zoomOk': "Super. Teraz zvoľ štartovací bod — dlhým stlačením zaháj trasu tam, kde ste vyrazili.",
+  // PC vetva tej istej chvíle — myš nedrží, myš klikne (viď `needsHold` v GeometryPicker.tsx).
+  'pack.addTrip.ainubis.zoomOkClick': "Super. Teraz zvoľ štartovací bod — klikni tam, kde ste vyrazili.",
+  'pack.addTrip.ainubis.zoomOkClick.plan': "Super. Teraz klikni tam, odkiaľ vyrazíte — tým sa začne trasa.",
   'pack.addTrip.geo.leaveToMap': "Späť na mapu — odísť",
   'pack.addTrip.ainubis.drawDone': "Klikaj ďalej a vytvor celú trasu. Keď si tam, kde ste skončili, daj HOTOVO.",
   'pack.addTrip.ainubis.routeLooksDone': "Super — vyzerá to na hotovú trasu. Ak sedí, daj HOTOVO.",
@@ -2154,6 +2158,10 @@ export const sk: Partial<Dict> = {
   'pack.addTrip.step.difficulty': "Náročnosť",
   'pack.addTrip.step.terrain': "Povrch",
   'pack.addTrip.step.storyPlaceholder': "Popíš vaše dobrodružstvo a príbeh — alebo odovzdaj tipy a cenné rady, ktoré môžu pomôcť druhým.",
+  'pack.addTrip.step.expandEditor': "Otvoriť na celú obrazovku",
+  'pack.addTrip.step.editorDone': "Hotovo",
+  // §7.1 — prečo sú kroky 1–2 pri dopĺňaní konceptu mŕtve (Matej 2026-08-26)
+  'pack.addTrip.step.lockedInDraft': "Trasu a odkazy pri dopĺňaní meniť nejde — sú uložené z pôvodného zápisu.",
   'pack.addTrip.step.whoWasWithYou': "Kto bol s tebou na výlete?",
   'pack.addTrip.step.rate': "Ohodnoť výlet",
   'pack.addTrip.step.photos': "Fotky",

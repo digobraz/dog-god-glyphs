@@ -1966,6 +1966,7 @@ export const en = {
   'pack.addTrip.geo.zoomInFirst': "Zoom in — or find a place below",
   'pack.addTrip.geo.startHoldSpot': "Press and hold on the map to mark the destination",
   'pack.addTrip.geo.continueTap': "Tap along the paths — marked or not — to build your route.",
+  'pack.addTrip.geo.continueClick': "Click along the paths — marked or not — to build your route.",
   'pack.addTrip.geo.routeDone': "Route",
   // Jeden formulár výletu (rez C) — o type rozhoduje dátum, nie otázka navyše.
   'pack.addTrip.log.titleActivity': "Pick an activity",
@@ -2003,6 +2004,9 @@ export const en = {
   'pack.addTrip.ainubis.closer': "Zoom in a bit more\u2026",
   'pack.addTrip.ainubis.closerMore': "Almost there \u2014 keep zooming in\u2026",
   'pack.addTrip.ainubis.zoomOk': "Perfect. Now press and hold where you set off \u2014 that starts the route.",
+  // Desktop wording for the same moment \u2014 a mouse clicks, it does not hold.
+  'pack.addTrip.ainubis.zoomOkClick': "Perfect. Now click where you set off \u2014 that starts the route.",
+  'pack.addTrip.ainubis.zoomOkClick.plan': "Perfect. Now click where you'll set off \u2014 that starts the route.",
   'pack.addTrip.geo.leaveToMap': "Back to the map \u2014 leave",
   'pack.addTrip.ainubis.drawDone': "Keep tapping and build the whole route. When you're back where you finished, hit DONE.",
   'pack.addTrip.ainubis.routeLooksDone': "Nice — looks like a finished route. If it fits, hit DONE.",
@@ -2257,6 +2261,11 @@ export const en = {
   'pack.addTrip.step.terrain': "Terrain",
   'pack.addTrip.step.whoWasWithYou': "Who was with you on this trip?",
   'pack.addTrip.step.storyPlaceholder': "Tell the story of your adventure — or pass on tips and advice that could help others.",
+  // §4.5 — príbeh výletu sa dá otvoriť na celú obrazovku (Matej 2026-08-26)
+  'pack.addTrip.step.expandEditor': "Open full screen",
+  'pack.addTrip.step.editorDone': "Done",
+  // §7.1 — prečo sú kroky 1–2 pri dopĺňaní konceptu mŕtve (Matej 2026-08-26)
+  'pack.addTrip.step.lockedInDraft': "Route and marks are locked here — they are saved from the original entry.",
   'pack.addTrip.step.rate': "Rate this trip",
   'pack.addTrip.step.photos': "Photos",
   'pack.addTrip.step.choosePhotos': "Choose photos",

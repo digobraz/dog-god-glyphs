@@ -104,8 +104,20 @@ export const NAV_GRAIN_SCREEN_CSS = `
 // jemné škvrny, ale na paneli je z prvej vrstvy svetlý záplav cez celú plochu
 // pri 0.6 alfa. Presne to zhodilo 1. pokus — doska vyzerala krémovo a karty na
 // nej zanikli, hoci farba dosky bola správna.
+//
+// ⚠️ ZASTÁVKY SÚ V PIXELOCH, NIE V PERCENTÁCH (Matej 2026-08-26: „1. krok je blok inej
+// farby ako úvod… bloky musia byť všade rovnaké"). Mal pravdu a príčina nebola vo farbe:
+// gradient v percentách sa VŽDY roztiahne na výšku prvku, takže tá istá deklarácia dala
+// na 860 px vysokom paneli svetlý vrch (spodný odtieň bol až úplne dole) a na 200 px
+// vysokom doku takmer celý spodný odtieň naraz. Dva bloky vedľa seba, jedna deklarácia,
+// dve rôzne farby.
+//
+// V pixeloch prejde plocha rovnakú cestu bez ohľadu na to, aká je vysoká — nízky blok
+// jednoducho nedôjde na koniec. Čísla sú prepočítané z pôvodných percent na výšku ľavého
+// panela (~860 px), aby sa VYSOKÝ panel nezmenil ani o odtieň; mení sa len to, čo robia
+// NÍZKE bloky.
 export const PANEL_SURFACE =
-  'linear-gradient(180deg, #F1DFB6 0%, #E6D3A0 26%, #E0CB94 62%, #DCC68C 100%)';
+  'linear-gradient(180deg, #F1DFB6 0px, #E6D3A0 224px, #E0CB94 533px, #DCC68C 860px)';
 
 /**
  * Rám + doska JEDNÝM elementom, bez vnoreného divu.

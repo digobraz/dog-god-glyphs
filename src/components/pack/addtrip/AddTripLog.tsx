@@ -55,6 +55,26 @@ import {
 
 const GOLD = '#C99A3F';
 
+/**
+ * ── JEDNA FARBA OZNAČENIA V CELOM TOKU (Matej 2026-08-26) ─────────────────────────────────
+ *
+ * „výbery možností musia byť vizuálnejšie, teraz je to fádne… treba zvoliť jednotnú farbu
+ *  označenia — napr zelenú nech je to na prvý pohľad viditeľné."
+ *
+ * Do teraz bolo „vybraté" zlaté pri 14–22 % krytia — teda tá istá farba, akú má rám panela,
+ * doska aj aktívny krok. Na papyruse sa zlatá voľba od zlatého nábytku nedala odlíšiť.
+ *
+ * ⚠️ JE TO TÁ ISTÁ ZELENÁ, AKÁ ZNAMENÁ „SPLNENÉ" (GROUP_TINT.comment = T.growGreen): splnená
+ * možnosť v kroku 2, zelený krok v číselníku aj vybratý chip tu. Jeden význam, jedna farba —
+ * dve zelené vedľa seba by boli horšie než jedna.
+ *
+ * 🟠 FLAG PRE MATEJA: v bežiacom redizajne `/map` nesie „moja voľba a moja akcia" LAPIS
+ * (`navGoldSkin.ts`). Zelená sa tým rozširuje zo „splnené" aj na „vybraté", takže v jednom
+ * paneli stoja vedľa seba lapisové CTA a zelené chipy. Postavené podľa Matejovho výslovného
+ * zadania; ak sa to bude biť, mení sa TENTO token, nie pravidlá po súboroch.
+ */
+const PICK = T.growGreen;
+
 // JOURNEY = VÝBER, NIE KRESLENIE (Matej 2026-07-29, plany/zadanie-journey-pick-2026-07-29.md).
 // `existingTripId` je lokálne rozšírenie AddTripDraft (addTripModel.ts sa needituje) — nesie
 // odkaz na magistrálu z HERO_JOURNEYS, aby konvertor v PackMap.tsx vedel, že nemá vytvárať
@@ -352,6 +372,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [note, setNote] = useState('');
   const [crew, setCrew] = useState<Companion[]>([]);
+  /** §4.5 — príbeh výletu na celú obrazovku. Stav je LEN o tom, kde sa text píše; hodnota
+      je stále `note`, takže sa nedá rozísť s poľom v paneli. */
+  const [storyFull, setStoryFull] = useState(false);
   /**
    * VIDITEĽNOSŤ PLÁNU — pole z bývalého `AddTripPlan`. Konzervatívny default: kým člen
    * výslovne nezvolí „hľadám svorku", plán je súkromný.
@@ -517,6 +540,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // ⚠️ Fotky sa do zálohy NEUKLADAJÚ. Sú to base64 dataURL a niekoľko fotiek prekročí
   // kvótu localStorage — zápis by padol a s ním by sa stratila aj trasa, teda presne to,
   // čo má autosave chrániť. Radšej vrátiť výlet bez fotiek než nevrátiť nič.
+
   const restoredRef = useRef(false);
   const [restored, setRestored] = useState<AddTripDraft | null>(() => {
     // Dopĺňanie konceptu je návrat k ULOŽENÉMU výletu — ponuka „pokračovať v rozrobenom"
@@ -526,6 +550,37 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     // Prázdny náčrt nemá čo obnovovať — ponuka „pokračovať" by bola falošný sľub.
     return d && (d.name || (d.geometry?.kind === 'route' && d.geometry.path?.length)) ? d : null;
   });
+
+  /**
+   * ── VLASTNÝ PES JE PREDVYPLNENÝ, NIE PRÁZDNE MIESTO NA DOKLIKANIE (Matej 2026-08-26) ──
+   *
+   * „kto bol s tebou na výlete tam musí byť už foto psa nie to plus — pes bude automaticky
+   *  pridaný."
+   *
+   * Väčšina výletov je „ja a môj pes"; pýtať sa naň znamená pýtať sa na zrejmé. Kto ho tam
+   * nechce, odklikne ho — ale to je výnimka, a tá má stáť prácu, nie pravidlo.
+   *
+   * ⚠️ BEŽÍ RAZ A LEN NA PRÁZDNU SVORKU. Bez `doneRef` by sa pes vrátil aj potom, čo ho
+   * človek zámerne odobral (odobratie vyrobí prázdne pole ⇒ efekt by ho hneď doplnil späť).
+   * Obnovený draft (`restored.crew`) sa nedotýka z toho istého dôvodu: prázdna svorka v ňom
+   * je ROZHODNUTIE, nie chýbajúci údaj.
+   * ⚠️ Kľúč `dog-<id>` musí sedieť s `toggleDog` v `CompanionPicker` — inak by sa pes zobrazil
+   * ako vybratý a zároveň by jeho pilulka ponúkala „+".
+   */
+  const crewSeededRef = useRef(false);
+  useEffect(() => {
+    if (crewSeededRef.current) return;
+    if (restored) return;
+    const first = myDogs?.[0];
+    if (!first) return;
+    crewSeededRef.current = true;
+    setCrew((prev) => (prev.length ? prev : [{
+      key: `dog-${first.id}`,
+      name: first.name || 'My dog',
+      sub: 'your pack',
+      photo: first.photo ?? undefined,
+    }]));
+  }, [myDogs, restored]);
   /**
    * ⚠️ PO OBNOVE SA MAPA MUSÍ SAMA VRÁTIŤ NA TRASU (Matej 24. 8. 2026: „ak kliknem na
    * pokračovať vo výlete, potrebujem aby ma hneď vrátilo aj zoomom na výlet, bez potreby
@@ -1083,6 +1138,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             className={`atl-ntrack-i${i === noteAsk ? ' on' : ''}${has ? ' ok' : ''}${empty ? ' miss' : ''}`}
             onClick={() => setNoteAsk(i)}
             aria-current={i === noteAsk ? 'step' : undefined}
+            /* ── FARBU AKTÍVNEJ MOŽNOSTI NESIE SKUPINA (Matej 2026-08-26) ────────────────
+               „označené parkovisko musí byť modrou farbou."
+               Do teraz svietila každá z troch možností ZLATO, hoci appka má pre ne tri
+               farby a človek ich pozná z mapy: parkovisko modré, upozornenie červené,
+               tip zelený. Zlatá tu tvrdila „všetky tri sú to isté".
+               ⚠️ FARBA SA NEPÍŠE DO CSS, PODÁVA SA PREMENNOU — `GROUP_TINT` je jediný
+               zdroj (mapa aj panel), takže sa nedá rozísť. */
+            style={{ ['--ntk' as string]: GROUP_TINT[a.group] }}
           >
             <b>{has ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1)}</b>
             <span>{t(`pack.mapNotes.group.${a.group}`)}</span>
@@ -1214,11 +1277,27 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       ...(!isHikeLike || terrain.size > 0 ? [] : ['pack.addTrip.field.surface']),
       ...(crowd ? [] : ['pack.addTrip.field.crowd']),
       ...(tags.size ? [] : ['pack.addTrip.field.tags']),
-      ...(paws > 0 ? [] : ['pack.addTrip.field.paws']),
       // fotka tu ZÁMERNE nie je — viď APPROVAL_REQUIRED v addTripModel.ts
     ],
-    5: [],
-  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isHikeLike, diff, terrain, crowd, tags, paws, photos]);
+    /**
+     * 🔴 HODNOTENIE PATRÍ KROKU 5, LEBO SA VYPĹŇA V KROKU 5 (Matej 2026-08-26).
+     *
+     * „najprv som nezapísal všetko v 4 kroku, keď som sa vďaka tomu že to nesvietilo na
+     *  zeleno vrátil - a opravil, 4 je stále nevýrazná = nezobralo zmenu."
+     *
+     * Nebola to chyba prekreslenia. `paws` sedelo v zozname chýbajúcich pre KROK 4, ale
+     * ovládač (`PawRating`) stojí v KROKU 5 — takže štvorka sa nemala ako stať zelenou,
+     * nech človek v nej doplní čokoľvek. Vracal sa opravovať pole, ktoré tam nie je.
+     *
+     * ⚠️ MENÍ TO PRAVIDLO „KROK 5 NEMÁ NIČ POVINNÉ" z 25. 8. — a je to oprava, nie odchýlka:
+     * labky sú v `APPROVAL_REQUIRED` (addTripModel.ts), teda bez nich výlet neprejde
+     * schválením. Krok 5 teda povinné pole MÁ, len sa o ňom hlásilo na susednom kroku.
+     * Svorka a príbeh ostávajú dobrovoľné.
+     */
+    5: isPlan ? [] : [
+      ...(paws > 0 ? [] : ['pack.addTrip.field.paws']),
+    ],
+  }), [geoDone, placedCount, name, dontRemember, date, isPlan, isHikeLike, diff, terrain, crowd, tags, paws]);
 
   /**
    * ČERVENÁ SA ZAPÍNA AŽ PO NÁVRATE, NIE PRI PRVOM PRÍCHODE.
@@ -1257,6 +1336,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
           className={`atl-step${step === n ? ' on' : ''}${step !== n && maxStep > n - 1 ? ' done' : ''}${maxStep > n - 1 && stepMissing[n]?.length === 0 ? ' ok' : ''}`}
           onClick={() => { if (n !== step && n <= maxStep && n >= minStep) setStep(n); }}
           disabled={n > maxStep || n < minStep}
+          /* ⚠️ ZAMKNUTÝ KROK MUSÍ POVEDAŤ PREČO (Matej 2026-08-26: „tak som sa vrátil a označil
+             hodnotenie, no už som sa nevedel vrátiť na 1-2, neflagujem len sa pýtam či je to ok").
+             Zámok je ZÁMER a platí LEN pri dopĺňaní konceptu (minStep, viď jeho komentár):
+             trasa je vtedy uložená a väzba značiek na výlet sa neukladá. Lenže na obrazovke to
+             nebolo napísané nikde — tlačidlo len nereagovalo, čo sa nedá odlíšiť od poruchy.
+             V BEŽNOM ZÁPISE ZAMKNUTÉ NIE JE a nikdy nebolo (overené naživo 26. 8.: z kroku 5
+             sa dá kliknúť späť na 1 aj 2). */
+          title={n < minStep ? t('pack.addTrip.step.lockedInDraft') : undefined}
         >
           <b>{i + 1}</b>
           <span>{t(`pack.addTrip.step.name.${STEP_KEYS[n - 1]}`)}</span>
@@ -1540,6 +1627,38 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
         </div>,
         document.body,
       )}
+      {/* ── EDITOR PRÍBEHU NA CELÚ OBRAZOVKU ─────────────────────────────────────────────
+          Portál na <body> z toho istého dôvodu ako pri dialógoch vyššie: panel, v ktorom
+          formulár žije, je na PC 440 px široký stĺpec a v krokoch 1–2 dokonca skrytý.
+          Escape zatvára — je to plocha na písanie, nie rozhodnutie, takže z nej musí viesť
+          von aj klávesnica. */}
+      {storyFull && createPortal(
+        <div
+          className="atl-editor-scrim"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('pack.addTrip.log.story')}
+          onKeyDown={(e) => { if (e.key === 'Escape') setStoryFull(false); }}
+        >
+          <div className="atl-editor">
+            <div className="atl-editor-head">
+              <span>{t('pack.addTrip.log.story')}</span>
+              <button type="button" className="atl-editor-x" onClick={() => setStoryFull(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
+            </div>
+            <textarea
+              className="atl-editor-area"
+              value={note}
+              autoFocus
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={t('pack.addTrip.step.storyPlaceholder')}
+            />
+            <button type="button" className="btn-gold atl-editor-done" onClick={() => setStoryFull(false)}>
+              {t('pack.addTrip.step.editorDone')}
+            </button>
+          </div>
+        </div>,
+        document.body,
+      )}
       <style>{ROUTE_HERO_CSS}</style>
       <style>{RESTORE_CSS}</style>
       <style>{STEP_CSS}</style>
@@ -1663,6 +1782,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
               istá značka sa posiela do `drawBar.steps` a vykreslí sa v hornom páse nad mapou.
               Je to JEDEN uzol (`stepDots`), nie dve kópie: dve by sa rozišli pri prvej zmene. */}
           {!drawingStep && !notesInBar && stepDots}
+          {/* Veta stojí LEN pri dopĺňaní konceptu — tam sú kroky 1–2 naozaj mŕtve. V bežnom
+              zápise by vysvetľovala zámok, ktorý neexistuje. */}
+          {minStep > 1 && !drawingStep && !notesInBar && (
+            <p className="atl-steps-lock">{t('pack.addTrip.step.lockedInDraft')}</p>
+          )}
 
           <div className="atl-log-body">
             {/* ── VETA ŽIJE UŽ LEN TAM, KDE JE MAPA (Matej 2026-08-24) ────────────────────
@@ -1891,16 +2015,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     </button>
                   </div>
                 </div>
-                {activity !== 'journey' && (
-                  <p className="atl-daterange-hint">
-                    {t('pack.addTrip.step.multiDayHint')}{' '}
-                    <button type="button" className="atl-journey-link" onClick={() => setActivity('')}>{t('pack.addTrip.plan.activities.journey')}</button>.
-                  </p>
-                )}
-
+                {/* ⚠️ VETA „Bol si vonku viac dní? Vráť sa a vyber Putovanie" ZANIKLA
+                    (Matej 2026-08-26: „tam daj preč vetu: bol si vonku viac dní…").
+                    Kľúč `pack.addTrip.step.multiDayHint` OSTÁVA v slovníku — nerenderované
+                    kľúče sa v tomto repe nemažú, aby sa dali vrátiť jedným riadkom. */}
 
                   </>
-                )}                <div className="atl-row3">
+                )}                {/* ── KRAJINA + REGIÓN NA CELÚ ŠÍRKU, JEDEN RIADOK (Matej 2026-08-26) ────
+                    „dolu je krajina a región roztiahni ich na celú šírku do jedného riadku,
+                     teraz sú zbytočne na jednej strane, môžeš ich roztiahnuť."
+                    ⚠️ PRÍČINA: mriežka mala TRI stĺpce (`atl-row3`), ale polia sú dve — tretí
+                    diel ostával prázdny vpravo, takže dvojica sedela na ľavej polovici a
+                    vyzeralo to ako nedokončený riadok. Rad prvkov = celá šírka kontajnera,
+                    rovnaké diely; keď je pole jediné (zahraničie nemá región), zaberie
+                    celý riadok samo — a to je to isté pravidlo, nie výnimka z neho. */}
+                <div className="atl-rowfull">
                   <div className="atl-field">
                     <label>{t('pack.addTrip.step.state')}</label>
                     <select className="atl-input" value={effCountry} onChange={(e) => setCountryOverride(e.target.value)}>
@@ -2021,37 +2150,59 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     </div>
                   </div>
                 )}
+                {/* ── PORADIE RIADKOV: NÁROČNOSŤ → RUCH → POVRCH → TAGY (Matej 2026-08-26) ──
+                    „= náročnosť ďalší riadok RUCH a ďalší povrch - potom tagy."
+                    Ruch stál do teraz VEDĽA povrchu v dvojici (`atl-row2--tight`), a to ho
+                    ako jediné pole kroku držalo v rozbaľovači — dvojica sa musela zmestiť
+                    na polovicu šírky. Vo vlastnom riadku ho unesú chipy. */}
                 {!isPlan && (
-                  <div className={isHikeLike ? 'atl-row2--tight' : 'atl-field'}>
-                    {isHikeLike && (
-                    <>
-                    <div className={`atl-field${missClass(4, terrain.size > 0)}`}>
-                      <label>{t('pack.addTrip.step.terrain')}</label>
-                      {/* Chipy, nie rozbaľovač — viacnásobný výber sa natívnym `<select multiple>`
-                          na telefóne ovláda mizerne. Vzor je zhodný s tagmi o kus nižšie, aby
-                          sa dve susedné viacnásobné voľby neovládali dvoma rôznymi spôsobmi. */}
-                      <div className="atl-chips">
-                        {TERRAIN_OPTIONS.map((sf) => (
-                          <button
-                            key={sf.id}
-                            type="button"
-                            className={`atl-chip${terrain.has(sf.id) ? ' on' : ''}`}
-                            onClick={() => toggleSet(terrain, setTerrain, sf.id)}
-                          >
-                            <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{sf.emoji}</span>
-                            <span className="atl-chip-label">{t(`pack.map.surfaceLabel.${sf.id}`)}</span>
-                          </button>
-                        ))}
-                      </div>
+                  <div className={`atl-field${missClass(4, !!crowd)}`}>
+                    <label>{t('pack.addTrip.log.crowd')}</label>
+                    {/* ── RUCH JE CHIP, NIE ROZBAĽOVAČ (Matej 2026-08-26) ──────────────────
+                        „ruch by som dal tiež radšej na chipy lebo ako jediné to je na dropdown
+                         a nevyzerá to dobre… chip sa bude dať vybrať len jeden."
+                        ⚠️ VÝBER JE PRÁVE JEDEN — preto `role="radiogroup"` a nie tie isté
+                        pravidlá ako pri povrchu/tagoch, kde sa dá vybrať viac. Druhý klik na
+                        vybraný chip voľbu ZRUŠÍ: rozbaľovač mal prázdnu položku, chipy by inak
+                        boli jediné pole kroku, ktoré sa nedá vrátiť do „nevybraté".
+                        ⚠️ `CROWD_LABELS` sa tu nepoužívajú — sú to SK kľúče do datasetu, nie
+                        copy; text ide cez `pack.map.crowdKind.*`. */}
+                    <div className="atl-chips" role="radiogroup" aria-label={t('pack.addTrip.log.crowd')}>
+                      {CROWDS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          role="radio"
+                          aria-checked={crowd === c}
+                          className={`atl-chip${crowd === c ? ' on' : ''}`}
+                          onClick={() => setCrowd(crowd === c ? '' : c)}
+                        >
+                          <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{CROWD_EMOJI[c]}</span>
+                          <span className="atl-chip-label">{t(`pack.map.crowdKind.${c}`)}</span>
+                        </button>
+                      ))}
                     </div>
-                    </>
-                    )}
-                    <div className={`atl-field${missClass(4, !!crowd)}`}>
-                      <label>{t('pack.addTrip.log.crowd')}</label>
-                      <select className="atl-input" value={crowd} onChange={(e) => setCrowd(e.target.value as '' | Crowd)}>
-                        <option value="">{t('pack.addTrip.log.selectPlaceholder')}</option>
-                        {CROWDS.map((c) => <option key={c} value={c}>{CROWD_EMOJI[c]} {t(`pack.map.crowdKind.${c}`)}</option>)}
-                      </select>
+                  </div>
+                )}
+
+                {!isPlan && isHikeLike && (
+                  <div className={`atl-field${missClass(4, terrain.size > 0)}`}>
+                    <label>{t('pack.addTrip.step.terrain')}</label>
+                    {/* Chipy, nie rozbaľovač — viacnásobný výber sa natívnym `<select multiple>`
+                        na telefóne ovláda mizerne. Vzor je zhodný s tagmi o kus nižšie, aby
+                        sa dve susedné viacnásobné voľby neovládali dvoma rôznymi spôsobmi. */}
+                    <div className="atl-chips">
+                      {TERRAIN_OPTIONS.map((sf) => (
+                        <button
+                          key={sf.id}
+                          type="button"
+                          className={`atl-chip${terrain.has(sf.id) ? ' on' : ''}`}
+                          onClick={() => toggleSet(terrain, setTerrain, sf.id)}
+                        >
+                          <span className="atl-chip-emoji" style={{ fontFamily: FONT_EMOJI }}>{sf.emoji}</span>
+                          <span className="atl-chip-label">{t(`pack.map.surfaceLabel.${sf.id}`)}</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -2075,7 +2226,19 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 <div className="atl-field">
                   {/* Plán sem už nechodí (STEP_SEQ = [1, 3]) — jeho „čo je v pláne" žije
                       v kroku 3. Tu ostáva príbeh prejdeného výletu. */}
-                  <label>{t('pack.addTrip.log.story')}</label>
+                  {/* ── PRÍBEH SA DÁ OTVORIŤ NA CELÚ OBRAZOVKU (Matej 2026-08-26) ──────────
+                      „pri texte by som dal možnosť otvoriť si to na editor aby sa človek
+                       netlačil v malom poli ale mal to na celé."
+                      Pole v paneli má tri riadky a panel je na PC 440 px široký stĺpec —
+                      dlhší text sa v ňom píše cez okienko. Editor je TEN ISTÝ `note`, len
+                      väčšia plocha; nič sa neukladá zvlášť, takže sa obe polia nemôžu
+                      rozísť ani keď človek editor zavrie krížikom. */}
+                  <div className="atl-fieldhead">
+                    <label>{t('pack.addTrip.log.story')}</label>
+                    <button type="button" className="atl-expand" onClick={() => setStoryFull(true)}>
+                      {t('pack.addTrip.step.expandEditor')}
+                    </button>
+                  </div>
                   <textarea className="atl-input atl-textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
                 </div>
 
@@ -2118,7 +2281,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                         prepínač komponentu je jediná cesta. Na tmavom mobile ostáva pôvodný
                         stav. Hranicu drží `useIsPaleChrome()`, ten istý `PALE_PC_MIN`, akým
                         sa riadia všetky CSS bloky skinu. */}
-                    <PawRating value={paws} onChange={setPaws} onDark={!paleChrome} size={26} />
+                    <div className="atl-rate">
+                      <PawRating value={paws} onChange={setPaws} onDark={!paleChrome} size={paleChrome ? 34 : 30} />
+                      <span className={`atl-rate-val${paws > 0 ? ' on' : ''}`}>{paws > 0 ? `${paws}/5` : '—'}</span>
+                    </div>
                   </div>
                 )}
 
@@ -2228,6 +2394,26 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     </div>
                   </div>
                 )}
+                {/* ── VAROVANIE O KONCEPTE STOJÍ PRED TLAČIDLOM, NIE PO ŇOM (Matej 2026-08-26) ──
+                    „tá informácia o koncepte NEMOŽE byť v reveale… ale v 5 kroku nad CTA
+                     uložiť výlet tam musí byť červená bublinka."
+
+                    ⚠️ JE TO PRESUN, NIE PRIDANIE. Do teraz to hlásil až REVEAL — teda PO
+                    odoslaní, keď s tým už človek nič nespraví. Zmizlo aj z reveale
+                    (`level/TripReveal.tsx`), inak by tá istá veta zaznela dvakrát a druhý raz
+                    zbytočne.
+                    ⚠️ ČERVENÁ JE TU VÝNIMKA. V tomto toku je červená vyhradená nevratným
+                    akciám (zahodiť výlet, zmazať značku) — tu ju Matej vypýtal výslovne a
+                    dôvod sedí: je to jediné miesto, kde sa dá ešte niečo zachrániť.
+                    Vypisuje sa aj vtedy, keď sa `canSubmit` ešte nedosiahlo — chýbajúce polia
+                    na SCHVÁLENIE sú iná množina než chýbajúce na ODOSLANIE a človek má vidieť
+                    obe naraz, nie postupne. */}
+                {!isPlan && missing.toApprove.length > 0 && (
+                  <div className="atl-draftwarn" role="status">
+                    <b>{t('pack.reveal.draftTitle')}</b>
+                    <p>{t('pack.addTrip.step.willBeDraft', { fields: missingTx(missing.toApprove) })}</p>
+                  </div>
+                )}
                 <div className="atl-nav">
                   <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                   <button type="button" className="btn-gold" disabled={!canSubmit || saving} onClick={handleSubmit}>
@@ -2245,9 +2431,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 {!canSubmit && journeyIssue && (
                   <p className="atl-log-hint">{t('pack.addTrip.step.journeyNeedsEnd')}</p>
                 )}
-                {canSubmit && missing.toApprove.length > 0 && (
-                  <p className="atl-log-hint">{t('pack.addTrip.step.willBeDraft', { fields: missingTx(missing.toApprove) })}</p>
-                )}
+                {/* ⚠️ Ten istý text POD tlačidlom zanikol — hovorí ho červená bublinka NAD ním
+                    (Matej 2026-08-26). Dvakrát na jednej obrazovke by druhý raz nikto nečítal. */}
                 {submitError && <p className="atl-log-error">{submitError}</p>}
               </>
             )}
@@ -2324,7 +2509,22 @@ function PlacedNotes({ notes, t, emptyKey, onRemove }: {
 
 /** CSS krokového sprievodcu. ⚠️ JS template literal — spätný apostrof v komentári zhodí build. */
 const STEP_CSS = `
-.atl-steps{display:flex;gap:6px;padding:2px 20px 10px;flex-shrink:0;}
+/* ── HORNÝ PANEL S KROKMI JE ODDELENÝ ČIAROU (Matej 2026-08-26) ────────────────────────
+   „celkovo treba zvizuálniť ten vrchný panel s krokmi, oddeliť čiarou alebo nejak inak."
+   V krokoch 3–5 stál krokovník bez akéhokoľvek predelu tesne nad prvým poľom formulára,
+   takže „kde som" a „čo vypĺňam" splývali do jedného zoznamu.
+   ⚠️ ČIARA JE T.rule — zlatá, vyblednutá do strán, 2 px (CLAUDE.md). NIE šedý 1px
+   hairline a NIE T.hairline ako rám: ten je iba na deliace čiary vnútri karty a ako
+   predel medzi dvoma vrstvami obrazovky pôsobí ako nedokončený návrh. */
+.atl-steps{display:flex;gap:6px;padding:2px 20px 12px;flex-shrink:0;position:relative;}
+/* Krokovník dostáva vlastnú PLOCHU, nie len čiaru: samotný 2 px predel sa medzi dvoma
+   papyrusovými vrstvami stráca (odskúšané naživo), a Matej pýtal „zvizuálniť", nie
+   „nakresliť linku". Podklad je jemné stmavnutie tej istej dosky — žiadny nový odtieň. */
+.atl-steps:not(.atl-steps--onmap){padding:10px 20px 12px;margin-bottom:4px;background:rgba(122,90,42,0.10);}
+.atl-steps:not(.atl-steps--onmap)::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:${T.rule};}
+/* Veta o zámku stojí POD krokovníkom, teda mimo neho — v ňom by si delila riadok
+   s piatimi bodkami a rozhodila by ich rovnaké diely. */
+.atl-steps-lock{margin:-2px 20px 8px;font-family:${FONT_UI};font-size:10.5px;line-height:1.45;color:${T.onDarkDim};}
 /* BODKY NAD MAPOU (kroky 1–2). Musia zniesť pestrý podklad, tak dostanú vlastný tmavý
    podklad a rám — nad turistickou mapou by holé číslice zanikli rovnako ako kedysi
    fialová pilulka. Popisky sa skryjú: päť názvov krokov sa vedľa krížika na 360 px
@@ -2367,18 +2567,33 @@ const STEP_CSS = `
    nie je to odmietnutie dialógu, je to rovnocenná odpoveď. */
 .atl-abort-ghost{width:100%;padding:12px 12px;border-radius:8px;background:rgba(59,158,255,0.08);border:1px solid rgba(91,224,240,0.35);color:rgba(207,243,250,0.88);font-family:${FONT_UI};font-weight:600;font-size:11.5px;letter-spacing:.04em;cursor:pointer;}
 .atl-abort-ghost:hover{background:rgba(59,158,255,0.16);color:#E6FAFF;}
-/* Na úzkom telefóne sa dve tlačidlá vedľa seba lámu do dvoch riadkov textu rôznej výšky —
-   pod sebou majú obe plnú šírku a poradie hovorí, čo je odporúčané. */
-@media (max-width:420px){
-  .atl-abort--ainubis .atl-abort-btns{flex-direction:column;}
-}
+/* ── JEDNO TLAČIDLO = JEDEN RIADOK (Matej 2026-08-26) ─────────────────────────────────
+   „tento popup zväčši a možnosti daj pod seba nie vedľa (sú dlhé textovo a lámu sa —
+    jedno tlačítko jeden riadok!)"
+
+   ⚠️ PLATÍ NA KAŽDEJ ŠÍRKE, nie len pod 420 px. Pôvodné pravidlo vychádzalo z toho, že sa
+   dve tlačidlá vedľa seba zmestia, kým je okno široké — lenže odpovede AInubisa sú VETY
+   („Doplniť tú istú cestu späť", „Vrátil som sa inak"), takže sa lámali aj na PC, každá
+   na iný počet riadkov, a rad z toho vyzeral ako rozbitý.
+   Škatuľa je zároveň širšia: v 380 px sa tri vety lámali aj pod sebou. */
+.atl-abort--ainubis{max-width:520px;padding:26px 24px;}
+.atl-abort--ainubis .atl-abort-btns{flex-direction:column;gap:9px;}
 .atl-step{flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;border-radius:9px;background:transparent;border:1px solid transparent;color:${T.onDarkDim};cursor:default;}
-.atl-step b{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:rgba(245,240,228,0.06);border:1px solid ${T.onDarkBorder};font-family:${FONT_UI};font-weight:600;font-size:10.5px;line-height:1;}
+/* ── ČÍSLA KROKOV: VÄČŠIE, PLNOU FARBOU, BIELE (Matej 2026-08-26) ──────────────────────
+   „tieto chipy s číslami si predstavujem o čosi väčšie a skôr plnou farbou a čísla bielou."
+   Do teraz mali 20 px a priesvitnú výplň pri 6 % — na papyruse PC z toho ostal svetlý
+   krúžok bez obsahu, teda presne to, čo sa má na prvý pohľad prečítať, sa prečítať nedalo.
+   Biely inkoust drží vo VŠETKÝCH stavoch (aktívny, hotový, splnený), aby číslo nemenilo
+   čitateľnosť podľa toho, kde človek stojí. */
+.atl-step b{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:rgba(122,90,42,0.55);border:1px solid ${T.onDarkBorder};color:#FFF;font-family:${FONT_UI};font-weight:700;font-size:12.5px;line-height:1;}
 .atl-step span{font-family:${FONT_UI};font-weight:500;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;text-align:center;line-height:1.2;}
 .atl-step.done{cursor:pointer;color:${T.onDark};}
-.atl-step.done b{background:rgba(201,154,63,0.20);border-color:rgba(201,154,63,0.55);color:${GOLD};}
+.atl-step.done b{background:#8A5F1E;border-color:#8A5F1E;color:#FFF;}
 .atl-step.on{background:rgba(201,154,63,0.10);border-color:rgba(201,154,63,0.40);color:${T.onDark};}
-.atl-step.on b{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.30);color:#1c160c;}
+/* Aktívny krok ostáva ZLATÝ (zlato = „kde som", navGoldSkin.ts), ale o dva odtiene
+   tmavší než .btn-gold — na svetlom gradiente by biele číslo zaniklo, a biele má byť
+   vo všetkých stavoch rovnako. */
+.atl-step.on b{background:linear-gradient(135deg,#D2A02A,#A96F17);border-color:rgba(250,244,236,0.30);color:#FFF;}
 /* ⚠️ ZELENÁ PREBÍJA ZLATÚ, ALE NIE NA AKTUÁLNOM KROKU. Zlatá hovorí „tu si", zelená „toto je
    hotové" — a keď platí oboje, dôležitejšie je, kde človek stojí. Preto '.ok' nie '.on'.
    Je to tá istá zelená, akou svieti splnená značka na trase (GROUP_TINT.comment) a vybratý
@@ -2389,7 +2604,7 @@ const STEP_CSS = `
    človek ho dopĺňa a pozerá sa, či to zabralo. Odpoveď „splnené" nesmie čakať na odchod.
    „Tu si" prežije: v paneli to hovorí zlatý rám dlaždice, na mape zlatý prstenec okolo
    čísla (.atl-steps--onmap .atl-step.on b) — obe iné vlastnosti než výplň, takže sa nebijú. */
-.atl-step.ok b{background:rgba(58,150,88,0.22);border-color:#3A9658;color:#7FD79B;}
+.atl-step.ok b{background:${PICK};border-color:#1F5C33;color:#FFF;}
 /* Nevyplnené pole po NÁVRATE do kroku. Rám aj popisok, nie len rám — samotný červený obrys
    sa na tmavom povrchu prehliadne. */
 .atl-miss > label{color:#E08A7A;}
@@ -2403,21 +2618,30 @@ const STEP_CSS = `
 .atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 6px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
 .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:9.5px;font-weight:700;line-height:1;}
 .atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;}
-.atl-ntrack-i.on{background:rgba(201,154,63,0.10);border-color:rgba(201,154,63,0.40);color:${T.onDark};}
-.atl-ntrack-i.on b{background:linear-gradient(135deg,#F5C73D,#E69E1A);color:#1c160c;}
+/* AKTÍVNA MOŽNOSŤ NESIE FARBU SVOJEJ SKUPINY (--ntk z GROUP_TINT, viď noteTrack).
+   Parkovisko modré, upozornenie červené, tip zelený — tie isté farby, aké má značka
+   na mape pod panelom. */
+.atl-ntrack-i.on{background:color-mix(in srgb, var(--ntk) 14%, transparent);border-color:var(--ntk);color:${T.onDark};}
+.atl-ntrack-i.on b{background:var(--ntk);color:#fff;}
 /* ── VÝSLEDOK PREBÍJA POSTUP ──────────────────────────────────────────────────────────
    Zlatá hovorí „tu si", zelená a červená hovoria „takto to dopadlo" — a to je dôležitejšie,
    preto stoja NIŽŠIE v poradí a prebíjajú .on. Zelená je tá istá, akú na mape nesie TIP
    (GROUP_TINT.comment), červená tá istá, akú nesie UPOZORNENIE — nezavádzajú sa nové farby.
    Body v chipe sú POINTS.note, nie napísané číslo. */
-.atl-ntrack-i.ok{background:rgba(58,150,88,0.14);border-color:${GROUP_TINT.comment};color:${T.onDark};}
-.atl-ntrack-i.ok b{background:${GROUP_TINT.comment};border:1px solid ${GROUP_TINT.comment};color:#08150c;}
+/* ── SPLNENÉ = PLNÁ ZELENÁ, ČIERNY TEXT (Matej 2026-08-26) ────────────────────────────
+   „splnená možnosť musí byť viac zelená nie priesvitná + čierny text lebo biely zaniká."
+   Do teraz to bola zelená pri 14 % krytia so svetlým textom — na papyrusovom paneli PC
+   z toho ostal svetlý text na takmer bielom podklade. Plná výplň znesie čierny inkoust
+   na oboch povrchoch, tmavom aj bledom, takže netreba dve verzie.
+   ⚠️ PREBÍJA aktívny stav ZÁMERNE: „hotové" je dôležitejšia správa než „tu si". */
+.atl-ntrack-i.ok{background:${GROUP_TINT.comment};border-color:${GROUP_TINT.comment};color:#0B1F12;}
+.atl-ntrack-i.ok b{background:rgba(255,255,255,0.82);border:1px solid rgba(11,31,18,0.25);color:#0B1F12;}
 .atl-ntrack-i.miss{background:rgba(206,75,60,0.12);border-color:rgba(206,75,60,0.55);color:${T.onDarkDim};}
 .atl-ntrack-i.miss b{background:rgba(206,75,60,0.20);border:1px solid rgba(206,75,60,0.55);color:${HAZARD_RED};}
 /* Chip s bodmi. Malý a bez rámu — je to poznámka k pilulke, nie druhá pilulka v nej.
    tabular-nums, aby sa „+3" a „0" nehojdali v rade vedľa seba. */
 .atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:700;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:3px 5px;border-radius:999px;}
-.atl-ntrack-i.ok .atl-ntrack-pts{background:${GROUP_TINT.comment};color:#08150c;}
+.atl-ntrack-i.ok .atl-ntrack-pts{background:rgba(11,31,18,0.82);color:#EAFBF0;}
 .atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(206,75,60,0.22);color:${HAZARD_RED};}
 .atl-noteask{padding:12px 14px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
 .atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:13px;line-height:1.45;color:${T.onDark};}
@@ -2427,6 +2651,41 @@ const STEP_CSS = `
    škatuľu v škatuli. Ostáva len rozostup medzi otázkou, zoznamom značiek a pokračovaním. */
 .atl-noteask--bar{padding:0;border:0;background:none;display:flex;flex-direction:column;gap:10px;}
 .atl-noteask--bar p{margin:0;}
+/* ── HLAVIČKA POĽA: POPISOK VĽAVO, ODKAZ VPRAVO ────────────────────────────────────────
+   Odkaz „otvoriť na celú obrazovku" patrí k poľu, nie nad formulár — preto stojí v jeho
+   riadku a nie vo vlastnom, ktorý by krok natiahol. */
+.atl-fieldhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+.atl-fieldhead > label{margin:0;}
+.atl-expand{flex:0 0 auto;background:none;border:0;padding:0;color:${GOLD};font-family:${FONT_UI};font-size:11px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.atl-expand:hover{color:#F5C73D;}
+/* ── EDITOR PRÍBEHU NA CELÚ OBRAZOVKU (§4.5) ───────────────────────────────────────────
+   Papyrusová plocha, do ktorej sa píše — teda úroveň 5 matrice (plochý papyrus), nie
+   sklenený panel. Výška je daná oknom, nie obsahom: text má rásť do plochy, ktorá už stojí,
+   inak by sa pri písaní hýbalo tlačidlo pod ním. */
+.atl-editor-scrim{position:fixed;inset:0;z-index:1500;background:rgba(24,14,4,0.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:24px;}
+.atl-editor{display:flex;flex-direction:column;gap:12px;width:min(860px,100%);height:min(80vh,760px);padding:20px;border-radius:18px;background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);border:1.5px solid ${T.cardEdge};box-shadow:0 24px 64px rgba(0,0,0,0.55),0 0 0 3px rgba(201,154,63,0.15);}
+.atl-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#2a1608;}
+.atl-editor-x{border:0;background:transparent;color:#7a5a2a;font-size:22px;line-height:1;cursor:pointer;padding:0 4px;}
+.atl-editor-x:hover{color:#2a1608;}
+.atl-editor-area{flex:1 1 auto;min-height:0;resize:none;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:8px;background:#FBF5E6;border:1px solid rgba(179,130,45,0.55);color:#2a1608;font-family:${FONT_UI};font-size:15px;line-height:1.6;}
+.atl-editor-area:focus{outline:none;border-color:${T.cardEdge};}
+.atl-editor-area::placeholder{color:#7a5a2a;opacity:.7;}
+.atl-editor-done{flex:0 0 auto;align-self:flex-end;min-width:180px;}
+/* ── HODNOTENIE JE VÝRAZNEJŠIE (§5.3) ──────────────────────────────────────────────────
+   Matej 2026-08-26: „hodnotenie musí byť tiež výraznejšie."
+   Päť malých obrysových labiek v rade bez akéhokoľvek rámu vyzeralo ako popisok, nie ako
+   pole, ktoré sa vypĺňa. Dostáva vlastnú plochu (úroveň 2 matrice), väčšie labky a číslo
+   vedľa — číslo je jediné, čo z hodnotenia človek prečíta na diaľku. */
+.atl-rate{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:12px;background:rgba(245,240,228,0.05);border:1px solid ${T.onDarkBorder};}
+.atl-rate-val{flex:0 0 auto;font-family:${FONT_TITLE};font-weight:700;font-size:18px;line-height:1;color:${T.onDarkDim};font-variant-numeric:tabular-nums;}
+.atl-rate-val.on{color:#F5C73D;}
+/* ── ČERVENÁ BUBLINKA NAD CTA (§5.4) ───────────────────────────────────────────────────
+   Plná výplň a plný rám, nie priesvitný tint: stojí nad zlatým tlačidlom a musí sa dať
+   prečítať skôr, než sa naň klikne. Inkoust je tmavočervený na svetlom, aby fungovala aj
+   na papyruse PC — druhá verzia pre bledý skin tým odpadá. */
+.atl-draftwarn{margin-bottom:10px;padding:10px 13px;border-radius:10px;background:rgba(206,75,60,0.14);border:1.5px solid rgba(206,75,60,0.75);}
+.atl-draftwarn b{display:block;font-family:${FONT_TITLE};font-weight:700;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#E9A093;}
+.atl-draftwarn p{margin:5px 0 0;font-family:${FONT_UI};font-size:11.5px;line-height:1.5;color:${T.onDarkDim};}
 .atl-nav{display:flex;gap:8px;align-items:stretch;}
 .atl-nav .atl-toggle-btn{flex:0 0 34%;}
 .atl-nav .btn-gold{flex:1 1 0;}
@@ -2464,14 +2723,19 @@ const COMPANION_CSS = `
 .atl-companions .comm-comp-chip:hover b{opacity:1;}
 .atl-companions .comm-comp-pack{gap:8px;}
 .atl-companions .comm-comp-dog{padding:3px;gap:0;position:relative;}
-.atl-companions .comm-comp-dog span:not(.plus){
+/* ⚠️ TOOLTIP JE MENO, NIE AVATAR (opravené 2026-08-26). Selektor span:not(.plus) bral
+   z toku AJ .comm-comp-dog-av, lebo aj ten je <span>. Kým bola pilulka nevybraná, držal
+   jej šírku aspoň plusko; odkedy je vlastný pes predvyplnený (§5.1 zadania), plusko tam nie je
+   a celá pilulka spadla na 8×8 px — teda na bod, v ktorom sa fotka psa vôbec nezobrazí.
+   Vyzeralo to ako chyba dát („pes bez fotky"), pritom fotka bola načítaná a mala 28 px. */
+.atl-companions .comm-comp-dog span:not(.plus):not(.comm-comp-dog-av){
   position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
   white-space:nowrap;background:rgba(6,5,3,0.95);border:1px solid ${T.onDarkBorder};
   padding:4px 9px;border-radius:6px;font-family:${FONT_UI};font-size:11px;font-weight:500;
   color:${T.onDark};opacity:0;pointer-events:none;transition:opacity .15s ease;z-index:6;
 }
-.atl-companions .comm-comp-dog:hover span:not(.plus),
-.atl-companions .comm-comp-dog:focus span:not(.plus){opacity:1;}
+.atl-companions .comm-comp-dog:hover span:not(.plus):not(.comm-comp-dog-av),
+.atl-companions .comm-comp-dog:focus span:not(.plus):not(.comm-comp-dog-av){opacity:1;}
 .atl-companions .comm-comp-dog .plus{
   position:absolute;right:-3px;bottom:-3px;margin:0;background:${GOLD};color:${T.ink};
   width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;
@@ -2619,6 +2883,10 @@ const LOG_CSS = `
 .atl-input[type="date"]::-webkit-calendar-picker-indicator{position:absolute;right:0;top:0;width:46px;height:100%;margin:0;padding:0;opacity:0;cursor:pointer;}
 .atl-textarea{resize:vertical;font-family:${FONT_UI};}
 .atl-row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;}
+/* Rad na CELÚ šírku, rovnaké diely — počet dielov sa riadi počtom polí, nie mriežkou.
+   Preto flex a nie grid: pri jedinom poli (krajina bez regiónu) sa diel roztiahne sám. */
+.atl-rowfull{display:flex;gap:10px;}
+.atl-rowfull > *{flex:1 1 0;min-width:0;}
 .atl-row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;}
 /* ── RAD, KTORÝ SA NA MOBILE NEROZPADNE (Matej 2026-08-24) ─────────────────────────
    „skúsme dať do jedného riadku, aby sme ušetrili miesto, lebo je potrebný scroll."
@@ -2646,13 +2914,16 @@ const LOG_CSS = `
 .atl-diffrow{display:flex;gap:6px;}
 .atl-diffbtn{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 4px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:10.5px;font-weight:500;line-height:1.1;cursor:pointer;}
 .atl-diffbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
-.atl-diffbtn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
+.atl-diffbtn.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-toggle-row{display:flex;gap:8px;}
 /* ⚠️ RAD PREPÍNAČOV = CELÁ ŠÍRKA, ROVNAKÉ DIELY. Trieda atl-toggle-row doteraz nemala ŽIADNE
    pravidlo — bol to holý div, takže tlačidlá so šírkou 100% sa poukladali POD SEBA a jedno
    pole („kedy idete" má tri presnosti a štyri týždne) zabralo sedem riadkov. Rovnako stála
    aj viditeľnosť plánu. Deľba flex 1 1 0 je tá istá, akú drží atl-restore-btns. */
 .atl-toggle-row > .atl-toggle-btn{flex:1 1 0;min-width:0;}
+/* ⚠️ ZELENÁ LEN V RADE VOLIEB. Samostatný .atl-toggle-btn.on je AKCIA (Zostať,
+   Pokračovať, Zapísať aj tak), nie označená možnosť — tam zlatá ostáva. */
+.atl-toggle-row > .atl-toggle-btn.on{background:rgba(61,122,78,0.26);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-toggle-btn{width:100%;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.03em;padding:8px 10px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;white-space:nowrap;}
 .atl-toggle-btn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
 .atl-daterange-hint{margin:-4px 0 0;font-family:${FONT_UI};font-weight:400;font-size:11px;line-height:1.4;color:${T.onDarkDim};}
@@ -2667,7 +2938,7 @@ const LOG_CSS = `
 .atl-journey-meta{font-family:${FONT_UI};font-weight:500;font-size:10.5px;letter-spacing:.02em;color:${T.onDarkDim};}
 .atl-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .atl-chip{display:inline-flex;align-items:center;height:28px;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.02em;padding:0 10px;border-radius:8px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;}
-.atl-chip.on{background:rgba(201,154,63,0.16);border-color:${GOLD};color:${T.onDark};}
+.atl-chip.on{background:rgba(61,122,78,0.28);border-color:${PICK};color:${T.onDark};box-shadow:inset 0 0 0 1px ${PICK};}
 .atl-chip-emoji{display:inline-flex;align-items:center;justify-content:center;width:15px;flex:0 0 15px;line-height:1;font-size:13px;margin-right:5px;}
 .atl-chip-label{line-height:1;}
 .atl-chip-add{border-style:dashed;}
@@ -2697,15 +2968,21 @@ const LOG_CSS = `
 .atl-cover-crop label{font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:${T.onDarkDim};}
 .atl-cover-slider{width:100%;accent-color:${GOLD};}
 .atl-log-foot{flex-shrink:0;margin:0 20px 20px;display:flex;flex-direction:column;gap:8px;}
-.atl-log-foot .btn-gold{
+/* ⚠️ CTA EDITORA JE V PORTÁLI NA <body>, teda MIMO .atl-log-foot — bez druhého selektora
+   by z neho ostalo holé systémové tlačidlo (odskúšané). Pravidlo je jedno, nie kópia:
+   .btn-gold lock (CLAUDE.md) hovorí, že gradient existuje na jednom mieste na súbor. */
+.atl-log-foot .btn-gold,
+.atl-editor .btn-gold{
   width:100%;padding:13px;background:linear-gradient(135deg,#F5C73D 0%,#E69E1A 100%);
   border:1px solid rgba(250,244,236,0.30);border-radius:8px;color:#000;font-family:${FONT_TITLE};
   font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
   box-shadow:0 0 40px rgba(230,158,26,0.4),inset 0 1px 0 rgba(255,255,255,0.3);
   transition:transform .2s,box-shadow .22s,opacity .22s;
 }
-.atl-log-foot .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:0 0 56px rgba(230,158,26,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
-.atl-log-foot .btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}
+.atl-log-foot .btn-gold:hover:not(:disabled),
+.atl-editor .btn-gold:hover:not(:disabled){transform:scale(1.02);box-shadow:0 0 56px rgba(230,158,26,0.55),inset 0 1px 0 rgba(255,255,255,0.3);}
+.atl-log-foot .btn-gold:disabled,
+.atl-editor .btn-gold:disabled{opacity:.45;cursor:default;box-shadow:none;}
 .atl-log-hint{margin:0;font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};text-align:center;}
 .atl-log-error{margin:0;font-family:${FONT_UI};font-size:11.5px;color:#E08A6E;text-align:center;}
 .atl-dupwarn{padding:10px 12px;border-radius:10px;background:rgba(201,154,63,0.10);border:1px solid ${GOLD};}
@@ -2752,11 +3029,11 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
 
   /* ── krokovník ──────────────────────────────────────────────────────────────────────── */
   .atl-step{color:${P_DIM};}
-  .atl-step b{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  .atl-step b{background:rgba(122,90,42,0.45);border-color:${P_BORDER};color:#FFF;}
   .atl-step.done{color:${P_INK};}
-  .atl-step.done b{background:rgba(201,154,63,0.22);border-color:${P_BORDER};color:${P_DEEP};}
+  .atl-step.done b{background:#8A5F1E;border-color:#6E4E18;color:#FFF;}
   .atl-step.on{background:rgba(201,154,63,0.14);border-color:${P_BORDER};color:${P_INK};}
-  .atl-step.ok b{background:rgba(58,150,88,0.20);border-color:#3A9658;color:#1F5C33;}
+  .atl-step.ok b{background:${PICK};border-color:#1F5C33;color:#FFF;}
   /* Krokovník NAD MAPOU: plná papyrusová výplň, nie priesvitná — nad mapou sa priesvitnosť
      nepoužíva nikdy, čo pod ňou prebliká, robí z lišty neprečítateľný prvok. */
   .atl-steps--onmap{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${P_EDGE};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
@@ -2786,9 +3063,12 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-input:focus{border-color:${P_EDGE};}
   .atl-input::placeholder{color:${P_DIM};opacity:.7;}
   .atl-diffbtn{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
-  .atl-diffbtn.on{background:rgba(201,154,63,0.20);border-color:${P_DEEP};color:${P_INK};}
+  /* Na papyruse musí byť výplň sýtejšia a inkoust čierny — svetlozelená na piesku
+     je to isté „fádne", na ktoré Matej ukázal pri zlatej. */
+  .atl-diffbtn.on{background:${PICK};border-color:#1F5C33;color:#F2FBF4;box-shadow:none;}
   .atl-toggle-btn{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
   .atl-toggle-btn.on{background:rgba(201,154,63,0.20);border-color:${P_DEEP};color:${P_INK};}
+  .atl-toggle-row > .atl-toggle-btn.on{background:${PICK};border-color:#1F5C33;color:#F2FBF4;box-shadow:none;}
   .atl-daterange-hint{color:${P_DIM};}
   .atl-journey-link{color:${P_DEEP};}
   .atl-journey-list{border-color:${P_BORDER};}
@@ -2798,7 +3078,7 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-journey-name{color:${P_INK};}
   .atl-journey-meta{color:${P_DIM};}
   .atl-chip{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
-  .atl-chip.on{background:rgba(201,154,63,0.22);border-color:${P_DEEP};color:${P_INK};}
+  .atl-chip.on{background:${PICK};border-color:#1F5C33;color:#F2FBF4;box-shadow:none;}
   /* Odistený chip mazania ostáva ČERVENÝ — je to jediná nevratná akcia v toku a farba
      nesie význam, nie štýl. Mení sa len inkoust, aby bol na svetlom čitateľný. */
   .atl-chip--del.armed{background:rgba(206,75,60,0.16);border-color:rgba(176,52,40,0.7);color:#8E2A20;}
@@ -2810,16 +3090,37 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-log-error{color:#9E3A22;}
   .atl-dupwarn{background:rgba(201,154,63,0.14);border-color:${P_DEEP};}
   .atl-dupwarn p{color:${P_INK};}
-  .atl-noteask{background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
+  /* ── V DOKU ŽIADNA DRUHÁ VRSTVA (Matej 2026-08-26) ─────────────────────────────────
+     „na prvý pohľad vidno že je to otvorené, aktuálne je pod chipmi a tlačítkami akási
+      spodná vrstva čo má inú farbu ako blok…. zmaž to nech má blok jedno pozadie."
+     .atl-noteask--bar si podklad ruší už v STEP_CSS (v lište nad mapou by bola škatuľa
+     v škatuli), lenže TENTO blok sa vkladá do DOM ako POSLEDNÝ a plošným selektorom
+     mu ho vracal (plošný selektor). Preto výnimka — nie nový odtieň, ale žiadny. */
+  .atl-noteask:not(.atl-noteask--bar){background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
   .atl-noteask p{color:${P_INK};}
   .atl-restore{background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
   .atl-restore-txt{color:${P_INK};}
   .atl-miss > label{color:#9E3A22;}
+  .atl-draftwarn{background:rgba(206,75,60,0.12);border-color:rgba(176,52,40,0.8);}
+  .atl-draftwarn b{color:#8E2A20;}
+  .atl-draftwarn p{color:#6E2419;}
+  .atl-rate{background:${P_FIELD};border-color:${P_BORDER};}
+  .atl-rate-val{color:${P_DIM};}
+  .atl-rate-val.on{color:#8A5F1E;}
+  .atl-steps-lock{color:${P_DIM};}
+  .atl-expand{color:#8A5F1E;}
+  .atl-expand:hover{color:${P_INK};}
 
   /* ── sledovanie značiek (krok 2) ────────────────────────────────────────────────────── */
   .atl-ntrack-i{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
-  .atl-ntrack-i b{background:rgba(201,154,63,0.18);}
-  .atl-ntrack-i.on{background:rgba(201,154,63,0.16);border-color:${P_DEEP};color:${P_INK};}
+  .atl-ntrack-i b{background:rgba(201,154,63,0.18);color:${P_DEEP};}
+  /* ⚠️ FARBU AKTÍVNEJ NESIE SKUPINA AJ TU. Bledý blok sa vkladá do DOM POSLEDNÝ, takže
+     zlatý zápis z tohto miesta prebíjal pravidlo s premennou v STEP_CSS a parkovisko
+     ostávalo zlaté aj po oprave (Matej 26. 8.: „označené parkovisko musí byť modrou").
+     Inkoust je tmavý — na papyruse by svetlý zanikol. */
+  .atl-ntrack-i.on{background:color-mix(in srgb, var(--ntk) 16%, transparent);border-color:var(--ntk);color:${P_INK};}
+  .atl-ntrack-i.on b{background:var(--ntk);color:#fff;}
+  /* Splnená ostáva plne zelená s čiernym textom — na oboch povrchoch tá istá, viď STEP_CSS. */
   .atl-ntrack-i.miss{color:${P_DIM};}
 
   /* ── potvrdenie odchodu z toku ──────────────────────────────────────────────────────── */

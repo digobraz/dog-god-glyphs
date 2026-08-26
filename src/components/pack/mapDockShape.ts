@@ -21,6 +21,7 @@
 // panela skroluje. Hlavička (čo píšem) aj CTA (ako to uložím) stoja — skroluje sa len to
 // medzi nimi. Je to vedomá výmena: konštantný výrez mapy za skrol v jednom krajnom stave.
 import { PACK_THEME as T } from './packTheme';
+import { MAP_SKIN, PALE, goldFrameCSS, PALE_PC_MIN } from './navGoldSkin';
 
 /** Podiel výšky okna, ktorý smie panel zabrať v krokoch 1–2. Lock z 24. 8. 2026. */
 export const DOCK_VH = 0.33;
@@ -66,6 +67,26 @@ export const MAP_DOCK_CSS = `
     padding-bottom:20px;
   }
 }
+${MAP_SKIN !== 'pale' ? '' : `
+/* ── BLEDÝ SKIN PC (2026-08-26) ─────────────────────────────────────────────────────────
+   Dok je na PC odteraz z toho istého materiálu ako ľavý panel a spodná navigácia — zlatý
+   rám okolo pieskovcovej dosky. Mobil ostáva tmavý (vlastné kolo), preto min-width:${PALE_PC_MIN}px.
+   ⚠️ Výplň je PLNÁ, nie priesvitná: panel stojí nad mapou a čokoľvek, čo pod ním prebliká,
+   z neho robí neprečítateľnú plochu (feedback_priesvitna_plocha_nad_mapou). Zároveň sa tým
+   ruší backdrop-filter — rozmazané pozadie je tá istá chyba len inak.
+   ⚠️ RÁM 6 px A RADIUS 18 — TO ISTÉ, ČO MÁ .trp-addhost (Matej 2026-08-26: „bloky musia
+   byť všade rovnaké"). Do teraz tu stálo 5/16 s odôvodnením „dok je nižší než ľavý panel".
+   Na PC to už neplatí: dok A formulár sú DVA STAVY JEDNÉHO STĹPCA (kroky 1–2 vs. 3–5),
+   takže pri prechode z kroku 2 do 3 sa menil rám aj zaoblenie toho istého bloku. Šírku si
+   tie dva stavy zdieľajú z rovnakého dôvodu — rám je len ďalšia miera toho istého. */
+@media (min-width:${PALE_PC_MIN}px){
+  .trp-dockpanel{
+    ${goldFrameCSS({ radius: 18, rim: 6 })}
+    backdrop-filter:none;-webkit-backdrop-filter:none;
+    padding-bottom:20px;
+  }
+}
+`}
 `;
 
 /**

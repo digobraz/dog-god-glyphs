@@ -34,7 +34,7 @@ import {
 } from '@/components/pack/triplist/tripRequests';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
 import {
-  readTriplist, upsertMyTrip, seedTriplistFromPlans,
+  readTriplist, upsertMyTrip, seedTriplistFromPlans, seedTriplistFromWalked,
   trailWCE, WCE_LABEL, type WCE,
   type TriplistTrip, type TripStatus,
 } from '@/components/pack/triplist/triplist';
@@ -352,7 +352,17 @@ export default function PackTriplist() {
   const walkedKm = useMemo(() => walkedTrails.reduce((s, tr) => s + (Number(tr.km) || 0), 0), [walkedTrails]);
 
   // migrácia existujúcich wishlist plánov → triplist entries, idempotentné (viď triplist.ts).
-  useEffect(() => { seedTriplistFromPlans(readPlans()); }, []);
+  useEffect(() => {
+    seedTriplistFromPlans(readPlans());
+    // ⚠️ A ZAPÍSANÉ VÝLETY TIEŽ (2026-08-26). Do opravy v `submitAddTripDraft` sa vlastný
+    // zápis do triplistu nedostal vôbec (Matej: „po zápise výlet nevidím v tripliste"), takže
+    // výlety zapísané pred ňou by tu chýbali naďalej. Berú sa LEN moje (`meta.mine`, prázdna
+    // mapa = ešte sa nehydratovalo ⇒ ber ako moje, rovnaká úvaha ako vo `visibleLocalTrails`).
+    const meta = readLocalTrailMeta();
+    seedTriplistFromWalked(
+      readLocalTrails().filter((tr) => meta[tr.id]?.mine ?? true).map((tr) => tr.id),
+    );
+  }, []);
 
   const [triplist, setTriplist] = useState<Record<string, TriplistTrip>>(() => readTriplist());
   useEffect(() => { if (storeEpoch) setTriplist(readTriplist()); }, [storeEpoch]);

@@ -190,6 +190,25 @@ for (const file of walk(ROOT)) {
       const line = src.slice(0, i).split('\n').length;
       (hints[file] ??= []).push(`literál ${label} sa končí spätným apostrofom v tele (r. ${line}) — pravdepodobne v CSS komentári`);
     }
+
+    // ── SPÄTNÝ APOSTROF V CSS KOMENTÁRI, KTORÝ SA NÁHODOU DÁ ROZPARSOVAŤ ──────────
+    // ⚠️ PARSER SÁM NESTAČÍ (zistené 26. 8. 2026, druhý pád v jednej session).
+    // `⚠️ PREBÍJA \`.on\` ZÁMERNE: „hotové"…` ukončilo STEP_CSS na prvom apostrofe,
+    // ale zvyšok — `.on\`ZÁMERNE…\`` — je PLATNÝ JavaScript: prístup k vlastnosti
+    // reťazca a za ním tagovaný template. esbuild teda prešiel bez slova, `tsc` tiež,
+    // a appka spadla až v prehliadači na „<celé CSS>.on is not a function".
+    // Preto sa okrem syntaxe kontroluje aj TOTO: či prvý apostrof, ktorý literál
+    // ukončil, neleží vnútri /* … */ komentára. Ak áno, je to vždy chyba — v CSS
+    // komentári nemá spätný apostrof čo robiť a v tele literálu ho ukončiť nechceme.
+    let open = -1;
+    for (let k = 0; k < bodyText.length - 1; k += 1) {
+      if (open < 0 && bodyText[k] === '/' && bodyText[k + 1] === '*') { open = k; k += 1; continue; }
+      if (open >= 0 && bodyText[k] === '*' && bodyText[k + 1] === '/') { open = -1; k += 1; }
+    }
+    if (open >= 0 && i < src.length) {
+      const line = src.slice(0, i).split('\n').length;
+      bad.push(`${file}:${line}  — literál ${label} má spätný apostrof v CSS komentári (ukončí reťazec; zvyšok CSS sa stane JavaScriptom)`);
+    }
   }
 
   // ── FATÁLNA KONTROLA: TEN ISTÝ PARSER, KTORÝ ZHADZUJE BUILD ──────────────

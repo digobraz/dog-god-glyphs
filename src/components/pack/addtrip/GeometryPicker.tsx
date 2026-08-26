@@ -19,6 +19,7 @@ import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, NAV_GOLD, NAV_PILL_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import {
   ACTIVITY_GEOMETRY,
@@ -206,6 +207,24 @@ export function findDuplicate(geometry: TripGeometry, allTrails: HeroTrail[]): H
 // Ďalší (a posledný) stupeň by bolo 16, čo je presne `MIN_ZOOM_FOR_NOTE` — vtedy by prah
 // kreslenia a prah značiek splynuli do jedného čísla.
 export const TRIP_HOLD_MIN_ZOOM = 15;
+
+/**
+ * Je toto PC? Jedna odpoveď pre gesto aj pre skin — `PALE_PC_MIN` je ten istý konštant,
+ * ktorým sa nižšie v CSS prepína bledý PC vzhľad. Počúva zmenu šírky, takže pretiahnutie
+ * okna pod hranicu vráti mobilné správanie bez reloadu.
+ */
+function usePcPointer(): boolean {
+  const [pc, setPc] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia?.(`(min-width:${PALE_PC_MIN}px)`).matches === true);
+  useEffect(() => {
+    const mq = window.matchMedia?.(`(min-width:${PALE_PC_MIN}px)`);
+    if (!mq) return;
+    const on = () => setPc(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return pc;
+}
 /** Priblíženie, na akom sa mapa otvára (prehľad krajiny) = 0 % ukazovateľa priblíženia. */
 const ZOOM_BAR_FROM = 7;
 
@@ -256,6 +275,13 @@ export function GeometryPicker({
    * aj tak nesádzajú (tesne nad ovládaním).
    */
   const [elevOpen, setElevOpen] = useState(false);
+  /**
+   * ── PREVÝŠENIE JE NA PC OTVORENÉ NATRVALO (Matej 2026-08-26) ──────────────────────────
+   * „pod ním bude otvorené prevýšenie = stále viditeľné, nie schované za klikom."
+   * Na telefóne ostáva za klikom: tam je karta profilu ďalších ~90 px z mapy, na ktorej sa
+   * práve kreslí. Na PC je dok ľavý stĺpec, ktorý mape nič neberie — takže dôvod schovávať
+   * profil tam neplatí.
+   */
 
   const allowed = useMemo(() => allowedKindsFor(activity), [activity]);
   const line = useMemo(
@@ -582,8 +608,18 @@ export function GeometryPicker({
   // mu pri každom takom pohybe hodil kotvu do lesa. Po prvej kotve už je zrejmé, že kreslí,
   // takže ďalšie body pribúdajú ťuknutím (rýchlejšie a je to pôvodné správanie).
   // Desktop sa NEMENÍ: tam je formulár vedľa mapy, klik je jednoznačný a držanie by len zdržalo.
+  //
+  // ⚠️ OPRAVENÉ 2026-08-26 — KOMENTÁR VYŠŠIE PLATIL, KÓD NIE. Veta „Desktop sa NEMENÍ" bola
+  // zámer, ale `needsHold` visel iba na `drawBar.active`, a tú si od prestavby zapína aj PC.
+  // Na 1440 px teda sprievodca hovoril „dlhým stlačením zaháj trasu" — mobilné gesto myšou,
+  // ktoré treba držať 600 ms. (Pravý klik robí to isté hneď, ale to appka nikde nepovie,
+  // takže to nie je cesta, ktorú niekto nájde.) Na PC preto prvá kotva = obyčajný klik.
+  // ⚠️ Hranica je `PALE_PC_MIN` — TEN ISTÝ konštant, ktorým sa prepína bledý PC skin nižšie
+  // v CSS. Zámerne nie `(pointer: fine)`: druhá definícia „čo je PC" v tom istom toku sa pri
+  // prvej zmene rozíde a vznikne pásmo, kde vyzerá ako PC a správa sa ako mobil.
   const paused = !!drawBar?.paused;
-  const needsHold = !!drawBar?.active && !paused
+  const isPC = usePcPointer();
+  const needsHold = !!drawBar?.active && !paused && !isPC
     && (value.kind === 'route' ? value.path.length === 0 : !value.center);
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
@@ -925,12 +961,29 @@ export function GeometryPicker({
     || (routePath.length >= 3 && hav(routePath[0], routePath[routePath.length - 1]) < 150)
   );
 
+  /**
+   * ── SPRIEVODCA HOVORÍ V ČASE, V KTOROM ČLOVEK STOJÍ (Matej 2026-08-25) ─────────────────
+   * „v 1. kroku povie blbosť (vyhladaj kde ste boli...) má povedať hurá za dobrodružstvom!
+   *  Nájdi miesto kam pôjdete a nakresli si trasu!"
+   * Vety boli písané pre ZÁPIS a plán ich zdedil celé — takže sa človeka, ktorý sa nikam
+   * nevybral, pýtali, kde bol. `mode` picker už dostáva, netreba naň nový prop.
+   * ⚠️ Dvojičku `.plan` majú LEN vety, ktoré hovoria o čase. Neutrálne („Ešte priblíž…",
+   * „Ťukni na cieľ") ju zámerne nemajú: druhý text s rovnakým významom sa pri prvej úprave
+   * rozíde a jedna z obrazoviek začne hovoriť staré.
+   */
+  const planning = mode === 'plan';
+  const tp = (key: string) => t(planning ? `${key}.plan` : key);
+
   const ownHint = stage === 0
     ? (holdTooFar
-        ? (zoomPct < 34 ? t('pack.addTrip.ainubis.findPlace')
+        ? (zoomPct < 34 ? tp('pack.addTrip.ainubis.findPlace')
           : zoomPct < 70 ? t('pack.addTrip.ainubis.closer')
           : t('pack.addTrip.ainubis.closerMore'))
-        : t(value.kind === 'route' ? 'pack.addTrip.ainubis.zoomOk' : 'pack.addTrip.geo.startHoldSpot'))
+        // Dve znenia, lebo sú to dve rôzne gestá — nie dva preklady toho istého. `needsHold`
+        // je JEDINÝ zdroj toho, ktoré platí, takže sa text nemá ako rozísť so správaním.
+        : (value.kind === 'route'
+            ? tp(needsHold ? 'pack.addTrip.ainubis.zoomOk' : 'pack.addTrip.ainubis.zoomOkClick')
+            : t('pack.addTrip.geo.startHoldSpot')))
       // ⚠️ VETY O CIELI A O NÁVRATE ZANIKLI (Matej 24. 8. 2026). Sprievodca hovorí už len
       // dve veci: „klikaj ďalej" a — od druhej kotvy — že sa dá skončiť. Tvar trasy (okruh,
       // tam a späť, z A do B) si človek určuje sám tým, kam klikne, takže sa naň appka
@@ -942,10 +995,11 @@ export function GeometryPicker({
       // má človek za sebou.
       : value.kind === 'route'
         ? (routePath.length < 2
-            ? t('pack.addTrip.geo.continueTap')
+            // Tá istá dvojica gest ako pri prvej kotve — na PC sa klikne, nie ťukne.
+            ? t(isPC ? 'pack.addTrip.geo.continueClick' : 'pack.addTrip.geo.continueTap')
             : routeLooksDone
               ? t('pack.addTrip.ainubis.routeLooksDone')
-              : t('pack.addTrip.ainubis.drawDone'))
+              : tp('pack.addTrip.ainubis.drawDone'))
         : null;
   const drawHint = drawBar?.hint !== undefined ? drawBar.hint : ownHint;
 
@@ -961,13 +1015,13 @@ export function GeometryPicker({
   const readout = value.kind === 'route' ? (
     isMinimal
       ? (pointCount >= 2
-          ? <span style={{ color: T.onDarkDim }}>{t('pack.addTrip.geo.unknownDistance')}</span>
-          : <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>)
+          ? <span className="trp-dread-dim">{t('pack.addTrip.geo.unknownDistance')}</span>
+          : <span className="trp-dread-dim">{barOn ? '' : hint}</span>)
       : pointCount < 2
-        ? <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
+        ? <span className="trp-dread-dim">{barOn ? '' : hint}</span>
         : <>
             {km.toFixed(1)} km
-            <span style={{ color: T.onDarkDim }}> · </span>
+            <span className="trp-dread-dim"> · </span>
             ↑ {elevPending || ascent === null ? '…' : `${ascent} m`}
             {/* ⚠️ ČAS JE ODHAD, NIE MERANIE (Matej 2026-08-25: „pridaj tam aj čas").
                 Vlnovka je súčasťou hodnoty — bez nej to vyzerá ako údaj z hodiniek.
@@ -976,7 +1030,7 @@ export function GeometryPicker({
                 s tromi bodkami by tu bol horší než hrubší odhad. */}
             {formatTripTime(estimateTripMinutes(km, ascent, descent)) && (
               <>
-                <span style={{ color: T.onDarkDim }}> · </span>
+                <span className="trp-dread-dim"> · </span>
                 <span title={t('pack.addTrip.geo.timeNote')}>{formatTripTime(estimateTripMinutes(km, ascent, descent))}</span>
               </>
             )}
@@ -990,7 +1044,7 @@ export function GeometryPicker({
       ? t('pack.addTrip.geo.areaRadius', { km: (value.radiusM / 1000).toFixed(1) })
       : t('pack.addTrip.geo.spotSet')
   ) : (
-    <span style={{ color: T.onDarkDim }}>{barOn ? '' : hint}</span>
+    <span className="trp-dread-dim">{barOn ? '' : hint}</span>
   );
 
   // Undo/Vymazať majú zmysel len keď je čo vracať — inak sú to dve tlačidlá, ktoré nič nerobia.
@@ -1037,7 +1091,7 @@ export function GeometryPicker({
    * viac než 200 bodov aj tak nemá kam vykresliť.
    */
   const elevSeries = useMemo(() => {
-    if (!elevOpen || elevPending || line.length < 2) return null;
+    if (!(elevOpen || isPC) || elevPending || line.length < 2) return null;
     const vals: number[] = [];
     for (const p of interp(line, SPACING)) {
       const v = elevAt(p);
@@ -1048,7 +1102,7 @@ export function GeometryPicker({
     if (vals.length <= MAX_POINTS) return vals;
     const step = (vals.length - 1) / (MAX_POINTS - 1);
     return Array.from({ length: MAX_POINTS }, (_, i) => vals[Math.round(i * step)]);
-  }, [elevOpen, elevPending, line]);
+  }, [elevOpen, isPC, elevPending, line]);
 
   // Profil sa dá otvoriť, len keď je čo kresliť. Najmenší zápis (vzdušná čiara) prevýšenie
   // nehlási vôbec, tak by pilulka otvárala prázdno.
@@ -1056,12 +1110,45 @@ export function GeometryPicker({
 
   // Nová kotva profil ZAVRIE. Inak by karta ostala visieť nad mapou práve vtedy, keď človek
   // pokračuje v kreslení, a on by ju musel zatvárať, aby videl, kam kreslí.
-  useEffect(() => { setElevOpen(false); }, [pointCount]);
+  // ⚠️ NA PC NIE — tam profil stojí v ľavom stĺpci (nie nad mapou) a má byť vidno stále,
+  // teda aj počas kreslenia. Zatváranie by ho pri každej kotve zhaslo.
+  useEffect(() => { if (!isPC) setElevOpen(false); }, [pointCount, isPC]);
+
+  /** Je profil naozaj na obrazovke? Na PC nezávisí od kliku (§0.2 zadania). */
+  const elevShown = canElev && (isPC || elevOpen);
+
+  /**
+   * Sprievodca ako JEDEN uzol — na PC ho hostí ľavý stĺpec, na telefóne pás nad mapou.
+   * Dve kópie JSX by sa rozišli pri prvej zmene textu alebo popisku úniku.
+   */
+  const guide = drawBar && (drawHint || drawBar.onAbort)
+    ? (
+      <AinubisGuide
+        text={drawHint ?? ''}
+        onAbort={drawBar.onAbort}
+        abortLabel={t('pack.addTrip.geo.abortAria')}
+        below={isPC ? undefined : drawBar.steps}
+      />
+    )
+    : null;
+
+  /**
+   * ── KROKY 1–5 SÚ NA PC V DOLNOM BLOKU, AJ S NÁZVAMI (Matej 2026-08-26) ────────────────
+   * „kroky 1-5 môžu byť v dolnom bloku s tlačítkami aj vypísané — je tam dostatok miesta."
+   * Na telefóne visia pod bublinou (`AinubisGuide below`) bez názvov, lebo päť popiskov sa
+   * na 360 px nezmestí. Je to ten istý uzol (`drawBar.steps`), nie druhá kópia — mení sa
+   * len miesto, kam sa zavesí, a CSS, ktoré na PC popisky odkryje.
+   */
+  const stepsInPanel = isPC && drawBar?.steps
+    ? <div className="trp-dsteps">{drawBar.steps}</div>
+    : null;
 
   const readoutRow = (stage === 2 && showReadout)
     ? (
       <div className="trp-dreadrow">
-        {canElev
+        {/* Na PC pilulka NIE JE prepínač — profil pod ňou je otvorený vždy, takže tlačidlo
+            so šípkou by sľubovalo stav, ktorý sa nedá zmeniť. */}
+        {canElev && !isPC
           ? (
             <button
               type="button"
@@ -1078,12 +1165,15 @@ export function GeometryPicker({
     : null;
 
   /** Karta s profilom — rovnaký povrch ako pilulka, aby to čítalo ako JEJ roztiahnutie. */
-  const elevCard = (elevOpen && canElev && stage === 2 && showReadout)
+  const elevCard = (elevShown && stage === 2 && showReadout)
     ? (
       <div className="trp-delev">
         <div className="trp-delev-head">
           <span>{t('pack.trip.elevation')}</span>
-          <button type="button" className="trp-delev-x" onClick={() => setElevOpen(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
+          {/* Zatvoriť sa dá len to, čo sa dá otvoriť — na PC profil stojí natrvalo. */}
+          {!isPC && (
+            <button type="button" className="trp-delev-x" onClick={() => setElevOpen(false)} aria-label={t('pack.mapNotes.add.close')}>×</button>
+          )}
         </div>
         {elevSeries
           ? <ElevationProfile elev={elevSeries} km={km} />
@@ -1210,14 +1300,20 @@ export function GeometryPicker({
             „ainubis bude hore a X a kroky presuň do dolného panela."
             Bodky 1–5 aj čítanie km sa presťahovali DO PANELA — hore ostáva jediný hlas
             a jediné východisko. */}
-        {(drawHint || drawBar.onAbort) && (
-          <AinubisGuide
-            text={drawHint ?? ''}
-            onAbort={drawBar.onAbort}
-            abortLabel={t('pack.addTrip.geo.abortAria')}
-            below={drawBar.steps}
-          />
-        )}
+        {/* ── PC: SPRIEVODCA JE PRVÝ OBYVATEĽ ĽAVÉHO STĹPCA (Matej 2026-08-26) ───────────
+            „NA PC máme dostatočný priestor na to aby sme mali vľavo zhora AInubis, pod ním
+             bude otvorené prevýšenie…, pod tým pils s hodnotami a pod tým blok s tlačítkami
+             — všetky elementy na ľavej strane… budú v jednotnej šírke."
+
+            Do teraz stál ako vodorovný pás cez hornú hranu okna (`left:480px`), teda ako
+            DRUHÝ ovládací ostrov bez vzťahu k panelu vľavo. Preto sa na PC vykresľuje
+            VNÚTRI `.trp-dock` a jeho `position:fixed` sa v CSS vypína — jeden stĺpec,
+            jedna šírka. Na telefóne ostáva všetko po starom: tam je dok pri spodnej hrane
+            a bublina musí visieť nad mapou, nie nad panelom.
+
+            ⚠️ BODKY 1–5 IDÚ NA PC DO DOLNÉHO BLOKU (§0.5), nie pod bublinu — preto sa
+            `below` podáva len na telefóne. */}
+        {guide && !isPC && guide}
 
         {/* ⚠️ PILULKA MUSÍ BYŤ VIDNO NA SVETLEJ MAPE (Matej 23. 8.: „tá fialová pilulka je
             takmer neviditeľná — treba ju zvýrazniť, dať tam ikonku (i) alebo nejakú radu
@@ -1241,7 +1337,9 @@ export function GeometryPicker({
             systém: lock z 23. 8. („jedna veta na jedno miesto") platí ďalej, len to miesto
             je odteraz hlavička. `drawHint` sa počíta rovnako ako predtým. */}
 
-        <div className="trp-dock">
+        <div className={`trp-dock${isPC ? ' trp-dock--pc' : ''}`}>
+        {/* PC: sprievodca stojí NAD prevýšením, teda ako prvý v stĺpci (§0.1 poradie). */}
+        {isPC && guide}
         {/* ⚠️ ČÍTANIE KM STOJÍ V MAPE, NIE V PANELI (Matej 24. 8. 2026: „pils s počítaním km
             v 1-2 kroku daj nad panel — ako keby do mapy"). Je to údaj O TRASE, teda o tom, čo
             je na mape — v paneli patrí ovládanie. Rovnaké miesto, aké mala kedysi pokynová
@@ -1260,7 +1358,12 @@ export function GeometryPicker({
             {/* NA DOSAH PALCA. Hore bolo pole „takmer neviditeľné" a na telefóne aj mimo dosahu;
                 po prvej kotve zmizne úplne — svoju úlohu (dostať človeka do jeho oblasti) má
                 vtedy za sebou a nad rozkreslenou trasou by lákalo mapu odletieť inam. */}
-            <PlaceSearch mapRef={mapRef} />
+            {/* ⚠️ ZOOM MUSÍ SEDIEŤ NA PRAH KRESLENIA (2026-08-26). PlaceSearch mal default 14,
+                prah prvej kotvy je 15 — takže po vybratí konkrétneho vrchu z ponuky appka
+                POVEDALA „ešte kúsok, približuj". Presne to, čo mal vyhľadávač ušetriť (viď
+                hlavičku PlaceSearch.tsx). Hodnota sa berie z prahu, nie ako druhé číslo. */}
+            <PlaceSearch mapRef={mapRef} zoom={TRIP_HOLD_MIN_ZOOM} />
+            {stepsInPanel}
             {backLink}
           </div>
         )}
@@ -1271,6 +1374,7 @@ export function GeometryPicker({
         {drawBar.panel ? (
           <div className="trp-dbar trp-dockpanel">
             {drawBar.panel}
+            {stepsInPanel}
             {backLink}
           </div>
         ) : stage > 0 ? (
@@ -1375,6 +1479,7 @@ export function GeometryPicker({
               nemá koho prosiť, keď sa ten stav nedá vyvolať. */}
           </>
           )}
+          {stepsInPanel}
           {backLink}
         </div>
         ) : null}
@@ -1581,6 +1686,10 @@ const DRAW_BAR_CSS = `
 .trp-delev-x:hover{color:#C9A6F2;}
 .trp-delev-wait{padding:14px 0 16px;text-align:center;font-family:${FONT_UI};font-size:12px;color:${T.onDarkDim};}
 .trp-dreadrow .trp-dread{font-size:13.5px;padding:7px 14px;}
+/* ⚠️ TRIEDA, NIE INLINE ŠTÝL. Stlmené časti čítania (oddeľovače, šípka, náhradná veta)
+   mali farbu v inline štýle, takže bledý skin PC ich nevedel prebiť bez !important —
+   na zlatej pilulke by ostali svetlošedé, teda neviditeľné. */
+.trp-dread-dim{color:${T.onDarkDim};}
 
 /* ── PEVNÁ VÝŠKA V KROKOCH 1–2 (Matej 24. 8. 2026) ─────────────────────────────────────
    „ten by bolo možno dobré v prvých 2 krokoch fixnut na konkretnu výšku aby sa pri týchto
@@ -1663,6 +1772,38 @@ const DRAW_BAR_CSS = `
    ponuka sa odvtedy renderuje na <body> a smer si volí podľa miesta, viď PlaceSearch.tsx.) */
 @media (min-width:1024px){
   .trp-dock{top:20px;bottom:20px;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);justify-content:flex-start;align-items:stretch;}
+  /* ── ĽAVÝ STĹPEC MÁ ŠTYROCH OBYVATEĽOV A JEDNU ŠÍRKU (Matej 2026-08-26) ──────────────
+     Zhora nadol: AINUBIS · PREVÝŠENIE · PILULKA S HODNOTAMI · BLOK S TLAČIDLAMI.
+     Do teraz mal každý z nich vlastnú mieru — sprievodca bol vodorovný pás cez hornú hranu
+     okna, profil a pilulka sa centrovali na 360 px s bočnými 16 px, panel mal plnú šírku
+     stĺpca. Traja rôzne široké prvky nad sebou nečítajú ako jeden blok, ale ako tri.
+
+     ⚠️ ŠÍRKU DRŽÍ STĹPEC (align-items:stretch), NIE ČÍSLA V DEŤOCH. Preto sa tu ruší
+     width/margin/align-self, ktoré si deti nesú kvôli telefónu — nová hodnota by bola
+     štvrtá miera, ktorá sa pri zmene šírky stĺpca rozíde.
+     ⚠️ Stĺpec smie SKROLOVAŤ: sprievodca + profil + pilulka + panel sa na nízkom okne
+     nezmestia a bez toho by spodok panela (CTA) vytiekol pod hranu okna. */
+  .trp-dock--pc{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;}
+  /* Sprievodca prestáva byť pásom nad mapou a stáva sa kartou v stĺpci. Tmavý gradient
+     pásu tu nemá čo robiť — pod ním už nie je mapa, ale panel. */
+  .trp-dock--pc .ang-wrap{position:static;left:auto;right:auto;top:auto;padding:0;background:none;z-index:auto;flex:0 0 auto;}
+  .trp-dock--pc .ang-bar{border-radius:16px;padding:11px 8px 11px 11px;}
+  .trp-dock--pc .trp-delev{align-self:stretch;width:auto;margin:0;flex:0 0 auto;}
+  .trp-dock--pc .trp-dreadrow{margin:0;flex:0 0 auto;}
+  .trp-dock--pc .trp-dreadrow .trp-dread{width:100%;text-align:center;box-sizing:border-box;}
+  /* Panel nesmie stlačiť obsah pod svoju prirodzenú výšku, keď stĺpec skroluje. */
+  .trp-dock--pc .trp-dockpanel{flex:0 0 auto;}
+  /* ── KROKY 1–5 V DOLNOM BLOKU, S NÁZVAMI ──────────────────────────────────────────────
+     Nad mapou sú bodky pilulkou s tmavým podkladom a bez popiskov (päť názvov sa na telefón
+     nezmestí). V paneli je podklad aj rám navyše — škatuľa v škatuli — a miesto na názvy tam
+     je, takže sa oboje otáča.
+     Zlatá čiara nad nimi je T.rule (vyblednutá do strán), nie šedý hairline: krokovník je
+     iná vrstva informácie než ovládanie nad ním a musí sa to dať prečítať periférne. */
+  .trp-dsteps{flex:0 0 auto;padding-top:12px;position:relative;}
+  .trp-dsteps::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:${T.rule};}
+  .trp-dsteps .atl-steps--onmap{width:auto;gap:6px;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-dsteps .atl-steps--onmap .atl-step{flex:1 1 0;padding:6px 3px;gap:4px;}
+  .trp-dsteps .atl-steps--onmap .atl-step span{display:block;}
   /* Rám, zaoblenie aj spodná výplň prišli do .trp-dockpanel (mapDockShape.ts) — panel
      značky ich musí mať rovnaké, inak sa na PC pri zapichovaní zmení tvar rovnako ako
      na telefóne. */
@@ -1679,6 +1820,47 @@ const DRAW_BAR_CSS = `
 @media (min-width:1024px) and (max-width:1400px){
   .trp-dock{width:360px;}
 }
+${MAP_SKIN !== 'pale' ? '' : `
+/* ══ BLEDÝ SKIN PC (2026-08-26) ══════════════════════════════════════════════════════════
+   Dok je na PC papyrusový panel so zlatým rámom (mapDockShape.ts), takže jeho OBSAH nesmie
+   ostať v onDark tokenoch — bol by to svetlý text na piesku. Mobil ostáva tmavý až do
+   vlastného kola, preto min-width:${PALE_PC_MIN}px.
+   ⚠️ Čítanie km (.trp-dread) a profil prevýšenia (.trp-delev) sa ZÁMERNE nemenia: nie sú to
+   panely chrome, ale odznaky NAD MAPOU a nesú fialovú farbu trasy. Prefarbiť ich na papyrus
+   by zmazalo väzbu na čiaru, ktorú človek práve kreslí. */
+@media (min-width:${PALE_PC_MIN}px){
+  /* ── PREVÝŠENIE A PILULKA SÚ NA PC SÚČASŤ STĹPCA, NIE ODZNAKY NAD MAPOU ────────────────
+     Do 26. 8. tu stálo, že sa ZÁMERNE nemenia: „nie sú to panely chrome, ale odznaky NAD
+     MAPOU a nesú fialovú farbu trasy." Platilo to, kým plávali v mape. Odkedy stoja v ľavom
+     stĺpci medzi AInubisom a panelom (Matej 26. 8.), sú to dvaja tmaví obyvatelia v rade
+     bledých — a to je presne to, na čo Matej ukázal vetou „bloky musia byť všade rovnaké".
+
+     ⚠️ VÄZBA NA ČIARU SA NESTRÁCA, LEN SA PRESÚVA Z RÁMU DO ÚDAJA: krivka profilu je odteraz
+     fialová (TRAIL_LINE.mid) — tá istá farba, akou je nakreslená trasa na mape. Predtým bola
+     ZLATÁ v fialovom ráme, takže väzbu aj tak niesol obal, nie graf.
+     Pilulka hovorí jazykom ostatných pilulek redizajnu (.trp-stat-pill v PackMap.tsx):
+     NAV_GOLD.activeFill + NAV_PILL_SHADOW. Nová farba sa tu nevymýšľa. */
+  .trp-dock--pc .trp-delev{${goldFrameCSS({ radius: 18, rim: 6 })}}
+  .trp-dock--pc .trp-delev-head{color:${PALE.dim};}
+  .trp-dock--pc .trp-delev-wait{color:${PALE.dim};}
+  /* CSS prebíja prezentačný atribút v SVG — profil je zdieľaný komponent (tripShared.tsx)
+     a farby si nesie natvrdo pre tmavé povrchy; tie ostávajú nedotknuté. */
+  .trp-dock--pc .trp-delev svg text{fill:${PALE.dim};}
+  .trp-dock--pc .trp-delev svg line{stroke:${PALE.border};}
+  .trp-dock--pc .trp-delev svg path[stroke]{stroke:${TRAIL_LINE.mid};}
+  .trp-dock--pc .trp-delev svg path[fill^="url"]{fill:rgba(122,47,191,0.16);}
+  .trp-dock--pc .trp-dreadrow .trp-dread-dim{color:rgba(42,22,8,0.62);}
+  .trp-dock--pc .trp-dreadrow .trp-dread{background:${NAV_GOLD.activeFill};border:1px solid ${NAV_GOLD.edge};box-shadow:${NAV_PILL_SHADOW};color:${NAV_GOLD.ink};}
+  .trp-dback{color:${PALE.dim};}
+  .trp-dback:hover{color:${PALE.deep};}
+  .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
+  .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
+  .trp-dbar-row--minor .trp-dbar-btn{background:none;color:${PALE.dim};}
+  .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){color:${PALE.deep};}
+  .trp-dbar-btn:disabled{opacity:.45;}
+}
+`}
+
 `;
 
 export default GeometryPicker;

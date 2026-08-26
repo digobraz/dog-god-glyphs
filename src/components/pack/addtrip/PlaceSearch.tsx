@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom';
 import type { Map as LeafletMap } from 'leaflet';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 
 export type PlaceSug = { name: string; sub: string; lat: number; lon: number };
@@ -28,19 +29,24 @@ export type PlaceSearchProps = {
 };
 
 // Svetlo obiehajúce po ráme — ten istý mechanizmus, aký nesie náhľad mena v hero flow
-// (`NameScreen.tsx`, `--name-prev-ang`). Tam je modré, tu zlaté: zlatá je v projekte farba
-// výzvy a toto pole je prvá vec, ktorú má človek na mape spraviť.
-const GOLD_DIM = 'rgba(201,154,63,0.55)';
+// (`NameScreen.tsx`, `--name-prev-ang`).
+//
+// ⚠️ MODRÉ, NIE ZLATÉ (Matej 2026-08-26: „animácia ktorá obkresľuje text area bude modrou
+// akú máme v heroflow aby to bolo lepšie vidieť"). Zlatá verzia obiehala po ráme, ktorý je
+// na bledom PC paneli sám zlatý — svetlo teda kĺzalo po vlastnej farbe a nebolo ho vidno.
+// Hodnoty sú zdvihnuté 1:1 z `NameScreen.tsx` (rgba(47,107,255) → rgba(156,196,255)), nie
+// odhadnuté: je to tá istá animácia z toho istého toku, tak má byť aj tá istá modrá.
+const GLOW_DIM = 'rgba(47,107,255,0.55)';
 const PLACE_SEARCH_CSS = `
 @property --trp-ps-ang { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 .trp-ps{position:relative;border-radius:10px;}
-.trp-ps.is-attn{box-shadow:0 0 16px rgba(201,154,63,0.20);}
+.trp-ps.is-attn{box-shadow:0 0 16px rgba(47,107,255,0.22);}
 .trp-ps.is-attn::before{
   content:'';position:absolute;inset:-2px;border-radius:12px;z-index:0;pointer-events:none;padding:2px;
   background:conic-gradient(from var(--trp-ps-ang),
     transparent 0deg, transparent 250deg,
-    rgba(201,154,63,0.85) 312deg, rgba(245,199,61,0.98) 334deg,
-    rgba(201,154,63,0.85) 352deg, transparent 360deg);
+    rgba(47,107,255,0.85) 312deg, rgba(156,196,255,0.95) 334deg,
+    rgba(47,107,255,0.85) 352deg, transparent 360deg);
   -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;
   filter:blur(1px);
@@ -48,6 +54,31 @@ const PLACE_SEARCH_CSS = `
 }
 @keyframes trpPsSpin{ to { --trp-ps-ang:360deg; } }
 @media (prefers-reduced-motion: reduce){ .trp-ps.is-attn::before{animation:none;} }
+/* Výplň/rám/inkoust poľa a ponuky — v CSS, nie v inline štýle, nech ich bledý skin PC vie
+   prebiť bez !important (viď komentár pri <input>). */
+.trp-ps-input{background:rgba(10,7,4,0.72);border-color:${T.onDarkBorder};color:${T.onDark};}
+.trp-ps.is-attn .trp-ps-input{border-color:${GLOW_DIM};}
+.trp-ps-sug{background:rgba(18,13,7,0.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid ${T.onDarkBorder};box-shadow:0 18px 44px rgba(0,0,0,0.55);}
+.trp-ps-sugitem{color:${T.onDark};}
+.trp-ps-sugitem + .trp-ps-sugitem{border-top:1px solid rgba(245,240,228,0.08);}
+.trp-ps-sugsub{color:${T.onDarkDim};}
+${MAP_SKIN !== 'pale' ? '' : `
+/* ── BLEDÝ SKIN PC (2026-08-26) — pole stojí v papyrusovom doku, tak je z papyrusu tiež.
+   Mobil ostáva tmavý až do vlastného kola. Ponuka je PORTÁL do <body>, teda MIMO .trp-dock —
+   nedá sa zakotviť do doku a musí sa prefarbiť sama. */
+@media (min-width:${PALE_PC_MIN}px){
+  .trp-ps-input{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
+  .trp-ps-input::placeholder{color:${PALE.dim};opacity:.75;}
+  /* Rám poľa drží MODRÚ aj na papyruse — obieha po ňom modré svetlo a zlatý rám
+     pod ním by z toho spravil dve rôzne farby na jednom obryse. */
+  .trp-ps.is-attn .trp-ps-input{border-color:${GLOW_DIM};}
+  .trp-ps-sug{background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);border:1.5px solid ${PALE.edge};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-ps-sugitem{color:${PALE.ink};}
+  .trp-ps-sugitem:hover{background:${PALE.hot};}
+  .trp-ps-sugitem + .trp-ps-sugitem{border-top:1px solid ${PALE.hair};}
+  .trp-ps-sugsub{color:${PALE.dim};}
+}
+`}
 `;
 
 export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceSearchProps) {
@@ -173,15 +204,20 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
           style={{
             position: 'relative', zIndex: 1,
             width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: 10,
-            background: 'rgba(10,7,4,0.72)', border: '1px solid ' + (attn ? GOLD_DIM : T.onDarkBorder),
+            // ⚠️ Výplň, rám a inkoust NIE SÚ tu, ale v PLACE_SEARCH_CSS (.trp-ps-input).
+            // Bledý skin PC ich musí vedieť prebiť a inline štýl sa z CSS prebiť nedá —
+            // musel by na to !important na piatich miestach. Zvýraznený stav (is-attn) je
+            // preto tiež trieda, nie ternár v štýle.
+            borderWidth: 1, borderStyle: 'solid',
             // ⚠️ 16 px JE MINIMUM, NIE VKUS (Matej 2026-08-23: „priblížilo ma na mape a zároveň
             // mi zoomlo aj viewport = nevidím šípku späť ani dolný pill, vyzerá to ako pokazené").
             // iOS Safari pri fokuse do poľa s písmom MENŠÍM než 16 px priblíži celú stránku —
             // a späť sa už sama neoddiali, takže zmiznú prvky ukotvené k okrajom. Riešiť sa to
             // dá aj `maximum-scale=1` v `<meta viewport>`, ale to zakáže priblíženie celej
             // appky každému, kto ho potrebuje. Preto 16 px.
-            color: T.onDark, fontFamily: FONT_UI, fontSize: 16, fontWeight: 500, outline: 'none',
+            fontFamily: FONT_UI, fontSize: 16, fontWeight: 500, outline: 'none',
           }}
+          className="trp-ps-input"
         />
       </div>
       {items.length > 0 && box && createPortal(
@@ -196,13 +232,12 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
             ...(box.bottom != null ? { bottom: box.bottom } : { top: box.top }),
             // Nad dokom (1200) aj nad panelom značiek — je to vrstva, ktorá ich prekrýva zámerne.
             zIndex: 1300,
-            background: 'rgba(18,13,7,0.97)', backdropFilter: 'blur(12px)',
-            border: '1px solid ' + T.onDarkBorder, borderRadius: 12,
+            borderRadius: 12,
             // Skrolovanie, nie orezanie: pri nízkom okne sa aj tak nezmestí celá a bez
             // `auto` by boli posledné návrhy neviditeľné a nedosiahnuteľné.
             overflowX: 'hidden', overflowY: 'auto', maxHeight: box.max,
-            boxShadow: '0 18px 44px rgba(0,0,0,0.55)',
           }}
+          className="trp-ps-sug"
         >
           {items.map((s, i) => (
             <button
@@ -212,12 +247,12 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
               style={{
                 display: 'block', width: '100%', textAlign: 'left', cursor: 'pointer',
                 padding: '10px 13px', background: 'none', border: 'none',
-                borderTop: i === 0 ? 'none' : '1px solid rgba(245,240,228,0.08)',
               }}
+              className="trp-ps-sugitem"
             >
-              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 13.5, fontWeight: 500, color: T.onDark }}>{s.name}</span>
+              <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 13.5, fontWeight: 500 }}>{s.name}</span>
               {s.sub && (
-                <span style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11.5, color: T.onDarkDim, marginTop: 2 }}>{s.sub}</span>
+                <span className="trp-ps-sugsub" style={{ display: 'block', fontFamily: FONT_UI, fontSize: 11.5, marginTop: 2 }}>{s.sub}</span>
               )}
             </button>
           ))}

@@ -278,15 +278,16 @@ export function TripReveal({
             </button>
           </div>
 
-          {isDraft && (
-            <div className="rv-draft">
-              <div className="rv-drafth">{t('pack.reveal.draftTitle')}</div>
-              <p className="rv-draftp">
-                {t('pack.reveal.draftBody')}
-                <span className="rv-draftmiss">{t('pack.reveal.draftMissing', { fields: draftMissing!.join(', ') })}</span>
-              </p>
-            </div>
-          )}
+          {/* ── SPRÁVA O KONCEPTE SA PRESŤAHOVALA PRED ODOSLANIE (Matej 2026-08-26) ─────────
+              „tá informácia o koncepte NEMOŽE byť v reveale… ale v 5 kroku nad CTA uložiť
+               výlet tam musí byť červená bublinka."
+              Tu sa človek dozvedel, že výlet ostáva rozpracovaný, až KEĎ ho odoslal — teda
+              vtedy, keď s tým už nič nespraví. Odteraz to hovorí červená bublinka nad
+              tlačidlom v kroku 5 (`atl-draftwarn` v AddTripLog.tsx), kým sa to dá doplniť.
+              ⚠️ `isDraft` OSTÁVA v komponente — riadi ponuku „Dopísať teraz / neskôr"
+              v päte, ktorá je akcia, nie oznam. Kľúče `pack.reveal.draft*` sa nemažú:
+              `draftTitle` nesie tú istú bublinku a zvyšné sú doklad, keby sa mali vrátiť.
+              CSS `.rv-draft*` sa tiež necháva — je to pár riadkov a návrat je jeden blok. */}
 
           <div className="rv-cta">
             {/* Pri koncepte sa „pridaj ďalší" neponúka: pozvať človeka založiť druhý výlet

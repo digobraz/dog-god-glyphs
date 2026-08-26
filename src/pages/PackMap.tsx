@@ -2130,8 +2130,21 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-addhost .comm-comp-chip b{color:${P_INK};}
   .trp-addhost .comm-comp-chip button{color:${P_DIM};}
   .trp-addhost .comm-comp-chip button:hover{color:#8A5F1E;}
-  .trp-addhost .comm-comp-openothers{background:rgba(255,251,240,0.5);border-color:${P_BORDER};color:${P_DIM};}
-  .trp-addhost .comm-comp-openothers:hover{border-color:${T.cardEdge};color:${P_INK};}
+  /* ── „PRIDAJ ĎALŠÍCH" MUSÍ BYŤ VIDNO (Matej 2026-08-26) ──────────────────────────────
+     „pri pridaj ďalší musí byť krajší text area lebo je nevýrazný, priesvitný — musí byť
+      viditeľný bledý."
+     Bola to čiarkovaná polopriehľadná plocha (0.5 alfa) na papyruse, teda skoro nič. Odteraz
+     je to plochý papyrusový povrch matrice (úroveň 5, pf-field--flat: #FBF5E6, r8, rám
+     rgba(179,130,45,0.55)) — to isté, čo nesie každé iné pole formulára. Rám je plný, nie
+     čiarkovaný: čiara „sem sa dá dopísať" bola ďalší spôsob, ako povedať to isté, čo hovorí
+     plusko, a pritom robila prvok bledším než jeho okolie.
+     To isté pole dostane aj samotné písanie mien (comm-input) — po otvorení je to ten
+     istý povrch, len s kurzorom. */
+  .trp-addhost .comm-comp-openothers{background:#FBF5E6;border:1px solid ${P_BORDER};border-radius:8px;color:${P_INK};}
+  .trp-addhost .comm-comp-openothers:hover{border-color:${T.cardEdge};color:${P_INK};background:#FFFBF0;}
+  .trp-addhost .comm-comp-searchrow .comm-input{background:#FBF5E6;border:1px solid ${P_BORDER};border-radius:8px;color:${P_INK};}
+  .trp-addhost .comm-comp-searchrow .comm-input::placeholder{color:${P_DIM};opacity:.75;}
+  .trp-addhost .comm-comp-searchrow .comm-input:focus{outline:none;border-color:${T.cardEdge};}
   .trp-addhost .comm-comp-openplus{background:rgba(201,154,63,0.22);color:#8A5F1E;}
   .trp-addhost .comm-comp-addbtn{background:rgba(201,154,63,0.18);border-color:${P_BORDER};color:${P_INK};}
   .trp-addhost .comm-comp-addbtn:not(:disabled):hover{border-color:${T.cardEdge};}
@@ -3742,10 +3755,23 @@ export default function PackMap() {
         }
         // 2. PREJDENÝ. Bez toho ostane na mape 🎯 (`isUnwalkedPlan` sa pýta presne na toto).
         setWalkedIds((prev) => { const n = new Set(prev); n.add(finishId); return n; });
-        // 3. UŽ NIE JE V PLÁNE. Musí ísť aj `removeMyTrip`, inak ho `seedTriplistFromPlans()`
-        //    pri ďalšom mounte z prežívajúceho plánu založí naspäť ako nadchádzajúci.
+        // 3. UŽ NIE JE V PLÁNE.
         setPlans((prev) => prev.filter((pl) => pl.tripId !== finishId));
-        removeMyTrip(finishId);
+        /**
+         * ⚠️ UŽ SA NEODSTRAŇUJE Z TRIPLISTU, LEN PRESTÁVA BYŤ PLÁNOM (2026-08-26).
+         * `removeMyTrip` tu stálo preto, aby ho `seedTriplistFromPlans()` pri ďalšom mounte
+         * nezaložil naspäť ako nadchádzajúci. Lenže odkedy v tripliste stojí aj ZAPÍSANÝ
+         * výlet (viď upsert nižšie v tejto funkcii), znamenalo to, že prejdený plán z neho
+         * ako jediný zmizne — presne ten stav, na ktorý Matej ukázal vetou „po zápise výlet
+         * nevidím v tripliste".
+         * Prepis na solo/closed rieši oboje: seed pridáva len `if (all[p.tripId]) continue`,
+         * teda existujúci záznam nechá na pokoji.
+         */
+        upsertMyTrip(finishId, {
+          status: 'solo',
+          openness: 'closed',
+          date: draft.dateKind !== 'flexible' && draft.date ? draft.date : '',
+        });
         // 4. POZVÁNKA SKONČILA. Inzerát „hľadám svorku" na výlet, ktorý sa už odohral, by
         //    volal ľudí na termín v minulosti.
         setEvents((prev) => prev.filter((e) => e.tripId !== finishId));
@@ -3845,6 +3871,25 @@ export default function PackMap() {
       setAddError(photosDropped ? t('pack.map.errorPhotosDropped') : '');
       setLocalTrails(next);
       setWalkedIds((prev) => { const n = new Set(prev); n.add(tid); return n; });
+      /**
+       * 🔴 ZAPÍSANÝ VÝLET MUSÍ BYŤ V TRIPLISTE (Matej 2026-08-26: „po zápise výlet nevidím
+       * v tripliste").
+       *
+       * MY TRIPS číta VÝHRADNE `dogypt.triplist.v1` (`readTriplist()` v PackTriplist.tsx),
+       * kým zápis končil len v `trp-local-trails` + `walkedIds`. Výlet teda vznikol, bol na
+       * mape aj v štatistikách, ale v zozname „moje výlety" nebol — a nevyzeralo to ako
+       * chyba, len ako prázdny zoznam.
+       * Plán sa tam dostával (`addPlan` → `seedTriplistFromPlans`), zápis ako jediný nie.
+       *
+       * ⚠️ `openness: 'closed'` — zapísaný výlet sa už odohral, takže na ňom nemá čo visieť
+       * pozvánka „hľadám partiu". Dátum ide z draftu; pri „nepamätám si" ostáva prázdny,
+       * čo je pre triplist platný stav (radí sa medzi výlety bez dátumu).
+       */
+      upsertMyTrip(tid, {
+        status: 'solo',
+        openness: 'closed',
+        date: draft.dateKind !== 'flexible' && draft.date ? draft.date : '',
+      });
       if ((draft.paws ?? 0) > 0) {
         // seedCrowd() prekladá SK hodnotu z nahadzovača (newTrail.crowd) na EN Crowd.
         setVotes((prev) => ({ ...prev, [tid]: {
