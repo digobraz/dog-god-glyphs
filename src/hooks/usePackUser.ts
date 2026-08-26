@@ -5,6 +5,9 @@ export interface PackDogFull {
   id: string;
   dog_name: string | null;
   cloudinary_main_url: string | null;
+  /** Meno majiteľa Z OBJEDNÁVKY. Je to VÝCHODISKO mena člena, keď si v profile
+   *  nevypísal vlastné (Matej 2026-08-26) — `/pack/profile` ho ukazuje v poli MENO. */
+  owner_name?: string | null;
   // ownerGender = pôvodné pole; dogGender/dogColour/dogBloodline pridané pre read-only heroglyph
   // zhrnutie v profil-accordion editore (zadanie-profil-read-dog-2026-07-25 §2). Column list v
   // .select() nižšie už 'selections' celé ťahá — toto len rozširuje typ o polia, ktoré sú v JSON.
@@ -97,7 +100,7 @@ export function usePackUser(userId: string | null): PackUserData {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: dogRows } = await (supabase as any)
         .from('dogs')
-        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url')
+        .select('id, dog_name, cloudinary_main_url, selections, created_at, pack_number, heroglyph_png_url, owner_name')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true }) as { data: PackDogFull[] | null };
 

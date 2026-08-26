@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { emitOpenThread } from '@/components/pack/messaging/openBridge';
 import type { PartyMember } from './useTripParty';
+import { useMemberProfile, memberDisplayName } from '@/components/pack/profile/memberProfile';
 
 const T = PACK_THEME;
 const GOLD = '#C99A3F';
@@ -125,7 +126,13 @@ export function PartyMemberCard({ member, roleLabel, dm, onOpenProfile }: {
   onOpenProfile?: () => void;
 }) {
   const dog = member.dogName?.trim();
-  const owner = member.ownerFirst?.trim();
+  // MENO ČLOVEKA sa berie z profilu, nie z objednávky (Matej 2026-08-26: „meno ukazuje ako si
+  // to človek nastaví v profile… štandardne to bude to čo zadal pri objednávke"). `get_trip_party`
+  // o prezývke ani o mene z profilu nevie — vydáva len krstné meno z objednávky, preto sa profil
+  // dotiahne podľa poradového čísla. Kým sa načíta (alebo keď číslo nie je), platí to z výletu,
+  // takže karta nikdy nezostane bez mena. Rozhoduje tá istá funkcia ako na profile a mini-karte.
+  const memberProfile = useMemberProfile(member.packNumber ?? undefined);
+  const owner = memberDisplayName(memberProfile, member.ownerFirst) || undefined;
   const initial = (dog || owner || '?').charAt(0).toUpperCase();
 
   const avatar = member.dogPhoto

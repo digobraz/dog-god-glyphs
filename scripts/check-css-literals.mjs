@@ -28,11 +28,33 @@
 // Oprava je vždy tá istá: prepis v @media píš DVOJTRIEDNE (`.rodic .dieta`),
 // nie presúvaním bloku naspodok — to vydrží len po najbližší dopísaný riadok.
 //
+// ── 26. 8. 2026 — ZMENA PRÍSTUPU: NAJPRV SKUTOČNÝ PARSER, POTOM VZORY ─────────
+// Stráž prepustila spätný apostrof TRETÍKRÁT (`PackMap.tsx`, `PALE_CSS`). Zakaždým
+// z toho istého dôvodu: `DECL` hľadal TVAR DEKLARÁCIE literálu a zakaždým sa našiel
+// štvrtý tvar, ktorý v ňom nebol —
+//     9.–14. 8.  `const NIECO_CSS = \``            ✓ pokryté
+//     25. 8.     `<style>{\``                       ✗ dopísané až po páde
+//     26. 8.     `const PALE_CSS = X ? '' : \``     ✗ ternár medzi `=` a apostrofom
+// Doplniť piatu alternáciu by znamenalo čakať na šiesty tvar. Preto sa fatálna
+// kontrola prestala robiť vzorom a robí ju **esbuild — ten istý parser, ktorý
+// zhadzuje build**. 328 súborov za ~0,5 s, teda lacnejšie než jeden `vite build`,
+// a chytí to bez ohľadu na to, ako je literál zapísaný. Vzory zostali len tam, kde
+// parser NEPOMÔŽE: `${` v komentári a kaskáda v `@media` sú platný JavaScript aj
+// platné CSS — sú to chyby VÝZNAMU, nie syntaxe.
+//
+// ⚠️ HRANICA NÁSTROJA: parser beží nad KAŽDÝM SÚBOROM ZVLÁŠŤ, takže nevidí, či sa
+// importy dajú nájsť. Chýbajúci modul (`@/components/Footer` namiesto
+// `@/components/landing/Footer`) tu prejde a padne až vo `vite build`, ktorý skladá graf.
+// Nie je to diera, je to deliaca čiara: syntax za pol sekundy tu, rozlíšenie importov tam.
+// Zelená hláška teda NEZNAMENÁ „build prejde".
+//
 // Púšťa sa automaticky pred `npm run build`. Samostatne: `npm run check:css`.
+// Na inom priečinku (test stráže): `node scripts/check-css-literals.mjs <cesta>`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { transformSync } from 'esbuild';
 
-const ROOT = new URL('../src', import.meta.url).pathname;
+const ROOT = process.argv[2] ? resolve(process.argv[2]) : new URL('../src', import.meta.url).pathname;
 const EXT = /\.(tsx?|jsx?)$/;
 
 /**
@@ -43,7 +65,11 @@ const EXT = /\.(tsx?|jsx?)$/;
  * takže stráž nad nimi hlásila „čisté" a build padol o sekundu neskôr presne
  * na tom apostrofe, kvôli ktorému stráž vznikla.
  */
-const DECL = /(?:const\s+([A-Za-z0-9_]*(?:CSS|css))\s*(?::\s*string\s*)?=|<(style)>\s*\{)\s*`/g;
+// ⚠️ TRETIA forma pribudla 26. 8.: medzi `=` a apostrofom smie stáť VÝRAZ na tom istom
+// riadku — `const PALE_CSS = MAP_SKIN !== 'pale' ? '' : \``. Preto `[^;`\n]*` namiesto
+// samotného `\s*`. Aj tak je to len pomôcka pre kontroly VÝZNAMU nižšie; syntax stráži
+// parser, ktorému je tvar deklarácie ukradnutý.
+const DECL = /(?:const\s+([A-Za-z0-9_]*(?:CSS|css))\s*(?::\s*string\s*)?=|<(style)>\s*\{)[^;`\n]*`/g;
 
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
@@ -55,14 +81,28 @@ function walk(dir, out = []) {
   return out;
 }
 
-// Kaskádové nálezy sa zbierajú ZVLÁŠŤ a NEZHADZUJÚ build. Dôvod: v repe ich je
-// deväť a všetky sú staršie než stráž — okrem iného v psom bloku (`.dogblk`), ktorý
-// je LOCKED a Matej ho odsúhlasil TAK, AKO DNES VYZERÁ, teda vrátane toho, že sa
-// mobilný prepis neuplatňuje. Hromadná „oprava" by naraz zmenila schválený vzhľad
-// na piatich obrazovkách; to je rozhodnutie pre Mateja, nie pre skript.
+// Kaskádové nálezy sa zbierajú ZVLÁŠŤ a NEZHADZUJÚ build.
+//
+// 🔴 OPRAVA 26. 8. 2026 — VŠETKÝCH DOVTEDAJŠÍCH 9 (po rozšírení 17) NÁLEZOV BOLO
+// FALOŠNÝCH. Detektor porovnával `base.index`, lenže ten ukazuje na ODDEĽOVAČ pred
+// selektorom (`(^|[\n}])`) — a keď tým oddeľovačom bola zatváracia zátvorka @media
+// bloku, index padol DOVNÚTRA neho. Pravidlo hneď ZA media query sa tak tvárilo, že
+// je v nej, a hlásilo sa ako kolízia s ďalším pravidlom nižšie. Rieši to `baseAt`.
+//
+// Tu stávalo, že nálezy sú reálne a že psí blok (`.dogblk`) má mobilný prepis, ktorý
+// sa NEUPLATŇUJE, a Matej ho tak odsúhlasil. **Nie je to pravda a nikdy nebola:**
+// `.dogblk` má base na r. 180 a VŠETKY prepisy (r. 241, 337, 358) sú POD ním, takže
+// media queries vyhrávajú normálne. Nechať tam ten výmysel by znamenalo, že si podľa
+// neho niekto raz „opraví" LOCKED komponent.
+//
+// Nahlásila to paralelná session na `.trp-addhost` v `PackMap.tsx`; overené v zdroji
+// aj protipríkladom (pravidlo v @media vs. v INEJ @media = dve podmienené vetvy, nie
+// kolízia). Po oprave je repo na NULE nálezov a detektor je odskúšaný oboma smermi.
 // Fatálne ostávajú len apostrof a ${ — tie build reálne rozbijú.
 const bad = [];
 const cascade = [];
+/** Pomocné nálezy per súbor — vypíšu sa LEN k súboru, ktorý parser odmietol. */
+const hints = {};
 for (const file of walk(ROOT)) {
   const src = readFileSync(file, 'utf8');
   for (const m of src.matchAll(DECL)) {
@@ -98,6 +138,16 @@ for (const file of walk(ROOT)) {
     const props = (block) => new Set(
       [...block.matchAll(/(^|[;{])\s*([a-z-]+)\s*:/g)].map((x) => x[2]),
     );
+    // Rozsahy VŠETKÝCH @media blokov — potrebné nižšie. Pravidlo, ktoré leží v inej
+    // @media, NIE JE „base pravidlo"; obe sú podmienené a nikdy neplatia naraz.
+    // ⚠️ Bez tejto kontroly stráž hlásila `.trp-addhost` v `PackMap.tsx` ako kolíziu
+    // s pravidlom o 170 riadkov nižšie, ktoré je ale mobilná vetva vo vlastnej
+    // `@media (max-width:1023px)` (nahlásila to paralelná session 26. 8., overené).
+    // Falošná hláška je pri VAROVANÍ horšia než chýbajúca — po tretej ju nikto nečíta.
+    const mediaRanges = [...cssOnly.matchAll(/@media[^{]*\{([\s\S]*?)\n\}/g)]
+      .map((m) => [m.index, m.index + m[0].length]);
+    const insideMedia = (idx) => mediaRanges.some(([a, b]) => idx >= a && idx < b);
+
     for (const mq of cssOnly.matchAll(/@media[^{]*\{([\s\S]*?)\n\}/g)) {
       const mqStart = mq.index;
       const mqEnd = mqStart + mq[0].length;
@@ -107,8 +157,14 @@ for (const file of walk(ROOT)) {
         if (!mqProps.size) continue;
         const baseRe = new RegExp('(^|[\\n}])\\s*' + sel.replace('.', '\\.') + '\\s*\\{([^}]*)\\}', 'g');
         for (const base of cssOnly.matchAll(baseRe)) {
-          if (base.index <= mqStart) continue;         // base je VYŠŠIE → prepis vyhrá
-          if (base.index < mqEnd) continue;            // to je pravidlo vnútri tej istej @media
+          // ⚠️ `base.index` ukazuje na ODDEĽOVAČ pred selektorom (`(^|[\n}])`), nie na
+          // selektor. Keď je tým oddeľovačom zatváracia zátvorka @media bloku, index
+          // padne DOVNÚTRA toho bloku a všetky tri kontroly nižšie rozhodnú opačne —
+          // pravidlo hneď za @media by sa tvárilo, že je v nej. Preto `baseAt`.
+          const baseAt = base.index + (base[1]?.length ?? 0);
+          if (baseAt <= mqStart) continue;             // base je VYŠŠIE → prepis vyhrá
+          if (baseAt < mqEnd) continue;                // to je pravidlo vnútri tej istej @media
+          if (insideMedia(baseAt)) continue;           // iná @media → dve podmienené vetvy, nie kolízia
           const kolizia = [...props(base[2])].filter((x) => mqProps.has(x));
           if (!kolizia.length) continue;               // iné vlastnosti → nekolidujú
           const line = src.slice(0, start + mqStart).split('\n').length;
@@ -122,21 +178,39 @@ for (const file of walk(ROOT)) {
       }
     }
 
-    const after = src.slice(i + 1, i + 3);
-    // Zdravý literál končí na `;` (konštanta) alebo `}` (`<style>{...}`).
-    // Čokoľvek iné = ukončil ho apostrof v komentári a zvyšok CSS sa teraz
-    // tvári ako JavaScript.
-    if (!/^\s*[;}]/.test(after)) {
+    // Zdravý literál končí na `;` (konštanta) alebo `}` (`<style>{...}`). Čokoľvek iné
+    // znamená, že ho ukončil apostrof v komentári a zvyšok CSS sa teraz tvári ako JS.
+    //
+    // ⚠️ Toto UŽ NIE JE fatálna kontrola, len POMÔCKA. Odkedy `DECL` pripúšťa výraz medzi
+    // `=` a apostrofom, vie sa trafiť aj do literálu, ktorý CSS vôbec nie je, a hlásiť
+    // zdravý kód. Rozhoduje parser nižšie; odtiaľto ide len presné miesto, ktoré sa
+    // vypíše k jeho chybe — esbuild totiž ohlási až miesto, kde sa zvyšok CSS začal
+    // parsovať ako JavaScript, nie ten apostrof, čo to spôsobil.
+    if (!/^\s*[;}]/.test(src.slice(i + 1, i + 3))) {
       const line = src.slice(0, i).split('\n').length;
-      bad.push(`${file}:${line}  — literál ${label} sa končí spätným apostrofom v tele (pravdepodobne v CSS komentári)`);
+      (hints[file] ??= []).push(`literál ${label} sa končí spätným apostrofom v tele (r. ${line}) — pravdepodobne v CSS komentári`);
     }
+  }
+
+  // ── FATÁLNA KONTROLA: TEN ISTÝ PARSER, KTORÝ ZHADZUJE BUILD ──────────────
+  // Nezáleží na tom, ako je literál zapísaný, ani či je to vôbec CSS. Ak sa súbor
+  // nedá rozparsovať, `vite build` padne — len o minútu neskôr a po zbytočnej práci.
+  // Chytí to aj hocijakú inú syntaktickú chybu, čo je bonus zadarmo (~0,5 s / 328 súborov).
+  try {
+    transformSync(src, { loader: file.endsWith('x') ? 'tsx' : 'ts', sourcefile: file });
+  } catch (err) {
+    const e = err?.errors?.[0];
+    const at = e?.location ? `${file}:${e.location.line}:${e.location.column}` : file;
+    bad.push(`${at}  — ${e?.text ?? err.message}`);
+    for (const h of hints[file] ?? []) bad.push(`${' '.repeat(4)}↳ ${h}`);
   }
 }
 
 if (bad.length) {
   console.error('\n✖ CSS-v-JS literál by zhodil build (tsc to nechytí):\n');
   for (const b of bad) console.error('  ' + b);
-  console.error('\n  Oprava: v komentári vnútri CSS literálu píš názvy BEZ spätných apostrofov; ak naozaj potrebuješ ${, daj doň úvodzovky.\n');
+  console.error('\n  Najčastejšia príčina: spätný apostrof v CSS komentári vnútri template literálu —');
+  console.error('  píš názvy tried BEZ apostrofov. Ak naozaj potrebuješ ${, daj doň úvodzovky.\n');
   process.exit(1);
 }
 if (cascade.length) {
@@ -146,4 +220,4 @@ if (cascade.length) {
   console.warn('\n   Build to nezhadzuje. Pri práci na danom súbore to oprav; hromadne nie —');
   console.warn('   zmenil by sa vzhľad obrazoviek, ktoré Matej odsúhlasil v dnešnej podobe.\n');
 }
-console.log('✓ CSS-v-JS literály sú čisté (0 spätných apostrofov, 0 ${ v komentároch)');
+console.log(`✓ ${walk(ROOT).length} súborov prešlo parserom · 0 spätných apostrofov v literáli, 0 \${ v komentároch`);

@@ -1,9 +1,17 @@
 // Read-profil majiteľa — /pack/u/:id (zadanie-profil-read-dog-2026-07-25 §3). JEDEN profil =
-// MAJITEĽ (klik na psa aj človeka vedie sem, žiadny samostatný psí profil). v1 rozsah: dáta žijú
-// v localStorage (CentralProfile) → funguje len pre SELF. Reálny cudzí user (iný prehliadač/
-// zariadenie) = graceful fallback, čaká na Supabase perzistenciu profilu (ďalší slice).
-// 2026-08-03 (Matej: „začíname so všetkým do nuly"): fiktívny MOCK_MEMBER_POOL vetva odstránená
-// — neexistujúci reálny profil teraz vždy padne na fallback nižšie.
+// MAJITEĽ (klik na psa aj človeka vedie sem, žiadny samostatný psí profil).
+//
+// 2026-08-26 — CUDZÍ ČLEN SA UŽ OTVORÍ. Do vtedy tu bol graceful fallback („profil ešte nie je
+// verejný"), lebo `CentralProfile` žil v localStorage a o cudzom človeku nemala appka čo ukázať.
+// Migrácia `20260826_pack_profiles.sql` to presunula do DB a stránka to číta cez
+// `get_member_profiles()`. Fallback ostáva pre číslo, ktoré nič nevráti.
+//
+// `:id` má DVA tvary a je to zámerné:
+//   • ČÍSLO (`/pack/u/12`) = poradové číslo — jediná adresa člena, ktorú appka o cudzom človeku
+//     drží. `user_id` cudzieho človeka nevydáva žiadna funkcia a tento súbor ten zámok neruší.
+//   • UUID = ja sám. Ostáva kvôli starým odkazom (`EventsView` posiela `memberId`) a kvôli tomu,
+//     že vlastný profil sa číta z `useProfile()`, nie cez RPC.
+// 2026-08-03 (Matej: „začíname so všetkým do nuly"): fiktívny MOCK_MEMBER_POOL vetva odstránená.
 //
 // D3 visibility: owner hlavička tu ukazuje len bazálne identity polia (avatar/meno/nickname/
 // nationalita/pack#/badges) — ŽIADNE z nich nemá tier v ProfileFieldKey/DEFAULT_VISIBILITY, takže
@@ -24,6 +32,7 @@ import { PackLayout } from '@/components/pack/PackLayout';
 import { PACK_THEME, PF_FIELD_CSS } from '@/components/pack/packTheme';
 import { usePackUser } from '@/hooks/usePackUser';
 import { useProfile, emptyDogAttrs } from '@/components/pack/profile/packProfile';
+import { fetchMemberProfiles, memberAvatarUrl, memberDisplayName, type MemberProfile } from '@/components/pack/profile/memberProfile';
 import { computeCompletion } from '@/components/pack/packCommunity';
 import { DogGalleryAccordion, type DogGalleryEntry } from '@/components/pack/profile/DogGallery';
 import { readWalkedIds, tripPath } from '@/components/pack/tripShared';
@@ -61,6 +70,19 @@ export default function PublicProfile() {
   const { dogs, loading: dogsLoading } = usePackUser(isSelf ? session!.user.id : null);
   const { profile } = useProfile();
 
+  // Cudzí člen — adresovaný poradovým číslom. `undefined` = ešte sa načítava,
+  // `null` = také číslo nič nevrátilo. Rozdiel je dôležitý: bez neho by stránka
+  // v prvom okamihu tvrdila „taký člen nie je" a až potom sa opravila.
+  const askedNumber = id && /^\d+$/.test(id) ? Number(id) : null;
+  const [member, setMember] = useState<MemberProfile | null | undefined>(undefined);
+  useEffect(() => {
+    if (!sessionChecked || isSelf || askedNumber == null) { setMember(null); return; }
+    let alive = true;
+    setMember(undefined);
+    fetchMemberProfiles([askedNumber]).then((m) => { if (alive) setMember(m.get(askedNumber) ?? null); });
+    return () => { alive = false; };
+  }, [sessionChecked, isSelf, askedNumber]);
+
   // Aggregované badges (trips walked + NP medaily) — reálne dáta pre self (sessionStorage
   // walked-ids, per-browser).
   const selfBadges = useMemo(() => {
@@ -89,8 +111,24 @@ export default function PublicProfile() {
     );
   }
 
-  // ── Fallback — reálny cudzí user, žiadne dáta na serveri (zámerný v1 limit, §3.4) ──
-  if (!isSelf) {
+  // Cudzí člen sa ešte načítava — ticho, nie fallback. Fallback by na okamih tvrdil,
+  // že taký človek neexistuje, a potom sa sám opravil.
+  if (!isSelf && member === undefined) {
+    return (
+      <PackLayout>
+        <div className="flex items-center justify-center py-16" style={{ color: T.inkDim }}>
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <span style={{ fontFamily: "'Cinzel', serif", letterSpacing: '0.28em', fontSize: 11 }}>
+            {t('pack.dog.loading')}
+          </span>
+        </div>
+      </PackLayout>
+    );
+  }
+
+  // ── Fallback — číslo, ktoré nič nevrátilo (neexistuje / neplatiaci / nie je členom).
+  // Odpoveď je zámerne rovnaká pre všetky tri prípady, ako v `get_trip_party()`. ──
+  if (!isSelf && !member) {
     return (
       <PackLayout>
         <BackLink />
@@ -121,11 +159,17 @@ export default function PublicProfile() {
     );
   }
 
-  // isSelf je tu vždy true — !isSelf sa vrátil na fallback vyššie.
-  const human = profile?.human;
-  const displayName = human?.displayAs === 'nickname' && human?.nickname ? human.nickname : (fullName || 'A Dogyptian');
-  const headerAvatar = avatarUrl;
-  const packNumber = dogs[0]?.pack_number ?? null;
+  // Odtiaľto beží JEDNA vetva renderu pre seba aj pre cudzieho člena. Dve kópie tej istej
+  // stránky by sa rozišli pri prvej zmene — rovnaký dôvod, prečo `TripProfileCard` neexistuje
+  // v dvoch verziách.
+  const human = member ? member.human : profile?.human;
+  // Meno: prezývka → meno z profilu → meno z objednávky. Pri sebe samom je meno z profilu
+  // `fullName` (user_metadata), lebo vlastný profil sa nečíta cez RPC.
+  const displayName = member
+    ? (memberDisplayName(member) || 'A Dogyptian')
+    : ((human?.displayAs === 'nickname' && human?.nickname) || fullName || 'A Dogyptian');
+  const headerAvatar = member ? memberAvatarUrl(member) : avatarUrl;
+  const packNumber = member ? member.memberNumber : (dogs[0]?.pack_number ?? null);
   // Národnosť je VŽDY viditeľná — nedá sa skryť (Matej 2026-07-25: „nechaj viditeľné furt").
   const nationality = human?.nationality ?? 'SK';
   // Zoznam krajín už nie je ručných 19 — názov sa preloží podľa aktívneho jazyka
@@ -133,18 +177,30 @@ export default function PublicProfile() {
   // ukázal prázdno, nie „iná krajina".
   const nationalityLabel = countryLabel(nationality, lang);
 
-  const dogEntries: DogGalleryEntry[] = dogs.map((d) => ({
-    id: d.id,
-    name: d.dog_name || 'Unnamed',
-    photoUrl: d.cloudinary_main_url,
-    packNumber: d.pack_number,
-    attrs: profile?.dogs[d.id] ?? emptyDogAttrs(d.id),
-    heroglyph: {
-      gender: d.selections?.dogGender,
-      colour: d.selections?.dogColour,
-      bloodline: d.selections?.dogBloodline,
-    },
-  }));
+  const dogEntries: DogGalleryEntry[] = member
+    ? member.dogs.map((d) => ({
+        id: d.dogId,
+        name: d.name || 'Unnamed',
+        photoUrl: d.photo,
+        packNumber: d.packNumber,
+        attrs: d.attrs,
+        // farba (`colour`) a línia (`bloodline`) sa o cudzom psovi nevydávajú — zobrazovací
+        // blok „From the heroglyph" je zrušený a používa sa už len `gender` na farbu pilulky
+        heroglyph: { gender: d.gender },
+        heroglyphUrl: d.heroglyphUrl,
+      }))
+    : dogs.map((d) => ({
+        id: d.id,
+        name: d.dog_name || 'Unnamed',
+        photoUrl: d.cloudinary_main_url,
+        packNumber: d.pack_number,
+        attrs: profile?.dogs[d.id] ?? emptyDogAttrs(d.id),
+        heroglyph: {
+          gender: d.selections?.dogGender,
+          colour: d.selections?.dogColour,
+          bloodline: d.selections?.dogBloodline,
+        },
+      }));
 
   const loadingDogs = isSelf && dogsLoading;
 

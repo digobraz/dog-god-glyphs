@@ -23,6 +23,8 @@ import {
   useProfile,
   saveHuman,
   saveDogAttrs,
+  saveAvatarUrl,
+  saveDisplayName,
   emptyDogAttrs,
   emptyDogCard,
   type DogCard,
@@ -388,6 +390,9 @@ export default function PackProfile() {
         data: { avatar_url: result.secureUrl },
       });
       if (upErr) throw new Error(upErr.message);
+      // Aj do `pack_profiles` — do `user_metadata` CUDZIEHO účtu sa iný člen nedostane,
+      // takže bez tejto kópie by na cudzom profile nebola fotka človeka nikdy (2026-08-26).
+      await saveAvatarUrl(result.secureUrl);
       setAvatarUrl(result.secureUrl);
       toast({ title: tx('pack.profile.toastPhotoUpdated', 'Photo updated') });
     } catch (err) {
@@ -409,6 +414,9 @@ export default function PackProfile() {
         data: { full_name: fullName.trim() || null },
       });
       if (upErr) throw new Error(upErr.message);
+      // Aj do `pack_profiles` — inak by meno nastavené tu videl len jeho majiteľ
+      // a ostatným by naďalej svietilo meno z objednávky (2026-08-26).
+      await saveDisplayName(fullName);
       setNameDirty(false);
       toast({ title: tx('pack.profile.toastNameUpdated', 'Name updated') });
     } catch (err) {
@@ -422,7 +430,9 @@ export default function PackProfile() {
     }
   };
 
-  const initial = (fullName?.[0] || email?.[0] || 'D').toUpperCase();
+  // Meno z objednávky — východisko, keď si človek v profile žiadne nevypísal.
+  const orderName = dogs.map((d) => d.owner_name?.trim()).find(Boolean) ?? '';
+  const initial = (fullName?.[0] || orderName?.[0] || email?.[0] || 'D').toUpperCase();
   const hasAvatar = !!avatarUrl;
 
   // Stav vyplnenia — VYPNUTÝ (Matej 2026-07-26: „ten progres nemá zmysel - vypni ho").
@@ -605,7 +615,11 @@ export default function PackProfile() {
                     setNameDirty(true);
                   }}
                   onBlur={() => { handleSaveName(); }}
-                  placeholder={tx('pack.profile.namePlaceholder', 'Your name')}
+                  /* Prázdne pole NEZNAMENÁ, že ťa nikto nevidí pod menom — vtedy platí
+                     meno z OBJEDNÁVKY (Matej 2026-08-26: „štandardne to bude to čo zadal
+                     pri objednávke"). Ukazujeme ho ako predlohu, aby bolo vidno, čo o tebe
+                     vidia ostatní. Needituje sa a neukladá — je to len placeholder. */
+                  placeholder={orderName || tx('pack.profile.namePlaceholder', 'Your name')}
                   className="pf-field pf-field--flat"
                   style={{
                     width: '100%',
