@@ -2107,6 +2107,9 @@ export const en = {
   'pack.addTrip.field.crowd': "crowd",
   'pack.addTrip.field.surface': "terrain",
   'pack.addTrip.field.hazards': "hazards",
+  // ⚠️ KĽÚČ CHÝBAL (nájdené 2026-08-26). `stepMissing[2]` ho hlási, keď človek prejde krokom
+  // ODKAZY bez jedinej značky — AInubis potom povedal „Ešte chýba: pack.addTrip.field.notes".
+  'pack.addTrip.field.notes': "marks on the route",
   'pack.addTrip.field.tags': "tags",
   'pack.addTrip.field.paws': "rating",
   'pack.addTrip.field.photos': "photo",
@@ -2215,6 +2218,11 @@ export const en = {
   'pack.addTrip.step.back': "Back",
   'pack.addTrip.step.next': "Next",
   'pack.addTrip.step.needRoute': "Draw the route first — or pick start and finish only.",
+  // ⚠️ KĽÚČ CHÝBAL ÚPLNE (nájdené 2026-08-26 pri prechode toku na PC). AInubis ho hlási po
+  // NÁVRATE na nedokončený krok — teda presne vtedy, keď má človek niečo doplniť — a namiesto
+  // vety mu ukazoval `pack.addTrip.step.stillMissing trasa na mape`. Volajúci je
+  // `AddTripLog.tsx` (hint sprievodcu), text sa skladá s `missingTx(...)` za sebou.
+  'pack.addTrip.step.stillMissing': "Still missing:",
   'pack.addTrip.step.skip': "Skip",
   // AINUBIS sa p\u00fdta, ke\u010f trasa nekon\u010d\u00ed tam, kde za\u010dala (Matej 24. 8. 2026). Ot\u00e1zka, nie z\u00e1mok.
   'pack.addTrip.geo.openRouteTitle': "Didn't you head back?",

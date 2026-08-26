@@ -110,8 +110,30 @@ export function dockFitPadding(panelH: number): {
   paddingBottomRight: [number, number];
 } {
   const phone = typeof window !== 'undefined' && window.innerWidth <= DOCK_MOBILE_MAX;
+  const [padL, padR] = dockPadX();
   // Bublina AInubisa + rad bodiek merajú ~150 px vrátane odstupu od notchu.
   return phone
-    ? { paddingTopLeft: [24, 150], paddingBottomRight: [24, panelH + 24] }
-    : { paddingTopLeft: [DOCK_COL_W + 60, 130], paddingBottomRight: [90, 140] };
+    ? { paddingTopLeft: [padL, 150], paddingBottomRight: [padR, panelH + 24] }
+    : { paddingTopLeft: [padL, 130], paddingBottomRight: [padR, 140] };
+}
+
+/**
+ * ── VODOROVNÁ REZERVA: STRED JE MEDZI PANELOM A PRAVÝM OKRAJOM, NIE V STREDE OKNA ────────
+ *
+ * Matej 2026-08-26: „mapu treba vycentrovať nie na stred obrazovky ale na stred obrazovky
+ * medzi ľavým panelom a pravým okrajom, lebo teraz ľavá časť mapy nie je vidno vo viewporte."
+ *
+ * Na PC zaberá ľavý stĺpec ~480 px okna. Kto rámuje trasu do CELÉHO okna, vycentruje ju na
+ * stred obrazovky — a jej ľavá tretina skončí POD panelom. Nie je to chyba mapy, ale
+ * chýbajúca rezerva: `dockFitPadding` ju drží od 24. 8., lenže dve miesta v `AddTripLog`
+ * si padding písali natvrdo `[24, …]` a tú rezervu nemali. Preto je to odteraz funkcia,
+ * nie číslo opísané na troch miestach: rezerva vpravo (90) je na ovládanie mapy (zoom,
+ * poloha, vrstvy), rezerva vľavo je šírka stĺpca + odstup.
+ *
+ * ⚠️ Rovnaké číslo potrebuje aj `flyTo` na jeden bod (hľadanie miesta) — tam sa z rozdielu
+ * `padL - padR` počíta posun stredu, viď `PlaceSearch.tsx`.
+ */
+export function dockPadX(): [number, number] {
+  const phone = typeof window !== 'undefined' && window.innerWidth <= DOCK_MOBILE_MAX;
+  return phone ? [24, 24] : [DOCK_COL_W + 60, 90];
 }

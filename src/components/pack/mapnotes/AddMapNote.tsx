@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Circle, Marker } from 'react-leaflet';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useLang, useT } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { GROUP_KINDS, TICK_DISEASES, bodyRequired, groupOf, radiusRule, type NewMapNote, type NoteGroup, type NoteKind, type TickDisease } from './mapNotesData';
@@ -858,4 +859,38 @@ export const ADD_NOTE_CSS = `
   .mna-sheet .mna-select{flex:1 1 120px;font-size:11px;padding:6px 7px;}
   .mna-sheet .mna-radius-note{font-size:10px;}
 }
+${MAP_SKIN !== 'pale' ? '' : `
+/* ══ BLEDÝ SKIN PC (2026-08-26) ══════════════════════════════════════════════════════════
+   Kartička značky sedí na spoločnom povrchu .trp-dockpanel (mapDockShape.ts), ktorý je na PC
+   papyrusový — obsah tu preto nesmie ostať v onDark tokenoch. Mobil ostáva tmavý.
+   ⚠️ .mna-title-kind a .mna-opt--sight/--ill si držia SVOJE farby (skupina značky, potvrdená
+   choroba): tie nesú význam a menia sa len tam, kde by boli na svetlom nečitateľné.
+   ⚠️ color-scheme na <select> sa musí prepnúť na light, inak WebKit kreslí rozbaľovaciu
+   ponuku ďalej načierno a v papyrusovom paneli vyskočí tmavý zoznam. */
+@media (min-width:${PALE_PC_MIN}px){
+  /* ── HLAVNÉ CTA JE LAPIS, NIE ZLATÉ (Matej 2026-08-26: „CTA oprav máme predsa modrú") ───
+     Formulár značky sa otvára Z KROKU 2 pridávania výletu, takže stojí v tom istom slede
+     obrazoviek ako HOTOVO a OZNAČ — a pre ten platí Matejov lock z 24. 8.: „každý slajd musí
+     mať totožné CTA, rovnaká farba a štýl". Kým tie dve zmodreli a toto ostalo zlaté, bola
+     v jednom toku dvojica CTA v dvoch farbách.
+     ⚠️ Len bledé PC chrome mapy. Tmavý mobil ostáva zlatý — tam je zlatá najvýraznejšia vec
+     na čiernom paneli a lapis by na ňom zanikol. */
+  .mna-submit.btn-gold{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+  .mna-submit.btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
+  .mna-close{color:${PALE.dim};}
+  .mna-close:hover{color:${PALE.deep};}
+  .mna-select{color-scheme:light;color:${PALE.ink};background:${PALE.field};border-color:${PALE.border};}
+  .mna-radius-label{color:${PALE.dim};}
+  .mna-radius-val{color:${PALE.ink};}
+  .mna-radius-note{color:${PALE.dim};}
+  .mna-body{color:${PALE.ink};background:${PALE.field};border-color:${PALE.border};}
+  .mna-body::placeholder{color:${PALE.dim};opacity:.75;}
+  .mna-opt{color:${PALE.dim};background:${PALE.soft};border-color:${PALE.border};}
+  .mna-opt.on{color:${PALE.ink};}
+  .mna-pinned{color:${PALE.dim};}
+  .mna-hint{color:${PALE.dim};}
+  .mnq-title{color:${PALE.ink};}
+}
+`}
+
 `;

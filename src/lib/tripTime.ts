@@ -50,13 +50,18 @@ export function estimateTripMinutes(km: number, ascentM: number | null, descentM
 }
 
 /**
- * „~2 h 10 m" / „~45 m". Vlnovka je súčasť hodnoty, nie ozdoba. Zaokrúhľuje sa na 5 minút —
+ * „~2 h 10 min" / „~45 min". Vlnovka je súčasť hodnoty, nie ozdoba. Zaokrúhľuje sa na 5 minút —
  * presnosť na minútu by pri odhade klamala.
+ *
+ * ⚠️ MINÚTY SÚ „min", NIE „m" (Matej 2026-08-26: „daj skratku min nie len m"). V pilulke
+ * čítania stojí čas hneď vedľa prevýšenia — „↑ 120 m · ~10 m" boli dva rôzne údaje v tej
+ * istej skratke a druhý z nich sa dal prečítať ako ďalšie metre. „m" ostáva vyhradené
+ * metrom; hodiny sú naďalej „h", tie sa s ničím nebijú.
  */
 export function formatTripTime(minutes: number | null | undefined): string | null {
   if (minutes === null || minutes === undefined || minutes <= 0) return null;
   const r = Math.max(5, Math.round(minutes / 5) * 5);
   const h = Math.floor(r / 60);
   const m = r % 60;
-  return h > 0 ? (m ? `~${h} h ${m} m` : `~${h} h`) : `~${m} m`;
+  return h > 0 ? (m ? `~${h} h ${m} min` : `~${h} h`) : `~${m} min`;
 }

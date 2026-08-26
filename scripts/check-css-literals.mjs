@@ -71,6 +71,56 @@ const EXT = /\.(tsx?|jsx?)$/;
 // parser, ktorému je tvar deklarácie ukradnutý.
 const DECL = /(?:const\s+([A-Za-z0-9_]*(?:CSS|css))\s*(?::\s*string\s*)?=|<(style)>\s*\{)[^;`\n]*`/g;
 
+/**
+ * ── KONIEC LITERÁLU SA MUSÍ HĽADAŤ CEZ VNORENÉ LITERÁLY (doplnené 26. 8. 2026) ──────────
+ *
+ * ŠTVRTÝ PÁD, TEN ISTÝ TVAR: `.trp-dbar-done` v spätných apostrofoch v CSS komentári
+ * zhodilo `/pack/map` na „Something went wrong." a stráž nad tým súborom hlásila ČISTÉ.
+ *
+ * Prečo: telo literálu sa dovtedy končilo na PRVOM spätnom apostrofe — lenže bledý skin
+ * je zapísaný ako `${MAP_SKIN !== 'pale' ? '' : \`…\`}`, teda vnorený literál. Ten prvý
+ * apostrof bol jeho OTVÁRACÍ, takže celý bledý blok (a s ním väčšina CSS toho súboru)
+ * ležal MIMO kontrolovaného tela. Nie je to okrajový zápis: má ho `GeometryPicker`,
+ * `AddTripLog`, `mapDockShape`, `PlaceSearch` aj `PackMap` — teda presne tie súbory,
+ * v ktorých sa práve pracuje.
+ *
+ * Preto sa telo hľadá malým skenerom, ktorý pozná tri stavy JavaScriptu (literál,
+ * interpolácia, reťazec v úvodzovkách) a vráti apostrof, ktorý literál naozaj uzatvára.
+ * Parser to nezachytí nikdy: `.trp - dbar - done` je platné odčítanie premenných.
+ */
+function scanQuoted(src, i, q) {
+  while (i < src.length) {
+    if (src[i] === '\\') { i += 2; continue; }
+    if (src[i] === q) return i + 1;
+    i += 1;
+  }
+  return i;
+}
+/** `i` = prvý znak výrazu vnútri ${…}; vracia index ZA jeho uzatváracou zátvorkou. */
+function scanExpr(src, i) {
+  let depth = 0;
+  while (i < src.length) {
+    const c = src[i];
+    if (c === '`') { i = scanTemplate(src, i + 1) + 1; continue; }
+    if (c === "'" || c === '"') { i = scanQuoted(src, i + 1, c); continue; }
+    if (c === '{') { depth += 1; i += 1; continue; }
+    if (c === '}') { if (depth === 0) return i + 1; depth -= 1; i += 1; continue; }
+    i += 1;
+  }
+  return i;
+}
+/** `i` = prvý znak TELA literálu; vracia index apostrofu, ktorý ho uzatvára. */
+function scanTemplate(src, i) {
+  while (i < src.length) {
+    const c = src[i];
+    if (c === '\\') { i += 2; continue; }
+    if (c === '`') return i;
+    if (c === '$' && src[i + 1] === '{') { i = scanExpr(src, i + 2); continue; }
+    i += 1;
+  }
+  return i;
+}
+
 function walk(dir, out = []) {
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
@@ -107,26 +157,56 @@ for (const file of walk(ROOT)) {
   const src = readFileSync(file, 'utf8');
   for (const m of src.matchAll(DECL)) {
     const label = m[1] || '<style>';
+    // ── ZÁSAH V RIADKOVOM KOMENTÁRI SA NEPOČÍTA (doplnené 26. 8. 2026) ───────
+    // packTheme.ts má v hlavičke vetu „Render <style>{GLASS_CSS}</style>
+    // v komponente." — a to celé v spätných apostrofoch, teda tvar deklarácie aj
+    // uzatvárací apostrof, oboje ako TEXT. DECL sa doň chytil a od toho miesta
+    // považoval zvyšok súboru za telo literálu. Prvý beh kontroly nižšie tak
+    // nahlásil dva zdravé súbory — a stráž, ktorá hlási zdravý kód, sa po treťom
+    // náleze vypína. ([^:] pred // je kvôli https:// v komentároch aj reťazcoch.)
+    const lineStart = src.lastIndexOf('\n', m.index) + 1;
+    if (/(^|[^:])\/\//.test(src.slice(lineStart, m.index))) continue;
     const start = m.index + m[0].length;
     // Koniec literálu = prvý spätný apostrof, ktorý nie je escapovaný.
     // Ak je v tele apostrof navyše, literál skončí PRED koncom CSS bloku —
     // a presne to hľadáme: nájdeme prvý koniec a pozrieme, či za ním pokračuje CSS.
-    let i = start;
-    while (i < src.length) {
-      if (src[i] === '\\') { i += 2; continue; }
-      if (src[i] === '`') break;
-      i += 1;
-    }
+    const i = scanTemplate(src, start);
     const bodyText = src.slice(start, i);
+
+    // ── PIATA PASCA: SPÄTNÝ APOSTROF, KTORÝ JE PLATNÝ JAVASCRIPT ────────────
+    // 26. 8. 2026, DVAKRÁT V JEDNEJ SESSION (OnePage.tsx, GodsGridLab.tsx).
+    // Keď v komentári stojí názov obalený apostrofmi a HNEĎ PRED ním je slovo,
+    // nevznikne syntaktická chyba, ale TAGGED TEMPLATE: `.gods-root` po slove
+    // „root" sa vyhodnotí ako volanie root(...). Parser to prepustí (je to platný
+    // JS), tsc tiež, a stránka spadne až v prehliadači na „root is not a function".
+    // Presne ten prípad, kvôli ktorému bola fatálna kontrola prerobená na esbuild
+    // — a ktorý esbuild ZO SVOJEJ PODSTATY chytiť nemôže.
+    // Detekcia je preto pozičná a platí len pre formu <style>{`…`}</style>, kde je
+    // koniec literálu presne daný: ak scanTemplate skončil inde než tesne pred
+    // }</style>, apostrof v tele nemá čo robiť.
+    if (m[2] && !/^\s*\}\s*<\/style>/.test(src.slice(i + 1, i + 40))) {
+      const line = src.slice(0, i).split('\n').length;
+      bad.push(`${file}:${line}  — literál <style> tu končí spätným apostrofom, ktorý tam nepatrí (v komentári? → zmaž ho; ak stojí za slovom, JS z toho spraví tagged template a build prejde, stránka padne)`);
+    }
     // ${ v KOMENTÁRI. Platné interpolácie sú v CSS pravidlách (`color:${T.x}`), takže
     // sa pozeráme len dovnútra /* ... */ blokov — inak by stráž hlásila každý token.
     // VÝNIMKA: `${'text'}` je ZÁMERNÝ únik — interpolácia reťazcovej konštanty,
     // ktorá do komentára vypíše presne to, čo je v úvodzovkách, a nič nevyhodnocuje.
     // Používa ho napr. COMMUNITY_CSS. Hlásime len `${` bez úvodzovky za ním.
+    // ⚠️ ZÚŽENÉ 26. 8. 2026: hlási sa len interpolácia, ktorá NIE JE vyhodnotiteľná —
+    // teda prosa (`cez ${...}`), nie `${PALE_PC_MIN}px`. Rozdiel je vecný: identifikátor
+    // alebo cesta k vlastnosti sa vypíše ako hodnota a build prejde (a autor to tak často
+    // aj chce — v komentári má stáť skutočné číslo hranice). Prosa vnútri ${} zhodí parser.
+    // Bez tohto zúženia stráž hlásila dva ZDRAVÉ komentáre v `GeometryPicker` a
+    // `mapDockShape` — a stráž, ktorá hlási zdravý kód, sa po treťom náleze vypína.
+    const EVALUABLE = /^\s*(?:'[^']*'|"[^"]*"|[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)\s*\}/;
     for (const c of bodyText.matchAll(/\/\*[\s\S]*?\*\//g)) {
-      if (!/\$\{\s*[^'"\s]/.test(c[0])) continue;
-      const line = src.slice(0, start + c.index).split('\n').length;
-      bad.push(`${file}:${line}  — literál ${label} má \${ v CSS komentári (esbuild to vyhodnotí ako interpoláciu, nie text)`);
+      for (const it of c[0].matchAll(/\$\{/g)) {
+        if (EVALUABLE.test(c[0].slice(it.index + 2))) continue;
+        const line = src.slice(0, start + c.index).split('\n').length;
+        bad.push(`${file}:${line}  — literál ${label} má \${ v CSS komentári (esbuild to vyhodnotí ako interpoláciu, nie text)`);
+        break;
+      }
     }
 
     // ── JEDNOTRIEDNY PREPIS V @media, KTORÝ NIŽŠIE PREBÍJA ROVNAKÁ TRIEDA ───
@@ -200,6 +280,15 @@ for (const file of walk(ROOT)) {
     // Preto sa okrem syntaxe kontroluje aj TOTO: či prvý apostrof, ktorý literál
     // ukončil, neleží vnútri /* … */ komentára. Ak áno, je to vždy chyba — v CSS
     // komentári nemá spätný apostrof čo robiť a v tele literálu ho ukončiť nechceme.
+    // Uzavretý komentár so spätným apostrofom vnútri. Toto je nález, ktorý stráž do 26. 8.
+    // nevidela vôbec: apostrof vo VNORENOM literále (bledý skin) ukončí ten vnorený, nie
+    // vonkajší, takže kontrola „literál skončil v komentári" nižšie sa naň nechytí.
+    for (const c of bodyText.matchAll(/\/\*[\s\S]*?\*\//g)) {
+      if (!c[0].includes('`')) continue;
+      const line = src.slice(0, start + c.index).split('\n').length;
+      bad.push(`${file}:${line}  — literál ${label} má spätný apostrof v CSS komentári (ukončí reťazec; zvyšok CSS sa stane JavaScriptom)`);
+    }
+
     let open = -1;
     for (let k = 0; k < bodyText.length - 1; k += 1) {
       if (open < 0 && bodyText[k] === '/' && bodyText[k + 1] === '*') { open = k; k += 1; continue; }

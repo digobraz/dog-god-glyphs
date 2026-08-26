@@ -11,10 +11,12 @@
 // výberu), preto sa nerobí spolu s prestavbou toku.
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import L from 'leaflet';
 import type { Map as LeafletMap } from 'leaflet';
 import { MAPY_API_KEY, MAPY_BASE } from '@/lib/env';
 import { PACK_THEME as T, FONT_UI } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
+import { dockPadX } from '@/components/pack/mapDockShape';
 import { useT } from '@/i18n/LanguageContext';
 
 export type PlaceSug = { name: string; sub: string; lat: number; lon: number };
@@ -134,11 +136,33 @@ export function PlaceSearch({ mapRef, zoom = 14, placeholder, onPicked }: PlaceS
     };
   }, [items.length]);
 
+  /**
+   * ── VYBRATÉ MIESTO PATRÍ DO STREDU VIDITEĽNEJ MAPY, NIE DO STREDU OKNA (Matej 2026-08-26) ─
+   *
+   * „mapu treba vycentrovať nie na stred obrazovky ale na stred obrazovky medzi ľavým panelom
+   *  a pravým okrajom, lebo teraz ľavá časť mapy nie je vidno vo viewporte."
+   *
+   * `flyTo` posadí bod do stredu OKNA — lenže na PC prekrýva ľavých ~480 px stĺpec s doksom,
+   * takže okolie miesta naľavo od neho skončí pod panelom presne vtedy, keď si ho človek
+   * ide obkresliť. Stred sa preto posunie o polovicu rozdielu rezerv (`dockPadX`) — tie isté
+   * čísla, akými sa rámuje hotová trasa, aby hľadanie a rámovanie nemierili inam.
+   * Na telefóne sú rezervy zhodné, rozdiel je 0 a `flyTo` ostáva presne taký, aký bol.
+   */
   const pick = (s: PlaceSug) => {
     pickedRef.current = s.name;
     setQ(s.name);
     setItems([]);
-    mapRef.current?.flyTo([s.lat, s.lon], zoom, { duration: 1.1 });
+    const map = mapRef.current;
+    if (map) {
+      const [padL, padR] = dockPadX();
+      const shift = (padL - padR) / 2;
+      // project/unproject v CIEĽOVOM zoome — posun v pixeloch znamená v inej mierke inú
+      // vzdialenosť, takže prepočet cez aktuálny zoom by po prílete minul.
+      const target = shift
+        ? map.unproject(map.project([s.lat, s.lon], zoom).subtract([shift, 0]), zoom)
+        : L.latLng(s.lat, s.lon);
+      map.flyTo(target, zoom, { duration: 1.1 });
+    }
     onPicked?.(s);
   };
 

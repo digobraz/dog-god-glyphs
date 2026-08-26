@@ -19,7 +19,7 @@ import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, NAV_GOLD, NAV_PILL_SHADOW } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
 import {
   ACTIVITY_GEOMETRY,
@@ -53,6 +53,13 @@ const GOLD_BRIGHT = '#F5C73D';
  * Vzor odpanovania je zhodný s `placeNote()` v PackMap.tsx (NOTE_PANEL_H + 40).
  */
 export const DRAW_BAR_H = 120;
+
+/**
+ * Miesto na DOSVIT vnútri skrolovaného ľavého stĺpca na PC (viď `.trp-dock` v media query).
+ * Najširšia žiara v stĺpci je AInubisova bublina (`0 0 40px`), preto 14 px na každú stranu —
+ * dosvit z nej ešte doznieva, ale už sa nereže rovnou čiarou o hranu kontajnera.
+ */
+const GLOW_PAD = 16;
 
 // Územie: rozsah polomeru zo zadania §5.
 const AREA_MIN_M = 200;
@@ -1090,19 +1097,56 @@ export function GeometryPicker({
    * 7 700 vzoriek a SVG s toľkými segmentmi na telefóne seká. Graf je široký ~300 px, takže
    * viac než 200 bodov aj tak nemá kam vykresliť.
    */
-  const elevSeries = useMemo(() => {
+  const elevSamples = useMemo(() => {
     if (!(elevOpen || isPC) || elevPending || line.length < 2) return null;
     const vals: number[] = [];
+    const pts: LatLngTuple[] = [];
     for (const p of interp(line, SPACING)) {
       const v = elevAt(p);
-      if (typeof v === 'number') vals.push(v);
+      // ⚠️ SÚRADNICA SA ZBIERA V TOM ISTOM CYKLE A LEN KEĎ JE ZNÁMA AJ VÝŠKA — dve polia
+      // plnené zvlášť by sa pri prvej diere v cache rozišli o index a bodka na mape by
+      // ukazovala inam než kurzor v grafe.
+      if (typeof v === 'number') { vals.push(v); pts.push(p as LatLngTuple); }
     }
     if (vals.length < 2) return null;
     const MAX_POINTS = 200;
-    if (vals.length <= MAX_POINTS) return vals;
+    if (vals.length <= MAX_POINTS) return { vals, pts };
     const step = (vals.length - 1) / (MAX_POINTS - 1);
-    return Array.from({ length: MAX_POINTS }, (_, i) => vals[Math.round(i * step)]);
+    const idx = Array.from({ length: MAX_POINTS }, (_, i) => Math.round(i * step));
+    return { vals: idx.map((j) => vals[j]), pts: idx.map((j) => pts[j]) };
   }, [elevOpen, isPC, elevPending, line]);
+  const elevSeries = elevSamples?.vals ?? null;
+
+  /**
+   * ── KURZOR V PROFILE = BODKA NA TRASE (Matej 2026-08-26) ────────────────────────────────
+   * „priložím šípku na fialovú úsečku v ľavom paneli a na trase v mape budem vidieť pohyb
+   *  bodky."
+   * ⚠️ VLASTNÝ EFEKT S VLASTNOU VRSTVOU, nie hlavný `layersRef`. Ten prekresľuje celú trasu,
+   * kotvy, duchov aj menovky — pri pohybe myšou po grafe by sa to dialo pri každom pixeli.
+   * Tu sa pridáva a odoberá jediný `circleMarker`.
+   */
+  const [elevAtIdx, setElevAtIdx] = useState<number | null>(null);
+  const elevDotRef = useRef<L.Layer | null>(null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const drop = () => {
+      if (elevDotRef.current && map.hasLayer(elevDotRef.current)) map.removeLayer(elevDotRef.current);
+      elevDotRef.current = null;
+    };
+    drop();
+    const at = elevAtIdx !== null ? elevSamples?.pts[elevAtIdx] : undefined;
+    if (!at) return;
+    // Väčšia a svetlejšia než kotva, aby sa nedala pomýliť s bodom trasy: toto je čítanie,
+    // nie niečo, čo undo zmaže.
+    const dot = L.circleMarker(at, {
+      radius: 7, color: '#FFFFFF', weight: 2.5,
+      fillColor: TRAIL_LINE.light, fillOpacity: 1,
+      className: 'trp-anchor-live', interactive: false,
+    }).addTo(map);
+    elevDotRef.current = dot;
+    return drop;
+  }, [elevAtIdx, elevSamples, mapRef]);
 
   // Profil sa dá otvoriť, len keď je čo kresliť. Najmenší zápis (vzdušná čiara) prevýšenie
   // nehlási vôbec, tak by pilulka otvárala prázdno.
@@ -1138,6 +1182,12 @@ export function GeometryPicker({
    * Na telefóne visia pod bublinou (`AinubisGuide below`) bez názvov, lebo päť popiskov sa
    * na 360 px nezmestí. Je to ten istý uzol (`drawBar.steps`), nie druhá kópia — mení sa
    * len miesto, kam sa zavesí, a CSS, ktoré na PC popisky odkryje.
+   *
+   * ⚠️ STOJA AKO PRVÁ VEC V BLOKU, NAD TLAČIDLAMI (Matej 2026-08-26, druhé kolo:
+   * „1-5 krok daj nad tlačítko done = prvá vec v bloku"). Pod CTA čítali ako pätička —
+   * niečo, čo sa deje PO stlačení HOTOVO. Hore hovoria, kde v sprievodcovi človek stojí,
+   * teda to isté, čo krokovník v krokoch 3–5 (`.atl-steps` v hlavičke formulára). Zlatá
+   * čiara ide preto POD ne, nie nad ne — delí „kde som" od „čo tu robím".
    */
   const stepsInPanel = isPC && drawBar?.steps
     ? <div className="trp-dsteps">{drawBar.steps}</div>
@@ -1176,7 +1226,7 @@ export function GeometryPicker({
           )}
         </div>
         {elevSeries
-          ? <ElevationProfile elev={elevSeries} km={km} />
+          ? <ElevationProfile elev={elevSeries} km={km} onHover={setElevAtIdx} />
           : <div className="trp-delev-wait">{t('pack.addTrip.geo.elevWait')}</div>}
       </div>
     )
@@ -1362,8 +1412,8 @@ export function GeometryPicker({
                 prah prvej kotvy je 15 — takže po vybratí konkrétneho vrchu z ponuky appka
                 POVEDALA „ešte kúsok, približuj". Presne to, čo mal vyhľadávač ušetriť (viď
                 hlavičku PlaceSearch.tsx). Hodnota sa berie z prahu, nie ako druhé číslo. */}
-            <PlaceSearch mapRef={mapRef} zoom={TRIP_HOLD_MIN_ZOOM} />
             {stepsInPanel}
+            <PlaceSearch mapRef={mapRef} zoom={TRIP_HOLD_MIN_ZOOM} />
             {backLink}
           </div>
         )}
@@ -1373,12 +1423,13 @@ export function GeometryPicker({
             aj tak rovnalo 2, ale panel nesmie závisieť od toho, čo je nakreslené. */}
         {drawBar.panel ? (
           <div className="trp-dbar trp-dockpanel">
-            {drawBar.panel}
             {stepsInPanel}
+            {drawBar.panel}
             {backLink}
           </div>
         ) : stage > 0 ? (
         <div className="trp-dbar trp-dockpanel">
+          {stepsInPanel}
           {/* MEDZIKROK "AKO TO ZAPISES" ZANIKOL 24. 8. 2026 (vid stage hore). Stala tu
               dvojica "kreslit trasu / oznacit len ciel"; druha moznost je zrusena a otazka
               s jedinou odpovedou je len klik navyse medzi clovekom a kreslenim. */}
@@ -1479,7 +1530,6 @@ export function GeometryPicker({
               nemá koho prosiť, keď sa ten stav nedá vyvolať. */}
           </>
           )}
-          {stepsInPanel}
           {backLink}
         </div>
         ) : null}
@@ -1690,6 +1740,11 @@ const DRAW_BAR_CSS = `
    mali farbu v inline štýle, takže bledý skin PC ich nevedel prebiť bez !important —
    na zlatej pilulke by ostali svetlošedé, teda neviditeľné. */
 .trp-dread-dim{color:${T.onDarkDim};}
+/* Ukazovateľ v profile prevýšenia dedí farbu KRIVKY, na ktorej stojí (currentColor
+   v ElevationProfile). Na tmavom povrchu je krivka zlatá, na bledom PC fialová ako trasa —
+   preto sa farba nastavuje tu a nie v zdieľanom komponente. */
+.trp-delev .trp-elev-cursor{color:#F5C73D;}
+.trp-delev svg{cursor:crosshair;}
 
 /* ── PEVNÁ VÝŠKA V KROKOCH 1–2 (Matej 24. 8. 2026) ─────────────────────────────────────
    „ten by bolo možno dobré v prvých 2 krokoch fixnut na konkretnu výšku aby sa pri týchto
@@ -1771,7 +1826,20 @@ const DRAW_BAR_CSS = `
    (Do 24. 8. tu stál druhý dôvod: ponuka miest v hľadaní vytekala pod okno. Ten padol —
    ponuka sa odvtedy renderuje na <body> a smer si volí podľa miesta, viď PlaceSearch.tsx.) */
 @media (min-width:1024px){
-  .trp-dock{top:20px;bottom:20px;left:20px;right:auto;width:${DOCK_COL_W}px;max-width:calc(100vw - 40px);justify-content:flex-start;align-items:stretch;}
+  /* ── OKRAJE BLOKOV SA NESMÚ OREZAŤ (Matej 2026-08-26: „okraje na ľavých blokoch je
+     orezané", „AInubis tieň je vidno hore aj dolu seknutý — urob skôr žiaru/tieň nie ostrý
+     prechod") ──────────────────────────────────────────────────────────────────────────
+     Nebola to farba ani gradient: stĺpec skroluje (overflow-y:auto nižšie) a SKROLOVACÍ
+     KONTAJNER OREŽE VŠETKO, ČO Z NEHO VYTŔČA — a z každého bloku tu vytŕča presne to, čo
+     ho má robiť viditeľným: zlatý prstenec rámu, vrhnutý tieň panela a modrý dosvit
+     AInubisovej bubliny. Sedeli na hrane kontajnera, takže sa žiara zrezala rovnou čiarou.
+     (Tá istá pasca, na akej sa 24. 8. orezala ponuka miest v PlaceSearch.)
+
+     ⚠️ VÝPLŇ SA MUSÍ VYRÁTAŤ ZO ŠÍRKY, NIE PRIDAŤ K NEJ. Stĺpec je border-box, takže samotný
+     padding by ubral z obsahu a bloky by sa zúžili. Rámček sa preto posunie o GLOW_PAD
+     do všetkých strán a o tú istú mieru sa zväčší — človek vidí ten istý stĺpec na tom istom
+     mieste, len má dnu miesto na dosvit. */
+  .trp-dock{top:${20 - GLOW_PAD}px;bottom:${20 - GLOW_PAD}px;left:${20 - GLOW_PAD}px;right:auto;width:${DOCK_COL_W + GLOW_PAD * 2}px;max-width:calc(100vw - ${40 - GLOW_PAD * 2}px);padding:${GLOW_PAD}px;justify-content:flex-start;align-items:stretch;}
   /* ── ĽAVÝ STĹPEC MÁ ŠTYROCH OBYVATEĽOV A JEDNU ŠÍRKU (Matej 2026-08-26) ──────────────
      Zhora nadol: AINUBIS · PREVÝŠENIE · PILULKA S HODNOTAMI · BLOK S TLAČIDLAMI.
      Do teraz mal každý z nich vlastnú mieru — sprievodca bol vodorovný pás cez hornú hranu
@@ -1787,7 +1855,19 @@ const DRAW_BAR_CSS = `
   /* Sprievodca prestáva byť pásom nad mapou a stáva sa kartou v stĺpci. Tmavý gradient
      pásu tu nemá čo robiť — pod ním už nie je mapa, ale panel. */
   .trp-dock--pc .ang-wrap{position:static;left:auto;right:auto;top:auto;padding:0;background:none;z-index:auto;flex:0 0 auto;}
-  .trp-dock--pc .ang-bar{border-radius:16px;padding:11px 8px 11px 11px;}
+  /* ── DOSVIT MUSÍ DOZNIEŤ VNÚTRI STĹPCA (Matej 2026-08-26) ────────────────────────────
+     „AInubis tieň je vidno hore aj dolu seknutý — urob skôr žiaru/tieň nie ostrý prechod."
+     Nad mapou má bublina dosvit 26 px a pri dýchaní až 40 — tam má okolo seba celé okno.
+     V stĺpci má okolo seba GLOW_PAD, takže rovnaká žiara narazí na hranu skrolovacieho
+     kontajnera a zreže sa rovnou čiarou. Preto je tu UŽŠIA: prstenec ostáva (obrys je to,
+     čo bublinu drží viditeľnú), žiara sa zmestí do výplne a dýchanie sa hýbe v jej medziach.
+     ⚠️ Hodnoty a GLOW_PAD sú spojená nádoba — kto zväčší jedno, musí aj druhé. */
+  .trp-dock--pc .ang-bar{border-radius:16px;padding:11px 8px 11px 11px;box-shadow:0 0 0 3px rgba(59,158,255,0.22),0 0 12px rgba(59,158,255,0.42),0 6px 14px rgba(0,0,0,0.55);animation:ang-glow-dock 3.4s ease-in-out infinite;}
+  @keyframes ang-glow-dock{
+    0%,100%{box-shadow:0 0 0 3px rgba(59,158,255,0.20),0 0 10px rgba(59,158,255,0.32),0 6px 14px rgba(0,0,0,0.55);}
+    50%{box-shadow:0 0 0 3px rgba(59,158,255,0.34),0 0 13px rgba(59,158,255,0.60),0 6px 14px rgba(0,0,0,0.55);}
+  }
+  @media (prefers-reduced-motion: reduce){.trp-dock--pc .ang-bar{animation:none;}}
   .trp-dock--pc .trp-delev{align-self:stretch;width:auto;margin:0;flex:0 0 auto;}
   .trp-dock--pc .trp-dreadrow{margin:0;flex:0 0 auto;}
   .trp-dock--pc .trp-dreadrow .trp-dread{width:100%;text-align:center;box-sizing:border-box;}
@@ -1799,8 +1879,8 @@ const DRAW_BAR_CSS = `
      je, takže sa oboje otáča.
      Zlatá čiara nad nimi je T.rule (vyblednutá do strán), nie šedý hairline: krokovník je
      iná vrstva informácie než ovládanie nad ním a musí sa to dať prečítať periférne. */
-  .trp-dsteps{flex:0 0 auto;padding-top:12px;position:relative;}
-  .trp-dsteps::before{content:'';position:absolute;left:0;right:0;top:0;height:2px;background:${T.rule};}
+  .trp-dsteps{flex:0 0 auto;padding-bottom:12px;position:relative;}
+  .trp-dsteps::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:${T.rule};}
   .trp-dsteps .atl-steps--onmap{width:auto;gap:6px;padding:0;background:none;border:0;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-dsteps .atl-steps--onmap .atl-step{flex:1 1 0;padding:6px 3px;gap:4px;}
   .trp-dsteps .atl-steps--onmap .atl-step span{display:block;}
@@ -1818,7 +1898,7 @@ const DRAW_BAR_CSS = `
 }
 /* Kompaktný desktop — tá istá hranica a to isté číslo, aké má .trp-sidebar v PackMap.tsx. */
 @media (min-width:1024px) and (max-width:1400px){
-  .trp-dock{width:360px;}
+  .trp-dock{width:${360 + GLOW_PAD * 2}px;}
 }
 ${MAP_SKIN !== 'pale' ? '' : `
 /* ══ BLEDÝ SKIN PC (2026-08-26) ══════════════════════════════════════════════════════════
@@ -1829,17 +1909,17 @@ ${MAP_SKIN !== 'pale' ? '' : `
    panely chrome, ale odznaky NAD MAPOU a nesú fialovú farbu trasy. Prefarbiť ich na papyrus
    by zmazalo väzbu na čiaru, ktorú človek práve kreslí. */
 @media (min-width:${PALE_PC_MIN}px){
-  /* ── PREVÝŠENIE A PILULKA SÚ NA PC SÚČASŤ STĹPCA, NIE ODZNAKY NAD MAPOU ────────────────
-     Do 26. 8. tu stálo, že sa ZÁMERNE nemenia: „nie sú to panely chrome, ale odznaky NAD
-     MAPOU a nesú fialovú farbu trasy." Platilo to, kým plávali v mape. Odkedy stoja v ľavom
-     stĺpci medzi AInubisom a panelom (Matej 26. 8.), sú to dvaja tmaví obyvatelia v rade
-     bledých — a to je presne to, na čo Matej ukázal vetou „bloky musia byť všade rovnaké".
+  /* ── PREVÝŠENIE JE NA PC SÚČASŤ STĹPCA, NIE ODZNAK NAD MAPOU ───────────────────────────
+     Do 26. 8. tu stálo, že sa ZÁMERNE nemení: „nie je to panel chrome, ale odznak NAD MAPOU
+     a nesie fialovú farbu trasy." Platilo to, kým plával v mape. Odkedy stojí v ľavom stĺpci
+     medzi AInubisom a panelom (Matej 26. 8.), je to tmavý obyvateľ v rade bledých — presne
+     to, na čo Matej ukázal vetou „bloky musia byť všade rovnaké".
 
      ⚠️ VÄZBA NA ČIARU SA NESTRÁCA, LEN SA PRESÚVA Z RÁMU DO ÚDAJA: krivka profilu je odteraz
      fialová (TRAIL_LINE.mid) — tá istá farba, akou je nakreslená trasa na mape. Predtým bola
      ZLATÁ v fialovom ráme, takže väzbu aj tak niesol obal, nie graf.
-     Pilulka hovorí jazykom ostatných pilulek redizajnu (.trp-stat-pill v PackMap.tsx):
-     NAV_GOLD.activeFill + NAV_PILL_SHADOW. Nová farba sa tu nevymýšľa. */
+     ⚠️ PILULKA S ÚDAJMI SEM NEPATRÍ — tá ostáva fialová, viď jej vlastnú poznámku nižšie
+     (Matej ju z tohto kola vyňal výslovne). */
   .trp-dock--pc .trp-delev{${goldFrameCSS({ radius: 18, rim: 6 })}}
   .trp-dock--pc .trp-delev-head{color:${PALE.dim};}
   .trp-dock--pc .trp-delev-wait{color:${PALE.dim};}
@@ -1848,16 +1928,39 @@ ${MAP_SKIN !== 'pale' ? '' : `
   .trp-dock--pc .trp-delev svg text{fill:${PALE.dim};}
   .trp-dock--pc .trp-delev svg line{stroke:${PALE.border};}
   .trp-dock--pc .trp-delev svg path[stroke]{stroke:${TRAIL_LINE.mid};}
+  .trp-dock--pc .trp-delev .trp-elev-cursor{color:${TRAIL_LINE.mid};}
   .trp-dock--pc .trp-delev svg path[fill^="url"]{fill:rgba(122,47,191,0.16);}
-  .trp-dock--pc .trp-dreadrow .trp-dread-dim{color:rgba(42,22,8,0.62);}
-  .trp-dock--pc .trp-dreadrow .trp-dread{background:${NAV_GOLD.activeFill};border:1px solid ${NAV_GOLD.edge};box-shadow:${NAV_PILL_SHADOW};color:${NAV_GOLD.ink};}
+  /* ── PILULKA S ÚDAJMI OSTÁVA FIALOVÁ (Matej 2026-08-26, druhé kolo) ────────────────────
+     „tá pils kde sú údaje — to si nemal meniť ale nechať fialové ako je trasa."
+     Prvé kolo ju prefarbilo na zlatú pilulku navu s odôvodnením „bloky musia byť všade
+     rovnaké". Lenže to pravidlo hovorí o BLOKOCH — o paneloch, ktoré držia ovládanie. Toto
+     nie je blok: je to ODZNAK TRASY, ktorá sa práve kreslí, a jediné, čo mu dáva význam, je
+     že má farbu tej čiary na mape. Zlatá z neho spravila štvrtý panel v rade a väzba na
+     trasu zmizla. Žiadny pale override tu preto nestojí — platí základný .trp-dread
+     (tmavý podklad, rám TRAIL_LINE.light, fialový dosvit). Profil prevýšenia papyrusový
+     OSTÁVA: ten väzbu nesie krivkou vnútri, nie rámom. */
   .trp-dback{color:${PALE.dim};}
   .trp-dback:hover{color:${PALE.deep};}
   .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
   .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
-  .trp-dbar-row--minor .trp-dbar-btn{background:none;color:${PALE.dim};}
-  .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){color:${PALE.deep};}
+  /* ── SPÄŤ O BOD A VYMAZAŤ SÚ TLAČIDLÁ, NIE ODKAZY (Matej 2026-08-26: „undo a clear tiež
+     zvýrazni") ───────────────────────────────────────────────────────────────────────────
+     Trieda --minor im brala výplň aj rám, takže na papyruse ostal bledý text na bledom podklade —
+     na PC sa nedalo prečítať, že sa dajú stlačiť. Ostávajú VEDĽAJŠIE (menšie písmo, tenší
+     rám, papyrus namiesto lapisu), ale sú to naďalej tlačidlá: hlavnú akciu nad nimi drží
+     lapisové HOTOVO, takže ich zvýraznenie mu nekonkuruje. */
+  .trp-dbar-row--minor .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}
+  .trp-dbar-row--minor .trp-dbar-btn:hover:not(:disabled){border-color:${PALE.deep};color:${PALE.deep};background:#FFF6E2;}
   .trp-dbar-btn:disabled{opacity:.45;}
+  /* ── HLAVNÉ CTA JE LAPIS, NIE ZLATÉ (Matej 2026-08-26: „CTA oprav máme predsa modrú") ───
+     Platí pre HOTOVO aj pre OZNAČ v kroku 2 — obe nesú .trp-dbar-done, teda jedno tlačidlo
+     v dvoch úlohách. Na papyruse bola zlatá naraz rámom, doskou aj tlačidlom, takže hlavná
+     akcia bola najsvetlejší prvok panela a splývala s tým, čo ju drží; to je presne dôvod,
+     prečo LAPIS v redizajne /map vznikol (navGoldSkin.ts). Zlato ostáva na písme —
+     lapis + zlato je pôvodná egyptská dvojica a bez neho je to len tmavé tlačidlo.
+     ⚠️ Tmavý mobil sa NEMENÍ: tam je panel čierny a zlaté CTA je na ňom najvýraznejšia vec. */
+  .trp-dbar-done{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+  .trp-dbar-done:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
 }
 `}
 

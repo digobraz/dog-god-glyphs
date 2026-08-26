@@ -1023,11 +1023,22 @@ export function CompanionPicker({ myDogs, selected, onChange, onOpenProfile }: {
     add({ key: `member-${name}`, name });
     setQ('');
   };
+  /**
+   * ── PES JE V ZOZNAME RAZ, NIE DVAKRÁT (Matej 2026-08-26) ─────────────────────────────
+   * „v 5. kroku sú 2× Hektorove fotky — musí byť len jedna! v jednom riadku, na zeleno už
+   *  vopred označený."
+   * Vlastný pes je predvyplnený, takže sa objavil naraz HORE ako vybratý chip a DOLE
+   * v rade „tvoja svorka" so zeleným prstencom. Dva rovnaké portréty nad sebou čítajú ako
+   * dvaja psi, nie ako jeden vybratý — a rad svorky to už hovorí sám: zelený = ide s tebou.
+   * ⚠️ MENÁ ĽUDÍ V CHIPOCH OSTÁVAJÚ. Tie nemajú svoj rad, v ktorom by sa dali označiť —
+   * bez chipu by po napísaní mena nebolo vidieť vôbec nič.
+   */
+  const namedSelected = selected.filter((c) => !c.key.startsWith('dog-'));
   return (
     <div>
-      {selected.length > 0 && (
+      {namedSelected.length > 0 && (
         <div className="comm-comp-selected">
-          {selected.map((c) => (
+          {namedSelected.map((c) => (
             <span key={c.key} className="comm-comp-chip">
               {/* meno reálneho člena bez známeho id nie je klikateľné — žiadny odkaz do prázdna. */}
               <span

@@ -2,6 +2,8 @@
 // (PackTripArticle.tsx) — iterácia 12 bod 5/6: expand (⤢) teraz navigates to a SEPARATE
 // route/page (article), not a modal, so anything both surfaces render (author fallback,
 // difficulty pictogram) lives here once instead of being copy-pasted across two files.
+import { useState } from 'react';
+import type React from 'react';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
@@ -259,7 +261,44 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
 // 🔴 Krivka je taká presná ako geometria trasy — pri kľukatých/skracujúcich trasách (viď
 // pamäť trasy_geometria) môže vyhladiť serpentíny; presnosť sa zlepší až po snap-to-trail.
 // Menej než 2 body → nezmysel na vykreslenie, vráti null (caller sekciu vôbec nezobrazí).
-export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km: number }) {
+/**
+ * ── ČÍTANIE PROFILU MYŠOU (Matej 2026-08-26) ────────────────────────────────────────────
+ *
+ * „dá sa v prevýšení pri dotyku myšou na trase spozorovať aké sú to metre = priložím šípku
+ *  na fialovú úsečku v ľavom paneli a na trase v mape budem vidieť pohyb bodky."
+ *
+ * Graf dovtedy hlásil len tri čísla (najvyšší bod, najnižší, dĺžka) — tvar kopca bol vidieť,
+ * ale nedalo sa zistiť, KDE na trase ten kopec je. Ukazovateľ odpovedá na obe polovice naraz:
+ * v grafe povie metre a kilometer, na mape sa v tej istej chvíli rozsvieti bodka.
+ *
+ * ⚠️ `onHover` je NEPOVINNÉ a hlási INDEX, nie súradnicu. Profil nevie, z akej čiary tie
+ * výšky vznikli — bod na mape musí dopočítať ten, kto mu ich podal (`GeometryPicker`).
+ * Povrchy, ktoré ukazovateľ nechcú (článok výletu, detail v mape), prop nepodajú a dostanú
+ * presne to, čo mali doteraz.
+ * ⚠️ `pointer-events` je na SVG zapnuté len vtedy, keď o hover niekto stojí — inak by graf
+ * kradol ťuk na povrchoch, kde je len obrázkom.
+ */
+export function ElevationProfile({ elev, km, onHover }: {
+  elev: number[] | undefined;
+  km: number;
+  onHover?: (index: number | null) => void;
+}) {
+  const [at, setAt] = useState<number | null>(null);
+  const interactive = !!onHover;
+  const move = (e: React.PointerEvent<SVGSVGElement>) => {
+    if (!interactive || !elev) return;
+    const box = e.currentTarget.getBoundingClientRect();
+    if (!box.width) return;
+    const W = 300, P = { r: 4, l: 28 };
+    // Z pixelov okna na index vzorky: najprv na súradnicu viewBoxu, potom na podiel kreslenej
+    // plochy (graf nezačína na nule — vľavo stoja popisky metrov).
+    const vx = ((e.clientX - box.left) / box.width) * W;
+    const frac = (vx - P.l) / (W - P.l - P.r);
+    const i = Math.round(Math.min(1, Math.max(0, frac)) * (elev.length - 1));
+    setAt(i);
+    onHover(i);
+  };
+  const leave = () => { if (!interactive) return; setAt(null); onHover?.(null); };
   if (!elev || elev.length < 2 || !(km > 0)) return null;
   const W = 300, H = 84, P = { t: 8, r: 4, b: 16, l: 28 };
   const minY = Math.min(...elev), maxY = Math.max(...elev);
@@ -267,8 +306,15 @@ export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km:
   const sy = (v: number) => H - P.b - ((v - minY) / Math.max(maxY - minY, 1)) * (H - P.t - P.b);
   const d = elev.map((v, i) => `${i ? 'L' : 'M'}${sx(i).toFixed(1)} ${sy(v).toFixed(1)}`).join(' ');
   const area = `${d} L${sx(elev.length - 1).toFixed(1)} ${H - P.b} L${sx(0).toFixed(1)} ${H - P.b} Z`;
+  const cur = at !== null && at >= 0 && at < elev.length ? at : null;
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 'auto', display: 'block' }} aria-hidden="true">
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      style={{ width: '100%', height: 'auto', display: 'block', touchAction: 'pan-y' }}
+      aria-hidden="true"
+      onPointerMove={interactive ? move : undefined}
+      onPointerLeave={interactive ? leave : undefined}
+    >
       <line x1={P.l} y1={H - P.b} x2={W - P.r} y2={H - P.b} stroke={PACK_THEME.onDarkBorder} />
       <path d={area} fill="url(#elevFill)" />
       <path d={d} fill="none" stroke="#F5C73D" strokeWidth={1.8} strokeLinejoin="round" strokeLinecap="round" />
@@ -281,6 +327,25 @@ export function ElevationProfile({ elev, km }: { elev: number[] | undefined; km:
       <text x={2} y={sy(maxY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(maxY)} m</text>
       <text x={2} y={sy(minY) + 4} fill={PACK_THEME.onDarkDim} fontSize="9">{Math.round(minY)} m</text>
       <text x={W - P.r} y={H - 4} fill={PACK_THEME.onDarkDim} fontSize="9" textAnchor="end">{km.toFixed(1)} km</text>
+      {/* Ukazovateľ: zvislica cez celý graf, guľôčka na krivke a metre nad ňou. Farbu nesie
+          krivka (currentColor cez triedu `.trp-elev-cursor` v hostiteľovi), aby ukazovateľ
+          patril k tej istej čiare, na ktorej stojí — a nie k pozadiu grafu. */}
+      {cur !== null && (
+        <g className="trp-elev-cursor">
+          <line x1={sx(cur)} y1={P.t - 4} x2={sx(cur)} y2={H - P.b} stroke="currentColor" strokeWidth={1} strokeDasharray="2 3" opacity={0.9} />
+          <circle cx={sx(cur)} cy={sy(elev[cur])} r={3.4} fill="currentColor" stroke="#FFFFFF" strokeWidth={1.2} />
+          <text
+            x={Math.min(W - P.r, Math.max(P.l, sx(cur)))}
+            y={Math.max(9, sy(elev[cur]) - 7)}
+            fill="currentColor"
+            fontSize="10"
+            fontWeight={700}
+            textAnchor={sx(cur) > W * 0.7 ? 'end' : sx(cur) < W * 0.3 ? 'start' : 'middle'}
+          >
+            {Math.round(elev[cur])} m · {((cur / (elev.length - 1)) * km).toFixed(1)} km
+          </text>
+        </g>
+      )}
     </svg>
   );
 }

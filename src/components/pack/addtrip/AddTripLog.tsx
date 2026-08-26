@@ -22,7 +22,7 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
+import { MAP_SKIN, PALE, PALE_PC_MIN, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
 import type { HeroTrail } from '@/data/heroTrails.generated';
@@ -32,7 +32,7 @@ import { countryLabel } from '@/lib/countryOptions';
 import { trailWCE } from '@/components/pack/triplist/triplist';
 import { pluralKey } from '@/components/pack/tripShared';
 import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
-import { dockFitPadding } from '@/components/pack/mapDockShape';
+import { dockFitPadding, dockPadX } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate } from './GeometryPicker';
 import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
@@ -939,9 +939,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       : geometry.center ? [geometry.center] : [];
     if (!pts.length) return;
     refitRef.current = false;
+    // ⚠️ VODOROVNÚ REZERVU DRŽÍ `dockPadX()`, NIE ČÍSLO 24 (Matej 2026-08-26: „mapu treba
+    // vycentrovať… na stred medzi ľavým panelom a pravým okrajom"). S 24 px na oboch stranách
+    // sa trasa vycentrovala do CELÉHO okna a jej ľavá časť skončila pod ľavým stĺpcom.
+    const [padL, padR] = dockPadX();
     map.fitBounds(L.latLngBounds(pts), {
-      paddingTopLeft: [24, 110],
-      paddingBottomRight: [24, 260],
+      paddingTopLeft: [padL, 110],
+      paddingBottomRight: [padR, 260],
       maxZoom: 15,
       animate: true,
     });
@@ -1071,9 +1075,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     const bounds = want === 'parking'
       ? L.latLng(pts[0][0], pts[0][1]).toBounds(400)
       : L.latLngBounds(pts);
+    // Tá istá rezerva ako pri dorovnaní po obnove — viď `dockPadX()`.
+    const [padL, padR] = dockPadX();
     map.fitBounds(bounds, {
-      paddingTopLeft: [24, 90],
-      paddingBottomRight: [24, 260],
+      paddingTopLeft: [padL, 90],
+      paddingBottomRight: [padR, 260],
       maxZoom: want === 'parking' ? 17 : 15,
       animate: true,
     });
@@ -1111,8 +1117,17 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
    *
    * ⚠️ STAV SA ČÍTA ZO ZNAČIEK, NIE Z `noteAsk`. Kto sa vráti na už zodpovedanú otázku a
    * značku pridá (alebo ju zmaže z chipu nižšie), musí vidieť zmenu okamžite.
-   * Tri stavy, nie dva: NEDOTKNUTÁ (ešte pred ňou / práve na nej) je neutrálna — červená
-   * by človeku vyčítala, že neurobil niečo, k čomu sa ešte nedostal.
+   *
+   * ── TRI FARBY, ŽIADNA NEUTRÁLNA (Matej 2026-08-26, druhé kolo) ─────────────────────────
+   * „2. krok všetky nevyplnené chipy budú modré alebo červené alebo zelené — výber modré,
+   *  červené neoznačené a zelené hotové."
+   *
+   * ⚠️ TOTO RUŠÍ PRAVIDLO Z 24. 8., KTORÉ TU STÁLO: „nedotknutá (ešte pred ňou) je neutrálna
+   * — červená by človeku vyčítala, že neurobil niečo, k čomu sa ešte nedostal." Matej to
+   * prebil výslovne a dôvod sedí: neutrálna a splnená sa na papyruse od seba nedali odlíšiť
+   * na prvý pohľad, takže tri chipy vyzerali ako jeden stav. Odteraz je červená stav „ešte
+   * nie", nie výčitka — a keďže je JEDINÝ ďalší stav modrý (práve na rade) alebo zelený
+   * (hotové), rad chipov je čitateľný periférne.
    *
    * Body sú `POINTS.note` z bodovej ekonomiky (lib/tripPoints.ts), nie číslo napísané sem —
    * cena odkazu žije na jednom mieste a chip ju len ukazuje.
@@ -1127,9 +1142,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     <div className="atl-ntrack" role="list" aria-label={t('pack.addTrip.step.name.notes')}>
       {NOTE_ASKS.map((a, i) => {
         const has = noteHave.has(a.group);
-        // Prázdna je len otázka, ktorú človek NECHAL ZA SEBOU. Na tej, kde práve stojí,
-        // ešte nič nezlyhalo.
-        const empty = !has && i < noteAsk;
+        // Červená je KAŽDÁ neoznačená okrem tej, na ktorej človek práve stojí — tá je modrá.
+        // (Do 26. 8. tu bolo `i < noteAsk`, teda len otázky nechané za sebou.)
+        const empty = !has && i !== noteAsk;
         return (
           <button
             key={a.group}
@@ -1138,14 +1153,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             className={`atl-ntrack-i${i === noteAsk ? ' on' : ''}${has ? ' ok' : ''}${empty ? ' miss' : ''}`}
             onClick={() => setNoteAsk(i)}
             aria-current={i === noteAsk ? 'step' : undefined}
-            /* ── FARBU AKTÍVNEJ MOŽNOSTI NESIE SKUPINA (Matej 2026-08-26) ────────────────
-               „označené parkovisko musí byť modrou farbou."
-               Do teraz svietila každá z troch možností ZLATO, hoci appka má pre ne tri
-               farby a človek ich pozná z mapy: parkovisko modré, upozornenie červené,
-               tip zelený. Zlatá tu tvrdila „všetky tri sú to isté".
-               ⚠️ FARBA SA NEPÍŠE DO CSS, PODÁVA SA PREMENNOU — `GROUP_TINT` je jediný
-               zdroj (mapa aj panel), takže sa nedá rozísť. */
-            style={{ ['--ntk' as string]: GROUP_TINT[a.group] }}
+            /* ── FARBA HOVORÍ STAV, NIE SKUPINU (Matej 2026-08-26, druhé kolo) ───────────
+               Ráno tu ešte stálo, že aktívnu možnosť farbí jej skupina (`--ntk` z
+               `GROUP_TINT`: parkovisko modré, upozornenie červené, tip zelený). Na rade
+               troch chipov to nefungovalo: „upozornenie, na ktorom práve stojím" bolo
+               červené a „tip, na ktorom práve stojím" zelený — teda presne tie dve farby,
+               ktoré v tom istom rade znamenajú NEOZNAČENÉ a HOTOVÉ. Skupinová farba tak
+               tvrdila stav, ktorý neplatil.
+               Farbu skupiny nesie ďalej MAPA a dlaždice druhov (`KindGrid tint`) — tam
+               žiadny iný význam nekonkuruje. */
           >
             <b>{has ? '✓' : t(`pack.mapNotes.group.${a.group}`).slice(0, 1)}</b>
             <span>{t(`pack.mapNotes.group.${a.group}`)}</span>
@@ -2615,14 +2631,21 @@ const STEP_CSS = `
    Prejdené sa dajú kliknúť späť — človek, ktorý parkovisko preskočil a spomenul si,
    nemá inú cestu, ako celý krok zopakovať odznova. */
 .atl-ntrack{display:flex;gap:6px;}
-.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 6px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
+.atl-ntrack-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 5px;border-radius:999px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};cursor:pointer;}
 .atl-ntrack-i b{display:flex;align-items:center;justify-content:center;flex:0 0 auto;width:17px;height:17px;border-radius:50%;background:rgba(245,240,228,0.07);font-size:9.5px;font-weight:700;line-height:1;}
-.atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;}
-/* AKTÍVNA MOŽNOSŤ NESIE FARBU SVOJEJ SKUPINY (--ntk z GROUP_TINT, viď noteTrack).
-   Parkovisko modré, upozornenie červené, tip zelený — tie isté farby, aké má značka
-   na mape pod panelom. */
-.atl-ntrack-i.on{background:color-mix(in srgb, var(--ntk) 14%, transparent);border-color:var(--ntk);color:${T.onDark};}
-.atl-ntrack-i.on b{background:var(--ntk);color:#fff;}
+/* ⚠️ TESNEJŠIE PREKLADANIE PÍSMEN NEŽ INDE (Matej 2026-08-26, druhé kolo). Odkedy je
+   neoznačená možnosť ČERVENÁ, nesie chip s bodmi KAŽDÁ z troch (predtým len tie, ktoré človek
+   nechal za sebou) — a na kompaktnom PC (stĺpec 360 px) sa z „PARKOVISKO" stalo „PARK…".
+   Rieši sa to preložením a výplňou pilulky s bodmi, nie skrytím tej pilulky: „0 bodov" pri
+   neoznačenej si Matej vypýtal 24. 8. výslovne. */
+.atl-ntrack-i span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9.5px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+/* ── VÝBER = MODRÁ, A JE TO PLNÁ VÝPLŇ (Matej 2026-08-26, druhé kolo) ──────────────────
+   „výber modré, červené neoznačené a zelené hotové." Lapis je v redizajne /map farba
+   pre „moja voľba a moja akcia" (navGoldSkin.ts) — nie mapová modrá, tá drží značky.
+   Plná výplň so zlatým písmom, aby chip vážil rovnako ako zelený a červený vedľa neho
+   a aby bol čitateľný na oboch povrchoch (tmavý mobil aj papyrusové PC). */
+.atl-ntrack-i.on{background:${LAPIS.grad};border-color:${LAPIS.lite};color:${LAPIS.ink};}
+.atl-ntrack-i.on b{background:rgba(239,215,154,0.92);color:${LAPIS.deep};}
 /* ── VÝSLEDOK PREBÍJA POSTUP ──────────────────────────────────────────────────────────
    Zlatá hovorí „tu si", zelená a červená hovoria „takto to dopadlo" — a to je dôležitejšie,
    preto stoja NIŽŠIE v poradí a prebíjajú .on. Zelená je tá istá, akú na mape nesie TIP
@@ -2636,13 +2659,17 @@ const STEP_CSS = `
    ⚠️ PREBÍJA aktívny stav ZÁMERNE: „hotové" je dôležitejšia správa než „tu si". */
 .atl-ntrack-i.ok{background:${GROUP_TINT.comment};border-color:${GROUP_TINT.comment};color:#0B1F12;}
 .atl-ntrack-i.ok b{background:rgba(255,255,255,0.82);border:1px solid rgba(11,31,18,0.25);color:#0B1F12;}
-.atl-ntrack-i.miss{background:rgba(206,75,60,0.12);border-color:rgba(206,75,60,0.55);color:${T.onDarkDim};}
-.atl-ntrack-i.miss b{background:rgba(206,75,60,0.20);border:1px solid rgba(206,75,60,0.55);color:${HAZARD_RED};}
+/* NEOZNAČENÉ = PLNÁ ČERVENÁ, rovnaká váha ako zelená a modrá vedľa (Matej 2026-08-26).
+   Do teraz to bol 12 % nádych s bledým textom — na papyruse takmer neviditeľný, takže
+   „ešte som to neurobil" a „mám hotovo" vyzerali rovnako. Inkoust je svetlý, nie čierny:
+   HAZARD_RED je tmavšia než zelená, čierne písmo by na nej zaniklo. */
+.atl-ntrack-i.miss{background:${HAZARD_RED};border-color:${HAZARD_RED};color:#FFF1EE;}
+.atl-ntrack-i.miss b{background:rgba(255,241,238,0.88);border:1px solid rgba(90,20,12,0.25);color:#7A2118;}
 /* Chip s bodmi. Malý a bez rámu — je to poznámka k pilulke, nie druhá pilulka v nej.
    tabular-nums, aby sa „+3" a „0" nehojdali v rade vedľa seba. */
-.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:700;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:3px 5px;border-radius:999px;}
+.atl-ntrack-pts{flex:0 0 auto;font-style:normal;font-size:9px;font-weight:700;line-height:1;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:3px 4px;border-radius:999px;}
 .atl-ntrack-i.ok .atl-ntrack-pts{background:rgba(11,31,18,0.82);color:#EAFBF0;}
-.atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(206,75,60,0.22);color:${HAZARD_RED};}
+.atl-ntrack-i.miss .atl-ntrack-pts{background:rgba(74,16,10,0.72);color:#FFE7E2;}
 .atl-noteask{padding:12px 14px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};}
 .atl-noteask p{margin:0 0 10px;font-family:${FONT_UI};font-size:13px;line-height:1.45;color:${T.onDark};}
 .atl-noteask-btns{display:flex;gap:8px;}
@@ -3112,16 +3139,13 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-expand:hover{color:${P_INK};}
 
   /* ── sledovanie značiek (krok 2) ────────────────────────────────────────────────────── */
+  /* ⚠️ LEN NEUTRÁLNY ZÁKLAD. Tri stavy (modrý výber, zelené hotové, červené neoznačené) sú
+     PLNÉ VÝPLNE a na oboch povrchoch tie isté — riešia sa raz, v STEP_CSS. Do 26. 8. tu mal
+     každý z nich bledú verziu navyše (aktívny cez premennú --ntk, splnený, neoznačený) a keďže sa
+     tento blok vkladá do DOM POSLEDNÝ, ticho prebíjal to, čo sa opravilo tam. Základ ostáva,
+     lebo bez neho by nedotknutý chip (v praxi neexistuje, ale trieda áno) mal onDark inkoust. */
   .atl-ntrack-i{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
   .atl-ntrack-i b{background:rgba(201,154,63,0.18);color:${P_DEEP};}
-  /* ⚠️ FARBU AKTÍVNEJ NESIE SKUPINA AJ TU. Bledý blok sa vkladá do DOM POSLEDNÝ, takže
-     zlatý zápis z tohto miesta prebíjal pravidlo s premennou v STEP_CSS a parkovisko
-     ostávalo zlaté aj po oprave (Matej 26. 8.: „označené parkovisko musí byť modrou").
-     Inkoust je tmavý — na papyruse by svetlý zanikol. */
-  .atl-ntrack-i.on{background:color-mix(in srgb, var(--ntk) 16%, transparent);border-color:var(--ntk);color:${P_INK};}
-  .atl-ntrack-i.on b{background:var(--ntk);color:#fff;}
-  /* Splnená ostáva plne zelená s čiernym textom — na oboch povrchoch tá istá, viď STEP_CSS. */
-  .atl-ntrack-i.miss{color:${P_DIM};}
 
   /* ── potvrdenie odchodu z toku ──────────────────────────────────────────────────────── */
   /* Rozlúčka s AINUBISOM (.atl-abort--ainubis) sa ZÁMERNE nemení: je to jeho vlastný modrý
@@ -3132,6 +3156,19 @@ const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
   .atl-abort:not(.atl-abort--ainubis) p{color:${P_DIM};}
   .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit{background:rgba(176,52,40,0.14);border-color:rgba(176,52,40,0.65);color:#8E2A20;}
   .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit:hover{background:rgba(176,52,40,0.26);color:#5E170F;}
+
+  /* ── HLAVNÉ CTA JE LAPIS, NIE ZLATÉ (Matej 2026-08-26: „CTA oprav máme predsa modrú") ───
+     ZAPÍSAŤ VÝLET, POKRAČOVAŤ aj HOTOVO v editore príbehu — všetky tri nesú .btn-gold.
+     Na papyruse bola zlatá naraz rámom, doskou aj tlačidlom, takže hlavná akcia bola
+     najsvetlejší prvok panela a splývala s tým, čo ju drží; to je dôvod, prečo LAPIS
+     v redizajne /map vznikol (navGoldSkin.ts: „hlavné CTA"). Zlato ostáva na písme.
+     ⚠️ NIE JE TO PORUŠENIE .btn-gold LOCKU — tvar (radius 8, šírka, Cinzel, papyrusový
+     rám) sa nemení, mení sa výplň, a to len na bledom PC chrome mapy. Tmavý mobil aj zvyšok
+     appky ostávajú zlaté; MAP_SKIN = 'glass' vráti zlatú aj sem. */
+  .atl-log-foot .btn-gold,
+  .atl-editor .btn-gold{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+  .atl-log-foot .btn-gold:hover:not(:disabled),
+  .atl-editor .btn-gold:hover:not(:disabled){background:${LAPIS.gradHover};box-shadow:${LAPIS_BTN_SHADOW};}
 
   /* ── lišta posúvania ────────────────────────────────────────────────────────────────── */
   .atl-log-body::-webkit-scrollbar,.atl-tiles::-webkit-scrollbar{width:8px;}
