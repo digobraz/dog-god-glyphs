@@ -78,6 +78,7 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
@@ -103,7 +104,10 @@ import {
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { deletePackTrip } from '@/lib/packStore';
-import { upsertMyTrip, removeMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
+import { placeholderFor } from '@/lib/tripPlaceholder';
+import { upsertMyTrip, removeMyTrip } from '@/components/pack/triplist/triplist';
+import { supabase } from '@/integrations/supabase/client';
+import { planDateLabel } from '@/components/pack/addtrip/planDate'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — kto tento výlet vypísal. `useOpenTrips` dá cudzie inzeráty (user_trips),
 // `useTripParties` k nim mená (get_trip_party), karta ich vykreslí.
 import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
@@ -352,29 +356,6 @@ const TAG_I18N: Record<string, string> = {
 
 // Per-aktivita placeholder fotky (Cloudinary pack/placeholders, webp). Kľúč = ACT_DATA_ID
 // (hike/journey/picnic/overnight/skating/paddleboard). Použité pre tripy bez vlastnej fotky
-// + planning preview — placeholder lesa na paddleboarde by bol divný, preto per-aktivita.
-const CLD = 'https://res.cloudinary.com/dz8lolmod/image/upload/f_auto,q_auto,c_fill,w_800,h_450/pack/placeholders';
-const ACTIVITY_PLACEHOLDERS: Record<string, string[]> = {
-  hike: [`${CLD}/hiking-1.webp`, `${CLD}/hiking-2.webp`, `${CLD}/hiking-3.webp`],
-  journey: [`${CLD}/journey-1.webp`, `${CLD}/journey-2.webp`, `${CLD}/journey-3.webp`],
-  picnic: [`${CLD}/picnic-1.webp`, `${CLD}/picnic-2.webp`, `${CLD}/picnic-3.webp`],
-  overnight: [`${CLD}/overnight-1.webp`, `${CLD}/overnight-2.webp`, `${CLD}/overnight-3.webp`],
-  skating: [`${CLD}/skating-1.webp`, `${CLD}/skating-2.webp`, `${CLD}/skating-3.webp`],
-  paddleboard: [`${CLD}/paddleboard-1.webp`, `${CLD}/paddleboard-2.webp`, `${CLD}/paddleboard-3.webp`],
-  // ✅ 2026-08-03 (#39): vlastné explore fotky nahraté do Cloudinary `pack/placeholders`,
-  // požičané `picnic-*` zrušené. Motívy: 1 hrad-zrúcanina · 2 historické námestie ·
-  // 3 kaštieľ s parkom — presne tri povrchy, kvôli ktorým explore kategória vznikla.
-  // Štýl držaný na existujúcich placeholderoch (fotoreal 35 mm, zlatá hodina, bez ľudí
-  // a bez psov, 1600×893) — pri dopĺňaní ďalších sa naň pozri, nehádaj ho.
-  explore: [`${CLD}/explore-1.webp`, `${CLD}/explore-2.webp`, `${CLD}/explore-3.webp`],
-};
-// vyber 1 z 3 stabilne podľa seedu (id tripu / názov) → variety naprieč kartami, ale nemení sa pri re-renderi
-function placeholderFor(actIds: string[] | undefined, seed: string): string {
-  const act = (actIds && actIds.find((a) => ACTIVITY_PLACEHOLDERS[a])) || 'hike';
-  const arr = ACTIVITY_PLACEHOLDERS[act] || ACTIVITY_PLACEHOLDERS.hike;
-  let h = 0; for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return arr[h % arr.length];
-}
 
 // ── DVE KVAPKY ZANIKLI, OSTAL JEDEN KRUH (Matej 2026-08-22) ────────────────────────────────
 // Do 22. 8. tu stáli vedľa seba RUŽOVÁ kvapka (cieľ plánovaného výletu, 24. 7.) a ZLATÁ kvapka
@@ -437,13 +418,18 @@ type MapPoint = { id: string; tr: HeroTrail; lat: number; lon: number; water: bo
 // tri vrstvy podľa zoomu (zadanie 2.3): z<=9 len bodka · z10–11 bodka (diaľkové už pilulka) ·
 // z>=12 všetko pilulka.
 const mapTier = (z: number): 0 | 1 | 2 => (z <= 9 ? 0 : z <= 11 ? 1 : 2);
-// Matej 2026-07-27: diaľkové (journey) nesú km len v STREDNOM pásme priblíženia (z8–z11) —
+// Matej 2026-07-27: diaľkové (journey) nesú km len v STREDNOM pásme priblíženia —
 // „ako jediné z diaľky aj kilometre, nech človek vie že je to dlhé". Na oboch koncoch sa sťahujú
-// na holý piktogram:
-//   · z ≤ 7 (celá Európa) — na Slovensko pripadá pár cm a 10 pilulek sa nakopilo na seba
+// na holý piktogram (kruh s bielym trojuholníkom, `.trp-dot--journey`):
+//   · zďaleka — na Slovensko pripadá pár cm a 11 pilulek sa nakopilo na seba
 //   · z ≥ 12 (zblízka) — trasa je aj tak nakreslená, „770 km" by len zavadzalo
 // Bežné body a voda idú opačne: pilulka až pri najväčšom priblížení.
-const JOURNEY_KM_ZOOM = { min: 8, max: 11 };
+// ⚠️ 2026-08-26: spodná hranica 8 → 9 (Matej, pri pohľade na CELÉ Slovensko v úzkom okne:
+// „označ magistrály bez km stačí kruh s bielym trojuholníkom... aby toho nebolo tak vela a
+// preplnené"). Prečo práve 9 a nie iné číslo: pri z9 je SK široké ~2130 px, takže celá krajina
+// sa do okna zmestí LEN pod z9 ⇒ „vidím celú krajinu" a „magistrály bez km" odteraz splývajú
+// na každej šírke okna. Pri z8 ich bolo v zábere jedenásť a prekrývali sa navzájom.
+const JOURNEY_KM_ZOOM = { min: 9, max: 11 };
 const pointIsPill = (p: MapPoint, zoom: number) =>
   p.journey ? zoom >= JOURNEY_KM_ZOOM.min && zoom <= JOURNEY_KM_ZOOM.max : mapTier(zoom) === 2;
 
@@ -828,6 +814,20 @@ function TripMarkers({ points, hoverId, inlineDetailId, onHover, onSelect }: {
   const onMoveEnd = useCallback(() => setMoveTick((n) => n + 1), []);
   useMapEvent('zoomend', onZoomEnd);
   useMapEvent('moveend', onMoveEnd);
+  // ⚠️ 2026-08-26: počiatočný `useState(() => map.getZoom())` zachytí zoom PRED tým, než mapu
+  // dorámuje `FitBounds` (sused v strome, beží vo svojom effecte s `animate:false`). Jeho
+  // `zoomend` sa trafí do okna, kým tento listener ešte nie je pripojený, takže sa stratí a stav
+  // ostane natrvalo na `zoom={9}` z `<MapContainer>` — hoci mapa reálne stojí na z8 (celé
+  // Slovensko). Markery potom kreslia vrstvu pre CUDZÍ zoom a nie je to na nich vidieť: pri
+  // starom pásme km (z8–z11) padli obe čísla do toho istého pásma, takže sa chyba prejavila až
+  // keď sa spodná hranica zdvihla na 9 a diaľkové mali stratiť km — po tvrdom načítaní stránky
+  // ich ďalej ukazovali. Sync na macrotask beží AŽ po effectoch súrodencov, teda po dorámovaní.
+  useEffect(() => {
+    const sync = () => setZoom(map.getZoom());
+    const id = window.setTimeout(sync, 0);
+    map.whenReady(sync);
+    return () => window.clearTimeout(id);
+  }, [map]);
   const tier = mapTier(zoom);
 
   const items = useMemo<MapMarkerItem[]>(() => {
@@ -1795,6 +1795,361 @@ ${TRAIL_LINE_CSS}
 
 `;
 
+// ══ BLEDÝ SKIN PC CHROME MAPY (2026-08-26) ═══════════════════════════════════════════════
+// Matej: „ideme robiť redizajn do bledého štýlu = ľavý panel bude bledý s okrajom ako má aj
+// spodný nav a to isté platí aj o vrchnom headri… teraz ideme riešiť PC /map - add trip a flow."
+//
+// PREČO SAMOSTATNÝ BLOK A NIE PREPIS `CSS` VYŠŠIE — tri dôvody, každý zaplatený inde:
+//  1. `.trp-sidebar` aj `.trp-topbar` sú POD 1024 px `display:none` a ich potomkovia
+//     (`.trp-mapsearch`, `.trp-stat-pill`, `.trp-midentity`, `.trp-headright`…) sú ZDIEĽANÍ
+//     s mobilnou hlavičkou `.trp-mheader`. Prepis v hlavnom bloku by prefarbil mobil, ktorý
+//     ostáva tmavý až do vlastného kola. Celý blok preto stojí v `@media (min-width:${PALE_PC_MIN}px)`
+//     a každý selektor je zakotvený v `.trp-sidebar` / `.trp-topbar` / `.trp-addhost`.
+//  2. Zamietnutie sa musí dať vrátiť JEDNÝM slovom — `MAP_SKIN = 'glass'` a je späť tmavé
+//     sklo, presne ako `NAV_SKIN` v `PackLayout.tsx`. Prepísané pôvodné hodnoty by sa
+//     vracali ručne z gitu.
+//  3. Ladenie je celé na jednom mieste, nie rozsypané po 800 riadkoch pôvodného CSS.
+//
+// RÁM = `goldFrameCSS()` z `navGoldSkin.ts` — TEN ISTÝ zdroj, z ktorého žije spodný nav.
+// Druhá kópia gradientov by sa rozišla pri prvej úprave a panel by prestal byť z toho istého
+// materiálu ako bar, čo je celé zadanie.
+//
+// PLOCHY VNÚTRI = matrica `PACK_BOX` z `packTheme.ts` (karta / podblok / riadok / pole).
+// Nevymýšľame tu vlastné papyrusové odtiene — to je presne to „vyzerá to neprofesionálne",
+// kvôli ktorému matrica vznikla.
+// ⚠️ `MAP_SKIN` sa importuje z `navGoldSkin.ts` — potrebujú ho aj listové moduly toku
+// pridávania, ktoré tento súbor importuje, takže tu stáť nemôže (bol by to kruh).
+
+// Inkoust na papyruse — jedna sada, nech sa neopakujú rgba čísla v päťdesiatich pravidlách.
+const P_INK = T.inkStrong;                      // #2a1608 — nadpisy, mená, hodnoty
+const P_DIM = T.inkWarm;                        // #7a5a2a — podriadky, eyebrow, meta
+const P_FAINT = 'rgba(42,22,8,0.42)';           // tretia úroveň (oddeľovače, „N ďalších")
+const P_BORDER = 'rgba(179,130,45,0.55)';       // rám poľa/pilulky (zhoda s `.pf-field`)
+const P_HAIR = 'rgba(179,130,45,0.26)';         // vlasová linka MEDZI prvkami (nie rám!)
+const P_FIELD = '#FBF5E6';                      // plochá výplň písacieho poľa (`.pf-field--flat`)
+const P_SOFT = 'rgba(255,251,240,0.55)';        // nečinná pilulka — svetlejšia než doska
+const P_HOT = 'rgba(201,154,63,0.20)';          // hover/označené
+
+const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
+@media (min-width:${PALE_PC_MIN}px){
+
+  /* ── 1. RÁMY ──────────────────────────────────────────────────────────────────────────
+     Tri plochy, jeden materiál: ľavý panel, hostiteľ formulára pridávania a stavový riadok
+     hlavičky. Panely majú polomer 18/rám 6 (nav má 14/6 pri výške 60 px — na 950 px vysokom
+     paneli by 14 vyzeralo ostro), hlavička je nižšia, tam sedí 14/5. */
+  .trp-sidebar,.trp-addhost{${goldFrameCSS({ radius: 18, rim: 6 })}backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-status-row{${goldFrameCSS({ radius: 14, rim: 5 })}backdrop-filter:none;-webkit-backdrop-filter:none;}
+
+  /* ── 2. HLAVIČKA — stavový riadok ─────────────────────────────────────────────────────
+     Identita (rang + level), pilulky s km/výletmi, Triplist, PRIDAŤ a zvonček. */
+  .trp-topbar .trp-level-name{color:${P_INK};}
+  /* ⚠️ ŠTATISTIKA POD RANGOM SA NEZOBRAZUJE (Matej 2026-08-26: „zároveň je tam info o
+     výletoch v chipe aj pod pútnikom… pod pútnikom to vymaž a zväčši slovo pútnik").
+     To isté číslo stálo na obrazovke dvakrát vedľa seba. Skrýva sa CSS-om a nie vyhodením
+     z renderu zámerne: renderIdentity() obsluhuje aj TMAVÚ MOBILNÚ hlavičku, kde chip
+     s výletmi nie je a riadok je jediným miestom, kde tú informáciu človek uvidí. */
+  .trp-topbar .trp-mstats{display:none;}
+  /* Rang ostal v riadku sám, tak môže vážiť viac. */
+  .trp-topbar .trp-level-name{font-size:16px;letter-spacing:.12em;}
+  .trp-topbar .trp-midentity:hover .trp-level-name{color:#000;}
+  /* Avatar: zlatý krúžok na tmavom pozadí mal čierny halo ring, ktorý na papyruse vyzerá
+     ako špina. Ostáva rám, halo sa mení na svetlý. */
+  .trp-topbar .trp-mavatar{box-shadow:0 0 0 1px rgba(255,252,240,0.9);}
+  /* Iniciála ostáva ZLATÁ (rovnaký kruh ako .trp-inldet-authoravatar), nie papyrusová:
+     krémový kruh na pieskovej doske je krém na kréme a avatar z hlavičky zmizne. */
+  .trp-topbar .trp-mavatar--initial{background:radial-gradient(circle at 35% 30%,#F5C73D,#E69E1A);color:#1c160c;}
+  /* Pilulka = úroveň 5 matrice (pilulkový variant poľa): plochá svetlá výplň, jeden rám. */
+  /* ── LAPIS — HLAVNÁ AKCIA A OZNAČENÁ VOĽBA (pracovný návrh, 2026-08-26) ───────────────
+     Pravidlo: ZLATO drží konštrukciu a polohu (rám, doska, nav, aktívny krok), LAPIS nesie
+     to, čo urobí človek (hlavné CTA, označená voľba). Na papyruse bola zlatá naraz rámom,
+     doskou aj tlačidlom — PRIDAŤ tak bolo najsvetlejším prvkom lišty a splývalo s ňou.
+     ⚠️ NIE JE TO modrá z mapy (T.brandBlue). Značky na mape sú svetlý lem na bielom kruhu,
+     lapis je vždy tmavá výplň v chrome — to je jediné, čo tie dve modré drží oddelene.
+     ⚠️ Do brand manuálu sa to NEZAPISUJE, kým Matej redizajn neodklepne (jeho slová:
+     „zatiaľ to nezapisuj ale používajme to pri redizajne"). Zdroj hodnôt: LAPIS v navGoldSkin.ts. */
+  /* ── SPRÁVY A NOS BOLI NEVIDITEĽNÉ (Matej 2026-08-26: „správy a nos viac zvýrazni sú
+     neviditeľné") ────────────────────────────────────────────────────────────────────────
+     PackNotifications má v svetlej vetve buttonBg: transparent a slabý rám — na
+     pieskovej doske z tlačidla nezostalo nič. Farby si nesie v INLINE štýloch, takže sa bez
+     !important prebiť nedajú; parameter dark tu nepomôže, lebo problém je práve svetlá
+     vetva. Meniť ju v komponente by prefarbilo aj HeroCard na /pack, čo nikto nepýtal —
+     preto lokálny prepis. Precedens: .trp-header-notif a .trp-mheader-status už
+     !important používajú z toho istého dôvodu. */
+  /* ── SPRÁVY A UPOZORNENIA = OBRÁTENÁ PILULKA (Matej 2026-08-26, tretie kolo) ──────────
+     „skúsme dať tie správy a upozornenia revertnú = chip tmavý a ikonka zlatá."
+     Presný opak chipov vedľa: tam zlatá výplň a tmavá kresba, tu tmavá výplň a zlatá kresba.
+     Nie je to tretia farba — je to tá istá dvojica prevrátená, takže pás ostáva jednotný a
+     zároveň je hneď vidieť, že tieto dve tlačidlá robia niečo iné než odkazy na výlety.
+     ⚠️ Vystúpený tieň sa NEDEDÍ z NAV_PILL_SHADOW: jeho horná hrana je svetlý krém, ktorý na
+     tmavej výplni vyzerá ako škrabanec. Tmavá pilulka má vlastnú — zlatú — hornú hranu. */
+  .trp-topbar .trp-header-notif button{background:linear-gradient(180deg,#3A2410,#1B0F05)!important;border:1px solid ${T.cardEdge}!important;color:${T.accentGold}!important;box-shadow:inset 0 1px 0 rgba(201,154,63,0.45),0 3px 8px -1px rgba(40,25,6,0.55)!important;}
+  .trp-topbar .trp-header-notif button:hover{filter:brightness(1.18);}
+  /* Obálka je obrázok tintovaný filtrom — na tmavom chipe zlatý tint (zhoda s BrandIcon gold).
+     Nos je inline SVG s currentColor, ten si farbu berie z color vyššie. */
+  .trp-topbar .trp-header-notif button img{filter:brightness(0) saturate(100%) invert(58%) sepia(56%) saturate(481%) hue-rotate(2deg) brightness(91%) contrast(86%)!important;opacity:1!important;}
+
+  .trp-topbar .trp-addtrip-btn{background:${LAPIS.grad};color:${LAPIS.ink};border-color:${LAPIS.deep};box-shadow:${LAPIS_BTN_SHADOW};}
+  .trp-topbar .trp-addtrip-btn:hover{background:${LAPIS.gradHover};filter:none;box-shadow:${LAPIS_BTN_SHADOW};}
+  /* Ikonka plus je čierna kresba — na lapise ju treba prefarbiť na zlatú, inak z tlačidla
+     zmizne. Hodnoty filtra mieria na LAPIS.ink (#EFD79A). */
+  .trp-topbar .trp-addtrip-icon{filter:brightness(0) saturate(100%) invert(89%) sepia(23%) saturate(720%) hue-rotate(348deg) brightness(101%) contrast(92%);}
+
+  /* ── CHIPY = POLOŽKA SPODNÉHO NAVU (Matej 2026-08-26) ─────────────────────────────────
+     „mali vyzerať ako chipy v dolnom nave aj farbou aj tvarom a dizajnom" — teda presne to,
+     čo v PackLayout.tsx dostáva AKTÍVNA položka: plná zlatá výplň, tmavý obrys, okrúhly tvar
+     a vystúpený tieň. Nie hover-efekt, ale východiskový stav: tieto dva chipy nie sú
+     prepínač, sú to trvalé odkazy, takže „vypnutý" stav nemajú.
+     ⚠️ Hodnoty sa NEOPISUJÚ — berú sa z NAV_GOLD / NAV_PILL_SHADOW, aby sa lišta hore a lišta
+     dole nerozišli pri prvej úprave predlohy. */
+  .trp-topbar .trp-stat-pill{background:${NAV_GOLD.activeFill};border:1px solid ${NAV_GOLD.edge};border-radius:999px;box-shadow:${NAV_PILL_SHADOW};}
+  .trp-topbar .trp-stat-pill img{filter:none;opacity:.8;}
+  .trp-topbar .trp-stat-pill b{color:${NAV_GOLD.ink};}
+  .trp-topbar .trp-stat-pill span{color:${NAV_GOLD.ink};}
+  .trp-topbar button.trp-stat-pill:hover{filter:brightness(1.06);}
+  .trp-topbar button.trp-stat-pill.on{background:${LAPIS.grad};border-color:${LAPIS.deep};}
+  .trp-topbar button.trp-stat-pill.on b,.trp-topbar button.trp-stat-pill.on span{color:${LAPIS.ink};}
+  .trp-topbar button.trp-stat-pill.on img{opacity:.9;filter:brightness(0) invert(1);}
+
+  /* ── 3. HLAVIČKA — riadok hľadania a filtrov ──────────────────────────────────────────
+     Tu ZÁMERNE nie je zlatý rám okolo každého poľa: päť rámovaných doštičiek vedľa seba by
+     z hlavičky urobilo výkladnú skriňu. Polia sú úroveň 5 matrice (".pf-field--flat") —
+     plochý papyrus, jeden rám, radius 8 — len s tieňom navyše, lebo stoja priamo nad mapou
+     a bez neho by na svetlej mape splynuli. */
+  .trp-topbar .trp-mapsearch,
+  .trp-topbar .trp-toprow-select,
+  .trp-topbar .trp-tagdd-btn{background:${P_FIELD};border:1.5px solid ${P_BORDER};color:${P_INK};box-shadow:0 6px 18px rgba(70,45,10,0.22);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-topbar .trp-mapsearch img{filter:none;opacity:.55;}
+  .trp-topbar .trp-mapsearch input{color:${P_INK};}
+  .trp-topbar .trp-mapsearch input::placeholder{color:${P_DIM};opacity:.75;}
+  .trp-topbar .trp-toprow-select:focus,
+  .trp-topbar .trp-mapsearch:focus-within{border-color:${T.cardEdge};}
+  .trp-topbar .trp-tagdd-btn.on{border-color:${T.cardEdge};color:#8A5F1E;background:#FFF6E2;}
+  .trp-topbar .trp-tagdd-chevron{opacity:.55;}
+
+  /* Rozbaľovacie panely hlavičky (návrhy miest, výber tagov) — úroveň 4 matrice (PANEL). */
+  .trp-topbar .trp-mapsug,
+  .trp-topbar .trp-tagdd-panel{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-topbar .trp-mapsug-item{border-bottom:1px solid ${P_HAIR};}
+  .trp-topbar .trp-mapsug-item:hover{background:${P_HOT};}
+  .trp-topbar .trp-mapsug-name{color:${P_INK};}
+  .trp-topbar .trp-mapsug-sub{color:${P_DIM};}
+  .trp-topbar .trp-tagdd-eyebrow{color:${T.cardEdge};}
+  .trp-topbar .trp-tagdd-row{color:${P_INK};opacity:.8;}
+  .trp-topbar .trp-tagdd-row.on{color:#8A5F1E;opacity:1;}
+  .trp-topbar .trp-tagdd-row:hover{background:${P_HOT};}
+  .trp-topbar .trp-tagdd-clear{border-top:1px solid ${P_HAIR};color:${P_DIM};}
+  .trp-topbar .trp-tagdd-clear:hover{color:#8A5F1E;}
+
+  /* ── 4. PANEL — pozdrav a prepínač kategórií ──────────────────────────────────────────
+     Nadpis podľa locku bledých blokov: Cinzel 700 na "inkStrong". Zlatý nadpis na papyruse
+     má kontrast ~1.9:1 — na tmavom paneli fungoval, tu je nečitateľný. */
+  .trp-sidebar .trp-greet-hi{color:${P_DIM};}
+  .trp-sidebar .trp-greet-sub{color:${P_INK};}
+  .trp-sidebar .trp-greet-filter{background:${P_SOFT};border-color:${P_BORDER};}
+  .trp-sidebar .trp-greet-filter img{filter:none;opacity:.7;}
+  .trp-sidebar .trp-greet-filter:hover{border-color:${T.cardEdge};background:#FFFDF6;}
+  .trp-sidebar .trp-greet-filter.on{background:linear-gradient(135deg,#F5C73D,#E69E1A);border-color:rgba(250,244,236,0.55);}
+  .trp-sidebar .trp-greet-filter.on img{filter:none;opacity:.9;}
+
+  .trp-sidebar .trp-sortpop--desk{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-sidebar .trp-sortpop--desk button{color:${P_INK};border-bottom:1px solid ${P_HAIR};}
+  .trp-sidebar .trp-sortpop--desk button.on{color:#8A5F1E;}
+  .trp-sidebar .trp-sortpop--desk button:hover{background:${P_HOT};}
+
+  .trp-sidebar .trp-catpill{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  /* ⚠️ HOVER NIE JE BIELY (Matej 2026-08-26: „pri prejdení myšou na CTA výlety sa mi nepáči
+     biely hover"). Biela na papyruse pôsobí ako výpadok farby, nie ako reakcia — pilulka
+     vyzerala vypnutá, nie zvýraznená. Teplý zlatý nádych ide tým istým smerom ako zvolený
+     stav, len slabšie: hover naznačuje, kliknutie potvrdí. */
+  .trp-sidebar .trp-catpill:not(.soon):hover{border-color:${T.cardEdge};color:${P_INK};background:${P_HOT};}
+  /* Zvolená kategória = MOJA VOĽBA ⇒ lapis (pravidlo pri PRIDAŤ vyššie). Zlatá dlaždica na
+     zlatej doske v zlatom ráme bola tretia zlatá vrstva na sebe — z troch pilulek sa nedalo
+     na prvý pohľad povedať, ktorá je zapnutá. */
+  .trp-sidebar .trp-catpill.on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
+  .trp-sidebar .trp-catpill.soon{border-color:${P_HAIR};color:${P_FAINT};opacity:1;}
+
+  /* Filtre. Natívny <select> berie farbu šípky z "color", takže inkoust stačí zadať raz. */
+  /* ⚠️ MENŠIE PÍSMO (Matej 2026-08-26: „tie 3 dropdowny… moc veľké písmo ktoré sa nevojde").
+     16 px je na select zámerná hodnota PRE MOBIL — pod ňou iOS pri ťuknutí stránku
+     priblíži. Bledý blok začína na 1024 px, takže tu žiadny takýto telefón nie je a písmo
+     smie klesnúť. Na mobile ostáva 16 px nedotknutých. */
+  .trp-sidebar .trp-country-select,
+  .trp-sidebar .trp-filter-select{background:${P_FIELD};border:1px solid ${P_BORDER};color:${P_INK};font-size:13px;}
+  /* Samotné zmenšenie písma na krajinu nestačilo — 104 px je pevná šírka a zmestí sa do nej
+     glóbus, medzera a šípka, takže na slovo ostane ~50 px a Všetko sa reže na Všetk. Menší
+     font ide na všetky tri rozbaľovačky, širší základ len na túto: Región a Aktivity sa
+     zmestili aj bez neho a rovnaké tri šírky by z radu spravili tri rôzne dlhé polia. */
+  .trp-sidebar .trp-georow .trp-country-select{flex-basis:126px;}
+  .trp-sidebar .trp-country-select:focus,
+  .trp-sidebar .trp-filter-select:focus{border-color:${T.cardEdge};}
+  .trp-sidebar .trp-chip-sm{border-color:${P_BORDER};color:${P_DIM};}
+  .trp-sidebar .trp-chip-sm:hover{border-color:${T.cardEdge};color:${P_INK};}
+  .trp-sidebar .trp-chip-sm.on{background:${T.cardEdge};border-color:${T.cardEdge};color:#FBF5E6;}
+
+  /* ── 5. PANEL — zoznam výletov ────────────────────────────────────────────────────────
+     Karta = úroveň 1 matrice ("PACK_BOX.card"). Na doske panela je karta SVETLEJŠIA než
+     podklad, takže vystúpi bez toho, aby musela kričať rámom. */
+  .trp-sidebar .trp-cards-sep{color:${P_DIM};}
+  .trp-sidebar .trp-cards-sep::before,
+  .trp-sidebar .trp-cards-sep::after{background:${P_HAIR};}
+  .trp-sidebar .trp-cards-sep b{color:${P_FAINT};}
+  /* ⚠️ TIEŇ NIE JE T.cardShadow (Matej 2026-08-26: „pri zozname výletov je okolo tmavý tieň
+     po stranách… vidno hranice a rezy overlayu"). Matricový tieň karty je 0 14px 44px
+     rgba(0,0,0,0.55) PLUS 0 0 0 4px zlatý halo ring — postavený pre kartu na ČIERNEJ
+     stránke. Na papyruse je z neho čierny mrak a ring sa navyše reže o okraj skrolovacieho
+     stĺpca, takže vzniká presne tá viditeľná hrana. Karta v zozname je úroveň 3 matrice
+     (RIADOK), nie samostatná karta — dostáva teplý tieň bez ringu. */
+  .trp-sidebar .trp-bigcard{background:${T.cardGrad};border:1.5px solid ${T.cardEdge};border-left-width:1.5px;border-radius:16px;box-shadow:0 2px 8px rgba(122,90,42,0.16),inset 0 1px 0 rgba(255,255,255,0.45);}
+  /* Označená/hovorená karta: rám sa nemení (už je zlatý) — pridáva sa halo a nadvihnutie,
+     inak by hover na papyruse nebolo vidno vôbec. */
+  .trp-sidebar .trp-bigcard:hover,
+  .trp-sidebar .trp-bigcard.hot{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),${T.cardShadow};transform:translateY(-1px);}
+  .trp-sidebar .trp-bigcard-loc{color:${P_DIM};}
+  .trp-sidebar .trp-bigcard-name{color:${P_INK};}
+  .trp-sidebar .trp-bigcard-author{color:${P_DIM};}
+  .trp-sidebar .trp-bigcard-meta2-row{color:${P_DIM};}
+  .trp-sidebar .trp-bigcard-star{color:#8A5F1E;}
+  .trp-sidebar button.trp-authorbtn{text-decoration-color:rgba(179,130,45,0.6);}
+  /* Krúžky avatarov mali rám vo farbe tmavej stránky — na papyruse musí byť svetlý, inak
+     okolo malej fotky vznikne čierny prstenec. */
+  .trp-sidebar .trp-avatarcircle,
+  .trp-topbar .trp-avatarcircle{border-color:#FBF5E6;}
+
+  /* ── 6. PANEL — vnorený detail výletu ─────────────────────────────────────────────────*/
+  .trp-sidebar .trp-panelnav-btn{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
+  .trp-sidebar .trp-panelnav-btn:hover{border-color:${T.cardEdge};color:#8A5F1E;background:#FFFDF6;}
+  .trp-sidebar .trp-inldet-loc{color:${P_DIM};}
+  .trp-sidebar .trp-inldet-name{color:${P_INK};}
+  .trp-sidebar .trp-inldet-author{color:${P_DIM};}
+  .trp-sidebar .trp-inldet-meta2-row{color:${P_DIM};}
+  .trp-sidebar .trp-inldet-rating b{color:#8A5F1E;}
+  .trp-sidebar .trp-inldet-tag{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
+  .trp-sidebar .trp-inldet-desc{color:${P_DIM};}
+  .trp-sidebar .trp-inldet-section h4{color:${P_INK};}
+  .trp-sidebar .trp-inldet-empty{color:${P_FAINT};}
+  .trp-sidebar .trp-inldet-actions{border-top:1px solid ${P_HAIR};}
+  .trp-sidebar .trp-inldet-btn--ghost{background:${P_SOFT};color:${P_INK};border-color:${P_BORDER};}
+  .trp-sidebar .trp-inldet-btn--ghost.on{background:${P_HOT};color:#8A5F1E;border-color:${T.cardEdge};}
+
+  /* Výškový profil je zdieľaný komponent (ElevationProfile v tripShared.tsx) a kreslí sa
+     aj na TMAVEJ stránke článku, takže sa nedá prefarbiť pri zdroji. Popisky aj základňa
+     tam ale sedia ako atribúty (fill/stroke), a tie CSS prebije bez !important — stačí
+     zakotviť do panela. Bez toho visí nad grafom svetlé „759 m" na piesku. */
+  .trp-sidebar .trp-inldet svg text{fill:${P_DIM};}
+  .trp-sidebar .trp-inldet svg line{stroke:${P_HAIR};}
+
+  /* ── 7. FORMULÁR PRIDÁVANIA (add trip) ────────────────────────────────────────────────
+     Písacie povrchy ostávajú PLOCHÝ papyrus (".pf-field--flat"), nie gradient — lock hovorí,
+     že čierna aj gradient sú na čítanie, vypĺňa sa do plochého poľa. */
+  .trp-addhost .trp-addsetup-title{color:${P_INK};}
+  .trp-addhost .trp-addsetup-field label{color:${P_DIM};}
+  .trp-addhost .trp-addsetup-input{background:${P_FIELD};border:1px solid ${P_BORDER};color:${P_INK};}
+  .trp-addhost .trp-addsetup-input::placeholder{color:${P_DIM};opacity:.7;}
+  .trp-addhost .trp-addsetup-input:focus{border-color:${T.cardEdge};}
+  .trp-addhost .trp-multitoggle{color:#8A5F1E;}
+  .trp-addhost .trp-addsetup-file{color:${P_DIM};}
+  .trp-addhost .trp-addsetup-stars button{color:rgba(42,22,8,0.22);}
+  .trp-addhost .trp-addsetup-stars button.on{color:#8A5F1E;}
+  .trp-addhost .trp-norating{color:${P_FAINT};}
+  .trp-addhost .trp-addsetup-livekm,
+  .trp-addhost .trp-addsetup-profilenote{background:rgba(201,154,63,0.14);border-color:${P_BORDER};color:#7A4E12;}
+  .trp-addhost .trp-planpin{border-color:${P_BORDER};background:rgba(201,154,63,0.10);color:${P_DIM};}
+  .trp-addhost .trp-planpin.set{color:#8A5F1E;}
+  .trp-addhost .trp-plannedpill{background:rgba(255,251,240,0.75);border-color:${P_BORDER};color:#7A4E12;}
+  .trp-addhost .trp-draftpill{background:rgba(255,251,240,0.6);border-color:${P_HAIR};color:${P_DIM};}
+  .trp-addhost .trp-draftmiss{color:${P_DIM};}
+
+  /* ── 8b. PRAVÝ OVLÁDACÍ STĹPEC — VRSTVY / ZOOM / POLOHA ──────────────────────────────
+     Matej 2026-08-26: „zmeň aj chipy na pravej strane sú stále čierne."
+     ⚠️ RUŠÍ TO JEHO VLASTNÉ ZADANIE Z 3. 8. („bočné tlačítka na mape +- center a vrstvy…
+     chcelo by to dať asi tmavé ako aj všetko ostatné"). Vtedy bol dôvod platný: papyrusový
+     stack bol na TMAVEJ appke jediný svetlý prvok, teda optické ťažisko obrazovky. Dnes je
+     chrome bledý, takže tmavé tlačidlá sú tá istá chyba naopak. Mobil ostáva tmavý — a preto
+     ostáva tmavý aj tento stack tam. Rozbaľovací panel vrstiev sa NEMENÍ: je to plávajúci
+     panel nad mapou, ktorý si tmavé sklo drží spolu s ostatnými panelmi mapy. */
+  .trp-stylebtn,.trp-locatebtn,.trp-zoomgroup{background:${T.panelGrad};border:1.5px solid ${P_BORDER};box-shadow:0 4px 12px rgba(70,45,10,0.28);backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-stylebtn:hover,.trp-stylebtn.on,.trp-locatebtn:hover{border-color:${T.cardEdge};}
+  /* Ikony sú čierne kresby prevrátené na biele — v bledom stacku sa invert ruší a nahrádza
+     tmavým tintom (rovnaká hodnota ako BrandIcon tint dark). */
+  .trp-stylebtn img,.trp-locatebtn img{filter:brightness(0) saturate(100%) invert(20%) sepia(30%) saturate(800%) hue-rotate(2deg) brightness(75%) contrast(90%);opacity:.9;}
+  .trp-zoomgroup button{color:${P_INK};}
+  .trp-zoomgroup button:first-child{border-bottom:1px solid ${P_HAIR};}
+  .trp-zoomgroup button:hover{background:${P_HOT};}
+
+  /* ── 9. VSTUPNÝ POPUP PRIDÁVANIA (VÝLET / PODUJATIE / ODKAZ) ──────────────────────────
+     Prvý krok toku pridávania. Komponent "AddTripEntry" má v hlavičke napísané, že žije na
+     tmavom povrchu Portalu a preto berie pk-glass — na PC to odteraz neplatí, tak sa prebíja
+     tu, a nie prepisom komponentu: ten istý popup obsluhuje aj mobil, ktorý ostáva tmavý.
+     Panel = úroveň 4 matrice (PANEL), dlaždice = úroveň 2 (PODBLOK).
+     ⚠️ PREDPONA .trp-root NIE JE OZDOBA. "AddTripEntry" si vkladá vlastný <style> a v DOM stojí
+     ZA týmto blokom, takže pri rovnakej špecificite (0-1-0) vyhráva ON — prvý pokus prefarbil
+     len panel (mal .pk-glass navyše) a dlaždice ostali tmavé. Popup sa renderuje vnútri
+     .trp-root, takže predpona je zadarmo a spor rozhodne. */
+  .trp-root .att-entry-backdrop{background:rgba(24,14,4,0.55);}
+  /* TABUĽA S OKRAJMI, nie plochý panel (Matej 2026-08-26: „zväčši rámik kde sú teraz 3
+     možnosti pridania, rámik bude tabuľa s okrajmi, vo vnútri 3 možnosti").
+     Rám je goldFrameCSS — ten istý zdroj ako ľavý panel aj spodný nav, takže popup
+     prestáva byť samostatný materiál. Predtým tu bol panelGrad + 1.5px linka: to je
+     matrica úroveň 4 (PANEL), ktorá je správna pre plávajúci panel NAD stránkou, ale
+     tento popup je prvá obrazovka toku a má vážiť ako doska, nie ako lístok.
+     ⚠️ border-radius a border nesie goldFrameCSS — nepridávaj ich znova, prepísal
+     by si transparentný rám, na ktorom celý dvojpozaďový trik stojí. */
+  .trp-root .att-entry-panel.pk-glass{${goldFrameCSS({ radius: 20, rim: 7 })}backdrop-filter:none;-webkit-backdrop-filter:none;max-width:760px;padding:34px;}
+  /* Dlaždice dostali väčší vnútorný priestor spolu s tabuľou — pri 760 px šírky by pôvodné
+     odsadenie nechalo emoji plávať v prázdne. */
+  .trp-root .att-entry-blocks{gap:16px;}
+  .trp-root .att-entry-block{padding:28px 22px;}
+  .trp-root .att-entry-back{color:${P_DIM};}
+  .trp-root .att-entry-back:hover{color:#8A5F1E;}
+  .trp-root .att-entry-lead{color:${P_DIM};}
+  .trp-root .att-entry-block{background:${T.cardGrad};border:1px solid ${T.cardEdge};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
+  .trp-root .att-entry-block:hover,.trp-root .att-entry-block:focus-visible{background:${T.cardGrad};border-color:#8A5F1E;box-shadow:0 0 0 3px rgba(201,154,63,0.28),0 6px 16px rgba(122,90,42,0.22);}
+  .trp-root .att-entry-block-disabled:hover,.trp-root .att-entry-block-disabled:focus-visible{border-color:${T.cardEdge};box-shadow:none;}
+  .trp-root .att-entry-title{color:${P_INK};}
+  .trp-root .att-entry-text{color:${P_DIM};}
+  .trp-root .att-entry-soon{color:${P_FAINT};border-color:${P_HAIR};}
+  /* BODY V LAPISOVEJ PILULKE (Matej 2026-08-26: „body budú v modrom pilse").
+     Podľa pravidla lapisu je odmena „moje" — patrí k voľbe, nie ku konštrukcii. Zlatá
+     pilulka na zlatej dlaždici v zlatom ráme bola tretia zlatá vrstva na sebe a číslo
+     v nej zaniklo. Písmo je zlaté, nie biele — to drží lapis v brande. */
+  .trp-root .att-entry-pts{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};}
+
+  /* ── 7b. VÝBER SPOLOČNÍKOV V TOKU PRIDÁVANIA ──────────────────────────────────────────
+     Pilulky psov a „Pridaj ďalších" prichádzajú z COMMUNITY_CSS (packCommunityUI.tsx), ktoré
+     obsluhuje aj tmavé komunitné povrchy mimo mapy — prepis pri zdroji by ich zhasol. Preto
+     sa prebíja LEN v hostiteľovi formulára a len na PC.
+     Bez tohto bloku je krok 5 poloprázdny: popisok „TVOJA SVORKA" aj celý rámček „Pridaj
+     ďalších" boli svetlý inkoust na piesku, teda neviditeľné — nie zle čitateľné, ale
+     neviditeľné. */
+  .trp-addhost .comm-comp-grouplabel{color:${P_DIM};}
+  .trp-addhost .comm-comp-dog{background:${P_FIELD};border-color:${P_BORDER};}
+  .trp-addhost .comm-comp-dog:hover{border-color:${T.cardEdge};}
+  .trp-addhost .comm-comp-dog span{color:${P_INK};}
+  .trp-addhost .comm-comp-dog .plus{color:#8A5F1E;}
+  .trp-addhost .comm-comp-chip{background:rgba(201,154,63,0.18);border-color:${P_BORDER};}
+  .trp-addhost .comm-comp-chip b{color:${P_INK};}
+  .trp-addhost .comm-comp-chip button{color:${P_DIM};}
+  .trp-addhost .comm-comp-chip button:hover{color:#8A5F1E;}
+  .trp-addhost .comm-comp-openothers{background:rgba(255,251,240,0.5);border-color:${P_BORDER};color:${P_DIM};}
+  .trp-addhost .comm-comp-openothers:hover{border-color:${T.cardEdge};color:${P_INK};}
+  .trp-addhost .comm-comp-openplus{background:rgba(201,154,63,0.22);color:#8A5F1E;}
+  .trp-addhost .comm-comp-addbtn{background:rgba(201,154,63,0.18);border-color:${P_BORDER};color:${P_INK};}
+  .trp-addhost .comm-comp-addbtn:not(:disabled):hover{border-color:${T.cardEdge};}
+  .trp-addhost .comm-comp-sug{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-addhost .comm-comp-sugitem{border-bottom:1px solid ${P_HAIR};color:${P_INK};}
+
+  /* ── 8. LIŠTA POSÚVANIA ───────────────────────────────────────────────────────────────
+     Bez tohto ostane WebKit šedý pruh na papyruse — jediné miesto, kde by bola vidno
+     prehliadačová sivá. */
+  .trp-sidebar .trp-cards-scroll::-webkit-scrollbar,
+  .trp-addhost .trp-addsetup-body::-webkit-scrollbar{width:8px;}
+  .trp-sidebar .trp-cards-scroll::-webkit-scrollbar-thumb,
+  .trp-addhost .trp-addsetup-body::-webkit-scrollbar-thumb{background:rgba(179,130,45,0.42);border-radius:999px;}
+  .trp-sidebar .trp-cards-scroll::-webkit-scrollbar-track,
+  .trp-addhost .trp-addsetup-body::-webkit-scrollbar-track{background:transparent;}
+}
+`;
+
 // ── VRSTVY MAPY (spec-hmla.md §1/§9) — deklaratívne pole, NIE natvrdo naklikané JSX ──────────
 // Panel sa vygeneruje z MAP_LAYERS (filter podľa `type`), takže pridanie ďalšej vrstvy (veteriny,
 // fotky komunity — spomenuté v zadaní ako budúci prípad) je jeden nový objekt v poli, nie prepis
@@ -2546,6 +2901,8 @@ export default function PackMap() {
    * ukazovala stav spred neho.
    */
   const [finishTrailId, setFinishTrailId] = useState<string | null>(null);
+  /** true = `finishTrailId` je PREJDENÝ PLÁN, nie dopĺňaný koncept (viď `openWalkPlan`). */
+  const [finishFromPlan, setFinishFromPlan] = useState(false);
   useEffect(() => { writeLocalTrails(localTrails); }, [localTrails]);
   // DEV: výlety nakreslené na telefóne odošli na disk vývojára (`plany/prijate-vylety/`),
   // inak ostanú uväznené v localStorage toho zariadenia. V prod builde neexistuje.
@@ -2565,6 +2922,23 @@ export default function PackMap() {
   // `/pack/map` je STARÝ odkaz a musí ostať funkčný (žije v uložených linkoch a v starých
   // TripStats tlačidlách). Oba tvary robia to isté — otvor log formulár + odleť na región.
   useEffect(() => {
+    /**
+     * `?walk=<tripId>` — „ÁNO, ZAPÍŠEM" z karty v deň výletu (`PlanAskCard` na `/pack`).
+     * Robí presne to, čo `openWalkPlan()` nižšie; nevolá sa ono, lebo tá funkcia žije ZA
+     * early returnmi (`id.loading` / `!id.session`) a hook sem musí prísť pred ne.
+     * ⚠️ Neexistujúce id sa ticho ignoruje — inak by sprievodca spadol do režimu zápisu
+     * NOVÉHO výletu a ponúkol kreslenie človeku, ktorý klikol „áno, bol som".
+     */
+    const walk = searchParams.get('walk');
+    if (walk) {
+      setSearchParams({}, { replace: true });
+      if (localTrails.some((tr) => tr.id === walk)) {
+        setFinishFromPlan(true);
+        setFinishTrailId(walk);
+        setAddFlow('walked');
+        return;
+      }
+    }
     const region = searchParams.get('region') ?? searchParams.get('add');
     if (!onAddRoute && !region) return;
     // s regiónom prichádza konkrétny pokyn („pridaj výlet TU", z TripStats) → rovno log formulár.
@@ -3022,7 +3396,50 @@ export default function PackMap() {
    *                        ⇒ „Planned walk" bez miesta a bez fotky)
    *  ⚠️ `removeMyTrip` MUSÍ ísť spolu s krokom 2, inak `seedTriplistFromPlans()` položku
    *  pri ďalšom mounte z prežívajúceho plánu založí naspäť. */
-  const deletePlannedTrip = (tid: string) => {
+  /**
+   * ZRUŠENIE OTVORENÉHO PLÁNU POŠLE ODKAZ PRIJATÝM (Matej 2026-08-25, variant A).
+   *
+   * „zrušiť + poslať odkaz prijatým… ak nikto prijatý nie je, plán mizne ticho — nie je komu
+   *  písať." Odovzdanie výletu inému organizátorovi (variant C) sa NEROBÍ.
+   *
+   * ⚠️ POSIELA SA PRED MAZANÍM a čaká sa na to. `start_dm()` vpustí dvojicu len vtedy, keď
+   * majú spoločný riadok v `trip_requests` — keby sa najprv mazalo a až potom písalo, správa
+   * by ticho zapadla presne tým ľuďom, ktorým je určená. (Dnes `deletePlannedTrip` riadky
+   * `trip_requests` nemaže, takže by to ešte prešlo; to je zhoda okolností, nie záruka.)
+   *
+   * ⚠️ Správa ide v MOJOM jazyku, nie v jazyku adresáta — appka cudziu jazykovú voľbu nemá
+   * odkiaľ prečítať. Pri 18 jazykoch to raz bude chcieť preklad na strane príjemcu.
+   *
+   * Zlyhanie odosielania NESMIE zastaviť zrušenie: človek klikol „zruš to" a plán musí
+   * zmiznúť aj bez siete. Preto `catch` a ideme ďalej.
+   */
+  const notifyPlanCancelled = async (tid: string) => {
+    const organizerId = id.session?.user?.id ?? null;
+    if (!organizerId) return;
+    const trail = localTrails.find((tr) => tr.id === tid);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any).rpc('get_trip_party', {
+        p_trip_slug: tid, p_organizer: organizerId,
+      }) as { data: { role: string; pack_number: number | null }[] | null };
+      // LEN PRIJATÍ. Kto len požiadal a ešte nedostal odpoveď, nič neplánoval — správa
+      // „zrušil som výlet" by mu oznamovala zrušenie niečoho, čo preňho nikdy nezačalo.
+      const joiners = (data ?? []).filter((r) => r.role === 'joiner' && r.pack_number != null);
+      if (!joiners.length) return;   // nikto prijatý → mizne ticho
+      const text = t('pack.map.planCancelledDM', {
+        name: trail?.name ?? '',
+        date: planDateLabel(trail?.date, (n) => t('pack.addTrip.plan.whenWeekN', { n: String(n) })),
+      });
+      const m = await import('@/components/pack/messaging/packMessaging');
+      for (const j of joiners) {
+        const convId = await m.startTripDM({ tripSlug: tid, organizerId, packNumber: j.pack_number });
+        if (convId) await m.sendMessage(convId, text);
+      }
+    } catch { /* bez siete sa plán zruší aj tak — správa je oznámenie, nie podmienka */ }
+  };
+
+  const deletePlannedTrip = async (tid: string) => {
+    await notifyPlanCancelled(tid);
     setLocalTrails((prev) => prev.filter((tr) => tr.id !== tid));
     // ⚠️ 5. krok, bez ktorého sú ostatné štyri zbytočné: hydratácia PREPISUJE `trp-local-trails`
     // celým obsahom `pack_trips` (packStore.ts, `writeJson(PACK_KEYS.localTrails, fromDb)`).
@@ -3133,6 +3550,29 @@ export default function PackMap() {
     setInlineDetailId(null);
     setAddEntryOpen(false);
     setAddMapPhase('off');
+    setFinishFromPlan(false);
+    setFinishTrailId(tripId);
+    setAddFlow('walked');
+  };
+
+  /**
+   * PREJDENÝ PLÁN → ZÁPIS (Matej 2026-08-25).
+   *
+   * „po prejdení tejto trasy sa tento trip musí otvoriť v tripflowe ako pre zápis, ale už bude
+   *  mať predvyplnenú trasu (možnosť opraviť, ainubis sa opýta či to sedelo s plánom),
+   *  2. krok pridať odkazy - 3 krok-4-5"
+   *
+   * Ten istý vstup ako dopĺňanie konceptu, len bez zámku na krokoch 1–2 (viď `fromPlan`
+   * v AddTripLog). NAHRÁDZA `toggleWalked()` pre vlastný neprejdený plán: to otváralo malý
+   * popup na náročnosť a ruch, teda tretiu cestu k tomu istému zápisu, ktorá o značkách,
+   * fotkách ani príbehu nevie.
+   */
+  const openWalkPlan = (tripId: string) => {
+    if (!localTrails.some((tr) => tr.id === tripId)) return;
+    setInlineDetailId(null);
+    setAddEntryOpen(false);
+    setAddMapPhase('off');
+    setFinishFromPlan(true);
     setFinishTrailId(tripId);
     setAddFlow('walked');
   };
@@ -3140,6 +3580,7 @@ export default function PackMap() {
   const closeAdd = () => {
     setAddFlow(null);
     setFinishTrailId(null);
+    setFinishFromPlan(false);
     setAddMapPhase('off');
     setNotePlacing(null);
     setTripNotesState([]);
@@ -3211,6 +3652,15 @@ export default function PackMap() {
       newWater: gained('waters'),
       newCountry: !!trail.country && !countriesBefore.has(trail.country),
       rated: (draft.paws ?? 0) > 0,
+      // ⚠️ BEZ TOHTO RIADKU ROZPAD O ZNAČKÁCH MLČÍ (Matej 25. 8. 2026, Rokoš: „nepripísalo
+      // mi body za odkazy"). Sprievodca ich sľubuje pri každej z troch otázok („+3 body"),
+      // level ich od dnešnej opravy `useMyNotePoints` aj započíta — ale obrazovka hneď po
+      // HOTOVO je to jediné miesto, kde človek vidí, ZA ČO dostal. Chýbajúci riadok sa tam
+      // číta ako nezaplatené.
+      // Číta sa stav sprievodcu, nie draft: väzba značky na výlet sa zámerne neukladá
+      // (`addTripModel.ts`, `TripNoteRef`). `openRevealFor` beží PRED `closeAdd()`, ktorý
+      // zoznam maže — poradie tých dvoch volaní preto nie je kozmetika.
+      notes: tripNotes.length,
     });
 
     const meta = [
@@ -3272,6 +3722,41 @@ export default function PackMap() {
           when: draft.date?.slice(0, 7) ?? prev[finishId]?.when ?? '',
           at: Date.now(),
         } }));
+      }
+      // ── PREJDENÝ PLÁN ────────────────────────────────────────────────────────────────
+      // Dopĺňanie konceptu tu končí. Plán, ktorý sa práve odohral, musí navyše PRESTAŤ BYŤ
+      // PLÁNOM — a to na každom povrchu, kde ako plán žije. Zrkadlo `deletePlannedTrip()`:
+      // ak sa niektorý krok vynechá, výlet vyzerá zapísaný a zároveň stále naplánovaný.
+      if ((draft as AddTripDraft & { finishFromPlan?: boolean }).finishFromPlan) {
+        // 1. TRASA. Dopĺňanie ju nemení (je zamknutá), tu sa opraviť smie — takže ide von
+        //    aj stopa, aj kotvy, aj prepočítané kilometre. `planPath` sa NEMAŽE: keby sa
+        //    človek k výletu vrátil, sú to jediné kotvy, ktoré k čiare existujú.
+        const line = draft.geometry.kind === 'route' ? (draft.geometry.snapPath ?? draft.geometry.path) : [];
+        if (line.length >= 2) {
+          updateLocalTrail(finishId, {
+            path: line,
+            km: (totalDistanceM(line) / 1000).toFixed(1),
+            ...(draft.geometry.kind === 'route' && draft.geometry.path.length ? { planPath: draft.geometry.path } : {}),
+          });
+          setLocalTrails(readLocalTrails());
+        }
+        // 2. PREJDENÝ. Bez toho ostane na mape 🎯 (`isUnwalkedPlan` sa pýta presne na toto).
+        setWalkedIds((prev) => { const n = new Set(prev); n.add(finishId); return n; });
+        // 3. UŽ NIE JE V PLÁNE. Musí ísť aj `removeMyTrip`, inak ho `seedTriplistFromPlans()`
+        //    pri ďalšom mounte z prežívajúceho plánu založí naspäť ako nadchádzajúci.
+        setPlans((prev) => prev.filter((pl) => pl.tripId !== finishId));
+        removeMyTrip(finishId);
+        // 4. POZVÁNKA SKONČILA. Inzerát „hľadám svorku" na výlet, ktorý sa už odohral, by
+        //    volal ľudí na termín v minulosti.
+        setEvents((prev) => prev.filter((e) => e.tripId !== finishId));
+        // 5. ODMENA. Plán bol za nula bodov (Matejovo rozhodnutie 25. 8.) — zapísanie je prvá
+        //    chvíľa, kedy si za tento výlet niečo zaslúži, takže reveal sa TU otvára.
+        const walkedTrail = readLocalTrails().find((tr) => tr.id === finishId);
+        if (walkedTrail) openRevealFor(walkedTrail, draft);
+        setFinishTrailId(null);
+        setFinishFromPlan(false);
+        closeAdd();
+        return true;
       }
       setFinishTrailId(null);
       closeAdd();
@@ -3385,9 +3870,22 @@ export default function PackMap() {
     const planTrail: HeroTrail = {
       id: tid, name: draft.name.trim(), region: draft.region ?? '', country: draft.country,
       diff: 'Moderate', km: '0', stars: 0, path: anchor,
-      photos: [], seasons: [], desc: '', dogNote: '',
+      // ⚠️ `desc` BOLO NATVRDO PRÁZDNE (opravené 2026-08-25). Krok 2 plánu sa pýta „čo je
+      // v pláne" a odpoveď sa doteraz zahodila pri ukladaní — pole, ktoré nikam nevedie.
+      // Po prejdení sa ten istý text stáva základom príbehu výletu, takže sa musí dochovať.
+      photos: [], seasons: [], desc: draft.note ?? '', dogNote: '',
       acts: [ACT_DATA_ID[draft.activity] ?? draft.activity], surface: [], crowd: '', tags: [],
       author: firstName,
+      // POSÁDKA a DÁTUM na zázname plánu — nie ozdoba, ale podklad pre zápis po prejdení:
+      // formulár sa nimi predvyplní, aby človek nevypisoval druhýkrát to, čo už povedal.
+      // Dátum leží aj v `addPlan()` (triplist), ale ten pozná len plán, nie trasu.
+      ...(draft.crew?.length ? { dogs: draft.crew.length } : {}),
+      ...(draft.dateKind !== 'flexible' && draft.date ? { date: draft.date } : {}),
+      ...(draft.dateEnd ? { dateEnd: draft.dateEnd } : {}),
+      // KOTVY, NIE LEN STOPA. `path` vyššie je PRICHYTENÁ čiara (stovky bodov po chodníkoch),
+      // z ktorej sa kliky spätne nedajú získať. Po prejdení sa ten istý plán otvára ako zápis
+      // a človek smie trasu opraviť — bez kotiev by ju musel nakresliť odznova.
+      ...(draft.geometry.kind === 'route' && draft.geometry.path.length ? { planPath: draft.geometry.path } : {}),
     };
     setLocalTrails((prev) => [planTrail, ...prev]);
     const dateStr = draft.dateKind === 'flexible' ? '' : (draft.date ?? '');
@@ -3476,6 +3974,10 @@ export default function PackMap() {
 
   const renderStatusCenter = () => (
     <div className="trp-status-center">
+      {/* ⚠️ DVA SAMOSTATNÉ CHIPY, NIE JEDEN OBAL (Matej 2026-08-26, druhé kolo: „dva chipy mali
+          ostať ale mali vyzerať ako chipy v dolnom nave aj farbou aj tvarom a dizajnom").
+          Prvé čítanie zadania z nich spravilo jednu dosku so spoločným rámom — to je stavba
+          CELÉHO navu, nie jeho položiek. Nepýtal si dosku, pýtal si pilulky. */}
       <button type="button" className="trp-stat-pill" onClick={() => navigate('/pack/map/triplist?tab=stats')} title={t('pack.map.tripStatsTitle')}>
         <img src={ICON('trophy')} alt="" />
         <b>{walkedIds.size} · {fmtKm(walkedKm)} km</b>
@@ -3503,9 +4005,12 @@ export default function PackMap() {
   // tretie kolo: „to vymaz nie je to aktualna polozka v menu na ziadnej stranke na webe" —
   // D5 badge z PackNotifications.tsx odstránený, `hideNextTrip` prop už neexistuje).
   // ADD TRIP je späť v pilulkovom rade vľavo.
-  const renderHeaderRight = () => (
+  // `dark` je PARAMETER, nie konštanta (2026-08-26): tú istú funkciu volá tmavá mobilná
+  // hlavička aj bledá PC hlavička. Zvonček má farby v INLINE štýloch, takže CSS skinu ich
+  // neprebije bez `!important` na piatich miestach — lacnejšie je povedať komponentu pravdu.
+  const renderHeaderRight = (dark = true) => (
     <div className="trp-headright">
-      <PackNotifications dark layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
+      <PackNotifications dark={dark} layout="inline" className="trp-header-notif" last24h={id.packToday} total={id.packTotal} />
     </div>
   );
 
@@ -3670,7 +4175,16 @@ export default function PackMap() {
               <button
                 type="button"
                 className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(tr.id) ? ' on' : ''}`}
-                onClick={(e) => { e.stopPropagation(); toggleWalked(tr.id); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  /* ⚠️ VLASTNÝ NEPREJDENÝ PLÁN IDE TRIPFLOWOM, NIE POPUPOM (Matej 2026-08-25).
+                        `toggleWalked` otvorí malý popup na náročnosť a ruch — to je tretia cesta
+                        k tomu istému zápisu a nevie o značkách, fotkách ani príbehu. Prejdený
+                        plán sa má otvoriť ako zápis s predvyplnenou trasou. Odznačiť (`on`)
+                        ostáva na `toggleWalked` — to je návrat, nie zápis. */
+                        if (isUnwalkedPlan && isMine) { openWalkPlan(tr.id); return; }
+                  toggleWalked(tr.id);
+                }}
               >
                 ✓ {t('pack.map.walked')}
                 {/* Koľko bodov ten klik naozaj dá — SKUTOČNÉ číslo tejto trasy (5 + km +
@@ -3748,6 +4262,7 @@ export default function PackMap() {
   return (
     <div className={`trp-root${mobileView === 'list' ? ' mlist-active' : ''}`}>
       <style>{CSS}</style>
+      <style>{PALE_CSS}</style>
       <style>{MAP_NOTES_CSS}</style>
       {/* Vlastný <style>, hoci ten istý blok nesie aj MAP_NOTES_CSS vyššie: značka udalosti
           nesmie visieť na tom, že je práve pripojená vrstva zápisov. Dvakrát vložené
@@ -3808,7 +4323,11 @@ export default function PackMap() {
                       <button
                         type="button"
                         className={`trp-bigcard-photoactbtn trp-bigcard-photoactbtn--walked${walkedIds.has(dt.id) ? ' on' : ''}`}
-                        onClick={() => toggleWalked(dt.id)}
+                        onClick={() => {
+                          // Rovnaká vidlica ako na karte — viď komentár tam.
+                          if (isUnwalkedPlan && isMine) { openWalkPlan(dt.id); return; }
+                          toggleWalked(dt.id);
+                        }}
                       >
                         ✓ {walkedIds.has(dt.id) ? t('pack.map.walked') : t('pack.map.markWalked')}
                         {!walkedIds.has(dt.id) && <PointsPill value={walkPointsFor(dt)} />}
@@ -3945,7 +4464,19 @@ export default function PackMap() {
                     "Open trip group" placeholdery — reviews (paw rating + voliteľný text) + advice.
                     §15 (2026-07-23): walked/onMarkWalked napojené na existujúci walkedIds stav —
                     "Add review" je gated na walked, submit markuje walked (markWalked, additive). */}
-                <TripComments tripId={dt.id} tripName={dt.name} walked={walkedIds.has(dt.id)} onMarkWalked={() => markWalked(dt.id)} onRequestWalk={() => setWalkedPopupId(dt.id)} />
+                {/* `authorRating`/`authorName` = to isté, čo v článku (`PackTripArticle.tsx`):
+                    hodnotenie autora je `trail.stars` a počíta sa ako JEDNO hodnotenie.
+                    Bez toho by tá istá sekcia hlásila na dvoch povrchoch dve rôzne čísla.
+                    Magistrála je výnimka — `stars` je tam redakčná hodnota, nie hlas chodca. */}
+                <TripComments
+                  tripId={dt.id}
+                  tripName={dt.name}
+                  walked={walkedIds.has(dt.id)}
+                  onMarkWalked={() => markWalked(dt.id)}
+                  onRequestWalk={() => setWalkedPopupId(dt.id)}
+                  authorRating={dt.diff === 'Odyssey' ? 0 : (dt.stars ?? 0)}
+                  authorName={authorOf(dt)}
+                />
                 {/* ZMAZAŤ PLÁNOVANÝ VÝLET (2026-08-22) — jediné miesto v appke, odkiaľ 🎯 z mapy
                     zmizne. A je to zároveň jediné miesto, KDE SA TAKÝ VÝLET DÁ NÁJSŤ: neprejdený
                     plán je zo zoznamu „všetky výlety" zámerne vylúčený (viď filter vyššie), takže
@@ -3965,7 +4496,7 @@ export default function PackMap() {
                       variant="ghost"
                       label={t('pack.map.deletePlan')}
                       hint={t('pack.map.deletePlanAsk')}
-                      onConfirm={() => deletePlannedTrip(dt.id)}
+                      onConfirm={() => { void deletePlannedTrip(dt.id); }}
                     />
                   </div>
                 )}
@@ -4340,6 +4871,7 @@ export default function PackMap() {
           {addFlow ? (
             <AddTripLog
               finishTrail={finishTrailId ? (localTrails.find((tr) => tr.id === finishTrailId) ?? null) : null}
+              fromPlan={finishFromPlan}
               allTrails={allTrails}
               authorName={firstName}
               myDogs={myDogsForAdd}
@@ -4769,7 +5301,7 @@ export default function PackMap() {
                 {renderStatusCenter()}
                 {/* messages + zvonček → pravý roh TOHTO bloku (Matej 2026-07-24/26).
                     Inline layout = v toku, nie fixed. */}
-                {renderHeaderRight()}
+                {renderHeaderRight(MAP_SKIN !== 'pale')}
               </div>
               <div className="trp-topsearchrow">
                 <div className="trp-floatsearch" ref={placeBoxRef}>

@@ -7,7 +7,7 @@
 // úrovne, obe rovnako veľké a klikateľné, s tlačidlom späť.
 // Žije na tmavom povrchu Portalu → pk-glass primitív z packTheme.ts (NIE papyrus — ten je pre
 // bledé bloky podľa Entry.tsx locku, sem nepatrí).
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GLASS_CSS, PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { useT } from '@/i18n/LanguageContext';
 import { NotePalette, NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
@@ -74,12 +74,30 @@ export function AddTripEntry({ onPick, onClose }: AddTripEntryProps) {
   const t = useT();
   const [step, setStep] = useState<'kind' | 'trip' | 'event' | 'note'>('kind');
 
+  // Bez krížika je Escape jediná cesta von pre toho, kto neťuká myšou vedľa panela.
+  // Poslucháč visí na dokumente, nie na paneli — ten nemá fókus, kým človek na niečo neklikne.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   return (
-    <div className="att-entry-backdrop" onClick={onClose}>
+    <div
+      className="att-entry-backdrop"
+      onClick={onClose}
+      role="button"
+      tabIndex={-1}
+      aria-label={t('pack.addTrip.entry.closeAriaLabel')}
+    >
       <style>{GLASS_CSS}</style>
       <style>{ENTRY_CSS}</style>
       <div className="att-entry-panel pk-glass" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="att-entry-close" onClick={onClose} aria-label={t('pack.addTrip.entry.closeAriaLabel')}>×</button>
+        {/* ⚠️ KRÍŽIK ZANIKOL (Matej 2026-08-26: „odstráň krížik… stačí len klik vedľa").
+            Zatvára sa klikom na podklad (`att-entry-backdrop` vyššie) a klávesou Escape —
+            popup nemá žiadny nevratný účinok, takže východ nepotrebuje vlastný ovládací
+            prvok. Padol tým aj celý spor z 5. 8. o tom, ako ďaleko má krížik stáť od rámu.
+            Kľúč `pack.addTrip.entry.closeAriaLabel` ostáva — nesie ho podklad. */}
         {step !== 'kind' && (
           <button type="button" className="att-entry-back" onClick={() => setStep('kind')} aria-label={t('pack.addTrip.entry.backAriaLabel')}>
             ‹ {t('pack.addTrip.entry.backAriaLabel')}
@@ -157,9 +175,7 @@ const ENTRY_CSS = `
    Druhé kolo: krúžok preč, samotný znak menší — kruh z neho robil ovládací prvok rovnakej váhy
    ako dva hlavné bloky pod ním, hoci je to len východ. Klikacia plocha ostáva 32×32 px (dotyk),
    viditeľný je iba znak. */
-.att-entry-panel{position:relative;width:100%;max-width:640px;padding:52px 32px 32px;}
-.att-entry-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border:0;background:transparent;color:${T.onDarkDim};font-size:15px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
-.att-entry-close:hover{color:${GOLD};}
+.att-entry-panel{position:relative;width:100%;max-width:640px;padding:32px;}
 .att-entry-back{position:absolute;top:18px;left:32px;border:0;background:transparent;color:${T.onDarkDim};font-family:${FONT_UI};font-weight:600;font-size:12px;letter-spacing:.02em;cursor:pointer;padding:4px 0;}
 .att-entry-back:hover{color:${GOLD};}
 .att-entry-blocks{display:flex;gap:18px;align-items:stretch;}

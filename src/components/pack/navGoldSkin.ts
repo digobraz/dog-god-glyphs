@@ -37,10 +37,15 @@ export const NAV_GRAIN =
 
 // Mramorovanie dosky — v predlohe je papier nerovnomerný, svetlejší v strede a
 // zašpinený pri okrajoch. Vignette robí presne to a je to lacnejšie než textúra.
-export const NAV_MOTTLE =
-  'radial-gradient(75% 130% at 22% 6%, rgba(255,252,236,0.6), transparent 62%), ' +
-  'radial-gradient(88% 145% at 50% 50%, transparent 48%, rgba(112,76,20,0.13) 100%), ' +
-  'radial-gradient(45% 95% at 78% 96%, rgba(112,76,20,0.11), transparent 66%)';
+// ⚠️ Vrstvy sú POLE, nie jeden reťazec: bledý panel (`goldFrameCSS` nižšie) ich
+// musí vedieť poskladať s vlastným `padding-box` sufixom, a rozdeliť hotový
+// reťazec čiarkou sa nedá — čiarky sú aj vnútri každého gradientu.
+export const NAV_MOTTLE_LAYERS = [
+  'radial-gradient(75% 130% at 22% 6%, rgba(255,252,236,0.6), transparent 62%)',
+  'radial-gradient(88% 145% at 50% 50%, transparent 48%, rgba(112,76,20,0.13) 100%)',
+  'radial-gradient(45% 95% at 78% 96%, rgba(112,76,20,0.11), transparent 66%)',
+];
+export const NAV_MOTTLE = NAV_MOTTLE_LAYERS.join(', ');
 
 /** Tieň RÁMU — odliatok, nie nálepka: vrhnutý tieň + svetlá horná hrana + tmavý spodok. */
 export const NAV_FRAME_SHADOW = [
@@ -84,3 +89,131 @@ export const NAV_GRAIN_SCREEN_CSS = `
   background-position: 37px 23px;
   mix-blend-mode: screen;
 `;
+
+// ── BLEDÝ PANEL — ten istý rám ako nav, len na veľkej ploche (2026-08-26) ────
+// Matej: „ľavý panel bude bledý s okrajom ako má aj spodný nav a to isté platí
+// aj o vrchnom headri."
+//
+// Doska panela = TIE ISTÉ farby pieskovca ako v nave, len rozložené na inú výšku.
+// Nav ide #F1DFB6 → #D6BC85 cez 48 px; na 950 px vysokom paneli by tá istá cesta
+// spravila zo spodku panela súmrak, takže gradient prejde väčšinu rozdielu hneď
+// v hornej tretine a potom sa už len drží.
+//
+// ⚠️ MRAMOROVANIE (`NAV_MOTTLE`) SA NA PANEL NEDÁVA a nie je to opomenutie: jeho
+// vrstvy sú v PERCENTÁCH prvku (`75% 130% at 22% 6%`), takže na pilulke sú to
+// jemné škvrny, ale na paneli je z prvej vrstvy svetlý záplav cez celú plochu
+// pri 0.6 alfa. Presne to zhodilo 1. pokus — doska vyzerala krémovo a karty na
+// nej zanikli, hoci farba dosky bola správna.
+export const PANEL_SURFACE =
+  'linear-gradient(180deg, #F1DFB6 0%, #E6D3A0 26%, #E0CB94 62%, #DCC68C 100%)';
+
+/**
+ * Rám + doska JEDNÝM elementom, bez vnoreného divu.
+ *
+ * `border: <rim>px solid transparent` + dvojité pozadie (`padding-box` pre
+ * dosku, `border-box` pre zlato) nakreslí to isté, čo v navigácii robia dva
+ * vnorené divy. Prečo takto: `.trp-sidebar` má tri swapované stavy obsahu a
+ * `.trp-addhost` hostí cudzí komponent — wrapper by musel obísť všetky štyri
+ * miesta a pri ďalšom stave by sa naň zabudlo.
+ *
+ * Tmavé obrysy nesú box-shadow ringy: vonkajší `0 0 0 1px` je za rámom,
+ * `inset 0 0 0 1px` sa kreslí po hranici padding-boxu, teda presne na styku
+ * rámu a dosky. Bez tej vnútornej linky rám „pretečie" do dosky (to isté
+ * zistenie ako pri nave, 24. 8.).
+ */
+export function goldFrameCSS(opts: {
+  radius: number;
+  rim: number;
+  surface?: string;
+  shadow?: string;
+  /** Mramorovanie. Východisko je PRÁZDNE — viď varovanie pri `PANEL_SURFACE`. */
+  mottle?: string[];
+}): string {
+  const { radius, rim, surface = PANEL_SURFACE, shadow = NAV_FRAME_SHADOW, mottle = [] } = opts;
+  const plate = [...mottle, surface].map((l) => `${l} padding-box`).join(',');
+  return `border:${rim}px solid transparent;border-radius:${radius}px;`
+    + `background:${plate},${NAV_GOLD.frame} border-box;`
+    + `box-shadow:0 0 0 1px ${NAV_GOLD.edge},inset 0 0 0 1px ${NAV_GOLD.edge},${shadow};`;
+}
+
+// ── PREPÍNAČ BLEDÉHO SKINU PC CHROME MAPY (2026-08-26) ──────────────────────
+// Žije TU, a nie v `PackMap.tsx`, lebo ten istý prepínač potrebujú aj listové
+// moduly toku pridávania (`AddTripLog`, `GeometryPicker`, `AddMapNote`,
+// `mapDockShape`) — a tie `PackMap` importuje, takže opačný smer by bol kruh.
+// Vzor je `NAV_SKIN` v `PackLayout.tsx`: zamietnutie sa vracia jedným slovom,
+// nie hľadaním pôvodných hodnôt v gite.
+export const MAP_SKIN: 'pale' | 'glass' = 'pale';
+
+/**
+ * Hranica, od ktorej je chrome mapy bledý. JEDNO číslo pre CSS aj pre JS
+ * (`useIsPaleChrome`) — dve rôzne hranice vyrobia pásmo šírok bez pravidiel,
+ * kde je panel už papyrusový, ale komponent si o sebe ešte myslí, že je tmavý.
+ * Zhodné s hranicou, na ktorej `PackMap.tsx` skrýva `.trp-sidebar`/`.trp-topbar`.
+ */
+export const PALE_PC_MIN = 1024;
+
+// Inkoust a plochy bledého chrome — jedna sada pre všetky súbory toku, nech sa
+// v piatich CSS blokoch neopakujú tie isté rgba čísla (a nerozídu sa).
+// Zdroj hodnôt = `packTheme.ts`; `PALE.deep` je jediná, ktorá tam nie je:
+// `cardEdge` (#C99A3F) je NA papyruse slabá, na zvýraznený stav treba tmavšiu.
+export const PALE = {
+  ink: '#2a1608',
+  dim: '#7a5a2a',
+  faint: 'rgba(42,22,8,0.42)',
+  edge: '#C99A3F',
+  deep: '#8A5F1E',
+  border: 'rgba(179,130,45,0.55)',
+  hair: 'rgba(179,130,45,0.26)',
+  field: '#FBF5E6',
+  soft: 'rgba(255,251,240,0.55)',
+  hot: 'rgba(201,154,63,0.20)',
+} as const;
+
+// ── LAPIS — akcia a voľba na bledom povrchu (2026-08-26) ────────────────────
+// ⚠️ PRACOVNÝ NÁVRH, NIE BRANDOVÝ KÁNON. Matej ho odklepol pre redizajn `/map`
+// („zatiaľ to nezapisuj ale používajme to pri redizajne"), do brand manuálu ani
+// do CLAUDE.md sa NEZAPISUJE, kým redizajn nie je hotový a schválený.
+//
+// PREČO VZNIKOL: na papyruse je zlatá naraz rámom, dlaždicou aj tlačidlom, takže
+// hlavné CTA je najsvetlejší prvok panela a splýva s tým, čo ho drží. Zlatá sa
+// preto zúžila na konštrukciu a druhá farba prevzala akciu.
+//
+// PRAVIDLO (test pri každom novom prvku — „je to nábytok, alebo to urobím ja?"):
+//   ZLATO = konštrukcia a poloha — rám, doska, čiary, nav, aktívna pilulka navu,
+//           aktívny krok, obrys dlaždice. Odpovedá na „kde som".
+//   LAPIS = moja voľba a moja akcia — hlavné CTA, označený chip, vybraná dlaždica,
+//           zaostrené pole, pilulka bodov. Odpovedá na „čo som urobil / urobím".
+// Červená (mazanie) a zelená (splnené) nesú význam a ostávajú, ako sú.
+//
+// ⚠️ NIE JE TO `T.brandBlue`. Egyptská modrá #1034A6 (a jej svetlá #2E5FD0) drží
+// ZNAČKY NA MAPE — parkovisko, lem udalostí, „ideš s niekým". Lapis je tmavšia a
+// vždy ako PLNÁ VÝPLŇ v chrome; mapová modrá je vždy svetlý lem na bielom kruhu.
+// Iná hodnota, iný tvar, iná vrstva — to je jediné, čo ich drží oddelene, takže
+// lapis sa na mapové značky nesmie použiť a modrá na tlačidlá.
+//
+// Zlaté písmo na tlačidle nie je ozdoba — bez neho je z lapisu len tmavé tlačidlo
+// bez príslušnosti k brandu (lapis + zlato je pôvodná egyptská dvojica).
+export const LAPIS = {
+  /** Rám, obrys chipu, halo zaostreného poľa. */
+  edge: '#16307A',
+  /** Spodok gradientu tlačidla, inkoust označeného chipu. */
+  deep: '#0A1A4A',
+  /** Vrch hover gradientu. */
+  lite: '#1E3C90',
+  /** Výplň hlavného CTA a pilulky bodov. */
+  grad: 'linear-gradient(180deg,#16307A,#0A1A4A)',
+  /** Hover CTA — o odtieň svetlejší, nie iný gradient. */
+  gradHover: 'linear-gradient(180deg,#1E3C90,#0F2560)',
+  /** Zlaté písmo NA lapise. */
+  ink: '#EFD79A',
+  /** Výplň označeného chipu na papyruse — priehľadná, aby doska presvitala. */
+  fill: 'rgba(22,48,122,0.12)',
+  /** Halo okolo zaostreného poľa a vybranej dlaždice. */
+  halo: 'rgba(22,48,122,0.22)',
+} as const;
+
+/** Tieň hlavného CTA — odliatok ako nav, len v modrej: vrhnutý tieň + zlatá horná hrana. */
+export const LAPIS_BTN_SHADOW = [
+  '0 4px 13px -3px rgba(5,15,48,0.6)',
+  'inset 0 1px 0 rgba(201,154,63,0.30)',
+].join(', ');

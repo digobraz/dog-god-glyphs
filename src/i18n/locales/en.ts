@@ -724,6 +724,7 @@ export const en = {
   'religion.book.nextPage': 'Next page',
 
   // ── shared nav (PageNav top-bar + Wall) — CSS uppercases for display ──
+  'nav.home': 'Home',
   'nav.wall': 'Wall',
   'nav.vision': 'Vision',
   'nav.religion': 'Religion',
@@ -1148,6 +1149,15 @@ export const en = {
   'pack.nextTrip.tomorrow': "Tomorrow",
   'pack.nextTrip.empty': "No trip planned yet — find a trail and add it to your list.",
   'pack.nextTrip.exploreMap': "Explore the map",
+
+  // KARTA V DEŇ VÝLETU (`PlanAskCard.tsx`) — pýta sa 7 dní od konca plánovaného obdobia.
+  'pack.planAsk.eyebrow': "Were you there?",
+  'pack.planAsk.hint': "Planned for {date}",
+  'pack.planAsk.yes': "Yes, log it",
+  'pack.planAsk.move': "Reschedule",
+  'pack.planAsk.no': "Didn't go",
+  'pack.planAsk.moveSave': "Move the trip",
+  'pack.planAsk.cancel': "Back",
   // TripSpotlight — druhý blok homepage (70 % plagát výletu / 30 % planéta)
   'pack.spotlight.eyebrowPlan': "Coming up next",
   'pack.spotlight.eyebrowFresh': "New in the map",
@@ -1188,6 +1198,13 @@ export const en = {
   'pack.hero.popDevotion1': "Devotion (☥) measures what you actually give your dog — presence, walks, daily rituals.",
   'pack.hero.popDevotion2': "You will be able to collect it once the app is in your hand every day. Until then it would be a meter measuring nothing.",
   'pack.hero.popDevotionStamp': "Unlocks with the app · 2027",
+  // pack.alerts — NOS (upozornenia). Oddelené od `pack.notif.*` zámerne: to je pulz svorky
+  // (koľko ľudí pribudlo), toto sú veci adresované konkrétnemu človeku.
+  'pack.alerts.title': "Waiting for you",
+  'pack.alerts.requestOne': "{count} Dogyptian wants to join",
+  'pack.alerts.requestFew': "{count} Dogyptians want to join",
+  'pack.alerts.requestMany': "{count} Dogyptians want to join",
+  'pack.alerts.accepted': "You're in the party",
   // pack.notif
   'pack.notif.ariaMessages': "Messages — coming soon",
   'pack.notif.ariaNotifications': "Notifications",
@@ -1894,6 +1911,9 @@ export const en = {
   'pack.eventsList.deleteListingAsk': "The invite disappears from the map and the list. The trip stays in your plans.",
   'pack.map.deletePlan': "Delete planned trip",
   'pack.map.deletePlanAsk': "The trip disappears from the map, from your plans and from MY TRIPS. Any invite on it goes with it.",
+  // Odkaz, ktorý dostanú PRIJATÍ účastníci, keď organizátor zruší otvorený plán
+  // (Matej 2026-08-25). Ide v jazyku ODOSIELATEĽA — cudziu jazykovú voľbu appka nepozná.
+  'pack.map.planCancelledDM': "I have to cancel the trip {name} ({date}). Sorry — I'll write when we find a new date.",
   'pack.addTrip.plan.activities.hiking': "Hiking",
   'pack.addTrip.plan.activities.journey': "Journey",
   'pack.addTrip.plan.activities.picnic': "Picnic",
@@ -1954,7 +1974,7 @@ export const en = {
   // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
   // kresliť (trasa vs. jeden bod vs. vodná plocha), a to sa človek dovtedy dozvedel až
   // v kroku 1, keď už mapu videl.
-  'pack.addTrip.log.activityNote.hiking': "Draw a one-day hike.",
+  'pack.addTrip.log.activityNote.hiking': "Draw your walk together in 3 minutes.",
   'pack.addTrip.log.activityNote.journey': "Pick this if you are logging a trek over several days.",
   'pack.addTrip.log.activityNote.picnic': "Mark the spot on the map.",
   'pack.addTrip.log.activityNote.overnight': "Mark the spot on the map.",
@@ -1965,15 +1985,37 @@ export const en = {
   // rozba\u013eova\u010d st\u00ed pod dla\u017edicou a dve dlh\u00e9 vety by ho spravili vy\u0161\u0161\u00edm ne\u017e sama dla\u017edica.
   // AINUBIS \u2014 sprievodca nad mapou, stup\u0148ovan\u00e9 pod\u013ea pribl\u00ed\u017eenia (Matej 24. 8. 2026).
   'pack.addTrip.ainubis.findPlace': "Find the place you went \u2014 search for it, or zoom the map in.",
+  // ── AINUBIS PRI PLÁNE — TÁ ISTÁ OBRAZOVKA, INÝ ČAS (Matej 2026-08-25) ─────────────────
+  // Matej: „v 1. kroku povie blbosť (vyhladaj kde ste boli...) má povedať hurá za
+  // dobrodružstvom! Nájdi miesto kam pôjdete a nakresli si trasu! a dalšie správy ak nejaké
+  // sú musia dávať zmysel..."
+  // Sprievodca bol písaný pre ZÁPIS a plán ho zdedil celý — takže sa človeka, ktorý sa nikam
+  // ešte nevybral, pýtal, kde bol a ako sa vracal. Kľúče s príponou `.plan` sú tie isté vety
+  // v budúcom čase. Kde bola veta neutrálna („Ešte priblíž…", „Ťukni na cieľ"), dvojička
+  // ZÁMERNE nie je — druhý text, ktorý hovorí to isté, sa pri prvej úprave rozíde.
+  'pack.addTrip.ainubis.findPlace.plan': "Off on an adventure! Find the place you're heading — search for it, or zoom the map in.",
+  'pack.addTrip.ainubis.zoomOk.plan': "Perfect. Now press and hold where you'll set off — that starts the route.",
+  'pack.addTrip.ainubis.drawDone.plan': "Keep tapping and build the whole route. When you're where it will end, hit DONE.",
+  'pack.addTrip.geo.openRouteTitle.plan': "Aren't you heading back?",
+  'pack.addTrip.geo.openRouteBody.plan': "Your route ends somewhere else than it starts. Most walks come back to the start — if yours will too, keep tapping your way home.",
+  'pack.addTrip.geo.openRouteFinish.plan': "We'll come back a different way — I'll draw it",
+  'pack.addTrip.geo.openRouteKeep.plan': "It really ends there",
   'pack.addTrip.ainubis.closer': "Zoom in a bit more\u2026",
   'pack.addTrip.ainubis.closerMore': "Almost there \u2014 keep zooming in\u2026",
   'pack.addTrip.ainubis.zoomOk': "Perfect. Now press and hold where you set off \u2014 that starts the route.",
   'pack.addTrip.geo.leaveToMap': "Back to the map \u2014 leave",
-  'pack.addTrip.ainubis.drawDone': "Keep tapping and build the whole route. When you're back where you finished, hit ROUTE DONE.",
-  'pack.addTrip.ainubis.routeLooksDone': "Nice — looks like a finished route. If it fits, hit ROUTE DONE.",
+  'pack.addTrip.ainubis.drawDone': "Keep tapping and build the whole route. When you're back where you finished, hit DONE.",
+  'pack.addTrip.ainubis.routeLooksDone': "Nice — looks like a finished route. If it fits, hit DONE.",
+  // ⚠️ `mode.ask` SA UŽ NERENDERUJE (Matej 2026-08-26). V rozbaľovači ho nahradila veta
+  // o samotnej aktivite (`activityNote.*`), ktorá dovtedy stála na dlaždici. Kľúč ostáva —
+  // je preložený do 18 jazykov a rozbaľovač sa môže vrátiť k dvojriadkovej hlavičke.
   'pack.addTrip.log.mode.ask': "Are you logging it, or planning it?",
-  'pack.addTrip.log.mode.walked': "We walked it",
-  'pack.addTrip.log.mode.planned': "We're going",
+  // Popisok v zátvorke je SAMOSTATNÝ KĽÚČ, nie súčasť labelu: tlačidlo ho sadzí menším
+  // písmom na druhý riadok, takže zlepené do jedného reťazca by sa nedalo zalomiť.
+  'pack.addTrip.log.mode.walked': "Log it",
+  'pack.addTrip.log.mode.walkedSub': "(you have already walked it)",
+  'pack.addTrip.log.mode.planned': "Plan it",
+  'pack.addTrip.log.mode.plannedSub': "(you are heading there)",
   'pack.addTrip.log.title': "Log a trip",
   'pack.addTrip.log.titlePlan': "Plan a trip",
   'pack.addTrip.log.submit': "Log trip",
@@ -2000,6 +2042,17 @@ export const en = {
   'pack.addTrip.plan.visibilityOpen': "Looking for pack",
   'pack.addTrip.plan.visibilityPrivateNote': "Only you and your pack see this. Nobody outside can find it or ask to join.",
   'pack.addTrip.plan.visibilityOpenNote': "Your pack can see the trail, the date and your dog — and ask to join.",
+  'pack.addTrip.plan.when': "When are you going?",
+  'pack.addTrip.plan.when.exact': "A set day",
+  'pack.addTrip.plan.when.week': "A week",
+  'pack.addTrip.plan.when.month': "A month",
+  'pack.addTrip.plan.whenWeek': "Which week",
+  'pack.addTrip.plan.whenWeekN': "{n}. week",
+  'pack.addTrip.plan.whenHint': "Not sure yet? Pick the week or just the month — you can sharpen it later.",
+  'pack.addTrip.plan.walkedAskTitle': "Did it go as planned?",
+  'pack.addTrip.plan.walkedAskBody': "This is the route you planned. Walked it the way it's drawn? Then keep going. Took a different way? Fix the line first — the pack will follow what's on the map, not what you meant.",
+  'pack.addTrip.plan.walkedAskYes': "Yes, that's the route",
+  'pack.addTrip.plan.walkedAskEdit': "We went a different way",
   'pack.addTrip.geo.undo': "Undo",
   // Lišta kreslenia (rez B) — v paneli stačí „Undo", na lište musí byť jasné, ČO sa vráti.
   'pack.addTrip.geo.undoPoint': "Undo point",
@@ -2037,7 +2090,7 @@ export const en = {
   'pack.addTrip.step.hint.basics': "Name it and say when you went.",
   'pack.addTrip.step.hint.about': "What was the trail like, and what should the pack know?",
   'pack.addTrip.step.hint.rest': "Who was with you, how it was, and your photos.",
-  'pack.addTrip.step.doneRoute': "Route done",
+  'pack.addTrip.step.doneRoute': "Done",
   'pack.addTrip.step.doneNotes': "Continue",
   'pack.addTrip.step.backToRoute': "Back to the route",
   // Názvy polí do hlášky „Chýba: …". Kľúče drží model (`addTripModel.ts` FIELD_LABEL),
@@ -2121,6 +2174,18 @@ export const en = {
   'pack.trip.cm.hide': "Hide reviews",
   'pack.trip.cm.beFirstReview': "Be the first Dogyptian to review this trail.",
   'pack.trip.cm.yourReview': "Your review",
+  'pack.trip.cm.tripAuthor': "Trip author",
+  'pack.trip.edit.title': "Edit trip",
+  'pack.trip.edit.photos': "Photos",
+  'pack.trip.edit.addPhoto': "Add photo",
+  'pack.trip.edit.removePhoto': "Remove photo",
+  'pack.trip.edit.photoMax': "Max {n} photos.",
+  'pack.trip.edit.desc': "Description",
+  'pack.trip.edit.dogNote': "Note about the dog",
+  'pack.trip.edit.rating': "Your rating",
+  'pack.trip.edit.save': "Save changes",
+  'pack.trip.edit.saveFailed': "Couldn't save — storage might be full. Remove a photo and try again.",
+  'pack.trip.edit.open': "Edit",
   'pack.trip.cm.dogyptian': "Dogyptian",
   'pack.trip.cm.report': "Report",
   'pack.trip.cm.askPlaceholder': "Ask a question\u2026",
@@ -2349,7 +2414,7 @@ export const en = {
   'pack.map.country': "Country",
   'pack.map.all': "All",
   'pack.map.region': "Region",
-  'pack.map.allRegions': "All regions",
+  'pack.map.allRegions': "Region",
   'pack.map.macroRegion.West': "West",
   'pack.map.macroRegion.Center': "Center",
   'pack.map.macroRegion.East': "East",
@@ -2622,7 +2687,9 @@ export const en = {
   'pack.points.newCountry': "new country",
   'pack.points.collection': "complete collection",
   'pack.points.rate': "rating",
-  'pack.points.notesN': "{n} map marks",
+  'pack.points.notesNOne': "{n} map mark",
+  'pack.points.notesNFew': "{n} map marks",
+  'pack.points.notesNMany': "{n} map marks",
   // Nad denným stropom. Matej 2026-08-24: „ďakujeme za aktivitu, aby sme predišli
   // nepríjemnostiam skontrolujeme relevantnosť informácií… skrátka nejaké info o tom,
   // že to sledujeme." Nie je to výčitka — značka sa uložila a je na mape.

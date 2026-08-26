@@ -22,6 +22,8 @@ import L from 'leaflet';
 import type { LatLngTuple, Map as LeafletMap } from 'leaflet';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+import { MAP_SKIN, PALE, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
+import { useIsPaleChrome } from '@/components/pack/usePaleChrome';
 import { CompanionPicker, type Companion } from '@/components/pack/packCommunityUI';
 import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS, type Journey } from '@/data/heroJourneys';
@@ -33,6 +35,10 @@ import { DiffMark, DIFF_MARK_CSS } from '@/components/pack/tripShared';
 import { dockFitPadding } from '@/components/pack/mapDockShape';
 import { notePanelH } from '@/components/pack/mapnotes/AddMapNote';
 import { GeometryPicker, allowedKindsFor, defaultKindFor, findDuplicate } from './GeometryPicker';
+import { MAX_PHOTOS, optimizePhoto } from './photoOptimize';
+import { SPACING, interp, calibratedAscent } from './addTripGeo';
+import { buildPlanDate, parsePlanDate, type PlanPrecision } from './planDate';
+import { ensureElevations, elevAt, missingElevationCount } from './mapProxyClient';
 import { PawRating } from './PawRating';
 import { CROWDS, CROWD_EMOJI, type Crowd } from '@/components/pack/packCommunity';
 import { MARK_EMOJI, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
@@ -55,7 +61,7 @@ const GOLD = '#C99A3F';
 // nový HeroTrail (viď submitAddTripDraft tam), len označiť existujúci trip ako prejdený.
 // `finishTripId` = dopĺňa sa UŽ ULOŽENÝ výlet. Volajúci podľa neho záznam PREPÍŠE namiesto
 // toho, aby založil druhý — bez toho by dopísanie náročnosti vyrobilo dvojča tej istej trasy.
-type LogDraft = AddTripDraft & { existingTripId?: string; finishTripId?: string };
+type LogDraft = AddTripDraft & { existingTripId?: string; finishTripId?: string; finishFromPlan?: boolean };
 
 export type AddTripLogProps = {
   /** Pre GeometryPicker — duchovia existujúcich trás + kontrola duplicity (§5.3) a submit-time
@@ -66,6 +72,17 @@ export type AddTripLogProps = {
   myDogs: { id: string; name: string; photo?: string | null }[];
   /** false = zlyhal zápis (napr. plná kvóta) — formulár zostane otvorený, ukáže chybu. */
   onSubmit: (draft: AddTripDraft) => boolean;
+  /**
+   * ── PREJDENÝ PLÁN (Matej 2026-08-25) ──────────────────────────────────────────────────
+   * „po prejdení tejto trasy sa tento trip musí otvoriť v tripflowe ako pre zápis, ale už
+   *  bude mať predvyplnenú trasu (možnosť opraviť, ainubis sa opýta či to sedelo s plánom)."
+   *
+   * Ide o ten istý `finishTrail`, len s INÝMI pravidlami než dopĺňanie konceptu:
+   * kroky 1–2 sa NEZAMYKAJÚ (trasa sa smie opraviť, značky sa pichajú teraz, keď tam človek
+   * naozaj bol), štartuje sa na kroku 1 a dátum sa prepisuje na DNEŠOK — plán mohol byť na
+   * sobotu a šlo sa v nedeľu.
+   */
+  fromPlan?: boolean;
   onClose: () => void;
   /** PackMap.tsx:246 `placeholderFor()` — rovnaký prop ako AddTripPlan, len tu slúži ako
    *  fallback pokým autor nenahrá vlastnú fotku (row 10) — akonáhle je aspoň jedna, nahrádza ju. */
@@ -172,7 +189,9 @@ const ACTIVITIES: Array<{ id: string; label: string; emoji: string; dataId: stri
   // Kompas 🧭 sľuboval objavovanie divočiny, hoci sem patrí aj hrad či mestský park; hrad 🏰
   // je konkrétnejší príklad toho, čo sa inam nezmestilo. Nepárny počet (7) jej v mriežke
   // aj tak necháva celý riadok, tak ho nesie text.
-  { id: 'explore', label: 'Explore', emoji: '🏰', dataId: 'explore', wide: true },
+  // ⚠️ `wide: true` zaniklo 26. 8. 2026 spolu s dvojstĺpcovou mriežkou — v jednom stĺpci
+  // je celý riadok široký každej dlaždici a príznak by nemal čo robiť.
+  { id: 'explore', label: 'Explore', emoji: '🏰', dataId: 'explore' },
 ];
 const ACT_BY_ID: Record<string, (typeof ACTIVITIES)[number]> = Object.fromEntries(ACTIVITIES.map((a) => [a.id, a]));
 
@@ -225,90 +244,6 @@ function emptyGeometryFor(activity: string): TripGeometry {
 
 // Fotky — base64, lokálna kópia optimizePhoto/handleAddPhotos (PackMap.tsx ~1621-1663).
 // Vlna 2 preklopí na Cloudinary upload (§9 zadania „Fotky ... ako dnes, base64").
-// 15, nie 10 (Matej 2026-08-23 vybral z galérie 14 a štyri ticho odpadli). Strop drží
-// `PHOTO_BUDGET_CHARS` nižšie: 15 × ~100 kB base64 ≈ 1,5 MB, teda pod tretinou kvóty
-// localStorage aj s rezervou na zvyšné dáta mapy.
-const MAX_PHOTOS = 15;
-/**
- * ROZPOČET NA JEDNU FOTKU (znaky data URL, nie bajty súboru).
- *
- * Matej 2026-08-23: „na záver ked som pridal foto vypísalo že nemožno uložiť ulozisko je plne…
- * dal som 14 fotiek… oprav to ono to musi niečo zvladnuť + ihned po nahrani sa to musí
- * skonsolidovať a optimalizovať velkostne aj formatovo = 80% uspora cca možno aj viac".
- *
- * Prečo strop a nie pevná kvalita: doteraz sa kódovalo JPEG-om s fixným `quality = 0.72`, čo
- * z 12 Mpx fotky z telefónu spraví 200–400 kB a v base64 (+33 %) až pol megabajtu. Desať kusov
- * teda vedelo naplniť `localStorage` (~5 MB) samo, a `writeLocalTrails` vrátil `false` =
- * CELÝ VÝLET sa neuložil. Fixná kvalita nevie, koľko miesta ostalo — strop áno.
- *
- * 100 000 znakov ≈ 73 kB obrázka. Desať fotiek ≈ 1 MB, teda pätina kvóty aj s rezervou na
- * zvyšné dáta mapy.
- */
-const PHOTO_BUDGET_CHARS = 100_000;
-
-/** Postupné ústupky, kým sa fotka nezmestí do rozpočtu. Najprv kvalita, až potom rozmer —
- *  rozmazať detail je menšia strata než prísť o šírku záberu. */
-const PHOTO_STEPS: Array<{ maxDim: number; quality: number }> = [
-  { maxDim: 1280, quality: 0.72 },
-  { maxDim: 1280, quality: 0.58 },
-  { maxDim: 1080, quality: 0.5 },
-  { maxDim: 900, quality: 0.45 },
-  { maxDim: 720, quality: 0.4 },
-];
-
-/**
- * WEBP, KEĎ HO PREHLIADAČ VIE (Safari od 14, teda aj iPhone, na ktorom sa testuje).
- *
- * `toDataURL` s neznámym typom NEHODÍ chybu — ticho vráti PNG, čo je pri fotke to najhoršie
- * z oboch svetov (veľké aj bez straty). Preto sa výsledok kontroluje podľa prefixu a pri
- * nezhode sa kóduje JPEG-om. Rozdiel je ~30 % pri rovnakej kvalite, teda polovica úspory.
- */
-function encodeCanvas(canvas: HTMLCanvasElement, quality: number): string | null {
-  try {
-    const webp = canvas.toDataURL('image/webp', quality);
-    if (webp.startsWith('data:image/webp')) return webp;
-    return canvas.toDataURL('image/jpeg', quality);
-  } catch {
-    return null;
-  }
-}
-
-function drawToCanvas(img: HTMLImageElement, maxDim: number): HTMLCanvasElement | null {
-  const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
-  const w = Math.max(1, Math.round(img.width * scale));
-  const h = Math.max(1, Math.round(img.height * scale));
-  const canvas = document.createElement('canvas');
-  canvas.width = w; canvas.height = h;
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return null;
-  ctx.drawImage(img, 0, 0, w, h);
-  return canvas;
-}
-
-function optimizePhoto(file: File): Promise<string | null> {
-  return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      let last: string | null = null;
-      for (const step of PHOTO_STEPS) {
-        const canvas = drawToCanvas(img, step.maxDim);
-        if (!canvas) break;
-        const out = encodeCanvas(canvas, step.quality);
-        if (!out) break;
-        last = out;
-        if (out.length <= PHOTO_BUDGET_CHARS) break;
-      }
-      // Posledný pokus sa vracia aj keď je nad rozpočtom — fotka z panorámy sa pod strop
-      // dostať nemusí a zahodiť ju ticho by bolo horšie než uložiť o niečo väčšiu.
-      resolve(last);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
-    img.src = url;
-  });
-}
-
 // TRIP PACK — rovnaký lokálny wrapper ako AddTripPlan.tsx `CompanionAvatarsOnly` (§4.3 riadok 8
 // „rovnaký ako v pláne"). CompanionPicker sa needituje (§4.2/§14), takže je to znova len scoped
 // CSS obal nad tou istou komponentou — CompanionAvatarsOnly z AddTripPlan.tsx nie je exportovaná,
@@ -327,7 +262,8 @@ function CompanionAvatarsOnly(props: {
   );
 }
 
-export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail }: AddTripLogProps) {
+export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, placeholderFor, mapRef, seedPoint, onMapPhase, onHasRoute, onPlaceNote, onRemoveNote, placedNotes, notePlacing, finishTrail, fromPlan }: AddTripLogProps) {
+  const paleChrome = useIsPaleChrome();
   // ⚠️ Tento súbor NEBOL preložený vôbec — `t` v ňom doteraz znamenalo lokálnu premennú
   // (text hrozby, položka tagu). Obe sú premenované, inak by prekladač zmizol pod nimi
   // a `t('...')` by volalo string.
@@ -518,6 +454,19 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
    * s časom by ho o polnoci ticho preklopil na zápis.
    */
   const todayISO = new Date().toISOString().slice(0, 10);
+
+  /**
+   * ── PRESNOSŤ PLÁNU ────────────────────────────────────────────────────────────────────
+   * Tri ovládače, jeden výstup: `date` ostáva JEDEN reťazec ('2026-09-15' | '2026-09-W2' |
+   * '2026-09'), takže všetko za formulárom — draft, `planTrail`, `TripPlan`, kontrola
+   * povinných polí — pracuje s tým, s čím pracovalo doteraz. Prepínanie presnosti si drží
+   * rozpísané hodnoty (deň aj mesiac), aby klik na „len mesiac" a späť nezmazal dátum,
+   * ktorý už bol vybraný.
+   */
+  const [planPrecision, setPlanPrecision] = useState<PlanPrecision>('exact');
+  const [planDay, setPlanDay] = useState('');
+  const [planMonth, setPlanMonth] = useState('');
+  const [planWeek, setPlanWeek] = useState(1);
   /**
    * ⚠️ ROZHODUJE VOĽBA Z KROKU 0b, NIE DÁTUM (Matej 24. 8. 2026 — viď `tripMode` hore).
    * Dátum ostáva len údajom o výlete; keby rozhodoval on, človek by si typ výletu prepol
@@ -596,6 +545,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     setActivity(restored.activity || '');
     // Náčrt nesie `state`, takže obnovený výlet sa nemusí pýtať na to isté druhýkrát.
     if (restored.state === 'planned' || restored.state === 'walked') setTripMode(restored.state);
+    // Plán drží presnosť v samotnom reťazci — pri obnove ju treba rozobrať späť na tri
+    // ovládače, inak by sa formulár otvoril na „presný dátum" s prázdnym kalendárom
+    // a efekt vyššie by uložený „niekedy v septembri" prepísal na nič.
+    const rp = restored.state === 'planned' ? parsePlanDate(restored.date) : null;
+    if (rp) {
+      setPlanPrecision(rp.precision);
+      setPlanMonth(rp.month);
+      if (rp.day) setPlanDay(rp.day);
+      if (rp.week) setPlanWeek(rp.week);
+    }
     setName(restored.name || '');
     setDate(restored.date || '');
     setDateEnd(restored.dateEnd || '');
@@ -633,7 +592,16 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // (viď `finishTrail` v props), odkazy sa pichajú do mapy pri zápise a ich väzba na výlet
   // sa neukladá, takže „späť na odkazy" by po čase ukazoval cudzie okolie.
   const finishing = !!finishTrail;
-  const minStep = finishing ? 3 : 1;
+  /**
+   * ⚠️ DVA REŽIMY NAD JEDNÝM `finishTrail`, NEZAMIEŇAŤ:
+   *  · DOPĹŇANIE KONCEPTU (`finishingDraft`) — výlet je prejdený od prvého uloženia, dopisujú
+   *    sa chýbajúce polia. Kroky 1–2 sú zamknuté a tlačidlo hovorí „Uložiť", nie „Zapísať".
+   *  · PREJDENÝ PLÁN (`fromPlan`) — výlet sa práve odohral. Trasa sa smie opraviť, značky sa
+   *    pichajú teraz, tlačidlo zapisuje. Zamknúť tu kroky 1–2 by odobralo presne to, kvôli
+   *    čomu sa formulár otvára.
+   */
+  const finishingDraft = finishing && !fromPlan;
+  const minStep = finishingDraft ? 3 : 1;
   const filledRef = useRef(false);
   useEffect(() => {
     if (!finishTrail || filledRef.current) return;
@@ -651,12 +619,19 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       kind: 'route',
       // `path` v zázname je odvodená stopa. Do oboch vrstiev ide to isté, nech sa z nej
       // počíta rovnako ako predtým; editovať sa v tomto režime nedá (minStep).
-      path: finishTrail.path ?? [],
+      // ⚠️ PRI PLÁNE IDÚ DO `path` KOTVY, nie stopa. `finishTrail.path` je prichytená čiara
+      // (stovky bodov po chodníkoch) — ako kotvy by dala stovky uzlov a trasa by sa nedala
+      // rozumne opraviť. `planPath` drží kliky, ktoré ju vyrobili (viď `planTrail` v PackMap).
+      path: (fromPlan ? finishTrail.planPath : undefined) ?? finishTrail.path ?? [],
       snapPath: finishTrail.path ?? [],
       snapped: true,
     });
     if (finishTrail.country) setCountryOverride(finishTrail.country);
-    if (finishTrail.date) setDate(finishTrail.date);
+    // ⚠️ PLÁN NESIE DÁTUM, KEDY SA MALO ÍSŤ — nie kedy sa išlo. Plánovalo sa na sobotu,
+    // šlo sa v nedeľu, a zápis má hovoriť pravdu o tom, čo sa stalo. Preto DNEŠOK; človek
+    // ho v kroku 3 prepíše, ak sa vracia k výletu spred pár dní.
+    if (fromPlan) setDate(todayISO);
+    else if (finishTrail.date) setDate(finishTrail.date);
     else setDontRemember(true);
     if (finishTrail.dateEnd) setDateEnd(finishTrail.dateEnd);
     if (finishTrail.crowd && (CROWDS as readonly string[]).includes(finishTrail.crowd)) setCrowd(finishTrail.crowd as Crowd);
@@ -666,12 +641,20 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     if (finishTrail.stars) setPaws(finishTrail.stars);
     if (finishTrail.desc) setNote(finishTrail.desc);
     if (finishTrail.photos?.length) setPhotos(finishTrail.photos);
-    setStep(3);
-    // Číselník sa otvára celý: kto dopĺňa, má kroky 3–5 splnené alebo rozpracované a musí
-    // medzi nimi skákať bez toho, aby ich „prechádzal" znova. Zároveň tým hneď svieti
-    // červená pri tom, čo chýba — v tomto režime je to celý zmysel obrazovky, nie výčitka.
-    setMaxStep(5);
-  }, [finishTrail]);
+    if (fromPlan) {
+      // Prejdený plán ide sprievodcom OD ZAČIATKU: trasu smie opraviť, značky pichá teraz.
+      // Číselník sa preto NEotvára celý — človek tie kroky naozaj prechádza, nedopisuje ich.
+      setStep(1);
+      setMaxStep(1);
+      setPlanAsk(true);
+    } else {
+      setStep(3);
+      // Číselník sa otvára celý: kto dopĺňa, má kroky 3–5 splnené alebo rozpracované a musí
+      // medzi nimi skákať bez toho, aby ich „prechádzal" znova. Zároveň tým hneď svieti
+      // červená pri tom, čo chýba — v tomto režime je to celý zmysel obrazovky, nie výčitka.
+      setMaxStep(5);
+    }
+  }, [finishTrail, fromPlan]);
 
   // Trasa je hotová = dá sa z nej nakresliť čiara (2 kotvy), resp. bod/oblasť má stred.
   const geoDone = geometry.kind === 'route' ? geometry.path.length >= 2 : !!geometry.center;
@@ -728,6 +711,10 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       id: finishTrail ? finishTrail.id : `${isPlan ? 'plan' : 'log'}-${now}`,
       existingTripId,
       finishTripId: finishTrail?.id,
+      // Rozlišuje DOPĹŇANIE (prepíš polia) od PREJDENÉHO PLÁNU (prepíš polia AJ trasu, označ
+      // za prejdený, zruš plán). Volajúci sa nemá ako spýtať formulára — nesie sa to draftom,
+      // rovnakou cestou ako `finishTripId`.
+      finishFromPlan: fromPlan || undefined,
       state: isPlan ? 'planned' : 'walked',
       // Plán nejde cez schvaľovaciu frontu (§4.3 platí len pre walked) — objaví sa hneď.
       // Pri zápise je to placeholder, finálna hodnota sa dorátava pri submite (missingFields).
@@ -760,7 +747,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       updatedAt: now,
       step,
     };
-  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail]);
+  }, [name, activity, geometry, effCountry, effRegion, dontRemember, date, isMultiDay, dateEnd, crew, isHikeLike, diff, terrain, crowd, tags, paws, photos, effCoverIndex, coverY, note, authorName, existingTripId, isPlan, visibility, step, finishTrail, fromPlan]);
 
   // §4.3: toSubmit blokuje odoslanie úplne; toApprove (len walked) rozhoduje draft vs pending.
   const missing = missingFields(draft);
@@ -790,13 +777,55 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     writeAddDraft(withoutPhotos as AddTripDraft);
   }, [draft, restored]);
 
-  const doSubmit = () => {
+  /**
+   * ── PREVÝŠENIE SA DOPOČÍTA EŠTE PRED ZÁPISOM (Matej 2026-08-25, Rokoš: „prevýšenie
+   *    pri rokoši chýba — skontroluj prečo sa nezapísalo") ────────────────────────────────
+   *
+   * Výšky ťahá `GeometryPicker` z proxy po každej kotve a kým nie sú, readout ukazuje `↑ …`.
+   * HOTOVO na to ale NIKDY nečakalo: kto dokreslil trasu a hneď pokračoval — a to je normálny
+   * postup, nie zhon — uložil výlet s `ascentM: null`. Číslo sa už nemalo kde dopočítať
+   * (prepočet spúšťa jedine ďalší klik do mapy, a ten po dokreslení nepríde), takže výlet
+   * ostal bez prevýšenia natrvalo. Navonok to nevyzerá ako chyba, len ako trasa po rovine.
+   *
+   * Druhá, rovnako tichá príčina: proxy odmietne (rate limit 150/h na člena) — vtedy je pole
+   * prázdne tak či tak a čakať nemá zmysel.
+   *
+   * Preto: dopočítaj TU, ale s krátkym stropom. Zápis je jediný moment, keď človek aj tak
+   * čaká, takže sekunda navyše nikoho nezdrží; a keď sieť mlčí, po `ASCENT_WAIT_MS` sa uloží
+   * bez prevýšenia — presne ako doteraz. Nikdy sa neuloží NIŽŠIE číslo než sa dá získať:
+   * `calibratedAscent` beží nad celou stopou odznova (§5.2a), nie po častiach.
+   */
+  const [saving, setSaving] = useState(false);
+  const ASCENT_WAIT_MS = 4000;
+
+  const resolveAscent = async (): Promise<number | null> => {
+    if (metricsRef.current.ascentM != null) return metricsRef.current.ascentM;
+    const g = draft.geometry;
+    if (!g || g.kind !== 'route') return null;
+    const path = g.snapPath?.length ? g.snapPath : g.path;
+    if (path.length < 2) return null;
+    const sampled = interp(path, SPACING);
+    if (missingElevationCount(sampled) === 0) return calibratedAscent(path, elevAt);
+    try {
+      await Promise.race([
+        ensureElevations(sampled),
+        new Promise((res) => setTimeout(res, ASCENT_WAIT_MS)),
+      ]);
+    } catch { /* sieť mlčí — uloží sa bez prevýšenia, rovnako ako doteraz */ }
+    // Aj čiastočná cache dá lepšie číslo než nič: `calibratedAscent` chýbajúce body preskočí.
+    return missingElevationCount(sampled) < sampled.length ? calibratedAscent(path, elevAt) : null;
+  };
+
+  const doSubmit = async () => {
     setSubmitError('');
+    setSaving(true);
+    const ascentM = await resolveAscent();
+    setSaving(false);
     const finalDraft: AddTripDraft = {
       ...draft,
       approval: finalApproval,
       km: metricsRef.current.km > 0 ? Number(metricsRef.current.km.toFixed(1)) : undefined,
-      ascentM: metricsRef.current.ascentM ?? undefined,
+      ascentM: ascentM ?? undefined,
       minutes: metricsRef.current.minutes ?? undefined,
     };
     const ok = onSubmit(finalDraft);
@@ -808,11 +837,11 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     setShowDupWarning(false);
   };
   const handleSubmit = () => {
-    if (!canSubmit) return;
+    if (!canSubmit || saving) return;
     if (dup && !dupConfirmed) { setShowDupWarning(true); return; }
-    doSubmit();
+    void doSubmit();
   };
-  const confirmDuplicate = () => { setDupConfirmed(true); doSubmit(); };
+  const confirmDuplicate = () => { setDupConfirmed(true); void doSubmit(); };
 
   // ── SPRIEVODCA ────────────────────────────────────────────────────────────────────────
   // Poradie krokov je Matejovo (23. 8.), doslova. Kľúč nesie nadpis aj vetu „čo tu mám robiť";
@@ -843,32 +872,6 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   useEffect(() => () => { onHasRoute?.(false); }, [onHasRoute]);
   useEffect(() => () => { onMapPhase?.('off'); }, [onMapPhase]);
 
-  // ── PO DOKRESLENÍ VIDNO CELÚ TRASU (Matej 2026-08-23) ─────────────────────────────────
-  // „Automaticky po dokončení trasy sa pohľad vycentruje tak, aby videl človek celú trasu."
-  // Kreslí sa v priblížení na chodník, takže na konci vidno posledných pár sto metrov —
-  // a otázka „kde si parkoval" sa pýta na miesto, ktoré je v tej chvíli mimo obrazovky.
-  // ⚠️ Spodný pás patrí panelu s odkazmi, horný čítaniu — bez tejto výplne by trasa sadla
-  // presne pod ne. Beží RAZ pri vstupe do kroku 2 (`fittedRef`), nie pri každom prekreslení:
-  // inak by mapa uhla späť zakaždým, keď človek značku zapichne.
-  const fittedRef = useRef(false);
-  useEffect(() => {
-    if (!notesStep) { fittedRef.current = false; return; }
-    if (fittedRef.current) return;
-    const map = mapRef.current;
-    if (!map) return;
-    const pts: LatLngTuple[] = geometry.kind === 'route'
-      ? (geometry.snapPath?.length ? geometry.snapPath : geometry.path)
-      : geometry.center ? [geometry.center] : [];
-    if (!pts.length) return;
-    fittedRef.current = true;
-    const bounds = L.latLngBounds(pts);
-    map.fitBounds(bounds, {
-      paddingTopLeft: [24, 90],
-      paddingBottomRight: [24, 260],
-      maxZoom: 15,
-      animate: true,
-    });
-  }, [notesStep, geometry, mapRef]);
 
   // DOROVNANIE PO OBNOVE. Beží až keď je geometria naozaj v stave (obnova ju nastavuje
   // v tom istom kliku) a mapa existuje; padding zhora nechá miesto AInubisovi, zdola panelu.
@@ -893,9 +896,44 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // Inak by človek prešiel celý sprievodca a spadol až na uložení.
   const nextBlocked = step === 1 && !geoDone;
 
-  const goNext = () => { if (!nextBlocked) setStep((n) => Math.min(5, n + 1)); };
+  /**
+   * ── PLÁN MÁ DVA KROKY, NIE PÄŤ (Matej 2026-08-25) ─────────────────────────────────────
+   *
+   * „pri plánovaní výletu bude kreslenie trasy a druhý krok bude názov, dátum, fotka sa
+   *  priidá z našej databázy" — kroky 2 (odkazy), 4 (o trase) a 5 (hodnotenie, fotky) sú
+   * o mieste, na ktorom človek ešte nebol. Do teraz nimi plán PRECHÁDZAL, len boli z väčšiny
+   * prázdne, takže sa tváril ako nedokončený zápis.
+   *
+   * ⚠️ ČÍSLA KROKOV SA NEPREČÍSLOVALI — mení sa PORADIE, ktorým sa nimi chodí. Krok „základ"
+   * ostáva trojkou v celom súbore (`step === 3`, `stepMissing[3]`, autosave `restored.step`);
+   * plán ho len ukáže ako druhý v číselníku. Prečíslovanie by znamenalo, že rozrobený draft
+   * uložený pred touto zmenou by sa obnovil na inom kroku, než na ktorom človek skončil.
+   */
+  const STEP_SEQ = useMemo<readonly number[]>(() => (isPlan ? [1, 3] : [1, 2, 3, 4, 5]), [isPlan]);
+  const seqPos = Math.max(0, STEP_SEQ.indexOf(step));
+  const isLastStep = step === STEP_SEQ[STEP_SEQ.length - 1];
+  /** Nasledujúci krok V PORADÍ (nie `step + 1`) — pri pláne je za jednotkou trojka. */
+  const stepAfter = (n: number) => STEP_SEQ.find((v) => v > n) ?? STEP_SEQ[STEP_SEQ.length - 1];
+
+  /**
+   * ⚠️ OBNOVA MÔŽE PRISTÁŤ NA KROKU, KTORÝ V PORADÍ NIE JE. Autosave (`readAddDraft`) drží
+   * číslo kroku, a rozrobený zápis prepnutý na plán — alebo draft uložený pred touto zmenou —
+   * tak vie skončiť na dvojke či štvorke, ktoré plán nemá. Bez tohto dorovnania by päta
+   * nevykreslila ani „Ďalej", ani „Uložiť" (`isLastStep` je false a `stepAfter` by vrátil
+   * najbližší vyšší krok až po kliku, ktorý sa nedá spraviť) — obrazovka bez východu.
+   * Skáče sa DOZADU na najbližší platný krok, nie dopredu: dopredu by to preskočilo pole,
+   * ktoré človek ešte nevyplnil.
+   */
+  useEffect(() => {
+    if (STEP_SEQ.includes(step)) return;
+    const back = [...STEP_SEQ].reverse().find((v) => v < step);
+    setStep(back ?? STEP_SEQ[0]);
+  }, [STEP_SEQ, step]);
+
+  const goNext = () => { if (!nextBlocked) setStep(stepAfter(step)); };
   const goPrev = () => {
-    if (step > minStep) { setStep((n) => n - 1); return; }
+    const prev = seqPos > 0 ? STEP_SEQ[seqPos - 1] : null;
+    if (prev != null && prev >= minStep) { setStep(prev); return; }
     if (finishing) { onClose(); return; }
     setActivity('');
     setTripMode(null);
@@ -941,6 +979,50 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   // takže mriežka s jednou dlaždicou by bola ozdoba a nie voľba.
   const askGroup = NOTE_ASKS[Math.min(noteAsk, NOTE_ASKS.length - 1)].group;
   const askKinds = GROUP_KINDS[askGroup];
+
+  // ── PO DOKRESLENÍ VIDNO CELÚ TRASU (Matej 2026-08-23) ─────────────────────────────────
+  // „Automaticky po dokončení trasy sa pohľad vycentruje tak, aby videl človek celú trasu."
+  // Kreslí sa v priblížení na chodník, takže na konci vidno posledných pár sto metrov —
+  // a otázka „kde si parkoval" sa pýta na miesto, ktoré je v tej chvíli mimo obrazovky.
+  // ⚠️ Spodný pás patrí panelu s odkazmi, horný čítaniu — bez tejto výplne by trasa sadla
+  // presne pod ne. Beží RAZ pri vstupe do kroku 2 (`fittedRef`), nie pri každom prekreslení:
+  // inak by mapa uhla späť zakaždým, keď človek značku zapichne.
+  //
+  // ── PRI OTÁZKE NA PARKOVISKO SA IDE NA ŠTART (Matej 2026-08-25) ───────────────────────
+  // „pri 2. kroku kde sa pýta na parkovisko by bolo fajn dať zoom na štart — tam bude
+  //  pravdepodobne vždy parkovisko (aby človek nemusel zoomovať)."
+  // Neruší to fit na celú trasu z 23. 8., len ho odkladá o jednu otázku: parkovisko je jediná
+  // z tých troch, ktorá sa pýta na JEDEN konkrétny bod, a ten je vždy tam, kde trasa začína.
+  // Nebezpečenstvo aj tip môžu byť kdekoľvek, takže tie dostanú celú trasu ako doteraz.
+  // ⚠️ `fittedRef` preto drží, KTORÝ výrez je nastavený (nie „už som fitol"). S booleanom by
+  // buď mapa ostala na štarte aj pri ďalších dvoch otázkach, alebo by uhýbala pri každom
+  // prekreslení — to bol pôvodný dôvod, prečo tam ten strážca vôbec je.
+  // Pri MIESTE (bez trasy) sa nič nemení: štart neexistuje, výrez ostáva na bode.
+  const fittedRef = useRef<'parking' | 'all' | null>(null);
+  useEffect(() => {
+    if (!notesStep) { fittedRef.current = null; return; }
+    const map = mapRef.current;
+    if (!map) return;
+    const pts: LatLngTuple[] = geometry.kind === 'route'
+      ? (geometry.snapPath?.length ? geometry.snapPath : geometry.path)
+      : geometry.center ? [geometry.center] : [];
+    if (!pts.length) return;
+    const want: 'parking' | 'all' =
+      askGroup === 'parking' && geometry.kind === 'route' ? 'parking' : 'all';
+    if (fittedRef.current === want) return;
+    fittedRef.current = want;
+    // Štvorec ~400 m okolo štartu: dosť na to, aby v ňom bolo vidno odbočku a plochu vedľa
+    // cesty, a nie tak blízko, aby sa človek musel odzoomovať, keď parkoval o kus vedľa.
+    const bounds = want === 'parking'
+      ? L.latLng(pts[0][0], pts[0][1]).toBounds(400)
+      : L.latLngBounds(pts);
+    map.fitBounds(bounds, {
+      paddingTopLeft: [24, 90],
+      paddingBottomRight: [24, 260],
+      maxZoom: want === 'parking' ? 17 : 15,
+      animate: true,
+    });
+  }, [notesStep, askGroup, geometry, mapRef]);
   /**
    * ⚠️ ŤUK DO DLAŽDICE UŽ NEZAPICHUJE — LEN VYBERÁ (Matej 24. 8. 2026: „pod tým preskočiť
    * a označiť bude CTA, nie pokračovať").
@@ -1146,6 +1228,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
   const revisited = (n: number) => maxStep > n;
   const missClass = (n: number, filled: boolean) => (!filled && revisited(n) ? ' atl-miss' : '');
 
+  /**
+   * ⚠️ Beží LEN pri pláne. V zápise vlastní `date` obyčajný kalendár a tento efekt by ho
+   * prepísal prázdnym reťazcom hneď, ako by človek prepol formulár na prejdený výlet.
+   */
+  useEffect(() => {
+    if (!isPlan) return;
+    setDate(buildPlanDate(planPrecision, planMonth, planPrecision === 'week' ? planWeek : planDay));
+  }, [isPlan, planPrecision, planMonth, planWeek, planDay]);
+
   useEffect(() => { setMaxStep((m) => Math.max(m, step)); }, [step]);
 
   const stepDots = (
@@ -1154,18 +1245,21 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       role="tablist"
       aria-label={t('pack.addTrip.step.progress')}
     >
-      {STEP_KEYS.map((k, i) => (
+      {/* ⚠️ ČÍSLO NA BODKE JE POZÍCIA V PORADÍ, NÁZOV IDE Z ČÍSLA KROKU. Pri pláne je
+          poradie [1, 3] — druhá bodka nesie dvojku, ale otvára krok „základ" (3) a berie si
+          jeho meno aj jeho `stepMissing`. Číslovať bodky číslom kroku by dalo „1 3". */}
+      {STEP_SEQ.map((n, i) => (
         <button
-          key={k}
+          key={n}
           type="button"
           role="tab"
-          aria-selected={step === i + 1}
-          className={`atl-step${step === i + 1 ? ' on' : ''}${step !== i + 1 && maxStep > i ? ' done' : ''}${maxStep > i && stepMissing[i + 1]?.length === 0 ? ' ok' : ''}`}
-          onClick={() => { if (i + 1 !== step && i + 1 <= maxStep && i + 1 >= minStep) setStep(i + 1); }}
-          disabled={i + 1 > maxStep || i + 1 < minStep}
+          aria-selected={step === n}
+          className={`atl-step${step === n ? ' on' : ''}${step !== n && maxStep > n - 1 ? ' done' : ''}${maxStep > n - 1 && stepMissing[n]?.length === 0 ? ' ok' : ''}`}
+          onClick={() => { if (n !== step && n <= maxStep && n >= minStep) setStep(n); }}
+          disabled={n > maxStep || n < minStep}
         >
           <b>{i + 1}</b>
-          <span>{t(`pack.addTrip.step.name.${k}`)}</span>
+          <span>{t(`pack.addTrip.step.name.${STEP_KEYS[n - 1]}`)}</span>
         </button>
       ))}
     </div>
@@ -1239,6 +1333,20 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     const h = Math.sin(dLat / 2) ** 2 + Math.cos(la) * Math.cos(lb) * Math.sin(dLon / 2) ** 2;
     return 2 * R * Math.asin(Math.min(1, Math.sqrt(h))) > OPEN_ROUTE_M;
   }, [geometry]);
+  /**
+   * ── „IŠLO TO PODĽA PLÁNU?" (Matej 2026-08-25) ─────────────────────────────────────────
+   * „už bude mať predvyplnenú trasu (možnosť opraviť, ainubis sa opýta či to sedelo s plánom)"
+   *
+   * ⚠️ Trasa sa NEODOMYKÁ SAMA. Väčšina ľudí ide tak, ako si naplánovala, a živá lišta
+   * kreslenia nad hotovou čiarou zvádza k prvému kliku, ktorý do nej pridá kotvu navyše.
+   * Otázka je preto vidlica: „sedí" preskočí rovno na značky, „šiel som inak" nechá človeka
+   * v kroku 1 s nakreslenou trasou a odomknutými nástrojmi.
+   */
+  const [planAsk, setPlanAsk] = useState(false);
+
+  /** Veta o čase → dvojička `.plan` pri pláne. Neutrálne vety ju nemajú (viď GeometryPicker). */
+  const tq = (key: string) => t(isPlan ? `${key}.plan` : key);
+
   const [openRouteAsk, setOpenRouteAsk] = useState(false);
   // Zrkadlenie vie spraviť len picker (legs + snapPath + prevýšenie sú jeho vnútro),
   // tak si sem podá spúšťač. Viď `mirrorRef` v GeometryPicker.
@@ -1257,7 +1365,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
     active: drawingStep || (notesInBar && !notePlacing),
     onDone: () => {
       if (routeIsOpen && !openRouteAskedRef.current) { setOpenRouteAsk(true); return; }
-      setStep(2);
+      setStep(stepAfter(1));
     },
     // ⚠️ V KROKU 1 JE TO ODCHOD, NIE NÁVRAT O KROK (Matej 24. 8. 2026: „dole späť na aktivitu
     // môžme dať skôr späť na mapy - odísť"). Pod bublinou AInubisa je len × na zahodenie;
@@ -1359,6 +1467,32 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
         </div>,
         document.body,
       )}
+      {planAsk && createPortal(
+        <div className="atl-abort-scrim" role="dialog" aria-modal="true">
+          {/* Hovorí to AInubis (tmavomodrý variant), rovnako ako otázka o otvorenej trase.
+              ⚠️ Scrim tu ZÁMERNE nezatvára klikom vedľa: pod ním leží mapa v režime kreslenia,
+              takže „kliknem vedľa" by na nej rovno pridalo kotvu — teda presne tú zmenu trasy,
+              na ktorú sa otázka pýta. Odpovede sú dve a obe sú tlačidlo. */}
+          <div className="atl-abort atl-abort--ainubis" onClick={(e) => e.stopPropagation()}>
+            <img className="atl-abort-face" src={ainubisFace} alt="" aria-hidden="true" />
+            <h2>{t('pack.addTrip.plan.walkedAskTitle')}</h2>
+            <p>{t('pack.addTrip.plan.walkedAskBody')}</p>
+            <div className="atl-abort-btns">
+              <button
+                type="button"
+                className="atl-abort-cta"
+                onClick={() => { setPlanAsk(false); setStep(stepAfter(1)); }}
+              >
+                {t('pack.addTrip.plan.walkedAskYes')}
+              </button>
+              <button type="button" className="atl-abort-ghost" onClick={() => setPlanAsk(false)}>
+                {t('pack.addTrip.plan.walkedAskEdit')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
       {openRouteAsk && createPortal(
         <div className="atl-abort-scrim" role="dialog" aria-modal="true" onClick={() => setOpenRouteAsk(false)}>
           {/* ⚠️ AINUBISOV VARIANT, NIE OBYČAJNÝ DIALÓG (Matej 25. 8. 2026: „daj všetky
@@ -1370,8 +1504,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
             {/* Hovorí to AInubis, tak tu stojí aj jeho tvár — inak je to bezmenná výstraha
                 systému a tá na tejto obrazovke už nežije. */}
             <img className="atl-abort-face" src={ainubisFace} alt="" aria-hidden="true" />
-            <h2>{t('pack.addTrip.geo.openRouteTitle')}</h2>
-            <p>{t('pack.addTrip.geo.openRouteBody')}</p>
+            {/* ⚠️ TÁ ISTÁ OTÁZKA, INÝ ČAS (Matej 25. 8. 2026). „Nešiel si naspäť?" je na
+                pláne nezmysel — človek sa nikam nevybral. `tq()` prepína na dvojičku `.plan`
+                tam, kde veta hovorí o čase; tlačidlo „Doplniť tú istú cestu späť" ju nemá,
+                lebo znie rovnako v oboch smeroch. */}
+            <h2>{tq('pack.addTrip.geo.openRouteTitle')}</h2>
+            <p>{tq('pack.addTrip.geo.openRouteBody')}</p>
             <div className="atl-abort-btns">
               {/* ⚠️ ZLATÉ JE LEN JEDNO (CTA lock). Zrkadlenie je jediná vec, ktorú vie appka
                   doplniť POCTIVO sama, takže nesie brandový gradient; zvyšné dve sú
@@ -1388,14 +1526,14 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   najkratšiu, teda skoro vždy tú istú — a appka by tvrdila, že to bola iná.
                   Kadiaľ sa vracal, vie len on. (Matej 25. 8. 2026 si vybral túto vetvu.) */}
               <button type="button" className="atl-abort-ghost" onClick={() => setOpenRouteAsk(false)}>
-                {t('pack.addTrip.geo.openRouteFinish')}
+                {tq('pack.addTrip.geo.openRouteFinish')}
               </button>
               <button
                 type="button"
                 className="atl-abort-ghost"
-                onClick={() => { openRouteAskedRef.current = true; setOpenRouteAsk(false); setStep(2); }}
+                onClick={() => { openRouteAskedRef.current = true; setOpenRouteAsk(false); setStep(stepAfter(1)); }}
               >
-                {t('pack.addTrip.geo.openRouteKeep')}
+                {tq('pack.addTrip.geo.openRouteKeep')}
               </button>
             </div>
           </div>
@@ -1405,6 +1543,8 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
       <style>{ROUTE_HERO_CSS}</style>
       <style>{RESTORE_CSS}</style>
       <style>{STEP_CSS}</style>
+      {/* MUSÍ BYŤ POSLEDNÝ — prebíja všetky bloky vyššie pri rovnakej špecificite. */}
+      <style>{PALE_LOG_CSS}</style>
       {/* VÝBER AKTIVITY MÁ VLASTNÚ HLAVIČKU (Matej 2026-08-23: „šípku dozadu do stredu hore
           a pod to väčší nápis — nie čo ste robili, ale vyber aktivitu"). Je to prvá obrazovka
           celého pridávania, takže sa správa ako titulná strana: návrat v strede, veľký nadpis
@@ -1464,7 +1604,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
               /* ⚠️ OBAL, NIE HOLÉ TLAČIDLO. Rozbaľovač nesie dve ďalšie tlačidlá a tlačidlo
                  vnorené v tlačidle je neplatné HTML — prehliadač ho vytrhne von z rodiča a
                  dlaždica sa rozpadne. */
-              <div key={a.id} className={`atl-tile-wrap${a.wide ? ' atl-tile--wide' : ''}`}>
+              <div key={a.id} className="atl-tile-wrap">
                 <button
                   type="button"
                   className={`atl-tile${open ? ' is-open' : ''}`}
@@ -1476,22 +1616,35 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                       slovenskej obrazovke potom stálo „Hiking" pod nadpisom „Vyber aktivitu".
                       `pack.map.activityLabel.*` už existuje (používa ho filter na mape). */}
                   <span className="atl-tile-label">{t(`pack.map.activityLabel.${a.id}`)}</span>
-                  <span className="atl-tile-note">{t(`pack.addTrip.log.activityNote.${a.id}`)}</span>
+                  {/* ⚠️ VETA TU UŽ NIE JE (Matej 2026-08-26: „bude to len jednoslovné TURISTIKA —
+                      až v dropdowne bude text"). Presunula sa do rozbaľovača nižšie. Dlaždica tým
+                      klesla na jeden riadok, čo je celý dôvod, prečo sa sedem aktivít zmestí do
+                      jedného stĺpca bez skrolovania. */}
                   <span className="atl-tile-caret" aria-hidden="true">{open ? '⌃' : '⌄'}</span>
                 </button>
                 {open && (
                   <div className="atl-mode">
-                    <p className="atl-mode-ask">{t('pack.addTrip.log.mode.ask')}</p>
+                    {/* VETA O AKTIVITE, NIE OTÁZKA „zapisuješ alebo plánuješ?" (Matej 2026-08-26).
+                        Odpoveď na tú otázku sú dve tlačidlá hneď pod ňou — pýtať sa nahlas na to,
+                        čo je vidieť, je riadok navyše. Miesto po nej dostal text, ktorý dovtedy
+                        stál na dlaždici a nikto ho nečítal, lebo bol na siedmich dlaždiciach naraz. */}
+                    <p className="atl-mode-ask">{t(`pack.addTrip.log.activityNote.${a.id}`)}</p>
                     <div className="atl-mode-btns">
                       {/* Poradie je zámerné: PREŠLI SME TO je častejší prípad (mapa žije zo
                           zapísaných výletov), tak stojí prvé. */}
                       <button type="button" className="atl-mode-btn" onClick={() => pickActivity(a.id, 'walked')}>
                         <span className="atl-mode-emoji" aria-hidden="true">✅</span>
-                        {t('pack.addTrip.log.mode.walked')}
+                        <span className="atl-mode-txt">
+                          <b>{t('pack.addTrip.log.mode.walked')}</b>
+                          <i>{t('pack.addTrip.log.mode.walkedSub')}</i>
+                        </span>
                       </button>
                       <button type="button" className="atl-mode-btn" onClick={() => pickActivity(a.id, 'planned')}>
                         <span className="atl-mode-emoji" aria-hidden="true">🗓️</span>
-                        {t('pack.addTrip.log.mode.planned')}
+                        <span className="atl-mode-txt">
+                          <b>{t('pack.addTrip.log.mode.planned')}</b>
+                          <i>{t('pack.addTrip.log.mode.plannedSub')}</i>
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -1578,7 +1731,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     value={geometry}
                     onChange={setGeometry}
                     activity={activity}
-                    mode="log"
+                    // ⚠️ `mode` NIE JE natvrdo 'log'. Vnútri pickera ho číta JEDINÉ miesto —
+                    // výber času sprievodcových viet (`planning`) — takže sa tým nemení nič
+                    // v geometrii; `defaultKindFor(activity, 'plan')` je samostatná funkcia
+                    // volaná mimo. Bez tohto by AInubis pri pláne hovoril o výlete v minulom
+                    // čase (Matej 25. 8. 2026).
+                    mode={isPlan ? 'plan' : 'log'}
                     allTrails={allTrails}
                     onMetrics={(m) => { metricsRef.current = m; }}
                     mapRef={mapRef}
@@ -1618,6 +1776,72 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   <input className="atl-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t('pack.addTrip.step.namePlaceholder')} />
                 </div>
 
+                {isPlan ? (
+                  <>
+                {/* ── KEDY: PLÁN MÁ VLASTNÉ POLE (Matej 2026-08-25) ────────────────────
+                    „dátum nepamatam si a bol som vonku viac dní... to je hluposť - absurdné
+                     skor tam by mala byť možnosť bud pevný dátum alebo len okruhly mesiac
+                     a týždeň v ňom alebo len mesiac"
+                    Obe pôvodné voľby hovorili o minulosti: deň, na ktorý sa človek CHYSTÁ, nikto
+                    nezabudol, a nikde ešte nebol. Neurčitosť plánu je iná — nie „neviem, kedy to
+                    bolo", ale „viem to zatiaľ len zhruba". Tri presnosti, jedno pole.
+                    ⚠️ Koniec viacdňového putovania sa tu NEPÝTA. Pri „niekedy v septembri" nemá
+                    čo znamenať, a pri magistrále to hovorí už sama aktivita (trek cez viac dní);
+                    presný koniec sa dopĺňa po prejdení, keď je známy. */}
+                <div className={`atl-field${missClass(3, !!date)}`}>
+                  <label>{t('pack.addTrip.plan.when')}</label>
+                  <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.plan.when')}>
+                    {(['exact', 'week', 'month'] as const).map((pr) => (
+                      <button
+                        key={pr}
+                        type="button"
+                        role="tab"
+                        aria-selected={planPrecision === pr}
+                        className={`atl-toggle-btn${planPrecision === pr ? ' on' : ''}`}
+                        onClick={() => setPlanPrecision(pr)}
+                      >{t(`pack.addTrip.plan.when.${pr}`)}</button>
+                    ))}
+                  </div>
+                  {planPrecision === 'exact' ? (
+                    <input
+                      type="date"
+                      className="atl-input"
+                      style={{ marginTop: 8 }}
+                      value={planDay}
+                      min={todayISO}
+                      onChange={(e) => setPlanDay(e.target.value)}
+                    />
+                  ) : (
+                    <>
+                      <input
+                        type="month"
+                        className="atl-input"
+                        style={{ marginTop: 8 }}
+                        value={planMonth}
+                        min={todayISO.slice(0, 7)}
+                        onChange={(e) => setPlanMonth(e.target.value)}
+                      />
+                      {planPrecision === 'week' && (
+                        <div className="atl-toggle-row" style={{ marginTop: 8 }} role="tablist" aria-label={t('pack.addTrip.plan.whenWeek')}>
+                          {[1, 2, 3, 4].map((w) => (
+                            <button
+                              key={w}
+                              type="button"
+                              role="tab"
+                              aria-selected={planWeek === w}
+                              className={`atl-toggle-btn${planWeek === w ? ' on' : ''}`}
+                              onClick={() => setPlanWeek(w)}
+                            >{t('pack.addTrip.plan.whenWeekN', { n: String(w) })}</button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                  <p className="atl-field-hint" style={{ marginTop: 6 }}>{t('pack.addTrip.plan.whenHint')}</p>
+                </div>
+                  </>
+                ) : (
+                  <>
                 <div className={activity === 'journey' && !dontRemember ? 'atl-row3' : 'atl-row2'}>
                   <div className="atl-field">
                     <label>{t('pack.addTrip.log.date')}</label>
@@ -1674,7 +1898,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   </p>
                 )}
 
-                <div className="atl-row3">
+
+                  </>
+                )}                <div className="atl-row3">
                   <div className="atl-field">
                     <label>{t('pack.addTrip.step.state')}</label>
                     <select className="atl-input" value={effCountry} onChange={(e) => setCountryOverride(e.target.value)}>
@@ -1693,6 +1919,52 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                     </div>
                   )}
                 </div>
+
+                {/* ── PLÁN TU KONČÍ (Matej 2026-08-25) ──────────────────────────────────
+                    Dve polia, ktoré pri pláne dávajú zmysel, ležali doteraz v krokoch 4 a 5 —
+                    teda ZA obrazovkami o mieste, na ktorom človek ešte nebol. Sú to tie isté
+                    stavy (`note`, `visibility`), len konečne na kroku, ktorý plán naozaj
+                    otvorí; v krokoch 4–5 ostávajú pre zápis nedotknuté.
+                    ⚠️ VÝBER PSA TU NIE JE (Matej 2026-08-26, na priamu otázku: „vyhodiť").
+                    Bol tu jeden deň a bola to moja iniciatíva nad rámec zadania. Dôvod, prečo
+                    odišiel: plán má byť DVA rýchle kroky, a pri jednom psovi je to pole, ktoré
+                    sa pýta na zrejmé. Psa vyberá až zápis po prejdení (krok 5, `crew`) — tam sa
+                    naň pýtame tak či tak. Dôsledok: plán nemá `dogs`, takže karta plánu
+                    neukazuje počet psov; naplní sa pri zápise.
+                    ⚠️ Fotka tu ZÁMERNE nie je — plán dostane obrázok z našej databázy podľa
+                    aktivity (`placeholderFor` u volajúceho) a vlastná fotka pribudne až po
+                    prejdení, keď sa ten istý záznam otvorí ako zápis. */}
+                {isPlan && (
+                  <>
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.plan.details')}</label>
+                      <textarea className="atl-input atl-textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
+                    </div>
+
+                    <div className="atl-field">
+                      <label>{t('pack.addTrip.plan.visibility')}</label>
+                      <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.plan.visibility')}>
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={visibility === 'private'}
+                          className={`atl-toggle-btn${visibility === 'private' ? ' on' : ''}`}
+                          onClick={() => setVisibility('private')}
+                        >{t('pack.addTrip.plan.visibilityPrivate')}</button>
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={visibility === 'open'}
+                          className={`atl-toggle-btn${visibility === 'open' ? ' on' : ''}`}
+                          onClick={() => setVisibility('open')}
+                        >{t('pack.addTrip.plan.visibilityOpen')}</button>
+                      </div>
+                      <p className="atl-field-hint" style={{ marginTop: 6 }}>
+                        {t(visibility === 'private' ? 'pack.addTrip.plan.visibilityPrivateNote' : 'pack.addTrip.plan.visibilityOpenNote')}
+                      </p>
+                    </div>
+                  </>
+                )}
               </>
             )}
 
@@ -1801,7 +2073,9 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 </div>
 
                 <div className="atl-field">
-                  <label>{t(isPlan ? 'pack.addTrip.plan.details' : 'pack.addTrip.log.story')}</label>
+                  {/* Plán sem už nechodí (STEP_SEQ = [1, 3]) — jeho „čo je v pláne" žije
+                      v kroku 3. Tu ostáva príbeh prejdeného výletu. */}
+                  <label>{t('pack.addTrip.log.story')}</label>
                   <textarea className="atl-input atl-textarea" rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('pack.addTrip.step.storyPlaceholder')} />
                 </div>
 
@@ -1815,38 +2089,13 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                   {/* Pri dopĺňaní konceptu odkaz nesvieti: krok 2 je zamknutý, lebo väzba
                       značky na výlet sa neukladá (odvodzuje sa zo súradnice) — po čase by
                       zhrnutie ukazovalo cudzie okolie namiesto toho, čo si vtedy zapichol. */}
-                  {!finishing && (
+                  {!finishingDraft && (
                     <button type="button" className="atl-journey-link" onClick={() => { setNoteAsk(0); setStep(2); }}>
                       {t('pack.addTrip.step.backToNotes')}
                     </button>
                   )}
                 </div>
 
-                {/* PLÁN — viditeľnosť. Ukazuje sa len keď dátum leží v budúcnosti. */}
-                {isPlan && (
-                  <div className="atl-field">
-                    <label>{t('pack.addTrip.plan.visibility')}</label>
-                    <div className="atl-toggle-row" role="tablist" aria-label={t('pack.addTrip.plan.visibility')}>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={visibility === 'private'}
-                        className={`atl-toggle-btn${visibility === 'private' ? ' on' : ''}`}
-                        onClick={() => setVisibility('private')}
-                      >{t('pack.addTrip.plan.visibilityPrivate')}</button>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={visibility === 'open'}
-                        className={`atl-toggle-btn${visibility === 'open' ? ' on' : ''}`}
-                        onClick={() => setVisibility('open')}
-                      >{t('pack.addTrip.plan.visibilityOpen')}</button>
-                    </div>
-                    <p className="atl-field-hint" style={{ marginTop: 6 }}>
-                      {t(visibility === 'private' ? 'pack.addTrip.plan.visibilityPrivateNote' : 'pack.addTrip.plan.visibilityOpenNote')}
-                    </p>
-                  </div>
-                )}
               </>
             )}
 
@@ -1864,7 +2113,12 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 {!isPlan && (
                   <div className="atl-field">
                     <label>{t('pack.addTrip.step.rate')}</label>
-                    <PawRating value={paws} onChange={setPaws} onDark size={26} />
+                    {/* `onDark` NIE JE natvrdo (2026-08-26): packy si farbu aj priehľadnosť
+                        nesú v INLINE štýle, takže bledý skin PC ich z CSS prebiť nevie —
+                        prepínač komponentu je jediná cesta. Na tmavom mobile ostáva pôvodný
+                        stav. Hranicu drží `useIsPaleChrome()`, ten istý `PALE_PC_MIN`, akým
+                        sa riadia všetky CSS bloky skinu. */}
+                    <PawRating value={paws} onChange={setPaws} onDark={!paleChrome} size={26} />
                   </div>
                 )}
 
@@ -1951,7 +2205,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 účinkom na jednej obrazovke je presne ten zmätok, kvôli ktorému kroky vznikli. */}
             {/* KROK 2 MÁ SVOJE POKRAČOVANIE V LIŠTE NAD MAPOU — dva „ďalej" na jednej
                 obrazovke (jeden v päte panela, druhý v doku) je otázka, ktorý z nich platí. */}
-            {step < 5 && !drawingStep && !notesInBar && (
+            {!isLastStep && !drawingStep && !notesInBar && (
               <div className="atl-nav">
                 <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
                 <button type="button" className="btn-gold" onClick={goNext} disabled={nextBlocked}>
@@ -1963,7 +2217,7 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
               <p className="atl-log-hint">{t('pack.addTrip.step.needRoute')}</p>
             )}
 
-            {step === 5 && (
+            {isLastStep && (
               <>
                 {showDupWarning && dup && (
                   <div className="atl-dupwarn">
@@ -1976,10 +2230,15 @@ export function AddTripLog({ allTrails, authorName, myDogs, onSubmit, onClose, p
                 )}
                 <div className="atl-nav">
                   <button type="button" className="atl-toggle-btn" onClick={goPrev}>{t('pack.addTrip.step.back')}</button>
-                  <button type="button" className="btn-gold" disabled={!canSubmit} onClick={handleSubmit}>
+                  <button type="button" className="btn-gold" disabled={!canSubmit || saving} onClick={handleSubmit}>
                     {/* „Zapísať výlet" na výlete, ktorý je zapísaný od minulého týždňa, znie
-                        ako založenie druhého — pri dopĺňaní sa preto ukladá, nezapisuje. */}
-                    {t(finishing ? 'pack.addTrip.log.submitFinish' : isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
+                        ako založenie druhého — pri dopĺňaní sa preto ukladá, nezapisuje.
+                        ⚠️ Počas dopočtu prevýšenia (`resolveAscent`) tlačidlo POVIE, že pracuje,
+                        a je vypnuté: bez toho vyzerá tá sekunda ako nefunkčný klik a človek
+                        stlačí druhýkrát. */}
+                    {saving
+                      ? t('pack.mapNotes.add.saving')
+                      : t(finishingDraft ? 'pack.addTrip.log.submitFinish' : isPlan ? 'pack.addTrip.log.submitPlan' : 'pack.addTrip.log.submit')}
                   </button>
                 </div>
                 {!canSubmit && missing.toSubmit.length > 0 && <p className="atl-log-hint">{t('pack.addTrip.log.missing', { fields: missingTx(missing.toSubmit) })}</p>}
@@ -2254,33 +2513,48 @@ const LOG_CSS = `
 /* Emoji vľavo cez oba riadky, vpravo názov NAD vetou. Bol to flex rad, v ktorom sa veta
    zalamovala pod emoji (flex:1 1 100%) — s vetou na KAŽDEJ dlaždici by tak sedem položiek
    začínalo siedmimi rôznymi odsadeniami. */
-.atl-tile{display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;row-gap:2px;align-items:center;padding:11px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
+/* JEDEN RIADOK, JEDNO SLOVO (Matej 2026-08-26). Mriežka dvoch riadkov tu stála kvôli vete
+   pod názvom; tá je odteraz v rozbaľovači, takže z dlaždice ostal rad: emoji · názov · šípka.
+   Flex namiesto grid-u zámerne — pri jednom riadku je grid-row:1/3 na emoji aj šípke len
+   opis toho, čo align-items:center spraví samo. */
+.atl-tile{display:flex;align-items:center;gap:14px;padding:11px 16px;border-radius:12px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};cursor:pointer;text-align:left;transition:border-color .15s ease,background .15s ease;}
 .atl-tile:hover{border-color:${GOLD};background:rgba(201,154,63,0.10);}
-.atl-tile-emoji{grid-row:1 / 3;font-size:26px;line-height:1;}
-.atl-tile-label{grid-column:2;font-family:${FONT_UI};font-weight:500;font-size:14px;letter-spacing:.03em;color:${T.onDark};}
-.atl-tile-note{grid-column:2;font-family:${FONT_UI};font-weight:400;font-size:11.5px;line-height:1.4;color:${T.onDarkDim};}
+.atl-tile-emoji{flex:0 0 auto;font-size:24px;line-height:1;}
+/* Názov je JEDNO SLOVO a nesie identitu voľby ⇒ Cinzel, nie Space Grotesk (brand: nadpisy
+   a názvy sú Cinzel). Ako veta pod ním by to bolo zlé, ako štítok je to správne. */
+.atl-tile-label{flex:1 1 auto;min-width:0;font-family:${FONT_TITLE};font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:${T.onDark};}
 /* ── KROK 0b: PLÁNUJEM / PREŠLI SME TO ────────────────────────────────────────────────────
    Rozbaľovač je SÚČASŤ dlaždice, nie samostatný blok pod zoznamom: keby stál mimo, pri
    siedmich položkách by človek nevidel, ku ktorej sa voľba vzťahuje. Otvorená dlaždica preto
    stráca spodný rádius a rozbaľovač ho preberá — spolu tvoria jeden predmet. */
 .atl-tile-wrap{display:flex;flex-direction:column;min-width:0;}
-.atl-tile-caret{grid-row:1 / 3;grid-column:3;align-self:center;font-family:${FONT_UI};font-size:13px;line-height:1;color:${T.onDarkDim};}
-.atl-tile{grid-template-columns:auto minmax(0,1fr) auto;}
+.atl-tile-caret{flex:0 0 auto;font-family:${FONT_UI};font-size:13px;line-height:1;color:${T.onDarkDim};}
 .atl-tile.is-open{border-color:${GOLD};background:rgba(201,154,63,0.10);border-bottom-color:transparent;border-bottom-left-radius:0;border-bottom-right-radius:0;}
 .atl-mode{border:1px solid ${GOLD};border-top:0;border-bottom-left-radius:12px;border-bottom-right-radius:12px;background:rgba(201,154,63,0.06);padding:10px 14px 12px;}
-.atl-mode-ask{margin:0 0 8px;font-family:${FONT_UI};font-weight:500;font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:${T.onDarkDim};}
+/* VETA, NIE EYEBROW. Kým tu stálo „Zapisuješ, alebo plánuješ?", bol to štítok — rozhádzané
+   veľké písmená s veľkým prestrkom sa čítajú po slovách. Teraz nesie riadok skutočnú vetu
+   o aktivite, tak je sadzaná ako veta. */
+.atl-mode-ask{margin:0 0 10px;font-family:${FONT_UI};font-weight:400;font-size:12.5px;line-height:1.45;letter-spacing:0;text-transform:none;color:${T.onDark};}
 .atl-mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 /* Rad tlačidiel berie celú šírku rovnakými dielmi (feedback_rad_prvkov_plna_sirka_kontajnera). */
-.atl-mode-btn{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 10px;border-radius:10px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.02em;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+.atl-mode-btn{display:flex;align-items:center;justify-content:center;gap:9px;min-height:52px;padding:9px 12px;border-radius:10px;background:rgba(245,240,228,0.06);border:1.5px solid ${T.onDarkBorder};color:${T.onDark};font-family:${FONT_UI};font-weight:500;font-size:12.5px;letter-spacing:.02em;cursor:pointer;transition:border-color .15s ease,background .15s ease;}
+/* Popisok v zátvorke na druhom riadku — je to spresnenie, nie druhá voľba, tak nesmie mať
+   rovnakú váhu ako label. Strop 600 platí aj tu: Space Grotesk nad 600 je fake bold. */
+.atl-mode-txt{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;}
+.atl-mode-txt b{font-weight:600;font-size:12.5px;line-height:1.2;}
+.atl-mode-txt i{font-style:normal;font-weight:400;font-size:10.5px;line-height:1.25;color:${T.onDarkDim};}
 .atl-mode-btn:hover,.atl-mode-btn:focus-visible{border-color:${GOLD};background:rgba(201,154,63,0.14);outline:none;}
 .atl-mode-emoji{font-family:${FONT_EMOJI};font-size:15px;line-height:1;}
 @media (max-width:359px){
   .atl-mode-btns{grid-template-columns:1fr;}
 }
-@media (min-width:560px){
-  .atl-tiles{grid-template-columns:repeat(2,1fr);}
-  .atl-tile--wide{grid-column:1 / -1;}
-}
+/* ⚠️ DVOJSTĹPCOVÁ MRIEŽKA ZANIKLA (Matej 2026-08-26: „musíme aktivity dať do jedného riadku,
+   pretože v dropdowne je výber a ten je stlačený ak je blok s aktivitou na polovičnej
+   veľkosti"). Rozbaľovač je súčasťou dlaždice, takže v dvoch stĺpcoch dostal polovičnú šírku
+   a dve tlačidlá v ňom sa lámali. Jeden stĺpec je preto podmienka toho, aby rozbaľovač vôbec
+   mohol niesť vetu a dve tlačidlá vedľa seba — nie estetická voľba.
+   Miesto, ktoré tým dlaždice stratili na šírku, získali späť na výšku: bez vety je riadok
+   nízky, takže sedem aktivít sa aj tak zmestí bez skrolovania. */
 /* PEVNÝ VIEWPORT (Matej 23. 8.: „na mobile musí byť pevný viewport, nie pohyblivý mimo").
    Vodorovne sa neskroluje nikdy — čo pretečie, je chyba prvku, nie dôvod na posúvanie
    stránky. Vlastnosť overscroll-behavior drží ťah prsta vnútri formulára, aby sa pod ním nehýbala
@@ -2373,6 +2647,12 @@ const LOG_CSS = `
 .atl-diffbtn{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:9px 4px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};font-family:${FONT_UI};font-size:10.5px;font-weight:500;line-height:1.1;cursor:pointer;}
 .atl-diffbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;}
 .atl-diffbtn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
+.atl-toggle-row{display:flex;gap:8px;}
+/* ⚠️ RAD PREPÍNAČOV = CELÁ ŠÍRKA, ROVNAKÉ DIELY. Trieda atl-toggle-row doteraz nemala ŽIADNE
+   pravidlo — bol to holý div, takže tlačidlá so šírkou 100% sa poukladali POD SEBA a jedno
+   pole („kedy idete" má tri presnosti a štyri týždne) zabralo sedem riadkov. Rovnako stála
+   aj viditeľnosť plánu. Deľba flex 1 1 0 je tá istá, akú drží atl-restore-btns. */
+.atl-toggle-row > .atl-toggle-btn{flex:1 1 0;min-width:0;}
 .atl-toggle-btn{width:100%;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.03em;padding:8px 10px;border-radius:9px;background:rgba(245,240,228,0.04);border:1px solid ${T.onDarkBorder};color:${T.onDarkDim};cursor:pointer;white-space:nowrap;}
 .atl-toggle-btn.on{background:rgba(201,154,63,0.14);border-color:${GOLD};color:${T.onDark};}
 .atl-daterange-hint{margin:-4px 0 0;font-family:${FONT_UI};font-weight:400;font-size:11px;line-height:1.4;color:${T.onDarkDim};}
@@ -2442,3 +2722,119 @@ const LOG_CSS = `
 `;
 
 export default AddTripLog;
+
+// ══ BLEDÝ SKIN FORMULÁRA PRIDÁVANIA — PC (2026-08-26) ════════════════════════════════════
+// Redizajn PC chrome mapy do bledého štýlu (Matej: „ideme robiť redizajn do bledého štýlu…
+// teraz ideme riešiť PC /map - add trip a flow"). Formulár žije v .trp-addhost, ktorý je
+// odteraz papyrusový panel so zlatým rámom — obsah v onDark tokenoch by v ňom bol biely
+// text na piesku.
+//
+// PREČO PRÍDAVOK A NIE PREPIS PRAVIDIEL VYŠŠIE: ten istý komponent je na mobile CELÁ
+// OBRAZOVKA a mobil ostáva tmavý až do vlastného kola. Preto @media (min-width:${PALE_PC_MIN}px) —
+// jedna hranica, jeden blok, a "MAP_SKIN = glass" v PackMap.tsx vráti tmu bez toho, aby sa
+// tu čokoľvek vracalo ručne.
+//
+// PREČO POSLEDNÝ <style>: STEP_CSS sa vkladá ZA LOG_CSS, takže pravidlá o krokoch by pri
+// rovnakej špecificite prehrali. Tento blok musí ísť do DOM ako posledný — viď poradie
+// <style> značiek v renderi.
+//
+// Plochy podľa matrice PACK_BOX (packTheme.ts): panel = úroveň 4, sekcia = úroveň 2,
+// pole = úroveň 5 (plochý papyrus, do svetla sa píše). Vlastné odtiene sa tu nevymýšľajú.
+const { ink: P_INK, dim: P_DIM, edge: P_EDGE, deep: P_DEEP, border: P_BORDER, field: P_FIELD, soft: P_SOFT } = PALE;
+
+const PALE_LOG_CSS = MAP_SKIN !== 'pale' ? '' : `
+@media (min-width:${PALE_PC_MIN}px){
+  /* ── hlavička kroku ─────────────────────────────────────────────────────────────────── */
+  .atl-log-back{background:${P_SOFT};border-color:${P_BORDER};color:${P_INK};}
+  .atl-log-back:hover{border-color:${P_EDGE};color:${P_DEEP};background:#FFFDF6;}
+  .atl-log-title{color:${P_INK};}
+  .atl-log-sub{color:${P_DIM};}
+
+  /* ── krokovník ──────────────────────────────────────────────────────────────────────── */
+  .atl-step{color:${P_DIM};}
+  .atl-step b{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  .atl-step.done{color:${P_INK};}
+  .atl-step.done b{background:rgba(201,154,63,0.22);border-color:${P_BORDER};color:${P_DEEP};}
+  .atl-step.on{background:rgba(201,154,63,0.14);border-color:${P_BORDER};color:${P_INK};}
+  .atl-step.ok b{background:rgba(58,150,88,0.20);border-color:#3A9658;color:#1F5C33;}
+  /* Krokovník NAD MAPOU: plná papyrusová výplň, nie priesvitná — nad mapou sa priesvitnosť
+     nepoužíva nikdy, čo pod ňou prebliká, robí z lišty neprečítateľný prvok. */
+  .atl-steps--onmap{background:linear-gradient(180deg,#F6EAD0,#E9D9AE);border:1.5px solid ${P_EDGE};box-shadow:0 8px 24px rgba(70,45,10,0.35);backdrop-filter:none;-webkit-backdrop-filter:none;}
+
+  /* ── dlaždice výberu aktivity (krok 1) ──────────────────────────────────────────────── */
+  .atl-tile{background:linear-gradient(160deg,#FBF5E6 0%,#F3E4C4 55%,#EAD6A6 100%);border:1px solid ${P_EDGE};box-shadow:0 1px 3px rgba(122,90,42,0.10),inset 0 1px 0 rgba(255,255,255,0.40);}
+  .atl-tile:hover{background:linear-gradient(160deg,#FFFBF0 0%,#F6E9CF 55%,#EEDCB0 100%);border-color:${P_DEEP};box-shadow:0 0 0 3px rgba(201,154,63,0.26);}
+  .atl-tile-label{color:${P_INK};}
+  .atl-tile-note{color:${P_DIM};}
+  .atl-tile-caret{color:${P_DIM};}
+  .atl-tile.is-open{border-color:${P_DEEP};background:linear-gradient(160deg,#FFFBF0,#F0E1BC);}
+  .atl-mode{border-color:${P_DEEP};background:rgba(201,154,63,0.12);}
+  /* Veta o aktivite je odteraz VETA, nie eyebrow — na papyruse ju číta človek, tak dostane
+     plný inkoust. Stlmená (P_DIM) bola správna, kým to bol štítok „Zapisuješ, alebo plánuješ?". */
+  .atl-mode-ask{color:${P_INK};}
+  /* ⚠️ Popisok v zátvorke si nesie vlastnú farbu (onDarkDim), takže sa NEDEDÍ z tlačidla —
+     bez tohto riadku je na papyruse biely na svetlom, teda neviditeľný. Presne tá diera,
+     kvôli ktorej sa každý nový prvok s vlastnou farbou musí doplniť aj sem. */
+  .atl-mode-txt i{color:${P_DIM};}
+  .atl-mode-btn{background:${P_FIELD};border-color:${P_BORDER};color:${P_INK};}
+  .atl-mode-btn:hover,.atl-mode-btn:focus-visible{border-color:${P_DEEP};background:#FFF6E2;}
+
+  /* ── polia a ovládanie formulára ────────────────────────────────────────────────────── */
+  .atl-field label{color:${P_DIM};}
+  .atl-field-hint{color:${P_DIM};}
+  .atl-input,.atl-textarea{background:${P_FIELD};border-color:${P_BORDER};color:${P_INK};}
+  .atl-input:focus{border-color:${P_EDGE};}
+  .atl-input::placeholder{color:${P_DIM};opacity:.7;}
+  .atl-diffbtn{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  .atl-diffbtn.on{background:rgba(201,154,63,0.20);border-color:${P_DEEP};color:${P_INK};}
+  .atl-toggle-btn{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  .atl-toggle-btn.on{background:rgba(201,154,63,0.20);border-color:${P_DEEP};color:${P_INK};}
+  .atl-daterange-hint{color:${P_DIM};}
+  .atl-journey-link{color:${P_DEEP};}
+  .atl-journey-list{border-color:${P_BORDER};}
+  .atl-journey-item{background:${P_SOFT};border-color:${P_BORDER};}
+  .atl-journey-item:hover{border-color:${P_DEEP};}
+  .atl-journey-item.on{background:rgba(201,154,63,0.20);border-color:${P_DEEP};}
+  .atl-journey-name{color:${P_INK};}
+  .atl-journey-meta{color:${P_DIM};}
+  .atl-chip{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  .atl-chip.on{background:rgba(201,154,63,0.22);border-color:${P_DEEP};color:${P_INK};}
+  /* Odistený chip mazania ostáva ČERVENÝ — je to jediná nevratná akcia v toku a farba
+     nesie význam, nie štýl. Mení sa len inkoust, aby bol na svetlom čitateľný. */
+  .atl-chip--del.armed{background:rgba(206,75,60,0.16);border-color:rgba(176,52,40,0.7);color:#8E2A20;}
+  .atl-file-btn{background:${P_FIELD};border-color:${P_BORDER};color:${P_INK};}
+  .atl-file-btn:hover:not(:disabled){border-color:${P_DEEP};color:${P_DEEP};}
+  .atl-photo-thumb{border-color:${P_BORDER};}
+  .atl-cover-crop label{color:${P_DIM};}
+  .atl-log-hint{color:${P_DIM};}
+  .atl-log-error{color:#9E3A22;}
+  .atl-dupwarn{background:rgba(201,154,63,0.14);border-color:${P_DEEP};}
+  .atl-dupwarn p{color:${P_INK};}
+  .atl-noteask{background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
+  .atl-noteask p{color:${P_INK};}
+  .atl-restore{background:rgba(255,251,240,0.6);border-color:${P_BORDER};}
+  .atl-restore-txt{color:${P_INK};}
+  .atl-miss > label{color:#9E3A22;}
+
+  /* ── sledovanie značiek (krok 2) ────────────────────────────────────────────────────── */
+  .atl-ntrack-i{background:${P_SOFT};border-color:${P_BORDER};color:${P_DIM};}
+  .atl-ntrack-i b{background:rgba(201,154,63,0.18);}
+  .atl-ntrack-i.on{background:rgba(201,154,63,0.16);border-color:${P_DEEP};color:${P_INK};}
+  .atl-ntrack-i.miss{color:${P_DIM};}
+
+  /* ── potvrdenie odchodu z toku ──────────────────────────────────────────────────────── */
+  /* Rozlúčka s AINUBISOM (.atl-abort--ainubis) sa ZÁMERNE nemení: je to jeho vlastný modrý
+     povrch, rovnaký ako v konzole, a pale skin mapy naň nesiaha. */
+  .atl-abort-scrim{background:rgba(24,14,4,0.55);}
+  .atl-abort:not(.atl-abort--ainubis){background:linear-gradient(135deg,#FBF5E6 0%,#F2E2BD 100%);border:1.5px solid ${P_EDGE};box-shadow:0 8px 28px rgba(0,0,0,0.45),0 0 0 3px rgba(201,154,63,0.15);}
+  .atl-abort:not(.atl-abort--ainubis) h2{color:${P_INK};}
+  .atl-abort:not(.atl-abort--ainubis) p{color:${P_DIM};}
+  .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit{background:rgba(176,52,40,0.14);border-color:rgba(176,52,40,0.65);color:#8E2A20;}
+  .atl-abort:not(.atl-abort--ainubis) .atl-abort-quit:hover{background:rgba(176,52,40,0.26);color:#5E170F;}
+
+  /* ── lišta posúvania ────────────────────────────────────────────────────────────────── */
+  .atl-log-body::-webkit-scrollbar,.atl-tiles::-webkit-scrollbar{width:8px;}
+  .atl-log-body::-webkit-scrollbar-thumb,.atl-tiles::-webkit-scrollbar-thumb{background:rgba(179,130,45,0.42);border-radius:999px;}
+  .atl-log-body::-webkit-scrollbar-track,.atl-tiles::-webkit-scrollbar-track{background:transparent;}
+}
+`;
