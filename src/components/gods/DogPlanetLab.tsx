@@ -34,7 +34,7 @@ import {
 import { dogPagePath } from '@/lib/dogSlug';
 import { useNavigate } from 'react-router-dom';
 import { LAB } from '@/lib/labTheme';
-import { LAPIS } from '@/components/pack/navGoldSkin';
+import { LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import type { PortalHandle } from './dogPortal';
 
@@ -132,15 +132,34 @@ const BG: Bg = 'hlbka';
 /** Koľko dlaždíc guľa nesie. 71 = dnešná svorka; 200 je Matejov výber pre ladenie. */
 const TARGET = 200;
 
+/* 🔴 NÁSOBOK 2, NIE 4 — TU BOLI TIE „CHÝBAJÚCE DLAŽDICE" (28. 8. 2026).
+ *  Matej dvakrát: „posvieť si na chybajuce dlazdice na mobile" a po prvej oprave
+ *  (guľa sa krájala o hranu okna) „stále mi chýbajú dlaždice na mobile".
+ *  Nechýbali ani teraz — bola nepravidelná mriežka. Zaokrúhlenie na násobok 4
+ *  posúvalo počet v rade až o 1,5 dlaždice od ideálu, a keďže obvod prstenca je
+ *  daný, celý rozdiel sa prejavil na medzerách. Odmerané (spacing 80,2 · dlaždica 55):
+ *
+ *      lat    ideál | násobok 4          | násobok 2
+ *      0,00   25,07 | 24 → medzera 28,8  | 26 → 22,3
+ *     28,72   21,98 | 20 → medzera 33,2  | 22 → 25,1
+ *     43,09   18,31 | 20 → medzera 18,4  | 18 → 26,6
+ *     57,45   13,49 | 12 → medzera 35,2  | 14 → 22,3
+ *
+ *  Rad na 57° mal teda DVOJNÁSOBNÚ medzeru než rad hneď pod ním (35,2 vs 18,4) —
+ *  a to oko neprečíta ako „redší prstenec", ale ako vypadnuté dlaždice.
+ *  Pri násobku 2 je rozptyl 22,3–26,6 px, teda tesne okolo ZVISLEJ medzery 25,2 px:
+ *  mriežka má konečne rovnaké oká vo všetkých smeroch. Guľa má 200 dlaždíc
+ *  namiesto 194, čo je presne TARGET (dovtedy sa 6 stratilo na zaokrúhľovaní).
+ *  ⚠️ Cena je vedomá: pri násobku 4 zdieľali rady poludníky 0/90/180/270°, teraz
+ *  len 0 a 180°. Zvislé stĺpce boli ale aj tak čitateľné nanajvýš pri rovníku —
+ *  rady sa líšia počtom, takže sa aj tak rozchádzajú. Rovnomernosť váži viac.
+ *  ⚠️ Vetva pre malé prstence ostáva (Matej 25. 8.: „tá posledná rada… sú spojené
+ *  rohmi (8), dajme len 7"): pri póloch leží horná hrana dlaždice na MENŠOM kruhu
+ *  než jej stred, takže sa rohy stretnú skôr než steny. Násobok 2 to rieši sám —
+ *  7,83 dá 8 rovnako ako predtým, a pri ešte menšom prstenci klesne na 6, nie na 8. */
 function rowCount(latDeg: number, spacing: number): number {
   const raw = (2 * Math.PI * R * Math.cos((latDeg * Math.PI) / 180)) / spacing;
-  // MALÉ PRSTENCE (≤8 dlaždíc) sa na násobok 4 NEZAOKRÚHĽUJÚ (Matej 25. 8.:
-  // „tá posledná rada… sú spojené rohmi (8), dajme len 7"). Dôvod je fyzický:
-  // horná hrana dlaždice leží na MENŠOM kruhu než jej stred, takže pri póloch
-  // sa rohy stretnú skôr než steny — a zaokrúhlenie 6,7 → 8 ich do seba dotlačí.
-  // Pri takom malom prstenci zarovnanie na poludníky aj tak nikto neprečíta.
-  if (raw <= 8) return Math.max(4, Math.round(raw));
-  return Math.round(raw / 4) * 4; // násobok 4 → spoločné poludníky
+  return Math.max(4, Math.round(raw / 2) * 2);
 }
 
 /**
@@ -795,6 +814,37 @@ export function DogPlanetLab({
     return () => window.removeEventListener('resize', prepocitaj);
   }, []);
 
+  /* ── ŠÍRKA GULE JE V PIXELOCH, TAKŽE SA MUSÍ DOPOČÍTAŤ ─────────────────────
+   *  Guľa je 3D útvar poskladaný z translateZ(R) v pixeloch — jej rozmer sa
+   *  s oknom nemení, mení sa iba mierka scény. Kým bola mierka pevná (0,62),
+   *  guľa mala na 390 px obrazovke 410 px a hrana okna jej krájala 16 dlaždíc
+   *  (Matej 28. 8. 2026: „posvieť si na chýbajúce dlaždice na mobile").
+   *  --ball-fit je pomer, pri ktorom sa guľa akurát zmestí; CSS z neho a zo
+   *  stropu 0,57 vyberie menšie číslo, takže na širšom telefóne sa už
+   *  nezväčšuje a na užšom sa zmestí.
+   *  ⚠️ BALL_SPAN nie je 2R. Krajné dlaždice ležia NA povrchu a sú natočené,
+   *  takže guľa je v priemete širšia než 640 px — 662 px je odmerané
+   *  (410,5 px pri mierke 0,62 aj 377,1 px pri 0,57 dávajú to isté číslo).
+   *  ⚠️ Zapisuje sa na <html>, nie na .planet-root: rovnaké číslo potrebuje aj
+   *  hero, ktoré vo výške filmu žije v inej vetve DOM-u.
+   *  ⚠️ Premennú číta LEN mobilné pravidlo; nad 760 px zostáva mierka 1. */
+  useEffect(() => {
+    const BALL_SPAN = 662;
+    const MARGIN = 12;
+    const nastav = () => {
+      document.documentElement.style.setProperty(
+        '--ball-fit',
+        String(Math.max(0.3, (window.innerWidth - MARGIN) / BALL_SPAN)),
+      );
+    };
+    nastav();
+    window.addEventListener('resize', nastav);
+    return () => {
+      window.removeEventListener('resize', nastav);
+      document.documentElement.style.removeProperty('--ball-fit');
+    };
+  }, []);
+
   // Trieda na <body> dvíha nav steny nad overlay planéty (CSS nižšie).
   // Vešia sa tu, lebo tie prvky vlastní stena — planéta ich len prepustí dopredu.
   useEffect(() => {
@@ -871,6 +921,21 @@ export function DogPlanetLab({
     // Ťuk mimo dlaždice = zavretie. Panel tak nemá jediný únikový bod.
     setPicked(dog);
     if (!dog) setHot(null);
+  };
+
+  /* ── PREPÍNANIE PSA ŠÍPKAMI (mobil) ────────────────────────────────────────
+   *  Chodí sa po `dogs`, nie po `tiles`: dlaždíc je 194 a psov býva menej,
+   *  takže po dlaždiciach by sa ten istý pes vracal niekoľkokrát za sebou.
+   *  Poradie v `dogs` je poradie svorky, teda „ďalší" znamená ďalšie číslo,
+   *  nie náhodný sused na guli.
+   *  ⚠️ Hľadá sa identitou prvku, nie podľa `n`: výplňové karty (Hektorova
+   *  dvojička na južnom póle) môžu mať `n` prázdne a `findIndex` by na nich
+   *  vrátil prvého takého psa v zozname, nie toho vybraného. */
+  const stepPicked = (dir: 1 | -1) => {
+    if (!picked || dogs.length < 2) return;
+    const i = dogs.indexOf(picked);
+    if (i < 0) return;
+    setPicked(dogs[(i + dir + dogs.length) % dogs.length]);
   };
 
   /**
@@ -1049,7 +1114,11 @@ export function DogPlanetLab({
           white-space: nowrap;
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: clamp(1.24rem, 5vw, 4.8rem);
+          /* +10 % (Matej 27. 8. 2026: „zvači motto o 10% aj tagline - o 10%“ —
+             a po prvom pokuse: *„ja som myslel ale na globe a nie na wall“*).
+             Všetky tri body clampu naraz, inak by sa zväčšenie prejavilo len
+             v jednom pásme šírok a pri inej šírke okna by zmizlo. */
+          font-size: clamp(1.364rem, 5.5vw, 5.28rem);
           line-height: 1.06;
           letter-spacing: 0.005em;
           text-transform: uppercase;
@@ -1164,7 +1233,8 @@ export function DogPlanetLab({
           white-space: nowrap;
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 600;
-          font-size: clamp(0.62rem, 1.65vw, 1.5rem);
+          /* +10 %, tá istá požiadavka aj to isté pravidlo — celý clamp, nie jeden bod. */
+          font-size: clamp(0.682rem, 1.815vw, 1.65rem);
           line-height: 1.4;
           color: ${LAB.ink};
           /* To isté zhustenie ako pri nadpise — tagline stojí nad tými istými
@@ -1202,24 +1272,50 @@ export function DogPlanetLab({
            toho, aby vytiekol z obrazovky (zalomiť sa nemôže, je nowrap).
            ⚠️ white-space na .ph-h1 tu už nič nerieši — o zalomení rozhodujú
            riadkové bloky .ph-l, ktoré majú nowrap samy. */
-        @media (max-width: 720px) {
+        /* ── 🔴 NA MOBILE SA PÍŠU VIDITEĽNÉ VEĽKOSTI, DELENÉ MIERKOU GULE ────
+           .planet-hero LEŽÍ VNÚTRI .planet-stage, ktorá je na telefóne zmenšená
+           na --ball-k. Číslo napísané v CSS teda NIE JE to, čo človek vidí:
+           pri mierke 0,57 má nadpis so 48 px písmom na obrazovke 27 px. Kým sa
+           tu písali „layoutové" čísla, každá zmena mierky ticho prepísala aj
+           veľkosť písma a naopak (Matej 28. 8. 2026 chcel naraz „NADPIS o 15 %,
+           CTA blok o 25 %, tagline o 10 %" A menšiu guľu — dva protichodné
+           pohyby na jednom prvku).
+           Preto sa clampy píšu v tom, čo je vidno, a delia sa mierkou. Číslo
+           v zátvorke je odteraz to, čo si odmeriaš na obrazovke.
+           ⚠️ Fallback 0,57 nie je ozdoba — pred prvým behom efektu (--ball-fit)
+           by inak delenie prázdnou premennou celé pravidlo zahodilo.
+           ⚠️ BREAKPOINT ZJEDNOTENÝ NA 760 px. Text mal 720 a mierka gule 760,
+           takže v pásme 721–760 px stálo desktopové písmo v zmenšenej guli —
+           nadpis tam mal 25 viditeľných px. Teraz sa oboje prepína naraz. */
+        @media (max-width: 760px) {
+          /* Menšie z dvoch: strop, ktorý si Matej odsúhlasil, a mierka, pri
+             ktorej sa guľa ešte zmestí do okna (viď --ball-fit v efekte). */
+          .planet-root { --ball-k: min(0.57, var(--ball-fit, 0.57)); }
+
           .ph-h1 {
             white-space: normal;
-            font-size: clamp(2.4rem, 12.4vw, 4.35rem);
+            /* VIDITEĽNE clamp(1.711rem, 8.841vw, 3.103rem) — pôvodok × 1,15 */
+            font-size: calc(clamp(1.711rem, 8.841vw, 3.103rem) / var(--ball-k, 0.57));
             line-height: 1.04;
           }
           .planet-hero .ph-lead {
             white-space: normal;
             max-width: 24ch;
-            font-size: clamp(0.92rem, 3.7vw, 1.1rem);
+            /* VIDITEĽNE clamp(0.627rem, 2.523vw, 0.75rem) — pôvodok × 1,10 */
+            font-size: calc(clamp(0.627rem, 2.523vw, 0.75rem) / var(--ball-k, 0.57));
           }
-          /* ⚠️ 98vw, nie 92vw — nadpis potrebuje na telefóne každý pixel.
-             Rozšírené druhýkrát, keď DOG a GOD prešli do Cinzel Decorative:
-             tá je o ~2,8 % širšia než Cinzel, čo pri 96vw zožralo tretinu
-             rezervy (18 px namiesto 27 pri 390 px okne). Rezerva ~7 % je to
-             jediné, čo tu chráni pred pretečením — riadky sú nowrap, takže sa
-             zalomiť nemôžu a keď sa nezmestia, vytečú. */
-          .planet-hero { gap: 14px; width: 98vw; }
+          /* ⚠️ ŠÍRKA MUSÍ RÁSŤ S PÍSMOM, INAK SA REZERVA ZJE. Nadpis je nowrap,
+             takže jediné, čo ho drží v obrazovke, je rezerva medzi šírkou riadka
+             a šírkou tejto priehradky (~7 %). Preto je aj tu VIDITEĽNÉ číslo
+             delené tou istou mierkou — pri pevnej šírke a väčšom písme by riadok
+             priehradku prerástol a vytiekol.
+             69,9vw = pôvodných 98vw (layout) × 0,62 (vtedajšia mierka) × 1,2509.
+             (Historicky: 98vw, nie 92vw, lebo Cinzel Decorative pri DOG a GOD
+             je o ~2,8 % širšia než Cinzel a pri 96vw zožrala tretinu rezervy.) */
+          .planet-hero {
+            gap: calc(10px / var(--ball-k, 0.57));
+            width: calc(69.9vw / var(--ball-k, 0.57));
+          }
         }
 
         /* ── KÓTY ────────────────────────────────────────────────────────────
@@ -1472,16 +1568,41 @@ export function DogPlanetLab({
           transition: box-shadow 200ms ease, background 200ms ease;
         }
         .pp-link:hover { background: rgba(255,250,236,0.85); box-shadow: 0 0 12px rgba(201,154,63,0.4); }
-        .pp-x {
+        /* ── ŠÍPKY PREPÍNANIA (mobil) ────────────────────────────────────────
+           Visia cez hranu karty, zvisle na jej strede. Vzhľad je odliatok pečate
+           s poradovým číslom (.pp-seal) — tá istá zlatá pilulka s krémovým lemom,
+           aby to na karte bola jedna rodina, nie druhý jazyk tlačidiel.
+           ⚠️ Základ je display:none — zapína ich až mobilný blok na konci súboru.
+           ⚠️ Karta nesmie mať overflow, inak ich odreže (viď tam). */
+        .pp-nav {
+          display: none;
           position: absolute;
-          width: 28px; height: 28px;
-          display: flex; align-items: center; justify-content: center;
-          border: none;
-          background: transparent;
-          color: rgba(58,36,8,0.5);
+          top: 50%;
+          margin-top: -17px;
+          width: 34px; height: 34px;
+          align-items: center; justify-content: center;
+          padding: 0;
+          border-radius: 50%;
+          /* LAPIS (Matej 28. 8. 2026: „zmeň posuvníky na detaile psa na lapis").
+             Sedí to s pravidlom z navGoldSkin.ts — zlato je konštrukcia („kde
+             som"), lapis je akcia („čo urobím"), a šípka je jediná akcia na tejto
+             karte okrem odkazu na stránku psa. Zlatý inkoust NA lapise nie je
+             ozdoba: lapis + zlato je pôvodná egyptská dvojica, bez nej je z toho
+             len tmavý krúžok bez príslušnosti k brandu.
+             ⚠️ Predtým bola šípka odliatok zlatej pečate .pp-seal — a práve preto
+             sa strácala: na papyruse boli pečať, pilulka dní aj šípka tá istá
+             zlatá, teda tri rovnako dôležité veci, z ktorých ani jedna neviedla. */
+          background: ${LAPIS.grad};
+          border: 1.5px solid ${LAPIS.edge};
+          box-shadow: ${LAPIS_BTN_SHADOW};
+          color: ${LAPIS.ink};
           cursor: pointer;
+          z-index: 2;
         }
-        .pp-x:hover { color: #6E4E18; }
+        .pp-nav:hover { background: ${LAPIS.gradHover}; }
+        .pp-nav:active { transform: scale(0.94); }
+        .pp-nav--prev { left: -13px; }
+        .pp-nav--next { right: -13px; }
 
         /* FOTKA S PEČAŤOU. Číslo sedí na SPODNEJ HRANE fotky, vodorovne v strede —
            na centrovanej karte je stred jediná os, ktorú oko sleduje, a pečať
@@ -1581,7 +1702,6 @@ export function DogPlanetLab({
           padding: 34px 38px 36px;
           border-radius: 16px;
         }
-        .pp-panel > .pp-x { top: 12px; right: 12px; }
         .pp-msg { -webkit-line-clamp: 10; }
 
         /* ── PODOBA A: KARTA (pôvodná — referencia) ───────────────────────────
@@ -1670,11 +1790,12 @@ export function DogPlanetLab({
           pointer-events: none;
           z-index: -1;
         }
+        /* ⚠️ Toto pravidlo je silnejšie než trieda samotného prvku, takže
+           absolútne pozicovaným deťom karty prepíše position na relative a tie
+           spadnú do toku ako prvá položka. Šípky (.pp-nav) sa mu vyhnú tým, že
+           majú vlastnú deklaráciu position s rovnakou váhou nižšie. */
         .d-papyrus .pp-panel > * { position: relative; z-index: 1; }
-        /* ⚠️ Pravidlo vyššie je silnejšie než .pp-x, takže krížiku prepísalo
-           position na relative a ten spadol do toku ako prvá položka. Musí sa
-           vrátiť s rovnakou váhou, nie nižšou. */
-        .d-papyrus .pp-panel > .pp-x { position: absolute; }
+        .d-papyrus .pp-panel > .pp-nav { position: absolute; }
         .d-papyrus .pp-rule { background: rgba(110,78,24,0.38); }
         .d-papyrus .pp-msg { color: rgba(42,22,8,0.78); }
         .d-papyrus .pp-photo { border-color: #B3822D; }
@@ -1718,8 +1839,6 @@ export function DogPlanetLab({
           border-color: rgba(201,154,63,0.55);
         }
         .d-noc .pp-link:hover { background: rgba(201,154,63,0.26); box-shadow: 0 0 14px rgba(201,154,63,0.35); }
-        .d-noc .pp-x { color: rgba(246,236,212,0.55); }
-        .d-noc .pp-x:hover { color: #F5C73D; }
 
 
         /* ══ POZADIE SCÉNY ═══════════════════════════════════════════════════
@@ -1841,21 +1960,95 @@ export function DogPlanetLab({
 
         @media (max-width: 760px) {
           .planet-stage { transform: scale(1.75) translateZ(0); }
-          .planet-root.open .planet-stage { transform: scale(calc(0.62 * var(--op-sc, 1))); }
+          /* ── 🔴 GUĽA SA NEZMESTILA DO OBRAZOVKY ─────────────────────────────
+             Matej 28. 8. 2026: „posvieť si na chýbajúce dlaždice na mobile."
+             Odmerané na 390 px okne pri pôvodnej mierke 0,62: krajné dlaždice
+             ležali od −10,3 px do 400,2 px, teda guľa bola 410 px široká na
+             390 px obrazovke a 16 zo 194 dlaždíc jej krájala hrana okna.
+             Nechýbali — boli useknuté.
+             ⚠️ Strop 0,57 sám nestačí: je to pevné číslo a guľa je pevná v px,
+             takže na 360 px telefóne by krájalo znova (odskúšané: 13 dlaždíc).
+             Preto min() s dopočítaným --ball-fit.
+             ⚠️ --op-sc je násobič filmu, nie hotová mierka (viď hlavné pravidlo). */
+          .planet-root.open .planet-stage { transform: scale(calc(var(--ball-k, 0.57) * var(--op-sc, 1))); }
           .planet-hero img { width: 104px; }
 
-          /* BOK sa na mobile mení na ZHORA (Matej 25. 8.: „na mobile z vrchu").
-             Zboku by pri 390 px ostal z gule pásik. */
-          .v-side .pp-panel {
-            top: 0; right: 0; left: 0;
-            width: auto;
-            max-height: 62vh;
-            transform: translateY(-102%);
-          }
-          .planet-root.pop.v-side .pp-panel { transform: translateY(0); }
-          .planet-root.open.pop.v-side .planet-stage { transform: translateY(124px) scale(calc(0.62 * var(--op-sc, 1))); }
+          /* CTA BLOK: −25 % (Matej 27. 8.) a teraz +25 % (Matej 28. 8. 2026:
+             „CTA blok o 25 %"). Škáluje sa JEDNA premenná — lem, ikonka, popisok
+             aj poznámka sú jej násobky, takže sa stiahnu s ňou a nič ďalšie sa
+             neladí. VIDITEĽNE clamp(99.7px, 9.36vw, 120px).
+             🔴 TRI KOLÁ ZVÄČŠOVANIA V JEDEN DEŇ (27. 8. bol portál na mobile −25 %):
+             +25 % → +25 % → +40 %, spolu 2,19× oproti včerajšku. Posledné kolo je
+             Matejovo *„stále sa mi zdá malý CTA blok na mobile"*, teda tretie po
+             sebe idúce „ešte väčší" — preto je krok výrazný a nie ďalších 25 %.
+             Referencia, ktorá tú veľkosť drží: dlaždica psa má na obrazovke 31 px,
+             portál teda 3,2× dlaždicu (na PC je pomer 2,15× a tam Matej výhrady nemal).
+             ⚠️ Aj tu celý clamp, nie jeden bod: pri zmene len stropu by portál
+             na úzkom telefóne ostal v pôvodnej veľkosti. */
+          .planet-hero .ph-portal { --ph-w: calc(clamp(99.7px, 9.36vw, 120px) / var(--ball-k, 0.57)); }
 
-          .planet-root .pp-panel { min-height: 0; }
+          /* ── 🔴 DETAIL PSA = STRED OBRAZOVKY, NIE ZÁSUVKA ZHORA ─────────────
+             Matej 28. 8. 2026: „treba opraviť otváranie psov na mobile
+             z planétky — zarovnať popup do stredu obrazovky a zmenšiť to, aby
+             to celé vošlo, + vytvoriť tam šípky doprava a doľava."
+             Zásuvka zhora (25. 8.: „na mobile z vrchu") mala dve chyby, ktoré sa
+             ukázali až po tom, čo nad ňu prišiel horný nav: karta začínala na
+             y = 0, takže jej fotku aj krížik prekryla lišta, a guľa sa jej musela
+             uhýbať o 124 px dole, čím sa z filmu vysunula. Vycentrovaná karta
+             nepotrebuje ani jedno.
+             ⚠️ ŽIADNY overflow NA PANELI. Šípky visia cez jeho hranu (left/right
+             záporné) a scrollovací kontajner by ich odrezal — preto sa výška rieši
+             zmenšením obsahu nižšie, nie posúvaním. */
+          .v-side .pp-panel {
+            top: 50%; left: 50%; right: auto; bottom: auto;
+            width: min(320px, 84vw);
+            max-height: none;
+            transform: translate(-50%, -50%) scale(0.92);
+            transition: transform 380ms cubic-bezier(.22,.9,.28,1), opacity 260ms ease;
+          }
+          .planet-root.pop.v-side .pp-panel { transform: translate(-50%, -50%) scale(1); }
+          /* Guľa sa NEUHÝBA — karta jej stojí na strede a cesta späť je ťuknutie
+             vedľa nej (obsluha je na .planet-root, guľa je z nej vyňatá). */
+          .planet-root.open.pop.v-side .planet-stage { transform: scale(calc(var(--ball-k, 0.57) * var(--op-sc, 1))); }
+
+          /* ── 🔴 JEDNOTNÝ BLOK, DIMENZOVANÝ NA NAJDLHŠÍ TEXT ─────────────────
+             Matej 28. 8. 2026: „ujasni jednotný blok na detail psa napr podľa
+             hektora ktorý ma najdlhší text… zmenši písmo aj obsah ak je treba
+             aby sa to zmestilo."
+             Karta mala min-height: 0, takže jej výšku určoval pes — pri prepínaní
+             šípkami sa pri každom ďalšom preskladala. Dnes má PEVNÚ výšku a obsah
+             v nej stojí na stred (justify-content: center dedí z pravidla pre PC);
+             kratší text nechá vzduch, nie iný tvar.
+             ROZPOČET (odmerané na 390 px, Hektorov text 340 znakov = najdlhší):
+               výplň 38 · 6 medzier 60 · fotka 92 · meno 26 · život 19 · čiara 1 ·
+               heroglyf 54 · text 7 riadkov 118 · odkaz 30  = 441 px
+             Pri pôvodných veľkostiach mal ten istý text 519 px, teda −15 % na obsahu.
+             ⚠️ line-clamp 9 a min-height 473 sú DVE STRANY JEDNEJ HODNOTY a sú
+             ZÁMERNE zosúladené: pri strope clampu (9 riadkov) meria karta 475 px,
+             teda to isté, čo jej dáva min-height. Hektor tak nechá 2 riadky rezervy
+             pre dlhší text a nikto nevidí ani pretečenie, ani prázdno pod odkazom.
+             Kto zmení jedno číslo, prepočíta druhé (riadok = 16,8 px).
+             ⚠️ Strop 80vh je poistka pre nízke okno; pri bežnom telefóne (780 px)
+             je karta 473 px, teda 61 %. */
+          .planet-root .pp-panel {
+            min-height: min(473px, 80vh);
+            gap: 10px; padding: 20px 20px 18px;
+          }
+          .planet-root .pp-photo { width: 92px; height: 92px; }
+          .planet-root .pp-seal { font-size: 0.76rem; padding: 2px 10px; bottom: -9px; }
+          .planet-root .pp-name { font-size: 1.35rem; }
+          .planet-root .pp-life-label { font-size: 0.56rem; }
+          .planet-root .pp-days { font-size: 0.76rem; padding: 3px 11px; }
+          .planet-root .pp-glyph { width: 74%; max-width: 200px; }
+          .planet-root .pp-msg { font-size: 0.7rem; line-height: 1.5; -webkit-line-clamp: 9; }
+          .planet-root .pp-link { font-size: 0.58rem; padding: 7px 15px; }
+
+          /* ── ŠÍPKY: PREPÍNANIE PSA BEZ NÁVRATU NA GUĽU ──────────────────────
+             Existujú LEN na mobile, a je to úmysel, nie nedorobok: na PC stojí
+             karta bokom a guľa ostáva celá klikateľná, takže ďalší pes je na
+             dosah priamo. Na telefóne karta guľu prekryje, takže bez šípok by
+             cesta k ďalšiemu psovi viedla vždy cez zavretie karty. */
+          .pp-nav { display: inline-flex; }
         }
       `}</style>
 
@@ -2042,11 +2235,31 @@ export function DogPlanetLab({
           sa pri prvej úprave rozišli. */}
       {picked && (
         <div className="pp-panel" role="dialog" aria-label={picked.name}>
-          <button className="pp-x" onClick={() => setPicked(null)} aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
+          {/* 🔴 KRÍŽIK TU BOL A ZANIKOL (Matej 28. 8. 2026: „pri bloku detail psa
+              daj preč krížik = klik vedla stačí"). Cesta von je dvojitá a obe
+              existovali už predtým, takže sa nič nestratilo: klik kamkoľvek mimo
+              karty (obsluha na .planet-root, guľa je z nej vyňatá kvôli ťahu)
+              a Escape (useEffect s `if (picked) setPicked(null)`).
+              ⚠️ Kto by ho chcel vrátiť, vracia aj CSS — pravidlá .pp-x sú zmazané,
+              vrátane výnimky pre .d-papyrus, kde mu `.pp-panel > *` prepisovalo
+              position na relative a krížik padal do toku ako prvá položka. */}
+          {/* Šípky sú SÚRODENCI obsahu karty, nie samostatná vrstva nad ňou —
+              tak sa hýbu spolu s ňou pri príchode aj odchode. Na PC sú skryté
+              (viď .pp-nav), takže sa tam nič nemení. */}
+          {dogs.length > 1 && (
+            <>
+              <button className="pp-nav pp-nav--prev" onClick={() => stepPicked(-1)} aria-label="Previous dog">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M15 5l-7 7 7 7" />
+                </svg>
+              </button>
+              <button className="pp-nav pp-nav--next" onClick={() => stepPicked(1)} aria-label="Next dog">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
           {/* JEDNA OS ZHORA NADOL (Matej 25. 8.: „teraz je to nelogické rozmiestnenie
               — skúsme to centrovať = fotka, pod ňou meno, za menom číslo a pod menom
               žijem si naplno / dní, pod tým heroglyf", potom výber varianty C).

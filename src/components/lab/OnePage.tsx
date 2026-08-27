@@ -27,7 +27,6 @@
 //    to nechytí. Po zásahu do štýlov vždy `npm run build`.
 // ════════════════════════════════════════════════════════════════════════════
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Fragment } from 'react';
 import { useT } from '@/i18n/LanguageContext';
 import LanguagePicker from '@/components/LanguagePicker';
 import { HandHouseHeart } from '@/components/pack/HandIcons';
@@ -51,6 +50,7 @@ import {
   NAV_PILL_SHADOW,
   NAV_GRAIN_SCREEN_CSS,
 } from '@/components/pack/navGoldSkin';
+import NavMedallion, { NAV_MEDALLION_CSS } from './NavMedallion';
 
 // ── Poradie obrazov filmu je NA JEDNOM MIESTE ───────────────────────────────
 // Nav aj sledovanie aktívnej sekcie čítajú TOTO pole. Video a vízia sú jedna
@@ -124,20 +124,30 @@ const ANIMALS_IN: readonly [number, number] = [0.10, 0.74];
 /** Text v strede nastupuje posledný, ale do toho istého záberu — nie až za ním. */
 const TEXT_IN: readonly [number, number] = [0.24, 0.92];
 /**
- * SVÄTOŽIARA HEKTORA — pointa výjavu (Matej 27. 8. 2026). Rozsvieti sa až keď
- * scroll dopíše „AND NOT ONE OF THEM BOWS."; krava ju má od začiatku.
+ * SVÄTOŽIARA HEKTORA — pointa výjavu (Matej 27. 8. 2026). Krava ju má od začiatku,
+ * Hektorova sa rozsvieti až na konci argumentu.
  *
  * 🔴 VLASTNÝ VÝSEK, NIE PRAH NA `--op-txt`. Prahy textu platia len pre variant 1
  * (šesť blokov, --tx-at). Variant 2 sa píše po znakoch a jeho posledný znak
  * dobieha až na `--op-txt` ≈ 1, takže prah odvodený z blokov by v ňom halo
- * rozsvietil doprostred vety. Výsek začínajúci TAM, kde TEXT_IN končí, je za
- * textom v OBOCH variantoch — a nemusí o nich nič vedieť.
- * ⚠️ HORNÝ KONIEC JE 1.0 ZÁMERNE. Film SNAPUJE po obrazovkách (html má
- * scroll-snap-type: y), takže `p` = 1.0 JE odpočívadlo — nie prekmit. Výsek
- * tak vyplní posledných ~216 px cesty na to odpočívadlo a halo dorazí presne
- * vtedy, keď sa scroll zastaví. Kratší výsek by pri snape prebehol ako blik.
+ * rozsvietil doprostred vety. Vlastný výsek je nezávislý od oboch variantov.
+ *
+ * 🔴 ZAČÍNA S CTA, NIE AŽ ZA NÍM (Matej 28. 8. 2026: *„v tomto momente, ešte keď
+ * sa nenačíta CTA, by sa mala zobraziť aj svätožiara — lebo sa zobrazí neskôr
+ * a takmer to človek nezachytí."*). Pôvodných [0.92, 1.0] bolo postavených na
+ * úvahe, že halo je odmena za doscrollovanie a má doraziť presne na odpočívadlo
+ * snapu. Lenže tým padlo do posledných ~200 px dráhy, kde už scroll dobieha
+ * zotrvačnosťou — človek sa medzitým pozerá na CTA v strede, a svetlo nad psom
+ * na kraji obrazovky mu prebehne mimo pohľadu. Teraz nabieha SÚBEŽNE s CTA
+ * a dosvieti ešte pred koncom dráhy — je teda na obrazovke dosť dlho na to, aby
+ * si ho niekto všimol, a na odpočívadle už len svieti.
+ *
+ * ⚠️ SPODNÁ HRANICA SA VIAŽE NA CTA, NIE NA KONIEC DRÁHY. Odmerané vo variante 1
+ * (ten Matej používa): 4. blok — CTA — nabieha od `p` ≈ 0.648 a dopĺňa sa
+ * na 0.821. Výsek 0.60–0.82 teda leží presne na ňom. Keby halo skĺzlo výrazne
+ * nižšie, rozsvieti sa uprostred „YET." a prestane byť odpoveďou naň.
  */
-const HALO_IN: readonly [number, number] = [0.92, 1.0];
+const HALO_IN: readonly [number, number] = [0.60, 0.82];
 /**
  * Kedy sa spodná lišta prezlečie z nástrojov na CTA chip.
  * Viazané na dráhu prechodu, nie na vlastný prah v pixeloch — je to výmena
@@ -283,15 +293,25 @@ export default function OnePage() {
       // Sedí na bleede (tam žijú obe zvieratá aj obe halá), nie na texte.
       put(n.bleed, 'hl', '--op-halo', seg(p, HALO_IN[0], HALO_IN[1]).toFixed(3));
 
-      // Krava a Hektor patria PRVÉMU výjavu — na preambule a ústave musia ustúpiť,
-      // inak tmavý pes zožerie konce riadkov. Prvý výjav sa odlepí na konci
-      // prechodu a odchádza ďalšiu obrazovku, teda stlmiť sa má až za ňou.
-      const relEnd = span + vh;
-      const dim = clamp01((window.scrollY - (relEnd - vh * 0.45)) / (vh * 0.45));
+      // KRAVA A HEKTOR: ODSUN A STLMENIE SÚ OD 28. 8. 2026 DVE RÔZNE UDALOSTI.
+      // Matej: *„pri prechode na 3 slajd krava aj pes vybledne — oprav to,
+      // nebude bledý, vyblednú až na 4 DOGMA."*
+      // Obrazovky filmu: 0–(PIN_VH+1) prilepený výjav · +1 preambula · +2 kniha.
+      //
+      // ODSUN DO STRÁN ostáva na preambule (nezmenené). Nie je to kozmetika:
+      // pri plnej sile a bez odsunu tmavý Hektor zožerie konce piatich riadkov
+      // („KAŽDÉHO", „POSTAVENIE", „OSUD", „ÚSTAVU" — odskúšané a odfotené).
+      // Zúžiť text nepomôže: pri 1440 px siaha psí ňufák po 878 px, čo je 158 px
+      // od stredu — stĺpec by musel mať 316 px.
+      const sideAt = span + vh;
+      const side = clamp01((window.scrollY - (sideAt - vh * 0.45)) / (vh * 0.45));
+      put(n.bleed, 'sd', '--op-side', side.toFixed(3));
+      // STLMENIE sa presunulo o obrazovku ďalej — na knihu. Preambula je stále
+      // výjav kravy a psa a rám z nich je tam ŽELANÝ; ustúpiť majú až ústave,
+      // ktorá je hustá na obsah.
+      const bookAt = span + vh * 2;
+      const dim = clamp01((window.scrollY - (bookAt - vh * 0.45)) / (vh * 0.45));
       put(n.bleed, 'bl', '--op-bleed', (1 - dim * 0.74).toFixed(3));
-      // Odsun do strán ide po TEJ ISTEJ dráhe ako stlmenie — je to jeden odchod
-      // z výjavu, nie dve nezávislé udalosti.
-      put(n.bleed, 'sd', '--op-side', dim.toFixed(3));
 
       // Tieto tri sa menia DVAKRÁT za celý film, tak smú ostať premennými.
       const gone = o <= 0.002;
@@ -454,7 +474,15 @@ export default function OnePage() {
            aj toto — takže zámok popupu ostáva funkčný. */
         html body { overflow: visible; }
 
-        .op-root { position: relative; background: ${LAB.pageBg}; }
+        .op-root {
+          position: relative;
+          background: ${LAB.pageBg};
+          /* KOĽKO OBRAZOVKY ZHORA ZABERÁ HORNÁ LIŠTA. Medailón vystupuje nad ňu
+             (.nav-top top 30 − MEDAL.lift 28 = 2, priemer 100 ⇒ spodok 112 px),
+             zvyšok je vzduch pod ním. Kto číta výšku lišty, číta TOTO — nie
+             vlastné číslo. Mobil: top 34 − 28 = 6 ⇒ spodok 106. */
+          --op-nav-h: 124px;
+        }
         .op-root::before {
           content: '';
           position: fixed;
@@ -609,9 +637,20 @@ export default function OnePage() {
            z neho človeka stále vyhodí. proximity snapne len vtedy, keď ťah
            skončí blízko hrany, a uprostred dlhého bloku nechá čítať.
 
-           scroll-snap-stop: always je tá druhá polovica a robí presne to, čo
-           Matej pýta: rýchly švih kolieskom NESMIE bod preletieť, zastaví na
-           najbližšom. Bez neho by proximity na dlhom ťahu preskočila obrazy.
+           🔴 scroll-snap-stop: always TU BOLO A JE PREČ (Matej 28. 8. 2026:
+           *„nemám pocit že je to plynulé 1-2-2-3… malo by to byť smooth na jedno
+           potiahnutie + prichytenie na viewport obrazovky, bez zbytočného
+           zápasenia, ľahký snap nemusí byť agresívny — je to prezentácia, kto
+           začne swajpovať nenarazí na odpor, skôr ho hodí ďalej než dozadu."*).
+           Robilo presný opak toho, čo malo: značky v prechode stoja po jednej
+           obrazovke, takže KAŽDÝ ťah kolieskom sa zastavil na tej najbližšej
+           a odchod gule sa rozpadol na tri vynútené zastávky namiesto jedného
+           plynulého pohybu. To je to „1-2-2-3". Bez neho ostáva proximity: ťah
+           dobehne zotrvačnosťou a odpočinie na najbližšej značke — teda sa
+           prichytí na obrazovku, ale nikoho po ceste nezastaví.
+           ⚠️ Cena je vedomá: rýchly švih vie teraz prechod preletieť. Matej to
+           v tom istom zadaní berie („kto začne swajpovať… skôr ho hodí ďalej").
+           Kto scrolluje normálne, choreografiu vidí celú.
 
            ⚠️ Nie je to nový nápad v tomto súbore — VisionLab.tsx má ten istý
            recept (html scroll-snap-type: y proximity + .wf-pin) a je vo
@@ -637,7 +676,6 @@ export default function OnePage() {
           .op-root .op-timeline,
           .op-root #op-join {
             scroll-snap-align: start;
-            scroll-snap-stop: always;
           }
           /* Podpis a pätička snap bod NEMAJÚ — koniec stránky nie je obraz
              a zastavenie na ňom by bránilo dojazdu na pätu. */
@@ -660,6 +698,149 @@ export default function OnePage() {
           top: 0;
           height: 100dvh;
           min-height: 100dvh;
+        }
+
+        /* ── PREAMBULA SA MUSÍ ZMESTIŤ POD LIŠTU ──────────────────────────
+           Matej 28. 8. 2026 (screenshot zastavenej obrazovky): *„musíme to
+           všetko zmenšiť a centrovať tak, aby sa to vošlo pod NAV BAR."*
+
+           Príčina merateľná, nie odhadnutá: výjav je stavaný na 100dvh a
+           centruje sa v CELEJ obrazovke, lenže horná lišta je fixed a siaha
+           s medailónom po 112 px. Obsah preambuly meria pri 1512×704 spolu
+           572 px a začína 100 px od vrchu sekcie — teda 12 px POD spodkom
+           medailónu, čiže nadpis IN DOG lezie do lišty. Na Matejovom okne
+           (~550 px na výšku) chýba ešte vyše 170 px a výjav sa zreže.
+
+           Riešenie má dve polovice a obe sú nutné:
+             1. sekcia si hore rezervuje výšku lišty (--op-nav-h) a centruje
+                sa v tom, čo ostane — takže „stred" je stred VIDITEĽNEJ plochy,
+                nie stred okna;
+             2. písmo a rozostupy dostávajú strop vo vh, takže na nízkom okne
+                klesnú samy. Bez druhej polovice by prvá len posunula rez nižšie.
+
+           ⚠️ Scoped na film ZÁMERNE. .codex-headline a spol. majú v
+           ReligionLab.tsx 🔒 LOCK PC HARD (2026-05-24) a samostatná
+           /religion-lab hornú lištu nemá — problém je náš, tak aj oprava.
+           Odmerané po zásahu (obsah / voľné miesto pod lištou): 1000×547
+           167→491 px · 1000×450 158→405 · 1000×676 208→576 · 1512×704
+           188→624. Všade centrované a s rezervou hore aj dole. */
+        .op-root #op-religion .codex-section[data-idx="1"] {
+          box-sizing: border-box;
+          padding-top: var(--op-nav-h);
+          padding-bottom: clamp(10px, 2.4vh, 28px);
+          align-items: center;
+        }
+        /* .codex-flow .codex-slider ma min-height: 100dvh — vnútri sekcie
+           s rezervou hore by to bola presne tá výška, ktorá sa nezmestí. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-slider {
+          height: auto;
+          min-height: 0;
+        }
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-slide {
+          padding-top: 0;
+          padding-bottom: 0;
+        }
+        /* Veľkosti sa NEPREPISUJÚ, len STROPUJÚ VÝŠKOU OKNA. Vnútri min() sedí
+           presne pôvodná hodnota z ReligionLab.tsx — na vysokom okne teda platí
+           doteraz odsúhlasený vzhľad a na nízkom klesne len o toľko, o koľko
+           treba. Prepísať ich vlastnými číslami by znamenalo ladiť LOCKED
+           typografiu nanovo, a to zadanie nepýta. */
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
+          font-size: min(clamp(2.71rem, 6.5vw, 5.05rem), 9.3vh);
+        }
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-wrap {
+          max-width: 720px;
+          padding: min(clamp(26px, 3.6vh, 44px), 3.4vh) clamp(22px, 3.4vw, 44px);
+        }
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
+          font-size: min(clamp(1.09rem, 1.66vw, 1.47rem), 3.15vh);
+          line-height: 1.5;
+        }
+        .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > * + * {
+          margin-top: min(clamp(28px, 4.5vh, 48px), 3.6vh);
+        }
+        @media (max-width: 767px) {
+          /* Mobil má vlastné (LOCKED) hodnoty a musí sa uviesť zvlášť: pravidlo
+             vyššie nesie DESKTOPOVÝ clamp, takže bez tejto vetvy by nadpis na
+             390 px spadol zo 44,8 px (2.8rem) na 25 px (6.5vw). */
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-headline {
+            font-size: min(2.8rem, 9.3vh);
+          }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-preamble-text {
+            font-size: min(14px, 3.15vh);
+            line-height: 1.4;
+          }
+          .op-root #op-religion .codex-section[data-idx="1"] .codex-slide > * + * {
+            margin-top: min(clamp(18px, 3vh, 28px), 3.6vh);
+          }
+        }
+
+        /* ── ÚSTAVA: NADPIS POD KNIHOU, CHIP POD NADPISOM ─────────────────
+           Matej 28. 8. 2026: *„musíme dať nadpis (biblia…) pod knihu a pod
+           nadpis mini chip s infom o otvorení knihy."*
+
+           Na samostatnej /religion-lab visí nadpis absolútne NAD knihou. Vo
+           filme mu tam stojí horná lišta: odmerané 21–59 px od vrchu sekcie,
+           teda celý pod medailónom (spodok 112 px) — nebolo ho vidieť vôbec.
+           Poradie je preto obrátené: kniha → nadpis → chip, a celý stĺpec sa
+           centruje POD lištou (--op-nav-h, ten istý zdroj ako preambula).
+
+           Nadpis je v DOM-e vnútri .cb-wrap (prop belowBook), aby zdieľal
+           sústavu s chipom — ten sa kotví cez --cb-h, ktoré žije práve tam.
+
+           🔴 CHIP AJ NADPIS IDÚ DO TOKU. Na PC je .cb-hint absolútny s
+           dopočítanou polohou od stredu knihy; s nadpisom medzi nimi by sa
+           tá istá vzdialenosť musela počítať dvakrát a rozišla by sa pri
+           prvej zmene písma. V toku ich drží poradie v DOM-e.
+           ⚠️ Cena: keď sa kniha OTVORÍ, chip zmizne (nahradia ho šípky, tie
+           absolútne ostávajú) a nadpis vyskočí o jeho výšku hore. Je to
+           jednorazový posun v momente, keď sa aj tak mení celý výjav.
+
+           ⚠️ scale(0.85) NEMENÍ miesto v layoute — kniha si drží box --cb-h,
+           hoci vizuálne meria 0.85 z neho. Bez záporného okraja by pod ňou
+           ostalo 7,5 % mŕtveho pásu na každej strane (pri 1440×704 to je 37 px)
+           a nadpis by visel priďaleko. Preto margin-block. */
+        .op-root #op-religion .codex-section[data-idx="2"] {
+          box-sizing: border-box;
+          padding-top: var(--op-nav-h);
+          padding-bottom: clamp(8px, 2vh, 24px);
+        }
+        .op-root #op-religion .codex-section[data-idx="2"] .codex-slider,
+        .op-root #op-religion .codex-section[data-idx="2"] .codex-slide {
+          height: auto;
+          min-height: 0;
+        }
+        .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap {
+          height: auto;
+          gap: 0;
+        }
+        /* MIERKA KNIHY JE PREMENNÁ, NIE ČÍSLO. calcDims() v ConstitutionBook
+           berie knihe 70 % výšky okna, čo pri pôvodnom scale 0.85 nenechá pod ňou
+           miesto na nadpis a chip: pri 1000×547 preliezol stĺpec obrazovku
+           o 19 px. Na nízkom okne preto kniha ustúpi — a záporný okraj sa počíta
+           Z TEJ ISTEJ premennej, inak by pod knihou ostal mŕtvy pás
+           ((1 − k) / 2 z --cb-h) presne vtedy, keď je miesta najmenej. */
+        .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap { --op-bookk: 0.85; }
+        @media (max-height: 660px) {
+          .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap { --op-bookk: 0.74; }
+        }
+        @media (max-height: 520px) {
+          .op-root #op-religion .codex-section[data-idx="2"] .cb-wrap { --op-bookk: 0.66; }
+        }
+        .op-root #op-religion .codex-section[data-idx="2"] .cb-stage {
+          transform: scale(var(--op-bookk));
+          margin-block: calc(var(--cb-h) * (var(--op-bookk) - 1) / 2);
+        }
+        .op-root #op-religion .codex-book-title--below {
+          position: static;
+          transform: none;
+          margin-top: clamp(8px, 1.8vh, 16px);
+          white-space: normal;
+        }
+        .op-root #op-religion .codex-section[data-idx="2"] .cb-hint {
+          position: static;
+          transform: none;
+          margin-top: clamp(6px, 1.2vh, 12px);
         }
 
         /* ── KRAVA A HEKTOR: PRÍCHOD AJ ODCHOD JEDNOU ROVNICOU ────────────
@@ -740,11 +921,15 @@ export default function OnePage() {
            sa nemá s čím biť — človek si tempo čítania riadi scrollom sám a pri
            scrollovaní späť sa veta rovnako zloží.
            Každý riadok má vlastný prah --tx-at; od neho nabehne za ~0,29 dielika
-           (1/3.4). Prahy kopírujú stavbu argumentu, nie rovnomerný stagger:
-             0.00 / 0.08  krava (číslo + „bow to the cow")
-             0.20 / 0.28  pes — pauza, prichádza druhá strana
-             0.44         obvinenie „AND NOT ONE OF THEM BOWS." (najväčšia pauza)
-             0.60         CTA
+           (1/3.4). Prahy kopírujú stavbu argumentu, nie rovnomerný stagger.
+           Od 27. 8. 2026 sú bloky ŠTYRI (nový texting „YET.", predtým šesť):
+             0.00  krava — A COW HAS 1.2 BILLION BELIEVERS
+             0.20  pes — A DOG HAS NONE (pauza, prichádza druhá strana)
+             0.44  YET. (najväčšia pauza — obrat má doraziť do ticha)
+             0.64  CTA
+           Svätožiara Hektora ostáva ÚPLNE POSLEDNÁ (HALO_IN 0.92–1.0): „YET."
+           teda stojí na obrazovke, keď sa svetlo rozsvieti — slovo je sľub,
+           svetlo jeho splnenie. Preto sa poradie nemá prehadzovať.
            ⚠️ Posledný prah + 0.29 musí ostať pod 1.0, inak sa CTA nedopočíta do
            plnej krycej hodnoty a ostane priesvitné aj na konci výjavu. */
         .op-root #op-religion .codex-section[data-idx="0"] .codex-3-overlay > * {
@@ -778,11 +963,9 @@ export default function OnePage() {
           opacity: clamp(0, calc((var(--op-txt, 1) * var(--n, 120) - var(--i, 0)) * 0.5), 1);
         }
         .op-root #op-religion .codex-3-overlay > *:nth-child(1) { --tx-at: 0.00; }
-        .op-root #op-religion .codex-3-overlay > *:nth-child(2) { --tx-at: 0.08; }
-        .op-root #op-religion .codex-3-overlay > *:nth-child(3) { --tx-at: 0.20; }
-        .op-root #op-religion .codex-3-overlay > *:nth-child(4) { --tx-at: 0.28; }
-        .op-root #op-religion .codex-3-overlay > *:nth-child(5) { --tx-at: 0.44; }
-        .op-root #op-religion .codex-3-overlay > *:nth-child(6) { --tx-at: 0.60; }
+        .op-root #op-religion .codex-3-overlay > *:nth-child(2) { --tx-at: 0.20; }
+        .op-root #op-religion .codex-3-overlay > *:nth-child(3) { --tx-at: 0.44; }
+        .op-root #op-religion .codex-3-overlay > *:nth-child(4) { --tx-at: 0.64; }
 
         /* CTA druhého obrazu sa VRÁTILO (Matej 27. 8. 2026 — zadanie textingu
            sekcie končí riadkom „We only need one million to change that." +
@@ -800,20 +983,47 @@ export default function OnePage() {
            Druhá kópia odliatku z LabShell (viď hlavička súboru). Skladba:
            RÁM (leštené zlato) → DOSKA (pieskovec) → ZRNO → OBSAH.
            Tokeny z navGoldSkin.ts, neopisuj ich. */
+        /* 🔴 PÁS CEZ CELÚ ŠÍRKU, NIE left:50% + translateX(-50%), A JE TO
+           JEDINÝ DÔVOD, PREČO BOL MEDAILÓN NA MOBILE MIMO STREDU (Matej 28. 8.
+           2026: *„MOBIL AJ PC logo v nav bude presne v strede… aktuálne na PC je
+           niečo iné ako na mobile"*).
+           Fixovaný prvok s left:50% má k dispozícii len PRAVÚ POLOVICU okna
+           (390 − 195 = 195 px). Lišta sa doňho nezmestí, takže sa zmrští na
+           min-content — a v min-content sizingu dostane každý 1fr stĺpec svoju
+           vlastnú min-content šírku, teda ľavý 80,6 px a pravý 90,9 px. Medailón
+           v strednom stĺpci tým sadol 5,1 px vľavo od stredu lišty.
+           Na PC bola tá istá lišta v poriadku len náhodou: dostupná šírka (720 px)
+           tam prevýšila max-content, takže sa použilo max-content sizing, kde
+           fr-algoritmus dá OBOM krajným stĺpcom rovnakú šírku.
+           Pás cez celú šírku dá lište celé okno, takže max-content sizing platí
+           na oboch — jeden mechanizmus, jeden výsledok.
+           ⚠️ pointer-events: none je povinné: pás leží cez celú hornú hranu
+           filmu a bez toho by chytal ťahy určené guli. */
         .nav-top {
           position: fixed;
-          top: 12px;
-          left: 50%;
-          transform: translateX(-50%);
+          /* 30 px, nie 12: medailón vystupuje nad lištu (MEDAL.lift) a pri pôvodnom
+             odsadení mu horný oblúk vyšiel za okraj okna a orezal sa. */
+          top: 30px;
+          left: 0;
+          right: 0;
           z-index: 60;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
+          pointer-events: none;
         }
+        .nav-top > * { pointer-events: auto; }
         .main-nav {
           position: relative;
           isolation: isolate;
-          display: flex;
+          /* ⚠️ GRID, NIE FLEX — nutnosť, nie vkus: medailón je kotvený na stred
+             LIŠTY, takže medzera preňho musí byť v strede. Pri flexe je stred lišty
+             stredom medzery len vtedy, keď je pilulka rovnako široká ako login
+             s jazykom; inak kruh sadne na pilulku (na mobile presne to robil).
+             Krajné stĺpce 1fr sú preto rovnaké a stredný nesie medzeru. */
+          display: grid;
+          grid-template-columns: 1fr auto 1fr;
           align-items: center;
           gap: 14px;
           white-space: nowrap;
@@ -847,6 +1057,53 @@ export default function OnePage() {
           z-index: -1;
         }
         .main-nav > * { position: relative; z-index: 1; }
+        .main-nav-right { display: flex; align-items: center; gap: 14px; justify-self: end; }
+        ${NAV_MEDALLION_CSS}
+        /* ── PILULKA OBRAZU ───────────────────────────────────────────────
+           Matej 27. 8. 2026: *„z lavej strany bude len jedna pils — HOME ale bude
+           sa meniť pri slajdovaní podla toho čo bude na screene a z pravej strany
+           bude login a jazyk"*. Lišta tým prestala byť menu a je UKAZOVATEĽ polohy.
+           ⚠️ Šírku drží najdlhší názov, nie ten práve viditeľný: všetky ležia
+           v jednej bunke gridu a neaktívne majú nulové krytie. Bez toho by sa lišta
+           pri každom prepnutí obrazu zúžila či rozšírila a medailón by uhýbal do
+           strany — a šírka by sa musela merať po vykreslení. */
+        .main-nav .scene-pill {
+          /* ⚠️ ŽIADNE width: max-content — a je to oprava, nie zjednodušenie.
+             Pevná max-content šírka tu bola preto, že lišta stála na min-content
+             (viď .nav-top vyššie) a stĺpec by pilulku stlačil na nulu. Odkedy
+             lišta dostala celé okno, robí to isté pravidlo opačnú škodu: pri
+             360 px sa lišta oprie o max-width, voľné miesto zmizne a stĺpce
+             dostanú svoju min-content šírku — ľavý 115 px (celý najdlhší názov),
+             pravý 76 px. Medailón tým sadol 17 px vpravo od stredu.
+             Bez width je pilulka fit-content: berie min(prirodzená šírka, stĺpec),
+             takže na širokom okne ukáže celý názov a na 360 px ustúpi (ellipsis
+             na vnútornom <span>) — a stĺpce ostanú rovnaké, teda logo v strede.
+             ⚠️ Podmienka platnosti: vnútorné spany musia mať min-width: 0 a
+             orezanie textom, inak sa pilulka nezmestí nikam a vytlačí stĺpec. */
+          justify-self: start;
+          display: grid; align-items: center; justify-items: center;
+          font-family: 'Cinzel', serif; font-weight: 700;
+          font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase;
+          color: ${NAV_GOLD.ink};
+          padding: 5px 14px; border-radius: 999px;
+          border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
+          background: ${NAV_GOLD.activeFill};
+          box-shadow: ${NAV_PILL_SHADOW};
+          user-select: none;
+          /* ⚠️ Bez tohto sa pilulka scvrkne na nulu: orezanie textom robí z jej
+             min-content šírky 0 a flexbox ju v úzkej lište stlačí na doraz. */
+          flex-shrink: 0;
+        }
+        .main-nav .scene-pill > span {
+          grid-area: 1 / 1;
+          transition: opacity 0.22s ease;
+          /* Strop je nutnosť, nie ozdoba: pilulka drží šírku NAJDLHŠIEHO názvu a ten
+             sa v 18 jazykoch líši (SK „Náboženstvo" je dvojnásobok EN „Religion").
+             Bez orezania lišta na telefóne pretiekla a vlajka jazyka vyšla z obrazovky. */
+          min-width: 0; width: 100%; text-align: center;
+          white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .main-nav .scene-pill > span[data-off='1'] { opacity: 0; }
         .main-nav-sep { display: inline-block; width: 1px; height: 12px; background: rgba(110,74,20,0.45); flex-shrink: 0; }
         .main-nav a, .main-nav button {
           font-family: 'Cinzel', serif;
@@ -889,13 +1146,57 @@ export default function OnePage() {
           color: ${NAV_GOLD.ink};
         }
         .main-nav .nav-login:hover { opacity: 0.75; }
+        /* Mobilný jazykový chip je v DOM-e vždy, viditeľný len pod 768 px. */
+        .main-nav .nav-lang-mobile { display: none; }
         @media (max-width: 768px) {
-          .nav-top { top: 10px; }
-          .nav-lang-desktop { display: none; }
+          /* Medailón sa na mobile NEZMENŠUJE: Matej ho ladil pri 110 px práve
+             v mobilnom náhľade nákresu a lišta má na 390 px dosť miesta (267 z 390).
+             Odsadenie ostáva 34 px — nižšia lišta znamená VÄČŠÍ presah kruhu. */
+          .nav-top { top: 34px; }
+          .op-root { --op-nav-h: 118px; }
+          /* Jazyk ostáva aj na mobile — lišta má po prestavbe miesto (279 px z 390). */
           .main-nav { gap: 7px; padding: ${NAV_R.rim + 3}px ${NAV_R.rim + 7}px; }
+          .main-nav-right { gap: 7px; }
           .main-nav a, .main-nav button { font-size: 0.64rem; letter-spacing: 0.04em; }
+          .main-nav .scene-pill { font-size: 0.64rem; letter-spacing: 0.06em; padding: 4px 10px; max-width: 32vw; }
+          .main-nav { max-width: calc(100vw - 16px); }
           .main-nav button { padding: 4px 8px; }
           .main-nav .nav-login { width: 32px; height: 32px; }
+
+          /* ── JAZYK SA STAHOVAL ZO SPODNEJ LIŠTY HORE (Matej 28. 8. 2026) ────
+             *„na mobile je v dolnej NAV chip s jazykmi a po kliknutí sa otvorí
+             popup na tmavom pozadí = to je správne ALE presuňme tie jazyky na
+             mobile hore do horného navu a tie jazyky čo sú teraz hore vymažme."*
+             Presúva sa CELÝ chip aj s jeho správaním: podoba flow otvára modál
+             so závojom, kým dropdown horného navu (nav) vešia panel pod pilulku
+             a na 390 px by z okna vytiekol. Preto sa nemení variant, ale nosič. */
+          .main-nav .nav-lang-desktop { display: none; }
+          .main-nav .nav-lang-mobile {
+            display: inline-flex; align-items: center; justify-content: center;
+            height: 32px; padding: 0 9px;
+            flex-shrink: 0;
+            border-radius: 999px;
+            background: ${NAV_GOLD.activeFill};
+            border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
+            box-shadow: ${NAV_PILL_SHADOW};
+          }
+          /* ⚠️ Trojtriedny selektor je nutnosť: .lang-picker--flow .lang-trigger
+             má krémový atrament pre TMAVÉ pozadie a rovnakú špecificitu ako
+             .main-nav .lang-trigger. O víťazovi by potom rozhodovalo poradie
+             dvoch <style> blokov v <head>, teda poradie mountovania komponentov. */
+          .main-nav .nav-lang-mobile .lang-picker--flow .lang-trigger {
+            color: ${NAV_GOLD.ink}; padding: 0;
+          }
+          .main-nav .nav-lang-mobile .lang-picker--flow .lang-trigger__chev {
+            color: rgba(42,22,8,0.55);
+          }
+          .main-nav .nav-lang-mobile .lang-picker--flow .lang-flag-stack {
+            border-color: ${NAV_GOLD.edge};
+          }
+          /* Pôvodný chip v spodnej lište zaniká — je to PRESUN, nie kópia.
+             Skryté je len na /onepage: .gods-dock-portal má výhradne táto
+             stránka (prop portalDock), takže wall lab si svoj chip drží. */
+          .gods-dock-portal .lang-btn-mobile { display: none; }
         }
 
         /* ── SPODNÁ LIŠTA ────────────────────────────────────────────────
@@ -1116,18 +1417,33 @@ export default function OnePage() {
       {/* ── HORNÝ NAV — namontovaný RAZ, film pod ním beží ─────────────── */}
       <div className="nav-top">
         <nav className="main-nav" data-op-nav="1">
-          {SCENES.map((s, i) => (
-            <Fragment key={s.id}>
-              <button type="button" className={i === scene ? 'is-on' : ''} onClick={() => goTo(s.id)}>
+          {/* Ľavá strana = JEDEN ukazovateľ obrazu, nie menu. Všetky názvy sú
+              v DOM-e naraz kvôli pevnej šírke (viď CSS), viditeľný je aktívny. */}
+          <div className="scene-pill" aria-live="polite">
+            {SCENES.map((s, i) => (
+              <span key={s.id} data-off={i === scene ? undefined : '1'} aria-hidden={i === scene ? undefined : true}>
                 {t(s.navKey)}
-              </button>
-              <span className="main-nav-sep" aria-hidden="true" />
-            </Fragment>
-          ))}
-          <a href="/login" className="nav-login" aria-label={t('nav.login')}>
-            <HandHouseHeart size={20} />
-          </a>
-          <span className="nav-lang-desktop"><LanguagePicker /></span>
+              </span>
+            ))}
+          </div>
+          <span className="nav-medal-slot" aria-hidden="true">
+            <NavMedallion onClick={() => goTo(SCENES[0].id)} />
+          </span>
+          {/* ⚠️ PORADIE V DOM-e JE MOBILNÉ: jazyk, potom login (Matej 28. 8. 2026:
+              *„v hornom menu vymeňme jazyky a login — jazyky vlavo login vpravo
+              na MOBILE"*). Na PC ostáva pôvodné poradie login → jazyk, lebo tam
+              je viditeľný `.nav-lang-desktop`, ktorý stojí ZA loginom.
+              Dve inštancie pickera nie sú duplikát z nedbanlivosti: mobil má
+              podobu `flow` (modál s tmavým závojom, prenesená zo spodnej lišty),
+              PC dropdown zavesený pod pilulku. Jedna inštancia by musela meniť
+              variant podľa `matchMedia`, teda držať šírku okna v stave. */}
+          <span className="main-nav-right">
+            <span className="nav-lang-mobile"><LanguagePicker variant="flow" /></span>
+            <a href="/login" className="nav-login" aria-label={t('nav.login')}>
+              <HandHouseHeart size={20} />
+            </a>
+            <span className="nav-lang-desktop"><LanguagePicker /></span>
+          </span>
         </nav>
       </div>
 
