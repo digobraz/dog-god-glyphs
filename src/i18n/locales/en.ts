@@ -2631,6 +2631,20 @@ export const en = {
   'pack.poi.tower': "Lookout tower",
   'pack.poi.firepit': "Firepit",
   'pack.poi.cliff': "Rock",
+
+  // SPACIE MIESTA — tretia vrstva mapy (kánon §12). `bivak` NIE JE `pack.poi.shelter`:
+  // prístrešok je strecha bez spania, bivak je ten, v ktorom sa prespať dá.
+  'pack.sleep.hut': "Hut or mountain lodge",
+  'pack.sleep.camp': "Campsite",
+  'pack.sleep.bivak': "Bivouac shelter",
+  'pack.sleep.wild': "Wild spot",
+  'pack.sleep.untouched': "Nobody from the pack has written anything about this place yet.",
+  // 🔴 POVINNÁ VETA PRI DRUHU `wild` — rozhodol Matej 27. 8. 2026 (§14.3/2 kánonu).
+  // Chip „Oficiálne povolené" ostáva, ALE bez tejto vety by sa jeho ABSENCIA čítala ako
+  // „tak asi hej" — a voľné táborenie je v národných parkoch zakázané. Veta nie je
+  // dekorácia ani tooltip: bez nej sa druh `wild` nesmie vykresliť.
+  'pack.sleep.wildWarning': "This is not an official campsite. Wild camping is banned in national parks — the responsibility is yours.",
+  'pack.map.layer.sleep': "Sleeping spots",
   'pack.mapNotes.parking.free': "Free",
   'pack.mapNotes.parking.paid': "Paid",
   'pack.mapNotes.parking.question': "Does it cost anything?",

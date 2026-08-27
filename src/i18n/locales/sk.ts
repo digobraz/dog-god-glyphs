@@ -2510,6 +2510,20 @@ export const sk: Partial<Dict> = {
   'pack.poi.tower': "Rozhľadňa",
   'pack.poi.firepit': "Ohnisko",
   'pack.poi.cliff': "Skala",
+
+  // SPACIE MIESTA — tretia vrstva mapy (kánon §12). `bivak` NIE JE `pack.poi.shelter`:
+  // prístrešok je strecha bez spania, bivak je ten, v ktorom sa prespať dá.
+  'pack.sleep.hut': "Útulňa / chata",
+  'pack.sleep.camp': "Kemp",
+  'pack.sleep.bivak': "Bivak",
+  'pack.sleep.wild': "Divoké miesto",
+  'pack.sleep.untouched': "O tomto mieste ešte nikto z Dogypťanov nič nenapísal.",
+  // 🔴 POVINNÁ VETA PRI DRUHU `wild` — rozhodol Matej 27. 8. 2026 (§14.3/2 kánonu).
+  // Chip „Oficiálne povolené" ostáva, ALE bez tejto vety by sa jeho ABSENCIA čítala ako
+  // „tak asi hej" — a voľné táborenie je v národných parkoch zakázané. Veta nie je
+  // dekorácia ani tooltip: bez nej sa druh `wild` nesmie vykresliť.
+  'pack.sleep.wildWarning': "Nie je to oficiálne táborisko. V národnom parku je voľné táborenie zakázané — zodpovednosť je na tebe.",
+  'pack.map.layer.sleep': "Spacie miesta",
   'pack.mapNotes.parking.free': "Zdarma",
   'pack.mapNotes.parking.paid': "Platené",
   'pack.mapNotes.parking.question': "Platí sa tam?",
