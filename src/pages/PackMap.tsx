@@ -78,18 +78,18 @@ import { useT, useLang } from '@/i18n/LanguageContext';
 import { intlLocale } from '@/i18n/bcp47';
 import { ViperAreasLayer } from '@/components/geo/ViperAreasLayer';
 import { PACK_THEME, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
-import { goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
+import { goldFrameCSS, goldPlateCSS, SLAB, LAPIS, LAPIS_BTN_SHADOW, MAP_SKIN, NAV_GOLD, NAV_PILL_SHADOW, PALE_PC_MIN } from '@/components/pack/navGoldSkin';
 import { estimateTripMinutes, formatTripTime } from '@/lib/tripTime';
 import ainubisFace from '@/assets/ainubis-head.png';
 import { useMyNotePoints } from '@/components/pack/mapnotes/useMyNotePoints';
 import {
-  ICON, authorOf, REGION_OF, diffMarkShape, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
+  ICON, authorOf, REGION_OF, diffMarkShape, DiffMark, DIFF_MARK_CSS, WATER_COLOR, ElevationProfile,
   DIFF_COLOR, TRAIL_LINE, TRAIL_LINE_CSS, TRAIL_SABER_LAYERS, SABER_REST_OPACITY, trailSaberScale, isWaterTrail, tripShareText, pluralKey,
   readLocalTrails, writeLocalTrails, updateLocalTrail, readFavIds, writeFavIds, readWalkedIds, writeWalkedIds,
   ensureWalkedSeeded, FOUNDER_WALKED_JOURNEY_IDS,
-  tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds } from '@/components/pack/tripShared';
+  tripPath, tripPathById, tripText, visibleLocalTrails, tripDraftMissing, memberTrailIds, isOdyssey } from '@/components/pack/tripShared';
 import {
-  crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI,
+  crowdAggregate, FOUNDER_WALKERS, seedCrowd, HAZARDS, HAZARD_EMOJI, CROWD_EMOJI, CROWD_KEY_TO_CROWD,
   readVotes, writeVotes, readPlans, writePlans, readEvents, writeEvents,
   profileLevelFor, addedByMeIds, isFounderEmail, computeCompletion,
   approvedAddedIds, ratedCountFor, walkPointsFor, walkRewardBase,
@@ -129,13 +129,14 @@ import { NOTE_PALETTE_CSS } from '@/components/pack/mapnotes/NotePalette';
 import { DeleteButton, DELETE_BUTTON_CSS } from '@/components/pack/DeleteButton';
 // Kruhová značka — TÁ ISTÁ geometria ako hrozba/tip vo vrstve zápisov (hlavička circleMark.ts).
 import { circleMarkHtml, CIRCLE_MARK_CSS } from '@/components/pack/mapnotes/circleMark';
-import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji } from '@/components/pack/mapnotes/markEmoji';
+import { EVENT_RIM, TRIP_TARGET_EMOJI, eventEmoji, FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
 import { useMapNotes } from '@/components/pack/mapnotes/useMapNotes';
 import { useLongPressPoint, useMapClickPoint, MIN_ZOOM_FOR_NOTE, LONG_PRESS_CSS } from '@/components/pack/mapnotes/useLongPressPoint';
 import { MapNoteCursor, MAP_NOTE_CURSOR_CSS } from '@/components/pack/mapnotes/MapNoteCursor';
 import { nearestTrailId } from '@/components/pack/mapnotes/mapNotesGeo';
 import { GROUP_KINDS, defaultRadius, type NoteGroup, type NoteKind, type TickDisease } from '@/components/pack/mapnotes/mapNotesData';
 import { AddTripLog } from '@/components/pack/addtrip/AddTripLog';
+import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { TRIP_HOLD_MIN_ZOOM } from '@/components/pack/addtrip/GeometryPicker';
 import type { AddTripDraft, TripState } from '@/components/pack/addtrip/addTripModel';
 import { clearTripNotes, readTripNotesForSession, writeTripNotes, missingOnTrail, type TripNoteRef } from '@/components/pack/addtrip/addTripModel';
@@ -151,6 +152,7 @@ import {
 // krok 5) — dovtedy sa event po uložení nikde nezobrazoval (formulár aj store boli hotové,
 // panel ostal viazaný len na TRIP vetvu).
 import { EventsPanel } from '@/components/pack/events/EventsPanel';
+import { TRIP_CATEGORIES, ACT_TAG_EMOJI, categoriesOf, isInCategory, type TripCategoryId } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -218,19 +220,22 @@ function migrateSeedEvents(): void {
 // inak by prvý render ešte videl staré fiktívne eventy.
 migrateSeedEvents();
 
-// bod 6 (iterácia 16): dva malé kruhové avatary (majiteľ + pes) pri "by {author}" riadku, karta
-// aj inline detail. Seed dáta nemajú per-trip owner/dog foto — pes používa reálny Hekthor asset
-// (public/images/about-hekthor.png, tá istá fotka čo /about stránka), majiteľ je initial-letter
-// placeholder kruh (rovnaký vzor ako .trp-status-avatar fallback). FLAG: toto je vizuálny slot,
-// reálne per-trip owner/dog fotky sú mimo rozsahu — potrebujú dátové polia, ktoré HeroTrail
-// typ nemá (viď report).
-const AUTHOR_DOG_AVATAR = '/images/about-hekthor.png';
+/**
+ * Podpis pod názvom výletu.
+ *
+ * ⚠️ BEZ PSA (Matej 2026-08-26: „nahodený výlet bude menším a len meno majiteľa, ako aj
+ * fotka… bez psa"). Do teraz tu stáli DVA prekryté kruhy — zástupná silueta psa a iniciála
+ * majiteľa. Silueta bola pri každom výlete tá istá kresba, teda nehovorila, ktorý pes tam bol;
+ * niesla len to, že pes existuje, čo v appke o psoch nie je informácia. Zostáva jeden kruh:
+ * ten, ktorý naozaj identifikuje konkrétneho človeka.
+ * FLAG (nezmenené): majiteľ je stále iniciála v kruhu, nie jeho fotka. Reálne per-trip fotky
+ * potrebujú dátové polia, ktoré `HeroTrail` nemá.
+ */
 function AuthorAvatars({ author, size }: { author: string; size: number }) {
   const t = useT();
   const pairStyle = { '--trp-av-size': `${size}px` } as React.CSSProperties;
   return (
     <span className="trp-avatarpair" style={pairStyle}>
-      <span className="trp-avatarcircle" style={{ backgroundImage: `url('${AUTHOR_DOG_AVATAR}')` }} title={t('pack.map.authorDogPlaceholder')} />
       <span className="trp-avatarcircle trp-avatarcircle--placeholder" title={t('pack.map.authorOwnerPlaceholder')}>
         {author.charAt(0).toUpperCase()}
       </span>
@@ -282,28 +287,32 @@ const MACRO_REGIONS: Array<'West' | 'Center' | 'East'> = ['West', 'Center', 'Eas
 // emoji než tá istá hodnota vo formulári.
 const CROWD_DATA_KEYS = ['Ľudoprázdne', 'Pokojné', 'Rušné'] as const;
 
+// Stupne náročnosti v poradí. Doteraz boli rozpísané ako štyri <option> v JSX; filtru stačí
+// zoznam, značku ku každému dokreslí DiffMark.
+const DIFF_KEYS = ['Easy', 'Moderate', 'Hard', 'Odyssey'] as const;
+
 // Aktivita taxonómia — lokálna kópia z __TrailsPreview.tsx (id/label/emoji), Portal je
 // izolovaný od toho dev-only prototypu. Iterácia 7 (Matejov feedback bod 2): tag vocabulary
 // je teraz JEDEN univerzálny rad, nezávislý od vybranej aktivity — TRIP_ACTIVITIES preto už
 // nenesie vlastné tagy (predtým per-activity scoping, zrušené).
-const TRIP_ACTIVITIES: { id: string; label: string }[] = [
-  { id: 'hiking', label: 'Hiking' },
-  { id: 'journey', label: 'Journey' },
-  { id: 'picnic', label: 'Picnic' },
-  { id: 'overnight', label: 'Overnight' },
-  { id: 'skating', label: 'Skate' },
-  { id: 'paddleboard', label: 'SUP/swim' },
-  { id: 'explore', label: 'Explore' },
-];
-// 'journey' = viacdňová turistika (multi-day thru-hike), napr. Cesta hrdinov SNP.
-// 'explore' 🧭 = siedmy pill (Matej 2026-07-27/29, addTripModel.ts ACTIVITY_GEOMETRY komentár) —
-// point/area miesta bez trasy (hrady, kaštiele, parky).
-// ⚠️ MUSÍ SEDIEŤ S `ACTIVITIES` v `AddTripLog.tsx` — filter a formulár sú dve obrazovky tej
-// istej veci. 24. 8. 2026 sa tu 🧭 dorovnal na 🏰 (formulár ho mal už od 23. 8., filter zamrzol)
-// a ⛺ padlo na 💤: stan je viacdňový TÁBOR (`camp` v podujatiach), nocľah je o spaní.
-const ACT_EMOJI: Record<string, string> = { hiking: '🥾', journey: '🎒', picnic: '🧺', overnight: '💤', skating: '🛼', paddleboard: '🏄', explore: '🏰' };
-// dátové pole tr.acts[] používa 'hike' (nie 'hiking') — mapovanie UI aktivita-id → dáta.
-const ACT_DATA_ID: Record<string, string> = { hiking: 'hike', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard', explore: 'explore' };
+const TRIP_ACTIVITIES: { id: string; label: string }[] =
+  TRIP_CATEGORIES.map((c) => ({ id: c.id, label: c.label }));
+// ── ŠTYRI KATEGÓRIE, JEDEN ZDROJ (2026-08-27) ───────────────────────────────────────────
+// Sedem aktivít sa zlúčilo do štyroch kategórií (HIKE · CHILL · SPORT · EXPLORE) a zoznam
+// sa presťahoval do `components/pack/tripCategories.ts` — spolu s tým, ktoré staré hodnoty
+// `acts` do ktorej kategórie patria. Tu už nesmie stáť druhá kópia: do 27. 8. boli štyri
+// a stihli sa rozísť v emoji.
+//
+// 🔴 FILTER ČÍTA VŠETKY KATEGÓRIE VÝLETU, NIE LEN JEHO IDENTITU (Matej 2026-08-27).
+//    „ak dá človek vo filtri nocľah, vyhľadá mu aj HIKE, kde je tag aj CHILL aktivity."
+//    Preto sa nižšie porovnáva cez `isInCategory(tr.acts, …)` a NIE cez jednu hodnotu:
+//    túra s piknikom je na karte HIKE, ale pod filtrom CHILL sa MUSÍ nájsť. Bez toho by
+//    na 81 seed výletoch ostal CHILL prázdny — 19 piknikov a 7 z 8 nocľahov leží na výlete,
+//    ktorý je zároveň túra.
+const ACT_EMOJI: Record<string, string> = { ...ACT_TAG_EMOJI, ...Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.emoji])) };
+// Čo sa zapíše novému výletu do `tr.acts` — staré hodnoty ('picnic', 'skating'…) v datasete
+// ostávajú a kategórie ich čítajú ďalej (`TripCategory.acts`), nemigruje sa nič.
+const ACT_DATA_ID: Record<string, string> = Object.fromEntries(TRIP_CATEGORIES.map((c) => [c.id, c.dataId]));
 
 // Tag vocabulary UPRATANÝ na presne 8 univerzálnych tagov (Matejov feedback bod 2, iterácia 7).
 // TAG_VOCAB = poradie zobrazenia v UI. DATA_TAG_TO_UI mapuje reálne tr.tags[] hodnoty na tento
@@ -1010,8 +1019,11 @@ const CSS = `
 /* bod 3 (iterácia 11): Activity/Difficulty/Popularity už NIE SÚ zabalené v samostatnom
    glass boxe (.trp-topfilters zrušený) — sú to teraz totožné, borderless polia priamo
    v .trp-topsearchrow, rovnaká výška/radius/glass ako search-a-place vedľa nich. */
-.trp-toprow-select,.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
-.trp-toprow-select:focus{border-color:${GOLD};}
+.trp-tagdd-btn{flex:1 1 140px;min-width:120px;background:${T.glass};backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid ${T.onDarkBorder};border-radius:12px;padding:10px 15px;box-shadow:0 6px 22px rgba(0,0,0,0.4);color:${T.onDark};font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
+/* ⚠️ .trp-toprow-select ZANIKOL 2026-08-26. Náročnosť aj Návštevnosť sú vlastné rozbaľovačky
+   (TripPickDropdown) — natívny select nevie vykresliť značku náročnosti a jeho zoznam kreslí
+   prehliadač, takže sa otváral čierny. Trieda tu nesmie ostať ako sirota: prvý, kto by ju
+   niekde uvidel, by predpokladal, že filtre hlavičky sú stále systémové polia. */
 /* Tags multi-select trigger (Matej 2026-07-27) — presne rovnaký look ako susedné
    .trp-toprow-select, len navyše button-špecifiká (text-align, chevron, aktívny stav). */
 .trp-tagdd-btn{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;box-sizing:border-box;text-align:left;}
@@ -1022,9 +1034,25 @@ const CSS = `
 .trp-tagdd-row{display:flex;align-items:center;gap:8px;width:100%;padding:7px 4px;background:none;border:0;cursor:pointer;font-family:${FONT_UI};font-size:12.5px;color:${T.onDark};opacity:.75;text-align:left;}
 .trp-tagdd-row.on{color:${GOLD};font-weight:600;opacity:1;}
 .trp-tagdd-row:hover{background:rgba(201,154,63,0.14);border-radius:7px;}
-.trp-tagdd-row span:first-child{flex:1;}
+/* ⚠️ PRIAMY POTOMOK (znak >), nie ktorýkoľvek span. Bez neho pravidlo trafí AJ značku vnútri
+   položky (tá je prvým dieťaťom svojho obalu), dá jej flex:1 a z 9px kruhu sa stane pruh cez
+   pol panela — presne to sa stalo pri prvom nasadení TripPickDropdown. */
+.trp-tagdd-row > span:first-child{flex:1;}
 .trp-tagdd-clear{display:block;width:100%;text-align:center;margin-top:6px;padding-top:8px;border-top:1px solid ${T.onDarkHair};background:none;border-left:0;border-right:0;border-bottom:0;font-family:${FONT_UI};font-weight:600;font-size:11px;letter-spacing:.04em;color:${T.onDarkDim};cursor:pointer;}
 .trp-tagdd-clear:hover{color:${GOLD};}
+
+/* ── Jednovoľbová rozbaľovačka (TripPickDropdown) — Náročnosť, Návštevnosť, Región, Aktivity.
+   Nesie tie isté .trp-tagdd-* triedy ako filter tagov; tu sú len tri veci navyše, ktoré
+   viacvoľbový filter nepotrebuje: obal (podiel šírky), zvolená hodnota v tlačidle a značka
+   pred položkou. */
+.trp-pickdd-wrap{flex:1 1 140px;min-width:120px;}
+/* Zvolená hodnota sa REŽE, nezalamuje: tlačidlo stojí v rade s ďalšími dvomi a musí držať
+   jednu výšku. Šípka vpravo si drží miesto (flex-shrink:0 na .trp-tagdd-chevron). */
+.trp-pickdd-cur{display:inline-flex;align-items:center;gap:7px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.trp-pickdd-item{display:inline-flex;align-items:center;gap:8px;flex:1;min-width:0;}
+/* Emoji vždy s FONT_EMOJI — bez neho sadne na Windows čiernobiely textový variant
+   (to isté pravidlo ako značky na mape, markEmoji.ts). */
+.trp-pickdd-emoji{font-family:${FONT_EMOJI};font-size:13px;line-height:1;flex-shrink:0;}
 
 /* place-search box — iterácia 9 (Matejov feedback bod 2): tmavá/glass karta
    (bola svetlý papyrus), ladí s ostatnými tmavými prvkami nad mapou. */
@@ -1064,6 +1092,9 @@ const CSS = `
    Krajné bloky nesú flex:1 1 0 (rovnaký podiel voľného miesta), stredný len svoj obsah → stredný
    klaster sedí v skutočnej osi riadku, nezávisle od toho aká dlhá je ľavá/pravá strana. */
 .trp-status-left{flex:1 1 0;min-width:0;display:flex;align-items:center;}
+/* Obal dosky vo výreze hlavičky. Mimo bledého PC skinu NEEXISTUJE (display:contents) — jeho
+   deti sa správajú, akoby stáli priamo v .trp-status-row. Tvar dostane až v PALE_CSS. */
+.trp-status-plate{display:contents;}
 .trp-status-center{flex:0 1 auto;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;}
 .trp-stat-pill{display:flex;align-items:center;gap:6px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};border-radius:999px;padding:9px 15px;}
 .trp-stat-pill img{width:14px;height:14px;filter:brightness(0) invert(1);opacity:.75;flex-shrink:0;}
@@ -1180,7 +1211,16 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 
 /* bod 2 (Matej 2026-07-22): pozdrav vľavo + filter (sliders) ikonka vpravo hore, medzi nimi space. */
 .trp-greet-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+/* Dva prvky v rohu: vlajka (krajina) a posuvníky (zoradenie). Rovnaká veľkosť aj tvar —
+   sú to dve rovnocenné ovládania toho istého zoznamu, nie hlavné a vedľajšie. */
+.trp-greet-tools{display:flex;align-items:center;gap:7px;flex-shrink:0;}
 .trp-greet-filterwrap{position:relative;flex-shrink:0;}
+.trp-flagdd{position:relative;display:inline-flex;flex-shrink:0;}
+/* Vlajka je emoji ⇒ vlastný font, inak na Windows sadne čiernobiely textový variant. */
+.trp-flagdd-face{font-family:${FONT_EMOJI};font-size:19px;line-height:1;}
+/* Panel sa otvára pod vlajkou, ale zarovnaný VPRAVO — vľavo je pozdrav a zoznam by z panela
+   vytiekol. Rovnaké pravidlo ako pri zoraďovaní vedľa neho. */
+.trp-flagdd-panel{right:0;min-width:150px;}
 .trp-greet-filter{width:38px;height:38px;border-radius:11px;background:rgba(245,240,228,0.07);border:1px solid ${T.onDarkBorder};display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;}
 .trp-greet-filter:hover{border-color:${GOLD};}
 .trp-greet-filter.on{background:${GOLD};border-color:${GOLD};}
@@ -1211,8 +1251,9 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
 
 /* country select — flag + 3-letter code; native <select> so the dropdown escapes
    the panel's overflow:hidden cleanly (no popover-clip risk). Only SK enabled. */
-.trp-country-select,.trp-filter-select{width:100%;min-width:0;background:rgba(245,240,228,0.05);border:1px solid rgba(245,240,228,0.16);border-radius:9px;padding:8px 9px;color:rgba(245,240,228,0.85);font-family:inherit;font-size:16px;cursor:pointer;outline:0;}
-.trp-country-select:focus,.trp-filter-select:focus{border-color:${GOLD};}
+/* ⚠️ .trp-country-select a .trp-filter-select ZANIKLI 2026-08-26 spolu s .trp-toprow-select —
+   Región aj Aktivity sú odteraz TripPickDropdown. Dôvod je ten istý (systémový zoznam sa
+   otváral čierny) a rovnako platí, že sirota po nich by klamala o tom, ako filtre fungujú. */
 /* geo kaskáda (Matejov feedback bod 4, iterácia 7; Pohorie vrátené iterácia 9; Activity
    presunutá sem 2026-07-27): country (malinký, flag+kód) → región (West/Center/East) →
    activity. Flexbox namiesto grid-u 3 pevných stĺpcov, lebo activity musí ostať v riadku
@@ -1222,8 +1263,14 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    72px nestačilo na vlajku + text + natívnu šípku selectu, takže sa prekrývali. Širší základ
    + pravý padding, ktorý drží text mimo šípky (tú kreslí OS, posunúť sa nedá — dá sa len
    uvoľniť miesto). Ostatné dva selecty sú flex 1 1 0, takže sa o zvyšok podelia samy. */
-.trp-georow .trp-country-select{flex:0 0 104px;padding:8px 22px 8px 8px;}
-.trp-georow .trp-filter-select{flex:1 1 0;min-width:0;}
+/* Rad filtrov delí šírku rovnakým dielom. Rozbaľovačky sú <span> obal + <button>, takže
+   podiel drží OBAL (.trp-pickdd-wrap / .trp-tagdd-wrap), nie samotné tlačidlo. */
+.trp-georow .trp-pickdd-wrap{flex:1 1 0;min-width:0;}
+/* Tagy sú tretí diel toho istého radu (2026-08-26) — rovnaký diel ako región a aktivita.
+   Šírku preto berie kontajner, nie inline štýl komponentu: ten istý komponent stál do teraz
+   v hornom paneli, kde bol rad iný, a pevné 1 1 140px by tu prebilo rovnaké diely. */
+.trp-tagdd-wrap{flex:1 1 0;min-width:0;}
+.trp-georow .trp-tagdd-btn{padding:8px 9px;border-radius:9px;font-size:13px;}
 
 /* tag chips — iterácia 8: Activity/Difficulty/Popularity presunuté hore do top filter
    baru (viď komentár pri .trp-topfilters), panel teraz nesie len 8 univerzálnych tagov. */
@@ -1274,23 +1321,47 @@ body.trp-draw-lock .trp-root.mlist-active .trp-mapregion{display:block;}
    .trp-photoact-pts ZMAZANÝ 2026-08-05 — Matej: „je to nevýrazné… tie body musia byť výrazné".
    Zlaté číslo na tmavom chipe splývalo s okolím; béžová pilulka je najsvetlejšia plocha na fotke.
    Chip má white-space:nowrap, takže pilulka musí ostať flex-shrink:0 (rieši .pts-pill). */
-/* bod 3: telo karty = 2 stĺpce — vľavo 3 riadky (loc/název/autor), vpravo rating·difficulty·Crowd */
-/* align-items:center (Matej 2026-07-22) — rating (pravý stĺpec) vertikálne na STRED karty,
-   nie pri hornom okraji. */
-.trp-bigcard-body{padding:11px 13px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+/* TELO KARTY = DVA RIADKY (Matej 2026-08-26). Prvý nesie názov (a nad ním eyebrow s pohorím),
+   druhý podpis: avatary + autor vľavo, hodnotenie vpravo.
+   ⚠️ ZANIKLI TU DVA STĹPCE (loc/názov/autor vľavo, rating vpravo). Kým bol rating stĺpcom,
+   ukrajoval názvu ~90 px šírky, takže sa dlhé mená lámali do dvoch riadkov pri 13,5 px písme —
+   presne to, kvôli čomu názov nevedel vážiť viac. */
+.trp-bigcard-body{padding:11px 13px 12px;display:flex;flex-direction:column;}
 .trp-bigcard-info{min-width:0;}
+/* justify-content:space-between — hodnotenie drží PRAVÝ okraj karty, nie koniec mena autora:
+   inak by pri každom výlete stálo inde a riadok by pri skrolovaní poskakoval. */
+.trp-bigcard-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;}
 /* pohorie · región label, pod fotkou (Matejov feedback bod 3, iterácia 7) */
 /* Región nad názvom = eyebrow (Entry.tsx .religion-eyebrow vzor) → FONT_UI 500 + .22em. */
 .trp-bigcard-loc{font-family:${FONT_UI};font-weight:500;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,240,228,0.45);margin-bottom:3px;}
 /* bod 4 (iterácia 16): line-clamp 2 riadky, nech dlhé názvy nerozbíjajú layout */
-.trp-bigcard-name{font-family:${FONT_TITLE};font-weight:700;font-size:13.5px;color:rgba(245,240,228,0.92);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.trp-bigcard-name{font-family:${FONT_TITLE};font-weight:700;font-size:16px;line-height:1.2;color:rgba(245,240,228,0.92);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+/* AKO SA TAM IDE — riadok pod názvom plánu vo VNORENOM DETAILE (.trp-inldet), nie na karte
+   v ľavom zozname: neprejdený plán do toho zoznamu zámerne nepatrí. Meno triedy drží predponu
+   bigcard, lebo detail si požičiava aj .trp-bigcard-photonav — zavedená konvencia tohto súboru.
+   Bodkový oddeľovač je PSEUDOPRVOK medzi súrodencami, nie znak v texte: ktorékoľvek z políčok
+   môže chýbať a bodka by ostala visieť na kraji. Emoji sedí v jednom span so svojím slovom,
+   inak by ich oddeľovač rozrazil na „🚆 · Vlakom". */
+.trp-bigcard-travel{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:5px;font-family:${FONT_UI};font-weight:500;font-size:11px;letter-spacing:.02em;color:rgba(245,240,228,0.62);}
+.trp-bigcard-travel > span + span::before{content:'·';margin-right:6px;opacity:.5;}
+.trp-bigcard-travel .trp-bigcard-seats{color:${GOLD};}
 /* bod 6: "by {author}" riadok + avatarpair (majiteľ+pes) — .trp-bigcard-author je teraz
    inline text vedľa avatarov, nie vlastný blok (margin presunutý na wrapper riadok). */
-.trp-bigcard-authorrow{display:flex;align-items:center;gap:6px;margin-top:4px;}
-.trp-bigcard-author{font-size:10px;color:rgba(245,240,228,0.45);}
+/* Podpis je najmenší text karty (Matej 2026-08-26: „nahodený výlet bude menším"). Nesie, KTO
+   výlet nahodil — to je poznámka pod čiarou, nie tretí názov. Nad ním je meno výletu, ktoré
+   má viesť. */
+.trp-bigcard-authorrow{display:flex;align-items:center;gap:5px;min-width:0;}
+/* Matej 2026-08-26: „to by matej je stále veľmi veľké — zmenši to na veľkosť ako je to
+   hodnotenie vedľa." Podpis a hodnotenie majú byť jeden pár, nie dva rôzne hlasy. */
+.trp-bigcard-author{font-size:12px;color:rgba(245,240,228,0.45);}
 /* #41 / A4 — autor je odteraz tlačidlo (otvára popup tvorcu). Reset UA štýlov, nech
    riadok vyzerá presne ako predtým; zlatý podčiarkovník napovie, že sa dá kliknúť. */
-button.trp-authorbtn{background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-decoration:underline;text-decoration-color:rgba(201,154,63,0.45);text-underline-offset:3px;}
+/* ⚠️ SKRATKA font:inherit TU BOLA A ZHADZOVALA VEĽKOSŤ PODPISU (opravené 2026-08-26). Nastavuje
+   aj font-size, a keďže button.trp-authorbtn (0,1,1) prebíja .trp-bigcard-author (0,1,0) NA TOM
+   ISTOM elemente, podpis mal 16 px zdedených z body — nie 9 px, ktoré predpisuje jeho vlastné
+   pravidlo. To isté ticho platilo pre .trp-inldet-author v detaile. Preto sa rozpisuje po
+   vlastnostiach: veľkosť si drží povrch, na ktorom tlačidlo stojí. */
+button.trp-authorbtn{background:none;border:none;padding:0;margin:0;text-align:left;cursor:pointer;font-family:inherit;font-weight:inherit;font-style:inherit;line-height:inherit;color:inherit;letter-spacing:inherit;text-decoration:underline;text-decoration-color:rgba(201,154,63,0.45);text-underline-offset:3px;}
 button.trp-authorbtn:hover{text-decoration-color:#C99A3F;}
 .trp-bigcard-meta2{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
 .trp-bigcard-meta2 span{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;white-space:nowrap;}
@@ -1631,7 +1702,7 @@ ${TRAIL_LINE_CSS}
   .trp-headright{gap:6px;}
   .trp-topsearchrow{gap:8px;}
   .trp-floatsearch{flex:1 1 160px;min-width:140px;}
-  .trp-toprow-select,.trp-tagdd-btn{flex:1 1 100px;min-width:92px;padding:9px 11px;font-size:12px;}
+  .trp-tagdd-btn{flex:1 1 100px;min-width:92px;padding:9px 11px;font-size:12px;}
 }
 
 /* ── mobile (≤760px) — bod 5, iterácia 11: map-first + LIST/MAP toggle +
@@ -1835,10 +1906,54 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
 
   /* ── 1. RÁMY ──────────────────────────────────────────────────────────────────────────
      Tri plochy, jeden materiál: ľavý panel, hostiteľ formulára pridávania a stavový riadok
-     hlavičky. Panely majú polomer 18/rám 6 (nav má 14/6 pri výške 60 px — na 950 px vysokom
-     paneli by 14 vyzeralo ostro), hlavička je nižšia, tam sedí 14/5. */
-  .trp-sidebar,.trp-addhost{${goldFrameCSS({ radius: 18, rim: 6 })}backdrop-filter:none;-webkit-backdrop-filter:none;}
-  .trp-status-row{${goldFrameCSS({ radius: 14, rim: 5 })}backdrop-filter:none;-webkit-backdrop-filter:none;}
+     hlavičky. Tvar NEPÍŠU — berú BLOCK z navGoldSkin.ts (Matej 2026-08-26, 2. kolo:
+     „toto musíme ujasniť a aplikovať všade, locknúť dizajn").
+     ⚠️ Do teraz tu boli TRI rôzne dvojice (18/6 panely, 14/5 hlavička, 20/7 popup) a každá
+     mala vlastné odôvodnenie — spolu s navom (14/6) to boli štyri varianty toho istého bloku
+     na jednej obrazovke. Argument „na vysokom paneli by 14 vyzeralo ostro" padol na tom, že
+     predlohou je BAR: keď sa má blok naň podobať, kopíruje sa, neladí. */
+  /* ⚠️ ĽAVÝ STĹPEC MÁ MASÍVNY RÁM S RELIÉFOM (Matej 2026-08-26, 2. kolo: „ľavý blok by si
+     zaslúžil masívnejšie okraje, možno aj jemne zdobené — nejaký jednoduchý anticko-egyptský
+     dizajn, reliéf… nie ornamenty!"). Vedomá výnimka z locku jedného tvaru, pomenovaná v
+     navGoldSkin.ts ako SLAB (20/12). Platí LEN pre stĺpec cez celú výšku obrazovky — hlavička
+     aj popup ostávajú na BLOCK (14/6). Vnútorný polomer je v oboch prípadoch 8, takže sa
+     mení výhradne hrúbka lemu, nie doska.
+     ⚠️ ŽIADNA RYHA A ŽIADNY BEVEL. Ryhu Matej zamietol po jednom kole („tá ryha mi tam vadí,
+     daj ju preč"), bevel po troch — vždy sa prejavil v ROHU, kde sa horná a bočná linka spoja
+     a lem tam opticky zdvojnásobí hrúbku („vnútorné rohy v ľavom bloku nekolidujú").
+     Masívnosť nesie hrúbka lemu a gradient v ňom, nie kresba na ňom. Odôvodnenie a všetky
+     tri pokusy sú v navGoldSkin.ts nad definíciou SLAB. */
+  .trp-sidebar,.trp-addhost{${goldFrameCSS({ radius: SLAB.radius, rim: SLAB.rim })}backdrop-filter:none;-webkit-backdrop-filter:none;}
+
+  /* ── HLAVIČKA MÁ VÝREZ (Matej 2026-08-26, náčrt) ──────────────────────────────────────
+     „urobme taký výrez kedy ľavá časť horného navu bude mať ako keby plný okraj" —
+     identita (fotka + rang + level) nestojí na doske, ale priamo na zlate, a doska začína
+     až za ňou. Riadok preto nesie ZLATO BEZ DOSKY a doska je samostatný prvok.
+     ⚠️ Tvar oboch dielov je z navGoldSkin.ts (goldFrameCSS s plate:false + goldPlateCSS),
+     nie vlastné čísla — inak by výrez bol piata varianta toho istého bloku, presne to, čo
+     lock z 26. 8. zakazuje.
+     ⚠️ VÝREZ JE LEN VĽAVO — ZDVOJENÝ OKRAJ BOL CHYBA (Matej 2026-08-26, 2. kolo: „vytvoril si
+     dvojitý okraj na bokoch, chcel som všetko zachovať — hrúbku okraja okolo — a len urobiť
+     výrez; teraz sú kraje moc široké a je vidno zdvojenie, aj napríklad na pravej strane").
+     Príčina: riadok si nechal svoje pôvodné padding 13px/20px, takže doska stála 20 px od
+     pravého lemu a 13 px od horného. Vedľa 6 px lemu to čítalo ako druhý, širší rám.
+     Odteraz riadok NEMÁ výplň — doska vypĺňa celý padding-box od lemu k lemu (presne ako
+     v bare) a jediné, čo ju odsúva, je identita vľavo. Výplň nesú deti. */
+  .trp-status-row{${goldFrameCSS({ plate: false })}backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;gap:0;}
+  /* align-self:stretch — riadok centruje deti, ale doska musí siahať na plnú výšku lemu.
+     Radius je vnútorný (NAV_R.plate = rám 14 mínus lem 6), takže rohy sú koncentrické s rámom. */
+  .trp-status-plate{${goldPlateCSS()}display:flex;align-items:center;gap:16px;flex:1 1 auto;min-width:0;align-self:stretch;padding:11px 16px;}
+  .trp-status-left{padding:0 16px 0 14px;}
+  /* Stredný klaster sa centruje NAD DOSKOU, nie nad celým riadkom: doska je odteraz plocha,
+     ktorú človek číta ako „lištu", a chipy patria do jej osi. Auto-margin (nie flex:1) —
+     pravý blok si berie len svoju šírku a stred sa vycentruje do zvyšku. */
+  .trp-status-plate .trp-status-center{flex:0 1 auto;margin:0 auto;}
+  .trp-status-plate .trp-headright{flex:0 0 auto;}
+  /* ⚠️ IDENTITA SA UŽ NESMIE ZMRŠTIŤ. V trojdielnom riadku mala flex:1 1 0 (rovnaký podiel
+     voľného miesta ako pravý blok) — s výrezom je ale ĽAVÁ ČASŤ tá, ktorá určuje, kde doska
+     začína, a doska si ako flex:1 1 auto zobrala priestor pilulke s levelom: číslo zmizlo
+     POD dosku. Odteraz drží svoju šírku a voľné miesto berie doska. */
+  .trp-status-left{flex:0 0 auto;}
 
   /* ── 2. HLAVIČKA — stavový riadok ─────────────────────────────────────────────────────
      Identita (rang + level), pilulky s km/výletmi, Triplist, PRIDAŤ a zvonček. */
@@ -1916,15 +2031,24 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      plochý papyrus, jeden rám, radius 8 — len s tieňom navyše, lebo stoja priamo nad mapou
      a bez neho by na svetlej mape splynuli. */
   .trp-topbar .trp-mapsearch,
-  .trp-topbar .trp-toprow-select,
   .trp-topbar .trp-tagdd-btn{background:${P_FIELD};border:1.5px solid ${P_BORDER};color:${P_INK};box-shadow:0 6px 18px rgba(70,45,10,0.22);backdrop-filter:none;-webkit-backdrop-filter:none;}
   .trp-topbar .trp-mapsearch img{filter:none;opacity:.55;}
   .trp-topbar .trp-mapsearch input{color:${P_INK};}
   .trp-topbar .trp-mapsearch input::placeholder{color:${P_DIM};opacity:.75;}
-  .trp-topbar .trp-toprow-select:focus,
   .trp-topbar .trp-mapsearch:focus-within{border-color:${T.cardEdge};}
   .trp-topbar .trp-tagdd-btn.on{border-color:${T.cardEdge};color:#8A5F1E;background:#FFF6E2;}
   .trp-topbar .trp-tagdd-chevron{opacity:.55;}
+
+  /* ── TAGY V ĽAVOM PANELI ─────────────────────────────────────────────────────────────
+     Od 2026-08-26 stojí ten istý komponent v .trp-georow. Tlačidlo tam nie je doštička nad
+     mapou, ale tretia rozbaľovačka v rade — preberá teda vzhľad svojich dvoch susedov
+     (.trp-filter-select), nie hlavičky. */
+  .trp-sidebar .trp-tagdd-btn{background:${P_FIELD};border:1px solid ${P_BORDER};color:${P_INK};backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;}
+  .trp-sidebar .trp-tagdd-btn.on{border-color:${T.cardEdge};color:#8A5F1E;background:#FFF6E2;}
+  .trp-sidebar .trp-tagdd-chevron{opacity:.55;}
+
+  /* Nevyplnená časť labiek v hodnotení — na papyruse tmavá, nie biela (viď RatingPaws). */
+  .trp-sidebar{--rp-empty-filter:brightness(0);--rp-empty-opacity:0.20;}
 
   /* Rozbaľovacie panely hlavičky (návrhy miest, výber tagov) — úroveň 4 matrice (PANEL). */
   .trp-topbar .trp-mapsug,
@@ -1939,6 +2063,30 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-topbar .trp-tagdd-row:hover{background:${P_HOT};}
   .trp-topbar .trp-tagdd-clear{border-top:1px solid ${P_HAIR};color:${P_DIM};}
   .trp-topbar .trp-tagdd-clear:hover{color:#8A5F1E;}
+
+  /* ── VŠETKY ROZBAĽOVACIE PANELY SÚ BLEDÉ (Matej 2026-08-26) ──────────────────────────
+     „dropdowny treba ustáliť — niektoré sú tmavé, niektoré bledé; všade musia byť bledé."
+     Do teraz mal bledú verziu len ten, čo stál v .trp-topbar. Panel vrstiev mapy visí na
+     .trp-ctlstack a panel tagov sa presťahoval do .trp-sidebar, takže ani jeden z nich
+     zakotvený selektor netrafil a ostali tmavé vedľa bledých.
+     ⚠️ SELEKTOR JE BEZ KOTVY NA RODIČA — zámerne. Kotva bola príčinou tohto rozchodu: každý
+     presun prvku znamenal, že jeho vzhľad ticho vypadol. Celý blok už stojí v
+     min-width:${PALE_PC_MIN}px, teda mobil sa ho netýka. */
+  .trp-root .trp-tagdd-panel,
+  .trp-root .trp-layersdd-panel{background:${T.panelGrad};border:1.5px solid ${T.cardEdge};box-shadow:${T.panelShadow};backdrop-filter:none;-webkit-backdrop-filter:none;}
+  .trp-root .trp-tagdd-eyebrow{color:${T.cardEdge};}
+  .trp-root .trp-tagdd-row{color:${P_INK};opacity:.8;}
+  .trp-root .trp-tagdd-row.on{color:#8A5F1E;opacity:1;}
+  .trp-root .trp-tagdd-row:hover{background:${P_HOT};}
+  .trp-root .trp-tagdd-clear{border-top:1px solid ${P_HAIR};color:${P_DIM};}
+  /* ⚠️ ODYSEA MÁ BIELY TROJUHOLNÍK (DIFF_MARK_CSS) — postavený pre TMAVÚ mapu, kde je biela
+     najvyšší stupeň škály. Na papyruse z neho nezostane nič, takže by štvrtá položka filtra
+     vyzerala ako jediná bez značky. Tmavý inkoust drží tú istú eskaláciu (zelená → žltá →
+     červená → najtmavšia) a je to farba, ktorou na tejto ploche píše všetko ostatné. */
+  .trp-root .trp-tagdd-panel .trp-diffmark--triangle.trp-diffmark--odyssey{border-bottom-color:${P_INK};}
+  .trp-root .trp-layersdd-group + .trp-layersdd-group{border-top:1px solid ${P_HAIR};}
+  .trp-root .trp-layersdd-row{color:${P_INK};}
+  .trp-root .trp-layersdd-hint{color:${P_DIM};}
 
   /* ── 4. PANEL — pozdrav a prepínač kategórií ──────────────────────────────────────────
      Nadpis podľa locku bledých blokov: Cinzel 700 na "inkStrong". Zlatý nadpis na papyruse
@@ -1968,20 +2116,18 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-catpill.on{background:${LAPIS.grad};border-color:${LAPIS.deep};color:${LAPIS.ink};box-shadow:${LAPIS_BTN_SHADOW};}
   .trp-sidebar .trp-catpill.soon{border-color:${P_HAIR};color:${P_FAINT};opacity:1;}
 
-  /* Filtre. Natívny <select> berie farbu šípky z "color", takže inkoust stačí zadať raz. */
   /* ⚠️ MENŠIE PÍSMO (Matej 2026-08-26: „tie 3 dropdowny… moc veľké písmo ktoré sa nevojde").
-     16 px je na select zámerná hodnota PRE MOBIL — pod ňou iOS pri ťuknutí stránku
-     priblíži. Bledý blok začína na 1024 px, takže tu žiadny takýto telefón nie je a písmo
-     smie klesnúť. Na mobile ostáva 16 px nedotknutých. */
-  .trp-sidebar .trp-country-select,
-  .trp-sidebar .trp-filter-select{background:${P_FIELD};border:1px solid ${P_BORDER};color:${P_INK};font-size:13px;}
-  /* Samotné zmenšenie písma na krajinu nestačilo — 104 px je pevná šírka a zmestí sa do nej
-     glóbus, medzera a šípka, takže na slovo ostane ~50 px a Všetko sa reže na Všetk. Menší
-     font ide na všetky tri rozbaľovačky, širší základ len na túto: Región a Aktivity sa
-     zmestili aj bez neho a rovnaké tri šírky by z radu spravili tri rôzne dlhé polia. */
-  .trp-sidebar .trp-georow .trp-country-select{flex-basis:126px;}
-  .trp-sidebar .trp-country-select:focus,
-  .trp-sidebar .trp-filter-select:focus{border-color:${T.cardEdge};}
+     16 px bola na natívnom selecte zámerná hodnota PRE MOBIL — pod ňou iOS pri ťuknutí
+     stránku priblíži. Bledý blok začína na 1024 px, teda tu žiadny takýto telefón nie je.
+     (Rozbaľovačky sú od 26. 8. tlačidlá, kde to riziko nehrozí ani na mobile — hodnota tu
+     ostáva preto, že rad má byť drobnejší než hlavička, nie kvôli priblíženiu.) */
+  .trp-sidebar .trp-pickdd-wrap .trp-tagdd-btn{font-size:13px;}
+  /* ⚠️ PANEL SA V ĽAVOM PANELI OTVÁRA DOPRAVA (Matej 2026-08-26: „dropdown región je zle mimo
+     výrezu"). Základné pravidlo má right:0, čo je správne pre filtre v pravej časti hlavičky,
+     ale prvá rozbaľovačka v rade rastie od svojho pravého okraja doľava — a keďže je panel
+     širší než tretina stĺpca, vytiekol von z panela na mapu. */
+  .trp-sidebar .trp-georow .trp-pickdd-wrap .trp-tagdd-panel{left:0;right:auto;}
+
   .trp-sidebar .trp-chip-sm{border-color:${P_BORDER};color:${P_DIM};}
   .trp-sidebar .trp-chip-sm:hover{border-color:${T.cardEdge};color:${P_INK};}
   .trp-sidebar .trp-chip-sm.on{background:${T.cardEdge};border-color:${T.cardEdge};color:#FBF5E6;}
@@ -2007,6 +2153,13 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
   .trp-sidebar .trp-bigcard-loc{color:${P_DIM};}
   .trp-sidebar .trp-bigcard-name{color:${P_INK};}
   .trp-sidebar .trp-bigcard-author{color:${P_DIM};}
+  /* Počet hlasov v zátvorke — na tmavom je to onDarkDim, teda svetlý inkoust, a na papyruse
+     by z neho ostal takmer neviditeľný škvrn. Zlatá by zas z poznámky spravila druhé číslo. */
+  .trp-sidebar .comm-bigrating i{color:${P_DIM};}
+  /* Zlaté číslo (#C99A3F) uniesol 20 px rating v pravom stĺpci; podpisový riadok ho má 12 px
+     a na piesku z neho ostane svetlý fliačik. Tmavšia zlatá je tá istá farba, len čitateľná —
+     nie nový inkoust (rovnaká hodnota nesie zvýraznený stav v celom bledom skine). */
+  .trp-sidebar .comm-bigrating.mini b{color:#8A5F1E;}
   .trp-sidebar .trp-bigcard-meta2-row{color:${P_DIM};}
   .trp-sidebar .trp-bigcard-star{color:#8A5F1E;}
   .trp-sidebar button.trp-authorbtn{text-decoration-color:rgba(179,130,45,0.6);}
@@ -2094,7 +2247,7 @@ const PALE_CSS = MAP_SKIN !== 'pale' ? '' : `
      tento popup je prvá obrazovka toku a má vážiť ako doska, nie ako lístok.
      ⚠️ border-radius a border nesie goldFrameCSS — nepridávaj ich znova, prepísal
      by si transparentný rám, na ktorom celý dvojpozaďový trik stojí. */
-  .trp-root .att-entry-panel.pk-glass{${goldFrameCSS({ radius: 20, rim: 7 })}backdrop-filter:none;-webkit-backdrop-filter:none;max-width:760px;padding:34px;}
+  .trp-root .att-entry-panel.pk-glass{${goldFrameCSS()}backdrop-filter:none;-webkit-backdrop-filter:none;max-width:760px;padding:34px;}
   /* Dlaždice dostali väčší vnútorný priestor spolu s tabuľou — pri 760 px šírky by pôvodné
      odsadenie nechalo emoji plávať v prázdne. */
   .trp-root .att-entry-blocks{gap:16px;}
@@ -2432,6 +2585,69 @@ function LayersPanel({
   );
 }
 
+// VÝBER KRAJINY — vlajka v rohu panela (Matej 2026-08-26: „vedľa filtru hore dajme ešte
+// druhý filter, resp. vlajku").
+//
+// Prečo nie natívny <select> zmenšený na ikonku: natívny výber ukazuje presne ten text, ktorý
+// nesie zvolená položka, takže buď je v tlačidle „🇸🇰 SK" (a nie je to ikonka), alebo je
+// v zozname len holá vlajka (a nie je to zoznam). Panel je ten istý vzor ako pri tagoch —
+// jedna trieda, jeden vzhľad, jedno správanie pri kliku vedľa.
+function CountryFlagDropdown({
+  countries,
+  value,
+  onPick,
+}: {
+  countries: string[];
+  value: string;
+  onPick: (c: string) => void;
+}) {
+  const t = useT();
+  const [open, setOpen] = useExclusiveDropdown();
+  // Jedna krajina = nie je z čoho vyberať. Tlačidlo, ktoré nič nemení, je horšie než žiadne.
+  if (countries.length < 2) return null;
+  return (
+    <span className="trp-flagdd">
+      <button
+        type="button"
+        className={`trp-greet-filter${value ? ' on' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={t('pack.map.country')}
+        title={t('pack.map.country')}
+      >
+        <span className="trp-flagdd-face" aria-hidden>{value ? flagEmoji(value) : '🌍'}</span>
+      </button>
+      {open && (
+        <>
+          <span className="fixed inset-0" style={{ zIndex: 40 }} onClick={() => setOpen(false)} aria-hidden />
+          <div className="trp-tagdd-panel trp-flagdd-panel">
+            <span className="trp-tagdd-eyebrow">{t('pack.map.country')}</span>
+            <button
+              type="button"
+              className={`trp-tagdd-row${value === '' ? ' on' : ''}`}
+              onClick={() => { onPick(''); setOpen(false); }}
+            >
+              <span>🌍 {t('pack.map.all')}</span>
+              {value === '' && <span aria-hidden>✓</span>}
+            </button>
+            {countries.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={`trp-tagdd-row${value === c ? ' on' : ''}`}
+                onClick={() => { onPick(c); setOpen(false); }}
+              >
+                <span>{flagEmoji(c)} {c.toUpperCase()}</span>
+                {value === c && <span aria-hidden>✓</span>}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
 // Tags multi-select dropdown pre top filter bar — presunuté z chip-riadku v ľavom paneli
 // (Matej 2026-07-27). Vzor = IdentityVisibilityEye (PackProfile.tsx): trigger → backdrop →
 // absolútne pozicovaný panel, klik na položku IBA toggle-ne (multi-select, panel sa
@@ -2446,11 +2662,11 @@ function TripTagsDropdown({
   onClear: () => void;
 }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useExclusiveDropdown();
   const count = tags.size;
 
   return (
-    <span className="relative inline-flex" style={{ flex: '1 1 140px', minWidth: 120 }}>
+    <span className="relative inline-flex trp-tagdd-wrap">
       <button
         type="button"
         className={`trp-tagdd-btn${count > 0 ? ' on' : ''}`}
@@ -2485,6 +2701,103 @@ function TripTagsDropdown({
             {count > 0 && (
               <button type="button" className="trp-tagdd-clear" onClick={onClear}>{t('pack.map.clear')}</button>
             )}
+          </div>
+        </>
+      )}
+    </span>
+  );
+}
+
+// ── NARAZ SMIE BYŤ OTVORENÁ JEDNA ROZBAĽOVAČKA (2026-08-26) ─────────────────────────────────
+// Backdrop panelu leží na z-index 40, ale samotné tlačidlá stoja v .trp-topbar (700) a
+// .trp-sidebar (20), teda NAD ním — klik na susednú rozbaľovačku ju preto otvoril bez toho, aby
+// predošlú zatvoril, a v rade piatich filtrov viseli dva panely vedľa seba. Zdvihnúť backdrop
+// nad chrome sa nedá: prekryl by aj vlastný panel. Rozbaľovačky si preto povedia, že sa otvára
+// iná — jedna udalosť na dokumente, žiadny zdieľaný stav v PackMap (komponenty sú samostatné a
+// stoja v dvoch rôznych vetvách stromu).
+const DD_OPEN_EVENT = 'trp-dd-open';
+let ddSeq = 0;
+function useExclusiveDropdown(): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
+  const idRef = useRef(0);
+  if (!idRef.current) idRef.current = ++ddSeq;
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const onOther = (e: Event) => {
+      if ((e as CustomEvent<number>).detail !== idRef.current) setOpen(false);
+    };
+    document.addEventListener(DD_OPEN_EVENT, onOther);
+    return () => document.removeEventListener(DD_OPEN_EVENT, onOther);
+  }, []);
+  // Ohlasuje sa AŽ V EFEKTE, nie v handleri: dispatch vnútri setState updatera by v
+  // StrictMode odišiel dvakrát a v budúcom React režime by to bol vedľajší účinok v renderi.
+  useEffect(() => {
+    if (open) document.dispatchEvent(new CustomEvent(DD_OPEN_EVENT, { detail: idRef.current }));
+  }, [open]);
+  return [open, setOpen];
+}
+
+// ── Jednovoľbová rozbaľovačka hlavičky — NÁROČNOSŤ a NÁVŠTEVNOSŤ (2026-08-26) ───────────────
+// Nahrádza natívny <select>. Dva Matejove dôvody naraz, oba sa dali vyriešiť len takto:
+//
+//  1. „náročnosť nemá emoji… resp ikonky." Náročnosť ZNAČKU má — zelený kruh / žltý štvorec /
+//     červený trojuholník (`DiffMark`), ten istý znak, aký nesie bod na mape aj pilulka na
+//     fotke. `<option>` unesie výhradne text, takže natívny select ju vykresliť NEVIE; jediná
+//     alternatíva by bola vymyslieť pre náročnosť tretiu reč (emoji) vedľa farby a tvaru.
+//  2. „dropdowny treba zosúladiť — niektoré sú tmavé." Rozbaľovací zoznam natívneho selectu
+//     kreslí PREHLIADAČ podľa `color-scheme`, nie stránka (index.html má natvrdo `dark`).
+//     Vlastný panel tento spor nemá vôbec.
+//
+// ⚠️ TRIEDY SÚ `trp-tagdd-*`, teda tie isté, aké nesie filter tagov — zámerne. Bledá vetva pre
+// ne už existuje (a od 26. 8. je BEZ kotvy na rodiča, práve preto, že presuny prvkov ju ticho
+// zhadzovali). Vlastná sada tried by bola štvrtý vzhľad rozbaľovačky na jednej obrazovke.
+function TripPickDropdown({ label, value, options, onPick, anyLabel }: {
+  label: string;
+  value: string;
+  options: { value: string; label: string; icon?: React.ReactNode }[];
+  onPick: (v: string) => void;
+  anyLabel: string;
+}) {
+  const [open, setOpen] = useExclusiveDropdown();
+  const current = options.find((o) => o.value === value);
+  return (
+    <span className="relative inline-flex trp-pickdd-wrap">
+      <button
+        type="button"
+        className={`trp-tagdd-btn${value ? ' on' : ''}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label={label}
+      >
+        <span className="trp-pickdd-cur">{current?.icon}{current ? current.label : label}</span>
+        <span className="trp-tagdd-chevron" aria-hidden>▾</span>
+      </button>
+      {open && (
+        <>
+          {/* Backdrop — klik mimo zatvára. Rovnaký vzor ako TripTagsDropdown vyššie. */}
+          <span className="fixed inset-0" style={{ zIndex: 40 }} onClick={() => setOpen(false)} aria-hidden />
+          <div className="trp-tagdd-panel">
+            <span className="trp-tagdd-eyebrow">{label}</span>
+            {/* „Akákoľvek" = zrušenie filtra. V natívnom selecte to bola prvá <option> s
+                prázdnou hodnotou; tu je to riadok, inak by sa filter nedal vypnúť. */}
+            <button
+              type="button"
+              className={`trp-tagdd-row${value ? '' : ' on'}`}
+              onClick={() => { onPick(''); setOpen(false); }}
+            >
+              <span className="trp-pickdd-item">{anyLabel}</span>
+              {!value && <span aria-hidden>✓</span>}
+            </button>
+            {options.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                className={`trp-tagdd-row${value === o.value ? ' on' : ''}`}
+                onClick={() => { onPick(o.value); setOpen(false); }}
+              >
+                <span className="trp-pickdd-item">{o.icon}{o.label}</span>
+                {value === o.value && <span aria-hidden>✓</span>}
+              </button>
+            ))}
           </div>
         </>
       )}
@@ -2588,7 +2901,11 @@ export default function PackMap() {
   const [lineHoverId, setLineHoverId] = useState<string | null>(null);
   const [heroDiff, setHeroDiff] = useState<'' | 'Easy' | 'Moderate' | 'Hard' | 'Odyssey'>('');
   const [heroCrowd, setHeroCrowd] = useState<'' | 'Pokojné' | 'Rušné' | 'Ľudoprázdne'>('');
-  const [heroAct, setHeroAct] = useState<'' | 'hiking' | 'picnic' | 'overnight' | 'skating' | 'paddleboard'>('');
+  // ⚠️ HODNOTY = ID KATEGÓRIÍ (2026-08-27), nie staré aktivity. Zoznam bol do 27. 8. napísaný
+  // ručne a chýbali v ňom `journey` aj `explore` — dve zo siedmich aktivít sa teda cez typ
+  // nedali ani vybrať. Dnes ho drží `TripCategoryId`, takže pribudnutá kategória tu nemá kde
+  // vypadnúť.
+  const [heroAct, setHeroAct] = useState<'' | TripCategoryId>('');
   const [heroMacroRegion, setHeroMacroRegion] = useState<'' | 'West' | 'Center' | 'East'>('');
   const [selectedCountry, setSelectedCountry] = useState<string>('');  // '' = všetky krajiny
   const [heroTags, setHeroTags] = useState<Set<string>>(new Set());
@@ -3946,6 +4263,17 @@ export default function PackMap() {
         month: dateStr.length >= 7 ? dateStr.slice(0, 7) : dateStr,
         socialization: '', host: t('pack.map.hostAndYourDog', { name: firstName }), hostIsMe: true,
         at: now, joinedByMe: true,
+        // AKO SA TAM IDE — organizačná pomôcka inzerátu (Matej 2026-08-26). Na `HeroTrail`
+        // to zámerne NIE JE: výlet definuje trasa, nie jeden spoločný odchod.
+        // Vzniká, len keď je čo povedať; pri „idem sám" sa sem nedostane už z formulára
+        // (celý blok je tam zašednutý) ani odtiaľto — táto vetva beží iba pri `isOpen`.
+        ...(draft.travelMode || draft.travelFrom || draft.pickup
+          ? { travel: {
+              ...(draft.travelMode ? { mode: draft.travelMode } : {}),
+              ...(draft.travelFrom ? { from: draft.travelFrom } : {}),
+              ...(draft.pickup ? { pickup: true, seats: draft.pickupSeats ?? 1 } : {}),
+            } }
+          : {}),
       };
       setEvents((prev) => [ev, ...prev]);
     }
@@ -4072,7 +4400,14 @@ export default function PackMap() {
         // plánované výlety (neprešli sa) NEpatria do ľavého bloku „všetky výlety" — len na mapu (pin),
         // do Events a Triplistu. Po označení walked (autor) sa z plánu stane bežný trip a objaví sa tu.
         !(tr.id.startsWith('plan-') && !walkedIds.has(tr.id)) &&
-        (heroDiff === '' || tr.diff === heroDiff) &&
+        // 🔴 ODYSEA JE VLASTNÁ PRIEHRADKA, NIE STUPEŇ (Matej 2026-08-27, §12.4 kánonu).
+        //    ODYSEA vracia VŠETKY viacdňové bez ohľadu na náročnosť; ostatné stupne naopak
+        //    viacdňové NEVRACAJÚ.
+        //    ⚠️ PRIJATÝ DÔSLEDOK, ktorý Matej odklepol: dvojdňová ŤAŽKÁ túra sa pod HARD
+        //    nenájde — je len pod ODYSEA. Bez toho by stála v oboch a filter by na jednu
+        //    otázku odpovedal dvakrát.
+        (heroDiff === ''
+          || (heroDiff === 'Odyssey' ? isOdyssey(tr) : tr.diff === heroDiff && !isOdyssey(tr))) &&
         (heroCrowd === '' || tr.crowd === heroCrowd) &&
         (selectedCountry === '' || trailCountry(tr) === selectedCountry) &&
         // macro región (West/Center/East) filtruje cez REGION_OF[pohorie]; pohorie filtruje
@@ -4080,7 +4415,9 @@ export default function PackMap() {
         (heroMacroRegion === '' || REGION_OF[tr.region] === heroMacroRegion) &&
         // acts/tagy vedia na budúcich tripoch chýbať (typ acts?/tags? je optional) — bez poľa
         // filter NEvylučuje agresívne, radšej ukáže trip ako by ho stratil.
-        (heroAct === '' || !tr.acts || tr.acts.length === 0 || tr.acts.includes(ACT_DATA_ID[heroAct] ?? heroAct)) &&
+        // 🔴 VŠETKY kategórie výletu, nie len jeho identita (Matej 2026-08-27) — túra
+        // s piknikom sa MUSÍ nájsť aj pod CHILL, inak by kategória ostala prázdna.
+        (heroAct === '' || !tr.acts || tr.acts.length === 0 || isInCategory(tr.acts, heroAct)) &&
         (heroTags.size === 0 || tripTagSet.size === 0 || Array.from(heroTags).some((tg) => tripTagSet.has(tg)))
       );
     });
@@ -4109,6 +4446,14 @@ export default function PackMap() {
   }
 
   const sortTrips = (arr: typeof visibleHeroTrails) => [...arr].sort((a, b) => {
+    // ⚠️ V PRIEHRADKE ODYSEA ROZHODUJE NÁROČNOSŤ (Matej 2026-08-27, §12.4: „ODYSEA ukáže
+    // všetky viacdňové zoradené podľa náročnosti"). Je to jediná priehradka, kde sú všetky
+    // výlety viacdňové, takže „putovanie naspodok" by tu zoradilo zoznam podľa ničoho.
+    if (heroDiff === 'Odyssey') {
+      const d = diffRank(a.tr.diff) - diffRank(b.tr.diff);
+      if (d !== 0) return d;
+      return b.tr.stars - a.tr.stars;
+    }
     const ja = a.tr.acts?.includes('journey') ? 1 : 0;
     const jb = b.tr.acts?.includes('journey') ? 1 : 0;
     if (ja !== jb) return ja - jb;
@@ -4283,8 +4628,14 @@ export default function PackMap() {
                 slovenským zoznamom „MALÉ KARPATY · WEST". Kľúče `pack.map.macroRegion.*`. */}
             <div className="trp-bigcard-loc">{tr.region}{REGION_OF[tr.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[tr.region]}`)}` : ''}</div>
             <div className="trp-bigcard-name">{tr.name}</div>
-            {/* autor = svorka čo prešla trip; „+N Dogyptians" = walkeri nad zakladateľov
-                (Matej 2026-07-22 — walked count sa presunul sem z crowd stĺpca). */}
+          </div>
+          {/* PODPISOVÝ RIADOK (Matej 2026-08-26): „rozdelíme to na 2 riadky — prvý riadok názov,
+              treba zväčšiť text, druhý riadok fotka a meno autora a vedľa hodnotenie, malým
+              písmom." Hodnotenie prestalo byť pravým STĹPCOM karty a stalo sa poznámkou vedľa
+              autora, takže názov dostal celú šírku a smie vážiť.
+              autor = svorka čo prešla trip; „+N Dogyptians" = walkeri nad zakladateľov
+              (Matej 2026-07-22 — walked count sa presunul sem z crowd stĺpca). */}
+          <div className="trp-bigcard-foot">
             <div className="trp-bigcard-authorrow">
               <AuthorAvatars author={authorOf(tr)} size={16} />
               <button
@@ -4293,12 +4644,10 @@ export default function PackMap() {
                 onClick={(e) => { e.stopPropagation(); setCreatorTrail(tr); }}
               >{t('pack.map.byAuthor', { author: authorOf(tr) })}{others > 0 ? ` · ${t('pack.map.plusDogyptians' + pluralKey(others), { n: others })}` : ''}</button>
             </div>
+            {/* Plán = žiadne hodnotenie (výlet sa neodohral).
+                rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating"). */}
+            {!isUnwalkedPlan && agg.rating > 0 && <BigRating rating={agg.rating} count={agg.walkedCount} mini />}
           </div>
-          {/* bod 3 (Matej 2026-07-22): pravý stĺpec = LEN veľký rating (1 packa + X.Y). Náročnosť/
-              popularita/hazard sa presunuli na fotku (PhotoMetaPills vyššie).
-              Plán = žiadne hodnotenie (výlet sa neodohral).
-              rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating"). */}
-          {!isUnwalkedPlan && agg.rating > 0 && <BigRating rating={agg.rating} compact />}
         </div>
       </div>
     );
@@ -4335,8 +4684,11 @@ export default function PackMap() {
           const idx = photoIdx[dt.id] ?? 0;
           const photo = dt.photos[idx] ?? dt.photos[0] ?? placeholderFor(dt.acts, dt.id);
           // bod 4 (i12): tagy/aktivity s emoji (rovnaký vocabulary ako filter chipy nižšie).
+          // ⚠️ KATEGÓRIE, NIE SUROVÉ `acts` (2026-08-27) — piknik aj nocľah sú CHILL a chip
+          // by inak stál dvakrát. Zároveň je to ten istý zoznam, podľa ktorého výlet nachádza
+          // filter: karta tak povie, prečo sa pod CHILL našla túra.
           const dtChips = [
-            ...(dt.acts ?? []).map((a) => ({ key: `a:${a}`, label: a, emoji: ACT_EMOJI[a] ?? '' })),
+            ...categoriesOf(dt.acts).map((c) => ({ key: `a:${c}`, label: t(`pack.map.activityLabel.${c}`), emoji: ACT_EMOJI[c] ?? '' })),
             // 'In the middle of nature'/'nowhere' zrušené (Matej 2026-07-26) — filter aj tu, nielen
             // v TAG_VOCAB, lebo dtChips číta dt.tags priamo (surová dátová hodnota, nie cez TAG_VOCAB).
             ...(dt.tags ?? []).filter((tg) => tg !== 'In the middle of nature' && tg !== 'In the middle of nowhere').map((tg) => ({ key: `t:${tg}`, label: tg, emoji: TAG_EMOJI[tg] ?? '' })),
@@ -4344,6 +4696,12 @@ export default function PackMap() {
           const dtAgg = crowdAggregate(dt, votes[dt.id]);
           const isUnwalkedPlan = dt.id.startsWith('plan-') && !walkedIds.has(dt.id);
           const isMine = authorOf(dt) === firstName;
+          // AKO SA TAM IDE — z môjho ŽIVÉHO inzerátu na tento výlet. Zavretý (`closed`)
+          // sa nepočíta: kto sa už nemôže pridať, nepotrebuje vedieť, odkiaľ sa vyráža.
+          // Po prejdení plánu inzerát zaniká (submitAddTripDraft), takže riadok zhasne sám.
+          const dtTravel = isUnwalkedPlan
+            ? events.find((e) => e.tripId === dt.id && e.hostIsMe && !e.closed)?.travel
+            : undefined;
           return (
             <div className="trp-inldet">
               <div className="trp-inldet-head">
@@ -4414,6 +4772,30 @@ export default function PackMap() {
                   <div className="trp-inldet-info">
                     <div className="trp-inldet-loc">{dt.region}{REGION_OF[dt.region] ? ` · ${t(`pack.map.macroRegion.${REGION_OF[dt.region]}`)}` : ''}</div>
                     <div className="trp-inldet-name">{dt.name}</div>
+                    {/* ── AKO SA TAM IDE (2026-08-26) ──────────────────────────────
+                        Doprava · odkiaľ · voľné miesta. Zdroj je INZERÁT (`events`), nie
+                        výlet: Matej 26. 8. — „doprava sa nikde inde nezapisuje, je to len
+                        organizačná pomôcka eventripu… ukladá sa len to, čo definuje samotný
+                        trip". Preto sa aj zobrazuje len dovtedy, kým inzerát žije.
+                        ⚠️ STOJÍ TU, NIE NA KARTE V ĽAVOM ZOZNAME. Neprejdený plán do toho
+                        zoznamu zámerne nepatrí (filter vyššie: „len na mapu, do Events
+                        a Triplistu"), takže riadok by tam bol mŕtvy. */}
+                    {dtTravel && (
+                      <div className="trp-bigcard-travel">
+                        {dtTravel.mode && (
+                          <span>
+                            <b style={{ fontFamily: FONT_EMOJI, fontWeight: 400 }}>{TRAVEL_EMOJI[dtTravel.mode] ?? ''}</b>
+                            {' '}{t(`pack.addTrip.plan.travel.${dtTravel.mode}`)}
+                          </span>
+                        )}
+                        {dtTravel.from && <span>{dtTravel.from}</span>}
+                        {dtTravel.pickup && (
+                          <span className="trp-bigcard-seats">
+                            {t('pack.map.planSeats' + pluralKey(dtTravel.seats ?? 1), { n: dtTravel.seats ?? 1 })}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {/* bod 6 (iterácia 16): dva avatary (majiteľ+pes) vedľa "by {author}" */}
                     <div className="trp-inldet-authorrow">
                       <AuthorAvatars author={authorOf(dt)} size={22} />
@@ -4430,7 +4812,7 @@ export default function PackMap() {
                       — rovnaká pomlčka ako pri nekonanom pláne, nie „0.0". */}
                   {isUnwalkedPlan || dtAgg.rating <= 0
                     ? <span className="trp-norating" title={isUnwalkedPlan ? t('pack.map.notRatedPlanned') : t('pack.map.notRatedUnwalked')}>— —</span>
-                    : <BigRating rating={dtAgg.rating} />}
+                    : <BigRating rating={dtAgg.rating} count={dtAgg.walkedCount} />}
                 </div>
 
                 {/* bod 4: tagy JEDEN riadok vedľa seba + hazard chipy (Matej 2026-07-22: hazard je
@@ -4558,6 +4940,17 @@ export default function PackMap() {
               <div className="trp-greet-hi">{t('pack.map.greetHi', { name: firstName })}</div>
               <div className="trp-greet-sub">{t('pack.map.greetSub')}</div>
             </div>
+            {/* DVA OVLÁDACIE PRVKY V ROHU (Matej 2026-08-26: „vedľa filtru hore dajme ešte
+                druhý filter, resp. vlajku"). Krajina bola do teraz prvým z troch rozbaľovačiek
+                v rade pod kategóriami, kde si brala tretinu šírky na dva znaky — a rad tým
+                ostal len na dve skutočné voľby. V rohu je z nej ikonka a v rade sa uvoľnilo
+                miesto pre TAGY, ktoré prišli z horného panela. */}
+            <div className="trp-greet-tools">
+            <CountryFlagDropdown
+              countries={availableCountries}
+              value={selectedCountry}
+              onPick={applyCountry}
+            />
             <div className="trp-greet-filterwrap">
               <button type="button" className={`trp-greet-filter${mobileSort !== 'top' ? ' on' : ''}`} onClick={() => setSortOpen((v) => !v)} aria-label={t('pack.map.sortAndFilter')}>
                 <img src={ICON('sliders')} alt="" />
@@ -4574,6 +4967,7 @@ export default function PackMap() {
                   ))}
                 </div>
               )}
+            </div>
             </div>
           </div>
 
@@ -4595,44 +4989,43 @@ export default function PackMap() {
               → región (West/Center/East) → activity. Activity je MIMO SK-podmienky nižšie —
               musí byť v riadku vždy, aj keď je krajina iná ako SK a Region sa skryje. */}
           <div className="trp-georow">
-            <select
-              className="trp-country-select"
-              value={selectedCountry}
-              aria-label={t('pack.map.country')}
-              onChange={(e) => applyCountry(e.target.value)}
-            >
-              {availableCountries.length > 1 && <option value="">🌍 {t('pack.map.all')}</option>}
-              {availableCountries.map((c) => (
-                <option key={c} value={c}>{flagEmoji(c)} {c.toUpperCase()}</option>
-              ))}
-            </select>
+            {/* KRAJINA TU UŽ NIE JE — vlajka sa presťahovala do rohu k filtru (2026-08-26).
+                Rad drží tri VOĽBY OBSAHU: kde · čo sa tam dá robiť · aké to je. */}
             {/* F1 (Matej 2026-07-24): „Preč »all ranges« — zbytočne komplikované." → druhostupňový
                 dropdown POHORÍ zrušený, filtruje sa len makro-regiónom West/Center/East. Pohorie
                 ostáva viditeľné na karte tripu (trp-bigcard-loc), len sa podľa neho nefiltruje. */}
+            {/* ⚠️ RAD JE PÄŤ ROZBAĽOVAČIEK NA JEDNEJ OBRAZOVKE A VŠETKY MAJÚ TEN ISTÝ PANEL
+                (Matej 2026-08-26: „dropdowny treba zosúladiť — niektoré sú tmavé").
+                Región a Aktivity boli do teraz natívne <select>-y: pole papyrusové, ale zoznam
+                po rozkliknutí čierny, lebo ho kreslí prehliadač podľa color-scheme z index.html.
+                Prepnúť ich na light by síce zoznam zosvetlilo, ale vedľa vlastných panelov
+                Náročnosti a Návštevnosti by to boli aj tak dva rôzne vzhľady. */}
             {(selectedCountry === '' || selectedCountry === 'sk') && (
-            <select
-              className="trp-filter-select"
+            <TripPickDropdown
+              label={t('pack.map.region')}
+              anyLabel={t('pack.map.anyRegion')}
               value={heroMacroRegion}
-              onChange={(e) => setHeroMacroRegion(e.target.value as typeof heroMacroRegion)}
-              aria-label={t('pack.map.region')}
-            >
-              <option value="">{t('pack.map.allRegions')}</option>
-              {MACRO_REGIONS.map((r) => (
-                <option key={r} value={r}>{t(`pack.map.macroRegion.${r}`)}</option>
-              ))}
-            </select>
+              onPick={(v) => setHeroMacroRegion(v as typeof heroMacroRegion)}
+              options={MACRO_REGIONS.map((r) => ({ value: r, label: t(`pack.map.macroRegion.${r}`) }))}
+            />
             )}
-            <select
-              className="trp-filter-select"
+            {/* Aktivity ostávajú EMOJI (lock 2026-08-14 — „nie emoji nechaj tak!"). Mení sa
+                len povrch, na ktorom stoja: vlastný panel namiesto systémového zoznamu. */}
+            <TripPickDropdown
+              label={t('pack.map.activities')}
+              anyLabel={t('pack.map.anyActivity')}
               value={heroAct}
-              onChange={(e) => setHeroAct(e.target.value as typeof heroAct)}
-              aria-label={t('pack.map.activity')}
-            >
-              <option value="">{t('pack.map.activities')}</option>
-              {TRIP_ACTIVITIES.map((a) => (
-                <option key={a.id} value={a.id}>{ACT_EMOJI[a.id]} {t(`pack.map.activityLabel.${a.id}`)}</option>
-              ))}
-            </select>
+              onPick={(v) => setHeroAct(v as typeof heroAct)}
+              options={TRIP_ACTIVITIES.map((a) => ({
+                value: a.id,
+                label: t(`pack.map.activityLabel.${a.id}`),
+                icon: <span className="trp-pickdd-emoji" style={{ fontFamily: FONT_EMOJI }}>{ACT_EMOJI[a.id]}</span>,
+              }))}
+            />
+            {/* TAGY PRIŠLI Z HORNÉHO PANELA (Matej 2026-08-26). Patria k tomu, čo VÝLET JE —
+                teda k regiónu a aktivite — nie k tomu, ako sa mapa prehliada. Hore ostalo
+                hľadanie miesta, náročnosť a návštevnosť. */}
+            <TripTagsDropdown tags={heroTags} onToggle={toggleTag} onClear={() => setHeroTags(new Set())} />
           </div>
           </>)}
         </div>
@@ -4791,8 +5184,11 @@ export default function PackMap() {
                   <span className="trp-msheet-label">{t('pack.map.crowd')}</span>
                   <select className="trp-msheet-select" value={heroCrowd} aria-label={t('pack.map.crowd')} onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}>
                     <option value="">{t('pack.map.any')}</option>
+                    {/* Emoji z CROWD_EMOJI — preklad odteraz nesie len slovo (jeden zdroj
+                        značiek, viď packCommunity.ts). Mobilný sheet ostáva natívny select,
+                        tam sa značka inak než textom vykresliť nedá. */}
                     {CROWD_DATA_KEYS.map((sk) => (
-                      <option key={sk} value={sk}>{t(`pack.map.crowdLabel.${sk}`)}</option>
+                      <option key={sk} value={sk}>{CROWD_EMOJI[CROWD_KEY_TO_CROWD[sk]]} {t(`pack.map.crowdLabel.${sk}`)}</option>
                     ))}
                   </select>
                 </div>
@@ -5343,10 +5739,19 @@ export default function PackMap() {
                   See PackLayout.tsx AvatarNavButton. */}
               <div className="trp-status-row">
                 {renderStatusLeft()}
-                {renderStatusCenter()}
-                {/* messages + zvonček → pravý roh TOHTO bloku (Matej 2026-07-24/26).
-                    Inline layout = v toku, nie fixed. */}
-                {renderHeaderRight(MAP_SKIN !== 'pale')}
+                {/* VÝREZ (Matej 2026-08-26): doska hlavičky nezačína pri leme — ľavá časť
+                    ostáva holé zlato a identita stojí priamo na ňom. Preto je zvyšok riadku
+                    zabalený: doska je REÁLNY prvok, nie vrstva pozadia, lebo má zaoblený
+                    ľavý okraj a gradient roh nezaoblí.
+                    ⚠️ Mimo bledého PC skinu je wrapper `display:contents`, teda z layoutu
+                    zmizne úplne — tmavá vetva (aj mobilná hlavička, ktorá volá tie isté
+                    render funkcie) sa nemení ani o pixel. */}
+                <div className="trp-status-plate">
+                  {renderStatusCenter()}
+                  {/* messages + zvonček → pravý roh TOHTO bloku (Matej 2026-07-24/26).
+                      Inline layout = v toku, nie fixed. */}
+                  {renderHeaderRight(MAP_SKIN !== 'pale')}
+                </div>
               </div>
               <div className="trp-topsearchrow">
                 <div className="trp-floatsearch" ref={placeBoxRef}>
@@ -5382,36 +5787,38 @@ export default function PackMap() {
                 {/* bod 3 (iterácia 11): Difficulty/Popularity — samostatné, totožné borderless
                     polia priamo v riadku (.trp-topfilters wrapper box zrušený). Activity
                     presunutá 2026-07-27 do .trp-georow (ľavý panel, vedľa "All regions"). */}
-                <select
-                  className="trp-toprow-select"
+                {/* Náročnosť nesie ZNAČKU, nie emoji (Matej 2026-08-26) — tú istú, akú má bod
+                    na mape aj pilulka na fotke. Preto vlastná rozbaľovačka, viď
+                    TripPickDropdown. */}
+                <TripPickDropdown
+                  label={t('pack.map.difficulty')}
+                  anyLabel={t('pack.map.any')}
                   value={heroDiff}
-                  onChange={(e) => setHeroDiff(e.target.value as typeof heroDiff)}
-                  aria-label={t('pack.map.difficulty')}
-                >
-                  <option value="">{t('pack.map.difficulty')}</option>
-                  <option value="Easy">{t('pack.map.diff.Easy')}</option>
-                  <option value="Moderate">{t('pack.map.diff.Moderate')}</option>
-                  <option value="Hard">{t('pack.map.diff.Hard')}</option>
-                  <option value="Odyssey">{t('pack.map.diff.Odyssey')}</option>
-                </select>
+                  onPick={(v) => setHeroDiff(v as typeof heroDiff)}
+                  options={DIFF_KEYS.map((d) => ({
+                    value: d,
+                    label: t(`pack.map.diff.${d}`),
+                    icon: <DiffMark diff={d} />,
+                  }))}
+                />
                 {/* bod 2 (iterácia 15) → D2 2026-07-24: "Popularity" → "Vibe" → "Crowd" (Empty/Calm/Busy) */}
-                <select
-                  className="trp-toprow-select"
+                {/* Emoji sa berie z CROWD_EMOJI (packCommunity.ts) — ten istý zdroj, aký kŕmi
+                    pilulku na fotke aj formulár zápisu. Do 26. 8. si ho preklad niesol vlastný
+                    a rady sa rozišli (👣 tu znamenalo „rušné", v tagoch „lesný chodník"). */}
+                <TripPickDropdown
+                  label={t('pack.map.crowd')}
+                  anyLabel={t('pack.map.any')}
                   value={heroCrowd}
-                  onChange={(e) => setHeroCrowd(e.target.value as typeof heroCrowd)}
-                  aria-label={t('pack.map.crowd')}
-                >
-                  <option value="">{t('pack.map.crowd')}</option>
-                  {CROWD_DATA_KEYS.map((sk) => (
-                    <option key={sk} value={sk}>{t(`pack.map.crowdLabel.${sk}`)}</option>
-                  ))}
-                </select>
-                {/* Tags presunuté z ľavého panelu sem ako multi-select dropdown (Matej 2026-07-27),
-                    vzor IdentityVisibilityEye v PackProfile.tsx. Len pri Trips (rovnaká logika
-                    ako mala pôvodná chip sekcia — pri Events sa geo/tag filtre skrývajú). */}
-                {activeCat === 'trips' && (
-                  <TripTagsDropdown tags={heroTags} onToggle={toggleTag} onClear={() => setHeroTags(new Set())} />
-                )}
+                  onPick={(v) => setHeroCrowd(v as typeof heroCrowd)}
+                  options={CROWD_DATA_KEYS.map((sk) => ({
+                    value: sk,
+                    label: t(`pack.map.crowdLabel.${sk}`),
+                    icon: <span className="trp-pickdd-emoji" style={{ fontFamily: FONT_EMOJI }}>{CROWD_EMOJI[CROWD_KEY_TO_CROWD[sk]]}</span>,
+                  }))}
+                />
+                {/* Tagy sa 2026-08-26 vrátili do ľavého panela (.trp-georow) — sem prišli
+                    2026-07-27 z chip-riadku, ale hore stoja filtre PREHLIADANIA (kde som,
+                    ako ťažké, koľko ľudí), kým tag hovorí, ČO ten výlet je. */}
               </div>
             </div>
 

@@ -21,8 +21,8 @@ import type { HeroTrail } from '@/data/heroTrails.generated';
 import { PACK_THEME as T, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
 import { MAP_SKIN, PALE, PALE_PC_MIN, goldFrameCSS, LAPIS, LAPIS_BTN_SHADOW } from '@/components/pack/navGoldSkin';
 import { useT } from '@/i18n/LanguageContext';
+import { geometryForCategory } from '@/components/pack/tripCategories';
 import {
-  ACTIVITY_GEOMETRY,
   type GeometryKind,
   type TripGeometry,
 } from './addTripModel';
@@ -74,6 +74,13 @@ export type GeometryPickerProps = {
   value: TripGeometry;
   onChange: (g: TripGeometry) => void;
   activity: string;
+  /**
+   * Viacdňová HIKE (odysea) — mení POVOLENÉ druhy geometrie na jediný: trasu (Matej
+   * 2026-08-22: „pri magistrále - logovaní nemôže byť oblasť, musí mať vždy ROUTE").
+   * ⚠️ Nie je to kozmetika: pri jedinej povolenej hodnote sa skryje aj prepínač druhu,
+   * takže bez tejto informácie by picker ponúkal kruh na výlet, ktorý ho mať nesmie.
+   */
+  multiDay?: boolean;
   mode: 'plan' | 'log';
   allTrails: HeroTrail[];
   onPickExisting?: (trail: HeroTrail) => void;
@@ -154,6 +161,16 @@ export type GeometryPickerProps = {
      * keď áno.
      */
     steps?: React.ReactNode;
+    /**
+     * OTÁZKA NAD TLAČIDLOM HOTOVO (Matej 2026-08-27: „nad tlačidlo HOTOVO pribudne otázka
+     * jednodňová túra / túra na viac dní").
+     *
+     * ⚠️ Prichádza HOTOVÁ od volajúceho, rovnako ako `steps` — picker o sprievodcovi nevie.
+     * Musí byť TU a nie vo formulári: v kroku 1 je panel skrytý (mapa je celá obrazovka),
+     * takže otázka vo formulári by sa objavila až o krok neskôr, keď je odpoveď potrebná
+     * dávno predtým (rozhoduje o tom, či sa v kroku 2 vôbec ponúkne nocľah).
+     */
+    above?: React.ReactNode;
   };
 };
 
@@ -161,16 +178,18 @@ export type GeometryPickerProps = {
 
 /** Povolené režimy pre aktivitu; pri PLÁNE je default najvoľnejší (§5 — nikto nekreslí
  *  presnú trasu na výlet o mesiac). */
-export function defaultKindFor(activity: string, mode: 'plan' | 'log'): GeometryKind {
-  const cfg = ACTIVITY_GEOMETRY[activity];
-  if (!cfg) return 'route';
+// ⚠️ `multiDay` NIE JE nepovinná ozdoba: viacdňová HIKE smie byť LEN trasa (odysea), takže
+// ten istý `activity` má podľa nej dva rôzne zoznamy. Volajúci, ktorý ju nepodá, dostane
+// jednodňovú vetvu — to je bezpečná strana (širší výber), nie tichá chyba.
+export function defaultKindFor(activity: string, mode: 'plan' | 'log', multiDay = false): GeometryKind {
+  const cfg = geometryForCategory(activity, multiDay);
   if (mode === 'log') return cfg.default;
   const looseFirst: GeometryKind[] = ['area', 'point', 'route'];
   return looseFirst.find((k) => cfg.allowed.includes(k)) ?? cfg.default;
 }
 
-export function allowedKindsFor(activity: string): GeometryKind[] {
-  return ACTIVITY_GEOMETRY[activity]?.allowed ?? ['route'];
+export function allowedKindsFor(activity: string, multiDay = false): GeometryKind[] {
+  return geometryForCategory(activity, multiDay).allowed;
 }
 
 /**
@@ -250,6 +269,7 @@ export function GeometryPicker({
   value,
   onChange,
   activity,
+  multiDay = false,
   mode,
   allTrails,
   onPickExisting,
@@ -290,7 +310,7 @@ export function GeometryPicker({
    * profil tam neplatí.
    */
 
-  const allowed = useMemo(() => allowedKindsFor(activity), [activity]);
+  const allowed = useMemo(() => allowedKindsFor(activity, multiDay), [activity, multiDay]);
   const line = useMemo(
     () => (value.kind === 'route' ? value.snapPath ?? value.path : []),
     [value],
@@ -1311,9 +1331,7 @@ export function GeometryPicker({
 
       {/* zlyhanie snapu sa NIKDY nezamlčí (§5.2c) — keď stojí lišta, hlási ho ona */}
       {!barOn && notice && (
-        <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: GOLD }}>
-          {notice}
-        </div>
+        <div className="trp-notice">{notice}</div>
       )}
       {!barOn && busy && (
         <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.onDarkDim }}>{t('pack.addTrip.geo.snappingBusy')}</div>
@@ -1443,7 +1461,7 @@ export function GeometryPicker({
 
           {/* zlyhanie snapu sa NIKDY nezamlčí (§5.2c) — aj keď je panel schovaný */}
           {notice && (
-            <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: GOLD }}>{notice}</div>
+            <div className="trp-notice">{notice}</div>
           )}
 
           {/* ── CIEĽ A OTÁZKA O NÁVRATE — ZRUŠENÉ 24. 8. 2026 ────────────────────────────
@@ -1510,8 +1528,10 @@ export function GeometryPicker({
             );
             // V PAUZE (krok 2 sprievodcu) ostáva len HOTOVO — nástroje kreslenia by tam
             // pridávali kotvy do hotovej trasy.
-            if (paused) return done;
-            return doneReady ? <>{done}{tools}</> : tools;
+            // `above` stojí nad HOTOVOM v OBOCH fázach — otázka o viacdňovosti sa nesmie
+            // objaviť až vtedy, keď je trasa hotová: odpoveď mení povolenú geometriu.
+            if (paused) return <>{drawBar.above}{done}</>;
+            return doneReady ? <>{drawBar.above}{done}{tools}</> : <>{drawBar.above}{tools}</>;
           })()}
 
           {/* ── NAJMENŠÍ MOŽNÝ ZÁPIS — PONUKA ZRUŠENÁ 24. 8. 2026 ────────────────────────
@@ -1695,6 +1715,15 @@ const DRAW_BAR_CSS = `
    text area je moc nízko") — pole potrebuje vzduch nad aj pod sebou, inak sedí na hrane
    displeja a na telefóne ho prekrýva systémová lišta. */
 .trp-dstart{display:flex;flex-direction:column;gap:14px;}
+/* ── HLÁSENIE „NEPODARILO SA PRICHYTIŤ" (Matej 2026-08-26) ──────────────────────────────
+   „daj inú farbu písma na tento text: Couldn't snap — using straight line, lebo nie je
+    vidno."
+   Stálo v GOLD (#C99A3F) — na papyrusovej doske PC je to zlatá na piesku, teda text,
+   ktorý tam síce je, ale nikto ho neprečíta. A je to jediná veta, ktorá hovorí, že trasa
+   NIE JE taká, akú ju človek klikol.
+   ⚠️ Nie je to chybová hláška — appka funguje, len kreslí priamku. Preto tlmená výstražná
+   červeň a nie tá istá, akou svieti UPOZORNENIE na mape. */
+.trp-notice{font-family:${FONT_UI};font-size:12px;font-weight:600;line-height:1.4;color:#F3B0A0;}
 /* NÁVRAT — podčiarknutý text v strede pod panelom. Šípka v rohu brala mape výšku a palec
    na ňu nedosiahol; text zaberie riadok a povie aj KAM sa vracia. */
 .trp-dback{align-self:center;background:none;border:0;padding:4px 10px;color:${T.onDarkDim};font-family:${FONT_UI};font-size:12.5px;font-weight:500;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
@@ -1920,7 +1949,7 @@ ${MAP_SKIN !== 'pale' ? '' : `
      ZLATÁ v fialovom ráme, takže väzbu aj tak niesol obal, nie graf.
      ⚠️ PILULKA S ÚDAJMI SEM NEPATRÍ — tá ostáva fialová, viď jej vlastnú poznámku nižšie
      (Matej ju z tohto kola vyňal výslovne). */
-  .trp-dock--pc .trp-delev{${goldFrameCSS({ radius: 18, rim: 6 })}}
+  .trp-dock--pc .trp-delev{${goldFrameCSS()}}
   .trp-dock--pc .trp-delev-head{color:${PALE.dim};}
   .trp-dock--pc .trp-delev-wait{color:${PALE.dim};}
   /* CSS prebíja prezentačný atribút v SVG — profil je zdieľaný komponent (tripShared.tsx)
@@ -1939,6 +1968,9 @@ ${MAP_SKIN !== 'pale' ? '' : `
      trasu zmizla. Žiadny pale override tu preto nestojí — platí základný .trp-dread
      (tmavý podklad, rám TRAIL_LINE.light, fialový dosvit). Profil prevýšenia papyrusový
      OSTÁVA: ten väzbu nesie krivkou vnútri, nie rámom. */
+  /* Na piesku musí niesť čitateľnosť tmavý inkoust, nie svetlá výstražná farba — to isté
+     zistenie ako pri tintoch chipov (navGoldSkin.ts, pickTintCSS). */
+  .trp-notice{color:#8E2C17;}
   .trp-dback{color:${PALE.dim};}
   .trp-dback:hover{color:${PALE.deep};}
   .trp-dbar-btn{background:${PALE.field};border-color:${PALE.border};color:${PALE.ink};}

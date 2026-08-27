@@ -20,12 +20,18 @@ import { mapyTiles } from '@/lib/env';
 import { tripPillIcon } from '@/components/geo/trailIcons';
 import { PoiLayer, PoiAttribution } from '@/components/geo/PoiLayer';
 import { HERO_TRAILS } from '@/data/heroTrails.generated';
+import { placeholderFor } from '@/lib/tripPlaceholder';
+import type { HeroTrail } from '@/data/heroTrails.generated';
 import { HERO_JOURNEYS } from '@/data/heroJourneys';
 import { PackBottomNav, HieroglyphBg } from '@/components/pack/PackLayout';
 import { usePackIdentity } from '@/components/pack/usePackIdentity';
 import { usePackStoreEpoch } from '@/hooks/usePackStoreEpoch';
 import { useT, useLang } from '@/i18n/LanguageContext';
 import { PACK_THEME, GLASS_CSS, FONT_TITLE, FONT_UI } from '@/components/pack/packTheme';
+// Emoji v čísle výletu (km, prevýšenie) — bez tohto fontu sadne Windows na čiernobiely
+// textový variant. Ten istý zdroj, aký drží značky na mape.
+import { FONT_EMOJI } from '@/components/pack/mapnotes/markEmoji';
+import { TRAVEL_EMOJI } from '@/components/pack/addtrip/addTripModel';
 import { useToast } from '@/hooks/use-toast';
 import { ToastAction } from '@/components/ui/toast';
 import { countryName, flagUrl, trailCountry } from '@/lib/countryGeo';
@@ -44,6 +50,7 @@ import {
 } from '@/components/pack/packCommunityUI';
 import { PointsPill, POINTS_PILL_CSS } from '@/components/pack/PointsPill';
 import { TripComments } from '@/components/pack/trip/TripComments';
+import { TripEditPanel } from '@/components/pack/trip/TripEditPanel';
 // ZÁPISY DO MAPY (2026-08-20) — v článku sú ROZBALENÉ, v mape schované pod ikonkou.
 // Ktoré sem patria, rozhoduje geometria (notesForTrail), nie uložený kľúč.
 import { MapNotesSection, MAP_NOTES_SECTION_CSS } from '@/components/pack/mapnotes/MapNotesSection';
@@ -60,9 +67,10 @@ import { TrailMarks, type TrailMarkColor } from '@/components/pack/TrailMarks';
 import { upsertMyTrip } from '@/components/pack/triplist/triplist'; // TRIPLIST (Slice A) — star popup upserts alongside the existing wishlist plan
 // #41 — karta tvorcu výletu. Tá istá trojica ako v PackMap (inline detail), lebo
 // mobil sem naviguje namiesto otvorenia panelu.
-import { useOpenTrips } from '@/components/pack/triplist/useOpenTrips';
+import { useOpenTrips, useTripEventTravel } from '@/components/pack/triplist/useOpenTrips';
 import { useTripParties, partyKey } from '@/components/pack/triplist/useTripParty';
 import { PartyMemberCard, PARTY_CARD_CSS } from '@/components/pack/triplist/PartyMemberCard';
+import { ACT_TAG_EMOJI, ACT_TO_CATEGORY, categoriesOf } from '@/components/pack/tripCategories';
 
 const GOLD = '#C99A3F';
 const INK = '#1F1A0E';
@@ -83,10 +91,16 @@ const T = PACK_THEME;
 // nechávam ho tu len ako neškodnú rezervu.
 // ⚠️ Dorovnané s `ACT_EMOJI`/`TAG_EMOJI` v `PackMap.tsx` (matrica 24. 8. 2026). Kľúče sú tu
 // DATASETOVÉ (`hike`, `Lake`), emoji musia byť tie isté — článok a filter ukazujú ten istý výlet.
-const ACT_EMOJI: Record<string, string> = { hike: '🥾', picnic: '🧺', overnight: '💤', skating: '🛼', paddleboard: '🏄', explore: '🏰' };
+// ⚠️ ŽIADNA ŠTVRTÁ KÓPIA (2026-08-27). Do 27. 8. tu chýbalo `journey` úplne — magistrála
+// teda v článku ostala bez emoji, hoci ho filter aj formulár mali. Zoznam je jeden:
+// `components/pack/tripCategories.ts`.
+const ACT_EMOJI: Record<string, string> = ACT_TAG_EMOJI;
 // Dataset nesie `hike`, slovník kľúč `hiking` (ten používa filter aj formulár) — jeden riadok
 // prekladu medzi nimi je lacnejší než tretí názov tej istej aktivity.
-const ACT_ID_TO_UI: Record<string, string> = { hike: 'hiking', journey: 'journey', picnic: 'picnic', overnight: 'overnight', skating: 'skating', paddleboard: 'paddleboard', explore: 'explore' };
+// Dátová hodnota `acts` → kľúč do slovníka. Staré hodnoty ('picnic', 'skating'…) ležia
+// v datasete ďalej a preložia sa cez kategóriu, do ktorej patria — nový názov teda dostanú
+// aj výlety, ktoré sa nikdy nemigrovali.
+const ACT_ID_TO_UI = (a: string): string => ACT_TO_CATEGORY[a] ?? a;
 const TAG_I18N_KEY: Record<string, string> = {
   Mountains: 'pack.map.tagLabel.mountains', Forest: 'pack.map.tagLabel.forest',
   'Lake/Reservoir': 'pack.map.tagLabel.lake', River: 'pack.map.tagLabel.river',
@@ -153,6 +167,10 @@ const CSS = `
 /* CC atribúcia cover fotky (Wikimedia Commons, CC BY-SA — legálne nutná viditeľnosť) */
 .pta-hero-credit{position:absolute;top:8px;right:10px;z-index:4;font-family:system-ui,sans-serif;font-size:9.5px;letter-spacing:.02em;line-height:1.25;color:rgba(255,255,255,0.72);background:rgba(0,0,0,0.34);padding:3px 8px;border-radius:6px;max-width:62%;text-align:right;pointer-events:none;}
 .pta-back{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);left:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.28);color:#fff;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+/* Zrkadlo .pta-back — rovnaká výška aj tvar, aby hero mal dva rovnocenné rohy a nie jeden
+   ovládač a jednu ozdobu. Zlatý inkoust hovorí „toto je tvoje", nie „pozor". */
+.pta-edit{position:absolute;top:calc(env(safe-area-inset-top,0px) + 18px);right:18px;z-index:5;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,0.55);border:1px solid rgba(201,154,63,0.55);color:#E9C46A;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pta-edit:hover{border-color:#C99A3F;color:#F5C73D;}
 /* iterácia 15 (Matej 2026-07-27): akčný rad je VON z hero fotky — sedí v glass paneli NAD
    stat tabuľkou (km/prevýšenie). Dôvod: ghost tlačidlá na fotke boli „slabo viditeľné a biedne",
    plné farby na tmavom paneli čítajú lepšie a fotka ostáva čistá.
@@ -230,7 +248,18 @@ const CSS = `
    výlet stratil pri otvorení jediný signál, že je v cudzine (audit #45) */
 .pta-flag{width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.55);flex-shrink:0;}
 .pta-title{font-family:${FONT_TITLE};font-weight:700;font-size:26px;line-height:1.15;color:${T.onDark};margin-top:4px;}
-.pta-author{font-size:11.5px;color:${T.onDarkDim};margin-top:8px;}
+/* Autor vľavo, hodnotenie vpravo — jeden riadok pod titulom (Matej 2026-08-25).
+   align-items:baseline (nie center): meno aj číslo sedia na tej istej linke písma, inak
+   labky riadok opticky roztiahnu a podpis odskočí nahor. Na úzkom mobile sa smie zalomiť. */
+.pta-byline{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.pta-author{font-size:11.5px;color:${T.onDarkDim};}
+.pta-byrating{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;}
+.pta-byrating b{font-family:${FONT_UI};font-weight:600;font-size:13px;color:${T.onDark};}
+/* Počet hodnotení je váha čísla, nie údaj sám o sebe — preto tichšie a bez kurzívy. */
+/* Zátvorka s počtom je tlačidlo, ale nesmie vyzerať ako tlačidlo — je to počet, ktorý sa dá
+   nasledovať. Podčiarknutie bodkami hovorí „dá sa kliknúť" tichšie než rám alebo farba. */
+.pta-bycount{font-family:${FONT_UI};font-size:11px;color:${T.onDarkDim};background:none;border:none;padding:0;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px;}
+.pta-bycount:hover{color:${T.onDark};}
 .pta-statrow{display:flex;margin-top:20px;border-radius:14px;overflow:hidden;border:1px solid ${T.onDarkBorder};background:${T.glassSoft};}
 .pta-stat{flex:1;padding:13px 6px;text-align:center;display:flex;flex-direction:column;justify-content:center;}
 .pta-stat + .pta-stat{border-left:1px solid ${T.onDarkBorder};}
@@ -243,14 +272,13 @@ const CSS = `
 /* .pta-stat span je label (9px, uppercase) — vnútorné spany v .pta-route ho NESMÚ zdediť,
    inak „8 km" vysadne menšie než susedné „Moderate". */
 .pta-route span{display:inline;font-size:inherit;letter-spacing:normal;text-transform:none;color:inherit;margin-top:0;}
-/* Matej 2026-07-27: label „Distance · Elevation" zrušený — ikony (↔ / ↑) hovoria to isté.
-   Na mobile ide route pod seba (↔ km NAD ↑ m) a rating tiež (číslo NAD packami), aby stĺpce
-   nepotrebovali toľko šírky a text sa nelámal. */
+/* Matej 2026-07-27: label „Distance · Elevation" zrušený — ikony hovoria to isté.
+   Na mobile ide route pod seba (km NAD prevýšením), aby stĺpec nepotreboval toľko šírky.
+   ⚠️ Trieda .pta-ratingstack tu zanikla 25. 8. 2026 spolu so štvrtou dlaždicou — hodnotenie
+   je dnes v riadku pod titulom (.pta-byrating), kde sa nelomí a stohovať sa nemá čo. */
 @media (max-width:560px){
   .pta-route{flex-direction:column;gap:3px;}
   .pta-route i{display:none;}
-  /* column-reverse = číslo hore, packy pod ním (v DOM sú packy prvé, aby desktop čítal „🐾 4.0"). */
-  .pta-ratingstack{flex-direction:column-reverse;gap:3px;}
 }
 /* bod 2 (iterácia 14): tagy + aktivity s emoji, POD stat tabuľkou */
 .pta-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;}
@@ -258,6 +286,13 @@ const CSS = `
 .pta-gallery{display:flex;gap:8px;overflow-x:auto;margin-top:20px;padding-bottom:4px;scrollbar-width:none;}
 .pta-gallery::-webkit-scrollbar{display:none;}
 .pta-gallery img{flex:0 0 148px;height:104px;border-radius:11px;object-fit:cover;background:#111;cursor:pointer;}
+/* AKO SA TAM IDE — riadok plánu nad popisom. Bodka medzi políčkami je pseudoprvok medzi
+   súrodencami, nie znak v texte: ktorékoľvek z troch políčok môže chýbať. */
+.pta-travel{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:20px;font-family:${FONT_UI};font-weight:500;font-size:13px;color:${PACK_THEME.onDarkDim};}
+/* Pod kartou organizátora stojí tesnejšie — nie je to odsek stránky, ale poznámka k nemu. */
+.pta-travel--host{margin:6px 0 10px 4px;font-size:12.5px;}
+.pta-travel > span + span::before{content:'·';margin-right:8px;opacity:.5;}
+.pta-travel-seats{color:#C99A3F;}
 .pta-desc{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:20px;}
 .pta-dognote{font-size:14px;line-height:1.75;color:${T.onDarkDim};margin-top:10px;}
 .pta-mapwrap{position:relative;margin-top:24px;border-radius:16px;overflow:hidden;height:320px;border:1px solid ${T.onDarkBorder};background:#0a0a0a;}
@@ -397,7 +432,32 @@ export default function PackTripArticle() {
   // sessionStorage mirror ADD-flow tripov z PackMap (jeden-krát na mount stačí — táto
   // stránka je detail jedného tripu, nepotrebuje živú reaktivitu na iný tab/mount).
   const allTrails = useMemo(() => [...visibleLocalTrails(readLocalTrails()), ...HERO_JOURNEYS, ...HERO_TRAILS], []);
-  const trail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
+  const baseTrail = useMemo(() => allTrails.find((x) => x.id === slug) ?? null, [allTrails, slug]);
+  /**
+   * ── ÚPRAVA VÝLETU AUTOROM (Matej 2026-08-25) ────────────────────────────────────────────
+   * „ako autor by som do toho vedel vstúpiť a prepísať text vymeniť fotky" — názov ostáva,
+   * mazanie nie je (obe potvrdené v tej istej správe).
+   *
+   * `allTrails` sa číta RAZ na mount (viď komentár vyššie — detail jedného výletu nepotrebuje
+   * živú reaktivitu), takže po uložení by stránka ukazovala starý text až do reloadu. Preto sa
+   * čerstvá zmena drží vedľa a prekrýva základ.
+   *
+   * ⚠️ VLASTNÍCTVO SA TESTUJE ÚLOŽISKOM, NIE MENOM. `authorOf(trail) === moje meno` je zlý kľúč
+   * z troch dôvodov naraz (rovnaké zdôvodnenie ako pri mazaní plánu v `PackMap.tsx`): meno sa
+   * v profile zmení a stratíš prístup k staršiemu, dvaja Mateji v svorke by si videli navzájom,
+   * a seed výlety majú v autorovi `AUTHOR_FALLBACK`. Kto má výlet vo svojich `localTrails`,
+   * ten ho zapísal.
+   * ⚠️ Dôsledok, ktorý je zámerný: **seed výlety z datasetu (Záruby a spol.) sa upraviť nedajú.**
+   * Sú generované zo `plany/trails-nahadzovac-state.json` a najbližšie pregenerovanie by zmenu
+   * prepísalo — upravujú sa nástrojom `npm run trip-audit`, nie z appky.
+   */
+  const [edits, setEdits] = useState<Partial<HeroTrail> | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const canEdit = useMemo(() => !!slug && readLocalTrails().some((t) => t.id === slug), [slug]);
+  const trail = useMemo(
+    () => (baseTrail && edits ? { ...baseTrail, ...edits } : baseTrail),
+    [baseTrail, edits],
+  );
   // Starý (premenovaný) slug → redirect na nový, nech zdieľané odkazy nehádžu „trip not found".
   const renamedTo = !trail && slug ? RENAMED_TRIP_IDS[slug] : undefined;
   useEffect(() => {
@@ -419,11 +479,21 @@ export default function PackTripArticle() {
   // primárnom povrchu nebolo vidieť organizátora vôbec. Hooky MUSIA byť nad
   // `if (!trail)` returnom nižšie (Rules of Hooks).
   const { trips: openTrips } = useOpenTrips();
+  // Hydratácia z DB (issue #32). Stojí TU, nie nižšie pri ostatnom komunitnom stave: číta ho
+  // `useTripEventTravel` o pár riadkov nižšie a `const` sa nedá použiť pred deklaráciou —
+  // pri pokuse spadne CELÁ stránka na „Cannot access 'storeEpoch' before initialization".
+  // Chytí to až error boundary, takže to vyzerá ako prázdna stránka, nie ako chyba kódu.
+  const storeEpoch = usePackStoreEpoch();
+
   const hostsHere = useMemo(
     () => openTrips.filter((o) => o.slug === slug),
     [openTrips, slug],
   );
   const hostParties = useTripParties(hostsHere.map((o) => ({ slug: o.slug, organizerId: o.organizerId })));
+  // AKO SA ORGANIZÁTOR DOSTANE NA VÝLET — z `trip_events` daného slugu (viď hook).
+  // Kľúč je `host_id`, nie slug: na jednom výlete môže hľadať partiu viacero ľudí naraz
+  // a každý ide inak.
+  const travelByHost = useTripEventTravel(slug, storeEpoch);
   const hosts = useMemo(() => hostsHere.flatMap((o) => {
     const party = hostParties[partyKey(o.slug, o.organizerId)];
     // bez organizátora z RPC (zavretý medzitým, nezaplatený) nie je koho vykresliť
@@ -431,10 +501,11 @@ export default function PackTripArticle() {
     return [{
       key: partyKey(o.slug, o.organizerId), date: o.date,
       organizer: party.organizer, joiners: party.joiners,
+      travel: travelByHost[o.organizerId],
       // kontext pre „Message" na karte (#53) — adresu si server odvodí sám
       slug: o.slug, organizerId: o.organizerId,
     }];
-  }), [hostsHere, hostParties]);
+  }), [hostsHere, hostParties, travelByHost]);
 
   const [favIds, setFavIds] = useState<Set<string>>(() => readFavIds());
   const [walkedIds, setWalkedIds] = useState<Set<string>>(() => readWalkedIds());
@@ -591,7 +662,8 @@ export default function PackTripArticle() {
   useEffect(() => { writePlans(plans); }, [plans]);
   useEffect(() => { writeEvents(events); }, [events]);
   // Znovu prečítať po hydratácii z DB (issue #32) — viď usePackStoreEpoch.
-  const storeEpoch = usePackStoreEpoch();
+  // ⚠️ `storeEpoch` je deklarovaný VYŠŠIE (nad blokom organizátorov) — číta ho
+  // `useTripEventTravel`; druhá deklarácia tu by ho zatienila.
   useEffect(() => {
     if (!storeEpoch) return;
     setFavIds(readFavIds());
@@ -600,6 +672,16 @@ export default function PackTripArticle() {
     setPlans(readPlans());
     setEvents(readEvents());
   }, [storeEpoch]);
+  /**
+   * AKO SA TAM IDE — z MÔJHO živého inzerátu na tento výlet (2026-08-26).
+   * Zavretý inzerát (`closed`) sa nepočíta: kto sa už nemôže pridať, nepotrebuje vedieť,
+   * odkiaľ sa vyráža. Po prejdení plánu inzerát zaniká, takže riadok zhasne sám.
+   */
+  const myTravel = useMemo(() => {
+    if (!trail || !trail.id.startsWith('plan-') || walkedIds.has(trail.id)) return undefined;
+    return events.find((e) => e.tripId === trail.id && e.hostIsMe && !e.closed)?.travel;
+  }, [events, trail, walkedIds]);
+
   const [walkedPopupOpen, setWalkedPopupOpen] = useState(false);
 
   // ── BRÁNA NA ZÁPIS ODKAZU: PREJDENÉ **A** OHODNOTENÉ (Matej 2026-08-21) ───
@@ -792,6 +874,20 @@ export default function PackTripArticle() {
     }
   };
 
+  /**
+   * ⚠️ TIETO DVA HOOKY MUSIA STÁŤ NAD `if (id.loading)` / `if (!id.session)` / `if (!trail)`
+   * (opravené 2026-08-25). Ležali pri hodnotení, teda POD early returnmi — a keďže sa tie tri
+   * podmienky za života stránky prepnú (načítavam → mám session → mám výlet), React na druhom
+   * vykreslení narazil na dva hooky navyše: „Rendered more hooks than during the previous
+   * render". Prejavilo sa to ako „Something went wrong" na KAŽDOM výlete, nielen na pláne.
+   * Počiatočná hodnota `ratingCount` sa preto počíta z `baseTrail`, ktorý je k dispozícii už
+   * tu; `trail` (základ + čerstvé úpravy) vzniká z toho istého záznamu a labky nemení.
+   */
+  const [ratingCount, setRatingCount] = useState(
+    baseTrail && baseTrail.diff !== 'Odyssey' && (baseTrail.stars ?? 0) > 0 ? 1 : 0,
+  );
+  const reviewsRef = useRef<HTMLDivElement | null>(null);
+
   if (id.loading) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center relative" style={{ backgroundColor: T.pageBg }}>
@@ -820,9 +916,57 @@ export default function PackTripArticle() {
     );
   }
 
-  const cover = trail.photos[0];
+  /* ⚠️ ILUSTRAČNÁ FOTKA, KEĎ VLASTNÁ NIE JE (Matej 2026-08-25: „výlet sa pridal ale nepridala
+     sa fotka (ilustračná)"). Čerstvo pridaný výlet — a každý plán — fotku nemá, takže hlavička
+     článku bola čierna plocha. Ten istý zdroj, aký kreslí karty na mape aj v triplíste. */
+  const cover = trail.photos[0] ?? placeholderFor(trail.acts, trail.id);
   // crowd agregát (design §A) — konzistentné s kartami v PackMap
   const agg = crowdAggregate(trail, votes[trail.id]);
+  /**
+   * ── POČET HODNOTENÍ MÁ JEDEN ZDROJ (Matej 2026-08-25, Záruby 1: „pri hodnotení je zátvorka 2
+   *    ale dolu je pri hodnotení 0 = tu treba správny údaj") ────────────────────────────────
+   *
+   * Zátvorka pri labkách ukazovala `agg.walkedCount`, teda počet CHODCOV — a ten je pri seed
+   * výlete vždy 2 (Matej + Hekthor, `FOUNDER_WALKERS`). Sekcia nižšie pritom počítala riadky
+   * v `trip_reviews`, teda 0. Dve rôzne čísla pod tým istým slovom.
+   * Číslo teraz hlási `TripComments` (jediné miesto, kde sú hodnotenia naozaj poskladané:
+   * autor + členovia) a zátvorka ho len zobrazuje. Kým sa zoznam nedotiahne z DB, drží sa
+   * autorovho hodnotenia — teda toho, čo vieme bez siete.
+   */
+  /**
+   * AUTOROVO HODNOTENIE — `trail.stars`, teda labky zadané pri zakladaní výletu
+   * (`stars: draft.paws` v `PackMap.tsx`; pri výletoch z datasetu hodnota z nahadzovača).
+   *
+   * ⚠️ MAGISTRÁLA JE VÝNIMKA a nie je to detail. Pri journey (`diff: 'Odyssey'`) je `stars`
+   * REDAKČNÁ hodnota z `heroJourneys.ts`, nie hodnotenie chodca — a presne toto Matej
+   * 3. 8. 2026 zamietol („neprešli = žiadny rating"), keď magistrála bez jediného chodca
+   * svietila „5.0" vedľa vety, že ju nikto neprešiel. Autorské hodnotenie sa tam preto
+   * nepočíta ani dnes.
+   */
+  // 🔴 TU JE `'Odyssey'` NÁZOV KATALÓGOVEJ MAGISTRÁLY, nie príznak viacdňovosti (2026-08-27).
+  //    Na `isOdyssey()` sa to prepísať NESMIE: členova dvojdňovka by prišla o vlastné
+  //    hodnotenie, hoci ho zadala. Rozdiel je vecný — magistrály nemá kto ohodnotiť.
+  const authorRating = trail.diff === 'Odyssey' ? 0 : (trail.stars ?? 0);
+  /**
+   * ⚠️ Číslo hore padá na autorovo hodnotenie, keď agregát nemá čo agregovať.
+   * `crowdAggregate` počíta zo `founderVotes` + môjho hlasu; pri výlete, ktorý pridal ČLEN,
+   * sú zakladateľské hlasy nula (`founderWalkers`), takže cudziemu návštevníkovi vyšla nula
+   * a labky zmizli — hoci hneď pod nimi stálo „hodnotenie (1)" s riadkom autora. Dve čísla
+   * o tej istej veci, znova, len o poschodie nižšie.
+   */
+  const shownRating = agg.rating > 0 ? agg.rating : authorRating;
+  /**
+   * ⚠️ Skroluje sa STRÁNKOU s vlastným odsadením, nie `scrollIntoView`.
+   * `block:'start'` by kotvu prilepil na horný okraj okna a `block:'center'` ju v dlhom
+   * článku posunie tak, že prvé hodnotenie skončí mimo záberu. Chceme ukázať ZAČIATOK
+   * sekcie aj s jej hlavičkou, teda kotvu s malým vzduchom nad ňou.
+   */
+  const scrollToReviews = () => {
+    const el = reviewsRef.current;
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  };
   // audit #45 (2026-08-03, „začíname so všetkým do nuly"): FOUNDER_WALKERS bola globálna
   // konštanta (2) a fungovala len kým KAŽDÁ trasa mala garantovaných aspoň toľko hlasov.
   // Teraz je zakladateľských hlasov na trasu 0 alebo 2 (founderWalkers(trail)), takže base na
@@ -835,7 +979,7 @@ export default function PackTripArticle() {
   // 'Forest'), takže sa neprekladá — prekladá sa to, čo z nej človek číta. Kľúče sú tie isté
   // ako vo filtri mapy a vo formulári výletu; keď kľúč chýba, ostáva pôvodná hodnota.
   const actTx = (a: string) => {
-    const k = `pack.map.activityLabel.${ACT_ID_TO_UI[a] ?? a}`;
+    const k = `pack.map.activityLabel.${ACT_ID_TO_UI(a)}`;
     const v = t(k);
     return v === k ? a : v;
   };
@@ -843,8 +987,12 @@ export default function PackTripArticle() {
     const k = TAG_I18N_KEY[tg];
     return k ? t(k) : tg;
   };
+  // ⚠️ CHIPY SÚ KATEGÓRIE, NIE SUROVÉ `acts` (2026-08-27). Dve staré aktivity vedia padnúť
+  // do jednej kategórie (piknik + nocľah = CHILL) a chip by potom stál na karte dvakrát
+  // s tým istým slovom. `categoriesOf()` ich zlúči — a zároveň je to presne ten zoznam,
+  // podľa ktorého výlet nachádza filter, takže karta ukáže, PREČO sa našla.
   const tripChips = [
-    ...(trail.acts ?? []).map((a) => ({ key: `a:${a}`, label: actTx(a), emoji: ACT_EMOJI[a] ?? '' })),
+    ...categoriesOf(trail.acts).map((c) => ({ key: `a:${c}`, label: actTx(c), emoji: ACT_EMOJI[c] ?? '' })),
     ...(trail.tags ?? []).map((tg) => ({ key: `t:${tg}`, label: tagTx(tg), emoji: TAG_EMOJI[tg] ?? '' })),
   ];
 
@@ -945,6 +1093,12 @@ export default function PackTripArticle() {
           <div className="pta-hero-credit">{(trail as { photoCredit?: string }).photoCredit}</div>
         )}
         <button type="button" className="pta-back" onClick={() => navigate('/pack/map')} aria-label={t('pack.trip.backToTrips')}>←</button>
+        {/* Ceruzka je v hero oproti šípke späť — je to akcia nad CELÝM článkom, nie nad jeho
+            sekciou, a v rade pod titulom (triplist / prešiel som / zdieľať) by si konkurovala
+            s vecami, ktoré robí ktokoľvek. Vidí ju len autor (`canEdit`). */}
+        {canEdit && (
+          <button type="button" className="pta-edit" onClick={() => setEditOpen(true)} aria-label={t('pack.trip.edit.open')}>✎</button>
+        )}
       </div>
 
         <div className="pta-panel">
@@ -955,7 +1109,29 @@ export default function PackTripArticle() {
         <div className="pta-title">{trail.name}</div>
         {/* bod 4 (iterácia 13): samostatný DiffMark+diff riadok pod titulom ZMAZANÝ —
             difficulty ostáva len v stat tabuľke nižšie (bolo 2×, teraz 1×). */}
-        <div className="pta-author">{t('pack.trip.by', { author: authorOf(trail) })}{extraWalkers > 0 ? ` · ${t('pack.trip.extraWalkers', { n: extraWalkers })}` : ''}</div>
+        {/* ── HODNOTENIE HORE VEDĽA AUTORA (Matej 2026-08-25) ────────────────────────────
+            „hodnotenie sa presunie hore vedľa autora na pravú stranu bez slova hodnotenie —
+             budú tam packy + číslo a v zátvorke počet hodnotení."
+            Dôvod je miesto: stat tabuľka niesla ŠTYRI dlaždice a v blogu majú byť tri
+            (trasa · náročnosť · návštevnosť). Hodnotenie sa z nich vymyká aj obsahom —
+            ostatné tri opisujú TERÉN, toto je súd ľudí, a preto patrí k podpisu, nie
+            k tabuľke. Slovo „HODNOTENIE" odpadá: labka s číslom sa nedá čítať inak.
+            Zátvorka = koľko chodcov ho dalo (`walkedCount`), teda váha toho čísla. */}
+        <div className="pta-byline">
+          <span className="pta-author">{t('pack.trip.by', { author: authorOf(trail) })}{extraWalkers > 0 ? ` · ${t('pack.trip.extraWalkers', { n: extraWalkers })}` : ''}</span>
+          {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03) — vtedy tu nesmie byť nič,
+              inak vyskočí „0.0" a prázdne labky vedľa mena autora. */}
+          {shownRating > 0 && (
+            <span className="pta-byrating">
+              <RatingPaws stars={shownRating} size={12} gap={2} />
+              <b>{shownRating.toFixed(1)}</b>
+              {/* Zátvorka je ODKAZ na zoznam hodnotení (Matej 2026-08-25: „kliknutie na
+                  zátvorku scroluje na hodnotenie"). Číslo bez cesty k tomu, čo počíta,
+                  je slepá ulička — kto sa pýta „kto to hodnotil?", musí mať kam kliknúť. */}
+              <button type="button" className="pta-bycount" onClick={scrollToReviews}>({ratingCount})</button>
+            </span>
+          )}
+        </div>
 
         {/* iterácia 15 (Matej 2026-07-27): AKCIE — von z fotky, nad stat tabuľku.
             Stavová logika:
@@ -979,11 +1155,19 @@ export default function PackTripArticle() {
               Crowd/Rating (audit #45 + doplnené: prázdny obal, nie len prázdny text). */}
           {(trail.km?.trim() || (trail as { ascentM?: number }).ascentM != null) && (
             <div className="pta-stat">
+              {/* ⚠️ OBE ČÍSLA NESÚ EMOJI, NIE JEDNO (Matej 2026-08-25: „dvojšípka znázorňujúca
+                  km je emoji = musí byť aj prevýšenie"). Do teraz tu stálo textové `↑` vedľa
+                  emoji `↔️` — na telefóne to vyzerá ako dve rôzne abecedy v jednom riadku,
+                  lebo emoji sa vykreslí farebne a holá šípka písmom textu.
+                  ↗️, nie ⛰️: hora je hneď pod tabuľkou ako tag `Mountains` (`TAG_EMOJI`) a
+                  dva rovnaké symboly na jednej obrazovke by hovorili o dvoch rôznych veciach.
+                  `FONT_EMOJI` je povinný — bez neho Windows sadne na čiernobiely textový
+                  variant a farebná dvojšípka vedľa neho vyzerá ako chyba. */}
               <b className="pta-route">
-                {trail.km?.trim() && <span>↔ {trail.km} km</span>}
+                {trail.km?.trim() && <span><em style={{ fontFamily: FONT_EMOJI, fontStyle: 'normal' }}>↔️</em> {trail.km} km</span>}
                 {(trail as { ascentM?: number }).ascentM != null && (<>
                   <i />
-                  <span>↑ {(trail as { ascentM?: number }).ascentM} m</span>
+                  <span><em style={{ fontFamily: FONT_EMOJI, fontStyle: 'normal' }}>↗️</em> {(trail as { ascentM?: number }).ascentM} m</span>
                 </>)}
               </b>
             </div>
@@ -1005,11 +1189,6 @@ export default function PackTripArticle() {
             >
               <b>{CROWD_EMOJI[agg.crowd]} {t(`pack.map.crowdKind.${agg.crowd}`)}</b><span>{t('pack.trip.stat.crowd')}</span>
             </div>
-          )}
-          {/* rating = 0 znamená ŽIADNY hlas (Matej 2026-08-03: „neprešli = žiadny rating") —
-              dlaždicu vôbec nevykresľuj, inak ukáže „0.0" a prázdne labky. */}
-          {agg.rating > 0 && (
-            <div className="pta-stat"><b className="pta-ratingstack"><RatingPaws stars={agg.rating} size={11} gap={2} />{agg.rating.toFixed(1)}</b><span>{t('pack.trip.stat.rating')}</span></div>
           )}
         </div>
 
@@ -1036,6 +1215,32 @@ export default function PackTripArticle() {
           </div>
         )}
 
+        {/* ── AKO SA TAM IDE (2026-08-26) ────────────────────────────────────────────
+            Doprava · odkiaľ · voľné miesta z INZERÁTU, nie z výletu (Matej 26. 8.:
+            „doprava sa nikde inde nezapisuje… ukladá sa len to, čo definuje samotný trip").
+            Stojí NAD popisom: kto zvažuje, či sa pridá, rieši najprv „dostanem sa tam",
+            až potom „čo to je".
+            ⚠️ Ten istý riadok kreslí aj vnorený detail na mape (PackMap `trp-inldet`).
+            Sú to dve obrazovky toho istého plánu, nie kópia jednej — obe čítajú `travel`
+            z inzerátu a text zo slovníka, takže sa nemajú ako rozísť.
+            ⚠️ Na MOBILE je toto JEDINÝ povrch, kde sa to dá prečítať (klik na kartu tam
+            nevedie do vnoreného detailu, ale rovno sem). */}
+        {myTravel && (
+          <div className="pta-travel">
+            {myTravel.mode && (
+              <span>
+                <b style={{ fontFamily: FONT_EMOJI, fontWeight: 400 }}>{TRAVEL_EMOJI[myTravel.mode] ?? ''}</b>
+                {' '}{t(`pack.addTrip.plan.travel.${myTravel.mode}`)}
+              </span>
+            )}
+            {myTravel.from && <span>{myTravel.from}</span>}
+            {myTravel.pickup && (
+              <span className="pta-travel-seats">
+                {t('pack.map.planSeats' + pluralKey(myTravel.seats ?? 1), { n: myTravel.seats ?? 1 })}
+              </span>
+            )}
+          </div>
+        )}
         {tripText(trail, 'desc', lang) && <p className="pta-desc">{tripText(trail, 'desc', lang)}</p>}
         {tripText(trail, 'dogNote', lang) && <p className="pta-dognote">🐾 {tripText(trail, 'dogNote', lang)}</p>}
 
@@ -1054,13 +1259,18 @@ export default function PackTripArticle() {
         {/* §16 (2026-07-23): reviews + advice (rovnaká komponenta ako inline detail v PackMap)
             NAD mapou — nahrádza starú spodnú „Comments" sekciu (zmazaná). walked/onRequestWalk
             napojené na tunajší walked-popup: keď trip nie je walked, CTA otvorí „you did it" popup. */}
+        <div ref={reviewsRef}>
         <TripComments
           tripId={trail.id}
           tripName={trail.name}
           walked={walkedIds.has(trail.id)}
           onMarkWalked={() => setWalkedIds((prev) => (prev.has(trail.id) ? prev : new Set(prev).add(trail.id)))}
           onRequestWalk={() => setWalkedPopupOpen(true)}
+          authorRating={authorRating}
+          authorName={authorOf(trail)}
+          onCountChange={setRatingCount}
         />
+        </div>
 
         <div
           className={`pta-mapwrap${noteFull ? ' pta-mapwrap--full' : ''}`}
@@ -1192,6 +1402,27 @@ export default function PackTripArticle() {
                   roleLabel={h.date ? `${t('pack.trip.host')} · ${h.date}` : t('pack.trip.host')}
                   dm={{ tripSlug: h.slug, organizerId: h.organizerId, isMe: h.organizerId === id.session?.user?.id }}
                 />
+                {/* Doprava organizátora — jediné miesto, kde ju vidí NIEKTO INÝ než autor.
+                    Vlastný plán ju ukazuje vyššie (`myTravel`); tu ide o cudzí otvorený výlet,
+                    takže sa číta z DB, nie z lokálneho skladu.
+                    Stojí hneď pod kartou organizátora, nie nad zoznamom: patrí k NEMU —
+                    keď na výlet vypíšu partiu dvaja, každý ide inak. */}
+                {h.travel && (
+                  <div className="pta-travel pta-travel--host">
+                    {h.travel.mode && (
+                      <span>
+                        <b style={{ fontFamily: FONT_EMOJI, fontWeight: 400 }}>{TRAVEL_EMOJI[h.travel.mode] ?? ''}</b>
+                        {' '}{t(`pack.addTrip.plan.travel.${h.travel.mode}`)}
+                      </span>
+                    )}
+                    {h.travel.from && <span>{h.travel.from}</span>}
+                    {h.travel.pickup && (
+                      <span className="pta-travel-seats">
+                        {t('pack.map.planSeats' + pluralKey(h.travel.seats ?? 1), { n: h.travel.seats ?? 1 })}
+                      </span>
+                    )}
+                  </div>
+                )}
                 {h.joiners.map((j, i) => (
                   <PartyMemberCard
                     key={`${h.key}:${i}`}
@@ -1255,6 +1486,15 @@ export default function PackTripArticle() {
 
       {/* Mobilný rail — ten istý actsRow, len portálom mimo .pk-glass (viď komentár pri actsRow). */}
       {railed && createPortal(actsRow, document.body)}
+
+      {/* ── ÚPRAVA VÝLETU (len autor) ── */}
+      {editOpen && (
+        <TripEditPanel
+          trail={trail}
+          onSaved={(patch) => setEdits((prev) => ({ ...(prev ?? {}), ...patch }))}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
 
       {/* ── KOMUNITNÉ modaly (rovnaké ako PackMap) ── */}
       {walkedPopupOpen && (

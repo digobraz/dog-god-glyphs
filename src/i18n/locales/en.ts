@@ -683,6 +683,29 @@ export const en = {
   'religion.hook.bow': 'bow to the cow',
   'religion.hook.doglovers': 'DOG LOVERS?',
   'religion.hook.worship': "LET'S WORSHIP OUR DOGS.",
+  // Psia strana argumentu — zrkadlo kravy (/onepage, 27. 8. 2026). Krava dostala
+  // číslo, pes dostával otáznik; symetria obrázka (dve zvieratá proti sebe) sa
+  // v texte nedržala. 30 % domácností = ~700 mil.–1 mld. psov (Dogster / World
+  // Animal Foundation, overené 27. 8.), teda dvojnásobok 15 % kravy.
+  // ⚠️ doglovers/worship vyššie NEMAZAŤ — drží ich živá /religion (Religion.tsx).
+  'religion.hook.homes': '30%',
+  'religion.hook.homesOf': 'OF HOMES ON EARTH',
+  'religion.hook.live': 'live with a dog',
+  // Otočný bod sekcie: dosiaľ len fakty, tu prvý raz obvinenie. Z neho padá CTA.
+  'religion.hook.turn': 'AND NOT ONE OF THEM BOWS.',
+  'religion.hook.million': 'We only need one million to change that.',
+  // ── VARIANT 2 textingu druhej sekcie (Matej 27. 8. 2026) ──────────────────
+  // *„skúsme urobiť Variant 2, a síce ten texting viac zosúladiť do riadkov ako
+  // obyčajný text, ktorý je vopred napísaný, ale scrolingom dostáva život, ako
+  // keby sa písal teraz. je ten text taký kostrbatý, rôzne velkosti a vela,
+  // vyzerá to amatérsky."*
+  // Hviezdičky = zlatý dôraz, NIE tučné písmo a NIE iná veľkosť. Nesú ich len
+  // ČÍSLA — tie sú celý argument a zároveň jediné, čo smie z riadku vystúpiť.
+  // ⚠️ Pri preklade hviezdičky zachovaj v pároch; nepárová sa vypíše ako znak.
+  'religion.v2.l1': '**1.2 billion** people bow to the cow.',
+  'religion.v2.l2': '**30%** of homes live with a dog.',
+  'religion.v2.l3': 'And not one of them bows.',
+  'religion.v2.l4': 'We only need **one million**.',
   'religion.cta': 'Become Dogyptian',
   'religion.aria.question': 'The Question',
   'religion.aria.preamble': 'Preamble',
@@ -1914,6 +1937,9 @@ export const en = {
   // Odkaz, ktorý dostanú PRIJATÍ účastníci, keď organizátor zruší otvorený plán
   // (Matej 2026-08-25). Ide v jazyku ODOSIELATEĽA — cudziu jazykovú voľbu appka nepozná.
   'pack.map.planCancelledDM': "I have to cancel the trip {name} ({date}). Sorry — I'll write when we find a new date.",
+  'pack.addTrip.plan.activities.hike': "Hike",
+  'pack.addTrip.plan.activities.chill': "Chill",
+  'pack.addTrip.plan.activities.sport': "Sport",
   'pack.addTrip.plan.activities.hiking': "Hiking",
   'pack.addTrip.plan.activities.journey': "Journey",
   'pack.addTrip.plan.activities.picnic': "Picnic",
@@ -1975,6 +2001,9 @@ export const en = {
   // vysvetlivka"). Nie je to ozdoba — voľba aktivity rozhoduje o tom, ČO sa bude na mape
   // kresliť (trasa vs. jeden bod vs. vodná plocha), a to sa človek dovtedy dozvedel až
   // v kroku 1, keď už mapu videl.
+  'pack.addTrip.log.activityNote.hike': "A walk along a route \u2014 one day or several.",
+  'pack.addTrip.log.activityNote.chill': "Picnic, barbecue, a night out \u2014 staying in one place.",
+  'pack.addTrip.log.activityNote.sport': "Skating, paddleboard, swimming.",
   'pack.addTrip.log.activityNote.hiking': "Draw your walk together in 3 minutes.",
   'pack.addTrip.log.activityNote.journey': "Pick this if you are logging a trek over several days.",
   'pack.addTrip.log.activityNote.picnic': "Mark the spot on the map.",
@@ -2053,6 +2082,19 @@ export const en = {
   'pack.addTrip.plan.whenWeek': "Which week",
   'pack.addTrip.plan.whenWeekN': "{n}. week",
   'pack.addTrip.plan.whenHint': "Not sure yet? Pick the week or just the month — you can sharpen it later.",
+  'pack.addTrip.plan.travel': "How are you getting there?",
+  'pack.addTrip.plan.who': "Going alone, or looking for company?",
+  'pack.addTrip.plan.whoSolo': "Going alone",
+  'pack.addTrip.plan.whoOpen': "Looking for company",
+  'pack.addTrip.plan.soloNoNeed': "Only needed when someone else comes along.",
+  'pack.addTrip.plan.travel.car': "Car",
+  'pack.addTrip.plan.travel.train': "Train",
+  'pack.addTrip.plan.travel.bus': "Bus",
+  'pack.addTrip.plan.travelFrom': "Setting off from",
+  'pack.addTrip.plan.travelFromPlaceholder': "Bratislava, Ružinov",
+  'pack.addTrip.plan.pickup': "I can pick someone up on the way",
+  'pack.addTrip.plan.pickupSeats': "Free seats",
+  'pack.addTrip.plan.pickupHint': "Whoever asks to join sees this — you still say yes or no.",
   'pack.addTrip.plan.walkedAskTitle': "Did it go as planned?",
   'pack.addTrip.plan.walkedAskBody': "This is the route you planned. Walked it the way it's drawn? Then keep going. Took a different way? Fix the line first — the pack will follow what's on the map, not what you meant.",
   'pack.addTrip.plan.walkedAskYes': "Yes, that's the route",
@@ -2089,6 +2131,7 @@ export const en = {
   'pack.addTrip.step.name.basics': "Basics",
   'pack.addTrip.step.name.about': "About",
   'pack.addTrip.step.name.rest': "Rest",
+  'pack.addTrip.step.name.departure': "Departure",
   'pack.addTrip.step.hint.route': "Draw roughly the way you walked, so others can see it.",
   'pack.addTrip.step.hint.notes': "Mark what mattered on the way — parking, danger, a good spot.",
   'pack.addTrip.step.hint.basics': "Name it and say when you went.",
@@ -2286,6 +2329,18 @@ export const en = {
   'pack.addTrip.step.dupWarn': "This route looks similar to an existing trip — {name}. Log it anyway?",
   'pack.addTrip.step.cancel': "Cancel",
   'pack.addTrip.step.logAnyway': "Log it anyway",
+  'pack.addTrip.step.nextAsk': "Next",
+  'pack.addTrip.step.dayModeAsk': "How long are you out?",
+  'pack.addTrip.step.oneDay': "One day",
+  'pack.addTrip.step.moreDays': "Several days",
+  'pack.addTrip.step.pickJourney': "It's a long-distance trail \u2014 pick from the list",
+  'pack.addTrip.step.daysOne': "{n} day",
+  'pack.addTrip.step.daysFew': "{n} days",
+  'pack.addTrip.step.daysMany': "{n} days",
+  'pack.addTrip.step.nightsOne': "{n} night",
+  'pack.addTrip.step.nightsFew': "{n} nights",
+  'pack.addTrip.step.nightsMany': "{n} nights",
+  'pack.addTrip.step.odysseyNote': "A trip over several days \u2014 Odyssey was set for you.",
   'pack.addTrip.step.journeyNeedsEnd': "Journey needs a multi-day trip — add an end date after the start date.",
   'pack.addTrip.step.willBeDraft': "Will be saved as draft — finish later: {fields}",
   'pack.addTrip.paws.ariaOutOf5': "{n} out of 5 packs",
@@ -2394,6 +2449,9 @@ export const en = {
   'pack.map.plusDogyptiansOne': "+{n} Dogyptian",
   'pack.map.plusDogyptiansFew': "+{n} Dogyptians",
   'pack.map.plusDogyptiansMany': "+{n} Dogyptians",
+  'pack.map.planSeatsOne': "{n} free seat",
+  'pack.map.planSeatsFew': "{n} free seats",
+  'pack.map.planSeatsMany': "{n} free seats",
   'pack.map.backToList': "Back to list",
   'pack.map.expandToFullPage': "Expand to full page",
   'pack.map.notRatedPlanned': "Not rated yet — the trip hasn't happened",
@@ -2432,11 +2490,18 @@ export const en = {
   'pack.map.all': "All",
   'pack.map.region': "Region",
   'pack.map.allRegions': "Region",
+  'pack.map.anyRegion': "All regions",
   'pack.map.macroRegion.West': "West",
   'pack.map.macroRegion.Center': "Center",
   'pack.map.macroRegion.East': "East",
   'pack.map.activity': "Activity",
   'pack.map.activities': "Activities",
+  'pack.map.anyActivity': "All activities",
+  // ── FOUR CATEGORIES (2026-08-27) — seven activities merged. Old keys stay: the dataset
+  // still carries the original values ('picnic', 'skating'…).
+  'pack.map.activityLabel.hike': "Hike",
+  'pack.map.activityLabel.chill': "Chill",
+  'pack.map.activityLabel.sport': "Sport",
   'pack.map.activityLabel.hiking': "Hiking",
   'pack.map.activityLabel.journey': "Journey",
   'pack.map.activityLabel.picnic': "Picnic",
@@ -2466,9 +2531,9 @@ export const en = {
   'pack.map.diff.Hard': "Hard",
   'pack.map.diff.Odyssey': "Odyssey",
   'pack.map.crowd': "Crowd",
-  'pack.map.crowdLabel.Ľudoprázdne': "🏔️ Empty",
-  'pack.map.crowdLabel.Pokojné': "🌿 Calm",
-  'pack.map.crowdLabel.Rušné': "👣 Busy",
+  'pack.map.crowdLabel.Ľudoprázdne': "Empty",
+  'pack.map.crowdLabel.Pokojné': "Calm",
+  'pack.map.crowdLabel.Rušné': "Busy",
   'pack.map.sort': "Sort",
   'pack.map.show': "Show {n}",
   'pack.map.list': "List",

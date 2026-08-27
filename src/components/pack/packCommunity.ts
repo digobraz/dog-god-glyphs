@@ -4,6 +4,7 @@
 // user_trips, trip_events). Fabrikovaní členovia a ich obsah sú PREČ (2026-08-03, viď nižšie);
 // deterministicky odvodený z trip id ostáva len mock crowd %-rozpad, nech hover neposkakuje.
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import type { TravelInfo } from './addtrip/addTripModel';
 import {
   ACTIVITY_OPTIONS, VIBE_OPTIONS,
   type ActivityTag, type TripVibe, type DogProfileAttrs,
@@ -59,9 +60,21 @@ export const VOLUME_THRESHOLD = 3;
 // CROWD_LABELS v PackMap, len bez emoji prefixu (ten pridáva UI).
 const SEED_CROWD: Record<string, Crowd> = { 'Ľudoprázdne': 'Empty', 'Pokojné': 'Calm', 'Rušné': 'Busy' };
 // Matrica 24. 8. 2026: 🏔️ → 🦋, 👣 → 🚨. Obe boli kolízie na JEDNEJ ploche (panel FILTRE):
-// 🏔️ nesie tag „Mountains" a 👣 prešlo na povrch „Forest path". Motýľ = prázdno bez ľudí,
-// maják = tu je rušno.
+// 🏔️ nesie tag „Mountains" a 👣 prešlo na povrch „Forest path". Motýľ = prázdno bez ľudí.
+//
+// 2026-08-26: 🚨 → 👥 → SPÄŤ 🚨. Prvé kolo vymenilo majáka za dve postavy s odôvodnením, že
+// maják je poplach, nie dav; Matej to obratom vrátil („rušné v návštevnosti je siréna, nie dve
+// postavy") — ruch na výlete JE varovanie, nie údaj. Rozhodnutie je jeho, výhrada zaznela.
+// „Ruch je zle" sa teda týkalo výhradne DRUHEJ sady (v preklade), nie tejto.
+//
+// ⚠️ TOTO JE JEDINÝ ZDROJ EMOJI NÁVŠTEVNOSTI. Do 26. 8. niesol druhú sadu (🏔️/🌿/👣) ešte
+// prekladový kľúč `pack.map.crowdLabel.*`, takže tá istá hodnota mala na fotke jednu značku a
+// vo filtri inú — a 🏔️/👣 sú v Matejovom výbere značiek tagy „Hory" a „Lesný chodník".
+// Preklad odteraz nesie LEN slovo; emoji pridáva UI z tejto mapy.
 export const CROWD_EMOJI: Record<Crowd, string> = { Empty: '🦋', Calm: '🌿', Busy: '🚨' };
+
+/** SK dátový kľúč z nahadzovača → `Crowd`. Vystavené kvôli filtru mapy (ten drží SK kľúče). */
+export const CROWD_KEY_TO_CROWD = SEED_CROWD;
 export function seedCrowd(trail: HeroTrail): Crowd | null {
   return trail.crowd ? SEED_CROWD[trail.crowd] ?? null : null;
 }
@@ -107,6 +120,18 @@ export interface PartnerEvent {
   // nedá pridať. Zamyká VÝHRADNE autor výletu — nie ten, kto sa pridal.
   closed?: boolean;
   hostIsMe?: boolean; // inzerát som vypísal ja → jediný, kto smie zamykať
+  /**
+   * ── AKO SA TAM IDE (Matej 2026-08-26) ──────────────────────────────────────────────
+   * „doprava sa nikde inde nezapisuje, je to len organizačná pomôcka eventripu, nejde to
+   *  nikde do štatistík, ukladá sa len to, čo definuje samotný trip."
+   * Preto sedí TU, na inzeráte, a nie na `HeroTrail`: trasa Záruby je tá istá o rok, ale
+   * „ideme vlakom z Bratislavy, mám dve voľné miesta" platí pre JEDEN spoločný odchod.
+   * Zaniká spolu s inzerátom — po prejdení výletu už nemá čo hovoriť.
+   * ⚠️ DO DB TO ZATIAĽ NEJDE. `persistEvents` (packStore.ts) posiela pevnú množinu stĺpcov
+   * a `trip_events` pre toto stĺpec nemá, takže je to údaj pre autora a jeho zariadenie.
+   * Aby ho videl aj ten, kto sa pýta na pridanie, musí pribudnúť stĺpec — samostatný krok.
+   */
+  travel?: TravelInfo;
 }
 
 // Som autor tohto inzerátu? `hostIsMe` sa zapisuje pri vytvorení; fallback na tvar
@@ -144,6 +169,11 @@ const FOUNDER_WALKED_JOURNEY_IDS: string[] = ['snp-cesta-hrdinov', 'poloniny'];
 //  · je to magistrála/journey (Odyssey), ktorú zakladatelia neprešli (nie je v zozname vyššie),
 //  · trasu pridal iný člen cez ADD TRIP flow (`authorOf(trail)` nie je fallback — pozná meno).
 // Inak 2 (design: Matej 2026-07-22, potvrdené 2026-08-03: „začíname so všetkým do nuly").
+// 🔴 `diff === 'Odyssey'` TU ZNAMENÁ „KATALÓGOVÁ MAGISTRÁLA", NIE „viacdňový výlet"
+//    (2026-08-27). Odkedy je odysea samostatný príznak (`isOdyssey()` v tripShared.tsx),
+//    vyzerá tento riadok ako kandidát na prepis — NIE JE. `isOdyssey()` je pravda aj pre
+//    členovu dvojdňovku, a tá by tým prišla o zakladateľské hlasy, ktoré s magistrálami
+//    nemá spoločné nič.
 export function founderWalkers(trail: HeroTrail): number {
   if (trail.diff === 'Odyssey' && !FOUNDER_WALKED_JOURNEY_IDS.includes(trail.id)) return 0;
   if (authorOf(trail) !== AUTHOR_FALLBACK) return 0;

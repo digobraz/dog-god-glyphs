@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type React from 'react';
 import type { HeroTrail } from '@/data/heroTrails.generated';
+import { planPhase, readMissedPlans } from './planReminder';
 import { PACK_THEME } from '@/components/pack/packTheme';
 import { iso2ToISO3, trailCountry } from '@/lib/countryGeo';
 import {
@@ -100,9 +101,36 @@ export const isWaterTrail = (tr: { acts?: string[]; tags?: string[]; path?: unkn
 // ⚠️ Kľúče musia existovať vo VŠETKÝCH troch tvaroch, inak sa pri konkrétnom počte zobrazí
 // holý kľúč. Jazyky bez vlastného prekladu padajú na EN, čo je správne aj pre CS (rovnaké
 // pravidlá ako SK, ale vlastné texty zatiaľ nemá).
-export function pluralKey(n: number): 'One' | 'Few' | 'Many' {
-  if (n === 1) return 'One';
-  return n >= 2 && n <= 4 ? 'Few' : 'Many';
+// Presunuté do `lib/plural.ts` (25. 8. 2026) — potrebuje ju aj `lib/tripPoints.ts`, ktorý
+// nesmie závisieť od tohto súboru. Re-export drží staršie importy nažive.
+export { pluralKey } from '@/lib/plural';
+
+/**
+ * ── ODYSEA = VIACDŇOVOSŤ, NA JEDNOM MIESTE (Matej 2026-08-27) ─────────────────────────────
+ *
+ * Do 27. 8. bola odysea ŠTVRTÝM STUPŇOM NÁROČNOSTI. Odvtedy je to samostatný príznak:
+ * výlet nesie náročnosť AJ odyseu, takže dvojdňová túra môže byť „stredná" a zároveň odysea.
+ *
+ * 🔴 PRETO TÁ FUNKCIA EXISTUJE. `diff === 'Odyssey'` ostáva pravdou pre 11 katalógových
+ * magistrál (nemigruje sa nič), ale členova dvojdňovka so strednou náročnosťou by pod tou
+ * podmienkou do filtra ODYSEA nespadla — ticho, bez chyby. Kto sa pýta „je to odysea?",
+ * pýta sa TU; kto sa pýta „je to katalógová magistrála?", pýta sa `diff === 'Odyssey'`
+ * a je to iná otázka (viď `packCommunity.ts` a hviezdy v `PackTripArticle.tsx`).
+ *
+ * ⚠️ Dni sa RÁTAJÚ z dvoch dátumov, neukladajú sa — uložený počet by po oprave dátumu klamal.
+ * Cez `Date.UTC`, nie cez lokálny čas: v deň prechodu na letný čas má deň 23 hodín a
+ * delenie 86 400 000 by vrátilo 0,96 dňa, teda „jednodňový" dvojdňový výlet.
+ */
+export function tripDayCount(tr: { date?: string; dateEnd?: string }): number {
+  if (!tr.date || !tr.dateEnd || tr.dateEnd <= tr.date) return 0;
+  const [ay, am, ad] = tr.date.split('-').map(Number);
+  const [by, bm, bd] = tr.dateEnd.split('-').map(Number);
+  if (!ay || !am || !ad || !by || !bm || !bd) return 0;
+  return Math.round((Date.UTC(by, bm - 1, bd) - Date.UTC(ay, am - 1, ad)) / 86400000) + 1;
+}
+
+export function isOdyssey(tr: { diff?: string; date?: string; dateEnd?: string }): boolean {
+  return tr.diff === 'Odyssey' || tripDayCount(tr) >= 2;
 }
 
 export const diffMarkShape = (diff: string): 'circle' | 'square' | 'triangle' =>
@@ -228,12 +256,19 @@ export function RatingPaws({ stars, size = 15, gap = 4 }: { stars: number; size?
         const fillPct = Math.round(Math.max(0, Math.min(1, rounded - (n - 1))) * 100);
         return (
           <span key={n} style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+            {/* ⚠️ NEVYPLNENÁ ČASŤ SA RIADI PREMENNOU, NIE PEVNÝM FILTROM. Widget stojí na
+                tmavom povrchu (mobil, článok) aj na papyrusovom (karty v ľavom paneli /map
+                na PC) — a `brightness(0) invert(1)` je BIELA, teda na piesku neviditeľná.
+                Vtedy by z päťky ostali len vyplnené labky a stupnica by zanikla: 3,0 a 5,0
+                by vyzerali rovnako. Východisko je biele (tmavý povrch), bledý chrome si
+                premenné prepíše. */}
             <img
               src={ICON('paw')}
               alt=""
               style={{
                 position: 'absolute', inset: 0, width: size, height: size,
-                filter: 'brightness(0) invert(1)', opacity: 0.28,
+                filter: 'var(--rp-empty-filter, brightness(0) invert(1))',
+                opacity: 'var(--rp-empty-opacity, 0.28)' as unknown as number,
               }}
             />
             {fillPct > 0 && (
@@ -555,10 +590,29 @@ export function memberTrailIds(): Set<string> {
  * skladá `allTrails` — dnes je to šesť miest a každé si zoznam skladalo samo, takže siedme by
  * na priehradku zabudlo bez toho, aby si to niekto všimol.
  */
-export function visibleLocalTrails(local: HeroTrail[]): HeroTrail[] {
+/**
+ * @param opts.withMissedPlans TRIPLIST a nič iné. Plán, na ktorý človek odpovedal „nešiel som",
+ *   má podľa Matejovho rozhodnutia (25. 8. 2026) ostať **iba v tripliste u autora, nikde inde** —
+ *   teda von z mapy, z „next up" aj zo zoznamov, ale bez zmazania. Preto sa neškrtá záznam, len
+ *   sa tu odfiltruje; triplist si ho vypýta príznakom.
+ *
+ *   ⚠️ TO ISTÉ PLATÍ PRE PLÁN, NA KTORÝ NIKTO NEODPOVEDAL (doplnené 26. 8.). Matejovo štvrté
+ *   rozhodnutie znie: „karta sa pýta 7 dní, potom prestane a plán ide do triplistu ako
+ *   neuskutočnený — rovnaký koniec, len bez klikania". Bez tohto riadku sa mlčanie končilo
+ *   inak než kliknutie: karta stíchla, ale plán ostal visieť na mape s termínom v minulosti.
+ *   Fáza sa POČÍTA (`planPhase`), neukladá — uložený príznak by po presune termínu klamal.
+ */
+export function visibleLocalTrails(local: HeroTrail[], opts?: { withMissedPlans?: boolean }): HeroTrail[] {
   const meta = readLocalTrailMeta();
+  const keepPlans = !!opts?.withMissedPlans;
+  const missed = keepPlans ? null : readMissedPlans();
+  const nowMs = Date.now();
   return local.filter((tr) => {
-    if (tr.id.startsWith('plan-')) return true;
+    if (tr.id.startsWith('plan-')) {
+      if (keepPlans) return true;
+      if (missed && tr.id in missed) return false;
+      return planPhase(tr.date, nowMs) !== 'gone';
+    }
     const mine = meta[tr.id]?.mine ?? true;
     if (mine) return true;
     return missingOnTrail(tr).length === 0;

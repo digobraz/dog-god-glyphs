@@ -5,10 +5,47 @@
 // (draft/pending badge), perzistencia ostáva localStorage (`trp-local-trails`, tripShared.tsx).
 import type { LatLngTuple } from 'leaflet';
 import type { Companion } from '@/components/pack/packCommunityUI';
+import { CATEGORY_BY_ID, primaryCategoryOf } from '@/components/pack/tripCategories';
 
 export type TripState = 'planned' | 'walked';
 export type ApprovalStatus = 'draft' | 'pending' | 'approved' | 'needs_fix' | 'rejected';
 export type GeometryKind = 'route' | 'point' | 'area';
+/**
+ * DOPRAVA NA VÝLET (2026-08-26). Jedna voľba z troch — poradie je poradím na obrazovke.
+ * ⚠️ BOLO ICH ŠESŤ (bicykel, pešo, dodávka) a Matej ich v ten istý deň zmazal: „stačia
+ * 3 možnosti auto vlak a bus". Zmysel voľby je zorganizovať spoločný odchod, nie opísať
+ * cestu — kto ide pešo alebo na bicykli, nikoho nevezie a nikto sa k nemu nepridáva.
+ * Emoji ani preklady tu nie sú: model nesie kľúč, jazyk rieši i18n (`pack.addTrip.plan.travel.*`)
+ * a obrázok formulár. Rovnaká konvencia ako pri aktivitách.
+ */
+export type TravelMode = 'car' | 'train' | 'bus';
+
+/**
+ * Uložený tvar dopravy. Žije na `PartnerEvent.travel` a v stĺpci `trip_events.travel` (jsonb).
+ * `mode` je zámerne `string`, nie `TravelMode`: v DB môže ležať hodnota zapísaná staršou
+ * verziou appky (kedysi tam boli aj bicykel/pešo/dodávka) a zúžený typ by pri čítaní klamal.
+ * Čítač si preto emoji aj názov berie cez `TRAVEL_EMOJI[mode]` / slovník s fallbackom.
+ */
+export type TravelInfo = { mode?: string; from?: string; pickup?: boolean; seats?: number };
+
+/**
+ * DOPRAVA NA VÝLET (Matej 2026-08-26) — posledný krok plánu.
+ * Býva na DVOCH povrchoch (formulár aj karta plánu), preto stojí v modeli, nie v jednom z nich.
+ * Poradie je poradím na obrazovke: najprv to, čím sa ide najčastejšie.
+ * ⚠️ EMOJI, nie hand-drawn set. Je to tá istá výnimka, akú drží rad aktivít vyššie —
+ * kit nemá vlak, autobus ani dodávku, a pol radu v jednom jazyku a pol v druhom je horšie
+ * než celý rad v emoji. Sada je Emoji 1.0 (to isté kritérium, kvôli ktorému padol 🪜).
+ * ⚠️ Preklad si berie komponent cez `pack.addTrip.plan.travel.<id>` — `label` tu NIE JE,
+ * lebo by sa rozišiel so slovníkom v deň, keď sa slovník zmení.
+ */
+export const TRAVEL_MODES: Array<{ id: TravelMode; emoji: string }> = [
+  { id: 'car', emoji: '🚗' },
+  { id: 'train', emoji: '🚆' },
+  { id: 'bus', emoji: '🚌' },
+];
+/** Emoji podľa kľúča — karta plánu má len uložený reťazec, nie celý riadok dlaždíc. */
+export const TRAVEL_EMOJI: Record<string, string> = Object.fromEntries(TRAVEL_MODES.map((m) => [m.id, m.emoji]));
+
 
 // DVOJVRSTVOVÝ MODEL TRASY (Matej 2026-07-29, feedback_kotvy_vs_odvodena_geometria):
 // `path` = KOTVY, presne to čo človek naklikal — undo maže odtiaľto, editor ich ťahá.
@@ -109,6 +146,15 @@ export type AddTripDraft = {
   // (PackMap pred prestavbou: `isMultiDay = addMultiTrip && addDateEnd > addDate`,
   // `journeyOk = isMultiDay && drawKm >= 50`). Bez toho sa viacdňový výlet nedá zadať vôbec.
   dateEnd?: string;               // 'YYYY-MM-DD' — koniec viacdňového tripu
+  /**
+   * 🔴 JEDINÝ ZDROJ VIACDŇOVOSTI (Matej 2026-08-27, krok 1 sprievodcu).
+   * Do 27. 8. sa odvodzovala z `dateEnd > date` — teda z poľa, ktoré človek vypĺňa AŽ
+   * v 3. kroku. Nocľahy z 2. kroku tak viseli na príznaku, ktorý sa mohol o dve obrazovky
+   * ďalej sám vypnúť (stačilo zadať rovnaký dátum) a zmizli by bez slova.
+   * Odteraz sa appka pýta rovno v 1. kroku a dátum príznak UŽ NEPREPÍNA — len ho plní.
+   * ⚠️ Prepnutie späť na jednodňovú musí zahodiť `dateEnd` aj nocľahy (viď AddTripLog).
+   */
+  multiDay?: boolean;
   // VIDITEĽNOSŤ (issue #42) — LEN pre `planned`. Rozhoduje sa TU, pri zakladaní, nie skryté
   // v nastaveniach: `'private'` (default, konzervatívne) = nikto cudzí trip nevidí ani nemôže
   // požiadať o pridanie; `'open'` = "Looking for pack" inzerát, presne ako doterajší
@@ -117,6 +163,37 @@ export type AddTripDraft = {
   // `status:'looking', openness:'open'` + verejný `trip_events` inzerát — člen o tom nevedel
   // a nič si nevyberal.
   visibility?: 'private' | 'open';
+  /**
+   * ── AKO SA NA VÝLET IDE (Matej 2026-08-26) — LEN PLÁN ────────────────────────────────
+   *
+   * „doprava na miesto… ako idem na výlet (autom, vlakom…) a odkiaľ idem, ľudia sa môžu
+   *  vyzdvihnúť po ceste."
+   *
+   * Na zápise prejdeného výletu to nemá zmysel — je to informácia PRE TÝCH, ktorí sa ešte
+   * len rozhodujú, či sa pridajú. Preto sa pýta v poslednom kroku plánu, vedľa dátumu, a do
+   * draftu ide len keď `state === 'planned'` A človek nejde sám.
+   *
+   * 🔴 NEUKLADÁ SA K VÝLETU, ALE K INZERÁTU (Matej 2026-08-26: „doprava sa nikde inde
+   * nezapisuje, je to len organizačná pomôcka eventripu, nejde to nikde do štatistík,
+   * ukladá sa len to, čo definuje samotný trip").
+   * Preto `HeroTrail` pole `travel` NEMÁ — nesie ho `PartnerEvent` (packCommunity.ts).
+   * Rozdiel je vecný: trasa Záruby je tá istá o rok, ale „ideme vlakom z Bratislavy"
+   * platí pre JEDEN spoločný odchod. Keby to sedelo na výlete, po prejdení by tam ostalo
+   * viselo ako údaj o trase.
+   *
+   * ⚠️ SPÔSOB JE JEDEN, NIE MNOŽINA (Matejova voľba 26. 8. — z dvoch ponúknutých tvarov).
+   * Kombinácia „vlakom a odtiaľ pešo" sa teda povie v detailoch plánu, nie tu.
+   * ⚠️ ODKIAĽ je VOĽNÝ TEXT, nie bod na mape (tá istá voľba). Dôsledok, s ktorým treba
+   * rátať: appka z toho nikdy nevypočíta, komu kto leží po ceste — „po ceste" ostáva
+   * dohodou dvoch ľudí v správe, nie funkciou. Keby sa to raz malo počítať, pole musí
+   * dostať súradnicu a to je iná zmena, nie doplnenie.
+   */
+  travelMode?: TravelMode;
+  travelFrom?: string;
+  /** „Viem niekoho vyzdvihnúť po ceste" — má význam len pri `visibility === 'open'`. */
+  pickup?: boolean;
+  /** Koľko miest ostáva voľných. Bez `pickup` sa neukladá. */
+  pickupSeats?: number;
   // pack
   crew: Companion[];              // CompanionPicker, existujúci typ (packCommunityUI.tsx)
   // len walked
@@ -151,40 +228,16 @@ export type AddTripDraft = {
   sourceGpx?: { app: string; originalName: string };
 };
 
-// ── Geometria podľa aktivity (§5 tabuľka) ───────────────────────────────────────────────
-// Kľúče = id z TRIP_ACTIVITIES (PackMap.tsx ~190): hiking/journey/picnic/overnight/
-// skating/paddleboard. 'skating' a 'paddleboard' sú UI-id aktivít (nezamieňať s dátovým
-// tr.acts poľom, kde je 'hike'/'skating'/'paddleboard' — mapovanie je ACT_DATA_ID v Portale).
+// ── Geometria podľa KATEGÓRIE (§5 tabuľka, prepísané 2026-08-27) ────────────────────────
+// Tabuľka sa presťahovala do `components/pack/tripCategories.ts` — je to tá istá vec ako
+// zoznam kategórií a dve kópie by sa rozišli pri prvej zmene. Tu ostáva len pohľad na ňu,
+// aby volajúci nemuseli meniť import.
+// ⚠️ VIACDŇOVÁ (odysea) má vlastný riadok a NIE JE tu vidieť — pýtaj si ju cez
+// `geometryForCategory(id, multiDay)`, ktorá pri viacdňovej HIKE povolí LEN trasu.
 // Pri PLÁNE je default vždy najvoľnejšia povolená geometria (§5: „nikto nekreslí presnú
-// trasu na výlet o mesiac") — to je `default` nižšie, nezávisle od módu plán/log.
-export const ACTIVITY_GEOMETRY: Record<string, { default: GeometryKind; allowed: GeometryKind[] }> = {
-  hiking: { default: 'route', allowed: ['route', 'area'] },
-  // 🔴 LEN 'route' (Matej 2026-08-22: „pri magistrále - logovaní nemože byť oblasť musí mať
-  // vždy ROUTE"). Predtým tu bolo aj 'area' — a keďže PLÁN si berie najvoľnejšiu povolenú
-  // geometriu (`defaultKindFor(_,'plan')`, looseFirst = area→point→route), plánovaná magistrála
-  // ZAČÍNALA ako kruh na mape. Jediná povolená hodnota zároveň schová prepínač druhu
-  // (`allowed.length > 1` v GeometryPicker.tsx:363) — nie je z čoho vyberať.
-  journey: { default: 'route', allowed: ['route'] },
-  picnic: { default: 'area', allowed: ['area', 'point'] },
-  overnight: { default: 'area', allowed: ['area', 'point'] },
-  skating: { default: 'route', allowed: ['route', 'area'] },
-  // 'point' pridaný 2026-07-29 pri migrácii tripov bez trasy. 6 vodných plôch (Buková,
-  // Liptovská Mara, Kráľová, Sĺňava, Orešianska, Palcmanská Maša) má v datasete presne
-  // jednu kotvu — teda bod. Bez 'point' by tabuľka tvrdila, že taká geometria je nelegálna,
-  // hoci ju appka reálne zobrazuje. Prepis na `explore` by ich „opravil" za cenu zmazania
-  // acts (paddleboard/skating/picnic) — čo je jediná vecná informácia, ktorú o nich máme.
-  paddleboard: { default: 'area', allowed: ['area', 'route', 'point'] },
-  // EXPLORE 🧭 / Prieskum — siedmy pill (Matej zadal 2026-07-27, názov + geometriu odklepol
-  // 2026-07-29). Miesta BEZ trasy: „napríklad plavecký hrad, kaštiel v budmericiach, park
-  // v jaslovských bohuniciach... = tieto miesta nemusia mať route".
-  // 🔴 ZÁMERNE BEZ 'route' — Matej vybral „len Bod + Okruh". Kto chce trasu, prepne aktivitu.
-  // Dôvod existencie: 20 zo 77 tripov (26 %) dnes nemá použiteľnú trasu (14× prázdny `path`,
-  // 6× jediný bod — Buková, Liptovská Mara, Kráľová, Sĺňava, Orešianska, Palcmanská Maša).
-  // Tá kategória teda reálne existuje už dnes, len sa tvári ako pokazená trasa.
-  // MIGRÁCIA 2026-07-29: na `explore` prešlo len tých 14 prázdnych (`acts: ['explore']`
-  // v trails-nahadzovac-state.json). Vodných 6 ostalo pri paddleboard — viď komentár vyššie.
-  explore: { default: 'point', allowed: ['point', 'area'] },
-};
+// trasu na výlet o mesiac") — to rieši `defaultKindFor(_, 'plan')` v GeometryPicker.
+export const ACTIVITY_GEOMETRY: Record<string, { default: GeometryKind; allowed: GeometryKind[] }> =
+  Object.fromEntries(Object.values(CATEGORY_BY_ID).map((c) => [c.id, c.geometry]));
 
 // ── Povinné polia (§4.2 pre plán, §4.3 pre log) ─────────────────────────────────────────
 // SUBMIT_REQUIRED = pustí trip von (draft/pending podľa toho, či prejde aj APPROVAL_REQUIRED).
@@ -213,11 +266,14 @@ export const SUBMIT_REQUIRED: Record<TripState, Array<keyof AddTripDraft>> = {
  */
 export const APPROVAL_REQUIRED: Array<keyof AddTripDraft> = ['diff', 'surface', 'crowd', 'tags', 'paws'];
 
-// `hiking`/`journey` = hodnoty z formulára; `hike`/`journey` = to isté po prechode cez
-// ACT_DATA_ID do `HeroTrail.acts` (PackMap.tsx ~299). V jednej množine zámerne: pravidlo
-// „náročnosť a povrch len pre pešie" musí platiť na oboch stranách zápisu rovnako, inak by
-// uložený výlet vyšiel neúplný práve vtedy, keď formulár tvrdil opak.
-const HIKE_LIKE = new Set(['hiking', 'journey', 'hike']);
+// NÁROČNOSŤ MAJÚ LEN HIKE A SPORT (§10.2 kánonu, Matej 2026-08-26: „táborenie nemá
+// náročnosť vôbec"). Do 27. 8. to bola množina `HIKE_LIKE` so štyrmi zápismi tej istej
+// aktivity ('hiking' z formulára, 'hike'/'journey' z dát) — dnes to nesie príznak
+// `hasDifficulty` pri kategórii, teda na jednom mieste a spolu s ňou.
+// ⚠️ Pravidlo musí platiť na oboch stranách zápisu rovnako, inak by uložený výlet vyšiel
+// neúplný práve vtedy, keď formulár tvrdil opak — preto obe funkcie nižšie čítajú to isté.
+export const needsDifficulty = (category: string): boolean =>
+  CATEGORY_BY_ID[category]?.hasDifficulty ?? false;
 
 /**
  * NÁZVY CHÝBAJÚCICH POLÍ SÚ i18n KĽÚČE, NIE HOTOVÝ TEXT (2026-08-23).
@@ -285,7 +341,7 @@ export function missingFields(draft: AddTripDraft): { toSubmit: string[]; toAppr
 
   const toApprove = draft.state === 'walked'
     ? missingToApprove({
-        hikeLike: HIKE_LIKE.has(draft.activity),
+        hikeLike: needsDifficulty(draft.activity),
         diff: draft.diff, surface: draft.surface, crowd: draft.crowd,
         tags: draft.tags, paws: draft.paws,
       })
@@ -344,7 +400,9 @@ export function missingOnTrail(trail: {
   acts?: string[]; diff?: string; surface?: string[]; crowd?: string; tags?: string[]; stars?: number;
 }): string[] {
   return missingToApprove({
-    hikeLike: (trail.acts ?? []).some((a) => HIKE_LIKE.has(a)),
+    // Identita výletu, nie ktorýkoľvek jeho tag: túra s piknikom je HIKE a náročnosť
+    // teda pýta; piknik pri jazere je CHILL a nepýta ju vôbec.
+    hikeLike: needsDifficulty(primaryCategoryOf(trail.acts)),
     diff: trail.diff,
     surface: trail.surface,
     crowd: trail.crowd,
