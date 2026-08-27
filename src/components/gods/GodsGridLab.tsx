@@ -13,6 +13,7 @@
 //    jedna z dvoch stien, takže kolízia nehrozí.
 // ════════════════════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 
 import { useT, useLang } from '@/i18n/LanguageContext';
@@ -29,6 +30,7 @@ import { track } from '@/lib/analytics';
 import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import { DogPlanetLab, type PlanetDog } from './DogPlanetLab';
+import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
 import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
@@ -302,7 +304,63 @@ function basePackAt(col: number, row: number, map: Map<string, RealDog>, fillers
 }
 
 
-export function GodsGridLab() {
+interface GodsGridLabProps {
+  /**
+   * Wall beží vnútri `LabShell` (`components/lab/LabShell.tsx`):
+   *   • horný nav a login kreslí RÁM (wall ich už nevykresľuje vôbec);
+   *   • východiskový stav je GUĽA, nie stena (Matej 25. 8.: „považuj za homepage
+   *     nie wall ale ten globe"). Planéta ostáva REŽIMOM vnútri wallu — vytrhnúť
+   *     `DogPlanetLab` do vlastnej stránky by rozbilo čerstvo doladenú podobu.
+   * Spodná lišta ostáva TU: nesie kalkulačku aj prepínač stena⇄planéta a je len
+   * na homepage práve preto, že wall je namontovaný len v paneli homepage.
+   */
+  embedded?: boolean;
+  /**
+   * FILM (`components/lab/OnePage.tsx`) — Matej 26. 8. 2026: *„dolny nav zostava
+   * ale namiesto dvoch ikoniek tam bude chip ako je v hornom menu s textom CTA
+   * JOIN US = cta v 2 sekcii tym padom nebude, bude priamo v nave po cely cas
+   * scrolingu."*
+   * Je to VYMENA OBSAHU JEDNEJ LISTY, nie druha lista: kompas, terc aj prepinac
+   * steny sa zbalia do nuly a na ich mieste sa rozvinie chip. Ram sa pritom
+   * nehne — preto sa neprepina `display`, ale sirka a priehladnost.
+   * `ctaLabel` sa vykresli VZDY, ked je zadany (aj ked `ctaMode` este nebezi) —
+   * bez toho by chip nemal z coho prejst a len by vyskocil.
+   */
+  ctaMode?: boolean;
+  ctaLabel?: string;
+  ctaHref?: string;
+  /**
+   * Vykresli spodnu listu PORTALOM do <body>, nie na jej miesto v strome.
+   * ⚠️ Nie je to kozmetika. Vo filme (OnePage) lezi wall v prilepenom obale
+   * POD sekciami — inak Chrome cely film pod nim prestane kreslit (obsah je
+   * v DOM, klikatelny, len neviditelny). Lista vsak musi byt NAD obsahom,
+   * lebo ostava na obrazovke po cely scroll. Jedine riesenie, ktore drzi oboje,
+   * je vytiahnut ju zo stacking contextu obalu.
+   * Portal si nesie obal s triedou theme-light — bez neho by lista stratila
+   * zlaty odliatok (.theme-light .gods-bottom-bar) a ostal by z nej holy riadok.
+   */
+  portalDock?: boolean;
+  /**
+   * Zastavi bezuce slucky gule (automaticke otacanie + citanie dlazdice pod
+   * kurzorom). Vo filme je gula prilepena na cely scroll, takze bez tohto by
+   * `elementFromPoint` nad ~1000 dlazdicami v 3D bezal 15x za sekundu aj vtedy,
+   * ked je gula davno zhasnuta — a berie to snimky prave scrollu.
+   */
+  paused?: boolean;
+  /**
+   * Ohlasi, ci je prave otvorena STENA (mozaika), nie gula. Tretia ikonka
+   * v spodnej liste prepina medzi nimi a stav si drzi tento komponent sam.
+   *
+   * ⚠️ Vo filme (OnePage) to nie je informacia, ale PODMIENKA: stena je podla
+   * Mateja SAMOSTATNA STRANKA (27. 8. 2026: *„kliknutim na spodny nav 4 stvorce
+   * (grid) otvori wall — to je samostatna stranka a teda scrolovanie dolu nema
+   * pokracovat v one page"*). Bez tohto callbacku by sa pod otvorenou stenou
+   * dal odscrollovat cely film.
+   */
+  onWallChange?: (wallOpen: boolean) => void;
+}
+
+export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHref = '/entry', portalDock = false, paused = false, onWallChange }: GodsGridLabProps = {}) {
   const navigate = useNavigate();
   const t = useT();
   const appRef = useRef<HTMLDivElement>(null);
@@ -320,7 +378,9 @@ export function GodsGridLab() {
   const [dogsReady, setDogsReady] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   // LAB: planéta psov — overlay nad stenou, otvára ju tretia ikonka v spodnom nave.
-  const [planetOpen, setPlanetOpen] = useState(false);
+  // V ráme (`embedded`) je guľa VÝCHODISKOVÝ stav = homepage; samostatný wall
+  // (bez rámu) sa stále otvára stenou.
+  const [planetOpen, setPlanetOpen] = useState(embedded);
   const [planetDogs, setPlanetDogs] = useState<PlanetDog[]>([]);
   // Žiadosť z kalkulačky pre planétu. `seq` sa zvyšuje pri každom potvrdení, aby
   // sa dalo to isté číslo natukať dvakrát po sebe (viď prop `pick` v DogPlanetLab).
@@ -347,8 +407,36 @@ export function GodsGridLab() {
   const [enrollOn, setEnrollOn] = useState<boolean>(() => {
     try { return localStorage.getItem(ENROLL_KEY) === '1'; } catch { return false; }
   });
+  // Iskry portálu na stene. Kartu zahadzuje a znova stavia virtualizácia pri
+  // scrolle, takže slučka nesmie visieť na karte — drží ju stena a plátno si
+  // hľadá cez tento ref.
+  const wallSparksRef = useRef<{ canvas: HTMLCanvasElement; sparks: { frame(dt: number): void } } | null>(null);
   const enrollRef = useRef(enrollOn);
   useEffect(() => { enrollRef.current = enrollOn; }, [enrollOn]);
+
+  // ⚠️ VLASTNÁ rAF SLUČKA JE TU V PORIADKU, na guli by nebola. Nad stenou nebeží
+  // nič iné, čo by si s ňou konkurovalo o snímok; nad guľou áno, preto tam iskry
+  // kreslí slučka, ktorá guľu otáča. Slučka existuje len kým stojí dlaždica.
+  useEffect(() => {
+    // 🔴 A LEN KÝM JE STENA NA OBRAZOVKE. Stena sa pri prepnutí na guľu
+    // NEODMOUNTUJE, len schová — bez tejto podmienky by slučka bežala ďalej
+    // a kreslila iskry do neviditeľnej dlaždice práve vtedy, keď sa točí guľa.
+    // To je presne tá druhá rAF slučka, ktorú zakazuje pravidlo 3 v dogPortal.ts.
+    if (!enrollOn || planetOpen || PORTAL_REDUCE_MOTION) return;
+    let raf = 0;
+    let last = 0;
+    const step = (t: number) => {
+      raf = requestAnimationFrame(step);
+      const dt = last ? Math.min(0.05, (t - last) / 1000) : 0;
+      last = t;
+      const w = wallSparksRef.current;
+      // Odpojené plátno = kartu odniesla virtualizácia. Kresliť doň je práca
+      // navyše, ktorú nikto neuvidí.
+      if (dt && w && w.canvas.isConnected) w.sparks.frame(dt);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [enrollOn, planetOpen]);
   const { lang } = useLang();
   const langRef = useRef(lang);
   useEffect(() => { langRef.current = lang; }, [lang]);
@@ -464,6 +552,14 @@ export function GodsGridLab() {
     }, 5800);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [revealData.active, revealData.heroglyphUrl, dogsReady]);
+
+  // Prepnutie gula ⇄ stena ohlas von. Vo filme je stena samostatna stranka a
+  // scroll sa pod nou musi zamknut — dovod je pri prope `onWallChange`.
+  // ⚠️ Cez ref, nie priamo v onClick: stav prepinaju aj ine cesty (vychodiskovy
+  // stav podla `embedded`), a tie by sa do handlera nedostali.
+  const wallCbRef = useRef(onWallChange);
+  wallCbRef.current = onWallChange;
+  useEffect(() => { wallCbRef.current?.(!planetOpen); }, [planetOpen]);
 
   const submitFilter = () => {
     const n = parseInt(filterValue, 10);
@@ -898,82 +994,67 @@ export function GodsGridLab() {
       return el;
     }
 
-    // ── VARIANT B: PRÁZDNA DLAŽDICA NA ZÁPIS PSA (bunka 0,1) ─────────────
+    // ── VARIANT B: DLAŽDICA NA VSTUP (bunka 0,1) ─────────────────────────
     // Plnohodnotná bunka mriežky, nie prvok vnútri hera — preto sa nebije
     // s logom ani taglinom (prvý pokus ich obetoval a Matej to zamietol).
-    // Vnútri karty: vyblednuté tváre už zapísaných psov → veľký plus →
-    // po kliku pole na meno → po zadaní MENO PSA priamo na stene.
+    //
+    // 🔴 OD 27. 8. 2026 JE TO TEN ISTÝ PORTÁL AKO NA GULI (Matej: *„to CTA nahraď
+    // tým, čo už máme na globe = wall bude mať tú istú CTA, teda dlaždicu
+    // s iskrami namiesto tej, čo tam je teraz"*). Tvar stavia `buildPortal()`
+    // z dogPortal.ts — stena je vanilla DOM, guľa React, a dve kópie tej istej
+    // dlaždice by sa rozišli pri prvej úprave.
+    //
+    // ZANIKOL TÝM ZÁPIS MENA (`enroll-input`, `enroll-name`, `enroll-go`,
+    // `is-typing`, `is-named`, udalosti `wall_enroll_open`/`wall_enroll_named`).
+    // Matej to rozhodol pri výbere: *„to isté čo na guli — fotka"*, teda jedna
+    // CTA v celom produkte. Meno sa pýta až flow za ňou.
+    //
+    // ⚠️ Karta MUSÍ mať overflow: visible a byť nad susedmi — iskry lietajú ďaleko
+    // za jej hranu a orezané v polovici vyzerajú ako chyba vykreslenia.
     function makeEnrollCard() {
-      const ec = enrollCopy(langRef.current);
-      const nextNum = realDogMapRef.current.size + 1;
-      // Tváre sa striedajú CSS animáciou, nie intervalom — kartu odstraňuje
-      // virtualizácia pri scrolle a JS časovač by po nej ostal bežať.
-      const faceHtml = [...realDogMapRef.current.values()]
-        .map(d => planetTileUrl(d.cloudinary_main_url))
-        .filter(Boolean)
-        .slice(0, ENROLL_FACES)
-        .map((u, i) => `<span class="enroll-face" style="background-image:url('${u}');animation-delay:${i * 3}s"></span>`)
-        .join('');
-
       const el = document.createElement('article');
-      el.className = 'dog-card enroll-card';
+      el.className = 'dog-card enroll-card enroll-card--portal';
       el.style.left = '0px';
       el.style.top  = (1 * GY) + 'px';
-      el.innerHTML = `
-        <div class="enroll-faces" aria-hidden="true">${faceHtml}</div>
-        <div class="enroll-body" role="button" tabindex="0" data-enroll-tile aria-label="${ec.label}">
-          <p class="enroll-label">${ec.label}</p>
-          <div class="enroll-plus" aria-hidden="true"></div>
-          <input class="enroll-input" data-enroll-input type="text" maxlength="24" placeholder="${ec.ask}" aria-label="${ec.ask}" autocomplete="off" autocapitalize="characters" spellcheck="false">
-          <div class="enroll-name" data-enroll-name></div>
-          <span class="enroll-num">#${nextNum}</span>
-          <button class="enroll-go" data-enroll-go type="button">${ec.go}</button>
-        </div>
-      `;
 
-      const body  = el.querySelector('[data-enroll-tile]') as HTMLElement | null;
-      const input = el.querySelector('[data-enroll-input]') as HTMLInputElement | null;
-      const nameEl = el.querySelector('[data-enroll-name]') as HTMLElement | null;
-      const goBtn = el.querySelector('[data-enroll-go]') as HTMLElement | null;
-      let enrolled = '';
+      // Tváre sa striedajú CSS animáciou, nie intervalom — kartu odstraňuje
+      // virtualizácia pri scrolle a JS časovač by po nej ostal bežať.
+      const faces = [...realDogMapRef.current.values()]
+        .map(d => planetTileUrl(d.cloudinary_main_url))
+        .filter(Boolean) as string[];
 
-      const openInput = () => {
-        if (el.classList.contains('is-named')) return;
-        el.classList.add('is-typing');
-        input?.focus();
-        track('wall_enroll_open', { location: 'wall_lab_b' });
-      };
-      const commit = () => {
-        const val = (input?.value || '').trim();
-        if (!val) { el.classList.remove('is-typing'); return; }
-        enrolled = val.toUpperCase();
-        if (nameEl) nameEl.textContent = enrolled;   // textContent, nie innerHTML — vstup od človeka
-        el.classList.remove('is-typing');
-        el.classList.add('is-named');
-        // TOTO je merateľný signál varianta, nie platba: pri 245 klikoch/mes dá
-        // odpoveď za 3–4 týždne, kým na platbách by to trvalo ~7 mesiacov.
-        track('wall_enroll_named', { location: 'wall_lab_b' });
-      };
+      // Skrytý výber súboru žije V KARTE, nie v dokumente — s kartou aj zanikne.
+      const file = document.createElement('input');
+      file.type = 'file';
+      file.accept = 'image/*';
+      file.className = 'ph-add-file';
 
-      body?.addEventListener('click', openInput);
-      body?.addEventListener('keydown', (e) => {
-        const k = (e as KeyboardEvent).key;
-        if (k === 'Enter' || k === ' ') { e.preventDefault(); openInput(); }
-      });
-      input?.addEventListener('click', (e) => e.stopPropagation());
-      input?.addEventListener('keydown', (e) => {
-        const k = (e as KeyboardEvent).key;
-        if (k === 'Enter') { e.preventDefault(); commit(); }
-        if (k === 'Escape') { e.preventDefault(); if (input) input.value = ''; el.classList.remove('is-typing'); }
-      });
-      input?.addEventListener('blur', commit);
-      goBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Meno ide do store, aby sa appka o krok neskôr nepýtala druhýkrát.
-        if (enrolled) useDogyptStore.getState().setDogName(enrolled);
+      const portal = buildPortal({ faces, onPick: () => file.click() });
+      // Jadro portálu vypĺňa bunku mriežky — šírku preto nediktuje CSS clamp
+      // z gule, ale rozmer karty.
+      portal.el.style.setProperty('--ph-w', W + 'px');
+
+      file.addEventListener('change', () => {
+        const f = file.files?.[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        portal.setPhoto(url);
+        // ⚠️ Blob sa ZÁMERNE neuvoľňuje — tú istú adresu drží store pre ďalší krok
+        // flow a revokeObjectURL by mu ju v tej istej sekunde zabil.
+        useDogyptStore.getState().setDogPhotoUrl(url);
         track('cta_become_dogyptian_click', { location: 'wall_enroll_b' });
         navigate('/heroglyph/name');
       });
+
+      el.append(portal.el, file);
+
+      // Plátno sa ohlási slučke steny. Slučka si ho hľadá cez tento ref, lebo
+      // kartu virtualizácia pri scrolle zahodí a postaví znova.
+      // ⚠️ JEMNEJŠIA KORÓNA NEŽ NA GULI (Matej 27. 8. 2026: *„na WALLE treba
+      // razantne upraviť zo žiari aj celkovo iskrenia, je to predsa len väčšia
+      // dlaždica… prispôsobiť to okoliu"*). Dlaždica má 260 px proti 118 px na
+      // guli, takže tá istá sadzba by tu bola dvakrát hustejšia clona.
+      wallSparksRef.current = { canvas: portal.canvas, sparks: createSparks(portal.canvas, { density: 0.42 }) };
       return el;
     }
 
@@ -1073,7 +1154,7 @@ export function GodsGridLab() {
         openCardEl.classList.remove('is-open');
         openCardEl = null;
       }
-      if (target.closest('.center-hero') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.nav-login') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay') || target.closest('.card-open-dogpage-link')) return;
+      if (target.closest('.center-hero') || target.closest('.enroll-card') || target.closest('.center-btn') || target.closest('.main-nav') || target.closest('.nav-login') || target.closest('.lang-panel') || target.closest('.center-btn-mobile') || target.closest('.filter-btn') || target.closest('.gods-bottom-bar') || target.closest('.lang-btn-mobile') || target.closest('.lang-modal-root') || target.closest('.numpad-overlay') || target.closest('.card-open-dogpage-link')) return;
       dragging = true;
       downX = e.clientX;
       downY = e.clientY;
@@ -1106,7 +1187,7 @@ export function GodsGridLab() {
         // Click: find dog card (not hero widget, not card-info which has its own handler)
         const target = e.target as HTMLElement;
         if (!target.closest('.card-info')) {
-          const card = target.closest('.dog-card:not(.center-hero)') as HTMLElement | null;
+          const card = target.closest('.dog-card:not(.center-hero):not(.enroll-card)') as HTMLElement | null;
           if (card) { toggleCard(card); return; }
         }
         return; // don't start inertia on click
@@ -1149,7 +1230,7 @@ export function GodsGridLab() {
           // Interactive UI controls (join CTA, nav, lang, filter, numpad…) need their
           // native click — don't preventDefault, or the synthetic click never fires.
           const tapped = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
-          if (tapped?.closest('.center-hero, .center-btn, .main-nav, .nav-login, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay, .card-open-dogpage-link')) {
+          if (tapped?.closest('.enroll-card, .center-hero, .center-btn, .main-nav, .nav-login, .lang-panel, .center-btn-mobile, .filter-btn, .gods-bottom-bar, .lang-btn-mobile, .lang-modal-root, .numpad-overlay, .card-open-dogpage-link')) {
             return;
           }
           // Prevent the browser from firing synthetic mouse events (mousedown/mouseup/click)
@@ -1168,7 +1249,7 @@ export function GodsGridLab() {
             openCardEl = null;
           }
           const el = document.elementFromPoint(t.clientX, t.clientY);
-          const card = (el as HTMLElement | null)?.closest?.('.dog-card:not(.center-hero)') as HTMLElement | null;
+          const card = (el as HTMLElement | null)?.closest?.('.dog-card:not(.center-hero):not(.enroll-card)') as HTMLElement | null;
           if (card) { toggleCard(card); return; }
           return;
         }
@@ -1366,71 +1447,9 @@ export function GodsGridLab() {
         }
         #gods-canvas { z-index: 1; }
 
-        .nav-left {
-          position: fixed;
-          top: 12px;
-          left: 20px;
-          z-index: 50;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-        .main-nav {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-          white-space: nowrap;
-          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1px solid rgba(201,154,63,0.45);
-          padding: 7px 20px;
-          border-radius: 999px;
-        }
-        /* Vertical divider between menu words (matches public web PageNav) */
-        .main-nav-sep {
-          display: inline-block;
-          width: 1px;
-          height: 12px;
-          background: rgba(0,0,0,0.22);
-          flex-shrink: 0;
-        }
-        .main-nav a, .main-nav button {
-          font-family: 'Cinzel', serif;
-          font-weight: 700;
-          color: #000;
-          text-decoration: none;
-          font-size: 0.78rem;
-          letter-spacing: 0.15em;
-          text-transform: uppercase;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 0;
-        }
-        .main-nav a:hover, .main-nav button:hover { opacity: 0.55; }
-
-        /* ── LOGIN — round papyrus icon button, top-right (matches bottom-bar btns) ── */
-        .nav-login {
-          position: fixed;
-          top: 12px;
-          right: 16px;
-          z-index: 50;
-          width: 40px; height: 40px;
-          border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg, #FAF3E1 0%, #F2E2BD 50%, #E8D29C 100%);
-          border: 1px solid rgba(201,154,63,0.45);
-          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-          cursor: pointer;
-          text-decoration: none;
-          transition: opacity 150ms;
-        }
-        .nav-login:hover { opacity: 0.75; }
-        .nav-login-icon {
-          width: 18px; height: 18px;
-          object-fit: contain;
-          filter: brightness(0);
-          opacity: 0.72;
-        }
+        /* HORNÝ NAV + LOGIN: CSS odišlo do components/lab/LabShell.tsx
+           (jedna kópia baru v projekte). Zlatý odliatok si aj tak obe strany
+           ťahajú z components/pack/navGoldSkin.ts. */
 
         .info-overlay {
           position: fixed;
@@ -1868,6 +1887,8 @@ export function GodsGridLab() {
         }
         .join-btn:active { transform: scale(0.98); }
 
+        ${PORTAL_CSS}
+
         /* ── VARIANT B: PRÁZDNA DLAŽDICA NA ZÁPIS PSA ──────────────────────
            Dedí .dog-card (rozmer + pozícia v mriežke), mení len výplň a obsah.
            Rozmery preto NIE SÚ zapísané znova — to je celý dôvod, prečo je to
@@ -1883,6 +1904,49 @@ export function GodsGridLab() {
         .enroll-card:hover {
           border-color: rgba(245,199,61,0.95);
           box-shadow: 0 0 0 1px rgba(0,0,0,0.45), 0 0 44px rgba(230,158,26,0.35), 0 10px 34px rgba(0,0,0,0.4);
+        }
+
+        /* PORTÁL V MRIEŽKE. Bunka prestáva byť kartou a stáva sa len držiakom —
+           vlastný rám, výplň aj tieň má portál. Prerušovaný zlatý rám variantu B
+           tým zanikol.
+           ⚠️ overflow: visible je PODMIENKA, nie preferencia: plátno iskier je
+           2,35× širšie než jadro a orezané v polovici vyzerá ako chyba.
+           ⚠️ z-index dvíha dlaždicu nad susedov, aby iskry lietali PRES ne —
+           bez toho by ich prekryla ktorákoľvek karta vykreslená neskôr. */
+        .enroll-card--portal {
+          overflow: visible;
+          background: none;
+          border: 0;
+          box-shadow: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 3;
+        }
+
+        /* 🔴 PREMENNÉ PATRIA NA .ph-portal, NIE NA KARTU. Portál si ich definuje
+           SÁM NA SEBE, a vlastná deklarácia prvku prebije hodnotu zdedenú od
+           rodiča — prepis na karte sa teda ticho zahodil a žiara ostala na 2,45×
+           (637 px), teda presne to, čo Matej videl: *„nie je vôbec stiahnuté…
+           žiara osvetľuje okolité fotky, stlm to."*
+           PREČO menej než na guli: na guli má žiara za sebou otáčajúce sa fotky
+           a musí ich prekryť; na stene sú susedia nepriehľadné karty, takže cezeň
+           nič nepresvitá — a pri 260 px jadre siahala cez pol mriežky. */
+        .enroll-card--portal .ph-portal {
+          --ph-halok: 1.15;
+          --ph-haloa: 0.35;
+        }
+
+        /* 🔴 KARTA NEMÁ VLASTNÝ HOVER. Matej 27. 8. 2026: *„pri dotyku myšou je bug"* —
+           celá dlaždica zbelela. Nebol to portál: dog-card::after je bledý závoj
+           rgba(251,245,230,0.82), ktorý na karte PSA odkrýva heroglyf, a
+           dog-card:hover ju zväčšuje na 1,08. Na dlaždici, ktorá sama JE výzvou,
+           je závoj cudzí a mierka by ťahala aj plátno iskier.
+           Portál má vlastnú, jemnú odozvu (.ph-portal:hover .ph-add, 1,035). */
+        .enroll-card--portal::after { content: none; }
+        .enroll-card--portal:not(.is-open):hover {
+          transform: none;
+          box-shadow: none;
         }
 
         /* Tváre už zapísaných psov — čo tu pribudne, keď to naplníš. */
@@ -2035,6 +2099,38 @@ export function GodsGridLab() {
         .is-named .enroll-name { opacity: 1; }
         .is-named .enroll-face { animation-play-state: paused; opacity: 0.12; }
         .is-named .enroll-go { opacity: 1; pointer-events: auto; }
+
+        /* A/B prepínač (DEV) */
+        /* ⚠️ Vľavo DOLE nefunguje — cez celú spodnú hranu leží .consent-banner
+           a prepínač sa cezeň nedá kliknúť, kým človek neodklepne cookies
+           (chytené Playwrightom: „consent-banner intercepts pointer events"). */
+        .ab-switch {
+          position: fixed;
+          left: 20px; top: 62px;
+          z-index: 60;
+          display: flex;
+          border-radius: 999px;
+          overflow: hidden;
+          border: 1px solid rgba(201,154,63,0.55);
+          background: rgba(10,8,5,0.88);
+          box-shadow: 0 6px 22px rgba(0,0,0,0.45);
+        }
+        .ab-switch button {
+          padding: 7px 14px;
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.7rem;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          color: rgba(255,244,220,0.6);
+          transition: background 0.2s, color 0.2s;
+        }
+        .ab-switch button.is-on {
+          background: linear-gradient(135deg, #F5C73D 0%, #E69E1A 100%);
+          color: #1a1206;
+        }
         @keyframes joinBtnPulse {
           0%, 100% {
             box-shadow:
@@ -2477,7 +2573,15 @@ export function GodsGridLab() {
           padding-left: 16px;
           pointer-events: none;
         }
-        .numpad-overlay.numpad-overlay--planet .numpad { pointer-events: auto; }
+        /* ⚠️ IBA V OTVORENOM STAVE (Matej 27. 8. 2026: *„ak kliknem na fotku v globe,
+           posunie ju doľava a blok s detailom psa doprava, avšak v tomto momente
+           nejde kliknúť na CTA"*). Bez triedy .open chytal klik aj ZAVRETÝ pult —
+           je priehľadný (opacity 0), ale ako plocha 515 × 336 px stále existuje
+           a leží pri ľavom okraji. Kým guľa stojí v strede, nikoho neruší; len čo
+           sa pri otvorení detailu psa odsunie doľava, CTA vojde presne pod neho
+           a prestane sa dať kliknúť. Zavretý pult si pointer-events none
+           zdedí od obalu, takže tu netreba nič dopisovať. */
+        .numpad-overlay.numpad-overlay--planet.open .numpad { pointer-events: auto; }
         /* Na mobile príde karta psa ZHORA, takže pult ide dole — inak by si
            stáli na tom istom mieste. */
         @media (max-width: 760px) {
@@ -2530,21 +2634,9 @@ export function GodsGridLab() {
         .lang-btn-mobile .lang-picker--flow .lang-trigger__chev { color: rgba(0,0,0,0.5); }
 
         @media (max-width: 768px) {
-          .nav-left {
-            left: 50%;
-            transform: translateX(-50%);
-          }
-
-          /* LOGIN icon stays in the free top-right corner (menu is centered) */
-          .nav-login { width: 36px; height: 36px; top: 10px; right: 12px; }
-          .nav-login-icon { width: 16px; height: 16px; }
-
-          /* Top nav: 3 names only (flag moves to the bottom bar), tighter so the
-             longest labels (SK/CZ NÁBOŽENSTVO) never wrap. */
-          .nav-lang-desktop { display: none; }
+          /* Horný nav má mobilné pravidlá v ráme (LabShell). Tu ostáva len to,
+             čo patrí spodnej lište. */
           .lang-btn-mobile { display: flex; }
-          .main-nav { gap: 9px; padding: 6px 13px; }
-          .main-nav a { font-size: 0.7rem; letter-spacing: 0.07em; }
 
           /* Mobil center hero: zmenšené logo + CTA, zvýraznený počet psov */
           .center-hero { gap: 13px; }
@@ -2725,12 +2817,6 @@ export function GodsGridLab() {
           -webkit-backdrop-filter: none;
           backdrop-filter: none;
         }
-        .theme-light .main-nav a,
-        .theme-light .main-nav button,
-        .theme-light .main-nav .lang-trigger { color: #2a1608; }
-        .theme-light .main-nav .lang-trigger__chev { color: rgba(42,22,8,0.55); }
-        .theme-light .main-nav-sep { background: rgba(201,154,63,0.55); }
-        .theme-light .nav-login-icon { filter: brightness(0); opacity: 0.78; }
         .theme-light .filter-btn,
         .theme-light .center-btn-mobile,
         .theme-light .filter-btn.active { border-color: #8C6014; }
@@ -2763,16 +2849,13 @@ export function GodsGridLab() {
            fixed (a tým samy tvoria kotvu pre ::before/::after). Keď som im sem
            napísal relative, vypadli z fixovania: bar sa vysypal hore a roztiahol
            na celú šírku. Kotvu potrebuje dorobiť len horný nav (je static). */
-        .theme-light .main-nav { position: relative; }
         /* ⚠️ Doska aj zrno idú na z-index -1, NIE 0. Text v prepínači tém je HOLÝ
            TEXTOVÝ UZOL (nie element), takže sa nedá zdvihnúť cez z-index a doska
            s kladným indexom ho prekryla — z pilulky ostala prázdna zlatá plocha.
            Záporná vrstva sa kreslí nad pozadím prvku, ale pod jeho textom.
            Podmienka: nosič musí byť vlastný stacking context (isolation), inak
            by záporná vrstva padla až za rám. */
-        .theme-light .main-nav,
         .theme-light .gods-bottom-bar { isolation: isolate; }
-        .theme-light .main-nav,
         .theme-light .gods-bottom-bar {
           background: ${NAV_FRAME_BG};
           background-blend-mode: ${NAV_FRAME_BLEND};
@@ -2783,7 +2866,6 @@ export function GodsGridLab() {
           backdrop-filter: none;
         }
         /* DOSKA */
-        .theme-light .main-nav::before,
         .theme-light .gods-bottom-bar::before {
           content: '';
           position: absolute;
@@ -2797,7 +2879,6 @@ export function GodsGridLab() {
           z-index: -1;
         }
         /* SVETLÉ ZRNO nad doskou */
-        .theme-light .main-nav::after,
         .theme-light .gods-bottom-bar::after {
           content: '';
           position: absolute;
@@ -2808,31 +2889,91 @@ export function GodsGridLab() {
           pointer-events: none;
           z-index: -1;
         }
-        .theme-light .main-nav > *,
         .theme-light .gods-bottom-bar > * { position: relative; z-index: 1; }
-
-        /* Horný bar — vnútorné odsadenie tak, aby text sedel na doske, nie na ráme. */
-        .theme-light .main-nav { padding: ${NAV_R.rim + 5}px ${NAV_R.rim + 15}px; gap: 14px; }
-        .theme-light .main-nav a,
-        .theme-light .main-nav button,
-        .theme-light .main-nav .lang-trigger { color: ${NAV_GOLD.ink}; }
-        .theme-light .main-nav .lang-trigger__chev { color: rgba(42,22,8,0.55); }
-        .theme-light .main-nav-sep { background: rgba(110,74,20,0.45); }
 
         /* Spodný bar — jeden odliatok, tlačidlá v ňom sú pilulky na doske
            (v predlohe kruh „G"), preto strácajú vlastný rám. */
         .theme-light .gods-bottom-bar { padding: ${NAV_R.rim + 4}px ${NAV_R.rim + 6}px; gap: 10px; }
         .theme-light .gods-bottom-bar .filter-btn,
         .theme-light .gods-bottom-bar .center-btn-mobile,
-        .theme-light .gods-bottom-bar .lang-btn-mobile,
-        .theme-light .nav-login {
+        .theme-light .gods-bottom-bar .lang-btn-mobile {
           background: ${NAV_GOLD.activeFill};
           border: ${NAV_R.line}px solid ${NAV_GOLD.edge};
           box-shadow: ${NAV_PILL_SHADOW};
           color: ${NAV_GOLD.ink};
         }
         .theme-light .gods-bottom-bar .filter-btn.active { border-color: ${NAV_GOLD.edge}; }
-        .theme-light .nav-login-icon { filter: brightness(0); opacity: 0.9; }
+
+        /* ── LISTA V REZIME FILMU: NASTROJE ⇄ CTA CHIP ────────────────────
+           Ikonky sa NEVYPINAJU cez display — zbalia sa na nulovu sirku a chip
+           sa na ich mieste rozvinie. Rozdiel je vidiet: pri display: none by
+           lista skocila z jednej sirky na druhu, takto sa preleje a ram pod
+           navom posobi ako jediny, ktory tam stal cely cas.
+           Chip je odliatok aktivnej pilulky z HORNEHO navu (.main-nav
+           button.is-on) — tie iste tokeny, aby to bola jedna rodina. */
+        /* Portál lišty (viď prop portalDock) — obal len nesie theme-light,
+           sám nesmie nič chytať ani kresliť. */
+        .gods-dock-portal { position: relative; z-index: 58; pointer-events: none; }
+        .gods-dock-portal .gods-bottom-bar { pointer-events: auto; }
+        .gods-bottom-bar { transition: gap 380ms cubic-bezier(.22,.61,.36,1); }
+        .gods-bottom-bar.has-cta { gap: 0; }
+        .gods-bottom-bar .filter-btn,
+        .gods-bottom-bar .center-btn-mobile,
+        .gods-bottom-bar .lang-btn-mobile {
+          transition: opacity 220ms ease, width 380ms cubic-bezier(.22,.61,.36,1),
+                      padding 380ms cubic-bezier(.22,.61,.36,1);
+        }
+        .gods-bottom-bar.has-cta .filter-btn,
+        .gods-bottom-bar.has-cta .center-btn-mobile,
+        .gods-bottom-bar.has-cta .lang-btn-mobile {
+          opacity: 0;
+          width: 0;
+          min-width: 0;
+          padding-left: 0;
+          padding-right: 0;
+          border-width: 0;
+          overflow: hidden;
+          pointer-events: none;
+        }
+        .gods-bottom-bar .gbb-cta {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          height: 40px;
+          flex-shrink: 0;
+          border-radius: 999px;
+          white-space: nowrap;
+          text-decoration: none;
+          cursor: pointer;
+          font-family: 'Cinzel', serif;
+          font-weight: 700;
+          font-size: 0.78rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          background: ${NAV_GOLD.activeFill};
+          border: 0 solid ${NAV_GOLD.edge};
+          box-shadow: ${NAV_PILL_SHADOW};
+          color: ${NAV_GOLD.ink};
+          opacity: 0;
+          max-width: 0;
+          padding: 0;
+          overflow: hidden;
+          pointer-events: none;
+          transition: opacity 240ms ease, max-width 420ms cubic-bezier(.22,.61,.36,1),
+                      padding 420ms cubic-bezier(.22,.61,.36,1);
+        }
+        .gods-bottom-bar.has-cta .gbb-cta {
+          opacity: 1;
+          max-width: 360px;
+          padding: 0 24px;
+          border-width: ${NAV_R.line}px;
+          pointer-events: auto;
+        }
+        .gods-bottom-bar.has-cta .gbb-cta:hover { opacity: 0.82; }
+        @media (max-width: 768px) {
+          .gods-bottom-bar .gbb-cta { font-size: 0.68rem; letter-spacing: 0.1em; }
+          .gods-bottom-bar.has-cta .gbb-cta { padding: 0 18px; }
+        }
         .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger { color: ${NAV_GOLD.ink}; }
         .theme-light .lang-btn-mobile .lang-picker--flow .lang-trigger__chev { color: rgba(42,22,8,0.6); }
 
@@ -2847,8 +2988,13 @@ export function GodsGridLab() {
         .theme-light .hektor-heroglyph {
           filter: brightness(0) drop-shadow(0 2px 8px rgba(80,55,15,0.18));
         }
-        /* tieň zdvihnutej karty na papyruse — teplý, nie čierny */
-        .theme-light .dog-card:not(.is-open):hover {
+        /* tieň zdvihnutej karty na papyruse — teplý, nie čierny.
+           ⚠️ VÝNIMKA PRE PORTÁL: dlaždica CTA je priehľadná (vlastný rám a tieň
+           nesie portál vnútri), takže tieň karty by okolo nej nakreslil obdĺžnik
+           okolo ničoho. Vyňatie musí byť TU — pravidlo o triedu vyššie
+           (.theme-light .dog-card) prebíja každý zápis pri .enroll-card--portal,
+           nech je v súbore akokoľvek nižšie. */
+        .theme-light .dog-card:not(.is-open):not(.enroll-card--portal):hover {
           box-shadow: 0 10px 34px rgba(96,66,18,0.22);
         }
 
@@ -2867,26 +3013,37 @@ export function GodsGridLab() {
       `}</style>
 
       <div className={`gods-root theme-${theme}`}>
-        <div className="nav-left">
-          <nav className="main-nav">
-            <a href="/vision">{t('nav.vision')}</a>
-            <span className="main-nav-sep" aria-hidden="true" />
-            <a href="/religion">{t('nav.religion')}</a>
-            <span className="main-nav-sep" aria-hidden="true" />
-            <a href="/about">{t('nav.about')}</a>
-            {/* Flag stays in the top pill on desktop; on mobile it moves to the
-                bottom bar next to the center button (see .lang-btn-mobile). */}
-            <span className="nav-lang-desktop"><LanguagePicker /></span>
-          </nav>
+        {/* A/B prepínač — DEV pieskovisko, Matej: „nech si to viem rýchlo prepnúť".
+            Voľba prežije reload (localStorage), inak by sa pri každom uložení
+            súboru vrátila na A. Sedí POD navom — dole ho zakrýva cookie lišta. */}
+        <div className="ab-switch" role="group" aria-label="Variant steny">
+          <button
+            type="button"
+            className={enrollOn ? '' : 'is-on'}
+            onClick={() => { setEnrollOn(false); try { localStorage.setItem(ENROLL_KEY, '0'); } catch { /* private mode */ } }}
+          >A · CTA</button>
+          <button
+            type="button"
+            className={enrollOn ? 'is-on' : ''}
+            onClick={() => { setEnrollOn(true); try { localStorage.setItem(ENROLL_KEY, '1'); } catch { /* private mode */ } }}
+          >B · ZÁPIS PSA</button>
         </div>
+        {/* HORNÝ NAV TU UŽ NIE JE — kreslí ho RÁM `components/lab/LabShell.tsx`.
+            Stáli tu holé <a href="/vision|/religion|/about">, teda tvrdé načítanie
+            celého webu pri každom kliku: nav sa vždy prekreslil a „nav zostáva,
+            obsah sa swipne" bolo v tomto tvare nedosiahnuteľné. V ráme sú z nich
+            tlačidlá a nav sa pri prepnutí sekcie neodmountuje.
+            CSS navu (`.nav-top`, `.main-nav*`, `.nav-login*`) odišlo s ním —
+            v projekte je JEDNA kópia, v ráme. Nepíš ju sem späť.
+            ⚠️ Stráže `closest('.main-nav' | '.nav-login')` v `onMouseDown`
+            a `onTouchEnd` nižšie ostávajú platné: pozerajú sa na triedu cieľa,
+            nie na to, kto ju vykreslil. */}
         {/* Prepínač WALL tém (GOLD/CALM/PAPYRUS) tu STÁL a 25. 8. zanikol
             (Matej: „hore vpravo vymaž prepínač"). Podoba steny je teraz jedna
             konštanta `WALL_THEME` hore v súbore. */}
 
-        {/* LOGIN — round house-with-heart (home = entry/belonging) icon button, top-right corner */}
-        <a href="/login" className="nav-login" aria-label={t('nav.login')}>
-          <img src="/icons/pack/house-heart.svg" alt="" className="nav-login-icon" draggable="false" />
-        </a>
+        {/* LOGIN — kruh vpravo hore. Tiež odišiel do rámu: patrí k chrome, ktoré
+            je na každej stránke rovnaké, nie k stene. */}
 
         <div className={`info-overlay ${infoOpen ? 'open' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) setInfoOpen(false); }}>
           <button className="info-close" onClick={() => setInfoOpen(false)}>✕</button>
@@ -2896,62 +3053,131 @@ export function GodsGridLab() {
           </div>
         </div>
 
-        <div className="gods-bottom-bar">
-          <button
-            className={`filter-btn${filterOpen ? ' active' : ''}`}
-            onClick={() => setFilterOpen(f => !f)}
-            aria-label={t('wall.filter.find')}
-          >
-            {/* Brand hand-drawn compass (vstupy/vizualna-identita/Icons hand drawn) */}
-            <svg width="20" height="20" viewBox="0 0 473.514 473.514" fill="currentColor" aria-hidden>
-              <path d="M115.494,425.082c37.303,19.865,77.041,29.935,118.109,29.935c0.005,0,0.005,0,0.01,0c68.776,0,133.881-28.406,183.32-79.983c76.129-79.414,75.342-203.429-1.793-282.333c-53.512-54.738-117.321-79.366-190.022-73.303c-1.341-0.31-2.689-0.462-4.253-0.462c-0.015,0-0.033,0-0.043,0C116.721,21.146,32.744,85.898,6.874,183.905C-18.105,278.561,26.556,377.729,115.494,425.082z M35.369,221.891c6.236-90.779,80.1-161.264,175.807-167.934c2.471,0.731,4.957,0.944,7.64,0.581c8.886-1.226,18.032-1.846,27.178-1.846c62.87,0,123.15,28.625,157.315,74.712c21.602,29.137,42.822,78.813,21.216,149.953c-26.146,86.046-102.307,141.65-194.024,141.65c-11.035,0-22.209-0.854-33.218-2.539C96.779,401.087,28.689,319.256,35.369,221.891z"/>
-              <path d="M159.096,289.154c0.66,8.801,7.211,13.573,13.716,14.574c54.936,25.842,115.917,31.899,168.81,35.546c0.391,0.03,0.776,0.046,1.147,0.046c1.549,0,3.052-0.219,4.484-0.655c7.891-1.158,12.862-7.435,12.141-15.438c-4.29-47.591-18.732-96.474-46.839-158.488c-1.401-3.088-3.55-5.469-6.235-6.927c-1.529-1.186-3.291-2.079-5.241-2.666c-16.544-4.986-33.896-9.127-50.668-13.126c-35.192-8.386-71.586-17.064-103.037-34.167c-2.412-1.31-4.933-1.975-7.482-1.975c-6.484,0-12.509,4.55-14.771,11.105c-1.478,3.272-1.597,6.937-0.348,10.623C143.958,184.362,155.184,237.207,159.096,289.154z M257.835,222.661c4.92,9.214,2.224,20.151-6.566,26.611c-7.932,5.829-18.753,5.017-24.902-2.036c-6.289-7.217-4.682-16.875,0.224-23.11c0.701-0.587,1.335-1.257,1.901-2.006c3.821-5.045,10.115-8.305,16.034-8.305C250.228,213.815,254.707,216.791,257.835,222.661z M219.168,272.508c6.033,3.352,12.944,5.189,20.249,5.189c4.25,0,8.485-0.63,12.588-1.879c20.495-6.256,33.957-25.029,33.5-46.722c-0.122-5.606-1.382-10.892-3.54-15.688c4.672-3.618,9.009-7.254,13.102-10.946c15.559,37.505,25.766,71.915,30.94,104.428c-40.197-3.204-81.918-8.606-120.519-23.12C210.059,279.648,214.593,275.916,219.168,272.508z M258.526,192.106c-3.981-1.363-8.237-2.158-12.69-2.206h-0.645c-13.855,0-25.319,5.055-34.096,15.028c-0.267,0.233-0.526,0.479-0.777,0.739c-11.23,11.715-14.871,27.835-10.445,42.488c-4.395,3.32-8.638,6.759-12.718,10.298c-4.426-35.563-11.972-71.823-22.584-108.202c24.387,9.564,50.648,15.678,76.152,21.612c10.831,2.521,21.896,5.111,32.753,7.95C268.636,184.187,263.674,188.356,258.526,192.106z"/>
-            </svg>
-          </button>
+        {/* Spodná lišta. `portalDock` ju posiela do <body> — dôvod v props. */}
+        {portalDock
+          ? createPortal(
+              <div className="theme-light gods-dock-portal">
+              <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>
+                <button
+                  className={`filter-btn${filterOpen ? ' active' : ''}`}
+                  onClick={() => setFilterOpen(f => !f)}
+                  aria-label={t('wall.filter.find')}
+                >
+                  {/* Brand hand-drawn compass (vstupy/vizualna-identita/Icons hand drawn) */}
+                  <svg width="20" height="20" viewBox="0 0 473.514 473.514" fill="currentColor" aria-hidden>
+                    <path d="M115.494,425.082c37.303,19.865,77.041,29.935,118.109,29.935c0.005,0,0.005,0,0.01,0c68.776,0,133.881-28.406,183.32-79.983c76.129-79.414,75.342-203.429-1.793-282.333c-53.512-54.738-117.321-79.366-190.022-73.303c-1.341-0.31-2.689-0.462-4.253-0.462c-0.015,0-0.033,0-0.043,0C116.721,21.146,32.744,85.898,6.874,183.905C-18.105,278.561,26.556,377.729,115.494,425.082z M35.369,221.891c6.236-90.779,80.1-161.264,175.807-167.934c2.471,0.731,4.957,0.944,7.64,0.581c8.886-1.226,18.032-1.846,27.178-1.846c62.87,0,123.15,28.625,157.315,74.712c21.602,29.137,42.822,78.813,21.216,149.953c-26.146,86.046-102.307,141.65-194.024,141.65c-11.035,0-22.209-0.854-33.218-2.539C96.779,401.087,28.689,319.256,35.369,221.891z"/>
+                    <path d="M159.096,289.154c0.66,8.801,7.211,13.573,13.716,14.574c54.936,25.842,115.917,31.899,168.81,35.546c0.391,0.03,0.776,0.046,1.147,0.046c1.549,0,3.052-0.219,4.484-0.655c7.891-1.158,12.862-7.435,12.141-15.438c-4.29-47.591-18.732-96.474-46.839-158.488c-1.401-3.088-3.55-5.469-6.235-6.927c-1.529-1.186-3.291-2.079-5.241-2.666c-16.544-4.986-33.896-9.127-50.668-13.126c-35.192-8.386-71.586-17.064-103.037-34.167c-2.412-1.31-4.933-1.975-7.482-1.975c-6.484,0-12.509,4.55-14.771,11.105c-1.478,3.272-1.597,6.937-0.348,10.623C143.958,184.362,155.184,237.207,159.096,289.154z M257.835,222.661c4.92,9.214,2.224,20.151-6.566,26.611c-7.932,5.829-18.753,5.017-24.902-2.036c-6.289-7.217-4.682-16.875,0.224-23.11c0.701-0.587,1.335-1.257,1.901-2.006c3.821-5.045,10.115-8.305,16.034-8.305C250.228,213.815,254.707,216.791,257.835,222.661z M219.168,272.508c6.033,3.352,12.944,5.189,20.249,5.189c4.25,0,8.485-0.63,12.588-1.879c20.495-6.256,33.957-25.029,33.5-46.722c-0.122-5.606-1.382-10.892-3.54-15.688c4.672-3.618,9.009-7.254,13.102-10.946c15.559,37.505,25.766,71.915,30.94,104.428c-40.197-3.204-81.918-8.606-120.519-23.12C210.059,279.648,214.593,275.916,219.168,272.508z M258.526,192.106c-3.981-1.363-8.237-2.158-12.69-2.206h-0.645c-13.855,0-25.319,5.055-34.096,15.028c-0.267,0.233-0.526,0.479-0.777,0.739c-11.23,11.715-14.871,27.835-10.445,42.488c-4.395,3.32-8.638,6.759-12.718,10.298c-4.426-35.563-11.972-71.823-22.584-108.202c24.387,9.564,50.648,15.678,76.152,21.612c10.831,2.521,21.896,5.111,32.753,7.95C268.636,184.187,263.674,188.356,258.526,192.106z"/>
+                  </svg>
+                </button>
 
-          <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label={t('wall.filter.center')}>
-            {/* Brand hand-drawn target circle (vstupy/vizualna-identita/Icons hand drawn) */}
-            <svg width="22" height="22" viewBox="0 0 503.168 503.168" fill="currentColor" aria-hidden>
-              <path d="M486.353,226.804l-1.005,0.028c-10.126,0.516-20.257,0.93-30.393,1.3c-17.452-96.405-92.647-167.758-189.113-178.526c-0.097-0.01-0.193-0.02-0.29-0.028c-0.467-0.19-0.949-0.358-1.432-0.513l0.01-8.94c0-9.945-7.637-17.445-17.77-17.445c-10.13,0-17.773,7.5-17.773,17.445l-0.005,7.655C141.307,55.341,63.091,134.46,46.196,203.592c-3.639,14.884-5.721,30.097-6.213,45.339c-7.993-0.287-15.1-0.714-21.935-1.305c-10.143-0.869-17.605,6.142-18.032,16.043c-0.374,8.694,5.345,18.464,16.686,19.449c7.8,0.681,15.907,1.138,25.111,1.417c7.825,54.512,37.968,100.208,85.421,129.198c30.722,18.769,70.569,29.407,112.67,30.153c0.787,6.754,1.617,13.508,2.46,20.271c1.343,10.72,10.544,16.33,18.946,16.33c5.088,0,9.754-1.99,12.816-5.463c2.976-3.362,4.275-7.912,3.661-12.808c-0.838-6.672-1.65-13.34-2.433-20.007c90.805-10.217,184.844-67.578,183.539-172.804c-0.021-1.889-0.071-3.823-0.152-5.859c9.13-0.351,18.265-0.731,27.396-1.188c9.963-0.508,17.28-8.572,17.021-18.758C502.912,233.873,495.849,226.804,486.353,226.804z M271.818,407.133c-1.899-23.304-2.356-43.041-1.457-61.586c0.233-4.829-1.336-9.283-4.434-12.533c-3.194-3.351-7.876-5.271-12.84-5.271c-8.658,0-17.704,5.854-18.25,17.047c-0.942,19.316-0.465,39.816,1.508,63.941c-89.21-3.153-143.064-57.314-157.121-111.009c-1.086-4.145-1.906-8.547-2.452-13.152c29.195-0.858,60.915-3.859,98.962-9.338c8.798-1.27,14.508-8.283,13.878-17.053c-0.68-9.49-8.952-19.39-21.406-17.625c-34.111,4.913-63.126,7.642-90.446,8.485c12.053-75.373,81.07-152.914,149.349-165.71c0.459-0.084,0.921-0.165,1.394-0.239c-0.14,32.763-0.502,58.564-1.165,82.746c-0.13,4.804,1.518,9.219,4.649,12.431c3.229,3.319,7.909,5.223,12.85,5.223c10.016,0,17.77-7.406,18.044-17.227c0.65-23.895,1.011-49.284,1.158-81.321c0.021,0,0.046,0.005,0.065,0.005c79.074,8.828,144.276,68.878,158.199,144.321c-25.252,0.868-51.165,1.861-76.799,3.806c-11.35,0.858-17.118,10.552-16.793,19.24c0.376,9.958,7.79,17.032,17.966,16.266c25.989-1.966,52.491-2.961,78.297-3.845c-0.381,12.563-2.127,25.126-5.209,37.445C404.206,364.376,335.572,399.166,271.818,407.133z"/>
-            </svg>
-          </button>
+                <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label={t('wall.filter.center')}>
+                  {/* Brand hand-drawn target circle (vstupy/vizualna-identita/Icons hand drawn) */}
+                  <svg width="22" height="22" viewBox="0 0 503.168 503.168" fill="currentColor" aria-hidden>
+                    <path d="M486.353,226.804l-1.005,0.028c-10.126,0.516-20.257,0.93-30.393,1.3c-17.452-96.405-92.647-167.758-189.113-178.526c-0.097-0.01-0.193-0.02-0.29-0.028c-0.467-0.19-0.949-0.358-1.432-0.513l0.01-8.94c0-9.945-7.637-17.445-17.77-17.445c-10.13,0-17.773,7.5-17.773,17.445l-0.005,7.655C141.307,55.341,63.091,134.46,46.196,203.592c-3.639,14.884-5.721,30.097-6.213,45.339c-7.993-0.287-15.1-0.714-21.935-1.305c-10.143-0.869-17.605,6.142-18.032,16.043c-0.374,8.694,5.345,18.464,16.686,19.449c7.8,0.681,15.907,1.138,25.111,1.417c7.825,54.512,37.968,100.208,85.421,129.198c30.722,18.769,70.569,29.407,112.67,30.153c0.787,6.754,1.617,13.508,2.46,20.271c1.343,10.72,10.544,16.33,18.946,16.33c5.088,0,9.754-1.99,12.816-5.463c2.976-3.362,4.275-7.912,3.661-12.808c-0.838-6.672-1.65-13.34-2.433-20.007c90.805-10.217,184.844-67.578,183.539-172.804c-0.021-1.889-0.071-3.823-0.152-5.859c9.13-0.351,18.265-0.731,27.396-1.188c9.963-0.508,17.28-8.572,17.021-18.758C502.912,233.873,495.849,226.804,486.353,226.804z M271.818,407.133c-1.899-23.304-2.356-43.041-1.457-61.586c0.233-4.829-1.336-9.283-4.434-12.533c-3.194-3.351-7.876-5.271-12.84-5.271c-8.658,0-17.704,5.854-18.25,17.047c-0.942,19.316-0.465,39.816,1.508,63.941c-89.21-3.153-143.064-57.314-157.121-111.009c-1.086-4.145-1.906-8.547-2.452-13.152c29.195-0.858,60.915-3.859,98.962-9.338c8.798-1.27,14.508-8.283,13.878-17.053c-0.68-9.49-8.952-19.39-21.406-17.625c-34.111,4.913-63.126,7.642-90.446,8.485c12.053-75.373,81.07-152.914,149.349-165.71c0.459-0.084,0.921-0.165,1.394-0.239c-0.14,32.763-0.502,58.564-1.165,82.746c-0.13,4.804,1.518,9.219,4.649,12.431c3.229,3.319,7.909,5.223,12.85,5.223c10.016,0,17.77-7.406,18.044-17.227c0.65-23.895,1.011-49.284,1.158-81.321c0.021,0,0.046,0.005,0.065,0.005c79.074,8.828,144.276,68.878,158.199,144.321c-25.252,0.868-51.165,1.861-76.799,3.806c-11.35,0.858-17.118,10.552-16.793,19.24c0.376,9.958,7.79,17.032,17.966,16.266c25.989-1.966,52.491-2.961,78.297-3.845c-0.381,12.563-2.127,25.126-5.209,37.445C404.206,364.376,335.572,399.166,271.818,407.133z"/>
+                  </svg>
+                </button>
 
-          {/* LAB: tretia ikonka — prepínač STENA ⇄ PLANÉTA.
-              Ikonka sa mení podľa toho, KAM klik vedie, nie čo je práve na
-              obrazovke: pri zavretej planéte planétka, pri otvorenej MOZAIKA
-              (Matej 25. 8.: „ikonka dole v nave je planétka a druhú daj mosaic of
-              four squares tiles aby sme nemuseli dávať ten krížik hore vpravo").
-              Krížik planéty tým zanikol — cesta späť je tam, kde je cesta tam.
-              Mozaika je z hand-drawn kitu (`mosaic-of-four-hand-drawn-squares-tiles`),
-              vložená inline, aby dedila farbu textu ako zvyšok ovládania v bare. */}
-          <button
-            className={`filter-btn${planetOpen ? ' active' : ''}`}
-            onClick={() => setPlanetOpen(o => !o)}
-            aria-label={planetOpen ? t('nav.wall') : 'DOGYPT'}
-          >
-            {planetOpen ? (
-              <svg width="20" height="20" viewBox="0 0 439.164 439.165" fill="currentColor" aria-hidden>
-                <path d="M182.466,29.83c0.213-4.174-0.726-7.751-2.79-10.633c-3.199-6.282-8.623-9.76-15.485-10.138 C117.546,6.519,70.951,6.306,23.348,6.295c-5.264,0-9.704,1.856-12.845,5.368l-0.655,0.531 c-7.503,4.253-11.05,11.745-9.473,20.027c6.832,35.975,10.123,73.902,10.361,119.363c0.01,1.65,0.256,3.298,0.774,5.185 l0.089,0.525c0.546,8.465,6.147,17.311,17.42,17.976c49.478,2.917,94.039,5.756,138.377,11.07 c3.479,0.417,6.485-0.066,9.153-1.419l0.541-0.203c3.727-0.93,12.256-4.372,10.907-16.234 C182.182,117.115,180.366,71.769,182.466,29.83z M146.603,147.852c-34.827-3.608-68.829-5.88-97.497-7.622l-2.392-0.147 l-0.051-2.392c-0.688-32.479-3.156-62.606-7.556-92.1l-0.442-2.991l3.021,0.005c41.053,0.083,72.366,0.64,101.537,1.82l2.56,0.104 l-0.063,2.559c-0.744,31.052,0.48,63.089,3.74,97.939l0.294,3.15L146.603,147.852z" />
-                <path d="M182.466,276.21c0.213-4.174-0.726-7.754-2.79-10.634c-3.199-6.286-8.623-9.77-15.485-10.135 c-46.68-2.539-93.26-2.753-140.848-2.763c-5.263,0-9.704,1.854-12.845,5.362l-0.655,0.528c-7.503,4.26-11.05,11.75-9.476,20.042 c6.835,35.968,10.125,73.896,10.364,119.358c0.01,1.646,0.254,3.29,0.774,5.18l0.089,0.522c0.546,8.476,6.146,17.316,17.42,17.977 c49.477,2.92,94.039,5.764,138.377,11.075c3.484,0.416,6.49-0.071,9.153-1.422l0.541-0.198c3.727-0.93,12.255-4.372,10.907-16.234 C182.182,363.491,180.366,318.144,182.466,276.21z M146.603,394.233c-34.776-3.605-68.799-5.881-97.497-7.627l-2.392-0.152 l-0.051-2.387c-0.688-32.479-3.156-62.602-7.556-92.095l-0.442-2.99l3.021,0.005c41.058,0.081,72.376,0.64,101.537,1.817 l2.56,0.112l-0.063,2.549c-0.744,31.062,0.48,63.099,3.74,97.944l0.294,3.153L146.603,394.233z" />
-                <path d="M433.483,29.83c0.208-4.174-0.731-7.751-2.793-10.633c-3.199-6.282-8.623-9.76-15.488-10.138 c-46.641-2.539-93.236-2.752-140.843-2.763c-5.261,0-9.704,1.856-12.842,5.368l-0.655,0.531 c-7.506,4.253-11.045,11.745-9.471,20.027c6.83,35.975,10.126,73.902,10.364,119.363c0.011,1.65,0.254,3.298,0.771,5.185 l0.092,0.525c0.543,8.465,6.145,17.311,17.417,17.976c49.48,2.917,94.039,5.756,138.381,11.07 c3.483,0.411,6.484-0.066,9.155-1.419l0.543-0.203c3.728-0.93,12.248-4.372,10.907-16.234 C433.193,117.1,431.381,71.75,433.483,29.83z M397.612,147.852c-34.83-3.608-68.832-5.88-97.497-7.622l-2.392-0.147l-0.051-2.392 c-0.686-32.479-3.159-62.606-7.557-92.1l-0.441-2.991l3.021,0.005c41.05,0.083,72.366,0.64,101.534,1.82l2.559,0.104l-0.061,2.559 c-0.746,31.052,0.478,63.089,3.737,97.939l0.295,3.15L397.612,147.852z" />
-                <path d="M433.483,276.21c0.208-4.174-0.731-7.754-2.793-10.634c-3.199-6.286-8.623-9.77-15.488-10.135 c-46.677-2.539-93.257-2.753-140.848-2.763c-5.261,0-9.704,1.854-12.842,5.362l-0.655,0.528 c-7.506,4.26-11.045,11.75-9.471,20.037c6.83,35.973,10.126,73.905,10.364,119.363c0.01,1.646,0.254,3.29,0.771,5.18l0.092,0.522 c0.543,8.476,6.145,17.316,17.417,17.977c49.48,2.92,94.039,5.764,138.38,11.075c3.489,0.416,6.49-0.071,9.156-1.422l0.543-0.198 c3.728-0.93,12.248-4.372,10.907-16.234C433.193,363.481,431.381,318.124,433.483,276.21z M397.612,394.233 c-34.779-3.605-68.802-5.881-97.497-7.627l-2.392-0.152l-0.051-2.387c-0.686-32.479-3.159-62.602-7.557-92.095l-0.441-2.99 l3.021,0.005c41.061,0.081,72.376,0.64,101.534,1.817l2.559,0.112l-0.061,2.549c-0.746,31.062,0.478,63.099,3.737,97.944 l0.295,3.153L397.612,394.233z" />
-              </svg>
-            ) : (
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                <circle cx="12" cy="12" r="9.5" />
-                <line x1="12" y1="2.5" x2="12" y2="21.5" />
-                <line x1="2.5" y1="12" x2="21.5" y2="12" />
-                <ellipse cx="12" cy="12" rx="4" ry="9.5" />
-                <ellipse cx="12" cy="12" rx="9.5" ry="4" />
-              </svg>
+                {/* LAB: tretia ikonka — prepínač STENA ⇄ PLANÉTA.
+                    Ikonka sa mení podľa toho, KAM klik vedie, nie čo je práve na
+                    obrazovke: pri zavretej planéte planétka, pri otvorenej MOZAIKA
+                    (Matej 25. 8.: „ikonka dole v nave je planétka a druhú daj mosaic of
+                    four squares tiles aby sme nemuseli dávať ten krížik hore vpravo").
+                    Krížik planéty tým zanikol — cesta späť je tam, kde je cesta tam.
+                    Mozaika je z hand-drawn kitu (`mosaic-of-four-hand-drawn-squares-tiles`),
+                    vložená inline, aby dedila farbu textu ako zvyšok ovládania v bare. */}
+                <button
+                  className={`filter-btn${planetOpen ? ' active' : ''}`}
+                  onClick={() => setPlanetOpen(o => !o)}
+                  aria-label={planetOpen ? t('nav.wall') : 'DOGYPT'}
+                >
+                  {planetOpen ? (
+                    <svg width="20" height="20" viewBox="0 0 439.164 439.165" fill="currentColor" aria-hidden>
+                      <path d="M182.466,29.83c0.213-4.174-0.726-7.751-2.79-10.633c-3.199-6.282-8.623-9.76-15.485-10.138 C117.546,6.519,70.951,6.306,23.348,6.295c-5.264,0-9.704,1.856-12.845,5.368l-0.655,0.531 c-7.503,4.253-11.05,11.745-9.473,20.027c6.832,35.975,10.123,73.902,10.361,119.363c0.01,1.65,0.256,3.298,0.774,5.185 l0.089,0.525c0.546,8.465,6.147,17.311,17.42,17.976c49.478,2.917,94.039,5.756,138.377,11.07 c3.479,0.417,6.485-0.066,9.153-1.419l0.541-0.203c3.727-0.93,12.256-4.372,10.907-16.234 C182.182,117.115,180.366,71.769,182.466,29.83z M146.603,147.852c-34.827-3.608-68.829-5.88-97.497-7.622l-2.392-0.147 l-0.051-2.392c-0.688-32.479-3.156-62.606-7.556-92.1l-0.442-2.991l3.021,0.005c41.053,0.083,72.366,0.64,101.537,1.82l2.56,0.104 l-0.063,2.559c-0.744,31.052,0.48,63.089,3.74,97.939l0.294,3.15L146.603,147.852z" />
+                      <path d="M182.466,276.21c0.213-4.174-0.726-7.754-2.79-10.634c-3.199-6.286-8.623-9.77-15.485-10.135 c-46.68-2.539-93.26-2.753-140.848-2.763c-5.263,0-9.704,1.854-12.845,5.362l-0.655,0.528c-7.503,4.26-11.05,11.75-9.476,20.042 c6.835,35.968,10.125,73.896,10.364,119.358c0.01,1.646,0.254,3.29,0.774,5.18l0.089,0.522c0.546,8.476,6.146,17.316,17.42,17.977 c49.477,2.92,94.039,5.764,138.377,11.075c3.484,0.416,6.49-0.071,9.153-1.422l0.541-0.198c3.727-0.93,12.255-4.372,10.907-16.234 C182.182,363.491,180.366,318.144,182.466,276.21z M146.603,394.233c-34.776-3.605-68.799-5.881-97.497-7.627l-2.392-0.152 l-0.051-2.387c-0.688-32.479-3.156-62.602-7.556-92.095l-0.442-2.99l3.021,0.005c41.058,0.081,72.376,0.64,101.537,1.817 l2.56,0.112l-0.063,2.549c-0.744,31.062,0.48,63.099,3.74,97.944l0.294,3.153L146.603,394.233z" />
+                      <path d="M433.483,29.83c0.208-4.174-0.731-7.751-2.793-10.633c-3.199-6.282-8.623-9.76-15.488-10.138 c-46.641-2.539-93.236-2.752-140.843-2.763c-5.261,0-9.704,1.856-12.842,5.368l-0.655,0.531 c-7.506,4.253-11.045,11.745-9.471,20.027c6.83,35.975,10.126,73.902,10.364,119.363c0.011,1.65,0.254,3.298,0.771,5.185 l0.092,0.525c0.543,8.465,6.145,17.311,17.417,17.976c49.48,2.917,94.039,5.756,138.381,11.07 c3.483,0.411,6.484-0.066,9.155-1.419l0.543-0.203c3.728-0.93,12.248-4.372,10.907-16.234 C433.193,117.1,431.381,71.75,433.483,29.83z M397.612,147.852c-34.83-3.608-68.832-5.88-97.497-7.622l-2.392-0.147l-0.051-2.392 c-0.686-32.479-3.159-62.606-7.557-92.1l-0.441-2.991l3.021,0.005c41.05,0.083,72.366,0.64,101.534,1.82l2.559,0.104l-0.061,2.559 c-0.746,31.052,0.478,63.089,3.737,97.939l0.295,3.15L397.612,147.852z" />
+                      <path d="M433.483,276.21c0.208-4.174-0.731-7.754-2.793-10.634c-3.199-6.286-8.623-9.77-15.488-10.135 c-46.677-2.539-93.257-2.753-140.848-2.763c-5.261,0-9.704,1.854-12.842,5.362l-0.655,0.528 c-7.506,4.26-11.045,11.75-9.471,20.037c6.83,35.973,10.126,73.905,10.364,119.363c0.01,1.646,0.254,3.29,0.771,5.18l0.092,0.522 c0.543,8.476,6.145,17.316,17.417,17.977c49.48,2.92,94.039,5.764,138.38,11.075c3.489,0.416,6.49-0.071,9.156-1.422l0.543-0.198 c3.728-0.93,12.248-4.372,10.907-16.234C433.193,363.481,431.381,318.124,433.483,276.21z M397.612,394.233 c-34.779-3.605-68.802-5.881-97.497-7.627l-2.392-0.152l-0.051-2.387c-0.686-32.479-3.159-62.602-7.557-92.095l-0.441-2.99 l3.021,0.005c41.061,0.081,72.376,0.64,101.534,1.817l2.559,0.112l-0.061,2.549c-0.746,31.062,0.478,63.099,3.737,97.944 l0.295,3.153L397.612,394.233z" />
+                    </svg>
+                  ) : (
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <circle cx="12" cy="12" r="9.5" />
+                      <line x1="12" y1="2.5" x2="12" y2="21.5" />
+                      <line x1="2.5" y1="12" x2="21.5" y2="12" />
+                      <ellipse cx="12" cy="12" rx="4" ry="9.5" />
+                      <ellipse cx="12" cy="12" rx="9.5" ry="4" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Mobile-only: language flag pill, next to the center button */}
+                <div className="lang-btn-mobile"><LanguagePicker variant="flow" /></div>
+
+                {/* FILM: chip, ktory po odchode planety nahradi nastroje (viz props). */}
+                {ctaLabel ? <a className="gbb-cta" href={ctaHref}>{ctaLabel}</a> : null}
+              </div>
+              </div>,
+              document.body
+            )
+          : (
+            <div className={`gods-bottom-bar${ctaMode ? ' has-cta' : ''}`}>
+              <button
+                className={`filter-btn${filterOpen ? ' active' : ''}`}
+                onClick={() => setFilterOpen(f => !f)}
+                aria-label={t('wall.filter.find')}
+              >
+                {/* Brand hand-drawn compass (vstupy/vizualna-identita/Icons hand drawn) */}
+                <svg width="20" height="20" viewBox="0 0 473.514 473.514" fill="currentColor" aria-hidden>
+                  <path d="M115.494,425.082c37.303,19.865,77.041,29.935,118.109,29.935c0.005,0,0.005,0,0.01,0c68.776,0,133.881-28.406,183.32-79.983c76.129-79.414,75.342-203.429-1.793-282.333c-53.512-54.738-117.321-79.366-190.022-73.303c-1.341-0.31-2.689-0.462-4.253-0.462c-0.015,0-0.033,0-0.043,0C116.721,21.146,32.744,85.898,6.874,183.905C-18.105,278.561,26.556,377.729,115.494,425.082z M35.369,221.891c6.236-90.779,80.1-161.264,175.807-167.934c2.471,0.731,4.957,0.944,7.64,0.581c8.886-1.226,18.032-1.846,27.178-1.846c62.87,0,123.15,28.625,157.315,74.712c21.602,29.137,42.822,78.813,21.216,149.953c-26.146,86.046-102.307,141.65-194.024,141.65c-11.035,0-22.209-0.854-33.218-2.539C96.779,401.087,28.689,319.256,35.369,221.891z"/>
+                  <path d="M159.096,289.154c0.66,8.801,7.211,13.573,13.716,14.574c54.936,25.842,115.917,31.899,168.81,35.546c0.391,0.03,0.776,0.046,1.147,0.046c1.549,0,3.052-0.219,4.484-0.655c7.891-1.158,12.862-7.435,12.141-15.438c-4.29-47.591-18.732-96.474-46.839-158.488c-1.401-3.088-3.55-5.469-6.235-6.927c-1.529-1.186-3.291-2.079-5.241-2.666c-16.544-4.986-33.896-9.127-50.668-13.126c-35.192-8.386-71.586-17.064-103.037-34.167c-2.412-1.31-4.933-1.975-7.482-1.975c-6.484,0-12.509,4.55-14.771,11.105c-1.478,3.272-1.597,6.937-0.348,10.623C143.958,184.362,155.184,237.207,159.096,289.154z M257.835,222.661c4.92,9.214,2.224,20.151-6.566,26.611c-7.932,5.829-18.753,5.017-24.902-2.036c-6.289-7.217-4.682-16.875,0.224-23.11c0.701-0.587,1.335-1.257,1.901-2.006c3.821-5.045,10.115-8.305,16.034-8.305C250.228,213.815,254.707,216.791,257.835,222.661z M219.168,272.508c6.033,3.352,12.944,5.189,20.249,5.189c4.25,0,8.485-0.63,12.588-1.879c20.495-6.256,33.957-25.029,33.5-46.722c-0.122-5.606-1.382-10.892-3.54-15.688c4.672-3.618,9.009-7.254,13.102-10.946c15.559,37.505,25.766,71.915,30.94,104.428c-40.197-3.204-81.918-8.606-120.519-23.12C210.059,279.648,214.593,275.916,219.168,272.508z M258.526,192.106c-3.981-1.363-8.237-2.158-12.69-2.206h-0.645c-13.855,0-25.319,5.055-34.096,15.028c-0.267,0.233-0.526,0.479-0.777,0.739c-11.23,11.715-14.871,27.835-10.445,42.488c-4.395,3.32-8.638,6.759-12.718,10.298c-4.426-35.563-11.972-71.823-22.584-108.202c24.387,9.564,50.648,15.678,76.152,21.612c10.831,2.521,21.896,5.111,32.753,7.95C268.636,184.187,263.674,188.356,258.526,192.106z"/>
+                </svg>
+              </button>
+
+              <button className="center-btn-mobile" id="gods-center-btn-mobile" aria-label={t('wall.filter.center')}>
+                {/* Brand hand-drawn target circle (vstupy/vizualna-identita/Icons hand drawn) */}
+                <svg width="22" height="22" viewBox="0 0 503.168 503.168" fill="currentColor" aria-hidden>
+                  <path d="M486.353,226.804l-1.005,0.028c-10.126,0.516-20.257,0.93-30.393,1.3c-17.452-96.405-92.647-167.758-189.113-178.526c-0.097-0.01-0.193-0.02-0.29-0.028c-0.467-0.19-0.949-0.358-1.432-0.513l0.01-8.94c0-9.945-7.637-17.445-17.77-17.445c-10.13,0-17.773,7.5-17.773,17.445l-0.005,7.655C141.307,55.341,63.091,134.46,46.196,203.592c-3.639,14.884-5.721,30.097-6.213,45.339c-7.993-0.287-15.1-0.714-21.935-1.305c-10.143-0.869-17.605,6.142-18.032,16.043c-0.374,8.694,5.345,18.464,16.686,19.449c7.8,0.681,15.907,1.138,25.111,1.417c7.825,54.512,37.968,100.208,85.421,129.198c30.722,18.769,70.569,29.407,112.67,30.153c0.787,6.754,1.617,13.508,2.46,20.271c1.343,10.72,10.544,16.33,18.946,16.33c5.088,0,9.754-1.99,12.816-5.463c2.976-3.362,4.275-7.912,3.661-12.808c-0.838-6.672-1.65-13.34-2.433-20.007c90.805-10.217,184.844-67.578,183.539-172.804c-0.021-1.889-0.071-3.823-0.152-5.859c9.13-0.351,18.265-0.731,27.396-1.188c9.963-0.508,17.28-8.572,17.021-18.758C502.912,233.873,495.849,226.804,486.353,226.804z M271.818,407.133c-1.899-23.304-2.356-43.041-1.457-61.586c0.233-4.829-1.336-9.283-4.434-12.533c-3.194-3.351-7.876-5.271-12.84-5.271c-8.658,0-17.704,5.854-18.25,17.047c-0.942,19.316-0.465,39.816,1.508,63.941c-89.21-3.153-143.064-57.314-157.121-111.009c-1.086-4.145-1.906-8.547-2.452-13.152c29.195-0.858,60.915-3.859,98.962-9.338c8.798-1.27,14.508-8.283,13.878-17.053c-0.68-9.49-8.952-19.39-21.406-17.625c-34.111,4.913-63.126,7.642-90.446,8.485c12.053-75.373,81.07-152.914,149.349-165.71c0.459-0.084,0.921-0.165,1.394-0.239c-0.14,32.763-0.502,58.564-1.165,82.746c-0.13,4.804,1.518,9.219,4.649,12.431c3.229,3.319,7.909,5.223,12.85,5.223c10.016,0,17.77-7.406,18.044-17.227c0.65-23.895,1.011-49.284,1.158-81.321c0.021,0,0.046,0.005,0.065,0.005c79.074,8.828,144.276,68.878,158.199,144.321c-25.252,0.868-51.165,1.861-76.799,3.806c-11.35,0.858-17.118,10.552-16.793,19.24c0.376,9.958,7.79,17.032,17.966,16.266c25.989-1.966,52.491-2.961,78.297-3.845c-0.381,12.563-2.127,25.126-5.209,37.445C404.206,364.376,335.572,399.166,271.818,407.133z"/>
+                </svg>
+              </button>
+
+              {/* LAB: tretia ikonka — prepínač STENA ⇄ PLANÉTA.
+                  Ikonka sa mení podľa toho, KAM klik vedie, nie čo je práve na
+                  obrazovke: pri zavretej planéte planétka, pri otvorenej MOZAIKA
+                  (Matej 25. 8.: „ikonka dole v nave je planétka a druhú daj mosaic of
+                  four squares tiles aby sme nemuseli dávať ten krížik hore vpravo").
+                  Krížik planéty tým zanikol — cesta späť je tam, kde je cesta tam.
+                  Mozaika je z hand-drawn kitu (`mosaic-of-four-hand-drawn-squares-tiles`),
+                  vložená inline, aby dedila farbu textu ako zvyšok ovládania v bare. */}
+              <button
+                className={`filter-btn${planetOpen ? ' active' : ''}`}
+                onClick={() => setPlanetOpen(o => !o)}
+                aria-label={planetOpen ? t('nav.wall') : 'DOGYPT'}
+              >
+                {planetOpen ? (
+                  <svg width="20" height="20" viewBox="0 0 439.164 439.165" fill="currentColor" aria-hidden>
+                    <path d="M182.466,29.83c0.213-4.174-0.726-7.751-2.79-10.633c-3.199-6.282-8.623-9.76-15.485-10.138 C117.546,6.519,70.951,6.306,23.348,6.295c-5.264,0-9.704,1.856-12.845,5.368l-0.655,0.531 c-7.503,4.253-11.05,11.745-9.473,20.027c6.832,35.975,10.123,73.902,10.361,119.363c0.01,1.65,0.256,3.298,0.774,5.185 l0.089,0.525c0.546,8.465,6.147,17.311,17.42,17.976c49.478,2.917,94.039,5.756,138.377,11.07 c3.479,0.417,6.485-0.066,9.153-1.419l0.541-0.203c3.727-0.93,12.256-4.372,10.907-16.234 C182.182,117.115,180.366,71.769,182.466,29.83z M146.603,147.852c-34.827-3.608-68.829-5.88-97.497-7.622l-2.392-0.147 l-0.051-2.392c-0.688-32.479-3.156-62.606-7.556-92.1l-0.442-2.991l3.021,0.005c41.053,0.083,72.366,0.64,101.537,1.82l2.56,0.104 l-0.063,2.559c-0.744,31.052,0.48,63.089,3.74,97.939l0.294,3.15L146.603,147.852z" />
+                    <path d="M182.466,276.21c0.213-4.174-0.726-7.754-2.79-10.634c-3.199-6.286-8.623-9.77-15.485-10.135 c-46.68-2.539-93.26-2.753-140.848-2.763c-5.263,0-9.704,1.854-12.845,5.362l-0.655,0.528c-7.503,4.26-11.05,11.75-9.476,20.042 c6.835,35.968,10.125,73.896,10.364,119.358c0.01,1.646,0.254,3.29,0.774,5.18l0.089,0.522c0.546,8.476,6.146,17.316,17.42,17.977 c49.477,2.92,94.039,5.764,138.377,11.075c3.484,0.416,6.49-0.071,9.153-1.422l0.541-0.198c3.727-0.93,12.255-4.372,10.907-16.234 C182.182,363.491,180.366,318.144,182.466,276.21z M146.603,394.233c-34.776-3.605-68.799-5.881-97.497-7.627l-2.392-0.152 l-0.051-2.387c-0.688-32.479-3.156-62.602-7.556-92.095l-0.442-2.99l3.021,0.005c41.058,0.081,72.376,0.64,101.537,1.817 l2.56,0.112l-0.063,2.549c-0.744,31.062,0.48,63.099,3.74,97.944l0.294,3.153L146.603,394.233z" />
+                    <path d="M433.483,29.83c0.208-4.174-0.731-7.751-2.793-10.633c-3.199-6.282-8.623-9.76-15.488-10.138 c-46.641-2.539-93.236-2.752-140.843-2.763c-5.261,0-9.704,1.856-12.842,5.368l-0.655,0.531 c-7.506,4.253-11.045,11.745-9.471,20.027c6.83,35.975,10.126,73.902,10.364,119.363c0.011,1.65,0.254,3.298,0.771,5.185 l0.092,0.525c0.543,8.465,6.145,17.311,17.417,17.976c49.48,2.917,94.039,5.756,138.381,11.07 c3.483,0.411,6.484-0.066,9.155-1.419l0.543-0.203c3.728-0.93,12.248-4.372,10.907-16.234 C433.193,117.1,431.381,71.75,433.483,29.83z M397.612,147.852c-34.83-3.608-68.832-5.88-97.497-7.622l-2.392-0.147l-0.051-2.392 c-0.686-32.479-3.159-62.606-7.557-92.1l-0.441-2.991l3.021,0.005c41.05,0.083,72.366,0.64,101.534,1.82l2.559,0.104l-0.061,2.559 c-0.746,31.052,0.478,63.089,3.737,97.939l0.295,3.15L397.612,147.852z" />
+                    <path d="M433.483,276.21c0.208-4.174-0.731-7.754-2.793-10.634c-3.199-6.286-8.623-9.77-15.488-10.135 c-46.677-2.539-93.257-2.753-140.848-2.763c-5.261,0-9.704,1.854-12.842,5.362l-0.655,0.528 c-7.506,4.26-11.045,11.75-9.471,20.037c6.83,35.973,10.126,73.905,10.364,119.363c0.01,1.646,0.254,3.29,0.771,5.18l0.092,0.522 c0.543,8.476,6.145,17.316,17.417,17.977c49.48,2.92,94.039,5.764,138.38,11.075c3.489,0.416,6.49-0.071,9.156-1.422l0.543-0.198 c3.728-0.93,12.248-4.372,10.907-16.234C433.193,363.481,431.381,318.124,433.483,276.21z M397.612,394.233 c-34.779-3.605-68.802-5.881-97.497-7.627l-2.392-0.152l-0.051-2.387c-0.686-32.479-3.159-62.602-7.557-92.095l-0.441-2.99 l3.021,0.005c41.061,0.081,72.376,0.64,101.534,1.817l2.559,0.112l-0.061,2.549c-0.746,31.062,0.478,63.099,3.737,97.944 l0.295,3.153L397.612,394.233z" />
+                  </svg>
+                ) : (
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <circle cx="12" cy="12" r="9.5" />
+                    <line x1="12" y1="2.5" x2="12" y2="21.5" />
+                    <line x1="2.5" y1="12" x2="21.5" y2="12" />
+                    <ellipse cx="12" cy="12" rx="4" ry="9.5" />
+                    <ellipse cx="12" cy="12" rx="9.5" ry="4" />
+                  </svg>
+                )}
+              </button>
+
+              {/* Mobile-only: language flag pill, next to the center button */}
+              <div className="lang-btn-mobile"><LanguagePicker variant="flow" /></div>
+
+              {/* FILM: chip, ktory po odchode planety nahradi nastroje (viz props). */}
+              {ctaLabel ? <a className="gbb-cta" href={ctaHref}>{ctaLabel}</a> : null}
+            </div>
             )}
-          </button>
 
-          {/* Mobile-only: language flag pill, next to the center button */}
-          <div className="lang-btn-mobile"><LanguagePicker variant="flow" /></div>
-        </div>
-
-        <DogPlanetLab dogs={planetDogs} open={planetOpen} onClose={() => setPlanetOpen(false)} pick={planetPick} />
+        <DogPlanetLab dogs={planetDogs} open={planetOpen} paused={paused} onClose={() => setPlanetOpen(false)} pick={planetPick} />
 
         {/* KALKULAČKA MÁ DVE PODOBY. Nad stenou je to modál so závojom — vyberáš
             číslo a stránka pod ním počká. Nad guľou je to PULT NA ĽAVOM BOKU

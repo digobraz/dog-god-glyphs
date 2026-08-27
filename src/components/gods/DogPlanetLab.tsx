@@ -28,7 +28,20 @@ import { useT } from '@/i18n/LanguageContext';
 import {
   NAV_GRAIN, NAV_MOTTLE, NAV_GRAIN_SCREEN_CSS,
 } from '@/components/pack/navGoldSkin';
+// ⚠️ Plus MUSÍ byť z hand-drawn kitu, nie dve kreslené čiary (Matej 26. 8.:
+// „+ by malo byť brandove hand drawn"). HandIcons je jediný kanál, ktorý zdedí
+// farbu textu — v lapisovom štvorci potrebujeme zlatý plus, nie čierny.
 import { dogPagePath } from '@/lib/dogSlug';
+import { useNavigate } from 'react-router-dom';
+import { LAB } from '@/lib/labTheme';
+import { LAPIS } from '@/components/pack/navGoldSkin';
+import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
+import type { PortalHandle } from './dogPortal';
+
+/** Odliatok lapisovej pilulky: vrhnutý tieň + zlatá horná hrana, ako na hlavnom CTA. */
+const LAPIS_CHIP_SHADOW = '0 2px 6px -2px rgba(5,15,48,0.55), inset 0 1px 0 rgba(201,154,63,0.30)';
+
+import { useDogyptStore } from '@/store/dogyptStore';
 
 export interface PlanetDog {
   id: string;
@@ -306,11 +319,19 @@ const TileField = memo(function TileField({ tiles }: { tiles: Tile[] }) {
 export function DogPlanetLab({
   dogs,
   open,
+  paused = false,
   onClose,
   pick,
 }: {
   dogs: PlanetDog[];
   open: boolean;
+  /**
+   * Gula je na obrazovke, ale uz ju nikto nevidi (film /onepage ju ma prilepenu
+   * na cely scroll). Zastavi rAF slucku — nie kvoli batérii, ale kvoli SCROLLU:
+   * slucka cita 15x za sekundu dlazdicu pod kurzorom cez elementFromPoint nad
+   * ~1000 prvkami v 3D a berie snimky prave prebiehajucemu scrollu.
+   */
+  paused?: boolean;
   onClose: () => void;
   /**
    * Žiadosť z kalkulačky v spodnom nave: „ukáž psa s týmto číslom".
@@ -321,6 +342,69 @@ export function DogPlanetLab({
   pick?: { n: number; seq: number } | null;
 }) {
   const t = useT();
+  const navigate = useNavigate();
+
+  // ── FOTKA PSA ROVNO Z PRVEJ OBRAZOVKY (Matej 26. 8. 2026) ────────────────
+  // *„CTA bude pridaj svojho psa — nebude klasické tlačítko ale štvorec s +
+  //   Pridaj FOTO svojho psa. Pod tým malým písmom (fotku môžeš neskôr zmeniť)."*
+  //
+  // Fotka sa tu NENAHRÁVA na Cloudinary — ide len o náhľad v prehliadači
+  // (`URL.createObjectURL`). Na server ide až vo flow, spolu s platbou; dovtedy
+  // nemáme kam ju uložiť a nahrávať súbor človeku, ktorý za dve sekundy odíde,
+  // je platený prenos za nič. Do storu ju odovzdávame preto, aby ju flow
+  // našiel — `dogPhotoUrl` sa NEpersistuje (`partialize` v `dogyptStore.ts`),
+  // takže blob nemá ako prežiť reload a zostať visieť.
+  const [photo, setPhoto] = useState<string | null>(null);
+  // Tváre, ktoré sa v prázdnej dlaždici striedajú. Berú sa z psov NA GULI, nie
+  // z pevného zoznamu — dlaždica má ukazovať, kam sa človek pridáva.
+  const cycPhotos = dogs.slice(0, 12).map(d => d.photo).filter(Boolean);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  // ── PORTÁL A JEHO ISKRY ──────────────────────────────────────────────────
+  // Tvar aj iskry stavia components/gods/dogPortal.ts — tú istú dlaždicu kreslí
+  // aj stena, ktorá je vanilla DOM, takže tvar nesmie žiť v JSX.
+  // ⚠️ Slučku si drží TENTO komponent (frame(dt) sa volá zo step() nižšie).
+  // Druhá rAF slučka by si s otáčaním gule konkurovala o snímok.
+  const portalMountRef = useRef<HTMLSpanElement | null>(null);
+  const portalRef = useRef<HTMLElement | null>(null);
+  const portalApi = useRef<PortalHandle | null>(null);
+  const sparksRef = useRef<{ frame(dt: number): void } | null>(null);
+
+  // Portál sa stavia RAZ (a znova len keď sa vymení sada tvárí). Prestavba pri
+  // každom vykreslení by zahodila plátno aj s vyrovnávacou pamäťou iskier.
+  const facesKey = cycPhotos.join('|');
+  useEffect(() => {
+    const host = portalMountRef.current;
+    if (!host) return;
+    const p = buildPortal({
+      faces: cycPhotos,
+      onPick: () => fileRef.current?.click(),
+    });
+    host.appendChild(p.el);
+    portalApi.current = p;
+    portalRef.current = p.el;
+    sparksRef.current = createSparks(p.canvas);
+    return () => {
+      p.el.remove();
+      portalApi.current = null;
+      portalRef.current = null;
+      sparksRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facesKey]);
+
+  // Fotka sa prepisuje IMPERATÍVNE — jadro sa prekreslí, plátno iskier ostáva.
+  useEffect(() => { portalApi.current?.setPhoto(photo); }, [photo]);
+
+  // ⚠️ Blob sa pri odchode z komponentu ZÁMERNE NEUVOĽŇUJE. Odchod je práve to
+  // kliknutie na POKRAČOVAŤ — flow drží tú istú adresu v store a `revokeObjectURL`
+  // by mu ju v tej istej sekunde zabil. Pustí sa len starý blob pri výmene fotky.
+
+  const onPickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhoto((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(file); });
+    e.target.value = '';   // ten istý súbor sa musí dať vybrať druhýkrát
+  };
   // Naklonenie DOLE na severný pól: Hektorova dlaždica leží na vrchole vodorovne,
   // takže pri pohľade spredu je iba čiara. Kladné rotateX = pozeráme sa na guľu
   // zhora a vrchol je vidno. (Predtým tu bolo −14, teda pohľad zdola.)
@@ -373,6 +457,36 @@ export function DogPlanetLab({
   // aj vtedy, keď sa myš nehýbe — a `pointermove` vtedy nepríde. Bublinka sa preto
   // dopočítava z rAF slučky, nie z pohybu myši.
   const ptRef = useRef<{ x: number; y: number } | null>(null);
+  /**
+   * BEZI PRAVE SCROLL? (Matej 26. 8. 2026: *„v momente ako zacne scrol musia sa
+   * vypnut koty aj bublinky, aby to bolo plynule."*)
+   * Kota je najdrahsia vec na guli: `tickNotes` robi `elementFromPoint` nad 1000
+   * dlazdicami v 3D a potom `getBoundingClientRect` kazdej zivej kote — teda
+   * vynuteny prepocet rozlozenia 15x za sekundu, presne kym scroll potrebuje
+   * kazdy snimok. Preto kota pocas scrollu nevznika ani sa neposuva; zive sa
+   * zmazu hned na prvom ticku.
+   */
+  /**
+   * Koľko stupňov otočenia dá jeden pixel scrollu. 0.08 ⇒ bežný ťah prstom
+   * (~300 px) pootočí guľu o zhruba štvrť otáčky — cítiť to, ale nekrúti sa
+   * to divoko. Prechod filmu má tri obrazovky, teda za celý odchod gule to je
+   * necelá polovica otáčky.
+   */
+  const SCROLL_SPIN = 0.08;
+  const scrollingRef = useRef(false);
+  /**
+   * ⚠️ NIE JE TO LEN „PRÁVE SA SCROLLUJE". Znamená to „guľa nie je v pokoji",
+   * teda buď sa hýbe scroll, ALEBO stránka nestojí na vrchu.
+   * Prvá verzia stíšila len samotný ťah a Matej to 26. 8. 2026 vrátil so
+   * screenshotom odlietajúcej gule a živou bublinkou: *„pri scrole stale
+   * funguju koty aj bublinky… povedali sme si že nebudú."* Príčina bola v tom,
+   * že trackpad pri zastavení pošle drobný `pointermove` — a keďže sa kóty
+   * púšťali hneď, ako ťah dobehol, naskočili na guli, ktorá už odlietala.
+   * Guľa v prechode je odchádzajúca dekorácia; hoverovať sa na nej nemá čo.
+   * ⚠️ Väzba na `window.scrollY` je cielená na film (`/onepage`): na stene aj
+   * v LabShell scrolluje panel, nie okno, takže tam je scrollY vždy 0 a toto
+   * pravidlo nič nemení.
+   */
   const [picked, setPicked] = useState<PlanetDog | null>(null);
   // KDE sa detail otvorí — VYBRATÉ 25. 8. (Matej: „môžeš vymazať KDE, lebo
   // necháme bok na PC"). Prepínač aj možnosť `center` zanikli; trieda ostáva
@@ -490,6 +604,9 @@ export function DogPlanetLab({
   };
 
   const tickNotes = () => {
+    // Jedine miesto, kde sa scroll zohladnuje — volaju to rAF slucka aj
+    // pointermove, takze guard patri sem, nie do oboch volajucich.
+    if (scrollingRef.current) return;
     const now = performance.now();
     const pt = ptRef.current;
     let hoveredEl: HTMLElement | null = null;
@@ -558,6 +675,58 @@ export function DogPlanetLab({
     });
   };
 
+  // ── POČAS SCROLLU KOTY A BUBLINKY MLČIA ─────────────────────────
+  // Zive koty sa zmazu hned prvym tickom scrollu a nove nevznikaju, kym sa scroll
+  // nezastavi. Dovod je vykon (viz `scrollingRef`), ale je aj obsahovy: pri
+  // scrolle kurzor stoji a gula sa pod nim hybe, takze by z nej vyskakovali
+  // bublinky psov, ktorych si nikto nevybral.
+  //
+  // ⚠️ `capture: true` NIE JE ozdoba: scroll event NEBUBLA. V LabShell scrolluje
+  // panel `.lsh-scroll`, nie okno — bez zachytavania by tam listener nikdy
+  // nedostal ani jeden event a kota by sekala dalej.
+  //
+  // ⚠️ `ptRef` sa nuluje zamerne. Bez toho by v okamihu zastavenia scrollu
+  // vyskocila kota pod nehybnym kurzorom — teda tam, kam sa nikto nepozeral.
+  // Vrati sa az prvym pohybom ruky (`onMove` si `ptRef` nastavi sam).
+  useEffect(() => {
+    if (!open) return;
+    let t = 0;
+    /** Ticho platí, kým stránka nestojí na vrchu — nielen počas samotného ťahu. */
+    const TOP = 4;
+    scrollingRef.current = window.scrollY > TOP;
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      // ── SCROLL TOČÍ GUĽU (Matej 26. 8. 2026) ─────────────────────────────
+      // *„pri scrole sa planéta netočí len sa zasekne a ide dozadu — každý
+      // scrol rukou by mala točiť planétu."*
+      // Nie sú to dve animácie naraz: automatické otáčanie je počas ťahu
+      // vypnuté a otočenie preberá PRIAMO posun scrollu. Za snímok tak vzniká
+      // jedno prekreslenie, nie dve nezávislé (predtým bežal časovač na 60 fps
+      // a scroll popri ňom). Uhol sa NEVRACIA — pripočítava sa do toho istého
+      // `spinRef`, z ktorého potom pokračuje aj automatické otáčanie.
+      const y = window.scrollY;
+      spinRef.current.y += (y - lastY) * SCROLL_SPIN;
+      lastY = y;
+      if (!scrollingRef.current) {
+        scrollingRef.current = true;
+        ptRef.current = null;
+        setHot(null);
+        setNotes(prev => (prev.length ? [] : prev));
+      }
+      clearTimeout(t);
+      // 160 ms po poslednom pohybe — a aj potom len vtedy, ak si späť na vrchu.
+      // Kratsie a koty sa rozblikaju medzi ticmi kolieska; dlhsie a po zastaveni
+      // to vyzera, ze gula prestala reagovat.
+      t = window.setTimeout(() => { scrollingRef.current = window.scrollY > TOP; }, 160);
+    };
+    window.addEventListener('scroll', onScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      clearTimeout(t);
+      scrollingRef.current = false;
+    };
+  }, [open]);
+
   // Automatické otáčanie. Pauzuje počas ťahania a keď je overlay zavretý —
   // rAF slučka bežiaca na skrytej stránke je zbytočný žrút batérie.
   //
@@ -567,22 +736,44 @@ export function DogPlanetLab({
   // ⚠️ Zámerne len ~15× za sekundu (každý 4. snímok). `elementFromPoint` je nad
   // 1000 dlaždicami v 3D reálna práca a na plynulé čítanie mena stačí 15 Hz.
   useEffect(() => {
-    if (!open) return;
+    if (!open || paused) return;
     let raf = 0;
     let frame = 0;
     let last = performance.now();
+    let lastTf = '';
     const step = (now: number) => {
       const dt = now - last;
       last = now;
-      if (autoRef.current) spinRef.current.y += dt * 0.006;
+      // ⚠️ POČAS SCROLLU SA GUĽA NEHÝBE — a je to VÝKONOVÁ PODMIENKA, nie vkus.
+      // Kým sa gule mení otočenie, prehliadač musí celý 3D strom (stovky dlaždíc
+      // s fotkami) prekresliť nanovo v KAŽDOM snímku. Len čo otáčanie stojí,
+      // nakreslí si guľu RAZ a ďalej s ňou narába ako s jedným hotovým obrázkom:
+      // zmenšovanie aj miznutie potom robí grafická karta a scroll je zadarmo.
+      // Presne o to Matej žiadal (26. 8. 2026): *„z planétky sa stane jeden
+      // obrázok? proste musí to byť plynulé."*
+      // `last` sa aktualizuje aj tak, takže po zastavení sa guľa nerozbehne
+      // skokom o nazbieraný čas.
+      // Automatický pohyb sa počas ťahu NEPRIPOČÍTAVA — inak by sa sčítali dva
+      // zdroje otáčania a guľa by pod prstom uháňala.
+      if (!scrollingRef.current && autoRef.current) spinRef.current.y += dt * 0.006;
       const el = ballRef.current;
-      if (el) el.style.transform = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
-      if (++frame % 4 === 0) tickNotes();
+      const tf = `rotateX(${spinRef.current.x}deg) rotateY(${spinRef.current.y}deg)`;
+      // ⚠️ Zápis LEN PRI ZMENE. Keď guľa stojí (odletela a scroll sa nehýbe),
+      // opakovaný zápis tej istej hodnoty by ju držal v prekresľovaní zadarmo.
+      if (el && tf !== lastTf) { el.style.transform = tf; lastTf = tf; }
+      if (!scrollingRef.current && ++frame % 4 === 0) tickNotes();
+      // ⚠️ ISKRY IDÚ Z TEJ ISTEJ SLUČKY, ktorá otáča guľu — vlastný
+      // `requestAnimationFrame` by si s ňou konkuroval o ten istý snímok.
+      // A počas scrollu sa nekreslia z rovnakého dôvodu, pre ktorý vtedy stojí
+      // aj guľa: len čo sa prestane prekresľovať, prehliadač s prvou obrazovkou
+      // narába ako s hotovým obrázkom a scroll je zadarmo. Portál je vtedy aj
+      // tak zhasnutý (`HERO_OUT`), takže sa nemá čo stratiť.
+      if (!scrollingRef.current && !PORTAL_REDUCE_MOTION) sparksRef.current?.frame(Math.min(0.05, dt / 1000));
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [open, tiles, picked]);
+  }, [open, paused, tiles, picked]);
 
   /** Kóta v poslednej pol sekunde života — nech nezmizne skokom. */
   const noteGoing = (n: Note) => n.leftAt !== null && performance.now() - n.leftAt > NOTE_TTL - 500;
@@ -682,6 +873,32 @@ export function DogPlanetLab({
     if (!dog) setHot(null);
   };
 
+  /**
+   * Obdĺžnik CTA v súradniciach obrazovky — diera, ktorou vodiace čiary kót
+   * NEPREJDÚ (Matej 27. 8. 2026: *„kótové čiary a guličky... musia ísť popod
+   * a nenarušovať CTA"*).
+   * ⚠️ Číta sa pri KAŽDOM vykreslení kót, nie raz: portál mení šírku s oknom
+   * (`clamp`) a celá scéna má vlastnú mierku, takže zapamätaný obdĺžnik by sa
+   * s ním pri prvej zmene okna rozišiel a čiara by zase preťala lem.
+   * ⚠️ Presah lemu sa BERIE Z CSS (`--ph-rimin` + `--ph-rimw`), neopisuje sa —
+   * inak by hrúbka lemu a diera pre čiary boli dve nezávislé čísla.
+   * `offsetWidth` je nezmenšená šírka podľa rozloženia, `rect.width` už
+   * zmenšená — ich podiel je mierka scény.
+   */
+  const ctaMask = (() => {
+    const el = portalRef.current;
+    if (!el || !notes.length) return null;
+    const r = el.getBoundingClientRect();
+    if (!r.width) return null;
+    const cs = getComputedStyle(el);
+    const sc = r.width / (el.offsetWidth || r.width);
+    const px = (v: string) => parseFloat(cs.getPropertyValue(v)) || 0;
+    const out = (px('--ph-rimin') + px('--ph-rimw')) * sc;
+    const w = r.width + out * 2;
+    const h = r.height + out * 2;
+    return { x: r.x - out, y: r.y - out, w, h, r: w * ((px('--ph-r') || 24) / 100) };
+  })();
+
   return (
     <div
       className={`planet-root v-side d-${design} b-${bg}${open ? ' open' : ''}${picked ? ' pop' : ''}`}
@@ -728,7 +945,13 @@ export function DogPlanetLab({
           transition: transform 620ms cubic-bezier(.22,.9,.28,1), opacity 420ms ease;
           touch-action: none;
         }
-        .planet-root.open .planet-stage { transform: scale(1); opacity: 1; }
+        /* ⚠️ --op-sc je NÁSOBIČ, nie hotová mierka. Film (/onepage) ním guľu
+           posiela do diaľky; keby si zapisoval celý transform priamo na prvok,
+           prebil by KAŽDÉ pravidlo nižšie — vrátane toho, ktoré guľu odsúva
+           pri otvorení karty psa. Matej 26. 8. 2026: *„pri kliku na psa
+           planétu neodsunie dolava… prečo?"* Presne preto.
+           Mimo filmu je nenastavená a fallback 1 nechá pôvodné hodnoty. */
+        .planet-root.open .planet-stage { transform: scale(var(--op-sc, 1)); opacity: 1; }
 
         /* Šírka panela detailu má JEDEN zdroj — guľa sa podľa nej uhýba, takže
            dve nezávislé čísla by sa pri prvej zmene rozišli a panel by buď
@@ -805,30 +1028,199 @@ export function DogPlanetLab({
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 14px;
+          gap: 16px;
+          width: min(1320px, 94vw);
           text-align: center;
           pointer-events: none;
         }
-        .planet-hero::before {
-          content: '';
-          position: absolute;
-          inset: -110px -150px;
-          z-index: -1;
-          background: radial-gradient(ellipse at center, rgba(253,248,236,0.92) 26%, transparent 70%);
-          pointer-events: none;
-        }
-        .planet-hero img { width: 132px; height: auto; filter: brightness(0); }
-        .planet-hero .ph-tag {
+        /* ⚠️ ŽIADNA HMLA POD TEXTOM. Tu bol mliečny radial rgba(253,248,236,0.92)
+           s dosahom 110×150 px, ktorý mal udržať logo čitateľné nad otáčajúcimi
+           sa fotkami — Matej 26. 8.: *„prečo je logo aj CTA ako keby zahmlené
+           a nevýrazné?"*. Mal pravdu: na papyruse je to fľak, nie podklad.
+           Čitateľnosť teraz drží HALO OKOLO PÍSMEN (text-shadow), ktoré kopíruje
+           tvar textu namiesto toho, aby prekrylo kus gule. */
+        /* ⚠️ JEDEN RIADOK (Matej 26. 8.: „dajme to do jedného riadku a tagline
+           druhý riadok"). Veľkosť preto riadi ŠÍRKA OKNA, nie pevný strop —
+           pri nowrap by pevný rem na úzkom okne vystrčil text von z obrazovky.
+           Inkoust je plná farba, nie 0.90 alfa: cez fotky gule sa každé percento
+           priehľadnosti prejaví ako vyblednutie. */
+        .ph-h1 {
+          margin: 0;
+          white-space: nowrap;
           font-family: 'Cinzel', serif;
           font-weight: 700;
-          font-size: 0.74rem;
-          letter-spacing: 0.22em;
+          font-size: clamp(1.24rem, 5vw, 4.8rem);
+          line-height: 1.06;
+          letter-spacing: 0.005em;
           text-transform: uppercase;
-          color: rgba(35,22,8,0.62);
-          line-height: 1.7;
+          color: #23150a;
+          /* ⚠️ Dosah AJ HUSTOTA. Vrstvy už boli na alfe 1, takže „väčšie halo"
+             (Matej 26. 8.) sa dalo spraviť jedine širším rozostrením — a to je
+             presne to, čo prestalo stačiť: rozostrené svetlo je pri veľkom
+             polomere riedke a fotky gule cezeň presvitajú.
+             ⚠️ Preto sa 27. 8. (Matej: *„urob za písmenami výraznejšie halo nech
+             sa to lepšie číta"*) pridali BLÍZKE vrstvy, nie ďalšie ďaleké.
+             Vrstvy text-shadow sa SČÍTAVAJÚ: dve rozostrenia na 10 a 22 px
+             s alfou 1 dajú okolo písmen takmer nepriehľadné jadro, ktoré ďaleké
+             vrstvy nikdy nedosiahnu, nech sú akokoľvek široké. Ďaleké ostávajú
+             na to, aby halo nemalo viditeľnú hranu. */
+          /* ⚠️ 27. 8. druhé pritvrdenie (Matej: *„pridaj ešte halo nech je to
+             viac viditeľné"*). Pribudli ďalšie BLÍZKE vrstvy a alfa 1 sa
+             posunula až na 96 px — jadro je tým prakticky nepriehľadné. */
+          text-shadow:
+            0 0 6px rgba(253,248,236,1),
+            0 0 14px rgba(253,248,236,1),
+            0 0 28px rgba(253,248,236,1),
+            0 0 56px rgba(253,248,236,1),
+            0 0 96px rgba(253,248,236,1),
+            0 0 160px rgba(253,248,236,0.98),
+            0 0 240px rgba(253,248,236,0.85);
         }
-        .planet-hero .ph-tag b { color: #8C6014; font-weight: 700; }
-        .planet-hero .join-btn { pointer-events: auto; }
+        /* ⚠️ background shorthand resetuje background-clip — pri gradientovom
+           texte sa obe vlastnosti píšu spolu, inak z písmen vznikne plná plocha. */
+        /* ⚠️ ŽIADNY ZLATÝ GRADIENT DO PÍSMEN. LAB.goldText má strednú zarážku
+           #D8A93F — svetlejšiu než guľa pod textom, takže slovo v strede zmizne.
+           Nad fotkami drží jedine plná tmavá zlatá. Gradient si nechaj na povrchy,
+           kde je pod textom istá tmavá plocha. */
+        /* Riadok nadpisu = blok, ktorý sa NESMIE zalomiť. Toto je jediná
+           poistka proti tretiemu riadku — veľkosť písma ju len dopĺňa. */
+        .ph-h1 .ph-l { display: block; white-space: nowrap; }
+        /* ⚠️ .g, nie „každý span": riadky sú tiež spany a zozlatli by celé. */
+        /* 🔶 ODCHÝLKA OD BRAND MANUÁLU, VEDOMÁ (Matej 27. 8. 2026: *„v hero
+           nadpise skúsme dať dog a god decoratívom a hrubším"*). Brand v3.2
+           vyhradzuje Cinzel Decorative pre MENÁ PSOV na oficiálnych povrchoch
+           (DOG ID, certifikát, share karta, GodsGrid, PackTree). Tu ho nesú dve
+           slová v nadpise, teda sa signál „toto je meno psa" riedi. Povrch je
+           zatiaľ LAB, takže je to vratné jedným riadkom.
+           ⚠️ Váha 900 — Cinzel Decorative je načítaný LEN v 700 a 900, čokoľvek
+           iné by prehliadač dopočítal falošne. */
+        .ph-h1 .g {
+          color: #6E4A12;
+          font-family: 'Cinzel Decorative', 'Cinzel', serif;
+          font-weight: 900;
+          /* ⚠️ O 50 % SILNEJŠIE HALO NEŽ ZVYŠOK NADPISU (Matej 27. 8. 2026:
+             *„pridaj o 50% halo viac pri slove dog a god, aby sme to
+             zvýraznili"*). Každý polomer je 1,5× oproti .ph-h1 a jadro s alfou 1
+             siaha 144 px namiesto 96 — teda +50 % v dosahu aj v hustote.
+             ⚠️ PÍŠE SA CELÝ ZOZNAM, NIE PRÍDAVOK. text-shadow sa dedí, ale
+             nesčítava: deklarácia na .g nahradí zdedenú, takže vynechať vrstvu
+             znamená ju zmazať.
+             ⚠️ Tieň sa kreslí za písmenami TOHTO prvku, ale prekrýva glyfy
+             susedov vykreslené skôr (Your, IS). Preto sú blízke vrstvy len
+             1,5× a nie viac — nad tým začne zlaté slovo vybieľovať čierne
+             písmená vedľa seba. */
+          /* ⚠️ BIELE HALO, NIE ŽLTÉ (Matej 27. 8. 2026: *„chcem biele halo a
+             žiaru nie žltú, aby vyniklo to zlaté písmo, žiara pod nie cez"*).
+             Zlatý zážeh z predchádzajúceho pokusu ležal PRI písmenách a farbil
+             im okraje — zlato na zlate, takže písmo strácalo hranu namiesto
+             toho, aby vyniklo. */
+          text-shadow:
+            0 0 9px rgba(255,255,255,1),
+            0 0 21px rgba(255,255,255,1),
+            0 0 42px rgba(255,255,255,0.98),
+            0 0 84px rgba(253,248,236,0.9),
+            0 0 150px rgba(253,248,236,0.7);
+        }
+        /* ── ŽIARA POD SLOVOM, NIE CEZ NEHO ──────────────────────────────────
+           🔴 TOTO NIE JE text-shadow, A JE TO CELÝ ROZDIEL. Tieň textu sa
+           kreslí za vlastnými glyfmi, ale PRES glyfy susedov vykreslené skôr —
+           preto pôsobil „cez". Táto vrstva je samostatný prvok so záporným
+           z-indexom, teda sa vykreslí PRED celým obsahom hera: leží pod
+           písmenami DOG/GOD aj pod tými vedľa a ani jedno nezafarbí.
+           ⚠️ Prečo je čisto biela a nie papyrusová: základné halo nadpisu je
+           krémové (253,248,236). Pri čisto bielej sa mení ODTIEŇ, nie len jas —
+           a to je jediné, čo je na svetlom podklade vidieť (rozšíriť krémovú
+           krémovou nezaberá, odmerané: rozdiel 29 z 765 na pixel).
+           ⚠️ Rozmery v em — pool musí rásť so slovom, nie s oknom. */
+        .ph-h1 .g {
+          position: relative;
+        }
+        .ph-h1 .g::before {
+          content: '';
+          position: absolute;
+          left: -0.44em; right: -0.44em;
+          top: -0.60em; bottom: -0.52em;
+          z-index: -1;
+          pointer-events: none;
+          border-radius: 50%;
+          background: radial-gradient(closest-side,
+            rgba(255,255,255,0.98) 0%,
+            rgba(255,255,255,0.93) 36%,
+            rgba(255,255,255,0.64) 58%,
+            rgba(255,254,250,0.28) 76%,
+            rgba(255,254,250,0) 92%);
+        }
+        .planet-hero .ph-lead {
+          margin: 0;
+          /* Nad žiarou portálu. Žiara sa rozprestiera cez celé pole iskier,
+             teda aj pod tento riadok — a keďže portál je POZICOVANÝ a tagline
+             nie, portál by ho inak prekryl a slovo „missing" by vybledlo.
+             Iskry tak lietajú ZA písmom, čo je aj tak čitateľnejšie. */
+          position: relative;
+          z-index: 1;
+          /* Druhý riadok bloku — takisto bez zalomenia, inak by z dvojriadku
+             vznikol štvorriadok a rozloženie by sa vrátilo tam, odkiaľ išlo preč.
+             ⚠️ Space Grotesk je načítaný len do váhy 600 — vyššie je fake bold. */
+          white-space: nowrap;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: clamp(0.62rem, 1.65vw, 1.5rem);
+          line-height: 1.4;
+          color: ${LAB.ink};
+          /* To isté zhustenie ako pri nadpise — tagline stojí nad tými istými
+             fotkami a je o polovicu menší, takže riedke halo tu chýba ešte viac. */
+          text-shadow:
+            0 0 5px rgba(253,248,236,1),
+            0 0 12px rgba(253,248,236,1),
+            0 0 26px rgba(253,248,236,1),
+            0 0 52px rgba(253,248,236,1),
+            0 0 92px rgba(253,248,236,1),
+            0 0 150px rgba(253,248,236,0.9);
+        }
+
+        /* ── PORTÁL = CTA ────────────────────────────────────────────────────
+           Tvar aj iskry žijú v components/gods/dogPortal.ts — TÚ ISTÚ dlaždicu
+           kreslí aj stena (GodsGridLab), ktorá je vanilla DOM. Dve kópie by sa
+           rozišli pri prvej úprave, preto je tu len vloženie. */
+        ${PORTAL_CSS}
+        .planet-hero .join-btn, .planet-hero .ph-go { pointer-events: auto; }
+
+        /* ── TELEFÓN: NADPIS RASTIE ─────────────────────────────────────────
+           Pôvodne tu stálo, že „jeden riadok ustupuje veľkosti" — pri 390 px by
+           jednoriadkový nadpis mal ~19 px, teda opak toho, že má byť výrazný.
+           Od 27. 8. 2026 je nadpis dvojriadkový už aj na PC (tvrdý zlom v JSX),
+           takže tento blok rieši už len VEĽKOSŤ.
+           ⚠️ +50 % (Matej 27. 8.: *„a na mobile to zvačši o 50%"*) — násobia sa
+           všetky tri čísla clampu, nie len strop: na telefóne vyhráva stredný vw
+           člen, takže zmena samotného stropu by nebola vidieť.
+           ⚠️ VÝSLEDOK JE +44 %, NIE +50 %, A JE TO STROP DANÝ ŠÍRKOU TELEFÓNU.
+           Dlhší riadok „YOUR DOG IS" má v Cinzeli 700 šírku 7,17 em, takže pri
+           1,5× (12,9vw) potrebuje 92,5vw z 96vw, ktoré má k dispozícii — a to
+           je menej než rozdiel medzi tým, ako písmo vysadzuje prehliadač na
+           stole a na telefóne. Presne tam vznikol Matejov tretí riadok.
+           12,4vw necháva ~8vw vzduchu; nad ním už riadok nemá kam rásť bez
+           toho, aby vytiekol z obrazovky (zalomiť sa nemôže, je nowrap).
+           ⚠️ white-space na .ph-h1 tu už nič nerieši — o zalomení rozhodujú
+           riadkové bloky .ph-l, ktoré majú nowrap samy. */
+        @media (max-width: 720px) {
+          .ph-h1 {
+            white-space: normal;
+            font-size: clamp(2.4rem, 12.4vw, 4.35rem);
+            line-height: 1.04;
+          }
+          .planet-hero .ph-lead {
+            white-space: normal;
+            max-width: 24ch;
+            font-size: clamp(0.92rem, 3.7vw, 1.1rem);
+          }
+          /* ⚠️ 98vw, nie 92vw — nadpis potrebuje na telefóne každý pixel.
+             Rozšírené druhýkrát, keď DOG a GOD prešli do Cinzel Decorative:
+             tá je o ~2,8 % širšia než Cinzel, čo pri 96vw zožralo tretinu
+             rezervy (18 px namiesto 27 pri 390 px okne). Rezerva ~7 % je to
+             jediné, čo tu chráni pred pretečením — riadky sú nowrap, takže sa
+             zalomiť nemôžu a keď sa nezmestia, vytečú. */
+          .planet-hero { gap: 14px; width: 98vw; }
+        }
 
         /* ── KÓTY ────────────────────────────────────────────────────────────
            Bublinka odsadená od gule, spojená s fotkou tenkou vodiacou čiarou.
@@ -921,7 +1313,9 @@ export function DogPlanetLab({
         .pnote-body { min-width: 0; }
         .pnote-head {
           display: flex;
-          align-items: baseline;
+          /* Bolo baseline — s pilulkou a heroglyfom v rade nemá účaru na čom
+             stáť a rad sa rozsype. */
+          align-items: center;
           gap: 7px;
           margin-bottom: 3px;
         }
@@ -936,15 +1330,41 @@ export function DogPlanetLab({
           text-overflow: ellipsis;
           white-space: nowrap;
         }
-        /* Poradové číslo = dáta, teda Space Grotesk. */
+        /* Poradové číslo = dáta, teda Space Grotesk. Od 27. 8. 2026 v LAPISOVEJ
+           pilulke (Matej: *„ten hashtag dajme do lapisového chipu"*). Zlatý inkoust
+           na lapise nie je ozdoba — lapis + zlato je pôvodná egyptská dvojica a bez
+           písma je z pilulky len tmavá škvrna. Zdroj farieb: LAPIS v navGoldSkin,
+           neopisuj hodnoty. */
         .pnote-n {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 500;
-          font-size: 0.6rem;
+          font-size: 0.58rem;
           letter-spacing: 0.06em;
-          color: #8C6014;
           font-style: normal;
           flex-shrink: 0;
+          padding: 2px 7px 3px;
+          border-radius: 999px;
+          color: ${LAPIS.ink};
+          background: ${LAPIS.grad};
+          border: 1px solid ${LAPIS.edge};
+          box-shadow: ${LAPIS_CHIP_SHADOW};
+          line-height: 1;
+        }
+        /* Heroglyf psa vedľa čísla (Matej 27. 8. 2026: *„do blokov, ktoré sa
+           otvárajú po bokoch, by sme mohli pridať aj heroglyf vedľa #"*).
+           ⚠️ Výška je pevná a šírka auto — heroglyfy nemajú jednotný pomer strán
+           a pevná šírka by ich deformovala. brightness(0) je ten istý trik ako
+           na paneli detailu (.pp-glyph): glyf príde v ľubovoľnej farbe a na
+           papyruse musí byť čierny. */
+        .pnote-glyph {
+          height: 15px;
+          width: auto;
+          max-width: 40px;
+          display: block;
+          flex-shrink: 0;
+          pointer-events: none;
+          filter: brightness(0);
+          opacity: 0.85;
         }
         /* Odkaz majiteľa. Počet riadkov je z mriežky — bublinka má výšku svojej
            priehradky a text, ktorý by z nej vytiekol, by ju roztrhol. */
@@ -1398,7 +1818,7 @@ export function DogPlanetLab({
            panel rastie s oknom a pevný posun by ho pri širokom okne nechal
            ležať na psoch. */
         .planet-root.open.pop.v-side .planet-stage {
-          transform: translateX(calc(-1 * (var(--pw) / 2 + 40px))) scale(1);
+          transform: translateX(calc(-1 * (var(--pw) / 2 + 40px))) scale(var(--op-sc, 1));
         }
         /* NAV STENY IDE NAD PLANÉTU (Matej 25. 8.: „namiesto toho sem prehoď
            spodný nav aj vrchné"). Bar aj horné menu sú fixované na z-index 50,
@@ -1421,7 +1841,7 @@ export function DogPlanetLab({
 
         @media (max-width: 760px) {
           .planet-stage { transform: scale(1.75) translateZ(0); }
-          .planet-root.open .planet-stage { transform: scale(0.62); }
+          .planet-root.open .planet-stage { transform: scale(calc(0.62 * var(--op-sc, 1))); }
           .planet-hero img { width: 104px; }
 
           /* BOK sa na mobile mení na ZHORA (Matej 25. 8.: „na mobile z vrchu").
@@ -1433,7 +1853,7 @@ export function DogPlanetLab({
             transform: translateY(-102%);
           }
           .planet-root.pop.v-side .pp-panel { transform: translateY(0); }
-          .planet-root.open.pop.v-side .planet-stage { transform: translateY(124px) scale(0.62); }
+          .planet-root.open.pop.v-side .planet-stage { transform: translateY(124px) scale(calc(0.62 * var(--op-sc, 1))); }
 
           .planet-root .pp-panel { min-height: 0; }
         }
@@ -1460,16 +1880,71 @@ export function DogPlanetLab({
         >
           <TileField tiles={tiles} />
         </div>
+
         <div className="planet-shade" />
 
         <div className="planet-hero">
-          <img src="/images/dogypt-gold-logo.webp" alt="DOGYPT" />
-          <p className="ph-tag">
-            {t('wall.hero.taglineLead')}
-            <br />
-            <b>{t('wall.hero.taglineGod')}</b>
+          {/* Logo a tagline sa odtiaľto odsťahovali do pätičky filmu
+              (Matej 26. 8.: „Logo aj tagline preč — dáme to úplne dolu").
+              Prvá obrazovka teraz hovorí jedinú vec: pridaj svojho psa. */}
+          {/* Matej 27. 8. 2026: *„zmeň nadpis na hero (1 sekcia) aj tagline
+              YOUR DOG IS A GOD HERE. And we're still missing his face."*
+              Nahradilo „Dogs of the world, unite." + „We are building a world
+              of dogs…". Veta hovorí to isté v poradí, v akom to človek potrebuje:
+              najprv čo tu jeho pes JE, až potom čo od neho chceme.
+              ⚠️ Veľké písmená robí CSS (text-transform), nie tento zápis —
+              v zdroji ostáva veta čitateľná. */}
+          <h1 className="ph-h1">
+            {/* Matej 27. 8. 2026: *„nadpis daj do 2 riadkoch your dog is-"*,
+                po prvom pokuse *„na mobile to je v 3 riadkoch! (musí to byť na
+                2 max)"*.
+                🔴 PRETO SÚ RIADKY BLOKY S NOWRAP, NIE BR. Tvrdý zlom hovorí, KDE
+                sa riadok láme — nezakazuje ďalšie zalomenie. Na telefóne stačilo,
+                aby „YOUR DOG IS" bolo o pár pixelov širšie než okno (iné metriky
+                písma, iná šírka, systémová veľkosť textu) a vznikol tretí riadok.
+                Dva bloky s nowrap robia tretí riadok NEMOŽNÝM, nech je písmo
+                akokoľvek veľké. Delí sa po „is" — druhý riadok nesie celé
+                tvrdenie „a god here". */}
+            <span className="ph-l">Your <span className="g">dog</span> is</span>
+            <span className="ph-l">a <span className="g">god</span> here.</span>
+          </h1>
+          <p className="ph-lead">
+            And we&rsquo;re still missing his face.
           </p>
-          <a href="/entry" className="join-btn">{t('wall.hero.cta')}</a>
+
+          {/* ── PORTÁL ───────────────────────────────────────────────────
+              Matej 27. 8. 2026: *„chcem aby sme ten portál rozanimovali, niečo
+              v duchu doktora Strangeho… toto musí byť silný prvok, klikateľný"*.
+              Tvar vyladený v `plany/portal-lab.html` — tam sa aj ďalej ladí.
+
+              🔴 LEM A ISKRY MUSIA BYŤ MIMO TLAČIDLA. Jadro má `overflow: hidden`
+              (drží v sebe cyklujúce tváre), takže čokoľvek, čo má presahovať von,
+              by v ňom bolo orezané.
+              🔴 ISKRY KRESLÍ PLÁTNO, NIE DOM. Pod portálom sa točí guľa s ~1000
+              dlaždicami v 3D; 500 DOM prvkov navyše by ju zabilo. A plátno sa
+              prekresľuje z TEJ ISTEJ slučky, ktorá otáča guľu — druhý
+              `requestAnimationFrame` by si s ňou konkuroval o snímok. */}
+          <span className="ph-mount" ref={portalMountRef} />
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="ph-add-file"
+            onChange={onPickPhoto}
+          />
+
+          {photo && (
+            <button
+              type="button"
+              className="join-btn ph-go"
+              onClick={() => {
+                useDogyptStore.getState().setDogPhotoUrl(photo);
+                navigate('/heroglyph/name');
+              }}
+            >
+              Continue
+            </button>
+          )}
         </div>
       </div>
 
@@ -1479,6 +1954,29 @@ export function DogPlanetLab({
           detail: dva popisky toho istého psa naraz sú šum, nie informácia. */}
       {notes.length > 0 && !picked && mriezka && (
         <svg className="pn-leads" width="100%" height="100%" aria-hidden="true">
+          {/* 🔴 DIERA V TVARE CTA. Matej 27. 8. 2026: *„kótové čiary a guličky idú
+              cez ten tmavý blok (CTA), musia ísť popod a nenarušovať CTA"*.
+              Prečo maska a nie z-index: svg je `position: fixed` v koreni scény,
+              kým portál sedí v `.planet-stage`, ktorá je vlastný stackingový
+              kontext (má transform). Portál sa teda nad svg nemá ako dostať —
+              zdvihnúť by sa musela CELÁ guľa aj s dlaždicami, a tie by potom
+              zakryli kóty. Maska je jediné miesto, kde sa to dá povedať presne.
+              ⚠️ Rozmery sa čítajú AŽ TU, nie pri vzniku kóty: portál mení šírku
+              s oknom (`clamp`) a scéna má vlastnú mierku. */}
+          {ctaMask && (
+            <defs>
+              <mask id="pn-cta-hole" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
+                <rect x="0" y="0" width="100%" height="100%" fill="#fff" />
+                <rect
+                  x={ctaMask.x} y={ctaMask.y}
+                  width={ctaMask.w} height={ctaMask.h}
+                  rx={ctaMask.r} ry={ctaMask.r}
+                  fill="#000"
+                />
+              </mask>
+            </defs>
+          )}
+          <g mask={ctaMask ? 'url(#pn-cta-hole)' : undefined}>
           {notes.map(n => {
             // Čiara končí na hrane priehradky otočenej ku guli, nie na súradnici
             // uloženej pri vzniku — bublinka sa po zmene okna presunie a čiara
@@ -1498,6 +1996,7 @@ export function DogPlanetLab({
               </g>
             );
           })}
+          </g>
         </svg>
       )}
 
@@ -1529,6 +2028,9 @@ export function DogPlanetLab({
             <div className="pnote-head">
               <span className="pnote-name">{n.dog.name}</span>
               {n.dog.n != null && <i className="pnote-n">#{n.dog.n}</i>}
+              {n.dog.heroglyph && (
+                <img className="pnote-glyph" src={n.dog.heroglyph} alt="" draggable={false} />
+              )}
             </div>
             <p className="pnote-msg">{n.dog.message || (n.dog.n === 1 ? t('wall.hektor.msg') : '')}</p>
           </div>
