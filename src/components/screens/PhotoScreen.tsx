@@ -6,25 +6,13 @@ import { Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDogyptStore } from '@/store/dogyptStore';
 import { PageTopBar } from '@/components/PageTopBar';
-import imageCompression from 'browser-image-compression';
 import hekthorImg from '@/assets/hekthor.png';
+import { compressFile } from '@/lib/photoIntake';
 import { uploadMainPhoto, uploadExtraPhoto } from '@/services/cloudinaryService';
 import { useT } from '@/i18n/LanguageContext';
 import { track } from '@/lib/analytics';
 
 /* ───── helpers ───── */
-
-async function compressFile(file: File): Promise<{ url: string; blob: Blob }> {
-  const compressed = await imageCompression(file, {
-    maxSizeMB: 0.4,
-    maxWidthOrHeight: 1200,
-    fileType: 'image/webp',
-    initialQuality: 0.85,
-    useWebWorker: true,
-    exifOrientation: 1,
-  });
-  return { url: URL.createObjectURL(compressed), blob: compressed };
-}
 
 function getImageDimensions(url: string): Promise<{ w: number; h: number }> {
   return new Promise((res) => {

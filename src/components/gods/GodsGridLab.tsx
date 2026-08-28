@@ -31,6 +31,8 @@ import { gridTileUrl } from '@/services/cloudinaryService';
 import { Seo } from '@/components/Seo';
 import { DogPlanetLab, type PlanetDog } from './DogPlanetLab';
 import { PORTAL_CSS, PORTAL_REDUCE_MOTION, buildPortal, createSparks } from './dogPortal';
+import { openPhotoConfirm } from './photoConfirm';
+import { intakePhoto } from '@/lib/photoIntake';
 import { useToast } from '@/hooks/use-toast';
 import { shareDog, downloadCard, facebookShare, whatsappShare, copyDogLink } from '@/lib/useShareCard';
 import { dogPagePath } from '@/lib/dogSlug';
@@ -1161,9 +1163,31 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       // neskôr: *„tá info o počte daj ju naspodok toho bloku do pilsu ale
       // outline nie plného"*). Tvar je to, čo ho odlíši od odseku: veta o fotke
       // ostáva textom, číslo dostane rám a klesne naspodok.
+      // ── PO VÝBERE FOTKY VYSKOČÍ NAŠA KARTA, NIE ROVNO FLOW (28. 8. 2026) ─
+      // Matej: *„po kliknutí na cta by mal vyskočiť náš popup nie systémový…
+      // zobrazí sa po načítaní fotky."* Tvar stavia `photoConfirm.ts`.
+      // ⚠️ Keď už fotka vybratá je, dlaždica NEOTVÁRA znova výber súboru, ale tú
+      // istú kartu — kto ju zavrel krížikom, by sa inak k tlačidlu POKRAČOVAŤ
+      // nedostal a jediné, čo by mu ostalo, je vybrať fotku znova.
+      let pickedUrl: string | null = null;
+      const openPicker = () => { file.value = ''; file.click(); };
+      const showConfirm = (url: string) => {
+        track('wall_photo_confirm_shown');
+        openPhotoConfirm({
+          photoUrl: url,
+          packNumber: nextPackNo(),
+          onContinue: () => {
+            track('cta_become_dogyptian_click', { location: 'wall_enroll_b' });
+            navigate('/heroglyph/name');
+          },
+          onPickAnother: () => { track('wall_photo_confirm_another'); openPicker(); },
+          onClose: () => track('wall_photo_confirm_dismissed'),
+        });
+      };
+
       const portal = buildPortal({
         faces,
-        onPick: () => file.click(),
+        onPick: () => (pickedUrl ? showConfirm(pickedUrl) : openPicker()),
         note: '(you can change the photo later)',
         subnote: `<span class="ph-nopill">Yours will be <b>#${nextPackNo()}</b></span>`,
       });
@@ -1200,13 +1224,16 @@ export function GodsGridLab({ embedded = false, ctaMode = false, ctaLabel, ctaHr
       file.addEventListener('change', () => {
         const f = file.files?.[0];
         if (!f) return;
-        const url = URL.createObjectURL(f);
-        portal.setPhoto(url);
+        // `intakePhoto` zapíše adresu do storu a na pozadí spustí nahrávanie na
+        // Cloudinary. Dovtedy sa fotka vybratá na stene niesla ako `blob:` až po
+        // /heroglyph/crop, teda pätnásť krokov — kto odišiel medzitým, nemal
+        // fotku nikde, hoci ju už dal.
         // ⚠️ Blob sa ZÁMERNE neuvoľňuje — tú istú adresu drží store pre ďalší krok
         // flow a revokeObjectURL by mu ju v tej istej sekunde zabil.
-        useDogyptStore.getState().setDogPhotoUrl(url);
-        track('cta_become_dogyptian_click', { location: 'wall_enroll_b' });
-        navigate('/heroglyph/name');
+        const { previewUrl } = intakePhoto(f);
+        pickedUrl = previewUrl;
+        portal.setPhoto(previewUrl);
+        showConfirm(previewUrl);
       });
 
       el.append(portal.el, file);
