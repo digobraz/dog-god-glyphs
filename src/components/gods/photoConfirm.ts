@@ -36,7 +36,21 @@ export type PhotoConfirmOptions = {
   onContinue: () => void;
   /** Klik na „vybrať inú" — otvor znova výber súboru. Popup sa zavrie. */
   onPickAnother: () => void;
-  /** Zavretie krížikom, Esc alebo klikom mimo. Fotka na dlaždici ostáva. */
+  /**
+   * Odchod z karty: Esc alebo klik mimo. Fotka na dlaždici ostáva.
+   *
+   * ⚠️ KRÍŽIK KARTA NEMÁ (Matej 28. 8. 2026: *„nedávajme tie krížiky na bloky"*).
+   * Von sa ide klikom mimo alebo Esc — na mobile klikom mimo, tam Esc nie je.
+   *
+   * 🚩 SEM PRÍDE ODCHODOVÝ POPUP (Matej 28. 8., znenie sa vymyslí neskôr):
+   * *„pri kliknutí vedľa stránka pošle popup ako posielajú eshopy pri odchode…
+   * niečo v zmysle «chápem že máš toho veľa, ale nechcem aby si zabudol, skús to
+   * keď budeš mať viac času, zanechaj nám email :)»"*.
+   * Je to druhá záchranná sieť k tomu, čo už funguje: e-mail sa dnes pýtame až
+   * na treťom kroku flow (/heroglyph/email), takže kto odíde TU, nezanechá nič —
+   * a fotku už pritom dal. Ku dnešku sa preto len meria, koľkí odchádzajú
+   * (`*_photo_confirm_dismissed`), aby sa vedelo, či sa to oplatí stavať.
+   */
   onClose?: () => void;
   /**
    * ⚠️ Texty sú zatiaľ ANGLICKÉ NATVRDO, rovnako ako celá dlaždica portálu
@@ -53,7 +67,6 @@ export type PhotoConfirmCopy = {
   lead: string;
   cta: string;
   another: string;
-  close: string;
 };
 
 const DEFAULT_COPY: PhotoConfirmCopy = {
@@ -61,7 +74,6 @@ const DEFAULT_COPY: PhotoConfirmCopy = {
   lead: 'Three minutes and your dog is on the wall.',
   cta: 'Continue',
   another: 'Choose another photo',
-  close: 'Close',
 };
 
 const STYLE_ID = 'photo-confirm-css';
@@ -104,18 +116,6 @@ const CSS = `
   transition: transform .18s ease-out;
 }
 .pfc-back.is-in .pfc-card { transform: scale(1); }
-
-.pfc-x {
-  position: absolute; top: 8px; right: 8px;
-  width: 30px; height: 30px;
-  display: flex; align-items: center; justify-content: center;
-  border: 0; background: none; cursor: pointer;
-  color: ${T.inkWarm}; opacity: .6;
-  border-radius: 999px;
-  transition: opacity .15s ease-out;
-}
-.pfc-x:hover { opacity: 1; }
-.pfc-x svg { width: 15px; height: 15px; }
 
 /* Náhľad má TVAR DLAŽDICE, z ktorej vyskočil — zaoblený štvorec, nie kruh.
    Kruh by sľuboval výrez do kruhu, ktorý tu zámerne nie je. Zaoblenie 24 %
@@ -192,9 +192,6 @@ function ensureCss() {
   document.head.appendChild(s);
 }
 
-const X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" '
-  + 'stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-
 export type PhotoConfirmHandle = { close: () => void };
 
 /** Otvor kartu potvrdenia. Vracia rúčku, ktorou sa dá zavrieť zvonku. */
@@ -218,7 +215,6 @@ export function openPhotoConfirm(opts: PhotoConfirmOptions): PhotoConfirmHandle 
     : '';
 
   card.innerHTML = `
-    <button type="button" class="pfc-x" aria-label="${copy.close}">${X_SVG}</button>
     <span class="pfc-shot"><img src="${opts.photoUrl}" alt=""></span>
     ${num}
     <p class="pfc-lead">${copy.lead}</p>
@@ -242,7 +238,6 @@ export function openPhotoConfirm(opts: PhotoConfirmOptions): PhotoConfirmHandle 
   const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
 
   back.addEventListener('click', (e) => { if (e.target === back) close(); });
-  card.querySelector<HTMLButtonElement>('.pfc-x')?.addEventListener('click', () => close());
   card.querySelector<HTMLButtonElement>('.pfc-alt')?.addEventListener('click', () => {
     close(false);
     opts.onPickAnother();
