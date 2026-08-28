@@ -105,7 +105,7 @@ export function PaymentScreen() {
         return;
       }
       // Same inputs as WelcomeScreen → deterministic, matches the certificate the buyer sees.
-      // selections.country = dog's country (set on /name screen, FIX3). Never fall back to
+      // selections.country = dog's country (set on /heroglyph/about screen, FIX3). Never fall back to
       // owner country — that would silently push owner's billing country into heroglyph pos 15.
       const heroglyphCode = buildHeroglyphCode({
         dogName,

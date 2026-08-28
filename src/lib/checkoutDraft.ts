@@ -39,7 +39,13 @@ export function saveCheckoutDraft(emailVal: string, lang: string): void {
       ownerName: s.ownerName,
       email: emailVal.trim(),
       selections: s.selections,
-      dogPhotoUrl: s.dogPhotoUrl,
+      // ⚠️ blob: URL žije len v tomto tabe — v DB je z neho mŕtvy obrázok na stene,
+      // v certifikáte aj v maile na dokončenie. Nastáva to bežne: kto vstúpi cez
+      // dlaždicu na stene, nesie fotku ako blob až po výrez (/heroglyph/crop),
+      // teda dávno za e-mailovým krokom, ktorý draft ukladá. Radšej žiadna fotka
+      // než mŕtva — doplní sa pri ďalšom uložení draftu z checkoutu.
+      // (`cloudinaryExtras` o riadok nižšie to filtruje od začiatku.)
+      dogPhotoUrl: s.dogPhotoUrl && !s.dogPhotoUrl.startsWith('blob:') ? s.dogPhotoUrl : '',
       cloudinaryExtras: s.extraPhotos.filter((u) => u && !u.startsWith('blob:')),
       patronSvg: s.patronSvg,
       patronSvg2: s.patronSvg2,

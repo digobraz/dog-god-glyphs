@@ -235,7 +235,8 @@ export default function PackDogDetail() {
 
   // Profile panel ref — po otvorení smooth-scroll naň (najmä mobile, kde je pod Prayers).
 
-  // Hlavné foto (avatar) — zmena updatuje cloudinary_main_url; grid/cert re-bake = coming soon.
+  // Hlavné foto (avatar) — zmena updatuje cloudinary_main_url a hneď volá handleRegenerate(),
+  // takže sa prepečie aj certifikát a share karta (viď onMainPhotoPicked nižšie).
   const mainPhotoInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadingMain, setUploadingMain] = useState(false);
 
@@ -916,10 +917,17 @@ export default function PackDogDetail() {
               {dog.cloudinary_main_url ? (
                 <img src={dog.cloudinary_main_url} alt={dogName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
               ) : (
+                /* Prázdny kruh musí POZÝVAŤ, nie konštatovať. Od 28. 8. 2026 sa dá fotka
+                   vo flow preskočiť, takže psi bez tváre vznikajú bežne — a jediné, čo
+                   sem dovtedy pozývalo, bola kamera pod hoverom. Na mobile hover nie je,
+                   takže 89 % ľudí nemalo z čoho vyčítať, že kruh je tlačidlo.
+                   ⚠️ Text ostáva na kľúči `pack.dog.noPhoto` (preložený v 18 jazykoch) —
+                   pozvanie nesie IKONKA, nie nové anglické slovo v 16 jazykoch. */
                 <div
-                  className="flex items-center justify-center h-full"
-                  style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.2em' }}
+                  className="flex flex-col items-center justify-center h-full"
+                  style={{ color: T.inkFaint, fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.2em', gap: 4 }}
                 >
+                  <Camera className="h-4 w-4" aria-hidden="true" />
                   {t('pack.dog.noPhoto')}
                 </div>
               )}

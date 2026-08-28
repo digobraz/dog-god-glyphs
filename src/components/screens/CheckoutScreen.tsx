@@ -45,7 +45,7 @@ export function CheckoutScreen() {
   const [billStreet, setBillStreet] = useState('');
   const [billCity, setBillCity] = useState('');
   const [billZip, setBillZip] = useState('');
-  // billCountry = owner's billing country (NOT dog's country — that lives in selections.country set on /name)
+  // billCountry = owner's billing country (NOT dog's country — that lives in selections.country set on /heroglyph/about)
   const [country, setCountry] = useState('');
   const [showCountries, setShowCountries] = useState(false);
 
@@ -110,27 +110,54 @@ export function CheckoutScreen() {
   }, [email]);
   // ──────────────────────────────────────────────────────────────────────────
 
-  const isValid =
-    firstName.trim() &&
-    lastName.trim() &&
-    isEmailValid &&
-    billStreet.trim() &&
-    billCity.trim() &&
-    billZip.trim() &&
-    country.trim();
+  // ── PREČÍTAJ POLE Z DOM, NIE ZO STAVU (2026-08-28) ────────────────────────
+  // Nahrávka odchodu (PostHog 01a0041c) ukazuje človeka, ktorý formulár vyplnil,
+  // klikol POKRAČOVAŤ a **Priezvisko mu sčervenelo, hoci vyplnené bolo** — potom
+  // sa vrátil a už neprišiel. Príčinu z kódu dokázať nevieme, ale celá tá trieda
+  // chýb má jeden tvar: prehliadač (autofill, správca hesiel, iOS kontaktná karta)
+  // zapíše hodnotu priamo do `input.value` bez udalosti, ktorú by React zachytil.
+  // Pole je vtedy VIDITEĽNE vyplnené a stav prázdny — presne to, čo videl on.
+  //
+  // Namiesto hádania príčiny sa pri odosielaní pýtame DOM-u, teda toho istého
+  // zdroja, na ktorý sa pozerá človek. Ak sa hodnoty líšia, stav sa dorovná.
+  // ⚠️ Validuje sa NAD `v.*`, nie nad stavom — `setState` je asynchrónny a v tom
+  // istom kliku by sme si znova prečítali staré prázdno.
+  const domValues = () => ({
+    firstName: (firstNameRef.current?.value ?? firstName).trim(),
+    lastName:  (lastNameRef.current?.value  ?? lastName).trim(),
+    email:     (emailRef.current?.value     ?? email).trim(),
+    billStreet:(billStreetRef.current?.value?? billStreet).trim(),
+    billCity:  (billCityRef.current?.value  ?? billCity).trim(),
+    billZip:   (billZipRef.current?.value   ?? billZip).trim(),
+    country:   (countryRef.current?.value   ?? country).trim(),
+  });
 
   const handleContinue = () => {
-    if (!isValid) {
+    const v = domValues();
+    // Dorovnanie stavu — aby sa pole po kliku prestalo tváriť ako prázdne aj v Reacte.
+    if (v.firstName !== firstName.trim()) setFirstName(v.firstName);
+    if (v.lastName !== lastName.trim()) setLastName(v.lastName);
+    if (v.email !== email.trim()) setLocalEmail(v.email);
+    if (v.billStreet !== billStreet.trim()) setBillStreet(v.billStreet);
+    if (v.billCity !== billCity.trim()) setBillCity(v.billCity);
+    if (v.billZip !== billZip.trim()) setBillZip(v.billZip);
+    if (v.country !== country.trim()) setCountry(v.country);
+
+    const validNow =
+      !!v.firstName && !!v.lastName && EMAIL_RE.test(v.email.toLowerCase()) &&
+      !!v.billStreet && !!v.billCity && !!v.billZip && !!v.country;
+
+    if (!validNow) {
       // Nájdi prvé chýbajúce/nevalidné pole v poradí ako sú vo formulári,
       // scrollni naň + zafokusuj + zvýrazni, namiesto tichého no-op.
       const fields: Array<[string, boolean, typeof firstNameRef]> = [
-        ['firstName', !!firstName.trim(), firstNameRef],
-        ['lastName', !!lastName.trim(), lastNameRef],
-        ['email', isEmailValid, emailRef],
-        ['billStreet', !!billStreet.trim(), billStreetRef],
-        ['billCity', !!billCity.trim(), billCityRef],
-        ['billZip', !!billZip.trim(), billZipRef],
-        ['country', !!country.trim(), countryRef],
+        ['firstName', !!v.firstName, firstNameRef],
+        ['lastName', !!v.lastName, lastNameRef],
+        ['email', EMAIL_RE.test(v.email.toLowerCase()), emailRef],
+        ['billStreet', !!v.billStreet, billStreetRef],
+        ['billCity', !!v.billCity, billCityRef],
+        ['billZip', !!v.billZip, billZipRef],
+        ['country', !!v.country, countryRef],
       ];
       const firstInvalid = fields.find(([, valid]) => !valid);
       if (firstInvalid) {
@@ -145,19 +172,19 @@ export function CheckoutScreen() {
     setInvalidField(null);
     setShowValidationMsg(false);
     setSelectedAmount(11);
-    setEmail(email);
+    setEmail(v.email);
     // Save billing info to selections.* — create-checkout reads these and
     // maps to DB bill_* columns. bill_name is the payer's legal name (separate
     // from owner_name/OwnerInfoScreen cartouche name). selections.country (dog's
-    // country) is intentionally NOT set here — it was set on /name screen.
-    setSelection('billName', `${firstName.trim()} ${lastName.trim()}`);
-    setSelection('billStreet', billStreet.trim());
-    setSelection('billCity', billCity.trim());
-    setSelection('billZip', billZip.trim());
-    setSelection('billCountry', country.trim());
+    // country) is intentionally NOT set here — it was set on /heroglyph/about screen.
+    setSelection('billName', `${v.firstName} ${v.lastName}`);
+    setSelection('billStreet', v.billStreet);
+    setSelection('billCity', v.billCity);
+    setSelection('billZip', v.billZip);
+    setSelection('billCountry', v.country);
     // Zustand set je synchrónny → getState() v saveDraft už vidí bill*.
     // Update draftu s fakturačnými údajmi (fire-and-forget, nečakáme).
-    saveDraft(email);
+    saveDraft(v.email);
     navigate('/payment');
   };
 
@@ -268,10 +295,10 @@ export function CheckoutScreen() {
               }}
             >
               <div className="flex gap-1.5">
-                <input ref={firstNameRef} aria-invalid={invalidField === 'firstName'} type="text" placeholder={t('heroglyph.checkout.firstName')} value={firstName} onChange={(e) => { setFirstName(e.target.value); clearInvalid('firstName'); }} className={fieldClass('firstName')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
-                <input ref={lastNameRef} aria-invalid={invalidField === 'lastName'} type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => { setLastName(e.target.value); clearInvalid('lastName'); }} className={fieldClass('lastName')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+                <input ref={firstNameRef} aria-invalid={invalidField === 'firstName'} type="text" placeholder={t('heroglyph.checkout.firstName')} value={firstName} onChange={(e) => { setFirstName(e.target.value); clearInvalid('firstName'); }} className={fieldClass('firstName')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="given-name" />
+                <input ref={lastNameRef} aria-invalid={invalidField === 'lastName'} type="text" placeholder={t('heroglyph.checkout.lastName')} value={lastName} onChange={(e) => { setLastName(e.target.value); clearInvalid('lastName'); }} className={fieldClass('lastName')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="family-name" />
               </div>
-              <input ref={emailRef} aria-invalid={invalidField === 'email'} type="email" placeholder={t('heroglyph.checkout.email')} value={email} onChange={(e) => { setLocalEmail(e.target.value); clearInvalid('email'); }} className={fieldClass('email')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} />
+              <input ref={emailRef} aria-invalid={invalidField === 'email'} type="email" placeholder={t('heroglyph.checkout.email')} value={email} onChange={(e) => { setLocalEmail(e.target.value); clearInvalid('email'); }} className={fieldClass('email')} style={{ fontFamily: "'Space Grotesk', sans-serif" }} autoComplete="email" />
               {email.trim() && !isEmailValid && (
                 <p className="text-[11px] text-red-400/80 px-1 -mt-0.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
                   Enter a valid email address
