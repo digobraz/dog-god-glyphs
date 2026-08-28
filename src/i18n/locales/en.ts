@@ -213,7 +213,7 @@ export const en = {
   'heroglyph.flow.photo.skip': "I'll add a photo later",
   'heroglyph.flow.name.uniqueLine': 'Thousands of dogs share that name. None of them will share the symbol.',
   'heroglyph.flow.email.title': 'Where should we send it?',
-  'heroglyph.flow.email.reason': "Building {dogName}'s symbol takes about three minutes. Leave your e-mail so you never have to start over — and we'll send the finished heroglyph to you.",
+  'heroglyph.flow.email.reason': "Building {dogName}'s heroglyph takes about three minutes. Leave your e-mail so the design doesn't get lost — we'll send you the finished one.",
   'heroglyph.flow.email.placeholder': 'your@email.com',
   'heroglyph.flow.email.skip': 'Skip for now',
   'heroglyph.flow.about.title': 'Where is {dogName} from?',
@@ -757,9 +757,16 @@ export const en = {
   // Riadok NAD mottom vo filme (/onepage). Nie je to nadpis — je to veta
   // o čitateľovi: motto pod ňou nie je cudzie vyznanie, ale jeho vlastné.
   // ⚠️ JEDEN RIADOK a čo najkratšie (Matej 28. 8. 2026: „chcem ho údernejší,
-  // oddelený horizontálkou, v jednom riadku a čo najkratší"). Znenie sa ešte
-  // bude ladiť — *„tomu sa ešte povenujeme"*.
-  'religion.preamble.eyebrow': 'You already believe this.',
+  // oddelený horizontálkou, v jednom riadku a čo najkratší").
+  // 🔒 ZNENIE ODKLEPNUTÉ 28. 8. 2026 — Matej: *„namiesto «you already believe
+  // this» dať «This is our motto. do you agree with that?»"*. Skrátené o
+  // „with that" (otáznik to nesie) a odsúhlasené. Pôvodné „You already believe
+  // this." čitateľovi TVRDILO, čo si myslí; otázka mu to PONÚKNE a nechá ho
+  // prikývnuť — to je synkretická logika DOGMY (nadstavba, nie prevrat) aj
+  // CTA ako pozvánka. Otáznik zároveň otvára prísahu a CTA pod sebou.
+  // ⚠️ Preložené je len do SK a CS (Matej: *„aj v CZ minimálne, iné jazyky
+  // zatiaľ nemeňme"*) — zvyšných 15 jazykov padá sem, teda ukazuje EN otázku.
+  'religion.preamble.eyebrow': 'This is our motto. Do you agree?',
   'religion.preamble.oath': 'The Oath of the Pack',
   'religion.preamble.readCta': 'Read the Bible for dog lovers',
 

@@ -588,6 +588,8 @@ export const cs: Partial<Dict> = {
   // ── /religion — preambule ──
   'religion.preamble.text':
     'My, národ pejskařů — vnímajíce <strong>nekonečnou oddanost</strong>, <strong>pravou lásku</strong> a <strong>čistou duši</strong> každého psa na světě — abychom upevnili postavení psů v lidské společnosti, vytvořili jim <strong>podpůrnou komunitu</strong>, <strong>zlepšili</strong> jim životy a <strong>změnili</strong> osud každého psa v nouzi, dáváme si tuto ústavu.',
+  // Znenie odklepnuté 28. 8. 2026 spolu so SK — viď komentár v en.ts.
+  'religion.preamble.eyebrow': 'Toto je naše motto. Souhlasíš?',
   'religion.preamble.oath': 'Přísaha smečky',
 
   // ── /religion — sacred index ──
@@ -652,7 +654,7 @@ export const cs: Partial<Dict> = {
   'whatNext.close': 'Zavřít',
   'whatNext.prev': 'Předchozí',
   'whatNext.next': 'Dál',
-  'whatNext.motto': "Ve psa věříme.",
+  'whatNext.motto': "Věříme ve psa.",
   'whatNext.s1.title': 'První krok',
   'whatNext.s1.hook': 'Malý krok pro člověka — obrovský skok pro psí rod.',
   'whatNext.s1.body': 'Tvůj Heroglyph tě právě prohlásil součástí hnutí, které ctí psy po celém světě. <b>První krok je hotový.</b>',
@@ -966,15 +968,19 @@ export const cs: Partial<Dict> = {
   "heroglyph.flow.dogCharacter.slide.gourmet.desc": "Žrádlo je mise. Plné nasazení, nula váhání — a sní i to, co ty ne.",
   "heroglyph.flow.dogCharacter.slide.lover.desc": "Cizí člověk pro něj neexistuje. Pošťáka vítá jako dávno ztraceného spřízněnce. Pokaždé.",
   "heroglyph.flow.dogCharacter.slide.chiller.desc": "Ovládl prastaré umění nedělat absolutně nic — a krásně.",
+  // CS ide slovesom napred rovnako ako SK (Matej 28. 8. 2026: „aj v CZ
+  // minimálne"). Zlato drží .grad, teda PSA — príznak ho len presunie na
+  // koniec vety, nemení, čo svieti.
   "religion.preamble.headlineGrad": "Ve psa",
-  "religion.preamble.headlineLine": "věříme",
+  "religion.preamble.headlineLine": "Věříme",
+  "religion.preamble.headlineVerbFirst": "1",
   "religion.book.titleThe": "",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Ústava",
-  "religion.book.trust": "Ve psa věříme",
+  "religion.book.trust": "Věříme ve psa",
   "legal.eyebrow": "DOGYPT · Právní",
-  "legal.motto": "DOGYPT · Ve psa věříme",
-  "about.footer.motto": "Ve psa věříme.",
+  "legal.motto": "DOGYPT · Věříme ve psa",
+  "about.footer.motto": "Věříme ve psa.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog

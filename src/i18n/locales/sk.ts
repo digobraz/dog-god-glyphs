@@ -162,7 +162,7 @@ export const sk: Partial<Dict> = {
   'heroglyph.flow.photo.skip': 'Fotku pridám neskôr',
   'heroglyph.flow.name.uniqueLine': 'To meno nosia tisíce psov. Symbol už žiadny z nich mať nebude.',
   'heroglyph.flow.email.title': 'Kam ti to máme poslať?',
-  'heroglyph.flow.email.reason': 'Poskladať symbol pre psa {dogName} trvá asi tri minúty. Nechaj mail, nech nemusíš začínať odznova — a hotový heroglyf ti pošleme.',
+  'heroglyph.flow.email.reason': 'Poskladať heroglyf pre psa {dogName} trvá asi tri minúty. Nechaj mail, nech sa ti dizajn nestratí — hotový ti ho pošleme.',
   'heroglyph.flow.email.placeholder': 'tvoj@email.sk',
   'heroglyph.flow.email.skip': 'Zatiaľ preskočiť',
   'heroglyph.flow.about.title': 'Odkiaľ {dogName} je?',
@@ -626,7 +626,7 @@ export const sk: Partial<Dict> = {
   // ── /religion — preambula (preklad doslovne z canonical ústavy) ──
   'religion.preamble.text':
     'My, národ psíčkarov — vnímajúc <strong>nekonečnú oddanosť</strong>, <strong>pravú lásku</strong> a <strong>čistú dušu</strong> každého psa na svete — aby sme upevnili postavenie psov v ľudskej spoločnosti, vytvorili im <strong>podpornú komunitu</strong>, <strong>zlepšili</strong> im životy a <strong>zmenili</strong> osud každého psa v núdzi, dávame si túto ústavu.',
-  'religion.preamble.eyebrow': 'Toto už veríš.',
+  'religion.preamble.eyebrow': 'Toto je naše motto. Súhlasíš?',
   'religion.preamble.oath': 'Prísaha svorky',
   'religion.preamble.readCta': 'Prečítaj si „Bibliu“ pre psíčkarov',
 
@@ -697,7 +697,7 @@ export const sk: Partial<Dict> = {
   'whatNext.close': 'Zavrieť',
   'whatNext.prev': 'Predošlý',
   'whatNext.next': 'Ďalší',
-  'whatNext.motto': "V psa veríme.",
+  'whatNext.motto': "Veríme v psa.",
   'whatNext.s1.title': 'Prvý Krok',
   'whatNext.s1.hook': 'Jeden malý krok pre človeka — jeden obrovský skok pre psí rod.',
   'whatNext.s1.body': 'Tvoj Heroglyph práve vyhlásil, že si súčasťou hnutia, ktoré uctíva psy na celom svete. <b>Prvý krok je za tebou.</b>',
@@ -1034,10 +1034,16 @@ export const sk: Partial<Dict> = {
   "religion.book.titleThe": "",
   "religion.book.titleBrand": "Dogypt",
   "religion.book.titleConstitution": "Ústava",
-  "religion.book.trust": "V psa veríme",
+  // Matej 28. 8. 2026: *„veríme v psa znie lepšie v sk, inak in dog we trust
+  // zostáva v eng"* ⇒ SK motto je VŠADE slovesom napred. Predtým sa film
+  // („VERÍME V PSA") a dokumenty („V psa veríme") rozchádzali — dva tvary tej
+  // istej vety na jednej stránke sa nečítajú ako rytmus, ale ako nedorobené.
+  // ⚠️ EN „In Dog We Trust" sa NEPREHADZUJE (narážka na „In God We Trust"
+  // + je zapečená v obálke a pečati).
+  "religion.book.trust": "Veríme v psa",
   "legal.eyebrow": "DOGYPT · Právne",
-  "legal.motto": "DOGYPT · V psa veríme",
-  "about.footer.motto": "V psa veríme.",
+  "legal.motto": "DOGYPT · Veríme v psa",
+  "about.footer.motto": "Veríme v psa.",
 
   // ── PACK (klientská zóna) i18n — 2026-06-24 ──
   // pack.dog
