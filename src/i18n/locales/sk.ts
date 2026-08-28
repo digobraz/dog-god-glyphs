@@ -627,6 +627,13 @@ export const sk: Partial<Dict> = {
   'religion.preamble.text':
     'My, národ psíčkarov — vnímajúc <strong>nekonečnú oddanosť</strong>, <strong>pravú lásku</strong> a <strong>čistú dušu</strong> každého psa na svete — aby sme upevnili postavenie psov v ľudskej spoločnosti, vytvorili im <strong>podpornú komunitu</strong>, <strong>zlepšili</strong> im životy a <strong>zmenili</strong> osud každého psa v núdzi, dávame si túto ústavu.',
   'religion.preamble.eyebrow': 'Toto je naše motto. Súhlasíš?',
+  'religion.spot.hint': 'Začalo to týmto psom.',
+  'religion.spot.body':
+    'Nikto ho nechcel. Rok čakal za plotom útulku — a potom založil náboženstvo.',
+  'religion.spot.ageOne': 'Hekthor má dnes {n} rok.',
+  'religion.spot.ageFew': 'Hekthor má dnes {n} roky.',
+  'religion.spot.ageMany': 'Hekthor má dnes {n} rokov.',
+
   'religion.preamble.oath': 'Prísaha svorky',
   'religion.preamble.readCta': 'Prečítaj si „Bibliu“ pre psíčkarov',
 

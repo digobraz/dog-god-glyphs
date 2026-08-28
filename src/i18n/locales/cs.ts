@@ -590,6 +590,13 @@ export const cs: Partial<Dict> = {
     'My, národ pejskařů — vnímajíce <strong>nekonečnou oddanost</strong>, <strong>pravou lásku</strong> a <strong>čistou duši</strong> každého psa na světě — abychom upevnili postavení psů v lidské společnosti, vytvořili jim <strong>podpůrnou komunitu</strong>, <strong>zlepšili</strong> jim životy a <strong>změnili</strong> osud každého psa v nouzi, dáváme si tuto ústavu.',
   // Znenie odklepnuté 28. 8. 2026 spolu so SK — viď komentár v en.ts.
   'religion.preamble.eyebrow': 'Toto je naše motto. Souhlasíš?',
+  'religion.spot.hint': 'Začalo to tímto psem.',
+  'religion.spot.body':
+    'Nikdo ho nechtěl. Rok čekal za plotem útulku — a pak založil náboženství.',
+  'religion.spot.ageOne': 'Hekthor má dnes {n} rok.',
+  'religion.spot.ageFew': 'Hekthor má dnes {n} roky.',
+  'religion.spot.ageMany': 'Hekthor má dnes {n} let.',
+
   'religion.preamble.oath': 'Přísaha smečky',
 
   // ── /religion — sacred index ──

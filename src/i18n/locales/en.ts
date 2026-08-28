@@ -767,6 +767,20 @@ export const en = {
   // ⚠️ Preložené je len do SK a CS (Matej: *„aj v CZ minimálne, iné jazyky
   // zatiaľ nemeňme"*) — zvyšných 15 jazykov padá sem, teda ukazuje EN otázku.
   'religion.preamble.eyebrow': 'This is our motto. Do you agree?',
+  // ── /onepage — Hektorov hotspot (bledá bodka na hrudi, klik = bublina) ──
+  // Matej 28. 8. 2026: „this dog started alebo niečo na ten spôsob" +
+  // „dať tam len 1-3 vety a jeho vek, today má 10 rokov".
+  // ⚠️ VEK SA DOPĹŇA AKO {n} — nikdy sa nepíše do vety natvrdo, inak od jeho
+  // ďalších narodenín text ticho klame. Zdroj dátumu: src/lib/hektor.ts.
+  // Tvary One/Few/Many sú kvôli slovanským jazykom (1 rok · 2 roky · 5 rokov);
+  // v EN sú všetky tri rovnaké zámerne, aby kľúč existoval pre každý jazyk.
+  'religion.spot.hint': 'This dog started it.',
+  'religion.spot.body':
+    'Nobody wanted him. He waited a year behind a shelter fence — and then started a religion.',
+  'religion.spot.ageOne': 'Hekthor is {n} today.',
+  'religion.spot.ageFew': 'Hekthor is {n} today.',
+  'religion.spot.ageMany': 'Hekthor is {n} today.',
+
   'religion.preamble.oath': 'The Oath of the Pack',
   'religion.preamble.readCta': 'Read the Bible for dog lovers',
 

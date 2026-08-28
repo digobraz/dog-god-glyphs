@@ -27,6 +27,7 @@ import { PageTopBarLab } from '@/components/PageTopBarLab';
 import { LAB } from '@/lib/labTheme';
 import ConstitutionBook from '@/components/religion/ConstitutionBook';
 import CodexHalo from '@/components/lab/CodexHalo';
+import HektorSpot, { HEKTOR_SPOT_CSS } from '@/components/lab/HektorSpot';
 import { Seo } from '@/components/Seo';
 
 /**
@@ -275,6 +276,20 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
         <CodexHalo who="hektor" />
         <img src="/images/codex3-hektor-v1.png" alt="" className="codex-hektor" />
       </div>
+
+      {/* ── LESK A BODKA LEN VO FILME ────────────────────────────────────────
+          🔴 VLASTNÁ VRSTVA VEDĽA BLEEDU, NIE V ŇOM. Bleed má z-index 1 a obsah
+          filmu leží nad ním (napr. .codex-3-overlay má 2), takže bodka vnútri
+          bleedu bola VIDNO, ale klik na ňu chytal text nad ňou — overené
+          nástrojom, ktorý ohlásil, že cieľ prekrýva .codex-slider.
+          Cenou je, že vrstva nezdedí --op-split; nastavuje sa jej preto zvlášť
+          v OnePage a obe LOCKED pravidlá pohybu psa ju majú v zozname
+          selektorov (jedno pravidlo, dva selektory — nie kópia). */}
+      {flow && (
+        <div className="codex-spotlayer">
+          <HektorSpot />
+        </div>
+      )}
 
       <style>{`
         /* ── LAB: papyrusový podklad (tokeny = @/lib/labTheme, zhodné s WALL LABom).
@@ -1211,6 +1226,8 @@ export default function ReligionLab({ embedded = false, flow = false, onOpenBook
           color: #6E4A12;
         }
         .lab-papyrus .cb-hint-dot { background: #A3782B; box-shadow: none; }
+
+        ${HEKTOR_SPOT_CSS}
 
         .codex-bleed:not(.active) { opacity: 0.26; }
         .codex-bleed { transition: opacity 420ms ease; }

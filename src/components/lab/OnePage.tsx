@@ -210,6 +210,18 @@ const OATH_IN: readonly [number, number] = [0.84, 0.94];
 /** CTA do ústavy — posledné, čo na obrazovku príde. */
 const CTA_IN: readonly [number, number] = [0.88, 1.0];
 /**
+ * HEKTOROV HOTSPOT — lesk po psovi a bledá bodka na hrudi.
+ * Matej 28. 8. 2026: *„po načítaní cta osvietil hektora ako je osvietená
+ * dogma… nič okaté ale viditeľné"*.
+ *
+ * ⚠️ ÚSEK JE ÚMYSELNE AŽ NA KONCI DRÁHY a navyše má v CSS oneskorenie
+ * (.codex-shine 320 ms, .codex-spot 480 ms). „Po načítaní CTA" sa inak nedá
+ * splniť: CTA dobieha presne na 1.0, čo JE odpočívadlo, takže za ním už žiadna
+ * dráha nezostáva. Poradie tu teda nerobí scroll, ale čas — rovnako ako
+ * svätožiara na samostatnej /religion-lab.
+ */
+const SPOT_IN: readonly [number, number] = [0.94, 1.0];
+/**
  * KRAVA BLEDNE, HEKTOR NIE (Matej: *„krava začne blednúť hneď pri 3. sekcii
  * a načítaní prvého obsahu, zostane viditeľná, ale bude vyblednutá"*).
  * Bledne PRED rozdelením — najprv ustúpi farbou, potom ju rozdelenie vytlačí
@@ -288,7 +300,8 @@ export default function OnePage() {
     let n: {
       planetRoot?: HTMLElement | null; stage?: HTMLElement | null; pHero?: HTMLElement | null;
       wall?: HTMLElement | null; ab?: HTMLElement | null;
-      bleed?: HTMLElement | null; overlay?: HTMLElement | null; pre?: HTMLElement | null;
+      bleed?: HTMLElement | null; spot?: HTMLElement | null;
+      overlay?: HTMLElement | null; pre?: HTMLElement | null;
       planet?: HTMLElement | null; film?: HTMLElement | null;
       dock?: HTMLElement | null;
     } = {};
@@ -305,6 +318,9 @@ export default function OnePage() {
         wall: q<HTMLElement>('.op-planet [role="application"]'),
         ab: q<HTMLElement>('.op-planet .ab-switch'),
         bleed: q<HTMLElement>('#op-religion .codex-bleed'),
+        // Vrstva s Hektorovým hotspotom. Stojí VEDĽA bleedu (nad obsahom filmu,
+        // inak sa na bodku nedá kliknúť), takže premenné dostáva vlastným zápisom.
+        spot: q<HTMLElement>('#op-religion .codex-spotlayer'),
         overlay: q<HTMLElement>('#op-religion .codex-section[data-idx="0"] .codex-3-overlay'),
         // Preambula: všetky štyri premenné druhého prechodu sedia na JEDNOM
         // prvku (nadpis, rám, text aj prísaha sú jeho deti) — štyri zápisy
@@ -410,6 +426,21 @@ export default function OnePage() {
       put(n.pre, 'ik', '--op-ink', seg(q, INK_IN[0], INK_IN[1]).toFixed(3));
       put(n.pre, 'oa', '--op-oath', seg(q, OATH_IN[0], OATH_IN[1]).toFixed(3));
       put(n.pre, 'ct', '--op-cta', seg(q, CTA_IN[0], CTA_IN[1]).toFixed(3));
+      // Hotspot sedí na BLEEDE, nie na preambule — svieti pes, nie text.
+      // 🔴 A PRETO POTREBUJE AJ ODCHOD. Zvieratá žijú celý film, takže `q`
+      // ostane na 1.0 aj dávno za preambulou a bodka by svietila cez víziu,
+      // o nás aj join. Preambula sama tento problém nemá — odchádza aj
+      // s obsahom. Odchod je krátky: film ide ďalej a hotspot patrí k výjavu,
+      // ktorý sa práve skončil.
+      // ⚠️ ODCHOD MÁ ODKLAD O ŠTVRŤ OBRAZOVKY. Bez neho začína hasnutie presne
+      // tam, kde nábeh končí (obe hranice sú `span + span2`), takže bodka mala
+      // plnú silu v JEDINOM bode dráhy — odmerané: 4500 px plná, 4800 px nula,
+      // pri kroku 100 px sa to nedalo ani zachytiť. Odklad drží bodku celú na
+      // odpočívadle, kde človek naozaj stojí a číta CTA.
+      const spotOut = clamp01((window.scrollY - span - span2 - vh * 0.25) / (vh * 0.35));
+      const spot = seg(q, SPOT_IN[0], SPOT_IN[1]) * (1 - ease(spotOut));
+      put(n.bleed, 'sp3', '--op-spot', spot.toFixed(3));
+      put(n.spot, 'sp4', '--op-spot', spot.toFixed(3));
 
       // ── ROZDELENIE OBRAZOVKY ──────────────────────────────────────────
       // Jedna hodnota ženie tri veci naraz, a to je celý zmysel: text ide
@@ -424,6 +455,9 @@ export default function OnePage() {
       // ruší v koreni: text a pes prestali stáť na tom istom mieste.
       put(n.pre, 'sp', '--op-split', seg(q, SPLIT_IN[0], SPLIT_IN[1]).toFixed(3));
       put(n.bleed, 'sp2', '--op-split', seg(q, SPLIT_IN[0], SPLIT_IN[1]).toFixed(3));
+      // Vrstva s bodkou stojí vedľa bleedu, takže --op-split nezdedí — dostáva ho
+      // zvlášť. Bez toho by pri rozdelení ostala stáť, kým sa pes nakláňa a rastie.
+      put(n.spot, 'sp5', '--op-split', seg(q, SPLIT_IN[0], SPLIT_IN[1]).toFixed(3));
       // BLEDNE UŽ LEN KRAVA (viď COW_OUT). Hektor si drží farbu po celý film —
       // spoločné stlmenie oboch zaniklo spolu so štvrtým obrazom.
       put(n.bleed, 'cw', '--op-cow', (1 - (1 - COW_DIM) * seg(q, COW_OUT[0], COW_OUT[1])).toFixed(3));
@@ -697,7 +731,7 @@ export default function OnePage() {
         /* Krava a Hektor prichádzajú posunom — nech ho tiež robí karta a nie
            prepočet rozloženia (Matej: *„krava a pes sa tiež načítavajú plynule"*). */
         .op-root.op-root .codex-bleed .codex-cow,
-        .op-root.op-root .codex-bleed .codex-hektor { will-change: transform; }
+        .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor { will-change: transform; }
         /* „Stráca sa DO POZADIA" — guľa aj text sa pritom vzdialia. Škáluje sa
            len obsah scény, nie .op-planet: v ňom visí aj spodná lišta, ktorá sa
            zmenšovať nesmie. */
@@ -1115,7 +1149,7 @@ export default function OnePage() {
            oneskorenie a zvieratá by za prstom kĺzali. Plynulosť tu nerobí
            prechod, ale to, že hodnotu mení scroll v každom snímku. */
         .op-root.op-root .codex-bleed .codex-cow,
-        .op-root.op-root .codex-bleed .codex-hektor { transition: none; }
+        .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor { transition: none; }
         /* ── ROZDELENIE: PES RASTIE DO PRIESTORU, KRAVA IDE Z OBRAZU ──────
            Matej 28. 8. 2026: *„po zjavení nadpisu sa pes nakloní a zväčší do
            priestoru a text sa snipne na ľavú stranu a kravu vytlačí mimo obraz
@@ -1138,7 +1172,7 @@ export default function OnePage() {
         .op-root.op-root .codex-bleed .codex-cow {
           transform: translateX(calc(var(--op-in, 0) * -120%)) scale(1.14);
         }
-        .op-root.op-root .codex-bleed .codex-hektor {
+        .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
           transform: translateX(calc(var(--op-in, 0) * 120%)) scale(1.08);
         }
         @media (min-width: 768px) {
@@ -1149,7 +1183,7 @@ export default function OnePage() {
               var(--op-in, 0) * -120% - var(--op-split, 0) * 140%
             )) scale(1.14);
           }
-          .op-root.op-root .codex-bleed .codex-hektor {
+          .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
             transform:
               translateX(calc(var(--op-in, 0) * 120%))
               rotate(calc(var(--op-split, 0) * -4deg))
@@ -1164,7 +1198,7 @@ export default function OnePage() {
           .op-root.op-root .codex-bleed .codex-cow {
             transform: translateX(calc(var(--op-in, 0) * -120%)) scale(1.377);
           }
-          .op-root.op-root .codex-bleed .codex-hektor {
+          .op-root.op-root :is(.codex-bleed, .codex-spotlayer) .codex-hektor {
             transform: translateX(calc(var(--op-in, 0) * 120%)) scale(1.352);
           }
         }
